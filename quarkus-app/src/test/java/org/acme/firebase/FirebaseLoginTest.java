@@ -34,6 +34,6 @@ public class FirebaseLoginTest {
             .when().get("/protected")
             .then()
             .statusCode(200)
-            .body(containsString("alice"));
+            .body(containsString("Bienvenido alice"));
     }
 }
