@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventflow
+  namespace: eventflow
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: eventflow
+  template:
+    metadata:
+      labels:
+        app: eventflow
+    spec:
+      containers:
+        - name: eventflow
+          image: quay.io/sergio_canales_e/eventflow:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:+UseContainerSupport"

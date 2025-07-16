@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eventflow
+  namespace: eventflow
+spec:
+  type: ClusterIP
+  selector:
+    app: eventflow
+  ports:
+    - port: 8080
+      targetPort: 8080
