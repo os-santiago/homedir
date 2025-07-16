@@ -1,0 +1,41 @@
+name: Build Native
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-native:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build native binary
+        run: mvn clean package -Pnative -Dquarkus.native.container-build=true -f quarkus-app/pom.xml
+
+      - name: Build Docker image
+        run: |
+          docker build -f quarkus-app/src/main/docker/Dockerfile.native -t quay.io/sergio_canales_e/eventflow:latest .
+
+      - name: Push Docker image
+        env:
+          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        run: |
+          echo "$QUAY_PASSWORD" | docker login quay.io -u "$QUAY_USERNAME" --password-stdin
+          docker push quay.io/sergio_canales_e/eventflow:latest
