@@ -18,6 +18,7 @@ public class GreetingResource {
     Template login;
 
     @Inject
+    @io.quarkus.qute.Location("protected")
     Template protectedPage;
 
     @Inject
