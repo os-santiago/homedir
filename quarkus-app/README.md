@@ -77,3 +77,17 @@ native executable:
 After getting a cup of coffee, you'll be able to run this executable directly:
 
 > ./target/getting-started-1.0.0-SNAPSHOT-runner
+
+## Firebase Login Demo
+
+1. Configure your Firebase project values in `src/main/resources/application.properties` (`firebase.api-key`, `firebase.auth-domain`, `firebase.project-id`).
+2. Start the application in dev mode:
+
+```bash
+mvn quarkus:dev
+```
+
+3. Open [http://localhost:8080/login](http://localhost:8080/login) and authenticate with Google.
+4. After successful login the ID token is sent in the `Authorization` header to `/protected` and the backend validates it with Firebase using Quarkus OIDC.
+5. The protected page displays the authenticated user name.
+

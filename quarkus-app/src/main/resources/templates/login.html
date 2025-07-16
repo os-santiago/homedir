@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+<h1>Login con Google</h1>
+<button id="loginBtn">Iniciar sesión</button>
+<script>
+    const firebaseConfig = {
+        apiKey: "{apiKey}",
+        authDomain: "{authDomain}",
+        projectId: "{projectId}"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const provider = new firebase.auth.GoogleAuthProvider();
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const result = await firebase.auth().signInWithPopup(provider);
+        const token = await result.user.getIdToken();
+        const res = await fetch('/protected', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        document.open();
+        document.write(await res.text());
+        document.close();
+    });
+</script>
+</body>
+</html>
