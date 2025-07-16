@@ -1,6 +1,6 @@
 package org.acme.firebase;
 
-import io.quarkus.qute.Template;
+import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -14,12 +14,11 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Path("/")
 public class GreetingResource {
 
-    @Inject
-    Template login;
-
-    @Inject
-    @io.quarkus.qute.Location("protected")
-    Template protectedPage;
+    @CheckedTemplate
+    public static class Templates {
+        public static native TemplateInstance login(String apiKey, String authDomain, String projectId);
+        public static native TemplateInstance protectedPage(String name);
+    }
 
     @Inject
     SecurityIdentity identity;
@@ -37,9 +36,7 @@ public class GreetingResource {
     @Path("login")
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance login() {
-        return login.data("apiKey", apiKey)
-                .data("authDomain", authDomain)
-                .data("projectId", projectId);
+        return Templates.login(apiKey, authDomain, projectId);
     }
 
     @GET
@@ -47,6 +44,6 @@ public class GreetingResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance protectedPage() {
-        return protectedPage.data("name", identity.getPrincipal().getName());
+        return Templates.protectedPage(identity.getPrincipal().getName());
     }
 }
