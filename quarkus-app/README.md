@@ -26,14 +26,14 @@ for help setting up your environment.
 
 Launch the Maven build on the checked out sources of this demo:
 
-> ./mvnw package
+> mvn package
 
 ### Live coding with Quarkus
 
 The Maven Quarkus plugin provides a development mode that supports
 live coding. To try this out:
 
-> ./mvnw quarkus:dev
+> mvn quarkus:dev
 
 This command will leave Quarkus running in the foreground listening on port 8080.
 
@@ -53,7 +53,7 @@ conventional jar file.
 
 First compile it:
 
-> ./mvnw package
+> mvn package
 
 Then run it:
 
@@ -72,7 +72,7 @@ Compiling a native executable takes a bit longer, as GraalVM performs additional
 steps to remove unnecessary codepaths. Use the  `native` profile to compile a
 native executable:
 
-> ./mvnw package -Dnative
+> mvn package -Dnative
 
 After getting a cup of coffee, you'll be able to run this executable directly:
 
