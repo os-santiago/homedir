@@ -26,11 +26,16 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build native binary
-        run: mvn clean package -Pnative -Dquarkus.native.container-build=true -f quarkus-app/pom.xml
+        working-directory: quarkus-app
+        run: mvn clean package -Pnative -Dquarkus.native.container-build=true
+
+      - name: Verify native binary exists
+        run: ls quarkus-app/target/*-runner
 
       - name: Build Docker image
+        working-directory: quarkus-app
         run: |
-          docker build -f quarkus-app/src/main/docker/Dockerfile.native -t quay.io/sergio_canales_e/eventflow:latest .
+          docker build -f src/main/docker/Dockerfile.native -t quay.io/sergio_canales_e/eventflow:latest .
 
       - name: Push Docker image
         env:
