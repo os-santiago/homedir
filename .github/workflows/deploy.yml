@@ -15,7 +15,7 @@ jobs:
       SERVICE_ACCOUNT_NAME: github-actions-deployer
       GKE_CLUSTER_NAME: eventflow-cluster
       GKE_ZONE: us-central1
-      GKE_NAMESPACE: acofitec
+      GKE_NAMESPACE: eventflow
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
