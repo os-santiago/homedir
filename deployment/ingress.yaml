@@ -5,10 +5,11 @@ metadata:
   namespace: eventflow
   annotations:
     kubernetes.io/ingress.class: gce
+    networking.gke.io/static-ip: "eventflow"
 spec:
   ingressClassName: gce
   rules:
-    - host: eventflow.example.com
+    - host: eventflow.opensourcesantiago.io
       http:
         paths:
           - path: /
