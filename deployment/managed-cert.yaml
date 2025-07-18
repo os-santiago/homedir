@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: eventflow-cert
+  namespace: eventflow
+spec:
+  domains:
+    - eventflow.opensourcesantiago.io
