@@ -13,10 +13,11 @@
 #
 # docker run -i --rm -p 8080:8080 quarkus/getting-started
 #
-# The ` registry.access.redhat.com/ubi9/ubi-minimal:9.5` base image is based on UBI 9.
-# To use UBI 8, switch to `quay.io/ubi8/ubi-minimal:8.10`.
+# The `registry.access.redhat.com/ubi9/ubi-minimal:9.5` base image provides
+# GLIBC 2.34+ and is compatible with binaries built on newer systems. If you
+# require UBI 8, use `quay.io/ubi8/ubi-minimal:8.10`.
 ###
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5
 WORKDIR /work/
 RUN microdnf install -y curl && microdnf clean all
 COPY target/*-runner /work/application
