@@ -20,14 +20,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Write GCP credentials
+        env:
+          GCP_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+        run: echo "$GCP_SERVICE_ACCOUNT_KEY_JSON" | base64 -d > "$HOME/key.json"
+
       - name: Authenticate to Google Cloud
         run: |
-          echo "$GCP_SERVICE_ACCOUNT_KEY_JSON" > "$HOME/key.json"
           gcloud auth activate-service-account --key-file="$HOME/key.json"
           gcloud config set project "$PROJECT_ID"
           gcloud config set compute/zone "$GKE_ZONE"
-        env:
-          GCP_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
       - name: Configure kubectl
         run: |
