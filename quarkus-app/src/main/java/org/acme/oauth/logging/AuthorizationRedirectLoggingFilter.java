@@ -5,6 +5,7 @@ import java.io.IOException;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
@@ -24,7 +25,7 @@ public class AuthorizationRedirectLoggingFilter implements ContainerResponseFilt
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         if (responseContext.getStatusInfo().getFamily() == Response.Status.Family.REDIRECTION) {
-            String location = responseContext.getHeaderString(javax.ws.rs.core.HttpHeaders.LOCATION);
+            String location = responseContext.getHeaderString(HttpHeaders.LOCATION);
             if (location != null && !location.isEmpty()) {
                 LOG.infov("Redirecting user to authorization endpoint: {0}", location);
             }

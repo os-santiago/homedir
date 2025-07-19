@@ -35,7 +35,12 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
         IdTokenCredential idToken = identity.getCredential(IdTokenCredential.class);
         if (idToken != null) {
             LOG.infov("ID Token: {0}", idToken.getToken());
-            LOG.infov("ID Token claims: {0}", idToken.getClaims());
+            String token = idToken.getToken();
+            String[] parts = token.split("\\.");
+            if (parts.length >= 2) {
+                String claimsJson = new String(java.util.Base64.getUrlDecoder().decode(parts[1]), java.nio.charset.StandardCharsets.UTF_8);
+                LOG.infov("ID Token claims: {0}", claimsJson);
+            }
         }
 
         AccessTokenCredential accessToken = identity.getCredential(AccessTokenCredential.class);
