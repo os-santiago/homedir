@@ -1,4 +1,4 @@
-package org.acme.firebase;
+package org.acme.oauth;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -8,32 +8,32 @@ import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-public class FirebaseLoginTest {
+public class OAuthLoginTest {
 
     @Test
     public void loginPageLoads() {
         given()
-            .when().get("/login")
+            .when().get("/login.html")
             .then()
             .statusCode(200)
-            .body(containsString("Login con Google"));
+            .body(containsString("Sign in with Google"));
     }
 
     @Test
-    public void protectedUnauthorized() {
+    public void privateUnauthorized() {
         given()
-            .when().get("/protected")
+            .when().get("/private.html")
             .then()
-            .statusCode(401);
+            .statusCode(302);
     }
 
     @Test
     @TestSecurity(user = "alice")
-    public void protectedAuthorized() {
+    public void privateAuthorized() {
         given()
-            .when().get("/protected")
+            .when().get("/private.html")
             .then()
             .statusCode(200)
-            .body(containsString("Bienvenido alice"));
+            .body(containsString("alice"));
     }
 }
