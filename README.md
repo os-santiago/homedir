@@ -2,6 +2,22 @@
 
 Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
 
-This demo uses Google Sign-In (OAuth 2.0) through Quarkus OIDC. Provide your OAuth credentials via the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` environment variables.
+This demo uses Google Sign-In (OAuth 2.0) through Quarkus OIDC. Provide your OAuth credentials via the following environment variables:
 
-To avoid the `invalid_client` error from Google, make sure the OAuth client is configured with the correct redirect URI. Quarkus expects `https://eventflow.opensourcesantiago.io/q/oidc/redirect` by default. Add this URI to your OAuth client settings and update the `google-oauth` secret or the environment variables with your actual client ID and secret.
+```
+OIDC_CLIENT_ID
+OIDC_CLIENT_SECRET
+OIDC_AUTH_URI
+OIDC_TOKEN_URI
+OIDC_JWKS_URI
+OIDC_REDIRECT_URI
+```
+
+The Quarkus application reads these variables at startup to configure its
+OpenID Connect client. Ensure they are available at runtime, for example by
+creating the `google-oauth` secret and passing it to the container.
+
+Set `https://eventflow.opensourcesantiago.io/callback` as an authorized redirect URI
+for the Google OAuth2 client. Quarkus will redirect the browser to this path
+after the user authenticates.
+Also add `https://eventflow.opensourcesantiago.io` to the list of authorized JavaScript origins so that the login page can initiate the OAuth flow from the browser.
