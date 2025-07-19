@@ -20,6 +20,8 @@ Ensure `https://eventflow.opensourcesantiago.io/private` is registered as an aut
 
 You can also configure these values using environment variables. The included `application.properties` expects `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` along with the rest of the OIDC URLs, as shown in `deployment/google-oauth-secret.yaml`.
 
+When deploying through GitHub Actions, the workflow populates these values from repository secrets and creates the `google-oauth` secret in the cluster. The manifest in `deployment/google-oauth-secret.yaml` is only a template and is not applied directly during deployment.
+
 ## Troubleshooting
 
 - **Error 401: invalid_client**  
