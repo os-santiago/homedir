@@ -10,7 +10,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@Path("/private.html")
+/**
+ * Legacy page backed by a cookie based login. It now responds on "/" to
+ * demonstrate a public entry point that redirects to login when needed.
+ */
+@Path("/")
 public class PrivatePageResource {
 
     @GET

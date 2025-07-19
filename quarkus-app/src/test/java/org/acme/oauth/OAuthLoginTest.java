@@ -22,7 +22,7 @@ public class OAuthLoginTest {
     @Test
     public void privateUnauthorized() {
         given()
-            .when().get("/private.html")
+            .when().get("/private")
             .then()
             .statusCode(302);
     }
@@ -31,7 +31,7 @@ public class OAuthLoginTest {
     @TestSecurity(user = "alice")
     public void privateAuthorized() {
         given()
-            .when().get("/private.html")
+            .when().get("/private")
             .then()
             .statusCode(200)
             .body(containsString("alice"));
