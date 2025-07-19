@@ -7,6 +7,7 @@ This demo uses Google Sign-In (OAuth 2.0) through Quarkus OIDC. Provide your OAu
 ```
 OIDC_CLIENT_ID
 OIDC_CLIENT_SECRET
+OIDC_AUTH_SERVER_URL
 OIDC_AUTH_URI
 OIDC_TOKEN_URI
 OIDC_JWKS_URI

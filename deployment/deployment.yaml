@@ -33,6 +33,11 @@ spec:
                 secretKeyRef:
                   name: google-oauth
                   key: client-secret
+            - name: OIDC_AUTH_SERVER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: auth-server-url
             - name: OIDC_AUTH_URI
               valueFrom:
                 secretKeyRef:
