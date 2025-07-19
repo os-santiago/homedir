@@ -41,6 +41,7 @@ jobs:
         env:
           OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
           OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
+          OIDC_AUTH_SERVER_URL: ${{ secrets.OIDC_AUTH_SERVER_URL }}
           OIDC_AUTH_URI: ${{ secrets.OIDC_AUTH_URI }}
           OIDC_TOKEN_URI: ${{ secrets.OIDC_TOKEN_URI }}
           OIDC_JWKS_URI: ${{ secrets.OIDC_JWKS_URI }}
@@ -49,6 +50,7 @@ jobs:
           kubectl -n "$GKE_NAMESPACE" create secret generic google-oauth \
             --from-literal=client-id="$OIDC_CLIENT_ID" \
             --from-literal=client-secret="$OIDC_CLIENT_SECRET" \
+            --from-literal=auth-server-url="$OIDC_AUTH_SERVER_URL" \
             --from-literal=auth-uri="$OIDC_AUTH_URI" \
             --from-literal=token-uri="$OIDC_TOKEN_URI" \
             --from-literal=jwks-uri="$OIDC_JWKS_URI" \
