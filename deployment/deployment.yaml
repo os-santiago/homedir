@@ -23,13 +23,33 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: "-XX:+UseContainerSupport"
-            - name: GOOGLE_CLIENT_ID
+            - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:
                   name: google-oauth
                   key: client-id
-            - name: GOOGLE_CLIENT_SECRET
+            - name: OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: google-oauth
                   key: client-secret
+            - name: OIDC_AUTH_URI
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: auth-uri
+            - name: OIDC_TOKEN_URI
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: token-uri
+            - name: OIDC_JWKS_URI
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: jwks-uri
+            - name: OIDC_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: redirect-uri

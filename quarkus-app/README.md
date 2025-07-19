@@ -81,7 +81,7 @@ After getting a cup of coffee, you'll be able to run this executable directly:
 
 ## Google Login Demo
 
-1. Set the environment variables `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` with the credentials of your OAuth client.
+1. Set the environment variables `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` and the rest of the OAuth values listed in the project root README.
 2. Start the application in dev mode:
 
 ```bash
