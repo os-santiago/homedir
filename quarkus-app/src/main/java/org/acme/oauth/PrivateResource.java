@@ -20,7 +20,7 @@ public class PrivateResource {
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance privatePage(String name, String email, String picture);
+        public static native TemplateInstance privatePage(String name, String email, String sub);
     }
 
     @Inject
@@ -35,7 +35,7 @@ public class PrivateResource {
             name = identity.getPrincipal().getName();
         }
         String email = identity.getAttribute("email");
-        String picture = identity.getAttribute("picture");
-        return Templates.privatePage(name, email, picture);
+        String sub = identity.getPrincipal().getName();
+        return Templates.privatePage(name, email, sub);
     }
 }
