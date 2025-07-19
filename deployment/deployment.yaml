@@ -23,3 +23,13 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: "-XX:+UseContainerSupport"
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: client-id
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: client-secret

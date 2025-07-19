@@ -78,16 +78,16 @@ After getting a cup of coffee, you'll be able to run this executable directly:
 
 > ./target/getting-started-1.0.0-SNAPSHOT-runner
 
-## Firebase Login Demo
 
-1. Configure your Firebase project values in `src/main/resources/application.properties` (`firebase.api-key`, `firebase.auth-domain`, `firebase.project-id`).
+## Google Login Demo
+
+1. Set the environment variables `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` with the credentials of your OAuth client.
 2. Start the application in dev mode:
 
 ```bash
 mvn quarkus:dev
 ```
 
-3. Open [http://localhost:8080/login](http://localhost:8080/login) and authenticate with Google.
-4. After successful login the ID token is sent in the `Authorization` header to `/protected` and the backend validates it with Firebase using Quarkus OIDC.
-5. The protected page displays the authenticated user name.
+3. Visit [https://eventflow.opensourcesantiago.io/private.html](https://eventflow.opensourcesantiago.io/private.html). You will be redirected to authenticate with Google.
+4. After login the private page shows your name, email and profile picture.
 
