@@ -9,8 +9,12 @@
 <body>
 <div class="container">
     <h1>Private Page</h1>
-    <p>This page is protected.</p>
-    <p><a href="/auth/logout">Logout</a></p>
+    <p><strong>Name:</strong> {name}</p>
+    <p><strong>Email:</strong> {email}</p>
+    {#if picture}
+    <p><img src="{picture}" alt="profile" width="100"></p>
+    {/if}
+    <p><a href="/q/logout">Logout</a></p>
 </div>
 </body>
 </html>
