@@ -37,6 +37,16 @@ jobs:
         run: |
           gcloud container clusters get-credentials "$GKE_CLUSTER_NAME" --zone "$GKE_ZONE" --project "$PROJECT_ID"
 
+      - name: Update OAuth secret
+        env:
+          OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: |
+          kubectl -n "$GKE_NAMESPACE" create secret generic google-oauth \
+            --from-literal=client-id="$OAUTH_CLIENT_ID" \
+            --from-literal=client-secret="$OAUTH_CLIENT_SECRET" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Apply Kubernetes manifests
         run: |
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/
