@@ -88,6 +88,6 @@ After getting a cup of coffee, you'll be able to run this executable directly:
 mvn quarkus:dev
 ```
 
-3. Visit [https://eventflow.opensourcesantiago.io/private.html](https://eventflow.opensourcesantiago.io/private.html). You will be redirected to authenticate with Google.
+3. Visit [https://eventflow.opensourcesantiago.io/private](https://eventflow.opensourcesantiago.io/private). You will be redirected to authenticate with Google.
 4. After login the private page shows your name, email and profile picture.
 

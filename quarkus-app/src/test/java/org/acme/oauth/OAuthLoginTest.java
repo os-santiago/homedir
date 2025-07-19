@@ -22,16 +22,17 @@ public class OAuthLoginTest {
     @Test
     public void privateUnauthorized() {
         given()
-            .when().get("/private.html")
+            .when().get("/private")
             .then()
-            .statusCode(302);
+            // Unauthorized access should be rejected with 401
+            .statusCode(401);
     }
 
     @Test
     @TestSecurity(user = "alice")
     public void privateAuthorized() {
         given()
-            .when().get("/private.html")
+            .when().get("/private")
             .then()
             .statusCode(200)
             .body(containsString("alice"));

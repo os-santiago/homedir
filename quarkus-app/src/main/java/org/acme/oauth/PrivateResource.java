@@ -11,7 +11,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/")
+/**
+ * OAuth-protected resource that shows the authenticated user's information.
+ * It now lives under "/private" so it does not clash with other endpoints.
+ */
+@Path("/private")
 public class PrivateResource {
 
     @CheckedTemplate
@@ -23,7 +27,6 @@ public class PrivateResource {
     SecurityIdentity identity;
 
     @GET
-    @Path("private.html")
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance privatePage() {
