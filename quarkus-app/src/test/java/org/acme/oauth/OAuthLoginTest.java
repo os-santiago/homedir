@@ -24,7 +24,8 @@ public class OAuthLoginTest {
         given()
             .when().get("/private")
             .then()
-            .statusCode(302);
+            // Unauthorized access should be rejected with 401
+            .statusCode(401);
     }
 
     @Test
