@@ -24,5 +24,7 @@ When deploying through GitHub Actions, the workflow populates these values from 
 
 ## Troubleshooting
 
-- **Error 401: invalid_client**  
+- **Error 401: invalid_client**
   This indicates that the OAuth client credentials are incorrect. Verify that `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` (or the values in `google-oauth-secret.yaml`) match the client configuration in the Google Cloud console and that the redirect URI is registered correctly.
+- **The application supports RP-Initiated Logout but the OpenID Provider does not advertise the end_session_endpoint**
+  Google does not publish an RP logout endpoint. Ensure Quarkus' built-in logout is disabled by leaving `quarkus.oidc.logout.path` empty and using the provided `/logout` endpoint instead.
