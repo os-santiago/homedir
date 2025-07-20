@@ -11,10 +11,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 /**
- * Legacy page backed by a cookie based login. It now responds on "/" to
- * demonstrate a public entry point that redirects to login when needed.
+ * Legacy page backed by a cookie based login. It now responds on "/legacy"
+ * so that the application home page can be provided by EventFlow.
  */
-@Path("/")
+@Path("/legacy")
 public class PrivatePageResource {
 
     @GET
