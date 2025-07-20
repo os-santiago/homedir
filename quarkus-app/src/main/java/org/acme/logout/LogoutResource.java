@@ -1,12 +1,12 @@
 package org.acme.logout;
 
-import java.net.URI;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 
 import org.jboss.logging.Logger;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Response;
 
 /**
  * Simple endpoint to clear the q_session cookie and redirect the user
@@ -20,8 +20,9 @@ public class LogoutResource {
     @GET
     public Response logout() {
         LOG.info("Processing logout request");
-        return Response.seeOther(URI.create("/") )
-                .header("Set-Cookie", "q_session=; Path=/; Max-Age=0; HttpOnly; Secure")
+        return Response.status(Response.Status.SEE_OTHER)
+                .header(HttpHeaders.LOCATION, "/")
+                .header(HttpHeaders.SET_COOKIE, "q_session=; Path=/; Max-Age=0; HttpOnly; Secure")
                 .build();
     }
 }
