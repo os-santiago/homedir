@@ -17,7 +17,7 @@ import java.util.List;
 @Path("/private/admin")
 public class AdminResource {
 
-    private static final List<String> adminList = List.of("admin@example.com");
+    private static final List<String> adminList = List.of("sergio.canales.e@gmail.com");
 
     @CheckedTemplate
     static class Templates {
