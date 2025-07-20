@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{#insert title}EventFlow{/}</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/js/app.js" defer></script>
+</head>
+<body>
+<header>
+    <div class="container header-content">
+        <a href="/" class="logo">EventFlow</a>
+        <button id="menuToggle" class="menu-toggle" aria-label="Men\u00fa">&#9776;</button>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/private/profile">Perfil</a>
+            <a href="/login">Login</a>
+            <a href="/private/admin">Admin</a>
+        </nav>
+    </div>
+</header>
+<main class="container">
+    {#insert main}{/}
+</main>
+<footer>
+    <div class="container">
+        <p>&copy; {app:currentYear()} EventFlow</p>
+    </div>
+</footer>
+</body>
+</html>
