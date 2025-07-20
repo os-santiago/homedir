@@ -13,6 +13,7 @@ public class LogoutResourceTest {
     @Test
     public void logoutRedirectsAndClearsCookie() {
         given()
+            .redirects().follow(false)
             .when().get("/logout")
             .then()
             .statusCode(303)
