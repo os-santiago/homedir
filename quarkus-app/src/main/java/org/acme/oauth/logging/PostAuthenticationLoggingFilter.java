@@ -48,10 +48,40 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
             LOG.infov("Access Token: {0}", accessToken.getToken());
         }
 
-        String email = identity.getAttribute("email");
-        String name = identity.getAttribute("name");
         String sub = identity.getPrincipal().getName();
-        LOG.infov("Authenticated user: sub={0}, name={1}, email={2}", sub, name, email);
+        String preferredUsername = identity.getAttribute("preferred_username");
+        String name = identity.getAttribute("name");
+        String givenName = identity.getAttribute("given_name");
+        String familyName = identity.getAttribute("family_name");
+        String email = identity.getAttribute("email");
+        String locale = identity.getAttribute("locale");
+        String picture = identity.getAttribute("picture");
+
+        checkAttribute("sub", sub);
+        checkAttribute("preferred_username", preferredUsername);
+        checkAttribute("name", name);
+        checkAttribute("given_name", givenName);
+        checkAttribute("family_name", familyName);
+        checkAttribute("email", email);
+        checkAttribute("locale", locale);
+        checkAttribute("picture", picture);
+
+        LOG.infof("User Authenticated:%n" +
+                "sub: %s%n" +
+                "preferred_username: %s%n" +
+                "name: %s%n" +
+                "given_name: %s%n" +
+                "family_name: %s%n" +
+                "email: %s%n" +
+                "locale: %s%n" +
+                "picture: %s",
+                sub, preferredUsername, name, givenName, familyName, email, locale, picture);
+    }
+
+    private void checkAttribute(String attrName, String value) {
+        if (value == null || value.isBlank()) {
+            LOG.warnf("Missing OIDC claim: %s", attrName);
+        }
     }
 }
 

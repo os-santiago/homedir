@@ -9,9 +9,17 @@
 <body>
 <div class="container">
     <h1>Private Page</h1>
-    <p><strong>Name:</strong> {name}</p>
-    <p><strong>Email:</strong> {email}</p>
     <p><strong>Sub:</strong> {sub}</p>
+    <p><strong>Preferred Username:</strong> {preferredUsername}</p>
+    <p><strong>Name:</strong> {name}</p>
+    <p><strong>Given Name:</strong> {givenName}</p>
+    <p><strong>Family Name:</strong> {familyName}</p>
+    <p><strong>Email:</strong> {email}</p>
+    <p><strong>Locale:</strong> {locale}</p>
+    <p><strong>Picture:</strong></p>
+    {#if picture}
+        <img src="{picture}" alt="Profile picture" style="max-width: 150px;">
+    {/if}
     <p><a href="/logout">Logout</a></p>
 </div>
 </body>
