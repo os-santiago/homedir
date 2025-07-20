@@ -4,6 +4,7 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.jboss.logging.Logger;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -13,6 +14,8 @@ import jakarta.ws.rs.core.MediaType;
 
 @Path("/private/profile")
 public class ProfileResource {
+
+    private static final Logger LOG = Logger.getLogger(ProfileResource.class);
 
     @CheckedTemplate
     static class Templates {
@@ -26,6 +29,8 @@ public class ProfileResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance profile() {
+        identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
+
         String name = identity.getAttribute("name");
         String email = identity.getAttribute("email");
         String sub = identity.getPrincipal().getName();
