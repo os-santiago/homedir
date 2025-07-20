@@ -20,7 +20,14 @@ public class PrivateResource {
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance privatePage(String name, String email, String sub);
+        public static native TemplateInstance privatePage(String sub,
+                String preferredUsername,
+                String name,
+                String givenName,
+                String familyName,
+                String email,
+                String locale,
+                String picture);
     }
 
     @Inject
@@ -30,12 +37,19 @@ public class PrivateResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance privatePage() {
+        String sub = identity.getPrincipal().getName();
+        String preferredUsername = identity.getAttribute("preferred_username");
         String name = identity.getAttribute("name");
         if (name == null) {
-            name = identity.getPrincipal().getName();
+            name = sub;
         }
+        String givenName = identity.getAttribute("given_name");
+        String familyName = identity.getAttribute("family_name");
         String email = identity.getAttribute("email");
-        String sub = identity.getPrincipal().getName();
-        return Templates.privatePage(name, email, sub);
+        String locale = identity.getAttribute("locale");
+        String picture = identity.getAttribute("picture");
+
+        return Templates.privatePage(sub, preferredUsername, name, givenName,
+                familyName, email, locale, picture);
     }
 }
