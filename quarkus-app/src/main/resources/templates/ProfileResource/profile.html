@@ -1,18 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Profile</title>
-    <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-<div class="container">
-    <h1>User Profile</h1>
-    <p><strong>Name:</strong> {name}</p>
-    <p><strong>Email:</strong> {email}</p>
-    <p><strong>Sub:</strong> {sub}</p>
-    <p><a href="/private/admin">Admin Panel</a></p>
-    <p><a href="/logout">Logout</a></p>
-</div>
-</body>
-</html>
+{#include layout/base}
+{#title}Mi perfil{/title}
+{#main}
+<h1>Perfil de usuario</h1>
+<p><strong>Nombre:</strong> {name}</p>
+<p><strong>Email:</strong> {email}</p>
+<p><strong>Sub:</strong> {sub}</p>
+<h2>Mis charlas</h2>
+<p>A\u00fan no hay charlas.</p>
+<p><a href="/private/admin">Admin Panel</a></p>
+<p><a href="/logout">Salir</a></p>
+{/main}
+{/include}

@@ -1,13 +1,69 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f6f8fa;
+    color: #333;
     margin: 0;
-    padding: 0;
 }
+
+header {
+    background-color: #0d47a1;
+    color: #fff;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+}
+
+.logo {
+    font-weight: bold;
+    color: #fff;
+    text-decoration: none;
+}
+
+nav {
+    display: flex;
+    gap: 1rem;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+}
+
 .container {
-    max-width: 800px;
+    max-width: 960px;
     margin: auto;
     padding: 1rem;
 }
-body.mobile .container {
-    font-size: 1.2em;
+
+footer {
+    background-color: #0d47a1;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+@media (max-width: 600px) {
+    nav {
+        display: none;
+        flex-direction: column;
+        margin-top: 1rem;
+    }
+    nav.active {
+        display: flex;
+    }
+    .menu-toggle {
+        display: block;
+    }
 }

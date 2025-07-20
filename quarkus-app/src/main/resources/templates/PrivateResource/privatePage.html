@@ -1,26 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Private</title>
-    <script src="/js/app.js"></script>
-    <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-<div class="container">
-    <h1>Private Page</h1>
-    <p><strong>Sub:</strong> {sub}</p>
-    <p><strong>Preferred Username:</strong> {preferredUsername}</p>
-    <p><strong>Name:</strong> {name}</p>
-    <p><strong>Given Name:</strong> {givenName}</p>
-    <p><strong>Family Name:</strong> {familyName}</p>
-    <p><strong>Email:</strong> {email}</p>
-    <p><strong>Locale:</strong> {locale}</p>
-    <p><strong>Picture:</strong></p>
-    {#if picture}
-        <img src="{picture}" alt="Profile picture" style="max-width: 150px;">
-    {/if}
-    <p><a href="/logout">Logout</a></p>
-</div>
-</body>
-</html>
+{#include layout/base}
+{#title}P\u00e1gina privada{/title}
+{#main}
+<h1>P\u00e1gina privada</h1>
+<p><strong>Sub:</strong> {sub}</p>
+<p><strong>Preferred Username:</strong> {preferredUsername}</p>
+<p><strong>Name:</strong> {name}</p>
+<p><strong>Given Name:</strong> {givenName}</p>
+<p><strong>Family Name:</strong> {familyName}</p>
+<p><strong>Email:</strong> {email}</p>
+<p><strong>Locale:</strong> {locale}</p>
+<p><strong>Picture:</strong></p>
+{#if picture}
+    <img src="{picture}" alt="Profile picture" style="max-width: 150px;">
+{/if}
+<p><a href="/logout">Logout</a></p>
+{/main}
+{/include}

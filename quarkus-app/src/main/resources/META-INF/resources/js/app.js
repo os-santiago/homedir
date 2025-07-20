@@ -5,5 +5,19 @@ function adjustLayout() {
         document.body.classList.remove('mobile');
     }
 }
-window.addEventListener('load', adjustLayout);
+
+function setupMenu() {
+    const toggle = document.getElementById('menuToggle');
+    const nav = document.querySelector('nav');
+    if (toggle && nav) {
+        toggle.addEventListener('click', () => {
+            nav.classList.toggle('active');
+        });
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    setupMenu();
+    adjustLayout();
+});
 window.addEventListener('resize', adjustLayout);
