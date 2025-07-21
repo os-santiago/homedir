@@ -1,44 +1,87 @@
+:root {
+    --color-bg: #eef6f8;
+    --color-primary: #2196f3;
+    --color-accent: #26c6da;
+    --color-dark: #0d47a1;
+    --color-text: #333;
+    --color-light: #fff;
+}
+
 body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    background-color: #f6f8fa;
-    color: #333;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    background-color: var(--color-bg);
+    color: var(--color-text);
     margin: 0;
 }
 
-header {
-    background-color: #0d47a1;
-    color: #fff;
+.info-header {
+    background-color: var(--color-dark);
+    color: var(--color-light);
+    text-align: center;
 }
 
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.container-logo {
     padding: 0.5rem 1rem;
+    text-align: left;
 }
 
 .logo {
     font-weight: bold;
-    color: #fff;
+    color: var(--color-light);
     text-decoration: none;
+    font-size: 1.4rem;
 }
 
-nav {
+.container-banner {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+    background-size: 200% 200%;
+    animation: flow 10s ease-in-out infinite;
+    padding: 2rem 1rem;
+}
+
+.banner-title {
+    font-size: 2rem;
+    color: var(--color-light);
+}
+
+.container-news {
+    background-color: var(--color-primary);
+    padding: 0.25rem 1rem;
+    font-size: 0.9rem;
+}
+
+.nav-menu {
+    background-color: var(--color-dark);
+    color: var(--color-light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.25rem 1rem;
+}
+
+.nav-links {
     display: flex;
     gap: 1rem;
 }
 
-nav a {
-    color: #fff;
+.nav-links a {
+    color: var(--color-light);
     text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    transition: background-color 0.3s ease;
+}
+
+.nav-links a:hover {
+    background-color: var(--color-accent);
 }
 
 .menu-toggle {
     display: none;
     background: none;
     border: none;
-    color: #fff;
+    color: var(--color-light);
     font-size: 1.5rem;
+    margin-right: 0.5rem;
 }
 
 .container {
@@ -48,19 +91,27 @@ nav a {
 }
 
 footer {
-    background-color: #0d47a1;
-    color: #fff;
+    background-color: var(--color-dark);
+    color: var(--color-light);
     text-align: center;
     padding: 1rem 0;
+    font-size: 0.9rem;
+}
+
+@keyframes flow {
+    0% { background-position: 0 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
 }
 
 @media (max-width: 600px) {
-    nav {
+    .nav-links {
         display: none;
         flex-direction: column;
-        margin-top: 1rem;
+        width: 100%;
+        background-color: var(--color-dark);
     }
-    nav.active {
+    .nav-links.active {
         display: flex;
     }
     .menu-toggle {
