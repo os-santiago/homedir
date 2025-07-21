@@ -4,6 +4,7 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.smallrye.jwt.auth.principal.JsonWebToken;
 import org.jboss.logging.Logger;
 
 import jakarta.inject.Inject;
@@ -19,11 +20,18 @@ public class ProfileResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance profile(String name, String email, String sub);
+        static native TemplateInstance profile(String name,
+                String givenName,
+                String familyName,
+                String email,
+                String sub);
     }
 
     @Inject
     SecurityIdentity identity;
+
+    @Inject
+    JsonWebToken jwt;
 
     @GET
     @Authenticated
@@ -31,9 +39,20 @@ public class ProfileResource {
     public TemplateInstance profile() {
         identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
 
-        String name = identity.getAttribute("name");
-        String email = identity.getAttribute("email");
+        String name = jwt.getClaim("name");
+        if (name == null) {
+            name = identity.getAttribute("name");
+        }
+
+        String givenName = jwt.getClaim("given_name");
+        String familyName = jwt.getClaim("family_name");
+
+        String email = jwt.getClaim("email");
+        if (email == null) {
+            email = identity.getAttribute("email");
+        }
+
         String sub = identity.getPrincipal().getName();
-        return Templates.profile(name, email, sub);
+        return Templates.profile(name, givenName, familyName, email, sub);
     }
 }
