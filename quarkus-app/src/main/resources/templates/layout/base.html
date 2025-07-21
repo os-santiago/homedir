@@ -8,24 +8,41 @@
     <script src="/js/app.js" defer></script>
 </head>
 <body>
-<header>
-    <div class="container header-content">
+<header class="info-header">
+    <div class="container-logo">
         <a href="/" class="logo">EventFlow</a>
-        <button id="menuToggle" class="menu-toggle" aria-label="Men\u00fa">&#9776;</button>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/private/profile">Perfil</a>
-            <a href="/login">Login</a>
-            <a href="/private/admin">Admin</a>
-        </nav>
+    </div>
+    <div class="container-banner">
+        {#insert banner}
+        <span class="banner-title">EvenFlow</span>
+        {/insert}
+    </div>
+    <div class="container-news">
+        {#insert news}Bienvenido a EvenFlow{/insert}
     </div>
 </header>
-<main class="container">
+<nav class="nav-menu" id="nav-menu">
+    <button id="menuToggle" class="menu-toggle" aria-label="Menú">&#9776;</button>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/resources">Eventos</a>
+        {#if app:isAuthenticated()}
+            <a href="/private/profile">Mi Perfil</a>
+            {#if app:isAdmin()}
+                <a href="/private/admin">Admin</a>
+            {/if}
+            <a href="/logout">Logout</a>
+        {#else}
+            <a href="/login">Login</a>
+        {/if}
+    </div>
+</nav>
+<main id="main-content" class="container">
     {#insert main}{/}
 </main>
 <footer>
     <div class="container">
-        <p>&copy; {app:currentYear()} EventFlow</p>
+        <p>&copy; {app:currentYear()} EventFlow &ndash; v{app:version()}</p>
     </div>
 </footer>
 </body>

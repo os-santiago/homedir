@@ -8,16 +8,25 @@ function adjustLayout() {
 
 function setupMenu() {
     const toggle = document.getElementById('menuToggle');
-    const nav = document.querySelector('nav');
-    if (toggle && nav) {
+    const links = document.querySelector('.nav-links');
+    if (toggle && links) {
         toggle.addEventListener('click', () => {
-            nav.classList.toggle('active');
+            links.classList.toggle('active');
         });
+    }
+}
+
+function bannerParallax() {
+    const banner = document.querySelector('.container-banner');
+    if (banner) {
+        banner.style.backgroundPositionX = (window.scrollY * 0.3) + 'px';
     }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     setupMenu();
     adjustLayout();
+    bannerParallax();
 });
 window.addEventListener('resize', adjustLayout);
+window.addEventListener('scroll', bannerParallax);
