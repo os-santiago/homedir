@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.quarkus.arc.Arc;
 import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
 import io.quarkus.qute.TemplateExtension;
 import io.quarkus.security.identity.SecurityIdentity;
 
@@ -16,8 +17,12 @@ public class AppTemplateExtensions {
     }
 
     public static String version() {
-        Config config = Arc.container().instance(Config.class).get();
-        return config.getOptionalValue("quarkus.application.version", String.class).orElse("dev");
+        try {
+            Config config = ConfigProvider.getConfig();
+            return config.getOptionalValue("quarkus.application.version", String.class).orElse("dev");
+        } catch (Exception e) {
+            return "dev";
+        }
     }
 
     public static boolean isAuthenticated() {
