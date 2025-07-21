@@ -3,38 +3,32 @@ package org.acme.eventflow.util;
 import java.time.LocalDate;
 import java.util.List;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-
+import io.quarkus.arc.Arc;
 import org.eclipse.microprofile.config.Config;
 import io.quarkus.qute.TemplateExtension;
 import io.quarkus.security.identity.SecurityIdentity;
 
-@ApplicationScoped
 @TemplateExtension(namespace = "app")
 public class AppTemplateExtensions {
 
-    @Inject
-    SecurityIdentity identity;
-
-    @Inject
-    Config config;
-
-    public int currentYear() {
+    public static int currentYear() {
         return LocalDate.now().getYear();
     }
 
-    public String version() {
+    public static String version() {
+        Config config = Arc.container().instance(Config.class).get();
         return config.getOptionalValue("quarkus.application.version", String.class).orElse("dev");
     }
 
-    public boolean isAuthenticated() {
+    public static boolean isAuthenticated() {
+        SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
         return identity != null && !identity.isAnonymous();
     }
 
     private static final List<String> adminList = List.of("sergio.canales.e@gmail.com");
 
-    public boolean isAdmin() {
+    public static boolean isAdmin() {
+        SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
         if (identity == null || identity.isAnonymous()) {
             return false;
         }
