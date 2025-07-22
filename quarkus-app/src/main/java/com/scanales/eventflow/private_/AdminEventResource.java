@@ -82,13 +82,14 @@ public class AdminEventResource {
     @Path("new")
     @Authenticated
     public Response saveEvent(@FormParam("title") String title,
-                              @FormParam("description") String description) {
+                              @FormParam("description") String description,
+                              @FormParam("days") int days) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         var now = java.time.LocalDateTime.now();
         String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
-        Event event = new Event(id, title, description, now, identity.getAttribute("email"));
+        Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
@@ -100,7 +101,8 @@ public class AdminEventResource {
     @Authenticated
     public Response updateEvent(@PathParam("id") String id,
                                 @FormParam("title") String title,
-                                @FormParam("description") String description) {
+                                @FormParam("description") String description,
+                                @FormParam("days") int days) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -110,6 +112,7 @@ public class AdminEventResource {
         }
         event.setTitle(title);
         event.setDescription(description);
+        event.setDays(days);
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/event/" + id)
@@ -175,7 +178,10 @@ public class AdminEventResource {
                              @FormParam("talkId") String talkId,
                              @FormParam("name") String name,
                              @FormParam("description") String description,
-                             @FormParam("location") String location) {
+                             @FormParam("location") String location,
+                             @FormParam("startTime") String startTime,
+                             @FormParam("duration") int duration,
+                             @FormParam("day") int day) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -184,9 +190,19 @@ public class AdminEventResource {
                     .format(java.time.LocalDateTime.now());
             talkId = eventId + "-charla-" + ts;
         }
+        Event event = eventService.getEvent(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        if (day < 1 || day > event.getDays()) {
+            day = 1;
+        }
         Talk talk = new Talk(talkId, name);
         talk.setDescription(description);
         talk.setLocation(location);
+        talk.setStartTimeStr(startTime);
+        talk.setDurationMinutes(duration);
+        talk.setDay(day);
         eventService.saveTalk(eventId, talk);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events/" + eventId + "/edit")

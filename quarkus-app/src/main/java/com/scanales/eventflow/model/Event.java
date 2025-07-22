@@ -14,6 +14,8 @@ public class Event {
     private String title;
     private String description;
     private List<Scenario> scenarios = new ArrayList<>();
+    /** Number of days the event lasts. */
+    private int days = 1;
     /** URL or identifier for the venue map. */
     private String mapUrl;
     private List<Talk> agenda = new ArrayList<>();
@@ -37,6 +39,16 @@ public class Event {
         this.description = description;
         this.createdAt = createdAt;
         this.creator = creator;
+    }
+
+    public Event(String id, String title, String description, int days) {
+        this(id, title, description);
+        this.days = days;
+    }
+
+    public Event(String id, String title, String description, int days, LocalDateTime createdAt, String creator) {
+        this(id, title, description, createdAt, creator);
+        this.days = days;
     }
 
     public String getId() {
@@ -71,6 +83,14 @@ public class Event {
         this.scenarios = scenarios;
     }
 
+    public int getDays() {
+        return days;
+    }
+
+    public void setDays(int days) {
+        this.days = days;
+    }
+
     public String getMapUrl() {
         return mapUrl;
     }
@@ -101,5 +121,35 @@ public class Event {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    /**
+     * Returns a list with values from 1 to {@code days} to easily iterate in templates.
+     */
+    public java.util.List<Integer> getDayList() {
+        return java.util.stream.IntStream.rangeClosed(1, days)
+                .boxed()
+                .toList();
+    }
+
+    /**
+     * Retrieves the name of a scenario given its id, or {@code null} if not found.
+     */
+    public String getScenarioName(String scenarioId) {
+        return scenarios.stream()
+                .filter(s -> s.getId().equals(scenarioId))
+                .map(Scenario::getName)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Returns the list of talks for the given day ordered by start time.
+     */
+    public java.util.List<Talk> getAgendaForDay(int day) {
+        return agenda.stream()
+                .filter(t -> t.getDay() == day)
+                .sorted(java.util.Comparator.comparing(Talk::getStartTime))
+                .toList();
     }
 }

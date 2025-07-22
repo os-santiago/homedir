@@ -10,7 +10,10 @@ Charla
 {#if talk}
 <h1>{talk.name}</h1>
 {#if talk.description}<p>{talk.description}</p>{/if}
-{#if talk.time}<p>{talk.time}</p>{/if}
+{#if talk.startTimeStr}
+<p>{talk.startTimeStr} - {talk.endTimeStr} | Día {talk.day}</p>
+{/if}
+{#if scenario}<p>Escenario: {scenario.name}</p>{/if}
 {#else}
 <p>Charla no encontrada.</p>
 {/if}

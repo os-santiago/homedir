@@ -1,6 +1,6 @@
 package com.scanales.eventflow.model;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * Describes a talk within an event.
@@ -14,7 +14,11 @@ public class Talk {
     private Speaker coSpeaker;
     /** Room or scenario where the talk happens. */
     private String location;
-    private LocalDateTime time;
+    /** Day within the event when the talk occurs (1-based). */
+    private int day = 1;
+    private LocalTime startTime;
+    /** Duration in minutes. */
+    private int durationMinutes;
 
     public Talk() {
     }
@@ -72,11 +76,48 @@ public class Talk {
         this.location = location;
     }
 
-    public LocalDateTime getTime() {
-        return time;
+    public int getDay() {
+        return day;
     }
 
-    public void setTime(LocalDateTime time) {
-        this.time = time;
+    public void setDay(int day) {
+        this.day = day;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public String getStartTimeStr() {
+        return startTime == null ? "" : startTime.toString();
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setStartTimeStr(String value) {
+        if (value != null && !value.isBlank()) {
+            this.startTime = LocalTime.parse(value);
+        } else {
+            this.startTime = null;
+        }
+    }
+
+    public int getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public void setDurationMinutes(int durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
+
+    public LocalTime getEndTime() {
+        return startTime == null ? null : startTime.plusMinutes(durationMinutes);
+    }
+
+    public String getEndTimeStr() {
+        LocalTime end = getEndTime();
+        return end == null ? "" : end.toString();
     }
 }
