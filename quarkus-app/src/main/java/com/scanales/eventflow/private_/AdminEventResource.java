@@ -4,24 +4,25 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
-
-import java.util.Optional;
+import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.Scenario;
+import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.util.AdminUtils;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.List;
 
 @Path("/private/admin/event")
 public class AdminEventResource {
-
-    private static final List<String> adminList = List.of("admin@example.com");
 
     @CheckedTemplate
     static class Templates {
@@ -31,20 +32,11 @@ public class AdminEventResource {
     @Inject
     SecurityIdentity identity;
 
-    private boolean isAdmin() {
-        String email = getClaim("email");
-        return email != null && adminList.contains(email);
-    }
+    @Inject
+    EventService eventService;
 
-    private String getClaim(String claimName) {
-        Object value = null;
-        if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal oidc) {
-            value = oidc.getClaim(claimName);
-        }
-        if (value == null) {
-            value = identity.getAttribute(claimName);
-        }
-        return Optional.ofNullable(value).map(Object::toString).orElse(null);
+    private boolean isAdmin() {
+        return AdminUtils.isAdmin(identity);
     }
 
     @GET
@@ -67,5 +59,86 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         return Response.ok(Templates.edit(id)).build();
+    }
+
+    @POST
+    @Path("create")
+    @Authenticated
+    public Response saveEvent(@FormParam("id") String id,
+                              @FormParam("title") String title,
+                              @FormParam("description") String description) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Event event = new Event(id, title, description);
+        eventService.saveEvent(event);
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin")
+                .build();
+    }
+
+    @POST
+    @Path("{id}/delete")
+    @Authenticated
+    public Response deleteEvent(@PathParam("id") String id) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        eventService.deleteEvent(id);
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin")
+                .build();
+    }
+
+    @POST
+    @Path("{id}/scenario")
+    @Authenticated
+    public Response saveScenario(@PathParam("id") String eventId,
+                                 @FormParam("scenarioId") String scenarioId,
+                                 @FormParam("name") String name) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Scenario scenario = new Scenario(scenarioId, name);
+        eventService.saveScenario(eventId, scenario);
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("{id}/scenario/{scenarioId}/delete")
+    @Authenticated
+    public Response deleteScenario(@PathParam("id") String eventId,
+                                   @PathParam("scenarioId") String scenarioId) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        eventService.deleteScenario(eventId, scenarioId);
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("{id}/talk")
+    @Authenticated
+    public Response saveTalk(@PathParam("id") String eventId,
+                             @FormParam("talkId") String talkId,
+                             @FormParam("name") String name) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Talk talk = new Talk(talkId, name);
+        eventService.saveTalk(eventId, talk);
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("{id}/talk/{talkId}/delete")
+    @Authenticated
+    public Response deleteTalk(@PathParam("id") String eventId,
+                               @PathParam("talkId") String talkId) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        eventService.deleteTalk(eventId, talkId);
+        return Response.ok().build();
     }
 }

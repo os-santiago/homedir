@@ -8,9 +8,8 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import io.quarkus.qute.TemplateExtension;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 
-import java.util.Optional;
+import com.scanales.eventflow.util.AdminUtils;
 
 @TemplateExtension(namespace = "app")
 public class AppTemplateExtensions {
@@ -33,25 +32,8 @@ public class AppTemplateExtensions {
         return identity != null && !identity.isAnonymous();
     }
 
-    private static final List<String> adminList = List.of("sergio.canales.e@gmail.com");
-
     public static boolean isAdmin() {
         SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
-        if (identity == null || identity.isAnonymous()) {
-            return false;
-        }
-        String email = getClaim(identity, "email");
-        return email != null && adminList.contains(email);
-    }
-
-    private static String getClaim(SecurityIdentity identity, String claimName) {
-        Object value = null;
-        if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal oidc) {
-            value = oidc.getClaim(claimName);
-        }
-        if (value == null) {
-            value = identity.getAttribute(claimName);
-        }
-        return Optional.ofNullable(value).map(Object::toString).orElse(null);
+        return AdminUtils.isAdmin(identity);
     }
 }

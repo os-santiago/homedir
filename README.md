@@ -28,6 +28,19 @@ You can also configure these values using environment variables. The included `a
 
 When deploying through GitHub Actions, the workflow populates these values from repository secrets and creates the `google-oauth` secret in the cluster. The manifest in `deployment/google-oauth-secret.yaml` is only a template and is not applied directly during deployment.
 
+## Admin access
+
+Endpoints under `/private/admin` are restricted to authenticated users whose
+email address is present in the comma separated list defined by the
+`ADMIN_LIST` configuration property or environment variable. Example:
+
+```
+ADMIN_LIST=sergio.canales.e@gmail.com,alice@example.org
+```
+
+Only users included in this list can create, edit or delete events and their
+associated scenarios and talks.
+
 ## Troubleshooting
 
 - **Error 401: invalid_client**
