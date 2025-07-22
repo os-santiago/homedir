@@ -4,6 +4,9 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
+
+import java.util.Optional;
 import org.jboss.logging.Logger;
 
 import jakarta.inject.Inject;
@@ -34,16 +37,23 @@ public class ProfileResource {
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance profile() {
         identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
-        String name = identity.getAttribute("name");
-        String givenName = identity.getAttribute("given_name");
-        String familyName = identity.getAttribute("family_name");
-        String email = identity.getAttribute("email");
+        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) identity.getPrincipal();
+
+        String name = getClaim(principal, "name");
+        String givenName = getClaim(principal, "given_name");
+        String familyName = getClaim(principal, "family_name");
+        String email = getClaim(principal, "email");
 
         if (name == null) {
-            name = identity.getPrincipal().getName();
+            name = principal.getName();
         }
 
-        String sub = identity.getPrincipal().getName();
+        String sub = principal.getName();
         return Templates.profile(name, givenName, familyName, email, sub);
+    }
+
+    private String getClaim(OidcJwtCallerPrincipal principal, String claimName) {
+        Object value = principal.getClaim(claimName);
+        return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 }

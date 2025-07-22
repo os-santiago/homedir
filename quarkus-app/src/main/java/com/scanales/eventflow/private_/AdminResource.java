@@ -4,6 +4,9 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
+
+import java.util.Optional;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -31,14 +34,20 @@ public class AdminResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public Response admin() {
-        String email = identity.getAttribute("email");
+        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) identity.getPrincipal();
+        String email = getClaim(principal, "email");
         if (email == null || !adminList.contains(email)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        String name = identity.getAttribute("name");
+        String name = getClaim(principal, "name");
         if (name == null) {
             name = email;
         }
         return Response.ok(Templates.admin(name)).build();
+    }
+
+    private String getClaim(OidcJwtCallerPrincipal principal, String claimName) {
+        Object value = principal.getClaim(claimName);
+        return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 }

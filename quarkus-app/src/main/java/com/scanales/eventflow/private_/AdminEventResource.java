@@ -4,6 +4,9 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
+
+import java.util.Optional;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -29,8 +32,14 @@ public class AdminEventResource {
     SecurityIdentity identity;
 
     private boolean isAdmin() {
-        String email = identity.getAttribute("email");
+        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) identity.getPrincipal();
+        String email = getClaim(principal, "email");
         return email != null && adminList.contains(email);
+    }
+
+    private String getClaim(OidcJwtCallerPrincipal principal, String claimName) {
+        Object value = principal.getClaim(claimName);
+        return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 
     @GET
