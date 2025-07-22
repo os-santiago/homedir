@@ -14,7 +14,7 @@ Editar Evento
 Nuevo Evento
 {/if}
 </h1>
-<form method="post" action="/private/admin/events/new">
+<form method="post" action="{#if event.id}/private/admin/events/{event.id}/edit{#else}/private/admin/events/new{/if}">
     {#if event.id}
         <p>ID: {event.id}</p>
     {/if}
@@ -32,9 +32,11 @@ Nuevo Evento
 {#for sc in event.scenarios}
 <tr>
 <form method="post" action="/private/admin/events/{event.id}/scenario">
-<td><input name="scenarioId" value="{sc.id}"></td>
+<td>{sc.id}<input type="hidden" name="scenarioId" value="{sc.id}"></td>
 <td><input name="name" value="{sc.name}"></td>
 <td>
+<input name="features" value="{sc.features}" placeholder="Caracteristicas">
+<input name="location" value="{sc.location}" placeholder="Ubicacion">
 <button type="submit">Guardar</button>
 </form>
 <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete" style="display:inline">
@@ -45,9 +47,13 @@ Nuevo Evento
 {/for}
 <tr>
 <form method="post" action="/private/admin/events/{event.id}/scenario">
-<td><input name="scenarioId"></td>
+<td>Nuevo</td>
 <td><input name="name"></td>
-<td><button type="submit">Agregar</button></td>
+<td>
+<input name="features" placeholder="Caracteristicas">
+<input name="location" placeholder="Ubicacion">
+<button type="submit">Agregar</button>
+</td>
 </form>
 </tr>
 </tbody>
@@ -59,9 +65,11 @@ Nuevo Evento
 {#for t in event.agenda}
 <tr>
 <form method="post" action="/private/admin/events/{event.id}/talk">
-<td><input name="talkId" value="{t.id}"></td>
+<td>{t.id}<input type="hidden" name="talkId" value="{t.id}"></td>
 <td><input name="name" value="{t.name}"></td>
 <td>
+<input name="description" value="{t.description}" placeholder="Descripcion">
+<input name="location" value="{t.location}" placeholder="Ubicacion">
 <button type="submit">Guardar</button>
 </form>
 <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete" style="display:inline">
@@ -72,9 +80,13 @@ Nuevo Evento
 {/for}
 <tr>
 <form method="post" action="/private/admin/events/{event.id}/talk">
-<td><input name="talkId"></td>
+<td>Nuevo</td>
 <td><input name="name"></td>
-<td><button type="submit">Agregar</button></td>
+<td>
+<input name="description" placeholder="Descripcion">
+<input name="location" placeholder="Ubicacion">
+<button type="submit">Agregar</button>
+</td>
 </form>
 </tr>
 </tbody>
