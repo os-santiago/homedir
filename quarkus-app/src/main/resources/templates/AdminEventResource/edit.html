@@ -73,14 +73,14 @@ Nuevo Evento
 <input name="description" value="{t.description}" placeholder="Descripcion">
 <select name="location">
 {#for sc in event.scenarios}
-<option value="{sc.id}"{#if sc.id==t.location} selected{/if}>{sc.name}</option>
+<option value="{sc.id}"{#if sc.id == t.location} selected{/if}>{sc.name}</option>
 {/for}
 </select>
 <input name="startTime" type="time" value="{t.startTimeStr}">
 <input name="duration" type="number" min="1" value="{t.durationMinutes}">
 <select name="day">
 {#for d in event.dayList}
-<option value="{d}"{#if t.day==d} selected{/if}>Día {d}</option>
+<option value="{d}"{#if t.day == d} selected{/if}>Día {d}</option>
 {/for}
 </select>
 <button type="submit">Guardar</button>
