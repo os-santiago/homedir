@@ -40,11 +40,6 @@ This command will leave Quarkus running in the foreground listening on port 8080
 1. Visit the default endpoint: [http://127.0.0.1:8080](http://127.0.0.1:8080).
     - Make a simple change to [src/main/resources/META-INF/resources/index.html](src/main/resources/META-INF/resources/index.html) file.
     - Refresh the browser to see the updated page.
-2. Visit the `/hello` endpoint: [http://127.0.0.1:8080/hello](http://127.0.0.1:8080/hello)
-    - Update the response in [src/main/java/com/scanales/quickstart/GreetingResource.java](src/main/java/com/scanales/quickstart/GreetingResource.java). Replace `hello` with `hello there` in the `hello()` method.
-    - Refresh the browser. You should now see `hello there`.
-    - Undo the change, so the method returns `hello` again.
-    - Refresh the browser. You should now see `hello`.
 
 ### Run Quarkus in JVM mode
 
