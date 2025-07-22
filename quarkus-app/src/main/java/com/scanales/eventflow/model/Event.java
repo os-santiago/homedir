@@ -2,6 +2,7 @@ package com.scanales.eventflow.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * Represents an event with its basic information, the scenarios where the
@@ -16,6 +17,10 @@ public class Event {
     /** URL or identifier for the venue map. */
     private String mapUrl;
     private List<Talk> agenda = new ArrayList<>();
+    /** Time when the event was created. */
+    private LocalDateTime createdAt;
+    /** Email of the user who created the event. */
+    private String creator;
 
     public Event() {
     }
@@ -24,6 +29,14 @@ public class Event {
         this.id = id;
         this.title = title;
         this.description = description;
+    }
+
+    public Event(String id, String title, String description, LocalDateTime createdAt, String creator) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.createdAt = createdAt;
+        this.creator = creator;
     }
 
     public String getId() {
@@ -72,5 +85,21 @@ public class Event {
 
     public void setAgenda(List<Talk> agenda) {
         this.agenda = agenda;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 }

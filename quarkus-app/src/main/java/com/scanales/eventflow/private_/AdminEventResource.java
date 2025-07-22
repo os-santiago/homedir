@@ -81,13 +81,14 @@ public class AdminEventResource {
     @POST
     @Path("new")
     @Authenticated
-    public Response saveEvent(@FormParam("id") String id,
-                              @FormParam("title") String title,
+    public Response saveEvent(@FormParam("title") String title,
                               @FormParam("description") String description) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        Event event = new Event(id, title, description);
+        var now = java.time.LocalDateTime.now();
+        String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
+        Event event = new Event(id, title, description, now, identity.getAttribute("email"));
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
