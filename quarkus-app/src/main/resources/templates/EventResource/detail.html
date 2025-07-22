@@ -1,5 +1,11 @@
 {#include layout/base}
-{#title}{event?.title ?: 'Evento'}{/title}
+{#title}
+{#if event}
+{event.title}
+{#else}
+Evento
+{/if}
+{/title}
 {#main}
 {#if event}
 <h1>{event.title}</h1>

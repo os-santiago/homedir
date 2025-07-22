@@ -1,8 +1,20 @@
 {#include layout/base}
-{#title}{event.id?`Editar Evento`:`Nuevo Evento`}{/title}
+{#title}
+{#if event.id}
+Editar Evento
+{#else}
+Nuevo Evento
+{/if}
+{/title}
 {#main}
-<h1>{event.id?`Editar Evento`:`Nuevo Evento`}</h1>
-<form method="post" action="/private/admin/event/create">
+<h1>
+{#if event.id}
+Editar Evento
+{#else}
+Nuevo Evento
+{/if}
+</h1>
+<form method="post" action="/private/admin/events/new">
     <label for="id">ID</label>
     <input id="id" name="id" type="text" value="{event.id}" {#if event.id}readonly{/if}>
     <label for="title">Titulo</label>
@@ -18,20 +30,20 @@
 <tbody>
 {#for sc in event.scenarios}
 <tr>
-<form method="post" action="/private/admin/event/{event.id}/scenario">
+<form method="post" action="/private/admin/events/{event.id}/scenario">
 <td><input name="scenarioId" value="{sc.id}"></td>
 <td><input name="name" value="{sc.name}"></td>
 <td>
 <button type="submit">Guardar</button>
 </form>
-<form method="post" action="/private/admin/event/{event.id}/scenario/{sc.id}/delete" style="display:inline">
+<form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete" style="display:inline">
 <button type="submit">Eliminar</button>
 </form>
 </td>
 </tr>
 {/for}
 <tr>
-<form method="post" action="/private/admin/event/{event.id}/scenario">
+<form method="post" action="/private/admin/events/{event.id}/scenario">
 <td><input name="scenarioId"></td>
 <td><input name="name"></td>
 <td><button type="submit">Agregar</button></td>
@@ -45,20 +57,20 @@
 <tbody>
 {#for t in event.agenda}
 <tr>
-<form method="post" action="/private/admin/event/{event.id}/talk">
+<form method="post" action="/private/admin/events/{event.id}/talk">
 <td><input name="talkId" value="{t.id}"></td>
 <td><input name="name" value="{t.name}"></td>
 <td>
 <button type="submit">Guardar</button>
 </form>
-<form method="post" action="/private/admin/event/{event.id}/talk/{t.id}/delete" style="display:inline">
+<form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete" style="display:inline">
 <button type="submit">Eliminar</button>
 </form>
 </td>
 </tr>
 {/for}
 <tr>
-<form method="post" action="/private/admin/event/{event.id}/talk">
+<form method="post" action="/private/admin/events/{event.id}/talk">
 <td><input name="talkId"></td>
 <td><input name="name"></td>
 <td><button type="submit">Agregar</button></td>

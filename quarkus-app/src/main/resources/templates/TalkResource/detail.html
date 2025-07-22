@@ -1,5 +1,11 @@
 {#include layout/base}
-{#title}{talk?.name ?: 'Charla'}{/title}
+{#title}
+{#if talk}
+{talk.name}
+{#else}
+Charla
+{/if}
+{/title}
 {#main}
 {#if talk}
 <h1>{talk.name}</h1>

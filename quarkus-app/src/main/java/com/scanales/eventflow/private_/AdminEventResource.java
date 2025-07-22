@@ -21,7 +21,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 
-@Path("/private/admin/event")
+@Path("/private/admin/events")
 public class AdminEventResource {
 
     @CheckedTemplate
@@ -41,7 +41,7 @@ public class AdminEventResource {
     }
 
     @GET
-    @Path("/events")
+    @Path("")
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public Response listEvents() {
@@ -53,7 +53,7 @@ public class AdminEventResource {
     }
 
     @GET
-    @Path("create")
+    @Path("new")
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public Response create() {
@@ -79,7 +79,7 @@ public class AdminEventResource {
     }
 
     @POST
-    @Path("create")
+    @Path("new")
     @Authenticated
     public Response saveEvent(@FormParam("id") String id,
                               @FormParam("title") String title,

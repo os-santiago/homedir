@@ -2,7 +2,7 @@
 {#title}Eventos{/title}
 {#main}
 <h1>Eventos</h1>
-<p><a href="/private/admin/event/create">Nuevo evento</a></p>
+<p><a href="/private/admin/events/new">Nuevo evento</a></p>
 {#if events.isEmpty()}
 <p>No hay eventos registrados.</p>
 {#else}
@@ -14,8 +14,8 @@
 <td>{ev.id}</td>
 <td>{ev.title}</td>
 <td>
-<a href="/private/admin/event/{ev.id}/edit">Editar</a>
-<form method="post" action="/private/admin/event/{ev.id}/delete" style="display:inline">
+<a href="/private/admin/events/{ev.id}/edit">Editar</a>
+<form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline">
 <button type="submit">Eliminar</button>
 </form>
 </td>

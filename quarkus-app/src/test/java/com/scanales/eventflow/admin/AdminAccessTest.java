@@ -14,7 +14,7 @@ public class AdminAccessTest {
     @TestSecurity(user = "alice")
     public void nonAdminCannotAccess() {
         given()
-                .when().get("/private/admin/event/create")
+                .when().get("/private/admin/events/new")
                 .then()
                 .statusCode(403);
     }
@@ -23,7 +23,7 @@ public class AdminAccessTest {
     @TestSecurity(user = "sergio.canales.e@gmail.com")
     public void adminCanAccess() {
         given()
-                .when().get("/private/admin/event/create")
+                .when().get("/private/admin/events/new")
                 .then()
                 .statusCode(200);
     }

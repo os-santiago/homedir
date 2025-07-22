@@ -1,5 +1,11 @@
 {#include layout/base}
-{#title}{scenario?.name ?: 'Escenario'}{/title}
+{#title}
+{#if scenario}
+{scenario.name}
+{#else}
+Escenario
+{/if}
+{/title}
 {#main}
 {#if scenario}
 <h1>{scenario.name}</h1>
