@@ -9,20 +9,27 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.model.Talk;
+import jakarta.inject.Inject;
 
 @Path("/talk")
 public class TalkResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance detail(String id);
+        static native TemplateInstance detail(Talk talk);
     }
+
+    @Inject
+    EventService eventService;
 
     @GET
     @Path("{id}")
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance detail(@PathParam("id") String id) {
-        return Templates.detail(id);
+        Talk talk = eventService.findTalk(id);
+        return Templates.detail(talk);
     }
 }

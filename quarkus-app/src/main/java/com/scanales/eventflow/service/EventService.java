@@ -64,4 +64,20 @@ public class EventService {
             event.getAgenda().removeIf(t -> t.getId().equals(talkId));
         }
     }
+
+    public Scenario findScenario(String scenarioId) {
+        return events.values().stream()
+                .flatMap(e -> e.getScenarios().stream())
+                .filter(s -> s.getId().equals(scenarioId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Talk findTalk(String talkId) {
+        return events.values().stream()
+                .flatMap(e -> e.getAgenda().stream())
+                .filter(t -> t.getId().equals(talkId))
+                .findFirst()
+                .orElse(null);
+    }
 }

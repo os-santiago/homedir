@@ -1,8 +1,28 @@
 {#include layout/base}
-{#title}Detalle del evento{/title}
+{#title}{event?.title ?: 'Evento'}{/title}
 {#main}
-<h1>Evento {id}</h1>
-<p>Detalles pr\u00f3ximamente.</p>
+{#if event}
+<h1>{event.title}</h1>
+<p>{event.description}</p>
+{#if !event.scenarios.isEmpty()}
+<h2>Escenarios</h2>
+<ul>
+{#for s in event.scenarios}
+<li>{s.name}</li>
+{/for}
+</ul>
+{/if}
+{#if !event.agenda.isEmpty()}
+<h2>Charlas</h2>
+<ul>
+{#for t in event.agenda}
+<li>{t.name}</li>
+{/for}
+</ul>
+{/if}
+{#else}
+<p>Evento no encontrado.</p>
+{/if}
 <p><a href="/">Volver al inicio</a></p>
 {/main}
 {/include}

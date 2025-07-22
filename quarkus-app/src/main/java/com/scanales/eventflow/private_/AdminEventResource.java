@@ -26,7 +26,8 @@ public class AdminEventResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance edit(String id);
+        static native TemplateInstance list(java.util.List<Event> events);
+        static native TemplateInstance edit(Event event);
     }
 
     @Inject
@@ -40,6 +41,18 @@ public class AdminEventResource {
     }
 
     @GET
+    @Path("/events")
+    @Authenticated
+    @Produces(MediaType.TEXT_HTML)
+    public Response listEvents() {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        var events = eventService.listEvents();
+        return Response.ok(Templates.list(events)).build();
+    }
+
+    @GET
     @Path("create")
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
@@ -47,7 +60,7 @@ public class AdminEventResource {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        return Response.ok(Templates.edit(null)).build();
+        return Response.ok(Templates.edit(new Event())).build();
     }
 
     @GET
@@ -58,7 +71,11 @@ public class AdminEventResource {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        return Response.ok(Templates.edit(id)).build();
+        Event event = eventService.getEvent(id);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(Templates.edit(event)).build();
     }
 
     @POST
@@ -73,7 +90,7 @@ public class AdminEventResource {
         Event event = new Event(id, title, description);
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", "/private/admin")
+                .header("Location", "/private/admin/events")
                 .build();
     }
 
@@ -86,7 +103,7 @@ public class AdminEventResource {
         }
         eventService.deleteEvent(id);
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", "/private/admin")
+                .header("Location", "/private/admin/events")
                 .build();
     }
 

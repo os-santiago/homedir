@@ -1,0 +1,29 @@
+{#include layout/base}
+{#title}Eventos{/title}
+{#main}
+<h1>Eventos</h1>
+<p><a href="/private/admin/event/create">Nuevo evento</a></p>
+{#if events.isEmpty()}
+<p>No hay eventos registrados.</p>
+{#else}
+<table>
+<thead><tr><th>ID</th><th>Titulo</th><th>Acciones</th></tr></thead>
+<tbody>
+{#for ev in events}
+<tr>
+<td>{ev.id}</td>
+<td>{ev.title}</td>
+<td>
+<a href="/private/admin/event/{ev.id}/edit">Editar</a>
+<form method="post" action="/private/admin/event/{ev.id}/delete" style="display:inline">
+<button type="submit">Eliminar</button>
+</form>
+</td>
+</tr>
+{/for}
+</tbody>
+</table>
+{/if}
+<p><a href="/private/admin">Volver</a></p>
+{/main}
+{/include}
