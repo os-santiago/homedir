@@ -15,8 +15,9 @@ Nuevo Evento
 {/if}
 </h1>
 <form method="post" action="/private/admin/events/new">
-    <label for="id">ID</label>
-    <input id="id" name="id" type="text" value="{event.id}" {#if event.id}readonly{/if}>
+    {#if event.id}
+        <p>ID: {event.id}</p>
+    {/if}
     <label for="title">Titulo</label>
     <input id="title" name="title" type="text" value="{event.title}">
     <label for="description">Descripcion</label>
