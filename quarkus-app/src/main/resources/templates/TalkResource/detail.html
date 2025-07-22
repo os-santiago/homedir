@@ -1,7 +1,18 @@
 {#include layout/base}
-{#title}Charla{/title}
+{#title}
+{#if talk}
+{talk.name}
+{#else}
+Charla
+{/if}
+{/title}
 {#main}
-<h1>Charla {id}</h1>
-<p>Detalles de la charla pr\u00f3ximamente.</p>
+{#if talk}
+<h1>{talk.name}</h1>
+{#if talk.description}<p>{talk.description}</p>{/if}
+{#if talk.time}<p>{talk.time}</p>{/if}
+{#else}
+<p>Charla no encontrada.</p>
+{/if}
 {/main}
 {/include}

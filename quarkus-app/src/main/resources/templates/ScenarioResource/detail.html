@@ -1,7 +1,18 @@
 {#include layout/base}
-{#title}Escenario{/title}
+{#title}
+{#if scenario}
+{scenario.name}
+{#else}
+Escenario
+{/if}
+{/title}
 {#main}
-<h1>Escenario {id}</h1>
-<p>Informaci\u00f3n pr\u00f3ximamente.</p>
+{#if scenario}
+<h1>{scenario.name}</h1>
+{#if scenario.location}<p>Ubicacion: {scenario.location}</p>{/if}
+{#if scenario.features}<p>{scenario.features}</p>{/if}
+{#else}
+<p>Escenario no encontrado.</p>
+{/if}
 {/main}
 {/include}

@@ -8,19 +8,25 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import com.scanales.eventflow.service.EventService;
+import jakarta.inject.Inject;
 
 @Path("/")
 public class HomeResource {
 
+    @Inject
+    EventService eventService;
+
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance home();
+        static native TemplateInstance home(java.util.List<com.scanales.eventflow.model.Event> events);
     }
 
     @GET
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance home() {
-        return Templates.home();
+        var events = eventService.listEvents();
+        return Templates.home(events);
     }
 }

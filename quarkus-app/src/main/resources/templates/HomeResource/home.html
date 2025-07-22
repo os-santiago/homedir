@@ -2,7 +2,15 @@
 {#title}Inicio{/title}
 {#main}
 <h1>Eventos disponibles</h1>
-<p>No events available yet.</p>
+{#if events.isEmpty()}
+<p>No hay eventos disponibles.</p>
+{#else}
+<ul>
+{#for e in events}
+<li><a href="/event/{e.id}">{e.title}</a></li>
+{/for}
+</ul>
+{/if}
 <p><a href="/login">Login</a></p>
 {/main}
 {/include}
