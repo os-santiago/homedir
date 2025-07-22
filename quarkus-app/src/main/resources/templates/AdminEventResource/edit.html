@@ -22,6 +22,8 @@ Nuevo Evento
     <input id="title" name="title" type="text" value="{event.title}">
     <label for="description">Descripcion</label>
     <textarea id="description" name="description">{event.description}</textarea>
+    <label for="days">Días del evento</label>
+    <input id="days" name="days" type="number" min="1" max="10" value="{event.days}">
     <button type="submit">Guardar</button>
 </form>
 {#if event.id}
@@ -69,7 +71,18 @@ Nuevo Evento
 <td><input name="name" value="{t.name}"></td>
 <td>
 <input name="description" value="{t.description}" placeholder="Descripcion">
-<input name="location" value="{t.location}" placeholder="Ubicacion">
+<select name="location">
+{#for sc in event.scenarios}
+<option value="{sc.id}"{#if sc.id==t.location} selected{/if}>{sc.name}</option>
+{/for}
+</select>
+<input name="startTime" type="time" value="{t.startTimeStr}">
+<input name="duration" type="number" min="1" value="{t.durationMinutes}">
+<select name="day">
+{#for d in event.dayList}
+<option value="{d}"{#if t.day==d} selected{/if}>Día {d}</option>
+{/for}
+</select>
 <button type="submit">Guardar</button>
 </form>
 <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete" style="display:inline">
@@ -84,14 +97,34 @@ Nuevo Evento
 <td><input name="name"></td>
 <td>
 <input name="description" placeholder="Descripcion">
-<input name="location" placeholder="Ubicacion">
+<select name="location">
+{#for sc in event.scenarios}
+<option value="{sc.id}">{sc.name}</option>
+{/for}
+</select>
+<input name="startTime" type="time">
+<input name="duration" type="number" min="1">
+<select name="day">
+{#for d in event.dayList}
+<option value="{d}">Día {d}</option>
+{/for}
+</select>
 <button type="submit">Agregar</button>
 </td>
 </form>
 </tr>
 </tbody>
 </table>
+<h2>Agenda</h2>
+{#for d in event.dayList}
+<h3>Día {d}</h3>
+<ul>
+{#for t in event.getAgendaForDay(d)}
+<li>{t.startTimeStr} - {t.endTimeStr} | {t.name} | {event.getScenarioName(t.location)}</li>
+{/for}
+</ul>
+{/for}
 {/if}
-<p><a href="/private/admin/events">Volver</a></p>
+<p><a href="/private/admin/events">Volver a la administración de Eventos</a></p>
 {/main}
 {/include}

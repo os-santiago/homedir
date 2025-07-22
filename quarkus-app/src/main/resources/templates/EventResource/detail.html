@@ -19,12 +19,15 @@ Evento
 </ul>
 {/if}
 {#if !event.agenda.isEmpty()}
-<h2>Charlas</h2>
+<h2>Agenda</h2>
+{#for d in event.dayList}
+<h3>Día {d}</h3>
 <ul>
-{#for t in event.agenda}
-<li>{t.name}</li>
+{#for t in event.getAgendaForDay(d)}
+<li>{t.startTimeStr} - {t.endTimeStr} | {t.name} | {event.getScenarioName(t.location)}</li>
 {/for}
 </ul>
+{/for}
 {/if}
 {#else}
 <p>Evento no encontrado.</p>
