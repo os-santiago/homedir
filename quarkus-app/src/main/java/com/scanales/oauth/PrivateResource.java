@@ -40,26 +40,33 @@ public class PrivateResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance privatePage() {
-        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) identity.getPrincipal();
-
-        String sub = getClaim(principal, "sub");
-        String preferredUsername = getClaim(principal, "preferred_username");
-        String name = getClaim(principal, "name");
+        String sub = getClaim("sub");
+        if (sub == null) {
+            sub = identity.getPrincipal().getName();
+        }
+        String preferredUsername = getClaim("preferred_username");
+        String name = getClaim("name");
         if (name == null) {
             name = sub;
         }
-        String givenName = getClaim(principal, "given_name");
-        String familyName = getClaim(principal, "family_name");
-        String email = getClaim(principal, "email");
-        String locale = getClaim(principal, "locale");
-        String picture = getClaim(principal, "picture");
+        String givenName = getClaim("given_name");
+        String familyName = getClaim("family_name");
+        String email = getClaim("email");
+        String locale = getClaim("locale");
+        String picture = getClaim("picture");
 
         return Templates.privatePage(sub, preferredUsername, name, givenName,
                 familyName, email, locale, picture);
     }
 
-    private String getClaim(OidcJwtCallerPrincipal principal, String claimName) {
-        Object value = principal.getClaim(claimName);
+    private String getClaim(String claimName) {
+        Object value = null;
+        if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal oidc) {
+            value = oidc.getClaim(claimName);
+        }
+        if (value == null) {
+            value = identity.getAttribute(claimName);
+        }
         return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 }

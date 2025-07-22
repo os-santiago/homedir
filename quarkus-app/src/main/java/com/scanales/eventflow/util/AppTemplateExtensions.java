@@ -40,13 +40,18 @@ public class AppTemplateExtensions {
         if (identity == null || identity.isAnonymous()) {
             return false;
         }
-        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) identity.getPrincipal();
-        String email = getClaim(principal, "email");
+        String email = getClaim(identity, "email");
         return email != null && adminList.contains(email);
     }
 
-    private static String getClaim(OidcJwtCallerPrincipal principal, String claimName) {
-        Object value = principal.getClaim(claimName);
+    private static String getClaim(SecurityIdentity identity, String claimName) {
+        Object value = null;
+        if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal oidc) {
+            value = oidc.getClaim(claimName);
+        }
+        if (value == null) {
+            value = identity.getAttribute(claimName);
+        }
         return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 }

@@ -37,23 +37,28 @@ public class ProfileResource {
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance profile() {
         identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
-        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) identity.getPrincipal();
 
-        String name = getClaim(principal, "name");
-        String givenName = getClaim(principal, "given_name");
-        String familyName = getClaim(principal, "family_name");
-        String email = getClaim(principal, "email");
+        String name = getClaim("name");
+        String givenName = getClaim("given_name");
+        String familyName = getClaim("family_name");
+        String email = getClaim("email");
 
         if (name == null) {
-            name = principal.getName();
+            name = identity.getPrincipal().getName();
         }
 
-        String sub = principal.getName();
+        String sub = identity.getPrincipal().getName();
         return Templates.profile(name, givenName, familyName, email, sub);
     }
 
-    private String getClaim(OidcJwtCallerPrincipal principal, String claimName) {
-        Object value = principal.getClaim(claimName);
+    private String getClaim(String claimName) {
+        Object value = null;
+        if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal oidc) {
+            value = oidc.getClaim(claimName);
+        }
+        if (value == null) {
+            value = identity.getAttribute(claimName);
+        }
         return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 }

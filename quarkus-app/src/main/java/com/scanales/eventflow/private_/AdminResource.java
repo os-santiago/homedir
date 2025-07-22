@@ -34,20 +34,25 @@ public class AdminResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public Response admin() {
-        OidcJwtCallerPrincipal principal = (OidcJwtCallerPrincipal) identity.getPrincipal();
-        String email = getClaim(principal, "email");
+        String email = getClaim("email");
         if (email == null || !adminList.contains(email)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        String name = getClaim(principal, "name");
+        String name = getClaim("name");
         if (name == null) {
             name = email;
         }
         return Response.ok(Templates.admin(name)).build();
     }
 
-    private String getClaim(OidcJwtCallerPrincipal principal, String claimName) {
-        Object value = principal.getClaim(claimName);
+    private String getClaim(String claimName) {
+        Object value = null;
+        if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal oidc) {
+            value = oidc.getClaim(claimName);
+        }
+        if (value == null) {
+            value = identity.getAttribute(claimName);
+        }
         return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 }
