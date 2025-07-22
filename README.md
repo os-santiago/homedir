@@ -12,6 +12,10 @@ quarkus.oidc.application-type=web-app
 quarkus.oidc.authentication.redirect-path=/private
 quarkus.oidc.authentication.scopes=openid profile email
 quarkus.oidc.logout.post-logout-path=/
+quarkus.oidc.user-info-required=false
+quarkus.oidc.authentication.user-info-required=false
+quarkus.oidc.authentication.id-token-required=true
+quarkus.oidc.token.principal-claim=id_token
 ```
 
 The `provider=google` setting enables automatic discovery of all Google OAuth2 endpoints as well as JWKS. Set the client id and secret obtained from the Google Cloud console. After starting the application you can navigate to `/private` to trigger the login flow.

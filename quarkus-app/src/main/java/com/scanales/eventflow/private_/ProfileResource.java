@@ -4,7 +4,6 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
 
 import jakarta.inject.Inject;
@@ -30,26 +29,18 @@ public class ProfileResource {
     @Inject
     SecurityIdentity identity;
 
-    @Inject
-    JsonWebToken jwt;
-
     @GET
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance profile() {
         identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
+        String name = identity.getAttribute("name");
+        String givenName = identity.getAttribute("given_name");
+        String familyName = identity.getAttribute("family_name");
+        String email = identity.getAttribute("email");
 
-        String name = jwt.getClaim("name");
         if (name == null) {
-            name = identity.getAttribute("name");
-        }
-
-        String givenName = jwt.getClaim("given_name");
-        String familyName = jwt.getClaim("family_name");
-
-        String email = jwt.getClaim("email");
-        if (email == null) {
-            email = identity.getAttribute("email");
+            name = identity.getPrincipal().getName();
         }
 
         String sub = identity.getPrincipal().getName();
