@@ -96,6 +96,27 @@ public class AdminEventResource {
     }
 
     @POST
+    @Path("{id}/edit")
+    @Authenticated
+    public Response updateEvent(@PathParam("id") String id,
+                                @FormParam("title") String title,
+                                @FormParam("description") String description) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Event event = eventService.getEvent(id);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        event.setTitle(title);
+        event.setDescription(description);
+        eventService.saveEvent(event);
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/event/" + id)
+                .build();
+    }
+
+    @POST
     @Path("{id}/delete")
     @Authenticated
     public Response deleteEvent(@PathParam("id") String id) {
@@ -113,13 +134,24 @@ public class AdminEventResource {
     @Authenticated
     public Response saveScenario(@PathParam("id") String eventId,
                                  @FormParam("scenarioId") String scenarioId,
-                                 @FormParam("name") String name) {
+                                 @FormParam("name") String name,
+                                 @FormParam("features") String features,
+                                 @FormParam("location") String location) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        if (scenarioId == null || scenarioId.isBlank()) {
+            var ts = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                    .format(java.time.LocalDateTime.now());
+            scenarioId = eventId + "-sala-" + ts;
+        }
         Scenario scenario = new Scenario(scenarioId, name);
+        scenario.setFeatures(features);
+        scenario.setLocation(location);
         eventService.saveScenario(eventId, scenario);
-        return Response.ok().build();
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/events/" + eventId + "/edit")
+                .build();
     }
 
     @POST
@@ -131,7 +163,9 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         eventService.deleteScenario(eventId, scenarioId);
-        return Response.ok().build();
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/events/" + eventId + "/edit")
+                .build();
     }
 
     @POST
@@ -139,13 +173,24 @@ public class AdminEventResource {
     @Authenticated
     public Response saveTalk(@PathParam("id") String eventId,
                              @FormParam("talkId") String talkId,
-                             @FormParam("name") String name) {
+                             @FormParam("name") String name,
+                             @FormParam("description") String description,
+                             @FormParam("location") String location) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        if (talkId == null || talkId.isBlank()) {
+            var ts = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                    .format(java.time.LocalDateTime.now());
+            talkId = eventId + "-charla-" + ts;
+        }
         Talk talk = new Talk(talkId, name);
+        talk.setDescription(description);
+        talk.setLocation(location);
         eventService.saveTalk(eventId, talk);
-        return Response.ok().build();
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/events/" + eventId + "/edit")
+                .build();
     }
 
     @POST
@@ -157,6 +202,8 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         eventService.deleteTalk(eventId, talkId);
-        return Response.ok().build();
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/events/" + eventId + "/edit")
+                .build();
     }
 }
