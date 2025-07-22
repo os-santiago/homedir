@@ -4,12 +4,17 @@ metadata:
   name: eventflow
   namespace: eventflow
 spec:
+  progressDeadlineSeconds: 600
   replicas: 1
-  strategy:
-    type: RollingUpdate
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: eventflow
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -18,8 +23,10 @@ spec:
       containers:
         - name: eventflow
           image: quay.io/sergio_canales_e/eventflow:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
+              protocol: TCP
           env:
             - name: JAVA_TOOL_OPTIONS
               value: "-XX:+UseContainerSupport"
@@ -58,3 +65,25 @@ spec:
                 secretKeyRef:
                   name: google-oauth
                   key: redirect-uri
+          resources:
+            limits:
+              cpu: 500m
+              ephemeral-storage: 1Gi
+              memory: 100Mi
+            requests:
+              cpu: 50m
+              ephemeral-storage: 1Gi
+              memory: 52Mi
+          securityContext:
+            capabilities:
+              drop:
+                - NET_RAW
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
