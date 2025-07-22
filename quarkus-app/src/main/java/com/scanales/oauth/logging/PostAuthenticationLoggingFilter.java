@@ -12,6 +12,9 @@ import jakarta.ws.rs.ext.Provider;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.oidc.IdTokenCredential;
 import io.quarkus.oidc.AccessTokenCredential;
+import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
+
+import java.util.Optional;
 import org.jboss.logging.Logger;
 
 /**
@@ -48,14 +51,17 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
             LOG.infov("Access Token: {0}", accessToken.getToken());
         }
 
-        String sub = identity.getPrincipal().getName();
-        String preferredUsername = identity.getAttribute("preferred_username");
-        String name = identity.getAttribute("name");
-        String givenName = identity.getAttribute("given_name");
-        String familyName = identity.getAttribute("family_name");
-        String email = identity.getAttribute("email");
-        String locale = identity.getAttribute("locale");
-        String picture = identity.getAttribute("picture");
+        String sub = getClaim("sub");
+        if (sub == null) {
+            sub = identity.getPrincipal().getName();
+        }
+        String preferredUsername = getClaim("preferred_username");
+        String name = getClaim("name");
+        String givenName = getClaim("given_name");
+        String familyName = getClaim("family_name");
+        String email = getClaim("email");
+        String locale = getClaim("locale");
+        String picture = getClaim("picture");
 
         checkAttribute("sub", sub);
         checkAttribute("preferred_username", preferredUsername);
@@ -76,6 +82,17 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
                 "locale: %s%n" +
                 "picture: %s",
                 sub, preferredUsername, name, givenName, familyName, email, locale, picture);
+    }
+
+    private String getClaim(String claimName) {
+        Object value = null;
+        if (identity.getPrincipal() instanceof OidcJwtCallerPrincipal oidc) {
+            value = oidc.getClaim(claimName);
+        }
+        if (value == null) {
+            value = identity.getAttribute(claimName);
+        }
+        return Optional.ofNullable(value).map(Object::toString).orElse(null);
     }
 
     private void checkAttribute(String attrName, String value) {
