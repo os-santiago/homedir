@@ -153,10 +153,10 @@ public class AdminEventResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         if (!hasRequiredData(event)) {
-            LOG.warnf("Event {0} has no data to export", id);
+            LOG.warnf("Event %s has no data to export", id);
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("\u274C Error: El evento no contiene datos para exportar. Verifica que el evento est\u00e9 correctamente cargado.")
-                    .type(MediaType.TEXT_PLAIN)
+                    .entity("❌ Error: El evento no contiene datos para exportar. Verifica que el evento esté correctamente cargado.")
+                    .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
                     .build();
         }
         try {
@@ -284,7 +284,7 @@ public class AdminEventResource {
         LOG.infov("Received file {0}", file.fileName());
 
         if (file.contentType() == null || !file.contentType().equals("application/json")) {
-            LOG.warnf("Invalid MIME type: {0}", file.contentType());
+            LOG.warnf("Invalid MIME type: %s", file.contentType());
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: solo se aceptan archivos JSON"))
@@ -307,7 +307,7 @@ public class AdminEventResource {
 
             String id = root.get("id").asText();
             if (eventService.getEvent(id) != null) {
-                LOG.warnf("Event {0} already exists", id);
+                LOG.warnf("Event %s already exists", id);
                 var events = eventService.listEvents();
                 return Response.status(Response.Status.CONFLICT)
                         .entity(Templates.list(events, "Importaci\u00f3n fallida: el evento ya existe"))
@@ -333,27 +333,13 @@ public class AdminEventResource {
     }
 
     private boolean hasRequiredData(Event event) {
-        if (event == null) return false;
-        if (event.getTitle() == null || event.getTitle().isBlank()) return false;
-        if (event.getDescription() == null || event.getDescription().isBlank()) return false;
-        if (event.getCreator() == null || event.getCreator().isBlank()) return false;
-        if (event.getCreatedAt() == null) return false;
-
-        // Validate scenarios only if present
-        if (event.getScenarios() != null) {
-            for (Scenario sc : event.getScenarios()) {
-                if (sc.getId() == null || sc.getId().isBlank()) return false;
-                if (sc.getName() == null || sc.getName().isBlank()) return false;
-            }
+        if (event == null) {
+            return false;
         }
 
-        if (event.getAgenda() == null || event.getAgenda().isEmpty()) return false;
-        for (Talk t : event.getAgenda()) {
-            if (t.getId() == null || t.getId().isBlank()) return false;
-            if (t.getName() == null || t.getName().isBlank()) return false;
-        }
+        LOG.infov("Event content: {0}", event);
 
-        return true;
+        return event.getId() != null && !event.getId().isBlank();
     }
 
     private void fillDefaults(Event event) {
