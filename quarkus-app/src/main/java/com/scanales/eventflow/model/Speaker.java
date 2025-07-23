@@ -1,7 +1,11 @@
 package com.scanales.eventflow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.List;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * Represents a person giving one or more talks at the event.

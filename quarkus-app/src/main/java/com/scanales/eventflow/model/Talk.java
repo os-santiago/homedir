@@ -1,6 +1,10 @@
 package com.scanales.eventflow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.time.LocalTime;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * Describes a talk within an event.

@@ -9,6 +9,11 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.util.AdminUtils;
+import org.jboss.logging.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.jboss.resteasy.reactive.RestForm;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -19,6 +24,8 @@ import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.Consumes;
 
 
 @Path("/private/admin/events")
@@ -26,12 +33,14 @@ public class AdminEventResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance list(java.util.List<Event> events);
+        static native TemplateInstance list(java.util.List<Event> events, String message);
         static native TemplateInstance edit(Event event);
     }
 
     @Inject
     SecurityIdentity identity;
+
+    private static final Logger LOG = Logger.getLogger(AdminEventResource.class);
 
     @Inject
     EventService eventService;
@@ -44,12 +53,12 @@ public class AdminEventResource {
     @Path("")
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
-    public Response listEvents() {
+    public Response listEvents(@QueryParam("msg") String message) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         var events = eventService.listEvents();
-        return Response.ok(Templates.list(events)).build();
+        return Response.ok(Templates.list(events, message)).build();
     }
 
     @GET
@@ -130,6 +139,31 @@ public class AdminEventResource {
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
                 .build();
+    }
+
+    @GET
+    @Path("{id}/export")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response exportEvent(@PathParam("id") String id) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Event event = eventService.getEvent(id);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+            String json = mapper.writeValueAsString(event);
+            LOG.infov("Exporting event {0}", id);
+            return Response.ok(json)
+                    .header("Content-Disposition", "attachment; filename=evento_" + id + ".json")
+                    .build();
+        } catch (Exception e) {
+            LOG.error("Failed to export event", e);
+            return Response.serverError().build();
+        }
     }
 
     @POST
@@ -221,5 +255,84 @@ public class AdminEventResource {
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events/" + eventId + "/edit")
                 .build();
+    }
+
+    @POST
+    @Path("import")
+    @Authenticated
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response importEvent(@RestForm FileUpload file) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        if (file == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (file.contentType() == null || !file.contentType().contains("json")) {
+            LOG.warn("Uploaded file is not JSON");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            java.nio.file.Path path = file.uploadedFile();
+            ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(java.nio.file.Files.newInputStream(path));
+
+            if (!root.hasNonNull("id")) {
+                LOG.warn("Imported JSON missing id field");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+fallida")
+                        .build();
+            }
+
+            String id = root.get("id").asText();
+            if (eventService.getEvent(id) != null) {
+                return Response.status(Response.Status.SEE_OTHER)
+                        .header("Location", "/private/admin/events?msg=El+evento+con+ID+" + id + "+ya+existe.+Importaci%C3%B3n+cancelada.")
+                        .build();
+            }
+
+            Event event = mapper.treeToValue(root, Event.class);
+
+            fillDefaults(event);
+
+            eventService.saveEvent(event);
+            LOG.infov("Imported event {0}", id);
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location", "/private/admin/events?msg=Todos+los+campos+fueron+exitosamente+cargados.")
+                    .build();
+        } catch (Exception e) {
+            LOG.error("Failed to import event", e);
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+fallida")
+                    .build();
+        }
+    }
+
+    private void fillDefaults(Event event) {
+        if (event.getTitle() == null) event.setTitle("VACIO");
+        if (event.getDescription() == null) event.setDescription("VACIO");
+        if (event.getMapUrl() == null) event.setMapUrl("VACIO");
+        if (event.getCreator() == null) event.setCreator("VACIO");
+        if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
+
+        if (event.getScenarios() != null) {
+            for (Scenario sc : event.getScenarios()) {
+                if (sc.getName() == null) sc.setName("VACIO");
+                if (sc.getFeatures() == null) sc.setFeatures("VACIO");
+                if (sc.getLocation() == null) sc.setLocation("VACIO");
+                if (sc.getId() == null) sc.setId(java.util.UUID.randomUUID().toString());
+            }
+        }
+
+        if (event.getAgenda() != null) {
+            for (Talk t : event.getAgenda()) {
+                if (t.getName() == null) t.setName("VACIO");
+                if (t.getDescription() == null) t.setDescription("VACIO");
+                if (t.getLocation() == null) t.setLocation("VACIO");
+                if (t.getStartTime() == null) t.setStartTime(java.time.LocalTime.MIDNIGHT);
+                if (t.getSpeaker() == null) t.setSpeaker(new com.scanales.eventflow.model.Speaker("","VACIO"));
+            }
+        }
     }
 }

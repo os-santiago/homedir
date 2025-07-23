@@ -2,7 +2,14 @@
 {#title}Eventos{/title}
 {#main}
 <h1>Eventos</h1>
+{#if message}
+<p>{message}</p>
+{/if}
 <p><a href="/private/admin/events/new">Nuevo evento</a></p>
+<form method="post" action="/private/admin/events/import" enctype="multipart/form-data">
+    <input type="file" name="file" accept="application/json">
+    <button type="submit">Importar evento desde JSON</button>
+</form>
 {#if events.isEmpty()}
 <p>No hay eventos registrados.</p>
 {#else}
@@ -18,6 +25,7 @@
 <form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline">
 <button type="submit">Eliminar</button>
 </form>
+<a href="/private/admin/events/{ev.id}/export">Exportar</a>
 </td>
 </tr>
 {/for}
