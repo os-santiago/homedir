@@ -152,6 +152,13 @@ public class AdminEventResource {
         if (event == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        if (!hasRequiredData(event)) {
+            LOG.warnf("Event {0} has no data to export", id);
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("\u274C Error: El evento no contiene datos para exportar. Verifica que el evento est\u00e9 correctamente cargado.")
+                    .type(MediaType.TEXT_PLAIN)
+                    .build();
+        }
         try {
             ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
             mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -323,6 +330,27 @@ public class AdminEventResource {
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON inv\u00e1lido"))
                     .build();
         }
+    }
+
+    private boolean hasRequiredData(Event event) {
+        if (event.getId() == null || event.getId().isBlank()) return false;
+        if (event.getTitle() == null || event.getTitle().isBlank()) return false;
+        if (event.getDescription() == null || event.getDescription().isBlank()) return false;
+        if (event.getCreatedAt() == null) return false;
+        if (event.getCreator() == null || event.getCreator().isBlank()) return false;
+        if (event.getScenarios() == null || event.getScenarios().isEmpty()) return false;
+        for (Scenario sc : event.getScenarios()) {
+            if (sc.getId() == null || sc.getId().isBlank()) return false;
+            if (sc.getName() == null || sc.getName().isBlank()) return false;
+            if (sc.getLocation() == null || sc.getLocation().isBlank()) return false;
+        }
+        if (event.getAgenda() == null || event.getAgenda().isEmpty()) return false;
+        for (Talk t : event.getAgenda()) {
+            if (t.getId() == null || t.getId().isBlank()) return false;
+            if (t.getName() == null || t.getName().isBlank()) return false;
+            if (t.getSpeaker() != null && (t.getSpeaker().getName() == null || t.getSpeaker().getName().isBlank())) return false;
+        }
+        return true;
     }
 
     private void fillDefaults(Event event) {
