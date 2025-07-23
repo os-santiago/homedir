@@ -6,6 +6,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
@@ -24,6 +25,8 @@ public class Event {
     private int days = 1;
     /** URL or identifier for the venue map. */
     private String mapUrl;
+    /** Base date for the event used to compute talk schedules. */
+    private java.time.LocalDate eventDate;
     private List<Talk> agenda = new ArrayList<>();
     /** Time when the event was created. */
     private LocalDateTime createdAt;
@@ -103,6 +106,14 @@ public class Event {
 
     public void setMapUrl(String mapUrl) {
         this.mapUrl = mapUrl;
+    }
+
+    public java.time.LocalDate getEventDate() {
+        return eventDate;
+    }
+
+    public void setEventDate(java.time.LocalDate eventDate) {
+        this.eventDate = eventDate;
     }
 
     public List<Talk> getAgenda() {
