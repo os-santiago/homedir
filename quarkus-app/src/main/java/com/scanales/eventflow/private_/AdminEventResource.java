@@ -154,8 +154,9 @@ public class AdminEventResource {
         }
         try {
             ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-            String json = mapper.writeValueAsString(event);
-            LOG.infov("Exporting event {0}", id);
+            mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+            String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event);
+            LOG.infov("Exporting event {0}:\n{1}", id, json);
             return Response.ok(json)
                     .header("Content-Disposition", "attachment; filename=evento_" + id + ".json")
                     .build();
