@@ -41,6 +41,15 @@ ADMIN_LIST=sergio.canales.e@gmail.com,alice@example.org
 Only users included in this list can create, edit or delete events and their
 associated scenarios and talks.
 
+## Importing events from JSON
+
+The administration UI provides an option to import events using a JSON file.
+Use the form under `/private/admin/events` to upload a file named `file`
+with the `application/json` MIME type. The application validates the content
+and will respond with `409 Conflict` if an event with the same ID already
+exists or `400 Bad Request` when the JSON is invalid. A successful import
+redirects back to the event list displaying a confirmation banner.
+
 ## Troubleshooting
 
 - **Error 401: invalid_client**
