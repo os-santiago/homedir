@@ -18,7 +18,9 @@ public class ScenarioResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance detail(Scenario scenario);
+        static native TemplateInstance detail(Scenario scenario,
+                                             com.scanales.eventflow.model.Event event,
+                                             java.util.List<com.scanales.eventflow.model.Talk> talks);
     }
 
     @Inject
@@ -30,6 +32,11 @@ public class ScenarioResource {
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance detail(@PathParam("id") String id) {
         Scenario s = eventService.findScenario(id);
-        return Templates.detail(s);
+        if (s == null) {
+            return Templates.detail(null, null, java.util.List.of());
+        }
+        var event = eventService.findEventByScenario(id);
+        var talks = eventService.findTalksForScenario(id);
+        return Templates.detail(s, event, talks);
     }
 }

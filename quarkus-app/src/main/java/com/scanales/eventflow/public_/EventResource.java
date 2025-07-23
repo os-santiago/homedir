@@ -19,6 +19,7 @@ public class EventResource {
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance detail(Event event);
+        static native TemplateInstance agenda(Event event);
     }
 
     @Inject
@@ -34,5 +35,14 @@ public class EventResource {
             return Templates.detail(null);
         }
         return Templates.detail(event);
+    }
+
+    @GET
+    @Path("{id}/agenda")
+    @PermitAll
+    @Produces(MediaType.TEXT_HTML)
+    public TemplateInstance agenda(@PathParam("id") String id) {
+        Event event = eventService.getEvent(id);
+        return Templates.agenda(event);
     }
 }

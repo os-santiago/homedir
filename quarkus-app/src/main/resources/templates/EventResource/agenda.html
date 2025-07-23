@@ -1,0 +1,21 @@
+{#include layout/base}
+{#title}
+{#if event}{event.title} - Agenda{#else}Agenda{/if}
+{/title}
+{#main}
+{#if event}
+<h1>Agenda de {event.title}</h1>
+{#for d in event.dayList}
+<h2>Día {d}</h2>
+<ul>
+{#for t in event.getAgendaForDay(d)}
+<li>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+{/for}
+</ul>
+{/for}
+<p><a href="/event/{event.id}">Volver al evento</a></p>
+{#else}
+<p>Evento no encontrado.</p>
+{/if}
+{/main}
+{/include}
