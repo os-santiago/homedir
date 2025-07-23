@@ -63,7 +63,10 @@ public class ProfileResource {
             name = identity.getPrincipal().getName();
         }
 
-        String sub = identity.getPrincipal().getName();
+        String sub = getClaim("sub");
+        if (sub == null) {
+            sub = identity.getPrincipal().getName();
+        }
 
         if (email == null) {
             email = sub;
