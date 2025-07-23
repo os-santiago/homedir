@@ -1,10 +1,12 @@
 package com.scanales.eventflow.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.time.LocalTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@RegisterForReflection
 
 /**
  * Describes a talk within an event.
