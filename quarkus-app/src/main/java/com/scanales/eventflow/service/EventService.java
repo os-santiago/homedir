@@ -15,7 +15,14 @@ import com.scanales.eventflow.model.Talk;
 @ApplicationScoped
 public class EventService {
 
-    private final Map<String, Event> events = new ConcurrentHashMap<>();
+    /**
+     * Global cache of events shared by all sessions. Using a static map ensures
+     * the same {@code Event} instance is returned for a given id, reducing
+     * memory usage and avoiding unnecessary object duplication. The
+     * ConcurrentHashMap provides lock-free reads and efficient updates for a
+     * high performance setup.
+     */
+    private static final Map<String, Event> events = new ConcurrentHashMap<>();
 
     public List<Event> listEvents() {
         return new ArrayList<>(events.values());
