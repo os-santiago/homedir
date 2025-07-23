@@ -50,6 +50,7 @@ public class UserScheduleTest {
     @TestSecurity(user = "user@example.com")
     public void addAndRemoveTalk() {
         given()
+                .redirects().follow(false)
                 .when().get("/private/profile/add/t1")
                 .then()
                 .statusCode(303);
@@ -61,6 +62,7 @@ public class UserScheduleTest {
                 .body(containsString("Talk 1"));
 
         given()
+                .redirects().follow(false)
                 .when().get("/private/profile/remove/t1")
                 .then()
                 .statusCode(303);

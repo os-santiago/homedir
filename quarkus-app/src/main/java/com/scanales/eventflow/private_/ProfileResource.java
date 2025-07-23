@@ -65,6 +65,10 @@ public class ProfileResource {
 
         String sub = identity.getPrincipal().getName();
 
+        if (email == null) {
+            email = sub;
+        }
+
         var talkIds = userSchedule.getTalksForUser(email);
         java.util.List<TalkEntry> talks = talkIds.stream()
                 .map(tid -> {
