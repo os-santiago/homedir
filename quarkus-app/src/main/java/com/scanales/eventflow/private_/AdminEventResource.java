@@ -13,7 +13,6 @@ import org.jboss.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
-import org.jboss.resteasy.reactive.RestForm;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -261,17 +260,29 @@ public class AdminEventResource {
     @Path("import")
     @Authenticated
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response importEvent(@RestForm FileUpload file) {
+    @Produces(MediaType.TEXT_HTML)
+    public Response importEvent(@FormParam("file") FileUpload file) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         if (file == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            LOG.warn("No file received");
+            var events = eventService.listEvents();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Templates.list(events, "Importaci\u00f3n fallida: archivo requerido"))
+                    .build();
         }
-        if (file.contentType() == null || !file.contentType().contains("json")) {
-            LOG.warn("Uploaded file is not JSON");
-            return Response.status(Response.Status.BAD_REQUEST).build();
+
+        LOG.infov("Received file {0}", file.fileName());
+
+        if (file.contentType() == null || !file.contentType().equals("application/json")) {
+            LOG.warnf("Invalid MIME type: {0}", file.contentType());
+            var events = eventService.listEvents();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Templates.list(events, "Importaci\u00f3n fallida: solo se aceptan archivos JSON"))
+                    .build();
         }
+
         try {
             java.nio.file.Path path = file.uploadedFile();
             ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
@@ -280,15 +291,18 @@ public class AdminEventResource {
 
             if (!root.hasNonNull("id")) {
                 LOG.warn("Imported JSON missing id field");
+                var events = eventService.listEvents();
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+fallida")
+                        .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON sin campo id"))
                         .build();
             }
 
             String id = root.get("id").asText();
             if (eventService.getEvent(id) != null) {
-                return Response.status(Response.Status.SEE_OTHER)
-                        .header("Location", "/private/admin/events?msg=El+evento+con+ID+" + id + "+ya+existe.+Importaci%C3%B3n+cancelada.")
+                LOG.warnf("Event {0} already exists", id);
+                var events = eventService.listEvents();
+                return Response.status(Response.Status.CONFLICT)
+                        .entity(Templates.list(events, "Importaci\u00f3n fallida: el evento ya existe"))
                         .build();
             }
 
@@ -299,12 +313,13 @@ public class AdminEventResource {
             eventService.saveEvent(event);
             LOG.infov("Imported event {0}", id);
             return Response.status(Response.Status.SEE_OTHER)
-                    .header("Location", "/private/admin/events?msg=Todos+los+campos+fueron+exitosamente+cargados.")
+                    .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+exitosa")
                     .build();
         } catch (Exception e) {
             LOG.error("Failed to import event", e);
-            return Response.status(Response.Status.SEE_OTHER)
-                    .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+fallida")
+            var events = eventService.listEvents();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON inv\u00e1lido"))
                     .build();
         }
     }
