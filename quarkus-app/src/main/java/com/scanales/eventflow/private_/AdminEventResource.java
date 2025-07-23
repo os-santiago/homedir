@@ -10,8 +10,9 @@ import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.util.AdminUtils;
 import org.jboss.logging.Logger;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import jakarta.inject.Inject;
@@ -150,22 +151,23 @@ public class AdminEventResource {
         }
         Event event = eventService.getEvent(id);
         if (event == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("\u274c Error: Evento no encontrado.")
+                    .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
+                    .build();
         }
         if (!hasRequiredData(event)) {
             LOG.warnf("Event %s has no data to export", id);
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("❌ Error: El evento no contiene datos para exportar. Verifica que el evento esté correctamente cargado.")
+                    .entity("\u274c Error: El evento no contiene datos para exportar.")
                     .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
                     .build();
         }
-        try {
-            ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-            mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-            String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event);
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            String json = jsonb.toJson(event);
             LOG.infov("Exporting event {0}:\n{1}", id, json);
-            return Response.ok(json)
-                    .header("Content-Disposition", "attachment; filename=evento_" + id + ".json")
+            return Response.ok(json, MediaType.APPLICATION_JSON_TYPE)
+                    .header("Content-Disposition", "attachment; filename=event-" + id + ".json")
                     .build();
         } catch (Exception e) {
             LOG.error("Failed to export event", e);
@@ -291,13 +293,11 @@ public class AdminEventResource {
                     .build();
         }
 
-        try {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
             java.nio.file.Path path = file.uploadedFile();
-            ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(java.nio.file.Files.newInputStream(path));
+            Event event = jsonb.fromJson(java.nio.file.Files.newInputStream(path), Event.class);
 
-            if (!root.hasNonNull("id")) {
+            if (event.getId() == null || event.getId().isBlank()) {
                 LOG.warn("Imported JSON missing id field");
                 var events = eventService.listEvents();
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -305,7 +305,7 @@ public class AdminEventResource {
                         .build();
             }
 
-            String id = root.get("id").asText();
+            String id = event.getId();
             if (eventService.getEvent(id) != null) {
                 LOG.warnf("Event %s already exists", id);
                 var events = eventService.listEvents();
@@ -313,8 +313,6 @@ public class AdminEventResource {
                         .entity(Templates.list(events, "Importaci\u00f3n fallida: el evento ya existe"))
                         .build();
             }
-
-            Event event = mapper.treeToValue(root, Event.class);
 
             fillDefaults(event);
 
@@ -337,9 +335,18 @@ public class AdminEventResource {
             return false;
         }
 
-        LOG.infov("Event content: {0}", event);
+        JsonbConfig cfg = new JsonbConfig().withFormatting(true);
+        try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
+            String eventJson = jsonb.toJson(event);
+            LOG.infov("Event content:\n{0}", eventJson);
+        } catch (Exception e) {
+            LOG.warn("Unable to serialize event for logging", e);
+        }
 
-        return event.getId() != null && !event.getId().isBlank();
+        boolean hasLists = (event.getScenarios() != null && !event.getScenarios().isEmpty())
+                || (event.getAgenda() != null && !event.getAgenda().isEmpty());
+
+        return event.getId() != null && !event.getId().isBlank() && hasLists;
     }
 
     private void fillDefaults(Event event) {
