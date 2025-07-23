@@ -1,8 +1,11 @@
 package com.scanales.eventflow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Defines a scenario or room where the event activities take place.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Scenario {
 
     private String id;

@@ -1,8 +1,12 @@
 package com.scanales.eventflow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * Represents an event with its basic information, the scenarios where the
