@@ -22,6 +22,8 @@ Nuevo Evento
     <input id="title" name="title" type="text" value="{event.title}">
     <label for="description">Descripcion</label>
     <textarea id="description" name="description">{event.description}</textarea>
+    <label for="mapUrl">Mapa (URL)</label>
+    <input id="mapUrl" name="mapUrl" type="text" value="{event.mapUrl}">
     <label for="days">Días del evento</label>
     <input id="days" name="days" type="number" min="1" max="10" value="{event.days}">
     <button type="submit">Guardar</button>
@@ -29,13 +31,14 @@ Nuevo Evento
 {#if event.id}
 <h2>Escenarios</h2>
 <table>
-<thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
+<thead><tr><th>ID</th><th>Nombre</th><th>Mapa</th><th>Acciones</th></tr></thead>
 <tbody>
 {#for sc in event.scenarios}
 <tr>
 <form method="post" action="/private/admin/events/{event.id}/scenario">
 <td>{sc.id}<input type="hidden" name="scenarioId" value="{sc.id}"></td>
 <td><input name="name" value="{sc.name}"></td>
+<td><input name="mapUrl" value="{sc.mapUrl}" placeholder="URL mapa"></td>
 <td>
 <input name="features" value="{sc.features}" placeholder="Caracteristicas">
 <input name="location" value="{sc.location}" placeholder="Ubicacion">
@@ -51,6 +54,7 @@ Nuevo Evento
 <form method="post" action="/private/admin/events/{event.id}/scenario">
 <td>Nuevo</td>
 <td><input name="name"></td>
+<td><input name="mapUrl" placeholder="URL mapa"></td>
 <td>
 <input name="features" placeholder="Caracteristicas">
 <input name="location" placeholder="Ubicacion">

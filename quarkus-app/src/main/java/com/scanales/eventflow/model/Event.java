@@ -150,6 +150,20 @@ public class Event {
     }
 
     /**
+     * Returns the map URL for the given scenario id or {@code null}. This method
+     * gracefully handles scenarios without a mapUrl to avoid {@link NullPointerException}
+     * when rendering templates.
+     */
+    public String getScenarioMapUrl(String scenarioId) {
+        return scenarios.stream()
+                .filter(s -> s.getId().equals(scenarioId))
+                .map(Scenario::getMapUrl)
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Returns the list of talks for the given day ordered by start time.
      */
     public java.util.List<Talk> getAgendaForDay(int day) {

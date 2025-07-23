@@ -11,17 +11,25 @@
 {#if talks.isEmpty()}
 <p>A\u00fan no hay charlas.</p>
 {#else}
-<ul>
+<table>
+<thead>
+    <tr><th>Charla</th><th>Escenario</th><th>Día</th><th>Hora Inicio</th><th>Duración</th><th>🧭 Cómo llegar</th><th>⏱ Estado</th><th></th></tr>
+</thead>
+<tbody>
 {#for e in talks}
-    <li>Día {e.talk.day} - {e.talk.startTimeStr} ({e.talk.durationMinutes} min) -
-        <a href="/talk/{e.talk.id}">{e.talk.name}</a>
-        {#if e.event}
-            - <a href="/scenario/{e.talk.location}">{e.event.getScenarioName(e.talk.location)}</a>
-        {/if}
-        - <a href="/private/profile/remove/{e.talk.id}">Eliminar de mis charlas</a>
-    </li>
+    <tr>
+        <td><a href="/talk/{e.talk.id}">{e.talk.name}</a></td>
+        <td>{#if e.event}<a href="/scenario/{e.talk.location}">{e.event.getScenarioName(e.talk.location)}</a>{/if}</td>
+        <td>{e.talk.day}</td>
+        <td>{e.talk.startTimeStr}</td>
+        <td>{e.talk.durationMinutes}</td>
+        <td>{#if e.event && e.event.getScenarioMapUrl(e.talk.location)}<a href="{e.event.getScenarioMapUrl(e.talk.location)}" target="_blank">🧭 Cómo llegar</a>{/if}</td>
+        <td>{e.status()}</td>
+        <td><a href="/private/profile/remove/{e.talk.id}">Eliminar de mis charlas</a></td>
+    </tr>
 {/for}
-</ul>
+</tbody>
+</table>
 {/if}
 <p><a href="/private/admin">Admin Panel</a></p>
 <p><a href="/logout">Salir</a></p>

@@ -14,6 +14,8 @@ public class Scenario {
     private String name;
     private String features;
     private String location;
+    /** Specific map image for this scenario highlighting its position. */
+    private String mapUrl;
 
     public Scenario() {
     }
@@ -53,5 +55,13 @@ public class Scenario {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getMapUrl() {
+        return mapUrl;
+    }
+
+    public void setMapUrl(String mapUrl) {
+        this.mapUrl = mapUrl;
     }
 }
