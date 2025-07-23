@@ -1,11 +1,13 @@
 package com.scanales.eventflow.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@RegisterForReflection
 
 /**
  * Represents a person giving one or more talks at the event.
