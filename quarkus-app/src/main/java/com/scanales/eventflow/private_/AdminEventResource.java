@@ -333,23 +333,26 @@ public class AdminEventResource {
     }
 
     private boolean hasRequiredData(Event event) {
-        if (event.getId() == null || event.getId().isBlank()) return false;
+        if (event == null) return false;
         if (event.getTitle() == null || event.getTitle().isBlank()) return false;
         if (event.getDescription() == null || event.getDescription().isBlank()) return false;
-        if (event.getCreatedAt() == null) return false;
         if (event.getCreator() == null || event.getCreator().isBlank()) return false;
-        if (event.getScenarios() == null || event.getScenarios().isEmpty()) return false;
-        for (Scenario sc : event.getScenarios()) {
-            if (sc.getId() == null || sc.getId().isBlank()) return false;
-            if (sc.getName() == null || sc.getName().isBlank()) return false;
-            if (sc.getLocation() == null || sc.getLocation().isBlank()) return false;
+        if (event.getCreatedAt() == null) return false;
+
+        // Validate scenarios only if present
+        if (event.getScenarios() != null) {
+            for (Scenario sc : event.getScenarios()) {
+                if (sc.getId() == null || sc.getId().isBlank()) return false;
+                if (sc.getName() == null || sc.getName().isBlank()) return false;
+            }
         }
+
         if (event.getAgenda() == null || event.getAgenda().isEmpty()) return false;
         for (Talk t : event.getAgenda()) {
             if (t.getId() == null || t.getId().isBlank()) return false;
             if (t.getName() == null || t.getName().isBlank()) return false;
-            if (t.getSpeaker() != null && (t.getSpeaker().getName() == null || t.getSpeaker().getName().isBlank())) return false;
         }
+
         return true;
     }
 
