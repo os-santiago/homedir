@@ -87,4 +87,47 @@ public class EventService {
                 .findFirst()
                 .orElse(null);
     }
+
+    /** Returns the event that contains the given scenario or {@code null} if none. */
+    public Event findEventByScenario(String scenarioId) {
+        return events.values().stream()
+                .filter(e -> e.getScenarios().stream()
+                        .anyMatch(s -> s.getId().equals(scenarioId)))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** Returns the event that includes the provided talk id or {@code null}. */
+    public Event findEventByTalk(String talkId) {
+        return events.values().stream()
+                .filter(e -> e.getAgenda().stream()
+                        .anyMatch(t -> t.getId().equals(talkId)))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Returns all talk instances matching the given id across all events.
+     * Useful when the same talk is scheduled multiple times.
+     */
+    public List<Talk> findTalkOccurrences(String talkId) {
+        return events.values().stream()
+                .flatMap(e -> e.getAgenda().stream()
+                        .filter(t -> t.getId().equals(talkId)))
+                .sorted(java.util.Comparator
+                        .comparingInt(Talk::getDay)
+                        .thenComparing(Talk::getStartTime))
+                .toList();
+    }
+
+    /** Returns the list of talks scheduled in the given scenario ordered by day and time. */
+    public List<Talk> findTalksForScenario(String scenarioId) {
+        return events.values().stream()
+                .flatMap(e -> e.getAgenda().stream())
+                .filter(t -> scenarioId.equals(t.getLocation()))
+                .sorted(java.util.Comparator
+                        .comparingInt(Talk::getDay)
+                        .thenComparing(Talk::getStartTime))
+                .toList();
+    }
 }

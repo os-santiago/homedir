@@ -14,20 +14,13 @@ Evento
 <h2>Escenarios</h2>
 <ul>
 {#for s in event.scenarios}
-<li>{s.name}</li>
+<li><a href="/scenario/{s.id}">{s.name}</a></li>
 {/for}
 </ul>
 {/if}
 {#if !event.agenda.isEmpty()}
 <h2>Agenda</h2>
-{#for d in event.dayList}
-<h3>Día {d}</h3>
-<ul>
-{#for t in event.getAgendaForDay(d)}
-<li>{t.startTimeStr} - {t.endTimeStr} | {t.name} | {event.getScenarioName(t.location)}</li>
-{/for}
-</ul>
-{/for}
+<p><a href="/event/{event.id}/agenda">Ver agenda completa</a></p>
 {/if}
 {#else}
 <p>Evento no encontrado.</p>

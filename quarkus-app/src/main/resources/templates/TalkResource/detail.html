@@ -10,10 +10,17 @@ Charla
 {#if talk}
 <h1>{talk.name}</h1>
 {#if talk.description}<p>{talk.description}</p>{/if}
-{#if talk.startTimeStr}
-<p>{talk.startTimeStr} - {talk.endTimeStr} | Día {talk.day}</p>
+{#if !occurrences.isEmpty()}
+<h2>Horarios</h2>
+<ul>
+{#for t in occurrences}
+    <li>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
+        <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+    </li>
+{/for}
+</ul>
 {/if}
-{#if scenario}<p>Escenario: {scenario.name}</p>{/if}
+{#if event}<p><a href="/event/{event.id}">Volver al evento</a></p>{/if}
 {#else}
 <p>Charla no encontrada.</p>
 {/if}

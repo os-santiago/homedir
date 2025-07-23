@@ -11,6 +11,19 @@ Escenario
 <h1>{scenario.name}</h1>
 {#if scenario.location}<p>Ubicacion: {scenario.location}</p>{/if}
 {#if scenario.features}<p>{scenario.features}</p>{/if}
+{#if !talks.isEmpty()}
+<h2>Charlas</h2>
+<ul>
+{#for t in talks}
+    <li>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) :
+        <a href="/talk/{t.id}">{t.name}</a>
+    </li>
+{/for}
+</ul>
+{/if}
+{#if event}
+<p><a href="/event/{event.id}">Volver al evento</a></p>
+{/if}
 {#else}
 <p>Escenario no encontrado.</p>
 {/if}

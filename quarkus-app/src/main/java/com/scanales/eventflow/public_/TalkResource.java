@@ -18,7 +18,9 @@ public class TalkResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance detail(Talk talk, com.scanales.eventflow.model.Scenario scenario);
+        static native TemplateInstance detail(Talk talk,
+                                             com.scanales.eventflow.model.Event event,
+                                             java.util.List<Talk> occurrences);
     }
 
     @Inject
@@ -30,10 +32,11 @@ public class TalkResource {
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance detail(@PathParam("id") String id) {
         Talk talk = eventService.findTalk(id);
-        com.scanales.eventflow.model.Scenario sc = null;
-        if (talk != null) {
-            sc = eventService.findScenario(talk.getLocation());
+        if (talk == null) {
+            return Templates.detail(null, null, java.util.List.of());
         }
-        return Templates.detail(talk, sc);
+        var event = eventService.findEventByTalk(id);
+        var occurrences = eventService.findTalkOccurrences(id);
+        return Templates.detail(talk, event, occurrences);
     }
 }
