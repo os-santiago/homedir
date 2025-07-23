@@ -40,9 +40,13 @@ public class ProfileResource {
     public record TalkEntry(Talk talk, com.scanales.eventflow.model.Event event) {
         public String status() {
             if (talk == null || event == null) return "";
-            java.time.LocalDate startDate = event.getCreatedAt() == null
-                    ? java.time.LocalDate.now()
-                    : event.getCreatedAt().toLocalDate();
+            java.time.LocalDate base = event.getEventDate();
+            if (base == null) {
+                base = event.getCreatedAt() == null
+                        ? java.time.LocalDate.now()
+                        : event.getCreatedAt().toLocalDate();
+            }
+            java.time.LocalDate startDate = base;
             java.time.LocalDateTime start = java.time.LocalDateTime.of(
                     startDate.plusDays(talk.getDay() - 1),
                     talk.getStartTime());

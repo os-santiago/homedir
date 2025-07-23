@@ -93,14 +93,19 @@ public class AdminEventResource {
     public Response saveEvent(@FormParam("title") String title,
                               @FormParam("description") String description,
                               @FormParam("mapUrl") String mapUrl,
-                              @FormParam("days") int days) {
+                              @FormParam("days") int days,
+                              @FormParam("eventDate") String eventDateStr) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        if (eventDateStr == null || eventDateStr.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Fecha requerida").build();
         }
         var now = java.time.LocalDateTime.now();
         String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
         Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
         event.setMapUrl(mapUrl);
+        event.setEventDate(java.time.LocalDate.parse(eventDateStr));
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
@@ -114,7 +119,8 @@ public class AdminEventResource {
                                 @FormParam("title") String title,
                                 @FormParam("description") String description,
                                 @FormParam("mapUrl") String mapUrl,
-                                @FormParam("days") int days) {
+                                @FormParam("days") int days,
+                                @FormParam("eventDate") String eventDateStr) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -122,10 +128,14 @@ public class AdminEventResource {
         if (event == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        if (eventDateStr == null || eventDateStr.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Fecha requerida").build();
+        }
         event.setTitle(title);
         event.setDescription(description);
         event.setDays(days);
         event.setMapUrl(mapUrl);
+        event.setEventDate(java.time.LocalDate.parse(eventDateStr));
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/event/" + id)
@@ -359,6 +369,7 @@ public class AdminEventResource {
         if (event.getTitle() == null) event.setTitle("VACIO");
         if (event.getDescription() == null) event.setDescription("VACIO");
         if (event.getMapUrl() == null) event.setMapUrl("VACIO");
+        if (event.getEventDate() == null) event.setEventDate(java.time.LocalDate.now());
         if (event.getCreator() == null) event.setCreator("VACIO");
         if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
 
