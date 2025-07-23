@@ -56,3 +56,9 @@ redirects back to the event list displaying a confirmation banner.
   This indicates that the OAuth client credentials are incorrect. Verify that `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` (or the values in `google-oauth-secret.yaml`) match the client configuration in the Google Cloud console and that the redirect URI is registered correctly.
 - **The application supports RP-Initiated Logout but the OpenID Provider does not advertise the end_session_endpoint**
   Google does not publish an RP logout endpoint. Ensure Quarkus' built-in logout is disabled by leaving `quarkus.oidc.logout.path` empty and using the provided `/logout` endpoint instead.
+
+## Map navigation and talk status
+
+- Events and scenarios can include a `mapUrl` field pointing to an image of their location.
+- Scenario pages display this map when available and talk details provide a "🧭 ¿Cómo llegar?" link to highlight the room.
+- The profile page lists all registered talks in a table showing a dynamic status column indicating whether each talk is on time, about to start, in progress or finished.
