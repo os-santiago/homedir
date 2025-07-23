@@ -8,7 +8,21 @@
 <p><strong>Email:</strong> {email}</p>
 <p><strong>Sub:</strong> {sub}</p>
 <h2>Mis charlas</h2>
+{#if talks.isEmpty()}
 <p>A\u00fan no hay charlas.</p>
+{#else}
+<ul>
+{#for e in talks}
+    <li>Día {e.talk.day} - {e.talk.startTimeStr} ({e.talk.durationMinutes} min) -
+        <a href="/talk/{e.talk.id}">{e.talk.name}</a>
+        {#if e.event}
+            - <a href="/scenario/{e.talk.location}">{e.event.getScenarioName(e.talk.location)}</a>
+        {/if}
+        - <a href="/private/profile/remove/{e.talk.id}">Eliminar de mis charlas</a>
+    </li>
+{/for}
+</ul>
+{/if}
 <p><a href="/private/admin">Admin Panel</a></p>
 <p><a href="/logout">Salir</a></p>
 {/main}
