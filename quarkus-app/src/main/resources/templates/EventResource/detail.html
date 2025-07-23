@@ -20,7 +20,14 @@ Evento
 {/if}
 {#if !event.agenda.isEmpty()}
 <h2>Agenda</h2>
-<p><a href="/event/{event.id}/agenda">Ver agenda completa</a></p>
+{#for d in event.dayList}
+<h3>Día {d}</h3>
+<ul>
+{#for t in event.getAgendaForDay(d)}
+<li>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+{/for}
+</ul>
+{/for}
 {/if}
 {#else}
 <p>Evento no encontrado.</p>
