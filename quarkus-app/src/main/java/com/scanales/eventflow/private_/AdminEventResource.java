@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jboss.resteasy.reactive.RestForm;
-import org.jboss.resteasy.reactive.multipart.MultipartForm;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -258,28 +257,23 @@ public class AdminEventResource {
                 .build();
     }
 
-    public static class ImportForm {
-        @RestForm("file")
-        FileUpload file;
-    }
-
     @POST
     @Path("import")
     @Authenticated
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response importEvent(@MultipartForm ImportForm form) {
+    public Response importEvent(@RestForm FileUpload file) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        if (form == null || form.file == null) {
+        if (file == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        if (form.file.contentType() == null || !form.file.contentType().contains("json")) {
+        if (file.contentType() == null || !file.contentType().contains("json")) {
             LOG.warn("Uploaded file is not JSON");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            java.nio.file.Path path = form.file.uploadedFile();
+            java.nio.file.Path path = file.uploadedFile();
             ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(java.nio.file.Files.newInputStream(path));
