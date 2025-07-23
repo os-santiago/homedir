@@ -149,6 +149,15 @@ public class Event {
                 .orElse(null);
     }
 
+    /** Returns the map URL for the given scenario id or {@code null}. */
+    public String getScenarioMapUrl(String scenarioId) {
+        return scenarios.stream()
+                .filter(s -> s.getId().equals(scenarioId))
+                .map(Scenario::getMapUrl)
+                .findFirst()
+                .orElse(null);
+    }
+
     /**
      * Returns the list of talks for the given day ordered by start time.
      */

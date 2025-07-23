@@ -37,7 +37,23 @@ public class ProfileResource {
     }
 
     /** Helper record containing a talk and its parent event. */
-    public record TalkEntry(Talk talk, com.scanales.eventflow.model.Event event) {}
+    public record TalkEntry(Talk talk, com.scanales.eventflow.model.Event event) {
+        public String status() {
+            if (talk == null || event == null) return "";
+            java.time.LocalDate startDate = event.getCreatedAt() == null
+                    ? java.time.LocalDate.now()
+                    : event.getCreatedAt().toLocalDate();
+            java.time.LocalDateTime start = java.time.LocalDateTime.of(
+                    startDate.plusDays(talk.getDay() - 1),
+                    talk.getStartTime());
+            java.time.LocalDateTime end = start.plusMinutes(talk.getDurationMinutes());
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            if (now.isBefore(start.minusMinutes(30))) return "A tiempo";
+            if (now.isBefore(start)) return "Pronto a comenzar";
+            if (!now.isAfter(end)) return "En curso";
+            return "Finalizada";
+        }
+    }
 
     @Inject
     SecurityIdentity identity;
