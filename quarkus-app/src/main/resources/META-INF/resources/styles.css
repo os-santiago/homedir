@@ -20,6 +20,36 @@ body {
     text-align: center;
 }
 
+.site-header {
+    background: linear-gradient(to right, #b4e1fa, #d3f3f9);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.eventflow-logo {
+    height: 80px;
+    margin: 0 1rem;
+}
+
+.powered-by {
+    font-family: monospace;
+    font-size: 1rem;
+    color: #555;
+    margin: 0 1rem;
+}
+
+.oss-logo {
+    height: 40px;
+    margin: 0 1rem;
+}
+
 .container-logo {
     padding: 0.5rem 1rem;
     text-align: left;
@@ -116,6 +146,21 @@ footer {
     }
     .menu-toggle {
         display: block;
+    }
+}
+
+@media (max-width: 600px) {
+    .logo-container {
+        flex-direction: column;
+    }
+    .eventflow-logo {
+        height: 60px;
+    }
+    .oss-logo {
+        height: 30px;
+    }
+    .powered-by {
+        margin: 0.5rem 0;
     }
 }
 
