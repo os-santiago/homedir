@@ -10,14 +10,14 @@
 <body>
 <header class="info-header">
     <div class="container-banner">
-        <div class="logo-container">
+            <div class="logo-container">
+            {#insert banner}
+            <span class="banner-title">EventFlow</span>
+            {/insert}
             <img src="/img/eventflow-logo.png" alt="EventFlow Logo" class="eventflow-logo">
             <span class="powered-by">powered by</span>
             <img src="/img/oss-logo.png" alt="OpenSourceSantiago Logo" class="oss-logo">
         </div>
-        {#insert banner}
-        <span class="banner-title">EventFlow</span>
-        {/insert}
     </div>
     <div class="container-news">
         {#insert news}Bienvenido a EventFlow{/insert}
