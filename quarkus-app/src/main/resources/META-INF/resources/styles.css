@@ -118,3 +118,11 @@ footer {
         display: block;
     }
 }
+
+/* Standard responsive size for map images */
+.map-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
