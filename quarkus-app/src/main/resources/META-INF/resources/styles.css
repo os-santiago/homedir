@@ -31,6 +31,9 @@ body {
 .logo-container {
     display: flex;
     align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .eventflow-logo {
@@ -64,6 +67,9 @@ body {
 }
 
 .container-banner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
     background-size: 200% 200%;
     animation: flow 10s ease-in-out infinite;
