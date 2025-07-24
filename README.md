@@ -59,6 +59,6 @@ redirects back to the event list displaying a confirmation banner.
 
 ## Map navigation and talk status
 
-- Events and scenarios can include a `mapUrl` field pointing to an image of their location.
+- Events and scenarios can include a `mapUrl` field pointing to an image of their location. For best results, use 800x600 px images.
 - Scenario pages display this map when available and talk details provide a "🧭 ¿Cómo llegar?" link to highlight the room.
 - The profile page lists all registered talks in a table showing a dynamic status column indicating whether each talk is on time, about to start, in progress or finished.

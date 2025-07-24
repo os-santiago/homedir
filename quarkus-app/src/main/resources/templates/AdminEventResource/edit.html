@@ -24,6 +24,7 @@ Nuevo Evento
     <textarea id="description" name="description">{event.description}</textarea>
     <label for="mapUrl">Mapa (URL)</label>
     <input id="mapUrl" name="mapUrl" type="text" value="{event.mapUrl}">
+    <small class="input-help">Se recomienda utilizar imágenes de 800x600 px.</small>
     <label for="eventDate">Fecha del evento</label>
     <input id="eventDate" name="eventDate" type="date" value="{event.eventDate}">
     <label for="days">Días del evento</label>
@@ -40,7 +41,7 @@ Nuevo Evento
 <form method="post" action="/private/admin/events/{event.id}/scenario">
 <td>{sc.id}<input type="hidden" name="scenarioId" value="{sc.id}"></td>
 <td><input name="name" value="{sc.name}"></td>
-<td><input name="mapUrl" value="{sc.mapUrl}" placeholder="URL mapa"></td>
+<td><input name="mapUrl" value="{sc.mapUrl}" placeholder="URL mapa (800x600)"></td>
 <td>
 <input name="features" value="{sc.features}" placeholder="Caracteristicas">
 <input name="location" value="{sc.location}" placeholder="Ubicacion">
@@ -56,7 +57,7 @@ Nuevo Evento
 <form method="post" action="/private/admin/events/{event.id}/scenario">
 <td>Nuevo</td>
 <td><input name="name"></td>
-<td><input name="mapUrl" placeholder="URL mapa"></td>
+<td><input name="mapUrl" placeholder="URL mapa (800x600)"></td>
 <td>
 <input name="features" placeholder="Caracteristicas">
 <input name="location" placeholder="Ubicacion">
