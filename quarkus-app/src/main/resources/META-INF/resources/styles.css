@@ -121,8 +121,16 @@ footer {
 
 /* Standard responsive size for map images */
 .map-image {
-    max-width: 100%;
+    max-width: 800px;
+    width: 100%;
     height: auto;
     display: block;
     margin: 0 auto;
+}
+
+.input-help {
+    font-size: 0.85em;
+    color: #555;
+    display: block;
+    margin-top: 0.25rem;
 }
