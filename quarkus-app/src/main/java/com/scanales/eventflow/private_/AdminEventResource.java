@@ -45,6 +45,9 @@ public class AdminEventResource {
     @Inject
     EventService eventService;
 
+    @Inject
+    com.scanales.eventflow.service.GitEventSyncService gitSync;
+
     private boolean isAdmin() {
         return AdminUtils.isAdmin(identity);
     }
@@ -107,6 +110,7 @@ public class AdminEventResource {
         event.setMapUrl(mapUrl);
         event.setEventDate(java.time.LocalDate.parse(eventDateStr));
         eventService.saveEvent(event);
+        gitSync.exportAndPushEvent(event, "Add event " + id);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
                 .build();
@@ -137,6 +141,7 @@ public class AdminEventResource {
         event.setMapUrl(mapUrl);
         event.setEventDate(java.time.LocalDate.parse(eventDateStr));
         eventService.saveEvent(event);
+        gitSync.exportAndPushEvent(event, "Update event " + id);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/event/" + id)
                 .build();
@@ -150,6 +155,7 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         eventService.deleteEvent(id);
+        gitSync.removeEvent(id, "Delete event " + id);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
                 .build();
@@ -333,6 +339,7 @@ public class AdminEventResource {
             fillDefaults(event);
 
             eventService.saveEvent(event);
+            gitSync.exportAndPushEvent(event, "Import event " + id);
             LOG.infov("Imported event {0}", id);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+exitosa")
