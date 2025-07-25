@@ -41,7 +41,7 @@ public class AdminEventResource {
     SecurityIdentity identity;
 
     private static final Logger LOG = Logger.getLogger(AdminEventResource.class);
-    private static final String PREFIX = "[WEB] ";
+    private static final String PREFIX = "[EVENT] ";
 
     @Inject
     EventService eventService;
@@ -178,7 +178,7 @@ public class AdminEventResource {
                     .build();
         }
         if (!hasRequiredData(event)) {
-            LOG.warnf(PREFIX + "Event %s has no data to export", id);
+            LOG.warnf(PREFIX + "AdminEventResource.exportEvent(): Event %s has no data to export", id);
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("\u274c Error: El evento no contiene datos para exportar.")
                     .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
@@ -186,12 +186,15 @@ public class AdminEventResource {
         }
         try (Jsonb jsonb = JsonbBuilder.create()) {
             String json = jsonb.toJson(event);
-            LOG.infov(PREFIX + "Exporting event {0}:\n{1}", id, json);
+            LOG.infof(PREFIX + "AdminEventResource.exportEvent(): Exportando evento %s a JSON", id);
+            if (!"{}".equals(json.trim())) {
+                LOG.debug(PREFIX + json);
+            }
             return Response.ok(json, MediaType.APPLICATION_JSON_TYPE)
                     .header("Content-Disposition", "attachment; filename=event-" + id + ".json")
                     .build();
         } catch (Exception e) {
-            LOG.error(PREFIX + "Failed to export event", e);
+            LOG.error(PREFIX + "AdminEventResource.exportEvent(): Error exportando evento", e);
             return Response.serverError().build();
         }
     }
@@ -299,17 +302,17 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         if (file == null) {
-            LOG.warn(PREFIX + "No file received");
+            LOG.warn(PREFIX + "AdminEventResource.importEvent(): No file received");
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: archivo requerido"))
                     .build();
         }
 
-        LOG.infov(PREFIX + "Received file {0}", file.fileName());
+        LOG.infof(PREFIX + "AdminEventResource.importEvent(): Intentando importar archivo %s", file.fileName());
 
         if (file.contentType() == null || !file.contentType().equals("application/json")) {
-            LOG.warnf(PREFIX + "Invalid MIME type: %s", file.contentType());
+            LOG.warnf(PREFIX + "AdminEventResource.importEvent(): Invalid MIME type: %s", file.contentType());
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: solo se aceptan archivos JSON"))
@@ -321,7 +324,7 @@ public class AdminEventResource {
             Event event = jsonb.fromJson(java.nio.file.Files.newInputStream(path), Event.class);
 
             if (event.getId() == null || event.getId().isBlank()) {
-                LOG.warn(PREFIX + "Imported JSON missing id field");
+                LOG.warn(PREFIX + "AdminEventResource.importEvent(): JSON sin campo id");
                 var events = eventService.listEvents();
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON sin campo id"))
@@ -330,7 +333,7 @@ public class AdminEventResource {
 
             String id = event.getId();
             if (eventService.getEvent(id) != null) {
-                LOG.warnf(PREFIX + "Event %s already exists", id);
+                LOG.errorf(PREFIX + "AdminEventResource.importEvent(): Evento con ID %s ya existe", id);
                 var events = eventService.listEvents();
                 return Response.status(Response.Status.CONFLICT)
                         .entity(Templates.list(events, "Importaci\u00f3n fallida: el evento ya existe"))
@@ -341,12 +344,12 @@ public class AdminEventResource {
 
             eventService.saveEvent(event);
             gitSync.exportAndPushEvent(event, "Import event " + id);
-            LOG.infov(PREFIX + "Imported event {0}", id);
+            LOG.infof(PREFIX + "AdminEventResource.importEvent(): Evento %s importado correctamente", id);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+exitosa")
                     .build();
         } catch (Exception e) {
-            LOG.error(PREFIX + "Failed to import event", e);
+            LOG.error(PREFIX + "AdminEventResource.importEvent(): Error al importar evento", e);
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON inv\u00e1lido"))
@@ -362,9 +365,9 @@ public class AdminEventResource {
         JsonbConfig cfg = new JsonbConfig().withFormatting(true);
         try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
             String eventJson = jsonb.toJson(event);
-            LOG.infov("Event content:\n{0}", eventJson);
+            LOG.debug(PREFIX + "AdminEventResource.hasRequiredData(): contenido del evento\n" + eventJson);
         } catch (Exception e) {
-            LOG.warn("Unable to serialize event for logging", e);
+            LOG.warn(PREFIX + "AdminEventResource.hasRequiredData(): No se pudo serializar evento", e);
         }
 
         boolean hasLists = (event.getScenarios() != null && !event.getScenarios().isEmpty())
