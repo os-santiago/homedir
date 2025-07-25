@@ -30,7 +30,7 @@ public class HomeResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance home() {
-        LOG.info(PREFIX + "Loading home page");
+        LOG.debug(PREFIX + "HomeResource.home(): Cargando p\u00e1gina principal");
         var events = eventService.listEvents();
         return Templates.home(events);
     }

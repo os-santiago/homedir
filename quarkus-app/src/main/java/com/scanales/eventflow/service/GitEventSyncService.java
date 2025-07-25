@@ -45,7 +45,7 @@ public class GitEventSyncService {
 
     @PostConstruct
     void init() {
-        LOG.info(PREFIX + "Initializing Git synchronization");
+        LOG.info(PREFIX + "GitEventSyncService.init(): Iniciando carga de eventos desde Git");
         var cfg = ConfigProvider.getConfig();
         repoUrl = cfg.getOptionalValue("eventflow.sync.repoUrl", String.class).orElse(null);
         branch = cfg.getOptionalValue("eventflow.sync.branch", String.class).orElse("main");
@@ -55,8 +55,10 @@ public class GitEventSyncService {
         dataDir = cfg.getOptionalValue("eventflow.sync.dataDir", String.class).orElse("event-data");
         localDir = Path.of(dir);
 
+        LOG.debugf(PREFIX + "Repositorio: %s rama: %s dir local: %s", repoUrl, branch, localDir);
+
         if (repoUrl == null || repoUrl.isBlank()) {
-            LOG.info(PREFIX + "Event sync repo URL not configured, skipping clone");
+            LOG.error(PREFIX + "GitEventSyncService.init(): repoUrl no configurado");
             return;
         }
 
@@ -64,9 +66,9 @@ public class GitEventSyncService {
             cloneOrPull();
             loadEvents();
             repoAvailable = true;
-            LOG.info(PREFIX + "Git synchronization initialized");
+            LOG.info(PREFIX + "GitEventSyncService.init(): Sincronizaci\u00f3n lista");
         } catch (Exception e) {
-            LOG.error(PREFIX + "Failed to initialize Git synchronization", e);
+            LOG.error(PREFIX + "GitEventSyncService.init(): Error accediendo al repositorio", e);
         }
     }
 
@@ -104,31 +106,48 @@ public class GitEventSyncService {
             LOG.warnf(PREFIX + "Event directory %s not found", eventsPath);
             return;
         }
-        try (Stream<Path> files = Files.list(eventsPath);
-             Jsonb jsonb = JsonbBuilder.create()) {
-            files.filter(p -> p.getFileName().toString().endsWith(".json"))
-                    .forEach(p -> importFile(jsonb, p));
+        try (Stream<Path> stream = Files.list(eventsPath)) {
+            var jsonFiles = stream.filter(p -> p.getFileName().toString().endsWith(".json"))
+                    .toList();
+            LOG.infov(PREFIX + "GitEventSyncService.loadEvents(): Se encontraron {0} archivos", jsonFiles.size());
+            int imported = 0;
+            int skipped = 0;
+            try (Jsonb jsonb = JsonbBuilder.create()) {
+                for (Path p : jsonFiles) {
+                    if (importFile(jsonb, p)) {
+                        imported++;
+                    } else {
+                        skipped++;
+                    }
+                }
+            }
+            LOG.infov(PREFIX + "Importados correctamente {0} archivos", imported);
+            if (skipped > 0) {
+                LOG.warnf(PREFIX + "Omitidos {0} archivos", skipped);
+            }
         } catch (Exception e) {
             LOG.error(PREFIX + "Error loading events from repo", e);
         }
     }
 
-    private void importFile(Jsonb jsonb, Path file) {
+    private boolean importFile(Jsonb jsonb, Path file) {
         try {
             Event event = jsonb.fromJson(Files.newInputStream(file), Event.class);
             if (event.getId() == null || event.getId().isBlank()) {
                 LOG.errorf(PREFIX + "File %s missing id", file);
-                return;
+                return false;
             }
             if (eventService.getEvent(event.getId()) != null) {
                 LOG.warnf(PREFIX + "Event %s already loaded, skipping", event.getId());
-                return;
+                return false;
             }
             fillDefaults(event);
             eventService.saveEvent(event);
             LOG.infov(PREFIX + "Imported event {0} from {1}", event.getId(), file);
+            return true;
         } catch (Exception e) {
             LOG.errorf(e, PREFIX + "Failed to import file %s", file);
+            return false;
         }
     }
 
@@ -141,7 +160,9 @@ public class GitEventSyncService {
             JsonbConfig cfg = new JsonbConfig().withFormatting(true);
             try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
                 Path file = eventsPath.resolve("event-" + event.getId() + ".json");
-                Files.writeString(file, jsonb.toJson(event));
+                String json = jsonb.toJson(event);
+                Files.writeString(file, json);
+                LOG.debug(PREFIX + "GitEventSyncService.exportAndPushEvent(): " + json);
             }
             try (Git git = Git.open(localDir.toFile())) {
                 git.add().addFilepattern(dataDir + "/event-" + event.getId() + ".json").call();
@@ -150,9 +171,9 @@ public class GitEventSyncService {
                 if (credentials() != null) push.setCredentialsProvider(credentials());
                 push.call();
             }
-            LOG.infov(PREFIX + "Pushed event {0} to repo", event.getId());
+            LOG.infov(PREFIX + "GitEventSyncService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
         } catch (Exception e) {
-            LOG.error(PREFIX + "Failed to push event to repo", e);
+            LOG.error(PREFIX + "GitEventSyncService.exportAndPushEvent(): Error al subir evento", e);
         }
     }
 
@@ -169,9 +190,9 @@ public class GitEventSyncService {
                 if (credentials() != null) push.setCredentialsProvider(credentials());
                 push.call();
             }
-            LOG.infov(PREFIX + "Removed event {0} from repo", eventId);
+            LOG.infov(PREFIX + "GitEventSyncService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
         } catch (Exception e) {
-            LOG.error(PREFIX + "Failed to remove event file", e);
+            LOG.error(PREFIX + "GitEventSyncService.removeEvent(): Error eliminando archivo", e);
         }
     }
 

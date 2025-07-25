@@ -10,6 +10,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
+import org.jboss.logging.Logger;
 
 /** Simple in-memory store for events. */
 @ApplicationScoped
@@ -22,22 +23,29 @@ public class EventService {
      * ConcurrentHashMap provides lock-free reads and efficient updates for a
      * high performance setup.
      */
+    private static final Logger LOG = Logger.getLogger(EventService.class);
+    private static final String PREFIX = "[EVENT] ";
+
     private static final Map<String, Event> events = new ConcurrentHashMap<>();
 
     public List<Event> listEvents() {
+        LOG.debug(PREFIX + "EventService.listEvents(): listando eventos");
         return new ArrayList<>(events.values());
     }
 
     public Event getEvent(String id) {
+        LOG.debugf(PREFIX + "EventService.getEvent(): id=%s", id);
         return events.get(id);
     }
 
     public void saveEvent(Event event) {
         events.put(event.getId(), event);
+        LOG.infof(PREFIX + "EventService.saveEvent(): Evento %s guardado", event.getId());
     }
 
     public void deleteEvent(String id) {
         events.remove(id);
+        LOG.infof(PREFIX + "EventService.deleteEvent(): Evento %s eliminado", id);
     }
 
     public void saveScenario(String eventId, Scenario scenario) {
@@ -47,12 +55,14 @@ public class EventService {
         }
         event.getScenarios().removeIf(s -> s.getId().equals(scenario.getId()));
         event.getScenarios().add(scenario);
+        LOG.infof(PREFIX + "EventService.saveScenario(): Escenario %s guardado para evento %s", scenario.getId(), eventId);
     }
 
     public void deleteScenario(String eventId, String scenarioId) {
         Event event = events.get(eventId);
         if (event != null) {
             event.getScenarios().removeIf(s -> s.getId().equals(scenarioId));
+            LOG.infof(PREFIX + "EventService.deleteScenario(): Escenario %s eliminado de evento %s", scenarioId, eventId);
         }
     }
 
@@ -63,12 +73,14 @@ public class EventService {
         }
         event.getAgenda().removeIf(t -> t.getId().equals(talk.getId()));
         event.getAgenda().add(talk);
+        LOG.infof(PREFIX + "EventService.saveTalk(): Charla %s guardada para evento %s", talk.getId(), eventId);
     }
 
     public void deleteTalk(String eventId, String talkId) {
         Event event = events.get(eventId);
         if (event != null) {
             event.getAgenda().removeIf(t -> t.getId().equals(talkId));
+            LOG.infof(PREFIX + "EventService.deleteTalk(): Charla %s eliminada de evento %s", talkId, eventId);
         }
     }
 
