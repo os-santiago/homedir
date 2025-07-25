@@ -13,6 +13,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.jboss.logging.Logger;
 
 /**
  * OAuth-protected resource that shows the authenticated user's information.
@@ -20,6 +21,9 @@ import jakarta.ws.rs.core.MediaType;
  */
 @Path("/private")
 public class PrivateResource {
+
+    private static final Logger LOG = Logger.getLogger(PrivateResource.class);
+    private static final String PREFIX = "[LOGIN] ";
 
     @CheckedTemplate
     public static class Templates {
@@ -40,6 +44,7 @@ public class PrivateResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance privatePage() {
+        LOG.info(PREFIX + "Serving private page");
         String sub = getClaim("sub");
         if (sub == null) {
             sub = identity.getPrincipal().getName();

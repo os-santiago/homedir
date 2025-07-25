@@ -21,17 +21,18 @@ import org.jboss.logging.Logger;
 public class AuthorizationRedirectLoggingFilter implements ContainerResponseFilter {
 
     private static final Logger LOG = Logger.getLogger(AuthorizationRedirectLoggingFilter.class);
+    private static final String PREFIX = "[LOGIN] ";
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         if (responseContext.getStatusInfo().getFamily() == Response.Status.Family.REDIRECTION) {
             String location = responseContext.getHeaderString(HttpHeaders.LOCATION);
             if (location != null && !location.isEmpty()) {
-                LOG.infov("Redirecting user to authorization endpoint: {0}", location);
+                LOG.infov(PREFIX + "Redirecting user to authorization endpoint: {0}", location);
             }
         }
         if (responseContext.getStatus() >= 400) {
-            LOG.infov("Authentication error: status={0}, message={1}",
+            LOG.infov(PREFIX + "Authentication error: status={0}, message={1}",
                     responseContext.getStatus(),
                     responseContext.getStatusInfo().getReasonPhrase());
         }

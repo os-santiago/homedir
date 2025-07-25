@@ -10,9 +10,13 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import com.scanales.eventflow.service.EventService;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 @Path("/")
 public class HomeResource {
+
+    private static final Logger LOG = Logger.getLogger(HomeResource.class);
+    private static final String PREFIX = "[WEB] ";
 
     @Inject
     EventService eventService;
@@ -26,6 +30,7 @@ public class HomeResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance home() {
+        LOG.info(PREFIX + "Loading home page");
         var events = eventService.listEvents();
         return Templates.home(events);
     }
