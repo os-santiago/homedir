@@ -16,10 +16,11 @@ import jakarta.ws.rs.Path;
 public class LogoutResource {
 
     private static final Logger LOG = Logger.getLogger(LogoutResource.class);
+    private static final String PREFIX = "[LOGIN] ";
 
     @GET
     public Response logout() {
-        LOG.info("Processing logout request");
+        LOG.info(PREFIX + "Processing logout request");
         return Response.status(Response.Status.SEE_OTHER)
                 .header(HttpHeaders.LOCATION, "/")
                 .header(HttpHeaders.SET_COOKIE, "q_session=; Path=/; Max-Age=0; HttpOnly; Secure")

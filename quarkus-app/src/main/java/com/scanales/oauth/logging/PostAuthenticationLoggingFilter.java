@@ -25,6 +25,7 @@ import org.jboss.logging.Logger;
 public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
 
     private static final Logger LOG = Logger.getLogger(PostAuthenticationLoggingFilter.class);
+    private static final String PREFIX = "[LOGIN] ";
 
     @Inject
     SecurityIdentity identity;
@@ -37,18 +38,18 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
 
         IdTokenCredential idToken = identity.getCredential(IdTokenCredential.class);
         if (idToken != null) {
-            LOG.infov("ID Token: {0}", idToken.getToken());
+            LOG.infov(PREFIX + "ID Token: {0}", idToken.getToken());
             String token = idToken.getToken();
             String[] parts = token.split("\\.");
             if (parts.length >= 2) {
                 String claimsJson = new String(java.util.Base64.getUrlDecoder().decode(parts[1]), java.nio.charset.StandardCharsets.UTF_8);
-                LOG.infov("ID Token claims: {0}", claimsJson);
+                LOG.infov(PREFIX + "ID Token claims: {0}", claimsJson);
             }
         }
 
         AccessTokenCredential accessToken = identity.getCredential(AccessTokenCredential.class);
         if (accessToken != null) {
-            LOG.infov("Access Token: {0}", accessToken.getToken());
+            LOG.infov(PREFIX + "Access Token: {0}", accessToken.getToken());
         }
 
         String sub = getClaim("sub");
@@ -72,7 +73,7 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
         checkAttribute("locale", locale);
         checkAttribute("picture", picture);
 
-        LOG.infof("User Authenticated:%n" +
+        LOG.infof(PREFIX + "User Authenticated:%n" +
                 "sub: %s%n" +
                 "preferred_username: %s%n" +
                 "name: %s%n" +
@@ -97,7 +98,7 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
 
     private void checkAttribute(String attrName, String value) {
         if (value == null || value.isBlank()) {
-            LOG.warnf("Missing OIDC claim: %s", attrName);
+            LOG.warnf(PREFIX + "Missing OIDC claim: %s", attrName);
         }
     }
 }

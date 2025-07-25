@@ -41,6 +41,7 @@ public class AdminEventResource {
     SecurityIdentity identity;
 
     private static final Logger LOG = Logger.getLogger(AdminEventResource.class);
+    private static final String PREFIX = "[WEB] ";
 
     @Inject
     EventService eventService;
@@ -177,7 +178,7 @@ public class AdminEventResource {
                     .build();
         }
         if (!hasRequiredData(event)) {
-            LOG.warnf("Event %s has no data to export", id);
+            LOG.warnf(PREFIX + "Event %s has no data to export", id);
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("\u274c Error: El evento no contiene datos para exportar.")
                     .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
@@ -185,12 +186,12 @@ public class AdminEventResource {
         }
         try (Jsonb jsonb = JsonbBuilder.create()) {
             String json = jsonb.toJson(event);
-            LOG.infov("Exporting event {0}:\n{1}", id, json);
+            LOG.infov(PREFIX + "Exporting event {0}:\n{1}", id, json);
             return Response.ok(json, MediaType.APPLICATION_JSON_TYPE)
                     .header("Content-Disposition", "attachment; filename=event-" + id + ".json")
                     .build();
         } catch (Exception e) {
-            LOG.error("Failed to export event", e);
+            LOG.error(PREFIX + "Failed to export event", e);
             return Response.serverError().build();
         }
     }
@@ -298,17 +299,17 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         if (file == null) {
-            LOG.warn("No file received");
+            LOG.warn(PREFIX + "No file received");
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: archivo requerido"))
                     .build();
         }
 
-        LOG.infov("Received file {0}", file.fileName());
+        LOG.infov(PREFIX + "Received file {0}", file.fileName());
 
         if (file.contentType() == null || !file.contentType().equals("application/json")) {
-            LOG.warnf("Invalid MIME type: %s", file.contentType());
+            LOG.warnf(PREFIX + "Invalid MIME type: %s", file.contentType());
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: solo se aceptan archivos JSON"))
@@ -320,7 +321,7 @@ public class AdminEventResource {
             Event event = jsonb.fromJson(java.nio.file.Files.newInputStream(path), Event.class);
 
             if (event.getId() == null || event.getId().isBlank()) {
-                LOG.warn("Imported JSON missing id field");
+                LOG.warn(PREFIX + "Imported JSON missing id field");
                 var events = eventService.listEvents();
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON sin campo id"))
@@ -329,7 +330,7 @@ public class AdminEventResource {
 
             String id = event.getId();
             if (eventService.getEvent(id) != null) {
-                LOG.warnf("Event %s already exists", id);
+                LOG.warnf(PREFIX + "Event %s already exists", id);
                 var events = eventService.listEvents();
                 return Response.status(Response.Status.CONFLICT)
                         .entity(Templates.list(events, "Importaci\u00f3n fallida: el evento ya existe"))
@@ -340,12 +341,12 @@ public class AdminEventResource {
 
             eventService.saveEvent(event);
             gitSync.exportAndPushEvent(event, "Import event " + id);
-            LOG.infov("Imported event {0}", id);
+            LOG.infov(PREFIX + "Imported event {0}", id);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+exitosa")
                     .build();
         } catch (Exception e) {
-            LOG.error("Failed to import event", e);
+            LOG.error(PREFIX + "Failed to import event", e);
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON inv\u00e1lido"))
