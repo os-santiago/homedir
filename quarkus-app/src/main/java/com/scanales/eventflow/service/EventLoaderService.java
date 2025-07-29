@@ -27,9 +27,9 @@ import jakarta.json.bind.JsonbConfig;
  * Synchronizes events with a Git repository acting as source of truth.
  */
 @ApplicationScoped
-public class GitEventSyncService {
+public class EventLoaderService {
 
-    private static final Logger LOG = Logger.getLogger(GitEventSyncService.class);
+    private static final Logger LOG = Logger.getLogger(EventLoaderService.class);
     private static final String PREFIX = "[GIT] ";
 
     @Inject
@@ -43,9 +43,11 @@ public class GitEventSyncService {
 
     private boolean repoAvailable;
 
+    private final GitLoadStatus status = new GitLoadStatus();
+
     @PostConstruct
     void init() {
-        LOG.info(PREFIX + "GitEventSyncService.init(): Iniciando carga de eventos desde Git");
+        LOG.info(PREFIX + "EventLoaderService.init(): Iniciando carga de eventos desde Git");
         var cfg = ConfigProvider.getConfig();
         repoUrl = cfg.getOptionalValue("eventflow.sync.repoUrl", String.class).orElse(null);
         branch = cfg.getOptionalValue("eventflow.sync.branch", String.class).orElse("main");
@@ -54,27 +56,44 @@ public class GitEventSyncService {
                 .orElse(System.getProperty("java.io.tmpdir") + "/eventflow-repo");
         dataDir = cfg.getOptionalValue("eventflow.sync.dataDir", String.class).orElse("event-data");
         localDir = Path.of(dir);
+        status.setRepoUrl(repoUrl);
+        status.setBranch(branch);
 
         LOG.debugf(PREFIX + "Repositorio: %s rama: %s dir local: %s", repoUrl, branch, localDir);
 
-        if (repoUrl == null || repoUrl.isBlank()) {
-            LOG.error(PREFIX + "GitEventSyncService.init(): repoUrl no configurado");
-            return;
-        }
-
-        try {
-            cloneOrPull();
-            loadEvents();
-            repoAvailable = true;
-            LOG.info(PREFIX + "GitEventSyncService.init(): Sincronizaci\u00f3n lista");
-        } catch (Exception e) {
-            LOG.error(PREFIX + "GitEventSyncService.init(): Error accediendo al repositorio", e);
-        }
+        reload();
     }
 
     private UsernamePasswordCredentialsProvider credentials() {
         return (token == null || token.isBlank()) ? null
                 : new UsernamePasswordCredentialsProvider(token, "");
+    }
+
+    /** Attempts to reload events from the Git repository and updates status. */
+    public synchronized GitLoadStatus reload() {
+        status.setLastAttempt(java.time.LocalDateTime.now());
+        if (repoUrl == null || repoUrl.isBlank()) {
+            status.setSuccess(false);
+            status.setMessage("repoUrl no configurado");
+            LOG.error(PREFIX + "EventLoaderService.reload(): repoUrl no configurado");
+            return status;
+        }
+        try {
+            cloneOrPull();
+            LoadMetrics m = loadEvents();
+            repoAvailable = true;
+            status.setSuccess(true);
+            status.setMessage("Configuraci\u00f3n cargada correctamente desde Git.");
+            status.setFilesRead(m.filesRead());
+            status.setEventsImported(m.eventsImported());
+            status.setLastSuccess(status.getLastAttempt());
+        } catch (Exception e) {
+            repoAvailable = false;
+            status.setSuccess(false);
+            status.setMessage(e.getMessage());
+            LOG.error(PREFIX + "EventLoaderService.reload(): Error accediendo al repositorio", e);
+        }
+        return status;
     }
 
     private void cloneOrPull() throws GitAPIException, IOException {
@@ -100,16 +119,18 @@ public class GitEventSyncService {
         }
     }
 
-    private void loadEvents() {
+    private record LoadMetrics(int filesRead, int eventsImported) {}
+
+    private LoadMetrics loadEvents() {
         Path eventsPath = localDir.resolve(dataDir);
         if (!Files.exists(eventsPath)) {
             LOG.warnf(PREFIX + "Event directory %s not found", eventsPath);
-            return;
+            return new LoadMetrics(0, 0);
         }
         try (Stream<Path> stream = Files.list(eventsPath)) {
             var jsonFiles = stream.filter(p -> p.getFileName().toString().endsWith(".json"))
                     .toList();
-            LOG.infov(PREFIX + "GitEventSyncService.loadEvents(): Se encontraron {0} archivos", jsonFiles.size());
+            LOG.infov(PREFIX + "EventLoaderService.loadEvents(): Se encontraron {0} archivos", jsonFiles.size());
             int imported = 0;
             int skipped = 0;
             try (Jsonb jsonb = JsonbBuilder.create()) {
@@ -125,8 +146,10 @@ public class GitEventSyncService {
             if (skipped > 0) {
                 LOG.warnf(PREFIX + "Omitidos {0} archivos", skipped);
             }
+            return new LoadMetrics(jsonFiles.size(), imported);
         } catch (Exception e) {
             LOG.error(PREFIX + "Error loading events from repo", e);
+            return new LoadMetrics(0, 0);
         }
     }
 
@@ -162,7 +185,7 @@ public class GitEventSyncService {
                 Path file = eventsPath.resolve("event-" + event.getId() + ".json");
                 String json = jsonb.toJson(event);
                 Files.writeString(file, json);
-                LOG.debug(PREFIX + "GitEventSyncService.exportAndPushEvent(): " + json);
+                LOG.debug(PREFIX + "EventLoaderService.exportAndPushEvent(): " + json);
             }
             try (Git git = Git.open(localDir.toFile())) {
                 git.add().addFilepattern(dataDir + "/event-" + event.getId() + ".json").call();
@@ -171,9 +194,9 @@ public class GitEventSyncService {
                 if (credentials() != null) push.setCredentialsProvider(credentials());
                 push.call();
             }
-            LOG.infov(PREFIX + "GitEventSyncService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
+            LOG.infov(PREFIX + "EventLoaderService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
         } catch (Exception e) {
-            LOG.error(PREFIX + "GitEventSyncService.exportAndPushEvent(): Error al subir evento", e);
+            LOG.error(PREFIX + "EventLoaderService.exportAndPushEvent(): Error al subir evento", e);
         }
     }
 
@@ -190,10 +213,15 @@ public class GitEventSyncService {
                 if (credentials() != null) push.setCredentialsProvider(credentials());
                 push.call();
             }
-            LOG.infov(PREFIX + "GitEventSyncService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
+            LOG.infov(PREFIX + "EventLoaderService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
         } catch (Exception e) {
-            LOG.error(PREFIX + "GitEventSyncService.removeEvent(): Error eliminando archivo", e);
+            LOG.error(PREFIX + "EventLoaderService.removeEvent(): Error eliminando archivo", e);
         }
+    }
+
+    /** Returns the current Git load status. */
+    public GitLoadStatus getStatus() {
+        return status;
     }
 
     /** Copied from AdminEventResource to apply default values. */
