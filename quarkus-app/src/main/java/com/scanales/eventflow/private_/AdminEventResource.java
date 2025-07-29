@@ -5,6 +5,7 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.EventLoaderService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
@@ -47,7 +48,7 @@ public class AdminEventResource {
     EventService eventService;
 
     @Inject
-    com.scanales.eventflow.service.GitEventSyncService gitSync;
+    EventLoaderService gitSync;
 
     private boolean isAdmin() {
         return AdminUtils.isAdmin(identity);
