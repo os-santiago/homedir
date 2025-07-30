@@ -22,7 +22,7 @@ public class AppTemplateExtensions {
         try {
             Config config = ConfigProvider.getConfig();
             return config.getOptionalValue("quarkus.application.version", String.class).orElse("dev");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return "dev";
         }
     }

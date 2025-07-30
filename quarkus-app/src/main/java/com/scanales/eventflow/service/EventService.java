@@ -3,7 +3,8 @@ package com.scanales.eventflow.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.LinkedHashMap;
+import java.util.Collections;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -17,16 +18,22 @@ import org.jboss.logging.Logger;
 public class EventService {
 
     /**
-     * Global cache of events shared by all sessions. Using a static map ensures
-     * the same {@code Event} instance is returned for a given id, reducing
-     * memory usage and avoiding unnecessary object duplication. The
-     * ConcurrentHashMap provides lock-free reads and efficient updates for a
-     * high performance setup.
+     * Global cache of events shared by all sessions. A synchronized
+     * {@link LinkedHashMap} with access order provides LRU eviction to
+     * avoid unbounded memory growth while still returning the same
+     * {@code Event} instance for a given id.
      */
     private static final Logger LOG = Logger.getLogger(EventService.class);
     private static final String PREFIX = "[EVENT] ";
 
-    private static final Map<String, Event> events = new ConcurrentHashMap<>();
+    private static final int MAX_EVENTS = 100;
+    private static final Map<String, Event> events = Collections.synchronizedMap(
+            new LinkedHashMap<String, Event>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, Event> eldest) {
+                    return size() > MAX_EVENTS;
+                }
+            });
 
     public List<Event> listEvents() {
         LOG.debug(PREFIX + "EventService.listEvents(): listando eventos");
