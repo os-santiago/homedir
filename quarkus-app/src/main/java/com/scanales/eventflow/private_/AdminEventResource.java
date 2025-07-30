@@ -345,6 +345,7 @@ public class AdminEventResource {
 
             eventService.saveEvent(event);
             gitSync.exportAndPushEvent(event, "Import event " + id);
+            LOG.infov("Imported event {0}", id);
             LOG.infof(PREFIX + "AdminEventResource.importEvent(): Evento %s importado correctamente", id);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+exitosa")

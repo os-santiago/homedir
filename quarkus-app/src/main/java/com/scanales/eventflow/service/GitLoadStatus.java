@@ -11,6 +11,9 @@ public class GitLoadStatus {
     private String branch;
     private LocalDateTime lastAttempt;
     private LocalDateTime lastSuccess;
+    private boolean initialLoadAttempted;
+    private boolean initialLoadSuccess;
+    private String errorDetails;
 
     public boolean isSuccess() { return success; }
     public void setSuccess(boolean success) { this.success = success; }
@@ -35,4 +38,13 @@ public class GitLoadStatus {
 
     public LocalDateTime getLastSuccess() { return lastSuccess; }
     public void setLastSuccess(LocalDateTime lastSuccess) { this.lastSuccess = lastSuccess; }
+
+    public boolean isInitialLoadAttempted() { return initialLoadAttempted; }
+    public void setInitialLoadAttempted(boolean initialLoadAttempted) { this.initialLoadAttempted = initialLoadAttempted; }
+
+    public boolean isInitialLoadSuccess() { return initialLoadSuccess; }
+    public void setInitialLoadSuccess(boolean initialLoadSuccess) { this.initialLoadSuccess = initialLoadSuccess; }
+
+    public String getErrorDetails() { return errorDetails; }
+    public void setErrorDetails(String errorDetails) { this.errorDetails = errorDetails; }
 }

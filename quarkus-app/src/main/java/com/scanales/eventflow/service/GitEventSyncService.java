@@ -1,8 +1,6 @@
 package com.scanales.eventflow.service;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -29,10 +27,9 @@ import jakarta.json.bind.JsonbConfig;
  * Synchronizes events with a Git repository acting as source of truth.
  */
 @ApplicationScoped
-public class EventLoaderService {
+public class GitEventSyncService {
 
-    private static final Logger LOG = Logger.getLogger(EventLoaderService.class);
-    private static final String PREFIX = "[GIT] ";
+    private static final Logger LOG = Logger.getLogger(GitEventSyncService.class);
 
     @Inject
     EventService eventService;
@@ -45,11 +42,8 @@ public class EventLoaderService {
 
     private boolean repoAvailable;
 
-    private final GitLoadStatus status = new GitLoadStatus();
-
     @PostConstruct
     void init() {
-        LOG.info(PREFIX + "EventLoaderService.init(): Iniciando carga de eventos desde Git");
         var cfg = ConfigProvider.getConfig();
         repoUrl = cfg.getOptionalValue("eventflow.sync.repoUrl", String.class).orElse(null);
         branch = cfg.getOptionalValue("eventflow.sync.branch", String.class).orElse("main");
@@ -58,12 +52,19 @@ public class EventLoaderService {
                 .orElse(System.getProperty("java.io.tmpdir") + "/eventflow-repo");
         dataDir = cfg.getOptionalValue("eventflow.sync.dataDir", String.class).orElse("event-data");
         localDir = Path.of(dir);
-        status.setRepoUrl(repoUrl);
-        status.setBranch(branch);
 
-        LOG.debugf(PREFIX + "Repositorio: %s rama: %s dir local: %s", repoUrl, branch, localDir);
+        if (repoUrl == null || repoUrl.isBlank()) {
+            LOG.info("Event sync repo URL not configured, skipping clone");
+            return;
+        }
 
-        reload();
+        try {
+            cloneOrPull();
+            loadEvents();
+            repoAvailable = true;
+        } catch (Exception e) {
+            LOG.error("Failed to initialize Git synchronization", e);
+        }
     }
 
     private UsernamePasswordCredentialsProvider credentials() {
@@ -71,45 +72,9 @@ public class EventLoaderService {
                 : new UsernamePasswordCredentialsProvider(token, "");
     }
 
-    /** Attempts to reload events from the Git repository and updates status. */
-    public synchronized GitLoadStatus reload() {
-        status.setLastAttempt(java.time.LocalDateTime.now());
-        boolean first = !status.isInitialLoadAttempted();
-        status.setInitialLoadAttempted(true);
-        if (repoUrl == null || repoUrl.isBlank()) {
-            status.setSuccess(false);
-            status.setMessage("repoUrl no configurado");
-            LOG.error(PREFIX + "EventLoaderService.reload(): repoUrl no configurado");
-            if (first) status.setInitialLoadSuccess(false);
-            return status;
-        }
-        try {
-            cloneOrPull();
-            LoadMetrics m = loadEvents();
-            repoAvailable = true;
-            status.setSuccess(true);
-            status.setMessage("Configuración cargada correctamente desde Git.");
-            status.setFilesRead(m.filesRead());
-            status.setEventsImported(m.eventsImported());
-            status.setLastSuccess(status.getLastAttempt());
-            status.setErrorDetails(null);
-            if (first) status.setInitialLoadSuccess(true);
-        } catch (Exception e) {
-            repoAvailable = false;
-            status.setSuccess(false);
-            status.setMessage(e.getMessage());
-            java.io.StringWriter sw = new java.io.StringWriter();
-            e.printStackTrace(new java.io.PrintWriter(sw));
-            status.setErrorDetails(sw.toString());
-            LOG.error(PREFIX + "EventLoaderService.reload(): Error accediendo al repositorio", e);
-            if (first) status.setInitialLoadSuccess(false);
-        }
-        return status;
-    }
-
     private void cloneOrPull() throws GitAPIException, IOException {
         if (Files.exists(localDir.resolve(".git"))) {
-            LOG.infof(PREFIX + "Pulling repository %s", repoUrl);
+            LOG.infof("Pulling repository %s", repoUrl);
             try (Git git = Git.open(localDir.toFile())) {
                 git.checkout().setName(branch).call();
                 var pull = git.pull();
@@ -118,7 +83,7 @@ public class EventLoaderService {
             }
         } else {
             Files.createDirectories(localDir);
-            LOG.infof(PREFIX + "Cloning repository %s", repoUrl);
+            LOG.infof("Cloning repository %s", repoUrl);
             var clone = Git.cloneRepository()
                     .setURI(repoUrl)
                     .setDirectory(localDir.toFile())
@@ -130,58 +95,37 @@ public class EventLoaderService {
         }
     }
 
-    private record LoadMetrics(int filesRead, int eventsImported) {}
-
-    private LoadMetrics loadEvents() {
+    private void loadEvents() {
         Path eventsPath = localDir.resolve(dataDir);
         if (!Files.exists(eventsPath)) {
-            LOG.warnf(PREFIX + "Event directory %s not found", eventsPath);
-            return new LoadMetrics(0, 0);
+            LOG.warnf("Event directory %s not found", eventsPath);
+            return;
         }
-        try (Stream<Path> stream = Files.list(eventsPath)) {
-            var jsonFiles = stream.filter(p -> p.getFileName().toString().endsWith(".json"))
-                    .toList();
-            LOG.infov(PREFIX + "EventLoaderService.loadEvents(): Se encontraron {0} archivos", jsonFiles.size());
-            int imported = 0;
-            int skipped = 0;
-            try (Jsonb jsonb = JsonbBuilder.create()) {
-                for (Path p : jsonFiles) {
-                    if (importFile(jsonb, p)) {
-                        imported++;
-                    } else {
-                        skipped++;
-                    }
-                }
-            }
-            LOG.infov(PREFIX + "Importados correctamente {0} archivos", imported);
-            if (skipped > 0) {
-                LOG.warnf(PREFIX + "Omitidos {0} archivos", skipped);
-            }
-            return new LoadMetrics(jsonFiles.size(), imported);
+        try (Stream<Path> files = Files.list(eventsPath);
+             Jsonb jsonb = JsonbBuilder.create()) {
+            files.filter(p -> p.getFileName().toString().endsWith(".json"))
+                    .forEach(p -> importFile(jsonb, p));
         } catch (Exception e) {
-            LOG.error(PREFIX + "Error loading events from repo", e);
-            return new LoadMetrics(0, 0);
+            LOG.error("Error loading events from repo", e);
         }
     }
 
-    private boolean importFile(Jsonb jsonb, Path file) {
+    private void importFile(Jsonb jsonb, Path file) {
         try {
             Event event = jsonb.fromJson(Files.newInputStream(file), Event.class);
             if (event.getId() == null || event.getId().isBlank()) {
-                LOG.errorf(PREFIX + "File %s missing id", file);
-                return false;
+                LOG.errorf("File %s missing id", file);
+                return;
             }
             if (eventService.getEvent(event.getId()) != null) {
-                LOG.warnf(PREFIX + "Event %s already loaded, skipping", event.getId());
-                return false;
+                LOG.warnf("Event %s already loaded, skipping", event.getId());
+                return;
             }
             fillDefaults(event);
             eventService.saveEvent(event);
-            LOG.infov(PREFIX + "Imported event {0} from {1}", event.getId(), file);
-            return true;
+            LOG.infov("Imported event {0} from {1}", event.getId(), file);
         } catch (Exception e) {
-            LOG.errorf(e, PREFIX + "Failed to import file %s", file);
-            return false;
+            LOG.errorf(e, "Failed to import file %s", file);
         }
     }
 
@@ -194,9 +138,7 @@ public class EventLoaderService {
             JsonbConfig cfg = new JsonbConfig().withFormatting(true);
             try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
                 Path file = eventsPath.resolve("event-" + event.getId() + ".json");
-                String json = jsonb.toJson(event);
-                Files.writeString(file, json);
-                LOG.debug(PREFIX + "EventLoaderService.exportAndPushEvent(): " + json);
+                Files.writeString(file, jsonb.toJson(event));
             }
             try (Git git = Git.open(localDir.toFile())) {
                 git.add().addFilepattern(dataDir + "/event-" + event.getId() + ".json").call();
@@ -205,9 +147,9 @@ public class EventLoaderService {
                 if (credentials() != null) push.setCredentialsProvider(credentials());
                 push.call();
             }
-            LOG.infov(PREFIX + "EventLoaderService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
+            LOG.infov("Pushed event {0} to repo", event.getId());
         } catch (Exception e) {
-            LOG.error(PREFIX + "EventLoaderService.exportAndPushEvent(): Error al subir evento", e);
+            LOG.error("Failed to push event to repo", e);
         }
     }
 
@@ -224,15 +166,10 @@ public class EventLoaderService {
                 if (credentials() != null) push.setCredentialsProvider(credentials());
                 push.call();
             }
-            LOG.infov(PREFIX + "EventLoaderService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
+            LOG.infov("Removed event {0} from repo", eventId);
         } catch (Exception e) {
-            LOG.error(PREFIX + "EventLoaderService.removeEvent(): Error eliminando archivo", e);
+            LOG.error("Failed to remove event file", e);
         }
-    }
-
-    /** Returns the current Git load status. */
-    public GitLoadStatus getStatus() {
-        return status;
     }
 
     /** Copied from AdminEventResource to apply default values. */
