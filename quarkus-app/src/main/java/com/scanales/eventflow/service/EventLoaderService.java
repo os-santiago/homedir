@@ -1,6 +1,8 @@
 package com.scanales.eventflow.service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -72,10 +74,13 @@ public class EventLoaderService {
     /** Attempts to reload events from the Git repository and updates status. */
     public synchronized GitLoadStatus reload() {
         status.setLastAttempt(java.time.LocalDateTime.now());
+        boolean first = !status.isInitialLoadAttempted();
+        status.setInitialLoadAttempted(true);
         if (repoUrl == null || repoUrl.isBlank()) {
             status.setSuccess(false);
             status.setMessage("repoUrl no configurado");
             LOG.error(PREFIX + "EventLoaderService.reload(): repoUrl no configurado");
+            if (first) status.setInitialLoadSuccess(false);
             return status;
         }
         try {
@@ -83,15 +88,21 @@ public class EventLoaderService {
             LoadMetrics m = loadEvents();
             repoAvailable = true;
             status.setSuccess(true);
-            status.setMessage("Configuraci\u00f3n cargada correctamente desde Git.");
+            status.setMessage("Configuración cargada correctamente desde Git.");
             status.setFilesRead(m.filesRead());
             status.setEventsImported(m.eventsImported());
             status.setLastSuccess(status.getLastAttempt());
+            status.setErrorDetails(null);
+            if (first) status.setInitialLoadSuccess(true);
         } catch (Exception e) {
             repoAvailable = false;
             status.setSuccess(false);
             status.setMessage(e.getMessage());
+            java.io.StringWriter sw = new java.io.StringWriter();
+            e.printStackTrace(new java.io.PrintWriter(sw));
+            status.setErrorDetails(sw.toString());
             LOG.error(PREFIX + "EventLoaderService.reload(): Error accediendo al repositorio", e);
+            if (first) status.setInitialLoadSuccess(false);
         }
         return status;
     }
