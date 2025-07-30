@@ -1,6 +1,7 @@
 package com.scanales.login;
 
 import java.io.InputStream;
+import jakarta.ws.rs.core.StreamingOutput;
 import java.net.URI;
 
 import jakarta.ws.rs.CookieParam;
@@ -28,7 +29,12 @@ public class PrivatePageResource {
         if (page == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(page).build();
+        StreamingOutput out = os -> {
+            try (page) {
+                page.transferTo(os);
+            }
+        };
+        return Response.ok(out).build();
     }
 }
 

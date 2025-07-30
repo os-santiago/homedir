@@ -10,6 +10,7 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.EventUtils;
 import org.jboss.logging.Logger;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
@@ -194,8 +195,11 @@ public class AdminEventResource {
             return Response.ok(json, MediaType.APPLICATION_JSON_TYPE)
                     .header("Content-Disposition", "attachment; filename=event-" + id + ".json")
                     .build();
-        } catch (Exception e) {
+        } catch (jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "AdminEventResource.exportEvent(): Error exportando evento", e);
+            return Response.serverError().build();
+        } catch (Exception e) {
+            LOG.error(PREFIX + "AdminEventResource.exportEvent(): Error cerrando recurso", e);
             return Response.serverError().build();
         }
     }
@@ -322,7 +326,10 @@ public class AdminEventResource {
 
         try (Jsonb jsonb = JsonbBuilder.create()) {
             java.nio.file.Path path = file.uploadedFile();
-            Event event = jsonb.fromJson(java.nio.file.Files.newInputStream(path), Event.class);
+            Event event;
+            try (var in = java.nio.file.Files.newInputStream(path)) {
+                event = jsonb.fromJson(in, Event.class);
+            }
 
             if (event.getId() == null || event.getId().isBlank()) {
                 LOG.warn(PREFIX + "AdminEventResource.importEvent(): JSON sin campo id");
@@ -341,7 +348,7 @@ public class AdminEventResource {
                         .build();
             }
 
-            fillDefaults(event);
+            EventUtils.fillDefaults(event);
 
             eventService.saveEvent(event);
             gitSync.exportAndPushEvent(event, "Import event " + id);
@@ -350,11 +357,17 @@ public class AdminEventResource {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+exitosa")
                     .build();
-        } catch (Exception e) {
+        } catch (java.io.IOException | jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "AdminEventResource.importEvent(): Error al importar evento", e);
             var events = eventService.listEvents();
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON inv\u00e1lido"))
+                    .build();
+        } catch (Exception e) {
+            LOG.error(PREFIX + "AdminEventResource.importEvent(): Error cerrando recurso", e);
+            var events = eventService.listEvents();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Templates.list(events, "Importaci\u00f3n fallida: error interno"))
                     .build();
         }
     }
@@ -368,8 +381,10 @@ public class AdminEventResource {
         try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
             String eventJson = jsonb.toJson(event);
             LOG.debug(PREFIX + "AdminEventResource.hasRequiredData(): contenido del evento\n" + eventJson);
-        } catch (Exception e) {
+        } catch (jakarta.json.bind.JsonbException e) {
             LOG.warn(PREFIX + "AdminEventResource.hasRequiredData(): No se pudo serializar evento", e);
+        } catch (Exception e) {
+            LOG.warn(PREFIX + "AdminEventResource.hasRequiredData(): Error cerrando recurso", e);
         }
 
         boolean hasLists = (event.getScenarios() != null && !event.getScenarios().isEmpty())
@@ -378,32 +393,4 @@ public class AdminEventResource {
         return event.getId() != null && !event.getId().isBlank() && hasLists;
     }
 
-    private void fillDefaults(Event event) {
-        if (event.getTitle() == null) event.setTitle("VACIO");
-        if (event.getDescription() == null) event.setDescription("VACIO");
-        if (event.getMapUrl() == null) event.setMapUrl("VACIO");
-        if (event.getEventDate() == null) event.setEventDate(java.time.LocalDate.now());
-        if (event.getCreator() == null) event.setCreator("VACIO");
-        if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
-
-        if (event.getScenarios() != null) {
-            for (Scenario sc : event.getScenarios()) {
-                if (sc.getName() == null) sc.setName("VACIO");
-                if (sc.getFeatures() == null) sc.setFeatures("VACIO");
-                if (sc.getLocation() == null) sc.setLocation("VACIO");
-                if (sc.getMapUrl() == null) sc.setMapUrl("VACIO");
-                if (sc.getId() == null) sc.setId(java.util.UUID.randomUUID().toString());
-            }
-        }
-
-        if (event.getAgenda() != null) {
-            for (Talk t : event.getAgenda()) {
-                if (t.getName() == null) t.setName("VACIO");
-                if (t.getDescription() == null) t.setDescription("VACIO");
-                if (t.getLocation() == null) t.setLocation("VACIO");
-                if (t.getStartTime() == null) t.setStartTime(java.time.LocalTime.MIDNIGHT);
-                if (t.getSpeaker() == null) t.setSpeaker(new com.scanales.eventflow.model.Speaker("","VACIO"));
-            }
-        }
-    }
 }

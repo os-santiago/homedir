@@ -20,6 +20,7 @@ import org.jboss.logging.Logger;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.util.EventUtils;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
@@ -94,7 +95,7 @@ public class EventLoaderService {
             status.setLastSuccess(status.getLastAttempt());
             status.setErrorDetails(null);
             if (first) status.setInitialLoadSuccess(true);
-        } catch (Exception e) {
+        } catch (IOException | GitAPIException e) {
             repoAvailable = false;
             status.setSuccess(false);
             status.setMessage(e.getMessage());
@@ -158,15 +159,18 @@ public class EventLoaderService {
                 LOG.warnf(PREFIX + "Omitidos {0} archivos", skipped);
             }
             return new LoadMetrics(jsonFiles.size(), imported);
-        } catch (Exception e) {
+        } catch (IOException | jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "Error loading events from repo", e);
+            return new LoadMetrics(0, 0);
+        } catch (Exception e) {
+            LOG.error(PREFIX + "Unexpected error loading events", e);
             return new LoadMetrics(0, 0);
         }
     }
 
     private boolean importFile(Jsonb jsonb, Path file) {
-        try {
-            Event event = jsonb.fromJson(Files.newInputStream(file), Event.class);
+        try (var in = Files.newInputStream(file)) {
+            Event event = jsonb.fromJson(in, Event.class);
             if (event.getId() == null || event.getId().isBlank()) {
                 LOG.errorf(PREFIX + "File %s missing id", file);
                 return false;
@@ -175,12 +179,15 @@ public class EventLoaderService {
                 LOG.warnf(PREFIX + "Event %s already loaded, skipping", event.getId());
                 return false;
             }
-            fillDefaults(event);
+            EventUtils.fillDefaults(event);
             eventService.saveEvent(event);
             LOG.infov(PREFIX + "Imported event {0} from {1}", event.getId(), file);
             return true;
-        } catch (Exception e) {
+        } catch (IOException | jakarta.json.bind.JsonbException e) {
             LOG.errorf(e, PREFIX + "Failed to import file %s", file);
+            return false;
+        } catch (Exception e) {
+            LOG.errorf(e, PREFIX + "Unexpected error reading %s", file);
             return false;
         }
     }
@@ -206,8 +213,10 @@ public class EventLoaderService {
                 push.call();
             }
             LOG.infov(PREFIX + "EventLoaderService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
-        } catch (Exception e) {
+        } catch (IOException | GitAPIException | jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "EventLoaderService.exportAndPushEvent(): Error al subir evento", e);
+        } catch (Exception e) {
+            LOG.error(PREFIX + "Unexpected error exporting event", e);
         }
     }
 
@@ -225,8 +234,10 @@ public class EventLoaderService {
                 push.call();
             }
             LOG.infov(PREFIX + "EventLoaderService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
-        } catch (Exception e) {
+        } catch (IOException | GitAPIException e) {
             LOG.error(PREFIX + "EventLoaderService.removeEvent(): Error eliminando archivo", e);
+        } catch (Exception e) {
+            LOG.error(PREFIX + "Unexpected error removing event", e);
         }
     }
 
@@ -235,33 +246,4 @@ public class EventLoaderService {
         return status;
     }
 
-    /** Copied from AdminEventResource to apply default values. */
-    private void fillDefaults(Event event) {
-        if (event.getTitle() == null) event.setTitle("VACIO");
-        if (event.getDescription() == null) event.setDescription("VACIO");
-        if (event.getMapUrl() == null) event.setMapUrl("VACIO");
-        if (event.getEventDate() == null) event.setEventDate(java.time.LocalDate.now());
-        if (event.getCreator() == null) event.setCreator("VACIO");
-        if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
-
-        if (event.getScenarios() != null) {
-            for (Scenario sc : event.getScenarios()) {
-                if (sc.getName() == null) sc.setName("VACIO");
-                if (sc.getFeatures() == null) sc.setFeatures("VACIO");
-                if (sc.getLocation() == null) sc.setLocation("VACIO");
-                if (sc.getMapUrl() == null) sc.setMapUrl("VACIO");
-                if (sc.getId() == null) sc.setId(java.util.UUID.randomUUID().toString());
-            }
-        }
-
-        if (event.getAgenda() != null) {
-            for (Talk t : event.getAgenda()) {
-                if (t.getName() == null) t.setName("VACIO");
-                if (t.getDescription() == null) t.setDescription("VACIO");
-                if (t.getLocation() == null) t.setLocation("VACIO");
-                if (t.getStartTime() == null) t.setStartTime(java.time.LocalTime.MIDNIGHT);
-                if (t.getSpeaker() == null) t.setSpeaker(new com.scanales.eventflow.model.Speaker("","VACIO"));
-            }
-        }
-    }
 }
