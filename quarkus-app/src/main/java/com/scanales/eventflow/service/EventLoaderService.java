@@ -162,6 +162,9 @@ public class EventLoaderService {
         } catch (IOException | jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "Error loading events from repo", e);
             return new LoadMetrics(0, 0);
+        } catch (Exception e) {
+            LOG.error(PREFIX + "Unexpected error loading events", e);
+            return new LoadMetrics(0, 0);
         }
     }
 
@@ -182,6 +185,9 @@ public class EventLoaderService {
             return true;
         } catch (IOException | jakarta.json.bind.JsonbException e) {
             LOG.errorf(e, PREFIX + "Failed to import file %s", file);
+            return false;
+        } catch (Exception e) {
+            LOG.errorf(e, PREFIX + "Unexpected error reading %s", file);
             return false;
         }
     }
@@ -209,6 +215,8 @@ public class EventLoaderService {
             LOG.infov(PREFIX + "EventLoaderService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
         } catch (IOException | GitAPIException | jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "EventLoaderService.exportAndPushEvent(): Error al subir evento", e);
+        } catch (Exception e) {
+            LOG.error(PREFIX + "Unexpected error exporting event", e);
         }
     }
 
@@ -228,6 +236,8 @@ public class EventLoaderService {
             LOG.infov(PREFIX + "EventLoaderService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
         } catch (IOException | GitAPIException e) {
             LOG.error(PREFIX + "EventLoaderService.removeEvent(): Error eliminando archivo", e);
+        } catch (Exception e) {
+            LOG.error(PREFIX + "Unexpected error removing event", e);
         }
     }
 

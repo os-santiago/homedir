@@ -198,6 +198,9 @@ public class AdminEventResource {
         } catch (jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "AdminEventResource.exportEvent(): Error exportando evento", e);
             return Response.serverError().build();
+        } catch (Exception e) {
+            LOG.error(PREFIX + "AdminEventResource.exportEvent(): Error cerrando recurso", e);
+            return Response.serverError().build();
         }
     }
 
@@ -360,6 +363,12 @@ public class AdminEventResource {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON inv\u00e1lido"))
                     .build();
+        } catch (Exception e) {
+            LOG.error(PREFIX + "AdminEventResource.importEvent(): Error cerrando recurso", e);
+            var events = eventService.listEvents();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Templates.list(events, "Importaci\u00f3n fallida: error interno"))
+                    .build();
         }
     }
 
@@ -374,6 +383,8 @@ public class AdminEventResource {
             LOG.debug(PREFIX + "AdminEventResource.hasRequiredData(): contenido del evento\n" + eventJson);
         } catch (jakarta.json.bind.JsonbException e) {
             LOG.warn(PREFIX + "AdminEventResource.hasRequiredData(): No se pudo serializar evento", e);
+        } catch (Exception e) {
+            LOG.warn(PREFIX + "AdminEventResource.hasRequiredData(): Error cerrando recurso", e);
         }
 
         boolean hasLists = (event.getScenarios() != null && !event.getScenarios().isEmpty())
