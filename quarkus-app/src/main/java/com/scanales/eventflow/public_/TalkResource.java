@@ -12,9 +12,13 @@ import jakarta.ws.rs.core.MediaType;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.model.Talk;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 @Path("/talk")
 public class TalkResource {
+
+    private static final Logger LOG = Logger.getLogger(TalkResource.class);
+    private static final String PREFIX = "[WEB] ";
 
     @CheckedTemplate
     static class Templates {
@@ -31,8 +35,10 @@ public class TalkResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance detail(@PathParam("id") String id) {
+        LOG.infof(PREFIX + "Loading talk %s", id);
         Talk talk = eventService.findTalk(id);
         if (talk == null) {
+            LOG.warnf(PREFIX + "Talk %s not found", id);
             return Templates.detail(null, null, java.util.List.of());
         }
         var event = eventService.findEventByTalk(id);

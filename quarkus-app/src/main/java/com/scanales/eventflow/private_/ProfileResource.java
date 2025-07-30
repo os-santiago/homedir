@@ -25,6 +25,7 @@ import jakarta.ws.rs.core.Response;
 public class ProfileResource {
 
     private static final Logger LOG = Logger.getLogger(ProfileResource.class);
+    private static final String PREFIX = "[WEB] ";
 
     @CheckedTemplate
     static class Templates {
@@ -72,6 +73,7 @@ public class ProfileResource {
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance profile() {
+        LOG.info(PREFIX + "Loading profile page");
         identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
 
         String name = getClaim("name");

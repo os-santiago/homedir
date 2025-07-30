@@ -18,6 +18,7 @@ import org.jboss.logging.Logger;
 public class OidcCallbackLoggingFilter implements ContainerRequestFilter {
 
     private static final Logger LOG = Logger.getLogger(OidcCallbackLoggingFilter.class);
+    private static final String PREFIX = "[LOGIN] ";
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -27,7 +28,7 @@ public class OidcCallbackLoggingFilter implements ContainerRequestFilter {
                     .stream()
                     .map(e -> e.getKey() + "=" + String.join(",", e.getValue()))
                     .collect(Collectors.joining(", "));
-            LOG.infov("OAuth callback parameters: {0}", params);
+            LOG.infov(PREFIX + "OAuth callback parameters: {0}", params);
         }
     }
 }

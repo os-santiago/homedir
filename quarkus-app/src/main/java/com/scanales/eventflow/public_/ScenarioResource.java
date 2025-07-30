@@ -12,9 +12,13 @@ import jakarta.ws.rs.core.MediaType;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.model.Scenario;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 @Path("/scenario")
 public class ScenarioResource {
+
+    private static final Logger LOG = Logger.getLogger(ScenarioResource.class);
+    private static final String PREFIX = "[WEB] ";
 
     @CheckedTemplate
     static class Templates {
@@ -31,8 +35,10 @@ public class ScenarioResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance detail(@PathParam("id") String id) {
+        LOG.infof(PREFIX + "Loading scenario %s", id);
         Scenario s = eventService.findScenario(id);
         if (s == null) {
+            LOG.warnf(PREFIX + "Scenario %s not found", id);
             return Templates.detail(null, null, java.util.List.of());
         }
         var event = eventService.findEventByScenario(id);

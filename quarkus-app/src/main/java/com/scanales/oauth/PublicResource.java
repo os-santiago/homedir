@@ -8,12 +8,16 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.jboss.logging.Logger;
 
 /**
  * Public endpoint showing a login link.
  */
 @Path("/public")
 public class PublicResource {
+
+    private static final Logger LOG = Logger.getLogger(PublicResource.class);
+    private static final String PREFIX = "[LOGIN] ";
 
     @CheckedTemplate
     public static class Templates {
@@ -24,6 +28,7 @@ public class PublicResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance get() {
+        LOG.info(PREFIX + "Serving public login page");
         return Templates.publicPage();
     }
 }

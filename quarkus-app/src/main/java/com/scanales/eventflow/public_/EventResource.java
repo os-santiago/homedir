@@ -12,9 +12,13 @@ import jakarta.ws.rs.core.MediaType;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.model.Event;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 @Path("/event")
 public class EventResource {
+
+    private static final Logger LOG = Logger.getLogger(EventResource.class);
+    private static final String PREFIX = "[WEB] ";
 
     @CheckedTemplate
     static class Templates {
@@ -30,8 +34,10 @@ public class EventResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance event(@PathParam("id") String id) {
+        LOG.infof(PREFIX + "Loading event %s", id);
         Event event = eventService.getEvent(id);
         if (event == null) {
+            LOG.warnf(PREFIX + "Event %s not found", id);
             return Templates.detail(null);
         }
         return Templates.detail(event);
@@ -42,6 +48,7 @@ public class EventResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance agenda(@PathParam("id") String id) {
+        LOG.infof(PREFIX + "Loading agenda for event %s", id);
         Event event = eventService.getEvent(id);
         return Templates.agenda(event);
     }
