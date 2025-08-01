@@ -32,6 +32,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (reloadBtn) {
         reloadBtn.addEventListener('click', reloadGit);
     }
+    const troubleshootBtn = document.getElementById('git-troubleshoot-btn');
+    if (troubleshootBtn) {
+        troubleshootBtn.addEventListener('click', troubleshootGit);
+    }
 });
 window.addEventListener('resize', adjustLayout);
 window.addEventListener('scroll', bannerParallax);
@@ -136,5 +140,48 @@ async function reloadGit() {
             btn.textContent = 'Volver a cargar desde Git';
         }
         loadGitStatus();
+    }
+}
+
+async function troubleshootGit() {
+    const btn = document.getElementById('git-troubleshoot-btn');
+    const msg = document.getElementById('git-troubleshoot-msg');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Diagnosticando...';
+    }
+    if (msg) {
+        msg.textContent = '';
+        msg.style.color = 'gray';
+    }
+    try {
+        const resp = await fetch('/private/api/git-troubleshoot');
+        if (resp.ok) {
+            const data = await resp.json();
+            if (msg) {
+                msg.innerHTML = '<pre>' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre>';
+            } else {
+                alert(JSON.stringify(data, null, 2));
+            }
+        } else {
+            if (msg) {
+                msg.textContent = 'Error al diagnosticar';
+                msg.style.color = 'red';
+            } else {
+                alert('Error al diagnosticar');
+            }
+        }
+    } catch (e) {
+        if (msg) {
+            msg.textContent = 'Error al diagnosticar';
+            msg.style.color = 'red';
+        } else {
+            alert('Error al diagnosticar');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Diagnosticar Git';
+        }
     }
 }

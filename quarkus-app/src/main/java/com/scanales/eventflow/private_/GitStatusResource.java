@@ -2,6 +2,7 @@ package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.service.EventLoaderService;
 import com.scanales.eventflow.service.GitLoadStatus;
+import com.scanales.eventflow.service.GitTroubleshootResult;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -47,5 +48,17 @@ public class GitStatusResource {
         }
         GitLoadStatus status = loader.reload();
         return Response.ok(status).build();
+    }
+
+    @GET
+    @Path("/git-troubleshoot")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response troubleshoot() {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        GitTroubleshootResult result = loader.troubleshoot();
+        return Response.ok(result).build();
     }
 }
