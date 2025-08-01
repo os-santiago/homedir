@@ -1,0 +1,8 @@
+[
+  {
+    "name": "org.eclipse.jgit.lib.CoreConfig$TrustStat",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  }
+]
