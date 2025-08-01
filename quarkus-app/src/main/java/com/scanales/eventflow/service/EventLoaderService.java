@@ -75,6 +75,7 @@ public class EventLoaderService {
     /** Attempts to reload events from the Git repository and updates status. */
     public synchronized GitLoadStatus reload() {
         status.setLastAttempt(java.time.LocalDateTime.now());
+        LOG.info(PREFIX + "Iniciando recarga de eventos desde Git");
         boolean first = !status.isInitialLoadAttempted();
         status.setInitialLoadAttempted(true);
         if (repoUrl == null || repoUrl.isBlank()) {
@@ -94,6 +95,7 @@ public class EventLoaderService {
             status.setEventsImported(m.eventsImported());
             status.setLastSuccess(status.getLastAttempt());
             status.setErrorDetails(null);
+            LOG.infof(PREFIX + "Recarga exitosa: %d archivos, %d eventos", m.filesRead(), m.eventsImported());
             if (first) status.setInitialLoadSuccess(true);
         } catch (IOException | GitAPIException e) {
             repoAvailable = false;
@@ -102,7 +104,7 @@ public class EventLoaderService {
             java.io.StringWriter sw = new java.io.StringWriter();
             e.printStackTrace(new java.io.PrintWriter(sw));
             status.setErrorDetails(sw.toString());
-            LOG.error(PREFIX + "EventLoaderService.reload(): Error accediendo al repositorio", e);
+            LOG.error(PREFIX + "Error accediendo al repositorio durante recarga", e);
             if (first) status.setInitialLoadSuccess(false);
         }
         return status;
@@ -244,6 +246,85 @@ public class EventLoaderService {
     /** Returns the current Git load status. */
     public GitLoadStatus getStatus() {
         return status;
+    }
+
+    /**
+     * Performs troubleshooting operations without modifying the current data.
+     * It validates repository accessibility, attempts a fresh clone into a
+     * temporary directory and parses the event JSON files found. The result
+     * includes the number of files read as well as any invalid files.
+     */
+    public synchronized GitTroubleshootResult troubleshoot() {
+        GitTroubleshootResult result = new GitTroubleshootResult();
+        if (repoUrl == null || repoUrl.isBlank()) {
+            result.setMessage("repoUrl no configurado");
+            return result;
+        }
+        try {
+            // Validate repo accessibility using ls-remote
+            var ls = Git.lsRemoteRepository().setRemote(repoUrl);
+            if (credentials() != null) ls.setCredentialsProvider(credentials());
+            ls.call();
+            result.setRepoAccessible(true);
+
+            // Clone to a temporary directory
+            Path tmp = Files.createTempDirectory("eventflow-check");
+            try {
+                var clone = Git.cloneRepository()
+                        .setURI(repoUrl)
+                        .setDirectory(tmp.toFile())
+                        .setBranch(branch);
+                if (credentials() != null) clone.setCredentialsProvider(credentials());
+                try (Git git = clone.call()) {
+                    // nothing else
+                }
+                result.setCloneSuccess(true);
+
+                // Parse JSON files
+                Path eventsPath = tmp.resolve(dataDir);
+                if (!Files.exists(eventsPath)) {
+                    result.setMessage("Directorio de eventos no encontrado: " + eventsPath);
+                } else {
+                    try (Stream<Path> stream = Files.list(eventsPath)) {
+                        var jsonFiles = stream.filter(p -> p.getFileName().toString().endsWith(".json"))
+                                .toList();
+                        result.setJsonFiles(jsonFiles.size());
+                        int valid = 0;
+                        java.util.List<String> invalid = new java.util.ArrayList<>();
+                        try (Jsonb jsonb = JsonbBuilder.create()) {
+                            for (Path p : jsonFiles) {
+                                try (var in = Files.newInputStream(p)) {
+                                    jsonb.fromJson(in, Event.class);
+                                    valid++;
+                                } catch (Exception e) {
+                                    invalid.add(p.getFileName().toString());
+                                }
+                            }
+                        }
+                        result.setValidJson(valid);
+                        result.setInvalidFiles(invalid);
+                        if (invalid.isEmpty()) {
+                            result.setMessage("OK");
+                        } else {
+                            result.setMessage("Archivos JSON inválidos detectados");
+                        }
+                    }
+                }
+            } finally {
+                try (Stream<Path> walk = Files.walk(tmp)) {
+                    walk.sorted(java.util.Comparator.reverseOrder())
+                            .forEach(p -> {
+                                try { Files.deleteIfExists(p); } catch (IOException e) { /* ignore */ }
+                            });
+                }
+            }
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            result.setMessage(e.getMessage());
+            result.setErrorDetails(sw.toString());
+        }
+        return result;
     }
 
 }
