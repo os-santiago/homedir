@@ -11,11 +11,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
         with:
-          distribution: "temurin"
           java-version: "21"
+          distribution: "graalvm"
+          components: "native-image"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -25,9 +27,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Generate reflection config with GraalVM agent
+        working-directory: quarkus-app
+        run: |
+          mvn -DskipTests package
+          java -agentlib:native-image-agent=config-output-dir=target/native-image-config -jar target/quarkus-app/quarkus-run.jar &
+          AGENT_PID=$!
+          sleep 5
+          curl -f http://localhost:8080/q/health || true
+          kill $AGENT_PID
+
       - name: Build native binary
         working-directory: quarkus-app
-        run: mvn clean package -Pnative -Dquarkus.native.container-build=true
+        run: mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true "-Dquarkus.native.additional-build-args=-H:ConfigurationFileDirectories=target/native-image-config"
 
       - name: Verify native binary exists
         run: ls quarkus-app/target/*-runner
