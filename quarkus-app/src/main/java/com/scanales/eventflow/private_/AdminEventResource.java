@@ -8,6 +8,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.EventLoaderService;
 import com.scanales.eventflow.service.GitEventSyncService;
 import com.scanales.eventflow.service.GitSyncResult;
+import com.scanales.eventflow.service.EventGitWriterService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
@@ -46,6 +47,7 @@ public class AdminEventResource {
 
     private static final Logger LOG = Logger.getLogger(AdminEventResource.class);
     private static final String PREFIX = "[EVENT] ";
+    private static final String GIT_FAIL_MESSAGE = "⚠️ El evento se guardó localmente pero no se pudo sincronizar con Git. Revisa los logs o reintenta desde el panel de administración.";
 
     @Inject
     EventService eventService;
@@ -55,6 +57,9 @@ public class AdminEventResource {
 
     @Inject
     GitEventSyncService gitEventSync;
+
+    @Inject
+    EventGitWriterService gitWriter;
 
     private boolean isAdmin() {
         return AdminUtils.isAdmin(identity);
@@ -118,9 +123,14 @@ public class AdminEventResource {
         event.setMapUrl(mapUrl);
         event.setEventDate(java.time.LocalDate.parse(eventDateStr));
         eventService.saveEvent(event);
-        gitSync.exportAndPushEvent(event, "Add event " + id);
+        boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
+        String location = "/private/admin/events";
+        if (!gitOk) {
+            String msg = java.net.URLEncoder.encode(GIT_FAIL_MESSAGE, java.nio.charset.StandardCharsets.UTF_8);
+            location += "?msg=" + msg;
+        }
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", "/private/admin/events")
+                .header("Location", location)
                 .build();
     }
 
@@ -149,9 +159,12 @@ public class AdminEventResource {
         event.setMapUrl(mapUrl);
         event.setEventDate(java.time.LocalDate.parse(eventDateStr));
         eventService.saveEvent(event);
-        gitSync.exportAndPushEvent(event, "Update event " + id);
+        boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
+        String location = gitOk ? "/event/" + id
+                : "/private/admin/events?msg=" + java.net.URLEncoder.encode(GIT_FAIL_MESSAGE,
+                        java.nio.charset.StandardCharsets.UTF_8);
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", "/event/" + id)
+                .header("Location", location)
                 .build();
     }
 
