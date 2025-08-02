@@ -5,12 +5,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -128,7 +130,16 @@ public class EventLoaderService {
             LOG.infof(PREFIX + "Pulling repository %s", repoUrl);
             gitLog.log("Pulling repo " + repoUrl);
             try (Git git = Git.open(localDir.toFile())) {
-                git.checkout().setName(branch).call();
+                if (git.getRepository().findRef(branch) == null) {
+                    git.checkout()
+                            .setCreateBranch(true)
+                            .setName(branch)
+                            .setStartPoint("origin/" + branch)
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .call();
+                } else {
+                    git.checkout().setName(branch).call();
+                }
                 var pull = git.pull();
                 if (credentials() != null) pull.setCredentialsProvider(credentials());
                 pull.call();
@@ -148,10 +159,15 @@ public class EventLoaderService {
         var clone = Git.cloneRepository()
                 .setURI(repoUrl)
                 .setDirectory(localDir.toFile())
-                .setBranch(branch);
+                .setBranchesToClone(Collections.singletonList("refs/heads/" + branch))
+                .setBranch("refs/heads/" + branch);
         if (credentials() != null) clone.setCredentialsProvider(credentials());
         try (Git git = clone.call()) {
-            // nothing
+            git.checkout()
+                    .setCreateBranch(true)
+                    .setName(branch)
+                    .setStartPoint("origin/" + branch)
+                    .call();
         }
     }
 
