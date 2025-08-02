@@ -1,0 +1,26 @@
+[
+  {
+    "name": "org.eclipse.jgit.lib.CoreConfig$TrustLooseRefStat",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicFields": true,
+    "allDeclaredFields": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.eclipse.jgit.lib.CoreConfig$TrustPackedRefsStat",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicFields": true,
+    "allDeclaredFields": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.eclipse.jgit.lib.CoreConfig$TrustStat",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicFields": true,
+    "allDeclaredFields": true,
+    "allPublicMethods": true
+  }
+]
