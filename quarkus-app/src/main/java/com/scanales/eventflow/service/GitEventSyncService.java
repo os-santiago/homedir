@@ -1,8 +1,11 @@
 package com.scanales.eventflow.service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 import jakarta.annotation.PostConstruct;
@@ -37,6 +40,8 @@ public class GitEventSyncService {
     private String folder;
     private Path localPath;
 
+    private final GitLoadStatus status = new GitLoadStatus();
+
     @PostConstruct
     void init() {
         var cfg = ConfigProvider.getConfig();
@@ -47,14 +52,30 @@ public class GitEventSyncService {
                 .orElse("/tmp/eventflow-repo");
         localPath = Path.of(lp);
 
+        status.setRepoUrl(repoUrl);
+        status.setBranch(branch);
+        status.setInitialLoadAttempted(true);
+        status.setLastAttempt(LocalDateTime.now());
         LOG.infof(PREFIX + "Repositorio %s rama %s en %s", repoUrl, branch, localPath);
 
         try {
             cloneOrPull();
-            loadEvents();
+            GitSyncResult res = new GitSyncResult();
+            loadEvents(res);
+            status.setFilesRead(res.filesLoaded.size() + res.errors.size());
+            status.setEventsImported(res.filesLoaded.size());
+            status.setSuccess(true);
+            status.setMessage("Se cargaron " + res.filesLoaded.size() + " eventos desde Git");
+            status.setLastSuccess(status.getLastAttempt());
+            status.setInitialLoadSuccess(true);
+            status.setErrorDetails(null);
         } catch (Exception e) {
-            LOG.error(PREFIX + "Error al sincronizar repo", e);
+            LOG.error(PREFIX + "Error cargando eventos desde Git: " + e.getMessage(), e);
             LOG.warn(PREFIX + "No se pudo conectar al repo, iniciando sin eventos");
+            status.setSuccess(false);
+            status.setMessage(e.getMessage());
+            status.setInitialLoadSuccess(false);
+            status.setErrorDetails(stackTrace(e));
         }
     }
 
@@ -123,24 +144,47 @@ public class GitEventSyncService {
 
     public GitSyncResult reloadEventsFromGit() {
         LOG.info(PREFIX + "Recarga de eventos solicitada desde panel");
+        status.setLastAttempt(LocalDateTime.now());
         GitSyncResult res = new GitSyncResult();
         try {
             cloneOrPull();
             loadEvents(res);
+            status.setFilesRead(res.filesLoaded.size() + res.errors.size());
+            status.setEventsImported(res.filesLoaded.size());
             if (res.errors.isEmpty()) {
                 res.success = true;
                 res.message = "Se cargaron " + res.filesLoaded.size() + " eventos desde Git";
+                status.setSuccess(true);
+                status.setMessage(res.message);
+                status.setLastSuccess(status.getLastAttempt());
+                status.setErrorDetails(null);
             } else {
                 res.success = false;
                 res.message = "Hubo errores cargando " + res.errors.size() + " archivos. Ver detalles";
+                status.setSuccess(false);
+                status.setMessage(res.message);
+                status.setErrorDetails(String.join("\n", res.errors));
             }
         } catch (Exception e) {
             LOG.error(PREFIX + "Error al recargar eventos desde Git", e);
             res.success = false;
             res.message = "No se pudo acceder al repositorio remoto";
             res.errors.add(e.getMessage());
+            status.setSuccess(false);
+            status.setMessage(e.getMessage());
+            status.setErrorDetails(stackTrace(e));
         }
         return res;
+    }
+
+    public GitLoadStatus getStatus() {
+        return status;
+    }
+
+    private static String stackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }
 
