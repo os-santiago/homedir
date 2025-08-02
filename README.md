@@ -2,10 +2,11 @@
 
 Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
 
-This demo uses Google Sign-In (OAuth 2.0) through the Quarkus OIDC extension. Configure the application by providing the following properties:
+This demo uses Google Sign-In (OAuth 2.0) through the Quarkus OIDC extension. OAuth support is disabled by default so the application can run without credentials. Configure the application by providing the following properties:
 
 ```
 quarkus.oidc.provider=google
+quarkus.oidc.enabled=true
 quarkus.oidc.client-id=<CLIENT_ID>
 quarkus.oidc.credentials.secret=<CLIENT_SECRET>
 quarkus.oidc.application-type=web-app
@@ -24,7 +25,7 @@ After authenticating you will be redirected to `/private/profile` where the appl
 
 Ensure `https://eventflow.opensourcesantiago.io/private` is registered as an authorized redirect URI in the Google OAuth2 client configuration if running in production.
 
-You can also configure these values using environment variables. The included `application.properties` expects `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` along with the rest of the OIDC URLs, as shown in `deployment/google-oauth-secret.yaml`.
+You can also configure these values using environment variables. The included `application.properties` expects `OIDC_ENABLED=true`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` along with the rest of the OIDC URLs, as shown in `deployment/google-oauth-secret.yaml`.
 
 When deploying through GitHub Actions, the workflow populates these values from repository secrets and creates the `google-oauth` secret in the cluster. The manifest in `deployment/google-oauth-secret.yaml` is only a template and is not applied directly during deployment.
 

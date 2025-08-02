@@ -76,7 +76,7 @@ After getting a cup of coffee, you'll be able to run this executable directly:
 
 ## Google Login Demo
 
-1. Set the environment variables `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` and the rest of the OAuth values listed in the project root README.
+1. Set the environment variables `OIDC_ENABLED=true`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` and the rest of the OAuth values listed in the project root README. Without these variables the application starts with OAuth disabled which is useful for local development and automated builds.
 2. Start the application in dev mode:
 
 ```bash
