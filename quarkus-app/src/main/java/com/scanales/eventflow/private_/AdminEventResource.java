@@ -6,8 +6,7 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.EventLoaderService;
-import com.scanales.eventflow.service.GitEventSyncService;
-import com.scanales.eventflow.service.GitSyncResult;
+import com.scanales.eventflow.service.GitLoadStatus;
 import com.scanales.eventflow.service.EventGitWriterService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
@@ -53,9 +52,6 @@ public class AdminEventResource {
 
     @Inject
     EventLoaderService gitSync;
-
-    @Inject
-    GitEventSyncService gitEventSync;
 
     @Inject
     EventGitWriterService gitWriter;
@@ -190,9 +186,9 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         LOG.info(PREFIX + "AdminEventResource.reloadFromGit(): recarga solicitada desde panel");
-        GitSyncResult result = gitEventSync.reloadEventsFromGit();
-        if (!result.success) {
-            LOG.error(PREFIX + "AdminEventResource.reloadFromGit(): recarga con errores - " + result.message);
+        GitLoadStatus result = gitSync.reload();
+        if (!result.isSuccess()) {
+            LOG.error(PREFIX + "AdminEventResource.reloadFromGit(): recarga con errores - " + result.getMessage());
         }
         return Response.ok(result).build();
     }
