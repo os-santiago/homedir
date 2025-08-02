@@ -81,9 +81,16 @@ public class GitEventSyncService {
     }
 
     private void loadEvents() {
+        loadEvents(null);
+    }
+
+    private void loadEvents(GitSyncResult result) {
         Path eventsDir = localPath.resolve(folder);
         if (!Files.exists(eventsDir)) {
             LOG.warnf(PREFIX + "Directorio de eventos %s no encontrado", eventsDir);
+            if (result != null) {
+                result.message = "Directorio de eventos no encontrado";
+            }
             return;
         }
         int count = 0;
@@ -93,16 +100,47 @@ public class GitEventSyncService {
                 try (var in = Files.newInputStream(f)) {
                     Event ev = jsonb.fromJson(in, Event.class);
                     eventService.putEvent(ev.getId(), ev);
+                    if (result != null) {
+                        result.filesLoaded.add(f.getFileName().toString());
+                    }
                     LOG.infof(PREFIX + "Evento %s cargado correctamente.", ev.getId());
                     count++;
                 } catch (Exception e) {
                     LOG.errorf(e, PREFIX + "Error procesando %s", f.getFileName());
+                    if (result != null) {
+                        result.errors.add(f.getFileName().toString());
+                    }
                 }
             }
         } catch (Exception e) {
             LOG.error(PREFIX + "Error leyendo archivos de eventos", e);
+            if (result != null) {
+                result.errors.add(e.getMessage());
+            }
         }
         LOG.infof(PREFIX + "Total eventos cargados: %d", count);
+    }
+
+    public GitSyncResult reloadEventsFromGit() {
+        LOG.info(PREFIX + "Recarga de eventos solicitada desde panel");
+        GitSyncResult res = new GitSyncResult();
+        try {
+            cloneOrPull();
+            loadEvents(res);
+            if (res.errors.isEmpty()) {
+                res.success = true;
+                res.message = "Se cargaron " + res.filesLoaded.size() + " eventos desde Git";
+            } else {
+                res.success = false;
+                res.message = "Hubo errores cargando " + res.errors.size() + " archivos. Ver detalles";
+            }
+        } catch (Exception e) {
+            LOG.error(PREFIX + "Error al recargar eventos desde Git", e);
+            res.success = false;
+            res.message = "No se pudo acceder al repositorio remoto";
+            res.errors.add(e.getMessage());
+        }
+        return res;
     }
 }
 

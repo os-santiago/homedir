@@ -101,6 +101,7 @@ function escapeHtml(str) {
 async function reloadGit() {
     const btn = document.getElementById('git-reload-btn');
     const msg = document.getElementById('git-reload-msg');
+    const details = document.getElementById('git-reload-details');
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Cargando...';
@@ -109,19 +110,33 @@ async function reloadGit() {
         msg.textContent = '';
         msg.style.color = 'gray';
     }
+    if (details) {
+        details.innerHTML = '';
+    }
     try {
-        const resp = await fetch('/private/api/git-reload', {method: 'POST'});
+        const resp = await fetch('/private/admin/events/reload-git', {method: 'POST'});
         if (resp.ok) {
             const data = await resp.json();
             if (msg) {
-                msg.textContent = data.success ? 'Carga exitosa' : 'Error: ' + data.message;
-                msg.style.color = data.success ? 'green' : 'red';
+                if (data.success) {
+                    msg.innerHTML = `✅ ${data.message}`;
+                    msg.style.color = 'green';
+                } else if (data.errors && data.errors.length > 0) {
+                    msg.innerHTML = `⚠️ ${data.message}`;
+                    msg.style.color = 'orange';
+                    if (details) {
+                        details.innerHTML = '<ul>' + data.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('') + '</ul>';
+                    }
+                } else {
+                    msg.innerHTML = `❌ ${data.message}`;
+                    msg.style.color = 'red';
+                }
             } else {
                 alert(data.success ? 'Carga exitosa' : 'Error: ' + data.message);
             }
         } else {
             if (msg) {
-                msg.textContent = 'Error al recargar';
+                msg.innerHTML = '❌ Error al recargar';
                 msg.style.color = 'red';
             } else {
                 alert('Error al recargar');
@@ -129,7 +144,7 @@ async function reloadGit() {
         }
     } catch (e) {
         if (msg) {
-            msg.textContent = 'Error al recargar';
+            msg.innerHTML = '❌ Error al recargar';
             msg.style.color = 'red';
         } else {
             alert('Error al recargar');
