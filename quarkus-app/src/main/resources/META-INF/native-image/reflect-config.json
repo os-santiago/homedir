@@ -32,6 +32,14 @@
     "allPublicMethods": true
   },
   {
+    "name": "org.eclipse.jgit.lib.CoreConfig$LogRefUpdates",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicFields": true,
+    "allDeclaredFields": true,
+    "allPublicMethods": true
+  },
+  {
     "name": "org.eclipse.jgit.transport.HttpConfig$HttpRedirectMode",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
