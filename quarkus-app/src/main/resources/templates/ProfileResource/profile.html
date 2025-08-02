@@ -23,7 +23,7 @@
         <td>{e.talk.day}</td>
         <td>{e.talk.startTimeStr}</td>
         <td>{e.talk.durationMinutes}</td>
-        <td>{#if e.event && e.event.getScenarioMapUrl(e.talk.location)}<a href="{e.event.getScenarioMapUrl(e.talk.location)}" target="_blank">🧭 Cómo llegar</a>{/if}</td>
+        <td>{#if e.event}<a href="/scenario/{e.talk.location}#map">🧭 Cómo llegar</a>{/if}</td>
         <td><span class="status {e.statusCss()}">{e.statusLabel()}</span></td>
         <td><a href="/private/profile/remove/{e.talk.id}">Eliminar de mis charlas</a></td>
     </tr>

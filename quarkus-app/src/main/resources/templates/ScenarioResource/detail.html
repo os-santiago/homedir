@@ -11,9 +11,13 @@ Escenario
 <h1>{scenario.name}</h1>
 {#if scenario.location}<p>Ubicacion: {scenario.location}</p>{/if}
 {#if scenario.features}<p>{scenario.features}</p>{/if}
-{#if scenario.mapUrl}
-<p><img src="{scenario.mapUrl}" alt="Mapa" class="map-image"></p>
+<div id="map">
+{#if event.getScenarioMapUrl(scenario.id)}
+    <p><img src="{event.getScenarioMapUrl(scenario.id)}" alt="Mapa" class="map-image"></p>
+{#else}
+    <p>Imagen de ubicación no disponible.</p>
 {/if}
+</div>
 {#if !talks.isEmpty()}
 <h2>Charlas</h2>
 <ul>
