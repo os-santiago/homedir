@@ -9,7 +9,8 @@ import org.eclipse.jgit.lib.CoreConfig;
 @RegisterForReflection(targets = {
         CoreConfig.TrustLooseRefStat.class,
         CoreConfig.TrustPackedRefsStat.class,
-        CoreConfig.TrustStat.class
+        CoreConfig.TrustStat.class,
+        CoreConfig.HideDotFiles.class
 })
 public final class JGitReflectConfig {
     static {
@@ -17,6 +18,7 @@ public final class JGitReflectConfig {
         CoreConfig.TrustLooseRefStat.values();
         CoreConfig.TrustPackedRefsStat.values();
         CoreConfig.TrustStat.values();
+        CoreConfig.HideDotFiles.values();
     }
     // class only used for reflection registration
 }

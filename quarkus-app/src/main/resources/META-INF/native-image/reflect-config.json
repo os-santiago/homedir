@@ -22,5 +22,13 @@
     "allPublicFields": true,
     "allDeclaredFields": true,
     "allPublicMethods": true
+  },
+  {
+    "name": "org.eclipse.jgit.lib.CoreConfig$HideDotFiles",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicFields": true,
+    "allDeclaredFields": true,
+    "allPublicMethods": true
   }
 ]
