@@ -11,11 +11,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up GraalVM
         uses: actions/setup-java@v3
         with:
-          distribution: "temurin"
+          distribution: "graalvm"
           java-version: "21"
+          components: "native-image"
 
       - name: Cache Maven packages
         uses: actions/cache@v3
