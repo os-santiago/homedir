@@ -12,6 +12,7 @@ import org.eclipse.jgit.transport.HttpConfig;
         CoreConfig.TrustPackedRefsStat.class,
         CoreConfig.TrustStat.class,
         CoreConfig.HideDotFiles.class,
+        CoreConfig.LogRefUpdates.class,
         HttpConfig.HttpRedirectMode.class
 })
 public final class JGitReflectConfig {
@@ -21,6 +22,7 @@ public final class JGitReflectConfig {
         CoreConfig.TrustPackedRefsStat.values();
         CoreConfig.TrustStat.values();
         CoreConfig.HideDotFiles.values();
+        CoreConfig.LogRefUpdates.values();
         HttpConfig.HttpRedirectMode.values();
     }
     // class only used for reflection registration
