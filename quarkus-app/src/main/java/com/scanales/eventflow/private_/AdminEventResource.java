@@ -108,7 +108,7 @@ public class AdminEventResource {
     @Authenticated
     public Response saveEvent(@FormParam("title") String title,
                               @FormParam("description") String description,
-                              @FormParam("mapUrl") String mapUrl,
+                              @FormParam("mapImageUrl") String mapImageUrl,
                               @FormParam("days") int days,
                               @FormParam("startDate") String startDateStr) {
         if (!isAdmin()) {
@@ -120,7 +120,7 @@ public class AdminEventResource {
         var now = java.time.LocalDateTime.now();
         String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
         Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
-        event.setMapUrl(mapUrl);
+        event.setMapImageUrl(mapImageUrl);
         event.setStartDate(java.time.LocalDate.parse(startDateStr));
         eventService.saveEvent(event);
         boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
@@ -140,7 +140,7 @@ public class AdminEventResource {
     public Response updateEvent(@PathParam("id") String id,
                                 @FormParam("title") String title,
                                 @FormParam("description") String description,
-                                @FormParam("mapUrl") String mapUrl,
+                                @FormParam("mapImageUrl") String mapImageUrl,
                                 @FormParam("days") int days,
                                 @FormParam("startDate") String startDateStr) {
         if (!isAdmin()) {
@@ -156,7 +156,7 @@ public class AdminEventResource {
         event.setTitle(title);
         event.setDescription(description);
         event.setDays(days);
-        event.setMapUrl(mapUrl);
+        event.setMapImageUrl(mapImageUrl);
         event.setStartDate(java.time.LocalDate.parse(startDateStr));
         eventService.saveEvent(event);
         boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
@@ -246,7 +246,7 @@ public class AdminEventResource {
                                  @FormParam("name") String name,
                                  @FormParam("features") String features,
                                  @FormParam("location") String location,
-                                 @FormParam("mapUrl") String mapUrl) {
+                                 @FormParam("highlightedMapImageUrl") String highlightedMapImageUrl) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -258,7 +258,7 @@ public class AdminEventResource {
         Scenario scenario = new Scenario(scenarioId, name);
         scenario.setFeatures(features);
         scenario.setLocation(location);
-        scenario.setMapUrl(mapUrl);
+        scenario.setHighlightedMapImageUrl(highlightedMapImageUrl);
         eventService.saveScenario(eventId, scenario);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events/" + eventId + "/edit")

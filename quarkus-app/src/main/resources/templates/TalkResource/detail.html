@@ -19,9 +19,7 @@ Charla
 {#for t in occurrences}
     <li>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
         <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
-        {#if event.getScenarioMapUrl(t.location)}
-            - <a href="{event.getScenarioMapUrl(t.location)}" target="_blank">🧭 ¿Cómo llegar?</a>
-        {/if}
+        - <a href="/scenario/{t.location}#map">🧭 ¿Cómo llegar?</a>
     </li>
 {/for}
 </ul>

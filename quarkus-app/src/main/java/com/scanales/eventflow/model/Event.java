@@ -23,8 +23,8 @@ public class Event {
     private List<Scenario> scenarios = new ArrayList<>();
     /** Number of days the event lasts. */
     private int days = 1;
-    /** URL or identifier for the venue map. */
-    private String mapUrl;
+    /** URL of the general event map. */
+    private String mapImageUrl;
     /** Base date for the event used to compute talk schedules. */
     private java.time.LocalDate startDate;
     private List<Talk> agenda = new ArrayList<>();
@@ -100,12 +100,22 @@ public class Event {
         this.days = days;
     }
 
-    public String getMapUrl() {
-        return mapUrl;
+    public String getMapImageUrl() {
+        String url = mapImageUrl;
+        if ((url == null || url.isBlank()) && id != null) {
+            url = "/img/events/" + id + "/event-map.png";
+        }
+        return resourceExists(url) ? url : null;
     }
 
+    public void setMapImageUrl(String mapImageUrl) {
+        this.mapImageUrl = mapImageUrl;
+    }
+
+    /** Backward compatibility with legacy field name. */
+    @jakarta.json.bind.annotation.JsonbProperty("mapUrl")
     public void setMapUrl(String mapUrl) {
-        this.mapUrl = mapUrl;
+        this.mapImageUrl = mapUrl;
     }
 
     public java.time.LocalDate getStartDate() {
@@ -168,7 +178,13 @@ public class Event {
     public String getScenarioMapUrl(String scenarioId) {
         return scenarios.stream()
                 .filter(s -> s.getId().equals(scenarioId))
-                .map(Scenario::getMapUrl)
+                .map(s -> {
+                    String url = s.getHighlightedMapImageUrl();
+                    if (url == null || url.isBlank()) {
+                        url = "/img/events/" + id + "/venue-" + s.getId() + "-highlight.png";
+                    }
+                    return resourceExists(url) ? url : null;
+                })
                 .filter(java.util.Objects::nonNull)
                 .findFirst()
                 .orElse(null);
@@ -182,5 +198,13 @@ public class Event {
                 .filter(t -> t.getDay() == day)
                 .sorted(java.util.Comparator.comparing(Talk::getStartTime))
                 .toList();
+    }
+
+    private boolean resourceExists(String url) {
+        if (url == null || url.isBlank()) {
+            return false;
+        }
+        String resPath = "META-INF/resources" + (url.startsWith("/") ? url : "/" + url);
+        return Thread.currentThread().getContextClassLoader().getResource(resPath) != null;
     }
 }

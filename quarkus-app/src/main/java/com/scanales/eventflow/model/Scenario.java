@@ -15,7 +15,7 @@ public class Scenario {
     private String features;
     private String location;
     /** Specific map image for this scenario highlighting its position. */
-    private String mapUrl;
+    private String highlightedMapImageUrl;
 
     public Scenario() {
     }
@@ -57,11 +57,17 @@ public class Scenario {
         this.location = location;
     }
 
-    public String getMapUrl() {
-        return mapUrl;
+    public String getHighlightedMapImageUrl() {
+        return highlightedMapImageUrl;
     }
 
+    public void setHighlightedMapImageUrl(String highlightedMapImageUrl) {
+        this.highlightedMapImageUrl = highlightedMapImageUrl;
+    }
+
+    /** Backward compatibility with legacy field name. */
+    @jakarta.json.bind.annotation.JsonbProperty("mapUrl")
     public void setMapUrl(String mapUrl) {
-        this.mapUrl = mapUrl;
+        this.highlightedMapImageUrl = mapUrl;
     }
 }
