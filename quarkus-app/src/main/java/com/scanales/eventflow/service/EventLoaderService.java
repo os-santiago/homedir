@@ -58,10 +58,16 @@ public class EventLoaderService {
         repoUrl = cfg.getOptionalValue("eventflow.sync.repoUrl", String.class).orElse(null);
         branch = cfg.getOptionalValue("eventflow.sync.branch", String.class).orElse("main");
         token = cfg.getOptionalValue("eventflow.sync.token", String.class).orElse(null);
-        String dir = cfg.getOptionalValue("eventflow.sync.localDir", String.class)
-                .orElse(System.getProperty("java.io.tmpdir") + "/eventflow-repo");
         dataDir = cfg.getOptionalValue("eventflow.sync.dataDir", String.class).orElse("event-data");
-        localDir = Path.of(dir);
+
+        String repoName = (repoUrl != null && !repoUrl.isBlank())
+                ? repoUrl.substring(repoUrl.lastIndexOf('/') + 1)
+                : "event-repo";
+        if (repoName.endsWith(".git")) {
+            repoName = repoName.substring(0, repoName.length() - 4);
+        }
+        localDir = Path.of(System.getProperty("java.io.tmpdir"), repoName);
+
         status.setRepoUrl(repoUrl);
         status.setBranch(branch);
 
@@ -131,6 +137,9 @@ public class EventLoaderService {
                 LOG.warnf(PREFIX + "Local repository at %s missing or corrupted, recloning", localDir);
                 deleteDirectory(localDir);
             }
+        } else {
+            // Ensure the target directory is clean before cloning
+            deleteDirectory(localDir);
         }
 
         Files.createDirectories(localDir);

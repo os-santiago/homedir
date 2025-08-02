@@ -37,11 +37,18 @@ public class EventGitWriterService {
     @PostConstruct
     void init() {
         var cfg = ConfigProvider.getConfig();
-        String dir = cfg.getOptionalValue("eventflow.sync.localDir", String.class)
-                .orElse(System.getProperty("java.io.tmpdir") + "/eventflow-repo");
+        String repoUrl = cfg.getOptionalValue("eventflow.sync.repoUrl", String.class).orElse(null);
         dataDir = cfg.getOptionalValue("eventflow.sync.dataDir", String.class)
                 .orElse("event-data");
-        localDir = Path.of(dir);
+
+        String repoName = (repoUrl != null && !repoUrl.isBlank())
+                ? repoUrl.substring(repoUrl.lastIndexOf('/') + 1)
+                : "event-repo";
+        if (repoName.endsWith(".git")) {
+            repoName = repoName.substring(0, repoName.length() - 4);
+        }
+        localDir = Path.of(System.getProperty("java.io.tmpdir"), repoName);
+
         gitLog.log("Git writer init path=" + localDir + " dataDir=" + dataDir);
     }
 
