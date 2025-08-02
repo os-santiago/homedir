@@ -17,7 +17,6 @@ import com.scanales.eventflow.util.EventUtils;
 import org.jboss.logging.Logger;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import jakarta.inject.Inject;
@@ -213,7 +212,7 @@ public class AdminEventResource {
                     .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
                     .build();
         }
-        if (!hasRequiredData(event)) {
+        if (!EventUtils.hasRequiredData(event)) {
             LOG.warnf(PREFIX + "AdminEventResource.exportEvent(): Event %s has no data to export", id);
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("\u274c Error: El evento no contiene datos para exportar.")
@@ -404,27 +403,6 @@ public class AdminEventResource {
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: error interno"))
                     .build();
         }
-    }
-
-    private boolean hasRequiredData(Event event) {
-        if (event == null) {
-            return false;
-        }
-
-        JsonbConfig cfg = new JsonbConfig().withFormatting(true);
-        try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
-            String eventJson = jsonb.toJson(event);
-            LOG.debug(PREFIX + "AdminEventResource.hasRequiredData(): contenido del evento\n" + eventJson);
-        } catch (jakarta.json.bind.JsonbException e) {
-            LOG.warn(PREFIX + "AdminEventResource.hasRequiredData(): No se pudo serializar evento", e);
-        } catch (Exception e) {
-            LOG.warn(PREFIX + "AdminEventResource.hasRequiredData(): Error cerrando recurso", e);
-        }
-
-        boolean hasLists = (event.getScenarios() != null && !event.getScenarios().isEmpty())
-                || (event.getAgenda() != null && !event.getAgenda().isEmpty());
-
-        return event.getId() != null && !event.getId().isBlank() && hasLists;
     }
 
 }

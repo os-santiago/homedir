@@ -42,4 +42,23 @@ public final class EventUtils {
             }
         }
     }
+
+    /**
+     * Checks that the event contains the minimum required data before being
+     * exported or persisted to Git. An event must have a non-blank identifier
+     * and at least one scenario or talk defined.
+     *
+     * @param event event to validate
+     * @return {@code true} if the event has enough data, {@code false} otherwise
+     */
+    public static boolean hasRequiredData(Event event) {
+        if (event == null) {
+            return false;
+        }
+
+        boolean hasLists = (event.getScenarios() != null && !event.getScenarios().isEmpty())
+                || (event.getAgenda() != null && !event.getAgenda().isEmpty());
+
+        return event.getId() != null && !event.getId().isBlank() && hasLists;
+    }
 }

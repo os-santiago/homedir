@@ -16,6 +16,7 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.util.EventUtils;
 
 /**
  * Writes event definitions to a local Git repository and pushes the changes.
@@ -46,29 +47,52 @@ public class EventGitWriterService {
      * @param updatedByEmail email of the admin performing the change
      * @return {@code true} if the operation succeeded, {@code false} otherwise
      */
-    public boolean persistEventToGit(Event event, String updatedByEmail) {
+    public synchronized boolean persistEventToGit(Event event, String updatedByEmail) {
+        if (!EventUtils.hasRequiredData(event)) {
+            LOG.warn(PREFIX + "Evento " + (event != null ? event.getId() : "null")
+                    + " incompleto, no se guarda en Git");
+            return false;
+        }
+
         try {
             Path eventsDir = localPath.resolve(folder);
             Files.createDirectories(eventsDir);
+
             JsonbConfig cfg = new JsonbConfig().withFormatting(true);
+            String json;
             try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
-                Path file = eventsDir.resolve(event.getId() + ".json");
-                String json = jsonb.toJson(event);
-                Files.writeString(file, json, StandardCharsets.UTF_8);
+                json = jsonb.toJson(event);
             }
+
+            Path file = eventsDir.resolve(event.getId() + ".json");
+            if (Files.exists(file)) {
+                String existing = Files.readString(file);
+                if (existing.equals(json)) {
+                    LOG.infov(PREFIX + "Evento {0} sin cambios, no se realiza commit", event.getId());
+                    return true;
+                }
+            }
+            Files.writeString(file, json, StandardCharsets.UTF_8);
+
             try (Git git = Git.open(localPath.toFile())) {
                 git.add().addFilepattern(folder + "/" + event.getId() + ".json").call();
-                String msg = "update: " + event.getId() + " updated by " + updatedByEmail;
+                if (git.status().call().isClean()) {
+                    LOG.infov(PREFIX + "Evento {0} sin cambios en Git", event.getId());
+                    return true;
+                }
+                String msg = "chore(event): updated event " + event.getId() + " by " + updatedByEmail;
                 git.commit().setMessage(msg).call();
                 git.push().call();
             }
-            LOG.infov(PREFIX + "Evento {0} persistido en Git", event.getId());
+
+            LOG.infov(PREFIX + "\u2705 Evento {0} guardado en Git por {1}", event.getId(), updatedByEmail);
             return true;
         } catch (IOException | GitAPIException | jakarta.json.bind.JsonbException e) {
-            LOG.error(PREFIX + "Error al persistir evento en Git", e);
+            LOG.errorf(e, PREFIX + "\u274c Error al guardar evento {0} en Git: {1}", event.getId(), e.getMessage());
             return false;
         } catch (Exception e) {
-            LOG.error(PREFIX + "Error inesperado al persistir evento en Git", e);
+            LOG.errorf(e, PREFIX + "\u274c Error inesperado al guardar evento {0} en Git: {1}",
+                    event != null ? event.getId() : "null", e.getMessage());
             return false;
         }
     }
