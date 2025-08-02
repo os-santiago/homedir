@@ -4,6 +4,7 @@ import com.scanales.eventflow.service.EventLoaderService;
 import com.scanales.eventflow.service.GitEventSyncService;
 import com.scanales.eventflow.service.GitLoadStatus;
 import com.scanales.eventflow.service.GitTroubleshootResult;
+import com.scanales.eventflow.service.GitLogService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -26,6 +27,9 @@ public class GitStatusResource {
 
     @Inject
     GitEventSyncService gitSync;
+
+    @Inject
+    GitLogService gitLog;
 
     private boolean isAdmin() {
         return AdminUtils.isAdmin(identity);
@@ -65,5 +69,21 @@ public class GitStatusResource {
         }
         GitTroubleshootResult result = loader.troubleshoot();
         return Response.ok(result).build();
+    }
+
+    @GET
+    @Path("/git-log")
+    @Authenticated
+    public Response downloadLog() {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        java.nio.file.Path file = gitLog.getLogFile();
+        if (!java.nio.file.Files.exists(file)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(file.toFile(), MediaType.TEXT_PLAIN)
+                .header("Content-Disposition", "attachment; filename=git-log.txt")
+                .build();
     }
 }
