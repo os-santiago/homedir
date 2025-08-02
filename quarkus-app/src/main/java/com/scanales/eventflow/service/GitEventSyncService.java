@@ -99,7 +99,7 @@ public class GitEventSyncService {
                     LOG.errorf(e, PREFIX + "Error procesando %s", f.getFileName());
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error(PREFIX + "Error leyendo archivos de eventos", e);
         }
         LOG.infof(PREFIX + "Total eventos cargados: %d", count);
