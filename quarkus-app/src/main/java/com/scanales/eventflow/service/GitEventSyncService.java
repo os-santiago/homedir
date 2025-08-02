@@ -35,6 +35,9 @@ public class GitEventSyncService {
     @Inject
     EventService eventService;
 
+    @Inject
+    GitLogService gitLog;
+
     private String repoUrl;
     private String branch;
     private String folder;
@@ -57,6 +60,7 @@ public class GitEventSyncService {
         status.setInitialLoadAttempted(true);
         status.setLastAttempt(LocalDateTime.now());
         LOG.infof(PREFIX + "Repositorio %s rama %s en %s", repoUrl, branch, localPath);
+        gitLog.log("Init repoUrl=" + repoUrl + " branch=" + branch + " path=" + localPath);
 
         try {
             cloneOrPull();
@@ -85,12 +89,14 @@ public class GitEventSyncService {
         }
         if (Files.exists(localPath.resolve(".git"))) {
             LOG.info(PREFIX + "Repo ya clonado, haciendo pull...");
+            gitLog.log("Pulling repo " + repoUrl);
             try (Git git = Git.open(localPath.toFile())) {
                 git.checkout().setName(branch).call();
                 git.pull().call();
             }
         } else {
             LOG.info(PREFIX + "Clonando repo...");
+            gitLog.log("Cloning repo " + repoUrl);
             Files.createDirectories(localPath);
             Git.cloneRepository()
                     .setURI(repoUrl)
@@ -118,6 +124,7 @@ public class GitEventSyncService {
         try (Stream<Path> files = Files.list(eventsDir); Jsonb jsonb = JsonbBuilder.create()) {
             for (Path f : files.filter(p -> p.getFileName().toString().endsWith(".json")).toList()) {
                 LOG.infof(PREFIX + "Cargando archivo %s...", f.getFileName());
+                gitLog.log("Loading file " + f.getFileName());
                 try (var in = Files.newInputStream(f)) {
                     Event ev = jsonb.fromJson(in, Event.class);
                     eventService.putEvent(ev.getId(), ev);
@@ -128,6 +135,7 @@ public class GitEventSyncService {
                     count++;
                 } catch (Exception e) {
                     LOG.errorf(e, PREFIX + "Error procesando %s", f.getFileName());
+                    gitLog.log("Error processing " + f.getFileName() + ": " + e.getMessage());
                     if (result != null) {
                         result.errors.add(f.getFileName().toString());
                     }
@@ -140,10 +148,12 @@ public class GitEventSyncService {
             }
         }
         LOG.infof(PREFIX + "Total eventos cargados: %d", count);
+        gitLog.log("Total events loaded: " + count);
     }
 
     public GitSyncResult reloadEventsFromGit() {
         LOG.info(PREFIX + "Recarga de eventos solicitada desde panel");
+        gitLog.log("Reload requested from admin panel");
         status.setLastAttempt(LocalDateTime.now());
         GitSyncResult res = new GitSyncResult();
         try {
@@ -158,12 +168,14 @@ public class GitEventSyncService {
                 status.setMessage(res.message);
                 status.setLastSuccess(status.getLastAttempt());
                 status.setErrorDetails(null);
+                gitLog.log("Reload success: " + res.filesLoaded.size() + " events");
             } else {
                 res.success = false;
                 res.message = "Hubo errores cargando " + res.errors.size() + " archivos. Ver detalles";
                 status.setSuccess(false);
                 status.setMessage(res.message);
                 status.setErrorDetails(String.join("\n", res.errors));
+                gitLog.log("Reload partial errors: " + res.errors.size());
             }
         } catch (Exception e) {
             LOG.error(PREFIX + "Error al recargar eventos desde Git", e);
@@ -173,6 +185,7 @@ public class GitEventSyncService {
             status.setSuccess(false);
             status.setMessage(e.getMessage());
             status.setErrorDetails(stackTrace(e));
+            gitLog.log("Reload failed: " + e.getMessage());
         }
         return res;
     }

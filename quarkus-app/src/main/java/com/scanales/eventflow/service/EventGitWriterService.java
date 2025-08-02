@@ -30,6 +30,9 @@ public class EventGitWriterService {
     private Path localPath;
     private String folder;
 
+    @Inject
+    GitLogService gitLog;
+
     @PostConstruct
     void init() {
         var cfg = ConfigProvider.getConfig();
@@ -38,6 +41,7 @@ public class EventGitWriterService {
         folder = cfg.getOptionalValue("eventflow.git.folder", String.class)
                 .orElse("events");
         localPath = Path.of(lp);
+        gitLog.log("Git writer init path=" + localPath + " folder=" + folder);
     }
 
     /**
@@ -78,6 +82,7 @@ public class EventGitWriterService {
                 git.add().addFilepattern(folder + "/" + event.getId() + ".json").call();
                 if (git.status().call().isClean()) {
                     LOG.infov(PREFIX + "Evento {0} sin cambios en Git", event.getId());
+                    gitLog.log("Event " + event.getId() + " no changes");
                     return true;
                 }
                 String msg = "chore(event): updated event " + event.getId() + " by " + updatedByEmail;
@@ -86,13 +91,16 @@ public class EventGitWriterService {
             }
 
             LOG.infov(PREFIX + "\u2705 Evento {0} guardado en Git por {1}", event.getId(), updatedByEmail);
+            gitLog.log("Event " + event.getId() + " pushed by " + updatedByEmail);
             return true;
         } catch (IOException | GitAPIException | jakarta.json.bind.JsonbException e) {
             LOG.errorf(e, PREFIX + "\u274c Error al guardar evento {0} en Git: {1}", event.getId(), e.getMessage());
+            gitLog.log("Error saving event " + event.getId() + ": " + e.getMessage());
             return false;
         } catch (Exception e) {
             LOG.errorf(e, PREFIX + "\u274c Error inesperado al guardar evento {0} en Git: {1}",
                     event != null ? event.getId() : "null", e.getMessage());
+            gitLog.log("Unexpected error saving event " + (event != null ? event.getId() : "null") + ": " + e.getMessage());
             return false;
         }
     }

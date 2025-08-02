@@ -36,6 +36,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (troubleshootBtn) {
         troubleshootBtn.addEventListener('click', troubleshootGit);
     }
+    const logBtn = document.getElementById('git-log-download-btn');
+    if (logBtn) {
+        logBtn.addEventListener('click', downloadGitLog);
+    }
 });
 window.addEventListener('resize', adjustLayout);
 window.addEventListener('scroll', bannerParallax);
@@ -198,5 +202,26 @@ async function troubleshootGit() {
             btn.disabled = false;
             btn.textContent = 'Diagnosticar Git';
         }
+    }
+}
+
+async function downloadGitLog() {
+    try {
+        const resp = await fetch('/private/api/git-log');
+        if (!resp.ok) {
+            alert('No se pudo descargar el registro');
+            return;
+        }
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'git-log.txt';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (e) {
+        alert('No se pudo descargar el registro');
     }
 }

@@ -38,6 +38,9 @@ public class EventLoaderService {
     @Inject
     EventService eventService;
 
+    @Inject
+    GitLogService gitLog;
+
     private String repoUrl;
     private String branch;
     private String token;
@@ -63,6 +66,7 @@ public class EventLoaderService {
         status.setBranch(branch);
 
         LOG.debugf(PREFIX + "Repositorio: %s rama: %s dir local: %s", repoUrl, branch, localDir);
+        gitLog.log("Init repoUrl=" + repoUrl + " branch=" + branch + " localDir=" + localDir);
 
         reload();
     }
@@ -76,6 +80,7 @@ public class EventLoaderService {
     public synchronized GitLoadStatus reload() {
         status.setLastAttempt(java.time.LocalDateTime.now());
         LOG.info(PREFIX + "Iniciando recarga de eventos desde Git");
+        gitLog.log("Reloading events from Git");
         boolean first = !status.isInitialLoadAttempted();
         status.setInitialLoadAttempted(true);
         if (repoUrl == null || repoUrl.isBlank()) {
@@ -96,6 +101,7 @@ public class EventLoaderService {
             status.setLastSuccess(status.getLastAttempt());
             status.setErrorDetails(null);
             LOG.infof(PREFIX + "Recarga exitosa: %d archivos, %d eventos", m.filesRead(), m.eventsImported());
+            gitLog.log("Reload success: " + m.filesRead() + " files " + m.eventsImported() + " events");
             if (first) status.setInitialLoadSuccess(true);
         } catch (IOException | GitAPIException e) {
             repoAvailable = false;
@@ -105,6 +111,7 @@ public class EventLoaderService {
             e.printStackTrace(new java.io.PrintWriter(sw));
             status.setErrorDetails(sw.toString());
             LOG.error(PREFIX + "Error accediendo al repositorio durante recarga", e);
+            gitLog.log("Reload failed: " + e.getMessage());
             if (first) status.setInitialLoadSuccess(false);
         }
         return status;
@@ -113,6 +120,7 @@ public class EventLoaderService {
     private void cloneOrPull() throws GitAPIException, IOException {
         if (Files.exists(localDir.resolve(".git"))) {
             LOG.infof(PREFIX + "Pulling repository %s", repoUrl);
+            gitLog.log("Pulling repo " + repoUrl);
             try (Git git = Git.open(localDir.toFile())) {
                 git.checkout().setName(branch).call();
                 var pull = git.pull();
@@ -127,6 +135,7 @@ public class EventLoaderService {
 
         Files.createDirectories(localDir);
         LOG.infof(PREFIX + "Cloning repository %s", repoUrl);
+        gitLog.log("Cloning repo " + repoUrl);
         var clone = Git.cloneRepository()
                 .setURI(repoUrl)
                 .setDirectory(localDir.toFile())
@@ -224,6 +233,7 @@ public class EventLoaderService {
                 String json = jsonb.toJson(event);
                 Files.writeString(file, json);
                 LOG.debug(PREFIX + "EventLoaderService.exportAndPushEvent(): " + json);
+                gitLog.log("Export event " + event.getId());
             }
             try (Git git = Git.open(localDir.toFile())) {
                 git.add().addFilepattern(dataDir + "/event-" + event.getId() + ".json").call();
@@ -233,10 +243,13 @@ public class EventLoaderService {
                 push.call();
             }
             LOG.infov(PREFIX + "EventLoaderService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
+            gitLog.log("Pushed event " + event.getId());
         } catch (IOException | GitAPIException | jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "EventLoaderService.exportAndPushEvent(): Error al subir evento", e);
+            gitLog.log("Error pushing event " + event.getId() + ": " + e.getMessage());
         } catch (Exception e) {
             LOG.error(PREFIX + "Unexpected error exporting event", e);
+            gitLog.log("Unexpected error exporting event " + event.getId() + ": " + e.getMessage());
         }
     }
 
@@ -244,6 +257,7 @@ public class EventLoaderService {
     public void removeEvent(String eventId, String message) {
         if (!repoAvailable) return;
         Path file = localDir.resolve(dataDir).resolve("event-" + eventId + ".json");
+        gitLog.log("Removing event " + eventId);
         try {
             Files.deleteIfExists(file);
             try (Git git = Git.open(localDir.toFile())) {
@@ -254,10 +268,13 @@ public class EventLoaderService {
                 push.call();
             }
             LOG.infov(PREFIX + "EventLoaderService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
+            gitLog.log("Removed event " + eventId);
         } catch (IOException | GitAPIException e) {
             LOG.error(PREFIX + "EventLoaderService.removeEvent(): Error eliminando archivo", e);
+            gitLog.log("Error removing event " + eventId + ": " + e.getMessage());
         } catch (Exception e) {
             LOG.error(PREFIX + "Unexpected error removing event", e);
+            gitLog.log("Unexpected error removing event " + eventId + ": " + e.getMessage());
         }
     }
 
