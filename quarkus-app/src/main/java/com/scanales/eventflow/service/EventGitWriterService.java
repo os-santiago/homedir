@@ -28,8 +28,8 @@ public class EventGitWriterService {
     private static final Logger LOG = Logger.getLogger(EventGitWriterService.class);
     private static final String PREFIX = "[GITWRITE] ";
 
-    private Path localPath;
-    private String folder;
+    private Path localDir;
+    private String dataDir;
 
     @Inject
     GitLogService gitLog;
@@ -37,12 +37,12 @@ public class EventGitWriterService {
     @PostConstruct
     void init() {
         var cfg = ConfigProvider.getConfig();
-        String lp = cfg.getOptionalValue("eventflow.git.local.path", String.class)
-                .orElse("/tmp/eventflow-repo");
-        folder = cfg.getOptionalValue("eventflow.git.folder", String.class)
-                .orElse("events");
-        localPath = Path.of(lp);
-        gitLog.log("Git writer init path=" + localPath + " folder=" + folder);
+        String dir = cfg.getOptionalValue("eventflow.sync.localDir", String.class)
+                .orElse(System.getProperty("java.io.tmpdir") + "/eventflow-repo");
+        dataDir = cfg.getOptionalValue("eventflow.sync.dataDir", String.class)
+                .orElse("event-data");
+        localDir = Path.of(dir);
+        gitLog.log("Git writer init path=" + localDir + " dataDir=" + dataDir);
     }
 
     /**
@@ -60,7 +60,7 @@ public class EventGitWriterService {
         }
 
         try {
-            Path eventsDir = localPath.resolve(folder);
+            Path eventsDir = localDir.resolve(dataDir);
             Files.createDirectories(eventsDir);
 
             JsonbConfig cfg = new JsonbConfig().withFormatting(true);
@@ -79,8 +79,8 @@ public class EventGitWriterService {
             }
             Files.writeString(file, json, StandardCharsets.UTF_8);
 
-            try (Git git = Git.open(localPath.toFile())) {
-                git.add().addFilepattern(folder + "/" + event.getId() + ".json").call();
+            try (Git git = Git.open(localDir.toFile())) {
+                git.add().addFilepattern(dataDir + "/" + event.getId() + ".json").call();
                 if (git.status().call().isClean()) {
                     LOG.infov(PREFIX + "Evento {0} sin cambios en Git", event.getId());
                     gitLog.log("Event " + event.getId() + " no changes");

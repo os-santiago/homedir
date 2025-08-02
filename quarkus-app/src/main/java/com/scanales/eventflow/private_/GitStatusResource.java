@@ -1,7 +1,6 @@
 package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.service.EventLoaderService;
-import com.scanales.eventflow.service.GitEventSyncService;
 import com.scanales.eventflow.service.GitLoadStatus;
 import com.scanales.eventflow.service.GitTroubleshootResult;
 import com.scanales.eventflow.service.GitLogService;
@@ -26,9 +25,6 @@ public class GitStatusResource {
     EventLoaderService loader;
 
     @Inject
-    GitEventSyncService gitSync;
-
-    @Inject
     GitLogService gitLog;
 
     private boolean isAdmin() {
@@ -43,7 +39,7 @@ public class GitStatusResource {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        return Response.ok(gitSync.getStatus()).build();
+        return Response.ok(loader.getStatus()).build();
     }
 
     @POST
@@ -54,8 +50,7 @@ public class GitStatusResource {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        gitSync.reloadEventsFromGit();
-        GitLoadStatus status = gitSync.getStatus();
+        GitLoadStatus status = loader.reload();
         return Response.ok(status).build();
     }
 
