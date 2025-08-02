@@ -25,9 +25,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Generate reflection config with GraalVM agent
+        working-directory: quarkus-app
+        run: |
+          mvn -DskipTests package
+          java -agentlib:native-image-agent=config-output-dir=target/native-image-config -jar target/quarkus-app/quarkus-run.jar &
+          AGENT_PID=$!
+          sleep 5
+          curl -f http://localhost:8080/q/health || true
+          kill $AGENT_PID
+
       - name: Build native binary
         working-directory: quarkus-app
-        run: mvn clean package -Pnative -Dquarkus.native.container-build=true
+        run: mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true "-Dquarkus.native.additional-build-args=-H:ConfigurationFileDirectories=target/native-image-config"
 
       - name: Verify native binary exists
         run: ls quarkus-app/target/*-runner
