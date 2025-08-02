@@ -19,7 +19,6 @@ public final class EventUtils {
 
         if (event.getTitle() == null) event.setTitle("VACIO");
         if (event.getDescription() == null) event.setDescription("VACIO");
-        if (event.getMapUrl() == null) event.setMapUrl("VACIO");
         if (event.getStartDate() == null) event.setStartDate(java.time.LocalDate.now());
         if (event.getCreator() == null) event.setCreator("VACIO");
         if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
@@ -29,7 +28,6 @@ public final class EventUtils {
                 if (sc.getName() == null) sc.setName("VACIO");
                 if (sc.getFeatures() == null) sc.setFeatures("VACIO");
                 if (sc.getLocation() == null) sc.setLocation("VACIO");
-                if (sc.getMapUrl() == null) sc.setMapUrl("VACIO");
                 if (sc.getId() == null) sc.setId(java.util.UUID.randomUUID().toString());
             }
         }
