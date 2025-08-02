@@ -118,18 +118,32 @@ public class EventLoaderService {
                 var pull = git.pull();
                 if (credentials() != null) pull.setCredentialsProvider(credentials());
                 pull.call();
+                return;
+            } catch (org.eclipse.jgit.errors.RepositoryNotFoundException e) {
+                LOG.warnf(PREFIX + "Local repository at %s missing or corrupted, recloning", localDir);
+                deleteDirectory(localDir);
             }
-        } else {
-            Files.createDirectories(localDir);
-            LOG.infof(PREFIX + "Cloning repository %s", repoUrl);
-            var clone = Git.cloneRepository()
-                    .setURI(repoUrl)
-                    .setDirectory(localDir.toFile())
-                    .setBranch(branch);
-            if (credentials() != null) clone.setCredentialsProvider(credentials());
-            try (Git git = clone.call()) {
-                // nothing
-            }
+        }
+
+        Files.createDirectories(localDir);
+        LOG.infof(PREFIX + "Cloning repository %s", repoUrl);
+        var clone = Git.cloneRepository()
+                .setURI(repoUrl)
+                .setDirectory(localDir.toFile())
+                .setBranch(branch);
+        if (credentials() != null) clone.setCredentialsProvider(credentials());
+        try (Git git = clone.call()) {
+            // nothing
+        }
+    }
+
+    private static void deleteDirectory(Path dir) throws IOException {
+        if (!Files.exists(dir)) return;
+        try (Stream<Path> walk = Files.walk(dir)) {
+            walk.sorted(java.util.Comparator.reverseOrder())
+                    .forEach(p -> {
+                        try { Files.deleteIfExists(p); } catch (IOException e) { /* ignore */ }
+                    });
         }
     }
 
