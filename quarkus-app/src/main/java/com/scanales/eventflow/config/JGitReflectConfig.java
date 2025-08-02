@@ -2,6 +2,7 @@ package com.scanales.eventflow.config;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.eclipse.jgit.lib.CoreConfig;
+import org.eclipse.jgit.transport.HttpConfig;
 
 /**
  * Ensures JGit enums used during native image build are available via reflection.
@@ -10,7 +11,8 @@ import org.eclipse.jgit.lib.CoreConfig;
         CoreConfig.TrustLooseRefStat.class,
         CoreConfig.TrustPackedRefsStat.class,
         CoreConfig.TrustStat.class,
-        CoreConfig.HideDotFiles.class
+        CoreConfig.HideDotFiles.class,
+        HttpConfig.HttpRedirectMode.class
 })
 public final class JGitReflectConfig {
     static {
@@ -19,6 +21,7 @@ public final class JGitReflectConfig {
         CoreConfig.TrustPackedRefsStat.values();
         CoreConfig.TrustStat.values();
         CoreConfig.HideDotFiles.values();
+        HttpConfig.HttpRedirectMode.values();
     }
     // class only used for reflection registration
 }
