@@ -27,6 +27,7 @@ public class UserScheduleTest {
     @BeforeEach
     public void setup() {
         Event e = new Event("evt", "Test Event", "desc", 1);
+        e.setStartDate(java.time.LocalDate.now());
         Scenario sc = new Scenario("s1", "Main");
         e.getScenarios().add(sc);
         Talk t = new Talk("t1", "Talk 1");

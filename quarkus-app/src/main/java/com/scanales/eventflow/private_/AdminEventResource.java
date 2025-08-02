@@ -110,18 +110,18 @@ public class AdminEventResource {
                               @FormParam("description") String description,
                               @FormParam("mapUrl") String mapUrl,
                               @FormParam("days") int days,
-                              @FormParam("eventDate") String eventDateStr) {
+                              @FormParam("startDate") String startDateStr) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        if (eventDateStr == null || eventDateStr.isBlank()) {
+        if (startDateStr == null || startDateStr.isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Fecha requerida").build();
         }
         var now = java.time.LocalDateTime.now();
         String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
         Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
         event.setMapUrl(mapUrl);
-        event.setEventDate(java.time.LocalDate.parse(eventDateStr));
+        event.setStartDate(java.time.LocalDate.parse(startDateStr));
         eventService.saveEvent(event);
         boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
         String location = "/private/admin/events";
@@ -142,7 +142,7 @@ public class AdminEventResource {
                                 @FormParam("description") String description,
                                 @FormParam("mapUrl") String mapUrl,
                                 @FormParam("days") int days,
-                                @FormParam("eventDate") String eventDateStr) {
+                                @FormParam("startDate") String startDateStr) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -150,14 +150,14 @@ public class AdminEventResource {
         if (event == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        if (eventDateStr == null || eventDateStr.isBlank()) {
+        if (startDateStr == null || startDateStr.isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Fecha requerida").build();
         }
         event.setTitle(title);
         event.setDescription(description);
         event.setDays(days);
         event.setMapUrl(mapUrl);
-        event.setEventDate(java.time.LocalDate.parse(eventDateStr));
+        event.setStartDate(java.time.LocalDate.parse(startDateStr));
         eventService.saveEvent(event);
         boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
         String location = gitOk ? "/event/" + id
