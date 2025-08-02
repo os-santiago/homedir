@@ -3,7 +3,10 @@ package com.scanales.eventflow.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import jakarta.json.bind.annotation.JsonbTransient;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
@@ -25,6 +28,10 @@ public class Talk {
     private LocalTime startTime;
     /** Duration in minutes. */
     private int durationMinutes;
+
+    /** Base date of the parent event used to compute status. */
+    @JsonbTransient
+    private LocalDate eventStartDate;
 
     public Talk() {
     }
@@ -125,5 +132,47 @@ public class Talk {
     public String getEndTimeStr() {
         LocalTime end = getEndTime();
         return end == null ? "" : end.toString();
+    }
+
+    public enum Status {
+        ON_TIME("A tiempo", "status-on-time"),
+        SOON("Pronto a comenzar", "status-soon"),
+        IN_PROGRESS("En curso", "status-in-progress"),
+        FINISHED("Finalizada", "status-finished");
+
+        private final String label;
+        private final String cssClass;
+
+        Status(String label, String cssClass) {
+            this.label = label;
+            this.cssClass = cssClass;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public String getCssClass() {
+            return cssClass;
+        }
+    }
+
+    public void setEventStartDate(LocalDate startDate) {
+        this.eventStartDate = startDate;
+    }
+
+    public Status getStatus(LocalDateTime now) {
+        if (eventStartDate == null || startTime == null) return null;
+        LocalDateTime start = LocalDateTime.of(eventStartDate.plusDays(day - 1), startTime);
+        LocalDateTime end = start.plusMinutes(durationMinutes);
+        if (now.isBefore(start.minusMinutes(30))) return Status.ON_TIME;
+        if (now.isBefore(start)) return Status.SOON;
+        if (!now.isAfter(end)) return Status.IN_PROGRESS;
+        return Status.FINISHED;
+    }
+
+    public Status getStatus(LocalDate startDate, LocalDateTime now) {
+        setEventStartDate(startDate);
+        return getStatus(now);
     }
 }

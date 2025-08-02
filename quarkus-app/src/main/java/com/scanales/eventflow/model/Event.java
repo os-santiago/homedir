@@ -26,7 +26,7 @@ public class Event {
     /** URL or identifier for the venue map. */
     private String mapUrl;
     /** Base date for the event used to compute talk schedules. */
-    private java.time.LocalDate eventDate;
+    private java.time.LocalDate startDate;
     private List<Talk> agenda = new ArrayList<>();
     /** Time when the event was created. */
     private LocalDateTime createdAt;
@@ -108,12 +108,12 @@ public class Event {
         this.mapUrl = mapUrl;
     }
 
-    public java.time.LocalDate getEventDate() {
-        return eventDate;
+    public java.time.LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setEventDate(java.time.LocalDate eventDate) {
-        this.eventDate = eventDate;
+    public void setStartDate(java.time.LocalDate startDate) {
+        this.startDate = startDate;
     }
 
     public List<Talk> getAgenda() {

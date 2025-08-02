@@ -204,6 +204,29 @@ footer {
     vertical-align: middle;
 }
 
+.status::before {
+    content: '●';
+    margin-right: 0.25rem;
+}
+
+.status-on-time::before {
+    color: #2ecc71;
+}
+
+.status-soon::before {
+    color: #f1c40f;
+}
+
+.status-in-progress::before {
+    color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+}
+
+.status-finished::before {
+    color: #000000;
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }

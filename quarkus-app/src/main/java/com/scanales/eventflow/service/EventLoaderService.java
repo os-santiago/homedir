@@ -177,6 +177,10 @@ public class EventLoaderService {
                 LOG.errorf(PREFIX + "File %s missing id", file);
                 return false;
             }
+            if (event.getStartDate() == null) {
+                LOG.errorf(PREFIX + "File %s missing startDate", file);
+                return false;
+            }
             if (eventService.getEvent(event.getId()) != null) {
                 LOG.warnf(PREFIX + "Event %s already loaded, skipping", event.getId());
                 return false;

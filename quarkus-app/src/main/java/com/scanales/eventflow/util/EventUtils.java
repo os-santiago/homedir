@@ -20,7 +20,7 @@ public final class EventUtils {
         if (event.getTitle() == null) event.setTitle("VACIO");
         if (event.getDescription() == null) event.setDescription("VACIO");
         if (event.getMapUrl() == null) event.setMapUrl("VACIO");
-        if (event.getEventDate() == null) event.setEventDate(java.time.LocalDate.now());
+        if (event.getStartDate() == null) event.setStartDate(java.time.LocalDate.now());
         if (event.getCreator() == null) event.setCreator("VACIO");
         if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
 
