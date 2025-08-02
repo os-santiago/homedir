@@ -45,6 +45,15 @@ public class EventService {
         return events.get(id);
     }
 
+    /**
+     * Inserts the provided event using the given identifier without additional
+     * processing. Existing entries with the same id are replaced.
+     */
+    public void putEvent(String id, Event event) {
+        events.put(id, event);
+        LOG.debugf(PREFIX + "EventService.putEvent(): id=%s", id);
+    }
+
     public void saveEvent(Event event) {
         events.put(event.getId(), event);
         LOG.infof(PREFIX + "EventService.saveEvent(): Evento %s guardado", event.getId());
