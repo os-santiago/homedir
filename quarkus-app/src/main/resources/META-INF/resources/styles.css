@@ -187,12 +187,6 @@ footer {
     margin-top: 0.25rem;
 }
 
-.git-help {
-    font-size: 0.9em;
-    color: #555;
-    margin-top: 0.5rem;
-}
-
 .spinner {
     border: 2px solid #f3f3f3;
     border-top: 2px solid var(--color-primary);
