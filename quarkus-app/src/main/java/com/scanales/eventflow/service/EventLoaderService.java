@@ -15,8 +15,10 @@ import jakarta.inject.Inject;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.graalvm.nativeimage.ImageInfo;
 import org.jboss.logging.Logger;
 
 import com.scanales.eventflow.model.Event;
@@ -75,8 +77,6 @@ public class EventLoaderService {
 
         LOG.debugf(PREFIX + "Repositorio: %s rama: %s dir local: %s", repoUrl, branch, localDir);
         gitLog.log("Init repoUrl=" + repoUrl + " branch=" + branch + " localDir=" + localDir);
-
-        reload();
     }
 
     private UsernamePasswordCredentialsProvider credentials() {
@@ -87,6 +87,9 @@ public class EventLoaderService {
     /** Attempts to reload events from the Git repository and updates status. */
     public synchronized GitLoadStatus reload() {
         status.setLastAttempt(java.time.LocalDateTime.now());
+        if (ImageInfo.inImageRuntimeCode()) {
+            LOG.info(PREFIX + "Native image runtime detected.");
+        }
         LOG.info(PREFIX + "Iniciando recarga de eventos desde Git");
         gitLog.log("Reloading events from Git");
         boolean first = !status.isInitialLoadAttempted();
@@ -129,23 +132,30 @@ public class EventLoaderService {
         if (Files.exists(localDir.resolve(".git"))) {
             LOG.infof(PREFIX + "Pulling repository %s", repoUrl);
             gitLog.log("Pulling repo " + repoUrl);
-            try (Git git = Git.open(localDir.toFile())) {
-                if (git.getRepository().findRef(branch) == null) {
-                    git.checkout()
-                            .setCreateBranch(true)
-                            .setName(branch)
-                            .setStartPoint("origin/" + branch)
-                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
-                            .call();
-                } else {
-                    git.checkout().setName(branch).call();
+            var repoDir = localDir.toFile();
+            try {
+                if (!repoDir.exists()) {
+                    throw new RepositoryNotFoundException("Directory not found: " + repoDir);
                 }
-                var pull = git.pull();
-                if (credentials() != null) pull.setCredentialsProvider(credentials());
-                pull.call();
-                return;
-            } catch (org.eclipse.jgit.errors.RepositoryNotFoundException e) {
-                LOG.warnf(PREFIX + "Local repository at %s missing or corrupted, recloning", localDir);
+                try (Git git = Git.open(repoDir)) {
+                    if (git.getRepository().findRef(branch) == null) {
+                        git.checkout()
+                                .setCreateBranch(true)
+                                .setName(branch)
+                                .setStartPoint("origin/" + branch)
+                                .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                                .call();
+                    } else {
+                        git.checkout().setName(branch).call();
+                    }
+                    var pull = git.pull();
+                    if (credentials() != null) pull.setCredentialsProvider(credentials());
+                    pull.call();
+                    return;
+                }
+            } catch (RepositoryNotFoundException e) {
+                LOG.error(PREFIX + "Repository not found: " + e.getMessage());
+                gitLog.log("Repository not found: " + e.getMessage());
                 deleteDirectory(localDir);
             }
         } else {
@@ -260,7 +270,11 @@ public class EventLoaderService {
                 LOG.debug(PREFIX + "EventLoaderService.exportAndPushEvent(): " + json);
                 gitLog.log("Export event " + event.getId());
             }
-            try (Git git = Git.open(localDir.toFile())) {
+            var repoDir = localDir.toFile();
+            if (!repoDir.exists()) {
+                throw new RepositoryNotFoundException("Directory not found: " + repoDir);
+            }
+            try (Git git = Git.open(repoDir)) {
                 git.add().addFilepattern(dataDir + "/event-" + event.getId() + ".json").call();
                 git.commit().setMessage(message).call();
                 var push = git.push();
@@ -269,6 +283,9 @@ public class EventLoaderService {
             }
             LOG.infov(PREFIX + "EventLoaderService.exportAndPushEvent(): Evento {0} enviado al repositorio", event.getId());
             gitLog.log("Pushed event " + event.getId());
+        } catch (RepositoryNotFoundException e) {
+            LOG.error(PREFIX + "Repository not found: " + e.getMessage());
+            gitLog.log("Repository not found: " + e.getMessage());
         } catch (IOException | GitAPIException | jakarta.json.bind.JsonbException e) {
             LOG.error(PREFIX + "EventLoaderService.exportAndPushEvent(): Error al subir evento", e);
             gitLog.log("Error pushing event " + event.getId() + ": " + e.getMessage());
@@ -285,7 +302,11 @@ public class EventLoaderService {
         gitLog.log("Removing event " + eventId);
         try {
             Files.deleteIfExists(file);
-            try (Git git = Git.open(localDir.toFile())) {
+            var repoDir = localDir.toFile();
+            if (!repoDir.exists()) {
+                throw new RepositoryNotFoundException("Directory not found: " + repoDir);
+            }
+            try (Git git = Git.open(repoDir)) {
                 git.rm().addFilepattern(dataDir + "/event-" + eventId + ".json").call();
                 git.commit().setMessage(message).call();
                 var push = git.push();
@@ -294,6 +315,9 @@ public class EventLoaderService {
             }
             LOG.infov(PREFIX + "EventLoaderService.removeEvent(): Evento {0} eliminado del repositorio", eventId);
             gitLog.log("Removed event " + eventId);
+        } catch (RepositoryNotFoundException e) {
+            LOG.error(PREFIX + "Repository not found: " + e.getMessage());
+            gitLog.log("Repository not found: " + e.getMessage());
         } catch (IOException | GitAPIException e) {
             LOG.error(PREFIX + "EventLoaderService.removeEvent(): Error eliminando archivo", e);
             gitLog.log("Error removing event " + eventId + ": " + e.getMessage());

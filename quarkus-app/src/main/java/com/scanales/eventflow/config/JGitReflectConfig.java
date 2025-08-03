@@ -7,6 +7,7 @@ import org.eclipse.jgit.transport.HttpConfig;
 /**
  * Ensures JGit enums used during native image build are available via reflection.
  */
+@SuppressWarnings("removal")
 @RegisterForReflection(targets = {
         CoreConfig.TrustLooseRefStat.class,
         CoreConfig.TrustPackedRefsStat.class,

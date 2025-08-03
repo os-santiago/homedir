@@ -13,7 +13,9 @@ import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.graalvm.nativeimage.ImageInfo;
 import org.jboss.logging.Logger;
 
 import com.scanales.eventflow.model.Event;
@@ -66,6 +68,10 @@ public class EventGitWriterService {
             return false;
         }
 
+        if (ImageInfo.inImageRuntimeCode()) {
+            LOG.info(PREFIX + "Native image runtime detected.");
+        }
+
         try {
             Path eventsDir = localDir.resolve(dataDir);
             Files.createDirectories(eventsDir);
@@ -86,7 +92,11 @@ public class EventGitWriterService {
             }
             Files.writeString(file, json, StandardCharsets.UTF_8);
 
-            try (Git git = Git.open(localDir.toFile())) {
+            var repoDir = localDir.toFile();
+            if (!repoDir.exists()) {
+                throw new RepositoryNotFoundException("Directory not found: " + repoDir);
+            }
+            try (Git git = Git.open(repoDir)) {
                 git.add().addFilepattern(dataDir + "/" + event.getId() + ".json").call();
                 if (git.status().call().isClean()) {
                     LOG.infov(PREFIX + "Evento {0} sin cambios en Git", event.getId());
@@ -101,6 +111,10 @@ public class EventGitWriterService {
             LOG.infov(PREFIX + "\u2705 Evento {0} guardado en Git por {1}", event.getId(), updatedByEmail);
             gitLog.log("Event " + event.getId() + " pushed by " + updatedByEmail);
             return true;
+        } catch (RepositoryNotFoundException e) {
+            LOG.errorf(PREFIX + "Repository not found: {0}", e.getMessage());
+            gitLog.log("Repository not found: " + e.getMessage());
+            return false;
         } catch (IOException | GitAPIException | jakarta.json.bind.JsonbException e) {
             LOG.errorf(e, PREFIX + "\u274c Error al guardar evento {0} en Git: {1}", event.getId(), e.getMessage());
             gitLog.log("Error saving event " + event.getId() + ": " + e.getMessage());
