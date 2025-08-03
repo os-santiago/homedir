@@ -1,6 +1,6 @@
-# Getting started with Quarkus
+# EventFlow
 
-This is a minimal CRUD service exposing a couple of endpoints over REST.
+This is the EventFlow application, exposing REST endpoints for managing events.
 
 Under the hood, this demo uses:
 
@@ -71,7 +71,7 @@ native executable:
 
 After getting a cup of coffee, you'll be able to run this executable directly:
 
-> ./target/getting-started-1.0.0-SNAPSHOT-runner
+> ./target/eventflow-2.0.0-runner
 
 
 ## Google Login Demo
