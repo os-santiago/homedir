@@ -88,15 +88,24 @@ mvn quarkus:dev
 
 # Native build troubleshooting
 
-If the native build fails with messages about `JGit-WorkQueue` threads or cached `Random` values, the JGit classes may have been
-initialized during the image build. The application enables run time initialization for the problematic classes via the
-`quarkus.native.additional-build-args` property, but new failures can be diagnosed by tracing object instantiations:
+JGit initializes some components eagerly which breaks native-image analysis:
+
+- `WorkQueue` starts a background thread when its class is loaded.
+- `HttpAuthMethod$Digest`, `WindowCache` and `FileUtils` create `Random` instances in static initializers.
+
+To defer this work to run time, each class is passed to `native-image` with its own `--initialize-at-run-time` flag:
+
+```properties
+quarkus.native.additional-build-args=--initialize-at-run-time=org.eclipse.jgit.lib.internal.WorkQueue,--initialize-at-run-time=org.eclipse.jgit.transport.HttpAuthMethod$Digest,--initialize-at-run-time=org.eclipse.jgit.internal.storage.file.WindowCache,--initialize-at-run-time=org.eclipse.jgit.util.FileUtils
+```
+
+If the native build still fails, trace object instantiations to discover new classes that require run-time initialization:
 
 ```bash
 mvn package -Dnative \
   -Dquarkus.native.additional-build-args="--trace-object-instantiation=java.lang.Thread,java.util.Random,java.security.SecureRandom"
 ```
 
-The output lists the classes responsible for creating threads or random number generators during the build so they can be added
-to the run time initialization list.
+The output lists the classes responsible for creating threads or random number generators during the build so each can be added
+with its own `--initialize-at-run-time` flag.
 
