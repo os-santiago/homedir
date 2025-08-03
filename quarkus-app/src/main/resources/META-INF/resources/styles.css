@@ -1,5 +1,6 @@
+/* Color palette */
 :root {
-    --color-bg: #eef6f8;
+    --color-bg: #f9f9f9;
     --color-primary: #2196f3;
     --color-accent: #26c6da;
     --color-dark: #0d47a1;
@@ -8,35 +9,51 @@
 }
 
 body {
-    font-family: 'Fira Code', 'Courier New', monospace;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--color-bg);
     color: var(--color-text);
     margin: 0;
 }
 
-.info-header {
-    background-color: var(--color-dark);
-    color: var(--color-light);
+/* --- Header refresh --- */
+.site-header {
+    background-color: var(--color-light);
     text-align: center;
+    padding: 2rem 1rem 1rem;
 }
 
-.container-logo {
-    padding: 0.5rem 1rem;
-    text-align: left;
+.logo-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.logo {
-    font-weight: bold;
-    color: var(--color-light);
-    text-decoration: none;
-    font-size: 1.4rem;
+.logo-main {
+    max-width: 200px;
+    width: 60%;
+    height: auto;
 }
 
-.container-banner {
+.powered-by {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 0.5rem;
+}
+
+.logo-oss {
+    height: 24px;
+    width: auto;
+}
+
+.header-banner {
     background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
     background-size: 200% 200%;
     animation: flow 10s ease-in-out infinite;
-    padding: 2rem 1rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
 }
 
 .banner-title {
@@ -44,9 +61,10 @@ body {
     color: var(--color-light);
 }
 
-.container-news {
+.header-news {
     background-color: var(--color-primary);
-    padding: 0.25rem 1rem;
+    color: var(--color-light);
+    padding: 0.5rem 1rem;
     font-size: 0.9rem;
 }
 
@@ -88,6 +106,38 @@ body {
     max-width: 960px;
     margin: auto;
     padding: 1rem;
+}
+
+/* --- Home page --- */
+.home-section {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-dark);
+}
+
+.section-subtitle {
+    font-size: 1rem;
+    color: #555;
+}
+
+.event-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+}
+
+.event-item {
+    margin: 0.5rem 0;
+}
+
+.event-item a {
+    color: var(--color-primary);
+    text-decoration: none;
 }
 
 footer {
