@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: eventflow
-            image: quay.io/sergio_canales_e/eventflow:v2.0.0
+          image: quay.io/sergio_canales_e/eventflow:v2.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
