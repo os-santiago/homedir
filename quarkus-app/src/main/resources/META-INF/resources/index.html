@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{#insert title}EventFlow{/}</title>
+    <title>EventFlow</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="/js/app.js" defer></script>
 </head>
@@ -17,35 +17,28 @@
         </div>
     </div>
     <div class="header-banner">
-        {#insert banner}
         <span class="banner-title">EventFlow</span>
-        {/insert}
     </div>
     <div class="header-news">
-        {#insert news}Bienvenido a EventFlow{/insert}
+        Bienvenido a EventFlow
     </div>
 </header>
 <nav class="nav-menu" id="nav-menu">
     <button id="menuToggle" class="menu-toggle" aria-label="Menú">&#9776;</button>
     <div class="nav-links">
         <a href="/">Home</a>
-        {#if app:isAuthenticated()}
-            <a href="/private/profile">Mi Perfil</a>
-            {#if app:isAdmin()}
-                <a href="/private/admin">Admin</a>
-            {/if}
-            <a href="/logout">Logout</a>
-        {#else}
-            <a href="/login">Login</a>
-        {/if}
+        <a href="/login">Login</a>
     </div>
 </nav>
 <main id="main-content" class="container">
-    {#insert main}{/}
+    <section class="home-section">
+        <h1 class="section-title">Eventos disponibles</h1>
+        <p class="section-subtitle">No hay eventos disponibles.</p>
+    </section>
 </main>
 <footer>
     <div class="container">
-        <p>&copy; {app:currentYear()} EventFlow &ndash; v{app:version()}</p>
+        <p>&copy; EventFlow</p>
     </div>
 </footer>
 </body>

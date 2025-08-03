@@ -1,15 +1,17 @@
 {#include layout/base}
 {#title}Inicio{/title}
 {#main}
-<h1>Eventos disponibles</h1>
-{#if events.isEmpty()}
-<p>No hay eventos disponibles.</p>
-{#else}
-<ul>
-{#for e in events}
-<li><a href="/event/{e.id}">{e.title}</a></li>
-{/for}
-</ul>
-{/if}
+<section class="home-section">
+    <h1 class="section-title">Eventos disponibles</h1>
+    {#if events.isEmpty()}
+        <p class="section-subtitle">No hay eventos disponibles.</p>
+    {#else}
+        <ul class="event-list">
+        {#for e in events}
+            <li class="event-item"><a href="/event/{e.id}">{e.title}</a></li>
+        {/for}
+        </ul>
+    {/if}
+</section>
 {/main}
 {/include}
