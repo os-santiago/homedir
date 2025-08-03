@@ -5,9 +5,6 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import com.scanales.eventflow.service.EventService;
-import com.scanales.eventflow.service.EventLoaderService;
-import com.scanales.eventflow.service.GitLoadStatus;
-import com.scanales.eventflow.service.EventGitWriterService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
@@ -45,16 +42,9 @@ public class AdminEventResource {
 
     private static final Logger LOG = Logger.getLogger(AdminEventResource.class);
     private static final String PREFIX = "[EVENT] ";
-    private static final String GIT_FAIL_MESSAGE = "⚠️ El evento se guardó localmente pero no se pudo sincronizar con Git. Revisa los logs o reintenta desde el panel de administración.";
 
     @Inject
     EventService eventService;
-
-    @Inject
-    EventLoaderService gitSync;
-
-    @Inject
-    EventGitWriterService gitWriter;
 
     private boolean isAdmin() {
         return AdminUtils.isAdmin(identity);
@@ -118,14 +108,8 @@ public class AdminEventResource {
         event.setMapImageUrl(mapImageUrl);
         event.setStartDate(java.time.LocalDate.parse(startDateStr));
         eventService.saveEvent(event);
-        boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
-        String location = "/private/admin/events";
-        if (!gitOk) {
-            String msg = java.net.URLEncoder.encode(GIT_FAIL_MESSAGE, java.nio.charset.StandardCharsets.UTF_8);
-            location += "?msg=" + msg;
-        }
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", location)
+                .header("Location", "/event/" + id)
                 .build();
     }
 
@@ -154,12 +138,8 @@ public class AdminEventResource {
         event.setMapImageUrl(mapImageUrl);
         event.setStartDate(java.time.LocalDate.parse(startDateStr));
         eventService.saveEvent(event);
-        boolean gitOk = gitWriter.persistEventToGit(event, identity.getAttribute("email"));
-        String location = gitOk ? "/event/" + id
-                : "/private/admin/events?msg=" + java.net.URLEncoder.encode(GIT_FAIL_MESSAGE,
-                        java.nio.charset.StandardCharsets.UTF_8);
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", location)
+                .header("Location", "/event/" + id)
                 .build();
     }
 
@@ -171,26 +151,9 @@ public class AdminEventResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         eventService.deleteEvent(id);
-        gitSync.removeEvent(id, "Delete event " + id);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
                 .build();
-    }
-
-    @POST
-    @Path("reload-git")
-    @Authenticated
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response reloadFromGit() {
-        if (!isAdmin()) {
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-        LOG.info(PREFIX + "AdminEventResource.reloadFromGit(): recarga solicitada desde panel");
-        GitLoadStatus result = gitSync.reload();
-        if (!result.isSuccess()) {
-            LOG.error(PREFIX + "AdminEventResource.reloadFromGit(): recarga con errores - " + result.getMessage());
-        }
-        return Response.ok(result).build();
     }
 
     @GET
@@ -380,7 +343,6 @@ public class AdminEventResource {
             EventUtils.fillDefaults(event);
 
             eventService.saveEvent(event);
-            gitSync.exportAndPushEvent(event, "Import event " + id);
             LOG.infov("Imported event {0}", id);
             LOG.infof(PREFIX + "AdminEventResource.importEvent(): Evento %s importado correctamente", id);
             return Response.status(Response.Status.SEE_OTHER)

@@ -45,8 +45,8 @@ public final class EventUtils {
 
     /**
      * Checks that the event contains the minimum required data before being
-     * exported or persisted to Git. An event must have a non-blank identifier
-     * and at least one scenario or talk defined.
+     * exported. An event must have a non-blank identifier and at least one
+     * scenario or talk defined.
      *
      * @param event event to validate
      * @return {@code true} if the event has enough data, {@code false} otherwise
