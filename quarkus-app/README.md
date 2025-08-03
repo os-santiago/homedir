@@ -86,3 +86,17 @@ mvn quarkus:dev
 3. Visit [https://eventflow.opensourcesantiago.io/private](https://eventflow.opensourcesantiago.io/private). You will be redirected to authenticate with Google.
 4. After login the private page shows your name, email and profile picture.
 
+# Native build troubleshooting
+
+If the native build fails with messages about `JGit-WorkQueue` threads or cached `Random` values, the JGit classes may have been
+initialized during the image build. The application enables run time initialization for the problematic classes via the
+`quarkus.native.additional-build-args` property, but new failures can be diagnosed by tracing object instantiations:
+
+```bash
+mvn package -Dnative \
+  -Dquarkus.native.additional-build-args="--trace-object-instantiation=java.lang.Thread,java.util.Random,java.security.SecureRandom"
+```
+
+The output lists the classes responsible for creating threads or random number generators during the build so they can be added
+to the run time initialization list.
+
