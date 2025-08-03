@@ -28,9 +28,10 @@ body {
     align-items: center;
 }
 
+
 .logo-main {
-    max-width: 200px;
-    width: 60%;
+    width: 10vw;
+    max-width: 10vw;
     height: auto;
 }
 
@@ -43,9 +44,10 @@ body {
     margin-top: 0.5rem;
 }
 
+
 .logo-oss {
-    height: 24px;
-    width: auto;
+    width: 10vw;
+    height: auto;
 }
 
 .header-banner {
