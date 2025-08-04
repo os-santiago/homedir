@@ -24,14 +24,18 @@ body {
 
 .logo-group {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    flex-wrap: nowrap;
+    justify-content: center;
 }
 
 .logo-main {
     width: 10vw;
-    max-width: 10vw;
+    max-width: 5vw;
     height: auto;
+    border-radius: 50px;
+    margin-right: 1pc;
 }
 
 .powered-by {
@@ -44,7 +48,7 @@ body {
 }
 
 .logo-oss {
-    width: 10vw;
+    width: 5vw;
     height: auto;
 }
 
