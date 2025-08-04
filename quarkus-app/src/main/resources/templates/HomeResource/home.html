@@ -4,13 +4,22 @@
 <section class="home-section">
     <h1 class="section-title">Eventos disponibles</h1>
     {#if events.isEmpty()}
-        <p class="section-subtitle">No hay eventos disponibles.</p>
+        <p class="section-subtitle no-events">No hay eventos disponibles.</p>
     {#else}
-        <ul class="event-list">
+        <div class="event-grid">
         {#for e in events}
-            <li class="event-item"><a href="/event/{e.id}">{e.title}</a></li>
+            <article class="event-card">
+                <div class="event-image">
+                    <img src="/img/eventflow-logo.png" alt="Imagen de {e.title}">
+                </div>
+                <div class="event-content">
+                    <h2 class="event-name">{e.title}</h2>
+                    <p class="event-date">{e.formattedCreatedAt}</p>
+                    <a href="/event/{e.id}" class="event-button">Ver detalles</a>
+                </div>
+            </article>
         {/for}
-        </ul>
+        </div>
     {/if}
 </section>
 {/main}

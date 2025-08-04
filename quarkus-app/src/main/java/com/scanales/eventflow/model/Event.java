@@ -130,6 +130,18 @@ public class Event {
     }
 
     /**
+     * Returns the creation date formatted for display in the UI.
+     * If the date is not available, an empty string is returned.
+     */
+    public String getFormattedCreatedAt() {
+        if (createdAt == null) {
+            return "";
+        }
+        var formatter = java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy", new java.util.Locale("es"));
+        return createdAt.format(formatter);
+    }
+
+    /**
      * Returns a list with values from 1 to {@code days} to easily iterate in templates.
      */
     public java.util.List<Integer> getDayList() {
