@@ -14,7 +14,7 @@
                 </div>
                 <div class="event-content">
                     <h2 class="event-name">{e.title}</h2>
-                    <p class="event-date">{e.createdAt != null ? java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy", new java.util.Locale("es")).format(e.createdAt) : ''}</p>
+                    <p class="event-date">{e.formattedCreatedAt}</p>
                     <a href="/event/{e.id}" class="event-button">Ver detalles</a>
                 </div>
             </article>
