@@ -13,22 +13,32 @@ Escenario
 {/breadcrumbs}
 {#main}
 {#if scenario}
-<h1><span class="icon">🏟️</span>{scenario.name}</h1>
-{#if scenario.location}<p>Ubicacion: {scenario.location}</p>{/if}
-{#if scenario.features}<p>{scenario.features}</p>{/if}
-{#if !talks.isEmpty()}
-<h2><span class="icon">🗣️</span>Charlas</h2>
-<ul>
-{#for t in talks}
-    <li><span class="icon">🗣️</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) :
-        <a href="/talk/{t.id}">{t.name}</a>
+<section class="scenario-detail">
+  <h1 class="page-title">{scenario.name}</h1>
+  {#if scenario.location}<p class="scenario-location"><strong>Ubicación:</strong> {scenario.location}</p>{/if}
+  {#if scenario.features}<p>{scenario.features}</p>{/if}
+  {#if !talks.isEmpty()}
+  <ul class="talk-list">
+  {#for t in talks}
+    <li class="talk-item">
+      <h3>{t.name}</h3>
+      <p class="talk-time">Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min)</p>
+      {#if t.speaker}
+      <p class="talk-speakers">Orador: {t.speaker.name}{#if t.coSpeaker} & {t.coSpeaker.name}{/if}</p>
+      {/if}
+      <a href="/talk/{t.id}" class="btn btn-secondary">Ver charla</a>
     </li>
-{/for}
-</ul>
-{/if}
-{#if event}
-<p><a href="/event/{event.id}">Volver al evento</a></p>
-{/if}
+  {/for}
+  </ul>
+  {#else}
+  <p>No hay charlas para este escenario.</p>
+  {/if}
+  {#if event}
+  <div class="action-group">
+    <a href="/event/{event.id}" class="btn">Volver al evento</a>
+  </div>
+  {/if}
+</section>
 {#else}
 <p>Escenario no encontrado.</p>
 {/if}
