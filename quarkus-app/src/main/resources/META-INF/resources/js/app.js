@@ -25,15 +25,26 @@ function bannerParallax() {
     }
 }
 
-function showLoading() {
+let loadingTimeout;
+let loadingTarget = 'el contenido';
+
+function showLoading(target = 'el contenido') {
+    loadingTarget = target;
     document.body.classList.remove('loaded');
     const loader = document.getElementById('loading');
     if (loader) loader.classList.remove('hidden');
+    clearTimeout(loadingTimeout);
+    loadingTimeout = setTimeout(() => {
+        hideLoading();
+        showNotification('error', `No se pudo cargar ${loadingTarget}`);
+    }, 5000);
 }
 
 function hideLoading() {
     const loader = document.getElementById('loading');
     if (loader) loader.classList.add('hidden');
+    document.body.classList.add('loaded');
+    clearTimeout(loadingTimeout);
 }
 
 function showNotification(type, message) {
@@ -58,7 +69,7 @@ function handleForms() {
                 e.preventDefault();
                 return;
             }
-            showLoading();
+            showLoading('los datos');
             const btn = form.querySelector('button[type="submit"]');
             if (btn) btn.disabled = true;
         });
@@ -91,8 +102,11 @@ window.addEventListener('DOMContentLoaded', () => {
     handleForms();
     highlightNav();
     handleNotificationsFromUrl();
-    document.body.classList.add('loaded');
+    hideLoading();
+    if (document.querySelector('.no-events')) {
+        showNotification('error', 'No se pudo cargar los eventos');
+    }
 });
 window.addEventListener('resize', adjustLayout);
 window.addEventListener('scroll', bannerParallax);
-window.addEventListener('beforeunload', showLoading);
+window.addEventListener('beforeunload', () => showLoading('la página'));
