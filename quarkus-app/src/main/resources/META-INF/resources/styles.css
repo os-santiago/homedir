@@ -374,6 +374,71 @@ button:focus-visible {
     margin: 0 0 1rem;
 }
 
+/* Grid of scenario cards on event detail */
+.scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0;
+}
+
+.scenario-card {
+    background-color: var(--color-light);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    animation: fadeInUp 0.3s ease;
+}
+
+.scenario-card h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: var(--color-dark);
+}
+
+.scenario-card .btn {
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+/* Talk list on scenario detail */
+.talk-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.talk-item {
+    background-color: var(--color-light);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    animation: fadeInUp 0.3s ease;
+}
+
+.talk-item h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: var(--color-dark);
+}
+
+.talk-item .talk-time {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0 0 0.5rem;
+}
+
+.talk-item .btn {
+    margin-top: auto;
+    align-self: flex-start;
+}
+
 footer {
     background-color: var(--color-dark);
     color: var(--color-light);

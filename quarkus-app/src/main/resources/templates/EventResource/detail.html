@@ -17,15 +17,23 @@ Evento
   <h1 class="page-title">{event.title}</h1>
   <div class="card">
     <p>{event.description}</p>
+    {#if event.mapUrl}
+      <p><strong>Lugar:</strong> <a href="{event.mapUrl}" target="_blank">Ver mapa</a></p>
+    {/if}
+    <p><strong>Duración:</strong> {event.days} día{#if event.days > 1}s{/if}</p>
   </div>
     {#if !event.scenarios.isEmpty()}
     <div class="card">
       <h2 class="card-title"><span class="icon">🏟️</span>Escenarios</h2>
-      <ul class="agenda-list">
+      <div class="scenario-grid">
       {#for s in event.scenarios}
-        <li class="agenda-item"><span class="icon">📍</span><a href="/scenario/{s.id}">{s.name}</a></li>
+        <article class="scenario-card">
+          <h3>{s.name}</h3>
+          {#if s.location}<p class="scenario-location">{s.location}</p>{/if}
+          <a href="/scenario/{s.id}" class="btn">Ver charlas</a>
+        </article>
       {/for}
-      </ul>
+      </div>
     </div>
     {/if}
     {#if !event.agenda.isEmpty()}
