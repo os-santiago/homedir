@@ -6,11 +6,11 @@
 Charla
 {/if}
 {/title}
-{#if talk}
 {#breadcrumbs}
+{#if talk}
 <a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Charla: {talk.name}</span>
-{/breadcrumbs}
 {/if}
+{/breadcrumbs}
 {#main}
 {#if talk}
 <h1><span class="icon">🗣️</span>{talk.name}</h1>
