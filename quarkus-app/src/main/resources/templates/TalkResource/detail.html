@@ -21,7 +21,45 @@ Charla
   {/if}
   <p><strong>Duración:</strong> {talk.durationMinutes} min</p>
   {#if app:isAuthenticated()}
-  <p><a href="/private/profile/add/{talk.id}">Agregar a mis charlas</a></p>
+  <p>
+    <button id="addTalkBtn" class="btn">
+      {#if inSchedule}<span class="icon">✔</span> Agregada{#else}<span class="icon">➕</span> Agregar a mis charlas{/if}
+    </button>
+  </p>
+  <script>
+  (function() {
+    const btn = document.getElementById('addTalkBtn');
+    if (!btn) return;
+    if ({inSchedule}) {
+      btn.disabled = true;
+      btn.classList.add('btn-secondary');
+    }
+    btn.addEventListener('click', async () => {
+      if (btn.disabled) return;
+      try {
+        const res = await fetch('/private/profile/add/{talk.id}', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'added') {
+            showNotification('success', 'Charla agregada. <a href="/private/profile">Ver en Mis Charlas</a>');
+          } else if (data.status === 'exists') {
+            showNotification('info', 'La charla ya estaba registrada. <a href="/private/profile">Ver en Mis Charlas</a>');
+          }
+          btn.disabled = true;
+          btn.classList.add('btn-secondary');
+          btn.innerHTML = '<span class="icon">✔</span> Agregada';
+        } else {
+          showNotification('error', 'Ocurrió un error al registrar la charla');
+        }
+      } catch (e) {
+        showNotification('error', 'Ocurrió un error al registrar la charla');
+      }
+    });
+  })();
+  </script>
   {/if}
   {#if !occurrences.isEmpty()}
   <div class="card">

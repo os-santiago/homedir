@@ -10,8 +10,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.model.Talk;
 import jakarta.inject.Inject;
+import io.quarkus.security.identity.SecurityIdentity;
 
 @Path("/talk")
 public class TalkResource {
@@ -20,11 +22,18 @@ public class TalkResource {
     static class Templates {
         static native TemplateInstance detail(Talk talk,
                                              com.scanales.eventflow.model.Event event,
-                                             java.util.List<Talk> occurrences);
+                                             java.util.List<Talk> occurrences,
+                                             boolean inSchedule);
     }
 
     @Inject
     EventService eventService;
+
+    @Inject
+    SecurityIdentity identity;
+
+    @Inject
+    UserScheduleService userSchedule;
 
     @GET
     @Path("{id}")
@@ -37,6 +46,14 @@ public class TalkResource {
         }
         var event = eventService.findEventByTalk(id);
         var occurrences = eventService.findTalkOccurrences(id);
-        return Templates.detail(talk, event, occurrences);
+        boolean inSchedule = false;
+        if (identity != null && !identity.isAnonymous()) {
+            String email = identity.getAttribute("email");
+            if (email == null) {
+                email = identity.getPrincipal().getName();
+            }
+            inSchedule = userSchedule.getTalksForUser(email).contains(id);
+        }
+        return Templates.detail(talk, event, occurrences, inSchedule);
     }
 }

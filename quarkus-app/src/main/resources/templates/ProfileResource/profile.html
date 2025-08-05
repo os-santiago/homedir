@@ -3,27 +3,61 @@
 {#main}
 <h1>Perfil de usuario</h1>
 <p><strong>Nombre completo:</strong> {name}</p>
-<p><strong>Nombre:</strong> {givenName}</p>
-<p><strong>Apellido:</strong> {familyName}</p>
 <p><strong>Email:</strong> {email}</p>
-<p><strong>Sub:</strong> {sub}</p>
-<h2>Mis charlas:</h2>
-{#if talks.isEmpty()}
+
+<h2 class="page-title">Tus Charlas Registradas</h2>
+{#if groups.isEmpty()}
 <p>Aún no hay charlas.</p>
 {#else}
-<ul>
-{#for e in talks}
-    <li>Día {e.talk.day} - {e.talk.startTimeStr} ({e.talk.durationMinutes} min) -
-        <a href="/talk/{e.talk.id}">{e.talk.name}</a>
-        {#if e.event}
-            - <a href="/scenario/{e.talk.location}">{e.event.getScenarioName(e.talk.location)}</a>
-        {/if}
-        - <a href="/private/profile/remove/{e.talk.id}">Eliminar de mis charlas</a>
-    </li>
+{#for g in groups}
+  <div class="event-group">
+    <h3 class="event-title">{g.event.title}</h3>
+    {#for d in g.days}
+      <h4 class="day-title">Día {d.day}</h4>
+      <div class="talks-day">
+        {#for t in d.talks}
+        <div class="card talk-card" data-talk-id="{t.id}">
+          <h5><a href="/talk/{t.id}">{t.name}</a></h5>
+          <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
+          <p class="talk-scenario">{g.event.getScenarioName(t.location)}</p>
+          <span class="badge {app:talkStateClass(t)}">{app:talkState(t)}</span>
+          <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}">Eliminar</button>
+        </div>
+        {/for}
+      </div>
+    {/for}
+  </div>
 {/for}
-</ul>
 {/if}
 <p><a href="/private/admin">Admin Panel</a></p>
 <p><a href="/logout">Salir</a></p>
+<script>
+(function() {
+  document.querySelectorAll('.remove-talk').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('¿Estás seguro?')) return;
+      const id = btn.dataset.talkId;
+      try {
+        const res = await fetch('/private/profile/remove/' + id, { method: 'POST', headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'removed') {
+            showNotification('success', 'Charla eliminada');
+            const card = btn.closest('.talk-card');
+            if (card) card.remove();
+          } else {
+            showNotification('error', 'Charla no encontrada');
+          }
+        } else {
+          showNotification('error', 'Ocurrió un error al eliminar la charla');
+        }
+      } catch (e) {
+        showNotification('error', 'Ocurrió un error al eliminar la charla');
+      }
+    });
+  });
+})();
+</script>
 {/main}
 {/include}
+

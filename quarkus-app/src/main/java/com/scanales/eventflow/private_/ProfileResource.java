@@ -15,6 +15,7 @@ import com.scanales.eventflow.model.Talk;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -33,11 +34,18 @@ public class ProfileResource {
                 String familyName,
                 String email,
                 String sub,
-                java.util.List<TalkEntry> talks);
+                java.util.List<EventGroup> groups);
     }
 
     /** Helper record containing a talk and its parent event. */
     public record TalkEntry(Talk talk, com.scanales.eventflow.model.Event event) {}
+
+    /** Talks grouped by day within an event. */
+    public record DayGroup(int day, java.util.List<Talk> talks) {}
+
+    /** Talks grouped by event. */
+    public record EventGroup(com.scanales.eventflow.model.Event event,
+            java.util.List<DayGroup> days) {}
 
     @Inject
     SecurityIdentity identity;
@@ -73,7 +81,7 @@ public class ProfileResource {
         }
 
         var talkIds = userSchedule.getTalksForUser(email);
-        java.util.List<TalkEntry> talks = talkIds.stream()
+        java.util.List<TalkEntry> entries = talkIds.stream()
                 .map(tid -> {
                     Talk t = eventService.findTalk(tid);
                     if (t == null) return null;
@@ -83,35 +91,66 @@ public class ProfileResource {
                 .filter(java.util.Objects::nonNull)
                 .toList();
 
-        return Templates.profile(name, givenName, familyName, email, sub, talks);
+        // Group talks by event and day
+        java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<Integer, java.util.List<Talk>>> grouped =
+                new java.util.LinkedHashMap<>();
+        for (TalkEntry te : entries) {
+            grouped.computeIfAbsent(te.event, k -> new java.util.TreeMap<>())
+                    .computeIfAbsent(te.talk.getDay(), k -> new java.util.ArrayList<>())
+                    .add(te.talk);
+        }
+        java.util.List<EventGroup> groups = grouped.entrySet().stream()
+                .map(ev -> new EventGroup(ev.getKey(),
+                        ev.getValue().entrySet().stream()
+                                .map(d -> new DayGroup(d.getKey(), d.getValue()))
+                                .toList()))
+                .toList();
+
+        return Templates.profile(name, givenName, familyName, email, sub, groups);
     }
 
     @GET
     @Path("add/{id}")
     @Authenticated
-    public Response addTalk(@PathParam("id") String id) {
-        String email = getClaim("email");
-        if (email == null) {
-            email = identity.getPrincipal().getName();
-        }
+    public Response addTalkRedirect(@PathParam("id") String id) {
+        String email = getEmail();
         userSchedule.addTalkForUser(email, id);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/talk/" + id)
                 .build();
     }
 
+    @POST
+    @Path("add/{id}")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addTalk(@PathParam("id") String id) {
+        String email = getEmail();
+        boolean added = userSchedule.addTalkForUser(email, id);
+        String status = added ? "added" : "exists";
+        return Response.ok(java.util.Map.of("status", status)).build();
+    }
+
     @GET
     @Path("remove/{id}")
     @Authenticated
-    public Response removeTalk(@PathParam("id") String id) {
-        String email = getClaim("email");
-        if (email == null) {
-            email = identity.getPrincipal().getName();
-        }
+    public Response removeTalkRedirect(@PathParam("id") String id) {
+        String email = getEmail();
         userSchedule.removeTalkForUser(email, id);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/profile")
                 .build();
+    }
+
+    @POST
+    @Path("remove/{id}")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeTalk(@PathParam("id") String id) {
+        String email = getEmail();
+        boolean removed = userSchedule.removeTalkForUser(email, id);
+        String status = removed ? "removed" : "missing";
+        return Response.ok(java.util.Map.of("status", status)).build();
     }
 
     private String getClaim(String claimName) {
@@ -123,5 +162,13 @@ public class ProfileResource {
             value = identity.getAttribute(claimName);
         }
         return Optional.ofNullable(value).map(Object::toString).orElse(null);
+    }
+
+    private String getEmail() {
+        String email = getClaim("email");
+        if (email == null) {
+            email = identity.getPrincipal().getName();
+        }
+        return email;
     }
 }
