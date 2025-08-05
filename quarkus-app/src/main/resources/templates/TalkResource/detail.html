@@ -6,24 +6,29 @@
 Charla
 {/if}
 {/title}
+{#if talk}
+{#breadcrumbs}
+<a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Charla: {talk.name}</span>
+{/breadcrumbs}
+{/if}
 {#main}
 {#if talk}
-<h1>{talk.name}</h1>
+<h1><span class="icon">🗣️</span>{talk.name}</h1>
 {#if talk.description}<p>{talk.description}</p>{/if}
 {#if app:isAuthenticated()}
 <p><a href="/private/profile/add/{talk.id}">Agregar a mis charlas</a></p>
 {/if}
-{#if !occurrences.isEmpty()}
-<h2>Horarios</h2>
-<ul>
-{#for t in occurrences}
-    <li>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
-        <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
-    </li>
-{/for}
-</ul>
-{/if}
-{#if event}<p><a href="/event/{event.id}">Volver al evento</a></p>{/if}
+  {#if !occurrences.isEmpty()}
+  <h2><span class="icon">⏰</span>Horarios</h2>
+  <ul>
+  {#for t in occurrences}
+      <li><span class="icon">⏰</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
+          <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+      </li>
+  {/for}
+  </ul>
+  {/if}
+  {#if event}<p><a href="/event/{event.id}">Volver al evento</a></p>{/if}
 {#else}
 <p>Charla no encontrada.</p>
 {/if}

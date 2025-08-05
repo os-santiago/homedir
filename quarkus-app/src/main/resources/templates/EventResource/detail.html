@@ -6,6 +6,11 @@
 Evento
 {/if}
 {/title}
+{#if event}
+{#breadcrumbs}
+<a href="/">Eventos</a><span class="sep">/</span><span>{event.title}</span>
+{/breadcrumbs}
+{/if}
 {#main}
 {#if event}
 <section class="event-detail">
@@ -13,29 +18,30 @@ Evento
   <div class="card">
     <p>{event.description}</p>
   </div>
-  {#if !event.scenarios.isEmpty()}
-  <div class="card">
-    <h2 class="card-title">Escenarios</h2>
-    <ul class="agenda-list">
-    {#for s in event.scenarios}
-      <li class="agenda-item"><a href="/scenario/{s.id}">{s.name}</a></li>
-    {/for}
-    </ul>
-  </div>
-  {/if}
-  {#if !event.agenda.isEmpty()}
-  <div class="card">
-    <h2 class="card-title">Agenda</h2>
-    {#for d in event.dayList}
-      <h3>Día {d}</h3>
+    {#if !event.scenarios.isEmpty()}
+    <div class="card">
+      <h2 class="card-title"><span class="icon">🏟️</span>Escenarios</h2>
       <ul class="agenda-list">
-      {#for t in event.getAgendaForDay(d)}
-        <li class="agenda-item">{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+      {#for s in event.scenarios}
+        <li class="agenda-item"><span class="icon">📍</span><a href="/scenario/{s.id}">{s.name}</a></li>
       {/for}
       </ul>
-    {/for}
-  </div>
-  {/if}
+    </div>
+    {/if}
+    {#if !event.agenda.isEmpty()}
+    <div class="card">
+      <h2 class="card-title"><span class="icon">🗓️</span>Agenda</h2>
+      <p><a href="/event/{event.id}/agenda" class="btn btn-secondary">Ver agenda completa</a></p>
+      {#for d in event.dayList}
+        <h3>Día {d}</h3>
+        <ul class="agenda-list">
+        {#for t in event.getAgendaForDay(d)}
+          <li class="agenda-item"><span class="icon">🗣️</span>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+        {/for}
+        </ul>
+      {/for}
+    </div>
+    {/if}
   <a href="/" class="btn">Volver al inicio</a>
 </section>
 {#else}
