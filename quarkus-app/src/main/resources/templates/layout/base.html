@@ -8,6 +8,7 @@
     <script src="/js/app.js" defer></script>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Ir al contenido principal</a>
 <header class="site-header">
     <div class="logo-group">
         <img src="/img/eventflow-logo.png" alt="EventFlow" class="logo-main" />
@@ -17,9 +18,9 @@
         </div>
     </div>
 </header>
-<nav class="nav-menu" id="nav-menu">
-    <button id="menuToggle" class="menu-toggle" aria-label="Menú">&#9776;</button>
-    <div class="nav-links">
+<nav class="nav-menu" id="nav-menu" aria-label="Principal">
+    <button id="menuToggle" class="menu-toggle" aria-label="Menú" aria-controls="primary-navigation" aria-expanded="false">&#9776;</button>
+    <div class="nav-links" id="primary-navigation">
         <a href="/">Home</a>
         {#if app:isAuthenticated()}
             <a href="/private/profile">Mi Perfil</a>

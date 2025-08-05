@@ -8,9 +8,11 @@ function adjustLayout() {
 
 function setupMenu() {
     const toggle = document.getElementById('menuToggle');
-    const links = document.querySelector('.nav-links');
+    const links = document.getElementById('primary-navigation');
     if (toggle && links) {
         toggle.addEventListener('click', () => {
+            const expanded = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', String(!expanded));
             links.classList.toggle('active');
         });
     }
