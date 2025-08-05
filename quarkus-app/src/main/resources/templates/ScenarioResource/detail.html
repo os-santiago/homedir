@@ -6,11 +6,11 @@
 Escenario
 {/if}
 {/title}
-{#if scenario}
 {#breadcrumbs}
-<a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Escenario: {scenario.name}</span>
+  {#if scenario}
+  <a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Escenario: {scenario.name}</span>
+  {/if}
 {/breadcrumbs}
-{/if}
 {#main}
 {#if scenario}
 <h1><span class="icon">🏟️</span>{scenario.name}</h1>

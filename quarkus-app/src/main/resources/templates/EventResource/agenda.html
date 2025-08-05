@@ -2,11 +2,11 @@
 {#title}
 {#if event}{event.title} - Agenda{#else}Agenda{/if}
 {/title}
-{#if event}
 {#breadcrumbs}
-<a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Agenda</span>
+  {#if event}
+  <a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Agenda</span>
+  {/if}
 {/breadcrumbs}
-{/if}
 {#main}
 {#if event}
 <section class="event-agenda">
