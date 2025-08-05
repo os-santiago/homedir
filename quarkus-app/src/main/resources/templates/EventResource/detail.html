@@ -14,11 +14,28 @@ Evento
 {#main}
 {#if event}
 <section class="event-detail">
-  <h1 class="page-title">{event.title}</h1>
-  <div class="card">
-    <p>{event.description}</p>
+  <div class="card event-summary">
+    <div class="event-header">
+      {#if event.logoUrl}
+      <img src="{event.logoUrl}" alt="Logo de {event.title}" class="event-logo">
+      {/if}
+      <div class="event-info">
+        <h1 class="page-title">{event.title}</h1>
+        {#if event.description}
+        <p class="event-description">{event.description}</p>
+        {/if}
+        <div class="event-links">
+          {#if event.website}<a href="{event.website}" target="_blank" rel="noopener" class="btn">🌐 Sitio Web</a>{/if}
+          {#if event.twitter}<a href="{event.twitter}" target="_blank" rel="noopener" class="btn">🐦 Twitter</a>{/if}
+          {#if event.linkedin}<a href="{event.linkedin}" target="_blank" rel="noopener" class="btn">💼 LinkedIn</a>{/if}
+          {#if event.instagram}<a href="{event.instagram}" target="_blank" rel="noopener" class="btn">📸 Instagram</a>{/if}
+          {#if event.contactEmail}<a href="mailto:{event.contactEmail}" target="_blank" rel="noopener" class="btn">📧 Email</a>{/if}
+          {#if event.ticketsUrl}<a href="{event.ticketsUrl}" target="_blank" rel="noopener" class="btn">🎟️ Entradas</a>{/if}
+        </div>
+      </div>
+    </div>
     {#if event.mapUrl}
-      <p><strong>Lugar:</strong> <a href="{event.mapUrl}" target="_blank">Ver mapa</a></p>
+      <p><strong>Lugar:</strong> <a href="{event.mapUrl}" target="_blank" rel="noopener">Ver mapa</a></p>
     {/if}
     <p><strong>Duración:</strong> {event.days} día{#if event.days > 1}s{/if}</p>
   </div>

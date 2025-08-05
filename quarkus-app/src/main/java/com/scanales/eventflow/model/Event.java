@@ -24,6 +24,20 @@ public class Event {
     private int days = 1;
     /** URL or identifier for the venue map. */
     private String mapUrl;
+    /** URL of the event logo. */
+    private String logoUrl;
+    /** Contact email for the event organizers. */
+    private String contactEmail;
+    /** Official website of the event. */
+    private String website;
+    /** Link to the event's Twitter/X profile. */
+    private String twitter;
+    /** Link to the event's LinkedIn profile. */
+    private String linkedin;
+    /** Link to the event's Instagram profile. */
+    private String instagram;
+    /** URL to obtain tickets for the event. */
+    private String ticketsUrl;
     private List<Talk> agenda = new ArrayList<>();
     /** Time when the event was created. */
     private LocalDateTime createdAt;
@@ -103,6 +117,62 @@ public class Event {
 
     public void setMapUrl(String mapUrl) {
         this.mapUrl = mapUrl;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
+    }
+
+    public String getContactEmail() {
+        return contactEmail;
+    }
+
+    public void setContactEmail(String contactEmail) {
+        this.contactEmail = contactEmail;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getTwitter() {
+        return twitter;
+    }
+
+    public void setTwitter(String twitter) {
+        this.twitter = twitter;
+    }
+
+    public String getLinkedin() {
+        return linkedin;
+    }
+
+    public void setLinkedin(String linkedin) {
+        this.linkedin = linkedin;
+    }
+
+    public String getInstagram() {
+        return instagram;
+    }
+
+    public void setInstagram(String instagram) {
+        this.instagram = instagram;
+    }
+
+    public String getTicketsUrl() {
+        return ticketsUrl;
+    }
+
+    public void setTicketsUrl(String ticketsUrl) {
+        this.ticketsUrl = ticketsUrl;
     }
 
     public List<Talk> getAgenda() {

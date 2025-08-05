@@ -92,13 +92,27 @@ public class AdminEventResource {
     @Authenticated
     public Response saveEvent(@FormParam("title") String title,
                               @FormParam("description") String description,
-                              @FormParam("days") int days) {
+                              @FormParam("days") int days,
+                              @FormParam("logoUrl") String logoUrl,
+                              @FormParam("contactEmail") String contactEmail,
+                              @FormParam("website") String website,
+                              @FormParam("twitter") String twitter,
+                              @FormParam("linkedin") String linkedin,
+                              @FormParam("instagram") String instagram,
+                              @FormParam("ticketsUrl") String ticketsUrl) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         var now = java.time.LocalDateTime.now();
         String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
         Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
+        event.setLogoUrl(sanitizeUrl(logoUrl));
+        event.setContactEmail(sanitizeEmail(contactEmail));
+        event.setWebsite(sanitizeUrl(website));
+        event.setTwitter(sanitizeUrl(twitter));
+        event.setLinkedin(sanitizeUrl(linkedin));
+        event.setInstagram(sanitizeUrl(instagram));
+        event.setTicketsUrl(sanitizeUrl(ticketsUrl));
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
@@ -111,7 +125,14 @@ public class AdminEventResource {
     public Response updateEvent(@PathParam("id") String id,
                                 @FormParam("title") String title,
                                 @FormParam("description") String description,
-                                @FormParam("days") int days) {
+                                @FormParam("days") int days,
+                                @FormParam("logoUrl") String logoUrl,
+                                @FormParam("contactEmail") String contactEmail,
+                                @FormParam("website") String website,
+                                @FormParam("twitter") String twitter,
+                                @FormParam("linkedin") String linkedin,
+                                @FormParam("instagram") String instagram,
+                                @FormParam("ticketsUrl") String ticketsUrl) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -122,6 +143,13 @@ public class AdminEventResource {
         event.setTitle(title);
         event.setDescription(description);
         event.setDays(days);
+        event.setLogoUrl(sanitizeUrl(logoUrl));
+        event.setContactEmail(sanitizeEmail(contactEmail));
+        event.setWebsite(sanitizeUrl(website));
+        event.setTwitter(sanitizeUrl(twitter));
+        event.setLinkedin(sanitizeUrl(linkedin));
+        event.setInstagram(sanitizeUrl(instagram));
+        event.setTicketsUrl(sanitizeUrl(ticketsUrl));
         eventService.saveEvent(event);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/event/" + id)
@@ -349,10 +377,37 @@ public class AdminEventResource {
         return event.getId() != null && !event.getId().isBlank() && hasLists;
     }
 
+    private String sanitizeUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        try {
+            var u = new java.net.URL(url);
+            u.toURI();
+            return url;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String sanitizeEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return email.contains("@") ? email : null;
+    }
+
     private void fillDefaults(Event event) {
         if (event.getTitle() == null) event.setTitle("VACIO");
         if (event.getDescription() == null) event.setDescription("VACIO");
         if (event.getMapUrl() == null) event.setMapUrl("VACIO");
+        if (event.getLogoUrl() == null) event.setLogoUrl("VACIO");
+        if (event.getContactEmail() == null) event.setContactEmail("VACIO");
+        if (event.getWebsite() == null) event.setWebsite("VACIO");
+        if (event.getTwitter() == null) event.setTwitter("VACIO");
+        if (event.getLinkedin() == null) event.setLinkedin("VACIO");
+        if (event.getInstagram() == null) event.setInstagram("VACIO");
+        if (event.getTicketsUrl() == null) event.setTicketsUrl("VACIO");
         if (event.getCreator() == null) event.setCreator("VACIO");
         if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
 

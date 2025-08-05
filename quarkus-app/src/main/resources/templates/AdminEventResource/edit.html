@@ -34,6 +34,23 @@ Nuevo Evento
     <textarea id="description" name="description">{event.description}</textarea>
     <label for="days">Días del evento</label>
     <input id="days" name="days" type="number" min="1" max="10" value="{event.days}">
+    <label for="logoUrl">Logo URL</label>
+    <input id="logoUrl" name="logoUrl" type="url" value="{event.logoUrl}">
+    <label for="website">Sitio Web</label>
+    <input id="website" name="website" type="url" value="{event.website}">
+    <label for="contactEmail">Correo de contacto</label>
+    <input id="contactEmail" name="contactEmail" type="email" value="{event.contactEmail}">
+    <label for="ticketsUrl">Link de entradas</label>
+    <input id="ticketsUrl" name="ticketsUrl" type="url" value="{event.ticketsUrl}">
+    <fieldset>
+      <legend>Redes Sociales</legend>
+      <label for="twitter">Twitter/X</label>
+      <input id="twitter" name="twitter" type="url" value="{event.twitter}">
+      <label for="linkedin">LinkedIn</label>
+      <input id="linkedin" name="linkedin" type="url" value="{event.linkedin}">
+      <label for="instagram">Instagram</label>
+      <input id="instagram" name="instagram" type="url" value="{event.instagram}">
+    </fieldset>
     <button type="submit">Guardar</button>
 </form>
 </section>
