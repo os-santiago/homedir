@@ -42,7 +42,7 @@ public class TalkResource {
     public TemplateInstance detail(@PathParam("id") String id) {
         Talk talk = eventService.findTalk(id);
         if (talk == null) {
-            return Templates.detail(null, null, java.util.List.of());
+            return Templates.detail(null, null, java.util.List.<Talk>of(), false);
         }
         var event = eventService.findEventByTalk(id);
         var occurrences = eventService.findTalkOccurrences(id);
