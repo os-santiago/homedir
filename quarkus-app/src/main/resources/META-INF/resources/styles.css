@@ -374,6 +374,40 @@ button:focus-visible {
     margin: 0 0 1rem;
 }
 
+/* Event detail header */
+.event-summary .event-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.event-summary .event-logo {
+    max-width: 150px;
+    height: auto;
+}
+
+.event-summary .event-info {
+    flex: 1;
+}
+
+.event-links {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .event-summary .event-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    .event-links {
+        justify-content: center;
+    }
+}
+
 /* Grid of scenario cards on event detail */
 .scenario-grid {
     display: grid;
