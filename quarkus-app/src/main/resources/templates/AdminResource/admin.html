@@ -1,9 +1,13 @@
 {#include layout/base}
 {#title}Panel de administraci\u00f3n{/title}
 {#main}
-<h1>Admin Panel</h1>
-<p>Bienvenido {name}. Gestiona los eventos aquí.</p>
-<p><a href="/private/admin/events">Administrar eventos</a></p>
-<p><a href="/private/profile">Volver a perfil</a></p>
+<section class="admin-overview">
+    <h1 class="page-title">Admin Panel</h1>
+    <p class="section-subtitle">Bienvenido {name}. Gestiona los eventos aquí.</p>
+    <div class="card action-group">
+        <a href="/private/admin/events" class="btn">Administrar eventos</a>
+        <a href="/private/profile" class="btn btn-secondary">Volver a perfil</a>
+    </div>
+</section>
 {/main}
 {/include}

@@ -4,18 +4,22 @@
 {/title}
 {#main}
 {#if event}
-<h1>Agenda de {event.title}</h1>
-{#for d in event.dayList}
-<h2>Día {d}</h2>
-<ul>
-{#for t in event.getAgendaForDay(d)}
-<li>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
-{/for}
-</ul>
-{/for}
-<p><a href="/event/{event.id}">Volver al evento</a></p>
+<section class="event-agenda">
+  <h1 class="page-title">Agenda de {event.title}</h1>
+  {#for d in event.dayList}
+  <div class="card agenda-day">
+    <h2 class="card-title">Día {d}</h2>
+    <ul class="agenda-list">
+    {#for t in event.getAgendaForDay(d)}
+      <li class="agenda-item">{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+    {/for}
+    </ul>
+  </div>
+  {/for}
+  <a href="/event/{event.id}" class="btn">Volver al evento</a>
+</section>
 {#else}
-<p>Evento no encontrado.</p>
+<p class="no-events">Evento no encontrado.</p>
 {/if}
 {/main}
 {/include}

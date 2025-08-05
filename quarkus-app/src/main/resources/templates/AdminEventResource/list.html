@@ -1,37 +1,43 @@
 {#include layout/base}
 {#title}Eventos{/title}
 {#main}
-<h1>Eventos</h1>
-{#if message}
-<p>{message}</p>
-{/if}
-<p><a href="/private/admin/events/new">Nuevo evento</a></p>
-<form method="post" action="/private/admin/events/import" enctype="multipart/form-data">
-    <input type="file" name="file" accept="application/json">
-    <button type="submit">Importar evento desde JSON</button>
-</form>
-{#if events.isEmpty()}
-<p>No hay eventos registrados.</p>
-{#else}
-<table>
-<thead><tr><th>ID</th><th>Titulo</th><th>Acciones</th></tr></thead>
-<tbody>
-{#for ev in events}
-<tr>
-<td>{ev.id}</td>
-<td>{ev.title}</td>
-<td>
-<a href="/private/admin/events/{ev.id}/edit">Editar</a>
-<form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline">
-<button type="submit">Eliminar</button>
-</form>
-<a href="/private/admin/events/{ev.id}/export">Exportar</a>
-</td>
-</tr>
-{/for}
-</tbody>
-</table>
-{/if}
-<p><a href="/private/admin">Volver</a></p>
+<section class="event-list-admin">
+  <h1 class="page-title">Eventos</h1>
+  {#if message}
+  <p class="section-subtitle">{message}</p>
+  {/if}
+  <div class="card action-group">
+    <a href="/private/admin/events/new" class="btn">Nuevo evento</a>
+    <form method="post" action="/private/admin/events/import" enctype="multipart/form-data">
+      <input type="file" name="file" accept="application/json">
+      <button type="submit" class="btn btn-secondary">Importar JSON</button>
+    </form>
+  </div>
+  {#if events.isEmpty()}
+  <p class="no-events">No hay eventos registrados.</p>
+  {#else}
+  <div class="card">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Título</th><th>Acciones</th></tr></thead>
+      <tbody>
+      {#for ev in events}
+        <tr>
+          <td>{ev.id}</td>
+          <td>{ev.title}</td>
+          <td class="action-group">
+            <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary">Editar</a>
+            <form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline">
+              <button type="submit" class="btn btn-secondary">Eliminar</button>
+            </form>
+            <a href="/private/admin/events/{ev.id}/export" class="btn btn-secondary">Exportar</a>
+          </td>
+        </tr>
+      {/for}
+      </tbody>
+    </table>
+  </div>
+  {/if}
+  <a href="/private/admin" class="btn btn-secondary">Volver</a>
+</section>
 {/main}
 {/include}
