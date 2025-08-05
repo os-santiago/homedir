@@ -2,7 +2,7 @@
 {#title}Inicio{/title}
 {#main}
 <section class="home-section">
-    <h1 class="section-title">Eventos disponibles</h1>
+    <h1 class="page-title">Eventos disponibles</h1>
     {#if events.isEmpty()}
         <p class="section-subtitle no-events">No hay eventos disponibles.</p>
     {#else}
@@ -15,7 +15,7 @@
                 <div class="event-content">
                     <h2 class="event-name">{e.title}</h2>
                     <p class="event-date">{e.formattedCreatedAt}</p>
-                    <a href="/event/{e.id}" class="event-button">Ver detalles</a>
+                    <a href="/event/{e.id}" class="btn">Ver detalles</a>
                 </div>
             </article>
         {/for}

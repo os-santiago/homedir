@@ -92,6 +92,92 @@ body {
     padding: 1rem;
 }
 
+/* --- Generic components --- */
+.card {
+    background-color: var(--color-light);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-size: 2.25rem;
+    margin-bottom: 1rem;
+    color: var(--color-dark);
+    text-align: center;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    color: var(--color-primary);
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--color-primary);
+    color: var(--color-light);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: var(--color-accent);
+}
+
+.btn-secondary {
+    background-color: var(--color-dark);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-primary);
+}
+
+.agenda-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.agenda-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.agenda-item:last-child {
+    border-bottom: none;
+}
+
+.action-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.table th {
+    background-color: var(--color-dark);
+    color: var(--color-light);
+}
+
 /* --- Home page --- */
 .home-section {
     padding: 2rem 0;
@@ -159,6 +245,11 @@ body {
     flex-direction: column;
 }
 
+.event-content .btn {
+    margin-top: auto;
+    align-self: flex-start;
+}
+
 .event-name {
     font-size: 1.25rem;
     margin: 0 0 0.5rem;
@@ -169,22 +260,6 @@ body {
     font-size: 0.9rem;
     color: #555;
     margin: 0 0 1rem;
-}
-
-.event-button {
-    margin-top: auto;
-    display: inline-block;
-    background-color: var(--color-primary);
-    color: var(--color-light);
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    align-self: flex-start;
-    transition: background-color 0.3s ease;
-}
-
-.event-button:hover {
-    background-color: var(--color-accent);
 }
 
 footer {
