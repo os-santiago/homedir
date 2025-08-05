@@ -6,16 +6,21 @@
 Escenario
 {/if}
 {/title}
+{#breadcrumbs}
+  {#if scenario}
+  <a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Escenario: {scenario.name}</span>
+  {/if}
+{/breadcrumbs}
 {#main}
 {#if scenario}
-<h1>{scenario.name}</h1>
+<h1><span class="icon">🏟️</span>{scenario.name}</h1>
 {#if scenario.location}<p>Ubicacion: {scenario.location}</p>{/if}
 {#if scenario.features}<p>{scenario.features}</p>{/if}
 {#if !talks.isEmpty()}
-<h2>Charlas</h2>
+<h2><span class="icon">🗣️</span>Charlas</h2>
 <ul>
 {#for t in talks}
-    <li>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) :
+    <li><span class="icon">🗣️</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) :
         <a href="/talk/{t.id}">{t.name}</a>
     </li>
 {/for}

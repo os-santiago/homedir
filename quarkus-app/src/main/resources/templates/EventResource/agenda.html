@@ -2,6 +2,11 @@
 {#title}
 {#if event}{event.title} - Agenda{#else}Agenda{/if}
 {/title}
+{#breadcrumbs}
+  {#if event}
+  <a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Agenda</span>
+  {/if}
+{/breadcrumbs}
 {#main}
 {#if event}
 <section class="event-agenda">
@@ -10,10 +15,10 @@
   <div class="card agenda-day">
     <h2 class="card-title">Día {d}</h2>
     <ul class="agenda-list">
-    {#for t in event.getAgendaForDay(d)}
-      <li class="agenda-item">{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
-    {/for}
-    </ul>
+      {#for t in event.getAgendaForDay(d)}
+        <li class="agenda-item"><span class="icon">🗣️</span>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+      {/for}
+      </ul>
   </div>
   {/for}
   <a href="/event/{event.id}" class="btn">Volver al evento</a>

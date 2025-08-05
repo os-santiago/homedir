@@ -121,6 +121,37 @@ button:focus-visible {
     background-color: var(--color-accent);
 }
 
+.breadcrumbs {
+    font-size: 0.9rem;
+    margin: 0.5rem 0 1rem;
+}
+.breadcrumbs a {
+    color: var(--color-dark);
+    text-decoration: none;
+}
+.breadcrumbs .sep {
+    margin: 0 0.25rem;
+    color: #555;
+}
+.breadcrumbs:empty {
+    display: none;
+}
+
+.sub-nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.sub-nav a {
+    text-decoration: none;
+    color: var(--color-dark);
+    font-weight: 500;
+}
+
+.icon {
+    margin-right: 0.25rem;
+}
+
 .menu-toggle {
     display: none;
     background: none;
