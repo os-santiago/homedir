@@ -41,7 +41,7 @@ Nuevo Evento
 <input name="location" value="{sc.location}" placeholder="Ubicacion">
 <button type="submit">Guardar</button>
 </form>
-<form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete" style="display:inline">
+<form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete" style="display:inline" class="needs-confirm">
 <button type="submit">Eliminar</button>
 </form>
 </td>
@@ -85,7 +85,7 @@ Nuevo Evento
 </select>
 <button type="submit">Guardar</button>
 </form>
-<form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete" style="display:inline">
+<form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete" style="display:inline" class="needs-confirm">
 <button type="submit">Eliminar</button>
 </form>
 </td>
