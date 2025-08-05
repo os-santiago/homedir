@@ -104,7 +104,8 @@ window.addEventListener('DOMContentLoaded', () => {
     handleNotificationsFromUrl();
     hideLoading();
     if (document.querySelector('.no-events')) {
-        showNotification('error', 'No se pudo cargar los eventos');
+        hideLoading();
+        showNotification('info', 'No hay eventos disponibles');
     }
 });
 window.addEventListener('resize', adjustLayout);
