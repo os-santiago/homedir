@@ -416,6 +416,10 @@ footer {
     border-left: 4px solid #4caf50;
 }
 
+.notification.info {
+    border-left: 4px solid #2196f3;
+}
+
 .notification.error {
     border-left: 4px solid #f44336;
 }
