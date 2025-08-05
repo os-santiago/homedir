@@ -1,6 +1,8 @@
 package com.scanales.eventflow.util;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.Duration;
 import java.util.List;
 
 import io.quarkus.arc.Arc;
@@ -10,6 +12,7 @@ import io.quarkus.qute.TemplateExtension;
 import io.quarkus.security.identity.SecurityIdentity;
 
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.model.Talk;
 
 @TemplateExtension(namespace = "app")
 public class AppTemplateExtensions {
@@ -35,5 +38,36 @@ public class AppTemplateExtensions {
     public static boolean isAdmin() {
         SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
         return AdminUtils.isAdmin(identity);
+    }
+
+    /** Returns a human-readable state for the given talk based on current time. */
+    public static String talkState(Talk t) {
+        if (t == null || t.getStartTime() == null) {
+            return "A tiempo";
+        }
+        LocalTime now = LocalTime.now();
+        LocalTime start = t.getStartTime();
+        LocalTime end = t.getEndTime();
+        if (now.isAfter(end)) {
+            return "Finalizada";
+        }
+        if (!now.isBefore(start)) {
+            return "En curso";
+        }
+        long minutes = Duration.between(now, start).toMinutes();
+        if (minutes <= 15) {
+            return "Pronto";
+        }
+        return "A tiempo";
+    }
+
+    /** CSS class for the talk state badge. */
+    public static String talkStateClass(Talk t) {
+        return switch (talkState(t)) {
+            case "Pronto" -> "warning";
+            case "En curso" -> "info";
+            case "Finalizada" -> "past";
+            default -> "success";
+        };
     }
 }

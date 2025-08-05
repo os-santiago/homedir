@@ -50,14 +50,14 @@ function hideLoading() {
 function showNotification(type, message) {
     const note = document.getElementById('notification');
     if (!note) return;
-    note.textContent = message;
+    note.innerHTML = message;
     note.className = 'notification ' + type;
     note.classList.add('show');
     setTimeout(() => {
         note.classList.remove('show');
         setTimeout(() => {
             note.className = 'notification hidden';
-            note.textContent = '';
+            note.innerHTML = '';
         }, 300);
     }, 3000);
 }
