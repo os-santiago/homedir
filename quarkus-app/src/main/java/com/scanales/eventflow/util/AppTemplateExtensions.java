@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Duration;
 import java.util.List;
+import java.net.URI;
+
+import java.util.regex.Pattern;
 
 import io.quarkus.arc.Arc;
 import org.eclipse.microprofile.config.Config;
@@ -38,6 +41,27 @@ public class AppTemplateExtensions {
     public static boolean isAdmin() {
         SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
         return AdminUtils.isAdmin(identity);
+    }
+
+    /** Simple URL validation for http/https links. */
+    public static boolean validUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return false;
+        }
+        try {
+            URI uri = new URI(url);
+            String scheme = uri.getScheme();
+            return scheme != null && (scheme.equals("http") || scheme.equals("https"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Basic email validation. */
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+    public static boolean validEmail(String email) {
+        return email != null && EMAIL_PATTERN.matcher(email).matches();
     }
 
     /** Returns a human-readable state for the given talk based on current time. */
