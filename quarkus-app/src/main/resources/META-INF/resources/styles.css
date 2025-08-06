@@ -328,6 +328,8 @@ button:focus-visible {
     flex-direction: column;
     transition: transform 0.2s ease;
     animation: fadeInUp 0.3s ease;
+    text-decoration: none;
+    color: var(--color-dark);
 }
 
 .event-card:hover {
@@ -335,31 +337,31 @@ button:focus-visible {
 }
 
 .event-image {
-    width: 100%;
-    height: 150px;
     background-color: var(--color-accent);
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 120px;
+    padding: 1rem;
 }
 
 .event-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 120px;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.no-logo {
+    color: var(--color-light);
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 .event-content {
     padding: 1rem;
-    text-align: left;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-}
-
-.event-content .btn {
-    margin-top: auto;
-    align-self: flex-start;
 }
 
 .event-name {
@@ -368,10 +370,31 @@ button:focus-visible {
     color: var(--color-dark);
 }
 
-.event-date {
+
+.event-excerpt {
     font-size: 0.9rem;
     color: #555;
     margin: 0 0 1rem;
+}
+
+.event-more {
+    margin-top: auto;
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+@media (min-width: 600px) {
+    .event-card {
+        flex-direction: row;
+        align-items: center;
+    }
+    .event-image {
+        width: 120px;
+        height: 120px;
+    }
+    .event-content {
+        text-align: left;
+    }
 }
 
 /* Event detail header */

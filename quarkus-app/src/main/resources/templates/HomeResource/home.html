@@ -9,16 +9,22 @@
     {#else}
         <div class="event-grid">
         {#for e in events}
-            <article class="event-card">
+            <a href="/event/{e.id}" class="event-card">
                 <div class="event-image">
-                    <img src="/img/eventflow-logo.png" alt="Imagen de {e.title}">
+                    {#if app:validUrl(e.logoUrl)}
+                        <img src="{e.logoUrl}" alt="Logo de {e.title}">
+                    {#else}
+                        <div class="no-logo">Sin logo disponible</div>
+                    {/if}
                 </div>
                 <div class="event-content">
                     <h2 class="event-name">{e.title}</h2>
-                    <p class="event-date">{e.formattedCreatedAt}</p>
-                    <a href="/event/{e.id}" class="btn">Ver detalles</a>
+                    {#if e.description}
+                        <p class="event-excerpt">{e.descriptionSummary}</p>
+                    {/if}
+                    <span class="event-more">Ver más</span>
                 </div>
-            </article>
+            </a>
         {/for}
         </div>
     {/if}

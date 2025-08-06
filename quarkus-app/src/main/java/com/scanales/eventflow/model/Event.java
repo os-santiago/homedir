@@ -212,6 +212,25 @@ public class Event {
     }
 
     /**
+     * Returns a short summary of the description limited to the first paragraph
+     * and a maximum of 150 characters.
+     */
+    public String getDescriptionSummary() {
+        if (description == null || description.isBlank()) {
+            return "";
+        }
+        String summary = description.strip();
+        int newline = summary.indexOf('\n');
+        if (newline >= 0) {
+            summary = summary.substring(0, newline);
+        }
+        if (summary.length() > 150) {
+            summary = summary.substring(0, 150).trim() + "...";
+        }
+        return summary;
+    }
+
+    /**
      * Returns a list with values from 1 to {@code days} to easily iterate in templates.
      */
     public java.util.List<Integer> getDayList() {
