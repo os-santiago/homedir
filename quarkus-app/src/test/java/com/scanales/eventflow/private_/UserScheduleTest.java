@@ -73,4 +73,30 @@ public class UserScheduleTest {
                 .statusCode(200)
                 .body(not(containsString("Talk 1")));
     }
+
+    @Test
+    @TestSecurity(user = "user@example.com")
+    public void updateTalkDetails() {
+        given()
+                .redirects().follow(false)
+                .when().get("/private/profile/add/t1")
+                .then()
+                .statusCode(303);
+
+        given()
+                .contentType("application/json")
+                .body("{\"attended\":true,\"rating\":5,\"motivations\":[\"⭐ Relevante para mi trabajo\"]}")
+                .when().post("/private/profile/update/t1")
+                .then()
+                .statusCode(200)
+                .body(containsString("updated"));
+
+        given()
+                .when().get("/private/profile")
+                .then()
+                .statusCode(200)
+                .body(containsString("data-attended=\"true\""))
+                .body(containsString("data-rated=\"true\""))
+                .body(containsString("Relevante para mi trabajo"));
+    }
 }
