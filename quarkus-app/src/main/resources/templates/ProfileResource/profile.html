@@ -22,7 +22,7 @@
       <h4 class="day-title">Día {d.day}</h4>
       <div class="talks-day">
         {#for t in d.talks}
-        <div class="card talk-card" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating != null}">
+        <div class="card talk-card" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating??}">
           <h5>
             <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
             <a href="/talk/{t.id}">{t.name}</a>
