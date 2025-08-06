@@ -570,6 +570,14 @@ footer {
 .talk-card h5 { margin: 0 0 0.5rem; color: var(--color-dark); }
 .talk-card .talk-time,
 .talk-card .talk-scenario { margin: 0 0 0.5rem; font-size: 0.9rem; color: #555; }
+.talk-card .attendance-icon { margin-right: 0.25rem; }
+.talk-card .state-icon { margin-left: 0.25rem; }
+.talk-card .motivation-list { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.5rem; }
+.talk-card .motivation-badge { background: #e0e0e0; color: #333; cursor: pointer; }
+.talk-card .motivation-select,
+.talk-card .rating-select { width: 100%; margin-top: 0.5rem; }
+.filter { display: flex; gap: 0.5rem; margin: 1rem 0; }
+.filter .btn { flex: 1; }
 .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-bottom: 0.5rem; }
 .badge.success { background: #4caf50; color: #fff; }
 .badge.warning { background: #ff9800; color: #fff; }

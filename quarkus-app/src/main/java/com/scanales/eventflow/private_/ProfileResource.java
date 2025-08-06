@@ -11,10 +11,12 @@ import org.jboss.logging.Logger;
 
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
+import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
 import com.scanales.eventflow.model.Talk;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -34,7 +36,11 @@ public class ProfileResource {
                 String familyName,
                 String email,
                 String sub,
-                java.util.List<EventGroup> groups);
+                java.util.List<EventGroup> groups,
+                java.util.Map<String, TalkDetails> info,
+                int totalTalks,
+                long attendedTalks,
+                long ratedTalks);
     }
 
     /** Helper record containing a talk and its parent event. */
@@ -80,7 +86,8 @@ public class ProfileResource {
             email = sub;
         }
 
-        var talkIds = userSchedule.getTalksForUser(email);
+        var info = userSchedule.getTalkDetailsForUser(email);
+        var talkIds = info.keySet();
         java.util.List<TalkEntry> entries = talkIds.stream()
                 .map(tid -> {
                     Talk t = eventService.findTalk(tid);
@@ -106,7 +113,9 @@ public class ProfileResource {
                                 .toList()))
                 .toList();
 
-        return Templates.profile(name, givenName, familyName, email, sub, groups);
+        var summary = userSchedule.getSummaryForUser(email);
+        return Templates.profile(name, givenName, familyName, email, sub, groups, info,
+                summary.total(), summary.attended(), summary.rated());
     }
 
     @GET
@@ -118,6 +127,24 @@ public class ProfileResource {
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/talk/" + id)
                 .build();
+    }
+
+    @POST
+    @Path("update/{id}")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateTalk(@PathParam("id") String id, UpdateRequest req) {
+        String email = getEmail();
+        boolean ok = userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations);
+        String status = ok ? "updated" : "missing";
+        return Response.ok(java.util.Map.of("status", status)).build();
+    }
+
+    public static class UpdateRequest {
+        public Boolean attended;
+        public Integer rating;
+        public java.util.Set<String> motivations;
     }
 
     @POST
