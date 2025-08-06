@@ -259,4 +259,16 @@ public class Event {
                 .sorted(java.util.Comparator.comparing(Talk::getStartTime))
                 .toList();
     }
+
+    /**
+     * Returns the list of talks for the given {@code day} and
+     * {@code scenarioId} ordered by start time. An empty list is returned when
+     * there are no talks matching the provided parameters.
+     */
+    public java.util.List<Talk> getAgendaForDayAndScenario(int day, String scenarioId) {
+        return agenda.stream()
+                .filter(t -> t.getDay() == day && scenarioId.equals(t.getLocation()))
+                .sorted(java.util.Comparator.comparing(Talk::getStartTime))
+                .toList();
+    }
 }
