@@ -55,54 +55,29 @@ button:focus-visible {
     top: 0;
 }
 
-/* --- Header refresh --- */
-.site-header {
-    background-color: var(--color-light);
-    text-align: center;
-    padding: 2rem 1rem 1rem;
-}
-
-.logo-group {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: nowrap;
-    justify-content: center;
-}
-
-.logo-main {
-    width: 10vw;
-    max-width: 5vw;
-    height: auto;
-    border-radius: 50px;
-    margin-right: 1pc;
-}
-
-.powered-by {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.9rem;
-    color: #555;
-    margin-top: 0.5rem;
-}
-
-.logo-oss {
-    width: 5vw;
-    height: auto;
-}
-
+/* --- Navigation --- */
 .nav-menu {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     background-color: var(--color-dark);
     color: var(--color-light);
     display: flex;
-    justify-content: center;
     align-items: center;
-    padding: 0.25rem 1rem;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-logo img {
+    height: 40px;
+    width: auto;
+    border-radius: 50%;
 }
 
 .nav-links {
     display: flex;
+    align-items: center;
     gap: 1rem;
 }
 
@@ -110,15 +85,79 @@ button:focus-visible {
     color: var(--color-light);
     text-decoration: none;
     padding: 0.5rem 0.75rem;
+    border-radius: 4px;
     transition: background-color 0.3s ease;
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-links a.active {
     background-color: var(--color-accent);
 }
 
-.nav-links a.active {
-    background-color: var(--color-accent);
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-light);
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+.user-menu {
+    position: relative;
+}
+
+.user-menu-btn {
+    background: none;
+    border: none;
+    color: var(--color-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.avatar.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary);
+    color: var(--color-light);
+    font-size: 1rem;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: var(--color-light);
+    color: var(--color-dark);
+    min-width: 150px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--color-dark);
+    text-decoration: none;
+}
+
+.dropdown a:hover {
+    background-color: var(--color-bg);
+}
+
+.user-menu.open .dropdown {
+    display: block;
 }
 
 .breadcrumbs {
@@ -147,25 +186,11 @@ button:focus-visible {
     color: var(--color-dark);
     font-weight: 500;
 }
-
 .icon {
     margin-right: 0.25rem;
 }
 
-.menu-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: var(--color-light);
-    font-size: 1.5rem;
-    margin-right: 0.5rem;
-}
-
 @media (max-width: 600px) {
-    .nav-menu {
-        justify-content: space-between;
-    }
-
     .menu-toggle {
         display: block;
     }
@@ -175,6 +200,7 @@ button:focus-visible {
         flex-direction: column;
         width: 100%;
         background-color: var(--color-dark);
+        padding: 1rem 0;
     }
 
     .nav-links.active {
@@ -183,10 +209,29 @@ button:focus-visible {
 
     .nav-links a {
         padding: 1rem;
+        width: 100%;
         border-top: 1px solid rgba(255, 255, 255, 0.2);
     }
-}
 
+    .user-menu {
+        width: 100%;
+    }
+
+    .dropdown {
+        position: static;
+        box-shadow: none;
+        background-color: var(--color-dark);
+    }
+
+    .dropdown a {
+        color: var(--color-light);
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dropdown a:hover {
+        background-color: var(--color-accent);
+    }
+}
 .container {
     max-width: 960px;
     margin: auto;

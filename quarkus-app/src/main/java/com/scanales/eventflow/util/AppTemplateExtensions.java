@@ -43,6 +43,28 @@ public class AppTemplateExtensions {
         return AdminUtils.isAdmin(identity);
     }
 
+    /** Returns the display name of the authenticated user or {@code null}. */
+    public static String userName() {
+        SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
+        if (identity == null || identity.isAnonymous()) {
+            return null;
+        }
+        String name = AdminUtils.getClaim(identity, "name");
+        if (name == null || name.isBlank()) {
+            name = identity.getPrincipal().getName();
+        }
+        return name;
+    }
+
+    /** Returns the avatar URL of the authenticated user if available. */
+    public static String userAvatar() {
+        SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
+        if (identity == null || identity.isAnonymous()) {
+            return null;
+        }
+        return AdminUtils.getClaim(identity, "picture");
+    }
+
     /** Simple URL validation for http/https links. */
     public static boolean validUrl(String url) {
         if (url == null || url.isBlank()) {
