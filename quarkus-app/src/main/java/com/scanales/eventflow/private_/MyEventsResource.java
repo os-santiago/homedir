@@ -11,22 +11,28 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
 
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
-import io.quarkus.qute.Template;
+import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.vertx.web.Route;
-import io.vertx.core.http.HttpMethod;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  * Shows the list of talks registered by the current user grouped by event.
  */
+@Path("/my-events")
 public class MyEventsResource {
 
-    @Inject
-    Template myEvents;
+    @CheckedTemplate
+    static class Templates {
+        static native TemplateInstance myEvents(java.util.Collection<EventGroup> groups,
+                String name,
+                String email);
+    }
 
     @Inject
     SecurityIdentity identity;
@@ -37,8 +43,9 @@ public class MyEventsResource {
     @Inject
     UserScheduleService userSchedule;
 
-    @Route(path = "/my-events", methods = HttpMethod.GET)
+    @GET
     @Authenticated
+    @Produces(MediaType.TEXT_HTML)
     public TemplateInstance show() {
         String email = getEmail();
         String name = getClaim("name");
@@ -64,9 +71,7 @@ public class MyEventsResource {
                     .talks().add(ti.talk());
         }
 
-        return myEvents.data("groups", grouped.values())
-                .data("name", name)
-                .data("email", email);
+        return Templates.myEvents(grouped.values(), name, email);
     }
 
     public static record TalkInfo(Talk talk, Event event) {}
