@@ -15,6 +15,7 @@ Editar Evento
 Nuevo Evento
 {/if}
 </h1>
+{#if message}<p class="section-subtitle">{message}</p>{/if}
 <nav class="sub-nav">
   <a href="#event-info">Evento</a>
   {#if event.id}
@@ -154,12 +155,19 @@ Nuevo Evento
 <section id="agenda">
   <h2><span class="icon">🗓️</span>Agenda</h2>
   {#for d in event.dayList}
-  <h3>Día {d}</h3>
-  <ul>
-  {#for t in event.getAgendaForDay(d)}
-  <li>{t.startTimeStr} - {t.endTimeStr} | {t.name} | {event.getScenarioName(t.location)}</li>
-  {/for}
-  </ul>
+  <div class="agenda-day">
+    <h3>Día {d}</h3>
+    {#for sc in event.scenarios}
+      {#if !event.getAgendaForDayAndScenario(d, sc.id).isEmpty()}
+      <h4>{sc.name}</h4>
+      <ul class="agenda-list">
+        {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
+          <li class="agenda-item"><span class="icon">🗣️</span>{t.startTimeStr} - {t.endTimeStr} | {t.name} <span class="badge {app:talkStateClass(t)}">{app:talkState(t)}</span></li>
+        {/for}
+      </ul>
+      {/if}
+    {/for}
+  </div>
   {/for}
 </section>
 {/if}

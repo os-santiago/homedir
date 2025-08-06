@@ -72,6 +72,34 @@ public class EventService {
         }
     }
 
+    /**
+     * Checks whether the given talk overlaps with an existing one in the same
+     * event, day and scenario.
+     *
+     * @return {@code true} if an overlap is detected
+     */
+    public boolean hasOverlap(String eventId, Talk talk) {
+        Event event = events.get(eventId);
+        if (event == null || talk.getStartTime() == null) {
+            return false;
+        }
+        java.time.LocalTime start = talk.getStartTime();
+        java.time.LocalTime end = talk.getEndTime();
+        return event.getAgenda().stream()
+                .filter(t -> !t.getId().equals(talk.getId())
+                        && t.getDay() == talk.getDay()
+                        && t.getLocation() != null
+                        && t.getLocation().equals(talk.getLocation()))
+                .anyMatch(t -> {
+                    java.time.LocalTime s = t.getStartTime();
+                    java.time.LocalTime e = t.getEndTime();
+                    if (s == null) {
+                        return false;
+                    }
+                    return !start.isAfter(e) && !end.isBefore(s);
+                });
+    }
+
     public Scenario findScenario(String scenarioId) {
         return events.values().stream()
                 .flatMap(e -> e.getScenarios().stream())

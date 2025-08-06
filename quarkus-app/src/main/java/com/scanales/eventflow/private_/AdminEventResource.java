@@ -34,7 +34,7 @@ public class AdminEventResource {
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance list(java.util.List<Event> events, String message);
-        static native TemplateInstance edit(Event event);
+        static native TemplateInstance edit(Event event, String message);
     }
 
     @Inject
@@ -65,18 +65,18 @@ public class AdminEventResource {
     @Path("new")
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
-    public Response create() {
+    public Response create(@QueryParam("msg") String message) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        return Response.ok(Templates.edit(new Event())).build();
+        return Response.ok(Templates.edit(new Event(), message)).build();
     }
 
     @GET
     @Path("{id}/edit")
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
-    public Response edit(@PathParam("id") String id) {
+    public Response edit(@PathParam("id") String id, @QueryParam("msg") String message) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -84,7 +84,7 @@ public class AdminEventResource {
         if (event == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(Templates.edit(event)).build();
+        return Response.ok(Templates.edit(event, message)).build();
     }
 
     @POST
@@ -268,12 +268,27 @@ public class AdminEventResource {
         if (day < 1 || day > event.getDays()) {
             day = 1;
         }
+        if (name == null || name.isBlank() || location == null || location.isBlank()
+                || startTime == null || startTime.isBlank() || duration <= 0) {
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location",
+                            "/private/admin/events/" + eventId
+                                    + "/edit?msg=Campos+obligatorios")
+                    .build();
+        }
         Talk talk = new Talk(talkId, name);
         talk.setDescription(description);
         talk.setLocation(location);
         talk.setStartTimeStr(startTime);
         talk.setDurationMinutes(duration);
         talk.setDay(day);
+        if (eventService.hasOverlap(eventId, talk)) {
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location",
+                            "/private/admin/events/" + eventId
+                                    + "/edit?msg=Horario+solapado")
+                    .build();
+        }
         eventService.saveTalk(eventId, talk);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events/" + eventId + "/edit")
