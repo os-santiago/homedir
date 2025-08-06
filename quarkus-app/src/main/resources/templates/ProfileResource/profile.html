@@ -70,6 +70,7 @@
   <p><a href="/private/admin">Admin Panel</a></p>
   <p><a href="/logout">Salir</a></p>
   <script>
+  {#raw}
   (function() {
     const updateTalk = async (id, data) => {
       try {
@@ -202,6 +203,7 @@
 
     updateSummary();
   })();
+  {/raw}
   </script>
   {/main}
   {/include}
