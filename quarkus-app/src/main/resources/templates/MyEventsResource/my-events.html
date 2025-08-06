@@ -1,0 +1,27 @@
+{#include layout/base}
+{#title}Mis Eventos{/title}
+{#main}
+<h1>Mis Eventos</h1>
+<p><strong>{name}</strong> – {email}</p>
+
+{#if groups.isEmpty()}
+  <p>No has registrado ninguna charla.</p>
+{#else}
+  {#for group in groups}
+    <div class="event-summary">
+      <h2>{group.event.title}</h2>
+      <p>{group.event.description}</p>
+      <a href="/event/{group.event.id}" class="btn btn-outline">Ver evento</a>
+      <ul class="talk-list">
+        {#for t in group.talks}
+          <li>
+            <a href="/talk/{t.id}">{t.name}</a> – {t.startTimeStr} ({t.durationMinutes} min)
+          </li>
+        {/for}
+      </ul>
+    </div>
+  {/for}
+{/if}
+{/main}
+{/include}
+
