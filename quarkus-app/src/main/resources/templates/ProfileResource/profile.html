@@ -22,9 +22,9 @@
       <h4 class="day-title">Día {d.day}</h4>
       <div class="talks-day">
         {#for t in d.talks}
-        <div class="card talk-card" data-talk-id="{t.id}" data-attended="{info[t.id].attended}" data-rated="{info[t.id].rating != null}">
+        <div class="card talk-card" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating != null}">
           <h5>
-            <span class="attendance-icon">{#if info[t.id].attended}✅{#else}❌{/if}</span>
+            <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
             <a href="/talk/{t.id}">{t.name}</a>
             <span class="state-icon">
               {#if app:talkState(t) == 'Pronto'}⏰{/if}
@@ -35,7 +35,7 @@
           <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
           <p class="talk-scenario">{g.event.getScenarioName(t.location)}</p>
           <div class="motivation-list">
-            {#for m in info[t.id].motivations}
+            {#for m in info.get(t.id).motivations}
               <span class="badge motivation-badge" data-value="{m}">{m}</span>
             {/for}
           </div>
@@ -47,16 +47,16 @@
             <option>🎯 Me pareció interesante</option>
           </select>
           <div class="attendance">
-            <label><input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if info[t.id].attended}checked{/if}> Asistí</label>
+            <label><input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if info.get(t.id).attended}checked{/if}> Asistí</label>
           </div>
           <div class="rating">
             <select class="rating-select" data-talk-id="{t.id}">
               <option value="">Calificación</option>
-              <option value="1" {#if info[t.id].rating == 1}selected{/if}>1</option>
-              <option value="2" {#if info[t.id].rating == 2}selected{/if}>2</option>
-              <option value="3" {#if info[t.id].rating == 3}selected{/if}>3</option>
-              <option value="4" {#if info[t.id].rating == 4}selected{/if}>4</option>
-              <option value="5" {#if info[t.id].rating == 5}selected{/if}>5</option>
+              <option value="1" {#if info.get(t.id).rating == 1}selected{/if}>1</option>
+              <option value="2" {#if info.get(t.id).rating == 2}selected{/if}>2</option>
+              <option value="3" {#if info.get(t.id).rating == 3}selected{/if}>3</option>
+              <option value="4" {#if info.get(t.id).rating == 4}selected{/if}>4</option>
+              <option value="5" {#if info.get(t.id).rating == 5}selected{/if}>5</option>
             </select>
           </div>
           <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}">Eliminar</button>
