@@ -49,9 +49,11 @@
       try {
         const res = await fetch('/private/profile/add/{talk.id}', {
           method: 'POST',
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json' },
+          credentials: 'same-origin'
         });
-        if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
           const data = await res.json();
           if (data.status === 'added') {
             showNotification('success', 'Charla agregada. <a href="/private/profile">Ver en Mis Charlas</a>');
@@ -61,6 +63,8 @@
           btn.disabled = true;
           btn.classList.add('btn-secondary');
           btn.innerHTML = '<span class="icon">✔</span> Agregada';
+        } else if (res.status === 401) {
+          showNotification('info', 'Debe iniciar sesión para agregar la charla');
         } else {
           showNotification('error', 'Ocurrió un error al registrar la charla');
         }
