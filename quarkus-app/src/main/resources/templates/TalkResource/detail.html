@@ -46,30 +46,43 @@
     }
     btn.addEventListener('click', async () => {
       if (btn.disabled) return;
+      btn.disabled = true;
       try {
         const res = await fetch('/private/profile/add/{talk.id}', {
           method: 'POST',
-          headers: { 'Accept': 'application/json' },
-          credentials: 'same-origin'
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: '{}'
         });
         const contentType = res.headers.get('content-type') || '';
         if (res.ok && contentType.includes('application/json')) {
           const data = await res.json();
           if (data.status === 'added') {
-            showNotification('success', 'Charla agregada. <a href="/private/profile">Ver en Mis Charlas</a>');
+            showNotification('success', 'Charla agregada a tu agenda');
+            btn.classList.add('btn-secondary');
+            btn.innerHTML = '<span class="icon">✔</span> Agregada';
           } else if (data.status === 'exists') {
             showNotification('info', 'La charla ya estaba registrada. <a href="/private/profile">Ver en Mis Charlas</a>');
+            btn.classList.add('btn-secondary');
+            btn.innerHTML = '<span class="icon">✔</span> Agregada';
+          } else if (data.status === 'error') {
+            showNotification('error', data.message || 'Ocurrió un error');
+            btn.disabled = false;
+            return;
           }
-          btn.disabled = true;
-          btn.classList.add('btn-secondary');
-          btn.innerHTML = '<span class="icon">✔</span> Agregada';
         } else if (res.status === 401) {
           showNotification('info', 'Debe iniciar sesión para agregar la charla');
+          btn.disabled = false;
+          return;
         } else {
           showNotification('error', 'Ocurrió un error al registrar la charla');
+          btn.disabled = false;
+          return;
         }
       } catch (e) {
         showNotification('error', 'Ocurrió un error al registrar la charla');
+        btn.disabled = false;
+        return;
       }
     });
   })();

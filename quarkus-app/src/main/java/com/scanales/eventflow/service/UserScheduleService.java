@@ -6,9 +6,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jboss.logging.Logger;
+
 /** In-memory store for user schedules and talk details. */
 @ApplicationScoped
 public class UserScheduleService {
+
+    private static final Logger LOG = Logger.getLogger(UserScheduleService.class);
 
     /** Stores user email -> (talkId -> details). */
     private final Map<String, Map<String, TalkDetails>> schedules = new ConcurrentHashMap<>();
@@ -25,8 +29,11 @@ public class UserScheduleService {
         if (email == null || talkId == null) {
             return false;
         }
-        return schedules.computeIfAbsent(email, k -> new ConcurrentHashMap<>())
+        boolean added = schedules.computeIfAbsent(email, k -> new ConcurrentHashMap<>())
                 .putIfAbsent(talkId, new TalkDetails()) == null;
+        LOG.infov("addTalk(user={0}, talk={1}, result={2})", email, talkId,
+                added ? "added" : "exists");
+        return added;
     }
 
     /** Returns the set of talk ids registered by the user. */
@@ -75,8 +82,11 @@ public class UserScheduleService {
             if (talks.isEmpty()) {
                 schedules.remove(email);
             }
+            LOG.infov("removeTalk(user={0}, talk={1}, result={2})", email, talkId,
+                    removed ? "removed" : "not-found");
             return removed;
         }
+        LOG.infov("removeTalk(user={0}, talk={1}, result=not-found)", email, talkId);
         return false;
     }
 

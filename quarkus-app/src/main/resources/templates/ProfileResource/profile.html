@@ -100,23 +100,36 @@
       btn.addEventListener('click', async () => {
         if (!confirm('¿Estás seguro?')) return;
         const id = btn.dataset.talkId;
+        btn.disabled = true;
         try {
-          const res = await fetch('/private/profile/remove/' + id, { method: 'POST', headers: { 'Accept': 'application/json' } });
-          if (res.ok) {
+          const res = await fetch('/private/profile/remove/' + id, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: '{}'
+          });
+          const contentType = res.headers.get('content-type') || '';
+          if (res.ok && contentType.includes('application/json')) {
             const data = await res.json();
             if (data.status === 'removed') {
               const card = btn.closest('.talk-card');
               if (card) card.remove();
               updateSummary();
-              showNotification('success', 'Charla eliminada');
+              showNotification('success', 'Charla eliminada de tu agenda');
+              return;
+            } else if (data.status === 'error') {
+              showNotification('error', data.message || 'Ocurrió un error');
             } else {
               showNotification('error', 'Charla no encontrada');
             }
+          } else if (res.status === 401) {
+            showNotification('info', 'Debe iniciar sesión');
           } else {
             showNotification('error', 'Ocurrió un error al eliminar la charla');
           }
         } catch (e) {
           showNotification('error', 'Ocurrió un error al eliminar la charla');
+        } finally {
+          btn.disabled = false;
         }
       });
     });
