@@ -22,9 +22,13 @@
     <p><strong>Orador:</strong> {talk.speaker.name}{#if talk.coSpeaker} & {talk.coSpeaker.name}{/if}</p>
   {/if}
   <p><strong>Horario:</strong> {#if talk.startTimeStr}{talk.startTimeStr}{#else}Por confirmar{/if}</p>
-  {#if talk.location}
-    <p><strong>Ubicación:</strong> {#if event}{event.getScenarioName(talk.location)}{#else}{talk.location}{/if}</p>
-  {/if}
+  <p><strong>Ubicación:</strong>
+    {#if talk.location}
+      {#if event}{event.getScenarioName(talk.location)}{#else}{talk.location}{/if}
+    {#else}
+      Por confirmar
+    {/if}
+  </p>
   {#if talk.durationMinutes > 0}<p><strong>Duración:</strong> {talk.durationMinutes} min</p>{/if}
   {#if app:isAuthenticated()}
   <p>
@@ -74,10 +78,14 @@
     {#for t in occurrences}
         <li class="agenda-item">
           <span class="icon">⏰</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
-          {#if event && t.location}
-            <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
-          {:else if t.location}
-            <span>{t.location}</span>
+          {#if t.location}
+            {#if event}
+              <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+            {#else}
+              <span>{t.location}</span>
+            {/if}
+          {#else}
+            <span>Ubicación por confirmar</span>
           {/if}
         </li>
     {/for}
