@@ -28,6 +28,9 @@ public class UserScheduleService {
 
     /** Returns the set of talk ids registered by the user. */
     public Set<String> getTalksForUser(String email) {
+        if (email == null) {
+            return java.util.Set.of();
+        }
         Map<String, TalkDetails> talks = schedules.get(email);
         return talks == null ? java.util.Set.of() : talks.keySet();
     }
