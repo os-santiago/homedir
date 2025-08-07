@@ -67,9 +67,12 @@ public class TalkResource {
             if (identity != null && !identity.isAnonymous()) {
                 String email = identity.getAttribute("email");
                 if (email == null) {
-                    email = identity.getPrincipal().getName();
+                    var principal = identity.getPrincipal();
+                    email = principal != null ? principal.getName() : null;
                 }
-                inSchedule = userSchedule.getTalksForUser(email).contains(id);
+                if (email != null) {
+                    inSchedule = userSchedule.getTalksForUser(email).contains(id);
+                }
             }
             return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)).build();
         } catch (Exception e) {
