@@ -10,6 +10,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.model.TalkInfo;
 
 /** Simple in-memory store for events. */
 @ApplicationScoped
@@ -132,6 +133,16 @@ public class EventService {
                         .anyMatch(t -> t.getId().equals(talkId)))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /** Returns a {@link TalkInfo} containing the talk and its parent event or {@code null}. */
+    public TalkInfo findTalkInfo(String talkId) {
+        Talk talk = findTalk(talkId);
+        if (talk == null) {
+            return null;
+        }
+        Event event = findEventByTalk(talkId);
+        return new TalkInfo(talk, event);
     }
 
     /**
