@@ -72,7 +72,14 @@
     <h2 class="card-title"><span class="icon">⏰</span>Horarios</h2>
     <ul class="agenda-list">
     {#for t in occurrences}
-        <li class="agenda-item"><span class="icon">⏰</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) - {#if event && t.location}<a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>{#elseif t.location}<span>{t.location}</span>{/if}</li>
+        <li class="agenda-item">
+          <span class="icon">⏰</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
+          {#if event && t.location}
+            <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+          {:else if t.location}
+            <span>{t.location}</span>
+          {/if}
+        </li>
     {/for}
     </ul>
   </div>
