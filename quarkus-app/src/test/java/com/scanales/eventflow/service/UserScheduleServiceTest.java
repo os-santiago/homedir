@@ -45,5 +45,15 @@ public class UserScheduleServiceTest {
         assertEquals(0, summary.attended());
         assertEquals(0, summary.rated());
     }
+
+    @Test
+    public void ignoreNullUser() {
+        UserScheduleService svc = new UserScheduleService();
+
+        assertFalse(svc.addTalkForUser(null, "t1"));
+        assertTrue(svc.getTalksForUser(null).isEmpty());
+        assertTrue(svc.getTalkDetailsForUser(null).isEmpty());
+        assertEquals(0, svc.getSummaryForUser(null).total());
+    }
 }
 

@@ -22,6 +22,9 @@ public class UserScheduleService {
 
     /** Adds the talk id to the schedule for the given user email. */
     public boolean addTalkForUser(String email, String talkId) {
+        if (email == null || talkId == null) {
+            return false;
+        }
         return schedules.computeIfAbsent(email, k -> new ConcurrentHashMap<>())
                 .putIfAbsent(talkId, new TalkDetails()) == null;
     }
@@ -37,11 +40,15 @@ public class UserScheduleService {
 
     /** Returns the map of talk details for the user. */
     public Map<String, TalkDetails> getTalkDetailsForUser(String email) {
+        if (email == null) {
+            return java.util.Map.of();
+        }
         return schedules.getOrDefault(email, java.util.Map.of());
     }
 
     /** Updates the stored details for a given talk. */
     public boolean updateTalk(String email, String talkId, Boolean attended, Integer rating, Set<String> motivations) {
+        if (email == null || talkId == null) return false;
         Map<String, TalkDetails> talks = schedules.get(email);
         if (talks == null) return false;
         TalkDetails details = talks.get(talkId);
@@ -61,6 +68,7 @@ public class UserScheduleService {
 
     /** Removes the talk id from the user schedule. */
     public boolean removeTalkForUser(String email, String talkId) {
+        if (email == null || talkId == null) return false;
         Map<String, TalkDetails> talks = schedules.get(email);
         if (talks != null) {
             boolean removed = talks.remove(talkId) != null;
@@ -76,6 +84,9 @@ public class UserScheduleService {
     public record Summary(int total, long attended, long rated) {}
 
     public Summary getSummaryForUser(String email) {
+        if (email == null) {
+            return new Summary(0, 0, 0);
+        }
         Map<String, TalkDetails> talks = schedules.get(email);
         if (talks == null) {
             return new Summary(0, 0, 0);
