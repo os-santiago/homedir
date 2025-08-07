@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
 
@@ -55,12 +56,7 @@ public class MyEventsResource {
 
         var talkIds = userSchedule.getTalksForUser(email);
         List<TalkInfo> talks = talkIds.stream()
-                .map(tid -> {
-                    Talk t = eventService.findTalk(tid);
-                    if (t == null) return null;
-                    Event e = eventService.findEventByTalk(tid);
-                    return new TalkInfo(t, e);
-                })
+                .map(eventService::findTalkInfo)
                 .filter(java.util.Objects::nonNull)
                 .toList();
 
@@ -73,8 +69,6 @@ public class MyEventsResource {
 
         return Templates.myEvents(grouped.values(), name, email);
     }
-
-    public static record TalkInfo(Talk talk, Event event) {}
 
     public static record EventGroup(Event event, List<Talk> talks) {}
 

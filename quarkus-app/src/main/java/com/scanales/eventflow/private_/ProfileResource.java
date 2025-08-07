@@ -13,6 +13,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.model.TalkInfo;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -42,9 +43,6 @@ public class ProfileResource {
                 long attendedTalks,
                 long ratedTalks);
     }
-
-    /** Helper record containing a talk and its parent event. */
-    public record TalkEntry(Talk talk, com.scanales.eventflow.model.Event event) {}
 
     /** Talks grouped by day within an event. */
     public record DayGroup(int day, java.util.List<Talk> talks) {}
@@ -88,23 +86,18 @@ public class ProfileResource {
 
         var info = userSchedule.getTalkDetailsForUser(email);
         var talkIds = info.keySet();
-        java.util.List<TalkEntry> entries = talkIds.stream()
-                .map(tid -> {
-                    Talk t = eventService.findTalk(tid);
-                    if (t == null) return null;
-                    var e = eventService.findEventByTalk(tid);
-                    return new TalkEntry(t, e);
-                })
+        java.util.List<TalkInfo> entries = talkIds.stream()
+                .map(eventService::findTalkInfo)
                 .filter(java.util.Objects::nonNull)
                 .toList();
 
         // Group talks by event and day
         java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<Integer, java.util.List<Talk>>> grouped =
                 new java.util.LinkedHashMap<>();
-        for (TalkEntry te : entries) {
-            grouped.computeIfAbsent(te.event, k -> new java.util.TreeMap<>())
-                    .computeIfAbsent(te.talk.getDay(), k -> new java.util.ArrayList<>())
-                    .add(te.talk);
+        for (TalkInfo te : entries) {
+            grouped.computeIfAbsent(te.event(), k -> new java.util.TreeMap<>())
+                    .computeIfAbsent(te.talk().getDay(), k -> new java.util.ArrayList<>())
+                    .add(te.talk());
         }
         java.util.List<EventGroup> groups = grouped.entrySet().stream()
                 .map(ev -> new EventGroup(ev.getKey(),
