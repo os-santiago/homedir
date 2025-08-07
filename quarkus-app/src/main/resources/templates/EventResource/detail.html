@@ -41,6 +41,9 @@ Evento
       <p><strong>Lugar:</strong> <a href="{event.mapUrl}" target="_blank" rel="noopener">Ver mapa</a></p>
     {/if}
     <p><strong>Duración:</strong> {event.days} día{#if event.days > 1}s{/if}</p>
+    {#if !event.agenda.isEmpty()}
+    <p><a href="#agenda" class="btn btn-secondary">Ver agenda completa</a></p>
+    {/if}
   </div>
     {#if !event.scenarios.isEmpty()}
     <div class="card">
@@ -57,16 +60,17 @@ Evento
     </div>
     {/if}
     {#if !event.agenda.isEmpty()}
-    <div class="card">
+    <div class="card" id="agenda">
       <h2 class="card-title"><span class="icon">🗓️</span>Agenda</h2>
-      <p><a href="/event/{event.id}/agenda" class="btn btn-secondary">Ver agenda completa</a></p>
       {#for d in event.dayList}
-        <h3>Día {d}</h3>
-        <ul class="agenda-list">
-        {#for t in event.getAgendaForDay(d)}
-          <li class="agenda-item"><span class="icon">🗣️</span>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
-        {/for}
-        </ul>
+        <details class="agenda-day" open>
+          <summary>Día {d}</summary>
+          <ul class="agenda-list">
+          {#for t in event.getAgendaForDay(d)}
+            <li class="agenda-item"><span class="icon">🗣️</span>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+          {/for}
+          </ul>
+        </details>
       {/for}
     </div>
     {/if}
