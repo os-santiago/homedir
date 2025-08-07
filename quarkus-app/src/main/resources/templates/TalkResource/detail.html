@@ -1,25 +1,31 @@
 {#include layout/base}
 {#title}
-{#if talk}
-{talk.name}
-{#else}
-Charla
-{/if}
+{#if talk && talk.name}{talk.name}{#else}Charla{/if}
 {/title}
 {#breadcrumbs}
 {#if talk}
-<a href="/">Eventos</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><a href="/scenario/{talk.location}">{event.getScenarioName(talk.location)}</a><span class="sep">/</span><span>Charla: {talk.name}</span>
+<a href="/">Eventos</a>
+{#if event}<span class="sep">/</span><a href="/event/{event.id}">{event.title}</a>{/if}
+{#if talk.location && event}<span class="sep">/</span><a href="/scenario/{talk.location}">{event.getScenarioName(talk.location)}</a>{/if}
+<span class="sep">/</span><span>Charla: {talk.name ?: talk.id}</span>
 {/if}
 {/breadcrumbs}
 {#main}
 {#if talk}
 <section class="talk-detail">
-  <h1 class="page-title">{talk.name}</h1>
+  <h1 class="page-title">{talk.name ?: 'Charla'}</h1>
+  {#if !talk.description || !talk.speaker || !talk.location || !talk.startTime || !event}
+    <p>Charla en preparación. Pronto estará disponible</p>
+  {/if}
   {#if talk.description}<p>{talk.description}</p>{/if}
   {#if talk.speaker}
     <p><strong>Orador:</strong> {talk.speaker.name}{#if talk.coSpeaker} & {talk.coSpeaker.name}{/if}</p>
   {/if}
-  <p><strong>Duración:</strong> {talk.durationMinutes} min</p>
+  <p><strong>Horario:</strong> {#if talk.startTimeStr}{talk.startTimeStr}{#else}Por confirmar{/if}</p>
+  {#if talk.location}
+    <p><strong>Ubicación:</strong> {#if event}{event.getScenarioName(talk.location)}{#else}{talk.location}{/if}</p>
+  {/if}
+  {#if talk.durationMinutes > 0}<p><strong>Duración:</strong> {talk.durationMinutes} min</p>{/if}
   {#if app:isAuthenticated()}
   <p>
     <button id="addTalkBtn" class="btn">
@@ -66,13 +72,20 @@ Charla
     <h2 class="card-title"><span class="icon">⏰</span>Horarios</h2>
     <ul class="agenda-list">
     {#for t in occurrences}
-        <li class="agenda-item"><span class="icon">⏰</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) - <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+        <li class="agenda-item">
+          <span class="icon">⏰</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
+          {#if event && t.location}
+            <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+          {:else if t.location}
+            <span>{t.location}</span>
+          {/if}
+        </li>
     {/for}
     </ul>
   </div>
   {/if}
   <div class="action-group">
-    <a href="/scenario/{talk.location}" class="btn btn-secondary">Volver al escenario</a>
+    {#if talk.location}<a href="/scenario/{talk.location}" class="btn btn-secondary">Volver al escenario</a>{/if}
     {#if event}<a href="/event/{event.id}" class="btn">Volver al evento</a>{/if}
   </div>
 </section>

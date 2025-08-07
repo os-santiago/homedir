@@ -9,14 +9,18 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.model.Talk;
 import jakarta.inject.Inject;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.jboss.logging.Logger;
 
 @Path("/talk")
 public class TalkResource {
+
+    private static final Logger LOG = Logger.getLogger(TalkResource.class);
 
     @CheckedTemplate
     static class Templates {
@@ -39,21 +43,38 @@ public class TalkResource {
     @Path("{id}")
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
-    public TemplateInstance detail(@PathParam("id") String id) {
-        Talk talk = eventService.findTalk(id);
-        if (talk == null) {
-            return Templates.detail(null, null, java.util.List.<Talk>of(), false);
-        }
-        var event = eventService.findEventByTalk(id);
-        var occurrences = eventService.findTalkOccurrences(id);
-        boolean inSchedule = false;
-        if (identity != null && !identity.isAnonymous()) {
-            String email = identity.getAttribute("email");
-            if (email == null) {
-                email = identity.getPrincipal().getName();
+    public Response detail(@PathParam("id") String id) {
+        try {
+            Talk talk = eventService.findTalk(id);
+            if (talk == null) {
+                LOG.warnf("Talk %s not found", id);
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
-            inSchedule = userSchedule.getTalksForUser(email).contains(id);
+            var event = eventService.findEventByTalk(id);
+            var occurrences = eventService.findTalkOccurrences(id);
+
+            java.util.List<String> missing = new java.util.ArrayList<>();
+            if (talk.getLocation() == null) missing.add("location");
+            if (talk.getName() == null) missing.add("name");
+            if (talk.getStartTime() == null) missing.add("startTime");
+            if (event == null) missing.add("event");
+            if (talk.getSpeaker() == null) missing.add("speaker");
+            if (!missing.isEmpty()) {
+                LOG.warnf("Talk %s missing data: %s", id, String.join(", ", missing));
+            }
+
+            boolean inSchedule = false;
+            if (identity != null && !identity.isAnonymous()) {
+                String email = identity.getAttribute("email");
+                if (email == null) {
+                    email = identity.getPrincipal().getName();
+                }
+                inSchedule = userSchedule.getTalksForUser(email).contains(id);
+            }
+            return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)).build();
+        } catch (Exception e) {
+            LOG.errorf(e, "Error rendering talk %s", id);
+            return Response.serverError().build();
         }
-        return Templates.detail(talk, event, occurrences, inSchedule);
     }
 }
