@@ -156,7 +156,7 @@ public class ProfileResource {
             body.put("status", status);
             body.put("talkId", id);
             if (info != null) {
-                body.put("eventId", info.event().id());
+                body.put("eventId", info.event().getId());
             }
             return Response.ok(body).build();
         }
