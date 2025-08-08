@@ -4,7 +4,7 @@
 {/title}
 {#breadcrumbs}
 {#if talk}
-<a href="/">Eventos</a>
+<a href="/">Inicio</a>
 {#if event}<span class="sep">/</span><a href="/event/{event.id}">{event.title}</a>{/if}
 {#if talk.location && event}<span class="sep">/</span><a href="/scenario/{talk.location}">{event.getScenarioName(talk.location)}</a>{/if}
 <span class="sep">/</span><span>Charla: {talk.name ?: talk.id}</span>

@@ -8,6 +8,8 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import com.scanales.eventflow.service.EventService;
 import jakarta.inject.Inject;
 
@@ -28,5 +30,14 @@ public class HomeResource {
     public TemplateInstance home() {
         var events = eventService.listEvents();
         return Templates.home(events);
+    }
+
+    @GET
+    @Path("/events")
+    @PermitAll
+    public Response legacyEvents() {
+        return Response.status(Response.Status.MOVED_PERMANENTLY)
+                .location(URI.create("/"))
+                .build();
     }
 }
