@@ -4,6 +4,7 @@ metadata:
   name: eventflow-data
   namespace: eventflow
 spec:
+  storageClassName: standard-rwx
   accessModes:
     - ReadWriteOnce
   resources:
