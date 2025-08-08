@@ -4,9 +4,11 @@ metadata:
   name: eventflow-data
   namespace: eventflow
 spec:
+  capacity:
+    storage: 100Mi
   storageClassName: standard-rwx
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       # 1000 events * 1KB + 500 speakers * 1KB + 1500 talks * 1KB ≈ 3MB
