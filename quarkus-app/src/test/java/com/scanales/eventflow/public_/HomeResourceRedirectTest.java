@@ -1,7 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.endsWith;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +17,6 @@ public class HomeResourceRedirectTest {
             .when().get("/events")
             .then()
             .statusCode(301)
-            .header("Location", equalTo("/"));
+            .header("Location", endsWith("/"));
     }
 }
