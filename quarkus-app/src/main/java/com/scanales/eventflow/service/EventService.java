@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
@@ -25,6 +27,14 @@ public class EventService {
      */
     private static final Map<String, Event> events = new ConcurrentHashMap<>();
 
+    @Inject
+    PersistenceService persistence;
+
+    @PostConstruct
+    void init() {
+        events.putAll(persistence.loadEvents());
+    }
+
     public List<Event> listEvents() {
         return new ArrayList<>(events.values());
     }
@@ -35,10 +45,12 @@ public class EventService {
 
     public void saveEvent(Event event) {
         events.put(event.getId(), event);
+        persistence.saveEvents(new ConcurrentHashMap<>(events));
     }
 
     public void deleteEvent(String id) {
         events.remove(id);
+        persistence.saveEvents(new ConcurrentHashMap<>(events));
     }
 
     public void saveScenario(String eventId, Scenario scenario) {
@@ -48,12 +60,14 @@ public class EventService {
         }
         event.getScenarios().removeIf(s -> s.getId().equals(scenario.getId()));
         event.getScenarios().add(scenario);
+        persistence.saveEvents(new ConcurrentHashMap<>(events));
     }
 
     public void deleteScenario(String eventId, String scenarioId) {
         Event event = events.get(eventId);
         if (event != null) {
             event.getScenarios().removeIf(s -> s.getId().equals(scenarioId));
+            persistence.saveEvents(new ConcurrentHashMap<>(events));
         }
     }
 
@@ -64,12 +78,14 @@ public class EventService {
         }
         event.getAgenda().removeIf(t -> t.getId().equals(talk.getId()));
         event.getAgenda().add(talk);
+        persistence.saveEvents(new ConcurrentHashMap<>(events));
     }
 
     public void deleteTalk(String eventId, String talkId) {
         Event event = events.get(eventId);
         if (event != null) {
             event.getAgenda().removeIf(t -> t.getId().equals(talkId));
+            persistence.saveEvents(new ConcurrentHashMap<>(events));
         }
     }
 
