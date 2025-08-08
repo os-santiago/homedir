@@ -10,6 +10,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Comparator;
+import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
 import jakarta.inject.Inject;
 
@@ -28,7 +30,10 @@ public class HomeResource {
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance home() {
-        var events = eventService.listEvents();
+        var events = eventService.listEvents().stream()
+                .sorted(Comparator.comparing(Event::getDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
         return Templates.home(events);
     }
 

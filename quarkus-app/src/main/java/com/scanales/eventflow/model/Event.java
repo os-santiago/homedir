@@ -261,6 +261,19 @@ public class Event {
     }
 
     /**
+     * Returns the number of days remaining from today until the event date.
+     * If the event date is in the past or not defined, zero is returned.
+     */
+    public long getDaysUntil() {
+        if (date == null) {
+            return 0;
+        }
+        long diff = java.time.temporal.ChronoUnit.DAYS
+                .between(java.time.LocalDate.now(), date);
+        return diff < 0 ? 0 : diff;
+    }
+
+    /**
      * Returns the creation date formatted for display in the UI.
      * If the date is not available, an empty string is returned.
      */
