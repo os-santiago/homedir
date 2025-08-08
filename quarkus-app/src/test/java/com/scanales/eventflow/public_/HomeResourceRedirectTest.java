@@ -13,6 +13,7 @@ public class HomeResourceRedirectTest {
     @Test
     public void eventsPathRedirectsToHome() {
         given()
+            .redirects().follow(false)
             .when().get("/events")
             .then()
             .statusCode(301)
