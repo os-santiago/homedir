@@ -95,6 +95,7 @@ public class AdminEventResource {
                               @FormParam("date") String date,
                               @FormParam("days") int days,
                               @FormParam("logoUrl") String logoUrl,
+                              @FormParam("mapUrl") String mapUrl,
                               @FormParam("contactEmail") String contactEmail,
                               @FormParam("website") String website,
                               @FormParam("twitter") String twitter,
@@ -109,6 +110,7 @@ public class AdminEventResource {
         Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
         event.setDateStr(date);
         event.setLogoUrl(sanitizeUrl(logoUrl));
+        event.setMapUrl(sanitizeUrl(mapUrl));
         event.setContactEmail(sanitizeEmail(contactEmail));
         event.setWebsite(sanitizeUrl(website));
         event.setTwitter(sanitizeUrl(twitter));
@@ -130,6 +132,7 @@ public class AdminEventResource {
                                 @FormParam("date") String date,
                                 @FormParam("days") int days,
                                 @FormParam("logoUrl") String logoUrl,
+                                @FormParam("mapUrl") String mapUrl,
                                 @FormParam("contactEmail") String contactEmail,
                                 @FormParam("website") String website,
                                 @FormParam("twitter") String twitter,
@@ -148,6 +151,7 @@ public class AdminEventResource {
         event.setDateStr(date);
         event.setDays(days);
         event.setLogoUrl(sanitizeUrl(logoUrl));
+        event.setMapUrl(sanitizeUrl(mapUrl));
         event.setContactEmail(sanitizeEmail(contactEmail));
         event.setWebsite(sanitizeUrl(website));
         event.setTwitter(sanitizeUrl(twitter));
