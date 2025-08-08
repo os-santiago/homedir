@@ -596,15 +596,24 @@ footer {
 @media (min-width: 600px) {
     .talks-day { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
 }
-.talk-card h5 { margin: 0 0 0.5rem; color: var(--color-dark); }
+.talk-card { display: flex; flex-direction: column; gap: 0.5rem; }
+.talk-card h5 { margin: 0 0 0.25rem; color: var(--color-dark); }
+.talk-card .talk-event { margin: 0; font-size: 0.95rem; color: #555; }
 .talk-card .talk-time,
-.talk-card .talk-scenario { margin: 0 0 0.5rem; font-size: 0.9rem; color: #555; }
+.talk-card .talk-scenario { margin: 0; font-size: 0.9rem; color: #555; }
 .talk-card .attendance-icon { margin-right: 0.25rem; }
 .talk-card .state-icon { margin-left: 0.25rem; }
 .talk-card .motivation-list { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.5rem; }
 .talk-card .motivation-badge { background: #e0e0e0; color: #333; cursor: pointer; }
-.talk-card .motivation-select,
-.talk-card .rating-select { width: 100%; margin-top: 0.5rem; }
+.talk-card .motivation-select { width: 100%; }
+.talk-card .talk-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+.talk-card .talk-actions .rating-label { margin-right: 0.25rem; }
+.talk-card .talk-actions .rating-select { min-width: 120px; }
+.talk-card .rating-select { width: 100%; }
+@media (min-width: 600px) {
+    .talk-card .motivation-select,
+    .talk-card .rating-select { width: auto; }
+}
 .filter { display: flex; gap: 0.5rem; margin: 1rem 0; }
 .filter .btn { flex: 1; }
 .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-bottom: 0.5rem; }

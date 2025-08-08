@@ -31,8 +31,9 @@
               {#if app:talkState(t) == 'Finalizada'}🕓{/if}
             </span>
           </h5>
-          <p class="talk-speaker">{#if t.speaker}{t.speaker.name}{/if}</p>
+          <p class="talk-event">{g.event.title}</p>
           <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
+          <p class="talk-speaker">{#if t.speaker}{t.speaker.name}{/if}</p>
           <p class="talk-scenario">{g.event.getScenarioName(t.location)}</p>
           <div class="motivation-list">
             {#for m in info.get(t.id).motivations}
@@ -49,17 +50,20 @@
           <div class="attendance">
             <label><input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if info.get(t.id).attended}checked{/if}> Asistí</label>
           </div>
-          <div class="rating">
-            <select class="rating-select" data-talk-id="{t.id}">
-              <option value="">Calificación</option>
-              <option value="1" {#if info.get(t.id).rating == 1}selected{/if}>1</option>
-              <option value="2" {#if info.get(t.id).rating == 2}selected{/if}>2</option>
-              <option value="3" {#if info.get(t.id).rating == 3}selected{/if}>3</option>
-              <option value="4" {#if info.get(t.id).rating == 4}selected{/if}>4</option>
-              <option value="5" {#if info.get(t.id).rating == 5}selected{/if}>5</option>
-            </select>
+          <div class="talk-actions">
+            <div class="rating">
+              <label for="rating-{t.id}" class="rating-label">⭐ Valorar</label>
+              <select id="rating-{t.id}" class="rating-select" data-talk-id="{t.id}">
+                <option value="">Calificación</option>
+                <option value="1" {#if info.get(t.id).rating == 1}selected{/if}>1</option>
+                <option value="2" {#if info.get(t.id).rating == 2}selected{/if}>2</option>
+                <option value="3" {#if info.get(t.id).rating == 3}selected{/if}>3</option>
+                <option value="4" {#if info.get(t.id).rating == 4}selected{/if}>4</option>
+                <option value="5" {#if info.get(t.id).rating == 5}selected{/if}>5</option>
+              </select>
+            </div>
+            <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}">🗑️ Eliminar</button>
           </div>
-          <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}">Eliminar</button>
         </div>
         {/for}
       </div>
