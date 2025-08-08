@@ -8,7 +8,7 @@
         <p class="section-subtitle no-events">No hay eventos disponibles.</p>
     {#else}
         <div class="timeline">
-            <div class="timeline-label">HOY</div>
+            <div class="timeline-label">Hoy: {today.format('dd/MM/yyyy')}</div>
             {#for e in events}
             <div class="timeline-item">
                 <div class="timeline-marker"></div>
@@ -20,10 +20,10 @@
                         <div class="no-logo">Sin logo disponible</div>
                         {/if}
                     </div>
-                    <div class="event-info">
+                    <div class="event-main">
                         <h2 class="event-name"><a href="/event/{e.id}">{e.title}</a></h2>
-                        {#if e.formattedDate}
-                        <p class="event-date">{e.formattedDate}</p>
+                        {#if e.descriptionSummary}
+                        <p class="event-description">{e.descriptionSummary}</p>
                         {/if}
                         {#if app:validUrl(e.website) || app:validUrl(e.twitter) || app:validUrl(e.linkedin) || app:validUrl(e.instagram) || app:validUrl(e.ticketsUrl)}
                         <div class="event-links">
@@ -34,9 +34,12 @@
                             {#if app:validUrl(e.ticketsUrl)}<a href="{e.ticketsUrl}" target="_blank" rel="noopener" class="btn">🎟️ Entradas</a>{/if}
                         </div>
                         {/if}
+                    </div>
+                    <div class="event-countdown">
                         {#if e.formattedDate}
-                        <p class="days-left">Faltan {e.daysUntil} días</p>
+                        <p class="event-date">{e.formattedDate}</p>
                         {/if}
+                        <p class="days-left">Faltan {e.daysUntil} días</p>
                     </div>
                 </article>
             </div>

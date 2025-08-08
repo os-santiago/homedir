@@ -408,6 +408,7 @@ button:focus-visible {
     flex-wrap: wrap;
     gap: 1rem;
     align-items: center;
+    justify-content: space-between;
 }
 
 .event-logo {
@@ -434,14 +435,35 @@ button:focus-visible {
     padding: 0.5rem;
 }
 
-.event-info {
+.event-main {
     flex: 1;
     min-width: 200px;
+}
+
+.event-description {
+    margin: 0.5rem 0;
+}
+
+.event-countdown {
+    text-align: right;
+    min-width: 120px;
 }
 
 .days-left {
     font-weight: bold;
     margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .event-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .event-countdown {
+        text-align: left;
+        align-self: flex-start;
+    }
 }
 
 /* Grid of event cards on the home page */
