@@ -27,6 +27,39 @@
   </form>
   </td>
 </tr>
+<tr>
+  <td colspan="3">
+    <table class="sub-table">
+      <thead><tr><th>ID</th><th>Título</th><th>Duración</th><th>Acciones</th></tr></thead>
+      <tbody>
+        {#for t in s.talks}
+        <tr>
+          <form method="post" action="/private/admin/speakers/{s.id}/talk">
+            <td>{t.id}<input type="hidden" name="talkId" value="{t.id}"></td>
+            <td><input name="name" value="{t.name}"></td>
+            <td><input name="duration" type="number" min="1" value="{t.durationMinutes}"></td>
+            <td>
+              <input name="description" value="{t.description}" placeholder="Descripcion">
+              <button type="submit">Guardar</button>
+          </form>
+          <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete" style="display:inline" class="needs-confirm">
+              <button type="submit">Eliminar</button>
+          </form>
+            </td>
+        </tr>
+        {/for}
+        <tr>
+          <form method="post" action="/private/admin/speakers/{s.id}/talk">
+            <td>Nuevo</td>
+            <td><input name="name"></td>
+            <td><input name="duration" type="number" min="1"></td>
+            <td><input name="description" placeholder="Descripcion"><button type="submit">Agregar</button></td>
+          </form>
+        </tr>
+      </tbody>
+    </table>
+  </td>
+</tr>
 {/for}
 <tr>
   <form method="post" action="/private/admin/speakers">

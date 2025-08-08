@@ -6,8 +6,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import com.scanales.eventflow.model.Speaker;
+import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.model.Event;
 
 /**
  * Simple in-memory service for managing speakers globally.
@@ -16,6 +19,9 @@ import com.scanales.eventflow.model.Speaker;
 public class SpeakerService {
 
     private static final Map<String, Speaker> speakers = new ConcurrentHashMap<>();
+
+    @Inject
+    EventService eventService;
 
     public List<Speaker> listSpeakers() {
         return new ArrayList<>(speakers.values());
@@ -40,11 +46,74 @@ public class SpeakerService {
             existing.setTwitter(speaker.getTwitter());
             existing.setLinkedin(speaker.getLinkedin());
             existing.setInstagram(speaker.getInstagram());
+            if (speaker.getTalks() != null && !speaker.getTalks().isEmpty()) {
+                existing.setTalks(speaker.getTalks());
+            }
             return existing;
         });
     }
 
     public void deleteSpeaker(String id) {
-        speakers.remove(id);
+        Speaker sp = speakers.remove(id);
+        if (sp != null) {
+            // remove talks from events as well
+            for (Talk t : sp.getTalks()) {
+                for (Event e : eventService.listEvents()) {
+                    e.getAgenda().removeIf(tt -> tt.getId().equals(t.getId()));
+                }
+            }
+        }
+    }
+
+    public void saveTalk(String speakerId, Talk talk) {
+        Speaker sp = speakers.get(speakerId);
+        if (sp == null || talk == null || talk.getId() == null) {
+            return;
+        }
+        // ensure the main speaker is present in the talk
+        if (talk.getSpeakers() == null || talk.getSpeakers().isEmpty()) {
+            talk.setSpeakers(List.of(sp));
+        }
+        sp.getTalks().removeIf(t -> t.getId().equals(talk.getId()));
+        sp.getTalks().add(talk);
+        // propagate updates to all events using this talk
+        for (Talk t : eventService.findTalkOccurrences(talk.getId())) {
+            t.setName(talk.getName());
+            t.setDescription(talk.getDescription());
+            t.setDurationMinutes(talk.getDurationMinutes());
+            t.setSpeakers(talk.getSpeakers());
+        }
+    }
+
+    public Talk getTalk(String speakerId, String talkId) {
+        Speaker sp = speakers.get(speakerId);
+        if (sp == null) {
+            return null;
+        }
+        return sp.getTalks().stream()
+                .filter(t -> t.getId().equals(talkId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Finds a talk by id across all speakers.
+     */
+    public Talk findTalk(String talkId) {
+        return speakers.values().stream()
+                .flatMap(s -> s.getTalks().stream())
+                .filter(t -> t.getId().equals(talkId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void deleteTalk(String speakerId, String talkId) {
+        Speaker sp = speakers.get(speakerId);
+        if (sp != null) {
+            sp.getTalks().removeIf(t -> t.getId().equals(talkId));
+        }
+        for (Event e : eventService.listEvents()) {
+            e.getAgenda().removeIf(t -> t.getId().equals(talkId));
+        }
     }
 }
