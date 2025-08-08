@@ -173,7 +173,7 @@ Nuevo Evento
       function filterTalks(){
         const sid = speakerSelect.value;
         Array.from(talkSelect.options).forEach(opt => {
-          if(!opt.value){return;}
+          if(!opt.value) return;
           opt.hidden = sid && opt.dataset.speaker !== sid;
         });
         talkSelect.value = '';
