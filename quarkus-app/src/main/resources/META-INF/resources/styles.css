@@ -361,6 +361,89 @@ button:focus-visible {
     margin-top: 2rem;
 }
 
+/* Timeline of upcoming events on the home page */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+    margin-top: 2rem;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    top: 1.5rem;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--color-primary);
+}
+
+.timeline-label {
+    font-weight: bold;
+    margin-left: 0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-top: 2rem;
+}
+
+.timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -0.6rem;
+    top: 1rem;
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+}
+
+.event-row {
+    background-color: var(--color-light);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.event-logo {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-accent);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.event-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.no-logo {
+    color: var(--color-light);
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.event-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.days-left {
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
 /* Grid of event cards on the home page */
 .event-grid {
     display: grid;
