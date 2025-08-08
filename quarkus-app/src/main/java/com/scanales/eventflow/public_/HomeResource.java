@@ -10,6 +10,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.Comparator;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
@@ -23,7 +24,8 @@ public class HomeResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance home(java.util.List<com.scanales.eventflow.model.Event> events);
+        static native TemplateInstance home(java.util.List<com.scanales.eventflow.model.Event> events,
+                LocalDate today);
     }
 
     @GET
@@ -34,7 +36,7 @@ public class HomeResource {
                 .sorted(Comparator.comparing(Event::getDate,
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
-        return Templates.home(events);
+        return Templates.home(events, LocalDate.now());
     }
 
     @GET

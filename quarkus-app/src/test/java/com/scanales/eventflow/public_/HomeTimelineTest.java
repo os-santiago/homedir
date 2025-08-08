@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -49,7 +50,8 @@ public class HomeTimelineTest {
 
         Assertions.assertTrue(html.indexOf("Evento Cercano") < html.indexOf("Evento Lejano"),
                 "El evento más próximo debe aparecer primero");
-        Assertions.assertTrue(html.contains("HOY"));
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        Assertions.assertTrue(html.contains("Hoy: " + today));
     }
 }
 
