@@ -92,6 +92,7 @@ public class AdminEventResource {
     @Authenticated
     public Response saveEvent(@FormParam("title") String title,
                               @FormParam("description") String description,
+                              @FormParam("date") String date,
                               @FormParam("days") int days,
                               @FormParam("logoUrl") String logoUrl,
                               @FormParam("contactEmail") String contactEmail,
@@ -106,6 +107,7 @@ public class AdminEventResource {
         var now = java.time.LocalDateTime.now();
         String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
         Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
+        event.setDateStr(date);
         event.setLogoUrl(sanitizeUrl(logoUrl));
         event.setContactEmail(sanitizeEmail(contactEmail));
         event.setWebsite(sanitizeUrl(website));
@@ -125,6 +127,7 @@ public class AdminEventResource {
     public Response updateEvent(@PathParam("id") String id,
                                 @FormParam("title") String title,
                                 @FormParam("description") String description,
+                                @FormParam("date") String date,
                                 @FormParam("days") int days,
                                 @FormParam("logoUrl") String logoUrl,
                                 @FormParam("contactEmail") String contactEmail,
@@ -142,6 +145,7 @@ public class AdminEventResource {
         }
         event.setTitle(title);
         event.setDescription(description);
+        event.setDateStr(date);
         event.setDays(days);
         event.setLogoUrl(sanitizeUrl(logoUrl));
         event.setContactEmail(sanitizeEmail(contactEmail));

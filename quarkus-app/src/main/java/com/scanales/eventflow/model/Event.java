@@ -5,7 +5,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
@@ -43,6 +45,8 @@ public class Event {
     private LocalDateTime createdAt;
     /** Email of the user who created the event. */
     private String creator;
+    /** Day when the event takes place. */
+    private LocalDate date;
 
     public Event() {
     }
@@ -197,6 +201,63 @@ public class Event {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public String getDateStr() {
+        return date == null ? "" : date.toString();
+    }
+
+    public void setDateStr(String value) {
+        if (value != null && !value.isBlank()) {
+            this.date = LocalDate.parse(value);
+        } else {
+            this.date = null;
+        }
+    }
+
+    /** Returns the event date formatted for display, e.g. "5 de septiembre de 2025". */
+    public String getFormattedDate() {
+        if (date == null) {
+            return "";
+        }
+        var formatter = java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", new java.util.Locale("es"));
+        return date.format(formatter);
+    }
+
+    /** Returns the starting time of the event based on the earliest talk. */
+    public LocalTime getStartTime() {
+        return agenda.stream()
+                .map(Talk::getStartTime)
+                .filter(t -> t != null)
+                .min(LocalTime::compareTo)
+                .orElse(null);
+    }
+
+    /** Returns the ending time of the event based on the last scheduled talk. */
+    public LocalTime getEndTime() {
+        return agenda.stream()
+                .map(Talk::getEndTime)
+                .filter(t -> t != null)
+                .max(LocalTime::compareTo)
+                .orElse(null);
+    }
+
+    public String getStartTimeStr() {
+        LocalTime t = getStartTime();
+        return t == null ? "" : t.toString();
+    }
+
+    public String getEndTimeStr() {
+        LocalTime t = getEndTime();
+        return t == null ? "" : t.toString();
     }
 
     /**

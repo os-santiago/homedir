@@ -421,6 +421,24 @@ button:focus-visible {
     color: var(--color-dark);
 }
 
+.event-date {
+    font-size: 0.9rem;
+    color: #333;
+    margin: 0 0 0.25rem;
+}
+
+.event-time {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0 0 0.5rem;
+}
+
+.event-time-info {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0.5rem 0;
+}
+
 
 .event-excerpt {
     font-size: 0.9rem;
@@ -463,6 +481,11 @@ button:focus-visible {
 
 .event-summary .event-info {
     flex: 1;
+}
+
+.event-datetime {
+    font-weight: bold;
+    margin: 0.5rem 0;
 }
 
 .event-links {
