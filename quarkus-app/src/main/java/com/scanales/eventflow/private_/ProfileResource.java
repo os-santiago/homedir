@@ -158,7 +158,7 @@ public class ProfileResource {
             if (info != null) {
                 body.put("eventId", info.event().getId());
             }
-            return Response.ok(body).build();
+            return Response.ok(body).type(MediaType.APPLICATION_JSON).build();
         }
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/talk/" + id)
@@ -185,7 +185,9 @@ public class ProfileResource {
         boolean removed = userSchedule.removeTalkForUser(email, id);
         String status = removed ? "removed" : "missing";
         if (acceptsJson(headers)) {
-            return Response.ok(java.util.Map.of("status", status, "talkId", id)).build();
+            return Response.ok(java.util.Map.of("status", status, "talkId", id))
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
         }
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/profile")
@@ -193,8 +195,8 @@ public class ProfileResource {
     }
 
     private boolean acceptsJson(HttpHeaders headers) {
-        return headers.getAcceptableMediaTypes().stream()
-                .anyMatch(mt -> mt.isCompatible(MediaType.APPLICATION_JSON_TYPE));
+        String accept = headers.getHeaderString(HttpHeaders.ACCEPT);
+        return accept != null && accept.toLowerCase().contains(MediaType.APPLICATION_JSON);
     }
 
     private String getClaim(String claimName) {

@@ -49,6 +49,7 @@ public class ProfileResourceTest {
     @TestSecurity(user = "user@example.com")
     public void addTalkHtmlRedirect() {
         given()
+            .redirects().follow(false)
             .header("Accept", "text/html")
             .header("Content-Type", "application/json")
             .body("{}")
@@ -67,6 +68,7 @@ public class ProfileResourceTest {
             .post("/private/profile/add/t4").then().statusCode(200);
 
         given()
+            .redirects().follow(false)
             .header("Accept", "text/html")
             .header("Content-Type", "application/json")
             .body("{}")
