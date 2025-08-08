@@ -4,8 +4,6 @@ metadata:
   name: eventflow-data
   namespace: eventflow
 spec:
-  capacity:
-    storage: 100Mi
   storageClassName: standard-rwx
   accessModes:
     - ReadWriteMany
