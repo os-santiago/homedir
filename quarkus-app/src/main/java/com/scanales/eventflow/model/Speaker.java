@@ -3,9 +3,6 @@ package com.scanales.eventflow.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 
@@ -17,7 +14,11 @@ public class Speaker {
     private String id;
     private String name;
     private String bio;
-    private List<Talk> talks = new ArrayList<>();
+    private String photoUrl;
+    private String website;
+    private String twitter;
+    private String linkedin;
+    private String instagram;
 
     public Speaker() {
     }
@@ -51,11 +52,43 @@ public class Speaker {
         this.bio = bio;
     }
 
-    public List<Talk> getTalks() {
-        return talks;
+    public String getPhotoUrl() {
+        return photoUrl;
     }
 
-    public void setTalks(List<Talk> talks) {
-        this.talks = talks;
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getTwitter() {
+        return twitter;
+    }
+
+    public void setTwitter(String twitter) {
+        this.twitter = twitter;
+    }
+
+    public String getLinkedin() {
+        return linkedin;
+    }
+
+    public void setLinkedin(String linkedin) {
+        this.linkedin = linkedin;
+    }
+
+    public String getInstagram() {
+        return instagram;
+    }
+
+    public void setInstagram(String instagram) {
+        this.instagram = instagram;
     }
 }

@@ -1,0 +1,51 @@
+{#include layout/base}
+{#title}Oradores{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Oradores</span>{/breadcrumbs}
+{#main}
+<h1>Oradores</h1>
+{#if message}<p class="section-subtitle">{message}</p>{/if}
+<div class="card">
+<table>
+<thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
+<tbody>
+{#for s in speakers}
+<tr>
+  <form method="post" action="/private/admin/speakers">
+  <td>{s.id}<input type="hidden" name="id" value="{s.id}"></td>
+  <td><input name="name" value="{s.name}"></td>
+  <td>
+    <input name="bio" value="{s.bio}" placeholder="Bio">
+    <input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL">
+    <input name="website" value="{s.website}" placeholder="Sitio">
+    <input name="twitter" value="{s.twitter}" placeholder="Twitter">
+    <input name="linkedin" value="{s.linkedin}" placeholder="LinkedIn">
+    <input name="instagram" value="{s.instagram}" placeholder="Instagram">
+    <button type="submit">Guardar</button>
+  </form>
+  <form method="post" action="/private/admin/speakers/{s.id}/delete" style="display:inline" class="needs-confirm">
+    <button type="submit">Eliminar</button>
+  </form>
+  </td>
+</tr>
+{/for}
+<tr>
+  <form method="post" action="/private/admin/speakers">
+  <td>Nuevo</td>
+  <td><input name="name"></td>
+  <td>
+    <input name="bio" placeholder="Bio">
+    <input name="photoUrl" placeholder="Foto URL">
+    <input name="website" placeholder="Sitio">
+    <input name="twitter" placeholder="Twitter">
+    <input name="linkedin" placeholder="LinkedIn">
+    <input name="instagram" placeholder="Instagram">
+    <button type="submit">Agregar</button>
+  </td>
+  </form>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a href="/private/admin">Volver al panel</a></p>
+{/main}
+{/include}

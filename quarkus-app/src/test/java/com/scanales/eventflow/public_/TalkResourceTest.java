@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 import java.time.LocalTime;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ public class TalkResourceTest {
     public void setup() {
         Event event = new Event(EVENT_ID, "Evento", "desc");
         Talk talk = new Talk(TALK_ID, "Charla de prueba");
-        talk.setSpeaker(new Speaker("s1", "Speaker"));
+        talk.setSpeakers(List.of(new Speaker("s1", "Speaker")));
         talk.setStartTime(LocalTime.of(10, 0));
         talk.setDurationMinutes(60);
         event.getAgenda().add(talk);

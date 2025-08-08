@@ -23,8 +23,12 @@ Escenario
     <li class="talk-item">
       <h3>{t.name}</h3>
       <p class="talk-time">Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min)</p>
-      {#if t.speaker}
-      <p class="talk-speakers">Orador: {t.speaker.name}{#if t.coSpeaker} & {t.coSpeaker.name}{/if}</p>
+      {#if !t.speakers.isEmpty()}
+      <p class="talk-speakers">Orador:
+        {#for s in t.speakers}
+          <a href="/speaker/{s.id}">{s.name}</a>{#if s_hasNext} & {/if}
+        {/for}
+      </p>
       {/if}
       <a href="/talk/{t.id}" class="btn btn-secondary">Ver charla</a>
     </li>
