@@ -22,6 +22,8 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -143,12 +145,24 @@ public class ProfileResource {
     @POST
     @Path("add/{id}")
     @Authenticated
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response addTalk(@PathParam("id") String id) {
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.TEXT_HTML })
+    public Response addTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
         String email = getEmail();
         boolean added = userSchedule.addTalkForUser(email, id);
         String status = added ? "added" : "exists";
-        return Response.ok(java.util.Map.of("status", status)).build();
+        if (acceptsJson(headers)) {
+            var info = eventService.findTalkInfo(id);
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            body.put("status", status);
+            body.put("talkId", id);
+            if (info != null) {
+                body.put("eventId", info.event().getId());
+            }
+            return Response.ok(body).type(MediaType.APPLICATION_JSON).build();
+        }
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/talk/" + id)
+                .build();
     }
 
     @GET
@@ -165,12 +179,24 @@ public class ProfileResource {
     @POST
     @Path("remove/{id}")
     @Authenticated
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response removeTalk(@PathParam("id") String id) {
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.TEXT_HTML })
+    public Response removeTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
         String email = getEmail();
         boolean removed = userSchedule.removeTalkForUser(email, id);
         String status = removed ? "removed" : "missing";
-        return Response.ok(java.util.Map.of("status", status)).build();
+        if (acceptsJson(headers)) {
+            return Response.ok(java.util.Map.of("status", status, "talkId", id))
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/profile")
+                .build();
+    }
+
+    private boolean acceptsJson(HttpHeaders headers) {
+        String accept = headers.getHeaderString(HttpHeaders.ACCEPT);
+        return accept != null && accept.toLowerCase().contains(MediaType.APPLICATION_JSON);
     }
 
     private String getClaim(String claimName) {
