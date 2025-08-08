@@ -260,20 +260,12 @@ public class AdminEventResource {
     @Authenticated
     public Response saveTalk(@PathParam("id") String eventId,
                              @FormParam("talkId") String talkId,
-                             @FormParam("name") String name,
-                             @FormParam("description") String description,
+                             @FormParam("speakerId") String speakerId,
                              @FormParam("location") String location,
                              @FormParam("startTime") String startTime,
-                             @FormParam("duration") int duration,
-                             @FormParam("day") int day,
-                             @FormParam("speakers") java.util.List<String> speakerIds) {
+                             @FormParam("day") int day) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
-        }
-        if (talkId == null || talkId.isBlank()) {
-            var ts = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                    .format(java.time.LocalDateTime.now());
-            talkId = eventId + "-charla-" + ts;
         }
         Event event = eventService.getEvent(eventId);
         if (event == null) {
@@ -282,30 +274,29 @@ public class AdminEventResource {
         if (day < 1 || day > event.getDays()) {
             day = 1;
         }
-        if (name == null || name.isBlank() || location == null || location.isBlank()
-                || startTime == null || startTime.isBlank() || duration <= 0) {
+        if (talkId == null || talkId.isBlank() || location == null || location.isBlank()
+                || startTime == null || startTime.isBlank()) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId
-                                    + "/edit?msg=Campos+obligatorios")
+                            "/private/admin/events/" + eventId + "/edit?msg=Campos+obligatorios")
                     .build();
         }
-        Talk talk = new Talk(talkId, name);
-        talk.setDescription(description);
+        Talk base = speakerId != null && !speakerId.isBlank()
+                ? speakerService.getTalk(speakerId, talkId)
+                : speakerService.findTalk(talkId);
+        if (base == null) {
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location",
+                            "/private/admin/events/" + eventId + "/edit?msg=Charla+no+encontrada")
+                    .build();
+        }
+        Talk talk = new Talk(talkId, base.getName());
+        talk.setDescription(base.getDescription());
+        talk.setDurationMinutes(base.getDurationMinutes());
+        talk.setSpeakers(base.getSpeakers());
         talk.setLocation(location);
         talk.setStartTimeStr(startTime);
-        talk.setDurationMinutes(duration);
         talk.setDay(day);
-        if (speakerIds != null) {
-            var spList = new java.util.ArrayList<Speaker>();
-            for (String sid : speakerIds) {
-                Speaker sp = speakerService.getSpeaker(sid);
-                if (sp != null) {
-                    spList.add(sp);
-                }
-            }
-            talk.setSpeakers(spList);
-        }
         if (eventService.hasOverlap(eventId, talk)) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",

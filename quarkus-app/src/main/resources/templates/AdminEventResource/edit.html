@@ -102,27 +102,20 @@ Nuevo Evento
   <h2><span class="icon">🗣️</span>Charlas</h2>
   <div class="card">
   <table>
-  <thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>ID</th><th>Charla</th><th>Acciones</th></tr></thead>
   <tbody>
   {#for t in event.agenda}
   <tr>
   <form method="post" action="/private/admin/events/{event.id}/talk">
   <td>{t.id}<input type="hidden" name="talkId" value="{t.id}"></td>
-  <td><input name="name" value="{t.name}"></td>
+  <td>{t.name}<br><small>{t.getSpeakerNames()}</small></td>
   <td>
-  <input name="description" value="{t.description}" placeholder="Descripcion">
-  <select name="speakers" multiple>
-  {#for sp in speakers}
-  <option value="{sp.id}"{#if t.speakers.contains(sp)} selected{/if}>{sp.name}</option>
-  {/for}
-  </select>
   <select name="location">
   {#for sc in event.scenarios}
   <option value="{sc.id}"{#if sc.id == t.location} selected{/if}>{sc.name}</option>
   {/for}
   </select>
   <input name="startTime" type="time" value="{t.startTimeStr}">
-  <input name="duration" type="number" min="1" value="{t.durationMinutes}">
   <select name="day">
   {#for d in event.dayList}
   <option value="{d}"{#if t.day == d} selected{/if}>Día {d}</option>
@@ -139,21 +132,29 @@ Nuevo Evento
   <tr>
   <form method="post" action="/private/admin/events/{event.id}/talk">
   <td>Nuevo</td>
-  <td><input name="name"></td>
   <td>
-  <input name="description" placeholder="Descripcion">
-  <select name="speakers" multiple>
-  {#for sp in speakers}
-  <option value="{sp.id}">{sp.name}</option>
-  {/for}
-  </select>
+    <select id="speakerSelect" name="speakerId">
+      <option value="">Seleccione orador</option>
+      {#for sp in speakers}
+      <option value="{sp.id}">{sp.name}</option>
+      {/for}
+    </select>
+    <select id="talkSelect" name="talkId">
+      <option value="">Seleccione charla</option>
+      {#for sp in speakers}
+        {#for t in sp.talks}
+        <option value="{t.id}" data-speaker="{sp.id}">{t.name}</option>
+        {/for}
+      {/for}
+    </select>
+  </td>
+  <td>
   <select name="location">
   {#for sc in event.scenarios}
   <option value="{sc.id}">{sc.name}</option>
   {/for}
   </select>
   <input name="startTime" type="time">
-  <input name="duration" type="number" min="1">
   <select name="day">
   {#for d in event.dayList}
   <option value="{d}">Día {d}</option>
@@ -165,6 +166,22 @@ Nuevo Evento
   </tr>
   </tbody>
   </table>
+  <script>
+    (function(){
+      const speakerSelect = document.getElementById('speakerSelect');
+      const talkSelect = document.getElementById('talkSelect');
+      function filterTalks(){
+        const sid = speakerSelect.value;
+        Array.from(talkSelect.options).forEach(opt => {
+          if(!opt.value){return;}
+          opt.hidden = sid && opt.dataset.speaker !== sid;
+        });
+        talkSelect.value = '';
+      }
+      speakerSelect.addEventListener('change', filterTalks);
+      filterTalks();
+    })();
+  </script>
   </div>
 </section>
 <section id="agenda">

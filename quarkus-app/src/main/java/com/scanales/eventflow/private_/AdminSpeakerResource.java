@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.scanales.eventflow.model.Speaker;
+import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.util.AdminUtils;
 
@@ -98,6 +99,51 @@ public class AdminSpeakerResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         speakerService.deleteSpeaker(id);
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/speakers")
+                .build();
+    }
+
+    @POST
+    @Path("{speakerId}/talk")
+    @Authenticated
+    public Response saveTalk(@PathParam("speakerId") String speakerId,
+                             @FormParam("talkId") String talkId,
+                             @FormParam("name") String name,
+                             @FormParam("description") String description,
+                             @FormParam("duration") int duration) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        if (name == null || name.isBlank() || duration <= 0) {
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location", "/private/admin/speakers?msg=Campos+obligatorios")
+                    .build();
+        }
+        if (talkId == null || talkId.isBlank()) {
+            var ts = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                    .format(LocalDateTime.now());
+            talkId = speakerId + "-talk-" + ts;
+        }
+        Talk talk = new Talk(talkId, name);
+        talk.setDescription(description);
+        talk.setDurationMinutes(duration);
+        // main speaker will be added in service
+        speakerService.saveTalk(speakerId, talk);
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/speakers")
+                .build();
+    }
+
+    @POST
+    @Path("{speakerId}/talk/{talkId}/delete")
+    @Authenticated
+    public Response deleteTalk(@PathParam("speakerId") String speakerId,
+                               @PathParam("talkId") String talkId) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        speakerService.deleteTalk(speakerId, talkId);
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/speakers")
                 .build();
