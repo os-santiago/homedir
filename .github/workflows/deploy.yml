@@ -64,4 +64,5 @@ jobs:
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/service.yaml
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/deployment.yaml
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/ingress.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/pvc.yaml
           kubectl rollout restart deployment eventflow -n "$GKE_NAMESPACE"
