@@ -21,6 +21,9 @@ Evento
       {/if}
       <div class="event-info">
         <h1 class="page-title">{event.title}</h1>
+        {#if event.formattedDate}
+        <p class="event-datetime">{event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} hrs.</p>
+        {/if}
         {#if event.description}
         <p class="event-description">{event.description}</p>
         {/if}

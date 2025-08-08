@@ -10,6 +10,9 @@
   {#for group in groups}
     <div class="event-summary">
       <h2>{group.event.title}</h2>
+      {#if group.event.formattedDate}
+      <p class="event-date">{group.event.formattedDate} | {group.event.startTimeStr} - {group.event.endTimeStr}</p>
+      {/if}
       <p>{group.event.description}</p>
       <a href="/event/{group.event.id}" class="btn btn-outline">Ver evento</a>
       <ul class="talk-list">

@@ -33,6 +33,9 @@ Nuevo Evento
     <input id="title" name="title" type="text" value="{event.title}">
     <label for="description">Descripcion</label>
     <textarea id="description" name="description">{event.description}</textarea>
+    <label for="date">Fecha de realización</label>
+    <input id="date" name="date" type="date" value="{event.dateStr}">
+    <p class="event-time-info">Horario calculado: {#if event.startTimeStr}{event.startTimeStr} - {event.endTimeStr}{#else}Sin charlas{/if}</p>
     <label for="days">Días del evento</label>
     <input id="days" name="days" type="number" min="1" max="10" value="{event.days}">
     <label for="logoUrl">Logo URL</label>

@@ -19,6 +19,12 @@
                 </div>
                 <div class="event-content">
                     <h2 class="event-name">{e.title}</h2>
+                    {#if e.formattedDate}
+                        <p class="event-date">{e.formattedDate}</p>
+                        {#if e.startTimeStr}
+                        <p class="event-time">{e.startTimeStr} - {e.endTimeStr}</p>
+                        {/if}
+                    {/if}
                     {#if e.description}
                         <p class="event-excerpt">{e.descriptionSummary}</p>
                     {/if}
