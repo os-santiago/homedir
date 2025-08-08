@@ -33,7 +33,11 @@
           </h5>
           <p class="talk-event">{g.event.title}</p>
           <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
-          <p class="talk-speaker">{#if t.speaker}{t.speaker.name}{/if}</p>
+          <p class="talk-speaker">
+            {#if !t.speakers.isEmpty()}
+              {#for s in t.speakers}{s.name}{#if s_hasNext}, {/if}{/for}
+            {/if}
+          </p>
           <p class="talk-scenario">{g.event.getScenarioName(t.location)}</p>
           <div class="motivation-list">
             {#for m in info.get(t.id).motivations}

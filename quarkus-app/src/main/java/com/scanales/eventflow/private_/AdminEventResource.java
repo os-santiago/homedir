@@ -5,9 +5,11 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.util.AdminUtils;
 import org.jboss.logging.Logger;
 import jakarta.json.bind.Jsonb;
@@ -34,7 +36,7 @@ public class AdminEventResource {
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance list(java.util.List<Event> events, String message);
-        static native TemplateInstance edit(Event event, String message);
+        static native TemplateInstance edit(Event event, java.util.List<Speaker> speakers, String message);
     }
 
     @Inject
@@ -44,6 +46,9 @@ public class AdminEventResource {
 
     @Inject
     EventService eventService;
+
+    @Inject
+    SpeakerService speakerService;
 
     private boolean isAdmin() {
         return AdminUtils.isAdmin(identity);
@@ -69,7 +74,7 @@ public class AdminEventResource {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        return Response.ok(Templates.edit(new Event(), message)).build();
+        return Response.ok(Templates.edit(new Event(), speakerService.listSpeakers(), message)).build();
     }
 
     @GET
@@ -84,7 +89,7 @@ public class AdminEventResource {
         if (event == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(Templates.edit(event, message)).build();
+        return Response.ok(Templates.edit(event, speakerService.listSpeakers(), message)).build();
     }
 
     @POST
@@ -260,7 +265,8 @@ public class AdminEventResource {
                              @FormParam("location") String location,
                              @FormParam("startTime") String startTime,
                              @FormParam("duration") int duration,
-                             @FormParam("day") int day) {
+                             @FormParam("day") int day,
+                             @FormParam("speakers") java.util.List<String> speakerIds) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -290,6 +296,16 @@ public class AdminEventResource {
         talk.setStartTimeStr(startTime);
         talk.setDurationMinutes(duration);
         talk.setDay(day);
+        if (speakerIds != null) {
+            var spList = new java.util.ArrayList<Speaker>();
+            for (String sid : speakerIds) {
+                Speaker sp = speakerService.getSpeaker(sid);
+                if (sp != null) {
+                    spList.add(sp);
+                }
+            }
+            talk.setSpeakers(spList);
+        }
         if (eventService.hasOverlap(eventId, talk)) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
@@ -449,7 +465,8 @@ public class AdminEventResource {
                 if (t.getDescription() == null) t.setDescription("VACIO");
                 if (t.getLocation() == null) t.setLocation("VACIO");
                 if (t.getStartTime() == null) t.setStartTime(java.time.LocalTime.MIDNIGHT);
-                if (t.getSpeaker() == null) t.setSpeaker(new com.scanales.eventflow.model.Speaker("","VACIO"));
+                if (t.getSpeakers() == null || t.getSpeakers().isEmpty())
+                    t.setSpeakers(java.util.List.of(new com.scanales.eventflow.model.Speaker("","VACIO")));
             }
         }
     }

@@ -14,12 +14,16 @@
 {#if talk}
 <section class="talk-detail">
   <h1 class="page-title">{talk.name ?: 'Charla'}</h1>
-  {#if !talk.description || !talk.speaker || !talk.location || !talk.startTime || !event}
+  {#if !talk.description || talk.speakers.isEmpty() || !talk.location || !talk.startTime || !event}
     <p>Charla en preparación. Pronto estará disponible</p>
   {/if}
   {#if talk.description}<p>{talk.description}</p>{/if}
-  {#if talk.speaker}
-    <p><strong>Orador:</strong> {talk.speaker.name}{#if talk.coSpeaker} & {talk.coSpeaker.name}{/if}</p>
+  {#if !talk.speakers.isEmpty()}
+    <p><strong>Orador:</strong>
+      {#for s in talk.speakers}
+        <a href="/speaker/{s.id}">{s.name}</a>{#if s_hasNext} & {/if}
+      {/for}
+    </p>
   {/if}
   <p><strong>Horario:</strong> {#if talk.startTimeStr}{talk.startTimeStr}{#else}Por confirmar{/if}</p>
   <p><strong>Ubicación:</strong>

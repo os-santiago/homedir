@@ -1,7 +1,18 @@
 {#include layout/base}
-{#title}Speaker{/title}
+{#title}{#if speaker}{speaker.name}{#else}Speaker{/if}{/title}
 {#main}
-<h1>Speaker {id}</h1>
-<p>Detalles del speaker pr\u00f3ximamente.</p>
+{#if speaker}
+<h1>{speaker.name}</h1>
+{#if speaker.photoUrl}<img src="{speaker.photoUrl}" alt="{speaker.name}" class="speaker-photo">{/if}
+{#if speaker.bio}<p>{speaker.bio}</p>{/if}
+<ul class="speaker-links">
+  {#if speaker.website}<li><a href="{speaker.website}">Sitio web</a></li>{/if}
+  {#if speaker.twitter}<li><a href="{speaker.twitter}">Twitter</a></li>{/if}
+  {#if speaker.linkedin}<li><a href="{speaker.linkedin}">LinkedIn</a></li>{/if}
+  {#if speaker.instagram}<li><a href="{speaker.instagram}">Instagram</a></li>{/if}
+</ul>
+{#else}
+<p>Speaker no encontrado.</p>
+{/if}
 {/main}
 {/include}

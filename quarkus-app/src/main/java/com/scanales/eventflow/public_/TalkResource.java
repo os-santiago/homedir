@@ -58,7 +58,7 @@ public class TalkResource {
             if (talk.getName() == null) missing.add("name");
             if (talk.getStartTime() == null) missing.add("startTime");
             if (event == null) missing.add("event");
-            if (talk.getSpeaker() == null) missing.add("speaker");
+            if (talk.getSpeakers() == null || talk.getSpeakers().isEmpty()) missing.add("speaker");
             if (!missing.isEmpty()) {
                 LOG.warnf("Talk %s missing data: %s", id, String.join(", ", missing));
             }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
@@ -16,8 +18,7 @@ public class Talk {
     private String id;
     private String name;
     private String description;
-    private Speaker speaker;
-    private Speaker coSpeaker;
+    private List<Speaker> speakers = new ArrayList<>();
     /** Room or scenario where the talk happens. */
     private String location;
     /** Day within the event when the talk occurs (1-based). */
@@ -58,20 +59,19 @@ public class Talk {
         this.description = description;
     }
 
-    public Speaker getSpeaker() {
-        return speaker;
+    public List<Speaker> getSpeakers() {
+        return speakers;
     }
 
-    public void setSpeaker(Speaker speaker) {
-        this.speaker = speaker;
+    public void setSpeakers(List<Speaker> speakers) {
+        this.speakers = speakers;
     }
 
-    public Speaker getCoSpeaker() {
-        return coSpeaker;
-    }
-
-    public void setCoSpeaker(Speaker coSpeaker) {
-        this.coSpeaker = coSpeaker;
+    public String getSpeakerNames() {
+        return speakers.stream()
+                .map(Speaker::getName)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.joining(", "));
     }
 
     public String getLocation() {
