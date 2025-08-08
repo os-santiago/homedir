@@ -29,7 +29,7 @@ spec:
               protocol: TCP
           env:
             - name: JAVA_TOOL_OPTIONS
-              value: "-XX:+UseContainerSupport"
+              value: "-XX:+UseContainerSupport -Deventflow.data.dir=/data"
             - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -74,12 +74,19 @@ spec:
               cpu: 50m
               ephemeral-storage: 1Gi
               memory: 52Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
           securityContext:
             capabilities:
               drop:
                 - NET_RAW
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: eventflow-data
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

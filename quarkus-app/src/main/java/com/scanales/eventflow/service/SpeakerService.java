@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -22,6 +23,14 @@ public class SpeakerService {
 
     @Inject
     EventService eventService;
+
+    @Inject
+    PersistenceService persistence;
+
+    @PostConstruct
+    void init() {
+        speakers.putAll(persistence.loadSpeakers());
+    }
 
     public List<Speaker> listSpeakers() {
         return new ArrayList<>(speakers.values());
@@ -51,6 +60,7 @@ public class SpeakerService {
             }
             return existing;
         });
+        persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
 
     public void deleteSpeaker(String id) {
@@ -63,6 +73,7 @@ public class SpeakerService {
                 }
             }
         }
+        persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
 
     public void saveTalk(String speakerId, Talk talk) {
@@ -83,6 +94,7 @@ public class SpeakerService {
             t.setDurationMinutes(talk.getDurationMinutes());
             t.setSpeakers(talk.getSpeakers());
         }
+        persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
 
     public Talk getTalk(String speakerId, String talkId) {
@@ -115,5 +127,6 @@ public class SpeakerService {
         for (Event e : eventService.listEvents()) {
             e.getAgenda().removeIf(t -> t.getId().equals(talkId));
         }
+        persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
 }
