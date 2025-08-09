@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -104,8 +105,18 @@ public class PersistenceService {
                 return;
             }
             try {
-                mapper.writeValue(file.toFile(), data);
-                LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
+                Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
+                try {
+                    mapper.writeValue(tmp.toFile(), data);
+                    Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                    LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
+                } finally {
+                    try {
+                        Files.deleteIfExists(tmp);
+                    } catch (IOException ignore) {
+                        // ignore cleanup errors
+                    }
+                }
             } catch (IOException e) {
                 LOG.error("Failed to persist data to " + file, e);
             }
