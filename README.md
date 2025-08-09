@@ -2,7 +2,7 @@
 
 Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
 
-## v2.0.0 – Gitless & Stable
+## v2.1.0 – Persistente con soporte de Eventos, Oradores y Charlas
 
 Esta versión elimina completamente la sincronización con repositorios Git introducida en versiones experimentales posteriores a v1.0.0.
 
