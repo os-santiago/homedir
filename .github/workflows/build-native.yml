@@ -8,7 +8,7 @@ jobs:
   build-native:
     runs-on: ubuntu-latest
     env:
-      IMAGE_VERSION: v2.1.0
+      IMAGE_VERSION: 2.1.1
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
