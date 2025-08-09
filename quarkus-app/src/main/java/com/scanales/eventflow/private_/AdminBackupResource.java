@@ -3,7 +3,6 @@ package com.scanales.eventflow.private_;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -87,7 +86,7 @@ public class AdminBackupResource {
         }
         try {
             persistence.flush();
-            Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
+            java.nio.file.Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
             if (!Files.exists(dataDir)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("\u274c Error: No hay datos para respaldar.")
@@ -152,7 +151,7 @@ public class AdminBackupResource {
                     .queryParam("msg", "\u274c Versi\u00f3n incompatible.")
                     .build()).build();
         }
-        Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
+        java.nio.file.Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
         try {
             Files.createDirectories(dataDir);
             long free = dataDir.toFile().getUsableSpace();
@@ -167,7 +166,7 @@ public class AdminBackupResource {
                  ZipInputStream zis = new ZipInputStream(in)) {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
-                    Path target = dataDir.resolve(entry.getName());
+                    java.nio.file.Path target = dataDir.resolve(entry.getName());
                     Files.copy(zis, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     zis.closeEntry();
                 }
