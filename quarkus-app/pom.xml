@@ -128,6 +128,7 @@
                     <includeTestScope>false</includeTestScope>
                     <includeProvidedScope>false</includeProvidedScope>
                     <includeTransitiveDependencies>true</includeTransitiveDependencies>
+                    <outputName>bom</outputName>
                 </configuration>
             </plugin>
         </plugins>

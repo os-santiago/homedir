@@ -71,13 +71,13 @@ redirects back to the event list displaying a confirmation banner.
 
 ## Supply chain: SBOM & Vulnerabilities
 
-The build generates Software Bill of Materials (SBOM) for dependencies and container images and scans them for known vulnerabilities.
+The build generates Software Bill of Materials (SBOM) for dependencies and container images and scans the image for known vulnerabilities.
 
 ### Local commands
 
 ```bash
 # Generate dependency SBOM
-./mvnw -f quarkus-app/pom.xml -DskipTests org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+mvn -f quarkus-app/pom.xml -DskipTests org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
 # Generate image SBOM
 syft oci:${REGISTRY}/${IMAGE_NAME}:<tag> -o cyclonedx-json > sbom-image.cdx.json
 # Scan image
@@ -86,14 +86,16 @@ grype oci:${REGISTRY}/${IMAGE_NAME}:<tag> --fail-on High
 
 ### CI
 
-- `target/bom.json` and `sbom-image.cdx.json` are uploaded as workflow artifacts.
+- `target/bom.json` and `sbom-image.cdx.json` are uploaded as workflow artifacts (Actions → Artifacts).
 - Pull requests fail on **High** or **Critical** findings; pushes to `main` fail on **Critical**.
-- If `COSIGN_*` secrets are available, the image SBOM is attached and signed with [Cosign](https://github.com/sigstore/cosign).
+- Images are signed with [Cosign](https://github.com/sigstore/cosign) using keyless signatures when `vars.SIGN_KEYLESS` is `true`, or a private key when `COSIGN_PRIVATE_KEY`/`COSIGN_PASSWORD` secrets are provided.
+- The image SBOM can be attached to the image when `vars.SIGN_ATTACH_SBOM` is `true`.
 
 Required variables and secrets:
 
-- `REGISTRY` – container registry (e.g. `ghcr.io`)
-- `IMAGE_NAME` – image repository (e.g. `owner/repo`)
-- `COSIGN_EXPERIMENTAL`, or `COSIGN_PRIVATE_KEY`/`COSIGN_PASSWORD` for Cosign attachment
+- `REGISTRY` – container registry (defaults to `ghcr.io`)
+- `SIGN_KEYLESS=true` – enable keyless signing
+- `SIGN_ATTACH_SBOM=true` – attach SBOM to the image (optional)
+- `COSIGN_PRIVATE_KEY` and `COSIGN_PASSWORD` – key pair for signing (optional)
 
 For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
