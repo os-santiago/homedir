@@ -14,6 +14,7 @@ import java.util.List;
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id",
         resolver = PermissiveObjectIdResolver.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 
 /**
