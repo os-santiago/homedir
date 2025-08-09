@@ -1,0 +1,20 @@
+{#include layout/base}
+{#title}Backup{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Backup</span>{/breadcrumbs}
+{#main}
+<section class="backup-admin">
+  <h1 class="page-title">Respaldo de datos</h1>
+  {#if message}
+  <p class="section-subtitle">{message}</p>
+  {/if}
+  <div class="card action-group">
+    <a href="/private/admin/backup/download" class="btn">Manual BackUp</a>
+    <form method="post" action="/private/admin/backup/upload" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".zip">
+      <button type="submit" class="btn btn-secondary">Upload BackUp</button>
+    </form>
+  </div>
+  <a href="/private/admin" class="btn btn-secondary">Volver</a>
+</section>
+{/main}
+{/include}
