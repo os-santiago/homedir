@@ -1,0 +1,76 @@
+name: SBOM and scan
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+  id-token: write
+
+concurrency:
+  group: sbom-and-scan-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ vars.REGISTRY }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/dependency-review-action@v3
+        if: ${{ github.event_name == 'pull_request' }}
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build and generate SBOM
+        working-directory: quarkus-app
+        run: ./mvnw -B -DskipTests verify
+
+      - name: Build container image
+        run: |
+          docker build -f quarkus-app/src/main/docker/Dockerfile.jvm -t ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA} quarkus-app
+
+      - name: Setup Syft
+        uses: anchore/setup-syft@v1
+
+      - name: Setup Grype
+        uses: anchore/setup-grype@v1
+
+      - name: Generate image SBOM
+        run: syft packages ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA} -o cyclonedx-json > sbom-image.cdx.json
+
+      - name: Scan image for vulnerabilities
+        env:
+          FAIL_ON: ${{ github.event_name == 'pull_request' && 'high' || 'critical' }}
+        run: grype sbom:sbom-image.cdx.json --fail-on ${FAIL_ON}
+
+      - name: Upload dependency SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: bom
+          path: quarkus-app/target/bom.json
+
+      - name: Upload image SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-image
+          path: sbom-image.cdx.json
+
+      - name: Cosign attach SBOM
+        if: ${{ env.REGISTRY != '' && env.IMAGE_NAME != '' && (secrets.COSIGN_PRIVATE_KEY != '' || secrets.COSIGN_EXPERIMENTAL != '') }}
+        env:
+          COSIGN_EXPERIMENTAL: ${{ secrets.COSIGN_EXPERIMENTAL }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}
