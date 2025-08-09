@@ -14,7 +14,6 @@ import com.scanales.eventflow.util.AdminUtils;
 import org.jboss.logging.Logger;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import jakarta.inject.Inject;
@@ -180,40 +179,6 @@ public class AdminEventResource {
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/private/admin/events")
                 .build();
-    }
-
-    @GET
-    @Path("{id}/export")
-    @Authenticated
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response exportEvent(@PathParam("id") String id) {
-        if (!isAdmin()) {
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-        Event event = eventService.getEvent(id);
-        if (event == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("\u274c Error: Evento no encontrado.")
-                    .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
-                    .build();
-        }
-        if (!hasRequiredData(event)) {
-            LOG.warnf("Event %s has no data to export", id);
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("\u274c Error: El evento no contiene datos para exportar.")
-                    .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
-                    .build();
-        }
-        try (Jsonb jsonb = JsonbBuilder.create()) {
-            String json = jsonb.toJson(event);
-            LOG.infov("Exporting event {0}:\n{1}", id, json);
-            return Response.ok(json, MediaType.APPLICATION_JSON_TYPE)
-                    .header("Content-Disposition", "attachment; filename=event-" + id + ".json")
-                    .build();
-        } catch (Exception e) {
-            LOG.error("Failed to export event", e);
-            return Response.serverError().build();
-        }
     }
 
     @POST
@@ -386,25 +351,6 @@ public class AdminEventResource {
                     .entity(Templates.list(events, "Importaci\u00f3n fallida: JSON inv\u00e1lido"))
                     .build();
         }
-    }
-
-    private boolean hasRequiredData(Event event) {
-        if (event == null) {
-            return false;
-        }
-
-        JsonbConfig cfg = new JsonbConfig().withFormatting(true);
-        try (Jsonb jsonb = JsonbBuilder.create(cfg)) {
-            String eventJson = jsonb.toJson(event);
-            LOG.infov("Event content:\n{0}", eventJson);
-        } catch (Exception e) {
-            LOG.warn("Unable to serialize event for logging", e);
-        }
-
-        boolean hasLists = (event.getScenarios() != null && !event.getScenarios().isEmpty())
-                || (event.getAgenda() != null && !event.getAgenda().isEmpty());
-
-        return event.getId() != null && !event.getId().isBlank() && hasLists;
     }
 
     private String sanitizeUrl(String url) {

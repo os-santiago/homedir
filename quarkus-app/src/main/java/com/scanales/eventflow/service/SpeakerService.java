@@ -129,4 +129,10 @@ public class SpeakerService {
         }
         persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
+
+    /** Reloads speakers from persistence replacing the current cache. */
+    public void reload() {
+        speakers.clear();
+        speakers.putAll(persistence.loadSpeakers());
+    }
 }

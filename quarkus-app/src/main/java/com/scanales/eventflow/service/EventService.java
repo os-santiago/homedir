@@ -185,4 +185,10 @@ public class EventService {
                         .thenComparing(Talk::getStartTime))
                 .toList();
     }
+
+    /** Reloads events from persistence replacing the current cache. */
+    public void reload() {
+        events.clear();
+        events.putAll(persistence.loadEvents());
+    }
 }
