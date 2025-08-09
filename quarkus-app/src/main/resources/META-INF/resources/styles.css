@@ -412,8 +412,8 @@ button:focus-visible {
 }
 
 .event-logo {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -598,6 +598,7 @@ button:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    justify-content: center;
 }
 
 @media (max-width: 600px) {
