@@ -341,6 +341,50 @@ button:focus-visible {
 }
 
 /* --- Home page --- */
+.home-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem 0;
+}
+
+.home-hero .hero-text {
+    flex: 1;
+}
+
+.home-hero .hero-title {
+    font-size: 2rem;
+    margin: 0 0 0.5rem;
+    color: var(--color-dark);
+}
+
+.home-hero .hero-description {
+    font-size: 1rem;
+    color: #555;
+}
+
+.home-hero .hero-image {
+    flex: 1;
+    text-align: right;
+}
+
+.home-hero .hero-image img {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .home-hero {
+        flex-direction: column;
+        text-align: center;
+    }
+    .home-hero .hero-image {
+        text-align: center;
+    }
+}
+
 .home-section {
     padding: 2rem 0;
     text-align: center;
