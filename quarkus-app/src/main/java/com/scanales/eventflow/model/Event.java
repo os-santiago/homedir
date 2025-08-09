@@ -1,5 +1,6 @@
 package com.scanales.eventflow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @RegisterForReflection
-
+@JsonIgnoreProperties(value = "dayList", allowGetters = true)
 /**
  * Represents an event with its basic information, the scenarios where the
  * activities take place and the agenda of talks.
