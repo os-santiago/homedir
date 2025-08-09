@@ -11,7 +11,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.Map;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
 import jakarta.inject.Inject;
@@ -25,7 +27,7 @@ public class HomeResource {
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance home(java.util.List<com.scanales.eventflow.model.Event> events,
-                LocalDate today);
+                LocalDate today, String version, Map<String, String> stats, Map<String, String> links);
     }
 
     @GET
@@ -36,7 +38,15 @@ public class HomeResource {
                 .sorted(Comparator.comparing(Event::getDate,
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
-        return Templates.home(events, LocalDate.now());
+        var today = LocalDate.now();
+        var stats = Map.of(
+                "status", "En desarrollo",
+                "lastUpdated", today.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        var links = Map.of(
+                "releasesUrl", "https://github.com/scanalesespinoza/eventflow/releases",
+                "issuesUrl", "https://github.com/scanalesespinoza/eventflow/issues",
+                "donateUrl", "https://ko-fi.com/sergiocanales");
+        return Templates.home(events, today, "2.0.0", stats, links);
     }
 
     @GET
