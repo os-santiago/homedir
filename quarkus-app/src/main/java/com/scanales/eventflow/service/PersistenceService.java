@@ -47,6 +47,7 @@ public class PersistenceService {
     void init() {
         try {
             Files.createDirectories(dataDir);
+            LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
         } catch (IOException e) {
             LOG.error("Unable to create data directory", e);
         }
@@ -97,6 +98,7 @@ public class PersistenceService {
             }
             try {
                 mapper.writeValue(file.toFile(), data);
+                LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
             } catch (IOException e) {
                 LOG.error("Failed to persist data to " + file, e);
             }
@@ -105,10 +107,13 @@ public class PersistenceService {
 
     private <T> Map<String, T> read(Path file, TypeReference<Map<String, T>> type) {
         if (!Files.exists(file)) {
+            LOG.infof("No persistence file %s found - starting empty", file.getFileName());
             return new ConcurrentHashMap<>();
         }
         try {
-            return mapper.readValue(file.toFile(), type);
+            Map<String, T> data = mapper.readValue(file.toFile(), type);
+            LOG.infof("Loaded %d entries from %s", data.size(), file.getFileName());
+            return new ConcurrentHashMap<>(data);
         } catch (IOException e) {
             LOG.error("Failed to read " + file, e);
             return new ConcurrentHashMap<>();

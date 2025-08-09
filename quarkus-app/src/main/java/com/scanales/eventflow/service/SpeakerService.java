@@ -9,6 +9,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import org.jboss.logging.Logger;
+
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.Event;
@@ -27,9 +29,12 @@ public class SpeakerService {
     @Inject
     PersistenceService persistence;
 
+    private static final Logger LOG = Logger.getLogger(SpeakerService.class);
+
     @PostConstruct
     void init() {
         speakers.putAll(persistence.loadSpeakers());
+        LOG.infof("Loaded %d speakers into memory", speakers.size());
     }
 
     public List<Speaker> listSpeakers() {
