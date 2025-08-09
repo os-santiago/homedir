@@ -12,8 +12,8 @@ import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.util.AdminUtils;
 import org.jboss.logging.Logger;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import jakarta.inject.Inject;
@@ -48,6 +48,9 @@ public class AdminEventResource {
 
     @Inject
     SpeakerService speakerService;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     private boolean isAdmin() {
         return AdminUtils.isAdmin(identity);
@@ -316,9 +319,12 @@ public class AdminEventResource {
                     .build();
         }
 
-        try (Jsonb jsonb = JsonbBuilder.create()) {
+        try {
             java.nio.file.Path path = file.uploadedFile();
-            Event event = jsonb.fromJson(java.nio.file.Files.newInputStream(path), Event.class);
+            Event event;
+            try (var is = java.nio.file.Files.newInputStream(path)) {
+                event = objectMapper.readValue(is, Event.class);
+            }
 
             if (event.getId() == null || event.getId().isBlank()) {
                 LOG.warn("Imported JSON missing id field");
@@ -343,6 +349,12 @@ public class AdminEventResource {
             LOG.infov("Imported event {0}", id);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events?msg=Importaci%C3%B3n+exitosa")
+                    .build();
+        } catch (UnrecognizedPropertyException e) {
+            LOG.error("Unknown JSON property", e);
+            var events = eventService.listEvents();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Templates.list(events, "Importaci\u00f3n fallida: propiedades desconocidas"))
                     .build();
         } catch (Exception e) {
             LOG.error("Failed to import event", e);
