@@ -69,7 +69,18 @@ button:focus-visible {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.nav-logo img {
+.nav-logo {
+    color: var(--color-light);
+    text-decoration: none;
+}
+
+.nav-logo .title {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.logo-main {
     height: 40px;
     width: auto;
     border-radius: 50%;
@@ -400,8 +411,7 @@ button:focus-visible {
 
 .meta {
     display: flex;
-    gap: 1.25rem;
-    flex-wrap: wrap;
+    gap: 0.25rem;
     color: var(--muted-foreground, #555);
     font-size: .95rem;
 }
