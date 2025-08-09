@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import jakarta.inject.Inject;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -34,9 +35,10 @@ public class PersistenceService {
 
     private static final Logger LOG = Logger.getLogger(PersistenceService.class);
 
-    private final ObjectMapper mapper = new ObjectMapper()
-            .findAndRegisterModules()
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    @Inject
+    ObjectMapper objectMapper;
+
+    private ObjectMapper mapper;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private final Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
@@ -48,6 +50,7 @@ public class PersistenceService {
 
     @PostConstruct
     void init() {
+        mapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
         try {
             Files.createDirectories(dataDir);
             LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());

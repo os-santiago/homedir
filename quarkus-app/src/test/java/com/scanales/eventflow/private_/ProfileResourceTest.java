@@ -78,4 +78,30 @@ public class ProfileResourceTest {
             .statusCode(303)
             .header("Location", endsWith("/private/profile"));
     }
+
+    @Test
+    @TestSecurity(user = "user@example.com")
+    public void updateTalkRejectsUnknownProperty() {
+        given()
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body("{\"unknown\":true}")
+        .when()
+            .post("/private/profile/update/t5")
+        .then()
+            .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "user@example.com")
+    public void updateTalkInvalidRating() {
+        given()
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body("{\"rating\":6}")
+        .when()
+            .post("/private/profile/update/t6")
+        .then()
+            .statusCode(400);
+    }
 }

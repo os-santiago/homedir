@@ -14,6 +14,7 @@ import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -26,6 +27,9 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @Path("/private/profile")
 public class ProfileResource {
@@ -129,18 +133,18 @@ public class ProfileResource {
     @Authenticated
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateTalk(@PathParam("id") String id, UpdateRequest req) {
+    public Response updateTalk(@PathParam("id") String id, @Valid UpdateRequest req) {
         String email = getEmail();
         boolean ok = userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations);
         String status = ok ? "updated" : "missing";
         return Response.ok(java.util.Map.of("status", status)).build();
     }
 
-    public static class UpdateRequest {
-        public Boolean attended;
-        public Integer rating;
-        public java.util.Set<String> motivations;
-    }
+    @RegisterForReflection
+    public record UpdateRequest(
+            Boolean attended,
+            @Min(1) @Max(5) Integer rating,
+            java.util.Set<String> motivations) {}
 
     @POST
     @Path("add/{id}")

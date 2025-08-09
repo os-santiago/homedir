@@ -1,7 +1,8 @@
 package com.scanales.eventflow.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 
 /**
@@ -18,8 +18,11 @@ import java.time.LocalTime;
  */
 public class Event {
 
+    @NotBlank
     private String id;
+    @NotBlank
     private String title;
+    @NotBlank
     private String description;
     private List<Scenario> scenarios = new ArrayList<>();
     /** Number of days the event lasts. */
@@ -29,6 +32,7 @@ public class Event {
     /** URL of the event logo. */
     private String logoUrl;
     /** Contact email for the event organizers. */
+    @Email
     private String contactEmail;
     /** Official website of the event. */
     private String website;

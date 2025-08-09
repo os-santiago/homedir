@@ -1,16 +1,17 @@
 package com.scanales.eventflow.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * Defines a scenario or room where the event activities take place.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 public class Scenario {
 
+    @NotBlank
     private String id;
+    @NotBlank
     private String name;
     private String features;
     private String location;
