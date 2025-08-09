@@ -341,50 +341,33 @@ button:focus-visible {
 }
 
 /* --- Home page --- */
-.home-hero {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
-    padding: 2rem 0;
+.project-header {
+    text-align: center;
+    padding: 1rem 0.5rem;
+    background-color: var(--color-light);
+    border-bottom: 1px solid #eee;
 }
 
-.home-hero .hero-text {
-    flex: 1;
-}
-
-.home-hero .hero-title {
-    font-size: 2rem;
+.project-header .project-description {
     margin: 0 0 0.5rem;
-    color: var(--color-dark);
 }
 
-.home-hero .hero-description {
-    font-size: 1rem;
-    color: #555;
+.project-header .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+    font-size: 0.9rem;
 }
 
-.home-hero .hero-image {
-    flex: 1;
-    text-align: right;
+.project-header .project-links a {
+    color: var(--color-primary);
+    text-decoration: none;
 }
 
-.home-hero .hero-image img {
-    max-width: 300px;
-    width: 100%;
-    height: auto;
+.project-header .project-links a:hover {
+    text-decoration: underline;
 }
-
-@media (max-width: 768px) {
-    .home-hero {
-        flex-direction: column;
-        text-align: center;
-    }
-    .home-hero .hero-image {
-        text-align: center;
-    }
-}
-
 .home-section {
     padding: 2rem 0;
     text-align: center;
