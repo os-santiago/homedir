@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.scanales.eventflow.model.Event;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -21,7 +22,8 @@ public class JsonSerializationTest {
         e.setId("e1");
         e.setTitle("Sample");
         String json = mapper.writeValueAsString(e);
-        assertFalse(json.contains("description"));
+        JsonNode node = mapper.readTree(json);
+        assertFalse(node.has("description"));
     }
 
     @Test
