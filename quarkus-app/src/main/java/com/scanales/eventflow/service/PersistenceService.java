@@ -48,8 +48,15 @@ public class PersistenceService {
         try {
             Files.createDirectories(dataDir);
             LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
+            try (var stream = Files.list(dataDir)) {
+                if (stream.findAny().isPresent()) {
+                    LOG.info("Persistence data found");
+                } else {
+                    LOG.info("Data directory is empty");
+                }
+            }
         } catch (IOException e) {
-            LOG.error("Unable to create data directory", e);
+            LOG.error("Unable to initialize data directory", e);
         }
     }
 
@@ -107,15 +114,15 @@ public class PersistenceService {
 
     private <T> Map<String, T> read(Path file, TypeReference<Map<String, T>> type) {
         if (!Files.exists(file)) {
-            LOG.infof("No persistence file %s found - starting empty", file.getFileName());
+            LOG.infof("No persistence file %s found - starting empty", file.toAbsolutePath());
             return new ConcurrentHashMap<>();
         }
         try {
             Map<String, T> data = mapper.readValue(file.toFile(), type);
-            LOG.infof("Loaded %d entries from %s", data.size(), file.getFileName());
+            LOG.infof("Loaded %d entries from %s", data.size(), file.toAbsolutePath());
             return new ConcurrentHashMap<>(data);
         } catch (IOException e) {
-            LOG.error("Failed to read " + file, e);
+            LOG.error("Failed to read " + file.toAbsolutePath(), e);
             return new ConcurrentHashMap<>();
         }
     }
