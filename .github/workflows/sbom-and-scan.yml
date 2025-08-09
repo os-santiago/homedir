@@ -20,15 +20,15 @@ jobs:
   sbom:
     runs-on: ubuntu-latest
     env:
-      REGISTRY: ${{ vars.REGISTRY }}
-      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+      REGISTRY:   ${{ vars.REGISTRY }}      # ej. quay.io
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}    # ej. sergio_canales_e/eventflow
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/dependency-review-action@v3
+      - uses: actions/dependency-review-action@v4
         if: ${{ github.event_name == 'pull_request' }}
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
@@ -40,6 +40,18 @@ jobs:
       - name: Build container image
         run: |
           docker build -f quarkus-app/src/main/docker/Dockerfile.jvm -t ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA} quarkus-app
+
+      # Login a Quay con QUAY_USERNAME / QUAY_PASSWORD
+      - name: Login to Quay
+        if: ${{ secrets.QUAY_USERNAME != '' && secrets.QUAY_PASSWORD != '' }}
+        run: echo "${{ secrets.QUAY_PASSWORD }}" | docker login "${REGISTRY}" -u "${{ secrets.QUAY_USERNAME }}" --password-stdin
+
+      - name: Push image and get digest
+        run: |
+          docker push ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}
+          DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA} | cut -d@ -f2)"
+          echo "IMAGE_DIGEST=$DIGEST" >> "$GITHUB_ENV"
+          echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> "$GITHUB_ENV"
 
       - name: Setup Syft
         uses: anchore/setup-syft@v1
@@ -56,21 +68,35 @@ jobs:
         run: grype sbom:sbom-image.cdx.json --fail-on ${FAIL_ON}
 
       - name: Upload dependency SBOM
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bom
           path: quarkus-app/target/bom.json
 
       - name: Upload image SBOM
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sbom-image
           path: sbom-image.cdx.json
 
-      - name: Cosign attach SBOM
-        if: ${{ env.REGISTRY != '' && env.IMAGE_NAME != '' && (secrets.COSIGN_PRIVATE_KEY != '' || secrets.COSIGN_EXPERIMENTAL != '') }}
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Write cosign private key
+        if: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
+        run: printf "%s" '${{ secrets.COSIGN_PRIVATE_KEY }}' > cosign.key
+
+      - name: Cosign sign (key-pair) using digest ref
+        if: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
         env:
-          COSIGN_EXPERIMENTAL: ${{ secrets.COSIGN_EXPERIMENTAL }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        run: cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}
+        run: cosign sign --key cosign.key --yes "$REF"
+
+      - name: Cosign attach SBOM (CycloneDX)
+        if: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
+        run: cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "$REF"
+
+      - name: Cleanup key file
+        if: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
+        run: |
+          shred -u cosign.key || rm -f cosign.key
