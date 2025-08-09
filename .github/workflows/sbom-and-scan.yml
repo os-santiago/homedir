@@ -1,0 +1,121 @@
+name: sbom-and-scan
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: "0 6 * * 1"  # lunes 06:00 UTC
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ${{ vars.REGISTRY || 'ghcr.io' }}
+  IMAGE: ${{ (vars.REGISTRY || 'ghcr.io') }}/${{ github.repository }}:${{ github.sha }}
+  COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+  COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+jobs:
+  build-sbom-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/dependency-review-action@v4
+        if: ${{ github.event_name == 'pull_request' }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build app & dependency SBOM
+        working-directory: quarkus-app
+        run: ./mvnw -B -DskipTests verify
+
+      - name: Build image
+        run: docker build -f quarkus-app/src/main/docker/Dockerfile.jvm -t "$IMAGE" quarkus-app
+
+      - name: Generate image SBOM (Syft CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.IMAGE }}
+          format: cyclonedx-json
+          output-file: sbom-image.cdx.json
+          upload-artifact: false
+
+      - name: Grype report (no-fail) - table/json/sarif
+        run: |
+          TARGET="${REF:-$IMAGE}"
+          docker run --rm anchore/grype:latest "$TARGET" -o table > grype-report.txt || true
+          docker run --rm anchore/grype:latest "$TARGET" -o json  > grype-report.json || true
+          docker run --rm anchore/grype:latest "$TARGET" -o sarif > grype-report.sarif || true
+
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sboms
+          path: |
+            quarkus-app/target/bom.json
+            sbom-image.cdx.json
+
+      - name: Upload Grype reports (artifacts)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grype-reports
+          path: |
+            grype-report.txt
+            grype-report.json
+            grype-report.sarif
+
+      - name: Upload SARIF to Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: grype-report.sarif
+          category: grype
+
+      - name: Add summary to job
+        if: always()
+        run: |
+          echo "### Grype summary" >> $GITHUB_STEP_SUMMARY
+          if command -v jq >/dev/null; then
+            jq -r '[.matches[].vulnerability.severity] | group_by(.) | map({severity: .[0], count: length})' grype-report.json >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "Install jq to see JSON summary" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Enforce severity threshold
+        env:
+          FAIL_ON: ${{ github.event_name == 'pull_request' && 'high' || 'critical' }}
+        run: |
+          TARGET="${REF:-$IMAGE}"
+          docker run --rm anchore/grype:latest "$TARGET" --fail-on ${FAIL_ON} -o table
+
+      - name: Cosign sign (keyless)
+        if: ${{ vars.SIGN_KEYLESS == 'true' }}
+        run: cosign sign --keyless --yes "$IMAGE"
+
+      - name: Write cosign private key
+        if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
+        run: printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+
+      - name: Cosign sign (key-pair)
+        if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
+        env:
+          COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD }}
+        run: cosign sign --key cosign.key --yes "$IMAGE"
+
+      - name: Cosign attach SBOM
+        if: ${{ vars.SIGN_ATTACH_SBOM == 'true' }}
+        run: cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "$IMAGE"
+
