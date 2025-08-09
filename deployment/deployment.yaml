@@ -29,7 +29,7 @@ spec:
               protocol: TCP
           env:
             - name: JAVA_TOOL_OPTIONS
-              value: "-XX:+UseContainerSupport -Deventflow.data.dir=/data"
+              value: "-XX:+UseContainerSupport -Deventflow.data.dir=/work/data"
             - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -76,7 +76,7 @@ spec:
               memory: 52Mi
           volumeMounts:
             - name: data
-              mountPath: /data
+              mountPath: /work/data
           securityContext:
             capabilities:
               drop:
