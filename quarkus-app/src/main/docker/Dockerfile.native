@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t eventflow-native:v2.0.0 .
+# docker build -f src/main/docker/Dockerfile.native -t eventflow-native:v2.1.0 .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 eventflow-native:v2.0.0
+# docker run -i --rm -p 8080:8080 eventflow-native:v2.1.0
 #
 # The `registry.access.redhat.com/ubi9/ubi-minimal:9.5` base image provides
 # GLIBC 2.34+ and is compatible with binaries built on newer systems. If you
