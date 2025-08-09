@@ -161,16 +161,34 @@ button:focus-visible {
 }
 
 .breadcrumbs {
-    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    font-size: 0.85rem;
     margin: 0.5rem 0 1rem;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--color-light);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-.breadcrumbs a {
+.breadcrumbs a,
+.breadcrumbs span {
     color: var(--color-dark);
     text-decoration: none;
 }
+.breadcrumbs a {
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+.breadcrumbs a:hover {
+    background-color: var(--color-accent);
+    color: var(--color-light);
+}
 .breadcrumbs .sep {
     margin: 0 0.25rem;
-    color: #555;
+    color: var(--color-primary);
 }
 .breadcrumbs:empty {
     display: none;
