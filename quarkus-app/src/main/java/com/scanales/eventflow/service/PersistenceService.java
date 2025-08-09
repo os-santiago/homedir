@@ -34,7 +34,9 @@ public class PersistenceService {
 
     private static final Logger LOG = Logger.getLogger(PersistenceService.class);
 
-    private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private final ObjectMapper mapper = new ObjectMapper()
+            .findAndRegisterModules()
+            .enable(SerializationFeature.INDENT_OUTPUT);
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private final Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
