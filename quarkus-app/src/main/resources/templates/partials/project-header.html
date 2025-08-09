@@ -1,0 +1,20 @@
+<section class="box project-header">
+    <div>
+        <div class="box-header">
+            <h2 class="title">EventFlow</h2>
+            <div class="meta">
+                <span>Estado: <strong>{stats.status ?: '—'}</strong></span>
+                <span>Versión: <strong>{#if version}Beta {version}{#else}—{/if}</strong></span>
+                <span>Última actualización: {stats.lastUpdated ?: '—'}</span>
+            </div>
+        </div>
+        <div class="box-body">
+            <p class="note">EventFlow es una plataforma para gestionar eventos, actividades, espacios y charlas. Esto es OpenSource, gratuito y con dedicación y pasión por la tecnología.</p>
+        </div>
+    </div>
+    <div class="sidebar-actions">
+        <a href="{links.releasesUrl ?: '#'}" target="_blank" rel="noopener" class="side-btn secondary" aria-label="Ver releases">Releases</a>
+        <a href="{links.issuesUrl ?: '#'}" target="_blank" rel="noopener" class="side-btn secondary" aria-label="Reportar issue">Reportar issue</a>
+        <a href="{links.donateUrl ?: '#'}" target="_blank" rel="noopener" class="side-btn primary" aria-label="Apoyar en Ko-fi">Ko-fi ☕</a>
+    </div>
+</section>
