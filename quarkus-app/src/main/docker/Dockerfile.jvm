@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t eventflow:v2.1.0 .
+# docker build -f src/main/docker/Dockerfile.jvm -t eventflow:2.1.1 .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 eventflow:v2.1.0
+# docker run -i --rm -p 8080:8080 eventflow:2.1.1
 #
 # If you want to include the debug port into your docker image
 # you will have to expose the debug port (default 5005 being the default) like this :  EXPOSE 8080 5005.
@@ -20,7 +20,7 @@
 #
 # Then run the container using :
 #
-# docker run -i --rm -p 8080:8080 eventflow:v2.1.0
+# docker run -i --rm -p 8080:8080 eventflow:2.1.1
 #
 # This image uses the `run-java.sh` script to run the application.
 # This scripts computes the command line to execute your Java application, and

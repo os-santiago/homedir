@@ -46,7 +46,7 @@ public class HomeResource {
                 "releasesUrl", "https://github.com/scanalesespinoza/eventflow/releases",
                 "issuesUrl", "https://github.com/scanalesespinoza/eventflow/issues",
                 "donateUrl", "https://ko-fi.com/sergiocanales");
-        return Templates.home(events, today, "2.1.0", stats, links);
+        return Templates.home(events, today, "2.1.1", stats, links);
     }
 
     @GET
