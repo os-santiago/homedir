@@ -3,12 +3,14 @@ package com.scanales.eventflow.model;
 import com.fasterxml.jackson.annotation.ObjectIdGenerator;
 import com.fasterxml.jackson.annotation.ObjectIdResolver;
 import com.fasterxml.jackson.annotation.SimpleObjectIdResolver;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
  * An {@link ObjectIdResolver} that ignores attempts to bind the same id to
  * multiple objects. This is useful when deserializing graphs where references
  * to the same object are repeated, avoiding "Already had POJO for id" errors.
  */
+@RegisterForReflection
 public class PermissiveObjectIdResolver extends SimpleObjectIdResolver {
     @Override
     public void bindItem(ObjectIdGenerator.IdKey id, Object pojo) {
