@@ -1,6 +1,7 @@
 package com.scanales.eventflow.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.NotBlank;
@@ -74,6 +75,7 @@ public class Talk {
         this.speakers = speakers;
     }
 
+    @JsonIgnore
     public String getSpeakerNames() {
         return speakers.stream()
                 .map(Speaker::getName)

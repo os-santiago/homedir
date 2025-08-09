@@ -13,6 +13,11 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class PermissiveObjectIdResolver extends SimpleObjectIdResolver {
     @Override
+    public ObjectIdResolver newForDeserialization(Object context) {
+        return new PermissiveObjectIdResolver();
+    }
+
+    @Override
     public void bindItem(ObjectIdGenerator.IdKey id, Object pojo) {
         // Only bind if this id has not been seen before. If it's already
         // associated with an object, ignore the new binding to keep the first.
