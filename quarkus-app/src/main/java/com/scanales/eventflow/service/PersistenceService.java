@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import jakarta.inject.Inject;
 
 import jakarta.annotation.PostConstruct;
@@ -50,7 +51,9 @@ public class PersistenceService {
 
     @PostConstruct
     void init() {
-        mapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
+        mapper = objectMapper.copy()
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
             Files.createDirectories(dataDir);
             LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
