@@ -68,3 +68,34 @@ redirects back to the event list displaying a confirmation banner.
   This indicates that the OAuth client credentials are incorrect. Verify that `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` (or the values in `google-oauth-secret.yaml`) match the client configuration in the Google Cloud console and that the redirect URI is registered correctly.
 - **The application supports RP-Initiated Logout but the OpenID Provider does not advertise the end_session_endpoint**
   Google does not publish an RP logout endpoint. Ensure Quarkus' built-in logout is disabled by leaving `quarkus.oidc.logout.path` empty and using the provided `/logout` endpoint instead.
+
+## Supply chain: SBOM & Vulnerabilities
+
+The build generates Software Bill of Materials (SBOM) for dependencies and container images and scans the image for known vulnerabilities.
+
+### Local commands
+
+```bash
+# Generate dependency SBOM
+mvn -f quarkus-app/pom.xml -DskipTests org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+# Generate image SBOM
+syft oci:${REGISTRY}/${IMAGE_NAME}:<tag> -o cyclonedx-json > sbom-image.cdx.json
+# Scan image
+grype oci:${REGISTRY}/${IMAGE_NAME}:<tag> --fail-on High
+```
+
+### CI
+
+- `target/bom.json` and `sbom-image.cdx.json` are uploaded as workflow artifacts (Actions → Artifacts).
+- Pull requests fail on **High** or **Critical** findings; pushes to `main` fail on **Critical**.
+- Images are signed with [Cosign](https://github.com/sigstore/cosign) using keyless signatures when `vars.SIGN_KEYLESS` is `true`, or a private key when `COSIGN_PRIVATE_KEY`/`COSIGN_PASSWORD` secrets are provided.
+- The image SBOM can be attached to the image when `vars.SIGN_ATTACH_SBOM` is `true`.
+
+Required variables and secrets:
+
+- `REGISTRY` – container registry (defaults to `ghcr.io`)
+- `SIGN_KEYLESS=true` – enable keyless signing
+- `SIGN_ATTACH_SBOM=true` – attach SBOM to the image (optional)
+- `COSIGN_PRIVATE_KEY` and `COSIGN_PASSWORD` – key pair for signing (optional)
+
+For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
