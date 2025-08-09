@@ -2,6 +2,7 @@ package com.scanales.eventflow.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.NotBlank;
@@ -14,6 +15,7 @@ import java.util.List;
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id",
         resolver = PermissiveObjectIdResolver.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 
 /**
