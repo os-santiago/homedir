@@ -400,7 +400,8 @@ button:focus-visible {
     justify-content: space-between;
     gap: 1rem;
     padding-bottom: .5rem;
-    border-bottom: 1px solid rgba(0,0,0,.06);
+    padding-top: .5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
 }
 
 .box-header .title {
@@ -425,17 +426,26 @@ button:focus-visible {
 }
 
 .note {
-    background: rgba(0,120,255,.06);
-    border: 1px solid rgba(0,120,255,.12);
+    background: rgba(0, 120, 255, .06);
+    border: 1px solid rgba(0, 120, 255, .12);
     border-radius: .75rem;
-    padding: .9rem 1rem;
+    padding: .1rem .5rem;
     line-height: 1.5;
+}
+
+p.note {
+    margin-top: .5rem;
 }
 
 .sidebar-actions {
     display: flex;
+    gap: 0.2rem;
     flex-direction: column;
-    gap: .75rem;
+}
+
+.release-box {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
 }
 
