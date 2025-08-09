@@ -8,4 +8,3 @@ Problem → Solution
 - [ ] Image scanned (Grype) — thresholds respected
 - [ ] Rollout/feature flags notes if applicable
 - [ ] Docs updated (README/SECURITY) if needed
-

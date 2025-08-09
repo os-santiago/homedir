@@ -18,7 +18,7 @@ concurrency:
 
 env:
   REGISTRY: ${{ vars.REGISTRY || 'ghcr.io' }}
-  IMAGE: ${{ (vars.REGISTRY || 'ghcr.io') }}/${{ github.repository }}:${{ github.sha }}
+  IMAGE: ${{ (vars.REGISTRY || 'quay.io') }}/${{ github.repository }}:${{ github.sha }}
   COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
   COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
@@ -85,4 +85,3 @@ jobs:
       - name: Cosign attach SBOM
         if: ${{ vars.SIGN_ATTACH_SBOM == 'true' }}
         run: cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "$IMAGE"
-
