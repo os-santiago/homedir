@@ -63,8 +63,9 @@ jobs:
         run: |
           set -e
           ./mvnw -B -ntp package -Pnative -DskipTests
-          IMAGE="${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}"
-          PRTAG="${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}-${GITHUB_SHA}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          IMAGE="${REGISTRY}/${IMAGE_NAME}:${HEAD_SHA}"
+          PRTAG="${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}-${HEAD_SHA}"
           docker build -f src/main/docker/Dockerfile.native -t "$IMAGE" -t "$PRTAG" .
           if [ "$LOGGED_IN" = "1" ]; then
             docker push "$IMAGE"
