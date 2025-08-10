@@ -23,6 +23,7 @@ env:
   GKE_CLUSTER:   ${{ vars.GKE_CLUSTER }}
   GKE_LOCATION:  ${{ vars.GKE_LOCATION }}
   GKE_NAMESPACE: ${{ vars.GKE_NAMESPACE || 'prod' }}
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   deploy:
