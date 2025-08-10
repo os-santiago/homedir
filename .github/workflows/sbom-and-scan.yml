@@ -20,161 +20,207 @@ concurrency:
 env:
   REGISTRY: ${{ vars.REGISTRY || 'ghcr.io' }}
   IMAGE_NAME: ${{ vars.IMAGE_NAME || github.repository }}
-  IMAGE: ${{ (vars.REGISTRY || 'ghcr.io') }}/${{ vars.IMAGE_NAME || github.repository }}:${{ github.sha }}
   SECURITY_GATING: ${{ vars.SECURITY_GATING || 'permissive' }}
   COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
   COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
 jobs:
   build-sbom-and-scan:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/dependency-review-action@v4
-        if: ${{ github.event_name == 'pull_request' }}
 
-      - name: Setup Java
+      - name: Login to Quay
+        env:
+          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        if: ${{ env.QUAY_USERNAME != '' && env.QUAY_PASSWORD != '' }}
+        run: echo "$QUAY_PASSWORD" | docker login "$REGISTRY" -u "$QUAY_USERNAME" --password-stdin
+
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
 
-      - name: Build app & dependency SBOM
+      - name: Build native runner
         working-directory: quarkus-app
-        run: ./mvnw -B -DskipTests verify
+        run: ./mvnw -B -Pnative -Dquarkus.native.container-build=true -DskipTests verify
 
-      - name: Build image
-        run: docker build -f quarkus-app/src/main/docker/Dockerfile.jvm -t "$IMAGE" quarkus-app
-
-      - name: Generate image SBOM (Syft CycloneDX)
-        uses: anchore/sbom-action@v0
-        with:
-          image: ${{ env.IMAGE }}
-          format: cyclonedx-json
-          output-file: sbom-image.cdx.json
-          upload-artifact: false
-
-      - name: Grype report (no-fail) - table/json/sarif
+      - name: Build native image
         run: |
-          TARGET="${REF:-$IMAGE}"
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
-            anchore/grype:latest "$TARGET" -o table > grype-report.txt || true
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
-            anchore/grype:latest "$TARGET" -o json  > grype-report.json || true
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
-            anchore/grype:latest "$TARGET" -o sarif > grype-report.sarif || true
-          if [ ! -s grype-report.sarif ]; then
-            echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[{"tool":{"driver":{"name":"grype"}},"results":[]}]}' > grype-report.sarif
-          fi
+          docker build -f quarkus-app/src/main/docker/Dockerfile.native \
+            -t ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA} \
+            -t ${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}-${GITHUB_SHA} \
+            quarkus-app
 
-      - name: Upload SBOMs
-        uses: actions/upload-artifact@v4
-        with:
-          name: sboms
-          path: |
-            quarkus-app/target/bom.json
-            sbom-image.cdx.json
+      - name: Push image
+        run: |
+          docker push ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}
+          docker push ${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}-${GITHUB_SHA}
 
-      - name: Upload Grype reports (artifacts)
+      - name: Compute digest (stable)
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y skopeo
+          DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}-${GITHUB_SHA})"
+          echo "IMAGE_DIGEST=$DIGEST" >> "$GITHUB_ENV"
+          echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> "$GITHUB_ENV"
+          echo "$REF" > image-ref.txt
+
+      - name: Install Syft and Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: SBOM (Syft) / Reports (Grype)
+        run: |
+          syft packages "$REF" -o cyclonedx-json > sbom-image.cdx.json || true
+          grype "$REF" -o table > grype-report.txt || true
+          grype "$REF" -o json  > grype-report.json || true
+          grype "$REF" -o sarif > grype-report.sarif || true
+
+      - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: grype-reports
+          name: security-reports
           path: |
+            image-ref.txt
+            sbom-image.cdx.json
             grype-report.txt
             grype-report.json
             grype-report.sarif
+          if-no-files-found: warn
 
       - name: Upload SARIF to Code Scanning
-        if: always()
+        if: ${{ always() && hashFiles('grype-report.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: grype-report.sarif
           category: grype
 
-      - name: Add summary to job
-        if: always()
-        run: |
-          echo "### Grype summary" >> $GITHUB_STEP_SUMMARY
-          if command -v jq >/dev/null; then
-            jq -r '[.matches[].vulnerability.severity] | group_by(.) | map({severity: .[0], count: length})' grype-report.json >> $GITHUB_STEP_SUMMARY || true
-          else
-            echo "Install jq to see JSON summary" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      # --- WARN-ONLY (no bloquea) ---
       - name: Severity threshold (warn-only)
-        if: ${{ env.SECURITY_GATING == 'permissive' || github.event_name == 'pull_request' }}
         env:
           FAIL_ON: ${{ github.event_name == 'pull_request' && 'high' || 'critical' }}
-        continue-on-error: true
-        run: |
-          TARGET="${REF:-${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}}"
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
-            anchore/grype:latest "$TARGET" --fail-on ${FAIL_ON} -o table
+        continue-on-error: ${{ env.SECURITY_GATING == 'permissive' }}
+        run: grype "$REF" --fail-on ${FAIL_ON} -o table
 
-      # --- ENFORCE (bloquea) ---
-      - name: Severity threshold (enforce)
-        if: ${{ env.SECURITY_GATING == 'enforcing' && github.ref == 'refs/heads/main' }}
-        env:
-          FAIL_ON: ${{ github.event_name == 'pull_request' && 'high' || 'critical' }}
+      - name: Add digest to job summary
         run: |
-          TARGET="${REF:-${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}}"
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
-            anchore/grype:latest "$TARGET" --fail-on ${FAIL_ON} -o table
-
-      - name: Login to registry
-        env:
-          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
-          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-        run: |
-          if [ "$REGISTRY" = "ghcr.io" ]; then
-            echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          elif [ -n "$QUAY_USERNAME" ] && [ -n "$QUAY_PASSWORD" ]; then
-            echo "$QUAY_PASSWORD" | docker login "$REGISTRY" -u "$QUAY_USERNAME" --password-stdin
-          else
-            echo "Registry credentials not provided; skipping login"
-          fi
-
-      - name: Push image
-        run: docker push "$IMAGE"
-
-      - name: Get digest (stable)
-        run: |
-          sudo apt-get update -y && sudo apt-get install -y skopeo
-          DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA})"
-          echo "IMAGE_DIGEST=$DIGEST" >> "$GITHUB_ENV"
-          echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> "$GITHUB_ENV"
-          echo "Using REF=$REF"
+          echo "### Image REF" >> $GITHUB_STEP_SUMMARY
+          echo "\`$REF\`" >> $GITHUB_STEP_SUMMARY
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
-
-      - name: Cosign sign (keyless)
-        if: ${{ vars.SIGN_KEYLESS == 'true' }}
-        run: cosign sign --keyless --yes "$REF"
-
-      - name: Write cosign private key
-        if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
-        run: printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
 
       - name: Cosign sign (key-pair)
         if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
         env:
           COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD }}
-        run: cosign sign --key cosign.key --yes "$REF"
+        run: |
+          printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+          cosign sign --key cosign.key --yes "$REF"
+          rm -f cosign.key
 
-      - name: Cosign attach SBOM
-        if: ${{ vars.SIGN_ATTACH_SBOM == 'true' }}
-        run: cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "$REF"
+  promote:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    container:
+      image: google/cloud-sdk:latest
+    env:
+      PROJECT_ID: scanales-191111
+      SERVICE_ACCOUNT_NAME: github-actions-deployer
+      GKE_CLUSTER_NAME: eventflow-cluster
+      GKE_ZONE: us-central1
+      GKE_NAMESPACE: eventflow
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: apt-get update -y && apt-get install -y jq skopeo gh
+
+      - name: Login to Quay
+        env:
+          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        if: ${{ env.QUAY_USERNAME != '' && env.QUAY_PASSWORD != '' }}
+        run: skopeo login "$REGISTRY" -u "$QUAY_USERNAME" -p "$QUAY_PASSWORD"
+
+      - name: Resolve REF from PR tag
+        run: |
+          prs=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls -H "Accept: application/vnd.github+json")
+          pr_number=$(echo "$prs" | jq -r '.[0].number')
+          head_sha=$(echo "$prs" | jq -r '.[0].head.sha')
+          DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://${REGISTRY}/${IMAGE_NAME}:pr-${pr_number}-${head_sha})"
+          echo "IMAGE_DIGEST=$DIGEST" >> "$GITHUB_ENV"
+          echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> "$GITHUB_ENV"
+
+      - name: Promote digest to main tags
+        run: |
+          SHORT=$(echo "${GITHUB_SHA}" | cut -c1-12)
+          skopeo copy docker://$REF docker://${REGISTRY}/${IMAGE_NAME}:main-${SHORT}
+          # skopeo copy docker://$REF docker://${REGISTRY}/${IMAGE_NAME}:latest
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Cosign sign (key-pair)
+        if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
+        env:
+          COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD }}
+        run: |
+          printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+          cosign sign --key cosign.key --yes "$REF"
+          rm -f cosign.key
+
+      - name: Write GCP credentials
+        env:
+          GCP_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+        run: echo "$GCP_SERVICE_ACCOUNT_KEY_JSON" | base64 -d > "$HOME/key.json"
+
+      - name: Authenticate to Google Cloud
+        run: |
+          gcloud auth activate-service-account --key-file="$HOME/key.json"
+          gcloud config set project "$PROJECT_ID"
+          gcloud config set compute/zone "$GKE_ZONE"
+
+      - name: Configure kubectl
+        run: |
+          gcloud container clusters get-credentials "$GKE_CLUSTER_NAME" --zone "$GKE_ZONE" --project "$PROJECT_ID"
+
+      - name: Update OAuth secret
+        env:
+          OIDC_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          OIDC_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          OIDC_AUTH_SERVER_URL: ${{ secrets.OIDC_AUTH_SERVER_URL }}
+          OIDC_AUTH_URI: ${{ secrets.OIDC_AUTH_URI }}
+          OIDC_TOKEN_URI: ${{ secrets.OIDC_TOKEN_URI }}
+          OIDC_JWKS_URI: ${{ secrets.OIDC_JWKS_URI }}
+          OIDC_REDIRECT_URI: ${{ secrets.OIDC_REDIRECT_URI }}
+        run: |
+          kubectl -n "$GKE_NAMESPACE" create secret generic google-oauth \
+            --from-literal=client-id="$OIDC_CLIENT_ID" \
+            --from-literal=client-secret="$OIDC_CLIENT_SECRET" \
+            --from-literal=auth-server-url="$OIDC_AUTH_SERVER_URL" \
+            --from-literal=auth-uri="$OIDC_AUTH_URI" \
+            --from-literal=token-uri="$OIDC_TOKEN_URI" \
+            --from-literal=jwks-uri="$OIDC_JWKS_URI" \
+            --from-literal=redirect-uri="$OIDC_REDIRECT_URI" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/namespace.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/managed-cert.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/service.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/deployment.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/ingress.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/pvc.yaml
+
+      - name: Set image by digest and rollout
+        run: |
+          kubectl set image deployment/eventflow eventflow=$REF -n "$GKE_NAMESPACE"
+          kubectl rollout status deployment/eventflow -n "$GKE_NAMESPACE"
