@@ -95,6 +95,7 @@ grype oci:${REGISTRY}/${IMAGE_NAME}:<tag> --fail-on High
 Required variables and secrets:
 
 - `REGISTRY` – container registry (defaults to `ghcr.io`)
+- `IMAGE_NAME` – repository path of the image (defaults to `owner/repo`)
 - `SECURITY_GATING` – `permissive` (default) or `enforcing`
 - `SIGN_KEYLESS=true` – enable keyless signing
 - `SIGN_ATTACH_SBOM=true` – attach SBOM to the image (optional)

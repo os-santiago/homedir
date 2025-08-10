@@ -18,9 +18,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  REGISTRY: ${{ vars.REGISTRY || 'quay.io' }}
+  REGISTRY: ${{ vars.REGISTRY || 'ghcr.io' }}
   IMAGE_NAME: ${{ vars.IMAGE_NAME || github.repository }}
-  IMAGE: ${{ (vars.REGISTRY || 'quay.io') }}/${{ vars.IMAGE_NAME || github.repository }}:${{ github.sha }}
+  IMAGE: ${{ (vars.REGISTRY || 'ghcr.io') }}/${{ vars.IMAGE_NAME || github.repository }}:${{ github.sha }}
   SECURITY_GATING: ${{ vars.SECURITY_GATING || 'permissive' }}
   COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
   COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
@@ -134,16 +134,29 @@ jobs:
             -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
             anchore/grype:latest "$TARGET" --fail-on ${FAIL_ON} -o table
 
-      - name: Login & push image
+      - name: Login to registry
+        env:
+          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         run: |
           if [ "$REGISTRY" = "ghcr.io" ]; then
             echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          elif [ -n "${{ secrets.QUAY_USERNAME }}" ] && [ -n "${{ secrets.QUAY_PASSWORD }}" ]; then
-            echo "${{ secrets.QUAY_PASSWORD }}" | docker login "$REGISTRY" -u "${{ secrets.QUAY_USERNAME }}" --password-stdin
+          elif [ -n "$QUAY_USERNAME" ] && [ -n "$QUAY_PASSWORD" ]; then
+            echo "$QUAY_PASSWORD" | docker login "$REGISTRY" -u "$QUAY_USERNAME" --password-stdin
+          else
+            echo "Registry credentials not provided; skipping login"
           fi
-          docker push "$IMAGE"
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE" | cut -d@ -f2)
-          echo "REF=$REGISTRY/${{ github.repository }}@$DIGEST" >> "$GITHUB_ENV"
+
+      - name: Push image
+        run: docker push "$IMAGE"
+
+      - name: Get digest (stable)
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y skopeo
+          DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA})"
+          echo "IMAGE_DIGEST=$DIGEST" >> "$GITHUB_ENV"
+          echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> "$GITHUB_ENV"
+          echo "Using REF=$REF"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
