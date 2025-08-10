@@ -55,11 +55,13 @@ jobs:
           fi
 
       - name: Build Native image (no tests) + tag PR
+        working-directory: quarkus-app
         run: |
           set -e
+          ./mvnw -B -ntp package -Pnative -DskipTests
           IMAGE="${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}"
           PRTAG="${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}-${GITHUB_SHA}"
-          docker build -f quarkus-app/src/main/docker/Dockerfile.native -t "$IMAGE" -t "$PRTAG" quarkus-app
+          docker build -f src/main/docker/Dockerfile.native -t "$IMAGE" -t "$PRTAG" .
           if [ "$LOGGED_IN" = "1" ]; then
             docker push "$IMAGE"
             docker push "$PRTAG"
