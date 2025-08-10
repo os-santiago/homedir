@@ -93,9 +93,10 @@ jobs:
             grype-report.txt
             grype-report.json
             grype-report.sarif
+          if-no-files-found: warn
 
       - name: Upload SARIF to Code Scanning
-        if: always()
+        if: ${{ always() && hashFiles('grype-report.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: grype-report.sarif
