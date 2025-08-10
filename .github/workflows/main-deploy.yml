@@ -1,6 +1,5 @@
-# NOTE: Reference workflow.
-# Usa las MISMAS variables/secrets y nombres de jobs que ya funcionan en tu repo.
-# Ajusta rutas (Dockerfile, subcarpetas) y comandos según tu proyecto.
+# Deploy workflow for main branch. Promotes the image built in PR CI and
+# deploys it to GKE using the same digest that was scanned and signed.
 name: Main Deploy (Promote & GKE)
 
 on:
@@ -78,10 +77,35 @@ jobs:
           location:     ${{ env.GKE_LOCATION }}
           project_id:   ${{ env.GKE_PROJECT }}
 
+      - name: Update OAuth secret
+        if: steps.ref.outcome == 'success'
+        env:
+          OIDC_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          OIDC_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          OIDC_AUTH_SERVER_URL: ${{ secrets.OIDC_AUTH_SERVER_URL }}
+          OIDC_AUTH_URI: ${{ secrets.OIDC_AUTH_URI }}
+          OIDC_TOKEN_URI: ${{ secrets.OIDC_TOKEN_URI }}
+          OIDC_JWKS_URI: ${{ secrets.OIDC_JWKS_URI }}
+          OIDC_REDIRECT_URI: ${{ secrets.OIDC_REDIRECT_URI }}
+        run: |
+          kubectl -n "$GKE_NAMESPACE" create secret generic google-oauth \
+            --from-literal=client-id="$OIDC_CLIENT_ID" \
+            --from-literal=client-secret="$OIDC_CLIENT_SECRET" \
+            --from-literal=auth-server-url="$OIDC_AUTH_SERVER_URL" \
+            --from-literal=auth-uri="$OIDC_AUTH_URI" \
+            --from-literal=token-uri="$OIDC_TOKEN_URI" \
+            --from-literal=jwks-uri="$OIDC_JWKS_URI" \
+            --from-literal=redirect-uri="$OIDC_REDIRECT_URI" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Apply manifests & rollout (by digest)
         if: steps.ref.outcome == 'success'
         run: |
-          # ejemplo con kustomize/helm/kubectl; usa $REF por digest
-          # kubectl set image deploy/eventflow app=$REF -n $GKE_NAMESPACE
-          # kubectl rollout status deploy/eventflow -n $GKE_NAMESPACE
-          echo "Deploying $REF to GKE namespace $GKE_NAMESPACE..."
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/namespace.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/managed-cert.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/service.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/deployment.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/ingress.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/pvc.yaml
+          kubectl -n "$GKE_NAMESPACE" set image deployment/eventflow eventflow=$REF
+          kubectl rollout status deployment/eventflow -n "$GKE_NAMESPACE"
