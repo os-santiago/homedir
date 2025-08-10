@@ -165,9 +165,10 @@ jobs:
 
       - name: Resolve REF from PR tag
         run: |
-          prs=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls -H "Accept: application/vnd.github+json")
-          pr_number=$(echo "$prs" | jq -r '.[0].number')
-          head_sha=$(echo "$prs" | jq -r '.[0].head.sha')
+          pr_number=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls \
+            -H "Accept: application/vnd.github+json" --jq '.[0].number')
+          head_sha=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls \
+            -H "Accept: application/vnd.github+json" --jq '.[0].head.sha')
           DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://${REGISTRY}/${IMAGE_NAME}:pr-${pr_number}-${head_sha})"
           echo "IMAGE_DIGEST=$DIGEST" >> "$GITHUB_ENV"
           echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> "$GITHUB_ENV"
