@@ -162,4 +162,3 @@ jobs:
       - name: Cosign attach SBOM
         if: ${{ vars.SIGN_ATTACH_SBOM == 'true' }}
         run: cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "$REF"
-
