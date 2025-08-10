@@ -76,8 +76,8 @@ The build generates Software Bill of Materials (SBOM) for dependencies and conta
 ### Local commands
 
 ```bash
-# Generate dependency SBOM
-mvn -f quarkus-app/pom.xml -DskipTests org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+# Build and generate dependency SBOM
+mvn -f quarkus-app/pom.xml -DskipTests verify
 # Generate image SBOM
 syft oci:${REGISTRY}/${IMAGE_NAME}:<tag> -o cyclonedx-json > sbom-image.cdx.json
 # Scan image
@@ -87,13 +87,15 @@ grype oci:${REGISTRY}/${IMAGE_NAME}:<tag> --fail-on High
 ### CI
 
 - `target/bom.json` and `sbom-image.cdx.json` are uploaded as workflow artifacts (Actions → Artifacts).
-- Pull requests fail on **High** or **Critical** findings; pushes to `main` fail on **Critical**.
+- Vulnerability gating is warning-only unless `vars.SECURITY_GATING` is set to `enforcing`.
+  When enforcing, pushes to `main` fail on **Critical** findings.
 - Images are signed with [Cosign](https://github.com/sigstore/cosign) using keyless signatures when `vars.SIGN_KEYLESS` is `true`, or a private key when `COSIGN_PRIVATE_KEY`/`COSIGN_PASSWORD` secrets are provided.
 - The image SBOM can be attached to the image when `vars.SIGN_ATTACH_SBOM` is `true`.
 
 Required variables and secrets:
 
 - `REGISTRY` – container registry (defaults to `ghcr.io`)
+- `SECURITY_GATING` – `permissive` (default) or `enforcing`
 - `SIGN_KEYLESS=true` – enable keyless signing
 - `SIGN_ATTACH_SBOM=true` – attach SBOM to the image (optional)
 - `COSIGN_PRIVATE_KEY` and `COSIGN_PASSWORD` – key pair for signing (optional)
