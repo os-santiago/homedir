@@ -87,6 +87,8 @@ function handleForms() {
                 e.preventDefault();
                 return;
             }
+            sessionStorage.setItem('scrollPos', String(window.scrollY));
+            sessionStorage.setItem('scrollPath', window.location.pathname);
             showLoading('los datos');
             const btn = form.querySelector('button[type="submit"]');
             if (btn) btn.disabled = true;
@@ -113,6 +115,16 @@ function handleNotificationsFromUrl() {
     }
 }
 
+function restoreScroll() {
+    const path = sessionStorage.getItem('scrollPath');
+    const pos = sessionStorage.getItem('scrollPos');
+    if (path === window.location.pathname && pos !== null) {
+        window.scrollTo(0, parseInt(pos, 10));
+    }
+    sessionStorage.removeItem('scrollPath');
+    sessionStorage.removeItem('scrollPos');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     setupMenu();
     setupUserMenu();
@@ -121,6 +133,7 @@ window.addEventListener('DOMContentLoaded', () => {
     handleForms();
     highlightNav();
     handleNotificationsFromUrl();
+    restoreScroll();
     hideLoading();
     if (document.querySelector('.no-events')) {
         hideLoading();
