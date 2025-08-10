@@ -46,4 +46,5 @@ jobs:
       - name: Trigger Main Deploy workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run 'main-deploy.yml' --ref main
+          REPO: ${{ github.repository }}
+        run: gh workflow run 'main-deploy.yml' --repo "$REPO" --ref main
