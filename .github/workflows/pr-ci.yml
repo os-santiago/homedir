@@ -99,8 +99,9 @@ jobs:
           fail-build: ${{ env.SECURITY_GATING == 'enforcing' }}
 
       - name: Permissive mode note
-        if: env.SECURITY_GATING != 'enforcing'
-        run: echo "Permissive mode: no bloquearé el PR."
+        if: ${{ env.SECURITY_GATING != 'enforcing' }}
+        run: |
+          echo "Permissive mode: no bloquearé el PR."
 
       - name: Upload reports (artifacts)
         if: always()
