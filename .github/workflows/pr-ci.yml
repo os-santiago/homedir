@@ -94,11 +94,12 @@ jobs:
 
       - name: Scan image for vulnerabilities
         id: scan
-        uses: anchore/scan-action@v1
+        uses: anchore/scan-action@v6
         with:
-          image-reference: ${{ env.REF }}
-          acs-report-enable: true
+          image: ${{ env.REF }}
           fail-build: ${{ env.SECURITY_GATING == 'enforcing' }}
+          output-format: sarif
+          output-file: result.sarif
 
       - name: Permissive mode note
         if: ${{ env.SECURITY_GATING != 'enforcing' }}
@@ -114,13 +115,14 @@ jobs:
             image-ref.txt
             quarkus-app/target/bom.json
             sbom-image.cdx.json
-            anchore-reports/
             result.sarif
 
       - name: Upload SARIF to Code Scanning
-        if: ${{ always() && hashFiles('result.sarif') != '' }}
+        if: ${{ always() && steps.scan.outputs.sarif != '' }}
         uses: github/codeql-action/upload-sarif@v3
-        with: { sarif_file: result.sarif, category: anchore }
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: anchore
 
       # ---------- Firma (mismo artefacto) ----------
       - name: Install Cosign
