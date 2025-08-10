@@ -46,9 +46,9 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Build app
+      - name: Build native runner
         working-directory: quarkus-app
-        run: ./mvnw -B -DskipTests verify
+        run: ./mvnw -B -Pnative -Dquarkus.native.container-build=true -DskipTests verify
 
       - name: Build native image
         run: |

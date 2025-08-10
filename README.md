@@ -76,8 +76,11 @@ The build generates Software Bill of Materials (SBOM) for dependencies and conta
 ### Local commands
 
 ```bash
-# Build and generate dependency SBOM
-mvn -f quarkus-app/pom.xml -DskipTests verify
+# Build native binary and container image
+mvn -f quarkus-app/pom.xml -Pnative -Dquarkus.native.container-build=true -DskipTests verify
+docker build -f quarkus-app/src/main/docker/Dockerfile.native \
+  -t ${REGISTRY}/${IMAGE_NAME}:<tag> \
+  quarkus-app
 # Generate image SBOM
 syft oci:${REGISTRY}/${IMAGE_NAME}:<tag> -o cyclonedx-json > sbom-image.cdx.json
 # Scan image
