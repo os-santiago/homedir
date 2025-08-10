@@ -72,6 +72,7 @@ jobs:
           MAJOR=${V%%.*}
           MINOR=${V%.*}
           docker buildx imagetools create -t ${REGISTRY}/${IMAGE_NAME}:v$V $REF
+          docker buildx imagetools create -t ${REGISTRY}/${IMAGE_NAME}:$V $REF
           docker buildx imagetools create -t ${REGISTRY}/${IMAGE_NAME}:$MINOR $REF
           docker buildx imagetools create -t ${REGISTRY}/${IMAGE_NAME}:$MAJOR $REF
 
@@ -127,7 +128,7 @@ jobs:
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/ingress.yaml
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/pvc.yaml
 
-          IMG="${REGISTRY}/${IMAGE_NAME}:v${{ steps.ver.outputs.v }}"
+          IMG="${REGISTRY}/${IMAGE_NAME}:${{ steps.ver.outputs.v }}"
           echo "Rolling out $IMG"
           kubectl -n "$GKE_NAMESPACE" set image deployment/eventflow eventflow=$IMG
           kubectl -n "$GKE_NAMESPACE" rollout status deployment/eventflow
