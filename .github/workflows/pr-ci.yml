@@ -1,0 +1,151 @@
+# NOTE: Reference workflow.
+# Usa las MISMAS variables/secrets y nombres de jobs que ya funcionan en tu repo.
+# Ajusta rutas (Dockerfile, subcarpetas) y comandos según tu proyecto.
+name: PR CI (Build, Native, SBOM/Scan)
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  id-token: write
+
+concurrency:
+  group: pr-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY:   ${{ vars.REGISTRY }}          # ej: quay.io
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}        # ej: sergio_canales_e/eventflow
+  SECURITY_GATING: ${{ vars.SECURITY_GATING || 'permissive' }}
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------- Build & Test ----------
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: m2-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: m2-${{ runner.os }}-
+
+      - name: Build & Test (JVM)
+        working-directory: quarkus-app
+        run: ./mvnw -B -ntp test package
+
+      # ---------- Build Native + Publicación ----------
+      - name: Login to registry (Quay) or continue locally
+        run: |
+          if [ -n "${{ secrets.QUAY_USERNAME }}" ] && [ -n "${{ secrets.QUAY_PASSWORD }}" ]; then
+            echo "${{ secrets.QUAY_PASSWORD }}" | docker login "${REGISTRY}" -u "${{ secrets.QUAY_USERNAME }}" --password-stdin
+            echo "LOGGED_IN=1" >> $GITHUB_ENV
+          else
+            echo "LOGGED_IN=0" >> $GITHUB_ENV
+            echo "No QUAY secrets: seguiré en modo local (sin push) pero con análisis completo."
+          fi
+
+      - name: Build Native image (no tests) + tag PR
+        run: |
+          set -e
+          IMAGE="${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}"
+          PRTAG="${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}-${GITHUB_SHA}"
+          docker build -f quarkus-app/src/main/docker/Dockerfile.native -t "$IMAGE" -t "$PRTAG" quarkus-app
+          if [ "$LOGGED_IN" = "1" ]; then
+            docker push "$IMAGE"
+            docker push "$PRTAG"
+          fi
+          echo "IMAGE=$IMAGE"   >> $GITHUB_ENV
+          echo "PRTAG=$PRTAG"   >> $GITHUB_ENV
+
+      - name: Resolve target reference (digest if pushed, else local)
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y skopeo jq
+          if [ "$LOGGED_IN" = "1" ]; then
+            DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://$PRTAG)"
+            echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
+            echo "RESOLUTION=registry-digest" >> $GITHUB_ENV
+          else
+            # Analizar imagen local (sin 'skipped'): usar esquema docker:
+            echo "REF=docker:${IMAGE}" >> $GITHUB_ENV
+            echo "RESOLUTION=local-docker" >> $GITHUB_ENV
+          fi
+          echo "$REF" > image-ref.txt
+
+      # ---------- SBOM & Scan ----------
+      - name: Setup Syft
+        uses: anchore/setup-syft@v1
+      - name: Setup Grype
+        uses: anchore/setup-grype@v1
+
+      - name: Generate SBOM & Vulnerability reports (no-fail)
+        run: |
+          set -e
+          # SBOM (app deps ya vienen del build; aquí SBOM de imagen)
+          syft packages "$REF" -o cyclonedx-json > sbom-image.cdx.json || true
+          # Grype reports (tabla/JSON/SARIF)
+          grype "$REF" -o table > grype-report.txt || true
+          grype "$REF" -o json  > grype-report.json || true
+          grype "$REF" -o sarif > grype-report.sarif || true
+
+      - name: Upload reports (artifacts)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-security-reports
+          path: |
+            image-ref.txt
+            quarkus-app/target/bom.json
+            sbom-image.cdx.json
+            grype-report.txt
+            grype-report.json
+            grype-report.sarif
+
+      - name: Upload SARIF to Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with: { sarif_file: grype-report.sarif, category: grype }
+
+      - name: Severity threshold (warn-only or enforce by config)
+        run: |
+          FAIL_ON="${{ github.event_name == 'pull_request' && 'high' || 'critical' }}"
+          if [ "${SECURITY_GATING}" = "enforcing" ]; then
+            grype "$REF" --fail-on "$FAIL_ON" -o table
+          else
+            echo "Permissive mode: no bloquearé el PR."
+            grype "$REF" --fail-on "$FAIL_ON" -o table || true
+          fi
+
+      # ---------- Firma (mismo artefacto) ----------
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image (same REF) – graceful if no secrets
+        run: |
+          if [ "$LOGGED_IN" = "1" ]; then
+            if [ -n "${{ secrets.COSIGN_PRIVATE_KEY }}" ] && [ -n "${{ secrets.COSIGN_PASSWORD }}" ]; then
+              printf "%s" '${{ secrets.COSIGN_PRIVATE_KEY }}' > cosign.key
+              cosign sign --key cosign.key --yes "$REF" || true
+              rm -f cosign.key
+            else
+              echo "Sin claves Cosign: omito firma (ok)."
+            fi
+          else
+            echo "Sin push a registry: no se firma (ok, análisis local completado)."
+          fi
+
+      - name: Job summary
+        if: always()
+        run: |
+          echo "### PR Image Reference" >> $GITHUB_STEP_SUMMARY
+          echo "\`$REF\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Resolution: $RESOLUTION" >> $GITHUB_STEP_SUMMARY
