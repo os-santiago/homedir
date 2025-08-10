@@ -113,12 +113,12 @@ jobs:
             quarkus-app/target/bom.json
             sbom-image.cdx.json
             anchore-reports/
-            results.sarif
+            result.sarif
 
       - name: Upload SARIF to Code Scanning
-        if: always()
+        if: ${{ always() && hashFiles('result.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v3
-        with: { sarif_file: results.sarif, category: anchore }
+        with: { sarif_file: result.sarif, category: anchore }
 
       # ---------- Firma (mismo artefacto) ----------
       - name: Install Cosign
