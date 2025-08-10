@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Merge PR (squash + delete branch)
+      - name: Wait for checks then merge PR (squash + delete branch)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ github.event.workflow_run.head_sha }}
@@ -24,4 +24,20 @@ jobs:
           PR_JSON=$(gh api repos/$REPO/commits/$SHA/pulls \
             -H "Accept: application/vnd.github+json")
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number')
+
+          for i in {1..60}; do
+            PENDING=$(gh pr view "$PR_NUMBER" --json statusCheckRollup \
+              --jq '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length')
+            if [ "$PENDING" -eq 0 ]; then
+              break
+            fi
+            echo "Waiting for checks to pass ($PENDING pending)..."
+            sleep 10
+          done
+
+          if [ "$PENDING" -ne 0 ]; then
+            echo "Checks did not pass in time."
+            exit 1
+          fi
+
           gh pr merge "$PR_NUMBER" --squash --delete-branch
