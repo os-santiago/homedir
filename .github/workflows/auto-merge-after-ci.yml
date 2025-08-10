@@ -1,0 +1,27 @@
+---
+name: Auto-merge after PR CI success
+
+'on':
+  workflow_run:
+    workflows: ["PR CI (Build, Native, SBOM/Scan)"]
+    types: [completed]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  merge:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge PR (squash + delete branch)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          PR_JSON=$(gh api repos/$REPO/commits/$SHA/pulls \
+            -H "Accept: application/vnd.github+json")
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number')
+          gh pr merge "$PR_NUMBER" --squash --delete-branch
