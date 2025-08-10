@@ -31,30 +31,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read version from pom.xml
+        id: ver
+        working-directory: quarkus-app
+        run: |
+          V=$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "v=$V" >> $GITHUB_OUTPUT
+
       - name: Login to Quay
         run: echo "${{ secrets.QUAY_PASSWORD }}" | docker login "${REGISTRY}" -u "${{ secrets.QUAY_USERNAME }}" --password-stdin
 
-      - name: Resolve digest (same PR image)
+      - name: Resolve digest (same PR image) without apt-get
         id: ref
-        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          sudo apt-get update -y && sudo apt-get install -y jq skopeo
           prs=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls -H "Accept: application/vnd.github+json")
-          pr=$(echo "$prs" | jq -r '.[0].number // empty')
-          head=$(echo "$prs" | jq -r '.[0].head.sha // empty')
-          if [ -z "$pr" ] || [ -z "$head" ]; then
-            echo "No pull request found for commit ${{ github.sha }}" >&2
-            exit 1
-          fi
-          tag="docker://${REGISTRY}/${IMAGE_NAME}:pr-${pr}-${head}"
-          if ! DIGEST=$(skopeo inspect --format '{{.Digest}}' "$tag" 2>/dev/null); then
-            echo "Image tag $tag not found" >&2
-            exit 1
-          fi
+          pr=$(echo "$prs"   | jq -r '.[0].number')
+          head=$(echo "$prs" | jq -r '.[0].head.sha')
+          DIGEST=$(docker buildx imagetools inspect "${REGISTRY}/${IMAGE_NAME}:pr-${pr}-${head}" --format '{{json .Manifest.Digest}}' | tr -d '"')
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
           echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_OUTPUT
           echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
+
+      - name: Promote digest to semver tags (aliases)
+        if: steps.ref.outcome == 'success'
+        run: |
+          REF="${{ steps.ref.outputs.ref }}"
+          V="${{ steps.ver.outputs.v }}"
+          MAJOR=${V%%.*}
+          MINOR=${V%.*}
+          docker buildx imagetools create -t ${REGISTRY}/${IMAGE_NAME}:v$V $REF
+          docker buildx imagetools create -t ${REGISTRY}/${IMAGE_NAME}:$MINOR $REF
+          docker buildx imagetools create -t ${REGISTRY}/${IMAGE_NAME}:$MAJOR $REF
 
       - name: (Optional) Tag for traceability
         if: steps.ref.outcome == 'success'
@@ -98,7 +107,7 @@ jobs:
             --from-literal=redirect-uri="$OIDC_REDIRECT_URI" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Apply manifests & rollout (by digest)
+      - name: Apply manifests & rollout (by version tag)
         if: steps.ref.outcome == 'success'
         run: |
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/namespace.yaml
@@ -107,5 +116,8 @@ jobs:
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/deployment.yaml
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/ingress.yaml
           kubectl apply -n "$GKE_NAMESPACE" -f deployment/pvc.yaml
-          kubectl -n "$GKE_NAMESPACE" set image deployment/eventflow eventflow=$REF
-          kubectl rollout status deployment/eventflow -n "$GKE_NAMESPACE"
+
+          IMG="${REGISTRY}/${IMAGE_NAME}:v${{ steps.ver.outputs.v }}"
+          echo "Rolling out $IMG"
+          kubectl -n "$GKE_NAMESPACE" set image deployment/eventflow eventflow=$IMG
+          kubectl -n "$GKE_NAMESPACE" rollout status deployment/eventflow

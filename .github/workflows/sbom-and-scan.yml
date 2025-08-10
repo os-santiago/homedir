@@ -43,6 +43,10 @@ jobs:
         working-directory: quarkus-app
         run: ./mvnw -B -ntp test package
 
+      - name: Generate App SBOM (CycloneDX)
+        working-directory: quarkus-app
+        run: ./mvnw -B -ntp org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+
       # ---------- Build Native + Publicación ----------
       - name: Login to registry (Quay) or continue locally
         run: |
@@ -71,17 +75,17 @@ jobs:
 
       - name: Resolve target reference (digest if pushed, else local)
         run: |
-          sudo apt-get update -y && sudo apt-get install -y skopeo jq
           if [ "$LOGGED_IN" = "1" ]; then
+            sudo apt-get update -y && sudo apt-get install -y skopeo
             DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://$PRTAG)"
-            echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
+            REF="${REGISTRY}/${IMAGE_NAME}@${DIGEST}"
             echo "RESOLUTION=registry-digest" >> $GITHUB_ENV
           else
-            # Analizar imagen local (sin 'skipped'): usar esquema docker:
-            echo "REF=docker:${IMAGE}" >> $GITHUB_ENV
+            REF="docker:${IMAGE}"
             echo "RESOLUTION=local-docker" >> $GITHUB_ENV
           fi
-          echo "$REF" > image-ref.txt
+          echo "REF=${REF}" >> $GITHUB_ENV
+          echo "${REF}" > image-ref.txt
 
       # ---------- SBOM & Scan ----------
       - name: Generate SBOM
@@ -118,10 +122,10 @@ jobs:
             result.sarif
 
       - name: Upload SARIF to Code Scanning
-        if: ${{ always() && steps.scan.outputs.sarif != '' }}
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
+          sarif_file: result.sarif
           category: grype
 
       # ---------- Firma (mismo artefacto) ----------
