@@ -26,7 +26,7 @@ jobs:
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number')
 
           for i in {1..60}; do
-            PENDING=$(gh pr view "$PR_NUMBER" --json statusCheckRollup \
+            PENDING=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json statusCheckRollup \
               --jq '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length')
             if [ "$PENDING" -eq 0 ]; then
               break
@@ -40,4 +40,4 @@ jobs:
             exit 1
           fi
 
-          gh pr merge "$PR_NUMBER" --squash --delete-branch
+          gh pr merge "$PR_NUMBER" --squash --delete-branch --repo "$REPO"
