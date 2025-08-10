@@ -139,17 +139,18 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install tools
+        run: apt-get update -y && apt-get install -y jq skopeo gh
 
       - name: Login to Quay
         env:
           QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
           QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         if: ${{ env.QUAY_USERNAME != '' && env.QUAY_PASSWORD != '' }}
-        run: echo "$QUAY_PASSWORD" | docker login "$REGISTRY" -u "$QUAY_USERNAME" --password-stdin
+        run: skopeo login "$REGISTRY" -u "$QUAY_USERNAME" -p "$QUAY_PASSWORD"
 
       - name: Resolve REF from PR tag
         run: |
-          apt-get update -y && apt-get install -y jq skopeo gh
           prs=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls -H "Accept: application/vnd.github+json")
           pr_number=$(echo "$prs" | jq -r '.[0].number')
           head_sha=$(echo "$prs" | jq -r '.[0].head.sha')
