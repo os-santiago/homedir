@@ -82,20 +82,25 @@ jobs:
           echo "$REF" > image-ref.txt
 
       # ---------- SBOM & Scan ----------
-      - name: Setup Syft
-        uses: anchore/setup-syft@v1
-      - name: Setup Grype
-        uses: anchore/setup-grype@v1
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REF }}
+          format: cyclonedx-json
+          output-file: sbom-image.cdx.json
+          upload-artifact: false
 
-      - name: Generate SBOM & Vulnerability reports (no-fail)
-        run: |
-          set -e
-          # SBOM (app deps ya vienen del build; aquí SBOM de imagen)
-          syft packages "$REF" -o cyclonedx-json > sbom-image.cdx.json || true
-          # Grype reports (tabla/JSON/SARIF)
-          grype "$REF" -o table > grype-report.txt || true
-          grype "$REF" -o json  > grype-report.json || true
-          grype "$REF" -o sarif > grype-report.sarif || true
+      - name: Scan image for vulnerabilities
+        id: scan
+        uses: anchore/scan-action@v1
+        with:
+          image-reference: ${{ env.REF }}
+          acs-report-enable: true
+          fail-build: ${{ env.SECURITY_GATING == 'enforcing' }}
+
+      - name: Permissive mode note
+        if: env.SECURITY_GATING != 'enforcing'
+        run: echo "Permissive mode: no bloquearé el PR."
 
       - name: Upload reports (artifacts)
         if: always()
@@ -106,24 +111,13 @@ jobs:
             image-ref.txt
             quarkus-app/target/bom.json
             sbom-image.cdx.json
-            grype-report.txt
-            grype-report.json
-            grype-report.sarif
+            anchore-reports/
+            results.sarif
 
       - name: Upload SARIF to Code Scanning
         if: always()
         uses: github/codeql-action/upload-sarif@v3
-        with: { sarif_file: grype-report.sarif, category: grype }
-
-      - name: Severity threshold (warn-only or enforce by config)
-        run: |
-          FAIL_ON="${{ github.event_name == 'pull_request' && 'high' || 'critical' }}"
-          if [ "${SECURITY_GATING}" = "enforcing" ]; then
-            grype "$REF" --fail-on "$FAIL_ON" -o table
-          else
-            echo "Permissive mode: no bloquearé el PR."
-            grype "$REF" --fail-on "$FAIL_ON" -o table || true
-          fi
+        with: { sarif_file: results.sarif, category: anchore }
 
       # ---------- Firma (mismo artefacto) ----------
       - name: Install Cosign

@@ -6,7 +6,7 @@ Two GitHub Actions workflows orchestrate the build and deployment pipeline and e
 
 - **Build and test**: `./mvnw -B -ntp test package` runs inside `quarkus-app`.
 - **Build native image**: the native runner is packaged once and tagged for the commit and pull request.
-- **SBOM / vulnerability scan**: Syft and Grype generate reports, uploaded as the `pr-security-reports` artifact and to code scanning. The job summary shows the exact image reference used for later promotion.
+ - **SBOM / vulnerability scan**: Anchore's sbom-action and scan-action produce SBOM and vulnerability reports, uploaded as the `pr-security-reports` artifact and to code scanning. The job summary shows the exact image reference used for later promotion.
 - **Optional signing**: if Cosign keys are present, the same image digest is signed.
 
 The repository variable `SECURITY_GATING` toggles scan enforcement:
