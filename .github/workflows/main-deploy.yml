@@ -37,6 +37,7 @@ jobs:
 
       - name: Resolve digest (same PR image)
         id: ref
+        continue-on-error: true
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq skopeo
@@ -57,17 +58,20 @@ jobs:
           echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
 
       - name: (Optional) Tag for traceability
+        if: steps.ref.outcome == 'success'
         run: |
           SHORT=$(echo "${{ github.sha }}" | cut -c1-12)
           skopeo copy docker://$REF docker://${REGISTRY}/${IMAGE_NAME}:main-${SHORT}
 
       # ---- GKE Auth & Deploy (usa tus secretos de GCP) ----
       - name: Auth to GCP
+        if: steps.ref.outcome == 'success'
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Get GKE credentials
+        if: steps.ref.outcome == 'success'
         uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ env.GKE_CLUSTER }}
@@ -75,6 +79,7 @@ jobs:
           project_id:   ${{ env.GKE_PROJECT }}
 
       - name: Apply manifests & rollout (by digest)
+        if: steps.ref.outcome == 'success'
         run: |
           # ejemplo con kustomize/helm/kubectl; usa $REF por digest
           # kubectl set image deploy/eventflow app=$REF -n $GKE_NAMESPACE
