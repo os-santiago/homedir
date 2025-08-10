@@ -2,7 +2,7 @@
 
 Two GitHub Actions workflows orchestrate the build and deployment pipeline and ensure a single immutable image digest flows from pull request to production.
 
-## Pull Requests – `.github/workflows/pr-ci.yml`
+## Pull Requests – `.github/workflows/sbom-and-scan.yml`
 
 - **Build and test**: `./mvnw -B -ntp test package` runs inside `quarkus-app`.
 - **Build native image**: `./mvnw -B -ntp package -Pnative -DskipTests` packages the native runner once and tags it for the commit and pull request.
