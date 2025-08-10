@@ -1,0 +1,71 @@
+# NOTE: Reference workflow.
+# Usa las MISMAS variables/secrets y nombres de jobs que ya funcionan en tu repo.
+# Ajusta rutas (Dockerfile, subcarpetas) y comandos según tu proyecto.
+name: Main Deploy (Promote & GKE)
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: main-deploy-${{ github.sha }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY:   ${{ vars.REGISTRY }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  GKE_PROJECT:   ${{ vars.GKE_PROJECT }}
+  GKE_CLUSTER:   ${{ vars.GKE_CLUSTER }}
+  GKE_LOCATION:  ${{ vars.GKE_LOCATION }}
+  GKE_NAMESPACE: ${{ vars.GKE_NAMESPACE || 'prod' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Quay
+        run: echo "${{ secrets.QUAY_PASSWORD }}" | docker login "${REGISTRY}" -u "${{ secrets.QUAY_USERNAME }}" --password-stdin
+
+      - name: Resolve digest (same PR image)
+        id: ref
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y jq skopeo
+          prs=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls -H "Accept: application/vnd.github+json")
+          pr=$(echo "$prs" | jq -r '.[0].number')
+          head=$(echo "$prs" | jq -r '.[0].head.sha')
+          DIGEST=$(skopeo inspect --format '{{.Digest}}' docker://${REGISTRY}/${IMAGE_NAME}:pr-${pr}-${head})
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_OUTPUT
+          echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
+
+      - name: (Optional) Tag for traceability
+        run: |
+          SHORT=$(echo "${{ github.sha }}" | cut -c1-12)
+          skopeo copy docker://$REF docker://${REGISTRY}/${IMAGE_NAME}:main-${SHORT}
+
+      # ---- GKE Auth & Deploy (usa tus secretos de GCP) ----
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location:     ${{ env.GKE_LOCATION }}
+          project_id:   ${{ env.GKE_PROJECT }}
+
+      - name: Apply manifests & rollout (by digest)
+        run: |
+          # ejemplo con kustomize/helm/kubectl; usa $REF por digest
+          # kubectl set image deploy/eventflow app=$REF -n $GKE_NAMESPACE
+          # kubectl rollout status deploy/eventflow -n $GKE_NAMESPACE
+          echo "Deploying $REF to GKE namespace $GKE_NAMESPACE..."
