@@ -6,6 +6,7 @@ name: Main Deploy (Promote & GKE)
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -9,6 +9,7 @@ name: Auto-merge after PR CI success
 permissions:
   pull-requests: write
   contents: write
+  actions: write
 
 jobs:
   merge:
@@ -41,3 +42,8 @@ jobs:
           fi
 
           gh pr merge "$PR_NUMBER" --squash --delete-branch --repo "$REPO"
+
+      - name: Trigger Main Deploy workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run 'main-deploy.yml' --ref main
