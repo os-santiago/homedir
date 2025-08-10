@@ -125,6 +125,20 @@ jobs:
           cosign sign --key cosign.key --yes "$REF"
           rm -f cosign.key
 
+  sbomExpected:
+    name: sbomExpected
+    needs: build-sbom-and-scan
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check build result
+        run: |
+          if [ "${{ needs.build-sbom-and-scan.result }}" != "success" ]; then
+            echo "build-sbom-and-scan job failed" >&2
+            exit 1
+          fi
+          echo "build-sbom-and-scan job succeeded"
+
   promote:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
