@@ -1,0 +1,68 @@
+name: Deploy to GKE
+
+on:
+  workflow_run:
+    workflows: ["Build Native"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    container:
+      image: google/cloud-sdk:latest
+    env:
+      PROJECT_ID: scanales-191111
+      SERVICE_ACCOUNT_NAME: github-actions-deployer
+      GKE_CLUSTER_NAME: eventflow-cluster
+      GKE_ZONE: us-central1
+      GKE_NAMESPACE: eventflow
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Write GCP credentials
+        env:
+          GCP_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+        run: echo "$GCP_SERVICE_ACCOUNT_KEY_JSON" | base64 -d > "$HOME/key.json"
+
+      - name: Authenticate to Google Cloud
+        run: |
+          gcloud auth activate-service-account --key-file="$HOME/key.json"
+          gcloud config set project "$PROJECT_ID"
+          gcloud config set compute/zone "$GKE_ZONE"
+
+      - name: Configure kubectl
+        run: |
+          gcloud container clusters get-credentials "$GKE_CLUSTER_NAME" --zone "$GKE_ZONE" --project "$PROJECT_ID"
+
+      - name: Update OAuth secret
+        env:
+          OIDC_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          OIDC_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          OIDC_AUTH_SERVER_URL: ${{ secrets.OIDC_AUTH_SERVER_URL }}
+          OIDC_AUTH_URI: ${{ secrets.OIDC_AUTH_URI }}
+          OIDC_TOKEN_URI: ${{ secrets.OIDC_TOKEN_URI }}
+          OIDC_JWKS_URI: ${{ secrets.OIDC_JWKS_URI }}
+          OIDC_REDIRECT_URI: ${{ secrets.OIDC_REDIRECT_URI }}
+        run: |
+          kubectl -n "$GKE_NAMESPACE" create secret generic google-oauth \
+            --from-literal=client-id="$OIDC_CLIENT_ID" \
+            --from-literal=client-secret="$OIDC_CLIENT_SECRET" \
+            --from-literal=auth-server-url="$OIDC_AUTH_SERVER_URL" \
+            --from-literal=auth-uri="$OIDC_AUTH_URI" \
+            --from-literal=token-uri="$OIDC_TOKEN_URI" \
+            --from-literal=jwks-uri="$OIDC_JWKS_URI" \
+            --from-literal=redirect-uri="$OIDC_REDIRECT_URI" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/namespace.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/managed-cert.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/service.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/deployment.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/ingress.yaml
+          kubectl apply -n "$GKE_NAMESPACE" -f deployment/pvc.yaml
+          kubectl rollout restart deployment eventflow -n "$GKE_NAMESPACE"
