@@ -839,9 +839,9 @@ footer {
 /* Profile talk cards */
 .event-group { margin-bottom: 2rem; }
 .day-title { margin: 1rem 0 0.5rem; color: var(--color-dark); }
-.talks-day { display: grid; gap: 1rem; }
+.talks-day { display: flex; flex-direction: column; gap: 0.25rem; }
 @media (min-width: 600px) {
-    .talks-day { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .talks-day { flex-direction: column; }
 }
 .talk-card { display: flex; flex-direction: column; gap: 0.5rem; }
 .talk-card h5 { margin: 0 0 0.25rem; color: var(--color-dark); }
@@ -860,6 +860,20 @@ footer {
 @media (min-width: 600px) {
     .talk-card .motivation-select,
     .talk-card .rating-select { width: auto; }
+}
+/* Compact talk row for agenda view */
+.talk-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.5rem; border-bottom: 1px solid #ddd; }
+.talk-row .talk-time { width: 80px; flex-shrink: 0; font-size: 0.9rem; }
+.talk-row .talk-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.talk-row .talk-actions { display: flex; align-items: center; gap: 0.25rem; margin-left: auto; }
+.talk-row .motivation-list { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.talk-row .motivation-badge { background: #e0e0e0; color: #333; cursor: pointer; }
+.talk-row .motivation-select { width: auto; }
+.talk-row .rating-select { width: auto; }
+.talk-row .attendance-icon { margin-right: 0.25rem; }
+@media (min-width: 600px) {
+    .talk-row .motivation-select,
+    .talk-row .rating-select { width: auto; }
 }
 .filter { display: flex; gap: 0.5rem; margin: 1rem 0; }
 .filter .btn { flex: 1; }
