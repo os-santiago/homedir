@@ -1,11 +1,13 @@
 name: Build Native
 
 on:
-  push:
+  pull_request:
     branches: ["main"]
+    types: [closed]
 
 jobs:
   build-native:
+    if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     env:
       IMAGE_VERSION: v2.0.0
