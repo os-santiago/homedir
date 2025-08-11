@@ -29,6 +29,8 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    container:
+      image: google/cloud-sdk:latest
     steps:
       - uses: actions/checkout@v4
 
