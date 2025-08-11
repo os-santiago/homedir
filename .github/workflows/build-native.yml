@@ -1,13 +1,12 @@
+---
 name: Build Native
 
-on:
-  pull_request:
-    branches: ["main"]
-    types: [closed]
+'on':
+  push:
+    branches: ['main']
 
 jobs:
   build-native:
-    if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     env:
       IMAGE_VERSION: v2.0.0
@@ -18,8 +17,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: "temurin"
-          java-version: "21"
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -39,12 +38,17 @@ jobs:
       - name: Build Docker image
         working-directory: quarkus-app
         run: |
-          docker build -f src/main/docker/Dockerfile.native -t quay.io/sergio_canales_e/eventflow:${{ env.IMAGE_VERSION }} .
+          docker build \
+            -f src/main/docker/Dockerfile.native \
+            -t quay.io/sergio_canales_e/eventflow:${{ env.IMAGE_VERSION }} \
+            .
 
       - name: Push Docker image
         env:
           QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
           QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         run: |
-          echo "$QUAY_PASSWORD" | docker login quay.io -u "$QUAY_USERNAME" --password-stdin
-          docker push quay.io/sergio_canales_e/eventflow:${{ env.IMAGE_VERSION }}
+          echo "$QUAY_PASSWORD" | docker login quay.io -u "$QUAY_USERNAME" \
+            --password-stdin
+          docker push \
+            quay.io/sergio_canales_e/eventflow:${{ env.IMAGE_VERSION }}
