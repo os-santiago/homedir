@@ -1,14 +1,10 @@
 name: Deploy to GKE
 
 on:
-  workflow_run:
-    workflows: ["Build Native"]
-    types:
-      - completed
+  workflow_call:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     container:
       image: google/cloud-sdk:latest
