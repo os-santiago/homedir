@@ -19,11 +19,12 @@ concurrency:
 env:
   REGISTRY:   ${{ vars.REGISTRY }}
   IMAGE_NAME: ${{ vars.IMAGE_NAME }}
-  GKE_PROJECT:   ${{ vars.GKE_PROJECT }}
-  GKE_CLUSTER:   ${{ vars.GKE_CLUSTER }}
-  GKE_LOCATION:  ${{ vars.GKE_LOCATION }}
-  GKE_NAMESPACE: ${{ vars.GKE_NAMESPACE || 'prod' }}
   GH_TOKEN: ${{ github.token }}
+  PROJECT_ID: scanales-191111
+  SERVICE_ACCOUNT_NAME: github-actions-deployer
+  GKE_CLUSTER_NAME: eventflow-cluster
+  GKE_ZONE: us-central1
+  GKE_NAMESPACE: eventflow
 
 jobs:
   deploy:
