@@ -3,9 +3,14 @@ name: Build Native
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    types:
+      - closed
 
 jobs:
   build-native:
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     env:
       IMAGE_VERSION: v2.0.0
