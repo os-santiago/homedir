@@ -83,6 +83,9 @@ public class EventService {
         }
         event.getAgenda().removeIf(t -> t.getId().equals(talk.getId()));
         event.getAgenda().add(talk);
+        event.getAgenda().sort(java.util.Comparator
+                .comparingInt(Talk::getDay)
+                .thenComparing(Talk::getStartTime, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
         persistence.saveEvents(new ConcurrentHashMap<>(events));
     }
 
