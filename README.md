@@ -112,3 +112,7 @@ For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
 - The immutable image digest (`REGISTRY/IMAGE_NAME@sha256:...`) is printed in the job summary and stored in the `security-reports` artifact along with SBOM and vulnerability reports.
 - Severity checks run in permissive mode by default; switch `vars.SECURITY_GATING` to `enforcing` to fail on findings.
 - When a PR is merged, the workflow resolves that same digest, retags it for `main` without rebuilding, signs it, and deploys using the digest.
+
+## Community
+
+This project is supported by the OpenSource Santiago community. Join our Discord server: https://discord.gg/3eawzc9ybc.
