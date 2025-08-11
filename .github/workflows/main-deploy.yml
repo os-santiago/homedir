@@ -82,20 +82,20 @@ jobs:
           SHORT=$(echo "${{ github.sha }}" | cut -c1-12)
           skopeo copy docker://$REF docker://${REGISTRY}/${IMAGE_NAME}:main-${SHORT}
 
-      # ---- GKE Auth & Deploy (usa tus secretos de GCP) ----
-      - name: Auth to GCP
-        if: steps.ref.outcome == 'success'
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Write GCP credentials
+        env:
+          GCP_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+        run: echo "$GCP_SERVICE_ACCOUNT_KEY_JSON" | base64 -d > "$HOME/key.json"
 
-      - name: Get GKE credentials
-        if: steps.ref.outcome == 'success'
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER }}
-          location:     ${{ env.GKE_LOCATION }}
-          project_id:   ${{ env.GKE_PROJECT }}
+      - name: Authenticate to Google Cloud
+        run: |
+          gcloud auth activate-service-account --key-file="$HOME/key.json"
+          gcloud config set project "$PROJECT_ID"
+          gcloud config set compute/zone "$GKE_ZONE"
+
+      - name: Configure kubectl
+        run: |
+          gcloud container clusters get-credentials "$GKE_CLUSTER_NAME" --zone "$GKE_ZONE" --project "$PROJECT_ID"
 
       - name: Update OAuth secret
         if: steps.ref.outcome == 'success'
