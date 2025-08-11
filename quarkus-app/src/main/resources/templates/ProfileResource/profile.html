@@ -22,51 +22,34 @@
       <h4 class="day-title">Día {d.day}</h4>
       <div class="talks-day">
         {#for t in d.talks}
-        <div class="card talk-card" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating??}">
-          <h5>
-            <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
-            <a href="/talk/{t.id}">{t.name}</a>
-            <span class="state-icon">
-              {#if app:talkState(t) == 'Pronto'}⏰{/if}
-              {#if app:talkState(t) == 'Finalizada'}🕓{/if}
-            </span>
-          </h5>
-          <p class="talk-event">{g.event.title}</p>
-          <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
-          <p class="talk-speaker">
-            {#if !t.speakers.isEmpty()}
-              {#for s in t.speakers}{s.name}{#if s_hasNext}, {/if}{/for}
-            {/if}
-          </p>
-          <p class="talk-scenario">{g.event.getScenarioName(t.location)}</p>
-          <div class="motivation-list">
-            {#for m in info.get(t.id).motivations}
-              <span class="badge motivation-badge" data-value="{m}">{m}</span>
-            {/for}
-          </div>
-          <select class="motivation-select" data-talk-id="{t.id}">
-            <option value="">Añadir motivo...</option>
-            <option>⭐ Relevante para mi trabajo</option>
-            <option>🧠 Quiero aprender sobre esto</option>
-            <option>🎤 Conozco al speaker</option>
-            <option>🎯 Me pareció interesante</option>
-          </select>
-          <div class="attendance">
-            <label><input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if info.get(t.id).attended}checked{/if}> Asistí</label>
-          </div>
+        <div class="talk-row" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating??}">
+          <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
+          <span class="talk-time">{t.startTimeStr} - {t.endTimeStr}</span>
+          <span class="talk-title"><a href="/talk/{t.id}">{t.name}</a></span>
+          <span class="badge talk-state {app:talkStateClass(t)}">{app:talkState(t)}</span>
           <div class="talk-actions">
-            <div class="rating">
-              <label for="rating-{t.id}" class="rating-label">⭐ Valorar</label>
-              <select id="rating-{t.id}" class="rating-select" data-talk-id="{t.id}">
-                <option value="">Calificación</option>
-                <option value="1" {#if info.get(t.id).rating == 1}selected{/if}>1</option>
-                <option value="2" {#if info.get(t.id).rating == 2}selected{/if}>2</option>
-                <option value="3" {#if info.get(t.id).rating == 3}selected{/if}>3</option>
-                <option value="4" {#if info.get(t.id).rating == 4}selected{/if}>4</option>
-                <option value="5" {#if info.get(t.id).rating == 5}selected{/if}>5</option>
-              </select>
+            <div class="motivation-list">
+              {#for m in info.get(t.id).motivations}
+                <span class="badge motivation-badge" data-value="{m}">{m}</span>
+              {/for}
             </div>
-            <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}">🗑️ Eliminar</button>
+            <select class="motivation-select" data-talk-id="{t.id}">
+              <option value="">Motivo...</option>
+              <option>⭐ Relevante para mi trabajo</option>
+              <option>🧠 Quiero aprender sobre esto</option>
+              <option>🎤 Conozco al speaker</option>
+              <option>🎯 Me pareció interesante</option>
+            </select>
+            <label class="attended-label" title="Asistí"><input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if info.get(t.id).attended}checked{/if}></label>
+            <select id="rating-{t.id}" class="rating-select" data-talk-id="{t.id}" title="Valorar">
+              <option value="">★</option>
+              <option value="1" {#if info.get(t.id).rating == 1}selected{/if}>1</option>
+              <option value="2" {#if info.get(t.id).rating == 2}selected{/if}>2</option>
+              <option value="3" {#if info.get(t.id).rating == 3}selected{/if}>3</option>
+              <option value="4" {#if info.get(t.id).rating == 4}selected{/if}>4</option>
+              <option value="5" {#if info.get(t.id).rating == 5}selected{/if}>5</option>
+            </select>
+            <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}" title="Eliminar">🗑️</button>
           </div>
         </div>
         {/for}
@@ -95,9 +78,9 @@
     };
 
     const updateSummary = () => {
-      const total = document.querySelectorAll('.talk-card').length;
-      const attended = document.querySelectorAll('.talk-card[data-attended="true"]').length;
-      const rated = document.querySelectorAll('.talk-card[data-rated="true"]').length;
+      const total = document.querySelectorAll('.talk-row').length;
+      const attended = document.querySelectorAll('.talk-row[data-attended="true"]').length;
+      const rated = document.querySelectorAll('.talk-row[data-rated="true"]').length;
       const summary = document.getElementById('summary');
       if (summary) {
         summary.textContent = 'Has agregado ' + total + ' charlas a tu agenda, has asistido a ' + attended + ' y calificado ' + rated + '.';
@@ -119,8 +102,8 @@
           if (res.ok && contentType.includes('application/json')) {
             const data = await res.json();
             if (data.status === 'removed') {
-              const card = btn.closest('.talk-card');
-              if (card) card.remove();
+              const row = btn.closest('.talk-row');
+              if (row) row.remove();
               updateSummary();
               showNotification('success', 'Charla eliminada de tu agenda');
               return;
@@ -146,10 +129,10 @@
       cb.addEventListener('change', () => {
         const id = cb.dataset.talkId;
         const attended = cb.checked;
-        const card = cb.closest('.talk-card');
-        if (card) {
-          card.dataset.attended = attended ? 'true' : 'false';
-          card.querySelector('.attendance-icon').textContent = attended ? '✅' : '❌';
+        const row = cb.closest('.talk-row');
+        if (row) {
+          row.dataset.attended = attended ? 'true' : 'false';
+          row.querySelector('.attendance-icon').textContent = attended ? '✅' : '❌';
         }
         updateTalk(id, { attended });
         updateSummary();
@@ -160,9 +143,9 @@
       sel.addEventListener('change', () => {
         const id = sel.dataset.talkId;
         const rating = sel.value ? parseInt(sel.value) : null;
-        const card = sel.closest('.talk-card');
-        if (card) {
-          card.dataset.rated = rating ? 'true' : 'false';
+        const row = sel.closest('.talk-row');
+        if (row) {
+          row.dataset.rated = rating ? 'true' : 'false';
         }
         updateTalk(id, { rating });
         updateSummary();
@@ -173,8 +156,8 @@
       sel.addEventListener('change', () => {
         const value = sel.value;
         if (!value) return;
-        const card = sel.closest('.talk-card');
-        const list = card.querySelector('.motivation-list');
+        const row = sel.closest('.talk-row');
+        const list = row.querySelector('.motivation-list');
         if ([...list.children].some(b => b.dataset.value === value)) {
           sel.value = '';
           return;
@@ -185,37 +168,37 @@
         badge.textContent = value;
         badge.addEventListener('click', () => {
           badge.remove();
-          saveMotivations(card);
+          saveMotivations(row);
         });
         list.appendChild(badge);
         sel.value = '';
-        saveMotivations(card);
+        saveMotivations(row);
       });
     });
 
-    const saveMotivations = (card) => {
-      const id = card.dataset.talkId;
-      const motivations = [...card.querySelectorAll('.motivation-badge')].map(b => b.dataset.value);
+    const saveMotivations = (row) => {
+      const id = row.dataset.talkId;
+      const motivations = [...row.querySelectorAll('.motivation-badge')].map(b => b.dataset.value);
       updateTalk(id, { motivations });
     };
 
     document.querySelectorAll('.motivation-badge').forEach(badge => {
       badge.addEventListener('click', () => {
-        const card = badge.closest('.talk-card');
+        const row = badge.closest('.talk-row');
         badge.remove();
-        saveMotivations(card);
+        saveMotivations(row);
       });
     });
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const filter = btn.dataset.filter;
-        document.querySelectorAll('.talk-card').forEach(card => {
-          const attended = card.dataset.attended === 'true';
+        document.querySelectorAll('.talk-row').forEach(row => {
+          const attended = row.dataset.attended === 'true';
           if (filter === 'all' || (filter === 'attended' && attended) || (filter === 'pending' && !attended)) {
-            card.style.display = '';
+            row.style.display = '';
           } else {
-            card.style.display = 'none';
+            row.style.display = 'none';
           }
         });
       });
