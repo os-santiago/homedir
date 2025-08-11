@@ -48,8 +48,23 @@ jobs:
         run: |
           set -euo pipefail
           prs=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls -H "Accept: application/vnd.github+json")
-          pr=$(echo "$prs"   | jq -r '.[0].number')
-          head=$(echo "$prs" | jq -r '.[0].head.sha')
+          pr=$(echo "$prs"   | jq -r '.[0].number // empty')
+          head=$(echo "$prs" | jq -r '.[0].head.sha // empty')
+
+          if [ -z "$pr" ] || [ -z "$head" ]; then
+            # Fallback for squash merges: parse PR number from commit message
+            pr=$(git show -s --format=%s HEAD | sed -n 's/.*(#\([0-9]\+\)).*/\1/p')
+            if [ -n "$pr" ]; then
+              pr_json=$(gh api repos/${{ github.repository }}/pulls/$pr -H "Accept: application/vnd.github+json")
+              head=$(echo "$pr_json" | jq -r '.head.sha // empty')
+            fi
+          fi
+
+          if [ -z "$pr" ] || [ -z "$head" ]; then
+            echo "Failed to determine PR information" >&2
+            exit 1
+          fi
+
           DIGEST=$(docker buildx imagetools inspect "${REGISTRY}/${IMAGE_NAME}:pr-${pr}-${head}" --format '{{json .Manifest.Digest}}' | tr -d '"')
           if [ -z "$DIGEST" ]; then
             echo "Failed to resolve image digest" >&2
