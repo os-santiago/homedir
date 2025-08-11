@@ -246,7 +246,7 @@ public class AdminEventResource {
                 || startTime == null || startTime.isBlank()) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?msg=Campos+obligatorios")
+                            "/private/admin/events/" + eventId + "/edit?error=Campos+obligatorios")
                     .build();
         }
         Talk base = speakerId != null && !speakerId.isBlank()
@@ -255,7 +255,7 @@ public class AdminEventResource {
         if (base == null) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?msg=Charla+no+encontrada")
+                            "/private/admin/events/" + eventId + "/edit?error=Charla+no+encontrada")
                     .build();
         }
         Talk talk = new Talk(talkId, base.getName());
@@ -269,12 +269,12 @@ public class AdminEventResource {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
                             "/private/admin/events/" + eventId
-                                    + "/edit?msg=Horario+solapado")
+                                    + "/edit?error=Horario+solapado")
                     .build();
         }
         eventService.saveTalk(eventId, talk);
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", "/private/admin/events/" + eventId + "/edit")
+                .header("Location", "/private/admin/events/" + eventId + "/edit?success=Charla+agregada")
                 .build();
     }
 
