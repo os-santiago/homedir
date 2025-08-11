@@ -89,7 +89,7 @@ public class AppTemplateExtensions {
     /** Returns a human-readable state for the given talk based on current time. */
     public static String talkState(Talk t) {
         if (t == null || t.getStartTime() == null) {
-            return "A tiempo";
+            return "Programada";
         }
         LocalTime now = LocalTime.now();
         LocalTime start = t.getStartTime();
@@ -102,15 +102,15 @@ public class AppTemplateExtensions {
         }
         long minutes = Duration.between(now, start).toMinutes();
         if (minutes <= 15) {
-            return "Pronto";
+            return "Por comenzar";
         }
-        return "A tiempo";
+        return "Programada";
     }
 
     /** CSS class for the talk state badge. */
     public static String talkStateClass(Talk t) {
         return switch (talkState(t)) {
-            case "Pronto" -> "warning";
+            case "Por comenzar" -> "warning";
             case "En curso" -> "info";
             case "Finalizada" -> "past";
             default -> "success";

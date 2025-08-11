@@ -1,0 +1,100 @@
+{#include layout/base}
+{#title}Mis Charlas{/title}
+{#main}
+<h1>Mis Charlas</h1>
+{#if days.isEmpty()}
+<p>No has agregado ninguna charla.</p>
+{#else}
+{#for d in days}
+  <h2 class="day-title">Día {d.day}</h2>
+  {#for t in d.talks}
+    <div class="talk-row" data-talk-id="{t.talk.id}" data-attended="{info.get(t.talk.id).attended}" data-rated="{info.get(t.talk.id).rating??}">
+      <span class="talk-time">{t.talk.startTimeStr} - {t.talk.endTimeStr}</span>
+      <span class="talk-title"><a href="/talk/{t.talk.id}">{t.talk.name}</a></span>
+      <span class="badge talk-state {app:talkStateClass(t.talk)}">{app:talkState(t.talk)}</span>
+      <div class="talk-actions">
+        <label class="attended-label" title="Asistí"><input type="checkbox" class="attended-checkbox" data-talk-id="{t.talk.id}" {#if info.get(t.talk.id).attended}checked{/if}></label>
+        <select class="rating-select" data-talk-id="{t.talk.id}" title="Valorar">
+          <option value="">★</option>
+          <option value="1" {#if info.get(t.talk.id).rating == 1}selected{/if}>1</option>
+          <option value="2" {#if info.get(t.talk.id).rating == 2}selected{/if}>2</option>
+          <option value="3" {#if info.get(t.talk.id).rating == 3}selected{/if}>3</option>
+          <option value="4" {#if info.get(t.talk.id).rating == 4}selected{/if}>4</option>
+          <option value="5" {#if info.get(t.talk.id).rating == 5}selected{/if}>5</option>
+        </select>
+        <button class="btn btn-secondary remove-talk" data-talk-id="{t.talk.id}" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+  {/for}
+{/for}
+{/if}
+<script>
+(function() {
+  const updateTalk = async (id, data) => {
+    try {
+      const res = await fetch('/private/profile/update/' + id, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) {
+        showNotification('error', 'Error al guardar los cambios');
+      }
+    } catch (e) {
+      showNotification('error', 'Error al guardar los cambios');
+    }
+  };
+
+  document.querySelectorAll('.attended-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.dataset.talkId;
+      const attended = cb.checked;
+      const row = cb.closest('.talk-row');
+      if (row) {
+        row.dataset.attended = attended ? 'true' : 'false';
+      }
+      updateTalk(id, { attended });
+    });
+  });
+
+  document.querySelectorAll('.rating-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const id = sel.dataset.talkId;
+      const rating = sel.value ? parseInt(sel.value) : null;
+      const row = sel.closest('.talk-row');
+      if (row) {
+        row.dataset.rated = rating ? 'true' : 'false';
+      }
+      updateTalk(id, { rating });
+    });
+  });
+
+  document.querySelectorAll('.remove-talk').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('¿Estás seguro?')) return;
+      const id = btn.dataset.talkId;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/private/profile/remove/' + id, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: '{}'
+        });
+        if (res.ok) {
+          const row = btn.closest('.talk-row');
+          if (row) row.remove();
+          showNotification('success', 'Charla eliminada de tu agenda');
+        } else {
+          showNotification('error', 'Ocurrió un error al eliminar la charla');
+        }
+      } catch (e) {
+        showNotification('error', 'Ocurrió un error al eliminar la charla');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+})();
+</script>
+{/main}
+{/include}
