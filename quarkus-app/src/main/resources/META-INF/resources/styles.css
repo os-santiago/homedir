@@ -369,6 +369,51 @@ button:focus-visible {
     color: var(--color-light);
 }
 
+/* --- Admin speaker list --- */
+.speaker-list,
+.talk-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.speaker-card {
+    margin-bottom: 1rem;
+}
+
+.speaker-form,
+.talk-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.speaker-fields input,
+.talk-form input {
+    flex: 1 1 150px;
+}
+
+.talk-list {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid #eee;
+}
+
+.talk-item {
+    margin-bottom: 0.5rem;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.speaker-id,
+.talk-id {
+    font-size: 0.85rem;
+    color: #555;
+}
+
 /* --- Home page --- */
 .box {
     background: var(--surface, #fff);
