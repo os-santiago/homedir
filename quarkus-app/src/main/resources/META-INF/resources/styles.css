@@ -368,6 +368,22 @@ button:focus-visible {
     margin-right: 0.25rem;
 }
 
+/* Prevent wrapping and trim long agenda entries */
+.agenda-time {
+    white-space: nowrap;
+}
+
+.agenda-title {
+    white-space: nowrap;
+}
+
+.agenda-title .agenda-title-text {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .action-group {
     display: flex;
     gap: 1rem;
