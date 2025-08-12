@@ -37,6 +37,12 @@ Nuevo Evento
     <label for="date">Fecha de realización</label>
     <input id="date" name="date" type="date" value="{event.dateStr}">
     <p class="event-time-info">Horario calculado: {#if event.startTimeStr}{event.startTimeStr} - {event.endTimeStr}{#else}Sin charlas{/if}</p>
+    <label for="timezone">Zona horaria</label>
+    <select id="timezone" name="timezone">
+      {#for tz in app:commonTimezones()}
+      <option value="{tz}"{#if tz == event.timezone} selected{/if}>{tz}</option>
+      {/for}
+    </select>
     <label for="days">Días del evento</label>
     <input id="days" name="days" type="number" min="1" max="10" value="{event.days}">
     <label for="logoUrl">Logo URL</label>

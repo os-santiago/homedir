@@ -52,6 +52,8 @@ public class Event {
     private String creator;
     /** Day when the event takes place. */
     private LocalDate date;
+    /** Time zone identifier for the event, e.g. "UTC" or "Europe/Madrid". */
+    private String timezone;
 
     public Event() {
     }
@@ -214,6 +216,14 @@ public class Event {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
     }
 
     public String getDateStr() {
