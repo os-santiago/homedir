@@ -256,7 +256,7 @@ Nuevo Evento
       <h4>{sc.name}</h4>
       <ul class="agenda-list">
         {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
-          <li class="agenda-item"><span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>{t.startTimeStr} - {t.endTimeStr} | {t.name} <span class="badge {app:talkStateClass(t)}">{app:talkState(t)}</span></li>
+          <li class="agenda-item"><span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>{t.startTimeStr} - {t.endTimeStr} | {t.name} <span class="badge {app:talkStateClass(t, event)}">{app:talkState(t, event)}</span></li>
         {/for}
       </ul>
       {/if}

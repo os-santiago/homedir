@@ -11,7 +11,7 @@
     <div class="talk-row" data-talk-id="{t.talk.id}" data-attended="{info.get(t.talk.id).attended}" data-rated="{info.get(t.talk.id).rating??}">
       <span class="talk-time">{t.talk.startTimeStr} - {t.talk.endTimeStr}</span>
       <span class="talk-title"><a href="/talk/{t.talk.id}">{t.talk.name}</a></span>
-      <span class="badge talk-state {app:talkStateClass(t.talk)}">{app:talkState(t.talk)}</span>
+      <span class="badge talk-state {app:talkStateClass(t.talk, t.event)}">{app:talkState(t.talk, t.event)}</span>
       <div class="talk-actions">
         <label class="attended-label" title="Asistí"><input type="checkbox" class="attended-checkbox" data-talk-id="{t.talk.id}" {#if info.get(t.talk.id).attended}checked{/if}></label>
         <select class="rating-select" data-talk-id="{t.talk.id}" title="Valorar">

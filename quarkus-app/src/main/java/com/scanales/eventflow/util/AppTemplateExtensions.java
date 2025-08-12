@@ -2,7 +2,9 @@ package com.scanales.eventflow.util;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.util.List;
 import java.net.URI;
 
@@ -15,6 +17,7 @@ import io.quarkus.qute.TemplateExtension;
 import io.quarkus.security.identity.SecurityIdentity;
 
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Talk;
 
 @TemplateExtension(namespace = "app")
@@ -88,9 +91,37 @@ public class AppTemplateExtensions {
 
     /** Returns a human-readable state for the given talk based on current time. */
     public static String talkState(Talk t) {
+        return talkState(t, null);
+    }
+
+    /**
+     * Variant of {@link #talkState(Talk)} that takes the parent {@link Event} so the
+     * calculation considers the event date and day of the talk.
+     */
+    public static String talkState(Talk t, Event event) {
         if (t == null || t.getStartTime() == null) {
             return "Programada";
         }
+        if (event != null && event.getDate() != null) {
+            ZoneId zone = ZoneId.systemDefault();
+            LocalDateTime now = LocalDateTime.now(zone);
+            LocalDateTime start = event.getDate()
+                    .plusDays(Math.max(0, t.getDay() - 1L))
+                    .atTime(t.getStartTime());
+            LocalDateTime end = start.plusMinutes(t.getDurationMinutes());
+            if (now.isAfter(end)) {
+                return "Finalizada";
+            }
+            if (!now.isBefore(start)) {
+                return "En curso";
+            }
+            long minutes = Duration.between(now, start).toMinutes();
+            if (minutes <= 15) {
+                return "Por comenzar";
+            }
+            return "Programada";
+        }
+        // Fallback to time-only comparison when event date is unavailable
         LocalTime now = LocalTime.now();
         LocalTime start = t.getStartTime();
         LocalTime end = t.getEndTime();
@@ -109,7 +140,15 @@ public class AppTemplateExtensions {
 
     /** CSS class for the talk state badge. */
     public static String talkStateClass(Talk t) {
-        return switch (talkState(t)) {
+        return talkStateClass(t, null);
+    }
+
+    /**
+     * Variant of {@link #talkStateClass(Talk)} that takes the parent event for
+     * accurate state calculations.
+     */
+    public static String talkStateClass(Talk t, Event event) {
+        return switch (talkState(t, event)) {
             case "Por comenzar" -> "warning";
             case "En curso" -> "info";
             case "Finalizada" -> "past";
