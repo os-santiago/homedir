@@ -38,6 +38,13 @@ public class SpeakerService {
     void init() {
         speakers.putAll(persistence.loadSpeakers());
         LOG.infof("Loaded %d speakers into memory", speakers.size());
+        // Ensure talks within events include the latest speaker information.
+        // When the application restarts the agenda loaded from persistence may
+        // miss co-speakers if events were stored before the speaker data was
+        // updated. By refreshing each speaker's talks we propagate the
+        // canonical speaker list back into the events' agenda ensuring
+        // co-speakers remain visible after a redeploy.
+        speakers.values().forEach(this::refreshEventsForSpeaker);
     }
 
     public List<Speaker> listSpeakers() {
