@@ -113,6 +113,11 @@ function handleNotificationsFromUrl() {
     if (params.has('error')) {
         showNotification('error', params.get('error'));
     }
+    if (params.has('msg')) {
+        const msg = params.get('msg');
+        const type = msg.startsWith('✅') ? 'success' : 'error';
+        showNotification(type, msg);
+    }
 }
 
 function restoreScroll() {
