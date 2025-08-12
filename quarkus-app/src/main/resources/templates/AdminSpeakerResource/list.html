@@ -44,6 +44,16 @@
             <div class="field"><label>Título</label><input name="name" value="{t.name}" placeholder="Título"></div>
             <div class="field"><label>Duración</label><input name="duration" type="number" min="1" value="{t.durationMinutes}" placeholder="Duración"></div>
             <div class="field"><label>Descripcion</label><input name="description" value="{t.description}" placeholder="Descripcion"></div>
+            <div class="field"><label><input type="checkbox" class="cospeaker-toggle" name="hasCo" {#if t.speakers.size > 1}checked{/if}> Co-Speaker</label>
+              <select name="coSpeakerId" class="cospeaker-select"{#if t.speakers.size <= 1} hidden{/if}>
+                <option value="">Seleccione co-speaker</option>
+                {#for sp in speakers}
+                  {#if sp.id != s.id}
+                    <option value="{sp.id}" {#if t.speakers.size > 1 && t.speakers[1].id == sp.id}selected{/if}>{sp.name}</option>
+                  {/if}
+                {/for}
+              </select>
+            </div>
           </div>
           <button type="submit">Guardar</button>
         </form>
@@ -62,6 +72,16 @@
             <div class="field"><label>Título</label><input name="name" placeholder="Título"></div>
             <div class="field"><label>Duración</label><input name="duration" type="number" min="1" placeholder="Duración"></div>
             <div class="field"><label>Descripcion</label><input name="description" placeholder="Descripcion"></div>
+            <div class="field"><label><input type="checkbox" class="cospeaker-toggle" name="hasCo"> Co-Speaker</label>
+              <select name="coSpeakerId" class="cospeaker-select" hidden>
+                <option value="">Seleccione co-speaker</option>
+                {#for sp in speakers}
+                  {#if sp.id != s.id}
+                    <option value="{sp.id}">{sp.name}</option>
+                  {/if}
+                {/for}
+              </select>
+            </div>
           </div>
           <button type="submit">Agregar</button>
         </form>
@@ -91,6 +111,16 @@
   </li>
 </ul>
 <p><a href="/private/admin">Volver al panel</a></p>
+<script>
+(function(){
+  document.querySelectorAll('.cospeaker-toggle').forEach(cb => {
+    const sel = cb.closest('.talk-form').querySelector('.cospeaker-select');
+    const update = () => sel.hidden = !cb.checked;
+    cb.addEventListener('change', update);
+    update();
+  });
+})();
+</script>
 {/main}
 {/include}
 

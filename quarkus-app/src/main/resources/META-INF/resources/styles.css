@@ -145,6 +145,12 @@ button:focus-visible {
     font-size: 1rem;
 }
 
+.speaker-avatars {
+    display: inline-flex;
+    gap: 0.25rem;
+    vertical-align: middle;
+}
+
 .dropdown {
     display: none;
     position: absolute;

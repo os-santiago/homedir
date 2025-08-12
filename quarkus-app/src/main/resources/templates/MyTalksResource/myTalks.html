@@ -11,6 +11,17 @@
     <div class="talk-row" data-talk-id="{t.talk.id}" data-attended="{info.get(t.talk.id).attended}" data-rated="{info.get(t.talk.id).rating??}">
       <span class="talk-time">{t.talk.startTimeStr} - {t.talk.endTimeStr}</span>
       <span class="talk-title"><a href="/talk/{t.talk.id}">{t.talk.name}</a></span>
+      <div class="speaker-avatars">
+        {#for s in t.talk.speakers}
+          <a href="/speaker/{s.id}" title="{s.name}">
+            {#if app:validUrl(s.photoUrl)}
+              <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+            {#else}
+              <span class="avatar placeholder">👤</span>
+            {/if}
+          </a>
+        {/for}
+      </div>
       <span class="badge talk-state {app:talkStateClass(t.talk, t.event)}">{app:talkState(t.talk, t.event)}</span>
       <div class="talk-actions">
         <label class="attended-label" title="Asistí"><input type="checkbox" class="attended-checkbox" data-talk-id="{t.talk.id}" {#if info.get(t.talk.id).attended}checked{/if}></label>

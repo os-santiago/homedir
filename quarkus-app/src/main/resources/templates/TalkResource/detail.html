@@ -19,7 +19,7 @@
   {/if}
   {#if talk.description}<p>{talk.description}</p>{/if}
   {#if !talk.speakers.isEmpty()}
-    <p><strong>Orador:</strong>
+    <p><strong>Orador{#if talk.speakers.size > 1}es{/if}:</strong>
       {#for s in talk.speakers}
         <a href="/speaker/{s.id}">{s.name}</a>{#if s_hasNext} & {/if}
       {/for}

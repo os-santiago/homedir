@@ -86,10 +86,17 @@ public class SpeakerService {
         if (sp == null || talk == null || talk.getId() == null) {
             return;
         }
-        // ensure the main speaker is present in the talk
-        if (talk.getSpeakers() == null || talk.getSpeakers().isEmpty()) {
-            talk.setSpeakers(List.of(sp));
+        // ensure the main speaker is present and listed first
+        List<Speaker> allSpeakers = new ArrayList<>();
+        allSpeakers.add(sp);
+        if (talk.getSpeakers() != null) {
+            for (Speaker other : talk.getSpeakers()) {
+                if (other != null && !sp.getId().equals(other.getId())) {
+                    allSpeakers.add(other);
+                }
+            }
         }
+        talk.setSpeakers(allSpeakers);
         sp.getTalks().removeIf(t -> t.getId().equals(talk.getId()));
         sp.getTalks().add(talk);
         // propagate updates to all events using this talk

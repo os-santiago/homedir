@@ -22,14 +22,20 @@ Escenario
   {#for t in talks}
     <li class="talk-item">
       <h3>{t.name}</h3>
-      <p class="talk-time">Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min)</p>
       {#if !t.break && !t.speakers.isEmpty()}
-      <p class="talk-speakers">Orador:
+      <div class="speaker-avatars">
         {#for s in t.speakers}
-          <a href="/speaker/{s.id}">{s.name}</a>{#if s_hasNext} & {/if}
+          <a href="/speaker/{s.id}" title="{s.name}">
+            {#if app:validUrl(s.photoUrl)}
+              <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+            {#else}
+              <span class="avatar placeholder">👤</span>
+            {/if}
+          </a>
         {/for}
-      </p>
+      </div>
       {/if}
+      <p class="talk-time">Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min)</p>
       {#if !t.break}<a href="/talk/{t.id}" class="btn btn-secondary">Ver charla</a>{/if}
     </li>
   {/for}

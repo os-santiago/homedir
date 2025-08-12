@@ -114,7 +114,8 @@ public class AdminSpeakerResource {
                              @FormParam("talkId") String talkId,
                              @FormParam("name") String name,
                              @FormParam("description") String description,
-                             @FormParam("duration") int duration) {
+                             @FormParam("duration") int duration,
+                             @FormParam("coSpeakerId") String coSpeakerId) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -133,6 +134,12 @@ public class AdminSpeakerResource {
         Talk talk = new Talk(talkId, name);
         talk.setDescription(description);
         talk.setDurationMinutes(duration);
+        if (coSpeakerId != null && !coSpeakerId.isBlank()) {
+            Speaker co = speakerService.getSpeaker(coSpeakerId);
+            if (co != null) {
+                talk.setSpeakers(List.of(co));
+            }
+        }
         // main speaker will be added in service
         speakerService.saveTalk(speakerId, talk);
         return Response.status(Response.Status.SEE_OTHER)
