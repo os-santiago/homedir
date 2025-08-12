@@ -369,6 +369,77 @@ button:focus-visible {
     color: var(--color-light);
 }
 
+/* --- Admin speaker list --- */
+.speaker-list,
+.talk-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.speaker-card {
+    margin-bottom: 1rem;
+}
+
+.speaker-form,
+.talk-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon {
+    font-size: 1.25rem;
+}
+
+.fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.field {
+    flex: 1 1 150px;
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    font-size: 0.75rem;
+    color: #555;
+    margin-bottom: 0.25rem;
+}
+
+.field input {
+    width: 100%;
+}
+
+.talk-list {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid #eee;
+}
+
+.talk-card {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.item-id {
+    font-size: 0.85rem;
+    color: #555;
+}
+
 /* --- Home page --- */
 .box {
     background: var(--surface, #fff);
