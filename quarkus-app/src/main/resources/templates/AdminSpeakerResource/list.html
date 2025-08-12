@@ -3,19 +3,21 @@
 {#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Oradores</span>{/breadcrumbs}
 {#main}
 <h1>Oradores</h1>
+<p><a href="#new-speaker" class="btn">Agregar Orador</a></p>
 {#if message}<p class="section-subtitle">{message}</p>{/if}
 <ul class="speaker-list">
   {#for s in speakers}
   <li class="card speaker-card">
     <form method="post" action="/private/admin/speakers" class="speaker-form">
       <input type="hidden" name="id" value="{s.id}">
+      {#if app:validUrl(s.photoUrl)}<img src="{s.photoUrl}" alt="{s.name}" class="speaker-photo">{/if}
       <div class="item-header">
         <span class="icon speaker-icon">👤</span>
         <span class="item-id">{s.id}</span>
       </div>
       <div class="fields">
         <div class="field"><label>Nombre</label><input name="name" value="{s.name}" placeholder="Nombre"></div>
-        <div class="field"><label>Bio</label><input name="bio" value="{s.bio}" placeholder="Bio"></div>
+        <div class="field"><label>Bio</label><textarea name="bio" rows="3" placeholder="Bio">{s.bio}</textarea></div>
         <div class="field"><label>Foto URL</label><input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL"></div>
         <div class="field"><label>Sitio</label><input name="website" value="{s.website}" placeholder="Sitio"></div>
         <div class="field"><label>Twitter</label><input name="twitter" value="{s.twitter}" placeholder="Twitter"></div>
@@ -67,7 +69,7 @@
     </ul>
   </li>
   {/for}
-  <li class="card speaker-card">
+  <li id="new-speaker" class="card speaker-card">
     <form method="post" action="/private/admin/speakers" class="speaker-form">
       <div class="item-header">
         <span class="icon speaker-icon">👤</span>
@@ -75,7 +77,7 @@
       </div>
       <div class="fields">
         <div class="field"><label>Nombre</label><input name="name" placeholder="Nombre"></div>
-        <div class="field"><label>Bio</label><input name="bio" placeholder="Bio"></div>
+        <div class="field"><label>Bio</label><textarea name="bio" rows="3" placeholder="Bio"></textarea></div>
         <div class="field"><label>Foto URL</label><input name="photoUrl" placeholder="Foto URL"></div>
         <div class="field"><label>Sitio</label><input name="website" placeholder="Sitio"></div>
         <div class="field"><label>Twitter</label><input name="twitter" placeholder="Twitter"></div>

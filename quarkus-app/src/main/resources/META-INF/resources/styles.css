@@ -380,6 +380,10 @@ button:focus-visible {
 .speaker-card {
     margin-bottom: 1rem;
 }
+.speaker-card .speaker-photo {
+    width: 100%;
+    border-radius: 4px;
+}
 
 .speaker-form,
 .talk-form {
@@ -417,6 +421,9 @@ button:focus-visible {
 }
 
 .field input {
+    width: 100%;
+}
+.field textarea {
     width: 100%;
 }
 
