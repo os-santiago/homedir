@@ -340,11 +340,6 @@ button:focus-visible {
     transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
-.btn:hover {
-    background-color: var(--color-accent);
-    color: var(--color-light);
-}
-
 .btn:active {
     transform: scale(0.97);
 }
@@ -359,10 +354,6 @@ button:focus-visible {
     color: var(--color-light);
 }
 
-.btn-secondary:hover {
-    background-color: var(--color-primary);
-    color: var(--color-light);
-}
 
 .agenda-list {
     list-style: none;
@@ -627,7 +618,6 @@ p.note {
 
 .side-btn:hover {
     box-shadow: 0 6px 16px rgba(0,0,0,.1);
-    filter: brightness(1.03);
 }
 
 .side-btn:focus-visible {
