@@ -127,10 +127,10 @@ public class EventService {
                 .filter(t -> {
                     java.time.LocalTime s = t.getStartTime();
                     java.time.LocalTime e = t.getEndTime();
-                    if (s == null) {
+                    if (s == null || e == null) {
                         return false;
                     }
-                    return !start.isAfter(e) && !end.isBefore(s);
+                    return start.isBefore(e) && end.isAfter(s);
                 })
                 .findFirst()
                 .orElse(null);
