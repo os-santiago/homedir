@@ -4,81 +4,73 @@
 {#main}
 <h1>Oradores</h1>
 {#if message}<p class="section-subtitle">{message}</p>{/if}
-<div class="card">
-<table>
-<thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
-<tbody>
-{#for s in speakers}
-<tr>
-  <form method="post" action="/private/admin/speakers">
-  <td>{s.id}<input type="hidden" name="id" value="{s.id}"></td>
-  <td><input name="name" value="{s.name}"></td>
-  <td>
-    <input name="bio" value="{s.bio}" placeholder="Bio">
-    <input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL">
-    <input name="website" value="{s.website}" placeholder="Sitio">
-    <input name="twitter" value="{s.twitter}" placeholder="Twitter">
-    <input name="linkedin" value="{s.linkedin}" placeholder="LinkedIn">
-    <input name="instagram" value="{s.instagram}" placeholder="Instagram">
-    <button type="submit">Guardar</button>
-  </form>
-  <form method="post" action="/private/admin/speakers/{s.id}/delete" style="display:inline" class="needs-confirm">
-    <button type="submit">Eliminar</button>
-  </form>
-  </td>
-</tr>
-<tr>
-  <td colspan="3">
-    <table class="sub-table">
-      <thead><tr><th>ID</th><th>Título</th><th>Duración</th><th>Acciones</th></tr></thead>
-      <tbody>
-        {#for t in s.talks}
-        <tr>
-          <form method="post" action="/private/admin/speakers/{s.id}/talk">
-            <td>{t.id}<input type="hidden" name="talkId" value="{t.id}"></td>
-            <td><input name="name" value="{t.name}"></td>
-            <td><input name="duration" type="number" min="1" value="{t.durationMinutes}"></td>
-            <td>
-              <input name="description" value="{t.description}" placeholder="Descripcion">
-              <button type="submit">Guardar</button>
-          </form>
-          <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete" style="display:inline" class="needs-confirm">
-              <button type="submit">Eliminar</button>
-          </form>
-            </td>
-        </tr>
-        {/for}
-        <tr>
-          <form method="post" action="/private/admin/speakers/{s.id}/talk">
-            <td>Nuevo</td>
-            <td><input name="name"></td>
-            <td><input name="duration" type="number" min="1"></td>
-            <td><input name="description" placeholder="Descripcion"><button type="submit">Agregar</button></td>
-          </form>
-        </tr>
-      </tbody>
-    </table>
-  </td>
-</tr>
-{/for}
-<tr>
-  <form method="post" action="/private/admin/speakers">
-  <td>Nuevo</td>
-  <td><input name="name"></td>
-  <td>
-    <input name="bio" placeholder="Bio">
-    <input name="photoUrl" placeholder="Foto URL">
-    <input name="website" placeholder="Sitio">
-    <input name="twitter" placeholder="Twitter">
-    <input name="linkedin" placeholder="LinkedIn">
-    <input name="instagram" placeholder="Instagram">
-    <button type="submit">Agregar</button>
-  </td>
-  </form>
-</tr>
-</tbody>
-</table>
-</div>
+<ul class="speaker-list">
+  {#for s in speakers}
+  <li class="card speaker-card">
+    <form method="post" action="/private/admin/speakers" class="speaker-form">
+      <input type="hidden" name="id" value="{s.id}">
+      <div class="speaker-fields">
+        <span class="speaker-id">{s.id}</span>
+        <input name="name" value="{s.name}" placeholder="Nombre">
+        <input name="bio" value="{s.bio}" placeholder="Bio">
+        <input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL">
+        <input name="website" value="{s.website}" placeholder="Sitio">
+        <input name="twitter" value="{s.twitter}" placeholder="Twitter">
+        <input name="linkedin" value="{s.linkedin}" placeholder="LinkedIn">
+        <input name="instagram" value="{s.instagram}" placeholder="Instagram">
+      </div>
+      <div class="actions">
+        <button type="submit">Guardar</button>
+      </div>
+    </form>
+    <form method="post" action="/private/admin/speakers/{s.id}/delete" class="needs-confirm inline-form">
+      <button type="submit">Eliminar</button>
+    </form>
+    <ul class="talk-list">
+      {#for t in s.talks}
+      <li class="talk-item">
+        <form method="post" action="/private/admin/speakers/{s.id}/talk" class="talk-form">
+          <input type="hidden" name="talkId" value="{t.id}">
+          <span class="talk-id">{t.id}</span>
+          <input name="name" value="{t.name}" placeholder="Título">
+          <input name="duration" type="number" min="1" value="{t.durationMinutes}" placeholder="Duración">
+          <input name="description" value="{t.description}" placeholder="Descripcion">
+          <button type="submit">Guardar</button>
+        </form>
+        <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete" class="needs-confirm inline-form">
+          <button type="submit">Eliminar</button>
+        </form>
+      </li>
+      {/for}
+      <li class="talk-item">
+        <form method="post" action="/private/admin/speakers/{s.id}/talk" class="talk-form">
+          <span class="talk-id">Nuevo</span>
+          <input name="name" placeholder="Título">
+          <input name="duration" type="number" min="1" placeholder="Duración">
+          <input name="description" placeholder="Descripcion">
+          <button type="submit">Agregar</button>
+        </form>
+      </li>
+    </ul>
+  </li>
+  {/for}
+  <li class="card speaker-card">
+    <form method="post" action="/private/admin/speakers" class="speaker-form">
+      <span class="speaker-id">Nuevo</span>
+      <input name="name" placeholder="Nombre">
+      <input name="bio" placeholder="Bio">
+      <input name="photoUrl" placeholder="Foto URL">
+      <input name="website" placeholder="Sitio">
+      <input name="twitter" placeholder="Twitter">
+      <input name="linkedin" placeholder="LinkedIn">
+      <input name="instagram" placeholder="Instagram">
+      <div class="actions">
+        <button type="submit">Agregar</button>
+      </div>
+    </form>
+  </li>
+</ul>
 <p><a href="/private/admin">Volver al panel</a></p>
 {/main}
 {/include}
+
