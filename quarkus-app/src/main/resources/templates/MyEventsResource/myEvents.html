@@ -17,8 +17,21 @@
       <a href="/event/{group.event.id}" class="btn btn-outline">Ver evento</a>
       <ul class="talk-list">
         {#for t in group.talks}
-          <li>
+          <li class="talk-item">
             <a href="/talk/{t.id}">{t.name}</a> – {t.startTimeStr} ({t.durationMinutes} min)
+            {#if !t.speakers.isEmpty()}
+              <span class="speaker-avatars">
+                {#for s in t.speakers}
+                  <a href="/speaker/{s.id}" title="{s.name}">
+                    {#if app:validUrl(s.photoUrl)}
+                      <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+                    {#else}
+                      <span class="avatar placeholder">👤</span>
+                    {/if}
+                  </a>
+                {/for}
+              </span>
+            {/if}
           </li>
         {/for}
       </ul>
