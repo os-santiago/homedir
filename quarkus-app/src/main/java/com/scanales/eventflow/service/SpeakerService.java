@@ -1,8 +1,10 @@
 package com.scanales.eventflow.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.annotation.PostConstruct;
@@ -89,16 +91,33 @@ public class SpeakerService {
         // ensure the main speaker is present and listed first
         List<Speaker> allSpeakers = new ArrayList<>();
         allSpeakers.add(sp);
+        Set<String> newIds = new HashSet<>();
+        newIds.add(sp.getId());
         if (talk.getSpeakers() != null) {
             for (Speaker other : talk.getSpeakers()) {
                 if (other != null && !sp.getId().equals(other.getId())) {
-                    allSpeakers.add(other);
+                    Speaker co = speakers.get(other.getId());
+                    if (co != null) {
+                        allSpeakers.add(co);
+                        newIds.add(co.getId());
+                    }
                 }
             }
         }
         talk.setSpeakers(allSpeakers);
         sp.getTalks().removeIf(t -> t.getId().equals(talk.getId()));
         sp.getTalks().add(talk);
+        // ensure co-speakers have the talk and remove from those no longer associated
+        for (Speaker s : speakers.values()) {
+            if (!newIds.contains(s.getId())) {
+                s.getTalks().removeIf(t -> t.getId().equals(talk.getId()));
+            }
+        }
+        for (int i = 1; i < allSpeakers.size(); i++) {
+            Speaker co = allSpeakers.get(i);
+            co.getTalks().removeIf(t -> t.getId().equals(talk.getId()));
+            co.getTalks().add(talk);
+        }
         // propagate updates to all events using this talk
         for (Talk t : eventService.findTalkOccurrences(talk.getId())) {
             t.setName(talk.getName());
@@ -132,9 +151,8 @@ public class SpeakerService {
     }
 
     public void deleteTalk(String speakerId, String talkId) {
-        Speaker sp = speakers.get(speakerId);
-        if (sp != null) {
-            sp.getTalks().removeIf(t -> t.getId().equals(talkId));
+        for (Speaker s : speakers.values()) {
+            s.getTalks().removeIf(t -> t.getId().equals(talkId));
         }
         for (Event e : eventService.listEvents()) {
             e.getAgenda().removeIf(t -> t.getId().equals(talkId));

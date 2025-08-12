@@ -31,7 +31,7 @@
     <ul class="talk-list">
       {#for t in speaker.talks}
       <li class="talk-item">
-        <h3>{t.name}</h3>
+        <h3>{t.name}{#if t.speakers[0].id != speaker.id} (Co Speaker){/if}</h3>
         <a href="/talk/{t.id}" class="btn btn-secondary">Ver charla</a>
       </li>
       {/for}

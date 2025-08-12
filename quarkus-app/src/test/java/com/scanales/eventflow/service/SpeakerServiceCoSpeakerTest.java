@@ -43,5 +43,28 @@ public class SpeakerServiceCoSpeakerTest {
         assertEquals(2, stored.getSpeakers().size());
         assertEquals("main", stored.getSpeakers().get(0).getId());
         assertEquals("co", stored.getSpeakers().get(1).getId());
+
+        Talk coStored = speakerService.getTalk("co", "talk1");
+        assertNotNull(coStored);
+        assertEquals("main", coStored.getSpeakers().get(0).getId());
+        assertEquals("co", coStored.getSpeakers().get(1).getId());
+    }
+
+    @Test
+    public void deletesTalkFromCoSpeaker() {
+        Speaker main = new Speaker("main", "Main");
+        Speaker co = new Speaker("co", "Co");
+        speakerService.saveSpeaker(main);
+        speakerService.saveSpeaker(co);
+
+        Talk talk = new Talk("talk1", "Test Talk");
+        talk.setDurationMinutes(30);
+        talk.setSpeakers(List.of(co));
+
+        speakerService.saveTalk("main", talk);
+        speakerService.deleteTalk("main", "talk1");
+
+        assertNull(speakerService.getTalk("main", "talk1"));
+        assertNull(speakerService.getTalk("co", "talk1"));
     }
 }
