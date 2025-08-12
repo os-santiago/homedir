@@ -70,7 +70,7 @@ Evento
           <summary>Día {d}</summary>
           <ul class="agenda-list">
           {#for t in event.getAgendaForDay(d)}
-            <li class="agenda-item"><span class="icon">🗣️</span>{t.startTimeStr} - {t.endTimeStr} | <a href="/talk/{t.id}">{t.name}</a> | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+            <li class="agenda-item"><span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>{t.startTimeStr} - {t.endTimeStr} | {#if t.break}{t.name}{#else}<a href="/talk/{t.id}">{t.name}</a>{/if} | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
           {/for}
           </ul>
         </details>
