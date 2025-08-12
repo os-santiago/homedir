@@ -26,7 +26,7 @@
           <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
           <span class="talk-time">{t.startTimeStr} - {t.endTimeStr}</span>
           <span class="talk-title"><a href="/talk/{t.id}">{t.name}</a></span>
-          <span class="badge talk-state {app:talkStateClass(t)}">{app:talkState(t)}</span>
+          <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t, g.event)}</span>
           <div class="talk-actions">
             <div class="motivation-list">
               {#for m in info.get(t.id).motivations}
