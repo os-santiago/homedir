@@ -11,7 +11,7 @@ public class TalkSanitizationTest {
     void removesInvalidCharacters() {
         String raw = "  Name\tWith\u0000Controls \uD83D\uDC7E and emoji  ";
         Talk talk = new Talk("id1", raw);
-        assertEquals("Name WithControls and emoji", talk.getName());
+        assertEquals("Name With Controls and emoji", talk.getName());
     }
 
     @Test
