@@ -5,6 +5,8 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.List;
 import java.net.URI;
 
@@ -99,6 +101,7 @@ public class AppTemplateExtensions {
                 "America/Sao_Paulo",
                 "America/Argentina/Buenos_Aires",
                 "America/Bogota",
+                "America/Santiago",
                 "Europe/London",
                 "Europe/Madrid",
                 "Europe/Paris",
@@ -106,6 +109,25 @@ public class AppTemplateExtensions {
                 "Asia/Hong_Kong",
                 "Asia/Kolkata",
                 "Australia/Sydney");
+    }
+
+    /** Returns the standard UTC offset of the given time zone, e.g. "UTC-4". */
+    public static String zoneDetail(String zoneId) {
+        try {
+            ZoneOffset offset = ZoneId.of(zoneId).getRules().getStandardOffset(Instant.now());
+            int totalSeconds = offset.getTotalSeconds();
+            if (totalSeconds == 0) {
+                return "UTC";
+            }
+            int hours = totalSeconds / 3600;
+            int minutes = Math.abs((totalSeconds / 60) % 60);
+            if (minutes == 0) {
+                return String.format("UTC%+d", hours);
+            }
+            return String.format("UTC%+d:%02d", hours, minutes);
+        } catch (Exception e) {
+            return "UTC";
+        }
     }
 
     /** Returns a human-readable state for the given talk based on current time. */

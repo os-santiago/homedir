@@ -40,7 +40,7 @@ Nuevo Evento
     <label for="timezone">Zona horaria</label>
     <select id="timezone" name="timezone">
       {#for tz in app:commonTimezones()}
-      <option value="{tz}"{#if tz == event.timezone} selected{/if}>{tz}</option>
+      <option value="{tz}"{#if tz == event.timezone} selected{/if}>{tz} ({app:zoneDetail(tz)})</option>
       {/for}
     </select>
     <label for="days">Días del evento</label>
