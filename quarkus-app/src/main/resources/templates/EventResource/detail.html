@@ -70,7 +70,24 @@ Evento
           <summary>Día {d}</summary>
           <ul class="agenda-list">
           {#for t in event.getAgendaForDay(d)}
-            <li class="agenda-item"><span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>{t.startTimeStr} - {t.endTimeStr} | {#if t.break}{t.name}{#else}<a href="/talk/{t.id}">{t.name}</a>{/if} | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></li>
+            <li class="agenda-item">
+              <span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>{t.startTimeStr} - {t.endTimeStr} |
+              {#if t.break}{t.name}{#else}<a href="/talk/{t.id}">{t.name}</a>{/if}
+              {#if !t.break && !t.speakers.isEmpty()}
+              <span class="speaker-avatars">
+                {#for s in t.speakers}
+                  <a href="/speaker/{s.id}" title="{s.name}">
+                    {#if app:validUrl(s.photoUrl)}
+                      <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+                    {#else}
+                      <span class="avatar placeholder">👤</span>
+                    {/if}
+                  </a>
+                {/for}
+              </span>
+              {/if}
+              | <a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+            </li>
           {/for}
           </ul>
         </details>
