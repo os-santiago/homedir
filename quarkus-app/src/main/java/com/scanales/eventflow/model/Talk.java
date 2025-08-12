@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
+import java.text.Normalizer;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,11 @@ public class Talk {
 
     @NotBlank
     private String id;
+
+    public static final int MAX_NAME_LENGTH = 120;
+
     @NotBlank
+    @Size(max = MAX_NAME_LENGTH)
     private String name;
     private String description;
     private List<Speaker> speakers = new ArrayList<>();
@@ -42,7 +48,7 @@ public class Talk {
 
     public Talk(String id, String name) {
         this.id = id;
-        this.name = name;
+        setName(name);
     }
 
     public String getId() {
@@ -58,7 +64,26 @@ public class Talk {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = sanitizeName(name);
+    }
+
+    /**
+     * Sanitizes talk names by removing control characters, stripping
+     * unsupported symbols and normalizing whitespace. The result is
+     * truncated to {@link #MAX_NAME_LENGTH} characters.
+     */
+    public static String sanitizeName(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFKC);
+        normalized = normalized.replaceAll("\\p{Cntrl}", "");
+        normalized = normalized.replaceAll("[^\\p{L}\\p{N}\\p{Punct} ]", "");
+        normalized = normalized.replaceAll("\\s+", " ").trim();
+        if (normalized.length() > MAX_NAME_LENGTH) {
+            normalized = normalized.substring(0, MAX_NAME_LENGTH);
+        }
+        return normalized;
     }
 
     public String getDescription() {
