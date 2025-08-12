@@ -10,7 +10,7 @@
   <li class="card speaker-card">
     <form method="post" action="/private/admin/speakers" class="speaker-form">
       <input type="hidden" name="id" value="{s.id}">
-      {#if app:validUrl(s.photoUrl)}<img src="{s.photoUrl}" alt="{s.name}" class="speaker-photo">{/if}
+      {#if app:validUrl(s.photoUrl)}<img src="{s.photoUrl}" alt="{s.name}" class="speaker-photo" width="80" height="80">{/if}
       <div class="item-header">
         <span class="icon speaker-icon">👤</span>
         <span class="item-id">{s.id}</span>

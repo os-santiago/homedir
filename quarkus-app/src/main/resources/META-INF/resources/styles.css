@@ -6,6 +6,7 @@
     --color-dark: #0d47a1;
     --color-text: #333;
     --color-light: #fff;
+    --avatar-size: 80px;
 }
 
 html {
@@ -381,8 +382,10 @@ button:focus-visible {
     margin-bottom: 1rem;
 }
 .speaker-card .speaker-photo {
-    width: 100%;
-    border-radius: 4px;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .speaker-form,
@@ -839,8 +842,10 @@ p.note {
 }
 
 .speaker-summary .speaker-photo {
-    max-width: 150px;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
     border-radius: 50%;
+    object-fit: cover;
 }
 
 .speaker-summary .speaker-info {
