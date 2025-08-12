@@ -3,12 +3,17 @@ package com.scanales.eventflow.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.PersistenceService;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -19,10 +24,18 @@ public class SpeakerServiceCoSpeakerTest {
     @Inject
     SpeakerService speakerService;
 
+    @Inject
+    EventService eventService;
+
+    @Inject
+    PersistenceService persistence;
+
     @AfterEach
     public void cleanup() {
         speakerService.deleteSpeaker("main");
         speakerService.deleteSpeaker("co");
+        eventService.deleteEvent("ev1");
+        persistence.flush();
     }
 
     @Test
@@ -66,5 +79,37 @@ public class SpeakerServiceCoSpeakerTest {
 
         assertNull(speakerService.getTalk("main", "talk1"));
         assertNull(speakerService.getTalk("co", "talk1"));
+    }
+
+    @Test
+    public void coSpeakerPersistsAfterReload() {
+        Speaker main = new Speaker("main", "Main");
+        Speaker co = new Speaker("co", "Co");
+        speakerService.saveSpeaker(main);
+        speakerService.saveSpeaker(co);
+
+        Event ev = new Event("ev1", "Event", null, 1, LocalDateTime.now(), "test@example.com");
+        eventService.saveEvent(ev);
+
+        Talk talk = new Talk("talk1", "Test Talk");
+        talk.setDurationMinutes(30);
+        talk.setSpeakers(List.of(co));
+        speakerService.saveTalk("main", talk);
+
+        talk.setLocation("room");
+        talk.setStartTime(LocalTime.NOON);
+        talk.setDay(1);
+        eventService.saveTalk("ev1", talk);
+
+        persistence.flush();
+        eventService.reload();
+        speakerService.reload();
+
+        Talk fromEvent = eventService.getEvent("ev1").getAgenda().stream()
+                .filter(t -> t.getId().equals("talk1"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(fromEvent);
+        assertEquals(2, fromEvent.getSpeakers().size());
     }
 }
