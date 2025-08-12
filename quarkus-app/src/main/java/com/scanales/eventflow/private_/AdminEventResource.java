@@ -246,7 +246,7 @@ public class AdminEventResource {
                 || startTime == null || startTime.isBlank()) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?error=Campos+obligatorios")
+                            "/private/admin/events/" + eventId + "/edit?msg=Campos+obligatorios")
                     .build();
         }
         Talk base = speakerId != null && !speakerId.isBlank()
@@ -255,7 +255,13 @@ public class AdminEventResource {
         if (base == null) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?error=Charla+no+encontrada")
+                            "/private/admin/events/" + eventId + "/edit?msg=Charla+no+encontrada")
+                    .build();
+        }
+        if (event.getAgenda().stream().anyMatch(t -> t.getId().equals(talkId))) {
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location",
+                            "/private/admin/events/" + eventId + "/edit?msg=Asignacion+duplicada")
                     .build();
         }
         Talk talk = new Talk(talkId, base.getName());
@@ -268,13 +274,12 @@ public class AdminEventResource {
         if (eventService.hasOverlap(eventId, talk)) {
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId
-                                    + "/edit?error=Horario+solapado")
+                            "/private/admin/events/" + eventId + "/edit?msg=Horario+solapado")
                     .build();
         }
         eventService.saveTalk(eventId, talk);
         return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", "/private/admin/events/" + eventId + "/edit?success=Charla+agregada")
+                .header("Location", "/private/admin/events/" + eventId + "/edit?msg=Charla+agregada")
                 .build();
     }
 
