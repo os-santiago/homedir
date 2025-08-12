@@ -35,6 +35,17 @@ img {
     height: auto;
 }
 
+a, a:visited {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover,
+a:focus {
+    color: var(--color-accent);
+}
+
 a:focus-visible,
 button:focus-visible {
     outline: 2px solid var(--color-accent);
@@ -75,6 +86,10 @@ button:focus-visible {
     text-decoration: none;
 }
 
+.nav-logo:hover {
+    color: var(--color-light);
+}
+
 .nav-logo .title {
     margin: 0;
     font-size: 1.5rem;
@@ -104,6 +119,7 @@ button:focus-visible {
 .nav-links a:hover,
 .nav-links a.active {
     background-color: var(--color-accent);
+    color: var(--color-light);
 }
 
 .menu-toggle {
@@ -172,6 +188,7 @@ button:focus-visible {
 
 .dropdown a:hover {
     background-color: var(--color-bg);
+    color: var(--color-dark);
 }
 
 .user-menu.open .dropdown {
@@ -266,6 +283,7 @@ button:focus-visible {
 
     .dropdown a:hover {
         background-color: var(--color-accent);
+        color: var(--color-light);
     }
 }
 .container {
@@ -312,6 +330,7 @@ button:focus-visible {
 
 .btn:hover {
     background-color: var(--color-accent);
+    color: var(--color-light);
 }
 
 .btn:active {
@@ -329,6 +348,7 @@ button:focus-visible {
 
 .btn-secondary:hover {
     background-color: var(--color-primary);
+    color: var(--color-light);
 }
 
 .agenda-list {
