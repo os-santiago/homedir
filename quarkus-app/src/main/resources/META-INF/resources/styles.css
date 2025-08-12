@@ -818,6 +818,11 @@ p.note {
     text-decoration: none;
 }
 
+.event-name a:visited {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
 .event-date {
     font-size: 0.9rem;
     color: #333;
