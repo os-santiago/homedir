@@ -63,7 +63,7 @@ Evento
     </div>
     {/if}
     {#if !event.agenda.isEmpty()}
-    <div class="card" id="agenda">
+    <div class="card agenda" id="agenda">
       <h2 class="card-title"><span class="icon">🗓️</span>Agenda</h2>
       {#for d in event.dayList}
         <details class="agenda-day" open>
@@ -83,7 +83,11 @@ Evento
                 <td class="agenda-time">{t.startTimeStr} - {t.endTimeStr}</td>
                 <td class="agenda-title">
                   <span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>
-                  {#if t.break}{t.name}{#else}<a href="/talk/{t.id}">{t.name}</a>{/if}
+                  {#if t.break}
+                    <span class="agenda-title-text">{t.name}</span>
+                  {#else}
+                    <a href="/talk/{t.id}" class="agenda-title-text">{t.name}</a>
+                  {/if}
                 </td>
                 <td class="agenda-speakers">
                   {#if !t.break && !t.speakers.isEmpty()}
