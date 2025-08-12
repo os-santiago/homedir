@@ -33,12 +33,14 @@
       <li class="talk-item">
         <h3>{t.name}{#if t.speakers[0].id != speaker.id} (Co Speaker){/if}</h3>
         {#if talkEvents.get(t.id) != null}
-        <p><strong>Eventos:</strong></p>
-        <ul class="event-list">
-          {#for e in talkEvents.get(t.id)}
-          <li><a href="/event/{e.id}">{e.title}</a></li>
-          {/for}
-        </ul>
+        <div class="card events-card">
+          <h4 class="card-title"><span class="icon">🗓️</span>Eventos</h4>
+          <div class="events-boxes">
+            {#for e in talkEvents.get(t.id)}
+            <div class="box event-box"><a href="/event/{e.id}">{e.title}</a></div>
+            {/for}
+          </div>
+        </div>
         {/if}
         <a href="/talk/{t.id}" class="btn btn-secondary">Ver charla</a>
       </li>
