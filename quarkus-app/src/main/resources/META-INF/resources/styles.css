@@ -35,10 +35,20 @@ img {
     height: auto;
 }
 
-a, a:visited {
-    color: var(--color-primary);
+a,
+a:visited {
     text-decoration: none;
     transition: color 0.2s ease-in-out;
+}
+
+a {
+    color: var(--color-primary);
+}
+
+a:visited {
+    color: var(--color-light);
+    background-color: var(--color-dark);
+    text-decoration: underline;
 }
 
 a:hover,
