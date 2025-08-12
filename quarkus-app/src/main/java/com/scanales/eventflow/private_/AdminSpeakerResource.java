@@ -115,9 +115,11 @@ public class AdminSpeakerResource {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+
+        name = Talk.sanitizeName(name);
         if (name == null || name.isBlank() || duration <= 0) {
             return Response.status(Response.Status.SEE_OTHER)
-                    .header("Location", "/private/admin/speakers?msg=Campos+obligatorios")
+                    .header("Location", "/private/admin/speakers?msg=Nombre+inv\u00e1lido")
                     .build();
         }
         if (talkId == null || talkId.isBlank()) {
