@@ -27,6 +27,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
 
 
 @Path("/private/admin/events")
@@ -231,12 +232,18 @@ public class AdminEventResource {
                              @FormParam("speakerId") String speakerId,
                              @FormParam("location") String location,
                              @FormParam("startTime") String startTime,
-                             @FormParam("day") int day) {
+                             @FormParam("day") int day,
+                             @HeaderParam("X-Request-ID") String requestId) {
         if (!isAdmin()) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        String reqId = requestId == null || requestId.isBlank()
+                ? java.util.UUID.randomUUID().toString()
+                : requestId;
+        String user = identity.getAttribute("email");
         Event event = eventService.getEvent(eventId);
         if (event == null) {
+            LOG.warnf("accion=charla_crear_validacion_fallida causa=evento_no_encontrado requestId=%s eventoId=%s", reqId, eventId);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         if (day < 1 || day > event.getDays()) {
@@ -244,6 +251,7 @@ public class AdminEventResource {
         }
         if (talkId == null || talkId.isBlank() || location == null || location.isBlank()
                 || startTime == null || startTime.isBlank()) {
+            LOG.warnf("accion=charla_crear_validacion_fallida causa=faltan_campos usuario=%s eventoId=%s requestId=%s", user, eventId, reqId);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
                             "/private/admin/events/" + eventId + "/edit?msg=Campos+obligatorios")
@@ -253,15 +261,20 @@ public class AdminEventResource {
                 ? speakerService.getTalk(speakerId, talkId)
                 : speakerService.findTalk(talkId);
         if (base == null) {
+            LOG.warnf("accion=charla_crear_validacion_fallida causa=charla_no_encontrada talkId=%s eventoId=%s requestId=%s", talkId, eventId, reqId);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
                             "/private/admin/events/" + eventId + "/edit?msg=Charla+no+encontrada")
                     .build();
         }
+        java.time.LocalTime start = java.time.LocalTime.parse(startTime);
+        java.time.LocalTime end = start.plusMinutes(base.getDurationMinutes());
+        LOG.infof("accion=charla_crear_intento usuario=%s eventoId=%s charlaTitulo=%s fechaInicio=%s fechaFin=%s dia=%d sala=%s requestId=%s", user, eventId, base.getName(), start, end, day, location, reqId);
         if (event.getAgenda().stream().anyMatch(t -> t.getId().equals(talkId))) {
+            LOG.warnf("accion=charla_crear_rechazada motivo=duplicado charlaExistenteId=%s eventoId=%s requestId=%s", talkId, eventId, reqId);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?msg=Asignacion+duplicada")
+                            "/private/admin/events/" + eventId + "/edit?msg=Esta+charla+ya+existe+para+el+evento")
                     .build();
         }
         Talk talk = new Talk(talkId, base.getName());
@@ -269,18 +282,32 @@ public class AdminEventResource {
         talk.setDurationMinutes(base.getDurationMinutes());
         talk.setSpeakers(base.getSpeakers());
         talk.setLocation(location);
-        talk.setStartTimeStr(startTime);
+        talk.setStartTime(start);
         talk.setDay(day);
-        if (eventService.hasOverlap(eventId, talk)) {
+        Talk overlap = eventService.findOverlap(eventId, talk);
+        if (overlap != null) {
+            LOG.warnf("accion=charla_crear_rechazada motivo=conflicto_agenda charlaExistenteId=%s eventoId=%s requestId=%s", overlap.getId(), eventId, reqId);
+            String msg = String.format("No+se+pudo+agregar:+hay+un+solapamiento+en+%s+dia+%d+%s+con+'%s'", location, day, start, overlap.getName());
             return Response.status(Response.Status.SEE_OTHER)
-                    .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?msg=Horario+solapado")
+                    .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
                     .build();
         }
-        eventService.saveTalk(eventId, talk);
-        return Response.status(Response.Status.SEE_OTHER)
-                .header("Location", "/private/admin/events/" + eventId + "/edit?msg=Charla+agregada")
-                .build();
+        try {
+            eventService.saveTalk(eventId, talk);
+            LOG.infof("accion=charla_crear_exito charlaId=%s eventoId=%s requestId=%s", talkId, eventId, reqId);
+            String msg = java.net.URLEncoder.encode(
+                    "✅ Charla '" + base.getName() + "' agregada al evento.",
+                    java.nio.charset.StandardCharsets.UTF_8);
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
+                    .build();
+        } catch (Exception e) {
+            LOG.errorf(e, "accion=charla_crear_error motivo=excepcion requestId=%s", reqId);
+            String msg = "No+pudimos+agregar+la+charla+en+este+momento.+Intenta+nuevamente";
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
+                    .build();
+        }
     }
 
     @POST

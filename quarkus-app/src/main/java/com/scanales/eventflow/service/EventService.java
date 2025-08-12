@@ -104,9 +104,18 @@ public class EventService {
      * @return {@code true} if an overlap is detected
      */
     public boolean hasOverlap(String eventId, Talk talk) {
+        return findOverlap(eventId, talk) != null;
+    }
+
+    /**
+     * Returns an existing talk that overlaps with the given one or {@code null}
+     * if none. Two talks overlap when they occur on the same day and scenario
+     * and their times intersect.
+     */
+    public Talk findOverlap(String eventId, Talk talk) {
         Event event = events.get(eventId);
         if (event == null || talk.getStartTime() == null) {
-            return false;
+            return null;
         }
         java.time.LocalTime start = talk.getStartTime();
         java.time.LocalTime end = talk.getEndTime();
@@ -115,14 +124,16 @@ public class EventService {
                         && t.getDay() == talk.getDay()
                         && t.getLocation() != null
                         && t.getLocation().equals(talk.getLocation()))
-                .anyMatch(t -> {
+                .filter(t -> {
                     java.time.LocalTime s = t.getStartTime();
                     java.time.LocalTime e = t.getEndTime();
                     if (s == null) {
                         return false;
                     }
                     return !start.isAfter(e) && !end.isBefore(s);
-                });
+                })
+                .findFirst()
+                .orElse(null);
     }
 
     public Scenario findScenario(String scenarioId) {
