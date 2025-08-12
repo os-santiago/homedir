@@ -252,9 +252,12 @@ public class AdminEventResource {
         if (talkId == null || talkId.isBlank() || location == null || location.isBlank()
                 || startTime == null || startTime.isBlank()) {
             LOG.warnf("accion=charla_crear_validacion_fallida causa=faltan_campos usuario=%s eventoId=%s requestId=%s", user, eventId, reqId);
+            String msg = java.net.URLEncoder.encode(
+                    "Campos obligatorios",
+                    java.nio.charset.StandardCharsets.UTF_8);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?msg=Campos+obligatorios")
+                            "/private/admin/events/" + eventId + "/edit?msg=" + msg)
                     .build();
         }
         Talk base = speakerId != null && !speakerId.isBlank()
@@ -262,9 +265,12 @@ public class AdminEventResource {
                 : speakerService.findTalk(talkId);
         if (base == null) {
             LOG.warnf("accion=charla_crear_validacion_fallida causa=charla_no_encontrada talkId=%s eventoId=%s requestId=%s", talkId, eventId, reqId);
+            String msg = java.net.URLEncoder.encode(
+                    "Charla no encontrada",
+                    java.nio.charset.StandardCharsets.UTF_8);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?msg=Charla+no+encontrada")
+                            "/private/admin/events/" + eventId + "/edit?msg=" + msg)
                     .build();
         }
         java.time.LocalTime start = java.time.LocalTime.parse(startTime);
@@ -272,9 +278,12 @@ public class AdminEventResource {
         LOG.infof("accion=charla_crear_intento usuario=%s eventoId=%s charlaTitulo=%s fechaInicio=%s fechaFin=%s dia=%d sala=%s requestId=%s", user, eventId, base.getName(), start, end, day, location, reqId);
         if (event.getAgenda().stream().anyMatch(t -> t.getId().equals(talkId))) {
             LOG.warnf("accion=charla_crear_rechazada motivo=duplicado charlaExistenteId=%s eventoId=%s requestId=%s", talkId, eventId, reqId);
+            String msg = java.net.URLEncoder.encode(
+                    "Esta charla ya existe para el evento",
+                    java.nio.charset.StandardCharsets.UTF_8);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location",
-                            "/private/admin/events/" + eventId + "/edit?msg=Esta+charla+ya+existe+para+el+evento")
+                            "/private/admin/events/" + eventId + "/edit?msg=" + msg)
                     .build();
         }
         Talk talk = new Talk(talkId, base.getName());
@@ -287,7 +296,8 @@ public class AdminEventResource {
         Talk overlap = eventService.findOverlap(eventId, talk);
         if (overlap != null) {
             LOG.warnf("accion=charla_crear_rechazada motivo=conflicto_agenda charlaExistenteId=%s eventoId=%s requestId=%s", overlap.getId(), eventId, reqId);
-            String msg = String.format("No+se+pudo+agregar:+hay+un+solapamiento+en+%s+dia+%d+%s+con+'%s'", location, day, start, overlap.getName());
+            String raw = String.format("No se pudo agregar: hay un solapamiento en %s dia %d %s con '%s'", location, day, start, overlap.getName());
+            String msg = java.net.URLEncoder.encode(raw, java.nio.charset.StandardCharsets.UTF_8);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
                     .build();
@@ -303,7 +313,9 @@ public class AdminEventResource {
                     .build();
         } catch (Exception e) {
             LOG.errorf(e, "accion=charla_crear_error motivo=excepcion requestId=%s", reqId);
-            String msg = "No+pudimos+agregar+la+charla+en+este+momento.+Intenta+nuevamente";
+            String msg = java.net.URLEncoder.encode(
+                    "No pudimos agregar la charla en este momento. Intenta nuevamente",
+                    java.nio.charset.StandardCharsets.UTF_8);
             return Response.status(Response.Status.SEE_OTHER)
                     .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
                     .build();
