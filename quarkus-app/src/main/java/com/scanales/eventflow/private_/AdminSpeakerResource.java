@@ -80,6 +80,9 @@ public class AdminSpeakerResource {
         sp.setName(name);
         sp.setBio(bio);
         sp.setPhotoUrl(photoUrl);
+        if (website != null && !website.isBlank() && !website.startsWith("http://") && !website.startsWith("https://")) {
+            website = "https://" + website;
+        }
         sp.setWebsite(website);
         sp.setTwitter(twitter);
         sp.setLinkedin(linkedin);

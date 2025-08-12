@@ -823,6 +823,40 @@ p.note {
     }
 }
 
+/* Speaker detail header */
+.speaker-summary .speaker-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.speaker-summary .speaker-photo {
+    max-width: 150px;
+    border-radius: 50%;
+}
+
+.speaker-summary .speaker-info {
+    flex: 1;
+}
+
+.speaker-links {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .speaker-summary .speaker-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    .speaker-links {
+        justify-content: center;
+    }
+}
+
 /* Grid of scenario cards on event detail */
 .scenario-grid {
     display: grid;
