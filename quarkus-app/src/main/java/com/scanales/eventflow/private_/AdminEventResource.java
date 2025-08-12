@@ -368,10 +368,11 @@ public class AdminEventResource {
         }
         Talk talk;
         if (breakId != null && !breakId.isBlank()) {
+            final String existingId = breakId;
             talk = event.getAgenda().stream()
-                    .filter(t -> t.getId().equals(breakId))
+                    .filter(t -> t.getId().equals(existingId))
                     .findFirst()
-                    .orElse(new Talk(breakId, name));
+                    .orElse(new Talk(existingId, name));
             talk.setName(name);
         } else {
             var ts = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
