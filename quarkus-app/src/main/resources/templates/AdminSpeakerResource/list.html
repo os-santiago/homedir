@@ -9,15 +9,18 @@
   <li class="card speaker-card">
     <form method="post" action="/private/admin/speakers" class="speaker-form">
       <input type="hidden" name="id" value="{s.id}">
-      <div class="speaker-fields">
-        <span class="speaker-id">{s.id}</span>
-        <input name="name" value="{s.name}" placeholder="Nombre">
-        <input name="bio" value="{s.bio}" placeholder="Bio">
-        <input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL">
-        <input name="website" value="{s.website}" placeholder="Sitio">
-        <input name="twitter" value="{s.twitter}" placeholder="Twitter">
-        <input name="linkedin" value="{s.linkedin}" placeholder="LinkedIn">
-        <input name="instagram" value="{s.instagram}" placeholder="Instagram">
+      <div class="item-header">
+        <span class="icon speaker-icon">👤</span>
+        <span class="item-id">{s.id}</span>
+      </div>
+      <div class="fields">
+        <div class="field"><label>Nombre</label><input name="name" value="{s.name}" placeholder="Nombre"></div>
+        <div class="field"><label>Bio</label><input name="bio" value="{s.bio}" placeholder="Bio"></div>
+        <div class="field"><label>Foto URL</label><input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL"></div>
+        <div class="field"><label>Sitio</label><input name="website" value="{s.website}" placeholder="Sitio"></div>
+        <div class="field"><label>Twitter</label><input name="twitter" value="{s.twitter}" placeholder="Twitter"></div>
+        <div class="field"><label>LinkedIn</label><input name="linkedin" value="{s.linkedin}" placeholder="LinkedIn"></div>
+        <div class="field"><label>Instagram</label><input name="instagram" value="{s.instagram}" placeholder="Instagram"></div>
       </div>
       <div class="actions">
         <button type="submit">Guardar</button>
@@ -28,13 +31,18 @@
     </form>
     <ul class="talk-list">
       {#for t in s.talks}
-      <li class="talk-item">
+      <li class="card talk-card">
         <form method="post" action="/private/admin/speakers/{s.id}/talk" class="talk-form">
           <input type="hidden" name="talkId" value="{t.id}">
-          <span class="talk-id">{t.id}</span>
-          <input name="name" value="{t.name}" placeholder="Título">
-          <input name="duration" type="number" min="1" value="{t.durationMinutes}" placeholder="Duración">
-          <input name="description" value="{t.description}" placeholder="Descripcion">
+          <div class="item-header">
+            <span class="icon talk-icon">🎤</span>
+            <span class="item-id">{t.id}</span>
+          </div>
+          <div class="fields">
+            <div class="field"><label>Título</label><input name="name" value="{t.name}" placeholder="Título"></div>
+            <div class="field"><label>Duración</label><input name="duration" type="number" min="1" value="{t.durationMinutes}" placeholder="Duración"></div>
+            <div class="field"><label>Descripcion</label><input name="description" value="{t.description}" placeholder="Descripcion"></div>
+          </div>
           <button type="submit">Guardar</button>
         </form>
         <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete" class="needs-confirm inline-form">
@@ -42,12 +50,17 @@
         </form>
       </li>
       {/for}
-      <li class="talk-item">
+      <li class="card talk-card">
         <form method="post" action="/private/admin/speakers/{s.id}/talk" class="talk-form">
-          <span class="talk-id">Nuevo</span>
-          <input name="name" placeholder="Título">
-          <input name="duration" type="number" min="1" placeholder="Duración">
-          <input name="description" placeholder="Descripcion">
+          <div class="item-header">
+            <span class="icon talk-icon">🎤</span>
+            <span class="item-id">Nuevo</span>
+          </div>
+          <div class="fields">
+            <div class="field"><label>Título</label><input name="name" placeholder="Título"></div>
+            <div class="field"><label>Duración</label><input name="duration" type="number" min="1" placeholder="Duración"></div>
+            <div class="field"><label>Descripcion</label><input name="description" placeholder="Descripcion"></div>
+          </div>
           <button type="submit">Agregar</button>
         </form>
       </li>
@@ -56,14 +69,19 @@
   {/for}
   <li class="card speaker-card">
     <form method="post" action="/private/admin/speakers" class="speaker-form">
-      <span class="speaker-id">Nuevo</span>
-      <input name="name" placeholder="Nombre">
-      <input name="bio" placeholder="Bio">
-      <input name="photoUrl" placeholder="Foto URL">
-      <input name="website" placeholder="Sitio">
-      <input name="twitter" placeholder="Twitter">
-      <input name="linkedin" placeholder="LinkedIn">
-      <input name="instagram" placeholder="Instagram">
+      <div class="item-header">
+        <span class="icon speaker-icon">👤</span>
+        <span class="item-id">Nuevo</span>
+      </div>
+      <div class="fields">
+        <div class="field"><label>Nombre</label><input name="name" placeholder="Nombre"></div>
+        <div class="field"><label>Bio</label><input name="bio" placeholder="Bio"></div>
+        <div class="field"><label>Foto URL</label><input name="photoUrl" placeholder="Foto URL"></div>
+        <div class="field"><label>Sitio</label><input name="website" placeholder="Sitio"></div>
+        <div class="field"><label>Twitter</label><input name="twitter" placeholder="Twitter"></div>
+        <div class="field"><label>LinkedIn</label><input name="linkedin" placeholder="LinkedIn"></div>
+        <div class="field"><label>Instagram</label><input name="instagram" placeholder="Instagram"></div>
+      </div>
       <div class="actions">
         <button type="submit">Agregar</button>
       </div>

@@ -384,14 +384,40 @@ button:focus-visible {
 .speaker-form,
 .talk-form {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 0.5rem;
-    align-items: center;
 }
 
-.speaker-fields input,
-.talk-form input {
+.item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon {
+    font-size: 1.25rem;
+}
+
+.fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.field {
     flex: 1 1 150px;
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    font-size: 0.75rem;
+    color: #555;
+    margin-bottom: 0.25rem;
+}
+
+.field input {
+    width: 100%;
 }
 
 .talk-list {
@@ -400,7 +426,8 @@ button:focus-visible {
     border-left: 2px solid #eee;
 }
 
-.talk-item {
+.talk-card {
+    padding: 0.75rem;
     margin-bottom: 0.5rem;
 }
 
@@ -408,8 +435,7 @@ button:focus-visible {
     display: inline;
 }
 
-.speaker-id,
-.talk-id {
+.item-id {
     font-size: 0.85rem;
     color: #555;
 }
