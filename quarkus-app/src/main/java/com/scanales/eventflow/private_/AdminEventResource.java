@@ -337,6 +337,88 @@ public class AdminEventResource {
     }
 
     @POST
+    @Path("{id}/break")
+    @Authenticated
+    public Response saveBreak(@PathParam("id") String eventId,
+                              @FormParam("breakId") String breakId,
+                              @FormParam("name") String name,
+                              @FormParam("duration") int duration,
+                              @FormParam("location") String location,
+                              @FormParam("startTime") String startTime,
+                              @FormParam("day") int day) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Event event = eventService.getEvent(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        if (day < 1 || day > event.getDays()) {
+            day = 1;
+        }
+        if (name == null || name.isBlank() || location == null || location.isBlank()
+                || startTime == null || startTime.isBlank() || duration <= 0) {
+            String msg = java.net.URLEncoder.encode(
+                    "Campos obligatorios",
+                    java.nio.charset.StandardCharsets.UTF_8);
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location",
+                            "/private/admin/events/" + eventId + "/edit?msg=" + msg)
+                    .build();
+        }
+        Talk talk;
+        if (breakId != null && !breakId.isBlank()) {
+            talk = event.getAgenda().stream()
+                    .filter(t -> t.getId().equals(breakId))
+                    .findFirst()
+                    .orElse(new Talk(breakId, name));
+            talk.setName(name);
+        } else {
+            var ts = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                    .format(java.time.LocalDateTime.now());
+            breakId = eventId + "-break-" + ts;
+            talk = new Talk(breakId, name);
+        }
+        talk.setDurationMinutes(duration);
+        talk.setSpeakers(java.util.List.of());
+        talk.setLocation(location);
+        talk.setStartTime(java.time.LocalTime.parse(startTime));
+        talk.setDay(day);
+        talk.setBreak(true);
+        Talk overlap = eventService.findOverlap(eventId, talk);
+        if (overlap != null) {
+            String raw = String.format(
+                    "No se pudo agregar: hay un solapamiento en %s dia %d %s con '%s'",
+                    location, day, startTime, overlap.getName());
+            String msg = java.net.URLEncoder.encode(raw, java.nio.charset.StandardCharsets.UTF_8);
+            return Response.status(Response.Status.SEE_OTHER)
+                    .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
+                    .build();
+        }
+        eventService.saveTalk(eventId, talk);
+        String msg = java.net.URLEncoder.encode(
+                "✅ Break agregado al evento.",
+                java.nio.charset.StandardCharsets.UTF_8);
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
+                .build();
+    }
+
+    @POST
+    @Path("{id}/break/{breakId}/delete")
+    @Authenticated
+    public Response deleteBreak(@PathParam("id") String eventId,
+                                @PathParam("breakId") String breakId) {
+        if (!isAdmin()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        eventService.deleteTalk(eventId, breakId);
+        return Response.status(Response.Status.SEE_OTHER)
+                .header("Location", "/private/admin/events/" + eventId + "/edit")
+                .build();
+    }
+
+    @POST
     @Path("import")
     @Authenticated
     @Consumes(MediaType.MULTIPART_FORM_DATA)

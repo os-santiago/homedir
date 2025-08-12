@@ -21,6 +21,7 @@ Nuevo Evento
   {#if event.id}
   <a href="#scenarios">Escenarios</a>
   <a href="#talks">Charlas</a>
+  <a href="#breaks">Breaks</a>
   <a href="#agenda">Agenda</a>
   {/if}
 </nav>
@@ -105,10 +106,11 @@ Nuevo Evento
   <thead><tr><th>ID</th><th>Charla</th><th>Acciones</th></tr></thead>
   <tbody>
   {#for t in event.agenda}
+  {#if !t.break}
   <tr>
   <form method="post" action="/private/admin/events/{event.id}/talk">
   <td>{t.id}<input type="hidden" name="talkId" value="{t.id}"></td>
-  <td>{t.name}<br><small>{t.getSpeakerNames()}</small></td>
+  <td>{t.name}{#if !t.speakers.isEmpty()}<br><small>{t.getSpeakerNames()}</small>{/if}</td>
   <td>
   <select name="location">
   {#for sc in event.scenarios}
@@ -128,6 +130,7 @@ Nuevo Evento
   </form>
   </td>
   </tr>
+  {/if}
   {/for}
   <tr>
   <form method="post" action="/private/admin/events/{event.id}/talk">
@@ -184,6 +187,65 @@ Nuevo Evento
   </script>
   </div>
 </section>
+<section id="breaks">
+  <h2><span class="icon">☕</span>Breaks</h2>
+  <div class="card">
+  <table>
+    <thead><tr><th>ID</th><th>Break</th><th>Acciones</th></tr></thead>
+    <tbody>
+    {#for t in event.agenda}
+    {#if t.break}
+    <tr>
+    <form method="post" action="/private/admin/events/{event.id}/break">
+    <td>{t.id}<input type="hidden" name="breakId" value="{t.id}"></td>
+    <td><input name="name" value="{t.name}"></td>
+    <td>
+      <input name="duration" type="number" min="1" value="{t.durationMinutes}">
+      <select name="location">
+      {#for sc in event.scenarios}
+      <option value="{sc.id}"{#if sc.id == t.location} selected{/if}>{sc.name}</option>
+      {/for}
+      </select>
+      <input name="startTime" type="time" value="{t.startTimeStr}">
+      <select name="day">
+      {#for d in event.dayList}
+      <option value="{d}"{#if t.day == d} selected{/if}>Día {d}</option>
+      {/for}
+      </select>
+      <button type="submit">Guardar</button>
+    </form>
+    <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete" style="display:inline" class="needs-confirm">
+      <button type="submit">Eliminar</button>
+    </form>
+    </td>
+    </tr>
+    {/if}
+    {/for}
+    <tr>
+    <form method="post" action="/private/admin/events/{event.id}/break">
+    <td>Nuevo</td>
+    <td><input name="name"></td>
+    <td>
+      <input name="duration" type="number" min="1">
+      <select name="location">
+      {#for sc in event.scenarios}
+      <option value="{sc.id}">{sc.name}</option>
+      {/for}
+      </select>
+      <input name="startTime" type="time">
+      <select name="day">
+      {#for d in event.dayList}
+      <option value="{d}">Día {d}</option>
+      {/for}
+      </select>
+      <button type="submit">Agregar</button>
+    </td>
+    </form>
+    </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
 <section id="agenda">
   <h2><span class="icon">🗓️</span>Agenda</h2>
   {#for d in event.dayList}
@@ -194,7 +256,7 @@ Nuevo Evento
       <h4>{sc.name}</h4>
       <ul class="agenda-list">
         {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
-          <li class="agenda-item"><span class="icon">🗣️</span>{t.startTimeStr} - {t.endTimeStr} | {t.name} <span class="badge {app:talkStateClass(t)}">{app:talkState(t)}</span></li>
+          <li class="agenda-item"><span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>{t.startTimeStr} - {t.endTimeStr} | {t.name} <span class="badge {app:talkStateClass(t)}">{app:talkState(t)}</span></li>
         {/for}
       </ul>
       {/if}

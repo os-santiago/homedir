@@ -42,6 +42,8 @@ public class Talk {
     private LocalTime startTime;
     /** Duration in minutes. */
     private int durationMinutes;
+    /** Indicates whether this entry represents a break (coffee, lunch, etc.). */
+    private boolean breakSlot;
 
     public Talk() {
     }
@@ -162,5 +164,13 @@ public class Talk {
     public String getEndTimeStr() {
         LocalTime end = getEndTime();
         return end == null ? "" : end.toString();
+    }
+
+    public boolean isBreak() {
+        return breakSlot;
+    }
+
+    public void setBreak(boolean breakSlot) {
+        this.breakSlot = breakSlot;
     }
 }
