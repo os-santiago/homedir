@@ -2,7 +2,7 @@ name: Deploy on Build Native Completion
 
 on:
   workflow_run:
-    workflows: ["Build Native"]
+    workflows: ["Build Native on Build Completion"]
     types:
       - completed
 
