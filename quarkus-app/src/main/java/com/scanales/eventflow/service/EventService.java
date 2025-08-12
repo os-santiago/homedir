@@ -170,6 +170,15 @@ public class EventService {
                 .orElse(null);
     }
 
+    /** Returns all events that include the provided talk id. */
+    public List<Event> findEventsByTalk(String talkId) {
+        return events.values().stream()
+                .filter(e -> e.getAgenda().stream()
+                        .anyMatch(t -> t.getId().equals(talkId)))
+                .sorted(java.util.Comparator.comparing(Event::getId))
+                .toList();
+    }
+
     /** Returns a {@link TalkInfo} containing the talk and its parent event or {@code null}. */
     public TalkInfo findTalkInfo(String talkId) {
         Talk talk = findTalk(talkId);
