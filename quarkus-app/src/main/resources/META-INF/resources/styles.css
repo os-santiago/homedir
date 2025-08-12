@@ -352,6 +352,22 @@ button:focus-visible {
     margin: 0.5rem 0;
 }
 
+/* Tabular layout for event agenda */
+.agenda-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+}
+
+.agenda-table th,
+.agenda-table td {
+    padding: 0.5rem;
+}
+
+.agenda-title .icon {
+    margin-right: 0.25rem;
+}
+
 .action-group {
     display: flex;
     gap: 1rem;
