@@ -11,19 +11,30 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import com.scanales.eventflow.service.SpeakerService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Speaker;
+import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.SpeakerService;
 
 @Path("/speaker")
 public class SpeakerResource {
 
     @CheckedTemplate
     static class Templates {
-        static native TemplateInstance detail(Speaker speaker);
+        static native TemplateInstance detail(Speaker speaker,
+                Map<String, List<Event>> talkEvents);
     }
 
     @Inject
     SpeakerService speakerService;
+
+    @Inject
+    EventService eventService;
 
     @GET
     @Path("{id}")
@@ -31,6 +42,15 @@ public class SpeakerResource {
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance detail(@PathParam("id") String id) {
         Speaker sp = speakerService.getSpeaker(id);
-        return Templates.detail(sp);
+        Map<String, List<Event>> talkEvents = new HashMap<>();
+        if (sp != null && sp.getTalks() != null) {
+            for (Talk t : sp.getTalks()) {
+                List<Event> events = eventService.findEventsByTalk(t.getId());
+                if (!events.isEmpty()) {
+                    talkEvents.put(t.getId(), events);
+                }
+            }
+        }
+        return Templates.detail(sp, talkEvents);
     }
 }

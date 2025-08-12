@@ -897,6 +897,12 @@ p.note {
     gap: 0.5rem;
 }
 
+.event-list {
+    list-style: none;
+    margin: 0.25rem 0 0;
+    padding: 0;
+}
+
 @media (max-width: 600px) {
     .speaker-summary .speaker-header {
         flex-direction: column;
