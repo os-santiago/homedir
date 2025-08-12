@@ -68,16 +68,17 @@ public class Talk {
     }
 
     /**
-     * Sanitizes talk names by removing control characters, stripping
-     * unsupported symbols and normalizing whitespace. The result is
-     * truncated to {@link #MAX_NAME_LENGTH} characters.
+     * Sanitizes talk names by replacing control characters with spaces,
+     * stripping unsupported symbols and normalizing whitespace. The result
+     * is truncated to {@link #MAX_NAME_LENGTH} characters.
      */
     public static String sanitizeName(String value) {
         if (value == null) {
             return null;
         }
         String normalized = Normalizer.normalize(value, Normalizer.Form.NFKC);
-        normalized = normalized.replaceAll("\\p{Cntrl}", "");
+        // Replace control characters with spaces to preserve word boundaries
+        normalized = normalized.replaceAll("\\p{Cntrl}", " ");
         normalized = normalized.replaceAll("[^\\p{L}\\p{N}\\p{Punct} ]", "");
         normalized = normalized.replaceAll("\\s+", " ").trim();
         if (normalized.length() > MAX_NAME_LENGTH) {
