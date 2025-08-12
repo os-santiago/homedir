@@ -19,11 +19,21 @@
   {/if}
   {#if talk.description}<p>{talk.description}</p>{/if}
   {#if !talk.speakers.isEmpty()}
-    <p><strong>Orador{#if talk.speakers.size > 1}es{/if}:</strong>
+    <div class="speaker-avatars">
       {#for s in talk.speakers}
-        <a href="/speaker/{s.id}">{s.name}</a>{#if s_hasNext} & {/if}
+        <a href="/speaker/{s.id}" title="{s.name}">
+          {#if app:validUrl(s.photoUrl)}
+            <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+          {#else}
+            <span class="avatar placeholder">👤</span>
+          {/if}
+        </a>
       {/for}
-    </p>
+    </div>
+    <p><strong>Orador:</strong> <a href="/speaker/{talk.speakers[0].id}">{talk.speakers[0].name}</a></p>
+    {#if talk.speakers.size > 1}
+      <p><strong>Co-Speaker:</strong> <a href="/speaker/{talk.speakers[1].id}">{talk.speakers[1].name}</a></p>
+    {/if}
   {/if}
   <p><strong>Horario:</strong> {#if talk.startTimeStr}{talk.startTimeStr}{#else}Por confirmar{/if}</p>
   <p><strong>Ubicación:</strong>
