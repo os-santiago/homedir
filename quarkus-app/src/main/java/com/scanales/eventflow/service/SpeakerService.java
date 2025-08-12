@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -67,6 +68,8 @@ public class SpeakerService {
             }
             return existing;
         });
+        Speaker stored = speakers.get(speaker.getId());
+        refreshEventsForSpeaker(stored);
         persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
 
@@ -79,6 +82,7 @@ public class SpeakerService {
                     e.getAgenda().removeIf(tt -> tt.getId().equals(t.getId()));
                 }
             }
+            persistEvents();
         }
         persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
@@ -125,6 +129,7 @@ public class SpeakerService {
             t.setDurationMinutes(talk.getDurationMinutes());
             t.setSpeakers(talk.getSpeakers());
         }
+        persistEvents();
         persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
 
@@ -157,6 +162,7 @@ public class SpeakerService {
         for (Event e : eventService.listEvents()) {
             e.getAgenda().removeIf(t -> t.getId().equals(talkId));
         }
+        persistEvents();
         persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
     }
 
@@ -164,5 +170,26 @@ public class SpeakerService {
     public void reload() {
         speakers.clear();
         speakers.putAll(persistence.loadSpeakers());
+    }
+
+    private void refreshEventsForSpeaker(Speaker sp) {
+        if (sp == null || sp.getTalks() == null) {
+            return;
+        }
+        for (Talk talk : sp.getTalks()) {
+            for (Talk evTalk : eventService.findTalkOccurrences(talk.getId())) {
+                evTalk.setName(talk.getName());
+                evTalk.setDescription(talk.getDescription());
+                evTalk.setDurationMinutes(talk.getDurationMinutes());
+                evTalk.setSpeakers(talk.getSpeakers());
+            }
+        }
+        persistEvents();
+    }
+
+    private void persistEvents() {
+        Map<String, Event> map = eventService.listEvents().stream()
+                .collect(Collectors.toMap(Event::getId, e -> e, (a, b) -> b, ConcurrentHashMap::new));
+        persistence.saveEvents(map);
     }
 }
