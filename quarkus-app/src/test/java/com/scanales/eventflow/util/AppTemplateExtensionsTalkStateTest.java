@@ -16,14 +16,14 @@ public class AppTemplateExtensionsTalkStateTest {
     void talkStateUsesEventTimezone() {
         ZoneId tokyo = ZoneId.of("Asia/Tokyo");
         ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
-        ZonedDateTime nowTokyo = nowUtc.withZoneSameInstant(tokyo);
+        ZonedDateTime talkStartTokyo = nowUtc.minusMinutes(30).withZoneSameInstant(tokyo);
 
         Event event = new Event();
-        event.setDate(nowTokyo.toLocalDate());
+        event.setDate(talkStartTokyo.toLocalDate());
         event.setTimezone(tokyo.getId());
 
         Talk talk = new Talk("id", "name");
-        talk.setStartTime(nowTokyo.minusMinutes(30).toLocalTime());
+        talk.setStartTime(talkStartTokyo.toLocalTime());
         talk.setDurationMinutes(10);
 
         String state = AppTemplateExtensions.talkState(talk, event);
