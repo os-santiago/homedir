@@ -46,8 +46,8 @@ a {
 }
 
 a:visited {
-    color: var(--color-light);
-    background-color: var(--color-dark);
+    color: var(--color-primary);
+    background-color: var(--color-primary);
     text-decoration: underline;
 }
 
@@ -82,7 +82,7 @@ button:focus-visible {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background-color: var(--color-dark);
+    background-color: var(--color-primary);
     color: var(--color-light);
     display: flex;
     align-items: center;
@@ -390,6 +390,10 @@ button:focus-visible {
 
 .agenda-title .icon {
     margin-right: 0.25rem;
+}
+
+.agenda-title a{
+    color: var(--color-primary);
 }
 
 /* Prevent wrapping and trim long agenda entries */
@@ -700,7 +704,6 @@ p.note {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-accent);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -964,6 +967,7 @@ p.note {
 .scenario-card .btn {
     margin-top: auto;
     align-self: flex-start;
+    background-color: var(--color-primary);
 }
 
 /* Talk list on scenario detail */
