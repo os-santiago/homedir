@@ -253,6 +253,7 @@ button:focus-visible {
         flex-direction: column;
         width: 100%;
         background-color: var(--color-dark);
+        color: var(--color-light);
         padding: 1rem 0;
     }
 
@@ -274,6 +275,7 @@ button:focus-visible {
         position: static;
         box-shadow: none;
         background-color: var(--color-dark);
+        color: var(--color-light);
     }
 
     .dropdown a {
@@ -344,6 +346,7 @@ button:focus-visible {
 
 .btn-secondary {
     background-color: var(--color-dark);
+    color: var(--color-light);
 }
 
 .btn-secondary:hover {
