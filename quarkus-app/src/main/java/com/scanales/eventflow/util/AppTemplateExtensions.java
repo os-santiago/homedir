@@ -89,6 +89,25 @@ public class AppTemplateExtensions {
         return email != null && EMAIL_PATTERN.matcher(email).matches();
     }
 
+    /** List of common time zones for event selection. */
+    public static List<String> commonTimezones() {
+        return List.of(
+                "UTC",
+                "America/Los_Angeles",
+                "America/New_York",
+                "America/Mexico_City",
+                "America/Sao_Paulo",
+                "America/Argentina/Buenos_Aires",
+                "America/Bogota",
+                "Europe/London",
+                "Europe/Madrid",
+                "Europe/Paris",
+                "Asia/Tokyo",
+                "Asia/Hong_Kong",
+                "Asia/Kolkata",
+                "Australia/Sydney");
+    }
+
     /** Returns a human-readable state for the given talk based on current time. */
     public static String talkState(Talk t) {
         return talkState(t, null);
@@ -103,7 +122,12 @@ public class AppTemplateExtensions {
             return "Programada";
         }
         if (event != null && event.getDate() != null) {
-            ZoneId zone = ZoneId.systemDefault();
+            ZoneId zone;
+            try {
+                zone = event.getTimezone() != null ? ZoneId.of(event.getTimezone()) : ZoneId.systemDefault();
+            } catch (Exception e) {
+                zone = ZoneId.systemDefault();
+            }
             LocalDateTime now = LocalDateTime.now(zone);
             LocalDateTime start = event.getDate()
                     .plusDays(Math.max(0, t.getDay() - 1L))

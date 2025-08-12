@@ -101,6 +101,7 @@ public class AdminEventResource {
     public Response saveEvent(@FormParam("title") String title,
                               @FormParam("description") String description,
                               @FormParam("date") String date,
+                              @FormParam("timezone") String timezone,
                               @FormParam("days") int days,
                               @FormParam("logoUrl") String logoUrl,
                               @FormParam("mapUrl") String mapUrl,
@@ -117,6 +118,7 @@ public class AdminEventResource {
         String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
         Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
         event.setDateStr(date);
+        event.setTimezone(sanitizeZone(timezone));
         event.setLogoUrl(sanitizeUrl(logoUrl));
         event.setMapUrl(sanitizeUrl(mapUrl));
         event.setContactEmail(sanitizeEmail(contactEmail));
@@ -138,6 +140,7 @@ public class AdminEventResource {
                                 @FormParam("title") String title,
                                 @FormParam("description") String description,
                                 @FormParam("date") String date,
+                                @FormParam("timezone") String timezone,
                                 @FormParam("days") int days,
                                 @FormParam("logoUrl") String logoUrl,
                                 @FormParam("mapUrl") String mapUrl,
@@ -157,6 +160,7 @@ public class AdminEventResource {
         event.setTitle(title);
         event.setDescription(description);
         event.setDateStr(date);
+        event.setTimezone(sanitizeZone(timezone));
         event.setDays(days);
         event.setLogoUrl(sanitizeUrl(logoUrl));
         event.setMapUrl(sanitizeUrl(mapUrl));
@@ -512,6 +516,17 @@ public class AdminEventResource {
         return email.contains("@") ? email : null;
     }
 
+    private String sanitizeZone(String zone) {
+        if (zone == null || zone.isBlank()) {
+            return null;
+        }
+        try {
+            return java.time.ZoneId.of(zone).getId();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void fillDefaults(Event event) {
         if (event.getTitle() == null) event.setTitle("VACIO");
         if (event.getDescription() == null) event.setDescription("VACIO");
@@ -523,6 +538,7 @@ public class AdminEventResource {
         if (event.getLinkedin() == null) event.setLinkedin("VACIO");
         if (event.getInstagram() == null) event.setInstagram("VACIO");
         if (event.getTicketsUrl() == null) event.setTicketsUrl("VACIO");
+        if (event.getTimezone() == null) event.setTimezone("UTC");
         if (event.getCreator() == null) event.setCreator("VACIO");
         if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
 
