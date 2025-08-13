@@ -1,0 +1,26 @@
+{#include layout/base}
+{#title}Guía rápida de operación{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/private/admin/metrics">Métricas</a><span class="sep">/</span><span>Guía</span>{/breadcrumbs}
+{#main}
+<section class="admin-metrics">
+    <h1>Guía rápida de operación</h1>
+    <p>Revisa primero el panel de salud del sistema de métricas. Observa el semáforo, descartes y la marca <code>lastFlush</code>.</p>
+    <h2>Acciones sugeridas por estado</h2>
+    <ul>
+        <li><strong>OK:</strong> sin acción requerida.</li>
+        <li><strong>DEGRADADO:</strong> revisar espacio en disco o ajustar <code>flushInterval</code> y tope de buffer.</li>
+        <li><strong>ERROR:</strong> revisar logs, exportar respaldo y considerar restaurar una copia válida.</li>
+    </ul>
+    <h2>Exportar/Restaurar</h2>
+    <p>El archivo de métricas está en <code>data/metrics-v2.json</code>. Copia este archivo para respaldos y reemplázalo para restaurar.</p>
+    <h2>Parámetros clave</h2>
+    <ul>
+        <li><code>flushInterval</code>: frecuencia de escritura a disco.</li>
+        <li><code>buffer.maxSize</code>: eventos acumulados antes de flush.</li>
+        <li>Retención/rotación: mantener solo el archivo actual.</li>
+    </ul>
+    <p>Buenas prácticas: no editar manualmente el JSON, validar tamaño y corrupción antes de restaurar.</p>
+    <a href="/private/admin/metrics" class="btn btn-secondary">Volver</a>
+</section>
+{/main}
+{/include}
