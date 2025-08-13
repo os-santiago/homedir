@@ -42,6 +42,7 @@ public class UserScheduleServiceTest {
 
     private void flush(UserScheduleService svc) throws Exception {
         getPersistence(svc).flush();
+        svc.shutdown();
     }
 
     @Test

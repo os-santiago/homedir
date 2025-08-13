@@ -1,14 +1,27 @@
 package com.scanales.eventflow.service;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.time.Duration;
 import java.time.Year;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /** In-memory store for user schedules and talk details. */
@@ -23,6 +36,27 @@ public class UserScheduleService {
     /** Loaded historical schedules per year. */
     private final Map<Integer, Map<String, Map<String, TalkDetails>>> historical = new ConcurrentHashMap<>();
 
+    @ConfigProperty(name = "read.window", defaultValue = "PT2S")
+    Duration readWindow = Duration.ofSeconds(2);
+
+    @ConfigProperty(name = "read.max-stale", defaultValue = "PT10S")
+    Duration maxStale = Duration.ofSeconds(10);
+
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "user-schedule-refresh");
+        t.setDaemon(true);
+        return t;
+    });
+    private final AtomicBoolean refreshInProgress = new AtomicBoolean(false);
+    private volatile Future<?> refreshTask;
+    private final AtomicInteger windowReads = new AtomicInteger();
+    private volatile long lastRefreshDurationMs;
+    private final List<Long> refreshDurations = Collections.synchronizedList(new ArrayList<>());
+    private final AtomicLong readsMemory = new AtomicLong();
+    private final AtomicLong refreshCount = new AtomicLong();
+    private final AtomicLong refreshCoalesced = new AtomicLong();
+    private final AtomicLong staleServed = new AtomicLong();
+
     @Inject
     PersistenceService persistence;
 
@@ -35,6 +69,14 @@ public class UserScheduleService {
     void init() {
         activeYear = persistence.findLatestUserScheduleYear();
         schedules.putAll(persistence.loadUserSchedules(activeYear));
+        long secs = readWindow.getSeconds();
+        if (secs < 1) readWindow = Duration.ofSeconds(1);
+        if (secs > 2) readWindow = Duration.ofSeconds(2);
+    }
+
+    @PreDestroy
+    void shutdown() {
+        scheduler.shutdown();
     }
 
     /** Details tracked for each talk registered by a user. */
@@ -66,6 +108,7 @@ public class UserScheduleService {
 
     /** Returns the set of talk ids registered by the user. */
     public Set<String> getTalksForUser(String email) {
+        recordRead();
         if (email == null) {
             return java.util.Set.of();
         }
@@ -75,6 +118,7 @@ public class UserScheduleService {
 
     /** Returns the map of talk details for the user. */
     public Map<String, TalkDetails> getTalkDetailsForUser(String email) {
+        recordRead();
         if (email == null) {
             return java.util.Map.of();
         }
@@ -126,6 +170,7 @@ public class UserScheduleService {
     public record Summary(int total, long attended, long rated) {}
 
     public Summary getSummaryForUser(String email) {
+        recordRead();
         if (email == null) {
             return new Summary(0, 0, 0);
         }
@@ -188,6 +233,69 @@ public class UserScheduleService {
 
     /** Returns the set of years for which schedule files exist. */
     public Set<Integer> getAvailableYears() {
+        recordRead();
         return persistence.listUserScheduleYears();
+    }
+
+    private void recordRead() {
+        readsMemory.incrementAndGet();
+        if (refreshInProgress.get()) {
+            staleServed.incrementAndGet();
+        }
+        if (refreshTask == null) {
+            windowReads.set(1);
+            refreshTask = scheduler.schedule(this::refreshSnapshot,
+                    readWindow.toMillis(), TimeUnit.MILLISECONDS);
+        } else {
+            windowReads.incrementAndGet();
+        }
+    }
+
+    private void refreshSnapshot() {
+        refreshInProgress.set(true);
+        long reads = windowReads.getAndSet(0);
+        refreshCoalesced.addAndGet(reads);
+        long start = System.currentTimeMillis();
+        try {
+            Map<String, Map<String, TalkDetails>> data =
+                    persistence.loadUserSchedules(activeYear);
+            schedules.clear();
+            schedules.putAll(data);
+        } catch (Exception e) {
+            LOG.warn("refresh_failed", e);
+        } finally {
+            lastRefreshDurationMs = System.currentTimeMillis() - start;
+            synchronized (refreshDurations) {
+                refreshDurations.add(lastRefreshDurationMs);
+                if (refreshDurations.size() > 100) {
+                    refreshDurations.remove(0);
+                }
+            }
+            refreshCount.incrementAndGet();
+            refreshInProgress.set(false);
+            refreshTask = null;
+        }
+    }
+
+    public record ReadMetrics(long memory, long refreshCount, long refreshCoalesced,
+            long refreshLastDurationMs, long refreshP95Ms, long staleServed) {}
+
+    public ReadMetrics getReadMetrics() {
+        long p95 = 0L;
+        List<Long> copy;
+        synchronized (refreshDurations) {
+            copy = new ArrayList<>(refreshDurations);
+        }
+        if (!copy.isEmpty()) {
+            Collections.sort(copy);
+            int index = (int) Math.ceil(copy.size() * 0.95) - 1;
+            if (index < 0) {
+                index = 0;
+            }
+            p95 = copy.get(index);
+        }
+        return new ReadMetrics(readsMemory.get(), refreshCount.get(),
+                refreshCoalesced.get(), lastRefreshDurationMs, p95,
+                staleServed.get());
     }
 }
