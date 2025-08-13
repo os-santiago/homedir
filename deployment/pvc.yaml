@@ -10,5 +10,5 @@ spec:
   resources:
     requests:
       # 1000 events * 1KB + 500 speakers * 1KB + 1500 talks * 1KB ≈ 3MB
-      # Allocate with buffer for growth
-      storage: 10Mi
+      # Allocate with buffer for growth and sustained writes
+      storage: 1Gi

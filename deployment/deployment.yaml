@@ -80,14 +80,15 @@ spec:
                   name: google-oauth
                   key: redirect-uri
           resources:
-            limits:
-              cpu: 500m
-              ephemeral-storage: 1Gi
-              memory: 100Mi
+            # Allow burst for ~10k concurrent users while keeping baseline small
             requests:
               cpu: 50m
               ephemeral-storage: 1Gi
               memory: 52Mi
+            limits:
+              cpu: "4"
+              memory: 1Gi
+              ephemeral-storage: 2Gi
           volumeMounts:
             - name: data
               mountPath: /work/data
