@@ -7,8 +7,8 @@
     <ul class="card">
         <li>Modo actual: {status.mode.name() == 'ADMITTING' ? 'Admitiendo' : 'Conteniendo nuevos logins'}</li>
         <li>Usuarios activos en memoria: {status.activeUsers}</li>
-        <li>% de memoria usada: {status.memoryPercent?string('0.0')}%</li>
-        <li>% de disco libre: {status.diskFreePercent?string('0.0')}%</li>
+        <li>% de memoria usada: {status.memoryPercent}%</li>
+        <li>% de disco libre: {status.diskFreePercent}%</li>
         <li>Última evaluación: {status.lastEvaluation}</li>
         <li>Tendencia: {status.trend.name().toLowerCase()}</li>
     </ul>
