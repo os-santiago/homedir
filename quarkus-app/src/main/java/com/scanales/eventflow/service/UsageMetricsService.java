@@ -155,5 +155,22 @@ public class UsageMetricsService {
         increment("discarded_events");
         discarded.incrementAndGet();
     }
+
+    /** Returns a snapshot of all counters for read-only purposes. */
+    public Map<String, Long> snapshot() {
+        return Map.copyOf(counters);
+    }
+
+    /** Returns the last modification time of the metrics file or {@code 0} if unavailable. */
+    public long getLastUpdatedMillis() {
+        try {
+            if (Files.exists(metricsPath)) {
+                return Files.getLastModifiedTime(metricsPath).toMillis();
+            }
+        } catch (IOException e) {
+            LOG.debug("Failed to read metrics timestamp", e);
+        }
+        return 0L;
+    }
 }
 
