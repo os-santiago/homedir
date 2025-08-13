@@ -7,6 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -105,6 +108,28 @@ public class PersistenceService {
     /** Loads user schedules for the given year from disk or returns an empty map if none. */
     public Map<String, Map<String, UserScheduleService.TalkDetails>> loadUserSchedules(int year) {
         return read(scheduleFile(year), new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {});
+    }
+
+    /** Lists all years that have user schedule files. */
+    public Set<Integer> listUserScheduleYears() {
+        try (var stream = Files.list(dataDir)) {
+            return stream.map(Path::getFileName)
+                    .map(Path::toString)
+                    .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
+                    .map(n -> n.substring(SCHEDULE_FILE_PREFIX.length(), n.length() - SCHEDULE_FILE_SUFFIX.length()))
+                    .map(s -> {
+                        try {
+                            return Integer.parseInt(s);
+                        } catch (NumberFormatException e) {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toCollection(TreeSet::new));
+        } catch (IOException e) {
+            LOG.error("Failed to list user schedule years", e);
+            return Set.of();
+        }
     }
 
     /** Returns the most recent user schedule year within the last year or the current year if none. */
