@@ -1,0 +1,18 @@
+{#include layout/base}
+{#title}Capacidad{/title}
+{#breadcrumbs}<a href="/private/profile">Perfil</a><span class="sep">/</span><a href="/private/admin">Admin</a><span class="sep">/</span><span>Capacidad</span>{/breadcrumbs}
+{#main}
+<section>
+    <h1 class="page-title">Control de capacidad</h1>
+    <ul class="card">
+        <li>Modo actual: {status.mode.name() == 'ADMITTING' ? 'Admitiendo' : 'Conteniendo nuevos logins'}</li>
+        <li>Usuarios activos en memoria: {status.activeUsers}</li>
+        <li>% de memoria usada: {status.memoryPercent?string('0.0')}%</li>
+        <li>% de disco libre: {status.diskFreePercent?string('0.0')}%</li>
+        <li>Última evaluación: {status.lastEvaluation}</li>
+        <li>Tendencia: {status.trend.name().toLowerCase()}</li>
+    </ul>
+    <a href="/private/admin" class="btn btn-secondary">Volver a admin</a>
+</section>
+{/main}
+{/include}
