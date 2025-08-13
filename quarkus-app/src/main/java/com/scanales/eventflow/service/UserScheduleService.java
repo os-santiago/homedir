@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.LongAdder;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -38,12 +37,16 @@ public class UserScheduleService {
     private final Map<Integer, Map<String, Map<String, TalkDetails>>> historical = new ConcurrentHashMap<>();
 
     @ConfigProperty(name = "read.window", defaultValue = "PT2S")
-    Duration readWindow;
+    Duration readWindow = Duration.ofSeconds(2);
 
     @ConfigProperty(name = "read.max-stale", defaultValue = "PT10S")
-    Duration maxStale;
+    Duration maxStale = Duration.ofSeconds(10);
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "user-schedule-refresh");
+        t.setDaemon(true);
+        return t;
+    });
     private final AtomicBoolean refreshInProgress = new AtomicBoolean(false);
     private volatile Future<?> refreshTask;
     private final AtomicInteger windowReads = new AtomicInteger();
