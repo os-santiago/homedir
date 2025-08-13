@@ -19,6 +19,7 @@ public class AdminResource {
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance admin(String name);
+        static native TemplateInstance guide();
     }
 
     @Inject
@@ -37,5 +38,16 @@ public class AdminResource {
             name = email;
         }
         return Response.ok(Templates.admin(name)).build();
+    }
+
+    @GET
+    @Path("guide")
+    @Authenticated
+    @Produces(MediaType.TEXT_HTML)
+    public Response guide() {
+        if (!AdminUtils.isAdmin(identity)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        return Response.ok(Templates.guide()).build();
     }
 }
