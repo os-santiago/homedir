@@ -2,11 +2,75 @@
 {#title}Métricas{/title}
 {#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Métricas</span>{/breadcrumbs}
 {#main}
-<section class="admin-overview">
-    <h1 class="page-title">Métricas activas: recopilando datos</h1>
-    <p>Total de claves: {totalKeys}</p>
-    <p>Tamaño estimado: {estimatedSize} bytes</p>
-    <p>Eventos descartados: {discarded}</p>
+<section class="admin-metrics">
+    <h1 class="page-title">Métricas</h1>
+    {#if data.empty}
+        <p>Sin datos suficientes todavía. Navega por eventos y registra charlas para generar métricas.</p>
+    {#else}
+    <form method="get" class="metrics-filter">
+        <label>Rango:
+            <select name="range">
+                <option value="all"{#if data.range == 'all'} selected{/if}>Todo el evento</option>
+                <option value="today"{#if data.range == 'today'} selected{/if}>Hoy</option>
+                <option value="7"{#if data.range == '7'} selected{/if}>Últimos 7 días</option>
+                <option value="30"{#if data.range == '30'} selected{/if}>Últimos 30 días</option>
+            </select>
+        </label>
+        <button type="submit">Aplicar</button>
+    </form>
+    <div class="cards">
+        <div class="card">Eventos vistos: {data.eventsViewed}</div>
+        <div class="card">Charlas vistas: {data.talksViewed}</div>
+        <div class="card">Charlas registradas: {data.talksRegistered}</div>
+        <div class="card">Visitas a escenarios: {data.stageVisits}</div>
+        <div class="card">Última actualización: {data.lastUpdate}</div>
+    </div>
+    <p>Eventos descartados: {data.discarded}</p>
+
+    <h2>Top 10 charlas más registradas</h2>
+    <table>
+        <thead><tr><th>Charla</th><th>Registros</th></tr></thead>
+        <tbody>
+        {#for row in data.topRegistrations}
+            <tr><td>{row.name}</td><td>{row.value}</td></tr>
+        {/for}
+        </tbody>
+    </table>
+    <a href="export?table=registrations&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
+
+    <h2>Top 10 charlas más vistas</h2>
+    <table>
+        <thead><tr><th>Charla</th><th>Vistas</th></tr></thead>
+        <tbody>
+        {#for row in data.topViews}
+            <tr><td>{row.name}</td><td>{row.value}</td></tr>
+        {/for}
+        </tbody>
+    </table>
+    <a href="export?table=views&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
+
+    <h2>Top 10 oradores más populares</h2>
+    <table>
+        <thead><tr><th>Orador</th><th>Registros agregados</th></tr></thead>
+        <tbody>
+        {#for row in data.topSpeakers}
+            <tr><td>{row.name}</td><td>{row.value}</td></tr>
+        {/for}
+        </tbody>
+    </table>
+    <a href="export?table=speakers&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
+
+    <h2>Visitas por escenario</h2>
+    <table>
+        <thead><tr><th>Escenario</th><th>Visitas del día</th></tr></thead>
+        <tbody>
+        {#for row in data.stageVisitsTable}
+            <tr><td>{row.name}</td><td>{row.value}</td></tr>
+        {/for}
+        </tbody>
+    </table>
+    <a href="export?table=stages&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
+    {/if}
     <a href="/private/admin" class="btn btn-secondary">Volver</a>
 </section>
 {/main}
