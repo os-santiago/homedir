@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +46,8 @@ public class PersistenceService {
     private final Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
     private final Path eventsFile = dataDir.resolve("events.json");
     private final Path speakersFile = dataDir.resolve("speakers.json");
+    private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
+    private static final String SCHEDULE_FILE_SUFFIX = ".json";
 
     private volatile boolean lowDiskSpace;
     private static final long MIN_FREE_BYTES = 50L * 1024 * 1024; // 50 MB
@@ -84,6 +87,11 @@ public class PersistenceService {
         scheduleWrite(speakersFile, speakers);
     }
 
+    /** Persists user schedules for the given year asynchronously. */
+    public void saveUserSchedules(int year, Map<String, Map<String, UserScheduleService.TalkDetails>> schedules) {
+        scheduleWrite(scheduleFile(year), schedules);
+    }
+
     /** Loads events from disk or returns an empty map if none. */
     public Map<String, Event> loadEvents() {
         return read(eventsFile, new TypeReference<Map<String, Event>>() {});
@@ -92,6 +100,31 @@ public class PersistenceService {
     /** Loads speakers from disk or returns an empty map if none. */
     public Map<String, Speaker> loadSpeakers() {
         return read(speakersFile, new TypeReference<Map<String, Speaker>>() {});
+    }
+
+    /** Loads user schedules for the given year from disk or returns an empty map if none. */
+    public Map<String, Map<String, UserScheduleService.TalkDetails>> loadUserSchedules(int year) {
+        return read(scheduleFile(year), new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {});
+    }
+
+    /** Returns the most recent user schedule year within the last year or the current year if none. */
+    public int findLatestUserScheduleYear() {
+        int currentYear = java.time.Year.now().getValue();
+        try (var stream = Files.list(dataDir)) {
+            var years = stream.map(Path::getFileName)
+                    .map(Path::toString)
+                    .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
+                    .map(n -> n.substring(SCHEDULE_FILE_PREFIX.length(), n.length() - SCHEDULE_FILE_SUFFIX.length()))
+                    .map(s -> {
+                        try { return Integer.parseInt(s); } catch (NumberFormatException e) { return -1; }
+                    })
+                    .filter(y -> y >= currentYear - 1)
+                    .collect(Collectors.toList());
+            return years.isEmpty() ? currentYear : years.stream().mapToInt(Integer::intValue).max().orElse(currentYear);
+        } catch (IOException e) {
+            LOG.error("Failed to scan data directory", e);
+            return currentYear;
+        }
     }
 
     /** Percentage of disk usage for the data directory (0-100). */
@@ -112,21 +145,32 @@ public class PersistenceService {
                 LOG.warn("Low disk space - skipping persistence");
                 return;
             }
-            try {
-                Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
+            int attempts = 0;
+            boolean success = false;
+            while (attempts < 3 && !success) {
+                attempts++;
                 try {
-                    mapper.writeValue(tmp.toFile(), data);
-                    Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-                    LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
-                } finally {
+                    Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
                     try {
-                        Files.deleteIfExists(tmp);
-                    } catch (IOException ignore) {
-                        // ignore cleanup errors
+                        mapper.writeValue(tmp.toFile(), data);
+                        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                        LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
+                        success = true;
+                    } finally {
+                        try {
+                            Files.deleteIfExists(tmp);
+                        } catch (IOException ignore) {
+                            // ignore cleanup errors
+                        }
+                    }
+                } catch (IOException e) {
+                    if (attempts >= 3) {
+                        LOG.error("Failed to persist data to " + file, e);
+                    } else {
+                        LOG.warn("Persistence attempt " + attempts + " failed for " + file + ", retrying");
+                        try { Thread.sleep(250); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); return; }
                     }
                 }
-            } catch (IOException e) {
-                LOG.error("Failed to persist data to " + file, e);
             }
         });
     }
@@ -160,5 +204,9 @@ public class PersistenceService {
         } catch (Exception e) {
             // ignore
         }
+    }
+
+    private Path scheduleFile(int year) {
+        return dataDir.resolve(SCHEDULE_FILE_PREFIX + year + SCHEDULE_FILE_SUFFIX);
     }
 }

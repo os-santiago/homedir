@@ -1,7 +1,10 @@
 package com.scanales.eventflow.service;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
+import java.time.Year;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +20,17 @@ public class UserScheduleService {
     /** Stores user email -> (talkId -> details). */
     private final Map<String, Map<String, TalkDetails>> schedules = new ConcurrentHashMap<>();
 
+    @Inject
+    PersistenceService persistence;
+
+    private int activeYear;
+
+    @PostConstruct
+    void init() {
+        activeYear = persistence.findLatestUserScheduleYear();
+        schedules.putAll(persistence.loadUserSchedules(activeYear));
+    }
+
     /** Details tracked for each talk registered by a user. */
     public static class TalkDetails {
         public Set<String> motivations = ConcurrentHashMap.newKeySet();
@@ -29,10 +43,18 @@ public class UserScheduleService {
         if (email == null || talkId == null) {
             return false;
         }
+        int currentYear = Year.now().getValue();
+        if (currentYear != activeYear) {
+            schedules.clear();
+            activeYear = currentYear;
+        }
         boolean added = schedules.computeIfAbsent(email, k -> new ConcurrentHashMap<>())
                 .putIfAbsent(talkId, new TalkDetails()) == null;
         LOG.infov("addTalk(user={0}, talk={1}, result={2})", email, talkId,
                 added ? "added" : "exists");
+        if (added) {
+            persistence.saveUserSchedules(activeYear, schedules);
+        }
         return added;
     }
 
@@ -70,6 +92,7 @@ public class UserScheduleService {
             details.motivations.clear();
             details.motivations.addAll(motivations);
         }
+        persistence.saveUserSchedules(activeYear, schedules);
         return true;
     }
 
@@ -84,6 +107,9 @@ public class UserScheduleService {
             }
             LOG.infov("removeTalk(user={0}, talk={1}, result={2})", email, talkId,
                     removed ? "removed" : "not-found");
+            if (removed) {
+                persistence.saveUserSchedules(activeYear, schedules);
+            }
             return removed;
         }
         LOG.infov("removeTalk(user={0}, talk={1}, result=not-found)", email, talkId);
@@ -104,5 +130,11 @@ public class UserScheduleService {
         long attendedCount = talks.values().stream().filter(t -> t.attended).count();
         long ratedCount = talks.values().stream().filter(t -> t.rating != null).count();
         return new Summary(talks.size(), attendedCount, ratedCount);
+    }
+
+    /** Reloads schedules from persistent storage. */
+    public void reload() {
+        schedules.clear();
+        init();
     }
 }
