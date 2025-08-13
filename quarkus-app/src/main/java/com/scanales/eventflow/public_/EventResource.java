@@ -10,6 +10,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.model.Event;
 import jakarta.inject.Inject;
 
@@ -24,12 +25,18 @@ public class EventResource {
     @Inject
     EventService eventService;
 
+    @Inject
+    UsageMetricsService metrics;
 
     @GET
     @Path("{id}")
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
-    public TemplateInstance event(@PathParam("id") String id) {
+    public TemplateInstance event(@PathParam("id") String id,
+            @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
+        String ua = headers.getHeaderString("User-Agent");
+        metrics.recordPageView("/event", ua);
+        metrics.recordEventView(id, ua);
         Event event = eventService.getEvent(id);
         if (event == null) {
             return Templates.detail(null);

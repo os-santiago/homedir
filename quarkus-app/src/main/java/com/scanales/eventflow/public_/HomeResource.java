@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.Map;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import jakarta.inject.Inject;
 
 @Path("/")
@@ -23,6 +24,9 @@ public class HomeResource {
 
     @Inject
     EventService eventService;
+
+    @Inject
+    UsageMetricsService metrics;
 
     @CheckedTemplate
     static class Templates {
@@ -33,7 +37,8 @@ public class HomeResource {
     @GET
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
-    public TemplateInstance home() {
+    public TemplateInstance home(@jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
+        metrics.recordPageView("/", headers.getHeaderString("User-Agent"));
         var events = eventService.listEvents().stream()
                 .sorted(Comparator.comparing(Event::getDate,
                         Comparator.nullsLast(Comparator.naturalOrder())))
