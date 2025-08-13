@@ -925,6 +925,11 @@ p.note {
     flex-wrap: wrap;
     gap: 0.5rem;
     justify-content: center;
+    color: var(--color-light);
+}
+.event-links a:visited {
+    text-decoration: none;
+    color: var(--color-light);
 }
 
 @media (max-width: 600px) {
@@ -1186,4 +1191,9 @@ footer {
     .menu-toggle {
         display: block;
     }
+}
+
+#main-content .event-detail a.btn,
+#main-content .event-detail a.btn:visited {
+    color: var(--color-light);
 }
