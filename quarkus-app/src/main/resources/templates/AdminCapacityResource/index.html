@@ -12,6 +12,15 @@
         <li>Última evaluación: {status.lastEvaluation}</li>
         <li>Tendencia: {status.trend.name().toLowerCase()}</li>
     </ul>
+    <h2 class="page-title">Lecturas</h2>
+    <ul class="card">
+        <li>Lecturas desde memoria: {reads.memory}</li>
+        <li>Refrescos ejecutados: {reads.refreshCount}</li>
+        <li>Lecturas coalescidas: {reads.refreshCoalesced}</li>
+        <li>Duración último refresco (ms): {reads.refreshLastDurationMs}</li>
+        <li>Duración p95 (ms): {reads.refreshP95Ms}</li>
+        <li>Lecturas servidas en refresco: {reads.staleServed}</li>
+    </ul>
     <a href="/private/admin" class="btn btn-secondary">Volver a admin</a>
 </section>
 {/main}
