@@ -375,4 +375,40 @@ public class Event {
                         java.util.TreeMap::new,
                         java.util.stream.Collectors.toList()));
     }
+
+    /**
+     * Groups the agenda for the given {@code day} in 30-minute slots.
+     * <p>
+     * Each talk will appear in all the slots it spans so longer talks are
+     * visible across multiple blocks in the agenda view.
+     * The returned map is ordered by the slot start time.
+     */
+    public java.util.Map<java.time.LocalTime, java.util.List<Talk>> getAgendaGroupedByTimeSlot(int day) {
+        java.util.List<Talk> dayTalks = agenda.stream()
+                .filter(t -> t.getDay() == day)
+                .toList();
+        if (dayTalks.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+        java.time.LocalTime start = dayTalks.stream()
+                .map(Talk::getStartTime)
+                .min(java.time.LocalTime::compareTo)
+                .orElse(java.time.LocalTime.MIN);
+        java.time.LocalTime end = dayTalks.stream()
+                .map(t -> t.getStartTime().plusMinutes(t.getDurationMinutes()))
+                .max(java.time.LocalTime::compareTo)
+                .orElse(start);
+
+        java.util.Map<java.time.LocalTime, java.util.List<Talk>> result = new java.util.LinkedHashMap<>();
+        for (java.time.LocalTime time = start; time.isBefore(end); time = time.plusMinutes(30)) {
+            java.time.LocalTime slotStart = time;
+            java.util.List<Talk> talksAtSlot = dayTalks.stream()
+                    .filter(t -> !t.getStartTime().isAfter(slotStart)
+                            && t.getStartTime().plusMinutes(t.getDurationMinutes()).isAfter(slotStart))
+                    .sorted(java.util.Comparator.comparing(Talk::getStartTime))
+                    .toList();
+            result.put(slotStart, talksAtSlot);
+        }
+        return result;
+    }
 }

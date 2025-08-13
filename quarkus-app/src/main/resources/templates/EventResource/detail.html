@@ -138,9 +138,9 @@ Evento
             </tr>
           </thead>
           <tbody>
-            {#for e in event.getAgendaGroupedByStartTime(d).entrySet()}
+            {#for e in event.getAgendaGroupedByTimeSlot(d).entrySet()}
             <tr>
-              <td class="agenda-time">{e.value.get(0).startTimeStr}</td>
+              <td class="agenda-time">{e.key}</td>
               {#for sc in event.scenarios}
               <td>
                 {#for t in e.value}
