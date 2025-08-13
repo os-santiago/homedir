@@ -20,8 +20,14 @@ public class UserScheduleService {
     /** Stores user email -> (talkId -> details). */
     private final Map<String, Map<String, TalkDetails>> schedules = new ConcurrentHashMap<>();
 
+    /** Loaded historical schedules per year. */
+    private final Map<Integer, Map<String, Map<String, TalkDetails>>> historical = new ConcurrentHashMap<>();
+
     @Inject
     PersistenceService persistence;
+
+    @Inject
+    CapacityService capacity;
 
     private int activeYear;
 
@@ -136,5 +142,52 @@ public class UserScheduleService {
     public void reload() {
         schedules.clear();
         init();
+    }
+
+    /** Result codes for loading historical data. */
+    public enum LoadStatus { LOADED, NO_DATA, CAPACITY, ERROR }
+
+    /** Loads schedules for the given past year if capacity permits. */
+    public LoadStatus loadHistorical(int year) {
+        if (historical.containsKey(year)) {
+            return LoadStatus.LOADED;
+        }
+        CapacityService.Status st = capacity.evaluate();
+        if (st.mode() == CapacityService.Mode.CONTAINING) {
+            return LoadStatus.CAPACITY;
+        }
+        try {
+            Map<String, Map<String, TalkDetails>> data = persistence.loadUserSchedules(year);
+            if (data.isEmpty()) {
+                return LoadStatus.NO_DATA;
+            }
+            historical.put(year, data);
+            return LoadStatus.LOADED;
+        } catch (Exception e) {
+            LOG.error("Failed to load historical year " + year, e);
+            return LoadStatus.ERROR;
+        }
+    }
+
+    /** Returns talk details for the given user and year previously loaded via {@link #loadHistorical}. */
+    public Map<String, TalkDetails> getHistoricalTalkDetailsForUser(int year, String email) {
+        if (email == null) {
+            return java.util.Map.of();
+        }
+        Map<String, Map<String, TalkDetails>> yearData = historical.get(year);
+        if (yearData == null) {
+            return java.util.Map.of();
+        }
+        return yearData.getOrDefault(email, java.util.Map.of());
+    }
+
+    /** Unloads previously loaded historical data for the given year. */
+    public void unloadHistorical(int year) {
+        historical.remove(year);
+    }
+
+    /** Returns the set of years for which schedule files exist. */
+    public Set<Integer> getAvailableYears() {
+        return persistence.listUserScheduleYears();
     }
 }
