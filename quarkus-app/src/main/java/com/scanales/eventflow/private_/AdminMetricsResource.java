@@ -25,12 +25,13 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /** Admin page for usage metrics with simple reporting and CSV export. */
 @Path("/private/admin/metrics")
 public class AdminMetricsResource {
 
-    public record Row(String name, long value) {}
+    public record ConversionRow(String name, long views, long registrations, String conversion) {}
 
     public record MetricsData(
             long eventsViewed,
@@ -40,14 +41,17 @@ public class AdminMetricsResource {
             String lastUpdate,
             Map<String, Long> discards,
             UsageMetricsService.Config config,
-            List<Row> topRegistrations,
-            List<Row> topViews,
-            List<Row> topSpeakers,
-            List<Row> stageVisitsTable,
+            List<ConversionRow> topTalks,
+            List<ConversionRow> topSpeakers,
+            List<ConversionRow> topScenarios,
+            String globalConversion,
+            long expectedAttendees,
             boolean empty,
             String range,
+            String eventId,
             int schemaVersion,
-            long fileSizeBytes
+            long fileSizeBytes,
+            int minViews
     ) {}
 
     @CheckedTemplate
@@ -70,11 +74,11 @@ public class AdminMetricsResource {
     @GET
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
-    public Response metrics(@QueryParam("range") String range) {
+    public Response metrics(@QueryParam("range") String range, @QueryParam("event") String eventId) {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        MetricsData data = buildData(range);
+        MetricsData data = buildData(range, eventId);
         return Response.ok(Templates.index(data)).build();
     }
 
@@ -82,29 +86,25 @@ public class AdminMetricsResource {
     @Path("export")
     @Authenticated
     @Produces("text/csv")
-    public Response export(@QueryParam("table") String table, @QueryParam("range") String range) {
+    public Response export(@QueryParam("table") String table, @QueryParam("range") String range, @QueryParam("event") String eventId) {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        MetricsData data = buildData(range);
-        List<Row> rows;
+        MetricsData data = buildData(range, eventId);
+        List<ConversionRow> rows;
         String header;
         switch (table) {
-            case "registrations" -> {
-                rows = data.topRegistrations();
-                header = "Charla,Registros";
-            }
-            case "views" -> {
-                rows = data.topViews();
-                header = "Charla,Vistas";
+            case "talks" -> {
+                rows = data.topTalks();
+                header = "Charla,Vistas,Registros,Conversion";
             }
             case "speakers" -> {
                 rows = data.topSpeakers();
-                header = "Orador,Registros";
+                header = "Orador,Vistas,Registros,Conversion";
             }
-            case "stages" -> {
-                rows = data.stageVisitsTable();
-                header = "Escenario,Visitas";
+            case "scenarios" -> {
+                rows = data.topScenarios();
+                header = "Escenario,Vistas,Registros,Conversion";
             }
             default -> {
                 rows = List.of();
@@ -114,8 +114,9 @@ public class AdminMetricsResource {
         StringBuilder sb = new StringBuilder();
         if (!header.isEmpty()) {
             sb.append(header).append('\n');
-            for (Row r : rows) {
-                sb.append(r.name()).append(',').append(r.value()).append('\n');
+            for (ConversionRow r : rows) {
+                sb.append(r.name()).append(',').append(r.views()).append(',')
+                        .append(r.registrations()).append(',').append(r.conversion()).append('\n');
             }
         }
         return Response.ok(sb.toString())
@@ -123,20 +124,24 @@ public class AdminMetricsResource {
                 .build();
     }
 
-    private MetricsData buildData(String range) {
+    @ConfigProperty(name = "metrics.min-view-threshold", defaultValue = "20")
+    int minViews;
+
+    private MetricsData buildData(String range, String eventId) {
         Map<String, Long> snap = metrics.snapshot();
         Summary summary = metrics.getSummary();
         boolean empty = snap.isEmpty();
-        long eventsViewed = sumByPrefix(snap, "event_view:");
-        long talksViewed = sumByPrefix(snap, "talk_view:");
-        long talksRegistered = sumByPrefix(snap, "talk_register:");
 
-        Map<String, Long> regMap = extractMap(snap, "talk_register:");
-        List<Row> topRegs = topRows(regMap, 10, this::talkName);
-        Map<String, Long> viewMap = extractMap(snap, "talk_view:");
-        List<Row> topViews = topRows(viewMap, 10, this::talkName);
-        Map<String, Long> speakerMap = extractMap(snap, "speaker_popularity:");
-        List<Row> topSpeakers = topRows(speakerMap, 10, this::speakerName);
+        long eventsViewed;
+        if (eventId != null && !eventId.isBlank()) {
+            eventsViewed = snap.getOrDefault("event_view:" + eventId, 0L);
+        } else {
+            eventsViewed = sumByPrefix(snap, "event_view:");
+        }
+
+        Map<String, Stats> talkStats = buildTalkStats(snap, eventId);
+        long talksViewed = talkStats.values().stream().mapToLong(s -> s.views).sum();
+        long talksRegistered = talkStats.values().stream().mapToLong(s -> s.regs).sum();
 
         LocalDate today = LocalDate.now();
         LocalDate start;
@@ -157,19 +162,109 @@ public class AdminMetricsResource {
                 if (parts.length == 3) {
                     LocalDate d = LocalDate.parse(parts[2]);
                     if (!d.isBefore(start)) {
-                        stageMap.merge(parts[1], e.getValue(), Long::sum);
+                        String stageId = parts[1];
+                        if (eventId == null || belongsToEvent(stageId, eventId)) {
+                            stageMap.merge(stageId, e.getValue(), Long::sum);
+                        }
                     }
                 }
             }
         }
         long stageVisits = stageMap.values().stream().mapToLong(Long::longValue).sum();
-        List<Row> stageTable = topRows(stageMap, 10, this::stageName);
+
+        List<ConversionRow> topTalks = topConversionRows(talkStats, 10, this::talkName);
+        Map<String, Stats> speakerStats = aggregateSpeakers(talkStats);
+        List<ConversionRow> topSpeakers = topConversionRows(speakerStats, 10, this::speakerName);
+        Map<String, Stats> scenarioStats = aggregateScenarios(talkStats);
+        List<ConversionRow> topScenarios = topConversionRows(scenarioStats, 10, this::stageName);
 
         long last = metrics.getLastUpdatedMillis();
         String lastStr = last > 0 ? Instant.ofEpochMilli(last).toString() : "—";
+        String globalConv = formatConversion(talksViewed, talksRegistered);
+        long expectedAttendees = talksRegistered;
+
         return new MetricsData(eventsViewed, talksViewed, talksRegistered, stageVisits,
-                lastStr, summary.discarded(), metrics.getConfig(), topRegs, topViews, topSpeakers,
-                stageTable, empty, range, metrics.getSchemaVersion(), metrics.getFileSizeBytes());
+                lastStr, summary.discarded(), metrics.getConfig(), topTalks, topSpeakers, topScenarios,
+                globalConv, expectedAttendees, empty, range, eventId, metrics.getSchemaVersion(),
+                metrics.getFileSizeBytes(), minViews);
+    }
+
+    private static class Stats { long views; long regs; }
+
+    private Map<String, Stats> buildTalkStats(Map<String, Long> snap, String eventId) {
+        Map<String, Stats> stats = new HashMap<>();
+        Map<String, Long> views = extractMap(snap, "talk_view:");
+        Map<String, Long> regs = extractMap(snap, "talk_register:");
+        Set<String> ids = new HashSet<>();
+        ids.addAll(views.keySet());
+        ids.addAll(regs.keySet());
+        for (String id : ids) {
+            Talk t = eventService.findTalk(id);
+            if (t == null) continue;
+            if (eventId != null && !eventId.isBlank()) {
+                com.scanales.eventflow.model.Event ev = eventService.findEventByTalk(id);
+                if (ev == null || !eventId.equals(ev.getId())) continue;
+            }
+            Stats s = stats.computeIfAbsent(id, k -> new Stats());
+            s.views = views.getOrDefault(id, 0L);
+            s.regs = regs.getOrDefault(id, 0L);
+        }
+        return stats;
+    }
+
+    private Map<String, Stats> aggregateSpeakers(Map<String, Stats> talkStats) {
+        Map<String, Stats> map = new HashMap<>();
+        for (Map.Entry<String, Stats> e : talkStats.entrySet()) {
+            Talk t = eventService.findTalk(e.getKey());
+            if (t == null) continue;
+            for (Speaker sp : t.getSpeakers()) {
+                if (sp != null && sp.getId() != null) {
+                    Stats s = map.computeIfAbsent(sp.getId(), k -> new Stats());
+                    s.views += e.getValue().views;
+                    s.regs += e.getValue().regs;
+                }
+            }
+        }
+        return map;
+    }
+
+    private Map<String, Stats> aggregateScenarios(Map<String, Stats> talkStats) {
+        Map<String, Stats> map = new HashMap<>();
+        for (Map.Entry<String, Stats> e : talkStats.entrySet()) {
+            Talk t = eventService.findTalk(e.getKey());
+            if (t == null || t.getLocation() == null) continue;
+            Stats s = map.computeIfAbsent(t.getLocation(), k -> new Stats());
+            s.views += e.getValue().views;
+            s.regs += e.getValue().regs;
+        }
+        return map;
+    }
+
+    private List<ConversionRow> topConversionRows(Map<String, Stats> map, int limit, Function<String, String> nameFn) {
+        return map.entrySet().stream()
+                .filter(e -> e.getValue().views >= minViews)
+                .map(e -> {
+                    Stats s = e.getValue();
+                    return new ConversionRow(nameFn.apply(e.getKey()), s.views, s.regs,
+                            formatConversion(s.views, s.regs));
+                })
+                .sorted((a, b) -> Double.compare(conversionRate(b), conversionRate(a)))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    private static double conversionRate(ConversionRow r) {
+        return r.views() == 0 ? 0d : (double) r.registrations() / r.views();
+    }
+
+    private static String formatConversion(long views, long regs) {
+        if (views == 0) return "—";
+        return String.format(Locale.US, "%.1f%%", regs * 100.0 / views);
+    }
+
+    private boolean belongsToEvent(String stageId, String eventId) {
+        com.scanales.eventflow.model.Event ev = eventService.findEventByScenario(stageId);
+        return ev != null && eventId.equals(ev.getId());
     }
 
     private static long sumByPrefix(Map<String, Long> data, String prefix) {
@@ -183,14 +278,6 @@ public class AdminMetricsResource {
         return data.entrySet().stream()
                 .filter(e -> e.getKey().startsWith(prefix))
                 .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), Map.Entry::getValue));
-    }
-
-    private List<Row> topRows(Map<String, Long> map, int limit, Function<String, String> nameFn) {
-        return map.entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(limit)
-                .map(e -> new Row(nameFn.apply(e.getKey()), e.getValue()))
-                .collect(Collectors.toList());
     }
 
     private String talkName(String id) {

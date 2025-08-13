@@ -27,6 +27,7 @@
           <td>{ev.title}</td>
           <td class="action-group">
             <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary">Editar</a>
+            <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="btn btn-secondary">Ver métricas</a>
             <form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline" class="needs-confirm">
               <button type="submit" class="btn btn-secondary">Eliminar</button>
             </form>

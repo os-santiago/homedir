@@ -16,6 +16,9 @@
                 <option value="30"{#if data.range == '30'} selected{/if}>Últimos 30 días</option>
             </select>
         </label>
+        {#if data.eventId}
+        <input type="hidden" name="event" value="{data.eventId}">
+        {/if}
         <button type="submit">Aplicar</button>
     </form>
     <div class="cards">
@@ -23,8 +26,11 @@
         <div class="card">Charlas vistas: {data.talksViewed}</div>
         <div class="card">Charlas registradas: {data.talksRegistered}</div>
         <div class="card">Visitas a escenarios: {data.stageVisits}</div>
+        <div class="card">Conversión global: {data.globalConversion}</div>
+        <div class="card">Asistentes esperados: {data.expectedAttendees}</div>
         <div class="card">Última actualización: {data.lastUpdate}</div>
     </div>
+    <p>Umbral mínimo de vistas para ranking: {data.minViews}. Política de conversión de evento: promedio ponderado (A).</p>
     <h2>Calidad de datos</h2>
     <ul>
         <li>Ventana talk_view: {data.config.talkViewWindowSeconds}s</li>
@@ -47,49 +53,38 @@
         <li>Tamaño actual: {data.fileSizeBytes} bytes</li>
     </ul>
 
-    <h2>Top 10 charlas más registradas</h2>
+    <h2>Charlas con mejor conversión</h2>
     <table>
-        <thead><tr><th>Charla</th><th>Registros</th></tr></thead>
+        <thead><tr><th>Charla</th><th>Vistas</th><th>Registros</th><th>Conv.</th></tr></thead>
         <tbody>
-        {#for row in data.topRegistrations}
-            <tr><td>{row.name}</td><td>{row.value}</td></tr>
+        {#for row in data.topTalks}
+            <tr><td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td></tr>
         {/for}
         </tbody>
     </table>
-    <a href="export?table=registrations&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
+    <a href="export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
 
-    <h2>Top 10 charlas más vistas</h2>
+    <h2>Oradores con mejor conversión</h2>
     <table>
-        <thead><tr><th>Charla</th><th>Vistas</th></tr></thead>
-        <tbody>
-        {#for row in data.topViews}
-            <tr><td>{row.name}</td><td>{row.value}</td></tr>
-        {/for}
-        </tbody>
-    </table>
-    <a href="export?table=views&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
-
-    <h2>Top 10 oradores más populares</h2>
-    <table>
-        <thead><tr><th>Orador</th><th>Registros agregados</th></tr></thead>
+        <thead><tr><th>Orador</th><th>Vistas</th><th>Registros</th><th>Conv.</th></tr></thead>
         <tbody>
         {#for row in data.topSpeakers}
-            <tr><td>{row.name}</td><td>{row.value}</td></tr>
+            <tr><td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td></tr>
         {/for}
         </tbody>
     </table>
-    <a href="export?table=speakers&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
+    <a href="export?table=speakers&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
 
-    <h2>Visitas por escenario</h2>
+    <h2>Escenarios con mejor conversión</h2>
     <table>
-        <thead><tr><th>Escenario</th><th>Visitas del día</th></tr></thead>
+        <thead><tr><th>Escenario</th><th>Vistas</th><th>Registros</th><th>Conv.</th></tr></thead>
         <tbody>
-        {#for row in data.stageVisitsTable}
-            <tr><td>{row.name}</td><td>{row.value}</td></tr>
+        {#for row in data.topScenarios}
+            <tr><td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td></tr>
         {/for}
         </tbody>
     </table>
-    <a href="export?table=stages&amp;range={data.range}" class="btn btn-secondary">Exportar CSV</a>
+    <a href="export?table=scenarios&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
     {/if}
     <a href="/private/admin" class="btn btn-secondary">Volver</a>
 </section>
