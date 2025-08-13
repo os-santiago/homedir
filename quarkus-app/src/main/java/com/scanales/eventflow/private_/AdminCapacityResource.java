@@ -2,6 +2,7 @@ package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.service.CapacityService;
 import com.scanales.eventflow.service.UserScheduleService;
+import com.scanales.eventflow.service.PersistenceService;
 import com.scanales.eventflow.util.AdminUtils;
 
 import io.quarkus.qute.CheckedTemplate;
@@ -23,7 +24,8 @@ public class AdminCapacityResource {
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance index(CapacityService.Status status,
-                UserScheduleService.ReadMetrics reads);
+                UserScheduleService.ReadMetrics reads,
+                PersistenceService.QueueStats writes);
     }
 
     @Inject
@@ -35,6 +37,9 @@ public class AdminCapacityResource {
     @Inject
     UserScheduleService schedules;
 
+    @Inject
+    PersistenceService persistence;
+
     @GET
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
@@ -44,7 +49,8 @@ public class AdminCapacityResource {
         }
         CapacityService.Status status = capacity.evaluate();
         UserScheduleService.ReadMetrics reads = schedules.getReadMetrics();
-        return Response.ok(Templates.index(status, reads)).build();
+        PersistenceService.QueueStats writes = persistence.getQueueStats();
+        return Response.ok(Templates.index(status, reads, writes)).build();
     }
 }
 

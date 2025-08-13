@@ -21,6 +21,23 @@
         <li>Duración p95 (ms): {reads.refreshP95Ms}</li>
         <li>Lecturas servidas en refresco: {reads.staleServed}</li>
     </ul>
+    <h2 class="page-title">Escrituras</h2>
+    <ul class="card">
+        <li>Cola: {writes.depth}/{writes.max}</li>
+        <li>Antigüedad más vieja (ms): {writes.oldestAgeMs}</li>
+        <li>OK: {writes.writesOk} &middot; Fallos: {writes.writesFail} &middot; Reintentos: {writes.writesRetries}</li>
+        <li>Descartados por capacidad: {writes.droppedDueCapacity}</li>
+        {#if writes.lastError}
+        <li>Último error: {writes.lastError}</li>
+        {/if}
+    </ul>
+    <button class="btn btn-secondary" onclick="copyState()">Copiar estado</button>
+    <script>
+    function copyState() {
+        const text = `Modo: {status.mode.name()}\nMemoria usada: {status.memoryPercent}%\nDisco libre: {status.diskFreePercent}%\nLecturas: {reads.memory}\nCola escrituras: {writes.depth}/{writes.max}`;
+        navigator.clipboard.writeText(text);
+    }
+    </script>
     <a href="/private/admin" class="btn btn-secondary">Volver a admin</a>
 </section>
 {/main}
