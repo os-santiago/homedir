@@ -2,12 +2,12 @@
 {#title}Mis Charlas{/title}
 {#main}
 <h1>Mis Charlas</h1>
-{#if days.isEmpty()}
+{#if events.isEmpty()}
 <p>No has agregado ninguna charla.</p>
 {#else}
-{#for d in days}
-  <h2 class="day-title">Día {d.day}</h2>
-  {#for t in d.talks}
+{#for e in events}
+  <h2 class="event-title">{e.event.title}</h2>
+  {#for t in e.talks}
     <div class="talk-row" data-talk-id="{t.talk.id}" data-attended="{info.get(t.talk.id).attended}" data-rated="{info.get(t.talk.id).rating??}">
       <span class="talk-time">{t.talk.startTimeStr} - {t.talk.endTimeStr}</span>
       <span class="talk-title"><a href="/talk/{t.talk.id}">{t.talk.name}</a></span>
