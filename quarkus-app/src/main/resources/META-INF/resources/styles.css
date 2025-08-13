@@ -396,15 +396,6 @@ button:focus-visible {
     color: var(--color-primary);
 }
 
-/* Prevent wrapping and trim long agenda entries */
-.agenda-time {
-    white-space: nowrap;
-}
-
-.agenda-title {
-    white-space: nowrap;
-}
-
 .agenda-title .agenda-title-text {
     display: inline-block;
     max-width: 100%;
@@ -420,6 +411,7 @@ button:focus-visible {
 }
 
 .table {
+    table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
 }
