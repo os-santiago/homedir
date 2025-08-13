@@ -12,6 +12,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UsageMetricsService.Summary;
+import com.scanales.eventflow.service.UsageMetricsService.Health;
 import com.scanales.eventflow.util.AdminUtils;
 
 import io.quarkus.qute.CheckedTemplate;
@@ -51,12 +52,14 @@ public class AdminMetricsResource {
             String eventId,
             int schemaVersion,
             long fileSizeBytes,
-            int minViews
+            int minViews,
+            Health health
     ) {}
 
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance index(MetricsData data);
+        static native TemplateInstance guide();
     }
 
     @Inject
@@ -80,6 +83,28 @@ public class AdminMetricsResource {
         }
         MetricsData data = buildData(range, eventId);
         return Response.ok(Templates.index(data)).build();
+    }
+
+    @GET
+    @Path("health")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response health() {
+        if (!AdminUtils.isAdmin(identity)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        return Response.ok(metrics.getHealth()).build();
+    }
+
+    @GET
+    @Path("guide")
+    @Authenticated
+    @Produces(MediaType.TEXT_HTML)
+    public Response guide() {
+        if (!AdminUtils.isAdmin(identity)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        return Response.ok(Templates.guide()).build();
     }
 
     @GET
@@ -130,6 +155,7 @@ public class AdminMetricsResource {
     private MetricsData buildData(String range, String eventId) {
         Map<String, Long> snap = metrics.snapshot();
         Summary summary = metrics.getSummary();
+        Health health = metrics.getHealth();
         boolean empty = snap.isEmpty();
 
         long eventsViewed;
@@ -186,7 +212,7 @@ public class AdminMetricsResource {
         return new MetricsData(eventsViewed, talksViewed, talksRegistered, stageVisits,
                 lastStr, summary.discarded(), metrics.getConfig(), topTalks, topSpeakers, topScenarios,
                 globalConv, expectedAttendees, empty, range, eventId, metrics.getSchemaVersion(),
-                metrics.getFileSizeBytes(), minViews);
+                metrics.getFileSizeBytes(), minViews, health);
     }
 
     private static class Stats { long views; long regs; }

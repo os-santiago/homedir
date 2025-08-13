@@ -39,6 +39,13 @@ public class UsageMetricsService {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final AtomicBoolean dirty = new AtomicBoolean(false);
     private final AtomicLong flushFailures = new AtomicLong();
+    private final AtomicInteger bufferSize = new AtomicInteger();
+    private final AtomicLong writesOk = new AtomicLong();
+    private final AtomicLong writesFail = new AtomicLong();
+    private volatile long lastFlushTime;
+    private volatile String lastError;
+    private volatile HealthState currentState = HealthState.OK;
+    private volatile boolean bufferWarned;
 
     private final Path metricsV1Path = Paths.get("data", "metrics-v1.json");
     private final Path metricsV2Path = Paths.get("data", "metrics-v2.json");
@@ -71,12 +78,16 @@ public class UsageMetricsService {
     @ConfigProperty(name = "metrics.burst.per-minute", defaultValue = "60")
     int burstPerMinute;
 
+    @ConfigProperty(name = "metrics.buffer.max-size", defaultValue = "10000")
+    int bufferMaxSize;
+
     @Inject
     ObjectMapper mapper;
 
     @PostConstruct
     void init() {
         load();
+        lastFlushTime = System.currentTimeMillis();
         scheduler.scheduleWithFixedDelay(this::flushSafe,
                 flushInterval.toMillis(), flushInterval.toMillis(),
                 TimeUnit.MILLISECONDS);
@@ -124,6 +135,10 @@ public class UsageMetricsService {
                     Object fs = meta.get("fileSizeBytes");
                     if (fs instanceof Number n) {
                         lastFileSizeBytes = n.longValue();
+                    }
+                    Object lf = meta.get("lastFlush");
+                    if (lf instanceof Number n) {
+                        lastFlushTime = n.longValue();
                     }
                 }
             }
@@ -288,8 +303,21 @@ public class UsageMetricsService {
     }
 
     private void increment(String key) {
+        int size = bufferSize.incrementAndGet();
+        if (size > bufferMaxSize) {
+            bufferSize.decrementAndGet();
+            incrementDiscard("buffer_full");
+            LOG.warn("discarded_buffer_full");
+            updateHealthState();
+            return;
+        }
+        if (!bufferWarned && size >= bufferMaxSize * 0.7) {
+            LOG.warn("buffer_threshold_reached");
+            bufferWarned = true;
+        }
         counters.merge(key, 1L, Long::sum);
         dirty.set(true);
+        updateHealthState();
     }
 
     private void incrementDiscard(String reason) {
@@ -318,6 +346,7 @@ public class UsageMetricsService {
 
     private void flushSafe() {
         if (!dirty.get()) return;
+        LOG.info("metrics_flush_start");
         Map<String, Long> snapshot = Map.copyOf(counters);
         Map<String, Long> discards = getDiscarded();
         Map<String, Object> file = new HashMap<>();
@@ -341,14 +370,22 @@ public class UsageMetricsService {
                 metricsPath = metricsV2Path;
                 schemaVersion = CURRENT_SCHEMA_VERSION;
                 lastFileSizeBytes = json.length;
+                lastFlushTime = System.currentTimeMillis();
+                bufferSize.set(0);
+                bufferWarned = false;
+                writesOk.incrementAndGet();
+                lastError = null;
                 if (migrateFromV1) {
                     try { Files.deleteIfExists(metricsV1Path); } catch (IOException ignored) {}
                     migrateFromV1 = false;
                 }
                 dirty.set(false);
+                LOG.info("metrics_flush_ok");
+                updateHealthState();
                 return;
             } catch (Exception e) {
                 attempts++;
+                lastError = e.getMessage();
                 try {
                     Thread.sleep(backoff);
                 } catch (InterruptedException ie) {
@@ -357,9 +394,12 @@ public class UsageMetricsService {
                 backoff *= 2;
             }
         }
+        LOG.error("metrics_flush_fail");
         increment("discarded_events");
         flushFailures.incrementAndGet();
         incrementDiscard("invalid");
+        writesFail.incrementAndGet();
+        updateHealthState();
     }
 
     /** Returns a snapshot of all counters for read-only purposes. */
@@ -401,6 +441,41 @@ public class UsageMetricsService {
             LOG.debug("Failed to read metrics timestamp", e);
         }
         return 0L;
+    }
+
+    public record Health(HealthState estado, long lastFlush, long flushIntervalMillis,
+            int bufferCurrentSize, int bufferMaxSize, long writesOk, long writesFail,
+            String lastError, long fileSizeBytes, Map<String, Long> discards) {}
+
+    public enum HealthState { OK, DEGRADADO, ERROR }
+
+    public Health getHealth() {
+        return new Health(currentState, lastFlushTime, flushInterval.toMillis(),
+                bufferSize.get(), bufferMaxSize, writesOk.get(), writesFail.get(),
+                lastError, lastFileSizeBytes, getDiscarded());
+    }
+
+    private HealthState computeState() {
+        long now = System.currentTimeMillis();
+        long age = now - lastFlushTime;
+        long interval = flushInterval.toMillis();
+        int buf = bufferSize.get();
+        long fail = writesFail.get();
+        if (age >= interval * 5 || buf >= bufferMaxSize || fail >= 3) {
+            return HealthState.ERROR;
+        }
+        if (age >= interval * 2 || buf >= (int) (bufferMaxSize * 0.7) || fail >= 1) {
+            return HealthState.DEGRADADO;
+        }
+        return HealthState.OK;
+    }
+
+    private void updateHealthState() {
+        HealthState newState = computeState();
+        if (newState != currentState) {
+            LOG.warnf("health_state_change %s->%s", currentState, newState);
+            currentState = newState;
+        }
     }
 
     private static class RateLimiter {

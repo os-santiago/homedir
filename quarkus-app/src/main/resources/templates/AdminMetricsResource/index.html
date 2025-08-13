@@ -31,6 +31,24 @@
         <div class="card">Última actualización: {data.lastUpdate}</div>
     </div>
     <p>Umbral mínimo de vistas para ranking: {data.minViews}. Política de conversión de evento: promedio ponderado (A).</p>
+
+    <h2>Salud del sistema de métricas</h2>
+    <div class="health health-{data.health.estado}">
+        <strong>{data.health.estado}</strong>
+        {#if data.health.estado == 'OK'}<span>Todo en orden</span>{/if}
+        {#if data.health.estado == 'DEGRADADO'}<span>Revisar espacio en disco o ajustar flush/buffer</span>{/if}
+        {#if data.health.estado == 'ERROR'}<span>Ver guía operativa y revisar logs</span>{/if}
+    </div>
+    <ul>
+        <li>lastFlush: {data.health.lastFlush}</li>
+        <li>flushInterval: {data.health.flushIntervalMillis} ms</li>
+        <li>buffer: {data.health.bufferCurrentSize}/{data.health.bufferMaxSize}</li>
+        <li>writes ok/fail: {data.health.writesOk}/{data.health.writesFail}</li>
+        <li>fileSizeBytes: {data.health.fileSizeBytes}</li>
+        <li>Último error: {#if data.health.lastError}{data.health.lastError}{#else}—{/if}</li>
+        <li>Descartes: dedupe {data.discards.get('dedupe')}, bot {data.discards.get('bot')}, burst {data.discards.get('burst')}, invalid {data.discards.get('invalid')}, buffer_full {data.discards.get('buffer_full')}</li>
+    </ul>
+    <p><a href="guide">Guía rápida de operación</a></p>
     <h2>Calidad de datos</h2>
     <ul>
         <li>Ventana talk_view: {data.config.talkViewWindowSeconds}s</li>
