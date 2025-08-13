@@ -36,6 +36,27 @@ function setupUserMenu() {
     }
 }
 
+function setupAgendaToggle() {
+    const seqBtn = document.getElementById('agendaSeqBtn');
+    const gridBtn = document.getElementById('agendaGridBtn');
+    const seqViews = document.querySelectorAll('.agenda-seq');
+    const gridViews = document.querySelectorAll('.agenda-grid');
+    if (seqBtn && gridBtn && seqViews.length && gridViews.length) {
+        seqBtn.addEventListener('click', () => {
+            seqBtn.classList.add('active');
+            gridBtn.classList.remove('active');
+            seqViews.forEach(v => v.classList.remove('hidden'));
+            gridViews.forEach(v => v.classList.add('hidden'));
+        });
+        gridBtn.addEventListener('click', () => {
+            gridBtn.classList.add('active');
+            seqBtn.classList.remove('active');
+            gridViews.forEach(v => v.classList.remove('hidden'));
+            seqViews.forEach(v => v.classList.add('hidden'));
+        });
+    }
+}
+
 function bannerParallax() {
     const banner = document.querySelector('.container-banner');
     if (banner) {
@@ -133,6 +154,7 @@ function restoreScroll() {
 window.addEventListener('DOMContentLoaded', () => {
     setupMenu();
     setupUserMenu();
+    setupAgendaToggle();
     adjustLayout();
     bannerParallax();
     handleForms();
