@@ -40,61 +40,84 @@ public class UserScheduleServiceTest {
         return (PersistenceService) f.get(svc);
     }
 
+    private void flush(UserScheduleService svc) throws Exception {
+        getPersistence(svc).flush();
+    }
+
     @Test
     public void updateDetailsAndSummary() throws Exception {
         UserScheduleService svc = newService();
-        String user = "user@example.com";
+        try {
+            String user = "user@example.com";
 
-        assertTrue(svc.addTalkForUser(user, "t1"));
-        assertTrue(svc.updateTalk(user, "t1", true, 5, Set.of("⭐ Relevante para mi trabajo")));
+            assertTrue(svc.addTalkForUser(user, "t1"));
+            assertTrue(svc.updateTalk(user, "t1", true, 5, Set.of("⭐ Relevante para mi trabajo")));
 
-        UserScheduleService.TalkDetails details = svc.getTalkDetailsForUser(user).get("t1");
-        assertNotNull(details);
-        assertTrue(details.attended);
-        assertEquals(5, details.rating);
-        assertTrue(details.motivations.contains("⭐ Relevante para mi trabajo"));
+            UserScheduleService.TalkDetails details = svc.getTalkDetailsForUser(user).get("t1");
+            assertNotNull(details);
+            assertTrue(details.attended);
+            assertEquals(5, details.rating);
+            assertTrue(details.motivations.contains("⭐ Relevante para mi trabajo"));
 
-        UserScheduleService.Summary summary = svc.getSummaryForUser(user);
-        assertEquals(1, summary.total());
-        assertEquals(1, summary.attended());
-        assertEquals(1, summary.rated());
+            UserScheduleService.Summary summary = svc.getSummaryForUser(user);
+            assertEquals(1, summary.total());
+            assertEquals(1, summary.attended());
+            assertEquals(1, summary.rated());
+        } finally {
+            flush(svc);
+        }
     }
 
     @Test
     public void removeTalk() throws Exception {
         UserScheduleService svc = newService();
-        String user = "user@example.com";
+        try {
+            String user = "user@example.com";
 
-        assertTrue(svc.addTalkForUser(user, "t1"));
-        assertTrue(svc.removeTalkForUser(user, "t1"));
-        assertFalse(svc.removeTalkForUser(user, "t1"));
+            assertTrue(svc.addTalkForUser(user, "t1"));
+            assertTrue(svc.removeTalkForUser(user, "t1"));
+            assertFalse(svc.removeTalkForUser(user, "t1"));
 
-        UserScheduleService.Summary summary = svc.getSummaryForUser(user);
-        assertEquals(0, summary.total());
-        assertEquals(0, summary.attended());
-        assertEquals(0, summary.rated());
+            UserScheduleService.Summary summary = svc.getSummaryForUser(user);
+            assertEquals(0, summary.total());
+            assertEquals(0, summary.attended());
+            assertEquals(0, summary.rated());
+        } finally {
+            flush(svc);
+        }
     }
 
     @Test
     public void ignoreNullUser() throws Exception {
         UserScheduleService svc = newService();
-
-        assertFalse(svc.addTalkForUser(null, "t1"));
-        assertTrue(svc.getTalksForUser(null).isEmpty());
-        assertTrue(svc.getTalkDetailsForUser(null).isEmpty());
-        assertEquals(0, svc.getSummaryForUser(null).total());
+        try {
+            assertFalse(svc.addTalkForUser(null, "t1"));
+            assertTrue(svc.getTalksForUser(null).isEmpty());
+            assertTrue(svc.getTalkDetailsForUser(null).isEmpty());
+            assertEquals(0, svc.getSummaryForUser(null).total());
+        } finally {
+            flush(svc);
+        }
     }
 
     @Test
     public void persistsAndLoadsLastYear() throws Exception {
         UserScheduleService svc = newService();
-        String user = "user@example.com";
-        assertTrue(svc.addTalkForUser(user, "t1"));
-        getPersistence(svc).flush();
+        try {
+            String user = "user@example.com";
+            assertTrue(svc.addTalkForUser(user, "t1"));
+            flush(svc);
 
-        // recreate service to simulate restart
-        UserScheduleService svc2 = newService();
-        assertTrue(svc2.getTalksForUser(user).contains("t1"));
+            // recreate service to simulate restart
+            UserScheduleService svc2 = newService();
+            try {
+                assertTrue(svc2.getTalksForUser(user).contains("t1"));
+            } finally {
+                flush(svc2);
+            }
+        } finally {
+            flush(svc);
+        }
     }
 
     @Test
@@ -105,7 +128,11 @@ public class UserScheduleServiceTest {
         mapper.writeValue(oldFile.toFile(), Map.of("u", Map.of("t1", new UserScheduleService.TalkDetails())));
 
         UserScheduleService svc = newService();
-        assertTrue(svc.getTalksForUser("u").isEmpty());
+        try {
+            assertTrue(svc.getTalksForUser("u").isEmpty());
+        } finally {
+            flush(svc);
+        }
     }
 }
 
