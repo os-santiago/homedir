@@ -10,10 +10,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,10 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import jakarta.inject.Inject;
-
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import com.scanales.eventflow.model.Event;
@@ -44,7 +43,17 @@ public class PersistenceService {
     ObjectMapper objectMapper;
 
     private ObjectMapper mapper;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private BlockingQueue<Runnable> queue;
+    private ThreadPoolExecutor executor;
+
+    @ConfigProperty(name = "persist.queue.max", defaultValue = "10000")
+    int queueMax = 10000;
+
+    private final AtomicLong writesOk = new AtomicLong();
+    private final AtomicLong writesFail = new AtomicLong();
+    private final AtomicLong writesRetries = new AtomicLong();
+    private final AtomicLong queueDropped = new AtomicLong();
+    private volatile String lastError;
 
     private final Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
     private final Path eventsFile = dataDir.resolve("events.json");
@@ -73,6 +82,21 @@ public class PersistenceService {
         } catch (IOException e) {
             LOG.error("Unable to initialize data directory", e);
         }
+        if (queueMax <= 0) {
+            queueMax = 10000;
+        }
+        queue = new ArrayBlockingQueue<>(queueMax);
+        executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue,
+                r -> {
+                    Thread t = new Thread(r, "persistence-writer");
+                    t.setDaemon(true);
+                    return t;
+                });
+    }
+
+    @PreDestroy
+    void shutdown() {
+        executor.shutdown();
     }
 
     /** Returns whether the storage has critically low free space. */
@@ -163,8 +187,23 @@ public class PersistenceService {
         return ((double) (total - free) / (double) total);
     }
 
+    public record QueueStats(int depth, int max, long oldestAgeMs,
+            long writesOk, long writesFail, long writesRetries,
+            long droppedDueCapacity, String lastError) {}
+
+    public QueueStats getQueueStats() {
+        long oldest = 0L;
+        Runnable head = queue == null ? null : queue.peek();
+        if (head instanceof QueueItem qi) {
+            oldest = System.currentTimeMillis() - qi.enqueued;
+        }
+        return new QueueStats(queue == null ? 0 : queue.size(), queueMax, oldest,
+                writesOk.get(), writesFail.get(), writesRetries.get(),
+                queueDropped.get(), lastError);
+    }
+
     private void scheduleWrite(Path file, Object data) {
-        executor.submit(() -> {
+        QueueItem item = new QueueItem(() -> {
             checkDiskSpace();
             if (lowDiskSpace) {
                 LOG.warn("Low disk space - skipping persistence");
@@ -181,6 +220,7 @@ public class PersistenceService {
                         Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
                         LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
                         success = true;
+                        writesOk.incrementAndGet();
                     } finally {
                         try {
                             Files.deleteIfExists(tmp);
@@ -191,13 +231,43 @@ public class PersistenceService {
                 } catch (IOException e) {
                     if (attempts >= 3) {
                         LOG.error("Failed to persist data to " + file, e);
+                        writesFail.incrementAndGet();
+                        lastError = e.getMessage();
                     } else {
                         LOG.warn("Persistence attempt " + attempts + " failed for " + file + ", retrying");
-                        try { Thread.sleep(250); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); return; }
+                        writesRetries.incrementAndGet();
+                        try {
+                            Thread.sleep(250);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
                     }
                 }
             }
         });
+        try {
+            executor.execute(item);
+        } catch (RejectedExecutionException e) {
+            queueDropped.incrementAndGet();
+            lastError = "queue_full";
+            LOG.warn("Persistence queue full - dropping write for " + file.getFileName());
+        }
+    }
+
+    private static class QueueItem implements Runnable {
+        final Runnable task;
+        final long enqueued;
+
+        QueueItem(Runnable task) {
+            this.task = task;
+            this.enqueued = System.currentTimeMillis();
+        }
+
+        @Override
+        public void run() {
+            task.run();
+        }
     }
 
     private <T> Map<String, T> read(Path file, TypeReference<Map<String, T>> type) {
