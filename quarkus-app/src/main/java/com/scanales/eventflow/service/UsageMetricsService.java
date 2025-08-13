@@ -27,6 +27,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class UsageMetricsService {
 
     private static final Logger LOG = Logger.getLogger(UsageMetricsService.class);
+    private static final int CURRENT_SCHEMA_VERSION = 2;
 
     private final Map<String, Long> counters = new ConcurrentHashMap<>();
     private final Map<String, Long> talkViews = new ConcurrentHashMap<>();
@@ -38,7 +39,13 @@ public class UsageMetricsService {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final AtomicBoolean dirty = new AtomicBoolean(false);
     private final AtomicLong flushFailures = new AtomicLong();
-    private final Path metricsPath = Paths.get("data", "metrics-v1.json");
+
+    private final Path metricsV1Path = Paths.get("data", "metrics-v1.json");
+    private final Path metricsV2Path = Paths.get("data", "metrics-v2.json");
+    private Path metricsPath;
+    private boolean migrateFromV1;
+    private int schemaVersion = CURRENT_SCHEMA_VERSION;
+    private long lastFileSizeBytes;
 
     @ConfigProperty(name = "metrics.flush-interval", defaultValue = "PT10S")
     Duration flushInterval;
@@ -85,6 +92,14 @@ public class UsageMetricsService {
     @SuppressWarnings("unchecked")
     private void load() {
         try {
+            if (Files.exists(metricsV2Path)) {
+                metricsPath = metricsV2Path;
+            } else if (Files.exists(metricsV1Path)) {
+                metricsPath = metricsV1Path;
+                migrateFromV1 = true;
+            } else {
+                metricsPath = metricsV2Path;
+            }
             if (Files.exists(metricsPath)) {
                 Map<String, Object> data = mapper.readValue(metricsPath.toFile(), Map.class);
                 Object countersObj = data.get("counters");
@@ -101,6 +116,14 @@ public class UsageMetricsService {
                         dm.forEach((k, v) -> discardedByReason
                                 .computeIfAbsent(String.valueOf(k), r -> new LongAdder())
                                 .add(((Number) v).longValue()));
+                    }
+                    Object sv = meta.get("schemaVersion");
+                    if (sv instanceof Number n) {
+                        schemaVersion = n.intValue();
+                    }
+                    Object fs = meta.get("fileSizeBytes");
+                    if (fs instanceof Number n) {
+                        lastFileSizeBytes = n.longValue();
                     }
                 }
             }
@@ -123,6 +146,16 @@ public class UsageMetricsService {
         } catch (Exception e) {
             return new Summary(counters.size(), 0L, getDiscarded());
         }
+    }
+
+    /** Current schema version loaded in memory. */
+    public int getSchemaVersion() {
+        return schemaVersion;
+    }
+
+    /** Size in bytes of the last flushed metrics file. */
+    public long getFileSizeBytes() {
+        return lastFileSizeBytes;
     }
 
     private boolean isBot(String ua) {
@@ -290,18 +323,28 @@ public class UsageMetricsService {
         Map<String, Object> file = new HashMap<>();
         file.put("counters", snapshot);
         Map<String, Object> meta = new HashMap<>();
-        meta.put("schemaVersion", 3);
+        meta.put("schemaVersion", CURRENT_SCHEMA_VERSION);
         meta.put("lastFlush", System.currentTimeMillis());
         meta.put("discarded", discards);
         file.put("meta", meta);
-        Path tmp = metricsPath.resolveSibling("metrics-v1.json.tmp");
+        Path tmp = metricsV2Path.resolveSibling("metrics-v2.json.tmp");
         int attempts = 0;
         long backoff = 50L;
         while (attempts < 3) {
             try {
-                Files.createDirectories(metricsPath.getParent());
-                mapper.writeValue(tmp.toFile(), file);
-                Files.move(tmp, metricsPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                Files.createDirectories(metricsV2Path.getParent());
+                byte[] json = mapper.writeValueAsBytes(file);
+                meta.put("fileSizeBytes", json.length);
+                json = mapper.writeValueAsBytes(file);
+                Files.write(tmp, json);
+                Files.move(tmp, metricsV2Path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                metricsPath = metricsV2Path;
+                schemaVersion = CURRENT_SCHEMA_VERSION;
+                lastFileSizeBytes = json.length;
+                if (migrateFromV1) {
+                    try { Files.deleteIfExists(metricsV1Path); } catch (IOException ignored) {}
+                    migrateFromV1 = false;
+                }
                 dirty.set(false);
                 return;
             } catch (Exception e) {
@@ -331,6 +374,7 @@ public class UsageMetricsService {
         snap.put("bot", snap.getOrDefault("bot", 0L));
         snap.put("burst", snap.getOrDefault("burst", 0L));
         snap.put("dedupe", snap.getOrDefault("dedupe", 0L));
+        snap.put("buffer_full", snap.getOrDefault("buffer_full", 0L));
         return snap;
     }
 

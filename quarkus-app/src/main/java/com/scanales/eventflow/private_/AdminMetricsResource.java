@@ -45,7 +45,9 @@ public class AdminMetricsResource {
             List<Row> topSpeakers,
             List<Row> stageVisitsTable,
             boolean empty,
-            String range
+            String range,
+            int schemaVersion,
+            long fileSizeBytes
     ) {}
 
     @CheckedTemplate
@@ -166,7 +168,8 @@ public class AdminMetricsResource {
         long last = metrics.getLastUpdatedMillis();
         String lastStr = last > 0 ? Instant.ofEpochMilli(last).toString() : "—";
         return new MetricsData(eventsViewed, talksViewed, talksRegistered, stageVisits,
-                lastStr, summary.discarded(), metrics.getConfig(), topRegs, topViews, topSpeakers, stageTable, empty, range);
+                lastStr, summary.discarded(), metrics.getConfig(), topRegs, topViews, topSpeakers,
+                stageTable, empty, range, metrics.getSchemaVersion(), metrics.getFileSizeBytes());
     }
 
     private static long sumByPrefix(Map<String, Long> data, String prefix) {
