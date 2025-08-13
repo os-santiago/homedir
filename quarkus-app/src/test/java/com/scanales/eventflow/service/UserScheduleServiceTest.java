@@ -2,18 +2,47 @@ package com.scanales.eventflow.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.time.Year;
+import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Unit tests for {@link UserScheduleService} that avoid hitting private HTTP endpoints.
  */
 public class UserScheduleServiceTest {
 
-    @Test
-    public void updateDetailsAndSummary() {
+    @TempDir
+    Path tempDir;
+
+    private UserScheduleService newService() throws Exception {
+        System.setProperty("eventflow.data.dir", tempDir.toString());
+        PersistenceService ps = new PersistenceService();
+        ps.objectMapper = new ObjectMapper();
+        ps.init();
         UserScheduleService svc = new UserScheduleService();
+        Field f = UserScheduleService.class.getDeclaredField("persistence");
+        f.setAccessible(true);
+        f.set(svc, ps);
+        svc.init();
+        return svc;
+    }
+
+    private PersistenceService getPersistence(UserScheduleService svc) throws Exception {
+        Field f = UserScheduleService.class.getDeclaredField("persistence");
+        f.setAccessible(true);
+        return (PersistenceService) f.get(svc);
+    }
+
+    @Test
+    public void updateDetailsAndSummary() throws Exception {
+        UserScheduleService svc = newService();
         String user = "user@example.com";
 
         assertTrue(svc.addTalkForUser(user, "t1"));
@@ -32,8 +61,8 @@ public class UserScheduleServiceTest {
     }
 
     @Test
-    public void removeTalk() {
-        UserScheduleService svc = new UserScheduleService();
+    public void removeTalk() throws Exception {
+        UserScheduleService svc = newService();
         String user = "user@example.com";
 
         assertTrue(svc.addTalkForUser(user, "t1"));
@@ -47,13 +76,37 @@ public class UserScheduleServiceTest {
     }
 
     @Test
-    public void ignoreNullUser() {
-        UserScheduleService svc = new UserScheduleService();
+    public void ignoreNullUser() throws Exception {
+        UserScheduleService svc = newService();
 
         assertFalse(svc.addTalkForUser(null, "t1"));
         assertTrue(svc.getTalksForUser(null).isEmpty());
         assertTrue(svc.getTalkDetailsForUser(null).isEmpty());
         assertEquals(0, svc.getSummaryForUser(null).total());
     }
+
+    @Test
+    public void persistsAndLoadsLastYear() throws Exception {
+        UserScheduleService svc = newService();
+        String user = "user@example.com";
+        assertTrue(svc.addTalkForUser(user, "t1"));
+        getPersistence(svc).flush();
+
+        // recreate service to simulate restart
+        UserScheduleService svc2 = newService();
+        assertTrue(svc2.getTalksForUser(user).contains("t1"));
+    }
+
+    @Test
+    public void ignoresOlderFiles() throws Exception {
+        int year = Year.now().getValue() - 2;
+        Path oldFile = tempDir.resolve("user-schedule-" + year + ".json");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(oldFile.toFile(), Map.of("u", Map.of("t1", new UserScheduleService.TalkDetails())));
+
+        UserScheduleService svc = newService();
+        assertTrue(svc.getTalksForUser("u").isEmpty());
+    }
 }
+
 
