@@ -49,7 +49,7 @@ public class TalkResource {
     @Produces(MediaType.TEXT_HTML)
     public Response detail(@PathParam("id") String id,
             @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
-            @jakarta.ws.rs.core.Context jakarta.servlet.http.HttpServletRequest request) {
+            @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
         String ua = headers.getHeaderString("User-Agent");
         metrics.recordPageView("/talk", ua);
         try {
@@ -60,7 +60,8 @@ public class TalkResource {
             }
             var event = eventService.findEventByTalk(id);
             var occurrences = eventService.findTalkOccurrences(id);
-            metrics.recordTalkView(id, request.getSession(true).getId(), ua);
+            String sessionId = context.session() != null ? context.session().id() : null;
+            metrics.recordTalkView(id, sessionId, ua);
             if (talk.getLocation() != null) {
                 metrics.recordStageVisit(talk.getLocation(), event != null ? event.getTimezone() : null, ua);
             }
