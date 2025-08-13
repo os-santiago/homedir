@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.model.Talk;
 import jakarta.inject.Inject;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -39,11 +40,18 @@ public class TalkResource {
     @Inject
     UserScheduleService userSchedule;
 
+    @Inject
+    UsageMetricsService metrics;
+
     @GET
     @Path("{id}")
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
-    public Response detail(@PathParam("id") String id) {
+    public Response detail(@PathParam("id") String id,
+            @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+            @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+        String ua = headers.getHeaderString("User-Agent");
+        metrics.recordPageView("/talk", ua);
         try {
             Talk talk = eventService.findTalk(id);
             if (talk == null) {
@@ -52,6 +60,11 @@ public class TalkResource {
             }
             var event = eventService.findEventByTalk(id);
             var occurrences = eventService.findTalkOccurrences(id);
+            String sessionId = context.session() != null ? context.session().id() : null;
+            metrics.recordTalkView(id, sessionId, ua);
+            if (talk.getLocation() != null) {
+                metrics.recordStageVisit(talk.getLocation(), event != null ? event.getTimezone() : null, ua);
+            }
 
             java.util.List<String> missing = new java.util.ArrayList<>();
             if (talk.getLocation() == null) missing.add("location");

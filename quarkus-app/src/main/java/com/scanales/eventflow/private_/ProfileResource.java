@@ -11,6 +11,7 @@ import org.jboss.logging.Logger;
 
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
@@ -66,6 +67,9 @@ public class ProfileResource {
     @Inject
     UserScheduleService userSchedule;
 
+    @Inject
+    UsageMetricsService metrics;
+
     @GET
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
@@ -120,9 +124,14 @@ public class ProfileResource {
     @GET
     @Path("add/{id}")
     @Authenticated
-    public Response addTalkRedirect(@PathParam("id") String id) {
+    public Response addTalkRedirect(@PathParam("id") String id, @Context HttpHeaders headers) {
         String email = getEmail();
-        userSchedule.addTalkForUser(email, id);
+        boolean added = userSchedule.addTalkForUser(email, id);
+        if (added) {
+            var talk = eventService.findTalk(id);
+            metrics.recordTalkRegister(id, talk != null ? talk.getSpeakers() : java.util.List.of(),
+                    headers.getHeaderString("User-Agent"));
+        }
         return Response.status(Response.Status.SEE_OTHER)
                 .header("Location", "/talk/" + id)
                 .build();
@@ -153,6 +162,11 @@ public class ProfileResource {
     public Response addTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
         String email = getEmail();
         boolean added = userSchedule.addTalkForUser(email, id);
+        if (added) {
+            var talk = eventService.findTalk(id);
+            metrics.recordTalkRegister(id, talk != null ? talk.getSpeakers() : java.util.List.of(),
+                    headers.getHeaderString("User-Agent"));
+        }
         String status = added ? "added" : "exists";
         if (acceptsJson(headers)) {
             var info = eventService.findTalkInfo(id);
