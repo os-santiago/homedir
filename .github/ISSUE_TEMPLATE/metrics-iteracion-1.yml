@@ -1,0 +1,143 @@
+name: "Métricas · Iteración 1 — Base + Persistencia asíncrona"
+description: "Instrumentación mínima de métricas de uso, carga/flush asíncronos en data/ y menú Admin 'Métricas' (placeholder)."
+title: "Métricas · Iteración 1: Base + Persistencia asíncrona"
+labels: ["metrics", "iteration-1", "telemetry", "performance"]
+assignees:
+  - scanalesespinoza
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Objetivo (negocio)
+        Capturar datos de uso con **bajo costo** y **alta velocidad**: qué se visita y registra (eventos/charlas/escenarios), para medir interés y éxito.
+        Debe operar **sin backend complejo**, con **buena gestión de memoria** y **persistencia asíncrona resiliente** en `data/`.
+
+  - type: checkboxes
+    id: eventos_a_contabilizar
+    attributes:
+      label: Eventos a contabilizar (instrumentación mínima)
+      description: Marca todo lo que debe implementarse en esta iteración.
+      options:
+        - label: page_view:{route}
+          required: true
+        - label: event_view:{eventId}
+          required: true
+        - label: talk_view:{talkId} (con deduplicación básica por sesión/ventana corta)
+          required: true
+        - label: talk_register:{talkId} (idempotente por usuario+charla)
+          required: true
+        - label: stage_visit:{stageId}:{yyyy-mm-dd} (al abrir escenario o charla del escenario)
+          required: true
+        - label: speaker_popularity:{speakerId} (derivado por registros de sus charlas)
+          required: true
+
+  - type: checkboxes
+    id: modelo_persistencia
+    attributes:
+      label: Modelo en memoria + Persistencia asíncrona
+      description: Requisitos de rendimiento y resiliencia.
+      options:
+        - label: Contadores agregados en memoria (sin PII), seguros frente a concurrencia
+          required: true
+        - label: Carga al inicio desde `data/metrics-v1.json` (si existe)
+          required: true
+        - label: Flush asíncrono periódico + al apagar (intervalo configurable)
+          required: true
+        - label: Escritura atómica (archivo temporal → replace) y reintentos con backoff
+          required: true
+        - label: No bloquear UI (≤ ~10 ms p95 por evento)
+          required: true
+
+  - type: checkboxes
+    id: reglas_negocio
+    attributes:
+      label: Reglas de conteo (negocio)
+      options:
+        - label: talk_view con dedupe básica por sesión/ventana breve (evitar inflar por refresh)
+          required: true
+        - label: talk_register idempotente por usuario+charla
+          required: true
+        - label: stage_visit agrega por día del evento (zona horaria del evento)
+          required: true
+        - label: Filtrar ruido evidente (bots/headless) sin PII
+          required: true
+
+  - type: input
+    id: flush_interval
+    attributes:
+      label: Intervalo de flush (segundos)
+      description: Intervalo sugerido para escritura asíncrona a `data/metrics-v1.json`.
+      placeholder: "30"
+      value: "30"
+
+  - type: input
+    id: session_window
+    attributes:
+      label: Ventana de sesión para dedupe de talk_view (segundos)
+      placeholder: "60"
+      value: "60"
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Menú de administración — “Métricas” (placeholder)
+        Debe existir una entrada de menú en Admin que:
+        - Muestre “Métricas activas: recopilando datos”
+        - Indique totales globales (número de claves/contadores, tamaño estimado)
+        - Sin tablas/gráficos aún (eso será Iteración 2)
+
+  - type: checkboxes
+    id: admin_menu
+    attributes:
+      label: Admin → Métricas (placeholder)
+      options:
+        - label: Agregar ítem de menú “Métricas” visible en Admin
+          required: true
+        - label: Leer totales desde memoria/archivo y mostrarlos
+          required: true
+        - label: Mostrar “última actualización” y tamaño estimado
+          required: true
+
+  - type: checkboxes
+    id: criterios_aceptacion
+    attributes:
+      label: Criterios de aceptación (DoD)
+      options:
+        - label: CA1 — Navegación/acciones incrementan contadores en memoria y persisten en `data/metrics-v1.json` sin bloquear UI
+          required: true
+        - label: CA2 — Al reiniciar, los contadores se recuperan correctamente (pérdida ≤ ventana del buffer)
+          required: true
+        - label: CA3 — Flush atómico, resiliente (reintentos); ante fallas de IO el sistema sigue y registra “eventos descartados”
+          required: true
+        - label: CA4 — Admin → Métricas visible, muestra estado “Métricas activas” y totales
+          required: true
+        - label: CA5 — Sin PII; latencia ≤ ~10 ms p95 por evento
+          required: true
+
+  - type: textarea
+    id: pruebas_funcionales
+    attributes:
+      label: Pruebas funcionales esperadas
+      description: Casos a verificar manual/automáticamente.
+      value: |
+        - Visitar evento y charlas → suben event_view y talk_view.
+        - Registrar una charla → sube talk_register; no duplica si ya estaba.
+        - Visitar escenario o charlas del escenario → sube stage_visit:{stageId}:{yyyy-mm-dd}.
+        - Refresh rápido de la misma charla → no infla talk_view en exceso (dedupe).
+        - Apagar/encender → métricas persisten y se cargan al inicio.
+
+  - type: textarea
+    id: documentacion
+    attributes:
+      label: Documentación breve
+      description: Qué eventos se registran, dónde se persiste, cómo validar localmente.
+      placeholder: "Describe cómo ver el archivo data/metrics-v1.json, cómo forzar flush y cómo inspeccionar totales."
+      value: ""
+
+  - type: textarea
+    id: notas
+    attributes:
+      label: Notas y dependencias
+      description: Agrega cualquier consideración adicional (flags, límites de tamaño, etc.).
+      value: ""
