@@ -29,7 +29,8 @@ Los contadores se mantienen en memoria y se guardan periódicamente en `data/met
 La vista de administración lee directamente `data/metrics-v1.json` y muestra:
 
 - Tarjetas de resumen con vistas de eventos, charlas vistas, registros y visitas a escenarios.
-- Tablas Top 10 de charlas y oradores, junto con visitas por escenario.
+- Conversión global y asistentes esperados (aprox. suma de registros).
+- Tablas Top 10 de charlas, oradores y escenarios con mejor conversión.
 - Exportación a CSV del contenido visible.
 
 Las claves se mapean a entidades existentes usando los servicios en memoria:
@@ -37,5 +38,13 @@ Las claves se mapean a entidades existentes usando los servicios en memoria:
 - `talk_*` → título de la charla (`EventService.findTalk`).
 - `speaker_popularity:*` → nombre del orador (`SpeakerService.getSpeaker`).
 - `stage_visit:*` → nombre del escenario (`EventService.findScenario`).
+
+### Conversión
+
+- **Charlas:** `talk_register:{talkId} / talk_view:{talkId}`. Si las vistas son 0 se muestra "—".
+- **Evento:** se utiliza la política **A** (suma de registros / suma de vistas de sus charlas). La alternativa **B** (promedio simple por charla) se consideró pero no se utiliza actualmente.
+- **Escenarios y oradores:** agregados de las charlas asociadas.
+
+Para evitar sesgos se aplica un umbral mínimo de vistas (`metrics.min-view-threshold`, default 20) para que una charla, escenario u orador aparezca en los rankings.
 
 Si no hay datos suficientes el panel muestra un mensaje informativo en lugar de tablas vacías.
