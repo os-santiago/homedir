@@ -25,7 +25,20 @@
         <div class="card">Visitas a escenarios: {data.stageVisits}</div>
         <div class="card">Última actualización: {data.lastUpdate}</div>
     </div>
-    <p>Eventos descartados: {data.discarded}</p>
+    <h2>Calidad de datos</h2>
+    <ul>
+        <li>Ventana talk_view: {data.config.talkViewWindowSeconds}s</li>
+        <li>Ventana event_view: {data.config.eventViewWindowSeconds}s</li>
+        <li>Ventana stage_visit: {data.config.stageVisitWindowSeconds/60}min</li>
+        <li>Límite ráfaga: {data.config.burstPerSecond}/s, {data.config.burstPerMinute}/min</li>
+    </ul>
+    <p>Descartes por motivo:</p>
+    <ul>
+        <li>dedupe: {data.discards.get('dedupe')}</li>
+        <li>bot: {data.discards.get('bot')}</li>
+        <li>burst: {data.discards.get('burst')}</li>
+        <li>invalid: {data.discards.get('invalid')}</li>
+    </ul>
 
     <h2>Top 10 charlas más registradas</h2>
     <table>

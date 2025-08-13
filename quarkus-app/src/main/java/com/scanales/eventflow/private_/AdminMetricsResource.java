@@ -38,7 +38,8 @@ public class AdminMetricsResource {
             long talksRegistered,
             long stageVisits,
             String lastUpdate,
-            long discarded,
+            Map<String, Long> discards,
+            UsageMetricsService.Config config,
             List<Row> topRegistrations,
             List<Row> topViews,
             List<Row> topSpeakers,
@@ -165,7 +166,7 @@ public class AdminMetricsResource {
         long last = metrics.getLastUpdatedMillis();
         String lastStr = last > 0 ? Instant.ofEpochMilli(last).toString() : "—";
         return new MetricsData(eventsViewed, talksViewed, talksRegistered, stageVisits,
-                lastStr, summary.discardedEvents(), topRegs, topViews, topSpeakers, stageTable, empty, range);
+                lastStr, summary.discarded(), metrics.getConfig(), topRegs, topViews, topSpeakers, stageTable, empty, range);
     }
 
     private static long sumByPrefix(Map<String, Long> data, String prefix) {

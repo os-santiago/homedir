@@ -51,7 +51,8 @@ public class TalkResource {
             @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
             @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
         String ua = headers.getHeaderString("User-Agent");
-        metrics.recordPageView("/talk", ua);
+        String sessionId = context.session() != null ? context.session().id() : null;
+        metrics.recordPageView("/talk", sessionId, ua);
         try {
             Talk talk = eventService.findTalk(id);
             if (talk == null) {
@@ -60,10 +61,9 @@ public class TalkResource {
             }
             var event = eventService.findEventByTalk(id);
             var occurrences = eventService.findTalkOccurrences(id);
-            String sessionId = context.session() != null ? context.session().id() : null;
             metrics.recordTalkView(id, sessionId, ua);
             if (talk.getLocation() != null) {
-                metrics.recordStageVisit(talk.getLocation(), event != null ? event.getTimezone() : null, ua);
+                metrics.recordStageVisit(talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
             }
 
             java.util.List<String> missing = new java.util.ArrayList<>();

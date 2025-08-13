@@ -37,8 +37,11 @@ public class HomeResource {
     @GET
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
-    public TemplateInstance home(@jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
-        metrics.recordPageView("/", headers.getHeaderString("User-Agent"));
+    public TemplateInstance home(@jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+            @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+        String ua = headers.getHeaderString("User-Agent");
+        String sessionId = context.session() != null ? context.session().id() : null;
+        metrics.recordPageView("/", sessionId, ua);
         var events = eventService.listEvents().stream()
                 .sorted(Comparator.comparing(Event::getDate,
                         Comparator.nullsLast(Comparator.naturalOrder())))
