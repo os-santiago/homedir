@@ -478,6 +478,26 @@ public class UsageMetricsService {
         }
     }
 
+    /** Test helper to reset internal state between tests. */
+    void reset() {
+        counters.clear();
+        talkViews.clear();
+        eventViews.clear();
+        stageVisits.clear();
+        pageViews.clear();
+        rates.clear();
+        discardedByReason.clear();
+        bufferSize.set(0);
+        bufferWarned = false;
+        dirty.set(false);
+        writesOk.set(0);
+        writesFail.set(0);
+        flushFailures.set(0);
+        lastFlushTime = System.currentTimeMillis();
+        lastError = null;
+        currentState = HealthState.OK;
+    }
+
     private static class RateLimiter {
         long secondStart = System.currentTimeMillis();
         int secondCount = 0;

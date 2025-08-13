@@ -5,6 +5,7 @@ import java.util.Map;
 import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -14,6 +15,11 @@ public class UsageMetricsServiceBufferTest {
 
     @Inject
     UsageMetricsService metrics;
+
+    @BeforeEach
+    void reset() {
+        metrics.reset();
+    }
 
     @Test
     public void bufferFullIsCountedAndDiscarded() {
