@@ -336,7 +336,11 @@ public class UsageMetricsService {
 
     public record Config(long talkViewWindowSeconds, long eventViewWindowSeconds,
             long stageVisitWindowSeconds, boolean pageViewDedupe,
-            int burstPerSecond, int burstPerMinute) {}
+            int burstPerSecond, int burstPerMinute) {
+        public long stageVisitWindowMinutes() {
+            return stageVisitWindowSeconds / 60;
+        }
+    }
 
     public Config getConfig() {
         return new Config(talkViewWindow.getSeconds(), eventViewWindow.getSeconds(),
