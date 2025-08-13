@@ -47,7 +47,7 @@ public class PersistenceService {
     private ThreadPoolExecutor executor;
 
     @ConfigProperty(name = "persist.queue.max", defaultValue = "10000")
-    int queueMax;
+    int queueMax = 10000;
 
     private final AtomicLong writesOk = new AtomicLong();
     private final AtomicLong writesFail = new AtomicLong();
@@ -81,6 +81,9 @@ public class PersistenceService {
             }
         } catch (IOException e) {
             LOG.error("Unable to initialize data directory", e);
+        }
+        if (queueMax <= 0) {
+            queueMax = 10000;
         }
         queue = new ArrayBlockingQueue<>(queueMax);
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue,
