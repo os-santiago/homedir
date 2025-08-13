@@ -360,4 +360,19 @@ public class Event {
                 .sorted(java.util.Comparator.comparing(Talk::getStartTime))
                 .toList();
     }
+
+    /**
+     * Groups the agenda for the given {@code day} by start time.
+     * <p>
+     * The returned map is ordered by the start time so it can be
+     * iterated directly in the templates to build a time based view.
+     */
+    public java.util.Map<java.time.LocalTime, java.util.List<Talk>> getAgendaGroupedByStartTime(int day) {
+        return agenda.stream()
+                .filter(t -> t.getDay() == day)
+                .collect(java.util.stream.Collectors.groupingBy(
+                        Talk::getStartTime,
+                        java.util.TreeMap::new,
+                        java.util.stream.Collectors.toList()));
+    }
 }
