@@ -5,7 +5,7 @@
 <section>
     <h1 class="page-title">Control de capacidad</h1>
     <ul class="card">
-        <li>Modo actual: {status.mode.name() == 'ADMITTING' ? 'Admitiendo' : 'Conteniendo nuevos logins'}</li>
+        <li>Modo actual: {status.mode == 'ADMITTING' ? 'Admitiendo' : 'Conteniendo nuevos logins'}</li>
         <li>Usuarios activos en memoria: {status.activeUsers}</li>
         <li>% de memoria usada: {status.memoryPercent}%</li>
         <li>% de disco libre: {status.diskFreePercent}%</li>
@@ -34,7 +34,7 @@
     <button class="btn btn-secondary" onclick="copyState()">Copiar estado</button>
     <script>
     function copyState() {
-        const text = `Modo: {status.mode.name()}\nMemoria usada: {status.memoryPercent}%\nDisco libre: {status.diskFreePercent}%\nLecturas: {reads.memory}\nCola escrituras: {writes.depth}/{writes.max}`;
+        const text = `Modo: {status.mode}\nMemoria usada: {status.memoryPercent}%\nDisco libre: {status.diskFreePercent}%\nLecturas: {reads.memory}\nCola escrituras: {writes.depth}/{writes.max}`;
         navigator.clipboard.writeText(text);
     }
     </script>
