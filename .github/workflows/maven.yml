@@ -1,8 +1,15 @@
+---
 name: Build
 
-on:
+'on':
+  push:
+    branches: ['main']
+    paths:
+      - 'quarkus-app/**'
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
+    paths:
+      - 'quarkus-app/**'
 
 permissions:
   contents: write
