@@ -16,23 +16,52 @@
                 <option value="30"{#if data.range == '30'} selected{/if}>Últimos 30 días</option>
             </select>
         </label>
-        {#if data.eventId}
-        <input type="hidden" name="event" value="{data.eventId}">
-        {/if}
+        <label>Evento:
+            <select name="event" data-testid="filter-event">
+                <option value=""{#if !data.eventId} selected{/if}>Todos</option>
+                {#for ev in data.events}
+                    <option value="{ev.id}"{#if data.eventId == ev.id} selected{/if}>{ev.title}</option>
+                {/for}
+            </select>
+        </label>
+        <label>Escenario:
+            {#if data.stages.isEmpty}
+            <select name="stage" data-testid="filter-stage" disabled>
+                <option value="">Sin escenarios</option>
+            </select>
+            {#else}
+            <select name="stage" data-testid="filter-stage">
+                <option value=""{#if !data.stageId} selected{/if}>Todos</option>
+                {#for st in data.stages}
+                    <option value="{st.id}"{#if data.stageId == st.id} selected{/if}>{st.name}</option>
+                {/for}
+            </select>
+            {/if}
+        </label>
+        <label>Speaker:
+            <input type="text" name="speaker" list="speakers" placeholder="Buscar speaker…" value="{data.speakerId}"
+                   data-testid="filter-speaker">
+        </label>
+        <datalist id="speakers">
+            {#for sp in data.speakers}
+                <option value="{sp.id}">{sp.name}</option>
+            {/for}
+        </datalist>
         <button type="submit">Aplicar</button>
     </form>
     {#if data.eventId}
     <p><a href="talks?event={data.eventId}" class="btn btn-secondary">Reporte charlas registradas</a></p>
     {/if}
     <div class="cards">
-        <div class="card">Eventos vistos: {data.eventsViewed}</div>
-        <div class="card">Charlas vistas: {data.talksViewed}</div>
-        <div class="card">Charlas registradas: {data.talksRegistered}</div>
-        <div class="card">Visitas a escenarios: {data.stageVisits}</div>
-        <div class="card">Conversión global: {data.globalConversion}</div>
-        <div class="card">Asistentes esperados: {data.expectedAttendees}</div>
-        <div class="card">Última actualización: {data.lastUpdate}</div>
+        <div class="card" data-testid="metrics-card-events">Eventos vistos: {data.eventsViewed}</div>
+        <div class="card" data-testid="metrics-card-talks">Charlas vistas: {data.talksViewed}</div>
+        <div class="card" data-testid="metrics-card-registrations">Charlas registradas: {data.talksRegistered}</div>
+        <div class="card" data-testid="metrics-card-stage-visits">Visitas a escenarios: {data.stageVisits}</div>
+        <div class="card" data-testid="metrics-card-conversion">Conversión global: {data.globalConversion}</div>
+        <div class="card" data-testid="metrics-card-expected">Asistentes esperados: {data.expectedAttendees}</div>
+        <div class="card" data-testid="metrics-card-updated">Última actualización: {data.lastUpdate}</div>
     </div>
+    <p><button type="button" id="copySummaryBtn" data-testid="copy-summary" class="btn btn-secondary">Copiar resumen</button></p>
     <p>Umbral mínimo de vistas para ranking: {data.minViews}. Política de conversión de evento: promedio ponderado (A).</p>
 
     <h2>Salud del sistema de métricas</h2>
@@ -78,6 +107,8 @@
     <form method="get" class="table-search">
         <input type="hidden" name="range" value="{data.range}">
         {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
+        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
+        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
         <input type="hidden" name="speakerQ" value="{data.speakerQ}">
         <input type="hidden" name="scenarioQ" value="{data.scenarioQ}">
         <input type="text" name="talkQ" placeholder="Buscar…" value="{data.talkQ}" data-testid="table-talks-search">
@@ -88,13 +119,13 @@
         {#for row in data.topTalks}
             <tr>
                 <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
-                <td><a href="/private/admin/events/{app:eventIdByTalk(row.id)}/edit" aria-label="Ver charla {row.name}" data-testid="table-talks-view-{row.id}">Ver</a></td>
+                <td><a href="/private/admin/events/{app:eventIdByTalk(row.id)}/edit?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}" aria-label="Ver charla {row.name}" data-testid="table-talks-view-{row.id}">Ver</a></td>
             </tr>
         {/for}
         </tbody>
     </table>
     {#if !data.topTalks.isEmpty}
-    <a href="export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.talkQ}&amp;q={data.talkQ}{/if}" class="btn btn-secondary" data-testid="table-talks-export">Exportar CSV</a>
+    <a href="export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.talkQ}&amp;q={data.talkQ}{/if}" class="btn btn-secondary" data-testid="table-talks-export">Exportar CSV</a>
     {#else}
     <button class="btn btn-secondary" disabled data-testid="table-talks-export">Exportar CSV</button>
     <p>Sin datos para exportar en este rango.</p>
@@ -104,6 +135,8 @@
     <form method="get" class="table-search">
         <input type="hidden" name="range" value="{data.range}">
         {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
+        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
+        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
         <input type="hidden" name="talkQ" value="{data.talkQ}">
         <input type="hidden" name="scenarioQ" value="{data.scenarioQ}">
         <input type="text" name="speakerQ" placeholder="Buscar…" value="{data.speakerQ}" data-testid="table-speakers-search">
@@ -114,13 +147,13 @@
         {#for row in data.topSpeakers}
             <tr>
                 <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
-                <td><a href="/private/admin/speakers" aria-label="Ver orador {row.name}" data-testid="table-speakers-view-{row.id}">Ver</a></td>
+                <td><a href="/private/admin/speakers?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}" aria-label="Ver orador {row.name}" data-testid="table-speakers-view-{row.id}">Ver</a></td>
             </tr>
         {/for}
         </tbody>
     </table>
     {#if !data.topSpeakers.isEmpty}
-    <a href="export?table=speakers&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.speakerQ}&amp;q={data.speakerQ}{/if}" class="btn btn-secondary" data-testid="table-speakers-export">Exportar CSV</a>
+    <a href="export?table=speakers&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.speakerQ}&amp;q={data.speakerQ}{/if}" class="btn btn-secondary" data-testid="table-speakers-export">Exportar CSV</a>
     {#else}
     <button class="btn btn-secondary" disabled data-testid="table-speakers-export">Exportar CSV</button>
     <p>Sin datos para exportar en este rango.</p>
@@ -130,6 +163,8 @@
     <form method="get" class="table-search">
         <input type="hidden" name="range" value="{data.range}">
         {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
+        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
+        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
         <input type="hidden" name="talkQ" value="{data.talkQ}">
         <input type="hidden" name="speakerQ" value="{data.speakerQ}">
         <input type="text" name="scenarioQ" placeholder="Buscar…" value="{data.scenarioQ}" data-testid="table-scenarios-search">
@@ -140,19 +175,33 @@
         {#for row in data.topScenarios}
             <tr>
                 <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
-                <td><a href="/private/admin/events/{app:eventIdByScenario(row.id)}/edit" aria-label="Ver escenario {row.name}" data-testid="table-scenarios-view-{row.id}">Ver</a></td>
+                <td><a href="/private/admin/events/{app:eventIdByScenario(row.id)}/edit?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}" aria-label="Ver escenario {row.name}" data-testid="table-scenarios-view-{row.id}">Ver</a></td>
             </tr>
         {/for}
         </tbody>
     </table>
     {#if !data.topScenarios.isEmpty}
-    <a href="export?table=scenarios&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.scenarioQ}&amp;q={data.scenarioQ}{/if}" class="btn btn-secondary" data-testid="table-scenarios-export">Exportar CSV</a>
+    <a href="export?table=scenarios&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.scenarioQ}&amp;q={data.scenarioQ}{/if}" class="btn btn-secondary" data-testid="table-scenarios-export">Exportar CSV</a>
     {#else}
     <button class="btn btn-secondary" disabled data-testid="table-scenarios-export">Exportar CSV</button>
     <p>Sin datos para exportar en este rango.</p>
     {/if}
     {/if}
     <a href="/private/admin" class="btn btn-secondary">Volver</a>
+    <script>
+    document.getElementById('copySummaryBtn')?.addEventListener('click', () => {
+        const text = `Rango: {data.range}
+Evento: {#if data.eventId}{data.eventId}{#else}Todos{/if}
+Escenario: {#if data.stageId}{data.stageId}{#else}Todos{/if}
+Speaker: {#if data.speakerId}{data.speakerId}{#else}Todos{/if}
+Eventos vistos: {data.eventsViewed}
+Charlas vistas: {data.talksViewed}
+Charlas registradas: {data.talksRegistered}
+Visitas a escenarios: {data.stageVisits}
+Última actualización: {data.lastUpdate}`;
+        navigator.clipboard.writeText(text).then(() => showNotification('success', 'Resumen copiado'));
+    });
+    </script>
 </section>
 {/main}
 {/include}

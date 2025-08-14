@@ -7,6 +7,24 @@
 - **Scenarios:** rows navigate to `/private/admin/events/{eventId}/edit` with the scenario highlighted.
 - The dashboard preserves the selected time range and event filter when navigating to and returning from these pages.
 
+## Filtros y segmentación
+- Los filtros de **Evento**, **Escenario** y **Speaker** se combinan con el rango de fechas.
+- El evento delimita los escenarios disponibles; si un evento no tiene escenarios se muestra un selector deshabilitado con "Sin escenarios".
+- El filtro de speaker restringe charlas y métricas asociadas a ese orador.
+
+## Persistencia de contexto
+- Los filtros y rango se representan mediante query params legibles: `range`, `event`, `stage` y `speaker`.
+- Al navegar a vistas de detalle mediante "Ver" se mantienen estos parámetros para poder volver con el mismo estado.
+
+## Copys / UX
+- Etiquetas de filtros: "Evento", "Escenario", "Speaker".
+- Placeholders: "Todos", "Buscar speaker…" y "Sin datos suficientes en este rango/segmento".
+- Botón: "Copiar resumen". Toast al copiar: "Resumen copiado".
+
+## Formato del resumen copiado
+- Plantilla: `Rango: <rango>\nEvento: <evento>\nEscenario: <escenario>\nSpeaker: <speaker>\nEventos vistos: <n>\nCharlas vistas: <n>\nCharlas registradas: <n>\nVisitas a escenarios: <n>\nÚltima actualización: <timestamp>`
+- Solo se incluyen totales agregados; nunca PII.
+
 ## Export specification
 - Export only the rows and columns visible in the current table, respecting time range, search terms and order.
 - Columns per table:

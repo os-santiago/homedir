@@ -64,7 +64,12 @@ public class AdminMetricsResource {
             String speakerDir,
             String scenarioQ,
             String scenarioSort,
-            String scenarioDir
+            String scenarioDir,
+            List<Event> events,
+            List<Scenario> stages,
+            List<Speaker> speakers,
+            String stageId,
+            String speakerId
     ) {}
 
     /** Row representing registrations for a talk. */
@@ -94,6 +99,8 @@ public class AdminMetricsResource {
     @Produces(MediaType.TEXT_HTML)
     public Response metrics(@QueryParam("range") String range,
                            @QueryParam("event") String eventId,
+                           @QueryParam("stage") String stageId,
+                           @QueryParam("speaker") String speakerId,
                            @QueryParam("talkQ") String talkQ,
                            @QueryParam("talkSort") String talkSort,
                            @QueryParam("talkDir") String talkDir,
@@ -106,7 +113,7 @@ public class AdminMetricsResource {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        MetricsData data = buildData(range, eventId);
+        MetricsData data = buildData(range, eventId, stageId, speakerId);
         List<ConversionRow> talks = filterRows(data.topTalks(), talkQ, talkSort, talkDir);
         List<ConversionRow> speakers = filterRows(data.topSpeakers(), speakerQ, speakerSort, speakerDir);
         List<ConversionRow> scenarios = filterRows(data.topScenarios(), scenarioQ, scenarioSort, scenarioDir);
@@ -114,7 +121,8 @@ public class AdminMetricsResource {
                 data.lastUpdate(), data.discards(), data.config(), talks, speakers, scenarios,
                 data.globalConversion(), data.expectedAttendees(), data.empty(), data.range(), data.eventId(),
                 data.schemaVersion(), data.fileSizeBytes(), data.minViews(), data.health(),
-                talkQ, talkSort, talkDir, speakerQ, speakerSort, speakerDir, scenarioQ, scenarioSort, scenarioDir);
+                talkQ, talkSort, talkDir, speakerQ, speakerSort, speakerDir, scenarioQ, scenarioSort, scenarioDir,
+                data.events(), data.stages(), data.speakers(), data.stageId(), data.speakerId());
         return Response.ok(Templates.index(data)).build();
     }
 
@@ -147,13 +155,15 @@ public class AdminMetricsResource {
     public Response export(@QueryParam("table") String table,
                            @QueryParam("range") String range,
                            @QueryParam("event") String eventId,
+                           @QueryParam("stage") String stageId,
+                           @QueryParam("speaker") String speakerId,
                            @QueryParam("q") String query,
                            @QueryParam("sort") String sort,
                            @QueryParam("dir") String dir) {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        MetricsData data = buildData(range, eventId);
+        MetricsData data = buildData(range, eventId, stageId, speakerId);
         List<ConversionRow> rows;
         String header;
         switch (table) {
@@ -220,7 +230,7 @@ public class AdminMetricsResource {
     @ConfigProperty(name = "metrics.min-view-threshold", defaultValue = "20")
     int minViews;
 
-    private MetricsData buildData(String range, String eventId) {
+    private MetricsData buildData(String range, String eventId, String stageId, String speakerId) {
         Map<String, Long> snap = metrics.snapshot();
         Summary summary = metrics.getSummary();
         Health health = metrics.getHealth();
@@ -233,7 +243,7 @@ public class AdminMetricsResource {
             eventsViewed = sumByPrefix(snap, "event_view:");
         }
 
-        Map<String, Stats> talkStats = buildTalkStats(snap, eventId);
+        Map<String, Stats> talkStats = buildTalkStats(snap, eventId, stageId, speakerId);
         long talksViewed = talkStats.values().stream().mapToLong(s -> s.views).sum();
         long talksRegistered = talkStats.values().stream().mapToLong(s -> s.regs).sum();
 
@@ -256,9 +266,10 @@ public class AdminMetricsResource {
                 if (parts.length == 3) {
                     LocalDate d = LocalDate.parse(parts[2]);
                     if (!d.isBefore(start)) {
-                        String stageId = parts[1];
-                        if (eventId == null || belongsToEvent(stageId, eventId)) {
-                            stageMap.merge(stageId, e.getValue(), Long::sum);
+                        String stId = parts[1];
+                        if ((eventId == null || belongsToEvent(stId, eventId)) &&
+                            (stageId == null || stageId.isBlank() || stageId.equals(stId))) {
+                            stageMap.merge(stId, e.getValue(), Long::sum);
                         }
                     }
                 }
@@ -277,16 +288,24 @@ public class AdminMetricsResource {
         String globalConv = formatConversion(talksViewed, talksRegistered);
         long expectedAttendees = talksRegistered;
 
+        List<Event> events = eventService.listEvents();
+        List<Scenario> stages = eventId != null ?
+                Optional.ofNullable(eventService.getEvent(eventId))
+                        .map(Event::getScenarios)
+                        .orElse(List.of()) : List.of();
+        List<Speaker> speakers = speakerService.listSpeakers();
+
         return new MetricsData(eventsViewed, talksViewed, talksRegistered, stageVisits,
                 lastStr, summary.discarded(), metrics.getConfig(), topTalks, topSpeakers, topScenarios,
                 globalConv, expectedAttendees, empty, range, eventId, metrics.getSchemaVersion(),
                 metrics.getFileSizeBytes(), minViews, health,
-                null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null,
+                events, stages, speakers, stageId, speakerId);
     }
 
     private static class Stats { long views; long regs; }
 
-    private Map<String, Stats> buildTalkStats(Map<String, Long> snap, String eventId) {
+    private Map<String, Stats> buildTalkStats(Map<String, Long> snap, String eventId, String stageId, String speakerId) {
         Map<String, Stats> stats = new HashMap<>();
         Map<String, Long> views = extractMap(snap, "talk_view:");
         Map<String, Long> regs = extractMap(snap, "talk_register:");
@@ -299,6 +318,14 @@ public class AdminMetricsResource {
             if (eventId != null && !eventId.isBlank()) {
                 com.scanales.eventflow.model.Event ev = eventService.findEventByTalk(id);
                 if (ev == null || !eventId.equals(ev.getId())) continue;
+            }
+            if (stageId != null && !stageId.isBlank()) {
+                if (t.getLocation() == null || !stageId.equals(t.getLocation())) continue;
+            }
+            if (speakerId != null && !speakerId.isBlank()) {
+                boolean match = t.getSpeakers().stream()
+                        .anyMatch(s -> speakerId.equals(s.getId()));
+                if (!match) continue;
             }
             Stats s = stats.computeIfAbsent(id, k -> new Stats());
             s.views = views.getOrDefault(id, 0L);
