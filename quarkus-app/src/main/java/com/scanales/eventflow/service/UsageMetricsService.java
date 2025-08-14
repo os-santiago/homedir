@@ -306,6 +306,16 @@ public class UsageMetricsService {
         increment("stage_visit:" + stageId + ":" + today);
     }
 
+    public void recordCta(String name, String timezone) {
+        if (name == null) {
+            incrementDiscard("invalid");
+            return;
+        }
+        ZoneId zone = timezone != null ? ZoneId.of(timezone) : ZoneId.systemDefault();
+        LocalDate today = LocalDate.now(zone);
+        increment("cta:" + name + ":" + today);
+    }
+
     private void increment(String key) {
         int size = bufferSize.incrementAndGet();
         if (size > bufferMaxSize) {

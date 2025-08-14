@@ -60,9 +60,55 @@
         <div class="card" data-testid="metrics-card-conversion">Conversión global: {data.globalConversion}</div>
         <div class="card" data-testid="metrics-card-expected">Asistentes esperados: {data.expectedAttendees}</div>
         <div class="card" data-testid="metrics-card-updated">Última actualización: {data.lastUpdate}</div>
+        <div class="card" data-testid="ctas-card">
+            <div>Releases: {data.ctas.releases} | Reportar issue: {data.ctas.issues} | Ko-fi: {data.ctas.kofi}</div>
+            <div class="legend" title="Promedio diario calculado solo con días del rango.">Promedio diario en este rango: R={data.ctas.avgReleases} Issues={data.ctas.avgIssues} Ko-fi={data.ctas.avgKofi}</div>
+            <div class="actions">
+                <a href="/cta/releases" target="_blank" rel="noopener" aria-label="Abrir Releases" data-testid="ctas-open-releases">Abrir Releases</a>
+                <a href="/cta/issues" target="_blank" rel="noopener" aria-label="Reportar issue" data-testid="ctas-open-issues">Reportar issue</a>
+                <a href="/cta/kofi" target="_blank" rel="noopener" aria-label="Ko-fi" data-testid="ctas-open-kofi">Ko-fi</a>
+            </div>
+        </div>
+    </div>
+    <div class="cta-summary">
+        <p>Media diaria (Total CTAs): {data.ctas.meanTotal}</p>
+        <p>Desviación simple: {data.ctas.stdTotal}</p>
+        <p>Días activos en rango: {data.ctas.activeDays}</p>
     </div>
     <p><button type="button" id="copySummaryBtn" data-testid="copy-summary" class="btn btn-secondary">Copiar resumen</button></p>
     <p>Umbral mínimo de vistas para ranking: {data.minViews}. Política de conversión de evento: promedio ponderado (A).</p>
+
+    <h2>CTAs por día (rango)</h2>
+    <p>Picos en el rango: {data.ctas.peakCount}</p>
+    <form method="get" class="table-search">
+        <input type="hidden" name="range" value="{data.range}">
+        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
+        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
+        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
+        <input type="text" name="ctaQ" placeholder="Buscar…" value="{data.ctaQ}">
+    </form>
+    <div class="table-wrapper">
+    <table data-testid="ctas-table">
+        <thead><tr><th>Fecha</th><th>Releases</th><th>Reportar issue</th><th>Ko-fi</th><th>Total</th></tr></thead>
+        <tbody>
+        {#for row in data.ctas.rows}
+            <tr>
+                <td>{row.date}</td>
+                <td>{row.releases}</td>
+                <td>{row.issues}</td>
+                <td>{row.kofi}</td>
+                <td>{row.total} {#if row.peak}<span class="badge" data-testid="ctas-peak-badge" title="Pico según regla configurada para este rango.">Pico</span>{/if}</td>
+            </tr>
+        {/for}
+        </tbody>
+    </table>
+    </div>
+    {#if !data.ctas.rows.isEmpty}
+    <a href="export?table=ctas&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.ctaQ}&amp;q={data.ctaQ}{/if}" class="btn btn-secondary" data-testid="ctas-export">Exportar CSV</a>
+    {#else}
+    <button class="btn btn-secondary" disabled data-testid="ctas-export">Exportar CSV</button>
+    <p>Sin datos para exportar en este rango.</p>
+    {/if}
 
     <h2>Salud del sistema de métricas</h2>
     <div class="health health-{data.health.estado}">
