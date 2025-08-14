@@ -262,13 +262,18 @@ Visitas a escenarios: {data.stageVisits}
     let inflight = false;
     let throttle = false;
     let lastHash = {data.lastUpdateMillis};
+    let errorShown = false;
     function refreshStatus() {
         if (paused || inflight) return;
         inflight = true;
         fetch('/private/admin/metrics/status' + window.location.search)
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error();
+                return r.json();
+            })
             .then(d => {
                 inflight = false;
+                errorShown = false;
                 const badge = document.querySelector('[data-testid="metrics-health-badge"]');
                 if (badge) {
                     badge.className = 'metrics-health ' + d.css;
@@ -286,7 +291,10 @@ Visitas a escenarios: {data.stageVisits}
             })
             .catch(() => {
                 inflight = false;
-                showNotification('error', 'No pudimos actualizar; reintentaremos');
+                if (!errorShown) {
+                    showNotification('error', 'No pudimos actualizar; reintentaremos');
+                    errorShown = true;
+                }
             });
     }
     setInterval(refreshStatus, REFRESH_INTERVAL);
