@@ -470,7 +470,8 @@ button:focus-visible {
 .talk-list {
     list-style: none;
     margin: 10px 0px;
-    padding: 0;
+    padding-left: 1rem;
+    border-left: 2px solid #eee;
 }
 
 .speaker-card {
@@ -523,12 +524,6 @@ button:focus-visible {
 }
 .field textarea {
     width: 100%;
-}
-
-.talk-list {
-    margin-top: 0.5rem;
-    padding-left: 1rem;
-    border-left: 2px solid #eee;
 }
 
 .talk-card {
@@ -1013,13 +1008,6 @@ p.note {
     margin-top: auto;
     align-self: flex-start;
     background-color: var(--color-primary);
-}
-
-/* Talk list on scenario detail */
-.talk-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
 }
 
 .talk-item {
