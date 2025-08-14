@@ -4,8 +4,17 @@
 {#main}
 <section class="admin-metrics">
     <h1 class="page-title">Métricas</h1>
+    <div class="metrics-health {data.dataHealth.css}" title="{data.dataHealth.tooltip}" aria-live="polite" data-testid="metrics-health-badge">
+        <span class="icon">{#if data.dataHealth.css == 'ok'}✔{/if}{#if data.dataHealth.css == 'stale'}⚠{/if}{#if data.dataHealth.css == 'empty'}∅{/if}</span>
+        <span class="text">{data.dataHealth.state}</span>
+        <span class="updated" aria-live="polite">Última actualización: {data.lastUpdateRel}</span>
+        <span class="controls">
+            <button type="button" id="refreshToggle" aria-pressed="false" data-testid="metrics-refresh-toggle">Pausar</button>
+            <button type="button" id="refreshNow" data-testid="metrics-refresh-now">Refrescar ahora</button>
+        </span>
+    </div>
     {#if data.empty}
-        <p>Sin datos suficientes todavía. Navega por eventos y registra charlas para generar métricas.</p>
+        <p>Sin datos suficientes en este rango/segmento.</p>
     {#else}
     <form method="get" class="metrics-filter">
         <label>Rango:
@@ -59,7 +68,7 @@
         <div class="card" data-testid="metrics-card-stage-visits">Visitas a escenarios: {data.stageVisits}</div>
         <div class="card" data-testid="metrics-card-conversion">Conversión global: {data.globalConversion}</div>
         <div class="card" data-testid="metrics-card-expected">Asistentes esperados: {data.expectedAttendees}</div>
-        <div class="card" data-testid="metrics-card-updated">Última actualización: {data.lastUpdate}</div>
+        <div class="card" data-testid="metrics-last-updated" aria-live="polite">Última actualización: {data.lastUpdateRel}</div>
         <div class="card" data-testid="ctas-card">
             <div>Releases: {data.ctas.releases} | Reportar issue: {data.ctas.issues} | Ko-fi: {data.ctas.kofi}</div>
             <div class="legend" title="Promedio diario calculado solo con días del rango.">Promedio diario en este rango: R={data.ctas.avgReleases} Issues={data.ctas.avgIssues} Ko-fi={data.ctas.avgKofi}</div>
@@ -246,6 +255,53 @@ Charlas registradas: {data.talksRegistered}
 Visitas a escenarios: {data.stageVisits}
 Última actualización: {data.lastUpdate}`;
         navigator.clipboard.writeText(text).then(() => showNotification('success', 'Resumen copiado'));
+    });
+
+    const REFRESH_INTERVAL = 5000;
+    let paused = false;
+    let inflight = false;
+    let throttle = false;
+    let lastHash = {data.lastUpdateMillis};
+    function refreshStatus() {
+        if (paused || inflight) return;
+        inflight = true;
+        fetch('/private/admin/metrics/status' + window.location.search)
+            .then(r => r.json())
+            .then(d => {
+                inflight = false;
+                const badge = document.querySelector('[data-testid="metrics-health-badge"]');
+                if (badge) {
+                    badge.className = 'metrics-health ' + d.css;
+                    badge.title = d.tooltip;
+                    badge.querySelector('.text').textContent = d.state;
+                    const up = badge.querySelector('.updated');
+                    if (up) up.textContent = 'Última actualización: ' + d.last;
+                }
+                const card = document.querySelector('[data-testid="metrics-last-updated"]');
+                if (card) card.textContent = 'Última actualización: ' + d.last;
+                if (lastHash !== d.hash) {
+                    lastHash = d.hash;
+                    location.reload();
+                }
+            })
+            .catch(() => {
+                inflight = false;
+                showNotification('error', 'No pudimos actualizar; reintentaremos');
+            });
+    }
+    setInterval(refreshStatus, REFRESH_INTERVAL);
+    document.getElementById('refreshToggle')?.addEventListener('click', () => {
+        paused = !paused;
+        const btn = document.getElementById('refreshToggle');
+        btn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+        btn.textContent = paused ? 'Continuar' : 'Pausar';
+        if (!paused) refreshStatus();
+    });
+    document.getElementById('refreshNow')?.addEventListener('click', () => {
+        if (throttle) return;
+        throttle = true;
+        setTimeout(() => throttle = false, 2000);
+        refreshStatus();
     });
     </script>
 </section>

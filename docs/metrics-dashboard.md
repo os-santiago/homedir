@@ -51,3 +51,31 @@
 - When a table has no data, export button is disabled and shows the no-data message.
 - Keyboard navigation reaches all `Ver` and `Exportar CSV` buttons and aria labels describe the destination.
 - Confirm CSV contains no personal identifiers such as emails or personal IDs.
+
+## Salud de datos y auto-refresh
+
+### Reglas de “Salud de datos”
+- Hoy: desactualizado si la edad del snapshot supera 2 min.
+- Últimos 7 días: desactualizado si > 15 min.
+- Últimos 30 días: desactualizado si > 30 min.
+- Todo el evento: desactualizado si > 60 min.
+- “Sin datos”: todas las tarjetas en 0 y todas las tablas vacías tras aplicar filtros/rango.
+
+### Semántica de “Última actualización”
+- Se toma del timestamp del snapshot de datos, nunca del reloj del cliente.
+- Se muestra en formato relativo: “hace 2 min”, “hace 45 s”; para <1 s usar “justo ahora”.
+
+### Auto-refresh
+- Intervalo por defecto: 5 s (configurable).
+- Coalesce de solicitudes: si hay un refresh en curso, no inicia otro.
+- Re-render condicional por hash de datos.
+- Controles: `Pausar/Continuar` (`data-testid="metrics-refresh-toggle"`, `aria-pressed`) y `Refrescar ahora` (`data-testid="metrics-refresh-now"`, throttle 2 s).
+
+### Copys/UX
+- Estados: “OK”, “Desactualizado”, “Sin datos”.
+- Mensajes: “No pudimos actualizar; reintentaremos”, “Sin datos suficientes en este rango/segmento”.
+- Accesibilidad: `aria-live` en estado y “Última actualización”; botones con `aria-pressed` y tooltips.
+
+### Privacidad y performance
+- Cero PII en mensajes o datos mostrados.
+- Evitar parpadeos: sólo recargar al cambiar el hash de datos.

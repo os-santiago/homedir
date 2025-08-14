@@ -38,6 +38,10 @@ public class AdminMetricsResource {
 
     public record CtaDayRow(LocalDate date, long releases, long issues, long kofi, long total, boolean peak) {}
 
+    public record DataHealth(String state, String css, String tooltip) {}
+
+    public record StatusPayload(String state, String css, String tooltip, String last, long hash) {}
+
     public record CtaData(
             long releases,
             long issues,
@@ -57,6 +61,8 @@ public class AdminMetricsResource {
             long talksRegistered,
             long stageVisits,
             String lastUpdate,
+            String lastUpdateRel,
+            long lastUpdateMillis,
             Map<String, Long> discards,
             UsageMetricsService.Config config,
             List<ConversionRow> topTalks,
@@ -71,6 +77,7 @@ public class AdminMetricsResource {
             long fileSizeBytes,
             int minViews,
             Health health,
+            DataHealth dataHealth,
             String talkQ,
             String talkSort,
             String talkDir,
@@ -140,12 +147,40 @@ public class AdminMetricsResource {
                 data.ctas().avgReleases(), data.ctas().avgIssues(), data.ctas().avgKofi(),
                 data.ctas().meanTotal(), data.ctas().stdTotal(), data.ctas().activeDays(), ctaRows, data.ctas().peakCount());
         data = new MetricsData(data.eventsViewed(), data.talksViewed(), data.talksRegistered(), data.stageVisits(),
-                data.lastUpdate(), data.discards(), data.config(), talks, speakers, scenarios,
+                data.lastUpdate(), data.lastUpdateRel(), data.lastUpdateMillis(), data.discards(), data.config(), talks, speakers, scenarios,
                 data.globalConversion(), data.expectedAttendees(), data.empty(), data.range(), data.eventId(),
-                data.schemaVersion(), data.fileSizeBytes(), data.minViews(), data.health(),
+                data.schemaVersion(), data.fileSizeBytes(), data.minViews(), data.health(), data.dataHealth(),
                 talkQ, talkSort, talkDir, speakerQ, speakerSort, speakerDir, scenarioQ, scenarioSort, scenarioDir,
-                data.events(), data.stages(), data.speakers(), data.stageId(), data.speakerId(), ctas, ctaQ);
+        data.events(), data.stages(), data.speakers(), data.stageId(), data.speakerId(), ctas, ctaQ);
         return Response.ok(Templates.index(data)).build();
+    }
+
+    @GET
+    @Path("status")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response status(@QueryParam("range") String range,
+                           @QueryParam("event") String eventId,
+                           @QueryParam("stage") String stageId,
+                           @QueryParam("speaker") String speakerId) {
+        if (!AdminUtils.isAdmin(identity)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        long start = System.currentTimeMillis();
+        try {
+            MetricsData data = buildData(range, eventId, stageId, speakerId);
+            metrics.recordRefresh(true, System.currentTimeMillis() - start);
+            StatusPayload payload = new StatusPayload(
+                    data.dataHealth().state(),
+                    data.dataHealth().css(),
+                    data.dataHealth().tooltip(),
+                    data.lastUpdateRel(),
+                    data.lastUpdateMillis());
+            return Response.ok(payload).build();
+        } catch (Exception e) {
+            metrics.recordRefresh(false, System.currentTimeMillis() - start);
+            return Response.serverError().build();
+        }
     }
 
     @GET
@@ -267,7 +302,6 @@ public class AdminMetricsResource {
         Map<String, Long> snap = metrics.snapshot();
         Summary summary = metrics.getSummary();
         Health health = metrics.getHealth();
-        boolean empty = snap.isEmpty();
 
         long eventsViewed;
         if (eventId != null && !eventId.isBlank()) {
@@ -320,8 +354,15 @@ public class AdminMetricsResource {
 
         long last = metrics.getLastUpdatedMillis();
         String lastStr = last > 0 ? Instant.ofEpochMilli(last).toString() : "—";
+        String lastRel = formatAge(last);
+
         String globalConv = formatConversion(talksViewed, talksRegistered);
         long expectedAttendees = talksRegistered;
+
+        boolean empty = eventsViewed == 0 && talksViewed == 0 && talksRegistered == 0
+                && stageVisits == 0 && topTalks.isEmpty() && topSpeakers.isEmpty()
+                && topScenarios.isEmpty() && ctaData.rows().isEmpty();
+        DataHealth dataHealth = computeDataHealth(empty, System.currentTimeMillis() - last, range);
 
         List<Event> events = eventService.listEvents();
         List<Scenario> stages = eventId != null ?
@@ -331,11 +372,39 @@ public class AdminMetricsResource {
         List<Speaker> speakers = speakerService.listSpeakers();
 
         return new MetricsData(eventsViewed, talksViewed, talksRegistered, stageVisits,
-                lastStr, summary.discarded(), metrics.getConfig(), topTalks, topSpeakers, topScenarios,
+                lastStr, lastRel, last, summary.discarded(), metrics.getConfig(), topTalks, topSpeakers, topScenarios,
                 globalConv, expectedAttendees, empty, range, eventId, metrics.getSchemaVersion(),
-                metrics.getFileSizeBytes(), minViews, health,
+                metrics.getFileSizeBytes(), minViews, health, dataHealth,
                 null, null, null, null, null, null, null, null, null,
                 events, stages, speakers, stageId, speakerId, ctaData, null);
+    }
+
+    private String formatAge(long lastMillis) {
+        if (lastMillis <= 0) return "—";
+        long secs = (System.currentTimeMillis() - lastMillis) / 1000;
+        if (secs < 1) return "justo ahora";
+        if (secs < 60) return "hace " + secs + " s";
+        long mins = secs / 60;
+        if (mins < 60) return "hace " + mins + " min";
+        long hours = mins / 60;
+        return "hace " + hours + " h";
+    }
+
+    private DataHealth computeDataHealth(boolean empty, long ageMillis, String range) {
+        if (empty) {
+            return new DataHealth("Sin datos", "empty", "No hay datos en este rango/segmento");
+        }
+        long threshold;
+        switch (range) {
+            case "today" -> threshold = Duration.ofMinutes(2).toMillis();
+            case "7" -> threshold = Duration.ofMinutes(15).toMillis();
+            case "30" -> threshold = Duration.ofMinutes(30).toMillis();
+            default -> threshold = Duration.ofMinutes(60).toMillis();
+        }
+        if (ageMillis > threshold) {
+            return new DataHealth("Desactualizado", "stale", "Hace mucho que no se actualiza");
+        }
+        return new DataHealth("OK", "ok", "Datos recientes");
     }
 
     private static class Stats { long views; long regs; }

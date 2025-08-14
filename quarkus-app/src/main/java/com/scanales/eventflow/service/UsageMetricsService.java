@@ -316,6 +316,18 @@ public class UsageMetricsService {
         increment("cta:" + name + ":" + today);
     }
 
+    /** Records a refresh attempt for the admin metrics dashboard. */
+    public void recordRefresh(boolean ok, long durationMs) {
+        increment("refresh.count");
+        if (ok) {
+            increment("refresh.ok");
+        } else {
+            increment("refresh.error");
+        }
+        counters.put("refresh.last_duration_ms", durationMs);
+        dirty.set(true);
+    }
+
     private void increment(String key) {
         int size = bufferSize.incrementAndGet();
         if (size > bufferMaxSize) {
