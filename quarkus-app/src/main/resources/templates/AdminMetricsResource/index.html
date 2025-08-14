@@ -21,6 +21,9 @@
         {/if}
         <button type="submit">Aplicar</button>
     </form>
+    {#if data.eventId}
+    <p><a href="talks?event={data.eventId}" class="btn btn-secondary">Reporte charlas registradas</a></p>
+    {/if}
     <div class="cards">
         <div class="card">Eventos vistos: {data.eventsViewed}</div>
         <div class="card">Charlas vistas: {data.talksViewed}</div>
