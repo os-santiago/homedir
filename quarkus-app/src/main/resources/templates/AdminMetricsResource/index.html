@@ -75,37 +75,82 @@
     </ul>
 
     <h2>Charlas con mejor conversión</h2>
+    <form method="get" class="table-search">
+        <input type="hidden" name="range" value="{data.range}">
+        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
+        <input type="hidden" name="speakerQ" value="{data.speakerQ}">
+        <input type="hidden" name="scenarioQ" value="{data.scenarioQ}">
+        <input type="text" name="talkQ" placeholder="Buscar…" value="{data.talkQ}" data-testid="table-talks-search">
+    </form>
     <table>
-        <thead><tr><th>Charla</th><th>Vistas</th><th>Registros</th><th>Conv.</th></tr></thead>
+        <thead><tr><th>Charla</th><th>Vistas</th><th>Registros</th><th>Conv.</th><th>Acciones</th></tr></thead>
         <tbody>
         {#for row in data.topTalks}
-            <tr><td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td></tr>
+            <tr>
+                <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
+                <td><a href="/private/admin/events/{app:eventIdByTalk(row.id)}/edit" aria-label="Ver charla {row.name}" data-testid="table-talks-view-{row.id}">Ver</a></td>
+            </tr>
         {/for}
         </tbody>
     </table>
-    <a href="export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
+    {#if !data.topTalks.isEmpty}
+    <a href="export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.talkQ}&amp;q={data.talkQ}{/if}" class="btn btn-secondary" data-testid="table-talks-export">Exportar CSV</a>
+    {#else}
+    <button class="btn btn-secondary" disabled data-testid="table-talks-export">Exportar CSV</button>
+    <p>Sin datos para exportar en este rango.</p>
+    {/if}
 
     <h2>Oradores con mejor conversión</h2>
+    <form method="get" class="table-search">
+        <input type="hidden" name="range" value="{data.range}">
+        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
+        <input type="hidden" name="talkQ" value="{data.talkQ}">
+        <input type="hidden" name="scenarioQ" value="{data.scenarioQ}">
+        <input type="text" name="speakerQ" placeholder="Buscar…" value="{data.speakerQ}" data-testid="table-speakers-search">
+    </form>
     <table>
-        <thead><tr><th>Orador</th><th>Vistas</th><th>Registros</th><th>Conv.</th></tr></thead>
+        <thead><tr><th>Orador</th><th>Vistas</th><th>Registros</th><th>Conv.</th><th>Acciones</th></tr></thead>
         <tbody>
         {#for row in data.topSpeakers}
-            <tr><td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td></tr>
+            <tr>
+                <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
+                <td><a href="/private/admin/speakers" aria-label="Ver orador {row.name}" data-testid="table-speakers-view-{row.id}">Ver</a></td>
+            </tr>
         {/for}
         </tbody>
     </table>
-    <a href="export?table=speakers&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
+    {#if !data.topSpeakers.isEmpty}
+    <a href="export?table=speakers&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.speakerQ}&amp;q={data.speakerQ}{/if}" class="btn btn-secondary" data-testid="table-speakers-export">Exportar CSV</a>
+    {#else}
+    <button class="btn btn-secondary" disabled data-testid="table-speakers-export">Exportar CSV</button>
+    <p>Sin datos para exportar en este rango.</p>
+    {/if}
 
     <h2>Escenarios con mejor conversión</h2>
+    <form method="get" class="table-search">
+        <input type="hidden" name="range" value="{data.range}">
+        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
+        <input type="hidden" name="talkQ" value="{data.talkQ}">
+        <input type="hidden" name="speakerQ" value="{data.speakerQ}">
+        <input type="text" name="scenarioQ" placeholder="Buscar…" value="{data.scenarioQ}" data-testid="table-scenarios-search">
+    </form>
     <table>
-        <thead><tr><th>Escenario</th><th>Vistas</th><th>Registros</th><th>Conv.</th></tr></thead>
+        <thead><tr><th>Escenario</th><th>Vistas</th><th>Registros</th><th>Conv.</th><th>Acciones</th></tr></thead>
         <tbody>
         {#for row in data.topScenarios}
-            <tr><td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td></tr>
+            <tr>
+                <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
+                <td><a href="/private/admin/events/{app:eventIdByScenario(row.id)}/edit" aria-label="Ver escenario {row.name}" data-testid="table-scenarios-view-{row.id}">Ver</a></td>
+            </tr>
         {/for}
         </tbody>
     </table>
-    <a href="export?table=scenarios&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
+    {#if !data.topScenarios.isEmpty}
+    <a href="export?table=scenarios&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.scenarioQ}&amp;q={data.scenarioQ}{/if}" class="btn btn-secondary" data-testid="table-scenarios-export">Exportar CSV</a>
+    {#else}
+    <button class="btn btn-secondary" disabled data-testid="table-scenarios-export">Exportar CSV</button>
+    <p>Sin datos para exportar en este rango.</p>
+    {/if}
     {/if}
     <a href="/private/admin" class="btn btn-secondary">Volver</a>
 </section>
