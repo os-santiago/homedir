@@ -47,4 +47,12 @@ Las claves se mapean a entidades existentes usando los servicios en memoria:
 
 Para evitar sesgos se aplica un umbral mínimo de vistas (`metrics.min-view-threshold`, default 20) para que una charla, escenario u orador aparezca en los rankings.
 
+### Tendencias
+
+El cálculo de variaciones utiliza los parámetros:
+
+- `metrics.trend.min-baseline` (default 20): mínimo de la base para mostrar porcentajes.
+- `metrics.trend.decimals` (default 1): decimales cuando |Δ| < 10%.
+
+
 Si no hay datos suficientes el panel muestra un mensaje informativo en lugar de tablas vacías.
