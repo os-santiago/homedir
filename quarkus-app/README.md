@@ -86,3 +86,18 @@ mvn quarkus:dev
 3. Visit [https://eventflow.opensourcesantiago.io/private](https://eventflow.opensourcesantiago.io/private). You will be redirected to authenticate with Google.
 4. After login the private page shows your name, email and profile picture.
 
+## JWT verification in production
+
+Configure SmallRye JWT to validate Google ID tokens against Google's public keys:
+
+```
+%prod.mp.jwt.verify.issuer=https://accounts.google.com
+%prod.smallrye.jwt.verify.key-location=https://www.googleapis.com/oauth2/v3/certs
+%prod.mp.jwt.verify.audiences=${GOOGLE_CLIENT_ID}
+%prod.smallrye.jwt.verify.algorithm=RS256
+```
+
+Set the `GOOGLE_CLIENT_ID` environment variable to your OAuth client ID so that
+tokens with a matching `aud` claim are accepted. Adjust the `issuer` value if
+your tokens use `accounts.google.com` without the `https` scheme.
+
