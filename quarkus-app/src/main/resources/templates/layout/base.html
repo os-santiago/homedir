@@ -15,8 +15,6 @@
     <div class="nav-links" id="primary-navigation">
         <a href="/">Inicio</a>
         {#if app:isAuthenticated()}
-            <a href="/my-events">Mis Eventos</a>
-            <a href="/private/my-talks">Mis Charlas</a>
             {#if app:isAdmin()}
                 <a href="/private/admin">Admin</a>
             {/if}

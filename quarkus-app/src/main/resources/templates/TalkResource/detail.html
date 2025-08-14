@@ -47,7 +47,7 @@
   {#if app:isAuthenticated()}
   <p>
     <button id="addTalkBtn" class="btn">
-      {#if inSchedule}<span class="icon">✔</span> Agregada{#else}<span class="icon">➕</span> Agregar a mis charlas{/if}
+      {#if inSchedule}<span class="icon">✔</span> Ver en mi perfil{#else}<span class="icon">➕</span> Agregar a mis charlas{/if}
     </button>
   </p>
   <script>
@@ -55,11 +55,15 @@
     const btn = document.getElementById('addTalkBtn');
     if (!btn) return;
     if ({inSchedule}) {
-      btn.disabled = true;
       btn.classList.add('btn-secondary');
+      btn.dataset.state = 'profile';
     }
     btn.addEventListener('click', async () => {
       if (btn.disabled) return;
+      if (btn.dataset.state === 'profile') {
+        window.location.href = '/private/profile';
+        return;
+      }
       btn.disabled = true;
       try {
         const res = await fetch('/private/profile/add/{talk.id}', {
@@ -72,13 +76,17 @@
         if (res.ok && contentType.includes('application/json')) {
           const data = await res.json();
           if (data.status === 'added') {
-            showNotification('success', 'Charla agregada a tu agenda');
+            showNotification('success', 'Agregado a mi perfil');
             btn.classList.add('btn-secondary');
-            btn.innerHTML = '<span class="icon">✔</span> Agregada';
+            btn.innerHTML = '<span class="icon">✔</span> Ver en mi perfil';
+            btn.disabled = false;
+            btn.dataset.state = 'profile';
           } else if (data.status === 'exists') {
-            showNotification('info', 'La charla ya estaba registrada. <a href="/private/profile">Ver en Mis Charlas</a>');
+            showNotification('info', 'La charla ya estaba registrada. <a href="/private/profile">Ver en mi perfil</a>');
             btn.classList.add('btn-secondary');
-            btn.innerHTML = '<span class="icon">✔</span> Agregada';
+            btn.innerHTML = '<span class="icon">✔</span> Ver en mi perfil';
+            btn.disabled = false;
+            btn.dataset.state = 'profile';
           } else if (data.status === 'error') {
             showNotification('error', data.message || 'Ocurrió un error');
             btn.disabled = false;
