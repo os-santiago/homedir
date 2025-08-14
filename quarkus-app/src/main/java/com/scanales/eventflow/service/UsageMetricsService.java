@@ -236,7 +236,7 @@ public class UsageMetricsService {
     }
 
     public void recordTalkView(String talkId, String sessionId, String ua) {
-        if (talkId == null || sessionId == null) {
+        if (talkId == null) {
             incrementDiscard("invalid");
             return;
         }
@@ -244,16 +244,18 @@ public class UsageMetricsService {
             incrementDiscard("bot");
             return;
         }
-        if (isBurst(sessionId)) {
-            incrementDiscard("burst");
-            return;
-        }
-        long now = System.currentTimeMillis();
-        String key = sessionId + ":" + talkId;
-        Long last = talkViews.put(key, now);
-        if (last != null && now - last < talkViewWindow.toMillis()) {
-            incrementDiscard("dedupe");
-            return;
+        if (sessionId != null) {
+            if (isBurst(sessionId)) {
+                incrementDiscard("burst");
+                return;
+            }
+            long now = System.currentTimeMillis();
+            String key = sessionId + ":" + talkId;
+            Long last = talkViews.put(key, now);
+            if (last != null && now - last < talkViewWindow.toMillis()) {
+                incrementDiscard("dedupe");
+                return;
+            }
         }
         increment("talk_view:" + talkId);
     }
@@ -278,7 +280,7 @@ public class UsageMetricsService {
     }
 
     public void recordStageVisit(String stageId, String timezone, String sessionId, String ua) {
-        if (stageId == null || sessionId == null) {
+        if (stageId == null) {
             incrementDiscard("invalid");
             return;
         }
@@ -286,18 +288,20 @@ public class UsageMetricsService {
             incrementDiscard("bot");
             return;
         }
-        if (isBurst(sessionId)) {
-            incrementDiscard("burst");
-            return;
-        }
         ZoneId zone = timezone != null ? ZoneId.of(timezone) : ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);
-        String key = sessionId + ":" + stageId + ":" + today;
-        long now = System.currentTimeMillis();
-        Long last = stageVisits.put(key, now);
-        if (last != null && now - last < stageVisitWindow.toMillis()) {
-            incrementDiscard("dedupe");
-            return;
+        if (sessionId != null) {
+            if (isBurst(sessionId)) {
+                incrementDiscard("burst");
+                return;
+            }
+            String key = sessionId + ":" + stageId + ":" + today;
+            long now = System.currentTimeMillis();
+            Long last = stageVisits.put(key, now);
+            if (last != null && now - last < stageVisitWindow.toMillis()) {
+                incrementDiscard("dedupe");
+                return;
+            }
         }
         increment("stage_visit:" + stageId + ":" + today);
     }
