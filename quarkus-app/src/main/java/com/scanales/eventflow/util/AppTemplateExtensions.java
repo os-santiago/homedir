@@ -21,6 +21,7 @@ import io.quarkus.security.identity.SecurityIdentity;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.service.EventService;
 
 @TemplateExtension(namespace = "app")
 public class AppTemplateExtensions {
@@ -200,5 +201,25 @@ public class AppTemplateExtensions {
             case "Finalizada" -> "past";
             default -> "success";
         };
+    }
+
+    /** Returns the event id that contains the given talk. */
+    public static String eventIdByTalk(String talkId) {
+        EventService es = Arc.container().instance(EventService.class).get();
+        if (es == null || talkId == null) {
+            return null;
+        }
+        Event ev = es.findEventByTalk(talkId);
+        return ev != null ? ev.getId() : null;
+    }
+
+    /** Returns the event id that contains the given scenario. */
+    public static String eventIdByScenario(String scenarioId) {
+        EventService es = Arc.container().instance(EventService.class).get();
+        if (es == null || scenarioId == null) {
+            return null;
+        }
+        Event ev = es.findEventByScenario(scenarioId);
+        return ev != null ? ev.getId() : null;
     }
 }

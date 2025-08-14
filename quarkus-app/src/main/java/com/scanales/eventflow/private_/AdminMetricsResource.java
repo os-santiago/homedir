@@ -33,7 +33,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Path("/private/admin/metrics")
 public class AdminMetricsResource {
 
-    public record ConversionRow(String name, long views, long registrations, String conversion) {}
+    public record ConversionRow(String id, String name, long views, long registrations, String conversion) {}
 
     public record MetricsData(
             long eventsViewed,
@@ -54,7 +54,16 @@ public class AdminMetricsResource {
             int schemaVersion,
             long fileSizeBytes,
             int minViews,
-            Health health
+            Health health,
+            String talkQ,
+            String talkSort,
+            String talkDir,
+            String speakerQ,
+            String speakerSort,
+            String speakerDir,
+            String scenarioQ,
+            String scenarioSort,
+            String scenarioDir
     ) {}
 
     /** Row representing registrations for a talk. */
@@ -82,11 +91,29 @@ public class AdminMetricsResource {
     @GET
     @Authenticated
     @Produces(MediaType.TEXT_HTML)
-    public Response metrics(@QueryParam("range") String range, @QueryParam("event") String eventId) {
+    public Response metrics(@QueryParam("range") String range,
+                           @QueryParam("event") String eventId,
+                           @QueryParam("talkQ") String talkQ,
+                           @QueryParam("talkSort") String talkSort,
+                           @QueryParam("talkDir") String talkDir,
+                           @QueryParam("speakerQ") String speakerQ,
+                           @QueryParam("speakerSort") String speakerSort,
+                           @QueryParam("speakerDir") String speakerDir,
+                           @QueryParam("scenarioQ") String scenarioQ,
+                           @QueryParam("scenarioSort") String scenarioSort,
+                           @QueryParam("scenarioDir") String scenarioDir) {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         MetricsData data = buildData(range, eventId);
+        List<ConversionRow> talks = filterRows(data.topTalks(), talkQ, talkSort, talkDir);
+        List<ConversionRow> speakers = filterRows(data.topSpeakers(), speakerQ, speakerSort, speakerDir);
+        List<ConversionRow> scenarios = filterRows(data.topScenarios(), scenarioQ, scenarioSort, scenarioDir);
+        data = new MetricsData(data.eventsViewed(), data.talksViewed(), data.talksRegistered(), data.stageVisits(),
+                data.lastUpdate(), data.discards(), data.config(), talks, speakers, scenarios,
+                data.globalConversion(), data.expectedAttendees(), data.empty(), data.range(), data.eventId(),
+                data.schemaVersion(), data.fileSizeBytes(), data.minViews(), data.health(),
+                talkQ, talkSort, talkDir, speakerQ, speakerSort, speakerDir, scenarioQ, scenarioSort, scenarioDir);
         return Response.ok(Templates.index(data)).build();
     }
 
@@ -116,7 +143,12 @@ public class AdminMetricsResource {
     @Path("export")
     @Authenticated
     @Produces("text/csv")
-    public Response export(@QueryParam("table") String table, @QueryParam("range") String range, @QueryParam("event") String eventId) {
+    public Response export(@QueryParam("table") String table,
+                           @QueryParam("range") String range,
+                           @QueryParam("event") String eventId,
+                           @QueryParam("q") String query,
+                           @QueryParam("sort") String sort,
+                           @QueryParam("dir") String dir) {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -141,16 +173,19 @@ public class AdminMetricsResource {
                 header = "";
             }
         }
+        rows = filterRows(rows, query, sort, dir);
         StringBuilder sb = new StringBuilder();
-        if (!header.isEmpty()) {
+        if (!header.isEmpty() && !rows.isEmpty()) {
             sb.append(header).append('\n');
             for (ConversionRow r : rows) {
                 sb.append(r.name()).append(',').append(r.views()).append(',')
                         .append(r.registrations()).append(',').append(r.conversion()).append('\n');
             }
         }
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"));
+        String safeRange = range == null || range.isBlank() ? "all" : range;
         return Response.ok(sb.toString())
-                .header("Content-Disposition", "attachment; filename=metrics-" + table + ".csv")
+                .header("Content-Disposition", "attachment; filename=metrics-" + table + "-" + safeRange + "-" + ts + ".csv")
                 .build();
     }
 
@@ -244,7 +279,8 @@ public class AdminMetricsResource {
         return new MetricsData(eventsViewed, talksViewed, talksRegistered, stageVisits,
                 lastStr, summary.discarded(), metrics.getConfig(), topTalks, topSpeakers, topScenarios,
                 globalConv, expectedAttendees, empty, range, eventId, metrics.getSchemaVersion(),
-                metrics.getFileSizeBytes(), minViews, health);
+                metrics.getFileSizeBytes(), minViews, health,
+                null, null, null, null, null, null, null, null, null);
     }
 
     private static class Stats { long views; long regs; }
@@ -303,12 +339,33 @@ public class AdminMetricsResource {
                 .filter(e -> e.getValue().views >= minViews)
                 .map(e -> {
                     Stats s = e.getValue();
-                    return new ConversionRow(nameFn.apply(e.getKey()), s.views, s.regs,
+                    return new ConversionRow(e.getKey(), nameFn.apply(e.getKey()), s.views, s.regs,
                             formatConversion(s.views, s.regs));
                 })
                 .sorted((a, b) -> Double.compare(conversionRate(b), conversionRate(a)))
                 .limit(limit)
                 .collect(Collectors.toList());
+    }
+
+    private List<ConversionRow> filterRows(List<ConversionRow> rows, String query, String sort, String dir) {
+        var stream = rows.stream();
+        if (query != null && !query.isBlank()) {
+            String q = query.toLowerCase();
+            stream = stream.filter(r -> r.name().toLowerCase().contains(q));
+        }
+        Comparator<ConversionRow> cmp;
+        if ("regs".equalsIgnoreCase(sort)) {
+            cmp = Comparator.comparingLong(ConversionRow::registrations);
+        } else if ("name".equalsIgnoreCase(sort)) {
+            cmp = Comparator.comparing(ConversionRow::name, String.CASE_INSENSITIVE_ORDER);
+        } else {
+            cmp = Comparator.comparingLong(ConversionRow::views);
+        }
+        cmp = cmp.thenComparing(ConversionRow::name, String.CASE_INSENSITIVE_ORDER);
+        if (!"asc".equalsIgnoreCase(dir)) {
+            cmp = cmp.reversed();
+        }
+        return stream.sorted(cmp).collect(Collectors.toList());
     }
 
     private static double conversionRate(ConversionRow r) {
