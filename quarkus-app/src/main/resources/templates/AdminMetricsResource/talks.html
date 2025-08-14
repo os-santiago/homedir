@@ -1,0 +1,18 @@
+{#include layout/base}
+{#title}Reporte charlas{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/private/admin/metrics?event={event.id}&amp;range=all">Métricas</a><span class="sep">/</span><span>Charlas registradas</span>{/breadcrumbs}
+{#main}
+<section class="admin-metrics">
+  <h1 class="page-title">Charlas registradas - {event.title}</h1>
+  <table>
+    <thead><tr><th>Charla</th><th>Registros</th></tr></thead>
+    <tbody>
+    {#for row in rows}
+      <tr><td>{row.name}</td><td>{row.registrations}</td></tr>
+    {/for}
+    </tbody>
+  </table>
+  <a href="/private/admin/metrics?event={event.id}&amp;range=all" class="btn btn-secondary">Volver</a>
+</section>
+{/main}
+{/include}

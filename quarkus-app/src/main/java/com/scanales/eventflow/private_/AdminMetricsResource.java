@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.Speaker;
@@ -56,10 +57,14 @@ public class AdminMetricsResource {
             Health health
     ) {}
 
+    /** Row representing registrations for a talk. */
+    public record TalkRegistrationRow(String id, String name, long registrations) {}
+
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance index(MetricsData data);
         static native TemplateInstance guide();
+        static native TemplateInstance talks(Event event, List<TalkRegistrationRow> rows);
     }
 
     @Inject
@@ -147,6 +152,33 @@ public class AdminMetricsResource {
         return Response.ok(sb.toString())
                 .header("Content-Disposition", "attachment; filename=metrics-" + table + ".csv")
                 .build();
+    }
+
+    @GET
+    @Path("talks")
+    @Authenticated
+    @Produces(MediaType.TEXT_HTML)
+    public Response talksReport(@QueryParam("event") String eventId) {
+        if (!AdminUtils.isAdmin(identity)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        if (eventId == null || eventId.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        Event event = eventService.getEvent(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Map<String, Long> snap = metrics.snapshot();
+        List<TalkRegistrationRow> rows = event.getAgenda().stream()
+                .map(t -> {
+                    String name = t.getName() != null ? t.getName() : t.getId();
+                    return new TalkRegistrationRow(t.getId(), name,
+                            snap.getOrDefault("talk_register:" + t.getId(), 0L));
+                })
+                .sorted(java.util.Comparator.comparingLong(TalkRegistrationRow::registrations).reversed())
+                .toList();
+        return Response.ok(Templates.talks(event, rows)).build();
     }
 
     @ConfigProperty(name = "metrics.min-view-threshold", defaultValue = "20")
