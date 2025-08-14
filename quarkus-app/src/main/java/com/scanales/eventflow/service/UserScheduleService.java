@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /** In-memory store for user schedules and talk details. */
 @ApplicationScoped
@@ -80,6 +81,7 @@ public class UserScheduleService {
     }
 
     /** Details tracked for each talk registered by a user. */
+    @RegisterForReflection
     public static class TalkDetails {
         public Set<String> motivations = ConcurrentHashMap.newKeySet();
         public boolean attended;
