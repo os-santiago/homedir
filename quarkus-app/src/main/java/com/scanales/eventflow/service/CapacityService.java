@@ -22,7 +22,12 @@ public class CapacityService {
             double memoryPercent,
             double diskFreePercent,
             Instant lastEvaluation,
-            Trend trend) {}
+            Trend trend) {
+
+        public String trendNameLower() {
+            return trend.name().toLowerCase();
+        }
+    }
 
     @Inject
     PersistenceService persistence;
