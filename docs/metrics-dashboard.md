@@ -23,6 +23,10 @@
 - Disabled export message: `Sin datos para exportar en este rango.`
 - Toast: `CSV descargado`
 
+## Tendencias
+- Cada tarjeta y fila de tabla puede mostrar un badge de tendencia con la variación vs. el período anterior.
+- La lógica de cálculo y reglas se describen en `metrics-trends.md`.
+
 ## QA / Checklist
 - Verify that applying range, search and order is reflected in the exported CSV.
 - Clicking `Ver` opens the correct admin page and preserves context when returning.
