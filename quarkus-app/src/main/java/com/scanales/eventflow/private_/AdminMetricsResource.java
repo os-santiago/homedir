@@ -36,6 +36,21 @@ public class AdminMetricsResource {
 
     public record ConversionRow(String id, String name, long views, long registrations, String conversion) {}
 
+    public record CtaDayRow(LocalDate date, long releases, long issues, long kofi, long total, boolean peak) {}
+
+    public record CtaData(
+            long releases,
+            long issues,
+            long kofi,
+            double avgReleases,
+            double avgIssues,
+            double avgKofi,
+            double meanTotal,
+            double stdTotal,
+            int activeDays,
+            List<CtaDayRow> rows,
+            int peakCount) {}
+
     public record MetricsData(
             long eventsViewed,
             long talksViewed,
@@ -69,7 +84,9 @@ public class AdminMetricsResource {
             List<Scenario> stages,
             List<Speaker> speakers,
             String stageId,
-            String speakerId
+            String speakerId,
+            CtaData ctas,
+            String ctaQ
     ) {}
 
     /** Row representing registrations for a talk. */
@@ -109,7 +126,8 @@ public class AdminMetricsResource {
                            @QueryParam("speakerDir") String speakerDir,
                            @QueryParam("scenarioQ") String scenarioQ,
                            @QueryParam("scenarioSort") String scenarioSort,
-                           @QueryParam("scenarioDir") String scenarioDir) {
+                           @QueryParam("scenarioDir") String scenarioDir,
+                           @QueryParam("ctaQ") String ctaQ) {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -117,12 +135,16 @@ public class AdminMetricsResource {
         List<ConversionRow> talks = filterRows(data.topTalks(), talkQ, talkSort, talkDir);
         List<ConversionRow> speakers = filterRows(data.topSpeakers(), speakerQ, speakerSort, speakerDir);
         List<ConversionRow> scenarios = filterRows(data.topScenarios(), scenarioQ, scenarioSort, scenarioDir);
+        List<CtaDayRow> ctaRows = filterCtaRows(data.ctas().rows(), ctaQ);
+        CtaData ctas = new CtaData(data.ctas().releases(), data.ctas().issues(), data.ctas().kofi(),
+                data.ctas().avgReleases(), data.ctas().avgIssues(), data.ctas().avgKofi(),
+                data.ctas().meanTotal(), data.ctas().stdTotal(), data.ctas().activeDays(), ctaRows, data.ctas().peakCount());
         data = new MetricsData(data.eventsViewed(), data.talksViewed(), data.talksRegistered(), data.stageVisits(),
                 data.lastUpdate(), data.discards(), data.config(), talks, speakers, scenarios,
                 data.globalConversion(), data.expectedAttendees(), data.empty(), data.range(), data.eventId(),
                 data.schemaVersion(), data.fileSizeBytes(), data.minViews(), data.health(),
                 talkQ, talkSort, talkDir, speakerQ, speakerSort, speakerDir, scenarioQ, scenarioSort, scenarioDir,
-                data.events(), data.stages(), data.speakers(), data.stageId(), data.speakerId());
+                data.events(), data.stages(), data.speakers(), data.stageId(), data.speakerId(), ctas, ctaQ);
         return Response.ok(Templates.index(data)).build();
     }
 
@@ -164,33 +186,44 @@ public class AdminMetricsResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         MetricsData data = buildData(range, eventId, stageId, speakerId);
-        List<ConversionRow> rows;
-        String header;
-        switch (table) {
-            case "talks" -> {
-                rows = data.topTalks();
-                header = "Charla,Vistas,Registros,Conversion";
-            }
-            case "speakers" -> {
-                rows = data.topSpeakers();
-                header = "Orador,Vistas,Registros,Conversion";
-            }
-            case "scenarios" -> {
-                rows = data.topScenarios();
-                header = "Escenario,Vistas,Registros,Conversion";
-            }
-            default -> {
-                rows = List.of();
-                header = "";
-            }
-        }
-        rows = filterRows(rows, query, sort, dir);
         StringBuilder sb = new StringBuilder();
-        if (!header.isEmpty() && !rows.isEmpty()) {
-            sb.append(header).append('\n');
-            for (ConversionRow r : rows) {
-                sb.append(r.name()).append(',').append(r.views()).append(',')
-                        .append(r.registrations()).append(',').append(r.conversion()).append('\n');
+        if ("ctas".equals(table)) {
+            List<CtaDayRow> rows = filterCtaRows(data.ctas().rows(), query);
+            if (!rows.isEmpty()) {
+                sb.append("Fecha,Releases,Issues,Ko-fi,Total\n");
+                for (CtaDayRow r : rows) {
+                    sb.append(r.date()).append(',').append(r.releases()).append(',').append(r.issues()).append(',')
+                            .append(r.kofi()).append(',').append(r.total()).append('\n');
+                }
+            }
+        } else {
+            List<ConversionRow> rows;
+            String header;
+            switch (table) {
+                case "talks" -> {
+                    rows = data.topTalks();
+                    header = "Charla,Vistas,Registros,Conversion";
+                }
+                case "speakers" -> {
+                    rows = data.topSpeakers();
+                    header = "Orador,Vistas,Registros,Conversion";
+                }
+                case "scenarios" -> {
+                    rows = data.topScenarios();
+                    header = "Escenario,Vistas,Registros,Conversion";
+                }
+                default -> {
+                    rows = List.of();
+                    header = "";
+                }
+            }
+            rows = filterRows(rows, query, sort, dir);
+            if (!header.isEmpty() && !rows.isEmpty()) {
+                sb.append(header).append('\n');
+                for (ConversionRow r : rows) {
+                    sb.append(r.name()).append(',').append(r.views()).append(',')
+                            .append(r.registrations()).append(',').append(r.conversion()).append('\n');
+                }
             }
         }
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"));
@@ -277,6 +310,8 @@ public class AdminMetricsResource {
         }
         long stageVisits = stageMap.values().stream().mapToLong(Long::longValue).sum();
 
+        CtaData ctaData = buildCtaData(snap, start);
+
         List<ConversionRow> topTalks = topConversionRows(talkStats, 10, this::talkName);
         Map<String, Stats> speakerStats = aggregateSpeakers(talkStats);
         List<ConversionRow> topSpeakers = topConversionRows(speakerStats, 10, this::speakerName);
@@ -300,7 +335,7 @@ public class AdminMetricsResource {
                 globalConv, expectedAttendees, empty, range, eventId, metrics.getSchemaVersion(),
                 metrics.getFileSizeBytes(), minViews, health,
                 null, null, null, null, null, null, null, null, null,
-                events, stages, speakers, stageId, speakerId);
+                events, stages, speakers, stageId, speakerId, ctaData, null);
     }
 
     private static class Stats { long views; long regs; }
@@ -362,6 +397,58 @@ public class AdminMetricsResource {
         return map;
     }
 
+    private CtaData buildCtaData(Map<String, Long> snap, LocalDate start) {
+        Map<LocalDate, long[]> perDay = new HashMap<>();
+        long totalReleases = 0, totalIssues = 0, totalKofi = 0;
+        for (Map.Entry<String, Long> e : snap.entrySet()) {
+            if (e.getKey().startsWith("cta:")) {
+                String[] parts = e.getKey().split(":");
+                if (parts.length == 3) {
+                    LocalDate d = LocalDate.parse(parts[2]);
+                    if (!d.isBefore(start)) {
+                        long[] arr = perDay.computeIfAbsent(d, k -> new long[3]);
+                        switch (parts[1]) {
+                            case "releases" -> { arr[0] += e.getValue(); totalReleases += e.getValue(); }
+                            case "issues" -> { arr[1] += e.getValue(); totalIssues += e.getValue(); }
+                            case "kofi" -> { arr[2] += e.getValue(); totalKofi += e.getValue(); }
+                        }
+                    }
+                }
+            }
+        }
+        int activeDays = perDay.size();
+        List<CtaDayRow> rows = perDay.entrySet().stream()
+                .map(e -> {
+                    long rel = e.getValue()[0];
+                    long iss = e.getValue()[1];
+                    long kof = e.getValue()[2];
+                    long total = rel + iss + kof;
+                    return new CtaDayRow(e.getKey(), rel, iss, kof, total, false);
+                })
+                .sorted(Comparator.comparing(CtaDayRow::date).reversed())
+                .collect(Collectors.toList());
+        double meanTotal = activeDays > 0 ? rows.stream().mapToLong(CtaDayRow::total).average().orElse(0) : 0;
+        double std = 0;
+        if (activeDays > 0) {
+            double m = meanTotal;
+            std = Math.sqrt(rows.stream().mapToDouble(r -> Math.pow(r.total - m, 2)).sum() / activeDays);
+        }
+        double avgRel = activeDays > 0 ? (double) totalReleases / activeDays : 0;
+        double avgIss = activeDays > 0 ? (double) totalIssues / activeDays : 0;
+        double avgKof = activeDays > 0 ? (double) totalKofi / activeDays : 0;
+        Set<LocalDate> peaks = rows.stream()
+                .sorted(Comparator.comparingLong(CtaDayRow::total).reversed())
+                .limit(3)
+                .map(CtaDayRow::date)
+                .collect(Collectors.toSet());
+        int peakCount = peaks.size();
+        rows = rows.stream()
+                .map(r -> new CtaDayRow(r.date(), r.releases(), r.issues(), r.kofi(), r.total(), peaks.contains(r.date())))
+                .collect(Collectors.toList());
+        return new CtaData(totalReleases, totalIssues, totalKofi, avgRel, avgIss, avgKof,
+                meanTotal, std, activeDays, rows, peakCount);
+    }
+
     private List<ConversionRow> topConversionRows(Map<String, Stats> map, int limit, Function<String, String> nameFn) {
         return map.entrySet().stream()
                 .filter(e -> e.getValue().views >= minViews)
@@ -394,6 +481,18 @@ public class AdminMetricsResource {
             cmp = cmp.reversed();
         }
         return stream.sorted(cmp).collect(Collectors.toList());
+    }
+
+    private List<CtaDayRow> filterCtaRows(List<CtaDayRow> rows, String query) {
+        if (query == null || query.isBlank()) {
+            return rows;
+        }
+        String q = query.toLowerCase();
+        return rows.stream().filter(r -> r.date().toString().contains(q)
+                || ("releases".contains(q) && r.releases() > 0)
+                || ("issues".contains(q) && r.issues() > 0)
+                || (("ko-fi".contains(q) || "kofi".contains(q)) && r.kofi() > 0))
+                .collect(Collectors.toList());
     }
 
     private static double conversionRate(ConversionRow r) {
