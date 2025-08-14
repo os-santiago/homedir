@@ -171,8 +171,11 @@ public class AdminMetricsResource {
         }
         Map<String, Long> snap = metrics.snapshot();
         List<TalkRegistrationRow> rows = event.getAgenda().stream()
-                .map(t -> new TalkRegistrationRow(t.getId(), t.getTitle(),
-                        snap.getOrDefault("talk_register:" + t.getId(), 0L)))
+                .map(t -> {
+                    String name = t.getName() != null ? t.getName() : t.getId();
+                    return new TalkRegistrationRow(t.getId(), name,
+                            snap.getOrDefault("talk_register:" + t.getId(), 0L));
+                })
                 .sorted(java.util.Comparator.comparingLong(TalkRegistrationRow::registrations).reversed())
                 .toList();
         return Response.ok(Templates.talks(event, rows)).build();
