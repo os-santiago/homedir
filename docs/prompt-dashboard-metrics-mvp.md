@@ -3,80 +3,106 @@
 ## Objetivo (visión de negocio)
 Como administradora/or quiero un dashboard de Métricas simple y rápido que me muestre, de un vistazo, la actividad clave del sitio para tomar decisiones sin navegar múltiples pantallas. Debe cargar rápido, ser claro y no exponer PII.
 
-## Alcance (qué debe existir, sin imponer tecnología)
+## ALCANCE — IMPLEMENTACIÓN (CÓDIGO EN LA APLICACIÓN)
 
-1) Tarjetas de resumen (fila superior)
-   - "Registros a Mis Charlas (rango)" — total de registros a charlas por personas usuarias.
-   - "Visitas a eventos (rango)" — total de vistas a páginas de evento, agregado por todos los eventos.
-   - "Visitas a inicio (rango)" — total de vistas a la página de inicio.
-   - "Visitas a perfil de usuario (rango)" — total de vistas al perfil de usuario.
-   - "CTAs (rango)" — tres contadores visibles en la misma tarjeta:
-       • Releases   • Reportar issue   • Ko-fi ☕
-   - "Última actualización" — timestamp legible (ej.: "Actualizado hace 2 min").
+1) Pantalla/ruta de Admin → “Métricas”
+   - Crear/actualizar la vista única de dashboard.
+   - Mostrar “Última actualización: hace X min” con base en el timestamp de datos mostrados (no del sistema).
+   - Skeleton loaders breves mientras se resuelven los datos.
 
-   Texto secundario breve bajo cada tarjeta explicando qué se está contando (lenguaje no técnico).
+2) Selector de rango global (aplica a TODO el dashboard)
+   - Opciones: Hoy / Últimos 7 días / Últimos 30 días / Todo el evento.
+   - Usar la misma zona horaria del evento.
+   - Al cambiar el rango, refrescar tarjetas y tablas sin navegación y sin bloquear la UI.
 
-2) Tablas esenciales (Top 10)
-   - "Charlas con más registros (rango)"
-       Columnas: Charla · Evento · Registros
-   - "Eventos más visitados (rango)"
-       Columnas: Evento · Visitas
-   - "Speakers más visitados (rango)"
-       Columnas: Orador/a · Visitas a perfil
-   - "Escenarios más visitados (rango)"
-       Columnas: Escenario · Evento · Visitas
+3) Tarjetas de resumen (fila superior)
+   - “Registros a Mis Charlas (rango)” — total dentro del rango.
+   - “Visitas a eventos (rango)” — total dentro del rango.
+   - “Visitas a inicio (rango)” — total dentro del rango.
+   - “Visitas a perfil de usuario (rango)” — total dentro del rango.
+   - “CTAs (rango)” — tres contadores visibles: Releases | Reportar issue | Ko-fi ☕.
+   - Debajo de cada tarjeta, texto secundario breve explicando qué se cuenta (sin tecnicismos).
+   - Estados vacíos: mostrar “0” y el texto aclaratorio (no ocultar la tarjeta).
 
-   Requisitos:
-   - Orden descendente por la métrica principal.
-   - Máximo 10 filas por tabla (no paginación en MVP).
-   - Placeholders de "Sin datos suficientes" cuando corresponda (en vez de tabla vacía).
+4) Tablas esenciales (Top 10, sin paginación)
+   - “Charlas con más registros (rango)” — Columnas: Charla · Evento · Registros.
+   - “Eventos más visitados (rango)” — Columnas: Evento · Visitas.
+   - “Speakers más visitados (rango)” — Columnas: Orador/a · Visitas a perfil.
+   - “Escenarios más visitados (rango)” — Columnas: Escenario · Evento · Visitas.
+   - Orden descendente por la métrica principal; máximo 10 filas.
+   - Placeholder cuando no haya datos: “Sin datos suficientes en este rango.”
 
-3) Filtros de tiempo (aplican a TODO el dashboard)
-   - Selector único: Hoy / Últimos 7 días / Últimos 30 días / Todo el evento.
-   - Usar la misma zona horaria que el evento para consistencia.
-   - Cambio de rango debe refrescar tarjetas y tablas sin forzar navegación.
+5) Adaptadores de datos (solo lectura; sin PII)
+   - Conectar con las fuentes de métricas existentes y aplicar el rango seleccionado.
+   - Mapear IDs a nombres legibles (charla, evento, orador, escenario) usando servicios/domino existentes.
+   - Asegurar agregaciones correctas por rango para cada tarjeta/tabla.
+   - Performance: evitar N+1; realizar una sola lectura por refresh (reutilizar snapshot/caché si existe).
+   - No introducir nuevos identificadores personales ni datos sensibles.
 
-4) UX, contenidos y estados
-   - Carga inicial del dashboard < 300 ms con datos típicos (objetivo de producto).
-   - Skeleton loaders breves mientras llega la data.
-   - Mensajes de estado:
-       • "Sin datos suficientes en este rango."
-       • "Datos actualizados hace X min."
-   - Lenguaje consistente: títulos, mayúsculas, etiquetas y unidades.
-   - Sin PII (no mostrar emails, IDs personales ni IPs).
+6) Estados y errores de presentación
+   - Mostrar placeholders y mensajes claros ante ausencia de datos.
+   - Manejo amable de errores de lectura (mensaje no técnico; no bloquear toda la vista).
 
-5) Accesibilidad y responsive (mínimos)
-   - Etiquetas accesibles en tarjetas y tablas.
+7) Accesibilidad y responsive (mínimos)
+   - Etiquetas accesibles/aria en tarjetas y tablas.
    - Orden de tabulación lógico.
-   - Diseño que funcione en pantallas medianas (admin en laptop).
+   - Correcto comportamiento en pantallas medianas (laptop).
+   - Añadir data-testids para QA (ej.: `data-testid="metrics-card-registrations"`).
 
-## Definiciones funcionales (mapping conceptual de negocio)
-- "Registros a Mis Charlas": total de registros confirmados a charlas dentro del rango.
-- "Visitas a eventos": suma de vistas a páginas de detalle/listado de cada evento dentro del rango.
-- "Visitas a inicio": vistas de la página de inicio del sitio dentro del rango.
-- "Visitas a perfil de usuario": vistas a la sección de perfil (agregado, no PII).
-- "Speakers más visitados": vistas al perfil de cada orador/a dentro del rango.
-- "Escenarios más visitados": vistas a cada escenario (y su evento) dentro del rango.
-- "CTAs": conteos de clics en botones "Releases", "Reportar issue", "Ko-fi".
+8) Rendimiento (presupuesto de producto)
+   - Carga inicial percibida < 300 ms con datos típicos.
+   - Transiciones de rango fluidas sin jank.
 
-## Criterios de aceptación (DoD)
-- CA1: Las tarjetas muestran totales correctos según el rango seleccionado.
-- CA2: Las tablas muestran Top 10 ordenados por su métrica; si no hay datos, aparece "Sin datos suficientes".
-- CA3: Cambiar el rango actualiza tarjetas y tablas de forma consistente y fluida.
-- CA4: "Última actualización" muestra un tiempo relativo legible y coherente con los datos.
-- CA5: Carga inicial del dashboard percibida como rápida (objetivo < 300 ms con datos típicos).
-- CA6: No se expone PII; los textos son claros y consistentes.
+## ALCANCE — DOCUMENTACIÓN (DOCS A REGISTRAR)
 
-## Pruebas funcionales (usuario/operación)
+D1) Definiciones funcionales (diccionario de métricas)
+- “Registros a Mis Charlas”: total de registros confirmados a charlas dentro del rango.
+- “Visitas a eventos”: suma de vistas a páginas de detalle/listado de cada evento dentro del rango.
+- “Visitas a inicio”: vistas de la página de inicio dentro del rango.
+- “Visitas a perfil de usuario”: vistas a la sección de perfil (agregado, no PII).
+- “Speakers más visitados”: vistas al perfil del orador/a dentro del rango.
+- “Escenarios más visitados”: vistas al escenario (y su evento) dentro del rango.
+- “CTAs”: clics en “Releases”, “Reportar issue”, “Ko-fi”.
+
+D2) Guía de uso del dashboard (README corto en `docs/`)
+- Qué muestra cada tarjeta/tabla.
+- Cómo funcionan los rangos y la “Última actualización”.
+- Estados comunes (“Sin datos suficientes…”).
+
+D3) Copys/UX (glosario de textos)
+- Títulos/etiquetas de tarjetas y tablas.
+- Mensajes de estado (loaders, sin datos, error no técnico).
+
+D4) Criterios de rendimiento y privacidad
+- Presupuesto de carga (<300 ms).
+- Confirmación de “sin PII”.
+- Buenas prácticas de agregación/lectura.
+
+## CRITERIOS DE ACEPTACIÓN (DoD)
+
+— Código —
+- CA1: Tarjetas muestran totales correctos según el rango seleccionado.
+- CA2: Tablas Top 10 ordenadas por su métrica; máximo 10 filas; placeholder cuando aplique.
+- CA3: Cambiar rango refresca tarjetas y tablas de forma consistente y fluida.
+- CA4: “Última actualización” se calcula con base en los datos mostrados y es legible (“hace X min”).
+- CA5: Carga inicial < 300 ms con datos típicos; transiciones sin bloqueos.
+- CA6: Sin PII en UI; accesibilidad mínima (aria, tab-order, contraste).
+
+— Docs —
+- CA7: Existe diccionario de métricas actualizado.
+- CA8: Existe guía breve de uso del dashboard en `docs/`.
+- CA9: Copys/UX documentados para mantener consistencia.
+
+## PRUEBAS FUNCIONALES (USUARIO/OPERACIÓN)
 - Cambiar entre Hoy / 7 días / 30 días / Todo el evento → cifras cambian coherentemente.
-- Rango sin actividad en alguna categoría → ver "Sin datos suficientes" SOLO en esa tabla.
-- Validar que los totales de tarjetas igualan la suma de sus fuentes (según el rango).
-- Verificar accesibilidad básica (tab-order, etiquetas) y comportamiento en pantalla mediana.
-- Verificar "Actualizado hace X min" cambia tras una nueva lectura/refresh.
+- Rango sin actividad en alguna categoría → ver “Sin datos suficientes” SOLO en esa tabla.
+- Verificar que sumas y totales son coherentes por rango.
+- Validar accesibilidad básica (tab-order, labels) y responsive en laptop.
+- Verificar que “Actualizado hace X min” cambia tras un nuevo refresh.
 
-## Fuera de alcance (Iteración 1)
-- Acciones "Ver" hacia pantallas de detalle, búsqueda y export CSV (llegan en Iteración 2).
-- Tendencias (% Δ), comparativas y picos (Iteración 3).
+## FUERA DE ALCANCE (Iteración 1)
+- Acciones “Ver” hacia pantallas de detalle, búsqueda y export CSV (Iteración 2).
+- Tendencias (%Δ), comparativas y picos (Iteración 3).
 - Segmentación por evento/escenario/speaker adicional (Iteración 4).
 - Insights de CTAs extendidos (históricos con medias/desviaciones) (Iteración 5).
 - Estado de salud del módulo de datos (Iteración 6).
