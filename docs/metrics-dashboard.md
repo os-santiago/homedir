@@ -69,6 +69,7 @@
 - Intervalo por defecto: 5 s (configurable).
 - Coalesce de solicitudes: si hay un refresh en curso, no inicia otro.
 - Re-render condicional por hash de datos.
+- Notifica fallos de actualización solo una vez hasta un refresco exitoso.
 - Controles: `Pausar/Continuar` (`data-testid="metrics-refresh-toggle"`, `aria-pressed`) y `Refrescar ahora` (`data-testid="metrics-refresh-now"`, throttle 2 s).
 
 ### Copys/UX
