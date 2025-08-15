@@ -99,6 +99,9 @@ public class AdminMetricsResource {
     /** Row representing registrations for a talk. */
     public record TalkRegistrationRow(String id, String name, long registrations) {}
 
+    /** Payload with dependent filter options. */
+    public record FilterData(List<Scenario> stages, List<Speaker> speakers) {}
+
     @CheckedTemplate
     static class Templates {
         static native TemplateInstance index(MetricsData data);
@@ -181,6 +184,40 @@ public class AdminMetricsResource {
             metrics.recordRefresh(false, System.currentTimeMillis() - start);
             return Response.serverError().build();
         }
+    }
+
+    @GET
+    @Path("filters")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response filters(@QueryParam("event") String eventId) {
+        if (!AdminUtils.isAdmin(identity)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        List<Scenario> stages = eventId != null && !eventId.isBlank()
+                ? Optional.ofNullable(eventService.getEvent(eventId))
+                        .map(Event::getScenarios)
+                        .orElse(List.of())
+                : List.of();
+        List<Speaker> speakers;
+        if (eventId != null && !eventId.isBlank()) {
+            Event ev = eventService.getEvent(eventId);
+            if (ev != null) {
+                speakers = ev.getAgenda().stream()
+                        .flatMap(t -> t.getSpeakers().stream())
+                        .collect(Collectors.toMap(Speaker::getId, Function.identity(), (a, b) -> a))
+                        .values().stream()
+                        .sorted(Comparator.comparing(Speaker::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                        .toList();
+            } else {
+                speakers = List.of();
+            }
+        } else {
+            speakers = speakerService.listSpeakers().stream()
+                    .sorted(Comparator.comparing(Speaker::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                    .toList();
+        }
+        return Response.ok(new FilterData(stages, speakers)).build();
     }
 
     @GET
