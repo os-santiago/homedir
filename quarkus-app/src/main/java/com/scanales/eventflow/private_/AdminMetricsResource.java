@@ -21,6 +21,7 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -40,6 +41,7 @@ public class AdminMetricsResource {
 
     public record DataHealth(String state, String css, String tooltip) {}
 
+    @RegisterForReflection
     public record StatusPayload(String state, String css, String tooltip, String last, long hash) {}
 
     public record CtaData(
