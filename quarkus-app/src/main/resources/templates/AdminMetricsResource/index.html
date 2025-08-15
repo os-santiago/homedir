@@ -23,7 +23,7 @@
         <option value="{sp.id}">{sp.name}</option>
       {/for}
     </datalist>
-    <a href="export?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary" data-testid="export-csv">Exportar CSV</a>
+    <a href="/private/admin/metrics/export?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary" data-testid="export-csv">Exportar CSV</a>
   </form>
 
   <div class="cards-grid">
