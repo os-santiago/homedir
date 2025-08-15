@@ -39,16 +39,11 @@ a,
 a:visited {
     text-decoration: none;
     transition: color 0.2s ease-in-out;
+    text-decoration: underline;
 }
 
 a {
     color: var(--color-primary);
-}
-
-a:visited {
-    color: var(--color-primary);
-    background-color: var(--color-primary);
-    text-decoration: underline;
 }
 
 a:hover,
