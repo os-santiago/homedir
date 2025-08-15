@@ -56,7 +56,6 @@
                 <option value="{sp.id}">{sp.name}</option>
             {/for}
         </datalist>
-        <button type="submit">Aplicar</button>
     </form>
     {#if data.eventId}
     <p><a href="talks?event={data.eventId}" class="btn btn-secondary">Reporte charlas registradas</a></p>
@@ -244,6 +243,43 @@
     {/if}
     <a href="/private/admin" class="btn btn-secondary">Volver</a>
     <script>
+    const filterForm = document.querySelector('.metrics-filter');
+    const rangeSel = filterForm?.querySelector('select[name="range"]');
+    const eventSel = filterForm?.querySelector('select[name="event"]');
+    const stageSel = filterForm?.querySelector('select[name="stage"]');
+    const speakerInput = filterForm?.querySelector('input[name="speaker"]');
+    const speakerList = document.getElementById('speakers');
+
+    function fetchFilters(ev) {
+        return fetch('/private/admin/metrics/filters?event=' + encodeURIComponent(ev))
+            .then(r => r.json())
+            .then(d => {
+                if (stageSel) {
+                    stageSel.innerHTML = '';
+                    if (!d.stages.length) {
+                        stageSel.disabled = true;
+                        stageSel.appendChild(new Option('Sin escenarios', ''));
+                    } else {
+                        stageSel.disabled = false;
+                        stageSel.appendChild(new Option('Todos', ''));
+                        d.stages.forEach(s => stageSel.appendChild(new Option(s.name, s.id)));
+                    }
+                }
+                if (speakerList && speakerInput) {
+                    speakerList.innerHTML = '';
+                    d.speakers.forEach(sp => speakerList.appendChild(new Option(sp.name, sp.id)));
+                    speakerInput.value = '';
+                }
+            });
+    }
+
+    rangeSel?.addEventListener('change', () => filterForm?.requestSubmit());
+    stageSel?.addEventListener('change', () => filterForm?.requestSubmit());
+    speakerInput?.addEventListener('change', () => filterForm?.requestSubmit());
+    eventSel?.addEventListener('change', () => {
+        fetchFilters(eventSel.value).finally(() => filterForm?.requestSubmit());
+    });
+
     document.getElementById('copySummaryBtn')?.addEventListener('click', () => {
         const text = `Rango: {data.range}
 Evento: {#if data.eventId}{data.eventId}{#else}Todos{/if}
