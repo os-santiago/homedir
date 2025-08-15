@@ -3,351 +3,91 @@
 {#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Métricas</span>{/breadcrumbs}
 {#main}
 <section class="admin-metrics">
-    <h1 class="page-title">Métricas</h1>
-    <div class="metrics-health {data.dataHealth.css}" title="{data.dataHealth.tooltip}" aria-live="polite" data-testid="metrics-health-badge">
-        <span class="icon">{#if data.dataHealth.css == 'ok'}✔{/if}{#if data.dataHealth.css == 'stale'}⚠{/if}{#if data.dataHealth.css == 'empty'}∅{/if}</span>
-        <span class="text">{data.dataHealth.state}</span>
-        <span class="updated" aria-live="polite">Última actualización: {data.lastUpdateRel}</span>
-        <span class="controls">
-            <button type="button" id="refreshToggle" aria-pressed="false" data-testid="metrics-refresh-toggle">Pausar</button>
-            <button type="button" id="refreshNow" data-testid="metrics-refresh-now">Refrescar ahora</button>
-        </span>
+  <h1 class="page-title">Métricas</h1>
+  <form method="get" class="metrics-toolbar" data-testid="metrics-toolbar">
+    <div class="range-chips">
+      <button type="submit" name="range" value="today" class="chip {#if data.range == 'today'}active{/if}" data-testid="range-today">Hoy</button>
+      <button type="submit" name="range" value="7" class="chip {#if data.range == '7'}active{/if}" data-testid="range-7">7 días</button>
+      <button type="submit" name="range" value="30" class="chip {#if data.range == '30'}active{/if}" data-testid="range-30">30 días</button>
+      <button type="submit" name="range" value="all" class="chip {#if data.range == 'all'}active{/if}" data-testid="range-all">Todo</button>
     </div>
-    {#if data.empty}
-        <p>Sin datos suficientes en este rango/segmento.</p>
-    {#else}
-    <form method="get" class="metrics-filter">
-        <label>Rango:
-            <select name="range">
-                <option value="all"{#if data.range == 'all'} selected{/if}>Todo el evento</option>
-                <option value="today"{#if data.range == 'today'} selected{/if}>Hoy</option>
-                <option value="7"{#if data.range == '7'} selected{/if}>Últimos 7 días</option>
-                <option value="30"{#if data.range == '30'} selected{/if}>Últimos 30 días</option>
-            </select>
-        </label>
-        <label>Evento:
-            <select name="event" data-testid="filter-event">
-                <option value=""{#if !data.eventId} selected{/if}>Todos</option>
-                {#for ev in data.events}
-                    <option value="{ev.id}"{#if data.eventId == ev.id} selected{/if}>{ev.title}</option>
-                {/for}
-            </select>
-        </label>
-        <label>Escenario:
-            {#if data.stages.isEmpty}
-            <select name="stage" data-testid="filter-stage" disabled>
-                <option value="">Sin escenarios</option>
-            </select>
-            {#else}
-            <select name="stage" data-testid="filter-stage">
-                <option value=""{#if !data.stageId} selected{/if}>Todos</option>
-                {#for st in data.stages}
-                    <option value="{st.id}"{#if data.stageId == st.id} selected{/if}>{st.name}</option>
-                {/for}
-            </select>
-            {/if}
-        </label>
-        <label>Speaker:
-            <input type="text" name="speaker" list="speakers" placeholder="Buscar speaker…" value="{data.speakerId}"
-                   data-testid="filter-speaker">
-        </label>
-        <datalist id="speakers">
-            {#for sp in data.speakers}
-                <option value="{sp.id}">{sp.name}</option>
-            {/for}
-        </datalist>
-    </form>
-    {#if data.eventId}
-    <p><a href="talks?event={data.eventId}" class="btn btn-secondary">Reporte charlas registradas</a></p>
-    {/if}
-    <div class="cards">
-        <div class="card" data-testid="metrics-card-events">Eventos vistos: {data.eventsViewed}</div>
-        <div class="card" data-testid="metrics-card-talks">Charlas vistas: {data.talksViewed}</div>
-        <div class="card" data-testid="metrics-card-registrations">Charlas registradas: {data.talksRegistered}</div>
-        <div class="card" data-testid="metrics-card-stage-visits">Visitas a escenarios: {data.stageVisits}</div>
-        <div class="card" data-testid="metrics-card-conversion">Conversión global: {data.globalConversion}</div>
-        <div class="card" data-testid="metrics-card-expected">Asistentes esperados: {data.expectedAttendees}</div>
-        <div class="card" data-testid="metrics-last-updated" aria-live="polite">Última actualización: {data.lastUpdateRel}</div>
-        <div class="card" data-testid="ctas-card">
-            <div>Releases: {data.ctas.releases} | Reportar issue: {data.ctas.issues} | Ko-fi: {data.ctas.kofi}</div>
-            <div class="legend" title="Promedio diario calculado solo con días del rango.">Promedio diario en este rango: R={data.ctas.avgReleases} Issues={data.ctas.avgIssues} Ko-fi={data.ctas.avgKofi}</div>
-            <div class="actions">
-                <a href="/cta/releases" target="_blank" rel="noopener" aria-label="Abrir Releases" data-testid="ctas-open-releases">Abrir Releases</a>
-                <a href="/cta/issues" target="_blank" rel="noopener" aria-label="Reportar issue" data-testid="ctas-open-issues">Reportar issue</a>
-                <a href="/cta/kofi" target="_blank" rel="noopener" aria-label="Ko-fi" data-testid="ctas-open-kofi">Ko-fi</a>
-            </div>
+    <select name="event" data-testid="filter-event">
+      <option value=""{#if !data.eventId} selected{/if}>Todos los eventos</option>
+      {#for ev in data.events}
+        <option value="{ev.id}"{#if data.eventId == ev.id} selected{/if}>{ev.title}</option>
+      {/for}
+    </select>
+    <input type="search" name="speaker" list="speakers" placeholder="Buscar…" value="{data.speakerId}" data-testid="filter-speaker">
+    <datalist id="speakers">
+      {#for sp in data.speakers}
+        <option value="{sp.id}">{sp.name}</option>
+      {/for}
+    </datalist>
+    <a href="export?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary" data-testid="export-csv">Exportar CSV</a>
+  </form>
+
+  <div class="cards-grid">
+    <div class="card">
+      <h2 class="card-title">Resumen</h2>
+      <div class="kpi-grid">
+        <div class="kpi"><span class="label">Charlas vistas</span><span class="value">{data.talksViewed}</span></div>
+        <div class="kpi"><span class="label">Registros</span><span class="value">{data.talksRegistered}</span></div>
+        <div class="kpi"><span class="label">Visitas escenario</span><span class="value">{data.stageVisits}</span></div>
+        <div class="kpi"><span class="label">Conversión</span><span class="value">{data.globalConversion}</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Top Charlas</h2>
+      {#if data.topTalks.isEmpty}
+        <p>Sin datos.</p>
+      {#else}
+      <div class="list">
+        <div class="list-header">
+          <span>Título</span><span>Vistas</span><span>Registros</span><span>Conv%</span>
         </div>
-    </div>
-    <div class="cta-summary">
-        <p>Media diaria (Total CTAs): {data.ctas.meanTotal}</p>
-        <p>Desviación simple: {data.ctas.stdTotal}</p>
-        <p>Días activos en rango: {data.ctas.activeDays}</p>
-    </div>
-    <p><button type="button" id="copySummaryBtn" data-testid="copy-summary" class="btn btn-secondary">Copiar resumen</button></p>
-    <p>Umbral mínimo de vistas para ranking: {data.minViews}. Política de conversión de evento: promedio ponderado (A).</p>
-
-    <h2>CTAs por día (rango)</h2>
-    <p>Picos en el rango: {data.ctas.peakCount}</p>
-    <form method="get" class="table-search">
-        <input type="hidden" name="range" value="{data.range}">
-        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
-        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
-        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
-        <input type="text" name="ctaQ" placeholder="Buscar…" value="{data.ctaQ}">
-    </form>
-    <div class="table-wrapper">
-    <table data-testid="ctas-table">
-        <thead><tr><th>Fecha</th><th>Releases</th><th>Reportar issue</th><th>Ko-fi</th><th>Total</th></tr></thead>
-        <tbody>
-        {#for row in data.ctas.rows}
-            <tr>
-                <td>{row.date}</td>
-                <td>{row.releases}</td>
-                <td>{row.issues}</td>
-                <td>{row.kofi}</td>
-                <td>{row.total} {#if row.peak}<span class="badge" data-testid="ctas-peak-badge" title="Pico según regla configurada para este rango.">Pico</span>{/if}</td>
-            </tr>
-        {/for}
-        </tbody>
-    </table>
-    </div>
-    {#if !data.ctas.rows.isEmpty}
-    <a href="export?table=ctas&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.ctaQ}&amp;q={data.ctaQ}{/if}" class="btn btn-secondary" data-testid="ctas-export">Exportar CSV</a>
-    {#else}
-    <button class="btn btn-secondary" disabled data-testid="ctas-export">Exportar CSV</button>
-    <p>Sin datos para exportar en este rango.</p>
-    {/if}
-
-    <h2>Salud del sistema de métricas</h2>
-    <div class="health health-{data.health.estado}">
-        <strong>{data.health.estado}</strong>
-        {#if data.health.estado == 'OK'}<span>Todo en orden</span>{/if}
-        {#if data.health.estado == 'DEGRADADO'}<span>Revisar espacio en disco o ajustar flush/buffer</span>{/if}
-        {#if data.health.estado == 'ERROR'}<span>Ver guía operativa y revisar logs</span>{/if}
-    </div>
-    <ul>
-        <li>lastFlush: {data.health.lastFlush}</li>
-        <li>flushInterval: {data.health.flushIntervalMillis} ms</li>
-        <li>buffer: {data.health.bufferCurrentSize}/{data.health.bufferMaxSize}</li>
-        <li>writes ok/fail: {data.health.writesOk}/{data.health.writesFail}</li>
-        <li>fileSizeBytes: {data.health.fileSizeBytes}</li>
-        <li>Último error: {#if data.health.lastError}{data.health.lastError}{#else}—{/if}</li>
-        <li>Descartes: dedupe {data.discards.get('dedupe')}, bot {data.discards.get('bot')}, burst {data.discards.get('burst')}, invalid {data.discards.get('invalid')}, buffer_full {data.discards.get('buffer_full')}</li>
-    </ul>
-    <p><a href="guide">Guía rápida de operación</a></p>
-    <h2>Calidad de datos</h2>
-    <ul>
-        <li>Ventana talk_view: {data.config.talkViewWindowSeconds}s</li>
-        <li>Ventana event_view: {data.config.eventViewWindowSeconds}s</li>
-        <li>Ventana stage_visit: {data.config.stageVisitWindowMinutes}min</li>
-        <li>Límite ráfaga: {data.config.burstPerSecond}/s, {data.config.burstPerMinute}/min</li>
-    </ul>
-    <p>Descartes por motivo:</p>
-    <ul>
-        <li>dedupe: {data.discards.get('dedupe')}</li>
-        <li>bot: {data.discards.get('bot')}</li>
-        <li>burst: {data.discards.get('burst')}</li>
-        <li>invalid: {data.discards.get('invalid')}</li>
-        <li>buffer_full: {data.discards.get('buffer_full')}</li>
-    </ul>
-
-    <h2>Mantenimiento de métricas</h2>
-    <ul>
-        <li>Versión de esquema: {data.schemaVersion}</li>
-        <li>Tamaño actual: {data.fileSizeBytes} bytes</li>
-    </ul>
-
-    <h2>Charlas con mejor conversión</h2>
-    <form method="get" class="table-search">
-        <input type="hidden" name="range" value="{data.range}">
-        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
-        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
-        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
-        <input type="hidden" name="speakerQ" value="{data.speakerQ}">
-        <input type="hidden" name="scenarioQ" value="{data.scenarioQ}">
-        <input type="text" name="talkQ" placeholder="Buscar…" value="{data.talkQ}" data-testid="table-talks-search">
-    </form>
-    <table>
-        <thead><tr><th>Charla</th><th>Vistas</th><th>Registros</th><th>Conv.</th><th>Acciones</th></tr></thead>
-        <tbody>
         {#for row in data.topTalks}
-            <tr>
-                <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
-                <td><a href="/private/admin/events/{app:eventIdByTalk(row.id)}/edit?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}" aria-label="Ver charla {row.name}" data-testid="table-talks-view-{row.id}">Ver</a></td>
-            </tr>
+        <div class="list-row">
+          <span class="title">{row.name}</span>
+          <span class="metric">{row.views}</span>
+          <span class="metric">{row.registrations}</span>
+          <span class="metric">{row.conversion}</span>
+        </div>
         {/for}
-        </tbody>
-    </table>
-    {#if !data.topTalks.isEmpty}
-    <a href="export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.talkQ}&amp;q={data.talkQ}{/if}" class="btn btn-secondary" data-testid="table-talks-export">Exportar CSV</a>
-    {#else}
-    <button class="btn btn-secondary" disabled data-testid="table-talks-export">Exportar CSV</button>
-    <p>Sin datos para exportar en este rango.</p>
-    {/if}
+      </div>
+      {/if}
+    </div>
 
-    <h2>Oradores con mejor conversión</h2>
-    <form method="get" class="table-search">
-        <input type="hidden" name="range" value="{data.range}">
-        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
-        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
-        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
-        <input type="hidden" name="talkQ" value="{data.talkQ}">
-        <input type="hidden" name="scenarioQ" value="{data.scenarioQ}">
-        <input type="text" name="speakerQ" placeholder="Buscar…" value="{data.speakerQ}" data-testid="table-speakers-search">
-    </form>
-    <table>
-        <thead><tr><th>Orador</th><th>Vistas</th><th>Registros</th><th>Conv.</th><th>Acciones</th></tr></thead>
-        <tbody>
-        {#for row in data.topSpeakers}
-            <tr>
-                <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
-                <td><a href="/private/admin/speakers?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}" aria-label="Ver orador {row.name}" data-testid="table-speakers-view-{row.id}">Ver</a></td>
-            </tr>
-        {/for}
-        </tbody>
-    </table>
-    {#if !data.topSpeakers.isEmpty}
-    <a href="export?table=speakers&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.speakerQ}&amp;q={data.speakerQ}{/if}" class="btn btn-secondary" data-testid="table-speakers-export">Exportar CSV</a>
-    {#else}
-    <button class="btn btn-secondary" disabled data-testid="table-speakers-export">Exportar CSV</button>
-    <p>Sin datos para exportar en este rango.</p>
-    {/if}
+    <div class="card">
+      <h2 class="card-title">Calidad de datos</h2>
+      <div class="list">
+        <div class="list-row"><span class="label">dedupe</span><span class="metric">{data.discards.get('dedupe')}</span></div>
+        <div class="list-row"><span class="label">bot</span><span class="metric">{data.discards.get('bot')}</span></div>
+        <div class="list-row"><span class="label">burst</span><span class="metric">{data.discards.get('burst')}</span></div>
+        <div class="list-row"><span class="label">buffer_full</span><span class="metric">{data.discards.get('buffer_full')}</span></div>
+      </div>
+    </div>
 
-    <h2>Escenarios con mejor conversión</h2>
-    <form method="get" class="table-search">
-        <input type="hidden" name="range" value="{data.range}">
-        {#if data.eventId}<input type="hidden" name="event" value="{data.eventId}">{/if}
-        {#if data.stageId}<input type="hidden" name="stage" value="{data.stageId}">{/if}
-        {#if data.speakerId}<input type="hidden" name="speaker" value="{data.speakerId}">{/if}
-        <input type="hidden" name="talkQ" value="{data.talkQ}">
-        <input type="hidden" name="speakerQ" value="{data.speakerQ}">
-        <input type="text" name="scenarioQ" placeholder="Buscar…" value="{data.scenarioQ}" data-testid="table-scenarios-search">
-    </form>
-    <table>
-        <thead><tr><th>Escenario</th><th>Vistas</th><th>Registros</th><th>Conv.</th><th>Acciones</th></tr></thead>
-        <tbody>
-        {#for row in data.topScenarios}
-            <tr>
-                <td>{row.name}</td><td>{row.views}</td><td>{row.registrations}</td><td>{row.conversion}</td>
-                <td><a href="/private/admin/events/{app:eventIdByScenario(row.id)}/edit?range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}" aria-label="Ver escenario {row.name}" data-testid="table-scenarios-view-{row.id}">Ver</a></td>
-            </tr>
-        {/for}
-        </tbody>
-    </table>
-    {#if !data.topScenarios.isEmpty}
-    <a href="export?table=scenarios&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}{#if data.stageId}&amp;stage={data.stageId}{/if}{#if data.speakerId}&amp;speaker={data.speakerId}{/if}{#if data.scenarioQ}&amp;q={data.scenarioQ}{/if}" class="btn btn-secondary" data-testid="table-scenarios-export">Exportar CSV</a>
-    {#else}
-    <button class="btn btn-secondary" disabled data-testid="table-scenarios-export">Exportar CSV</button>
-    <p>Sin datos para exportar en este rango.</p>
-    {/if}
-    {/if}
-    <a href="/private/admin" class="btn btn-secondary">Volver</a>
-    <script>
-    const filterForm = document.querySelector('.metrics-filter');
-    const rangeSel = filterForm?.querySelector('select[name="range"]');
-    const eventSel = filterForm?.querySelector('select[name="event"]');
-    const stageSel = filterForm?.querySelector('select[name="stage"]');
-    const speakerInput = filterForm?.querySelector('input[name="speaker"]');
-    const speakerList = document.getElementById('speakers');
+    <div class="card">
+      <h2 class="card-title">Mantenimiento</h2>
+      <div class="list">
+        <div class="list-row"><span class="label">schemaVersion</span><span class="metric">{data.schemaVersion}</span></div>
+        <div class="list-row"><span class="label">fileSizeBytes</span><span class="metric">{data.fileSizeBytes}</span></div>
+      </div>
+    </div>
 
-    function fetchFilters(ev) {
-        return fetch('/private/admin/metrics/filters?event=' + encodeURIComponent(ev))
-            .then(r => r.json())
-            .then(d => {
-                if (stageSel) {
-                    stageSel.innerHTML = '';
-                    if (!d.stages.length) {
-                        stageSel.disabled = true;
-                        stageSel.appendChild(new Option('Sin escenarios', ''));
-                    } else {
-                        stageSel.disabled = false;
-                        stageSel.appendChild(new Option('Todos', ''));
-                        d.stages.forEach(s => stageSel.appendChild(new Option(s.name, s.id)));
-                    }
-                }
-                if (speakerList && speakerInput) {
-                    speakerList.innerHTML = '';
-                    d.speakers.forEach(sp => speakerList.appendChild(new Option(sp.name, sp.id)));
-                    speakerInput.value = '';
-                }
-            });
-    }
-
-    rangeSel?.addEventListener('change', () => filterForm?.requestSubmit());
-    stageSel?.addEventListener('change', () => filterForm?.requestSubmit());
-    speakerInput?.addEventListener('change', () => filterForm?.requestSubmit());
-    eventSel?.addEventListener('change', () => {
-        fetchFilters(eventSel.value).finally(() => filterForm?.requestSubmit());
-    });
-
-    document.getElementById('copySummaryBtn')?.addEventListener('click', () => {
-        const text = `Rango: {data.range}
-Evento: {#if data.eventId}{data.eventId}{#else}Todos{/if}
-Escenario: {#if data.stageId}{data.stageId}{#else}Todos{/if}
-Speaker: {#if data.speakerId}{data.speakerId}{#else}Todos{/if}
-Eventos vistos: {data.eventsViewed}
-Charlas vistas: {data.talksViewed}
-Charlas registradas: {data.talksRegistered}
-Visitas a escenarios: {data.stageVisits}
-Última actualización: {data.lastUpdate}`;
-        navigator.clipboard.writeText(text).then(() => showNotification('success', 'Resumen copiado'));
-    });
-
-    const REFRESH_INTERVAL = 5000;
-    let paused = false;
-    let inflight = false;
-    let throttle = false;
-    let lastHash = {data.lastUpdateMillis};
-    let errorShown = false;
-    function refreshStatus() {
-        if (paused || inflight) return;
-        inflight = true;
-        fetch('/private/admin/metrics/status' + window.location.search)
-            .then(r => {
-                if (!r.ok) throw new Error();
-                return r.json();
-            })
-            .then(d => {
-                inflight = false;
-                errorShown = false;
-                const badge = document.querySelector('[data-testid="metrics-health-badge"]');
-                if (badge) {
-                    badge.className = 'metrics-health ' + d.css;
-                    badge.title = d.tooltip;
-                    badge.querySelector('.text').textContent = d.state;
-                    const up = badge.querySelector('.updated');
-                    if (up) up.textContent = 'Última actualización: ' + d.last;
-                }
-                const card = document.querySelector('[data-testid="metrics-last-updated"]');
-                if (card) card.textContent = 'Última actualización: ' + d.last;
-                if (lastHash !== d.hash) {
-                    lastHash = d.hash;
-                    location.reload();
-                }
-            })
-            .catch(() => {
-                inflight = false;
-                if (!errorShown) {
-                    showNotification('error', 'No pudimos actualizar; reintentaremos');
-                    errorShown = true;
-                }
-            });
-    }
-    setInterval(refreshStatus, REFRESH_INTERVAL);
-    document.getElementById('refreshToggle')?.addEventListener('click', () => {
-        paused = !paused;
-        const btn = document.getElementById('refreshToggle');
-        btn.setAttribute('aria-pressed', paused ? 'true' : 'false');
-        btn.textContent = paused ? 'Continuar' : 'Pausar';
-        if (!paused) refreshStatus();
-    });
-    document.getElementById('refreshNow')?.addEventListener('click', () => {
-        if (throttle) return;
-        throttle = true;
-        setTimeout(() => throttle = false, 2000);
-        refreshStatus();
-    });
-    </script>
+    <div class="card">
+      <h2 class="card-title">Salud</h2>
+      <div class="status">
+        <span class="badge metrics-health {data.dataHealth.css}" aria-live="polite" data-testid="metrics-health-badge">{data.dataHealth.state}</span>
+      </div>
+      <div class="list">
+        <div class="list-row"><span class="label">lastFlush</span><span class="metric">{data.health.lastFlush}</span></div>
+        <div class="list-row"><span class="label">flushInterval</span><span class="metric">{data.health.flushIntervalMillis} ms</span></div>
+        <div class="list-row"><span class="label">buffer</span><span class="metric">{data.health.bufferCurrentSize}/{data.health.bufferMaxSize}</span></div>
+      </div>
+    </div>
+  </div>
 </section>
 {/main}
 {/include}
