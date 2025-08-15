@@ -288,8 +288,10 @@ public class UsageMetricsService {
             incrementDiscard("bot");
             return;
         }
-        ZoneId zone = timezone != null ? ZoneId.of(timezone) : ZoneId.systemDefault();
-        LocalDate today = LocalDate.now(zone);
+        // Metrics are tracked using a fixed timezone so that admin filters like
+        // "today" work regardless of the event's timezone. Using a consistent
+        // zone avoids gaps when events are recorded in different regions.
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
         if (sessionId != null) {
             if (isBurst(sessionId)) {
                 incrementDiscard("burst");
@@ -311,8 +313,8 @@ public class UsageMetricsService {
             incrementDiscard("invalid");
             return;
         }
-        ZoneId zone = timezone != null ? ZoneId.of(timezone) : ZoneId.systemDefault();
-        LocalDate today = LocalDate.now(zone);
+        // Use the same fixed timezone as stage visits for consistency.
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
         increment("cta:" + name + ":" + today);
     }
 
