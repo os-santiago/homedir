@@ -1203,4 +1203,99 @@ footer {
 #main-content .event-detail a.btn,
 #main-content .event-detail a.btn:visited {
     color: var(--color-light);
+}/* --- Admin metrics redesign --- */
+.metrics-toolbar {
+    position: sticky;
+    top: 0;
+    background: var(--color-light);
+    padding: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    z-index: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.range-chips {
+    display: flex;
+    gap: 0.5rem;
+}
+.chip {
+    border: 1px solid var(--color-primary);
+    background: var(--color-light);
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    cursor: pointer;
+}
+.chip:hover,
+.chip:focus {
+    background: var(--color-bg);
+}
+.chip.active {
+    background: var(--color-primary);
+    color: var(--color-light);
+}
+.cards-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+@media (min-width: 1200px) {
+    .cards-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 768px) and (max-width: 1199px) {
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 767px) {
+    .cards-grid { grid-template-columns: 1fr; }
+}
+.card {
+    background: var(--color-light);
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.card-title {
+    margin-top: 0;
+}
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem;
+}
+.kpi .label {
+    display: block;
+}
+.kpi .value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: right;
+}
+.list {
+    display: flex;
+    flex-direction: column;
+}
+.list-header,
+.list-row {
+    display: flex;
+    justify-content: space-between;
+}
+.list-header span {
+    font-weight: bold;
+}
+.list-row {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--color-bg);
+}
+.list-row:last-child {
+    border-bottom: none;
+}
+.list-row .metric {
+    text-align: right;
+}
+.status {
+    margin-bottom: 0.5rem;
+}
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
 }
