@@ -10,31 +10,29 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 public class OAuthLoginTest {
 
-    @Test
-    public void loginPageLoads() {
-        given()
-            .when().get("/login.html")
-            .then()
-            .statusCode(200)
-            .body(containsString("Sign in with Google"));
-    }
+  @Test
+  public void loginPageLoads() {
+    given()
+        .when()
+        .get("/login.html")
+        .then()
+        .statusCode(200)
+        .body(containsString("Sign in with Google"));
+  }
 
-    @Test
-    public void privateUnauthorized() {
-        given()
-            .when().get("/private")
-            .then()
-            // Unauthorized access should be rejected with 401
-            .statusCode(401);
-    }
+  @Test
+  public void privateUnauthorized() {
+    given()
+        .when()
+        .get("/private")
+        .then()
+        // Unauthorized access should be rejected with 401
+        .statusCode(401);
+  }
 
-    @Test
-    @TestSecurity(user = "alice")
-    public void privateAuthorized() {
-        given()
-            .when().get("/private")
-            .then()
-            .statusCode(200)
-            .body(containsString("alice"));
-    }
+  @Test
+  @TestSecurity(user = "alice")
+  public void privateAuthorized() {
+    given().when().get("/private").then().statusCode(200).body(containsString("alice"));
+  }
 }

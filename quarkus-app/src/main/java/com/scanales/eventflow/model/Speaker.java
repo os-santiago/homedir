@@ -4,112 +4,106 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.NotBlank;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id",
-        resolver = PermissiveObjectIdResolver.class)
+    generator = ObjectIdGenerators.PropertyGenerator.class,
+    property = "id",
+    resolver = PermissiveObjectIdResolver.class)
 @RegisterForReflection
 
-/**
- * Represents a person giving one or more talks at the event.
- */
+/** Represents a person giving one or more talks at the event. */
 public class Speaker {
 
-    @NotBlank
-    private String id;
-    @NotBlank
-    private String name;
-    private String bio;
-    private String photoUrl;
-    private String website;
-    private String twitter;
-    private String linkedin;
-    private String instagram;
+  @NotBlank private String id;
+  @NotBlank private String name;
+  private String bio;
+  private String photoUrl;
+  private String website;
+  private String twitter;
+  private String linkedin;
+  private String instagram;
 
-    /** Talks owned by this speaker and reusable across events. */
-    private List<Talk> talks = new ArrayList<>();
+  /** Talks owned by this speaker and reusable across events. */
+  private List<Talk> talks = new ArrayList<>();
 
-    public Speaker() {
-    }
+  public Speaker() {}
 
-    public Speaker(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+  public Speaker(String id, String name) {
+    this.id = id;
+    this.name = name;
+  }
 
-    public String getId() {
-        return id;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getBio() {
-        return bio;
-    }
+  public String getBio() {
+    return bio;
+  }
 
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
+  public void setBio(String bio) {
+    this.bio = bio;
+  }
 
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
+  public String getPhotoUrl() {
+    return photoUrl;
+  }
 
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
+  public void setPhotoUrl(String photoUrl) {
+    this.photoUrl = photoUrl;
+  }
 
-    public String getWebsite() {
-        return website;
-    }
+  public String getWebsite() {
+    return website;
+  }
 
-    public void setWebsite(String website) {
-        this.website = website;
-    }
+  public void setWebsite(String website) {
+    this.website = website;
+  }
 
-    public String getTwitter() {
-        return twitter;
-    }
+  public String getTwitter() {
+    return twitter;
+  }
 
-    public void setTwitter(String twitter) {
-        this.twitter = twitter;
-    }
+  public void setTwitter(String twitter) {
+    this.twitter = twitter;
+  }
 
-    public String getLinkedin() {
-        return linkedin;
-    }
+  public String getLinkedin() {
+    return linkedin;
+  }
 
-    public void setLinkedin(String linkedin) {
-        this.linkedin = linkedin;
-    }
+  public void setLinkedin(String linkedin) {
+    this.linkedin = linkedin;
+  }
 
-    public String getInstagram() {
-        return instagram;
-    }
+  public String getInstagram() {
+    return instagram;
+  }
 
-    public void setInstagram(String instagram) {
-        this.instagram = instagram;
-    }
+  public void setInstagram(String instagram) {
+    this.instagram = instagram;
+  }
 
-    public List<Talk> getTalks() {
-        return talks;
-    }
+  public List<Talk> getTalks() {
+    return talks;
+  }
 
-    public void setTalks(List<Talk> talks) {
-        this.talks = talks;
-    }
+  public void setTalks(List<Talk> talks) {
+    this.talks = talks;
+  }
 }

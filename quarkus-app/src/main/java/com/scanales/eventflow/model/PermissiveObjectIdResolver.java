@@ -6,23 +6,23 @@ import com.fasterxml.jackson.annotation.SimpleObjectIdResolver;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
- * An {@link ObjectIdResolver} that ignores attempts to bind the same id to
- * multiple objects. This is useful when deserializing graphs where references
- * to the same object are repeated, avoiding "Already had POJO for id" errors.
+ * An {@link ObjectIdResolver} that ignores attempts to bind the same id to multiple objects. This
+ * is useful when deserializing graphs where references to the same object are repeated, avoiding
+ * "Already had POJO for id" errors.
  */
 @RegisterForReflection
 public class PermissiveObjectIdResolver extends SimpleObjectIdResolver {
-    @Override
-    public ObjectIdResolver newForDeserialization(Object context) {
-        return new PermissiveObjectIdResolver();
-    }
+  @Override
+  public ObjectIdResolver newForDeserialization(Object context) {
+    return new PermissiveObjectIdResolver();
+  }
 
-    @Override
-    public void bindItem(ObjectIdGenerator.IdKey id, Object pojo) {
-        // Only bind if this id has not been seen before. If it's already
-        // associated with an object, ignore the new binding to keep the first.
-        if (resolveId(id) == null) {
-            super.bindItem(id, pojo);
-        }
+  @Override
+  public void bindItem(ObjectIdGenerator.IdKey id, Object pojo) {
+    // Only bind if this id has not been seen before. If it's already
+    // associated with an object, ignore the new binding to keep the first.
+    if (resolveId(id) == null) {
+      super.bindItem(id, pojo);
     }
+  }
 }
