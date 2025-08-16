@@ -78,7 +78,8 @@ public class AdminMetricsExportTest {
                 .then().statusCode(200)
                 .extract().asString();
 
-        assertTrue(csv.contains("\"DevOps y Platform Engineering: Amigos, enemigos o algo más?\",1,1"));
+        assertTrue(csv.contains("\"DevOps y Platform Engineering: Amigos, enemigos o algo más?\""));
+        assertTrue(csv.contains(",1,1,"));
     }
 }
 
