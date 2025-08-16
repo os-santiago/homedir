@@ -1,0 +1,57 @@
+# Code quality policy
+
+This repository runs static analysis on every pull request, scanning only the code touched by the PR to keep feedback fast (under ~4 minutes).
+
+## Severity and gating
+
+| Severity | Meaning | PR effect |
+|---|---|---|
+| Critical / High | Likely defect, security issue or incorrect behaviour | Blocks the PR until fixed |
+| Medium | Potential problem or resource leak | Reported as warning, PR continues |
+| Low / Style | Minor or style issues | Informational only |
+
+Only findings introduced in a pull request are gated. Existing findings in `main` are tracked in the baseline and do not block unless touched.
+
+## PR summary
+
+Every pull request shows a quality card with:
+
+- Count of new findings by severity.
+- Top three findings, each with a one-line explanation and suggested fix.
+- A "View details" link pointing to the full scanner report.
+
+Messages use plain language, for example: "Riesgo de NPE si `foo` viene nulo. Sugerencia: validar antes de acceder".
+
+## Baseline and ownership
+
+The baseline of existing findings lives in `quality-baseline.xml`. Issues already present in `main` are ignored unless the affected lines change. Authors may opt to "take ownership" and fix baseline findings in their PR.
+
+## Exclusions and suppressions
+
+- Generated code and build directories are excluded from analysis.
+- Suppress a rule only with justification:
+
+  ```java
+  // quality-ignore-next-line: reason
+  ```
+
+  or `@SuppressWarnings("rule")` plus a comment. All suppressions must be reviewable and traceable.
+
+## Triage workflow
+
+1. **Refactor** when the finding is valid.
+2. **Suppress with justification** if it is a false positive or acceptable risk.
+3. **Escalate** to the team when uncertain or the rule needs adjustment.
+
+## Common findings and how to resolve
+
+- **Null pointer risk**: e.g. calling a method on a possibly null object. *Fix:* check for null or use `Optional`.
+- **Concurrency issue**: e.g. unsynchronised access to shared mutable state. *Fix:* synchronise or use thread-safe structures.
+- **Unclosed resource**: e.g. opening a file/stream without closing. *Fix:* use try-with-resources or close in finally block.
+- **Security issue**: e.g. using untrusted input in queries or logs. *Fix:* sanitise input or use prepared statements.
+- **Performance smell**: e.g. repeated string concatenation in a loop. *Fix:* use `StringBuilder` or more efficient algorithm.
+
+## Requesting exceptions
+
+If a rule should be excluded repository-wide, open an issue describing the rule and justification. The team will review and update the exclusion list if appropriate.
+
