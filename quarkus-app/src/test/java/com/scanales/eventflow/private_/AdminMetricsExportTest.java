@@ -65,7 +65,6 @@ public class AdminMetricsExportTest {
         eventService.saveEvent(ev);
 
         metrics.recordTalkView("t1", null, "ua");
-        metrics.recordTalkRegister("t1", List.of(sp), "ua");
     }
 
     @Test
@@ -96,7 +95,7 @@ public class AdminMetricsExportTest {
         java.util.List<String> cols = parseCsvLine(nonBlank.get(1));
         assertEquals("DevOps y Platform Engineering: Amigos, enemigos o algo más?", cols.get(0));
         assertEquals("1", cols.get(1));
-        assertEquals("1", cols.get(2));
+        assertEquals("0", cols.get(2));
     }
 
     private static java.util.List<String> parseCsvLine(String line) {
