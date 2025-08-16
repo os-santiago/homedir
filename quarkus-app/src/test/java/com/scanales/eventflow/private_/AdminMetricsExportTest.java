@@ -1,10 +1,12 @@
 package com.scanales.eventflow.private_;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +64,7 @@ public class AdminMetricsExportTest {
         ev.getAgenda().add(talk);
         eventService.saveEvent(ev);
 
-        metrics.recordTalkView("t1", "sess", "ua");
+        metrics.recordTalkView("t1", null, "ua");
         metrics.recordTalkRegister("t1", List.of(sp), "ua");
     }
 
@@ -86,8 +88,44 @@ public class AdminMetricsExportTest {
                 .then().statusCode(200)
                 .extract().asString();
 
-        assertTrue(csv.contains("\"DevOps y Platform Engineering: Amigos, enemigos o algo más?\""));
-        assertTrue(csv.contains(",1,1,"));
+        String[] lines = csv.trim().split("\\R");
+        assertTrue(lines.length > 1, csv);
+        java.util.List<String> cols = parseCsvLine(lines[1]);
+        assertEquals("DevOps y Platform Engineering: Amigos, enemigos o algo más?", cols.get(0));
+        assertEquals("1", cols.get(1));
+        assertEquals("1", cols.get(2));
+    }
+
+    private static java.util.List<String> parseCsvLine(String line) {
+        java.util.List<String> fields = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"') {
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                        sb.append('"');
+                        i++;
+                    } else {
+                        inQuotes = false;
+                    }
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                if (c == '"') {
+                    inQuotes = true;
+                } else if (c == ',') {
+                    fields.add(sb.toString());
+                    sb.setLength(0);
+                } else {
+                    sb.append(c);
+                }
+            }
+        }
+        fields.add(sb.toString());
+        return fields;
     }
 }
 
