@@ -259,9 +259,10 @@ public class AdminMetricsResource {
         if (!AdminUtils.isAdmin(identity)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        String tableName = (table == null || table.isBlank()) ? "talks" : table;
         MetricsData data = buildData(range, eventId, stageId, speakerId);
         StringBuilder sb = new StringBuilder();
-        if ("ctas".equals(table)) {
+        if ("ctas".equals(tableName)) {
             List<CtaDayRow> rows = filterCtaRows(data.ctas().rows(), query);
             if (!rows.isEmpty()) {
                 sb.append("Fecha,Releases,Issues,Ko-fi,Total\n");
@@ -273,7 +274,7 @@ public class AdminMetricsResource {
         } else {
             List<ConversionRow> rows;
             String header;
-            switch (table) {
+            switch (tableName) {
                 case "talks" -> {
                     rows = data.topTalks();
                     header = "Charla,Vistas,Registros,Conversion";
@@ -303,7 +304,7 @@ public class AdminMetricsResource {
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"));
         String safeRange = range == null || range.isBlank() ? "all" : range;
         return Response.ok(sb.toString())
-                .header("Content-Disposition", "attachment; filename=metrics-" + table + "-" + safeRange + "-" + ts + ".csv")
+                .header("Content-Disposition", "attachment; filename=metrics-" + tableName + "-" + safeRange + "-" + ts + ".csv")
                 .build();
     }
 
