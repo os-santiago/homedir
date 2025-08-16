@@ -1,6 +1,6 @@
 # Code quality policy
 
-This repository runs static analysis on every pull request, scanning only the code touched by the PR to keep feedback fast (under ~4 minutes).
+This repository runs static analysis on every pull request via the **PR Quality — Static Analysis** workflow. Only the code touched by the PR is scanned to keep feedback fast (under ~4 minutes).
 
 ## Severity and gating
 
@@ -24,7 +24,7 @@ Messages use plain language, for example: "Riesgo de NPE si `foo` viene nulo. Su
 
 ## Baseline and ownership
 
-The baseline of existing findings lives in `quality-baseline.xml`. Issues already present in `main` are ignored unless the affected lines change. Authors may opt to "take ownership" and fix baseline findings in their PR.
+The baseline of existing findings lives in `config/quality/baseline.sarif`. Issues already present in `main` are ignored unless the affected lines change. Authors may opt to "take ownership" and fix baseline findings in their PR.
 
 ## Exclusions and suppressions
 
