@@ -264,12 +264,10 @@ public class AdminMetricsResource {
         StringBuilder sb = new StringBuilder();
         if ("ctas".equals(tableName)) {
             List<CtaDayRow> rows = filterCtaRows(data.ctas().rows(), query);
-            if (!rows.isEmpty()) {
-                sb.append("Fecha,Releases,Issues,Ko-fi,Total\n");
-                for (CtaDayRow r : rows) {
-                    sb.append(r.date()).append(',').append(r.releases()).append(',').append(r.issues()).append(',')
-                            .append(r.kofi()).append(',').append(r.total()).append('\n');
-                }
+            sb.append("Fecha,Releases,Issues,Ko-fi,Total\n");
+            for (CtaDayRow r : rows) {
+                sb.append(r.date()).append(',').append(r.releases()).append(',').append(r.issues()).append(',')
+                        .append(r.kofi()).append(',').append(r.total()).append('\n');
             }
         } else {
             List<ConversionRow> rows;
@@ -293,7 +291,7 @@ public class AdminMetricsResource {
                 }
             }
             rows = filterRows(rows, query, sort, dir);
-            if (!header.isEmpty() && !rows.isEmpty()) {
+            if (!header.isEmpty()) {
                 sb.append(header).append('\n');
                 for (ConversionRow r : rows) {
                     sb.append(r.name()).append(',').append(r.views()).append(',')
