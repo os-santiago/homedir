@@ -59,7 +59,7 @@ public class AdminMetricsExportTest {
     }
 
     @Test
-    @TestSecurity(user = "admin")
+    @TestSecurity(user = "sergio.canales.e@gmail.com")
     public void exportTalksHeaderWhenNoRows() {
         String csv = given()
                 .when().get("/private/admin/metrics/export?table=talks&q=nomatch")
