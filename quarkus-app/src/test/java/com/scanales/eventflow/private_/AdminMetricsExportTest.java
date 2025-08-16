@@ -3,6 +3,7 @@ package com.scanales.eventflow.private_;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,13 @@ public class AdminMetricsExportTest {
 
     @BeforeEach
     void setUp() {
+        try {
+            Method m = UsageMetricsService.class.getDeclaredMethod("reset");
+            m.setAccessible(true);
+            m.invoke(metrics);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         // Basic event with a single talk and speaker
         Speaker sp = new Speaker();
         sp.setId("sp1");
