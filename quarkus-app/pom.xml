@@ -11,7 +11,7 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.24.3</quarkus.platform.version>
         <compiler-plugin.version>3.11.0</compiler-plugin.version>
-        <surefire-plugin.version>3.1.2</surefire-plugin.version>
+        <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
@@ -100,6 +100,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
                 <configuration>
+                    <useModulePath>false</useModulePath>
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
@@ -183,9 +185,14 @@
                         <version>0.8.12</version>
                         <executions>
                             <execution>
+                                <id>prepare-agent</id>
                                 <goals>
                                     <goal>prepare-agent</goal>
                                 </goals>
+                                <configuration>
+                                    <append>true</append>
+                                    <output>file</output>
+                                </configuration>
                             </execution>
                             <execution>
                                 <id>report</id>
@@ -194,13 +201,30 @@
                                     <goal>report</goal>
                                 </goals>
                                 <configuration>
-                                    <outputDirectory>${project.build.directory}</outputDirectory>
-                                    <formats>
-                                        <format>XML</format>
-                                    </formats>
+                                    <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                                    <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
+                                    <excludes>
+                                        <exclude>**/generated/**</exclude>
+                                        <exclude>**/*$*</exclude>
+                                    </excludes>
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <version>1.16.1</version>
+                        <configuration>
+                            <junit5PluginVersion>1.2.0</junit5PluginVersion>
+                            <threads>2</threads>
+                            <mutationThreshold>0</mutationThreshold>
+                            <outputFormats>
+                                <param>HTML</param>
+                                <param>XML</param>
+                            </outputFormats>
+                            <timestampedReports>false</timestampedReports>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
