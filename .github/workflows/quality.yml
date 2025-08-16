@@ -39,7 +39,17 @@ jobs:
             const format='${{ steps.format.outcome }}';
             const deps='${{ steps.deps.outcome }}';
             const commits='${{ steps.commits.outcome }}';
-            const body = `### Quality checks\n- Format: ${format}\n- Dependencies: ${deps}\n- Commits: ${commits}\n`;
+            const fmtMsg = format === 'success'
+              ? 'pass'
+              : 'fail - run `mvn -f quarkus-app/pom.xml spotless:apply`';
+            const depMsg = deps === 'success'
+              ? 'pass'
+              : 'fail - run `mvn -f quarkus-app/pom.xml enforcer:enforce`';
+            const commitMsg = commits === 'success'
+              ? 'pass'
+              : 'fail - use Conventional Commits (e.g., `chore: update deps`)';
+
+            const body = `### Quality checks\n- Format: ${fmtMsg}\n- Dependencies: ${depMsg}\n- Commits: ${commitMsg}\n`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -48,4 +58,6 @@ jobs:
             });
       - name: Fail if checks failed
         if: steps.format.outcome == 'failure' || steps.deps.outcome == 'failure' || steps.commits.outcome == 'failure'
-        run: exit 1
+        run: |
+          echo 'One or more quality checks failed. See the summary comment above.'
+          exit 1
