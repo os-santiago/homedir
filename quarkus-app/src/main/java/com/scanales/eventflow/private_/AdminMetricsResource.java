@@ -353,7 +353,8 @@ public class AdminMetricsResource {
         long talksViewed = talkStats.values().stream().mapToLong(s -> s.views).sum();
         long talksRegistered = talkStats.values().stream().mapToLong(s -> s.regs).sum();
 
-        LocalDate today = LocalDate.now();
+        // Use UTC dates to match the way metrics are recorded.
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
         LocalDate start;
         if ("today".equals(range)) {
             start = today;
