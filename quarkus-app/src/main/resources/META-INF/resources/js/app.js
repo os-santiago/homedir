@@ -111,8 +111,10 @@ function handleForms() {
             sessionStorage.setItem('scrollPos', String(window.scrollY));
             sessionStorage.setItem('scrollPath', window.location.pathname);
             showLoading('los datos');
-            const btn = form.querySelector('button[type="submit"]');
-            if (btn) btn.disabled = true;
+            const btn = e.submitter || form.querySelector('button[type="submit"]');
+            if (btn) {
+                setTimeout(() => btn.disabled = true, 0);
+            }
         });
     });
 }
