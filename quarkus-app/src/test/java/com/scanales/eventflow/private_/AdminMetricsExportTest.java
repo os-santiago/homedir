@@ -69,5 +69,16 @@ public class AdminMetricsExportTest {
         // The CSV must contain the header even when there are no data rows
         assertTrue(csv.startsWith("Charla,Vistas,Registros,Conversion"));
     }
+
+    @Test
+    @TestSecurity(user = "sergio.canales.e@gmail.com")
+    public void exportTalksIncludesLowViewRows() {
+        String csv = given()
+                .when().get("/private/admin/metrics/export?table=talks")
+                .then().statusCode(200)
+                .extract().asString();
+
+        assertTrue(csv.contains("Talk 1"));
+    }
 }
 
