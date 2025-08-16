@@ -294,7 +294,7 @@ public class AdminMetricsResource {
             if (!header.isEmpty()) {
                 sb.append(header).append('\n');
                 for (ConversionRow r : rows) {
-                    sb.append(r.name()).append(',').append(r.views()).append(',')
+                    sb.append(escapeCsv(r.name())).append(',').append(r.views()).append(',')
                             .append(r.registrations()).append(',').append(r.conversion()).append('\n');
                 }
             }
@@ -615,6 +615,17 @@ public class AdminMetricsResource {
     private static String formatConversion(long views, long regs) {
         if (views == 0) return "—";
         return String.format(Locale.US, "%.1f%%", regs * 100.0 / views);
+    }
+
+    private static String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        String escaped = value.replace("\"", "\"\"");
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + escaped + "\"";
+        }
+        return escaped;
     }
 
     private boolean belongsToEvent(String stageId, String eventId) {

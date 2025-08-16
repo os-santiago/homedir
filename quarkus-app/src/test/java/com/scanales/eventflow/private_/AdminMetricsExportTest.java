@@ -43,7 +43,7 @@ public class AdminMetricsExportTest {
 
         Talk talk = new Talk();
         talk.setId("t1");
-        talk.setName("Talk 1");
+        talk.setName("DevOps y Platform Engineering: Amigos, enemigos o algo más?");
         talk.setLocation("st1");
         talk.setSpeakers(List.of(sp));
 
@@ -78,7 +78,7 @@ public class AdminMetricsExportTest {
                 .then().statusCode(200)
                 .extract().asString();
 
-        assertTrue(csv.contains("Talk 1"));
+        assertTrue(csv.contains("\"DevOps y Platform Engineering: Amigos, enemigos o algo más?\",1,1"));
     }
 }
 
