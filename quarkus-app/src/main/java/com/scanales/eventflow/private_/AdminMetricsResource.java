@@ -260,7 +260,7 @@ public class AdminMetricsResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         String tableName = (table == null || table.isBlank()) ? "talks" : table;
-        MetricsData data = buildData(range, eventId, stageId, speakerId);
+        MetricsData data = buildData(range, eventId, stageId, speakerId, 0);
         StringBuilder sb = new StringBuilder();
         if ("ctas".equals(tableName)) {
             List<CtaDayRow> rows = filterCtaRows(data.ctas().rows(), query);
@@ -337,6 +337,10 @@ public class AdminMetricsResource {
     int minViews;
 
     private MetricsData buildData(String range, String eventId, String stageId, String speakerId) {
+        return buildData(range, eventId, stageId, speakerId, minViews);
+    }
+
+    private MetricsData buildData(String range, String eventId, String stageId, String speakerId, int threshold) {
         Map<String, Long> snap = metrics.snapshot();
         Summary summary = metrics.getSummary();
         Health health = metrics.getHealth();
@@ -385,11 +389,11 @@ public class AdminMetricsResource {
 
         CtaData ctaData = buildCtaData(snap, start);
 
-        List<ConversionRow> topTalks = topConversionRows(talkStats, 10, this::talkName);
+        List<ConversionRow> topTalks = topConversionRows(talkStats, 10, this::talkName, threshold);
         Map<String, Stats> speakerStats = aggregateSpeakers(talkStats);
-        List<ConversionRow> topSpeakers = topConversionRows(speakerStats, 10, this::speakerName);
+        List<ConversionRow> topSpeakers = topConversionRows(speakerStats, 10, this::speakerName, threshold);
         Map<String, Stats> scenarioStats = aggregateScenarios(talkStats);
-        List<ConversionRow> topScenarios = topConversionRows(scenarioStats, 10, this::stageName);
+        List<ConversionRow> topScenarios = topConversionRows(scenarioStats, 10, this::stageName, threshold);
 
         long last = metrics.getLastUpdatedMillis();
         String lastStr = last > 0 ? Instant.ofEpochMilli(last).toString() : "—";
@@ -557,9 +561,10 @@ public class AdminMetricsResource {
                 meanTotal, std, activeDays, rows, peakCount);
     }
 
-    private List<ConversionRow> topConversionRows(Map<String, Stats> map, int limit, Function<String, String> nameFn) {
+    private List<ConversionRow> topConversionRows(Map<String, Stats> map, int limit,
+            Function<String, String> nameFn, int threshold) {
         return map.entrySet().stream()
-                .filter(e -> e.getValue().views >= minViews)
+                .filter(e -> e.getValue().views >= threshold)
                 .map(e -> {
                     Stats s = e.getValue();
                     return new ConversionRow(e.getKey(), nameFn.apply(e.getKey()), s.views, s.regs,
