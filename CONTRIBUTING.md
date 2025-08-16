@@ -121,3 +121,10 @@ Follow these quick steps before opening a pull request:
 | `chore: update deps` | maintenance or tooling |
 
 If CI reports a failure, apply the suggested command (usually formatting or dependency check), commit the fix and push again.
+
+### Test coverage & mutation
+
+- `mvn -f quarkus-app/pom.xml verify -Pcoverage` genera `quarkus-app/target/site/jacoco/index.html`.
+- Mantén **≥ 70%** de líneas y ramas en el diff de tu PR.
+- Opcional: `mvn -f quarkus-app/pom.xml org.pitest:pitest-maven:1.16.1:mutationCoverage -DtargetClasses='io.eventflow.*'`.
+- Si falla el gate de cobertura, agrega o ajusta tests de las clases tocadas y vuelve a ejecutar.
