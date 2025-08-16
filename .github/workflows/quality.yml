@@ -39,7 +39,6 @@ jobs:
             const format='${{ steps.format.outcome }}';
             const deps='${{ steps.deps.outcome }}';
             const commits='${{ steps.commits.outcome }}';
-
             const fmtMsg = format === 'success'
               ? 'pass'
               : 'fail - run `mvn -f quarkus-app/pom.xml spotless:apply`';
