@@ -1,0 +1,51 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'quarkus-app/**'
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Format
+        id: format
+        run: mvn -q -f quarkus-app/pom.xml spotless:check
+        continue-on-error: true
+      - name: Dependencies
+        id: deps
+        run: mvn -q -f quarkus-app/pom.xml enforcer:enforce
+        continue-on-error: true
+      - name: Commit message
+        id: commits
+        uses: wagoid/commitlint-github-action@v6
+        continue-on-error: true
+      - name: Summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const format='${{ steps.format.outcome }}';
+            const deps='${{ steps.deps.outcome }}';
+            const commits='${{ steps.commits.outcome }}';
+            const body = `### Quality checks\n- Format: ${format}\n- Dependencies: ${deps}\n- Commits: ${commits}\n`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+      - name: Fail if checks failed
+        if: steps.format.outcome == 'failure' || steps.deps.outcome == 'failure' || steps.commits.outcome == 'failure'
+        run: exit 1

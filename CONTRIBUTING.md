@@ -100,3 +100,24 @@ git commit -m "feat: add sticky navigation to Talk Detail"
 # Push and open a Draft PR
 git push -u origin feat/<short-slug>
 ```
+
+## How Your PR Passes
+
+Follow these quick steps before opening a pull request:
+
+1. **Install prerequisites** – Java 21 and Maven 3.9 or newer.
+2. **Format code** – `mvn -f quarkus-app/pom.xml spotless:apply`.
+3. **Check dependencies** – `mvn -f quarkus-app/pom.xml enforcer:enforce`.
+4. **Commit with Conventional Commits** (see table below).
+5. **Push and open the PR** – fix issues reported by CI and re-push.
+
+### Conventional Commit examples
+
+| Commit message | Use when |
+|----------------|---------|
+| `feat: add new endpoint` | introducing a feature |
+| `fix: handle null user` | fixing a bug |
+| `docs: update README` | documentation only |
+| `chore: update deps` | maintenance or tooling |
+
+If CI reports a failure, apply the suggested command (usually formatting or dependency check), commit the fix and push again.
