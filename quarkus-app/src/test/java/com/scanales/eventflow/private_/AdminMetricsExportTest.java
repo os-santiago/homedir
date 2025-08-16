@@ -88,9 +88,12 @@ public class AdminMetricsExportTest {
                 .then().statusCode(200)
                 .extract().asString();
 
-        String[] lines = csv.trim().split("\\R");
-        assertTrue(lines.length > 1, csv);
-        java.util.List<String> cols = parseCsvLine(lines[1]);
+        String[] lines = csv.split("\\R");
+        java.util.List<String> nonBlank = java.util.Arrays.stream(lines)
+                .filter(l -> !l.isBlank())
+                .toList();
+        assertTrue(nonBlank.size() > 1, csv);
+        java.util.List<String> cols = parseCsvLine(nonBlank.get(1));
         assertEquals("DevOps y Platform Engineering: Amigos, enemigos o algo más?", cols.get(0));
         assertEquals("1", cols.get(1));
         assertEquals("1", cols.get(2));
