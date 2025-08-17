@@ -1,0 +1,94 @@
+name: PR Quality — Dependencies
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-deps-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  DEPS_GATING: ${{ vars.DEPS_GATING || 'warn' }}  # 'warn' | 'enforcing'
+
+jobs:
+  deps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect POM changes
+        id: changed
+        run: |
+          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --paginate \
+            | jq -r '.[].filename' | tee reports_all.txt
+          CHANGED=$(grep -E '^(.+/)?pom\.xml$' -n reports_all.txt || true)
+          if [ -n "$CHANGED" ]; then
+            echo "pom_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "pom_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Java
+        if: steps.changed.outputs.pom_changed == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Enforcer & Analyze (diff-aware)
+        if: steps.changed.outputs.pom_changed == 'true'
+        run: |
+          mkdir -p reports
+          set +e
+          # Enforcer: fail fast sobre duplicados, upper bounds, convergencia, versión Java
+          mvn -B -ntp -DskipTests \
+            enforcer:enforce \
+            -Denforcer.fail=true \
+            -Denforcer.rules=requireJavaVersion,banDuplicatePomDependencyVersions,requireUpperBoundDeps,dependencyConvergence
+          ENF=$?
+
+          # Analyze: deps no usadas / no declaradas (solo reporte; gating configurable)
+          mvn -B -ntp -DskipTests org.apache.maven.plugins:maven-dependency-plugin:3.6.1:analyze \
+            -DignoreNonCompile=true | tee reports/dependency-analyze.txt
+          ANA=$?
+
+          # Resumen simple de cambios en pom.xml (ADD/UPDATE/REMOVE)
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git diff --unified=0 origin/${{ github.base_ref }}... -- '**/pom.xml' \
+            | sed -n -E 's/^[+-]\s*<dependency>.*//p; s/^[+-]\s*<(groupId|artifactId|version)>([^<]+)<.*/\1=\2/p' \
+            > reports/pom-diff-lines.txt || true
+
+          echo "### Dependencies (diff-aware)" >> $GITHUB_STEP_SUMMARY
+          if [ -s reports/pom-diff-lines.txt ]; then
+            echo "\nCambios detectados en pom.xml:" >> $GITHUB_STEP_SUMMARY
+            cat reports/pom-diff-lines.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Sin cambios relevantes en pom.xml" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "\nResultados:" >> $GITHUB_STEP_SUMMARY
+          echo "- Enforcer exit: $ENF" >> $GITHUB_STEP_SUMMARY
+          echo "- Analyze exit:  $ANA" >> $GITHUB_STEP_SUMMARY
+
+          # Gating progresivo:
+          if [ "${DEPS_GATING}" = "enforcing" ]; then
+            # Si enforcer falló, bloquea
+            if [ $ENF -ne 0 ]; then
+              echo "Enforcer encontró infracciones nuevas. Bloqueando."; exit 2
+            fi
+            # Opcional: convertir 'no usadas' de analyze en bloqueante
+            # grep -q 'Unused declared dependencies found' reports/dependency-analyze.txt && exit 3
+          fi
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-deps-reports
+          path: reports

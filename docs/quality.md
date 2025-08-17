@@ -43,6 +43,28 @@ The baseline of existing findings lives in `config/quality/baseline.sarif`. Issu
 2. **Suppress with justification** if it is a false positive or acceptable risk.
 3. **Escalate** to the team when uncertain or the rule needs adjustment.
 
+## Dependency hygiene
+
+Pull requests that modify any `pom.xml` trigger the **PR Quality — Dependencies** job. It provides fast feedback (target ≤ 4 min) on Maven dependency issues.
+
+- **Blocks when gating is enforcing**: duplicate dependencies, open version ranges, broken convergence, or Java version mismatch.
+- **Reports** (warn mode): unused or undeclared dependencies detected by `maven-dependency-plugin:analyze`.
+- The job summary lists added, updated or removed dependencies plus any violations with hints.
+
+### How to fix
+
+- Align versions in `dependencyManagement` or BOMs.
+- Remove duplicates or unused dependencies.
+- Move declarations to `dependencyManagement` when versions diverge.
+
+### Run locally
+
+```bash
+./dev/deps-check.sh
+```
+
+Review the output and resolve warnings before opening a PR.
+
 ## Common findings and how to resolve
 
 - **Null pointer risk**: e.g. calling a method on a possibly null object. *Fix:* check for null or use `Optional`.
