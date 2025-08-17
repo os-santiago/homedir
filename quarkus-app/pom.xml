@@ -237,7 +237,7 @@
                     <plugin>
                         <groupId>org.pitest</groupId>
                         <artifactId>pitest-maven</artifactId>
-                        <version>1.16.1</version>
+                        <version>1.20.1</version>
                         <configuration>
                             <junit5PluginVersion>1.2.0</junit5PluginVersion>
                             <threads>2</threads>
