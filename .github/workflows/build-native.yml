@@ -8,7 +8,9 @@ jobs:
   build-native:
     runs-on: ubuntu-latest
     env:
-      IMAGE_VERSION: 2.1.2
+      REGISTRY: ${{ vars.REGISTRY }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+      LOGGED_IN: 0
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,6 +20,14 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+
+      - name: Derive version
+        run: |
+          cd quarkus-app
+          VERSION="$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          cd -
+          echo "## Version derivada: $VERSION" >> $GITHUB_STEP_SUMMARY
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -29,25 +39,56 @@ jobs:
 
       - name: Build native binary
         working-directory: quarkus-app
-        run: mvn clean package -Pnative -Dquarkus.native.container-build=true
+        run: ./mvnw clean package -Pnative -Dquarkus.native.container-build=true
 
       - name: Verify native binary exists
         run: ls quarkus-app/target/*-runner
 
       - name: Build Docker image
         working-directory: quarkus-app
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
           docker build \
             -f src/main/docker/Dockerfile.native \
-            -t quay.io/sergio_canales_e/eventflow:${{ env.IMAGE_VERSION }} \
+            -t "$IMAGE" \
             .
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
       - name: Push Docker image
         env:
+          IMAGE: ${{ env.IMAGE }}
           QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
           QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         run: |
-          echo "$QUAY_PASSWORD" | docker login quay.io -u "$QUAY_USERNAME" \
-            --password-stdin
-          docker push \
-            quay.io/sergio_canales_e/eventflow:${{ env.IMAGE_VERSION }}
+          echo "$QUAY_PASSWORD" | docker login "$REGISTRY" -u "$QUAY_USERNAME" --password-stdin
+          docker push "$IMAGE"
+          echo "LOGGED_IN=1" >> $GITHUB_ENV
+          REF=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")
+          echo "REF=$REF" >> $GITHUB_ENV
+
+      - name: Tag & push version alias
+        run: |
+          docker tag "$IMAGE" "${REGISTRY}/${IMAGE_NAME}:${VERSION}"
+          if [ "$LOGGED_IN" = "1" ]; then
+            docker push "${REGISTRY}/${IMAGE_NAME}:${VERSION}"
+          fi
+
+      - name: Sign images
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
+          cosign sign --key cosign.key --yes "$REF" || true
+          cosign sign --key cosign.key --yes "${REGISTRY}/${IMAGE_NAME}:${VERSION}" || true
+          rm -f cosign.key
+
+      - name: Attach SBOM
+        run: |
+          if [ ! -f sbom-image.cdx.json ]; then
+            syft packages "$REF" -o cyclonedx-json > sbom-image.cdx.json
+          fi
+          cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "$REF" || true
+          cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "${REGISTRY}/${IMAGE_NAME}:${VERSION}" || true
+
