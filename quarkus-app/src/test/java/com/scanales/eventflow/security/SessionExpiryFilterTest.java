@@ -4,11 +4,22 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Tests for session expiration handling. */
 @QuarkusTest
+@TestProfile(SessionExpiryFilterTest.Profile.class)
 public class SessionExpiryFilterTest {
+
+  public static class Profile implements QuarkusTestProfile {
+    @Override
+    public Map<String, String> getConfigOverrides() {
+      return Map.of("quarkus.http.auth.permission.protected.paths", "");
+    }
+  }
 
   @Test
   public void htmlExpiredSessionRedirectsToRoot() {
