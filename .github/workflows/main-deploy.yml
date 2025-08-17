@@ -4,15 +4,13 @@ name: Build Native and Deploy
 'on':
   push:
     branches: [main]
-    paths:
-      - 'quarkus-app/**'
-      - 'deployment/**'
   pull_request:
     types: [closed]
     branches: [main]
-    paths:
-      - 'quarkus-app/**'
-      - 'deployment/**'
+
+concurrency:
+  group: main-deploy
+  cancel-in-progress: false
 
 jobs:
   build:
