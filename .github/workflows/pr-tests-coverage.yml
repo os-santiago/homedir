@@ -2,6 +2,7 @@ name: PR Quality — Tests & Coverage
 
 on:
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
