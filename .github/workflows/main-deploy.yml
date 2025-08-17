@@ -1,7 +1,14 @@
+---
 name: Build Native and Deploy
 
-on:
+'on':
   push:
+    branches: [main]
+    paths:
+      - 'quarkus-app/**'
+      - 'deployment/**'
+  pull_request:
+    types: [closed]
     branches: [main]
     paths:
       - 'quarkus-app/**'
@@ -9,6 +16,10 @@ on:
 
 jobs:
   build:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
