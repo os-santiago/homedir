@@ -1,3 +1,15 @@
+(function(){
+  const origFetch = window.fetch;
+  window.fetch = async function(input, init) {
+    const res = await origFetch(input, init);
+    if (res.status === 401 && res.headers.get('X-Session-Expired') === 'true') {
+      try { sessionStorage.clear(); localStorage.clear(); } catch (e) {}
+      if (location.pathname !== '/') { location.assign('/'); }
+    }
+    return res;
+  };
+})();
+
 function adjustLayout() {
     if (window.innerWidth < 600) {
         document.body.classList.add('mobile');
