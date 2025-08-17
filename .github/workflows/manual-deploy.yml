@@ -1,0 +1,29 @@
+---
+name: Manual Build Native and Deploy
+
+'on':
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build & test
+        run: mvn -B -f quarkus-app/pom.xml package
+
+  build-native:
+    needs: build
+    uses: ./.github/workflows/build-native.yml
+    secrets: inherit
+
+  deploy:
+    needs: build-native
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
