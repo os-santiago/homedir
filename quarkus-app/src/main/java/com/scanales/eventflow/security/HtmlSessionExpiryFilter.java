@@ -7,17 +7,19 @@ import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
-/** Redirects unauthenticated or expired HTML requests to the home page. */
+/** Redirects expired or stale HTML sessions to the home page. */
 @Provider
 @PreMatching
 @Priority(Priorities.AUTHORIZATION)
@@ -49,8 +51,10 @@ public class HtmlSessionExpiryFilter implements ContainerRequestFilter {
 
     boolean anonymous = identity == null || identity.isAnonymous();
     boolean expired = isExpired(identity);
+    Map<String, Cookie> cookies = ctx.getCookies();
+    boolean hasSession = cookies.containsKey("q_session");
 
-    if (anonymous || expired) {
+    if ((anonymous && hasSession) || expired) {
       ctx.abortWith(
           Response.status(Response.Status.FOUND)
               .header(HttpHeaders.LOCATION, "/")

@@ -11,11 +11,12 @@ import org.junit.jupiter.api.Test;
 public class SessionExpiryFilterTest {
 
   @Test
-  public void htmlRedirectsToRootWhenUnauthorized() {
+  public void htmlExpiredSessionRedirectsToRoot() {
     given()
         .redirects()
         .follow(false)
         .accept("text/html")
+        .cookie("q_session", "expired")
         .when()
         .get("/private/admin")
         .then()
