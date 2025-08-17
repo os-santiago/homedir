@@ -1,12 +1,9 @@
 ---
-name: Docs and Root Auto Merge
+name: PR Auto Merge
 
 'on':
   pull_request:
     branches: ['main']
-    paths:
-      - 'docs/**'
-      - '*'
 
 permissions:
   contents: write
