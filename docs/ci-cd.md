@@ -24,3 +24,16 @@ The deploy workflow resolves the pull request image digest and promotes it witho
 - **Image identity**: written to the PR workflow summary and stored in `image-ref.txt` within the artifact.
 
 Switch to mandatory gating by setting repository variable `SECURITY_GATING` to `enforcing` in repository settings.
+
+## Tag & Release
+
+After merging to `main`:
+
+```bash
+git fetch origin && git checkout main && git pull
+git tag -a v2.1.4 -m "EventFlow 2.1.4"
+git push origin v2.1.4
+
+# Optional GitHub Release
+gh release create v2.1.4 -F RELEASE_NOTES.md -t "EventFlow 2.1.4"
+```

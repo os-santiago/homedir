@@ -2,7 +2,7 @@
 
 Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
 
-## 2.1.2 – Persistente con soporte de Eventos, Oradores y Charlas
+## 2.1.4 – Persistente con soporte de Eventos, Oradores y Charlas
 
 Esta versión elimina completamente la sincronización con repositorios Git introducida en versiones experimentales posteriores a v1.0.0.
 
@@ -112,6 +112,7 @@ For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
 - The immutable image digest (`REGISTRY/IMAGE_NAME@sha256:...`) is printed in the job summary and stored in the `security-reports` artifact along with SBOM and vulnerability reports.
 - Severity checks run in permissive mode by default; switch `vars.SECURITY_GATING` to `enforcing` to fail on findings.
 - When a PR is merged, the workflow resolves that same digest, retags it for `main` without rebuilding, signs it, and deploys using the digest.
+- A human-readable tag `quay.io/sergio_canales_e/eventflow:2.1.4` is published and signed, pointing to the same image; production deploys using the immutable digest.
 
 ## Community
 

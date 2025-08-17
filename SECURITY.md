@@ -33,7 +33,7 @@ Use one of these private channels:
    `EVENTFLOW SECURITY: <short title>`
 
 Please include (as applicable):
-- Affected versions (e.g., `2.1.2`)
+- Affected versions (e.g., `2.1.4`)
 - Environment (local/Docker/Kubernetes/OpenShift)
 - Impact summary (what can an attacker do?)
 - Reproduction steps or proof-of-concept

@@ -19,6 +19,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Derive version
+        run: |
+          cd quarkus-app
+          VERSION="$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          cd -
+          echo "## Version derivada: $VERSION" >> $GITHUB_STEP_SUMMARY
       - name: Build & test
         run: mvn -B -f quarkus-app/pom.xml package
       - name: Enable auto-merge
