@@ -3,7 +3,7 @@
 Thanks for your interest in contributing! We keep development **simple and fast** with a trunk-based approach:
 
 - ✅ **Always use Pull Requests** — no direct pushes to `main`.
-- 🔒 **`main` is protected** — required reviews and passing checks.
+- 🔒 **`main` is protected** — required checks block merges; no manual approvals.
 - 🌲 **Trunk-Based Development** — short-lived branches, frequent merges.
 - 🚨 **Define incidents before branching/merging** — classify and document the incident first.
 
@@ -14,10 +14,9 @@ Thanks for your interest in contributing! We keep development **simple and fast*
 1. **Pull Requests only**  
    All changes must come through a PR. Direct pushes to `main` are blocked.
 
-2. **Protected main**  
+2. **Protected main**
    `main` is the single trunk. It requires:
-   - Passing CI (build + tests + linters)
-   - At least one approval
+   - Passing the **PR Quality Suite** checks: `style`, `static`, `arch`, `tests_cov`, `deps` (the last one may be skipped if `pom.xml` is untouched)
    - **Squash & Merge** to keep a linear history
 
 3. **Small, short-lived branches**  
@@ -39,7 +38,7 @@ Thanks for your interest in contributing! We keep development **simple and fast*
 3. **Commit** using [Conventional Commits](https://www.conventionalcommits.org/):
    - `feat: …`, `fix: …`, `docs: …`, `chore: …`, `refactor: …`, `test: …`
 4. **Open a PR early** (Drafts welcome). Link to the Issue/Incident.
-5. **Green checks + review** → address feedback.
+5. **Green checks** → address any feedback.
 6. **Squash & Merge** to `main`.
 7. **Post-merge**: watch CI/CD and error reporting.
 
@@ -74,7 +73,7 @@ Always reference the Incident in branch name and PR description (e.g., `Refs INC
 Include a clear description (problem → solution) and the checklist:
 
 - [ ] Links Issue/Incident (`Closes #123` / `Refs INC-42`)
-- [ ] CI is green (build + tests + linters)
+- [ ] PR Quality Suite checks (`style`, `static`, `arch`, `tests_cov`, `deps`) are green
 - [ ] Screenshots/clip for UI/UX changes
 - [ ] Rollout/feature flag notes if applicable
 - [ ] Docs updated when needed (README/CHANGELOG/etc.)

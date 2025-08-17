@@ -1,0 +1,45 @@
+{
+  "name": "PR Quality Suite (required checks, no manual reviews)",
+  "target": "branch",
+  "source_type": "Repository",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          { "context": "PR Quality — Suite / style" },
+          { "context": "PR Quality — Suite / static" },
+          { "context": "PR Quality — Suite / arch" },
+          { "context": "PR Quality — Suite / tests_cov" },
+          { "context": "PR Quality — Suite / deps" }
+        ]
+      }
+    },
+    {
+      "type": "commit_message_pattern",
+      "parameters": {
+        "name": "Conventional Commits",
+        "negate": false,
+        "operator": "regex",
+        "pattern": "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\[[^\\]]+\\])?(\\([\\w\\-.]+\\))?(!)?: [\\w ].*"
+      }
+    }
+  ],
+  "bypass_actors": [
+    {
+      "actor_id": "scanalesespinoza",
+      "actor_type": "RepositoryCollaborator",
+      "bypass_mode": "pull_request"
+    }
+  ]
+}
