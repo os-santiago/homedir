@@ -1,119 +1,56 @@
 # eventflow
 
+[![Quality Gate](https://github.com/scanalesespinoza/eventflow/actions/workflows/quality.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/quality.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
 
-## 2.1.4 – Persistente con soporte de Eventos, Oradores y Charlas
+Latest stable release: **v2.1.4**.
 
-Esta versión elimina completamente la sincronización con repositorios Git introducida en versiones experimentales posteriores a v1.0.0.
+## Features
+- Manage events, speakers, scenarios, and talks
+- Sign in with Google using Quarkus OIDC
+- Admin area protected by `ADMIN_LIST`
+- Import events from JSON
+- Supply chain security with SBOM generation, image signing and vulnerability scanning
 
-### Cambios clave
-- Eliminada toda dependencia de JGit
-- Removida funcionalidad de sincronización automática
-- Panel de administración simplificado
-- Mejora en estabilidad y compatibilidad con compilación nativa
+## Quick start
+Run the application in dev mode:
 
-> **Nota:** Las versiones `v1.1.x` fueron experimentales y no deben usarse en producción.
+```bash
+mvn -f quarkus-app/pom.xml quarkus:dev
+```
 
-This demo uses Google Sign-In (OAuth 2.0) through the Quarkus OIDC extension. Configure the application by providing the following properties:
+Then browse to `http://localhost:8080`.
+
+### Google OAuth 2.0 setup
+Configure these properties in `application.properties` or environment variables:
 
 ```
 quarkus.oidc.provider=google
 quarkus.oidc.client-id=<CLIENT_ID>
 quarkus.oidc.credentials.secret=<CLIENT_SECRET>
-quarkus.oidc.application-type=web-app
 quarkus.oidc.authentication.redirect-path=/private
 quarkus.oidc.authentication.scopes=openid profile email
 quarkus.oidc.logout.post-logout-path=/
-quarkus.oidc.user-info-required=false
-quarkus.oidc.authentication.user-info-required=false
-quarkus.oidc.authentication.id-token-required=true
-quarkus.oidc.token.principal-claim=id_token
 ```
 
-The `provider=google` setting enables automatic discovery of all Google OAuth2 endpoints as well as JWKS. Set the client id and secret obtained from the Google Cloud console. After starting the application you can navigate to `/private` to trigger the login flow.
+Register `https://eventflow.opensourcesantiago.io/private` as an authorized redirect URI for production deployments.
 
-After authenticating you will be redirected to `/private/profile` where the application displays your profile information (name, given and family names, email, and sub) extracted from the ID token.
-
-Ensure `https://eventflow.opensourcesantiago.io/private` is registered as an authorized redirect URI in the Google OAuth2 client configuration if running in production.
-
-You can also configure these values using environment variables. The included `application.properties` expects `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` along with the rest of the OIDC URLs, as shown in `deployment/google-oauth-secret.yaml`.
-
-When deploying through GitHub Actions, the workflow populates these values from repository secrets and creates the `google-oauth` secret in the cluster. The manifest in `deployment/google-oauth-secret.yaml` is only a template and is not applied directly during deployment.
-
-## Admin access
-
-Endpoints under `/private/admin` are restricted to authenticated users whose
-email address is present in the comma separated list defined by the
-`ADMIN_LIST` configuration property or environment variable. Example:
+### Admin access
+Only emails listed in `ADMIN_LIST` can create or edit events:
 
 ```
 ADMIN_LIST=sergio.canales.e@gmail.com,alice@example.org
 ```
 
-Only users included in this list can create, edit or delete events and their
-associated scenarios and talks.
+### Importing events
+Upload a JSON file named `file` at `/private/admin/events` to import events. Duplicate IDs return `409 Conflict`; invalid JSON returns `400 Bad Request`.
 
-## Importing events from JSON
-
-The administration UI provides an option to import events using a JSON file.
-Use the form under `/private/admin/events` to upload a file named `file`
-with the `application/json` MIME type. The application validates the content
-and will respond with `409 Conflict` if an event with the same ID already
-exists or `400 Bad Request` when the JSON is invalid. A successful import
-redirects back to the event list displaying a confirmation banner.
-
-## Troubleshooting
-
-- **Error 401: invalid_client**
-  This indicates that the OAuth client credentials are incorrect. Verify that `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` (or the values in `google-oauth-secret.yaml`) match the client configuration in the Google Cloud console and that the redirect URI is registered correctly.
-- **The application supports RP-Initiated Logout but the OpenID Provider does not advertise the end_session_endpoint**
-  Google does not publish an RP logout endpoint. Ensure Quarkus' built-in logout is disabled by leaving `quarkus.oidc.logout.path` empty and using the provided `/logout` endpoint instead.
-
-## Supply chain: SBOM & Vulnerabilities
-
-The build generates Software Bill of Materials (SBOM) for dependencies and container images and scans the image for known vulnerabilities.
-
-### Local commands
-
-```bash
-# Build native binary and container image
-mvn -f quarkus-app/pom.xml -Pnative -Dquarkus.native.container-build=true -DskipTests verify
-docker build -f quarkus-app/src/main/docker/Dockerfile.native \
-  -t ${REGISTRY}/${IMAGE_NAME}:<tag> \
-  quarkus-app
-# Generate image SBOM
-syft oci:${REGISTRY}/${IMAGE_NAME}:<tag> -o cyclonedx-json > sbom-image.cdx.json
-# Scan image
-grype oci:${REGISTRY}/${IMAGE_NAME}:<tag> --fail-on High
-```
-
-### CI
-
-- `target/bom.json` and `sbom-image.cdx.json` are uploaded as workflow artifacts (Actions → Artifacts).
-- Vulnerability gating is warning-only unless `vars.SECURITY_GATING` is set to `enforcing`.
-  When enforcing, pushes to `main` fail on **Critical** findings.
-- Images are signed with [Cosign](https://github.com/sigstore/cosign) using keyless signatures when `vars.SIGN_KEYLESS` is `true`, or a private key when `COSIGN_PRIVATE_KEY`/`COSIGN_PASSWORD` secrets are provided.
-- The image SBOM can be attached to the image when `vars.SIGN_ATTACH_SBOM` is `true`.
-
-Required variables and secrets:
-
-- `REGISTRY` – container registry (defaults to `ghcr.io`)
-- `IMAGE_NAME` – repository path of the image (defaults to `owner/repo`)
-- `SECURITY_GATING` – `permissive` (default) or `enforcing`
-- `SIGN_KEYLESS=true` – enable keyless signing
-- `SIGN_ATTACH_SBOM=true` – attach SBOM to the image (optional)
-- `COSIGN_PRIVATE_KEY` and `COSIGN_PASSWORD` – key pair for signing (optional)
-
-For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
-
-### CI digests and promotion
-
-- Pull Requests build the native image destined for production and push it to the registry.
-- The immutable image digest (`REGISTRY/IMAGE_NAME@sha256:...`) is printed in the job summary and stored in the `security-reports` artifact along with SBOM and vulnerability reports.
-- Severity checks run in permissive mode by default; switch `vars.SECURITY_GATING` to `enforcing` to fail on findings.
-- When a PR is merged, the workflow resolves that same digest, retags it for `main` without rebuilding, signs it, and deploys using the digest.
-- A human-readable tag `quay.io/sergio_canales_e/eventflow:2.1.4` is published and signed, pointing to the same image; production deploys using the immutable digest.
+## Supply chain
+The build produces SBOMs for dependencies and container images and scans images for known vulnerabilities. CI publishes artifacts like `target/bom.json` and `sbom-image.cdx.json`, and images can be signed with Cosign.
 
 ## Community
+Project supported by the OpenSource Santiago community. Join our [Discord server](https://discord.gg/3eawzc9ybc).
 
-This project is supported by the OpenSource Santiago community. Join our Discord server: https://discord.gg/3eawzc9ybc.
+For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
