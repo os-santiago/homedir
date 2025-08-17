@@ -84,6 +84,10 @@ jobs:
           cosign sign --key cosign.key --yes "${REGISTRY}/${IMAGE_NAME}:${VERSION}" || true
           rm -f cosign.key
 
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Attach SBOM
         run: |
           if [ ! -f sbom-image.cdx.json ]; then
