@@ -23,7 +23,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 @Priority(Priorities.AUTHORIZATION)
 public class HtmlSessionExpiryFilter implements ContainerRequestFilter {
 
-  private static final Set<String> PUBLIC_PATHS = Set.of("/", "/health", "/metrics");
+  private static final Set<String> PUBLIC_PATHS = Set.of("/", "/login", "/health", "/metrics");
   private static final Pattern STATIC_PATTERN = Pattern.compile("^/(css|js|images|static|img)/.*");
 
   @Inject SecurityIdentity identity;
