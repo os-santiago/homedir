@@ -36,7 +36,7 @@ jobs:
         run: |
           cd quarkus-app
           mvn -B -ntp -DskipITs=false verify -Pcoverage
-          JACOCO_XML=$(git ls-files -z | tr '\0' '\n' | grep -E 'target/site/jacoco/jacoco\.xml$' | head -n1 || true)
+          JACOCO_XML=$(find . -path '*/target/site/jacoco/jacoco.xml' | head -n1 || true)
           if [ -z "$JACOCO_XML" ]; then
             echo "No se encontró jacoco.xml"; exit 1
           fi
