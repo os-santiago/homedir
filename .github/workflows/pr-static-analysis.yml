@@ -2,6 +2,7 @@ name: PR Quality — Static Analysis
 
 on:
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
