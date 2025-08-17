@@ -6,6 +6,8 @@ import java.util.Locale;
 
 /** Utility methods to compute and format metric trends. */
 public final class TrendUtils {
+  private static final DecimalFormatSymbols US_SYMBOLS = DecimalFormatSymbols.getInstance(Locale.US);
+
   private TrendUtils() {}
 
   /** Result of a trend calculation. */
@@ -42,9 +44,7 @@ public final class TrendUtils {
       formatted = "<0.1%";
       prefix = ""; // no sign for very small changes
     } else if (absPct < 10d) {
-      DecimalFormat df =
-          new DecimalFormat(
-              "#0." + "0".repeat(decimals), DecimalFormatSymbols.getInstance(Locale.US));
+      DecimalFormat df = new DecimalFormat("#0." + "0".repeat(decimals), US_SYMBOLS);
       formatted = df.format(absPct) + "%";
     } else {
       formatted = Math.round(absPct) + "%";
