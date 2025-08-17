@@ -74,4 +74,3 @@ public class HtmlSessionExpiryFilter implements ContainerRequestFilter {
     return exp != null && exp <= (System.currentTimeMillis() / 1000L);
   }
 }
-

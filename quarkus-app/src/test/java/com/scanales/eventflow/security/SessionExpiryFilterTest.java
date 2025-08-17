@@ -41,4 +41,3 @@ public class SessionExpiryFilterTest {
                 "Bearer realm=\"eventflow\", error=\"invalid_token\", error_description=\"expired\""));
   }
 }
-

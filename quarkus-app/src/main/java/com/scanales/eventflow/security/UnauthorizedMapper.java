@@ -20,4 +20,3 @@ public class UnauthorizedMapper implements ExceptionMapper<UnauthorizedException
         .build();
   }
 }
-
