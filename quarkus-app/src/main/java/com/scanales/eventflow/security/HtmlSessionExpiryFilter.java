@@ -36,7 +36,8 @@ public class HtmlSessionExpiryFilter implements ContainerRequestFilter {
     if (!redirectOnExpire) {
       return;
     }
-    String path = "/" + Optional.ofNullable(ctx.getUriInfo().getPath()).orElse("");
+    String rawPath = Optional.ofNullable(ctx.getUriInfo().getPath()).orElse("");
+    String path = rawPath.startsWith("/") ? rawPath : "/" + rawPath;
     String accept = Optional.ofNullable(ctx.getHeaderString(HttpHeaders.ACCEPT)).orElse("");
 
     boolean isHtml = accept.contains(MediaType.TEXT_HTML);
