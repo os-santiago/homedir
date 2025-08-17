@@ -107,7 +107,7 @@ Follow these quick steps before opening a pull request:
 
 1. **Install prerequisites** – Java 21 and Maven 3.9 or newer.
 2. **Format code** – `mvn -f quarkus-app/pom.xml spotless:apply`.
-3. **Check dependencies** – `mvn -f quarkus-app/pom.xml enforcer:enforce`.
+3. **Check dependencies** – `./dev/deps-check.sh` (ensures no duplicates, open ranges or unused deps).
 4. **Commit with Conventional Commits** (see table below).
 5. **Push and open the PR** – fix issues reported by CI and re-push.
 
@@ -121,6 +121,11 @@ Follow these quick steps before opening a pull request:
 | `chore: update deps` | maintenance or tooling |
 
 If CI reports a failure, apply the suggested command (usually formatting or dependency check), commit the fix and push again.
+
+The dependency check summarizes additions, updates and removals plus any violations:
+
+- **Duplicates / open ranges / convergence issues** → align versions in `dependencyManagement` or remove duplicates.
+- **Unused or undeclared dependencies** → delete or declare them explicitly.
 
 ### Test coverage & mutation
 
