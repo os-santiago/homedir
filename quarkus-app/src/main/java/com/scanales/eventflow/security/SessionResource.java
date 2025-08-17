@@ -31,4 +31,3 @@ public class SessionResource {
     return Map.of("active", true, "exp", exp);
   }
 }
-
