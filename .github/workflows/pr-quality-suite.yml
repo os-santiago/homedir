@@ -19,7 +19,7 @@ jobs:
       app_changed: ${{ steps.filter.outputs.app }}
       deps_changed: ${{ steps.filter.outputs.deps }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -34,7 +34,7 @@ jobs:
     name: style
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: echo "Style check placeholder (usa tu verificador de formato)"
 
   static:
