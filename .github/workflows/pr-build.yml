@@ -1,13 +1,8 @@
----
-name: Build
+name: PR Build
 
-'on':
-  push:
-    branches: ['main']
-    paths:
-      - 'quarkus-app/**'
+on:
   pull_request:
-    branches: ['main']
+    branches: [main]
     paths:
       - 'quarkus-app/**'
 
@@ -20,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
-          java-version: "21"
-      - name: Build with Maven
+          distribution: temurin
+          java-version: '21'
+      - name: Build & test
         run: mvn -B -f quarkus-app/pom.xml package
       - name: Enable auto-merge
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' }}
+        if: ${{ github.event.pull_request.base.ref == 'main' }}
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
