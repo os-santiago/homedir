@@ -43,8 +43,7 @@ public class ScenarioResource {
     }
     var event = eventService.findEventByScenario(id);
     var talks = eventService.findTalksForScenario(id);
-    metrics.recordStageVisit(
-        id, event != null ? event.getTimezone() : null, headers, context);
+    metrics.recordStageVisit(id, event != null ? event.getTimezone() : null, headers, context);
     return Templates.detail(s, event, talks);
   }
 }

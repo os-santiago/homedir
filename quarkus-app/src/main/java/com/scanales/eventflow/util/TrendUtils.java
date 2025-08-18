@@ -6,7 +6,8 @@ import java.util.Locale;
 
 /** Utility methods to compute and format metric trends. */
 public final class TrendUtils {
-  private static final DecimalFormatSymbols US_SYMBOLS = DecimalFormatSymbols.getInstance(Locale.US);
+  private static final DecimalFormatSymbols US_SYMBOLS =
+      DecimalFormatSymbols.getInstance(Locale.US);
 
   private TrendUtils() {}
 

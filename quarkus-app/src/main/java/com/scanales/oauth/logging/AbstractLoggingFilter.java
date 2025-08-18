@@ -6,8 +6,7 @@ import java.io.IOException;
 import org.jboss.logging.Logger;
 
 /**
- * Base logging filter with a per-class logger and a single entry point
- * delegating to subclasses.
+ * Base logging filter with a per-class logger and a single entry point delegating to subclasses.
  */
 public abstract class AbstractLoggingFilter implements ContainerRequestFilter {
 
