@@ -40,7 +40,7 @@ jobs:
           DIFF_FILES=$(git diff --name-only origin/main... | tr '\n' ' ')
           echo "Diff files: $DIFF_FILES"
           if [ -z "$DIFF_FILES" ]; then
-            echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0","version":"2.1.0","runs":[]}' > reports/analysis.sarif
+            echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0","version":"2.1.0","runs":[{"tool":{"driver":{"name":"semgrep"}},"results":[]}]}' > reports/analysis.sarif
           else
             semgrep scan --config=auto --severity=WARNING --sarif --output=reports/analysis.sarif $DIFF_FILES || true
           fi
