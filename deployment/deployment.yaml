@@ -45,7 +45,7 @@ spec:
             failureThreshold: 3
           env:
             - name: JAVA_TOOL_OPTIONS
-              value: "-XX:+UseContainerSupport -Deventflow.data.dir=/work/data"
+              value: "-XX:+UseContainerSupport -Deventflow.data.dir=/work/data -Dvertx.disableFileCaching=true -Dvertx.disableFileCPResolving=true"
             - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:
