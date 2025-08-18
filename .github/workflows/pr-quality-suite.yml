@@ -35,7 +35,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: echo "Style check placeholder (usa tu verificador de formato)"
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Run Spotless
+        working-directory: quarkus-app
+        run: ./mvnw --batch-mode spotless:check
 
   static:
     name: static
