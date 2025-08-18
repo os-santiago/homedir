@@ -13,6 +13,7 @@ concurrency:
 
 env:
   DEPS_GATING: ${{ vars.DEPS_GATING || 'warn' }}  # 'warn' | 'enforcing'
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   deps:
