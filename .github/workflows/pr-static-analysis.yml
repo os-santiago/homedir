@@ -27,6 +27,9 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Ensure Maven cache path exists
+        run: mkdir -p ~/.m2/repository
+
       - name: Run static analysis (diff-aware)
         run: |
           mkdir -p reports
