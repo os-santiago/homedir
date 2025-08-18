@@ -13,13 +13,11 @@
 #
 # docker run -i --rm -p 8080:8080 eventflow-native:2.1.4
 #
-# The `registry.access.redhat.com/ubi9/ubi-minimal:9.5` base image provides
-# GLIBC 2.34+ and is compatible with binaries built on newer systems. If you
-# require UBI 8, use `quay.io/ubi8/ubi-minimal:8.10`.
+# The base image has been switched to a distroless variant to reduce the attack surface
 ###
-FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
-WORKDIR /work/
-COPY target/*-runner /work/application
-RUN chmod 775 /work/application
+FROM gcr.io/distroless/base@sha256:b2404f60e475452152f15fba531fa6ed4b6d1d412498f36a127597673eeaf68f
+WORKDIR /work
+COPY --chown=1001:1001 --chmod=500 target/*-runner /work/application
+USER 1001
 EXPOSE 8080
 ENTRYPOINT ["./application"]
