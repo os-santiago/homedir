@@ -9,7 +9,7 @@ permissions:
 
 concurrency:
   group: qa-deps-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   DEPS_GATING: ${{ vars.DEPS_GATING || 'warn' }}  # 'warn' | 'enforcing'
