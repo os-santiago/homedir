@@ -17,7 +17,7 @@
 # GLIBC 2.34+ and is compatible with binaries built on newer systems. If you
 # require UBI 8, use `quay.io/ubi8/ubi-minimal:8.10`.
 ###
-FROM registry.redhat.io/ubi10/ubi-minimal:10.0-1754585875
+FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
 WORKDIR /work/
 COPY target/*-runner /work/application
 RUN chmod 775 /work/application
