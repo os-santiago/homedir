@@ -15,7 +15,7 @@
 #
 # The base image has been switched to a distroless variant to reduce the attack surface
 ###
-FROM gcr.io/distroless/base@sha256:b2404f60e475452152f15fba531fa6ed4b6d1d412498f36a127597673eeaf68f
+FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
 WORKDIR /work
 COPY --chown=1001:1001 --chmod=500 target/*-runner /work/application
 USER 1001
