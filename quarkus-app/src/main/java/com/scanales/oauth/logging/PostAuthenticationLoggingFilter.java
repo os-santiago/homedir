@@ -8,30 +8,26 @@ import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.util.Optional;
-import org.jboss.logging.Logger;
 
 /** Logs token information and user details after a successful authentication. */
 @Provider
 @Priority(Priorities.AUTHENTICATION + 1)
-public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
-
-  private static final Logger LOG = Logger.getLogger(PostAuthenticationLoggingFilter.class);
+public class PostAuthenticationLoggingFilter extends AbstractLoggingFilter {
 
   @Inject SecurityIdentity identity;
 
   @Override
-  public void filter(ContainerRequestContext requestContext) throws IOException {
+  protected void handle(ContainerRequestContext requestContext) throws IOException {
     if (identity == null || identity.isAnonymous()) {
       return;
     }
 
     IdTokenCredential idToken = identity.getCredential(IdTokenCredential.class);
     if (idToken != null) {
-      LOG.infov("ID Token: {0}", idToken.getToken());
+      log.infov("ID Token: {0}", idToken.getToken());
       String token = idToken.getToken();
       String[] parts = token.split("\\.");
       if (parts.length >= 2) {
@@ -39,13 +35,13 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
             new String(
                 java.util.Base64.getUrlDecoder().decode(parts[1]),
                 java.nio.charset.StandardCharsets.UTF_8);
-        LOG.infov("ID Token claims: {0}", claimsJson);
+        log.infov("ID Token claims: {0}", claimsJson);
       }
     }
 
     AccessTokenCredential accessToken = identity.getCredential(AccessTokenCredential.class);
     if (accessToken != null) {
-      LOG.infov("Access Token: {0}", accessToken.getToken());
+      log.infov("Access Token: {0}", accessToken.getToken());
     }
 
     String sub = getClaim("sub");
@@ -69,7 +65,7 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
     checkAttribute("locale", locale);
     checkAttribute("picture", picture);
 
-    LOG.infof(
+    log.infof(
         "User Authenticated:%n"
             + "sub: %s%n"
             + "preferred_username: %s%n"
@@ -95,7 +91,7 @@ public class PostAuthenticationLoggingFilter implements ContainerRequestFilter {
 
   private void checkAttribute(String attrName, String value) {
     if (value == null || value.isBlank()) {
-      LOG.warnf("Missing OIDC claim: %s", attrName);
+      log.warnf("Missing OIDC claim: %s", attrName);
     }
   }
 }

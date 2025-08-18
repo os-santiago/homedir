@@ -41,9 +41,7 @@ public class HomeResource {
   public TemplateInstance home(
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    String ua = headers.getHeaderString("User-Agent");
-    String sessionId = context.session() != null ? context.session().id() : null;
-    metrics.recordPageView("/", sessionId, ua);
+    metrics.recordPageView("/", headers, context);
     var events =
         eventService.listEvents().stream()
             .sorted(

@@ -2,10 +2,12 @@ package com.scanales.eventflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.model.Speaker;
+import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.Duration;
@@ -185,6 +187,12 @@ public class UsageMetricsService {
     recordPageView(route, null, ua);
   }
 
+  public void recordPageView(String route, HttpHeaders headers, RoutingContext context) {
+    String ua = headers.getHeaderString("User-Agent");
+    String sessionId = context.session() != null ? context.session().id() : null;
+    recordPageView(route, sessionId, ua);
+  }
+
   public void recordPageView(String route, String sessionId, String ua) {
     if (isBot(ua)) {
       incrementDiscard("bot");
@@ -306,6 +314,13 @@ public class UsageMetricsService {
       }
     }
     increment("stage_visit:" + stageId + ":" + today);
+  }
+
+  public void recordStageVisit(
+      String stageId, String timezone, HttpHeaders headers, RoutingContext context) {
+    String ua = headers.getHeaderString("User-Agent");
+    String sessionId = context.session() != null ? context.session().id() : null;
+    recordStageVisit(stageId, timezone, sessionId, ua);
   }
 
   public void recordCta(String name, String timezone) {

@@ -18,34 +18,34 @@ def load_sarif(path):
 baseline = load_sarif(baseline_path)
 analysis = load_sarif(analysis_path)
 
-baseline_set = set()
-for run in baseline.get("runs", []):
-    for result in run.get("results", []):
-        rule = result.get("ruleId")
-        loc = result.get("locations", [{}])[0]
-        phys = loc.get("physicalLocation", {})
-        file = phys.get("artifactLocation", {}).get("uri")
-        line = phys.get("region", {}).get("startLine")
-        baseline_set.add((rule, file, line))
+
+def iter_results(sarif):
+    for run in sarif.get("runs", []):
+        for result in run.get("results", []):
+            rule = result.get("ruleId")
+            loc = result.get("locations", [{}])[0]
+            phys = loc.get("physicalLocation", {})
+            file = phys.get("artifactLocation", {}).get("uri")
+            line = phys.get("region", {}).get("startLine")
+            yield rule, file, line, result
+
+
+baseline_set = {(rule, file, line) for rule, file, line, _ in iter_results(baseline)}
 
 new_results = []
-for run in analysis.get("runs", []):
-    for result in run.get("results", []):
-        rule = result.get("ruleId")
-        loc = result.get("locations", [{}])[0]
-        phys = loc.get("physicalLocation", {})
-        file = phys.get("artifactLocation", {}).get("uri")
-        line = phys.get("region", {}).get("startLine")
-        if (rule, file, line) not in baseline_set:
-            level = result.get("level", "note")
-            message = result.get("message", {}).get("text", "")
-            new_results.append({
+for rule, file, line, result in iter_results(analysis):
+    if (rule, file, line) not in baseline_set:
+        level = result.get("level", "note")
+        message = result.get("message", {}).get("text", "")
+        new_results.append(
+            {
                 "ruleId": rule,
                 "file": file,
                 "line": line,
                 "level": level,
                 "message": message,
-            })
+            }
+        )
 
 severity_map = {"error": "High", "warning": "Medium"}
 counts = {"High": 0, "Medium": 0, "Low": 0}
