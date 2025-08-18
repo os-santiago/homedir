@@ -4,6 +4,9 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![PR Quality — Architecture Rules](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-architecture-rules.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-architecture-rules.yml)
 [![PR Quality — Static Analysis](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-static-analysis.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-static-analysis.yml)
+[![PR Quality — Dependencies](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-deps-hygiene.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-deps-hygiene.yml)
+[![PR Quality — Tests & Coverage](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-tests-coverage.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-tests-coverage.yml)
+[![PR Quality — Suite](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-quality-suite.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-quality-suite.yml)
 
 
 Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
