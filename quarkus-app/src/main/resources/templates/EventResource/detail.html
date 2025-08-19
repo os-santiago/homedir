@@ -63,7 +63,7 @@ Evento
       <article class="scenario-card">
         <h3>{s.name}</h3>
         {#if s.location}<p class="scenario-location">{s.location}</p>{/if}
-        <a href="/scenario/{s.id}" class="btn">Ver charlas</a>
+        <a href="/event/{event.id}/scenario/{s.id}" class="btn">Ver charlas</a>
       </article>
       {/for}
     </div>
@@ -103,7 +103,7 @@ Evento
                 {#if t.break}
                 <span class="agenda-title-text">{t.name}</span>
                 {#else}
-                <a href="/talk/{t.id}" class="agenda-title-text">{t.name}</a>
+                <a href="/event/{event.id}/talk/{t.id}" class="agenda-title-text">{t.name}</a>
                 {/if}
               </td>
               <td class="agenda-speakers">
@@ -121,7 +121,7 @@ Evento
                 </span>
                 {/if}
               </td>
-              <td class="agenda-location"><a href="/scenario/{t.location}">{event.getScenarioName(t.location)}</a></td>
+              <td class="agenda-location"><a href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a></td>
             </tr>
             {/for}
           </tbody>
@@ -149,7 +149,7 @@ Evento
                   {#if t.break}
                   {t.name}
                   {#else}
-                  <a href="/talk/{t.id}">{t.name}</a>
+                  <a href="/event/{event.id}/talk/{t.id}">{t.name}</a>
                   {#if !t.speakers.isEmpty()}
                   <div class="agenda-slot-speakers">
                     {#for s in t.speakers}
