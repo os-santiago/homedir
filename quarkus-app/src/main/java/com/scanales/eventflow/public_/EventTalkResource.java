@@ -44,7 +44,7 @@ public class EventTalkResource {
     metrics.recordPageView("/event/" + eventId + "/talk", sessionId, ua);
     try {
       String canonicalTalkId = canonicalize(talkId);
-      Talk talk = eventService.findTalk(canonicalTalkId);
+      Talk talk = eventService.findTalk(eventId, canonicalTalkId);
       if (talk == null) {
         LOG.warnf("Talk %s not found", talkId);
         return Response.status(Response.Status.NOT_FOUND).build();
