@@ -26,6 +26,11 @@ public class EventTalkResource {
   @Inject UsageMetricsService metrics;
 
   private String canonicalize(String rawId) {
+    int talkIdx = rawId.indexOf("-talk-");
+    if (talkIdx >= 0) {
+      int next = rawId.indexOf('-', talkIdx + 6);
+      return next >= 0 ? rawId.substring(0, next) : rawId;
+    }
     int idx = rawId.indexOf('-');
     return idx >= 0 ? rawId.substring(0, idx) : rawId;
   }
@@ -44,7 +49,7 @@ public class EventTalkResource {
     metrics.recordPageView("/event/" + eventId + "/talk", sessionId, ua);
     try {
       String canonicalTalkId = canonicalize(talkId);
-      Talk talk = eventService.findTalk(canonicalTalkId);
+      Talk talk = eventService.findTalk(eventId, canonicalTalkId);
       if (talk == null) {
         LOG.warnf("Talk %s not found", talkId);
         return Response.status(Response.Status.NOT_FOUND).build();

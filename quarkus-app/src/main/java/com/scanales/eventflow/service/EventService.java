@@ -153,6 +153,18 @@ public class EventService {
         .orElse(null);
   }
 
+  /** Returns the talk with the given id within the specified event or {@code null} if not found. */
+  public Talk findTalk(String eventId, String talkId) {
+    Event event = events.get(eventId);
+    if (event == null) {
+      return null;
+    }
+    return event.getAgenda().stream()
+        .filter(t -> t.getId().equals(talkId))
+        .findFirst()
+        .orElse(null);
+  }
+
   /** Returns the event that contains the given scenario or {@code null} if none. */
   public Event findEventByScenario(String scenarioId) {
     return events.values().stream()
@@ -194,7 +206,11 @@ public class EventService {
   public List<Talk> findTalkOccurrences(String talkId) {
     return events.values().stream()
         .flatMap(e -> e.getAgenda().stream().filter(t -> t.getId().equals(talkId)))
-        .sorted(java.util.Comparator.comparingInt(Talk::getDay).thenComparing(Talk::getStartTime))
+        .sorted(
+            java.util.Comparator.comparingInt(Talk::getDay)
+                .thenComparing(
+                    Talk::getStartTime,
+                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
   }
 
@@ -203,7 +219,11 @@ public class EventService {
     return events.values().stream()
         .flatMap(e -> e.getAgenda().stream())
         .filter(t -> scenarioId.equals(t.getLocation()))
-        .sorted(java.util.Comparator.comparingInt(Talk::getDay).thenComparing(Talk::getStartTime))
+        .sorted(
+            java.util.Comparator.comparingInt(Talk::getDay)
+                .thenComparing(
+                    Talk::getStartTime,
+                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
   }
 
