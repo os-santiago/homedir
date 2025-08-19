@@ -36,7 +36,7 @@ Escenario
       </div>
       {/if}
       <p class="talk-time">Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min)</p>
-      {#if !t.break}<a href="/talk/{t.id}" class="btn btn-secondary">Ver charla</a>{/if}
+  {#if !t.break && event}<a href="/event/{event.id}/talk/{t.id}" class="btn btn-secondary">Ver charla</a>{/if}
     </li>
   {/for}
   </ul>
