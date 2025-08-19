@@ -91,50 +91,51 @@ public class TalkResource {
       return Response.serverError().build();
     }
   }
-}
-    /**
-     * Nueva ruta: /event/{eventId}/talk/{talkId}
-     * Permite mostrar la charla en el contexto del evento de origen.
-     */
-    @GET
-    @Path("/event/{eventId}/talk/{talkId}")
-    @PermitAll
-    @Produces(MediaType.TEXT_HTML)
-    public Response detailWithEvent(
-        @PathParam("eventId") String eventId,
-        @PathParam("talkId") String talkId,
-        @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
-        @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-      String ua = headers.getHeaderString("User-Agent");
-      String sessionId = context.session() != null ? context.session().id() : null;
-      metrics.recordPageView("/event/" + eventId + "/talk", sessionId, ua);
-      try {
-        Talk talk = eventService.findTalk(talkId);
-        if (talk == null) {
-          LOG.warnf("Talk %s not found", talkId);
-          return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        var event = eventService.findEvent(eventId); // Usar el evento explícito
-        var occurrences = eventService.findTalkOccurrences(talkId);
-        metrics.recordTalkView(talkId, sessionId, ua);
-        if (talk.getLocation() != null) {
-          metrics.recordStageVisit(
-              talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
-        }
-        boolean inSchedule = false;
-        if (identity != null && !identity.isAnonymous()) {
-          String email = identity.getAttribute("email");
-          if (email == null) {
-            var principal = identity.getPrincipal();
-            email = principal != null ? principal.getName() : null;
-          }
-          if (email != null) {
-            inSchedule = userSchedule.getTalksForUser(email).contains(talkId);
-          }
-        }
-        return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)).build();
-      } catch (Exception e) {
-        LOG.errorf(e, "Error rendering talk %s", talkId);
-        return Response.serverError().build();
+
+  /**
+   * Nueva ruta: /event/{eventId}/talk/{talkId}
+   * Permite mostrar la charla en el contexto del evento de origen.
+   */
+  @GET
+  @Path("/event/{eventId}/talk/{talkId}")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public Response detailWithEvent(
+      @PathParam("eventId") String eventId,
+      @PathParam("talkId") String talkId,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    String ua = headers.getHeaderString("User-Agent");
+    String sessionId = context.session() != null ? context.session().id() : null;
+    metrics.recordPageView("/event/" + eventId + "/talk", sessionId, ua);
+    try {
+      Talk talk = eventService.findTalk(talkId);
+      if (talk == null) {
+        LOG.warnf("Talk %s not found", talkId);
+        return Response.status(Response.Status.NOT_FOUND).build();
       }
+      var event = eventService.getEvent(eventId); // Usar el evento explícito
+      var occurrences = eventService.findTalkOccurrences(talkId);
+      metrics.recordTalkView(talkId, sessionId, ua);
+      if (talk.getLocation() != null) {
+        metrics.recordStageVisit(
+            talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
+      }
+      boolean inSchedule = false;
+      if (identity != null && !identity.isAnonymous()) {
+        String email = identity.getAttribute("email");
+        if (email == null) {
+          var principal = identity.getPrincipal();
+          email = principal != null ? principal.getName() : null;
+        }
+        if (email != null) {
+          inSchedule = userSchedule.getTalksForUser(email).contains(talkId);
+        }
+      }
+      return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)).build();
+    } catch (Exception e) {
+      LOG.errorf(e, "Error rendering talk %s", talkId);
+      return Response.serverError().build();
     }
+  }
+}
