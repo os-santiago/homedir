@@ -126,6 +126,10 @@
           {#else}
             <span>Ubicación por confirmar</span>
           {/if}
+          {#if event && t.id}
+            <span class="sep">|</span>
+            <a href="/event/{event.id}/talk/{t.id}" class="btn btn-link">Ver charla</a>
+          {/if}
         </li>
     {/for}
     </ul>
