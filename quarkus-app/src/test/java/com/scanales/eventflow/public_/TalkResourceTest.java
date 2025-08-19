@@ -48,4 +48,14 @@ public class TalkResourceTest {
         .statusCode(200)
         .body(containsString("Charla de prueba"));
   }
+
+  @Test
+  public void talkUrlWithSlugIsResolved() {
+    given()
+        .when()
+        .get("/event/" + EVENT_ID + "/talk/" + TALK_ID + "-extra")
+        .then()
+        .statusCode(200)
+        .body(containsString("Charla de prueba"));
+  }
 }
