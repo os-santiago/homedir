@@ -13,7 +13,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/")
+@Path("")
 public class ScenarioResource {
 
   @CheckedTemplate

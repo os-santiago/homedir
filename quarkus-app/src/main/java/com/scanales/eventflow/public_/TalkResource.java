@@ -17,7 +17,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
-@Path("/")
+@Path("")
 public class TalkResource {
 
   private static final Logger LOG = Logger.getLogger(TalkResource.class);
