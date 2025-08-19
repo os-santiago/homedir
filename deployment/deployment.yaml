@@ -113,6 +113,7 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext:
+        fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
       terminationGracePeriodSeconds: 30
