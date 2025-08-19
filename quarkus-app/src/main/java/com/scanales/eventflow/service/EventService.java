@@ -206,7 +206,11 @@ public class EventService {
   public List<Talk> findTalkOccurrences(String talkId) {
     return events.values().stream()
         .flatMap(e -> e.getAgenda().stream().filter(t -> t.getId().equals(talkId)))
-        .sorted(java.util.Comparator.comparingInt(Talk::getDay).thenComparing(Talk::getStartTime))
+        .sorted(
+            java.util.Comparator.comparingInt(Talk::getDay)
+                .thenComparing(
+                    Talk::getStartTime,
+                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
   }
 
@@ -215,7 +219,11 @@ public class EventService {
     return events.values().stream()
         .flatMap(e -> e.getAgenda().stream())
         .filter(t -> scenarioId.equals(t.getLocation()))
-        .sorted(java.util.Comparator.comparingInt(Talk::getDay).thenComparing(Talk::getStartTime))
+        .sorted(
+            java.util.Comparator.comparingInt(Talk::getDay)
+                .thenComparing(
+                    Talk::getStartTime,
+                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
   }
 
