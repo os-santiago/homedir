@@ -13,7 +13,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/scenario")
+@Path("/")
 public class ScenarioResource {
 
   @CheckedTemplate
@@ -29,7 +29,7 @@ public class ScenarioResource {
   @Inject UsageMetricsService metrics;
 
   @GET
-  @Path("{id}")
+  @Path("/scenario/{id}")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance detail(
