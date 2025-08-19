@@ -17,7 +17,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
-@Path("/talk")
+@Path("/")
 public class TalkResource {
 
   private static final Logger LOG = Logger.getLogger(TalkResource.class);
@@ -40,7 +40,7 @@ public class TalkResource {
   @Inject UsageMetricsService metrics;
 
   @GET
-  @Path("{id}")
+  @Path("/talk/{id}")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public Response detail(

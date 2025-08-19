@@ -25,7 +25,7 @@
         <div class="talk-row" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating??}">
           <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
           <span class="talk-time">{t.startTimeStr} - {t.endTimeStr}</span>
-          <span class="talk-title"><a href="/talk/{t.id}">{t.name}</a></span>
+          <span class="talk-title"><a href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
           <div class="speaker-avatars">
             {#for s in t.speakers}
               <a href="/speaker/{s.id}" title="{s.name}">
