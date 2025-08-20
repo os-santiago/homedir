@@ -70,10 +70,31 @@ import org.junit.jupiter.api.Test;
     assertFalse(
         userSchedule.getTalkDetailsForUser("user@example.com").containsKey(TALK_ID));
     given()
+        .redirects()
+        .follow(false)
         .when()
         .get("/talk/" + TALK_ID + "?qr=1")
         .then()
-        .statusCode(200);
+        .statusCode(303)
+        .header("Location", containsString("/profile"));
+    var details = userSchedule.getTalkDetailsForUser("user@example.com").get(TALK_ID);
+    assertNotNull(details);
+    assertTrue(details.attended);
+  }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  public void qrAddsTalkAndMarksAttendedFromEvent() {
+    assertFalse(
+        userSchedule.getTalkDetailsForUser("user@example.com").containsKey(TALK_ID));
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/event/" + EVENT_ID + "/talk/" + TALK_ID + "?qr=1")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/profile"));
     var details = userSchedule.getTalkDetailsForUser("user@example.com").get(TALK_ID);
     assertNotNull(details);
     assertTrue(details.attended);
