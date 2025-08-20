@@ -7,6 +7,9 @@ name: Build Native and Deploy
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_run:
+    workflows: ["PR Auto Merge"]
+    types: [completed]
 
 concurrency:
   group: main-deploy
@@ -17,10 +20,15 @@ jobs:
     if: >-
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' &&
-      github.event.pull_request.merged == true)
+      github.event.pull_request.merged == true) ||
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.pull_requests[0].merged == true)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_commit.id || github.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
