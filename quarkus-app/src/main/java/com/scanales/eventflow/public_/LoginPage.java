@@ -13,13 +13,13 @@ public class LoginPage {
 
   @CheckedTemplate
   static class Templates {
-    static native TemplateInstance login();
+    static native TemplateInstance login(String redirect);
   }
 
   @GET
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance login() {
-    return Templates.login();
+  public TemplateInstance login(@jakarta.ws.rs.QueryParam("redirect") String redirect) {
+    return Templates.login(redirect);
   }
 }

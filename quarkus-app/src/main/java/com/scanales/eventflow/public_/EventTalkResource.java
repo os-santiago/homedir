@@ -42,6 +42,7 @@ public class EventTalkResource {
   public Response detailWithEvent(
       @PathParam("eventId") String eventId,
       @PathParam("talkId") String talkId,
+      @jakarta.ws.rs.QueryParam("qr") String qr,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     String ua = headers.getHeaderString("User-Agent");
@@ -61,7 +62,16 @@ public class EventTalkResource {
         metrics.recordStageVisit(
             talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
       }
+      boolean fromQr = qr != null;
+      if (fromQr && (identity == null || identity.isAnonymous())) {
+        String target = "/event/" + eventId + "/talk/" + talkId + "?qr=1";
+        String enc = java.net.URLEncoder.encode(target, java.nio.charset.StandardCharsets.UTF_8);
+        return Response.seeOther(java.net.URI.create("/login?redirect=" + enc)).build();
+      }
+
       boolean inSchedule = false;
+      UserScheduleService.TalkDetails details = null;
+      boolean canEdit = false;
       if (identity != null && !identity.isAnonymous()) {
         String email = identity.getAttribute("email");
         if (email == null) {
@@ -70,9 +80,21 @@ public class EventTalkResource {
         }
         if (email != null) {
           inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
+          details = userSchedule.getTalkDetailsForUser(email).get(canonicalTalkId);
+          if (details != null && details.ratedAt != null) {
+            canEdit =
+                details
+                    .ratedAt
+                    .plus(java.time.Duration.ofHours(24))
+                    .isAfter(java.time.Instant.now());
+          } else {
+            canEdit = true;
+          }
         }
       }
-      return Response.ok(TalkResource.Templates.detail(talk, event, occurrences, inSchedule))
+      return Response.ok(
+              TalkResource.Templates.detail(
+                  talk, event, occurrences, inSchedule, details, fromQr, canEdit))
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", talkId);

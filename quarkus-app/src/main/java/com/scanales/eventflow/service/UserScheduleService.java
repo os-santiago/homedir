@@ -6,6 +6,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,6 +86,8 @@ public class UserScheduleService {
     public Set<String> motivations = ConcurrentHashMap.newKeySet();
     public boolean attended;
     public Integer rating; // 1-5 or null if not rated
+    public String comment;
+    public java.time.Instant ratedAt;
   }
 
   /** Adds the talk id to the schedule for the given user email. */
@@ -130,7 +133,12 @@ public class UserScheduleService {
 
   /** Updates the stored details for a given talk. */
   public boolean updateTalk(
-      String email, String talkId, Boolean attended, Integer rating, Set<String> motivations) {
+      String email,
+      String talkId,
+      Boolean attended,
+      Integer rating,
+      Set<String> motivations,
+      String comment) {
     if (email == null || talkId == null) return false;
     Map<String, TalkDetails> talks = schedules.get(email);
     if (talks == null) return false;
@@ -139,12 +147,25 @@ public class UserScheduleService {
     if (attended != null) {
       details.attended = attended;
     }
-    if (rating != null) {
-      details.rating = rating;
-    }
     if (motivations != null) {
       details.motivations.clear();
       details.motivations.addAll(motivations);
+    }
+    if (rating != null || comment != null) {
+      boolean editable =
+          details.ratedAt == null
+              || details.ratedAt.plus(Duration.ofHours(24)).isAfter(Instant.now());
+      if (editable) {
+        if (rating != null) {
+          details.rating = rating;
+        }
+        if (comment != null) {
+          details.comment = comment;
+        }
+        if (details.ratedAt == null && (rating != null || comment != null)) {
+          details.ratedAt = Instant.now();
+        }
+      }
     }
     persistence.saveUserSchedules(activeYear, schedules);
     return true;
