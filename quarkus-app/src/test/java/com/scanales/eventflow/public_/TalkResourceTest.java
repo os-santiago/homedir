@@ -21,7 +21,7 @@ public class TalkResourceTest {
   @Inject EventService eventService;
 
   private static final String EVENT_ID = "e1";
-  private static final String TALK_ID = "t1";
+  private static final String TALK_ID = "s1-talk-1";
 
   @BeforeEach
   public void setup() {

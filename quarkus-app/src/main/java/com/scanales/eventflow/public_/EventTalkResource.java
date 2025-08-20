@@ -26,6 +26,11 @@ public class EventTalkResource {
   @Inject UsageMetricsService metrics;
 
   private String canonicalize(String rawId) {
+    int talkIdx = rawId.indexOf("-talk-");
+    if (talkIdx >= 0) {
+      int next = rawId.indexOf('-', talkIdx + 6);
+      return next >= 0 ? rawId.substring(0, next) : rawId;
+    }
     int idx = rawId.indexOf('-');
     return idx >= 0 ? rawId.substring(0, idx) : rawId;
   }
