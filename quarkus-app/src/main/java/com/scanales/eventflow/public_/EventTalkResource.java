@@ -72,8 +72,7 @@ public class EventTalkResource {
           inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
         }
       }
-      return Response.ok(
-              TalkResource.Templates.detail(talk, event, occurrences, inSchedule))
+      return Response.ok(TalkResource.Templates.detail(talk, event, occurrences, inSchedule))
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", talkId);

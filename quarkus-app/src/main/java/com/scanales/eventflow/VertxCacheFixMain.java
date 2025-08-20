@@ -6,13 +6,13 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 /**
  * Custom entry point that tunes Vert.x before Quarkus starts.
  *
- * <p>Some deployment environments mount the filesystem as read only. Vert.x
- * normally extracts classpath resources to a temporary directory, creating a
- * {@code vertx-cache} folder under {@code java.io.tmpdir}. When the filesystem is
- * not writable, this fails and the application cannot start.</p>
+ * <p>Some deployment environments mount the filesystem as read only. Vert.x normally extracts
+ * classpath resources to a temporary directory, creating a {@code vertx-cache} folder under {@code
+ * java.io.tmpdir}. When the filesystem is not writable, this fails and the application cannot
+ * start.
  *
- * <p>This main class disables Vert.x file caching <em>and</em> classpath resolving
- * so Vert.x no longer attempts to create the cache directory.</p>
+ * <p>This main class disables Vert.x file caching <em>and</em> classpath resolving so Vert.x no
+ * longer attempts to create the cache directory.
  */
 @QuarkusMain
 public class VertxCacheFixMain {

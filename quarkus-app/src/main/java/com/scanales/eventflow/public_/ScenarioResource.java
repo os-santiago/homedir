@@ -48,8 +48,8 @@ public class ScenarioResource {
   }
 
   /**
-   * Nueva ruta: /event/{eventId}/scenario/{id}
-   * Permite mostrar el escenario en el contexto del evento de origen.
+   * Nueva ruta: /event/{eventId}/scenario/{id} Permite mostrar el escenario en el contexto del
+   * evento de origen.
    */
   @GET
   @Path("/event/{eventId}/scenario/{id}")
