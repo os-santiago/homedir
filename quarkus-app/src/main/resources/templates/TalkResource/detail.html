@@ -165,33 +165,6 @@
       {#else}
       <p>Gracias por tu evaluación.</p>
       {/if}
-    {#else}
-      <p>Aún no has registrado esta charla.</p>
-      <button id="register-eval" class="btn">Registrar charla y evaluar</button>
-      <script>
-      (function(){
-        const btn = document.getElementById('register-eval');
-        btn.addEventListener('click', async () => {
-          btn.disabled = true;
-          try {
-            const res = await fetch('/private/profile/add/{talk.id}', {
-              method:'POST',
-              headers:{'Accept':'application/json','Content-Type':'application/json'},
-              body:'{}'
-            });
-            if (res.ok) {
-              window.location.href = window.location.pathname + '?qr=1';
-            } else {
-              showNotification('error','No se pudo registrar');
-              btn.disabled = false;
-            }
-          } catch(e){
-            showNotification('error','No se pudo registrar');
-            btn.disabled = false;
-          }
-        });
-      })();
-      </script>
     {/if}
   {/if}
   {#if !occurrences.isEmpty()}

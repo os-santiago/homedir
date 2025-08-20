@@ -107,6 +107,13 @@ public class TalkResource {
         }
         if (email != null) {
           inSchedule = userSchedule.getTalksForUser(email).contains(canonicalId);
+          if (fromQr && !inSchedule) {
+            boolean added = userSchedule.addTalkForUser(email, canonicalId);
+            if (added) {
+              metrics.recordTalkRegister(canonicalId, talk.getSpeakers(), ua);
+            }
+            inSchedule = userSchedule.getTalksForUser(email).contains(canonicalId);
+          }
           details = userSchedule.getTalkDetailsForUser(email).get(canonicalId);
           if (details != null && details.ratedAt != null) {
             canEdit =
