@@ -55,7 +55,7 @@ public class EventTalkResource {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
       var event = eventService.getEvent(eventId);
-      var occurrences = eventService.findTalkOccurrences(canonicalTalkId);
+      var occurrences = eventService.findTalkOccurrences(eventId, canonicalTalkId);
       metrics.recordTalkView(canonicalTalkId, sessionId, ua);
       if (talk.getLocation() != null) {
         metrics.recordStageVisit(
