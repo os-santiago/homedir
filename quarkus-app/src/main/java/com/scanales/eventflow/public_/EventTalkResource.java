@@ -89,6 +89,7 @@ public class EventTalkResource {
               inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
             }
             userSchedule.updateTalk(email, canonicalTalkId, true, null, null, null);
+            return Response.seeOther(java.net.URI.create("/profile")).build();
           }
           details = userSchedule.getTalkDetailsForUser(email).get(canonicalTalkId);
           if (details != null && details.ratedAt != null) {

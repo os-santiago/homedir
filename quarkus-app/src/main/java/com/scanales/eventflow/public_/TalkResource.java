@@ -116,6 +116,7 @@ public class TalkResource {
               inSchedule = userSchedule.getTalksForUser(email).contains(canonicalId);
             }
             userSchedule.updateTalk(email, canonicalId, true, null, null, null);
+            return Response.seeOther(java.net.URI.create("/profile")).build();
           }
           details = userSchedule.getTalkDetailsForUser(email).get(canonicalId);
           if (details != null && details.ratedAt != null) {
