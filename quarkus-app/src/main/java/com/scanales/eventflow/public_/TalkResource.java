@@ -28,7 +28,10 @@ public class TalkResource {
         Talk talk,
         com.scanales.eventflow.model.Event event,
         java.util.List<Talk> occurrences,
-        boolean inSchedule);
+        boolean inSchedule,
+        com.scanales.eventflow.service.UserScheduleService.TalkDetails details,
+        boolean fromQr,
+        boolean canEdit);
   }
 
   @Inject EventService eventService;
@@ -55,6 +58,7 @@ public class TalkResource {
   @Produces(MediaType.TEXT_HTML)
   public Response detail(
       @PathParam("id") String id,
+      @jakarta.ws.rs.QueryParam("qr") String qr,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     String ua = headers.getHeaderString("User-Agent");
@@ -85,7 +89,16 @@ public class TalkResource {
         LOG.warnf("Talk %s missing data: %s", canonicalId, String.join(", ", missing));
       }
 
+      boolean fromQr = qr != null;
+      if (fromQr && (identity == null || identity.isAnonymous())) {
+        String target = "/talk/" + id + "?qr=1";
+        String enc = java.net.URLEncoder.encode(target, java.nio.charset.StandardCharsets.UTF_8);
+        return Response.seeOther(java.net.URI.create("/login?redirect=" + enc)).build();
+      }
+
       boolean inSchedule = false;
+      UserScheduleService.TalkDetails details = null;
+      boolean canEdit = false;
       if (identity != null && !identity.isAnonymous()) {
         String email = identity.getAttribute("email");
         if (email == null) {
@@ -94,9 +107,28 @@ public class TalkResource {
         }
         if (email != null) {
           inSchedule = userSchedule.getTalksForUser(email).contains(canonicalId);
+          if (fromQr && !inSchedule) {
+            boolean added = userSchedule.addTalkForUser(email, canonicalId);
+            if (added) {
+              metrics.recordTalkRegister(canonicalId, talk.getSpeakers(), ua);
+            }
+            inSchedule = userSchedule.getTalksForUser(email).contains(canonicalId);
+          }
+          details = userSchedule.getTalkDetailsForUser(email).get(canonicalId);
+          if (details != null && details.ratedAt != null) {
+            canEdit =
+                details
+                    .ratedAt
+                    .plus(java.time.Duration.ofHours(24))
+                    .isAfter(java.time.Instant.now());
+          } else {
+            canEdit = true;
+          }
         }
       }
-      return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)).build();
+      return Response.ok(
+              Templates.detail(talk, event, occurrences, inSchedule, details, fromQr, canEdit))
+          .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", id);
       return Response.serverError().build();

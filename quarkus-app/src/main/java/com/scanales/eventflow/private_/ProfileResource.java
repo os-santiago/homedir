@@ -153,14 +153,18 @@ public class ProfileResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response updateTalk(@PathParam("id") String id, @Valid UpdateRequest req) {
     String email = getEmail();
-    boolean ok = userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations);
+    boolean ok =
+        userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations, req.comment);
     String status = ok ? "updated" : "missing";
     return Response.ok(java.util.Map.of("status", status)).build();
   }
 
   @RegisterForReflection
   public record UpdateRequest(
-      Boolean attended, @Min(1) @Max(5) Integer rating, java.util.Set<String> motivations) {}
+      Boolean attended,
+      @Min(1) @Max(5) Integer rating,
+      java.util.Set<String> motivations,
+      @jakarta.validation.constraints.Size(max = 200) String comment) {}
 
   @POST
   @Path("add/{id}")
