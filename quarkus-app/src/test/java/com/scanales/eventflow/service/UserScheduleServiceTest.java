@@ -47,12 +47,15 @@ public class UserScheduleServiceTest {
       String user = "user@example.com";
 
       assertTrue(svc.addTalkForUser(user, "t1"));
-      assertTrue(svc.updateTalk(user, "t1", true, 5, Set.of("⭐ Relevante para mi trabajo")));
+      assertTrue(
+          svc.updateTalk(user, "t1", true, 5, Set.of("⭐ Relevante para mi trabajo"), "buena"));
 
       UserScheduleService.TalkDetails details = svc.getTalkDetailsForUser(user).get("t1");
       assertNotNull(details);
       assertTrue(details.attended);
       assertEquals(5, details.rating);
+      assertEquals("buena", details.comment);
+      assertNotNull(details.ratedAt);
       assertTrue(details.motivations.contains("⭐ Relevante para mi trabajo"));
 
       UserScheduleService.Summary summary = svc.getSummaryForUser(user);
