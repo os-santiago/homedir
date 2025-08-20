@@ -2,12 +2,15 @@ package com.scanales.eventflow.public_;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.UserScheduleService;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.time.LocalTime;
 import java.util.List;
@@ -16,9 +19,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-public class TalkResourceTest {
+  public class TalkResourceTest {
 
   @Inject EventService eventService;
+  @Inject UserScheduleService userSchedule;
 
   private static final String EVENT_ID = "e1";
   private static final String TALK_ID = "s1-talk-1";
@@ -37,6 +41,7 @@ public class TalkResourceTest {
   @AfterEach
   public void cleanup() {
     eventService.deleteEvent(EVENT_ID);
+    userSchedule.removeTalkForUser("user@example.com", TALK_ID);
   }
 
   @Test
@@ -57,5 +62,20 @@ public class TalkResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Charla de prueba"));
+  }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  public void qrAddsTalkAndMarksAttended() {
+    assertFalse(
+        userSchedule.getTalkDetailsForUser("user@example.com").containsKey(TALK_ID));
+    given()
+        .when()
+        .get("/talk/" + TALK_ID + "?qr=1")
+        .then()
+        .statusCode(200);
+    var details = userSchedule.getTalkDetailsForUser("user@example.com").get(TALK_ID);
+    assertNotNull(details);
+    assertTrue(details.attended);
   }
 }
