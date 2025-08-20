@@ -214,6 +214,22 @@ public class EventService {
         .toList();
   }
 
+  /** Returns all instances of a talk within the specified event ordered by day and time. */
+  public List<Talk> findTalkOccurrences(String eventId, String talkId) {
+    Event event = events.get(eventId);
+    if (event == null) {
+      return java.util.List.of();
+    }
+    return event.getAgenda().stream()
+        .filter(t -> t.getId().equals(talkId))
+        .sorted(
+            java.util.Comparator.comparingInt(Talk::getDay)
+                .thenComparing(
+                    Talk::getStartTime,
+                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
+        .toList();
+  }
+
   /** Returns the list of talks scheduled in the given scenario ordered by day and time. */
   public List<Talk> findTalksForScenario(String scenarioId) {
     return events.values().stream()
