@@ -80,12 +80,15 @@ public class EventTalkResource {
         }
         if (email != null) {
           inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
-          if (fromQr && !inSchedule) {
-            boolean added = userSchedule.addTalkForUser(email, canonicalTalkId);
-            if (added) {
-              metrics.recordTalkRegister(canonicalTalkId, talk.getSpeakers(), ua);
+          if (fromQr) {
+            if (!inSchedule) {
+              boolean added = userSchedule.addTalkForUser(email, canonicalTalkId);
+              if (added) {
+                metrics.recordTalkRegister(canonicalTalkId, talk.getSpeakers(), ua);
+              }
+              inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
             }
-            inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
+            userSchedule.updateTalk(email, canonicalTalkId, true, null, null, null);
           }
           details = userSchedule.getTalkDetailsForUser(email).get(canonicalTalkId);
           if (details != null && details.ratedAt != null) {
