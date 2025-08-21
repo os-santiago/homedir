@@ -174,6 +174,13 @@ public class SpeakerService {
       return;
     }
     for (Talk talk : sp.getTalks()) {
+      if (talk.getSpeakers() != null && !talk.getSpeakers().isEmpty()) {
+        List<Speaker> updatedSpeakers =
+            talk.getSpeakers().stream()
+                .map(s -> speakers.getOrDefault(s.getId(), s))
+                .collect(Collectors.toList());
+        talk.setSpeakers(updatedSpeakers);
+      }
       for (Talk evTalk : eventService.findTalkOccurrences(talk.getId())) {
         evTalk.setName(talk.getName());
         evTalk.setDescription(talk.getDescription());
