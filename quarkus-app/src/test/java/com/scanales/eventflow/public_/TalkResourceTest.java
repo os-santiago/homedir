@@ -90,7 +90,7 @@ import org.junit.jupiter.api.Test;
         .get("/talk/" + TALK_ID + "?qr=1")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/profile"));
+        .header("Location", containsString("/private/profile"));
     var details = userSchedule.getTalkDetailsForUser("user@example.com").get(TALK_ID);
     assertNotNull(details);
     assertTrue(details.attended);
@@ -108,7 +108,7 @@ import org.junit.jupiter.api.Test;
         .get("/event/" + EVENT_ID + "/talk/" + TALK_ID + "?qr=1")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/profile"));
+        .header("Location", containsString("/private/profile"));
     var details = userSchedule.getTalkDetailsForUser("user@example.com").get(TALK_ID);
     assertNotNull(details);
     assertTrue(details.attended);
