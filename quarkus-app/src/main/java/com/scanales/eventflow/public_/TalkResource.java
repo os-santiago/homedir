@@ -90,8 +90,18 @@ public class TalkResource {
       }
 
       boolean fromQr = qr != null;
+      if (context.session() != null) {
+        String pending = context.session().get("qr-talk");
+        if (canonicalId.equals(pending)) {
+          fromQr = true;
+          context.session().remove("qr-talk");
+        }
+      }
       if (fromQr && (identity == null || identity.isAnonymous())) {
-        String target = "/talk/" + id + "?qr=1";
+        if (context.session() != null) {
+          context.session().put("qr-talk", canonicalId);
+        }
+        String target = "/talk/" + id;
         String enc = java.net.URLEncoder.encode(target, java.nio.charset.StandardCharsets.UTF_8);
         return Response.seeOther(java.net.URI.create("/login?redirect=" + enc)).build();
       }

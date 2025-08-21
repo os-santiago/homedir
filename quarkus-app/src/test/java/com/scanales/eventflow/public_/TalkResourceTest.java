@@ -2,6 +2,7 @@ package com.scanales.eventflow.public_;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.scanales.eventflow.model.Event;
@@ -62,6 +63,19 @@ import org.junit.jupiter.api.Test;
         .then()
         .statusCode(200)
         .body(containsString("Charla de prueba"));
+  }
+
+  @Test
+  public void qrRedirectsAnonymousToLogin() {
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/talk/" + TALK_ID + "?qr=1")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/login?redirect="))
+        .header("Location", not(containsString("qr=1")));
   }
 
   @Test
