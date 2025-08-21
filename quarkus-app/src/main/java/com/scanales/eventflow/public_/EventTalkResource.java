@@ -63,8 +63,18 @@ public class EventTalkResource {
             talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
       }
       boolean fromQr = qr != null;
+      if (context.session() != null) {
+        String pending = context.session().get("qr-talk");
+        if (canonicalTalkId.equals(pending)) {
+          fromQr = true;
+          context.session().remove("qr-talk");
+        }
+      }
       if (fromQr && (identity == null || identity.isAnonymous())) {
-        String target = "/event/" + eventId + "/talk/" + talkId + "?qr=1";
+        if (context.session() != null) {
+          context.session().put("qr-talk", canonicalTalkId);
+        }
+        String target = "/event/" + eventId + "/talk/" + talkId;
         String enc = java.net.URLEncoder.encode(target, java.nio.charset.StandardCharsets.UTF_8);
         return Response.seeOther(java.net.URI.create("/login?redirect=" + enc)).build();
       }
