@@ -70,7 +70,7 @@ if summary_path:
             order = {"High": 0, "Medium": 1, "Low": 2}
             for r in sorted(new_results, key=lambda x: order[x["severity"]])[:3]:
                 loc = f"{r['file']}:{r['line']}" if r.get("file") else ""
-                msg = r.get("message", "").replace("|", "\|")
+                msg = r.get("message", "").replace("|", r"\|")
                 f.write(
                     f"| {r['severity']} | {r.get('ruleId','')} | {loc} | {msg} |\n"
                 )
