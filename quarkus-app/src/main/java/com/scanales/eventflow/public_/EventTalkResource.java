@@ -42,7 +42,6 @@ public class EventTalkResource {
   public Response detailWithEvent(
       @PathParam("eventId") String eventId,
       @PathParam("talkId") String talkId,
-      @jakarta.ws.rs.QueryParam("qr") String qr,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     String ua = headers.getHeaderString("User-Agent");
@@ -62,26 +61,7 @@ public class EventTalkResource {
         metrics.recordStageVisit(
             talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
       }
-      boolean fromQr = qr != null;
-      if (context.session() != null) {
-        String pending = context.session().get("qr-talk");
-        if (canonicalTalkId.equals(pending)) {
-          fromQr = true;
-          context.session().remove("qr-talk");
-        }
-      }
-      if (fromQr && (identity == null || identity.isAnonymous())) {
-        if (context.session() != null) {
-          context.session().put("qr-talk", canonicalTalkId);
-        }
-        String target = "/event/" + eventId + "/talk/" + talkId;
-        String enc = java.net.URLEncoder.encode(target, java.nio.charset.StandardCharsets.UTF_8);
-        return Response.seeOther(java.net.URI.create("/login?redirect=" + enc)).build();
-      }
-
       boolean inSchedule = false;
-      UserScheduleService.TalkDetails details = null;
-      boolean canEdit = false;
       if (identity != null && !identity.isAnonymous()) {
         String email = identity.getAttribute("email");
         if (email == null) {
@@ -90,32 +70,10 @@ public class EventTalkResource {
         }
         if (email != null) {
           inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
-          if (fromQr) {
-            if (!inSchedule) {
-              boolean added = userSchedule.addTalkForUser(email, canonicalTalkId);
-              if (added) {
-                metrics.recordTalkRegister(canonicalTalkId, talk.getSpeakers(), ua);
-              }
-              inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
-            }
-            userSchedule.updateTalk(email, canonicalTalkId, true, null, null, null);
-            return Response.seeOther(java.net.URI.create("/private/profile")).build();
-          }
-          details = userSchedule.getTalkDetailsForUser(email).get(canonicalTalkId);
-          if (details != null && details.ratedAt != null) {
-            canEdit =
-                details
-                    .ratedAt
-                    .plus(java.time.Duration.ofHours(24))
-                    .isAfter(java.time.Instant.now());
-          } else {
-            canEdit = true;
-          }
         }
       }
       return Response.ok(
-              TalkResource.Templates.detail(
-                  talk, event, occurrences, inSchedule, details, fromQr, canEdit))
+              TalkResource.Templates.detail(talk, event, occurrences, inSchedule))
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", talkId);

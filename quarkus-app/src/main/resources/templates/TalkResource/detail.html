@@ -110,63 +110,6 @@
   })();
   </script>
   {/if}
-  {#if fromQr}
-    {#if details}
-      {#if canEdit}
-      <div id="feedback">
-        <h2 class="card-title">Evalúa esta charla</h2>
-        <label for="rating-select">Calificación:</label>
-        <select id="rating-select">
-          <option value="">★</option>
-          <option value="1" {#if details.rating == 1}selected{/if}>1</option>
-          <option value="2" {#if details.rating == 2}selected{/if}>2</option>
-          <option value="3" {#if details.rating == 3}selected{/if}>3</option>
-          <option value="4" {#if details.rating == 4}selected{/if}>4</option>
-          <option value="5" {#if details.rating == 5}selected{/if}>5</option>
-        </select>
-        <label for="comment-box">Comentario (opcional):</label>
-        <textarea id="comment-box" maxlength="200">{details.comment ?: ''}</textarea>
-        <button id="save-feedback" class="btn">Enviar</button>
-      </div>
-      <script>
-      (function(){
-        const talkId = '{talk.id}';
-        if (!{details.attended}) {
-          fetch('/private/profile/update/' + talkId, {
-            method:'POST',
-            headers:{'Content-Type':'application/json','Accept':'application/json'},
-            body: JSON.stringify({ attended: true })
-          });
-        }
-        document.getElementById('save-feedback').addEventListener('click', async () => {
-          const rating = document.getElementById('rating-select').value;
-          const comment = document.getElementById('comment-box').value;
-          if (!rating) {
-            showNotification('info', 'Seleccione una calificación');
-            return;
-          }
-          try {
-            const res = await fetch('/private/profile/update/' + talkId, {
-              method:'POST',
-              headers:{'Content-Type':'application/json','Accept':'application/json'},
-              body: JSON.stringify({ rating: parseInt(rating), comment })
-            });
-            if (res.ok) {
-              showNotification('success', 'Gracias por tu evaluación');
-            } else {
-              showNotification('error', 'No se pudo guardar');
-            }
-          } catch(e){
-            showNotification('error', 'No se pudo guardar');
-          }
-        });
-      })();
-      </script>
-      {#else}
-      <p>Gracias por tu evaluación.</p>
-      {/if}
-    {/if}
-  {/if}
   {#if !occurrences.isEmpty()}
   <div class="card">
     <h2 class="card-title"><span class="icon">⏰</span>Horarios</h2>
