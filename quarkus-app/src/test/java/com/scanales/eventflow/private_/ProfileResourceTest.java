@@ -137,4 +137,21 @@ public class ProfileResourceTest {
     assertNotNull(details);
     assertTrue(details.attended);
   }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  public void attendedParamAddsTalkAndMarksAttended() {
+    assertFalse(userSchedule.getTalkDetailsForUser("user@example.com").containsKey("t8"));
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/private/profile/add/t8?attended=true")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/private/profile"));
+    var details = userSchedule.getTalkDetailsForUser("user@example.com").get("t8");
+    assertNotNull(details);
+    assertTrue(details.attended);
+  }
 }
