@@ -13,6 +13,9 @@ def load_sarif(path):
             return json.load(f)
     except FileNotFoundError:
         return {"runs": []}
+    except json.JSONDecodeError:
+        print(f"Failed to parse SARIF file: {path}", file=sys.stderr)
+        return {"runs": []}
 
 
 baseline = load_sarif(baseline_path)
