@@ -230,6 +230,12 @@ function removeListeners() {
     }
 }
 
-initListeners();
+if (typeof window !== 'undefined') {
+    window.initListeners = initListeners;
+    window.removeListeners = removeListeners;
+    initListeners();
+}
 
-export { initListeners, removeListeners };
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { initListeners, removeListeners };
+}
