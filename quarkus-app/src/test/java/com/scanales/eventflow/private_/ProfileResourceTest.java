@@ -2,13 +2,18 @@ package com.scanales.eventflow.private_;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import jakarta.inject.Inject;
+import com.scanales.eventflow.service.UserScheduleService;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 public class ProfileResourceTest {
+
+  @Inject UserScheduleService userSchedule;
 
   @Test
   @TestSecurity(user = "user@example.com")
@@ -114,5 +119,22 @@ public class ProfileResourceTest {
         .post("/private/profile/update/t6")
         .then()
         .statusCode(400);
+  }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  public void visitedParamAddsTalkAndMarksAttended() {
+    assertFalse(userSchedule.getTalkDetailsForUser("user@example.com").containsKey("t7"));
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/private/profile/add/t7?visited=true")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/private/profile"));
+    var details = userSchedule.getTalkDetailsForUser("user@example.com").get("t7");
+    assertNotNull(details);
+    assertTrue(details.attended);
   }
 }
