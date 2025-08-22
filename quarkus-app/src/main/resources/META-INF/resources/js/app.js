@@ -167,7 +167,7 @@ function restoreScroll() {
     sessionStorage.removeItem('scrollPos');
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function onDomContentLoaded() {
     setupMenu();
     setupUserMenu();
     setupAgendaToggle();
@@ -182,7 +182,54 @@ window.addEventListener('DOMContentLoaded', () => {
         hideLoading();
         showNotification('info', 'No hay eventos disponibles');
     }
-});
-window.addEventListener('resize', adjustLayout);
-window.addEventListener('scroll', bannerParallax);
-window.addEventListener('beforeunload', () => showLoading('la página', false));
+}
+
+let domContentLoadedHandler;
+let resizeHandler;
+let scrollHandler;
+let beforeUnloadHandler;
+let unloadHandler;
+
+function initListeners() {
+    domContentLoadedHandler = onDomContentLoaded;
+    window.addEventListener('DOMContentLoaded', domContentLoadedHandler);
+
+    resizeHandler = adjustLayout;
+    window.addEventListener('resize', resizeHandler);
+
+    scrollHandler = bannerParallax;
+    window.addEventListener('scroll', scrollHandler);
+
+    beforeUnloadHandler = () => showLoading('la página', false);
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+
+    unloadHandler = () => removeListeners();
+    window.addEventListener('unload', unloadHandler);
+}
+
+function removeListeners() {
+    if (domContentLoadedHandler) {
+        window.removeEventListener('DOMContentLoaded', domContentLoadedHandler);
+        domContentLoadedHandler = null;
+    }
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+        resizeHandler = null;
+    }
+    if (scrollHandler) {
+        window.removeEventListener('scroll', scrollHandler);
+        scrollHandler = null;
+    }
+    if (beforeUnloadHandler) {
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        beforeUnloadHandler = null;
+    }
+    if (unloadHandler) {
+        window.removeEventListener('unload', unloadHandler);
+        unloadHandler = null;
+    }
+}
+
+initListeners();
+
+export { initListeners, removeListeners };
