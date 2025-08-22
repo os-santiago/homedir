@@ -136,7 +136,8 @@ public class ProfileResource {
   public Response addTalkRedirect(
       @PathParam("id") String id,
       @Context HttpHeaders headers,
-      @jakarta.ws.rs.QueryParam("visited") boolean visited) {
+      @jakarta.ws.rs.QueryParam("visited") boolean visited,
+      @jakarta.ws.rs.QueryParam("attended") boolean attended) {
     String email = getEmail();
     boolean added = userSchedule.addTalkForUser(email, id);
     if (added) {
@@ -146,7 +147,7 @@ public class ProfileResource {
           talk != null ? talk.getSpeakers() : java.util.List.of(),
           headers.getHeaderString("User-Agent"));
     }
-    if (visited) {
+    if (visited || attended) {
       userSchedule.updateTalk(email, id, true, null, null, null);
       return Response.seeOther(java.net.URI.create("/private/profile")).build();
     }
