@@ -10,6 +10,48 @@
   };
 })();
 
+/**
+ * Mapa de selectores usados por la capa de UI.
+ * Cada entrada apunta a un atributo `data-*` presente en el HTML, lo que
+ * desacopla la lógica de JavaScript de los ids o clases concretos.
+ * Modifique estos valores si cambia la estructura del marcado para mantener
+ * el contrato entre HTML y JavaScript.
+ */
+const SELECTORS = {
+    /** Botón para desplegar el menú principal en móvil */
+    menuToggle: '[data-menu-toggle]',
+    /** Contenedor de enlaces de navegación principal */
+    primaryNav: '[data-primary-navigation]',
+    /** Contenedor del menú del usuario */
+    userMenu: '[data-user-menu]',
+    /** Botón que abre/cierra el menú del usuario */
+    userMenuBtn: '[data-user-menu-btn]',
+    /** Botón para vista secuencial de agenda */
+    agendaSeqBtn: '[data-agenda-seq-btn]',
+    /** Botón para vista en cuadrícula de agenda */
+    agendaGridBtn: '[data-agenda-grid-btn]',
+    /** Contenedores de la vista secuencial de agenda */
+    agendaSeqViews: '[data-agenda-seq]',
+    /** Contenedores de la vista en cuadrícula de agenda */
+    agendaGridViews: '[data-agenda-grid]',
+    /** Banner superior con efecto parallax */
+    banner: '[data-banner]',
+    /** Elemento indicador de carga */
+    loading: '[data-loading]',
+    /** Área de notificaciones */
+    notification: '[data-notification]',
+    /** Enlaces de navegación */
+    navLinks: '[data-nav-link]',
+    /** Indicador cuando no hay eventos */
+    noEvents: '[data-no-events]',
+    /** Formularios generales de la página */
+    forms: 'form'
+};
+
+// Funciones de ayuda para seleccionar elementos utilizando los selectores centralizados.
+const $ = (key) => document.querySelector(SELECTORS[key]);
+const $$ = (key) => document.querySelectorAll(SELECTORS[key]);
+
 function adjustLayout() {
     if (window.innerWidth < 600) {
         document.body.classList.add('mobile');
@@ -19,8 +61,8 @@ function adjustLayout() {
 }
 
 function setupMenu() {
-    const toggle = document.getElementById('menuToggle');
-    const links = document.getElementById('primary-navigation');
+    const toggle = $('menuToggle');
+    const links = $('primaryNav');
     if (toggle && links) {
         toggle.addEventListener('click', () => {
             const expanded = toggle.getAttribute('aria-expanded') === 'true';
@@ -31,8 +73,8 @@ function setupMenu() {
 }
 
 function setupUserMenu() {
-    const menu = document.querySelector('.user-menu');
-    const btn = document.getElementById('userMenuBtn');
+    const menu = $('userMenu');
+    const btn = $('userMenuBtn');
     if (menu && btn) {
         btn.addEventListener('click', () => {
             const expanded = btn.getAttribute('aria-expanded') === 'true';
@@ -49,10 +91,10 @@ function setupUserMenu() {
 }
 
 function setupAgendaToggle() {
-    const seqBtn = document.getElementById('agendaSeqBtn');
-    const gridBtn = document.getElementById('agendaGridBtn');
-    const seqViews = document.querySelectorAll('.agenda-seq');
-    const gridViews = document.querySelectorAll('.agenda-grid');
+    const seqBtn = $('agendaSeqBtn');
+    const gridBtn = $('agendaGridBtn');
+    const seqViews = $$('agendaSeqViews');
+    const gridViews = $$('agendaGridViews');
     if (seqBtn && gridBtn && seqViews.length && gridViews.length) {
         seqBtn.addEventListener('click', () => {
             seqBtn.classList.add('active');
@@ -70,7 +112,7 @@ function setupAgendaToggle() {
 }
 
 function bannerParallax() {
-    const banner = document.querySelector('.container-banner');
+    const banner = $('banner');
     if (banner) {
         banner.style.backgroundPositionX = (window.scrollY * 0.3) + 'px';
     }
@@ -82,7 +124,7 @@ let loadingTarget = 'el contenido';
 function showLoading(target = 'el contenido', enableTimeout = true) {
     loadingTarget = target;
     document.body.classList.remove('loaded');
-    const loader = document.getElementById('loading');
+    const loader = $('loading');
     if (loader) loader.classList.remove('hidden');
     clearTimeout(loadingTimeout);
     if (enableTimeout) {
@@ -94,14 +136,14 @@ function showLoading(target = 'el contenido', enableTimeout = true) {
 }
 
 function hideLoading() {
-    const loader = document.getElementById('loading');
+    const loader = $('loading');
     if (loader) loader.classList.add('hidden');
     document.body.classList.add('loaded');
     clearTimeout(loadingTimeout);
 }
 
 function showNotification(type, message) {
-    const note = document.getElementById('notification');
+    const note = $('notification');
     if (!note) return;
     note.innerHTML = message;
     note.className = 'notification ' + type;
@@ -116,7 +158,7 @@ function showNotification(type, message) {
 }
 
 function handleForms() {
-    document.querySelectorAll('form').forEach(form => {
+    $$('forms').forEach(form => {
         form.addEventListener('submit', e => {
             if (form.classList.contains('needs-confirm') && !confirm('¿Estás seguro?')) {
                 e.preventDefault();
@@ -134,7 +176,7 @@ function handleForms() {
 }
 
 function highlightNav() {
-    const links = document.querySelectorAll('.nav-links a');
+    const links = $$('navLinks');
     links.forEach(link => {
         if (link.getAttribute('href') === window.location.pathname) {
             link.classList.add('active');
@@ -178,7 +220,7 @@ function onDomContentLoaded() {
     handleNotificationsFromUrl();
     restoreScroll();
     hideLoading();
-    if (document.querySelector('.no-events')) {
+    if ($('noEvents')) {
         hideLoading();
         showNotification('info', 'No hay eventos disponibles');
     }
