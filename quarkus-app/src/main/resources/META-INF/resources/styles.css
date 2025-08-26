@@ -35,6 +35,26 @@
     /* Layout */
     --container-max: 64rem;
     --avatar-size: 80px;
+
+    /* Mobile spacing scale */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+
+    /* Z-index */
+    --z-dropdown: 1000;
+    --z-sticky: 1100;
+    --z-modal: 1200;
+
+    /* Motion */
+    --motion-fast: 120ms;
+    --motion-base: 200ms;
+    --motion-gentle: 280ms;
+    --motion-modal: 320ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
 html {
@@ -80,7 +100,7 @@ h2 {
     width: 100%;
     max-width: var(--container-max);
     margin-inline: auto;
-    padding-inline: var(--space-md);
+    padding-inline: clamp(12px, 4vw, 16px);
 }
 
 body.loaded {
@@ -109,6 +129,37 @@ a:focus {
     text-decoration: underline;
 }
 
+a.link {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+a.link-inline {
+    color: inherit;
+}
+a.link-action {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+a.link-muted {
+    color: var(--color-text);
+    opacity: 0.7;
+}
+a.link-external::after {
+    content: "↗";
+    margin-left: 0.25rem;
+    font-size: 0.85em;
+}
+a.link-tap {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+}
+a.link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
 a:focus-visible,
 button:focus-visible {
     outline: 2px solid var(--color-accent);
@@ -128,6 +179,48 @@ button:focus-visible {
 
 .skip-link:focus {
     top: 0;
+}
+
+/* Utility spacing */
+.u-p-1 { padding: var(--sp-1) !important; }
+.u-p-2 { padding: var(--sp-2) !important; }
+.u-p-3 { padding: var(--sp-3) !important; }
+.u-mb-1 { margin-bottom: var(--sp-1) !important; }
+.u-mb-2 { margin-bottom: var(--sp-2) !important; }
+.u-mb-3 { margin-bottom: var(--sp-3) !important; }
+
+/* Elevation */
+.u-elev-1 { box-shadow: var(--shadow-sm); }
+.u-elev-2 { box-shadow: var(--shadow-md); }
+
+/* Truncation */
+.u-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.u-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Interaction */
+.animate-press {
+    transition: transform var(--motion-fast) var(--ease-standard),
+                opacity var(--motion-fast) var(--ease-standard);
+}
+.animate-press:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 /* --- Navigation --- */
