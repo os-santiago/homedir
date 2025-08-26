@@ -23,21 +23,25 @@
       <div class="talks-day">
         {#for t in d.talks}
         <div class="talk-row" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating??}">
-          <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
-          <span class="talk-time">{t.startTimeStr} - {t.endTimeStr}</span>
-          <span class="talk-title"><a href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
-          <div class="speaker-avatars">
-            {#for s in t.speakers}
-              <a href="/speaker/{s.id}" title="{s.name}">
-                {#if app:validUrl(s.photoUrl)}
-                  <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
-                {#else}
-                  <span class="avatar placeholder">👤</span>
-                {/if}
-              </a>
-            {/for}
+          <div class="talk-time">
+            <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
+            <span>{t.startTimeStr} - {t.endTimeStr}</span>
           </div>
-          <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t, g.event)}</span>
+          <div class="talk-info">
+            <span class="talk-title"><a href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
+            <div class="speaker-avatars">
+              {#for s in t.speakers}
+                <a href="/speaker/{s.id}" title="{s.name}">
+                  {#if app:validUrl(s.photoUrl)}
+                    <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+                  {#else}
+                    <span class="avatar placeholder">👤</span>
+                  {/if}
+                </a>
+              {/for}
+            </div>
+            <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t, g.event)}</span>
+          </div>
           <div class="talk-actions">
             <div class="motivation-list">
               {#for m in info.get(t.id).motivations}
