@@ -72,13 +72,13 @@ Evento
   {#if !event.agenda.isEmpty()}
   <div class="card agenda" id="agenda">
     <div class="view-toggle">
-      <button id="agendaSeqBtn" class="btn active" type="button">Secuencial</button>
-      <button id="agendaGridBtn" class="btn btn-secondary" type="button">Por escenario</button>
+      <button id="agendaSeqBtn" data-agenda-seq-btn class="btn active" type="button">Secuencial</button>
+      <button id="agendaGridBtn" data-agenda-grid-btn class="btn btn-secondary" type="button">Por escenario</button>
     </div>
     {#for d in event.dayList}
     <details class="agenda-day" open>
       <summary>Día {d}</summary>
-      <div id="agenda-seq-{d}" class="agenda-view agenda-seq">
+      <div id="agenda-seq-{d}" class="agenda-view agenda-seq" data-agenda-seq>
         <table class="table agenda-table">
           <colgroup>
             <col style="width: 12%;">
@@ -127,7 +127,7 @@ Evento
           </tbody>
         </table>
       </div>
-      <div id="agenda-grid-{d}" class="agenda-view agenda-grid hidden">
+      <div id="agenda-grid-{d}" class="agenda-view agenda-grid hidden" data-agenda-grid>
         <table class="table agenda-grid-table">
           <thead>
             <tr>
