@@ -1365,15 +1365,28 @@ footer {
 }
 .range-chips {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
+}
+.metrics-toolbar select,
+.metrics-toolbar input {
+    padding: var(--space-sm);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    flex: 1 1 150px;
+}
+.metrics-toolbar .btn,
+.metrics-toolbar .chip {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    min-height: 2.5rem;
+    font-size: 0.875rem;
 }
 .chip {
     border: 1px solid var(--color-primary);
     background: var(--color-light);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-lg);
     cursor: pointer;
-    font-size: 0.875rem;
+    white-space: nowrap;
 }
 .chip:hover,
 .chip:focus {
@@ -1410,22 +1423,29 @@ footer {
 }
 .cards-grid {
     display: grid;
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+    grid-template-columns: 1fr;
 }
-@media (min-width: 1200px) {
-    .cards-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (min-width: 768px) and (max-width: 1199px) {
+@media (min-width: 600px) {
     .cards-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 767px) {
-    .cards-grid { grid-template-columns: 1fr; }
+@media (min-width: 900px) {
+    .cards-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1200px) {
+    .cards-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.5rem;
+    gap: var(--space-sm);
+}
+.kpi {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--space-xs) 0;
 }
 .kpi .label {
     display: block;
@@ -1439,15 +1459,14 @@ footer {
     display: flex;
     flex-direction: column;
 }
-.list-header,
-.list-row {
+.list-header {
     display: flex;
     justify-content: space-between;
-}
-.list-header span {
     font-weight: bold;
 }
 .list-row {
+    display: flex;
+    justify-content: space-between;
     padding: 0.25rem 0;
     border-bottom: 1px solid var(--color-bg);
 }
@@ -1456,6 +1475,19 @@ footer {
 }
 .list-row .metric {
     text-align: right;
+}
+/* Table-like list for multi-column metrics */
+.list-table .list-header,
+.list-table .list-row {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr);
+    gap: var(--space-sm);
+    align-items: center;
+}
+.list-table .title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .status {
     margin-bottom: 0.5rem;
