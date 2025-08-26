@@ -137,7 +137,7 @@ button:focus-visible {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background-color: var(--color-primary);
+    background-color: var(--color-dark);
     color: var(--color-light);
     display: flex;
     align-items: center;
@@ -178,13 +178,14 @@ button:focus-visible {
     text-decoration: none;
     padding: 0.5rem 0.75rem;
     border-radius: 4px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .nav-links a:hover,
+.nav-links a:focus,
 .nav-links a.active {
     background-color: var(--color-accent);
-    color: var(--color-light);
+    color: var(--color-text);
 }
 
 .menu-toggle {
@@ -195,6 +196,32 @@ button:focus-visible {
     font-size: 1.5rem;
     margin-right: 0.5rem;
     cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background-color: var(--color-dark);
+        padding: 0.5rem 1rem;
+        display: none;
+        gap: 0;
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .nav-links a {
+        padding: 0.75rem 0;
+    }
 }
 
 .user-menu {

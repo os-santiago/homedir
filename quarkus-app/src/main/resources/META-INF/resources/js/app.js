@@ -53,10 +53,21 @@ const $ = (key) => document.querySelector(SELECTORS[key]);
 const $$ = (key) => document.querySelectorAll(SELECTORS[key]);
 
 function adjustLayout() {
+    const toggle = $('menuToggle');
+    const links = $('primaryNav');
     if (window.innerWidth < 600) {
         document.body.classList.add('mobile');
+        if (links && !links.classList.contains('active')) {
+            links.setAttribute('hidden', '');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        }
     } else {
         document.body.classList.remove('mobile');
+        if (links) {
+            links.classList.remove('active');
+            links.removeAttribute('hidden');
+        }
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
     }
 }
 
@@ -68,6 +79,11 @@ function setupMenu() {
             const expanded = toggle.getAttribute('aria-expanded') === 'true';
             toggle.setAttribute('aria-expanded', String(!expanded));
             links.classList.toggle('active');
+            if (expanded) {
+                links.setAttribute('hidden', '');
+            } else {
+                links.removeAttribute('hidden');
+            }
         });
     }
 }
@@ -80,11 +96,21 @@ function setupUserMenu() {
             const expanded = btn.getAttribute('aria-expanded') === 'true';
             btn.setAttribute('aria-expanded', String(!expanded));
             menu.classList.toggle('open');
+            const dropdown = menu.querySelector('.dropdown');
+            if (dropdown) {
+                if (expanded) {
+                    dropdown.setAttribute('hidden', '');
+                } else {
+                    dropdown.removeAttribute('hidden');
+                }
+            }
         });
         document.addEventListener('click', (e) => {
             if (!menu.contains(e.target)) {
                 btn.setAttribute('aria-expanded', 'false');
                 menu.classList.remove('open');
+                const dropdown = menu.querySelector('.dropdown');
+                if (dropdown) dropdown.setAttribute('hidden', '');
             }
         });
     }
