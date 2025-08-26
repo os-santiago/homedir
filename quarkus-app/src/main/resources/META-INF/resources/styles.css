@@ -1271,6 +1271,18 @@ footer {
 .talk-row .attendance-icon {
     margin-right: 0.25rem;
 }
+
+@media (max-width: 600px) {
+    .talk-row {
+        grid-template-columns: auto 1fr;
+    }
+
+    .talk-row .talk-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
 @media (min-width: 600px) {
     .talk-row .motivation-select,
     .talk-row .rating-select { width: auto; }
