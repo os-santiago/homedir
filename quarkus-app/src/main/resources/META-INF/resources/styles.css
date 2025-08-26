@@ -238,12 +238,13 @@ button:focus-visible {
 }
 
 .nav-logo {
-    color: var(--color-light);
+    color: #fff;
     text-decoration: none;
 }
 
 .nav-logo:hover {
-    color: var(--color-light);
+    color: #fff;
+    text-decoration: underline;
 }
 
 .nav-logo .title {
