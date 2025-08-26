@@ -4,10 +4,10 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.scanales.eventflow.service.UserScheduleService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
-import com.scanales.eventflow.service.UserScheduleService;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest

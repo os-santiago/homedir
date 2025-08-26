@@ -1,16 +1,57 @@
-/* Color palette */
+/* Design tokens */
 :root {
+    /* Colors */
     --color-bg: #f9f9f9;
     --color-primary: #2196f3;
     --color-accent: #26c6da;
     --color-dark: #0d47a1;
     --color-text: #333;
     --color-light: #fff;
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    /* Typography */
+    --font-size-base: clamp(1rem, 0.875rem + 0.5vw, 1.125rem);
+    --font-size-h1: clamp(1.75rem, 1.5rem + 1.5vw, 2.5rem);
+    --font-size-h2: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+    --line-height-base: 1.5;
+    --line-height-heading: 1.2;
+
+    /* Layout */
+    --container-max: 64rem;
     --avatar-size: 80px;
 }
 
 html {
     scroll-behavior: smooth;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+}
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 body {
@@ -20,6 +61,25 @@ body {
     margin: 0;
     opacity: 0;
     transition: opacity 0.3s ease;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+}
+
+h1 {
+    font-size: var(--font-size-h1);
+    line-height: var(--line-height-heading);
+}
+
+h2 {
+    font-size: var(--font-size-h2);
+    line-height: var(--line-height-heading);
+}
+
+.container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-md);
 }
 
 body.loaded {
