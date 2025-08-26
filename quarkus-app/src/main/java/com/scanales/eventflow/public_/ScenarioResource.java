@@ -46,35 +46,4 @@ public class ScenarioResource {
     metrics.recordStageVisit(id, event != null ? event.getTimezone() : null, headers, context);
     return Templates.detail(s, event, talks);
   }
-
-  /**
-   * Nueva ruta: /event/{eventId}/scenario/{id} Permite mostrar el escenario en el contexto del
-   * evento de origen.
-   */
-  @GET
-  @Path("/event/{eventId}/scenario/{id}")
-  @PermitAll
-  @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance detailWithEvent(
-      @PathParam("eventId") String eventId,
-      @PathParam("id") String id,
-      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
-      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    metrics.recordPageView("/event/" + eventId + "/scenario", headers, context);
-    var event = eventService.getEvent(eventId);
-    if (event == null) {
-      return Templates.detail(null, null, java.util.List.of());
-    }
-    var scenario =
-        event.getScenarios().stream().filter(s -> s.getId().equals(id)).findFirst().orElse(null);
-    var talks =
-        event.getAgenda().stream()
-            .filter(t -> id.equals(t.getLocation()))
-            .sorted(
-                java.util.Comparator.comparingInt(com.scanales.eventflow.model.Talk::getDay)
-                    .thenComparing(com.scanales.eventflow.model.Talk::getStartTime))
-            .toList();
-    metrics.recordStageVisit(id, event.getTimezone(), headers, context);
-    return Templates.detail(scenario, event, talks);
-  }
 }
