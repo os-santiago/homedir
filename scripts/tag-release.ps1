@@ -20,7 +20,8 @@ if ([string]::IsNullOrWhiteSpace($description)) {
 
 $tag = $version
 
-git rev-parse $tag *> $null
+# Check if the tag already exists
+git rev-parse --verify --quiet "refs/tags/$tag" > $null 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Tag $tag already exists"
     exit 0
