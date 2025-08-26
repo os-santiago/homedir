@@ -237,12 +237,13 @@ button:focus-visible {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.nav-logo {
+a.nav-logo,
+a.nav-logo:visited {
     color: #fff;
     text-decoration: none;
 }
 
-.nav-logo:hover {
+a.nav-logo:hover {
     color: #fff;
     text-decoration: underline;
 }
