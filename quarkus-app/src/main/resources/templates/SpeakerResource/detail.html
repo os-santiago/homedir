@@ -30,16 +30,13 @@
     <h2 class="card-title"><span class="icon">🎤</span>Charlas</h2>
     <ul class="talk-list">
       {#for t in speaker.talks}
-      <li class="talk-item">
-        <h3>{t.name}{#if t.speakers[0].id != speaker.id} (Co Speaker){/if}</h3>
+      <li class="card talk-card">
+        <h3 class="talk-title">{t.name}{#if t.speakers[0].id != speaker.id} (Co Speaker){/if}</h3>
         {#if talkEvents.get(t.id) != null}
-        <div class="card events-card">
-          <h4 class="card-title"><span class="icon">🗓️</span>Eventos</h4>
-          <div class="events-boxes">
-            {#for e in talkEvents.get(t.id)}
-            <div class="box event-box"><a href="/event/{e.id}">{e.title}</a></div>
-            {/for}
-          </div>
+        <div class="chips">
+          {#for e in talkEvents.get(t.id)}
+          <span class="chip">{e.title}</span>
+          {/for}
         </div>
         {/if}
         <a href="/talk/{t.id}" class="btn btn-secondary">Ver charla</a>
