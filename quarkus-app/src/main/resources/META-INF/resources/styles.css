@@ -45,7 +45,8 @@ html {
 *::before,
 *::after {
     box-sizing: border-box;
-    overflow-wrap: anywhere;
+    /* Prevent aggressive word breaking that distorts mobile layout */
+    overflow-wrap: break-word;
 }
 
 html,
@@ -97,18 +98,15 @@ img {
 
 a,
 a:visited {
+    color: var(--color-primary);
     text-decoration: none;
     transition: color 0.2s ease-in-out;
-    text-decoration: underline;
-}
-
-a {
-    color: var(--color-primary);
 }
 
 a:hover,
 a:focus {
     color: var(--color-accent);
+    text-decoration: underline;
 }
 
 a:focus-visible,
@@ -246,6 +244,7 @@ button:focus-visible {
     object-position: center;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 .avatar.placeholder {
@@ -503,6 +502,7 @@ button:focus-visible {
 .agenda-table th,
 .agenda-table td {
     padding: 0.5rem;
+    overflow-wrap: normal;
 }
 
 .agenda-title .icon {
@@ -518,6 +518,18 @@ button:focus-visible {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+    /* Allow agenda table to adapt to narrow screens */
+    .agenda-table colgroup col {
+        width: auto !important;
+    }
+
+    .agenda-table th,
+    .agenda-table td {
+        padding: 0.25rem;
+    }
 }
 
 .view-toggle {
