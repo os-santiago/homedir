@@ -11,7 +11,7 @@
 
 Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
 
-Latest stable release: **v2.1.4**.
+Latest stable release: **v2.2.0**.
 
 ## Features
 - Manage events, speakers, scenarios, and talks
