@@ -13,17 +13,21 @@
 {#main}
 {#if talk}
 <section class="talk-detail">
-  <h1 class="page-title">{talk.name ?: 'Charla'}</h1>
+  <h1 class="page-title talk-title">{talk.name ?: 'Charla'}</h1>
+  <div class="chips">
+    <span class="chip">Día {talk.day}</span>
+    {#if talk.location && event}<span class="chip">{event.getScenarioName(talk.location)}</span>{/if}
+  </div>
   {#if !talk.description || talk.speakers.isEmpty() || !talk.location || !talk.startTime || !event}
     <p>Charla en preparación. Pronto estará disponible</p>
   {/if}
-  {#if talk.description}<p>{talk.description}</p>{/if}
+  {#if talk.description}<p class="talk-description">{talk.description}</p>{/if}
   {#if !talk.speakers.isEmpty()}
     <div class="speaker-avatars">
       {#for s in talk.speakers}
         <a href="/speaker/{s.id}" title="{s.name}">
           {#if app:validUrl(s.photoUrl)}
-            <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+            <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
           {#else}
             <span class="avatar placeholder">👤</span>
           {/if}

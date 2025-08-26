@@ -20,14 +20,14 @@ Escenario
   {#if !talks.isEmpty()}
   <ul class="talk-list">
   {#for t in talks}
-    <li class="talk-item">
-      <h3>{t.name}</h3>
+    <li class="card talk-card">
+      <h3 class="talk-title">{t.name}</h3>
       {#if !t.break && !t.speakers.isEmpty()}
       <div class="speaker-avatars">
         {#for s in t.speakers}
           <a href="/speaker/{s.id}" title="{s.name}">
             {#if app:validUrl(s.photoUrl)}
-              <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+              <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
             {#else}
               <span class="avatar placeholder">👤</span>
             {/if}
@@ -35,7 +35,11 @@ Escenario
         {/for}
       </div>
       {/if}
-      <p class="talk-time">Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min)</p>
+      <div class="chips">
+        <span class="chip">Día {t.day}</span>
+        {#if event}<span class="chip">{event.getScenarioName(t.location)}</span>{/if}
+      </div>
+      <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
   {#if !t.break && event}<a href="/event/{event.id}/talk/{t.id}" class="btn btn-secondary">Ver charla</a>{/if}
     </li>
   {/for}

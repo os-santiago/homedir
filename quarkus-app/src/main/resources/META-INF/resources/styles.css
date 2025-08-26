@@ -390,10 +390,13 @@ button:focus-visible {
 /* --- Generic components --- */
 .card {
     background-color: var(--color-light);
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    margin-bottom: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
     animation: fadeInUp 0.3s ease;
 }
 
@@ -412,14 +415,18 @@ button:focus-visible {
 }
 
 .btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: var(--color-primary);
     color: var(--color-light);
     text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
     border: none;
     cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
     transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
@@ -610,8 +617,9 @@ button:focus-visible {
 }
 
 .talk-card {
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
 }
 
 .inline-form {
@@ -1147,7 +1155,6 @@ footer {
 @media (min-width: 600px) {
     .talks-day { flex-direction: column; }
 }
-.talk-card { display: flex; flex-direction: column; gap: 0.5rem; }
 .talk-card h5 { margin: 0 0 0.25rem; color: var(--color-dark); }
 .talk-card .talk-event { margin: 0; font-size: 0.95rem; color: #555; }
 .talk-card .talk-time,
@@ -1336,9 +1343,10 @@ footer {
 .chip {
     border: 1px solid var(--color-primary);
     background: var(--color-light);
-    padding: 0.25rem 0.75rem;
-    border-radius: 16px;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-lg);
     cursor: pointer;
+    font-size: 0.875rem;
 }
 .chip:hover,
 .chip:focus {
@@ -1347,6 +1355,31 @@ footer {
 .chip.active {
     background: var(--color-primary);
     color: var(--color-light);
+}
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-block: var(--space-sm);
+}
+.talk-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--color-dark);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+.talk-detail .talk-title {
+    -webkit-line-clamp: 3;
+}
+.talk-description {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
 }
 .cards-grid {
     display: grid;
@@ -1361,15 +1394,6 @@ footer {
 }
 @media (max-width: 767px) {
     .cards-grid { grid-template-columns: 1fr; }
-}
-.card {
-    background: var(--color-light);
-    padding: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.card-title {
-    margin-top: 0;
 }
 .kpi-grid {
     display: grid;
