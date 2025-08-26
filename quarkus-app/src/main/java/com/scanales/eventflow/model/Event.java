@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -290,6 +292,75 @@ public class Event {
   public String getEndTimeStr() {
     LocalTime t = getEndTime();
     return t == null ? "" : t.toString();
+  }
+
+  /** Returns the time zone of the event or America/Santiago by default. */
+  public ZoneId getZoneId() {
+    try {
+      return timezone != null && !timezone.isBlank()
+          ? ZoneId.of(timezone)
+          : ZoneId.of("America/Santiago");
+    } catch (Exception e) {
+      return ZoneId.of("America/Santiago");
+    }
+  }
+
+  /** Combines the event start date and time using its time zone. */
+  public ZonedDateTime getStartDateTime() {
+    if (date == null) {
+      return null;
+    }
+    LocalTime start = getStartTime();
+    if (start == null) {
+      start = LocalTime.MIN;
+    }
+    return ZonedDateTime.of(date, start, getZoneId());
+  }
+
+  /** Calculates the end date and time considering the number of days. */
+  public ZonedDateTime getEndDateTime() {
+    if (date == null) {
+      return null;
+    }
+    LocalDate endDate = days <= 1 ? date : date.plusDays(days - 1);
+    LocalTime end = days <= 1 ? LocalTime.MAX : getEndTime();
+    if (end == null) {
+      end = LocalTime.MAX;
+    }
+    return ZonedDateTime.of(endDate, end, getZoneId());
+  }
+
+  /** Returns {@code true} if the event is happening right now. */
+  public boolean isOngoing() {
+    ZonedDateTime start = getStartDateTime();
+    ZonedDateTime end = getEndDateTime();
+    if (start == null || end == null) {
+      return false;
+    }
+    ZonedDateTime now = ZonedDateTime.now(getZoneId());
+    return (now.isEqual(start) || now.isAfter(start)) && now.isBefore(end);
+  }
+
+  /**
+   * Provides a contextual label with the days remaining until the event begins. Returns "Fecha por
+   * confirmar" when the start date is unknown.
+   */
+  public String getCountdownLabel() {
+    if (date == null) {
+      return "Fecha por confirmar";
+    }
+    long diff =
+        java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(getZoneId()), date);
+    if (diff == 0) {
+      return "Comienza hoy";
+    }
+    if (diff == 1) {
+      return "Comienza en 1 día";
+    }
+    if (diff > 1) {
+      return "Comienza en " + diff + " días";
+    }
+    return "";
   }
 
   /**

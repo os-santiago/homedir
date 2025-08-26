@@ -4,12 +4,12 @@
 {#main}
 <section class="home-section">
     <h1 class="page-title">Eventos disponibles</h1>
-    {#if events.isEmpty()}
-        <p class="section-subtitle no-events">No hay eventos disponibles.</p>
+    {#if upcoming.isEmpty()}
+        <p class="section-subtitle no-events">No hay eventos próximos por ahora. Vuelve pronto 👀</p>
     {#else}
         <div class="timeline">
             <div class="timeline-label">Hoy: {today.format('dd/MM/yyyy')}</div>
-            {#for e in events}
+            {#for e in upcoming}
             <div class="timeline-item">
                 <div class="timeline-marker"></div>
                 <article class="event-row">
@@ -22,6 +22,9 @@
                     </div>
                     <div class="event-main">
                         <h2 class="event-name"><a href="/event/{e.id}">{e.title}</a></h2>
+                        {#if e.isOngoing()}
+                        <span class="badge info">En curso</span>
+                        {/if}
                         {#if e.descriptionSummary}
                         <p class="event-description">{e.descriptionSummary}</p>
                         {/if}
@@ -40,14 +43,42 @@
                         {#if e.formattedDate}
                         <p class="event-date">{e.formattedDate}</p>
                         {/if}
-                        <p class="days-left">Faltan {e.daysUntil} días</p>
+                        <p class="days-left">{e.countdownLabel}</p>
                     </div>
                 </article>
             </div>
             {/for}
         </div>
     {/if}
-</section>
+    </section>
+
+    <section class="home-section">
+        <h1 class="page-title">Eventos pasados</h1>
+        {#if past.isEmpty()}
+            <p class="section-subtitle no-events">Aún no tenemos eventos anteriores.</p>
+        {#else}
+            <div class="event-grid">
+                {#for e in past}
+                <a href="/event/{e.id}" class="event-card">
+                    <div class="event-image">
+                        {#if app:validUrl(e.logoUrl)}
+                        <img src="{e.logoUrl}" alt="Logo de {e.title}">
+                        {#else}
+                        <div class="no-logo">Sin logo disponible</div>
+                        {/if}
+                    </div>
+                    <div class="event-content">
+                        <h3 class="event-name">{e.title}</h3>
+                        {#if e.formattedDate}
+                        <p class="event-date">{e.formattedDate}</p>
+                        {/if}
+                        <span class="badge past">Finalizado</span>
+                    </div>
+                </a>
+                {/for}
+            </div>
+        {/if}
+    </section>
 {/main}
 {/include}
 

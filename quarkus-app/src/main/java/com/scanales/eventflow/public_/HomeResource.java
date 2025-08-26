@@ -14,8 +14,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 @Path("/")
@@ -28,7 +30,8 @@ public class HomeResource {
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance home(
-        java.util.List<com.scanales.eventflow.model.Event> events,
+        java.util.List<com.scanales.eventflow.model.Event> upcoming,
+        java.util.List<com.scanales.eventflow.model.Event> past,
         LocalDate today,
         String version,
         Map<String, String> stats,
@@ -42,11 +45,29 @@ public class HomeResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/", headers, context);
-    var events =
-        eventService.listEvents().stream()
+    var allEvents = eventService.listEvents();
+    List<Event> upcoming =
+        allEvents.stream()
+            .filter(
+                e -> {
+                  ZonedDateTime end = e.getEndDateTime();
+                  return end == null || !end.isBefore(ZonedDateTime.now(e.getZoneId()));
+                })
             .sorted(
                 Comparator.comparing(
                     Event::getDate, Comparator.nullsLast(Comparator.naturalOrder())))
+            .toList();
+    List<Event> past =
+        allEvents.stream()
+            .filter(
+                e -> {
+                  ZonedDateTime end = e.getEndDateTime();
+                  return end != null && end.isBefore(ZonedDateTime.now(e.getZoneId()));
+                })
+            .sorted(
+                Comparator.comparing(
+                        Event::getEndDateTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .reversed())
             .toList();
     var today = LocalDate.now();
     var stats =
@@ -60,7 +81,7 @@ public class HomeResource {
             "releasesUrl", "https://github.com/scanalesespinoza/eventflow/releases",
             "issuesUrl", "https://github.com/scanalesespinoza/eventflow/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
-    return Templates.home(events, today, "2.2.0", stats, links);
+    return Templates.home(upcoming, past, today, "2.2.0", stats, links);
   }
 
   @GET
