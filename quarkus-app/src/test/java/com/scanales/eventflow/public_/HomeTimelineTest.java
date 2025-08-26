@@ -42,8 +42,8 @@ public class HomeTimelineTest {
             .get("/")
             .then()
             .statusCode(200)
-            .body(containsString("Faltan 3 días"))
-            .body(containsString("Faltan 10 días"))
+            .body(containsString("Comienza en 3 días"))
+            .body(containsString("Comienza en 10 días"))
             .extract()
             .asString();
 
