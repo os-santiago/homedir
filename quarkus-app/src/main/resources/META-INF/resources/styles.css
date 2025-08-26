@@ -212,9 +212,13 @@ button:focus-visible {
 }
 
 .avatar {
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: center;
     border-radius: 50%;
+    display: inline-block;
 }
 
 .avatar.placeholder {
@@ -228,7 +232,7 @@ button:focus-visible {
 
 .speaker-avatars {
     display: inline-flex;
-    gap: 0.25rem;
+    gap: var(--space-xs);
     vertical-align: middle;
 }
 
@@ -1162,15 +1166,65 @@ footer {
     .talk-card .rating-select { width: auto; }
 }
 /* Compact talk row for agenda view */
-.talk-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.5rem; border-bottom: 1px solid #ddd; }
-.talk-row .talk-time { width: 80px; flex-shrink: 0; font-size: 0.9rem; }
-.talk-row .talk-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.talk-row .talk-actions { display: flex; align-items: center; gap: 0.25rem; margin-left: auto; }
-.talk-row .motivation-list { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-.talk-row .motivation-badge { background: #e0e0e0; color: #333; cursor: pointer; }
-.talk-row .motivation-select { width: auto; }
-.talk-row .rating-select { width: auto; }
-.talk-row .attendance-icon { margin-right: 0.25rem; }
+.talk-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-bottom: 1px solid #ddd;
+}
+.talk-row .talk-time {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 0.9rem;
+}
+.talk-row .talk-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+}
+.talk-row .talk-title {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.talk-row .talk-title a {
+    color: inherit;
+    text-decoration: none;
+}
+.talk-row .talk-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+.talk-row .talk-actions > * {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.talk-row .motivation-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+}
+.talk-row .motivation-badge {
+    background: #e0e0e0;
+    color: #333;
+    cursor: pointer;
+}
+.talk-row .motivation-select,
+.talk-row .rating-select {
+    width: auto;
+}
+.talk-row .attendance-icon {
+    margin-right: 0.25rem;
+}
 @media (min-width: 600px) {
     .talk-row .motivation-select,
     .talk-row .rating-select { width: auto; }
