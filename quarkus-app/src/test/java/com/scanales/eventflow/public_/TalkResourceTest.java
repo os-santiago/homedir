@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-  public class TalkResourceTest {
+public class TalkResourceTest {
 
   @Inject EventService eventService;
 
@@ -58,5 +58,4 @@ import org.junit.jupiter.api.Test;
         .statusCode(200)
         .body(containsString("Charla de prueba"));
   }
-
 }
