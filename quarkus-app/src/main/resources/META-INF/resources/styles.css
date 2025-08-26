@@ -549,6 +549,13 @@ button:focus-visible {
     transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
+.btn:visited,
+.btn:hover,
+.btn:focus {
+    color: var(--color-light);
+    text-decoration: none;
+}
+
 .btn:active {
     transform: scale(0.97);
 }
@@ -1465,10 +1472,7 @@ footer {
     }
 }
 
-#main-content .event-detail a.btn,
-#main-content .event-detail a.btn:visited {
-    color: var(--color-light);
-}/* --- Admin metrics redesign --- */
+/* --- Admin metrics redesign --- */
 .metrics-toolbar {
     position: sticky;
     top: 0;
