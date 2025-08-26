@@ -11,15 +11,15 @@
 <a href="#main-content" class="skip-link">Ir al contenido principal</a>
 <header class="nav-menu" id="nav-menu" aria-label="Principal">
     <a href="/" class="nav-logo"><h2 class="title">EventFlow</h2></a>
-    <button id="menuToggle" class="menu-toggle" aria-label="Menú" aria-controls="primary-navigation" aria-expanded="false">&#9776;</button>
-    <div class="nav-links" id="primary-navigation">
-        <a href="/">Inicio</a>
+    <button id="menuToggle" class="menu-toggle" data-menu-toggle aria-label="Menú" aria-controls="primary-navigation" aria-expanded="false">&#9776;</button>
+    <div class="nav-links" id="primary-navigation" data-primary-navigation hidden>
+        <a href="/" data-nav-link>Inicio</a>
         {#if app:isAuthenticated()}
             {#if app:isAdmin()}
-                <a href="/private/admin">Admin</a>
+                <a href="/private/admin" data-nav-link>Admin</a>
             {/if}
-            <div class="user-menu">
-                <button id="userMenuBtn" class="user-menu-btn" aria-label="Usuario" aria-expanded="false">
+            <div class="user-menu" data-user-menu>
+                <button id="userMenuBtn" class="user-menu-btn" data-user-menu-btn aria-label="Usuario" aria-expanded="false" aria-controls="userDropdown">
                     {#if app:userAvatar()}
                         <img src="{app:userAvatar()}" alt="{app:userName()}" class="avatar" />
                     {#else}
@@ -27,13 +27,13 @@
                     {/if}
                     <span class="user-name">{app:userName()}</span>
                 </button>
-                <div class="dropdown" id="userDropdown">
+                <div class="dropdown" id="userDropdown" hidden>
                     <a href="/private/profile">Perfil</a>
                     <a href="/logout">Salir</a>
                 </div>
             </div>
         {#else}
-            <a href="/login" class="btn">Ingresar</a>
+            <a href="/login" class="btn" data-nav-link>Ingresar</a>
         {/if}
     </div>
 </header>
