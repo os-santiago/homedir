@@ -54,7 +54,7 @@
     </div>
 </footer>
 
-{#include ../fragments/toasts.qute.html/}
+{#include fragments/toasts.qute.html/}
 <script>
 window.addEventListener('DOMContentLoaded', () => {
 (function(){
@@ -87,7 +87,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(window.__metrics) window.__metrics.count('ui.notifications.fallback_polling');
     const poll = async () => {
       try {
-        const res = await fetch(`/api/notifications/next?since=${since}&limit=20`, { cache: 'no-store' });
+        const res = await fetch(`/api/notifications/next?since=$\{since}&limit=20`, { cache: 'no-store' });
         if (res.status === 401) return;
         const data = await res.json();
         (data.items || []).forEach(onDTO);
@@ -99,7 +99,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      fetch(`/api/notifications/next?since=${since}&limit=20`, { cache: 'no-store' })
+      fetch(`/api/notifications/next?since=$\{since}&limit=20`, { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
         .then(d => (d?.items || []).forEach(onDTO))
         .catch(()=>{});
