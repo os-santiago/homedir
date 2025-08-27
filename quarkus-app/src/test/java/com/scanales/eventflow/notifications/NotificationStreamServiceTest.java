@@ -21,10 +21,10 @@ class NotificationStreamServiceTest {
   void emitsToCorrectUserAndLimitsConnections() {
     config.streamMaxConnectionsPerUser = 1;
     AssertSubscriber<NotificationDTO> sub1 = AssertSubscriber.create(1);
-    service.subscribe("u1").subscribe().with(sub1);
+    service.subscribe("u1").subscribe().withSubscriber(sub1);
     assertThrows(WebApplicationException.class, () -> service.subscribe("u1"));
     AssertSubscriber<NotificationDTO> sub2 = AssertSubscriber.create(1);
-    service.subscribe("u2").subscribe().with(sub2);
+    service.subscribe("u2").subscribe().withSubscriber(sub2);
     Notification n = new Notification();
     n.userId = "u1";
     n.talkId = "t1";
@@ -33,7 +33,8 @@ class NotificationStreamServiceTest {
     n.title = "t";
     service.broadcast(n);
     sub1.awaitItems(1);
-    sub1.assertItems(d -> d.talkId.equals("t1"));
+    NotificationDTO received = sub1.getItems().get(0);
+    assertEquals("t1", received.talkId);
     sub2.assertSubscribed().assertHasNotReceivedAnyItem();
     sub1.cancel();
     sub2.cancel();
