@@ -57,5 +57,12 @@ Gauges:
 - `notifications.queue.depth`
 - `notifications.users.active`
 
+## Iteración 2 – UI (Qute)
+- Contenedor de toasts: fragmento Qute `fragments/toasts.qute.html` incluido en el layout base.
+- JS global `EventFlowNotifications.accept(dto)` para encolar toasts con apilado, auto-dismiss y botón “Cerrar todas”.
+- Configuración vía data-attributes (`data-max-visible`, `data-auto-dismiss-ms`, `data-position`).
+- Accesibilidad: `aria-live="polite"`, foco visible y soporte de `prefers-reduced-motion`.
+- Para pruebas en desarrollo: `window.__notifyDev__({...})`.
+
 ## Próximos pasos
-Iteración 2 añadirá toasts en la UI y la 3 el centro de notificaciones.
+Iteración 3 añadirá el centro de notificaciones.
