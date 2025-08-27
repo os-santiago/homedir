@@ -350,7 +350,7 @@ public class Event {
       return "Fecha por confirmar";
     }
     long diff =
-        java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(getZoneId()), date);
+        java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), date);
     if (diff == 0) {
       return "Comienza hoy";
     }

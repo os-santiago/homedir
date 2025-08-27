@@ -46,12 +46,14 @@ public class HomeResource {
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/", headers, context);
     var allEvents = eventService.listEvents();
+    LocalDate today = LocalDate.now();
     List<Event> upcoming =
         allEvents.stream()
             .filter(
                 e -> {
                   ZonedDateTime end = e.getEndDateTime();
-                  return end == null || !end.isBefore(ZonedDateTime.now(e.getZoneId()));
+                  LocalDate endDate = end == null ? null : end.toLocalDate();
+                  return endDate == null || !endDate.isBefore(today);
                 })
             .sorted(
                 Comparator.comparing(
@@ -62,14 +64,14 @@ public class HomeResource {
             .filter(
                 e -> {
                   ZonedDateTime end = e.getEndDateTime();
-                  return end != null && end.isBefore(ZonedDateTime.now(e.getZoneId()));
+                  LocalDate endDate = end == null ? null : end.toLocalDate();
+                  return endDate != null && endDate.isBefore(today);
                 })
             .sorted(
                 Comparator.comparing(
                         Event::getEndDateTime, Comparator.nullsLast(Comparator.naturalOrder()))
                     .reversed())
             .toList();
-    var today = LocalDate.now();
     var stats =
         Map.of(
             "status",
