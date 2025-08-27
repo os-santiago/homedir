@@ -8,6 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,21 +52,27 @@ public class NotificationStreamService {
                 },
                 BackPressureStrategy.BUFFER);
 
-    Multi<io.eventflow.notifications.api.NotificationDTO> heartbeat =
-        Multi.createFrom()
-            .ticks()
-            .every(config.sseHeartbeat)
-            .onOverflow().drop()
-            .map(
-                t -> {
-                  io.eventflow.notifications.api.NotificationDTO hb =
-                      new io.eventflow.notifications.api.NotificationDTO();
-                  hb.type = "HEARTBEAT";
-                  hb.createdAt = System.currentTimeMillis();
-                  return hb;
-                });
+    Duration hbInterval = config.sseHeartbeat;
+    Multi<io.eventflow.notifications.api.NotificationDTO> heartbeat;
+    if (hbInterval == null || hbInterval.isZero() || hbInterval.isNegative()) {
+      heartbeat = Multi.createFrom().empty();
+    } else {
+      heartbeat =
+          Multi.createFrom()
+              .ticks()
+              .every(hbInterval)
+              .onOverflow().drop()
+              .map(
+                  t -> {
+                    io.eventflow.notifications.api.NotificationDTO hb =
+                        new io.eventflow.notifications.api.NotificationDTO();
+                    hb.type = "HEARTBEAT";
+                    hb.createdAt = System.currentTimeMillis();
+                    return hb;
+                  });
+    }
 
-    return Multi.createBy().merging().streams(events, heartbeat).runSubscriptionOn(Infrastructure.getDefaultExecutor());
+    return Multi.createBy().merging().streams(events, heartbeat);
   }
 
   /** Broadcasts a notification to active subscribers. */
