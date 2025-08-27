@@ -20,6 +20,7 @@ public class NotificationService {
   @Inject NotificationStore store;
   @Inject NotificationConfig config;
   @Inject ResourceGuards guards;
+  @Inject NotificationStreamService streamService;
 
   private final ConcurrentHashMap<String, Long> dedupe = new ConcurrentHashMap<>();
 
@@ -68,23 +69,28 @@ public class NotificationService {
     }
     enqueued.incrementAndGet();
 
+    NotificationResult result;
     if (guards.checkQueueDepth(repository.queueDepth(), config.maxQueueSize)
         && guards.checkDiskBudget(repository.baseDir(), 10L * 1024 * 1024)) {
       repository.replace(n.userId, list.stream().toList());
       persisted.incrementAndGet();
       log(n, "persisted");
-      return NotificationResult.ACCEPTED_PERSISTED;
-    }
-    if (config.dropOnQueueFull) {
+      result = NotificationResult.ACCEPTED_PERSISTED;
+    } else if (config.dropOnQueueFull) {
       list.removeLast();
       dropped.incrementAndGet();
       log(n, "drop.queue");
-      return NotificationResult.DROPPED_CAPACITY;
+      result = NotificationResult.DROPPED_CAPACITY;
     } else {
       volatileAccepted.incrementAndGet();
       log(n, "volatile");
-      return NotificationResult.ACCEPTED_VOLATILE;
+      result = NotificationResult.ACCEPTED_VOLATILE;
     }
+    if (result == NotificationResult.ACCEPTED_PERSISTED
+        || result == NotificationResult.ACCEPTED_VOLATILE) {
+      streamService.broadcast(n);
+    }
+    return result;
   }
 
   /** Lists notifications for a user. */

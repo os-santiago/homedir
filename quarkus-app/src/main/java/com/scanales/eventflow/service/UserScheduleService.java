@@ -209,6 +209,12 @@ public class UserScheduleService {
     return new Summary(talks.size(), attendedCount, ratedCount);
   }
 
+  /** Returns all user ids with schedules (testing/evaluator use). */
+  public Set<String> listUsers() {
+    recordRead();
+    return schedules.keySet();
+  }
+
   /** Reloads schedules from persistent storage. */
   public void reload() {
     schedules.clear();

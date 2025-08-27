@@ -30,4 +30,33 @@ public class NotificationConfig {
 
   @ConfigProperty(name = "notifications.drop-on-queue-full", defaultValue = "false")
   public boolean dropOnQueueFull;
+
+  // Iteration 4 runtime integration
+
+  @ConfigProperty(name = "notifications.scheduler.enabled", defaultValue = "true")
+  public boolean schedulerEnabled;
+
+  @ConfigProperty(name = "notifications.scheduler.interval", defaultValue = "PT15S")
+  public Duration schedulerInterval;
+
+  @ConfigProperty(name = "notifications.upcoming.window", defaultValue = "PT15M")
+  public Duration upcomingWindow;
+
+  @ConfigProperty(name = "notifications.endingSoon.window", defaultValue = "PT10M")
+  public Duration endingSoonWindow;
+
+  @ConfigProperty(name = "notifications.sse.enabled", defaultValue = "true")
+  public boolean sseEnabled;
+
+  @ConfigProperty(name = "notifications.sse.heartbeat", defaultValue = "PT25S")
+  public Duration sseHeartbeat;
+
+  @ConfigProperty(name = "notifications.poll.interval", defaultValue = "PT15S")
+  public Duration pollInterval;
+
+  @ConfigProperty(name = "notifications.poll.limit", defaultValue = "20")
+  public int pollLimit;
+
+  @ConfigProperty(name = "notifications.stream.maxConnectionsPerUser", defaultValue = "1")
+  public int streamMaxConnectionsPerUser;
 }
