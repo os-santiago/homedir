@@ -4,7 +4,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.scanales.eventflow.service.NotificationService;
+import com.scanales.eventflow.notifications.NotificationService;
+import com.scanales.eventflow.notifications.NotificationConfig;
 import com.scanales.eventflow.service.UserScheduleService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -18,9 +19,15 @@ public class ProfileResourceTest {
   @Inject UserScheduleService userSchedule;
 
   @Inject NotificationService notifications;
+  @Inject NotificationConfig config;
 
   @BeforeEach
   void setup() {
+    config.enabled = true;
+    config.userCap = 100;
+    config.globalCap = 1000;
+    config.maxQueueSize = 10000;
+    config.dedupeWindow = java.time.Duration.ofMinutes(30);
     notifications.reset();
   }
 
@@ -116,7 +123,7 @@ public class ProfileResourceTest {
         .then()
         .statusCode(200)
         .body("status", is("ok"));
-    assertEquals(1, notifications.getForUser("user@example.com").size());
+    assertEquals(1, notifications.listForUser("user@example.com", 10, false).size());
   }
 
   @Test

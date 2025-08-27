@@ -3,7 +3,9 @@ package com.scanales.eventflow.private_;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.service.EventService;
-import com.scanales.eventflow.service.NotificationService;
+import com.scanales.eventflow.notifications.NotificationService;
+import com.scanales.eventflow.notifications.Notification;
+import com.scanales.eventflow.notifications.NotificationType;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
@@ -252,15 +254,14 @@ public class ProfileResource {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("status", "missing")).build();
     }
     String userId = getEmail();
-    NotificationService.Notification n = new NotificationService.Notification();
+    Notification n = new Notification();
     n.userId = userId;
     n.talkId = talkId;
     n.eventId = info.event().getId();
-    n.type = "TEST";
+    n.type = NotificationType.TEST;
     n.title = "Notificación de prueba";
     n.message = info.talk().getName();
-    n.dedupeKey = java.util.UUID.randomUUID().toString();
-    notifications.enqueue(userId, n);
+    notifications.enqueue(n);
     return Response.ok(Map.of("status", "ok")).build();
   }
 
