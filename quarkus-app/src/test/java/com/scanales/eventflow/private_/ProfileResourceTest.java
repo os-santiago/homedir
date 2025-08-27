@@ -4,16 +4,25 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.scanales.eventflow.service.NotificationService;
 import com.scanales.eventflow.service.UserScheduleService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 public class ProfileResourceTest {
 
   @Inject UserScheduleService userSchedule;
+
+  @Inject NotificationService notifications;
+
+  @BeforeEach
+  void setup() {
+    notifications.reset();
+  }
 
   @Test
   @TestSecurity(user = "user@example.com")
@@ -93,6 +102,21 @@ public class ProfileResourceTest {
         .then()
         .statusCode(303)
         .header("Location", endsWith("/private/profile"));
+  }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  public void testNotificationEndpointCreatesNotification() {
+    given()
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .body("{\"talkId\":\"t1\"}")
+        .when()
+        .post("/private/profile/test-notification")
+        .then()
+        .statusCode(200)
+        .body("status", is("ok"));
+    assertEquals(1, notifications.getForUser("user@example.com").size());
   }
 
   @Test

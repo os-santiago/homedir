@@ -3,6 +3,7 @@ package com.scanales.eventflow.private_;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.NotificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
@@ -26,6 +27,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -63,6 +65,8 @@ public class ProfileResource {
   @Inject UserScheduleService userSchedule;
 
   @Inject UsageMetricsService metrics;
+
+  @Inject NotificationService notifications;
 
   @GET
   @Authenticated
@@ -229,6 +233,35 @@ public class ProfileResource {
     return Response.status(Response.Status.SEE_OTHER)
         .header("Location", "/private/profile")
         .build();
+  }
+
+  @POST
+  @Path("test-notification")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response testNotification(Map<String, String> body) {
+    String talkId = body != null ? body.get("talkId") : null;
+    if (talkId == null || talkId.isBlank()) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("status", "error", "message", "Selecciona una Charla"))
+          .build();
+    }
+    var info = eventService.findTalkInfo(talkId);
+    if (info == null) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("status", "missing")).build();
+    }
+    String userId = getEmail();
+    NotificationService.Notification n = new NotificationService.Notification();
+    n.userId = userId;
+    n.talkId = talkId;
+    n.eventId = info.event().getId();
+    n.type = "TEST";
+    n.title = "Notificación de prueba";
+    n.message = info.talk().getName();
+    n.dedupeKey = java.util.UUID.randomUUID().toString();
+    notifications.enqueue(userId, n);
+    return Response.ok(Map.of("status", "ok")).build();
   }
 
   private boolean acceptsJson(HttpHeaders headers) {

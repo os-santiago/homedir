@@ -18,6 +18,7 @@ Latest stable release: **v2.2.0**.
 - Sign in with Google using Quarkus OIDC
 - Admin area protected by `ADMIN_LIST`
 - Import events from JSON
+- In-app notifications for talk status changes
 - Supply chain security with SBOM generation, image signing and vulnerability scanning
 
 ## Quick start
