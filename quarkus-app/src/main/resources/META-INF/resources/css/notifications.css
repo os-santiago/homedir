@@ -1,0 +1,75 @@
+#ef-toast-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1000;
+}
+#ef-toast-container[data-position="top"] {
+  top: 0.5rem;
+  bottom: auto;
+}
+.ef-toast {
+  background: #333;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  max-width: 90%;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ef-toast.hide {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.ef-toast__title {
+  font-weight: bold;
+}
+.ef-toast__actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.ef-toast button,
+.ef-toast a {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: #555;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.ef-toast button:focus,
+.ef-toast a:focus,
+#ef-toast-close-all:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+#ef-toast-close-all {
+  margin-bottom: 0.5rem;
+  min-height: 44px;
+  min-width: 88px;
+  padding: 0.25rem 0.75rem;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ef-toast {
+    transition: none;
+  }
+}

@@ -1,0 +1,114 @@
+(function(){
+  function uid(){return (self.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));}
+  class ToastQueueManager{
+    constructor(container){
+      this.container=container;
+      this.closeAllBtn=document.getElementById('ef-toast-close-all');
+      this.maxVisible=parseInt(container.dataset.maxVisible||'3',10);
+      this.autoDismissMs=parseInt(container.dataset.autoDismissMs||'6000',10);
+      this.rateLimitWindow=30000;
+      this.rateLimitMax=6;
+      this.visible=[];
+      this.queue=[];
+      this.timestamps=[];
+      this.closeAllBtn.addEventListener('click',()=>this.closeAll());
+    }
+    enqueue(vm){
+      const now=Date.now();
+      this.timestamps=this.timestamps.filter(t=>now-t<this.rateLimitWindow);
+      if(this.timestamps.length>=this.rateLimitMax){this.metric('rate_limited');return;}
+      if(this.visible.some(t=>t.id===vm.id)){this.metric('suppressed');return;}
+      this.timestamps.push(now);
+      if(this.visible.length<this.maxVisible){this.show(vm);}else{this.queue.push(vm);} 
+      this.updateCloseAll();
+    }
+    show(vm){
+      vm.node=this.render(vm);
+      this.visible.push(vm);
+      this.metric('shown');
+      this.container.appendChild(vm.node);
+      vm.timer=this.startTimer(vm);
+    }
+    startTimer(vm){
+      let remaining=this.autoDismissMs;
+      let start=Date.now();
+      const tick=()=>this.close(vm.id);
+      let timer=setTimeout(tick,remaining);
+      const pause=()=>{clearTimeout(timer);remaining-=Date.now()-start;};
+      const resume=()=>{start=Date.now();timer=setTimeout(tick,remaining);};
+      vm.node.addEventListener('mouseenter',pause);
+      vm.node.addEventListener('mouseleave',resume);
+      vm.node.addEventListener('focusin',pause);
+      vm.node.addEventListener('focusout',resume);
+      return timer;
+    }
+    render(vm){
+      const toast=document.createElement('div');
+      toast.className='ef-toast';
+      toast.setAttribute('data-id',vm.id);
+      const title=document.createElement('div');
+      title.className='ef-toast__title';
+      title.textContent=vm.title;
+      toast.appendChild(title);
+      const msg=document.createElement('div');
+      msg.className='ef-toast__message';
+      msg.textContent=vm.message;
+      toast.appendChild(msg);
+      const actions=document.createElement('div');
+      actions.className='ef-toast__actions';
+      const link=document.createElement('a');
+      link.href=vm.url||'#';
+      link.textContent='Ver charla';
+      actions.appendChild(link);
+      const close=document.createElement('button');
+      close.type='button';
+      close.textContent='×';
+      close.addEventListener('click',()=>this.close(vm.id));
+      actions.appendChild(close);
+      toast.appendChild(actions);
+      return toast;
+    }
+    close(id){
+      const idx=this.visible.findIndex(t=>t.id===id);
+      if(idx===-1)return;
+      const vm=this.visible.splice(idx,1)[0];
+      clearTimeout(vm.timer);
+      vm.node.classList.add('hide');
+      setTimeout(()=>vm.node.remove(),200);
+      this.metric('dismissed');
+      if(this.queue.length>0){this.show(this.queue.shift());}
+      this.updateCloseAll();
+    }
+    closeAll(){
+      this.visible.slice().forEach(t=>this.close(t.id));
+      this.queue=[];
+      this.metric('closed_all');
+      this.updateCloseAll();
+    }
+    updateCloseAll(){
+      const total=this.visible.length+this.queue.length;
+      this.closeAllBtn.hidden=total<=1;
+    }
+    metric(name){
+      if(window.__metrics&&window.__metrics.count){window.__metrics.count('ui.notifications.'+name);} }
+  }
+  const container=document.getElementById('ef-toast-container');
+  const manager=container?new ToastQueueManager(container):null;
+  window.EventFlowNotifications={
+    accept(dto){
+      if(!manager)return;
+      const vm={
+        id:dto.id||uid(),
+        title:dto.title||dto.type,
+        message:dto.message||'',
+        url:dto.talkId?('/talks/'+dto.talkId):'#'
+      };
+      manager.enqueue(vm);
+    },
+    closeAll(){manager&&manager.closeAll();}
+  };
+  window.__notifyDev__=(partial={})=>{
+    const demo=Object.assign({type:'UPCOMING',title:'Demo',message:'Example',talkId:'demo'},partial);
+    window.EventFlowNotifications.accept(demo);
+  };
+})();
