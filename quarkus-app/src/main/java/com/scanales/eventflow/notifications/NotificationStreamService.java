@@ -3,7 +3,7 @@ package com.scanales.eventflow.notifications;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.smallrye.mutiny.subscription.MultiEmitter;
-import io.smallrye.mutiny.subscription.MultiEmitterFactory;
+import io.smallrye.mutiny.subscription.BackPressureStrategy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -21,8 +21,8 @@ public class NotificationStreamService {
 
   @Inject NotificationConfig config;
 
-  private final Map<String, MultiEmitter<io.eventflow.notifications.api.NotificationDTO>> emitters =
-      new ConcurrentHashMap<>();
+  private final Map<String, MultiEmitter<? super io.eventflow.notifications.api.NotificationDTO>>
+      emitters = new ConcurrentHashMap<>();
 
   private final Map<String, AtomicInteger> connections = new ConcurrentHashMap<>();
 
@@ -49,7 +49,7 @@ public class NotificationStreamService {
                     count.decrementAndGet();
                   });
                 },
-                MultiEmitterFactory.BackPressureStrategy.BUFFER);
+                BackPressureStrategy.BUFFER);
 
     Multi<io.eventflow.notifications.api.NotificationDTO> heartbeat =
         Multi.createFrom()
@@ -71,7 +71,8 @@ public class NotificationStreamService {
   /** Broadcasts a notification to active subscribers. */
   public void broadcast(Notification n) {
     io.eventflow.notifications.api.NotificationDTO dto = toDTO(n);
-    MultiEmitter<io.eventflow.notifications.api.NotificationDTO> emitter = emitters.get(n.userId);
+    MultiEmitter<? super io.eventflow.notifications.api.NotificationDTO> emitter =
+        emitters.get(n.userId);
     if (emitter != null) {
       try {
         emitter.emit(dto);
