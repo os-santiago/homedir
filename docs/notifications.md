@@ -123,4 +123,19 @@ Mis Charlas -> Evaluador -> Servicio Notif -> SSE/Poll -> UI
 - Límite de 1 SSE activo por usuario y control de `limit` en polling.
 - Respuestas con `Cache-Control: no-store` y cabecera `X-User-Scoped: true`.
 - Ante `401` la UI cae a polling o redirige al inicio.
+ 
+## Iteración 5 – A11y y Mobile
 
+Esta iteración mejora la accesibilidad y experiencia móvil del módulo de
+notificaciones.
+
+- Campana con texto accesible y contador `aria-live`.
+- Centro con landmarks semánticos, foco visible y elementos navegables por
+  teclado.
+- Tap targets de al menos 44×44 px y contraste AA en botones y enlaces.
+- Soporte para `prefers-reduced-motion` en CSS y JS, permitiendo cerrar toasts
+  con <kbd>Esc</kbd>.
+- Layout mobile-first sin scroll horizontal, títulos con *line-clamp* y
+  contenedores con `overflow-wrap:anywhere`.
+- Rendimiento visual: reserva de alto en toasts, `aspect-ratio` fijo para
+  avatares y batching de cambios en el DOM para evitar repaints.
