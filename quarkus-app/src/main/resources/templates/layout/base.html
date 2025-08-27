@@ -57,7 +57,8 @@
 {#include fragments/toasts.qute.html/}
 <script>
 window.addEventListener('DOMContentLoaded', () => {
-(function(){
+  if (!{app:isAuthenticated()}) return;
+  (function(){
   const useSSE = !!window.EventSource;
   let since = Date.now();
 
