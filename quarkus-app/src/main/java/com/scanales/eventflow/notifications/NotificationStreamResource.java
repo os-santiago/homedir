@@ -9,8 +9,10 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 
 @Path("/api/notifications")
@@ -30,9 +32,13 @@ public class NotificationStreamResource {
     if (!config.sseEnabled) {
       throw new NotFoundException();
     }
-    String user = identity.getAttribute("email");
+    Object emailAttr = identity.getAttribute("email");
+    String user = emailAttr != null ? emailAttr.toString() : null;
     if (user == null && identity.getPrincipal() != null) {
       user = identity.getPrincipal().getName();
+    }
+    if (user == null) {
+      throw new WebApplicationException("user not found", Response.Status.UNAUTHORIZED);
     }
     response.putHeader("Cache-Control", "no-store");
     response.putHeader("X-User-Scoped", "true");

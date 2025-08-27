@@ -24,9 +24,13 @@ public class NotificationPollingResource {
   @Path("/next")
   @Produces(MediaType.APPLICATION_JSON)
   public Response next(@QueryParam("since") long since, @QueryParam("limit") Integer limit) {
-    String user = identity.getAttribute("email");
+    Object emailAttr = identity.getAttribute("email");
+    String user = emailAttr != null ? emailAttr.toString() : null;
     if (user == null && identity.getPrincipal() != null) {
       user = identity.getPrincipal().getName();
+    }
+    if (user == null) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
     }
     int lim = limit == null ? config.pollLimit : Math.min(limit, config.pollLimit);
     List<Notification> list = notifications.listForUser(user, 1000, false);
