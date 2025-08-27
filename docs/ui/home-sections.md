@@ -12,6 +12,7 @@ La página de inicio ahora diferencia eventos en dos bloques:
 ## Eventos pasados
 - Ordenados del más reciente al más antiguo.
 - Badge `Finalizado` para todos los eventos listados.
+- Se muestran con una apariencia equivalente a los eventos disponibles, pero en escala de grises para indicar que ya finalizaron.
 - Estado vacío: *"Aún no tenemos eventos anteriores."*
 
 > Capturas antes/después pendientes.
