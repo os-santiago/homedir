@@ -96,6 +96,12 @@ public class EventService {
     }
   }
 
+  /** Clears all stored events (testing only). */
+  public void reset() {
+    events.clear();
+    persistence.saveEvents(new ConcurrentHashMap<>(events));
+  }
+
   /**
    * Checks whether the given talk overlaps with an existing one in the same event, day and
    * scenario.

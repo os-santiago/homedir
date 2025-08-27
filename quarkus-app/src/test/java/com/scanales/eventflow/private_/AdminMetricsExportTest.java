@@ -32,6 +32,8 @@ public class AdminMetricsExportTest {
 
   @BeforeEach
   void setUp() {
+    eventService.reset();
+    speakerService.reset();
     try {
       Method m = UsageMetricsService.class.getDeclaredMethod("reset");
       m.setAccessible(true);

@@ -20,6 +20,11 @@ class NotificationPollingResourceTest {
   @BeforeEach
   void setup() {
     service.reset();
+    config.enabled = true;
+    config.userCap = 100;
+    config.globalCap = 1000;
+    config.maxQueueSize = 10000;
+    config.dedupeWindow = java.time.Duration.ofMinutes(30);
     config.pollLimit = 20;
     Notification n1 = new Notification();
     n1.userId = "u1";
