@@ -1,4 +1,5 @@
 (function(){
+  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function uid(){return (self.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));}
   class ToastQueueManager{
     constructor(container){
@@ -12,6 +13,7 @@
       this.queue=[];
       this.timestamps=[];
       this.closeAllBtn.addEventListener('click',()=>this.closeAll());
+      this.reduceMotion=reduceMotion;
     }
     enqueue(vm){
       const now=Date.now();
@@ -26,7 +28,7 @@
       vm.node=this.render(vm);
       this.visible.push(vm);
       this.metric('shown');
-      this.container.appendChild(vm.node);
+      requestAnimationFrame(()=>this.container.appendChild(vm.node));
       vm.timer=this.startTimer(vm);
     }
     startTimer(vm){
@@ -46,6 +48,8 @@
       const toast=document.createElement('div');
       toast.className='ef-toast';
       toast.setAttribute('data-id',vm.id);
+      toast.setAttribute('tabindex','0');
+      toast.addEventListener('keydown',e=>{if(e.key==='Escape'){this.close(vm.id);}});
       const title=document.createElement('div');
       title.className='ef-toast__title';
       title.textContent=vm.title;
@@ -73,8 +77,11 @@
       if(idx===-1)return;
       const vm=this.visible.splice(idx,1)[0];
       clearTimeout(vm.timer);
-      vm.node.classList.add('hide');
-      setTimeout(()=>vm.node.remove(),200);
+      if(this.reduceMotion){vm.node.remove();}
+      else {
+        vm.node.classList.add('hide');
+        requestAnimationFrame(()=>vm.node.remove());
+      }
       this.metric('dismissed');
       if(this.queue.length>0){this.show(this.queue.shift());}
       this.updateCloseAll();

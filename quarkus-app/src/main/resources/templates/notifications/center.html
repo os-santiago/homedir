@@ -5,11 +5,19 @@
   <title>Notificaciones</title>
 </head>
 <body>
-  <h1>Notificaciones</h1>
-  <ul>
-  {#for n in data.items}
-    <li>{n.title} - {n.message}</li>
-  {/for}
-  </ul>
+  <main id="notifications-center" class="notifications-center">
+    <h1 id="notifications-heading">Notificaciones</h1>
+    <section aria-labelledby="notifications-list-heading">
+      <h2 id="notifications-list-heading" class="sr-only">Lista</h2>
+      <ul class="notifications-list">
+      {#for n in data.items}
+        <li class="notification-item">
+          <span class="notification-title">{n.title}</span>
+          <span class="notification-message">{n.message}</span>
+        </li>
+      {/for}
+      </ul>
+    </section>
+  </main>
 </body>
 </html>

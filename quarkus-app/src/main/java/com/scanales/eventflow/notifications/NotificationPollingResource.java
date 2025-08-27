@@ -1,5 +1,6 @@
 package com.scanales.eventflow.notifications;
 
+import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Path("/api/notifications")
+@Authenticated
 public class NotificationPollingResource {
 
   @Inject SecurityIdentity identity;
@@ -34,8 +36,7 @@ public class NotificationPollingResource {
             .sorted((a, b) -> Long.compare(a.createdAt, b.createdAt))
             .limit(lim)
             .toList();
-    long nextSince =
-        filtered.stream().mapToLong(n -> n.createdAt).max().orElse(since);
+    long nextSince = filtered.stream().mapToLong(n -> n.createdAt).max().orElse(since);
     List<io.eventflow.notifications.api.NotificationDTO> items =
         filtered.stream().map(this::toDTO).toList();
     Map<String, Object> body =

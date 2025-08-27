@@ -1,9 +1,13 @@
 {@java.lang.Long unreadCount}
 <div class="notifications-bell">
-  <a href="/notifications/center" aria-label="Notificaciones">
-    <span class="icon">🔔</span>
+  <a
+      href="/notifications/center"
+      aria-label="Notificaciones"
+      aria-controls="notifications-center">
+    <span class="icon" aria-hidden="true">🔔</span>
     {#if unreadCount != null && unreadCount > 0}
-      <span class="badge" aria-live="polite">{unreadCount}</span>
+      <span class="badge" aria-hidden="true">{unreadCount}</span>
+      <span class="sr-only" aria-live="polite">{unreadCount} notificaciones nuevas</span>
     {/if}
   </a>
 </div>

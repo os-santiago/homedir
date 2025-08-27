@@ -25,6 +25,8 @@
   display: flex;
   flex-direction: column;
   transition: opacity 0.2s ease, transform 0.2s ease;
+  min-height: 48px;
+  overflow-wrap: anywhere;
 }
 .ef-toast.hide {
   opacity: 0;
@@ -72,4 +74,83 @@
   .ef-toast {
     transition: none;
   }
+}
+
+.ef-toast__message {
+  overflow-wrap: anywhere;
+}
+
+.notifications-center {
+  padding: 1rem;
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+}
+
+.notifications-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notification-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  min-height: 48px;
+  border-bottom: 1px solid #ddd;
+}
+
+.notification-title {
+  font-weight: bold;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-message {
+  overflow-wrap: anywhere;
+}
+
+.notifications-center a,
+.notifications-center button {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: #eee;
+  color: #000;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.notifications-center a:focus,
+.notifications-center button:focus {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+.notifications-center img.avatar {
+  width: 40px;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
