@@ -101,3 +101,26 @@ usuario devuelven `404`.
 - Navegación por teclado y foco visible.
 - Contraste AA en el contador y botones.
 
+## Iteración 4 – Integración runtime
+
+```
+Mis Charlas -> Evaluador -> Servicio Notif -> SSE/Poll -> UI
+```
+
+### Configuración
+- `notifications.scheduler.enabled`
+- `notifications.scheduler.interval`
+- `notifications.upcoming.window`
+- `notifications.endingSoon.window`
+- `notifications.sse.enabled`
+- `notifications.sse.heartbeat`
+- `notifications.poll.interval`
+- `notifications.poll.limit`
+- `notifications.stream.maxConnectionsPerUser`
+
+### Seguridad
+- Propiedad de usuario derivada de `SecurityIdentity`, sin aceptar `userId` externo.
+- Límite de 1 SSE activo por usuario y control de `limit` en polling.
+- Respuestas con `Cache-Control: no-store` y cabecera `X-User-Scoped: true`.
+- Ante `401` la UI cae a polling o redirige al inicio.
+

@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{#insert title}EventFlow{/}</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/css/notifications.css">
     <script src="/js/app.js" defer></script>
+    <script src="/js/notifications.js" defer></script>
 </head>
 <body>
 <a href="#main-content" class="skip-link">Ir al contenido principal</a>
@@ -51,5 +53,62 @@
         <p>&copy; {app:currentYear()} EventFlow &ndash; v{app:version()}</p>
     </div>
 </footer>
+
+{#include ../fragments/toasts.qute.html/}
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+(function(){
+  const useSSE = !!window.EventSource;
+  let since = Date.now();
+
+  function onDTO(dto){
+    since = Math.max(since, dto.createdAt || Date.now());
+    if (window.EventFlowNotifications && typeof window.EventFlowNotifications.accept === 'function') {
+      window.EventFlowNotifications.accept(dto);
+    }
+    if (window.__metrics && window.__metrics.count) {
+      window.__metrics.count('ui.notifications.received');
+    }
+  }
+
+  function startSSE(){
+    try {
+      const es = new EventSource('/api/notifications/stream', { withCredentials: true });
+      es.onmessage = (ev) => {
+        const dto = JSON.parse(ev.data);
+        if (dto && dto.type !== 'HEARTBEAT') onDTO(dto);
+      };
+      es.onopen = () => { if(window.__metrics) window.__metrics.count('ui.notifications.sse.connected'); };
+      es.onerror = () => { es.close(); if(window.__metrics) window.__metrics.count('ui.notifications.sse.fallback_polling'); startPolling(); };
+    } catch(e) { startPolling(); }
+  }
+
+  function startPolling(){
+    if(window.__metrics) window.__metrics.count('ui.notifications.fallback_polling');
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/notifications/next?since=${since}&limit=20`, { cache: 'no-store' });
+        if (res.status === 401) return;
+        const data = await res.json();
+        (data.items || []).forEach(onDTO);
+      } catch(_) {}
+      setTimeout(poll, 15000);
+    };
+    poll();
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      fetch(`/api/notifications/next?since=${since}&limit=20`, { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => (d?.items || []).forEach(onDTO))
+        .catch(()=>{});
+    }
+  });
+
+  useSSE ? startSSE() : startPolling();
+})();
+});
+</script>
 </body>
 </html>
