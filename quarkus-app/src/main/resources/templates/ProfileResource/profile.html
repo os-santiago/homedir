@@ -6,6 +6,19 @@
 <p><strong>Email:</strong> {email}</p>
 
 <h2 class="page-title">Tus Charlas Registradas</h2>
+<div class="test-notification">
+  <select id="test-talk-select">
+    <option value="">--Selecciona una charla--</option>
+    {#for g in groups}
+      {#for d in g.days}
+        {#for t in d.talks}
+          <option value="{t.id}">{t.name}</option>
+        {/for}
+      {/for}
+    {/for}
+  </select>
+  <button id="test-notification-btn" class="btn">Prueba de Notificaciones</button>
+</div>
 {#if groups.isEmpty()}
 <p>Aún no hay charlas.</p>
 {#else}
@@ -217,6 +230,32 @@
         });
       });
     });
+
+    const testBtn = document.getElementById('test-notification-btn');
+    if (testBtn) {
+      testBtn.addEventListener('click', async () => {
+        const sel = document.getElementById('test-talk-select');
+        const talkId = sel ? sel.value : '';
+        if (!talkId) {
+          showNotification('info', 'Selecciona una Charla');
+          return;
+        }
+        try {
+          const res = await fetch('/private/profile/test-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ talkId })
+          });
+          if (res.ok) {
+            showNotification('success', 'Notificación de prueba enviada');
+          } else {
+            showNotification('error', 'No se pudo enviar la notificación');
+          }
+        } catch (e) {
+          showNotification('error', 'No se pudo enviar la notificación');
+        }
+      });
+    }
 
     updateSummary();
   })();

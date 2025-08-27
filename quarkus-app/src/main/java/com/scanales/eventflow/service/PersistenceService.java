@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -55,6 +56,7 @@ public class PersistenceService {
   private final Path speakersFile = dataDir.resolve("speakers.json");
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
+  private final Path notificationsFile = dataDir.resolve("notifications.json");
 
   private volatile boolean lowDiskSpace;
   private static final long MIN_FREE_BYTES = 50L * 1024 * 1024; // 50 MB
@@ -123,6 +125,11 @@ public class PersistenceService {
     scheduleWrite(scheduleFile(year), schedules);
   }
 
+  /** Persists user notifications asynchronously. */
+  public void saveNotifications(Map<String, List<NotificationService.Notification>> notifications) {
+    scheduleWrite(notificationsFile, notifications);
+  }
+
   /** Loads events from disk or returns an empty map if none. */
   public Map<String, Event> loadEvents() {
     return read(eventsFile, new TypeReference<Map<String, Event>>() {});
@@ -138,6 +145,13 @@ public class PersistenceService {
     return read(
         scheduleFile(year),
         new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {});
+  }
+
+  /** Loads user notifications from disk or returns an empty map if none. */
+  public Map<String, List<NotificationService.Notification>> loadNotifications() {
+    return read(
+        notificationsFile,
+        new TypeReference<Map<String, List<NotificationService.Notification>>>() {});
   }
 
   /** Lists all years that have user schedule files. */
