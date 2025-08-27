@@ -56,7 +56,6 @@ public class PersistenceService {
   private final Path speakersFile = dataDir.resolve("speakers.json");
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
-  private final Path notificationsFile = dataDir.resolve("notifications.json");
 
   private volatile boolean lowDiskSpace;
   private static final long MIN_FREE_BYTES = 50L * 1024 * 1024; // 50 MB
@@ -125,10 +124,6 @@ public class PersistenceService {
     scheduleWrite(scheduleFile(year), schedules);
   }
 
-  /** Persists user notifications asynchronously. */
-  public void saveNotifications(Map<String, List<NotificationService.Notification>> notifications) {
-    scheduleWrite(notificationsFile, notifications);
-  }
 
   /** Loads events from disk or returns an empty map if none. */
   public Map<String, Event> loadEvents() {
@@ -147,12 +142,6 @@ public class PersistenceService {
         new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {});
   }
 
-  /** Loads user notifications from disk or returns an empty map if none. */
-  public Map<String, List<NotificationService.Notification>> loadNotifications() {
-    return read(
-        notificationsFile,
-        new TypeReference<Map<String, List<NotificationService.Notification>>>() {});
-  }
 
   /** Lists all years that have user schedule files. */
   public Set<Integer> listUserScheduleYears() {
