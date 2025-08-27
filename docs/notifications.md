@@ -66,3 +66,38 @@ Gauges:
 
 ## Próximos pasos
 Iteración 3 añadirá el centro de notificaciones.
+
+## Iteración 3 – Centro de Notificaciones
+
+La tercera iteración expone un centro accesible desde una campana en el menú y
+una API REST autenticada para operar las notificaciones.
+
+### Endpoints
+
+Todos bajo `/api/notifications` y con encabezados `Cache-Control: no-store` y
+`X-User-Scoped: true`.
+
+```
+GET    /api/notifications?filter={all|unread|last24h}&cursor=epochMs&limit={1..100}
+POST   /api/notifications/{id}/read
+POST   /api/notifications/read-all
+DELETE /api/notifications/{id}
+POST   /api/notifications/bulk-delete {ids:[..]}
+```
+
+La API ignora cualquier `userId` provisto por el cliente y lo extrae de la
+identidad autenticada. Las operaciones que no encuentran la notificación del
+usuario devuelven `404`.
+
+### UX
+
+- Campana con contador de no leídas (`aria-live="polite"`).
+- Centro con filtros *Todas*, *No leídas* y *Últimas 24h*.
+- Paginación por cursor (`createdAt`) y acción *Cargar más*.
+- Acciones unitarias y masivas para marcar como leídas o eliminar.
+
+### Accesibilidad
+
+- Navegación por teclado y foco visible.
+- Contraste AA en el contador y botones.
+
