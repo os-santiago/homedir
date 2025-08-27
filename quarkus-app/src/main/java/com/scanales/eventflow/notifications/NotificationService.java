@@ -92,6 +92,100 @@ public class NotificationService {
     return store.list(userId, limit, onlyUnread);
   }
 
+  /**
+   * Paginates notifications for a user applying simple filters.
+   *
+   * @param userId the owner
+   * @param filter one of "all", "unread" or "last24h"
+   * @param cursor timestamp cursor; notifications newer than this are skipped
+   * @param limit max items to return
+   */
+  public NotificationPage listPage(String userId, String filter, Long cursor, int limit) {
+    java.util.Deque<Notification> list = store.getUserList(userId);
+    long now = System.currentTimeMillis();
+    java.util.stream.Stream<Notification> stream =
+        list.stream().sorted((a, b) -> Long.compare(b.createdAt, a.createdAt));
+    if ("unread".equalsIgnoreCase(filter)) {
+      stream = stream.filter(n -> n.readAt == null);
+    } else if ("last24h".equalsIgnoreCase(filter)) {
+      long cutoff = now - 24 * 60 * 60 * 1000L;
+      stream = stream.filter(n -> n.createdAt >= cutoff);
+    }
+    if (cursor != null) {
+      stream = stream.filter(n -> n.createdAt < cursor);
+    }
+    java.util.List<Notification> items = stream.limit(limit + 1).toList();
+    Long next = null;
+    if (items.size() > limit) {
+      Notification last = items.get(limit - 1);
+      next = last.createdAt;
+      items = items.subList(0, limit);
+    }
+    long unread = list.stream().filter(n -> n.readAt == null).count();
+    return new NotificationPage(items, next, unread);
+  }
+
+  /** Marks a single notification as read. */
+  public boolean markRead(String userId, String id) {
+    java.util.Deque<Notification> list = store.getUserList(userId);
+    Notification found =
+        list.stream().filter(n -> n.id.equals(id)).findFirst().orElse(null);
+    if (found == null) return false;
+    if (found.readAt == null) {
+      found.readAt = System.currentTimeMillis();
+      repository.replace(userId, list.stream().toList());
+    }
+    return true;
+  }
+
+  /** Marks all notifications for the user as read. */
+  public int markAllRead(String userId) {
+    java.util.Deque<Notification> list = store.getUserList(userId);
+    long now = System.currentTimeMillis();
+    int count = 0;
+    for (Notification n : list) {
+      if (n.readAt == null) {
+        n.readAt = now;
+        count++;
+      }
+    }
+    if (count > 0) {
+      repository.replace(userId, list.stream().toList());
+    }
+    return count;
+  }
+
+  /** Deletes a notification for the user. */
+  public boolean delete(String userId, String id) {
+    java.util.Deque<Notification> list = store.getUserList(userId);
+    boolean removed = list.removeIf(n -> n.id.equals(id));
+    if (removed) {
+      repository.replace(userId, list.stream().toList());
+    }
+    return removed;
+  }
+
+  /** Deletes multiple notifications for the user. */
+  public int bulkDelete(String userId, java.util.Set<String> ids) {
+    java.util.Deque<Notification> list = store.getUserList(userId);
+    int before = list.size();
+    list.removeIf(n -> ids.contains(n.id));
+    int removed = before - list.size();
+    if (removed > 0) {
+      repository.replace(userId, list.stream().toList());
+    }
+    return removed;
+  }
+
+  /** Counts unread notifications for a user. */
+  public long countUnread(String userId) {
+    return store.getUserList(userId).stream().filter(n -> n.readAt == null).count();
+  }
+
+  /** Page result for notification listings. */
+  public record NotificationPage(
+      java.util.List<Notification> items, Long nextCursor, long unreadCount) {}
+
   /** Purges notifications older than the retention period. */
   public void purgeOld() {
     long cutoff = Instant.now().minus(config.retentionDays, java.time.temporal.ChronoUnit.DAYS).toEpochMilli();

@@ -1,0 +1,15 @@
+{@io.eventflow.notifications.api.NotificationListResponse data}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notificaciones</title>
+</head>
+<body>
+  <h1>Notificaciones</h1>
+  <ul>
+  {#for n in data.items}
+    <li>{n.title} - {n.message}</li>
+  {/for}
+  </ul>
+</body>
+</html>
