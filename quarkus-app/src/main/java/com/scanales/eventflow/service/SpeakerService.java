@@ -89,6 +89,12 @@ public class SpeakerService {
     persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
   }
 
+  /** Clears all stored speakers (testing only). */
+  public void reset() {
+    speakers.clear();
+    persistence.saveSpeakers(new ConcurrentHashMap<>(speakers));
+  }
+
   public void saveTalk(String speakerId, Talk talk) {
     Speaker sp = speakers.get(speakerId);
     if (sp == null || talk == null || talk.getId() == null) {

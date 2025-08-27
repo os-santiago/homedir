@@ -13,6 +13,7 @@ public class NotificationServiceTest {
 
   @Test
   public void dedupePreventsDuplicates() {
+    notifications.reset();
     config.enabled = true;
     config.maxQueueSize = 10000;
     config.dropOnQueueFull = false;
@@ -33,6 +34,7 @@ public class NotificationServiceTest {
 
   @Test
   public void queueFullReturnsVolatile() {
+    notifications.reset();
     config.enabled = true;
     config.maxQueueSize = 0;
     config.dropOnQueueFull = false;

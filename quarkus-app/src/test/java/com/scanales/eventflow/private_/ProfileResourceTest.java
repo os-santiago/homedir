@@ -29,6 +29,7 @@ public class ProfileResourceTest {
     config.maxQueueSize = 10000;
     config.dedupeWindow = java.time.Duration.ofMinutes(30);
     notifications.reset();
+    userSchedule.reset();
   }
 
   @Test

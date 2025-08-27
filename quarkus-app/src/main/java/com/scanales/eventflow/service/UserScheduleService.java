@@ -221,6 +221,13 @@ public class UserScheduleService {
     init();
   }
 
+  /** Clears all schedules and historical data (testing only). */
+  public void reset() {
+    schedules.clear();
+    historical.clear();
+    persistence.saveUserSchedules(activeYear, schedules);
+  }
+
   /** Result codes for loading historical data. */
   public enum LoadStatus {
     LOADED,
