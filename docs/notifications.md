@@ -83,6 +83,8 @@ POST   /api/notifications/{id}/read
 POST   /api/notifications/read-all
 DELETE /api/notifications/{id}
 POST   /api/notifications/bulk-delete {ids:[..]}
+GET    /api/notifications/stream (SSE)
+GET    /api/notifications/next?since=epochMs&limit={1..100}
 ```
 
 La API ignora cualquier `userId` provisto por el cliente y lo extrae de la
