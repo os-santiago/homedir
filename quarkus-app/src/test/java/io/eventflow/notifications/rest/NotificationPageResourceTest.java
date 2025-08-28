@@ -1,7 +1,6 @@
 package io.eventflow.notifications.rest;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
@@ -11,6 +10,7 @@ import com.scanales.eventflow.notifications.NotificationType;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +25,7 @@ public class NotificationPageResourceTest {
   void setup() {
     config.enabled = true;
     config.sseEnabled = true;
+    config.dedupeWindow = Duration.ofMinutes(30);
     service.reset();
     // enqueue a sample notification for the authenticated user
     var n = new com.scanales.eventflow.notifications.Notification();
@@ -43,7 +44,7 @@ public class NotificationPageResourceTest {
         .when()
         .get("/notifications/center")
         .then()
-        .statusCode(anyOf(is(302), is(303)));
+        .statusCode(401);
   }
 
   @Test
