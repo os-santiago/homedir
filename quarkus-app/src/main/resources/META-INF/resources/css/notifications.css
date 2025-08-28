@@ -154,3 +154,38 @@
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
+
+/* Bell in navigation bar */
+.notifications-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.notifications-bell:focus {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+.notifications-bell .icon {
+  font-size: 1.25rem;
+}
+
+.notifications-bell .badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #d00;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0 4px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  min-width: 1.2em;
+  text-align: center;
+}

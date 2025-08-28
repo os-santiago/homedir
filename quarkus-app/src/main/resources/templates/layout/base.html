@@ -20,6 +20,11 @@
             {#if app:isAdmin()}
                 <a href="/private/admin" data-nav-link>Admin</a>
             {/if}
+            <a href="/notifications/center" class="notifications-bell" aria-label="Notificaciones" aria-controls="notifications-center" data-nav-link>
+                <span class="icon" aria-hidden="true">🔔</span>
+                <span class="badge" data-notifications-badge aria-hidden="true" hidden></span>
+                <span class="sr-only" data-notifications-sr aria-live="polite"></span>
+            </a>
             <div class="user-menu" data-user-menu>
                 <button id="userMenuBtn" class="user-menu-btn" data-user-menu-btn aria-label="Usuario" aria-expanded="false" aria-controls="userDropdown">
                     {#if app:userAvatar()}
