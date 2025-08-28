@@ -101,8 +101,37 @@
   }
   const container=document.getElementById('ef-toast-container');
   const manager=container?new ToastQueueManager(container):null;
+  const badge=document.querySelector('[data-notifications-badge]');
+  const sr=document.querySelector('[data-notifications-sr]');
+  let unread=0;
+
+  function renderBadge(){
+    if(!badge)return;
+    if(unread>0){
+      badge.textContent=String(unread);
+      badge.hidden=false;
+      if(sr) sr.textContent=unread===1?`1 notificación nueva`:`${unread} notificaciones nuevas`;
+    }else{
+      badge.hidden=true;
+      if(sr) sr.textContent='';
+    }
+  }
+
+  async function fetchUnread(){
+    try{
+      const res=await fetch('/api/notifications?limit=1',{cache:'no-store',credentials:'include'});
+      if(res.ok){
+        const data=await res.json();
+        unread=data.unreadCount||0;
+        renderBadge();
+      }
+    }catch(_){}
+  }
+  if(badge){window.addEventListener('DOMContentLoaded',fetchUnread);}
+
   window.EventFlowNotifications={
     accept(dto){
+      unread++;renderBadge();
       if(!manager)return;
       const vm={
         id:dto.id||uid(),
