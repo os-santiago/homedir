@@ -35,14 +35,22 @@ public class NotificationResource {
       @QueryParam("filter") String filter,
       @QueryParam("cursor") Long cursor,
       @QueryParam("limit") @DefaultValue("20") @Min(1) @Max(100) int limit) {
-    var page = service.listPage(userId(), filter, cursor, limit);
+    String userId = userId();
+    if (userId == null) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+    var page = service.listPage(userId, filter, cursor, limit);
     return scoped(Response.ok(NotificationListResponse.from(page))).build();
   }
 
   @POST
   @Path("/{id}/read")
   public Response markRead(@PathParam("id") String id) {
-    boolean ok = service.markRead(userId(), id);
+    String userId = userId();
+    if (userId == null) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+    boolean ok = service.markRead(userId, id);
     if (!ok) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
@@ -52,14 +60,22 @@ public class NotificationResource {
   @POST
   @Path("/read-all")
   public Response readAll() {
-    service.markAllRead(userId());
+    String userId = userId();
+    if (userId == null) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+    service.markAllRead(userId);
     return scoped(Response.noContent()).build();
   }
 
   @DELETE
   @Path("/{id}")
   public Response delete(@PathParam("id") String id) {
-    boolean ok = service.delete(userId(), id);
+    String userId = userId();
+    if (userId == null) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+    boolean ok = service.delete(userId, id);
     if (!ok) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
@@ -69,10 +85,14 @@ public class NotificationResource {
   @POST
   @Path("/bulk-delete")
   public Response bulkDelete(@Valid BulkDeleteRequest req) {
+    String userId = userId();
+    if (userId == null) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
     if (req == null || req.ids == null || req.ids.isEmpty() || req.ids.size() > 100) {
       return Response.status(Response.Status.BAD_REQUEST).build();
     }
-    service.bulkDelete(userId(), Set.copyOf(req.ids));
+    service.bulkDelete(userId, Set.copyOf(req.ids));
     return scoped(Response.noContent()).build();
   }
 
