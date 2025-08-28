@@ -2,6 +2,11 @@
   const origFetch = window.fetch;
   window.fetch = async function(input, init = {}) {
     if (!init.credentials) { init.credentials = 'include'; }
+    init.headers = new Headers(init.headers || {});
+    if (!init.headers.has('Authorization')) {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      if (token) { init.headers.set('Authorization', `Bearer ${token}`); }
+    }
     const res = await origFetch(input, init);
     if (res.status === 401 && res.headers.get('X-Session-Expired') === 'true') {
       try { sessionStorage.clear(); localStorage.clear(); } catch (e) {}
