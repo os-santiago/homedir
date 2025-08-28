@@ -1,5 +1,8 @@
-package com.scanales.eventflow.notifications;
+package io.eventflow.notifications.rest;
 
+import com.scanales.eventflow.notifications.NotificationConfig;
+import com.scanales.eventflow.notifications.NotificationStreamService;
+import io.eventflow.notifications.api.NotificationDTO;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Multi;
@@ -15,6 +18,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 
+/**
+ * Server-Sent Events endpoint for notification streaming.
+ */
 @Path("/api/notifications")
 @Authenticated
 public class NotificationStreamResource {
@@ -27,16 +33,11 @@ public class NotificationStreamResource {
   @Path("/stream")
   @Produces(MediaType.SERVER_SENT_EVENTS)
   @RestStreamElementType(MediaType.APPLICATION_JSON)
-  public Multi<io.eventflow.notifications.api.NotificationDTO> stream(
-      @Context HttpServerResponse response) {
+  public Multi<NotificationDTO> stream(@Context HttpServerResponse response) {
     if (!config.sseEnabled) {
       throw new NotFoundException();
     }
-    Object emailAttr = identity.getAttribute("email");
-    String user = emailAttr != null ? emailAttr.toString() : null;
-    if (user == null && identity.getPrincipal() != null) {
-      user = identity.getPrincipal().getName();
-    }
+    String user = SecurityIdentityUser.id(identity);
     if (user == null) {
       throw new WebApplicationException("user not found", Response.Status.UNAUTHORIZED);
     }
@@ -45,3 +46,4 @@ public class NotificationStreamResource {
     return streamService.subscribe(user);
   }
 }
+
