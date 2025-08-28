@@ -3,8 +3,12 @@ package com.scanales.eventflow.notifications;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Deque;
+import java.util.HexFormat;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,10 +34,17 @@ public class NotificationService {
   private final AtomicLong dropped = new AtomicLong();
   private final AtomicLong volatileAccepted = new AtomicLong();
 
+  private MessageDigest digest;
+
   @PostConstruct
   void init() {
     // load existing notifications from disk
     // Not required in this iteration; repository loads lazily per user
+    try {
+      digest = MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /** Enqueues a notification, applying dedupe and capacity checks. */
@@ -47,8 +58,7 @@ public class NotificationService {
       n.id = UUID.randomUUID().toString();
     }
     if (n.dedupeKey == null) {
-      n.dedupeKey =
-          NotificationKey.build(n.userId, n.talkId, n.type, now, config.dedupeWindow);
+      n.dedupeKey = NotificationKey.build(n.userId, n.talkId, n.type, now, config.dedupeWindow);
     }
     Long last = dedupe.put(n.dedupeKey, now);
     if (last != null && now - last < config.dedupeWindow.toMillis()) {
@@ -134,8 +144,7 @@ public class NotificationService {
   /** Marks a single notification as read. */
   public boolean markRead(String userId, String id) {
     java.util.Deque<Notification> list = store.getUserList(userId);
-    Notification found =
-        list.stream().filter(n -> n.id.equals(id)).findFirst().orElse(null);
+    Notification found = list.stream().filter(n -> n.id.equals(id)).findFirst().orElse(null);
     if (found == null) return false;
     if (found.readAt == null) {
       found.readAt = System.currentTimeMillis();
@@ -194,7 +203,10 @@ public class NotificationService {
 
   /** Purges notifications older than the retention period. */
   public void purgeOld() {
-    long cutoff = Instant.now().minus(config.retentionDays, java.time.temporal.ChronoUnit.DAYS).toEpochMilli();
+    long cutoff =
+        Instant.now()
+            .minus(config.retentionDays, java.time.temporal.ChronoUnit.DAYS)
+            .toEpochMilli();
     store.purgeOlderThan(cutoff);
   }
 
@@ -206,11 +218,13 @@ public class NotificationService {
 
   private void log(Notification n, String reason) {
     LOG.infov(
-        "enqueue result={0} userId={1} talkId={2} type={3} reason={4}",
-        n.id,
-        n.userId,
-        n.talkId,
-        n.type,
-        reason);
+        "enqueue result={0} user_hash={1} talkId={2} type={3} reason={4}",
+        n.id, hashUser(n.userId), n.talkId, n.type, reason);
+  }
+
+  private String hashUser(String userId) {
+    if (userId == null) return "";
+    byte[] d = digest.digest((config.userHashSalt + userId).getBytes(StandardCharsets.UTF_8));
+    return HexFormat.of().formatHex(d).substring(0, 16);
   }
 }

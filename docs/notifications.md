@@ -141,3 +141,50 @@ notificaciones.
   contenedores con `overflow-wrap:anywhere`.
 - Rendimiento visual: reserva de alto en toasts, `aspect-ratio` fijo para
   avatares y batching de cambios en el DOM para evitar repaints.
+
+## Iteración 6 – Operabilidad y Observabilidad
+
+Esta fase cierra el módulo con métricas y logs estructurados para operación,
+además de tareas de mantenimiento y guía de uso.
+
+### Configuración
+- `notifications.metrics.enabled` (true)
+- `notifications.logs.level` (info)
+- `notifications.user-hash.salt` (changeme)
+- `notifications.retention-days` (30)
+- `notifications.max-file-size` (3MB)
+- `notifications.maintenance.interval` (PT30M)
+- `notifications.backpressure.queue.max` (10000)
+- `notifications.backpressure.cutoff.evaluator-queue-depth` (8000)
+- `notifications.poll.rate-limit.window` (PT30S)
+- `notifications.poll.rate-limit.max` (8)
+
+### Métricas
+- `notifications.enqueued.total`
+- `notifications.persisted.total`
+- `notifications.deduped.total`
+- `notifications.dropped.backpressure.total`
+- `notifications.volatile.accepted.total`
+- `notifications.queue.depth`
+- `notifications.users.active`
+- `notifications.maintenance.purged.total`
+- `notifications.maintenance.compacted.total`
+- `notifications.maintenance.duration.ms`
+- API: `notifications.api.list.requests.total`, `notifications.api.stream.connections.active`,
+  `notifications.api.stream.rejected.max_per_user.total`, `notifications.api.poll.requests.total`,
+  `notifications.api.errors{code}`
+
+### Logs
+- Enqueue: `result`, `type`, `reason`, `user_hash`.
+- Eventos SSE: conexión/desconexión con `user_hash` y `reason`.
+- Polling servido: `items`, `since`, `limit`.
+
+### Mantenimiento
+- Purga notificaciones con más de `notifications.retention-days` días.
+- Compacta snapshots que superan `notifications.max-file-size` dejando solo
+  no leídas y las últimas N leídas.
+- Intervalo controlado por `notifications.maintenance.interval`.
+
+### Documentación
+Se agrega `docs/runbook-notifications.md` con procedimientos de operación,
+detección de backpressure y SLOs sugeridos.

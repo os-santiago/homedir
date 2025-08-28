@@ -1,8 +1,8 @@
 package com.scanales.eventflow.notifications;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import jakarta.enterprise.context.ApplicationScoped;
 
 /** Configuration properties for notifications. */
 @ApplicationScoped
@@ -59,4 +59,35 @@ public class NotificationConfig {
 
   @ConfigProperty(name = "notifications.stream.maxConnectionsPerUser", defaultValue = "1")
   public int streamMaxConnectionsPerUser;
+
+  // Iteration 6 operability
+
+  @ConfigProperty(name = "notifications.metrics.enabled", defaultValue = "true")
+  public boolean metricsEnabled;
+
+  @ConfigProperty(name = "notifications.logs.level", defaultValue = "info")
+  public String logsLevel;
+
+  @ConfigProperty(name = "notifications.user-hash.salt", defaultValue = "changeme")
+  public String userHashSalt;
+
+  @ConfigProperty(name = "notifications.max-file-size", defaultValue = "3MB")
+  public String maxFileSize;
+
+  @ConfigProperty(name = "notifications.maintenance.interval", defaultValue = "PT30M")
+  public Duration maintenanceInterval;
+
+  @ConfigProperty(name = "notifications.backpressure.queue.max", defaultValue = "10000")
+  public int backpressureQueueMax;
+
+  @ConfigProperty(
+      name = "notifications.backpressure.cutoff.evaluator-queue-depth",
+      defaultValue = "8000")
+  public int evaluatorQueueCutoff;
+
+  @ConfigProperty(name = "notifications.poll.rate-limit.window", defaultValue = "PT30S")
+  public Duration pollRateLimitWindow;
+
+  @ConfigProperty(name = "notifications.poll.rate-limit.max", defaultValue = "8")
+  public int pollRateLimitMax;
 }
