@@ -45,17 +45,8 @@ public class NotificationConfig {
   @ConfigProperty(name = "notifications.endingSoon.window", defaultValue = "PT10M")
   public Duration endingSoonWindow;
 
-  @ConfigProperty(name = "notifications.sse.enabled", defaultValue = "true")
-  public boolean sseEnabled;
-
-  @ConfigProperty(name = "notifications.sse.heartbeat", defaultValue = "PT25S")
-  public Duration sseHeartbeat;
-
-  @ConfigProperty(name = "notifications.poll.interval", defaultValue = "PT15S")
-  public Duration pollInterval;
-
-  @ConfigProperty(name = "notifications.poll.limit", defaultValue = "20")
-  public int pollLimit;
+  @ConfigProperty(name = "notifications.ws.enabled", defaultValue = "true")
+  public boolean wsEnabled;
 
   @ConfigProperty(name = "notifications.stream.maxConnectionsPerUser", defaultValue = "1")
   public int streamMaxConnectionsPerUser;
@@ -84,10 +75,4 @@ public class NotificationConfig {
       name = "notifications.backpressure.cutoff.evaluator-queue-depth",
       defaultValue = "8000")
   public int evaluatorQueueCutoff;
-
-  @ConfigProperty(name = "notifications.poll.rate-limit.window", defaultValue = "PT30S")
-  public Duration pollRateLimitWindow;
-
-  @ConfigProperty(name = "notifications.poll.rate-limit.max", defaultValue = "8")
-  public int pollRateLimitMax;
 }

@@ -24,7 +24,6 @@ public class NotificationPageResourceTest {
   @BeforeEach
   void setup() {
     config.enabled = true;
-    config.sseEnabled = true;
     config.dedupeWindow = Duration.ofMinutes(30);
     service.reset();
     // enqueue a sample notification for the authenticated user
@@ -61,11 +60,6 @@ public class NotificationPageResourceTest {
   @Test
   public void apiRequiresAuth() {
     given().when().get("/api/notifications?limit=5").then().statusCode(401);
-  }
-
-  @Test
-  public void streamRequiresAuth() {
-    given().when().get("/api/notifications/stream").then().statusCode(401);
   }
 
 }
