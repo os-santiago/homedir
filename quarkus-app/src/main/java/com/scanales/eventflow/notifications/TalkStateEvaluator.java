@@ -52,10 +52,13 @@ public class TalkStateEvaluator {
             : ZoneId.of("America/Santiago");
     ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(nowMs), zone);
     ZonedDateTime start = now.with(talk.getStartTime());
-    ZonedDateTime end = now.with(talk.getEndTime());
-    if (end.isBefore(start)) {
-      end = start.plus(1, ChronoUnit.HOURS);
+    long diff = ChronoUnit.MINUTES.between(now, start);
+    if (diff > 12 * 60) {
+      start = start.minusDays(1);
+    } else if (diff < -12 * 60) {
+      start = start.plusDays(1);
     }
+    ZonedDateTime end = start.plusMinutes(talk.getDurationMinutes());
     if (now.isBefore(start) && start.minus(config.upcomingWindow).isBefore(now)) {
       enqueue(user, talkId, info, NotificationType.UPCOMING, "Charla pronto");
     } else if (!now.isBefore(start) && now.isBefore(end)) {
