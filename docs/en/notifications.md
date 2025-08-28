@@ -125,6 +125,11 @@ Mis Charlas -> Evaluador -> Servicio Notif -> SSE/Poll -> UI
 - Límite de 1 SSE activo por usuario y control de `limit` en polling.
 - Respuestas con `Cache-Control: no-store` y cabecera `X-User-Scoped: true`.
 - Ante `401` la UI cae a polling o redirige al inicio.
+
+### Autenticación y expiración de sesión
+- Las páginas HTML protegidas redirigen a `/ingresar` cuando la sesión no es válida.
+- Los endpoints bajo `/api/notifications/*` mantienen el `401` para que la UI redirija al inicio mostrando "Sesión expirada".
+- Las cookies de sesión deben emitirse con `Secure` y `SameSite=None` en producción.
  
 ## Iteración 5 – A11y y Mobile
 

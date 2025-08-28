@@ -17,7 +17,7 @@ public class SessionExpiryFilterTest {
   public static class Profile implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
-      return Map.of("quarkus.http.auth.permission.protected.paths", "");
+      return Map.of();
     }
   }
 
