@@ -7,6 +7,9 @@ public final class SecurityIdentityUser {
   private SecurityIdentityUser() {}
 
   public static String id(SecurityIdentity identity) {
+    if (identity == null || identity.isAnonymous()) {
+      return null;
+    }
     String email = identity.getAttribute("email");
     if (email == null && identity.getPrincipal() != null) {
       email = identity.getPrincipal().getName();
