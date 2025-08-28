@@ -30,6 +30,12 @@ public class NotificationResource {
     return SecurityIdentityUser.id(identity);
   }
 
+  private Response unauthorized() {
+    return Response.status(Response.Status.UNAUTHORIZED)
+        .header("X-Session-Expired", "true")
+        .build();
+  }
+
   @GET
   public Response list(
       @QueryParam("filter") String filter,
@@ -37,7 +43,7 @@ public class NotificationResource {
       @QueryParam("limit") @DefaultValue("20") @Min(1) @Max(100) int limit) {
     String userId = userId();
     if (userId == null) {
-      return Response.status(Response.Status.UNAUTHORIZED).build();
+      return unauthorized();
     }
     var page = service.listPage(userId, filter, cursor, limit);
     return scoped(Response.ok(NotificationListResponse.from(page))).build();
@@ -48,7 +54,7 @@ public class NotificationResource {
   public Response markRead(@PathParam("id") String id) {
     String userId = userId();
     if (userId == null) {
-      return Response.status(Response.Status.UNAUTHORIZED).build();
+      return unauthorized();
     }
     boolean ok = service.markRead(userId, id);
     if (!ok) {
@@ -62,7 +68,7 @@ public class NotificationResource {
   public Response readAll() {
     String userId = userId();
     if (userId == null) {
-      return Response.status(Response.Status.UNAUTHORIZED).build();
+      return unauthorized();
     }
     service.markAllRead(userId);
     return scoped(Response.noContent()).build();
@@ -73,7 +79,7 @@ public class NotificationResource {
   public Response delete(@PathParam("id") String id) {
     String userId = userId();
     if (userId == null) {
-      return Response.status(Response.Status.UNAUTHORIZED).build();
+      return unauthorized();
     }
     boolean ok = service.delete(userId, id);
     if (!ok) {
@@ -87,7 +93,7 @@ public class NotificationResource {
   public Response bulkDelete(@Valid BulkDeleteRequest req) {
     String userId = userId();
     if (userId == null) {
-      return Response.status(Response.Status.UNAUTHORIZED).build();
+      return unauthorized();
     }
     if (req == null || req.ids == null || req.ids.isEmpty() || req.ids.size() > 100) {
       return Response.status(Response.Status.BAD_REQUEST).build();

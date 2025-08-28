@@ -72,7 +72,14 @@ window.addEventListener('DOMContentLoaded', () => {
       window.__metrics.count('ui.notifications.received');
     }
   }
-  const url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/api/notifications/ws';
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  let url =
+    (location.protocol === 'https:' ? 'wss://' : 'ws://') +
+    location.host +
+    '/api/notifications/ws';
+  if (token) {
+    url += '?access_token=' + encodeURIComponent(token);
+  }
   function connect(){
     const ws = new WebSocket(url);
     ws.onmessage = (ev) => {
