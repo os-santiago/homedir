@@ -224,6 +224,9 @@ function handleNotificationsFromUrl() {
     if (params.has('error')) {
         showNotification('error', params.get('error'));
     }
+    if (params.get('session') === 'expired') {
+        showNotification('error', 'Sesión expirada');
+    }
     if (params.has('msg')) {
         const msg = params.get('msg');
         const type = msg.startsWith('✅') ? 'success' : 'error';

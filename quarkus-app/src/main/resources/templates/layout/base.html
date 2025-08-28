@@ -85,7 +85,15 @@ window.addEventListener('DOMContentLoaded', () => {
         if (dto && dto.type !== 'HEARTBEAT') onDTO(dto);
       };
       es.onopen = () => { if(window.__metrics) window.__metrics.count('ui.notifications.sse.connected'); };
-      es.onerror = () => { es.close(); if(window.__metrics) window.__metrics.count('ui.notifications.sse.fallback_polling'); startPolling(); };
+      es.onerror = async () => {
+        es.close();
+        try {
+          const check = await fetch('/api/notifications/stream', { credentials: 'include' });
+          if (check.status === 401) { location.assign('/?session=expired'); return; }
+        } catch(_){}
+        if(window.__metrics) window.__metrics.count('ui.notifications.sse.fallback_polling');
+        startPolling();
+      };
     } catch(e) { startPolling(); }
   }
 
@@ -97,7 +105,7 @@ window.addEventListener('DOMContentLoaded', () => {
           cache: 'no-store',
           credentials: 'include'
         });
-        if (res.status === 401) return;
+        if (res.status === 401) { location.assign('/?session=expired'); return; }
         const data = await res.json();
         (data.items || []).forEach(onDTO);
       } catch(_) {}
@@ -112,7 +120,10 @@ window.addEventListener('DOMContentLoaded', () => {
         cache: 'no-store',
         credentials: 'include'
       })
-        .then(r => (r.ok ? r.json() : null))
+        .then(r => {
+          if (r.status === 401) { location.assign('/?session=expired'); return null; }
+          return r.ok ? r.json() : null;
+        })
         .then(d => (d?.items || []).forEach(onDTO))
         .catch(()=>{});
     }

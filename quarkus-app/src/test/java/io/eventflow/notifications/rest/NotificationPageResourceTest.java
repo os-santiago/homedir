@@ -1,7 +1,9 @@
 package io.eventflow.notifications.rest;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 
 import com.scanales.eventflow.notifications.NotificationConfig;
 import com.scanales.eventflow.notifications.NotificationService;
@@ -22,6 +24,7 @@ public class NotificationPageResourceTest {
   @BeforeEach
   void setup() {
     config.enabled = true;
+    config.sseEnabled = true;
     service.reset();
     // enqueue a sample notification for the authenticated user
     var n = new com.scanales.eventflow.notifications.Notification();
@@ -34,7 +37,13 @@ public class NotificationPageResourceTest {
 
   @Test
   public void centerRequiresAuth() {
-    given().when().get("/notifications/center").then().statusCode(401);
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/notifications/center")
+        .then()
+        .statusCode(anyOf(is(302), is(303)));
   }
 
   @Test
@@ -47,4 +56,15 @@ public class NotificationPageResourceTest {
         .statusCode(200)
         .body(containsString("Notificaciones"));
   }
+
+  @Test
+  public void apiRequiresAuth() {
+    given().when().get("/api/notifications?limit=5").then().statusCode(401);
+  }
+
+  @Test
+  public void streamRequiresAuth() {
+    given().when().get("/api/notifications/stream").then().statusCode(401);
+  }
+
 }

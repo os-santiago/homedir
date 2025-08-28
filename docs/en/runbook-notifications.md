@@ -51,6 +51,13 @@ notifications_queue_depth
 - `notifications.queue.depth` estable <70% de `notifications.backpressure.queue.max`.
 - Errores API <1% (`sum(rate(notifications.api.errors{code=~"5.."}[5m]))`).
 
+### Diagnóstico de 401 o redirecciones
+1. Probar `/whoami` (solo admin) para validar identidad y claims.
+2. Revisar cookies `q_session` (`Secure`, `SameSite=None`, dominio correcto).
+3. Confirmar cabeceras `X-Forwarded-*` desde el proxy y que `proxy-address-forwarding` esté habilitado.
+4. Verificar `quarkus.oidc.application-type=web-app` y `quarkus.oidc.authentication.redirect-path=/ingresar`.
+5. Habilitar `%dev.quarkus.log.category."io.quarkus.oidc".level=DEBUG` en pruebas para ver el flujo OIDC.
+
 ## Seguridad y Privacidad
 - Nunca registrar `userId` crudo; usar `user_hash`.
 - Mantener la sal en `notifications.user-hash.salt` en secreto.
