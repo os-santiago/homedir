@@ -1,5 +1,6 @@
 package com.scanales.eventflow.notifications;
 
+import io.eventflow.notifications.rest.SecurityIdentityUser;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -24,11 +25,7 @@ public class NotificationPollingResource {
   @Path("/next")
   @Produces(MediaType.APPLICATION_JSON)
   public Response next(@QueryParam("since") long since, @QueryParam("limit") Integer limit) {
-    Object emailAttr = identity.getAttribute("email");
-    String user = emailAttr != null ? emailAttr.toString() : null;
-    if (user == null && identity.getPrincipal() != null) {
-      user = identity.getPrincipal().getName();
-    }
+    String user = SecurityIdentityUser.id(identity);
     if (user == null) {
       return Response.status(Response.Status.UNAUTHORIZED).build();
     }
