@@ -32,7 +32,12 @@ public class NotificationPageResource {
   @Path("/center")
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance center() {
-    var page = service.listPage(userId(), "all", null, 20);
+    String user = userId();
+    if (user == null) {
+      throw new jakarta.ws.rs.WebApplicationException(
+          "user not found", jakarta.ws.rs.core.Response.Status.UNAUTHORIZED);
+    }
+    var page = service.listPage(user, "all", null, 20);
     return Templates.center(NotificationListResponse.from(page));
   }
 }
