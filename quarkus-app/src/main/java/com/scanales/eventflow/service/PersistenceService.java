@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Speaker;
 import jakarta.annotation.PostConstruct;
@@ -66,7 +67,9 @@ public class PersistenceService {
         objectMapper
             .copy()
             .enable(SerializationFeature.INDENT_OUTPUT)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .registerModule(new JavaTimeModule());
     try {
       Files.createDirectories(dataDir);
       LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
