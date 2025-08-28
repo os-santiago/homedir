@@ -35,7 +35,7 @@ public class TalkStateEvaluator {
         try {
           evaluateTalk(user, talkId, nowMs);
         } catch (Exception e) {
-          LOG.debugf(e, "evaluator error user=%s talk=%s", user, talkId);
+          LOG.debugf(e, "evaluator error talk=%s", talkId);
         }
       }
     }
