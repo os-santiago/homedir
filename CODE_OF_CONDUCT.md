@@ -1,5 +1,7 @@
 # EventFlow Community Code of Conduct
 
+Disponible en [español](CODE_OF_CONDUCT.es.md).
+
 ## Our Pledge
 
 We, as EventFlow maintainers, contributors, organizers, speakers, sponsors, volunteers, and users, pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.

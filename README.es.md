@@ -8,34 +8,29 @@
 [![PR Quality — Tests & Coverage](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-tests-coverage.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-tests-coverage.yml)
 [![PR Quality — Suite](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-quality-suite.yml/badge.svg)](https://github.com/scanalesespinoza/eventflow/actions/workflows/pr-quality-suite.yml)
 
+Plataforma inteligente de gestión de eventos: espacios, actividades, ponentes, asistentes y planificación personalizada.
 
-Smart event management platform: spaces, activities, speakers, attendees, and personalized planning.
+Versión estable más reciente: **v2.2.0**.
 
-Also available in [Español](README.es.md).
+## Funciones
+- Gestiona eventos, ponentes, escenarios y charlas
+- Inicio de sesión con Google usando Quarkus OIDC
+- Área de administración protegida por `ADMIN_LIST`
+- Importa eventos desde JSON
+- Notificaciones en la aplicación para cambios de estado de charlas
+- Seguridad de la cadena de suministro con generación de SBOM, firma de imágenes y escaneo de vulnerabilidades
 
-See the [documentation](docs/README.md) for more guides.
-
-Latest stable release: **v2.2.0**.
-
-## Features
-- Manage events, speakers, scenarios, and talks
-- Sign in with Google using Quarkus OIDC
-- Admin area protected by `ADMIN_LIST`
-- Import events from JSON
-- In-app notifications for talk status changes
-- Supply chain security with SBOM generation, image signing and vulnerability scanning
-
-## Quick start
-Run the application in dev mode:
+## Inicio rápido
+Ejecuta la aplicación en modo desarrollo:
 
 ```bash
 mvn -f quarkus-app/pom.xml quarkus:dev
 ```
 
-Then browse to `http://localhost:8080`.
+Luego navega a `http://localhost:8080`.
 
-### Google OAuth 2.0 setup
-Configure these properties in `application.properties` or environment variables:
+### Configuración de Google OAuth 2.0
+Configura estas propiedades en `application.properties` o variables de entorno:
 
 ```
 quarkus.oidc.provider=google
@@ -46,22 +41,22 @@ quarkus.oidc.authentication.scopes=openid profile email
 quarkus.oidc.logout.post-logout-path=/
 ```
 
-Register `https://eventflow.opensourcesantiago.io/private` as an authorized redirect URI for production deployments.
+Registra `https://eventflow.opensourcesantiago.io/private` como URI de redirección autorizada para despliegues en producción.
 
-### Admin access
-Only emails listed in `ADMIN_LIST` can create or edit events:
+### Acceso de administrador
+Solo los correos listados en `ADMIN_LIST` pueden crear o editar eventos:
 
 ```
 ADMIN_LIST=sergio.canales.e@gmail.com,alice@example.org
 ```
 
-### Importing events
-Upload a JSON file named `file` at `/private/admin/events` to import events. Duplicate IDs return `409 Conflict`; invalid JSON returns `400 Bad Request`.
+### Importación de eventos
+Carga un archivo JSON llamado `file` en `/private/admin/events` para importar eventos. Los IDs duplicados devuelven `409 Conflict`; el JSON inválido devuelve `400 Bad Request`.
 
-## Supply chain
-The build produces SBOMs for dependencies and container images and scans images for known vulnerabilities. CI publishes artifacts like `target/bom.json` and `sbom-image.cdx.json`, and images can be signed with Cosign.
+## Cadena de suministro
+La compilación produce SBOMs para dependencias e imágenes de contenedor y escanea las imágenes en busca de vulnerabilidades conocidas. CI publica artefactos como `target/bom.json` y `sbom-image.cdx.json`, y las imágenes pueden firmarse con Cosign.
 
-## Community
-Project supported by the OpenSource Santiago community. Join our [Discord server](https://discord.gg/3eawzc9ybc).
+## Comunidad
+Proyecto respaldado por la comunidad OpenSource Santiago. Únete a nuestro [servidor de Discord](https://discord.gg/3eawzc9ybc).
 
-For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
+Para divulgación coordinada de vulnerabilidades, consulta [SECURITY.es.md](SECURITY.es.md).

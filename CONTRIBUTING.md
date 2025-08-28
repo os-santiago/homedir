@@ -1,5 +1,7 @@
 # Contributing to EventFlow
 
+Disponible en [español](CONTRIBUTING.es.md).
+
 Thanks for your interest in contributing! We keep development **simple and fast** with a trunk-based approach:
 
 - ✅ **Always use Pull Requests** — no direct pushes to `main`.
