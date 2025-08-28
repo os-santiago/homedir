@@ -10,7 +10,8 @@ public final class SecurityIdentityUser {
     if (identity == null || identity.isAnonymous()) {
       return null;
     }
-    String email = identity.getAttribute("email");
+    Object emailAttr = identity.getAttribute("email");
+    String email = emailAttr != null ? emailAttr.toString() : null;
     if (email == null && identity.getPrincipal() != null) {
       email = identity.getPrincipal().getName();
     }

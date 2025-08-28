@@ -55,4 +55,14 @@ class NotificationPollingResourceTest {
         .header("Cache-Control", containsString("no-store"))
         .header("X-User-Scoped", is("true"));
   }
+
+  @Test
+  void unauthenticatedIsUnauthorized() {
+    given()
+        .queryParam("since", 0L)
+        .when()
+        .get("/api/notifications/next")
+        .then()
+        .statusCode(401);
+  }
 }
