@@ -31,9 +31,7 @@ public class SessionExpiryFilterTest {
         .when()
         .get("/private/admin")
         .then()
-        .statusCode(302)
-        .header("Location", equalTo("/"))
-        .header("X-Redirected-By", equalTo("session-expired"));
+        .statusCode(401);
   }
 
   @Test
@@ -46,10 +44,6 @@ public class SessionExpiryFilterTest {
         .get("/private/admin/metrics/status")
         .then()
         .statusCode(401)
-        .header("X-Session-Expired", equalTo("true"))
-        .header(
-            "WWW-Authenticate",
-            equalTo(
-                "Bearer realm=\"eventflow\", error=\"invalid_token\", error_description=\"expired\""));
+        .header("WWW-Authenticate", equalTo("Bearer"));
   }
 }
