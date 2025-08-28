@@ -24,7 +24,7 @@ public class NotificationService {
   @Inject NotificationStore store;
   @Inject NotificationConfig config;
   @Inject ResourceGuards guards;
-  @Inject NotificationStreamService streamService;
+  @Inject NotificationSocketService socketService;
 
   private final ConcurrentHashMap<String, Long> dedupe = new ConcurrentHashMap<>();
 
@@ -98,7 +98,7 @@ public class NotificationService {
     }
     if (result == NotificationResult.ACCEPTED_PERSISTED
         || result == NotificationResult.ACCEPTED_VOLATILE) {
-      streamService.broadcast(n);
+      socketService.broadcast(n);
     }
     return result;
   }
