@@ -5,7 +5,7 @@
 <section>
     <h1 class="page-title">Control de capacidad</h1>
     <ul class="card">
-        <li>Modo actual: {status.mode == 'ADMITTING' ? 'Admitiendo' : 'Conteniendo nuevos logins'}</li>
+        <li>Modo actual: {#if status.mode == 'ADMITTING'}Admitiendo{#else}Conteniendo nuevos logins{/if}</li>
         <li>Usuarios activos en memoria: {status.activeUsers}</li>
         <li>% de memoria usada: {status.memoryPercent}%</li>
         <li>% de disco libre: {status.diskFreePercent}%</li>
