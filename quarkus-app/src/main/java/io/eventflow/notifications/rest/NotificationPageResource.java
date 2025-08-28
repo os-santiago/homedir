@@ -35,7 +35,9 @@ public class NotificationPageResource {
     String user = userId();
     if (user == null) {
       throw new jakarta.ws.rs.WebApplicationException(
-          "user not found", jakarta.ws.rs.core.Response.Status.UNAUTHORIZED);
+          jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.UNAUTHORIZED)
+              .header("X-Session-Expired", "true")
+              .build());
     }
     var page = service.listPage(user, "all", null, 20);
     return Templates.center(NotificationListResponse.from(page));

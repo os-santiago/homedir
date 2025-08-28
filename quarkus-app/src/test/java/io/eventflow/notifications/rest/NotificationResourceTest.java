@@ -67,4 +67,14 @@ public class NotificationResourceTest {
         .then()
         .statusCode(404);
   }
+
+  @Test
+  public void unauthorizedRequestsReturn401() {
+    given()
+        .when()
+        .get("/api/notifications")
+        .then()
+        .statusCode(401)
+        .header("X-Session-Expired", is("true"));
+  }
 }
