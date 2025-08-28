@@ -1,6 +1,7 @@
 (function(){
   const origFetch = window.fetch;
-  window.fetch = async function(input, init) {
+  window.fetch = async function(input, init = {}) {
+    if (!init.credentials) { init.credentials = 'include'; }
     const res = await origFetch(input, init);
     if (res.status === 401 && res.headers.get('X-Session-Expired') === 'true') {
       try { sessionStorage.clear(); localStorage.clear(); } catch (e) {}
