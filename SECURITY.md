@@ -1,5 +1,7 @@
 # Security Policy
 
+Disponible en [español](SECURITY.es.md).
+
 EventFlow takes the security of our users and contributors seriously. If you believe you’ve found a vulnerability, please follow the process below to help us fix it quickly and responsibly.
 
 ---
