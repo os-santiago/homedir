@@ -5,6 +5,7 @@ import io.eventflow.notifications.api.NotificationListResponse;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -28,6 +29,7 @@ public class NotificationPageResource {
 
   @GET
   @Path("/center")
+  @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance center() {
     String user = userId();
