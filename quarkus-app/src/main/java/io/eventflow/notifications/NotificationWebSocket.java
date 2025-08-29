@@ -2,8 +2,6 @@ package io.eventflow.notifications;
 
 import com.scanales.eventflow.notifications.NotificationConfig;
 import com.scanales.eventflow.notifications.NotificationSocketService;
-import io.eventflow.notifications.rest.SecurityIdentityUser;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.OnClose;
@@ -19,7 +17,6 @@ public class NotificationWebSocket {
 
   private static final Logger LOG = Logger.getLogger(NotificationWebSocket.class);
 
-  @Inject SecurityIdentity identity;
   @Inject NotificationSocketService sessions;
   @Inject NotificationConfig config;
 
@@ -29,8 +26,11 @@ public class NotificationWebSocket {
       session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "disabled"));
       return;
     }
-    String user = SecurityIdentityUser.id(identity);
-    if (user == null) {
+    String user = null;
+    if (session.getUserPrincipal() != null) {
+      user = session.getUserPrincipal().getName();
+    }
+    if (user == null || user.isBlank()) {
       session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "unauthorized"));
       return;
     }
