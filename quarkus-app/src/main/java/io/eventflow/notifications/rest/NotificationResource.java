@@ -2,7 +2,6 @@ package io.eventflow.notifications.rest;
 
 import com.scanales.eventflow.notifications.NotificationService;
 import io.eventflow.notifications.api.NotificationListResponse;
-import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 @Path("/api/notifications")
-@Authenticated
 @Produces(MediaType.APPLICATION_JSON)
 public class NotificationResource {
 

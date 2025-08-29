@@ -4,7 +4,6 @@ import com.scanales.eventflow.notifications.NotificationService;
 import io.eventflow.notifications.api.NotificationListResponse;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -13,7 +12,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
 @Path("/notifications")
-@Authenticated
 public class NotificationPageResource {
 
   @CheckedTemplate(basePath = "notifications")
