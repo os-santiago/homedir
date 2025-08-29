@@ -15,7 +15,8 @@ public final class FileIO {
     Path tmp = path.resolveSibling(path.getFileName() + ".tmp");
     Files.write(tmp, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     try (FileChannel ch = FileChannel.open(tmp, StandardOpenOption.WRITE)) {
-      ch.force(true);
+      // Flush file data without forcing metadata for better throughput
+      ch.force(false);
     }
     Files.move(tmp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
   }
