@@ -78,6 +78,11 @@ public class NotificationRepository {
 
   /** Schedules persistence of the full list for a user. */
   public void replace(String userId, List<Notification> list) {
+    // Avoid expensive serialization when the writer queue is full.
+    if (queue.remainingCapacity() == 0) {
+      return;
+    }
+
     byte[] data;
     try {
       data = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(list);
