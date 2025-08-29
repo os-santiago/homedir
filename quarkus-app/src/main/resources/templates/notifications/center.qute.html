@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notificaciones</title>
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/global-notifications-ws.js" defer></script>
+</head>
+<body>
+  <main id="global-notifications-center" class="notifications-center">
+    <h1>Notificaciones</h1>
+    <ul id="global-notifications-list" class="notifications-list"></ul>
+  </main>
+  <script>
+  (function(){
+    const key='ef_global_inbox';
+    const list=document.getElementById('global-notifications-list');
+    const items=JSON.parse(localStorage.getItem(key)||'[]');
+    for(const n of items){
+      const li=document.createElement('li');
+      li.className='notification-item';
+      li.textContent=n.title+': '+n.message;
+      list.appendChild(li);
+    }
+  })();
+  </script>
+</body>
+</html>
