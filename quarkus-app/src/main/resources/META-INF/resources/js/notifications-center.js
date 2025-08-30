@@ -3,6 +3,7 @@
   const UNREAD_KEY = 'ef_global_unread_count';
   const listEl = document.getElementById('notif-list');
   const emptyEl = document.getElementById('empty');
+  const toggleBtn = document.getElementById('toggleSelect');
 
   function getAll(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } }
   function saveAll(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(-1000))); syncUnread(arr); }
@@ -36,6 +37,14 @@
         </label>`;
       listEl.appendChild(div);
     });
+    updateToggleBtn();
+  }
+
+  function updateToggleBtn(){
+    if(!toggleBtn) return;
+    const boxes = [...document.querySelectorAll('.sel')];
+    const allChecked = boxes.length>0 && boxes.every(b=>b.checked);
+    toggleBtn.textContent = allChecked? 'Deseleccionar todos' : 'Seleccionar todos';
   }
 
   document.addEventListener('click', (e)=>{
@@ -43,7 +52,7 @@
     if(act==='read'){
       const id = e.target.dataset.id;
       const all = getAll();
-      const n = all.find(x=>x.id===id); if(n){ n.readAt = Date.now(); saveAll(all); render(currentFilter); }
+      const n = all.find(x=>String(x.id)===id); if(n){ n.readAt = Date.now(); saveAll(all); render(currentFilter); }
     }
     if(e.target.id==='markAllRead'){
       const all = getAll().map(n=> (n.dismissedAt? n : (n.readAt? n : {...n, readAt: Date.now()})));
@@ -52,8 +61,14 @@
     if(e.target.id==='deleteSelected'){
       const ids = [...document.querySelectorAll('.sel:checked')].map(x=>x.dataset.id);
       if(ids.length===0) return;
-      const all = getAll().map(n => ids.includes(n.id) ? {...n, dismissedAt: Date.now()} : n);
+      const all = getAll().map(n => ids.includes(String(n.id)) ? {...n, dismissedAt: Date.now()} : n);
       saveAll(all); render(currentFilter);
+    }
+    if(e.target.id==='toggleSelect'){
+      const boxes = [...document.querySelectorAll('.sel')];
+      const allChecked = boxes.length>0 && boxes.every(b=>b.checked);
+      boxes.forEach(b=>{ b.checked = !allChecked; });
+      updateToggleBtn();
     }
     if(act==='open'){
       // optional: navigate to event if eventId present
