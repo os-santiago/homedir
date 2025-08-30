@@ -323,7 +323,7 @@ public class Event {
       return null;
     }
     LocalDate endDate = days <= 1 ? date : date.plusDays(days - 1);
-    LocalTime end = days <= 1 ? LocalTime.MAX : getEndTime();
+    LocalTime end = getEndTime();
     if (end == null) {
       end = LocalTime.MAX;
     }
