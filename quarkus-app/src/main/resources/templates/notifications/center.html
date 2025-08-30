@@ -1,31 +1,27 @@
-{#include _layout}
-{#body}
-<section class="container mx-auto px-4 py-6">
+{#include layout/base}
+{#title}Centro de Notificaciones{/title}
+{#breadcrumbs}<span>Notificaciones</span>{/breadcrumbs}
+{#main}
+<section class="notifications-center">
   <header class="mb-4">
-    <h1 class="text-2xl font-semibold">Centro de Notificaciones</h1>
-    <p class="text-sm text-muted-foreground">
+    <h1 class="page-title">Centro de Notificaciones</h1>
+    <p class="text-muted">
       Aquí verás avisos globales sobre cambios en la agenda de eventos disponibles.
       Marca como leídas o elimina las que no necesites.
     </p>
   </header>
-
-  <div class="flex flex-wrap gap-2 mb-4">
+  <div class="actions">
     <button class="btn" data-filter="all">Todas</button>
     <button class="btn" data-filter="unread">No leídas</button>
     <button class="btn" data-filter="last24h">Últimas 24 h</button>
-    <div class="ml-auto flex gap-2">
+    <div class="actions-right">
       <button class="btn-secondary" id="markAllRead">Marcar todas como leídas</button>
       <button class="btn-danger" id="deleteSelected">Eliminar seleccionadas</button>
     </div>
   </div>
-
-  <div id="notif-list" class="grid gap-3">
-    <!-- Items generados por JS desde localStorage -->
-  </div>
-
-  <div id="empty" class="text-sm text-muted-foreground hidden">Sin notificaciones por ahora.</div>
+  <div id="notif-list" class="notifications-list"></div>
+  <div id="empty" class="text-muted hidden">Sin notificaciones por ahora.</div>
+  <script defer src="/js/notifications-center.js"></script>
 </section>
-<script defer src="/js/global-notifications-ws.js"></script>
-<script defer src="/js/notifications-center.js"></script>
-{/body}
+{/main}
 {/include}
