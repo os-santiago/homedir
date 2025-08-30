@@ -1,6 +1,7 @@
 (function () {
   const storeKey = 'ef_global_lastCursor';
   const inboxKey = 'ef_global_inbox';
+  const unreadKey = 'ef_global_unread_count';
   function connect(delay) {
     const retry = delay || 1000;
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -20,9 +21,14 @@
           const arr = JSON.parse(localStorage.getItem(inboxKey) || '[]');
           arr.unshift(msg);
           localStorage.setItem(inboxKey, JSON.stringify(arr.slice(0, 100)));
+          const unread = parseInt(localStorage.getItem(unreadKey) || '0', 10) + 1;
+          localStorage.setItem(unreadKey, String(unread));
         } catch (e) {}
         if (window.EventFlowNotifications && window.EventFlowNotifications.accept) {
           window.EventFlowNotifications.accept(msg);
+        }
+        if (window.updateUnreadFromLocal) {
+          window.updateUnreadFromLocal();
         }
       }
     };

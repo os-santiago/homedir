@@ -1,5 +1,6 @@
 (function(){
   const origFetch = window.fetch;
+  const isCriticalApi = (url) => typeof url === 'string' && url.startsWith('/api/private/');
   window.fetch = async function(input, init = {}) {
     if (!init.credentials) { init.credentials = 'include'; }
     init.headers = new Headers(init.headers || {});
@@ -8,9 +9,14 @@
       if (token) { init.headers.set('Authorization', `Bearer ${token}`); }
     }
     const res = await origFetch(input, init);
-    if (res.status === 401 && res.headers.get('X-Session-Expired') === 'true') {
-      try { sessionStorage.clear(); localStorage.clear(); } catch (e) {}
-      if (location.pathname !== '/') { location.assign('/'); }
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    if (res.status === 401) {
+      if (isCriticalApi(url) && res.headers.get('X-Session-Expired') === 'true') {
+        try { sessionStorage.clear(); localStorage.clear(); } catch (e) {}
+        if (location.pathname !== '/') { location.assign('/?session=expired'); }
+      } else {
+        console.debug('non-critical 401', url);
+      }
     }
     return res;
   };
