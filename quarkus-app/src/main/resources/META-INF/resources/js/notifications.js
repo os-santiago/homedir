@@ -117,21 +117,19 @@
     }
   }
 
-  async function fetchUnread(){
+  async function updateUnreadFromLocal(){
+    if(!window.EFNotificationsAdapter||!badge)return;
     try{
-      const res=await fetch('/api/notifications?limit=1',{cache:'no-store',credentials:'include'});
-      if(res.ok){
-        const data=await res.json();
-        unread=data.unreadCount||0;
-        renderBadge();
-      }
-    }catch(_){}
+      unread=await window.EFNotificationsAdapter.getUnreadCount();
+      renderBadge();
+    }catch(_){unread=0;renderBadge();}
   }
-  if(badge){window.addEventListener('DOMContentLoaded',fetchUnread);}
+  window.updateUnreadFromLocal=updateUnreadFromLocal;
+  if(badge){window.addEventListener('DOMContentLoaded',updateUnreadFromLocal);}
 
   window.EventFlowNotifications={
     accept(dto){
-      unread++;renderBadge();
+      if(window.updateUnreadFromLocal)window.updateUnreadFromLocal();
       if(!manager)return;
       const vm={
         id:dto.id||uid(),

@@ -6,6 +6,8 @@
     <title>{#insert title}EventFlow{/}</title>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/css/notifications.css">
+    <script>window.__EF_NOTIFICATIONS_MODE__='global';</script>
+    <script src="/js/notifications-adapter.js" defer></script>
     <script src="/js/app.js" defer></script>
     <script src="/js/notifications.js" defer></script>
     <script src="/js/global-notifications-ws.js" defer></script>
@@ -61,41 +63,5 @@
 </footer>
 
 {#include fragments/toasts.qute.html/}
-<script>
-window.addEventListener('DOMContentLoaded', () => {
-  if (!{app:isAuthenticated()}) return;
-  (function(){
-  function onDTO(dto){
-    if (window.EventFlowNotifications && typeof window.EventFlowNotifications.accept === 'function') {
-      window.EventFlowNotifications.accept(dto);
-    }
-    if (window.__metrics && window.__metrics.count) {
-      window.__metrics.count('ui.notifications.received');
-    }
-  }
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-  let url =
-    (location.protocol === 'https:' ? 'wss://' : 'ws://') +
-    location.host +
-    '/api/notifications/ws';
-  if (token) {
-    url += '?access_token=' + encodeURIComponent(token);
-  }
-  function connect(){
-    const ws = new WebSocket(url);
-    ws.onmessage = (ev) => {
-      const dto = JSON.parse(ev.data);
-      if (dto && dto.type !== 'HEARTBEAT') onDTO(dto);
-    };
-    ws.onopen = () => { if(window.__metrics) window.__metrics.count('ui.notifications.ws.connected'); };
-    ws.onclose = () => {
-      if(window.__metrics) window.__metrics.count('ui.notifications.ws.disconnected');
-      setTimeout(connect, 5000);
-    };
-  }
-  connect();
-})();
-});
-</script>
 </body>
 </html>

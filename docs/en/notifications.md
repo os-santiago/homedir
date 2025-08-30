@@ -74,22 +74,9 @@ una API REST autenticada para operar las notificaciones.
 
 ### Endpoints
 
-Todos bajo `/api/notifications` y con encabezados `Cache-Control: no-store` y
-`X-User-Scoped: true`.
-
-```
-GET    /api/notifications?filter={all|unread|last24h}&cursor=epochMs&limit={1..100}
-POST   /api/notifications/{id}/read
-POST   /api/notifications/read-all
-DELETE /api/notifications/{id}
-POST   /api/notifications/bulk-delete {ids:[..]}
-GET    /api/notifications/stream (SSE)
-GET    /api/notifications/next?since=epochMs&limit={1..100}
-```
-
-La API ignora cualquier `userId` provisto por el cliente y lo extrae de la
-identidad autenticada. Las operaciones que no encuentran la notificación del
-usuario devuelven `404`.
+La API REST bajo `/api/notifications` fue retirada. Las notificaciones ahora se
+distribuyen públicamente vía WebSocket en `/ws/global-notifications` y la UI
+gestiona el estado de lectura de forma local usando `localStorage`.
 
 ### UX
 
@@ -121,14 +108,13 @@ Mis Charlas -> Evaluador -> Servicio Notif -> SSE/Poll -> UI
 - `notifications.stream.maxConnectionsPerUser`
 
 ### Seguridad
-- Propiedad de usuario derivada de `SecurityIdentity`, sin aceptar `userId` externo.
-- Límite de 1 SSE activo por usuario y control de `limit` en polling.
-- Respuestas con `Cache-Control: no-store` y cabecera `X-User-Scoped: true`.
-- Ante `401` la UI cae a polling o redirige al inicio.
+- No existen endpoints por usuario; el WebSocket global es público.
+- El contador de no leídas y el centro de notificaciones operan solo con
+  almacenamiento local.
 
 ### Autenticación y expiración de sesión
 - Las páginas HTML protegidas redirigen a `/ingresar` cuando la sesión no es válida.
-- Los endpoints bajo `/api/notifications/*` mantienen el `401` para que la UI redirija al inicio mostrando "Sesión expirada".
+- El antiguo REST `/api/notifications` ya no está disponible.
 - Las cookies de sesión deben emitirse con `Secure` y `SameSite=None` en producción.
  
 ## Iteración 5 – A11y y Mobile
