@@ -1,23 +1,31 @@
-{@io.eventflow.notifications.api.NotificationListResponse data}
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Notificaciones</title>
-</head>
-<body>
-  <main id="notifications-center" class="notifications-center">
-    <h1 id="notifications-heading">Notificaciones</h1>
-    <section aria-labelledby="notifications-list-heading">
-      <h2 id="notifications-list-heading" class="sr-only">Lista</h2>
-      <ul class="notifications-list">
-      {#for n in data.items}
-        <li class="notification-item">
-          <span class="notification-title">{n.title}</span>
-          <span class="notification-message">{n.message}</span>
-        </li>
-      {/for}
-      </ul>
-    </section>
-  </main>
-</body>
-</html>
+{#include _layout}
+{#body}
+<section class="container mx-auto px-4 py-6">
+  <header class="mb-4">
+    <h1 class="text-2xl font-semibold">Centro de Notificaciones</h1>
+    <p class="text-sm text-muted-foreground">
+      Aquí verás avisos globales sobre cambios en la agenda de eventos disponibles.
+      Marca como leídas o elimina las que no necesites.
+    </p>
+  </header>
+
+  <div class="flex flex-wrap gap-2 mb-4">
+    <button class="btn" data-filter="all">Todas</button>
+    <button class="btn" data-filter="unread">No leídas</button>
+    <button class="btn" data-filter="last24h">Últimas 24 h</button>
+    <div class="ml-auto flex gap-2">
+      <button class="btn-secondary" id="markAllRead">Marcar todas como leídas</button>
+      <button class="btn-danger" id="deleteSelected">Eliminar seleccionadas</button>
+    </div>
+  </div>
+
+  <div id="notif-list" class="grid gap-3">
+    <!-- Items generados por JS desde localStorage -->
+  </div>
+
+  <div id="empty" class="text-sm text-muted-foreground hidden">Sin notificaciones por ahora.</div>
+</section>
+<script defer src="/js/global-notifications-ws.js"></script>
+<script defer src="/js/notifications-center.js"></script>
+{/body}
+{/include}
