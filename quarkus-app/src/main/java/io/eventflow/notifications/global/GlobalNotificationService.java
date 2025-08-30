@@ -70,6 +70,23 @@ public class GlobalNotificationService {
         .sorted(Comparator.comparingLong(n -> n.createdAt))
         .forEach(n -> s.getAsyncRemote().sendText(Json.message("notif", n)));
   }
+
+  /** Return the latest N notifications from the buffer (newest first). */
+  public java.util.List<GlobalNotification> latest(int limit) {
+    return buffer.stream()
+        .sorted((a, b) -> Long.compare(b.createdAt, a.createdAt))
+        .limit(Math.max(0, limit))
+        .toList();
+  }
+
+  /** Remove a notification by id from the buffer. */
+  public boolean removeById(String id) {
+    boolean removed = buffer.removeIf(n -> n.id != null && n.id.equals(id));
+    if (removed) {
+      repo.save(buffer);
+    }
+    return removed;
+  }
 }
 
 /** Simple JSON utility using Jackson. */

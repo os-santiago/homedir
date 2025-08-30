@@ -1,0 +1,25 @@
+{#include layout/base}
+{#title}Broadcast de Notificaciones{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Notificaciones</span>{/breadcrumbs}
+{#main}
+<section class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-semibold mb-4">Broadcast de Notificaciones</h1>
+  <form id="broadcast" class="grid gap-3 card p-4">
+    <div class="row gap-2">
+      <select name="type" class="input"><option>AGENDA_UPDATED</option><option>ANNOUNCEMENT</option></select>
+      <input class="input" name="eventId" placeholder="eventId (opcional)">
+    </div>
+    <input class="input" name="title" placeholder="Título" required>
+    <textarea class="input" name="message" placeholder="Mensaje" required></textarea>
+    <div class="row gap-2">
+      <button class="btn-primary" type="submit">Enviar a todos</button>
+      <span class="text-sm text-muted-foreground">Se emite a todos los conectados; persistirá en el backlog global.</span>
+    </div>
+  </form>
+
+  <h2 class="text-xl font-semibold mt-8 mb-3">Últimas notificaciones</h2>
+  <div id="admin-list" class="grid gap-2"></div>
+</section>
+<script defer src="/js/admin-notifications.js"></script>
+{/main}
+{/include}

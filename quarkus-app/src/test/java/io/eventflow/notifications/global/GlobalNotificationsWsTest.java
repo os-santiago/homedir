@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -32,6 +33,13 @@ public class GlobalNotificationsWsTest {
     WsClient client = new WsClient();
     c.connectToServer(client, ClientEndpointConfig.Builder.create().build(), wsUri);
     return client;
+  }
+
+  @BeforeEach
+  public void clear() {
+    for (GlobalNotification g : service.latest(1000)) {
+      service.removeById(g.id);
+    }
   }
 
   static class WsClient extends Endpoint {
