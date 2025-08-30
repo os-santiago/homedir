@@ -124,11 +124,12 @@ public class AdminNotificationResourceTest {
     while ((m = c.messages.poll(1, TimeUnit.SECONDS)) != null) {
       msgs.add(m);
     }
-    boolean exists = msgs.stream()
-        .map(str -> Json.createReader(new StringReader(str)).readObject().getString("id"))
-        .anyMatch(id::equals);
-    assertFalse(exists);
-  }
+      boolean exists = msgs.stream()
+          .map(str -> Json.createReader(new StringReader(str)).readObject().getString("id", null))
+          .filter(Objects::nonNull)
+          .anyMatch(id::equals);
+      assertFalse(exists);
+    }
 
   @Test
   public void dedupePreventsDuplicates() {

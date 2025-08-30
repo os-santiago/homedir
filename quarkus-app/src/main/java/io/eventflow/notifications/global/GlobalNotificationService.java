@@ -89,18 +89,21 @@ public class GlobalNotificationService {
   }
 }
 
-/** Simple JSON utility using Jackson. */
+/** Simple JSON utility. */
 class Json {
-  private static final com.fasterxml.jackson.databind.ObjectMapper mapper =
-      new com.fasterxml.jackson.databind.ObjectMapper();
-
   static String message(String t, GlobalNotification n) {
-    try {
-      java.util.Map<String, Object> map = mapper.convertValue(n, java.util.Map.class);
-      map.put("t", t);
-      return mapper.writeValueAsString(map);
-    } catch (Exception e) {
-      return "{}";
-    }
+    jakarta.json.JsonObjectBuilder b = jakarta.json.Json.createObjectBuilder();
+    b.add("t", t);
+    if (n.id != null) b.add("id", n.id);
+    if (n.type != null) b.add("type", n.type);
+    if (n.category != null) b.add("category", n.category);
+    if (n.eventId != null) b.add("eventId", n.eventId);
+    if (n.talkId != null) b.add("talkId", n.talkId);
+    if (n.title != null) b.add("title", n.title);
+    if (n.message != null) b.add("message", n.message);
+    b.add("createdAt", n.createdAt);
+    if (n.dedupeKey != null) b.add("dedupeKey", n.dedupeKey);
+    if (n.expiresAt != null) b.add("expiresAt", n.expiresAt);
+    return b.build().toString();
   }
 }
