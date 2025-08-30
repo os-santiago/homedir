@@ -16,9 +16,23 @@ public class LoginPageTest {
         .follow(false)
         .accept("text/html")
         .when()
-        .get("/login")
+        .get("/ingresar")
         .then()
         .statusCode(200)
-        .body(containsString("Login"));
+        .body(containsString("Ingresar"));
+  }
+
+  @Test
+  @io.quarkus.test.security.TestSecurity(user = "user@example.com")
+  public void ingresarRedirectsWhenAuthenticated() {
+    given()
+        .redirects()
+        .follow(false)
+        .accept("text/html")
+        .when()
+        .get("/ingresar")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/profile"));
   }
 }
