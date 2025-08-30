@@ -3,9 +3,6 @@ package com.scanales.eventflow.private_;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.service.EventService;
-import com.scanales.eventflow.notifications.NotificationService;
-import com.scanales.eventflow.notifications.Notification;
-import com.scanales.eventflow.notifications.NotificationType;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
@@ -68,7 +65,6 @@ public class ProfileResource {
 
   @Inject UsageMetricsService metrics;
 
-  @Inject NotificationService notifications;
 
   @GET
   @Authenticated
@@ -237,33 +233,6 @@ public class ProfileResource {
         .build();
   }
 
-  @POST
-  @Path("test-notification")
-  @Authenticated
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response testNotification(Map<String, String> body) {
-    String talkId = body != null ? body.get("talkId") : null;
-    if (talkId == null || talkId.isBlank()) {
-      return Response.status(Response.Status.BAD_REQUEST)
-          .entity(Map.of("status", "error", "message", "Selecciona una Charla"))
-          .build();
-    }
-    var info = eventService.findTalkInfo(talkId);
-    if (info == null) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("status", "missing")).build();
-    }
-    String userId = getEmail();
-    Notification n = new Notification();
-    n.userId = userId;
-    n.talkId = talkId;
-    n.eventId = info.event().getId();
-    n.type = NotificationType.TEST;
-    n.title = "Notificación de prueba";
-    n.message = info.talk().getName();
-    notifications.enqueue(n);
-    return Response.ok(Map.of("status", "ok")).build();
-  }
 
   private boolean acceptsJson(HttpHeaders headers) {
     String accept = headers.getHeaderString(HttpHeaders.ACCEPT);
