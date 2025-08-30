@@ -20,13 +20,14 @@
     items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(n=>{
       const div = document.createElement('div');
       div.className = 'card notif';
+      const label = n.category==='event' ? 'Evento' : n.category==='break' ? 'Break' : n.category==='talk' ? 'Charla' : null;
       div.innerHTML = `
         <label class="row">
           <input type="checkbox" class="sel" data-id="${n.id}">
           <div class="col grow">
             <div class="title">${(n.title||'Aviso')}</div>
             <div class="msg">${(n.message||'')}</div>
-            <div class="meta">${new Date(n.createdAt||Date.now()).toLocaleString()}</div>
+            <div class="meta">${label?`<span class="chip">${label}</span>`:''} ${new Date(n.createdAt||Date.now()).toLocaleString()}</div>
           </div>
           <div class="col">
             <button class="btn-link" data-act="read" data-id="${n.id}">${n.readAt?'Leída':'Marcar leída'}</button>
