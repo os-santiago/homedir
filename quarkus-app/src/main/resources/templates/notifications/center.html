@@ -11,12 +11,15 @@
     </p>
   </header>
   <div class="actions">
-    <button class="btn" data-filter="all">Todas</button>
-    <button class="btn" data-filter="unread">No leídas</button>
-    <button class="btn" data-filter="last24h">Últimas 24 h</button>
+    <div class="filters">
+      <button class="btn" data-filter="all">Todas</button>
+      <button class="btn" data-filter="unread">No leídas</button>
+      <button class="btn" data-filter="last24h">Últimas 24 h</button>
+    </div>
     <div class="actions-right">
-      <button class="btn-secondary" id="markAllRead">Marcar todas como leídas</button>
-      <button class="btn-danger" id="deleteSelected">Eliminar seleccionadas</button>
+      <button class="btn" id="toggleSelect">Seleccionar todos</button>
+      <button class="btn" id="markAllRead">Marcar todas como leídas</button>
+      <button class="btn" id="deleteSelected">Eliminar seleccionadas</button>
     </div>
   </div>
   <div id="notif-list" class="notifications-list"></div>
