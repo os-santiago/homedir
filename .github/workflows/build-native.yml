@@ -11,6 +11,7 @@ jobs:
       REGISTRY: ${{ vars.REGISTRY }}
       IMAGE_NAME: ${{ vars.IMAGE_NAME }}
       LOGGED_IN: 0
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -48,24 +49,56 @@ jobs:
         working-directory: quarkus-app
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          PRTAG: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER }}-${{ github.sha }}
         run: |
-          docker build \
-            -f src/main/docker/Dockerfile.native \
-            -t "$IMAGE" \
-            .
+          if [ -n "$PR_NUMBER" ]; then
+            docker build \
+              -f src/main/docker/Dockerfile.native \
+              -t "$IMAGE" -t "$PRTAG" \
+              .
+            echo "PRTAG=$PRTAG" >> $GITHUB_ENV
+          else
+            docker build \
+              -f src/main/docker/Dockerfile.native \
+              -t "$IMAGE" \
+              .
+          fi
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
       - name: Push Docker image
         env:
           IMAGE: ${{ env.IMAGE }}
+          PRTAG: ${{ env.PRTAG }}
           QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
           QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         run: |
           echo "$QUAY_PASSWORD" | docker login "$REGISTRY" -u "$QUAY_USERNAME" --password-stdin
           docker push "$IMAGE"
+          if [ -n "$PRTAG" ]; then
+            docker push "$PRTAG"
+          fi
           echo "LOGGED_IN=1" >> $GITHUB_ENV
-          REF=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")
-          echo "REF=$REF" >> $GITHUB_ENV
+
+      - name: Resolve digest & persist ref (diagnóstico)
+        env:
+          IMAGE: ${{ env.IMAGE }}
+          PRTAG: ${{ env.PRTAG }}
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y skopeo jq
+          if [ "$LOGGED_IN" = "1" ] && [ -n "$PRTAG" ]; then
+            DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://$PRTAG)"
+            echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" | tee image-ref.txt
+            echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
+          else
+            echo "REF=docker:${IMAGE}" | tee image-ref.txt
+            echo "REF=docker:${IMAGE}" >> $GITHUB_ENV
+          fi
+
+      - name: Upload image ref (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-image-ref
+          path: image-ref.txt
 
       - name: Tag & push version alias
         run: |
