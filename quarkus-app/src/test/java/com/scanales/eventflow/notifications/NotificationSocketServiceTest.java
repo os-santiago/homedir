@@ -8,12 +8,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.Session;
+import jakarta.ws.rs.WebApplicationException;
 import org.junit.jupiter.api.Test;
-import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 class NotificationSocketServiceTest {
@@ -53,4 +53,3 @@ class NotificationSocketServiceTest {
     service.unregister("u2", s2);
   }
 }
-

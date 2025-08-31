@@ -1,9 +1,9 @@
 package com.scanales.eventflow.notifications;
 
+import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 public class NotificationServiceTest {
@@ -41,7 +41,7 @@ public class NotificationServiceTest {
     config.userCap = 100;
     config.globalCap = 1000;
     config.dedupeWindow = java.time.Duration.ofMinutes(30);
-  Notification n = new Notification();
+    Notification n = new Notification();
     n.userId = "u2";
     n.talkId = "t1";
     n.type = NotificationType.UPCOMING;

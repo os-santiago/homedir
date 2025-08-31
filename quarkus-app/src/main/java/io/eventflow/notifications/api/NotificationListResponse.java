@@ -1,6 +1,5 @@
 package io.eventflow.notifications.api;
 
-import com.scanales.eventflow.notifications.Notification;
 import com.scanales.eventflow.notifications.NotificationService.NotificationPage;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.List;

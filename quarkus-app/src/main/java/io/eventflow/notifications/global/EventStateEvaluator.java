@@ -57,19 +57,20 @@ public class EventStateEvaluator {
   }
 
   private void enqueue(Event ev, String type, ZonedDateTime edge) {
-    String dedupeKey = String.format(
-        "global:event:%s:%s:%d", ev.getId(), type, edge.toEpochSecond());
+    String dedupeKey =
+        String.format("global:event:%s:%s:%d", ev.getId(), type, edge.toEpochSecond());
     GlobalNotification n = new GlobalNotification();
     n.type = type;
     n.category = "event";
     n.eventId = ev.getId();
-    n.title = switch (type) {
-      case "UPCOMING" -> "El evento comienza pronto";
-      case "STARTED" -> "El evento está en curso";
-      case "ENDING_SOON" -> "El evento está por finalizar";
-      case "FINISHED" -> "El evento ha finalizado";
-      default -> "Evento";
-    };
+    n.title =
+        switch (type) {
+          case "UPCOMING" -> "El evento comienza pronto";
+          case "STARTED" -> "El evento está en curso";
+          case "ENDING_SOON" -> "El evento está por finalizar";
+          case "FINISHED" -> "El evento ha finalizado";
+          default -> "Evento";
+        };
     n.message = ev.getTitle();
     n.createdAt = Instant.now(clock).toEpochMilli();
     n.dedupeKey = dedupeKey;

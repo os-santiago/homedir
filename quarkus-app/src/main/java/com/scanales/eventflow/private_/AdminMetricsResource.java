@@ -423,8 +423,7 @@ public class AdminMetricsResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Map<String, List<UsageMetricsService.Registrant>> regs = metrics.getRegistrations();
-    List<Event> events =
-        eventService.listEvents().stream().filter(this::isActive).toList();
+    List<Event> events = eventService.listEvents().stream().filter(this::isActive).toList();
     List<EventTalks> data =
         events.stream()
             .map(
@@ -438,8 +437,7 @@ public class AdminMetricsResource {
                                       t.getName() != null ? t.getName() : t.getId(),
                                       regs.getOrDefault(t.getId(), List.of()).size()))
                           .sorted(
-                              java.util.Comparator.comparingLong(
-                                      TalkRegistrationRow::registrations)
+                              java.util.Comparator.comparingLong(TalkRegistrationRow::registrations)
                                   .reversed())
                           .toList();
                   return new EventTalks(ev, rows);

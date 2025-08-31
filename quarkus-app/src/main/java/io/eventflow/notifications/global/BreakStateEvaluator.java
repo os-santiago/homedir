@@ -58,20 +58,21 @@ public class BreakStateEvaluator {
   }
 
   private void enqueue(Event ev, Talk t, String type, ZonedDateTime edge) {
-    String dedupeKey = String.format(
-        "global:break:%s:%s:%d", t.getId(), type, edge.toEpochSecond());
+    String dedupeKey =
+        String.format("global:break:%s:%s:%d", t.getId(), type, edge.toEpochSecond());
     GlobalNotification n = new GlobalNotification();
     n.type = type;
     n.category = "break";
     n.eventId = ev.getId();
     n.talkId = t.getId();
-    n.title = switch (type) {
-      case "UPCOMING" -> "Break comienza pronto";
-      case "STARTED" -> "Break en curso";
-      case "ENDING_SOON" -> "Break por finalizar";
-      case "FINISHED" -> "Break finalizado";
-      default -> "Break";
-    };
+    n.title =
+        switch (type) {
+          case "UPCOMING" -> "Break comienza pronto";
+          case "STARTED" -> "Break en curso";
+          case "ENDING_SOON" -> "Break por finalizar";
+          case "FINISHED" -> "Break finalizado";
+          default -> "Break";
+        };
     n.message = t.getName();
     n.createdAt = Instant.now(clock).toEpochMilli();
     n.dedupeKey = dedupeKey;

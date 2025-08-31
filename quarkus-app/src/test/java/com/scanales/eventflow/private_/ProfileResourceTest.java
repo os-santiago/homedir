@@ -16,7 +16,6 @@ public class ProfileResourceTest {
 
   @Inject UserScheduleService userSchedule;
 
-
   @BeforeEach
   void setup() {
     userSchedule.reset();
@@ -101,7 +100,6 @@ public class ProfileResourceTest {
         .statusCode(303)
         .header("Location", endsWith("/private/profile"));
   }
-
 
   @Test
   @TestSecurity(user = "user@example.com")

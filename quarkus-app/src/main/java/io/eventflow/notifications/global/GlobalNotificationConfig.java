@@ -17,8 +17,10 @@ public class GlobalNotificationConfig {
   void init() {
     Config cfg = ConfigProvider.getConfig();
     enabled = cfg.getOptionalValue("notifications.global.enabled", Boolean.class).orElse(enabled);
-    bufferSize = cfg.getOptionalValue("notifications.global.buffer-size", Integer.class).orElse(bufferSize);
+    bufferSize =
+        cfg.getOptionalValue("notifications.global.buffer-size", Integer.class).orElse(bufferSize);
     dedupeWindow =
-        cfg.getOptionalValue("notifications.global.dedupe-window", Duration.class).orElse(dedupeWindow);
+        cfg.getOptionalValue("notifications.global.dedupe-window", Duration.class)
+            .orElse(dedupeWindow);
   }
 }

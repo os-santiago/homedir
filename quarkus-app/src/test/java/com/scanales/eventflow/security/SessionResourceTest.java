@@ -14,11 +14,6 @@ public class SessionResourceTest {
   @Test
   @TestSecurity(user = "user@example.com")
   public void refreshKeepsSessionActive() {
-    given()
-        .when()
-        .post("/auth/session/refresh")
-        .then()
-        .statusCode(200)
-        .body("active", is(true));
+    given().when().post("/auth/session/refresh").then().statusCode(200).body("active", is(true));
   }
 }

@@ -26,7 +26,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.Map;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -64,7 +63,6 @@ public class ProfileResource {
   @Inject UserScheduleService userSchedule;
 
   @Inject UsageMetricsService metrics;
-
 
   @GET
   @Authenticated
@@ -244,7 +242,6 @@ public class ProfileResource {
         .header("Location", "/private/profile")
         .build();
   }
-
 
   private boolean acceptsJson(HttpHeaders headers) {
     String accept = headers.getHeaderString(HttpHeaders.ACCEPT);

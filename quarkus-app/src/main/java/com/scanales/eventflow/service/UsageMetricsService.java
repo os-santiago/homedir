@@ -2,8 +2,8 @@ package com.scanales.eventflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.model.Speaker;
-import io.vertx.ext.web.RoutingContext;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -316,11 +316,7 @@ public class UsageMetricsService {
   }
 
   public void recordTalkRegister(
-      String talkId,
-      java.util.List<Speaker> speakers,
-      String ua,
-      String name,
-      String email) {
+      String talkId, java.util.List<Speaker> speakers, String ua, String name, String email) {
     recordTalkRegister(talkId, speakers, ua);
     if (talkId == null || isBot(ua) || name == null || email == null) {
       return;

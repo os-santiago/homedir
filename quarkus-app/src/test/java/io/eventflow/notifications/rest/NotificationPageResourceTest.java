@@ -12,10 +12,11 @@ public class NotificationPageResourceTest {
   @Test
   public void centerRendersForVisitor() {
     given()
-      .when().get("/notifications/center")
-      .then()
-      .statusCode(200)
-      .body(containsString("Notificaciones"))
-      .body(containsString("actividades del día en curso"));
+        .when()
+        .get("/notifications/center")
+        .then()
+        .statusCode(200)
+        .body(containsString("Notificaciones"))
+        .body(containsString("actividades del día en curso"));
   }
 }

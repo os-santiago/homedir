@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -30,8 +29,7 @@ public class NotificationRepository {
 
   @PostConstruct
   void init() {
-    baseDir =
-        Paths.get(System.getProperty("eventflow.data.dir", "data"), "notifications");
+    baseDir = Paths.get(System.getProperty("eventflow.data.dir", "data"), "notifications");
     try {
       Files.createDirectories(baseDir);
     } catch (IOException e) {

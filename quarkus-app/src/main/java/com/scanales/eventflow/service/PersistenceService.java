@@ -17,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -127,7 +126,6 @@ public class PersistenceService {
     scheduleWrite(scheduleFile(year), schedules);
   }
 
-
   /** Loads events from disk or returns an empty map if none. */
   public Map<String, Event> loadEvents() {
     return read(eventsFile, new TypeReference<Map<String, Event>>() {});
@@ -144,7 +142,6 @@ public class PersistenceService {
         scheduleFile(year),
         new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {});
   }
-
 
   /** Lists all years that have user schedule files. */
   public Set<Integer> listUserScheduleYears() {

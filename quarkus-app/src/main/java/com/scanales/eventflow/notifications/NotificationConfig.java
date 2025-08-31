@@ -9,11 +9,10 @@ import org.eclipse.microprofile.config.ConfigProvider;
 /**
  * Configuration properties for notifications.
  *
- * <p>This bean deliberately exposes public static fields so that tests can
- * easily tweak configuration at runtime and have the changes reflected
- * everywhere the configuration is used. During startup the fields are populated
- * from MicroProfile configuration with sensible defaults so production usage is
- * unaffected.
+ * <p>This bean deliberately exposes public static fields so that tests can easily tweak
+ * configuration at runtime and have the changes reflected everywhere the configuration is used.
+ * During startup the fields are populated from MicroProfile configuration with sensible defaults so
+ * production usage is unaffected.
  */
 @Singleton
 public class NotificationConfig {
@@ -58,19 +57,23 @@ public class NotificationConfig {
     dedupeWindow =
         cfg.getOptionalValue("notifications.dedupe-window", Duration.class).orElse(dedupeWindow);
     dropOnQueueFull =
-        cfg.getOptionalValue("notifications.drop-on-queue-full", Boolean.class).orElse(dropOnQueueFull);
+        cfg.getOptionalValue("notifications.drop-on-queue-full", Boolean.class)
+            .orElse(dropOnQueueFull);
     schedulerEnabled =
-        cfg.getOptionalValue("notifications.scheduler.enabled", Boolean.class).orElse(schedulerEnabled);
+        cfg.getOptionalValue("notifications.scheduler.enabled", Boolean.class)
+            .orElse(schedulerEnabled);
     schedulerInterval =
-        cfg.getOptionalValue("notifications.scheduler.interval", Duration.class).orElse(schedulerInterval);
+        cfg.getOptionalValue("notifications.scheduler.interval", Duration.class)
+            .orElse(schedulerInterval);
     upcomingWindow =
-        cfg.getOptionalValue("notifications.upcoming.window", Duration.class).orElse(upcomingWindow);
+        cfg.getOptionalValue("notifications.upcoming.window", Duration.class)
+            .orElse(upcomingWindow);
     endingSoonWindow =
-        cfg.getOptionalValue("notifications.endingSoon.window", Duration.class).orElse(endingSoonWindow);
+        cfg.getOptionalValue("notifications.endingSoon.window", Duration.class)
+            .orElse(endingSoonWindow);
     wsEnabled = cfg.getOptionalValue("notifications.ws.enabled", Boolean.class).orElse(wsEnabled);
     streamMaxConnectionsPerUser =
-        cfg.getOptionalValue(
-                "notifications.stream.maxConnectionsPerUser", Integer.class)
+        cfg.getOptionalValue("notifications.stream.maxConnectionsPerUser", Integer.class)
             .orElse(streamMaxConnectionsPerUser);
     metricsEnabled =
         cfg.getOptionalValue("notifications.metrics.enabled", Boolean.class).orElse(metricsEnabled);
