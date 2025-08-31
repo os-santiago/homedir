@@ -1,5 +1,6 @@
 (async function(){
   const listEl = document.getElementById('admin-list');
+  const clearBtn = document.getElementById('clearAll');
   async function load(){
     const res = await fetch('/admin/api/notifications/latest?limit=50', { cache:'no-store' });
     if(!res.ok) return;
@@ -31,6 +32,13 @@
     const res = await fetch(`/admin/api/notifications/${id}`, { method:'DELETE' });
     if(res.status===204) load();
   });
+  if(clearBtn){
+    clearBtn.addEventListener('click', async ()=>{
+      if(!confirm('¿Borrar todo el backlog de notificaciones?')) return;
+      const res = await fetch('/admin/api/notifications',{ method:'DELETE' });
+      if(res.status===204) load();
+    });
+  }
   load();
   const demoBtn = document.getElementById('broadcast-demo');
   if(demoBtn){

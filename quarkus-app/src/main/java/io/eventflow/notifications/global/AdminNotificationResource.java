@@ -40,6 +40,12 @@ public class AdminNotificationResource {
   }
 
   @DELETE
+  public Response clear() {
+    service.clearAll();
+    return Response.noContent().build();
+  }
+
+  @DELETE
   @Path("/{id}")
   public Response delete(@PathParam("id") String id) {
     boolean removed = service.removeById(id);
