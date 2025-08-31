@@ -4,6 +4,8 @@
   const emptyEl = document.getElementById('empty');
   const markAllBtn = document.getElementById('markAllRead');
   const deleteBtn  = document.getElementById('deleteSelected');
+  const selectAllBtn = document.getElementById('selectAll');
+  const confirmDlg = document.getElementById('confirmDeleteAll');
 
   // Estado de selección en memoria (se preserva entre renders)
   const selected = new Set();
@@ -52,8 +54,9 @@
       div.dataset.id = n.id;
 
       const checked = selected.has(n.id) ? 'checked' : '';
-      const readLabel = n.readAt ? 'Leída' : 'Marcar leída';
+      const readLabel = n.readAt ? 'No leída' : 'Leída';
       const chip = chipFor(n);
+      const url = n.targetUrl || (n.talkId ? `/talks/${encodeURIComponent(n.talkId)}` : '/notifications/center');
 
       div.innerHTML = `
         <div class="row items-start gap-3">
@@ -65,11 +68,13 @@
           </div>
           <div class="col shrink">
             <button class="btn-link js-read" data-id="${n.id}">${readLabel}</button>
-            <a class="btn-link js-open" data-id="${n.id}" href="${escapeAttr(n.targetUrl || '/notifications/center')}" rel="nofollow">Revisar</a>
+            <a class="btn-link js-open" data-id="${n.id}" href="${escapeAttr(url)}" rel="nofollow">Revisar</a>
           </div>
         </div>`;
       listEl.appendChild(div);
     }
+
+    updateSelectAllBtn();
   }
 
   function chipFor(n) {
@@ -92,6 +97,13 @@
     return String(s).replace(/"/g, '&quot;');
   }
 
+  function updateSelectAllBtn() {
+    if (!selectAllBtn) return;
+    const boxes = listEl.querySelectorAll('.js-select');
+    const allChecked = boxes.length > 0 && Array.from(boxes).every(cb => cb.checked);
+    selectAllBtn.textContent = allChecked ? 'Deseleccionar todos' : 'Seleccionar todos';
+  }
+
   // Delegación robusta (usa closest)
   document.addEventListener('click', (e) => {
     // Filtros
@@ -102,14 +114,15 @@
       return;
     }
 
-    // Marcar leída (por item)
+    // Marcar leída / no leída (por item)
     const readBtn = e.target.closest('.js-read');
     if (readBtn) {
       const id = readBtn.getAttribute('data-id');
       const all = getAll();
       const n = all.find(x => x.id === id);
-      if (n && !n.dismissedAt && !n.readAt) {
-        n.readAt = Date.now();
+      if (n && !n.dismissedAt) {
+        if (n.readAt) delete n.readAt;
+        else n.readAt = Date.now();
         saveAll(all);
         render();
       }
@@ -139,6 +152,7 @@
       saveAll(all);
       selected.clear();
       render();
+      updateSelectAllBtn();
       e.preventDefault();
       return;
     }
@@ -152,6 +166,49 @@
       }
       saveAll(all);
       render();
+      updateSelectAllBtn();
+      e.preventDefault();
+      return;
+    }
+
+    // Seleccionar / deseleccionar todos
+    if (e.target.closest('#selectAll')) {
+      const boxes = listEl.querySelectorAll('.js-select');
+      const allChecked = boxes.length > 0 && Array.from(boxes).every(cb => cb.checked);
+      if (allChecked) {
+        boxes.forEach(cb => { cb.checked = false; selected.delete(cb.getAttribute('data-id')); });
+      } else {
+        boxes.forEach(cb => { cb.checked = true; selected.add(cb.getAttribute('data-id')); });
+      }
+      updateSelectAllBtn();
+      e.preventDefault();
+      return;
+    }
+
+    // Borrar todas con confirmación
+    if (e.target.closest('#deleteAll')) {
+      if (confirmDlg) confirmDlg.showModal();
+      e.preventDefault();
+      return;
+    }
+
+    if (e.target.closest('#confirmDeleteAllBtn')) {
+      const all = getAll();
+      const now = Date.now();
+      for (const n of all) {
+        if (!n.dismissedAt) n.dismissedAt = now;
+      }
+      saveAll(all);
+      selected.clear();
+      render();
+      updateSelectAllBtn();
+      if (confirmDlg) confirmDlg.close();
+      e.preventDefault();
+      return;
+    }
+
+    if (e.target.closest('#cancelDeleteAllBtn')) {
+      if (confirmDlg) confirmDlg.close();
       e.preventDefault();
       return;
     }
@@ -165,6 +222,7 @@
     if (!id) return;
     if (sel.checked) selected.add(id);
     else selected.delete(id);
+    updateSelectAllBtn();
   });
 
   // Hook que invoca el WS global al recibir una notif

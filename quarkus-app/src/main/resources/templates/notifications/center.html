@@ -17,12 +17,21 @@
       <button class="btn" data-filter="last24h">Últimas 24 h</button>
     </div>
     <div class="actions-right">
+      <button class="btn" id="selectAll">Seleccionar todos</button>
       <button class="btn" id="markAllRead">Marcar todas como leídas</button>
       <button class="btn" id="deleteSelected">Eliminar seleccionadas</button>
+      <button class="btn btn-danger" id="deleteAll">Borrar todo</button>
     </div>
   </div>
   <div id="notif-list" class="grid gap-3"></div>
   <div id="empty" class="text-sm text-muted-foreground hidden">Sin notificaciones por ahora.</div>
+  <dialog id="confirmDeleteAll">
+    <p>Está seguro desea eliminar todas las notificaciones recibidas?</p>
+    <div class="actions">
+      <button class="btn btn-danger" id="confirmDeleteAllBtn">Confirmar</button>
+      <button class="btn" id="cancelDeleteAllBtn">Cancelar</button>
+    </div>
+  </dialog>
   <script defer src="/js/notifications-center.js"></script>
 </section>
 {/main}
