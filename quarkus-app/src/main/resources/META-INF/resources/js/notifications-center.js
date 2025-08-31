@@ -32,12 +32,19 @@
 
   // Render de la lista aplicando filtro y preservando selección
   function render() {
-    const now = Date.now();
     const all = getAll();
     let items = all.filter(n => !n.dismissedAt);
 
-    if (currentFilter === 'unread')  items = items.filter(n => !n.readAt);
-    if (currentFilter === 'last24h') items = items.filter(n => (now - (n.createdAt || 0)) <= 24 * 3600 * 1000);
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+    items = items.filter(n => {
+      const ts = n.createdAt || 0;
+      return ts >= startOfDay.getTime() && ts < endOfDay.getTime();
+    });
+
+    if (currentFilter === 'unread') items = items.filter(n => !n.readAt);
 
     items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 

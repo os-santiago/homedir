@@ -6,7 +6,7 @@ Un rato antes de mi primera charla, aparece un aviso sutil abajo de la pantalla:
 
 Durante el día, la app me avisa cuando una charla “está en curso”, cuando “está por finalizar” y al final “ha finalizado”. Todo sin bloquearme. Si pierdo señal un momento, al volver, las notificaciones se ponen al día solas.
 
-Cuando quiero ver todo con calma, toco la campana (ahora con numerito). Entro al Centro de Notificaciones, donde puedo filtrar Todas / No leídas / Últimas 24 h, marcar como leídas o eliminar varias a la vez. Todo está ordenado en tarjetas compactas, los textos no se cortan raro, y los botones son cómodos de pulsar.
+Cuando quiero ver todo con calma, toco la campana (ahora con numerito). Entro al Centro de Notificaciones, que muestra las actividades del día en curso y me permite filtrar Todas o No leídas, marcar como leídas o eliminar varias a la vez. Todo está ordenado en tarjetas compactas, los textos no se cortan raro, y los botones son cómodos de pulsar.
 
 Me siento acompañada, no perseguida:
 
