@@ -28,10 +28,10 @@
                 <a href="/private/admin" data-nav-link>Admin</a>
             {/if}
         {/if}
-        <a href="/notifications/center" class="nav-link notifications-bell" aria-label="Notificaciones" aria-controls="notifications-center" data-nav-link>
-            <span class="icon" aria-hidden="true">🔔</span>
-            <span class="badge" data-notifications-badge aria-hidden="true" hidden></span>
-            <span class="sr-only" data-notifications-sr aria-live="polite"></span>
+        <a href="/notifications/center" class="nav-link notifications-bell {#if currentPath.startsWith('/notifications')}active{/if}" aria-label="Notificaciones" data-nav-link>
+            <span class="icon-bell" aria-hidden="true"></span>
+            <span class="sr-only">Notificaciones</span>
+            <span id="notif-badge" class="badge hidden">0</span>
         </a>
         {#if app:isAuthenticated()}
             <div class="user-menu" data-user-menu>

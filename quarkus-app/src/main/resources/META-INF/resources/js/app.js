@@ -149,6 +149,19 @@ function setupAgendaToggle() {
     }
 }
 
+function setupViewFullAgenda() {
+    const btn = document.getElementById('view-full-agenda');
+    if (btn) {
+        btn.addEventListener('click', (e) => {
+            const panel = document.querySelector('#agenda');
+            if (panel) {
+                panel.classList.remove('collapsed');
+                panel.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+}
+
 function bannerParallax() {
     const banner = $('banner');
     if (banner) {
@@ -254,6 +267,7 @@ function onDomContentLoaded() {
     setupMenu();
     setupUserMenu();
     setupAgendaToggle();
+    setupViewFullAgenda();
     adjustLayout();
     bannerParallax();
     handleForms();

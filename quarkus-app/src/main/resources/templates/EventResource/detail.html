@@ -51,7 +51,7 @@ Evento
     {/if}
     <p><strong>Duración:</strong> {event.days} día{#if event.days > 1}s{/if}</p>
     {#if !event.agenda.isEmpty()}
-    <p><a href="#agenda" class="btn btn-secondary">Ver agenda completa</a></p>
+    <p><a href="#agenda" id="view-full-agenda" class="btn btn-secondary">Ver agenda completa</a></p>
     {/if}
   </div>
   {#if !event.scenarios.isEmpty()}

@@ -185,7 +185,11 @@
   outline-offset: 2px;
 }
 
-.notifications-bell .icon {
+.notifications-bell .icon-bell::before {
+  content: "\1F514"; /* bell emoji */
+}
+
+.notifications-bell .icon-bell {
   font-size: 1.25rem;
 }
 
