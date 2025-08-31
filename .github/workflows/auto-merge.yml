@@ -1,0 +1,84 @@
+name: Auto-merge after PR CI success
+
+on:
+  workflow_run:
+    workflows: ["PR CI (Build, Native, SBOM/Scan)"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}   # <- IMPORTANTE para gh CLI
+    steps:
+      - name: Extract PR info
+        id: pr
+        run: |
+          set -euo pipefail
+          # La matriz de PRs asociados al workflow_run
+          PR_JSON=$(jq -r '.[0] // empty' <<< '${{ toJson(github.event.workflow_run.pull_requests) }}')
+          if [ -z "$PR_JSON" ] || [ "$PR_JSON" = "null" ]; then
+            echo "No PR attached to this workflow_run; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          PR_NUMBER=$(jq -r '.number' <<< "$PR_JSON")
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Guard conditions
+        if: steps.pr.outputs.number != ''
+        id: guard
+        run: |
+          set -euo pipefail
+          OWNER_REPO="${{ github.repository }}"
+          PR_NUMBER="${{ steps.pr.outputs.number }}"
+          PR_DATA=$(gh api repos/$OWNER_REPO/pulls/$PR_NUMBER)
+          BASE=$(jq -r '.base.ref' <<< "$PR_DATA")
+          DRAFT=$(jq -r '.draft' <<< "$PR_DATA")
+          HEAD_REPO=$(jq -r '.head.repo.full_name' <<< "$PR_DATA")
+
+          echo "Base: $BASE; Draft: $DRAFT; Head repo: $HEAD_REPO"
+
+          if [ "$BASE" != "main" ]; then
+            echo "Not targeting main; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$DRAFT" = "true" ]; then
+            echo "Draft PR; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$HEAD_REPO" != "${{ github.repository }}" ]; then
+            echo "Fork PR; skipping for safety."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # (Opcional) etiqueta de bloqueo
+          LABELS=$(jq -r '[.labels[].name] | join(",")' <<< "$PR_DATA")
+          if grep -qiE '(do not merge|wip|no-auto-merge)' <<< "$LABELS"; then
+            echo "Found blocking label; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+      - name: Merge PR (squash + delete branch)
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          PR_NUMBER="${{ steps.pr.outputs.number }}"
+
+          # Verifica checks (el branch protection también lo hará, esto es informativo)
+          echo "Checks summary:"
+          gh pr checks $PR_NUMBER || true
+
+          # Intentar merge (fallará si branch protection aún no permite)
+          gh pr merge $PR_NUMBER --squash --delete-branch --merge --repo "${{ github.repository }}"
