@@ -21,8 +21,18 @@
           { "context": "PR Quality — Suite / static" },
           { "context": "PR Quality — Suite / arch" },
           { "context": "PR Quality — Suite / tests_cov" },
-          { "context": "PR Quality — Suite / deps" }
+          { "context": "PR Quality — Suite / deps" },
+          { "context": "PR CI (Build, Native, SBOM/Scan) / sbom" }
         ]
+      }
+    },
+    {
+      "type": "pull_request_reviews",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false
       }
     },
     {

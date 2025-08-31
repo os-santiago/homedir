@@ -1,4 +1,4 @@
-name: PR Build
+name: PR CI (Build, Native, SBOM/Scan)
 
 on:
   pull_request:
@@ -28,13 +28,6 @@ jobs:
           echo "## Version derivada: $VERSION" >> $GITHUB_STEP_SUMMARY
       - name: Build & test
         run: mvn -B -f quarkus-app/pom.xml package
-      - name: Enable auto-merge
-        if: ${{ github.event.pull_request.base.ref == 'main' }}
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ github.event.pull_request.number }}
-          merge-method: squash
 
   build-native:
     needs: build
