@@ -3,6 +3,7 @@ package com.scanales.eventflow.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.model.Speaker;
 import io.vertx.ext.web.RoutingContext;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -13,8 +14,11 @@ import java.nio.file.*;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -34,6 +38,7 @@ public class UsageMetricsService {
   private final Map<String, Long> pageViews = new ConcurrentHashMap<>();
   private final Map<String, RateLimiter> rates = new ConcurrentHashMap<>();
   private final Map<String, LongAdder> discardedByReason = new ConcurrentHashMap<>();
+  private final Map<String, Set<Registrant>> registrations = new ConcurrentHashMap<>();
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
   private final AtomicBoolean dirty = new AtomicBoolean(false);
   private final AtomicLong flushFailures = new AtomicLong();
@@ -51,6 +56,9 @@ public class UsageMetricsService {
   private boolean migrateFromV1;
   private int schemaVersion = CURRENT_SCHEMA_VERSION;
   private long lastFileSizeBytes;
+
+  @RegisterForReflection
+  public record Registrant(String name, String email) {}
 
   @ConfigProperty(name = "metrics.flush-interval", defaultValue = "PT10S")
   Duration flushInterval;
@@ -138,6 +146,26 @@ public class UsageMetricsService {
           if (lf instanceof Number n) {
             lastFlushTime = n.longValue();
           }
+        }
+        Object regsObj = data.get("registrants");
+        if (regsObj instanceof Map<?, ?> rm) {
+          rm.forEach(
+              (k, v) -> {
+                String talkId = String.valueOf(k);
+                Set<Registrant> set = ConcurrentHashMap.newKeySet();
+                if (v instanceof java.util.List<?> list) {
+                  for (Object o : list) {
+                    if (o instanceof Map<?, ?> m) {
+                      Object nObj = m.get("name");
+                      Object eObj = m.get("email");
+                      if (nObj instanceof String n && eObj instanceof String e) {
+                        set.add(new Registrant(n, e));
+                      }
+                    }
+                  }
+                }
+                registrations.put(talkId, set);
+              });
         }
       }
     } catch (Exception e) {
@@ -287,6 +315,22 @@ public class UsageMetricsService {
     increment("talk_register:" + talkId);
   }
 
+  public void recordTalkRegister(
+      String talkId,
+      java.util.List<Speaker> speakers,
+      String ua,
+      String name,
+      String email) {
+    recordTalkRegister(talkId, speakers, ua);
+    if (talkId == null || isBot(ua) || name == null || email == null) {
+      return;
+    }
+    registrations
+        .computeIfAbsent(talkId, k -> ConcurrentHashMap.newKeySet())
+        .add(new Registrant(name, email));
+    dirty.set(true);
+  }
+
   public void recordStageVisit(String stageId, String timezone, String sessionId, String ua) {
     if (stageId == null) {
       incrementDiscard("invalid");
@@ -321,6 +365,18 @@ public class UsageMetricsService {
     String ua = headers.getHeaderString("User-Agent");
     String sessionId = context.session() != null ? context.session().id() : null;
     recordStageVisit(stageId, timezone, sessionId, ua);
+  }
+
+  public List<Registrant> getRegistrants(String talkId) {
+    return registrations.containsKey(talkId)
+        ? new ArrayList<>(registrations.get(talkId))
+        : List.of();
+  }
+
+  public Map<String, List<Registrant>> getRegistrations() {
+    Map<String, List<Registrant>> copy = new HashMap<>();
+    registrations.forEach((k, v) -> copy.put(k, new ArrayList<>(v)));
+    return copy;
   }
 
   public void recordCta(String name, String timezone) {
@@ -394,6 +450,9 @@ public class UsageMetricsService {
     Map<String, Long> discards = getDiscarded();
     Map<String, Object> file = new HashMap<>();
     file.put("counters", snapshot);
+    Map<String, List<Registrant>> regs = new HashMap<>();
+    registrations.forEach((k, v) -> regs.put(k, new ArrayList<>(v)));
+    file.put("registrants", regs);
     Map<String, Object> meta = new HashMap<>();
     meta.put("schemaVersion", CURRENT_SCHEMA_VERSION);
     meta.put("lastFlush", System.currentTimeMillis());
@@ -566,6 +625,7 @@ public class UsageMetricsService {
     pageViews.clear();
     rates.clear();
     discardedByReason.clear();
+    registrations.clear();
     bufferSize.set(0);
     bufferWarned = false;
     dirty.set(false);
