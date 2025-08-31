@@ -12,9 +12,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Persists the ring buffer of global notifications to a JSON file.
- */
+/** Persists the ring buffer of global notifications to a JSON file. */
 @ApplicationScoped
 public class GlobalNotificationRepository {
   private final ObjectMapper mapper = new ObjectMapper();

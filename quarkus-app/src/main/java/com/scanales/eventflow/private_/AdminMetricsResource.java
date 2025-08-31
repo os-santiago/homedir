@@ -100,6 +100,8 @@ public class AdminMetricsResource {
   /** Row representing registrations for a talk. */
   public record TalkRegistrationRow(String id, String name, long registrations) {}
 
+  public record EventTalks(Event event, List<TalkRegistrationRow> rows) {}
+
   /** Payload with dependent filter options. */
   public record FilterData(List<Scenario> stages, List<Speaker> speakers) {}
 
@@ -110,6 +112,11 @@ public class AdminMetricsResource {
     static native TemplateInstance guide();
 
     static native TemplateInstance talks(Event event, List<TalkRegistrationRow> rows);
+
+    static native TemplateInstance registrations(List<EventTalks> events);
+
+    static native TemplateInstance registrants(
+        Event event, Talk talk, List<UsageMetricsService.Registrant> users);
   }
 
   @Inject SecurityIdentity identity;
@@ -392,19 +399,77 @@ public class AdminMetricsResource {
     if (event == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    Map<String, Long> snap = metrics.snapshot();
+    Map<String, List<UsageMetricsService.Registrant>> regs = metrics.getRegistrations();
     List<TalkRegistrationRow> rows =
         event.getAgenda().stream()
             .map(
                 t -> {
                   String name = t.getName() != null ? t.getName() : t.getId();
-                  return new TalkRegistrationRow(
-                      t.getId(), name, snap.getOrDefault("talk_register:" + t.getId(), 0L));
+                  long count = regs.getOrDefault(t.getId(), List.of()).size();
+                  return new TalkRegistrationRow(t.getId(), name, count);
                 })
             .sorted(
                 java.util.Comparator.comparingLong(TalkRegistrationRow::registrations).reversed())
             .toList();
     return Response.ok(Templates.talks(event, rows)).build();
+  }
+
+  @GET
+  @Path("registrations")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response registrations() {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    Map<String, List<UsageMetricsService.Registrant>> regs = metrics.getRegistrations();
+    List<Event> events = eventService.listEvents().stream().filter(this::isActive).toList();
+    List<EventTalks> data =
+        events.stream()
+            .map(
+                ev -> {
+                  List<TalkRegistrationRow> rows =
+                      ev.getAgenda().stream()
+                          .map(
+                              t ->
+                                  new TalkRegistrationRow(
+                                      t.getId(),
+                                      t.getName() != null ? t.getName() : t.getId(),
+                                      regs.getOrDefault(t.getId(), List.of()).size()))
+                          .sorted(
+                              java.util.Comparator.comparingLong(TalkRegistrationRow::registrations)
+                                  .reversed())
+                          .toList();
+                  return new EventTalks(ev, rows);
+                })
+            .toList();
+    return Response.ok(Templates.registrations(data)).build();
+  }
+
+  @GET
+  @Path("registrants")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response registrants(@QueryParam("talk") String talkId) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    if (talkId == null || talkId.isBlank()) {
+      return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+    var info = eventService.findTalkInfo(talkId);
+    if (info == null) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    List<UsageMetricsService.Registrant> users = metrics.getRegistrants(talkId);
+    return Response.ok(Templates.registrants(info.event(), info.talk(), users)).build();
+  }
+
+  private boolean isActive(Event event) {
+    if (event.getDate() == null) {
+      return true;
+    }
+    return event.getDate().plusDays(event.getDays()).isAfter(LocalDate.now());
   }
 
   @ConfigProperty(name = "metrics.min-view-threshold", defaultValue = "20")

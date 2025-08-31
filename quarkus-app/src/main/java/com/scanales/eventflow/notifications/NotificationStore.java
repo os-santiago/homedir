@@ -2,7 +2,6 @@ package com.scanales.eventflow.notifications;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -22,10 +21,7 @@ public class NotificationStore {
   public List<Notification> list(String userId, int limit, boolean onlyUnread) {
     Deque<Notification> list = data.get(userId);
     if (list == null) return List.of();
-    return list.stream()
-        .filter(n -> !onlyUnread || n.readAt == null)
-        .limit(limit)
-        .toList();
+    return list.stream().filter(n -> !onlyUnread || n.readAt == null).limit(limit).toList();
   }
 
   public Deque<Notification> getUserList(String userId) {
@@ -39,8 +35,7 @@ public class NotificationStore {
   }
 
   public void purgeOlderThan(long cutoff) {
-    data.values().forEach(
-        dq -> dq.removeIf(n -> n.createdAt < cutoff));
+    data.values().forEach(dq -> dq.removeIf(n -> n.createdAt < cutoff));
     recomputeTotal();
   }
 

@@ -349,8 +349,7 @@ public class Event {
     if (date == null) {
       return "Fecha por confirmar";
     }
-    long diff =
-        java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), date);
+    long diff = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), date);
     if (diff == 0) {
       return "Comienza hoy";
     }

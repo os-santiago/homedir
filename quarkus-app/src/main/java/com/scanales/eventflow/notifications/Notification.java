@@ -2,9 +2,7 @@ package com.scanales.eventflow.notifications;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-/**
- * Simple notification model persisted per user.
- */
+/** Simple notification model persisted per user. */
 @RegisterForReflection
 public class Notification {
   public String id;

@@ -13,7 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
- * Service managing global notifications in a ring buffer and broadcasting them to WebSocket clients.
+ * Service managing global notifications in a ring buffer and broadcasting them to WebSocket
+ * clients.
  */
 @ApplicationScoped
 public class GlobalNotificationService {

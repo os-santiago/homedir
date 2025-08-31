@@ -4,10 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.eventflow.notifications.api.NotificationDTO;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.websocket.Session;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-import jakarta.websocket.Session;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -87,4 +86,3 @@ public class NotificationSocketService {
     return dto;
   }
 }
-

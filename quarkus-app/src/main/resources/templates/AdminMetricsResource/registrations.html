@@ -1,0 +1,21 @@
+{#include layout/base}
+{#title}Registros por charla{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/private/admin/metrics">Métricas</a><span class="sep">/</span><span>Registros</span>{/breadcrumbs}
+{#main}
+<section class="admin-metrics">
+  <h1 class="page-title">Registros por charla</h1>
+  {#for ev in events}
+    <h2>{ev.event.title}</h2>
+    <table>
+      <thead><tr><th>Charla</th><th>Registros</th></tr></thead>
+      <tbody>
+      {#for row in ev.rows}
+        <tr><td><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td><td>{row.registrations}</td></tr>
+      {/for}
+      </tbody>
+    </table>
+  {/for}
+  <a href="/private/admin/metrics" class="btn btn-secondary">Volver</a>
+</section>
+{/main}
+{/include}

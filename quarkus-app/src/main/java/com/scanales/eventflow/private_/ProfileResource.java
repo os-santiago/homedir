@@ -26,7 +26,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.Map;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -64,7 +63,6 @@ public class ProfileResource {
   @Inject UserScheduleService userSchedule;
 
   @Inject UsageMetricsService metrics;
-
 
   @GET
   @Authenticated
@@ -141,13 +139,19 @@ public class ProfileResource {
       @jakarta.ws.rs.QueryParam("visited") boolean visited,
       @jakarta.ws.rs.QueryParam("attended") boolean attended) {
     String email = getEmail();
+    String name = getClaim("name");
+    if (name == null) {
+      name = email;
+    }
     boolean added = userSchedule.addTalkForUser(email, id);
     if (added) {
       var talk = eventService.findTalk(id);
       metrics.recordTalkRegister(
           id,
           talk != null ? talk.getSpeakers() : java.util.List.of(),
-          headers.getHeaderString("User-Agent"));
+          headers.getHeaderString("User-Agent"),
+          name,
+          email);
     }
     if (visited || attended) {
       userSchedule.updateTalk(email, id, true, null, null, null);
@@ -182,13 +186,19 @@ public class ProfileResource {
   @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_HTML})
   public Response addTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
     String email = getEmail();
+    String name = getClaim("name");
+    if (name == null) {
+      name = email;
+    }
     boolean added = userSchedule.addTalkForUser(email, id);
     if (added) {
       var talk = eventService.findTalk(id);
       metrics.recordTalkRegister(
           id,
           talk != null ? talk.getSpeakers() : java.util.List.of(),
-          headers.getHeaderString("User-Agent"));
+          headers.getHeaderString("User-Agent"),
+          name,
+          email);
     }
     String status = added ? "added" : "exists";
     if (acceptsJson(headers)) {
@@ -232,7 +242,6 @@ public class ProfileResource {
         .header("Location", "/private/profile")
         .build();
   }
-
 
   private boolean acceptsJson(HttpHeaders headers) {
     String accept = headers.getHeaderString(HttpHeaders.ACCEPT);

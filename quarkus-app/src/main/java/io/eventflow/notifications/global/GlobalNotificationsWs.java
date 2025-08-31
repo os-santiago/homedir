@@ -2,18 +2,16 @@ package io.eventflow.notifications.global;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 import java.io.StringReader;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
 
-/**
- * WebSocket endpoint broadcasting global notifications.
- */
+/** WebSocket endpoint broadcasting global notifications. */
 @ServerEndpoint("/ws/global-notifications")
 @ApplicationScoped
 public class GlobalNotificationsWs {

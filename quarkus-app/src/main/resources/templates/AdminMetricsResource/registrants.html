@@ -1,0 +1,18 @@
+{#include layout/base}
+{#title}Usuarios registrados{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/private/admin/metrics">Métricas</a><span class="sep">/</span><a href="/private/admin/metrics/registrations">Registros</a><span class="sep">/</span><span>{talk.name}</span>{/breadcrumbs}
+{#main}
+<section class="admin-metrics">
+  <h1 class="page-title">{talk.name} - {event.title}</h1>
+  <table>
+    <thead><tr><th>Nombre</th><th>Email</th></tr></thead>
+    <tbody>
+    {#for u in users}
+      <tr><td>{u.name}</td><td>{u.email}</td></tr>
+    {/for}
+    </tbody>
+  </table>
+  <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Volver</a>
+</section>
+{/main}
+{/include}

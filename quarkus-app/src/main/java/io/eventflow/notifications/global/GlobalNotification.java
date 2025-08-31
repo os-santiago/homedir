@@ -1,8 +1,6 @@
 package io.eventflow.notifications.global;
 
-/**
- * DTO for a global notification.
- */
+/** DTO for a global notification. */
 public class GlobalNotification {
   public String id; // ULID/UUID
   public String type; // e.g. AGENDA_UPDATED

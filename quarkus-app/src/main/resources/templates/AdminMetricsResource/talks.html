@@ -8,7 +8,7 @@
     <thead><tr><th>Charla</th><th>Registros</th></tr></thead>
     <tbody>
     {#for row in rows}
-      <tr><td>{row.name}</td><td>{row.registrations}</td></tr>
+      <tr><td><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td><td>{row.registrations}</td></tr>
     {/for}
     </tbody>
   </table>

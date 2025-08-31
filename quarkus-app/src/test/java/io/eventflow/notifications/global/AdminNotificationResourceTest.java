@@ -1,28 +1,30 @@
 package io.eventflow.notifications.global;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 import jakarta.websocket.*;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import io.restassured.http.ContentType;
 
 @QuarkusTest
 public class AdminNotificationResourceTest {
 
-  @TestHTTPResource("ws/global-notifications") URI httpUri;
+  @TestHTTPResource("ws/global-notifications")
+  URI httpUri;
+
   @Inject GlobalNotificationService service;
 
   @BeforeEach
@@ -46,6 +48,7 @@ public class AdminNotificationResourceTest {
 
   static class WsClient extends Endpoint {
     final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+
     @Override
     public void onOpen(Session session, EndpointConfig config) {
       session.addMessageHandler(String.class, messages::add);
@@ -54,7 +57,9 @@ public class AdminNotificationResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "admin", roles = {"admin"})
+  @TestSecurity(
+      user = "admin",
+      roles = {"admin"})
   public void broadcastEndpointBroadcastsToWsClients() throws Exception {
     WsClient c1 = connect();
     WsClient c2 = connect();
@@ -64,17 +69,21 @@ public class AdminNotificationResourceTest {
     drain(c1);
     drain(c2);
     String uniqueType = "ANN" + java.util.UUID.randomUUID();
-    Map<String, Object> body = Map.of(
-        "type", uniqueType,
-        "title", "t",
-        "message", "m");
-    String id = given().contentType(ContentType.JSON)
-        .body(body)
-        .when()
-        .post("/admin/api/notifications/broadcast")
-        .then()
-        .statusCode(200)
-        .extract().path("id");
+    Map<String, Object> body =
+        Map.of(
+            "type", uniqueType,
+            "title", "t",
+            "message", "m");
+    String id =
+        given()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .post("/admin/api/notifications/broadcast")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("id");
     String m1 = c1.messages.poll(5, TimeUnit.SECONDS);
     String m2 = c2.messages.poll(5, TimeUnit.SECONDS);
     assertNotNull(m1);
@@ -84,28 +93,32 @@ public class AdminNotificationResourceTest {
     assertEquals(id, j1.getString("id"));
     assertEquals(id, j2.getString("id"));
 
-    String latestJson = given()
-        .when()
-        .get("/admin/api/notifications/latest?limit=10")
-        .then()
-        .statusCode(200)
-        .extract().asString();
+    String latestJson =
+        given()
+            .when()
+            .get("/admin/api/notifications/latest?limit=10")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
     JsonArray arr = Json.createReader(new StringReader(latestJson)).readArray();
-    boolean found = arr.stream()
-        .map(v -> ((JsonObject) v).getString("id"))
-        .anyMatch(id::equals);
+    boolean found = arr.stream().map(v -> ((JsonObject) v).getString("id")).anyMatch(id::equals);
     assertTrue(found);
     service.removeById(id);
   }
 
   @Test
-  @TestSecurity(user = "admin", roles = {"admin"})
+  @TestSecurity(
+      user = "admin",
+      roles = {"admin"})
   public void clearEndpointRemovesAll() {
-    Map<String, Object> body = Map.of(
-        "type", "TMP",
-        "title", "t",
-        "message", "m");
-    given().contentType(ContentType.JSON)
+    Map<String, Object> body =
+        Map.of(
+            "type", "TMP",
+            "title", "t",
+            "message", "m");
+    given()
+        .contentType(ContentType.JSON)
         .body(body)
         .when()
         .post("/admin/api/notifications/broadcast")
@@ -117,20 +130,26 @@ public class AdminNotificationResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "admin", roles = {"admin"})
+  @TestSecurity(
+      user = "admin",
+      roles = {"admin"})
   public void deleteRemovesFromBacklog() throws Exception {
     String uniqueType = "ANN" + java.util.UUID.randomUUID();
-    Map<String, Object> body = Map.of(
-        "type", uniqueType,
-        "title", "to-delete",
-        "message", "x");
-    String id = given().contentType(ContentType.JSON)
-        .body(body)
-        .when()
-        .post("/admin/api/notifications/broadcast")
-        .then()
-        .statusCode(200)
-        .extract().path("id");
+    Map<String, Object> body =
+        Map.of(
+            "type", uniqueType,
+            "title", "to-delete",
+            "message", "x");
+    String id =
+        given()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .post("/admin/api/notifications/broadcast")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("id");
     given().when().delete("/admin/api/notifications/" + id).then().statusCode(204);
 
     WsClient c = connect();
@@ -140,12 +159,13 @@ public class AdminNotificationResourceTest {
     while ((m = c.messages.poll(1, TimeUnit.SECONDS)) != null) {
       msgs.add(m);
     }
-      boolean exists = msgs.stream()
-          .map(str -> Json.createReader(new StringReader(str)).readObject().getString("id", null))
-          .filter(Objects::nonNull)
-          .anyMatch(id::equals);
-      assertFalse(exists);
-    }
+    boolean exists =
+        msgs.stream()
+            .map(str -> Json.createReader(new StringReader(str)).readObject().getString("id", null))
+            .filter(Objects::nonNull)
+            .anyMatch(id::equals);
+    assertFalse(exists);
+  }
 
   @Test
   public void dedupePreventsDuplicates() {
