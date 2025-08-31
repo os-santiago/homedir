@@ -112,20 +112,16 @@ public class NotificationService {
    * Paginates notifications for a user applying simple filters.
    *
    * @param userId the owner
-   * @param filter one of "all", "unread" or "last24h"
+   * @param filter one of "all" o "unread"
    * @param cursor timestamp cursor; notifications newer than this are skipped
    * @param limit max items to return
    */
   public NotificationPage listPage(String userId, String filter, Long cursor, int limit) {
     java.util.Deque<Notification> list = store.getUserList(userId);
-    long now = System.currentTimeMillis();
     java.util.stream.Stream<Notification> stream =
         list.stream().sorted((a, b) -> Long.compare(b.createdAt, a.createdAt));
     if ("unread".equalsIgnoreCase(filter)) {
       stream = stream.filter(n -> n.readAt == null);
-    } else if ("last24h".equalsIgnoreCase(filter)) {
-      long cutoff = now - 24 * 60 * 60 * 1000L;
-      stream = stream.filter(n -> n.createdAt >= cutoff);
     }
     if (cursor != null) {
       stream = stream.filter(n -> n.createdAt < cursor);
