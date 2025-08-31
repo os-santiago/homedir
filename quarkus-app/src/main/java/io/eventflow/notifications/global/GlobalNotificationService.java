@@ -4,6 +4,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.websocket.Session;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.Set;
@@ -62,8 +64,14 @@ public class GlobalNotificationService {
   }
 
   public void sendBacklog(Session s, long cursor) {
+    long startOfDay =
+        LocalDate.now(ZoneId.systemDefault())
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli();
+    long effectiveCursor = Math.max(cursor, startOfDay);
     buffer.stream()
-        .filter(n -> n.createdAt > cursor)
+        .filter(n -> n.createdAt > effectiveCursor)
         .sorted(Comparator.comparingLong(n -> n.createdAt))
         .forEach(n -> s.getAsyncRemote().sendText(Json.message("notif", n)));
   }
