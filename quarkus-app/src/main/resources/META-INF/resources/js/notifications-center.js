@@ -123,11 +123,18 @@
 
     // Eliminar seleccionadas
     if (e.target.closest('#deleteSelected')) {
-      if (selected.size === 0) return;
+      // Recalcular selección real desde el DOM para evitar desync
+      const checked = document.querySelectorAll('.js-select:checked');
+      if (checked.length === 0) return;
+      selected.clear();
+      for (const cb of checked) {
+        const id = cb.getAttribute('data-id');
+        if (id) selected.add(id);
+      }
       const all = getAll();
       const now = Date.now();
       for (const n of all) {
-        if (selected.has(n.id) && !n.dismissedAt) n.dismissedAt = now;
+        if (selected.has(String(n.id)) && !n.dismissedAt) n.dismissedAt = now;
       }
       saveAll(all);
       selected.clear();
