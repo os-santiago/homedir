@@ -41,7 +41,7 @@ public class EventAndBreakEvaluatorTest {
   @BeforeEach
   void setup(){
     events.reset();
-    for (GlobalNotification g : global.latest(1000)) { global.removeById(g.id); }
+    global.clearAll();
   }
 
   @Test
@@ -98,6 +98,35 @@ public class EventAndBreakEvaluatorTest {
     tc().set(Instant.parse("2023-01-01T15:15:00Z"));
     breakEval.tick();
     assertTrue(count("break","FINISHED") >= 1);
+  }
+
+  @Test
+  void ignoresPastEvents() {
+    Event e = new Event("e1","Ev","d");
+    e.setDate(LocalDate.of(2023,1,1));
+    e.setTimezone("UTC");
+    events.saveEvent(e);
+
+    tc().set(Instant.parse("2023-01-02T10:00:00Z"));
+    eventEval.tick();
+    assertEquals(0, count("event","FINISHED"));
+  }
+
+  @Test
+  void ignoresPastBreaks() {
+    Event e = new Event("e1","Ev","d");
+    e.setDate(LocalDate.of(2023,1,1));
+    e.setTimezone("UTC");
+    Talk b = new Talk("b1","Coffee");
+    b.setStartTime(LocalTime.of(10,0));
+    b.setDurationMinutes(10);
+    b.setBreak(true);
+    e.getAgenda().add(b);
+    events.saveEvent(e);
+
+    tc().set(Instant.parse("2023-01-02T10:00:00Z"));
+    breakEval.tick();
+    assertEquals(0, count("break","FINISHED"));
   }
 
   private long count(String category, String type){

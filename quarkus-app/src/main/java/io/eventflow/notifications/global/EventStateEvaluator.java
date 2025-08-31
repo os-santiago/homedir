@@ -32,6 +32,7 @@ public class EventStateEvaluator {
       if (start == null || end == null) continue;
       ZoneId tz = ev.getZoneId();
       ZonedDateTime nowTz = now.withZoneSameInstant(tz);
+      if (nowTz.toLocalDate().isAfter(end.toLocalDate())) continue;
       // UPCOMING
       if (inWindow(nowTz, start.minus(upcomingWin), start)) {
         enqueue(ev, "UPCOMING", start);

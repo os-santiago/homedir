@@ -32,10 +32,11 @@ public class BreakStateEvaluator {
       for (Talk t : ev.getAgenda()) {
         if (!t.isBreak() || t.getStartTime() == null) continue;
         if (ev.getDate() == null) continue;
-        ZonedDateTime start = ZonedDateTime.of(
-            ev.getDate().plusDays(t.getDay() - 1), t.getStartTime(), tz);
+        ZonedDateTime start =
+            ZonedDateTime.of(ev.getDate().plusDays(t.getDay() - 1), t.getStartTime(), tz);
         ZonedDateTime end = start.plusMinutes(t.getDurationMinutes());
         ZonedDateTime nowTz = now.withZoneSameInstant(tz);
+        if (nowTz.toLocalDate().isAfter(end.toLocalDate())) continue;
         if (inWindow(nowTz, start.minus(upcomingWin), start)) {
           enqueue(ev, t, "UPCOMING", start);
         }
