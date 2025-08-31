@@ -60,14 +60,16 @@
       toast.appendChild(msg);
       const actions=document.createElement('div');
       actions.className='ef-toast__actions';
-      const link=document.createElement('a');
-      link.href=vm.url||'#';
-      link.textContent='Ver charla';
-      actions.appendChild(link);
+      if(vm.url){
+        const link=document.createElement('a');
+        link.href=vm.url;
+        link.textContent='Ver charla';
+        actions.appendChild(link);
+      }
       const close=document.createElement('button');
       close.type='button';
       close.textContent='×';
-      close.addEventListener('click',()=>this.close(vm.id));
+      close.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();this.close(vm.id);});
       actions.appendChild(close);
       toast.appendChild(actions);
       return toast;
@@ -135,7 +137,7 @@
         id:dto.id||uid(),
         title:dto.title||dto.type,
         message:dto.message||'',
-        url:dto.talkId?('/talks/'+dto.talkId):'#'
+        url:(dto.talkId && dto.category!== 'break')?('/talks/'+dto.talkId):null
       };
       manager.enqueue(vm);
     },
