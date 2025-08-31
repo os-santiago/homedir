@@ -27,9 +27,7 @@ public class AdminNotificationResourceTest {
 
   @BeforeEach
   public void clear() {
-    for (GlobalNotification g : service.latest(1000)) {
-      service.removeById(g.id);
-    }
+    service.clearAll();
   }
 
   private WsClient connect() throws Exception {
@@ -98,6 +96,24 @@ public class AdminNotificationResourceTest {
         .anyMatch(id::equals);
     assertTrue(found);
     service.removeById(id);
+  }
+
+  @Test
+  @TestSecurity(user = "admin", roles = {"admin"})
+  public void clearEndpointRemovesAll() {
+    Map<String, Object> body = Map.of(
+        "type", "TMP",
+        "title", "t",
+        "message", "m");
+    given().contentType(ContentType.JSON)
+        .body(body)
+        .when()
+        .post("/admin/api/notifications/broadcast")
+        .then()
+        .statusCode(200);
+    assertFalse(service.latest(10).isEmpty());
+    given().when().delete("/admin/api/notifications").then().statusCode(204);
+    assertTrue(service.latest(10).isEmpty());
   }
 
   @Test

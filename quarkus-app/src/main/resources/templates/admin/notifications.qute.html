@@ -6,19 +6,24 @@
   <h1 class="text-2xl font-semibold mb-4">Broadcast de Notificaciones</h1>
   <form id="broadcast" class="grid gap-3 card p-4">
     <div class="row gap-2">
-      <select name="type" class="input"><option>AGENDA_UPDATED</option><option>ANNOUNCEMENT</option></select>
-      <input class="input" name="eventId" placeholder="eventId (opcional)">
+      <label class="sr-only" for="type">Tipo de notificación</label>
+      <select id="type" name="type" class="input"><option>AGENDA_UPDATED</option><option>ANNOUNCEMENT</option></select>
+      <label class="sr-only" for="eventId">ID de evento (opcional)</label>
+      <input id="eventId" class="input" name="eventId" placeholder="eventId (opcional)">
     </div>
-    <input class="input" name="title" placeholder="Título" required>
-    <textarea class="input" name="message" placeholder="Mensaje" required></textarea>
+    <label class="sr-only" for="title">Título</label>
+    <input id="title" class="input" name="title" placeholder="Título" required>
+    <label class="sr-only" for="message">Mensaje</label>
+    <textarea id="message" class="input" name="message" placeholder="Mensaje" required></textarea>
     <div class="row gap-2">
       <button class="btn-primary" type="submit">Enviar a todos</button>
       <span class="text-sm text-muted-foreground">Se emite a todos los conectados; persistirá en el backlog global.</span>
     </div>
   </form>
 
-  <div class="mt-4">
+  <div class="mt-4 row gap-2">
     <button id="broadcast-demo" class="btn-secondary" type="button">Broadcast demo</button>
+    <button id="clearAll" class="btn-danger" type="button">Borrar backlog</button>
   </div>
 
   <h2 class="text-xl font-semibold mt-8 mb-3">Últimas notificaciones</h2>

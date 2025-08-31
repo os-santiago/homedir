@@ -92,6 +92,13 @@ public class GlobalNotificationService {
     }
     return removed;
   }
+
+  /** Clear all notifications from the buffer and reset deduplication state. */
+  public void clearAll() {
+    buffer.clear();
+    dedupe.clear();
+    repo.save(buffer);
+  }
 }
 
 /** Simple JSON utility. */
