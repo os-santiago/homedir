@@ -96,26 +96,26 @@
     }
     updateCloseAll(){
       const total=this.visible.length+this.queue.length;
-      this.closeAllBtn.hidden=total<=1;
+      const hide = total===0;
+      this.closeAllBtn.hidden = hide;
+      this.closeAllBtn.classList.toggle('hidden', hide);
     }
     metric(name){
       if(window.__metrics&&window.__metrics.count){window.__metrics.count('ui.notifications.'+name);} }
   }
   const container=document.getElementById('ef-toast-container');
   const manager=container?new ToastQueueManager(container):null;
-  const badge=document.querySelector('[data-notifications-badge]');
-  const sr=document.querySelector('[data-notifications-sr]');
+  const badge=document.getElementById('notif-badge');
   let unread=0;
 
   function renderBadge(){
     if(!badge)return;
     if(unread>0){
       badge.textContent=String(unread);
-      badge.hidden=false;
-      if(sr) sr.textContent=unread===1?`1 notificación nueva`:`${unread} notificaciones nuevas`;
+      badge.classList.remove('hidden');
     }else{
-      badge.hidden=true;
-      if(sr) sr.textContent='';
+      badge.textContent='0';
+      badge.classList.add('hidden');
     }
   }
 

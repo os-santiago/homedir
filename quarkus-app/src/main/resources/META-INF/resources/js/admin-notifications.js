@@ -32,4 +32,18 @@
     if(res.status===204) load();
   });
   load();
+  const demoBtn = document.getElementById('broadcast-demo');
+  if(demoBtn){
+    demoBtn.addEventListener('click', async ()=>{
+      const now = Date.now();
+      const payloads=[
+        {type:'ANNOUNCEMENT',category:'announcement',title:'Demo 1',message:'Notificación de prueba 1',expiresAt:now+5*60*1000},
+        {type:'ANNOUNCEMENT',category:'announcement',title:'Demo 2',message:'Notificación de prueba 2',expiresAt:now+5*60*1000}
+      ];
+      for(const body of payloads){
+        await fetch('/admin/api/notifications/broadcast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      }
+      load();
+    });
+  }
 })();
