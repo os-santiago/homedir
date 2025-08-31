@@ -1,102 +1,176 @@
-(function(){
-  const LS_KEY = 'ef_global_notifs';
-  const UNREAD_KEY = 'ef_global_unread_count';
-  const listEl = document.getElementById('notif-list');
+(function () {
+  const LS_KEY = 'ef_global_notifs'; // array de notifs [{id, title, message, createdAt, readAt?, dismissedAt?, targetUrl?}]
+  const listEl  = document.getElementById('notif-list');
   const emptyEl = document.getElementById('empty');
-  const toggleBtn = document.getElementById('toggleSelect');
+  const markAllBtn = document.getElementById('markAllRead');
+  const deleteBtn  = document.getElementById('deleteSelected');
 
-  function getAll(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } }
-  function saveAll(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(-1000))); syncUnread(arr); }
-  function syncUnread(arr){ const unread = arr.filter(n=>!n.readAt && !n.dismissedAt).length; localStorage.setItem(UNREAD_KEY, String(unread)); if(window.updateUnreadFromLocal) window.updateUnreadFromLocal(); }
-  function render(filter='all'){
-    const all = getAll();
-    syncUnread(all);
+  // Estado de selección en memoria (se preserva entre renders)
+  const selected = new Set();
+  let currentFilter = 'all';
+
+  // Utilidades de almacenamiento
+  function getAll() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+    catch { return []; }
+  }
+  function saveAll(arr) {
+    // recorta a las últimas 1000 por seguridad
+    localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(-1000)));
+    // opcional: actualizar badge global si existe
+    if (window.EFNotificationsAdapter?.getUnreadCount) {
+      // no bloqueante; el badge se recalcula en otro flujo
+      document.dispatchEvent(new CustomEvent('ef:notifs:changed'));
+    }
+  }
+
+  function fmt(ts) {
+    try { return new Date(ts || Date.now()).toLocaleString(); } catch { return ''; }
+  }
+
+  // Render de la lista aplicando filtro y preservando selección
+  function render() {
     const now = Date.now();
+    const all = getAll();
     let items = all.filter(n => !n.dismissedAt);
-    if(filter==='unread') items = items.filter(n => !n.readAt);
-    if(filter==='last24h') items = items.filter(n => (now - (n.createdAt||0)) <= 24*3600*1000);
+
+    if (currentFilter === 'unread')  items = items.filter(n => !n.readAt);
+    if (currentFilter === 'last24h') items = items.filter(n => (now - (n.createdAt || 0)) <= 24 * 3600 * 1000);
+
+    items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
     listEl.innerHTML = '';
-    if(items.length===0){ emptyEl.classList.remove('hidden'); return; }
+    if (items.length === 0) {
+      emptyEl.classList.remove('hidden');
+      return;
+    }
     emptyEl.classList.add('hidden');
-    items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(n=>{
+
+    for (const n of items) {
       const div = document.createElement('div');
       div.className = 'card notif';
-      const label = n.category==='event' ? 'Evento' : n.category==='break' ? 'Break' : n.category==='talk' ? 'Charla' : null;
+      div.dataset.id = n.id;
+
+      const checked = selected.has(n.id) ? 'checked' : '';
+      const readLabel = n.readAt ? 'Leída' : 'Marcar leída';
+      const chip = chipFor(n);
+
       div.innerHTML = `
-        <label class="row">
-          <input type="checkbox" class="sel" data-id="${n.id}">
-          <div class="col grow">
-            <div class="title">${(n.title||'Aviso')}</div>
-            <div class="msg">${(n.message||'')}</div>
-            <div class="meta">${label?`<span class="chip">${label}</span>`:''} ${new Date(n.createdAt||Date.now()).toLocaleString()}</div>
+        <div class="row items-start gap-3">
+          <input type="checkbox" class="sel js-select" data-id="${n.id}" ${checked}>
+          <div class="grow">
+            <div class="title">${escapeHtml(n.title || 'Aviso')}</div>
+            <div class="msg">${escapeHtml(n.message || '')}</div>
+            <div class="meta text-xs">${fmt(n.createdAt)} ${chip}</div>
           </div>
-          <div class="col">
-            <button class="btn-link" data-act="read" data-id="${n.id}">${n.readAt?'Leída':'Marcar leída'}</button>
-            <button class="btn-link" data-act="open" data-id="${n.id}">Revisar</button>
+          <div class="col shrink">
+            <button class="btn-link js-read" data-id="${n.id}">${readLabel}</button>
+            <a class="btn-link js-open" data-id="${n.id}" href="${escapeAttr(n.targetUrl || '/notifications/center')}" rel="nofollow">Revisar</a>
           </div>
-        </label>`;
+        </div>`;
       listEl.appendChild(div);
-    });
-    updateToggleBtn();
+    }
   }
 
-  function updateToggleBtn(){
-    if(!toggleBtn) return;
-    const boxes = [...document.querySelectorAll('.sel')];
-    const allChecked = boxes.length>0 && boxes.every(b=>b.checked);
-    toggleBtn.textContent = allChecked? 'Deseleccionar todos' : 'Seleccionar todos';
+  function chipFor(n) {
+    const cat = (n.category || '').toLowerCase();
+    const label = cat === 'event' ? 'Evento' : cat === 'talk' ? 'Charla' : cat === 'break' ? 'Break' : 'Aviso';
+    return `<span class="chip chip-${cat}">${label}</span>`;
   }
 
-  document.addEventListener('click', (e)=>{
-    const target = e.target.closest('[data-act]');
-    const act = target?.dataset?.act;
-    if(act==='read'){
-      e.preventDefault();
-      const id = target.dataset.id;
-      const all = getAll();
-      const n = all.find(x=>String(x.id)===id); if(n){ n.readAt = Date.now(); saveAll(all); render(currentFilter); }
+  // Escapes básicos
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, m => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#039;"
+    }[m]));
+  }
+  function escapeAttr(s) {
+    return String(s).replace(/"/g, '&quot;');
+  }
+
+  // Delegación robusta (usa closest)
+  document.addEventListener('click', (e) => {
+    // Filtros
+    const filterBtn = e.target.closest('[data-filter]');
+    if (filterBtn) {
+      currentFilter = filterBtn.getAttribute('data-filter');
+      render();
       return;
     }
-    if(act==='open'){
-      e.preventDefault();
-      const id = target.dataset.id;
+
+    // Marcar leída (por item)
+    const readBtn = e.target.closest('.js-read');
+    if (readBtn) {
+      const id = readBtn.getAttribute('data-id');
       const all = getAll();
-      const n = all.find(x=>String(x.id)===id);
-      if(n && n.eventId){
-        const url = n.talkId ? `/event/${n.eventId}/talk/${n.talkId}` : `/event/${n.eventId}`;
-        location.href = url;
+      const n = all.find(x => x.id === id);
+      if (n && !n.dismissedAt && !n.readAt) {
+        n.readAt = Date.now();
+        saveAll(all);
+        render();
       }
+      e.preventDefault();
       return;
     }
-    if(e.target.id==='markAllRead'){
-      const all = getAll().map(n=> (n.dismissedAt? n : (n.readAt? n : {...n, readAt: Date.now()})));
-      saveAll(all); render(currentFilter);
+
+    // Abrir (enlace ya navega), no interceptar si hay href
+    const openA = e.target.closest('.js-open');
+    if (openA) return;
+
+    // Eliminar seleccionadas
+    if (e.target.closest('#deleteSelected')) {
+      if (selected.size === 0) return;
+      const all = getAll();
+      const now = Date.now();
+      for (const n of all) {
+        if (selected.has(n.id) && !n.dismissedAt) n.dismissedAt = now;
+      }
+      saveAll(all);
+      selected.clear();
+      render();
+      e.preventDefault();
+      return;
     }
-    if(e.target.id==='deleteSelected'){
-      const ids = [...document.querySelectorAll('.sel:checked')].map(x=>x.dataset.id);
-      if(ids.length===0) return;
-      const all = getAll().map(n => ids.includes(String(n.id)) ? {...n, dismissedAt: Date.now()} : n);
-      saveAll(all); render(currentFilter);
+
+    // Marcar TODAS como leídas (solo las no eliminadas)
+    if (e.target.closest('#markAllRead')) {
+      const all = getAll();
+      const now = Date.now();
+      for (const n of all) {
+        if (!n.dismissedAt && !n.readAt) n.readAt = now;
+      }
+      saveAll(all);
+      render();
+      e.preventDefault();
+      return;
     }
-    if(e.target.id==='toggleSelect'){
-      const boxes = [...document.querySelectorAll('.sel')];
-      const allChecked = boxes.length>0 && boxes.every(b=>b.checked);
-      boxes.forEach(b=>{ b.checked = !allChecked; });
-      updateToggleBtn();
-    }
-    if(e.target.matches('[data-filter]')) { currentFilter = e.target.dataset.filter; render(currentFilter); }
   });
 
-  let currentFilter = 'all';
-  render();
+  // Cambios en checkbox (usar 'change' en vez de 'click')
+  document.addEventListener('change', (e) => {
+    const sel = e.target.closest('.js-select');
+    if (!sel) return;
+    const id = sel.getAttribute('data-id');
+    if (!id) return;
+    if (sel.checked) selected.add(id);
+    else selected.delete(id);
+  });
 
-  // Hook from WS global to insert new notifications into localStorage
-  window.__EF_GLOBAL_NOTIF_ACCEPT__ = function(dto){
+  // Hook que invoca el WS global al recibir una notif
+  window.__EF_GLOBAL_NOTIF_ACCEPT__ = function (dto) {
     const all = getAll();
-    if(!all.some(x=>x.id===dto.id)){
+    // dedupe por id
+    if (!all.some(x => x.id === dto.id)) {
       all.push(dto);
       saveAll(all);
+      render();
     }
-    render(currentFilter);
   };
+
+  // Inicial
+  render();
 })();
