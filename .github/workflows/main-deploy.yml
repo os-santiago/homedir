@@ -35,7 +35,13 @@ jobs:
             exit 1
           fi
           prtag="docker://${REGISTRY}/${IMAGE_NAME}:pr-${pr}-${head}"
-          DIGEST=$(skopeo inspect --format '{{.Digest}}' "$prtag")
+          if ! DIGEST=$(skopeo inspect --format '{{.Digest}}' "$prtag" 2>/dev/null); then
+            headtag="docker://${REGISTRY}/${IMAGE_NAME}:${head}"
+            if ! DIGEST=$(skopeo inspect --format '{{.Digest}}' "$headtag" 2>/dev/null); then
+              echo "No image found for $prtag or $headtag" >&2
+              exit 1
+            fi
+          fi
           echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" | tee /tmp/ref.txt
           echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_OUTPUT
           echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
