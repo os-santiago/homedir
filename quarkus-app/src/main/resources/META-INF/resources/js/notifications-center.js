@@ -48,11 +48,25 @@
   }
 
   document.addEventListener('click', (e)=>{
-    const act = e.target?.dataset?.act;
+    const target = e.target.closest('[data-act]');
+    const act = target?.dataset?.act;
     if(act==='read'){
-      const id = e.target.dataset.id;
+      e.preventDefault();
+      const id = target.dataset.id;
       const all = getAll();
       const n = all.find(x=>String(x.id)===id); if(n){ n.readAt = Date.now(); saveAll(all); render(currentFilter); }
+      return;
+    }
+    if(act==='open'){
+      e.preventDefault();
+      const id = target.dataset.id;
+      const all = getAll();
+      const n = all.find(x=>String(x.id)===id);
+      if(n && n.eventId){
+        const url = n.talkId ? `/event/${n.eventId}/talk/${n.talkId}` : `/event/${n.eventId}`;
+        location.href = url;
+      }
+      return;
     }
     if(e.target.id==='markAllRead'){
       const all = getAll().map(n=> (n.dismissedAt? n : (n.readAt? n : {...n, readAt: Date.now()})));
@@ -69,10 +83,6 @@
       const allChecked = boxes.length>0 && boxes.every(b=>b.checked);
       boxes.forEach(b=>{ b.checked = !allChecked; });
       updateToggleBtn();
-    }
-    if(act==='open'){
-      // optional: navigate to event if eventId present
-      // location.href = `/events/${e.target.dataset.eventId || ''}`;
     }
     if(e.target.matches('[data-filter]')) { currentFilter = e.target.dataset.filter; render(currentFilter); }
   });
