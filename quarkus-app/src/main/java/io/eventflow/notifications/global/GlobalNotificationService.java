@@ -6,7 +6,6 @@ import jakarta.websocket.Session;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.Deque;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -17,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 @ApplicationScoped
 public class GlobalNotificationService {
   private final Deque<GlobalNotification> buffer = new ConcurrentLinkedDeque<>();
-  private final Map<String, Long> dedupe = new ConcurrentHashMap<>();
+  private final Set<String> dedupe = ConcurrentHashMap.newKeySet();
   private final Set<Session> sessions = ConcurrentHashMap.newKeySet();
 
   @Inject GlobalNotificationRepository repo;
@@ -35,11 +34,9 @@ public class GlobalNotificationService {
     }
     n.createdAt = n.createdAt == 0 ? Instant.now().toEpochMilli() : n.createdAt;
     long now = n.createdAt;
-    Long last = dedupe.get(n.dedupeKey);
-    if (last != null && now - last < GlobalNotificationConfig.dedupeWindow.toMillis()) {
-      return false; // deduped
+    if (!dedupe.add(n.dedupeKey)) {
+      return false; // already processed
     }
-    dedupe.put(n.dedupeKey, now);
     buffer.addLast(n);
     while (buffer.size() > GlobalNotificationConfig.bufferSize) {
       buffer.removeFirst();
