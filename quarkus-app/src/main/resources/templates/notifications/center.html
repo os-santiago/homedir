@@ -17,13 +17,12 @@
       <button class="btn" data-filter="last24h">Últimas 24 h</button>
     </div>
     <div class="actions-right">
-      <button class="btn" id="toggleSelect">Seleccionar todos</button>
       <button class="btn" id="markAllRead">Marcar todas como leídas</button>
       <button class="btn" id="deleteSelected">Eliminar seleccionadas</button>
     </div>
   </div>
-  <div id="notif-list" class="notifications-list"></div>
-  <div id="empty" class="text-muted hidden">Sin notificaciones por ahora.</div>
+  <div id="notif-list" class="grid gap-3"></div>
+  <div id="empty" class="text-sm text-muted-foreground hidden">Sin notificaciones por ahora.</div>
   <script defer src="/js/notifications-center.js"></script>
 </section>
 {/main}
