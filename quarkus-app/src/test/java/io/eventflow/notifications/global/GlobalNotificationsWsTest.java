@@ -2,6 +2,7 @@ package io.eventflow.notifications.global;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Disabled;
 
@@ -17,6 +18,8 @@ import java.io.StringReader;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.junit.jupiter.api.Test;
@@ -70,6 +73,42 @@ public class GlobalNotificationsWsTest {
     JsonObject j2 = Json.createReader(new StringReader(m2)).readObject();
     assertEquals("notif", j1.getString("t"));
     assertEquals("notif", j2.getString("t"));
+  }
+
+  @Test
+  public void backlogSkipsOldNotifications() throws Exception {
+    long startOfDay =
+        LocalDate.now(ZoneId.systemDefault())
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli();
+    GlobalNotification old = new GlobalNotification();
+    old.id = "old";
+    old.type = "TEST";
+    old.title = "o";
+    old.message = "o";
+    old.dedupeKey = "old";
+    old.createdAt = startOfDay - 1000;
+    assertTrue(service.enqueue(old));
+    GlobalNotification today = new GlobalNotification();
+    today.id = "new";
+    today.type = "TEST";
+    today.title = "n";
+    today.message = "n";
+    today.dedupeKey = "new";
+    today.createdAt = startOfDay + 1000;
+    assertTrue(service.enqueue(today));
+    WsClient c = connect();
+    String m1 = c.messages.poll(5, TimeUnit.SECONDS);
+    assertNotNull(m1);
+    JsonObject ack = Json.createReader(new StringReader(m1)).readObject();
+    assertEquals("hello-ack", ack.getString("t"));
+    String m2 = c.messages.poll(5, TimeUnit.SECONDS);
+    assertNotNull(m2);
+    JsonObject j = Json.createReader(new StringReader(m2)).readObject();
+    assertEquals("notif", j.getString("t"));
+    assertEquals("new", j.getString("id"));
+    assertNull(c.messages.poll(1, TimeUnit.SECONDS));
   }
 
     @Disabled
