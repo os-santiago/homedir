@@ -86,7 +86,11 @@ jobs:
 
       - name: Install Syft
         run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          for i in 1 2 3; do
+            curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin && break
+            sleep 10
+          done
+          syft version
 
       - name: Attach SBOM
         run: |
