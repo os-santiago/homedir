@@ -31,6 +31,7 @@
     <div class="card">
       <h2 class="card-title">Resumen</h2>
       <div class="kpi-grid">
+        <div class="kpi"><span class="label">Eventos vistos</span><span class="value">{data.eventsViewed}</span></div>
         <div class="kpi"><span class="label">Charlas vistas</span><span class="value">{data.talksViewed}</span></div>
         <div class="kpi"><span class="label">Registros</span><span class="value">{data.talksRegistered}</span></div>
         <div class="kpi"><span class="label">Visitas escenario</span><span class="value">{data.stageVisits}</span></div>
@@ -49,10 +50,31 @@
         </div>
         {#for row in data.topTalks}
         <div class="list-row">
-          <span class="title">{row.name}</span>
+          <span class="title"><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></span>
           <span class="metric">{row.views}</span>
           <span class="metric">{row.registrations}</span>
           <span class="metric">{row.conversion}</span>
+        </div>
+        {/for}
+      </div>
+      {/if}
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Eventos</h2>
+      {#if data.eventRows.isEmpty}
+        <p>Sin datos.</p>
+      {#else}
+      <div class="list list-table">
+        <div class="list-header">
+          <span>Evento</span><span>Vistas</span><span>Charlas vistas</span><span>Registros</span>
+        </div>
+        {#for row in data.eventRows}
+        <div class="list-row">
+          <span class="title">{row.name}</span>
+          <span class="metric">{row.eventViews}</span>
+          <span class="metric">{row.talkViews}</span>
+          <span class="metric">{row.registrations}</span>
         </div>
         {/for}
       </div>
