@@ -69,7 +69,6 @@ jobs:
   deps:
     name: deps
     needs: paths
-    if: needs.paths.outputs.deps_changed == 'true'
     uses: ./.github/workflows/pr-deps-hygiene.yml
     secrets: inherit
 
