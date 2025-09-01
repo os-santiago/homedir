@@ -17,7 +17,9 @@ public class LogoutResource {
     LOG.info("Processing logout request");
     return Response.status(Response.Status.SEE_OTHER)
         .header(HttpHeaders.LOCATION, "/")
-        .header(HttpHeaders.SET_COOKIE, "q_session=; Path=/; Max-Age=0; HttpOnly; Secure")
+        .header(
+            HttpHeaders.SET_COOKIE,
+            "q_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None")
         .build();
   }
 }

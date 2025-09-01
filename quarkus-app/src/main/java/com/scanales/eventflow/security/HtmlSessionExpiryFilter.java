@@ -60,7 +60,9 @@ public class HtmlSessionExpiryFilter implements ContainerRequestFilter {
           Response.status(Response.Status.FOUND)
               .header(HttpHeaders.LOCATION, "/")
               .header("X-Redirected-By", "session-expired")
-              .header(HttpHeaders.SET_COOKIE, "q_session=; Path=/; Max-Age=0; HttpOnly; Secure")
+              .header(
+                  HttpHeaders.SET_COOKIE,
+                  "q_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None")
               .build());
     }
   }
