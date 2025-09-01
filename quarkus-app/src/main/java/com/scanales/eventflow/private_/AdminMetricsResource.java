@@ -17,11 +17,16 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -121,7 +126,18 @@ public class AdminMetricsResource {
     static native TemplateInstance registrations(List<EventTalks> events);
 
     static native TemplateInstance registrants(
-        Event event, Talk talk, List<UsageMetricsService.Registrant> users);
+        Event event,
+        Talk talk,
+        List<UsageMetricsService.Registrant> users,
+        int page,
+        int size,
+        long total,
+        String name,
+        String email,
+        boolean hasPrev,
+        boolean hasNext,
+        int prev,
+        int next);
   }
 
   @Inject SecurityIdentity identity;
@@ -391,6 +407,40 @@ public class AdminMetricsResource {
   }
 
   @GET
+  @Path("data")
+  @Authenticated
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response downloadData() {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    try {
+      java.nio.file.Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
+      java.nio.file.Path file = dataDir.resolve("metrics-v2.json");
+      if (!Files.exists(file)) {
+        return Response.status(Response.Status.NOT_FOUND).build();
+      }
+      byte[] json = Files.readAllBytes(file);
+      return Response.ok(json)
+          .header("Content-Disposition", "attachment; filename=metrics.json")
+          .build();
+    } catch (Exception e) {
+      return Response.serverError().build();
+    }
+  }
+
+  @POST
+  @Path("reset")
+  @Authenticated
+  public Response resetData() {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    metrics.reset();
+    return Response.seeOther(UriBuilder.fromPath("/private/admin/metrics").build()).build();
+  }
+
+  @GET
   @Path("talks")
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
@@ -456,7 +506,12 @@ public class AdminMetricsResource {
   @Path("registrants")
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
-  public Response registrants(@QueryParam("talk") String talkId) {
+  public Response registrants(
+      @QueryParam("talk") String talkId,
+      @QueryParam("page") @DefaultValue("1") int page,
+      @QueryParam("size") @DefaultValue("100") int size,
+      @QueryParam("name") String name,
+      @QueryParam("email") String email) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -468,7 +523,46 @@ public class AdminMetricsResource {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
     List<UsageMetricsService.Registrant> users = metrics.getRegistrants(talkId);
-    return Response.ok(Templates.registrants(info.event(), info.talk(), users)).build();
+    if (name != null && !name.isBlank()) {
+      String q = name.toLowerCase();
+      users =
+          users.stream()
+              .filter(u -> u.name() != null && u.name().toLowerCase().contains(q))
+              .toList();
+    }
+    if (email != null && !email.isBlank()) {
+      String q = email.toLowerCase();
+      users =
+          users.stream()
+              .filter(u -> u.email() != null && u.email().toLowerCase().contains(q))
+              .toList();
+    }
+    int pageSize = (size == 20 || size == 50) ? size : 100;
+    int total = users.size();
+    int maxPage = Math.max(1, (int) Math.ceil((double) total / pageSize));
+    int current = Math.min(Math.max(page, 1), maxPage);
+    int from = Math.min((current - 1) * pageSize, total);
+    int to = Math.min(from + pageSize, total);
+    List<UsageMetricsService.Registrant> pageUsers = users.subList(from, to);
+    boolean hasPrev = current > 1;
+    boolean hasNext = current * pageSize < total;
+    int prev = hasPrev ? current - 1 : current;
+    int next = hasNext ? current + 1 : current;
+    return Response.ok(
+            Templates.registrants(
+                info.event(),
+                info.talk(),
+                pageUsers,
+                current,
+                pageSize,
+                total,
+                name,
+                email,
+                hasPrev,
+                hasNext,
+                prev,
+                next))
+        .build();
   }
 
   private boolean isActive(Event event) {

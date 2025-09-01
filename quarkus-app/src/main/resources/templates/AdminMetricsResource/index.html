@@ -97,6 +97,12 @@
         <div class="list-row"><span class="label">schemaVersion</span><span class="metric">{data.schemaVersion}</span></div>
         <div class="list-row"><span class="label">fileSizeBytes</span><span class="metric">{data.fileSizeBytes}</span></div>
       </div>
+      <div class="action-group">
+        <form method="post" action="/private/admin/metrics/reset" onsubmit="return confirm('¿Borrar datos?');">
+          <button type="submit" class="btn">Reset data</button>
+        </form>
+        <a href="/private/admin/metrics/data" class="btn btn-secondary">Download data</a>
+      </div>
     </div>
 
     <div class="card">

@@ -14,7 +14,6 @@ import com.scanales.eventflow.service.UsageMetricsService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,13 +33,7 @@ public class AdminMetricsExportTest {
   void setUp() {
     eventService.reset();
     speakerService.reset();
-    try {
-      Method m = UsageMetricsService.class.getDeclaredMethod("reset");
-      m.setAccessible(true);
-      m.invoke(metrics);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    metrics.reset();
     // Basic event with a single talk and speaker
     Speaker sp = new Speaker();
     sp.setId("sp1");
