@@ -256,4 +256,7 @@
 
   // Inicial
   render();
+  if (window.updateUnreadFromLocal) {
+    window.updateUnreadFromLocal();
+  }
 })();
