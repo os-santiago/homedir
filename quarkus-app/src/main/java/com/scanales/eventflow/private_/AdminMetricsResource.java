@@ -57,6 +57,10 @@ public class AdminMetricsResource {
       List<CtaDayRow> rows,
       int peakCount) {}
 
+  /** Summary row for event-level metrics. */
+  public record EventSummaryRow(
+      String id, String name, long eventViews, long talkViews, long registrations) {}
+
   public record MetricsData(
       long eventsViewed,
       long talksViewed,
@@ -95,7 +99,8 @@ public class AdminMetricsResource {
       String stageId,
       String speakerId,
       CtaData ctas,
-      String ctaQ) {}
+      String ctaQ,
+      List<EventSummaryRow> eventRows) {}
 
   /** Row representing registrations for a talk. */
   public record TalkRegistrationRow(String id, String name, long registrations) {}
@@ -207,7 +212,8 @@ public class AdminMetricsResource {
             data.stageId(),
             data.speakerId(),
             ctas,
-            ctaQ);
+            ctaQ,
+            data.eventRows());
     return Response.ok(Templates.index(data)).build();
   }
 
@@ -537,6 +543,21 @@ public class AdminMetricsResource {
     List<ConversionRow> topScenarios =
         topConversionRows(scenarioStats, 10, this::stageName, threshold);
 
+    List<Event> events = eventService.listEvents();
+    Map<String, Stats> eventStats = aggregateEvents(talkStats);
+    Map<String, Long> eventViewMap = extractMap(snap, "event_view:");
+    List<EventSummaryRow> eventRows =
+        events.stream()
+            .map(
+                ev -> {
+                  Stats s = eventStats.getOrDefault(ev.getId(), new Stats());
+                  long evViews = eventViewMap.getOrDefault(ev.getId(), 0L);
+                  return new EventSummaryRow(ev.getId(), ev.getTitle(), evViews, s.views, s.regs);
+                })
+            .sorted(
+                java.util.Comparator.comparingLong(EventSummaryRow::eventViews).reversed())
+            .toList();
+
     long last = metrics.getLastUpdatedMillis();
     String lastStr = last > 0 ? Instant.ofEpochMilli(last).toString() : "—";
     String lastRel = formatAge(last);
@@ -555,7 +576,6 @@ public class AdminMetricsResource {
             && ctaData.rows().isEmpty();
     DataHealth dataHealth = computeDataHealth(empty, System.currentTimeMillis() - last, range);
 
-    List<Event> events = eventService.listEvents();
     List<Scenario> stages =
         eventId != null
             ? Optional.ofNullable(eventService.getEvent(eventId))
@@ -602,7 +622,8 @@ public class AdminMetricsResource {
         stageId,
         speakerId,
         ctaData,
-        null);
+        null,
+        eventRows);
   }
 
   private String formatAge(long lastMillis) {
@@ -689,6 +710,18 @@ public class AdminMetricsResource {
       Talk t = eventService.findTalk(e.getKey());
       if (t == null || t.getLocation() == null) continue;
       Stats s = map.computeIfAbsent(t.getLocation(), k -> new Stats());
+      s.views += e.getValue().views;
+      s.regs += e.getValue().regs;
+    }
+    return map;
+  }
+
+  private Map<String, Stats> aggregateEvents(Map<String, Stats> talkStats) {
+    Map<String, Stats> map = new HashMap<>();
+    for (Map.Entry<String, Stats> e : talkStats.entrySet()) {
+      com.scanales.eventflow.model.Event ev = eventService.findEventByTalk(e.getKey());
+      if (ev == null) continue;
+      Stats s = map.computeIfAbsent(ev.getId(), k -> new Stats());
       s.views += e.getValue().views;
       s.regs += e.getValue().regs;
     }
