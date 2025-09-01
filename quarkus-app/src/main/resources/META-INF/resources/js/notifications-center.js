@@ -1,5 +1,6 @@
 (function () {
   const LS_KEY = 'ef_global_notifs'; // array de notifs [{id, title, message, createdAt, readAt?, dismissedAt?, targetUrl?}]
+  const UNREAD_KEY = 'ef_global_unread_count';
   const listEl  = document.getElementById('notif-list');
   const emptyEl = document.getElementById('empty');
   const markAllBtn = document.getElementById('markAllRead');
@@ -19,11 +20,20 @@
   function saveAll(arr) {
     // recorta a las últimas 1000 por seguridad
     localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(-1000)));
-    // opcional: actualizar badge global si existe
-    if (window.EFNotificationsAdapter?.getUnreadCount) {
-      // no bloqueante; el badge se recalcula en otro flujo
-      document.dispatchEvent(new CustomEvent('ef:notifs:changed'));
-    }
+    syncUnread(arr);
+  }
+
+  function syncUnread(arr) {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+    const unread = arr.filter(n => {
+      const ts = n.createdAt || 0;
+      return !n.dismissedAt && !n.readAt && ts >= startOfDay.getTime() && ts < endOfDay.getTime();
+    }).length;
+    localStorage.setItem(UNREAD_KEY, String(unread));
+    document.dispatchEvent(new CustomEvent('ef:notifs:changed'));
   }
 
   function fmt(ts) {
@@ -33,6 +43,7 @@
   // Render de la lista aplicando filtro y preservando selección
   function render() {
     const all = getAll();
+    syncUnread(all);
     let items = all.filter(n => !n.dismissedAt);
 
     const startOfDay = new Date();

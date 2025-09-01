@@ -127,7 +127,10 @@
     }catch(_){unread=0;renderBadge();}
   }
   window.updateUnreadFromLocal=updateUnreadFromLocal;
-  if(badge){window.addEventListener('DOMContentLoaded',updateUnreadFromLocal);}
+  if(badge){
+    window.addEventListener('DOMContentLoaded',updateUnreadFromLocal);
+    document.addEventListener('ef:notifs:changed',updateUnreadFromLocal);
+  }
 
   window.EventFlowNotifications={
     accept(dto){
