@@ -176,7 +176,21 @@ public class AdminNotificationResourceTest {
     n.message = "m";
     n.dedupeKey = "dk";
     assertTrue(service.enqueue(n));
+    // second enqueue within window should be deduped
     assertFalse(service.enqueue(n));
+
+    GlobalNotification n2 = new GlobalNotification();
+    n2.id = "dedupe2";
+    n2.type = "TEST";
+    n2.title = "t";
+    n2.message = "m";
+    n2.dedupeKey = "dk";
+    n2.createdAt =
+        n.createdAt + GlobalNotificationConfig.dedupeWindow.toMillis() + 1;
+    // after the dedupe window it should be accepted again
+    assertTrue(service.enqueue(n2));
+
     service.removeById("dedupe1");
+    service.removeById("dedupe2");
   }
 }
