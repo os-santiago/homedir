@@ -612,8 +612,12 @@ public class UsageMetricsService {
     }
   }
 
-  /** Test helper to reset internal state between tests. */
-  void reset() {
+  /**
+   * Resets all tracked metrics. Intended for administrative use and tests.
+   * Clears in-memory counters and removes any persisted metrics files so that
+   * a fresh dataset can be recorded.
+   */
+  public void reset() {
     counters.clear();
     talkViews.clear();
     eventViews.clear();
@@ -631,6 +635,15 @@ public class UsageMetricsService {
     lastFlushTime = System.currentTimeMillis();
     lastError = null;
     currentState = HealthState.OK;
+    lastFileSizeBytes = 0;
+    schemaVersion = CURRENT_SCHEMA_VERSION;
+    metricsPath = metricsV2Path;
+    try {
+      Files.deleteIfExists(metricsV1Path);
+      Files.deleteIfExists(metricsV2Path);
+    } catch (IOException e) {
+      LOG.warn("Failed to delete metrics file", e);
+    }
   }
 
   private static class RateLimiter {
