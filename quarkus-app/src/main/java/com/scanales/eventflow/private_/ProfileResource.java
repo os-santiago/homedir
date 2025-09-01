@@ -219,7 +219,10 @@ public class ProfileResource {
   @Authenticated
   public Response removeTalkRedirect(@PathParam("id") String id) {
     String email = getEmail();
-    userSchedule.removeTalkForUser(email, id);
+    boolean removed = userSchedule.removeTalkForUser(email, id);
+    if (removed) {
+      metrics.recordTalkUnregister(id, email);
+    }
     return Response.status(Response.Status.SEE_OTHER)
         .header("Location", "/private/profile")
         .build();
@@ -232,6 +235,9 @@ public class ProfileResource {
   public Response removeTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
     String email = getEmail();
     boolean removed = userSchedule.removeTalkForUser(email, id);
+    if (removed) {
+      metrics.recordTalkUnregister(id, email);
+    }
     String status = removed ? "removed" : "missing";
     if (acceptsJson(headers)) {
       return Response.ok(java.util.Map.of("status", status, "talkId", id))

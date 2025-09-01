@@ -327,6 +327,31 @@ public class UsageMetricsService {
     dirty.set(true);
   }
 
+  /** Removes a talk registration and decrements its counter if present. */
+  public void recordTalkUnregister(String talkId, String email) {
+    if (talkId == null || email == null) {
+      return;
+    }
+    Set<Registrant> regs = registrations.get(talkId);
+    if (regs == null) {
+      return;
+    }
+    Registrant target = null;
+    for (Registrant r : regs) {
+      if (email.equals(r.email())) {
+        target = r;
+        break;
+      }
+    }
+    if (target != null) {
+      regs.remove(target);
+      decrement("talk_register:" + talkId);
+      if (regs.isEmpty()) {
+        registrations.remove(talkId);
+      }
+    }
+  }
+
   public void recordStageVisit(String stageId, String timezone, String sessionId, String ua) {
     if (stageId == null) {
       incrementDiscard("invalid");
@@ -411,6 +436,27 @@ public class UsageMetricsService {
       bufferWarned = true;
     }
     counters.merge(key, 1L, Long::sum);
+    dirty.set(true);
+    updateHealthState();
+  }
+
+  private void decrement(String key) {
+    int size = bufferSize.incrementAndGet();
+    if (size > bufferMaxSize) {
+      bufferSize.decrementAndGet();
+      incrementDiscard("buffer_full");
+      LOG.warn("discarded_buffer_full");
+      updateHealthState();
+      return;
+    }
+    if (!bufferWarned && size >= bufferMaxSize * 0.7) {
+      LOG.warn("buffer_threshold_reached");
+      bufferWarned = true;
+    }
+    Long newVal = counters.merge(key, -1L, Long::sum);
+    if (newVal != null && newVal <= 0L) {
+      counters.remove(key, newVal);
+    }
     dirty.set(true);
     updateHealthState();
   }
