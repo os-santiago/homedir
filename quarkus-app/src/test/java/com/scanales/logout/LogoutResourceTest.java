@@ -19,6 +19,8 @@ public class LogoutResourceTest {
         .then()
         .statusCode(303)
         .header("Location", equalTo("/"))
-        .header("Set-Cookie", equalTo("q_session=; Path=/; Max-Age=0; HttpOnly; Secure"));
+        .header(
+            "Set-Cookie",
+            equalTo("q_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None"));
   }
 }
