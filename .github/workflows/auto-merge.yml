@@ -78,7 +78,7 @@ jobs:
 
           # Verifica checks (el branch protection también lo hará, esto es informativo)
           echo "Checks summary:"
-          gh pr checks $PR_NUMBER || true
+          gh pr checks $PR_NUMBER --repo "${{ github.repository }}" || true
 
           # Intentar merge (fallará si branch protection aún no permite)
-          gh pr merge $PR_NUMBER --squash --delete-branch --merge --repo "${{ github.repository }}"
+          gh pr merge $PR_NUMBER --squash --delete-branch --repo "${{ github.repository }}"
