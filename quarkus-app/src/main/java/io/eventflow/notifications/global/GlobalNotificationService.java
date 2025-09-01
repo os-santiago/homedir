@@ -19,7 +19,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 @ApplicationScoped
 public class GlobalNotificationService {
   private final Deque<GlobalNotification> buffer = new ConcurrentLinkedDeque<>();
-  private final Set<String> dedupe = ConcurrentHashMap.newKeySet();
+  private final java.util.concurrent.ConcurrentHashMap<String, Long> dedupe =
+      new java.util.concurrent.ConcurrentHashMap<>();
   private final Set<Session> sessions = ConcurrentHashMap.newKeySet();
 
   @Inject GlobalNotificationRepository repo;
@@ -37,9 +38,11 @@ public class GlobalNotificationService {
     }
     n.createdAt = n.createdAt == 0 ? Instant.now().toEpochMilli() : n.createdAt;
     long now = n.createdAt;
-    if (!dedupe.add(n.dedupeKey)) {
-      return false; // already processed
+    Long last = dedupe.put(n.dedupeKey, now);
+    if (last != null && now - last < GlobalNotificationConfig.dedupeWindow.toMillis()) {
+      return false; // already processed within window
     }
+    cleanupDedupe(now);
     buffer.addLast(n);
     while (buffer.size() > GlobalNotificationConfig.bufferSize) {
       buffer.removeFirst();
@@ -99,6 +102,11 @@ public class GlobalNotificationService {
     buffer.clear();
     dedupe.clear();
     repo.save(buffer);
+  }
+
+  private void cleanupDedupe(long now) {
+    long window = GlobalNotificationConfig.dedupeWindow.toMillis();
+    dedupe.entrySet().removeIf(e -> now - e.getValue() > window);
   }
 }
 
