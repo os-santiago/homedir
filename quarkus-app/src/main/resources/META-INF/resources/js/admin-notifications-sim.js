@@ -1,78 +1,46 @@
-(function () {
-  const form = document.getElementById('simForm');
-  const previewBtn = document.getElementById('previewBtn');
-  const emitBtn = document.getElementById('emitBtn');
-  const seqBtn = document.getElementById('sequenceBtn');
+document.addEventListener('DOMContentLoaded', () => {
+  const eventId = document.getElementById('eventId');
+  const pivot = document.getElementById('pivot');
+  const states = document.getElementById('states');
   const resultsTable = document.getElementById('results');
-  const optinToggle = document.getElementById('optinToggle');
-  optinToggle.checked = localStorage.getItem('ef_notif_test_optin') === 'true';
-  optinToggle.addEventListener('change', (e) => {
-    localStorage.setItem('ef_notif_test_optin', e.target.checked ? 'true' : 'false');
+  const resultsBody = resultsTable.querySelector('tbody');
+  const optin = document.getElementById('optin');
+
+  // initialise opt-in state
+  optin.checked = localStorage.getItem('ef_notif_test_optin') === '1';
+  optin.addEventListener('change', () => {
+    if (optin.checked) {
+      localStorage.setItem('ef_notif_test_optin', '1');
+    } else {
+      localStorage.removeItem('ef_notif_test_optin');
+    }
   });
 
-  function buildReq() {
-    const states = Array.from(form.querySelectorAll('input[name="state"]:checked')).map(
-      (c) => c.value
-    );
-    const pivotVal = document.getElementById('pivot').value;
+  function collectParams() {
     return {
-      eventId: document.getElementById('eventId').value || null,
-      pivot: pivotVal ? new Date(pivotVal).toISOString() : null,
-      includeEvent: document.getElementById('incEvent').checked,
-      includeTalks: document.getElementById('incTalks').checked,
-      includeBreaks: document.getElementById('incBreaks').checked,
-      states: states,
+      eventId: eventId.value || undefined,
+      pivot: pivot.value,
+      states: Array.from(states.selectedOptions).map(o => o.value),
     };
   }
 
-  function render(plan) {
-    const tbody = resultsTable.querySelector('tbody');
-    tbody.innerHTML = '';
-    plan.forEach((n) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${n.type || ''}</td><td>${n.category || ''}</td><td>${n.title || ''}</td><td>${n.message || ''}</td>`;
-      tbody.appendChild(tr);
+  async function call(url) {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(collectParams()),
     });
-    resultsTable.classList.toggle('hidden', plan.length === 0);
+    const data = await resp.json();
+    resultsBody.innerHTML = '';
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="border px-2 py-1">${row.recipient || ''}</td><td class="border px-2 py-1">${row.message || ''}</td>`;
+      resultsBody.appendChild(tr);
+    });
+    resultsTable.classList.remove('hidden');
   }
 
-  previewBtn.addEventListener('click', async () => {
-    const req = buildReq();
-    const res = await fetch('/admin/api/notifications/sim/dry-run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    });
-    if (res.ok) {
-      render(await res.json());
-    }
-  });
-
-  emitBtn.addEventListener('click', async () => {
-    const req = buildReq();
-    req.mode = 'test-broadcast';
-    const res = await fetch('/admin/api/notifications/sim/execute', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    });
-    if (res.ok) {
-      const out = await res.json();
-      alert('Enqueued ' + out.enqueued + ' notificaciones de prueba');
-    }
-  });
-
-  seqBtn.addEventListener('click', async () => {
-    const req = buildReq();
-    req.mode = 'test-broadcast';
-    req.sequence = true;
-    const res = await fetch('/admin/api/notifications/sim/execute', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    });
-    if (res.ok) {
-      alert('Reproducción secuencial iniciada');
-    }
-  });
-})();
+  document.getElementById('preview').addEventListener('click', () => call('/admin/api/notifications/sim/dry-run'));
+  document.getElementById('execute').addEventListener('click', () => call('/admin/api/notifications/sim/execute'));
+  document.getElementById('replay').addEventListener('click', () => call('/admin/api/notifications/sim/execute?mode=sequential'));
+});
