@@ -13,6 +13,12 @@
     ws.onmessage = (ev) => {
       const msg = JSON.parse(ev.data);
       if (msg.t === 'notif') {
+        if (msg.test) {
+          const optin =
+            localStorage.getItem('ef_notif_test_optin') === 'true' ||
+            window.location.search.includes('test=1');
+          if (!optin) return;
+        }
         const last = Number(localStorage.getItem(storeKey)) || 0;
         if (msg.createdAt && msg.createdAt > last) {
           localStorage.setItem(storeKey, String(msg.createdAt));

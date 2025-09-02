@@ -9,7 +9,9 @@ public class GlobalNotification {
   public String talkId; // optional (required for category=break)
   public String title;
   public String message;
+  public String targetUrl; // optional link for client navigation
   public long createdAt; // epoch millis
   public String dedupeKey; // hash(type|eventId|timeSlot)
   public Long expiresAt; // optional
+  public boolean test; // simulation flag
 }
