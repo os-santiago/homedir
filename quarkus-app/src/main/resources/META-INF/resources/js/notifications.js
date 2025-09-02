@@ -49,6 +49,8 @@
       toast.className='ef-toast';
       toast.setAttribute('data-id',vm.id);
       toast.setAttribute('tabindex','0');
+      toast.setAttribute('role','status');
+      toast.setAttribute('aria-live','polite');
       toast.addEventListener('keydown',e=>{if(e.key==='Escape'){this.close(vm.id);}});
       const title=document.createElement('div');
       title.className='ef-toast__title';

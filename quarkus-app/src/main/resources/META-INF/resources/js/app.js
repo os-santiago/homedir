@@ -153,10 +153,15 @@ function setupViewFullAgenda() {
     const btn = document.getElementById('view-full-agenda');
     if (btn) {
         btn.addEventListener('click', (e) => {
+            e.preventDefault();
             const panel = document.querySelector('#agenda');
             if (panel) {
                 panel.classList.remove('collapsed');
-                panel.scrollIntoView({ behavior: 'smooth' });
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    panel.scrollIntoView();
+                } else {
+                    panel.scrollIntoView({ behavior: 'smooth' });
+                }
             }
         });
     }
