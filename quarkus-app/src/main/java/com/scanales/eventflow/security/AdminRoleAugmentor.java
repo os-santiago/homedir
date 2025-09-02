@@ -3,7 +3,6 @@ package com.scanales.eventflow.security;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.SecurityIdentityAugmentor;
-import io.quarkus.security.identity.request.AuthenticationRequestContext;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,7 +15,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class AdminRoleAugmentor implements SecurityIdentityAugmentor {
 
   @Override
-  public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
+  public Uni<SecurityIdentity> augment(SecurityIdentity identity) {
     if (identity != null && AdminUtils.isAdmin(identity) && !identity.getRoles().contains("admin")) {
       return Uni.createFrom().item(QuarkusSecurityIdentity.builder(identity).addRole("admin").build());
     }
