@@ -1440,6 +1440,30 @@ footer {
     background: var(--color-primary);
     color: var(--color-light);
 }
+
+.chip-event {
+    background: var(--color-primary);
+    color: var(--color-light);
+    border-color: var(--color-primary);
+}
+
+.chip-talk {
+    background: #2e7d32;
+    color: var(--color-light);
+    border-color: #2e7d32;
+}
+
+.chip-break {
+    background: #616161;
+    color: var(--color-light);
+    border-color: #616161;
+}
+
+.chip-announcement {
+    background: #ff9800;
+    color: #000;
+    border-color: #ff9800;
+}
 .chips {
     display: flex;
     flex-wrap: wrap;
