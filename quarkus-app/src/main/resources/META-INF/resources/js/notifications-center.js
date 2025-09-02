@@ -7,6 +7,7 @@
   const deleteBtn  = document.getElementById('deleteSelected');
   const selectAllBtn = document.getElementById('selectAll');
   const confirmDlg = document.getElementById('confirmDeleteAll');
+  const actionsRight = document.querySelector('.actions-right');
 
   // Estado de selección en memoria (se preserva entre renders)
   const selected = new Set();
@@ -62,9 +63,12 @@
     listEl.innerHTML = '';
     if (items.length === 0) {
       emptyEl.classList.remove('hidden');
+      actionsRight?.classList.add('hidden');
+      updateSelectAllBtn();
       return;
     }
     emptyEl.classList.add('hidden');
+    actionsRight?.classList.remove('hidden');
 
     for (const n of items) {
       const div = document.createElement('div');

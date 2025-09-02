@@ -15,6 +15,15 @@
     <input id="title" class="input" name="title" placeholder="Título" required>
     <label class="sr-only" for="message">Mensaje</label>
     <textarea id="message" class="input" name="message" placeholder="Mensaje" required></textarea>
+    <label class="sr-only" for="expiresMinutes">Expira en minutos</label>
+    <input
+      id="expiresMinutes"
+      class="input"
+      name="expiresMinutes"
+      type="number"
+      min="1"
+      placeholder="Expira en minutos (opcional)"
+    >
     <div class="row gap-2">
       <button class="btn-primary" type="submit">Enviar a todos</button>
       <span class="text-sm text-muted-foreground">Se emite a todos los conectados; persistirá en el backlog global.</span>

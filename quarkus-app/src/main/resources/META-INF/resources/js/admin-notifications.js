@@ -23,6 +23,9 @@
     e.preventDefault();
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
+    const minutes = parseInt(body.expiresMinutes,10);
+    if(!isNaN(minutes)){ body.expiresAt = Date.now()+minutes*60*1000; }
+    delete body.expiresMinutes;
     const res = await fetch('/admin/api/notifications/broadcast',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     if(res.ok){ e.target.reset(); load(); }
   });
