@@ -1,12 +1,7 @@
-{@java.lang.Long unreadCount}
-<div class="notifications-bell">
-  <a href="/notifications/center" class="nav-link" aria-label="Notificaciones">
-    <span class="icon-bell" aria-hidden="true"></span>
-    <span class="sr-only">Notificaciones</span>
-    {#if unreadCount != null && unreadCount > 0}
-      <span class="badge">{unreadCount}</span>
-    {#else}
-      <span class="badge hidden">0</span>
-    {/if}
-  </a>
-</div>
+<a href="/notifications/center"
+   class="nav-link notifications-bell {#if currentPath?? && currentPath.startsWith('/notifications')}active{/if}"
+   aria-label="Notificaciones" data-nav-link>
+  <span class="icon-bell" aria-hidden="true"></span>
+  <span class="sr-only">Notificaciones</span>
+  <span id="notif-badge" class="badge hidden">0</span>
+</a>

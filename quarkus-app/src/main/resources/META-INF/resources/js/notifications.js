@@ -105,7 +105,11 @@
   }
   const container=document.getElementById('ef-toast-container');
   const manager=container?new ToastQueueManager(container):null;
+  function updateCloseAllVisibility(){if(manager)manager.updateCloseAll();}
+  window.updateCloseAllVisibility=updateCloseAllVisibility;
+  updateCloseAllVisibility();
   const badge=document.getElementById('notif-badge');
+  const UNREAD_KEY='ef_global_unread_count';
   let unread=0;
 
   function renderBadge(){
@@ -119,12 +123,13 @@
     }
   }
 
-  async function updateUnreadFromLocal(){
-    if(!window.EFNotificationsAdapter||!badge)return;
+  function updateUnreadFromLocal(){
+    if(!badge)return;
     try{
-      unread=await window.EFNotificationsAdapter.getUnreadCount();
-      renderBadge();
-    }catch(_){unread=0;renderBadge();}
+      const raw=localStorage.getItem(UNREAD_KEY);
+      unread=raw?parseInt(raw,10):0;
+    }catch(_){unread=0;}
+    renderBadge();
   }
   window.updateUnreadFromLocal=updateUnreadFromLocal;
   if(badge){
