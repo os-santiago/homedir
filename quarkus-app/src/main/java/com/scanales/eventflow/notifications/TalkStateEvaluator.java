@@ -7,10 +7,10 @@ import com.scanales.eventflow.service.UserScheduleService;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import io.eventflow.time.AppClock;
 import java.util.Set;
 import org.jboss.logging.Logger;
 
@@ -24,16 +24,16 @@ public class TalkStateEvaluator {
   @Inject EventService events;
   @Inject NotificationService notifications;
   @Inject NotificationConfig config;
+  @Inject AppClock clock;
 
   @Scheduled(every = "{notifications.scheduler.interval}")
   void evaluate() {
     if (!config.schedulerEnabled) return;
-    long nowMs = System.currentTimeMillis();
     Set<String> users = schedules.listUsers();
     for (String user : users) {
       for (String talkId : schedules.getTalksForUser(user)) {
         try {
-          evaluateTalk(user, talkId, nowMs);
+          evaluateTalk(user, talkId);
         } catch (Exception e) {
           LOG.debugf(e, "evaluator error talk=%s", talkId);
         }
@@ -41,7 +41,7 @@ public class TalkStateEvaluator {
     }
   }
 
-  private void evaluateTalk(String user, String talkId, long nowMs) {
+  private void evaluateTalk(String user, String talkId) {
     TalkInfo info = events.findTalkInfo(talkId);
     if (info == null) return;
     Talk talk = info.talk();
@@ -50,7 +50,7 @@ public class TalkStateEvaluator {
         info.event() != null && info.event().getTimezone() != null
             ? ZoneId.of(info.event().getTimezone())
             : ZoneId.of("America/Santiago");
-    ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(nowMs), zone);
+    ZonedDateTime now = clock.now(zone);
     ZonedDateTime start = now.with(talk.getStartTime());
     long diff = ChronoUnit.MINUTES.between(now, start);
     if (diff > 12 * 60) {

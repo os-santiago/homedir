@@ -7,6 +7,7 @@ import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.*;
+import io.eventflow.time.AppClock;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /** Evaluates break slots to emit global notifications. */
@@ -21,12 +22,12 @@ public class BreakStateEvaluator {
 
   @Inject GlobalNotificationService global;
   @Inject EventService events;
-  @Inject Clock clock;
+  @Inject AppClock clock;
 
   @Scheduled(every = "{notifications.scheduler.interval}")
   void tick() {
     if (!GlobalNotificationConfig.enabled) return;
-    ZonedDateTime now = ZonedDateTime.now(clock);
+    ZonedDateTime now = clock.now(ZoneId.systemDefault());
     for (Event ev : events.listEvents()) {
       ZoneId tz = ev.getZoneId();
       for (Talk t : ev.getAgenda()) {
@@ -74,7 +75,7 @@ public class BreakStateEvaluator {
           default -> "Break";
         };
     n.message = t.getName();
-    n.createdAt = Instant.now(clock).toEpochMilli();
+    n.createdAt = clock.now().toEpochMilli();
     n.dedupeKey = dedupeKey;
     global.enqueue(n);
   }

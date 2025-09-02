@@ -122,9 +122,11 @@ class Json {
     if (n.talkId != null) b.add("talkId", n.talkId);
     if (n.title != null) b.add("title", n.title);
     if (n.message != null) b.add("message", n.message);
+    if (n.targetUrl != null) b.add("targetUrl", n.targetUrl);
     b.add("createdAt", n.createdAt);
     if (n.dedupeKey != null) b.add("dedupeKey", n.dedupeKey);
     if (n.expiresAt != null) b.add("expiresAt", n.expiresAt);
+    if (n.test) b.add("test", true);
     return b.build().toString();
   }
 }

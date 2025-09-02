@@ -6,11 +6,9 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.EventService;
 import io.quarkus.test.junit.QuarkusTest;
-import jakarta.annotation.Priority;
-import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.time.*;
+import io.eventflow.time.SimulatedClock;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,44 +20,13 @@ public class EventAndBreakEvaluatorTest {
   @Inject EventStateEvaluator eventEval;
   @Inject BreakStateEvaluator breakEval;
   @Inject GlobalNotificationService global;
-  @Inject Clock clock;
-
-  @Singleton
-  @Alternative
-  @Priority(1)
-  public static class TestClock extends Clock {
-    private Instant instant = Instant.now();
-    private ZoneId zone = ZoneOffset.UTC;
-
-    public void set(Instant i) {
-      this.instant = i;
-    }
-
-    @Override
-    public ZoneId getZone() {
-      return zone;
-    }
-
-    @Override
-    public Clock withZone(ZoneId zone) {
-      this.zone = zone;
-      return this;
-    }
-
-    @Override
-    public Instant instant() {
-      return instant;
-    }
-  }
-
-  private TestClock tc() {
-    return (TestClock) clock;
-  }
+  @Inject SimulatedClock sim;
 
   @BeforeEach
   void setup() {
     events.reset();
     global.clearAll();
+    sim.clear();
   }
 
   @Test
@@ -76,19 +43,19 @@ public class EventAndBreakEvaluatorTest {
     e.getAgenda().addAll(List.of(t1, t2));
     events.saveEvent(e);
 
-    tc().set(Instant.parse("2023-01-01T09:55:00Z"));
+    sim.set(Instant.parse("2023-01-01T09:55:00Z"));
     eventEval.tick();
     assertTrue(count("event", "UPCOMING") >= 1);
 
-    tc().set(Instant.parse("2023-01-01T10:00:00Z"));
+    sim.set(Instant.parse("2023-01-01T10:00:00Z"));
     eventEval.tick();
     assertTrue(count("event", "STARTED") >= 1);
 
-    tc().set(Instant.parse("2023-01-01T11:55:00Z"));
+    sim.set(Instant.parse("2023-01-01T11:55:00Z"));
     eventEval.tick();
     assertTrue(count("event", "ENDING_SOON") >= 1);
 
-    tc().set(Instant.parse("2023-01-01T12:00:00Z"));
+    sim.set(Instant.parse("2023-01-01T12:00:00Z"));
     eventEval.tick();
     assertTrue(count("event", "FINISHED") >= 1);
   }
@@ -105,19 +72,19 @@ public class EventAndBreakEvaluatorTest {
     e.getAgenda().add(b);
     events.saveEvent(e);
 
-    tc().set(Instant.parse("2023-01-01T14:55:00Z"));
+    sim.set(Instant.parse("2023-01-01T14:55:00Z"));
     breakEval.tick();
     assertTrue(count("break", "UPCOMING") >= 1);
 
-    tc().set(Instant.parse("2023-01-01T15:00:00Z"));
+    sim.set(Instant.parse("2023-01-01T15:00:00Z"));
     breakEval.tick();
     assertTrue(count("break", "STARTED") >= 1);
 
-    tc().set(Instant.parse("2023-01-01T15:10:00Z"));
+    sim.set(Instant.parse("2023-01-01T15:10:00Z"));
     breakEval.tick();
     assertTrue(count("break", "ENDING_SOON") >= 1);
 
-    tc().set(Instant.parse("2023-01-01T15:15:00Z"));
+    sim.set(Instant.parse("2023-01-01T15:15:00Z"));
     breakEval.tick();
     assertTrue(count("break", "FINISHED") >= 1);
   }
@@ -129,7 +96,7 @@ public class EventAndBreakEvaluatorTest {
     e.setTimezone("UTC");
     events.saveEvent(e);
 
-    tc().set(Instant.parse("2023-01-02T10:00:00Z"));
+    sim.set(Instant.parse("2023-01-02T10:00:00Z"));
     eventEval.tick();
     assertEquals(0, count("event", "FINISHED"));
   }
@@ -146,7 +113,7 @@ public class EventAndBreakEvaluatorTest {
     e.getAgenda().add(b);
     events.saveEvent(e);
 
-    tc().set(Instant.parse("2023-01-02T10:00:00Z"));
+    sim.set(Instant.parse("2023-01-02T10:00:00Z"));
     breakEval.tick();
     assertEquals(0, count("break", "FINISHED"));
   }
