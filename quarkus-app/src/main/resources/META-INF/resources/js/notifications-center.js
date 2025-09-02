@@ -100,7 +100,7 @@
   }
 
   function chipFor(n) {
-    const cat = (n.category || '').toLowerCase();
+    const cat = (n.category || 'announcement').toLowerCase();
     const label = cat === 'event' ? 'Evento' : cat === 'talk' ? 'Charla' : cat === 'break' ? 'Break' : 'Aviso';
     return `<span class="chip chip-${cat}">${label}</span>`;
   }

@@ -19,9 +19,9 @@
       const now=Date.now();
       this.timestamps=this.timestamps.filter(t=>now-t<this.rateLimitWindow);
       if(this.timestamps.length>=this.rateLimitMax){this.metric('rate_limited');return;}
-      if(this.visible.some(t=>t.id===vm.id)){this.metric('suppressed');return;}
+      if(this.visible.some(t=>t.id===vm.id)||this.queue.some(t=>t.id===vm.id)){this.metric('suppressed');return;}
       this.timestamps.push(now);
-      if(this.visible.length<this.maxVisible){this.show(vm);}else{this.queue.push(vm);} 
+      if(this.visible.length<this.maxVisible){this.show(vm);}else{this.queue.push(vm);}
       this.updateCloseAll();
     }
     show(vm){
