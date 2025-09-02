@@ -3,12 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <title>{#insert title}EventFlow{/insert}</title>
+  <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/css/notifications.css">
-</head>
-<body>
-  {#insert body}{/insert}
-  {#include fragments/toasts.qute.html/}
+  <script>window.__EF_NOTIFICATIONS_MODE__='global';</script>
+  <script src="/js/notifications-adapter.js" defer></script>
+  <script src="/js/app.js" defer></script>
   <script src="/js/notifications.js" defer></script>
   <script src="/js/global-notifications-ws.js" defer></script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Ir al contenido principal</a>
+  <header class="nav-menu" id="nav-menu" aria-label="Principal">
+    <a href="/" class="nav-logo"><h2 class="title">EventFlow</h2></a>
+    <div class="nav-links" id="primary-navigation" data-primary-navigation>
+      {#include fragments/notifications-bell.html/}
+    </div>
+  </header>
+  {#insert body}{/insert}
+  {#include fragments/toasts.qute.html/}
 </body>
 </html>

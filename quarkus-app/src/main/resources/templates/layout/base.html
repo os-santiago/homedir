@@ -28,11 +28,7 @@
                 <a href="/private/admin" data-nav-link>Admin</a>
             {/if}
         {/if}
-        <a href="/notifications/center" class="nav-link notifications-bell {#if currentPath?? && currentPath.startsWith('/notifications')}active{/if}" aria-label="Notificaciones" data-nav-link>
-            <span class="icon-bell" aria-hidden="true"></span>
-            <span class="sr-only">Notificaciones</span>
-            <span id="notif-badge" class="badge hidden">0</span>
-        </a>
+        {#include fragments/notifications-bell.html/}
         {#if app:isAuthenticated()}
             <div class="user-menu" data-user-menu>
                 <button id="userMenuBtn" class="user-menu-btn" data-user-menu-btn aria-label="Usuario" aria-expanded="false" aria-controls="userDropdown">
