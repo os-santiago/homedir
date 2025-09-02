@@ -1,0 +1,39 @@
+{#include layout/base}
+{#title}Simulación de notificaciones{/title}
+{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Simulación de notificaciones</span>{/breadcrumbs}
+{#main}
+<section class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-semibold mb-4">Simulación de notificaciones</h1>
+  <form id="sim-form" class="grid gap-3 card p-4">
+    <div class="row gap-2">
+      <label class="sr-only" for="eventId">Evento</label>
+      <input id="eventId" class="input" name="eventId" placeholder="ID de evento (opcional)">
+      <label class="sr-only" for="pivot">Hora pivote</label>
+      <input id="pivot" class="input" type="datetime-local" name="pivot">
+    </div>
+    <label class="sr-only" for="states">Estados</label>
+    <select id="states" class="input" multiple>
+      <option value="UPCOMING">UPCOMING</option>
+      <option value="LIVE">LIVE</option>
+      <option value="ENDED">ENDED</option>
+    </select>
+    <div class="row gap-2 items-center flex-wrap">
+      <button id="preview" type="button" class="btn-primary">Previsualizar</button>
+      <button id="execute" type="button" class="btn-secondary">Emitir prueba</button>
+      <button id="replay" type="button" class="btn-secondary">Reproducción secuencial</button>
+      <label class="row gap-1 items-center ml-auto">
+        <input type="checkbox" id="optin" class="input w-4 h-4">
+        <span class="text-sm">Ver simulaciones en este navegador</span>
+      </label>
+    </div>
+  </form>
+  <table id="results" class="min-w-full mt-4 hidden">
+    <thead>
+      <tr><th class="px-2 py-1 text-left">Destino</th><th class="px-2 py-1 text-left">Mensaje</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+<script defer src="/js/admin-notifications-sim.js"></script>
+{/main}
+{/include}
