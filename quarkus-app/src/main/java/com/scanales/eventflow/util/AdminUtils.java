@@ -3,17 +3,12 @@ package com.scanales.eventflow.util;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.SecurityIdentity;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 /** Utility methods for admin checks. */
 public final class AdminUtils {
-
-  private static final List<String> ADMIN_LIST = initAdminList();
-  private static final Set<String> ADMIN_SET = new HashSet<>(ADMIN_LIST);
 
   private AdminUtils() {}
 
@@ -22,10 +17,6 @@ public final class AdminUtils {
    * The value is expected to be a comma separated list of email addresses.
    */
   public static List<String> getAdminList() {
-    return ADMIN_LIST;
-  }
-
-  private static List<String> initAdminList() {
     String raw = ConfigProvider.getConfig().getOptionalValue("ADMIN_LIST", String.class).orElse("");
     if (raw.isBlank()) {
       return List.of();
@@ -45,7 +36,7 @@ public final class AdminUtils {
     if (email == null) {
       email = identity.getPrincipal().getName();
     }
-    return email != null && ADMIN_SET.contains(email);
+    return email != null && getAdminList().contains(email);
   }
 
   /** Obtains a claim or attribute from the identity. */
