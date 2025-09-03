@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 public class AdminNotificationPageAccessTest {
 
   @Test
-  @TestSecurity(user = "sergio.canales.e@gmail.com")
-  public void adminFromListCanAccess() {
+  @TestSecurity(user = "admin", roles = "admin")
+  public void adminCanAccess() {
     given().when().get("/admin/notifications").then().statusCode(200);
   }
 
