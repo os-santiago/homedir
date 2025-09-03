@@ -74,11 +74,13 @@
       const div = document.createElement('div');
       div.className = 'card notif';
       div.dataset.id = n.id;
+      if (n.id) div.id = n.id;
 
       const checked = selected.has(n.id) ? 'checked' : '';
       const readLabel = n.readAt ? 'No leída' : 'Leída';
       const chip = chipFor(n);
       const url = n.targetUrl || (n.talkId ? `/talks/${encodeURIComponent(n.talkId)}` : '/notifications/center');
+      const linkLabel = n.talkId ? 'Ver charla' : 'Revisar';
 
       div.innerHTML = `
         <div class="row items-start gap-3">
@@ -90,7 +92,7 @@
           </div>
           <div class="col shrink">
             <button class="btn-link js-read" data-id="${n.id}">${readLabel}</button>
-            <a class="btn-link js-open" data-id="${n.id}" href="${escapeAttr(url)}" rel="nofollow">Revisar</a>
+            <a class="btn-link js-open" data-id="${n.id}" href="${escapeAttr(url)}" rel="nofollow">${linkLabel}</a>
           </div>
         </div>`;
       listEl.appendChild(div);
@@ -262,5 +264,10 @@
   render();
   if (window.updateUnreadFromLocal) {
     window.updateUnreadFromLocal();
+  }
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    const el = document.getElementById(hash);
+    if (el) el.scrollIntoView();
   }
 })();

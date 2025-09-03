@@ -62,6 +62,12 @@
       toast.appendChild(msg);
       const actions=document.createElement('div');
       actions.className='ef-toast__actions';
+      if(vm.centerUrl){
+        const detail=document.createElement('a');
+        detail.href=vm.centerUrl;
+        detail.textContent='Ver detalle';
+        actions.appendChild(detail);
+      }
       if(vm.url){
         const link=document.createElement('a');
         link.href=vm.url;
@@ -143,11 +149,13 @@
     accept(dto){
       if(window.updateUnreadFromLocal)window.updateUnreadFromLocal();
       if(!manager)return;
+      const id=dto.id||uid();
       const vm={
-        id:dto.id||uid(),
+        id:id,
         title:dto.title||dto.type,
         message:dto.message||'',
-        url:(dto.talkId && dto.category!== 'break')?('/talks/'+dto.talkId):null
+        url:(dto.talkId && dto.category!=='break')?('/talks/'+dto.talkId):null,
+        centerUrl:dto.id?('/notifications/center#'+dto.id):'/notifications/center'
       };
       manager.enqueue(vm);
     },
