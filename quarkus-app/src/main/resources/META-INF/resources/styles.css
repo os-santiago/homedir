@@ -1018,12 +1018,18 @@ p.note {
 
 .event-name a {
     color: var(--color-primary);
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 .event-name a:visited {
     color: var(--color-primary);
-    text-decoration: none;
+    text-decoration: underline;
+}
+
+.event-name a::after {
+    content: " \2192";
+    margin-left: 0.25rem;
+    font-size: 0.9rem;
 }
 
 .event-date {

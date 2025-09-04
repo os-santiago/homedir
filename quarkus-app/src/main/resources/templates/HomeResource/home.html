@@ -21,7 +21,7 @@
                         {/if}
                     </div>
                     <div class="event-main">
-                        <h2 class="event-name"><a href="/event/{e.id}">{e.title}</a></h2>
+                        <h2 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h2>
                         {#if e.isOngoing()}
                         <span class="badge info">En curso</span>
                         {/if}
@@ -70,7 +70,7 @@
                             {/if}
                         </div>
                         <div class="event-main">
-                            <h2 class="event-name"><a href="/event/{e.id}">{e.title}</a></h2>
+                            <h2 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h2>
                             {#if e.descriptionSummary}
                             <p class="event-description">{e.descriptionSummary}</p>
                             {/if}
