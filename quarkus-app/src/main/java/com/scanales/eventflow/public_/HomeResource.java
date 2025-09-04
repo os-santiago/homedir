@@ -3,6 +3,8 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
+import io.eventflow.home.now.NowBoxService;
+import io.eventflow.home.now.NowBoxView;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.annotation.security.PermitAll;
@@ -27,6 +29,8 @@ public class HomeResource {
 
   @Inject UsageMetricsService metrics;
 
+  @Inject NowBoxService nowBoxService;
+
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance home(
@@ -35,7 +39,8 @@ public class HomeResource {
         LocalDate today,
         String version,
         Map<String, String> stats,
-        Map<String, String> links);
+        Map<String, String> links,
+        NowBoxView nowBox);
   }
 
   @GET
@@ -83,7 +88,8 @@ public class HomeResource {
             "releasesUrl", "https://github.com/scanalesespinoza/eventflow/releases",
             "issuesUrl", "https://github.com/scanalesespinoza/eventflow/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
-    return Templates.home(upcoming, past, today, "2.2.0", stats, links);
+    var nowBox = nowBoxService.build();
+    return Templates.home(upcoming, past, today, "2.2.0", stats, links, nowBox);
   }
 
   @GET

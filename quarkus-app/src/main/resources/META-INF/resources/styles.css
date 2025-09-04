@@ -1583,3 +1583,34 @@ footer {
 }
 
 .auth .login-button { display: none !important; }
+
+/* Now box styles */
+.now-box.box{
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.now-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 768px){
+  .now-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+.now-event{ border: 1px solid #eee; border-radius: 12px; padding: 12px; }
+.now-event-header{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;
+}
+.now-rows{ display:flex; flex-direction:column; gap:6px; }
+.now-row{
+  display:flex; align-items:flex-start; gap:8px; background:#fafafa; border-radius:10px; padding:10px 12px;
+}
+.row-link{ text-decoration:none; color:inherit; display:flex; flex-direction:column; }
+.chip{ font-size:.75rem; padding:2px 6px; border-radius:999px; white-space:nowrap; align-self:flex-start; }
+.chip-last{ background:#eee; color:#555; }
+.chip-current{ background:#e6f7ea; color:#1b7f38; }
+.chip-next{ background:#e9f1ff; color:#1b4fbd; }
+.btn-ghost{ border:1px solid #e3e8ef; padding:6px 10px; border-radius:8px; text-decoration:none; color:#334; }
