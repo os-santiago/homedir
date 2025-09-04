@@ -696,6 +696,17 @@ a.nav-logo:hover {
     color: var(--color-light);
 }
 
+/* Allow agenda table to size columns based on content */
+.table.agenda-table {
+    table-layout: auto;
+}
+
+/* Prevent truncation of scenario names in agenda table */
+.agenda-location {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 /* --- Admin speaker list --- */
 .speaker-list,
 .talk-list {
