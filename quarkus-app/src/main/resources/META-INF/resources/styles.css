@@ -824,6 +824,16 @@ a.nav-logo:hover {
     letter-spacing: .2px;
 }
 
+.project-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+}
+
 .meta {
     display: flex;
     gap: 0.25rem;

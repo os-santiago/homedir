@@ -1,14 +1,17 @@
 <section class="box project-header">
     <div>
         <div class="box-header">
-            <img src="/img/eventflow-logo.png" alt="EventFlow" class="logo-main" />
-            <div class="meta">
-                <span>Estado: <strong>{#if stats?? && stats.status??}{stats.status}{#else}—{/if}</strong></span>
-                <span>Versión: <strong>{#if version??}Persistente con soporte de Eventos, Oradores y Charlas – v{version}{#else}—{/if}</strong></span>
-                <span>Última actualización: {#if stats?? && stats.lastUpdated??}{stats.lastUpdated}{#else}—{/if}</span>
-            </div>
+            <h2>Acerca de este proyecto</h2>
         </div>
         <div class="box-body">
+            <div class="project-meta">
+                <img src="/img/eventflow-logo.png" alt="EventFlow" class="logo-main" />
+                <div class="meta">
+                    <span>Estado: <strong>{#if stats?? && stats.status??}{stats.status}{#else}—{/if}</strong></span>
+                    <span>Versión: <strong>{#if version??}Persistente con soporte de Eventos, Oradores y Charlas – v{version}{#else}—{/if}</strong></span>
+                    <span>Última actualización: {#if stats?? && stats.lastUpdated??}{stats.lastUpdated}{#else}—{/if}</span>
+                </div>
+            </div>
             <p class="note">EventFlow es una plataforma para gestionar eventos, actividades, espacios y charlas. Esto es OpenSource, gratuito y con dedicación y pasión por la tecnología.</p>
         </div>
     </div>
