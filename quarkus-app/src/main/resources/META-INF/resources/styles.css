@@ -836,6 +836,7 @@ a.nav-logo:hover {
 
 .meta {
     display: flex;
+    flex-direction: column;
     gap: 0.25rem;
     color: var(--muted-foreground, #555);
     font-size: .95rem;
