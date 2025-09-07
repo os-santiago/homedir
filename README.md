@@ -15,6 +15,13 @@ Also available in [Español](README.es.md).
 
 See the [documentation](docs/README.md) for more guides.
 
+## Arquitectura
+
+La estrategia de persistencia de EventFlow está documentada en:
+- [Opciones de persistencia](docs/architecture/persistence-options.md)
+- [ADR 2025-09-07: Persistencia centralizada](docs/architecture/ADR-2025-09-07-persistence-service-centralized.md)
+
+
 Latest stable release: **v2.2.0**.
 
 ## Features
