@@ -422,6 +422,16 @@ public class UsageMetricsService {
     dirty.set(true);
   }
 
+  /** Record an HTTP 5xx response for the given route. */
+  public void recordServerError(String route) {
+    increment("5xx:" + route);
+  }
+
+  /** Record the outcome of a WebSocket handshake. */
+  public void recordWsHandshake(boolean ok) {
+    increment(ok ? "ws.handshake.ok" : "ws.handshake.fail");
+  }
+
   private void increment(String key) {
     int size = bufferSize.incrementAndGet();
     if (size > bufferMaxSize) {

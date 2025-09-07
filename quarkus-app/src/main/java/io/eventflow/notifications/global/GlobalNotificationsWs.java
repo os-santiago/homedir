@@ -17,10 +17,12 @@ import java.io.StringReader;
 public class GlobalNotificationsWs {
 
   @Inject GlobalNotificationService service;
+  @Inject com.scanales.eventflow.service.UsageMetricsService metrics;
 
   @OnOpen
   public void onOpen(Session session) {
     service.register(session);
+    metrics.recordWsHandshake(true);
   }
 
   @OnClose
