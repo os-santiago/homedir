@@ -846,10 +846,6 @@ a.nav-logo:hover {
     color: var(--brand-text, #0b5cab);
 }
 
-.box-body {
-    margin-top: .75rem;
-}
-
 .note {
     background: rgba(0, 120, 255, .06);
     border: 1px solid rgba(0, 120, 255, .12);
@@ -866,6 +862,7 @@ p.note {
     display: flex;
     gap: 0.2rem;
     flex-direction: column;
+    justify-content: center;
 }
 
 .release-box {
