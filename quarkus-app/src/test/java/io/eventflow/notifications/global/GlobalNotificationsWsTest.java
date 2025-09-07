@@ -83,6 +83,7 @@ public class GlobalNotificationsWsTest {
     assertEquals("notif", j2.getString("t"));
   }
 
+
   @Test
   public void backlogSkipsOldNotifications() throws Exception {
     long startOfDay =

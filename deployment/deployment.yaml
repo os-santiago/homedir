@@ -6,15 +6,15 @@ metadata:
   namespace: eventflow
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: 2
   revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: eventflow
   strategy:
     rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
+      maxSurge: 1
+      maxUnavailable: 0
     type: RollingUpdate
   template:
     metadata:
@@ -38,10 +38,10 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /q/health/ready
+              path: /health/ready
               port: 8080
             initialDelaySeconds: 1
-            periodSeconds: 5
+            periodSeconds: 10
             failureThreshold: 3
           env:
             - name: JAVA_TOOL_OPTIONS

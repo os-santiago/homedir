@@ -1,4 +1,4 @@
-{#if nowBox.events != null && !nowBox.events.isEmpty()}
+{#if nowBox?.events?? && !nowBox.events.isEmpty()}
 <div class="box now-box">
   <div class="box-header">
     <h2>Ocurriendo ahora</h2>
@@ -18,32 +18,32 @@
       </header>
 
       <div class="now-rows">
-        {#if e.last}
+        {#if e.last??}
           <div class="now-row now-last">
             <span class="chip chip-last">Finalizada</span>
             <a class="row-link" href="{e.last.detailUrl}">
               <strong>{e.last.title}</strong>
-              <small>{e.last.start?datetime}–{e.last.end?datetime} {#if e.last.room}• {e.last.room}{/if}</small>
+              <small>{e.last.start?datetime}–{e.last.end?datetime} {#if e.last.room??}• {e.last.room}{/if}</small>
             </a>
           </div>
         {/if}
 
-        {#if e.current}
+        {#if e.current??}
           <div class="now-row now-current">
             <span class="chip chip-current">En curso</span>
             <a class="row-link" href="{e.current.detailUrl}">
               <strong>{e.current.title}</strong>
-              <small>{e.current.start?datetime}–{e.current.end?datetime} {#if e.current.room}• {e.current.room}{/if}</small>
+              <small>{e.current.start?datetime}–{e.current.end?datetime} {#if e.current.room??}• {e.current.room}{/if}</small>
             </a>
           </div>
         {/if}
 
-        {#if e.next}
+        {#if e.next??}
           <div class="now-row now-next">
             <span class="chip chip-next">Próxima</span>
             <a class="row-link" href="{e.next.detailUrl}">
               <strong>{e.next.title}</strong>
-              <small>{e.next.start?datetime}–{e.next.end?datetime} {#if e.next.room}• {e.next.room}{/if}</small>
+              <small>{e.next.start?datetime}–{e.next.end?datetime} {#if e.next.room??}• {e.next.room}{/if}</small>
             </a>
           </div>
         {/if}

@@ -1,11 +1,12 @@
 package io.eventflow.home.now;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
 
 /** View model for the "Ocurriendo ahora" box. */
 public class NowBoxView {
-  public List<EventNow> events;
+  public List<EventNow> events = Collections.emptyList();
 
   public static class EventNow {
     public String eventId;
