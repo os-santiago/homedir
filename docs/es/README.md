@@ -1,4 +1,26 @@
 # Documentación (Español)
 
-La versión en español de la documentación está en desarrollo.
-Por ahora, consulta la [documentación en inglés](../en/README.md).
+## Guías
+- [Glosario](00-glossary.md)
+- [Principios](00-principles.md)
+- [Visión y Roadmap](01-vision.md)
+- [Arquitectura](02-architecture.md)
+- [Guardrails](03-guardrails.md)
+- [Persistencia HDP](04-persistence-hdp.md)
+- [Instrucciones a Codex](05-contribution-codex.md)
+- [Frontend del lado del servidor](07-frontend-server-side.md)
+- [Notificaciones](notifications.md)
+- [Historia de EventFlow](eventflow_history_09-08-2025.md)
+- [Métricas de uso](metrics.md)
+- [Diccionario de métricas del dashboard](metrics-definitions.md)
+- [Métricas de CTAs](metrics-ctas.md)
+- [Tendencias del dashboard de métricas](metrics-trends.md)
+- [Experiencia de Usuario — ¿Por qué EventFlow es para mí?](product-user-experience.md)
+- [Prompt Codex – Dashboard de Métricas (MVP)](prompt-dashboard-metrics-mvp.md)
+- [Runbook de Operación – Notificaciones](runbook-notifications.md)
+- [Datos de Usuario — Persistencia, Capacidad y Alto Rendimiento](user-data.md)
+
+## Secciones
+- [Arquitectura](architecture/)
+- [Funcionalidades](features/)
+- [UI](ui/)

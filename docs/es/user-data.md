@@ -1,4 +1,4 @@
-# User Data — Persistencia, Capacidad y Alto Rendimiento (v1)
+# Datos de Usuario — Persistencia, Capacidad y Alto Rendimiento (v1)
 
 Este documento resume las capacidades realmente implementadas para la persistencia de charlas y eventos registrados por los usuarios.
 

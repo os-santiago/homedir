@@ -1,4 +1,4 @@
-# Notifications
+# Notificaciones
 
 Iteración 1 introduce el servicio central de notificaciones. Su objetivo es
 registrar eventos relevantes para cada usuario sin bloquear la UI y con
