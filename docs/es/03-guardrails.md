@@ -1,4 +1,4 @@
-# Guardrails
+# Rieles de seguridad
 
 ## Dependencias
 - core no importa otros core.

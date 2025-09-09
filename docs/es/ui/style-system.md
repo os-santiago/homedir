@@ -1,4 +1,4 @@
-# Style system
+# Sistema de estilos
 
 Se introdujo un template de estilos móvil con tokens y utilidades reutilizables.
 

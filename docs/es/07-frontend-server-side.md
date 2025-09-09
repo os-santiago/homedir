@@ -1,4 +1,4 @@
-# Frontend Server-Side
+# Frontend del lado del servidor
 
 Sin Next.js, Node.js, React, Vue o Angular.
 
