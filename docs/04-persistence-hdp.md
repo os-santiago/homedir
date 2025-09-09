@@ -1,22 +1,23 @@
-# Homedir Persist (HDP)
+# Persistencia con HDP
 
-## Resumen
-Servicio embebido de persistencia JSON.
+Ver [HDP en el glosario](00-glossary.md#hdp-homedir-persist).
 
-## Arquitectura
-- memoria con WAL y persistencia en volumen
-- namespaces equivalen a módulos y colecciones a agregados
-- aislamiento por namespace mediante archivos, pools y cuotas
+## Diseño
+WAL append-only + MemTable + snapshots + segments + compaction.
 
 ## Durabilidad
-- políticas `safe`, `balanced` y `fast`
-- recuperación crash-safe y compactor en background
+Modos `safe`, `balanced`, `fast`.
 
 ## API
-SDK Java con opción REST.
+SDK embebido con opción REST.
 
-## Roadmap
-MVP → índices compuestos → replicación.
+## Aislamiento
+Archivos, pools e I/O por namespace; cuotas de memoria y espacio.
 
-## Migración
-Criterios claros para pasar a una base de datos externa.
+## Backup/Restore
+Snapshot + replay del WAL.
+
+## Cuándo no usar
+- joins complejos
+- reporting pesado
+- transacciones multi-agregado fuertes
