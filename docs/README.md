@@ -7,4 +7,4 @@ Select your language:
 
 ## Architecture
 
-- [Persistence architecture](architecture/README.md)
+- [Persistencia](es/architecture/README.md)
