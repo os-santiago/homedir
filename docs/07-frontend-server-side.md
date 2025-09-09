@@ -14,4 +14,4 @@ Endpoints `/_fragment/*` por módulo.
 ## Accesibilidad
 Debe funcionar sin JS; rutas protegidas por roles.
 
-Ver la [arquitectura](02-architecture.md) para la ubicación de templates.
+Ver la [arquitectura](architecture/README.md) para la ubicación de templates.
