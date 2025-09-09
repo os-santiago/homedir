@@ -1,17 +1,19 @@
 # Guardrails
 
 ## Dependencias
-Límites de dependencias reforzados con ArchUnit.
+- core no importa otros core.
+- app no depende de adapters.
+- core es framework-free.
+- [ArchUnit](https://www.archunit.org/) obligatorio.
 
-## Recursos
-- pools de base de datos dedicados por módulo
-- bulkheads, timeouts y rate limiting por módulo
+## Recursos por módulo
+- datasources, pools, caches y threads dedicados.
+- límites estrictos configurables.
 
-## Operabilidad
-- kill switches y feature flags
-- health y readiness por módulo
-- observabilidad etiquetada con `module`
+## Resiliencia
+- Fault Tolerance (timeouts, retries, circuit breaker).
+- rate-limit y kill-switches por módulo.
 
-## Edge
-- prefijos de rutas por módulo
-- readiness para mantenimiento selectivo
+## Operación
+- health y readiness por módulo.
+- métricas y trazas etiquetadas con `module`.

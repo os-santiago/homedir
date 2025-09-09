@@ -1,24 +1,21 @@
-# Arquitectura del Monolito Modular
+# Arquitectura
 
-## Principios
-- modularidad estricta
-- blast radius contenido
-- ligereza
+[UniCore (Cloud-Native Modular Core)](00-glossary.md#unicore-cloud-native-modular-core) con Quarkus 3 y Java 21.
 
-## Plataforma
-Monolito modular construido con Quarkus y guiado por DDD y arquitectura Hexagonal.
+## Estructura
+- `apps/homedir-api`
+- `modules/{users,events,spaces,pulse}/{core,app,adapters,migrations}`
+- `shared/`, `contracts/`, `infra/`, `tests/`
+- `templates/` (Qute), `static/{css,js}`
 
-## Repositorios
-Estructura separada para backend, web e infraestructura.
+## Persistencia
+[HDP](00-glossary.md#hdp-homedir-persist) como almacenamiento por defecto; schemas lógicos por namespace (módulo). Ver [persistencia](04-persistence-hdp.md).
 
-## Organización de carpetas
-`modules/{users,events,spaces,pulse}` con subcarpetas `core/`, `app/`, `adapters/` y `migrations/`.
+## UI
+UI SSR: vistas y fragmentos por módulo (`/_fragment/*`). Detalles en [frontend server-side](07-frontend-server-side.md).
 
-## Base de datos
-Estrategia `schema-per-module`.
-
-## Observabilidad mínima
-Solo lo necesario para métricas, logs y tracing básicos.
+## Guardrails
+ArchUnit, FT (timeouts/bulkheads/circuit) y pools/cuotas por módulo. Más en [guardrails](03-guardrails.md).
 
 ## Evolución
-Posible migración a "células" si el crecimiento lo exige.
+Extraer “células” solo si aparecen ≥3 señales (ritmo, SLOs, carga, compliance).
