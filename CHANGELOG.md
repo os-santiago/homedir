@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1] - 2025-09-12
+### Changed
+- Actualización de versión y documentación para release 2.2.1.
+
+### Security/Supply Chain
+- Imagen publicada con alias `:2.2.1`, firmada y con SBOM adjunto.
+
 ## [2.2.0] - 2025-08-17
 ### Added
 - Quality gate en PR: análisis estático (diff-aware), reglas de arquitectura (monorepo), cobertura en el diff, higiene de dependencias.

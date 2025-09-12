@@ -31,9 +31,9 @@ Después de fusionarse con 'Main`:
 
 `` `Bash
 Git Fetch Origin && Git Checkout Main && Git Pull
-git etiqueta -a v2.2.0 -m "eventflow 2.2.0"
-Git Push Origin v2.2.0
+git etiqueta -a v2.2.1 -m "eventflow 2.2.1"
+Git Push Origin v2.2.1
 
 # Lanzamiento opcional de GitHub
-GH Release Create v2.2.0 -f libe_notes.md -t "Eventflow 2.2.0"
+GH Release Create v2.2.1 -f libe_notes.md -t "Eventflow 2.2.1"
 `` `` ``

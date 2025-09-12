@@ -24,7 +24,7 @@ spec:
       containers:
         - name: eventflow
           # Alias tag; production uses immutable digests
-          image: quay.io/sergio_canales_e/eventflow:2.2.0
+          image: quay.io/sergio_canales_e/eventflow:2.2.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

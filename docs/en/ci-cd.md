@@ -31,9 +31,9 @@ After merging to `main`:
 
 ```bash
 git fetch origin && git checkout main && git pull
-git tag -a v2.2.0 -m "EventFlow 2.2.0"
-git push origin v2.2.0
+git tag -a v2.2.1 -m "EventFlow 2.2.1"
+git push origin v2.2.1
 
 # Optional GitHub Release
-gh release create v2.2.0 -F RELEASE_NOTES.md -t "EventFlow 2.2.0"
+gh release create v2.2.1 -F RELEASE_NOTES.md -t "EventFlow 2.2.1"
 ```

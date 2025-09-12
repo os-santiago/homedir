@@ -33,7 +33,7 @@ Usa uno de estos canales privados:
    `EVENTFLOW SECURITY: <título corto>`
 
 Incluye cuando aplique:
-- Versiones afectadas (ej. `2.2.0`)
+- Versiones afectadas (ej. `2.2.1`)
 - Entorno (local/Docker/Kubernetes/OpenShift)
 - Resumen del impacto (¿qué puede hacer un atacante?)
 - Pasos de reproducción o prueba de concepto
