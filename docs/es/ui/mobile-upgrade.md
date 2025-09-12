@@ -1,63 +1,67 @@
+<<<<<<<< HEAD:docs/es/ui/mobile-upgrade.md
 # Mejora móvil
+========
+# Mobile improvement
+>>>>>>>> b60f5adbac7165f510c63f156fe57b324b2e59b0:docs/en/ui/mobile-upgrade.md
 
-## Fundaciones
+## Foundations
 
-Se añadieron variables de diseño (espaciados, colores, radios y sombras), una escala tipográfica fluida para móvil, un contenedor responsivo con `padding-inline` seguro y reglas globales que evitan desbordes horizontales.
+Design variables (spaced, colors, radios and shadows), a fluid typographic scale for mobile, a responsive container with `padding-inline 'insurance and global rules that avoid horizontal overflows were added.
 
-## Listas
+## List
 
-Comparaciones antes y después para las filas de listas en múltiples tamaños de pantalla.
+Comparisons before and after for lists in multiple screen sizes.
 
 
-## Tarjetas y detalle de charla
+## Cards and talk detail
 
-Se mejoraron las tarjetas y la vista de detalle para móviles: padding consistente,
-chips responsivos, botones accesibles y contenedores que evitan saltos de diseño.
+Cards and mobile detail view were improved: consistent padding,
+Responsible chips, accessible buttons and containers that avoid design leaps.
 
 ### Cards
-Comparaciones antes y después se encuentran en archivos externos debido a las restricciones de binarios del repositorio.
+Comparisons before and then are found in external files due to the restrictions of repository binaries.
 
-### Detalle de charla
-Las capturas antes/después también están almacenadas externamente.
+### Talk detail
+The catches before/then are also stored externally.
 
-## Resumen por iteración
+## Summary by iteration
 
-1. Fundaciones de diseño y tipografía fluida.
-2. Ajustes de navegación y controles accesibles.
-3. Revisión de listas y tablas responsivas.
-4. Tarjetas y vista de detalle con componentes fluidos.
-5. Panel de métricas administrativo.
-6. QA móvil final y documentación.
+1. Design foundations and fluid typography.
+2. Navigation settings and accessible controls.
+3. Review of lists and responsive tables.
+4. Cards and detail view with fluid components.
+5. Administrative metric panel.
+6. QA Final mobile and documentation.
 
-## Matriz de prueba móvil
+## Mobile test matrix
 
-| Viewport (px) | Chrome/Android | Safari/iOS |
-| ------------- | -------------- | ---------- |
-| 360×640       | ✅             | ✅         |
-| 390×844       | ✅             | ✅         |
-| 414×896       | ✅             | ✅         |
-| 768×1024      | ✅             | ✅         |
+| Viewport (px) | Chrome/Android | Safari/ios |
+| ------------ | ------------ | --------- |
+| 360 × 640 | ✅ | ✅ |
+| 390 × 844 | ✅ | ✅ |
+| 414 × 896 | ✅ | ✅ |
+| 768 × 1024 | ✅ | ✅ |
 
-Sin desplazamiento horizontal en vistas clave y Lighthouse ≥ 90 en buenas prácticas y accesibilidad.
+No horizontal displacement in key views and lighthouse ≥ 90 in good practices and accessibility.
 
-## Capturas clave
+## Key captures
 
-| Vista                         | Antes                                   | Después                                  |
-|------------------------------|-----------------------------------------|-------------------------------------------|
-| Listado de charlas           | *(externo: talk-list-before.png)*       | *(externo: talk-list-after.png)*          |
-| Detalle de charla            | *(externo: talk-detail-before.png)*     | *(externo: talk-detail-after.png)*        |
-| Panel de métricas admin      | ![Antes](admin-metrics-before.png)      | ![Después](admin-metrics-after.png)       |
-| Pantalla de login            | *(externo: login-before.png)*           | *(externo: login-after.png)*              |
+| View | Before | After |
+| --------------------------- | -------------------------------------- | -----------------------------------------------------------------------------------------------------
+| List of talks | * (External: Talk-list-before.png)* | * (External: Talk-list-after.png)* |
+| Talk detail | * (External: Talk-dotail-before.png)* | * (external: talk-dotail-after.png)* |
+| Admin metric panel | ! [Before] (admin-metrics-before.png) | ! [After] (admin-metrics-after.png) |
+| Login screen | * (External: login-before.png)* | * (external: login-affter.png)* |
 
-## Checklist de accesibilidad
+## Accessibility Checklist
 
-- [x] Contraste AA verificado
-- [x] Navegación por teclado
-- [x] Etiquetas ARIA en botones críticos
-- [ ] Lazy-load en listas largas *(TODO futura iteración)*
+- [x] Verified AA contrast
+- [x] keyboard navigation
+- [x] Aryan labels in critical buttons
+- [] lazy-load in long lists *(all future iteration) *
 
-## Checklist de rendimiento
+## Checklist of performance
 
-- [x] `font-display: swap` en fuentes web *(no se usan fuentes externas actualmente)*
-- [x] CLS < 0.1 en listas gracias a `aspect-ratio` reservado
-- [ ] Lazy-load de imágenes en listas *(TODO futura iteración)*
+- [x] `font-display: swap` in web sources *(no external sources are currently used) * *
+- [X] CLS <0.1 on lists thanks to `Aspect-Ratio 'reserved
+- [] lazy-images on lists *(all future iteration) *

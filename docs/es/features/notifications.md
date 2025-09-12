@@ -1,17 +1,17 @@
-# Historia de usuario — "Notificaciones que me acompañan sin estorbar"
+# User history - "Notifications that accompany me without hindering"
 
-Soy Carolina. Entro a EventFlow desde el celular, reviso “Eventos disponibles” y registro mis charlas favoritas. Arriba, junto al menú, veo una campanita sin número: no tengo nada pendiente… por ahora.
+I am Carolina. I enter Eventflow from the cell phone, I reviewed "Available events" and record my favorite talks. Above, next to the menu, I see a bell without number: I have nothing pending ... for now.
 
-Un rato antes de mi primera charla, aparece un aviso sutil abajo de la pantalla: “Comienza en 10 min”. Es un toast liviano: no tapa lo que estoy haciendo. Si toco el aviso, voy directo al detalle de la charla; si no, desaparece solo a los pocos segundos. Como registré varias, recibo 2 o 3 avisos seguidos y uso “Cerrar todas” para limpiar la cola de una.
+A while before my first talk, a subtle notice appears below the screen: "Start at 10 min." It is a light toast: I do not cover what I am doing. If I play the notice, I go straight to the detail of the talk; If not, it disappears only a few seconds. As I recorded several, I receive 2 or 3 notices in a row and use “close all” to clean the tail of one.
 
-Durante el día, la app me avisa cuando una charla “está en curso”, cuando “está por finalizar” y al final “ha finalizado”. Todo sin bloquearme. Si pierdo señal un momento, al volver, las notificaciones se ponen al día solas.
+During the day, the app tells me when a talk "is in progress", when "is about to end" and in the end "it has ended." All without blocking me. If I lose a sign a moment, when returning, notifications are updated.
 
-Cuando quiero ver todo con calma, toco la campana (ahora con numerito). Entro al Centro de Notificaciones, que muestra las actividades del día en curso y me permite filtrar Todas o No leídas, marcar como leídas o eliminar varias a la vez. Todo está ordenado en tarjetas compactas, los textos no se cortan raro, y los botones son cómodos de pulsar.
+When I want to see everything calmly, I play the bell (now with a numerite). I enter the notification center, which shows the activities of the current day and allows me to filter all or not read, mark how read or eliminate several at the same time. Everything is ordered on compact cards, the texts are not cut off, and the buttons are comfortable to press.
 
-Me siento acompañada, no perseguida:
+I feel accompanied, not persecuted:
 
-- Solo recibo avisos de mis charlas registradas.
-- Si llegan muchas, puedo cerrarlas de golpe o gestionarlas luego en la campana.
-- En móvil se ve limpio, legible y accesible (buen contraste, foco visible, sin scroll lateral).
+- I only receive notices from my registered talks.
+- If many arrive, I can close them or then manage them in the bell.
+- The mobile looks clean, readable and accessible (good contrast, visible focus, without lateral scroll).
 
-Resultado: llego a tiempo, no me pierdo nada y la app nunca se interpone en mi camino.
+Result: I get on time, I don't miss anything and the app never gets in my way.

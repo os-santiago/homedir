@@ -1,68 +1,68 @@
-# Runbook de Operación – Notificaciones
+# Operation Runbook - Notifications
 
-Este documento describe cómo monitorear y operar el módulo de
-notificaciones en producción.
+This document describes how to monitor and operate the module of
+Production notifications.
 
-## Métricas
+## Metrics
 
-Las métricas se exponen vía `micrometer`/`/metrics`.
+The metrics are exposed via `micrometer`/`/Metrics`.
 
-- `notifications.enqueued.total` – notificaciones recibidas.
-- `notifications.persisted.total` – escritas a disco.
-- `notifications.deduped.total` – descartadas por duplicadas.
-- `notifications.dropped.backpressure.total` – descartadas por límites.
-- `notifications.volatile.accepted.total` – aceptadas sin persistir.
-- `notifications.queue.depth` – tamaño de la cola de persistencia.
-- `notifications.users.active` – usuarios con notificaciones cargadas.
-- `notifications.maintenance.purged.total` – registros purgados por retención.
-- `notifications.maintenance.compacted.total` – snapshots compactados.
-- `notifications.maintenance.duration.ms` – duración de la tarea de limpieza.
-- API: `notifications.api.list.requests.total`,
-  `notifications.api.stream.connections.active`,
-  `notifications.api.stream.rejected.max_per_user.total`,
-  `notifications.api.poll.requests.total`,
-  `notifications.api.errors{code}`.
+- `Notifications.
+- `Notifications.persisted.total` - written to disk.
+- `Notifications.deduped.Total` - Discarded by duplicate.
+- `Notifications.dropped.backpressure.total` - Discarded by limits.
+- `Notifications.volatile.accepted.total` - Accepted without persisting.
+- `Notifications.
+- `Notifications.users.active` - Users with loaded notifications.
+- `Notifications.Maintenance.purged.total` - Purged Retention Registries.
+- `Notifications.Maintenance.compacted.total` - Compacted Snapshots.
+- `Notifications.Maintenance.Duration.ms` - Duration of the cleaning task.
+- API: `Notifications.api.list.requests.total`,
+  `Notifications.api.stream.conneccions.active`,
+  `Notifications.api.stream.rejected.max_per_user.total`,
+  `Notifications.api.poll.requests.total`,
+  `Notifications.api.erors {code}`.
 
-### Ejemplos de consultas (Prometheus)
+### Examples of consultations (Prometheus)
 
-```promql
-rate(notifications.enqueued.total[5m])
-notifications_queue_depth
-```
+`` Promql
+Rate (Notifications.enqueued.total [5m])
+Notifications_queue_DEpth
+``
 
-## Procedimientos
+## Procedures
 
-### Detectar backpressure
-1. Revisar `notifications.queue.depth` y `notifications.dropped.backpressure.total`.
-2. Revisar logs de enqueue con `reason=capacity` o `reason=drop.queue`.
+### Detect backpressure
+1. Review `Notifications.queue.deph` and` Notifications.dropped.backpressure.total`.
+2. Review enqueue logs with `reason = capacity` or` reason = drop.queue`.
 
-### Ajustar límites
-- `notifications.backpressure.queue.max`: máximo de la cola de persistencia.
-- `notifications.retention-days`: días que se conservan las notificaciones.
-- `notifications.max-file-size`: tamaño máximo de snapshot por usuario.
+### Adjust limits
+- `Notifications.backpressure.queue.Max`: Maximum of the persistence tail.
+- `Notifications.
+-`Notifications.Max-File-Size`: Maximum Snapshot size by user.
 
-### Escalamiento de SSE
-1. Si `notifications.api.stream.rejected.max_per_user.total` crece,
-   considerar aumentar `notifications.stream.maxConnectionsPerUser` o
-   forzar fallback a polling.
+### SSE Escalation
+1. If `notifications.api.stream.rejected.max_per_user.total` grows,
+   consider increasing `notifications.stream.MaxConneCtionsperuse` or
+   Force Polling Fallback.
 
-### Checklist post despliegue
-- Métricas expuestas y sin errores en `/metrics`.
-- `notifications.queue.depth` estable <70% de `notifications.backpressure.queue.max`.
-- Errores API <1% (`sum(rate(notifications.api.errors{code=~"5.."}[5m]))`).
+### Checklist post deployment
+- Exposed metrics and without errors in `/Metrics`.
+- `Notifications.
+- API ERRORS <1% (`Sum (Rate (Notifications.api.erors {code = ~" 5 .. "} [5m]))`).
 
-### Diagnóstico de 401 o redirecciones
-1. Probar `/whoami` (solo admin) para validar identidad y claims.
-2. Revisar cookies `q_session` (`Secure`, `SameSite=None`, dominio correcto).
-3. Confirmar cabeceras `X-Forwarded-*` desde el proxy y que `proxy-address-forwarding` esté habilitado.
-4. Verificar `quarkus.oidc.application-type=web-app` y `quarkus.oidc.authentication.redirect-path=/ingresar`.
-5. Habilitar `%dev.quarkus.log.category."io.quarkus.oidc".level=DEBUG` en pruebas para ver el flujo OIDC.
+### Diagnosis of 401 or redirections
+1. Test `/Whoami` (only admin) to validate identity and Claims.
+2. Check cookies `q_Session` (` secure`, `samesite = none`, correct domain).
+3. Confirm head headers
+4. Verify `quarkus.oidc.application-type = web -app` and` quarkus.oidc.authentication.redirect-path =/enter`.
+5. Enable `%dev.quarkus.log.category." Io.quarkus.oidc ".level = Debug` in tests to see the Oidc flow.
 
-## Seguridad y Privacidad
-- Nunca registrar `userId` crudo; usar `user_hash`.
-- Mantener la sal en `notifications.user-hash.salt` en secreto.
+## Security and privacy
+- Never register `Userid` raw; Use `user_hash`.
+- Keep salt at `notifications.user-hash.salt` in secret.
 
-## SLO sugeridos
-- Notificación emitida → visible en UI: p50 <3s, p95 <10s.
-- Error rate API <1% en 5 min.
-- Profundidad de cola <70% del máximo sostenido.
+## only suggested
+- Notification issued → Visible in UI: P50 <3s, p95 <10s.
+- Rate API Error <1% in 5min.
+- Tail depth <70% of the sustained maximum.

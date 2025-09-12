@@ -1,32 +1,31 @@
-# Dashboard de Métricas – Tendencias
+# Dashboard of metrics - trends
 
-## Definición de tendencia
-- **Δ% = (Actual − Base) / Base × 100** cuando `Base ≥ min-baseline`.
-- Ventanas comparativas (misma zona horaria del evento):
-  - **Hoy** → comparado con *Ayer*.
-  - **Últimos 7 días** → comparado con los *7 días anteriores*.
-  - **Últimos 30 días** → comparado con los *30 días anteriores*.
-  - **Todo el evento** → tendencia deshabilitada (`N/A`).
+## Trend definition
+- ** δ% = (current- base) / base × 100 ** when `base ≥ min-basline`.
+- Comparative windows (same time zone of the event):
+  - ** Today ** → compared to*yesterday*.
+  - ** last 7 days ** → compared to the*7 days before*.
+  - ** last 30 days ** → compared to the*30 days before*.
+  - ** All the event ** → disabled trend (`n/a`).
 
-## Reglas de casos límite
-- `Base < min-baseline` → mostrar `muestra baja` (sin porcentaje).
-- `Base = 0` y `Actual > 0` → badge `nuevo +n` (Δ absoluto).
-- `Actual = 0` y `Base ≥ min-baseline` → `▼ 100%`.
-- Redondeo: 1 decimal si `|Δ| < 10%`, enteros en caso contrario. Límite `"<0.1%"` y sin `−0%`.
+## Limit case rules
+- `Base <Min-Baseline` → Show` sample low` (no percentage).
+- `Base = 0` and` current> 0` → Badge `new +n` (absolute δ).
+- `Current = 0` and` base ≥ min-basoline` → `▼ 100%`.
+- Rounding: 1 decimal if `| δ | <10%`, integers otherwise. Limit `" <0.1%"` and without `−0%`.
 
-## Tablas y ranking de crecimiento
-- Cada fila de las tablas Top 10 incluye un badge Δ con las reglas anteriores.
-- Tabla adicional: **Top 5 crecimiento (rango)** para *Registros a Mis Charlas*.
-  - Columnas: `Charla · Evento · Registros · Δ`.
-  - Orden principal por Δ absoluto descendente; desempates por Δ% y luego nombre.
-  - Placeholder: `Datos insuficientes para calcular tendencias en este rango.`
+## Tables and growth ranking
+- Each row of the Top 10 tables includes a Badge δ with the previous rules.
+- Additional table: ** TOP 5 GROWTH (RANGE) ** For*records to my talks*.
+  - Columns: `Talk · Event · Records · δ`.
+  - Main order for δ descending absolute; Takes for δ% and then name.
+  - Placeholder: `Insufficient data to calculate trends in this range.
 
 ## Copys / UX
-- Badges: `nuevo`, `muestra baja`, `N/A (todo el evento)`.
-- Tooltip: `Comparado con {período anterior}`.
-- `aria-label` ejemplos: `Subió X% respecto al período anterior`, `Bajó…`.
+- Badges: `Nuevo`,` Sample low`, `n/a (the entire event)`.
+- Tooltip: `compared to {previous period}`.
+- `ARIA-LABEL` Examples:` X% rose about the previous period ', `` ``.
 
-## QA / Validaciones
-- Matriz de pruebas con ejemplos de `base=0`, `base < min-baseline`, caídas y crecimientos.
-- Confirmar que los Δ respetan el rango seleccionado y la zona horaria del evento.
-
+## Qa / Validations
+- Testing matrix with examples of `base = 0`,` base <min-basline`, falls and growths.
+- Confirm that the δ respect the selected range and the time zone of the event.

@@ -1,13 +1,13 @@
-# Historia de usuario — "Explorar y registrar charlas a mi ritmo"
+# User history - "Explore and record talks at my pace"
 
-Soy Javier. Desde mi laptop entro a EventFlow y veo de un vistazo las pistas y charlas disponibles. Marco como favoritas las que me interesan y mi agenda personal se actualiza al instante.
+I am Javier. From my laptop I enter Eventflow and see the clues and talks available. I frame as favorites that interest me and my personal agenda is updated instantly.
 
-Mientras navego puedo filtrar por tema, horario o ponente, y cada charla tiene su tarjeta con descripción, sala y un botón para sumarla o quitarla de mi lista. En móvil la vista se adapta y puedo reorganizar mi día con un pulgar.
+While I can filter by theme, schedule or speaker, and each talk has its card with description, room and a button to add or remove it from my list. On mobile view it adapts and I can reorganize my day with a thumb.
 
-Me siento dueño de mi agenda:
+I feel the owner of my agenda:
 
-- Veo toda la oferta sin perderme en menús.
-- Registro o quito charlas con un toque.
-- Mi plan se sincroniza en todos mis dispositivos.
+- I see the whole offer without losing myself in menus.
+- Registration or Quito talks with a touch.
+- My plan is synchronized in all my devices.
 
-Resultado: armo mi plan en minutos y sé exactamente dónde estar y cuándo.
+Result: Armo my plan in minutes and I know exactly where to be and when.

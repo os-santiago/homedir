@@ -1,19 +1,19 @@
-# Reglas de arquitectura (v1 · monorepo)
+# Architecture Rules (V1 · Monorepo)
 
-## Capas (paquetes)
-- `io.eventflow.api… | …web…` → UI/REST
-- `io.eventflow.app… | …service…` → aplicación/orquestación
-- `io.eventflow.domain…` → dominio (entidades/valor/reglas)
-- `io.eventflow.infra…` → persistencia / clientes externos
+## layers (packages)
+- `io.eventflow.api… | … Web… `→ IU/Rest
+- `io.eventflow.app… | … Service… `→ application/orchestration
+- `io.eventflow.domain…` → Domain (entities/value/rules)
+- `io.eventflow.infra…` → Persistence / External clients
 
-## Reglas bloqueantes
-1) Sin ciclos entre paquetes.
-2) Sin saltos críticos de capa: `api → infra` y `domain → infra` prohibidos.
-3) Sin estado global mutable (`public static` no-final).
+## Blockers
+1) Without cycles between packages.
+2) Without critical cape jumps: `API → Infra` and` Domain → Infra` prohibited.
+3) Without mutable global state (`public static` non-final).
 
-## Reglas informativas (no bloquean)
-- `api` no debería usar JPA/repos directamente.
-- `domain` no debería usar APIs web.
+## Informative rules (do not block)
+- `API` I shouldn't use JPa/Plant directly.
+- `Domain` I shouldn't use web APIS.
 
-## Excepciones
-- Solo con justificación y ticket; temporales.
+## Exceptions
+- Only with justification and ticket; temporal.

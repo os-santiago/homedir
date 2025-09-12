@@ -1,58 +1,58 @@
-# Métricas de uso (v1)
+# Use metrics (V1)
 
-El sistema registra eventos de interacción y los persiste de forma asíncrona en `data/metrics-v1.json`.
+The system records interaction events and persists them asynchronously in `data/metrics-v1.json`.
 
-## Eventos
+## Events
 
-- `page_view:{route}`
-- `event_view:{eventId}`
-- `talk_view:{talkId}` (deduplicado brevemente por sesión)
-- `talk_register:{talkId}` (idempotente por usuario+charla)
-- `stage_visit:{stageId}:{yyyy-mm-dd}` (zona horaria del evento)
-- `speaker_popularity:{speakerId}` (derivado de registros)
+- `Page_view: {route}`
+- `Event_view: {eventid}`
+- `Talk_view: {Talkid}` (briefly deduced per session)
+- `Talk_register: {Talkid}` (Idempotent per user+talk)
+-`Stage_visit: {Stageid}: {yyy-mm-dd}` (event hourly zone)
+- `Speaker_popularity: {Speakerid}` (record derivative)
 
-## Persistencia
+## Persistence
 
-Los contadores se mantienen en memoria y se guardan periódicamente en `data/metrics-v1.json` usando escrituras atómicas. El intervalo puede configurarse con `metrics.flush-interval` (por defecto 10s).
+The counters are kept in memory and are kept periodically in `data/metals-v1.json` using atomic writings. The interval can be configured with `metrics.flush-interval` (default 10s).
 
-## Validación local
+## Local validation
 
-1. Iniciar la aplicación:
-   ```bash
-   mvn -f quarkus-app/pom.xml quarkus:dev
-   ```
-2. Navegar por el sitio y registrar una charla.
-3. Ver archivo `quarkus-app/data/metrics-v1.json` para observar los contadores.
+1. Start the application:
+   `` Bash
+   mvn -f quarkus -app/pom.xml quarkus: dev
+   ``
+2. Navigate the site and record a talk.
+3. See file `quarkus -app/data/metrics-v1.json` to observe the counters.
 
-## Lectura en Admin → Métricas
+## Reading in admin → metrics
 
-La vista de administración lee directamente `data/metrics-v1.json` y muestra:
+The administration view directly reads `data/metrics-v1.json` and shows:
 
-- Tarjetas de resumen con vistas de eventos, charlas vistas, registros y visitas a escenarios.
-- Conversión global y asistentes esperados (aprox. suma de registros).
-- Tablas Top 10 de charlas, oradores y escenarios con mejor conversión.
-- Exportación a CSV del contenido visible.
+- Summary cards with events of events, talks views, records and visits to scenarios.
+- Global conversion and expected assistants (approx. Sum of records).
+- Top 10 of talks, speakers and scenarios with better conversion.
+- Export to CSV of visible content.
 
-Las claves se mapean a entidades existentes usando los servicios en memoria:
+The keys are mapped to existing entities using memory services:
 
-- `talk_*` → título de la charla (`EventService.findTalk`).
-- `speaker_popularity:*` → nombre del orador (`SpeakerService.getSpeaker`).
-- `stage_visit:*` → nombre del escenario (`EventService.findScenario`).
+- `Talk_*` → Title of the talk (`eventservice.findtalk`).
+- `Speaker_popularity:*` → Speaker's name (`Speakerservice.getspeaker`).
+- `Stage_visit:*` → stage name (`eventservice.findscenario`).
 
-### Conversión
+### Conversion
 
-- **Charlas:** `talk_register:{talkId} / talk_view:{talkId}`. Si las vistas son 0 se muestra "—".
-- **Evento:** se utiliza la política **A** (suma de registros / suma de vistas de sus charlas). La alternativa **B** (promedio simple por charla) se consideró pero no se utiliza actualmente.
-- **Escenarios y oradores:** agregados de las charlas asociadas.
+- ** Talks: ** `Talk_register: {Talkid} / talk_view: {talkid}`. If the views are 0 it is shown " -".
+- ** Event: ** The policy ** A ** (sum of records / sum of their talks) is used. The alternative ** B ** (simple average per talk) was considered but is not currently used.
+- ** Scenarios and speakers: ** Aggregates of the associated talks.
 
-Para evitar sesgos se aplica un umbral mínimo de vistas (`metrics.min-view-threshold`, default 20) para que una charla, escenario u orador aparezca en los rankings.
+To avoid biases, a minimum view of views is applied (`Metrics.min-vie-threshold`, Default 20) so that a talk, stage or speaker appears in the rankings.
 
-### Tendencias
+### Trends
 
-El cálculo de variaciones utiliza los parámetros:
+The calculation of variations uses the parameters:
 
-- `metrics.trend.min-baseline` (default 20): mínimo de la base para mostrar porcentajes.
-- `metrics.trend.decimals` (default 1): decimales cuando |Δ| < 10%.
+- `Metrics.trend.min-baseline` (Default 20): Minimum of the base to show percentages.
+- `Metrics.trend.decimals` (Default 1): Decimals when | δ | <10%.
 
 
-Si no hay datos suficientes el panel muestra un mensaje informativo en lugar de tablas vacías.
+If there is not enough data, the panel shows an informative message instead of empty tables.

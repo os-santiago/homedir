@@ -1,18 +1,18 @@
-# Secciones de inicio
+# Start sections
 
-La página de inicio ahora diferencia eventos en dos bloques:
+The home page now differentiates events in two blocks:
 
-## Eventos disponibles
-- Ordenados del más próximo al más lejano.
-- Clasificación automática según la fecha/hora de término del evento.
-- Badge `En curso` cuando el evento ya comenzó pero aún no finaliza.
-- Microcopy de inicio: `Comienza hoy`, `Comienza en X días` o `Fecha por confirmar`.
-- Estado vacío: *"No hay eventos próximos por ahora. Vuelve pronto 👀"*
+## Available events
+- Ordered from the closest to the furthest.
+- Automatic classification according to the date/time of the event.
+- Badge `in progress` when the event has already started but it still does not end.
+- Start Microcopy: `Start today's,` starts in X days `or` date to be confirmed.
+- Empty state: *"There are no next events for now. Come back 👀" *
 
-## Eventos pasados
-- Ordenados del más reciente al más antiguo.
-- Badge `Finalizado` para todos los eventos listados.
-- Se muestran con una apariencia equivalente a los eventos disponibles, pero en escala de grises para indicar que ya finalizaron.
-- Estado vacío: *"Aún no tenemos eventos anteriores."*
+## Past events
+- Ordered from the most recent to the oldest.
+- Badge `finished 'for all listed events.
+- They are shown with an appearance equivalent to the available events, but in gray scale to indicate that they have already finished.
+- Empty state: *"We still don't have previous events." *
 
-> Capturas antes/después pendientes.
+> Captures before/then pending.

@@ -1,13 +1,13 @@
-# Historia de usuario — "Confianza de extremo a extremo"
+# User history - "end -to -end trust"
 
-Soy Elena, encargada de DevOps. Cada vez que publicamos una versión, EventFlow genera SBOMs y firma las imágenes del contenedor. La pipeline escanea dependencias y me alerta si aparece una vulnerabilidad.
+I am Elena, in charge of Devops. Every time we publish a version, Eventflow generates Sboms and signs the images of the container. The pipeline scan an dependencies and alerts me if a vulnerability appears.
 
-Desde un panel puedo ver los reportes y compartirlos con auditorías externas. Sé exactamente qué librería usamos y qué versión.
+From a panel I can see the reports and share them with external audits. I know exactly what bookstore we use and what version.
 
-Me siento tranquila:
+I feel calm:
 
-- El código y las imágenes tienen trazabilidad.
-- Los problemas se detectan antes de llegar a producción.
-- Puedo probar que seguimos buenas prácticas de seguridad.
+- The code and images have traceability.
+- Problems are detected before reaching production.
+- I can prove that we follow good security practices.
 
-Resultado: entregamos una aplicación confiable sin sorpresas.
+Result: We deliver a reliable application without surprises.

@@ -1,13 +1,13 @@
-# Historia de usuario — "Entrar con mi cuenta Google en segundos"
+# User history - "Enter with my Google account in seconds"
 
-Soy María. Llego al sitio de EventFlow y en vez de crear otra contraseña, presiono "Continuar con Google". Autorizo y listo: ya estoy dentro con mi nombre y foto.
+I am Mary. I arrive at the Eventflow site and instead of creating another password, I press "Continue with Google". Authorize and ready: I ​​am already inside with my name and photo.
 
-Puedo revisar mis charlas guardadas o crear nuevas sin pasos extra. Si cierro sesión, sé que la próxima vez bastará un toque para volver.
+I can check my saved talks or create new ones without extra steps. If I close session, I know that next time a touch will suffice to return.
 
-Me siento sin fricción:
+I feel friction:
 
-- No recuerdo contraseñas.
-- Uso la misma identidad en todos mis dispositivos.
-- Puedo revocar el acceso desde Google cuando quiera.
+- I don't remember passwords.
+- I use the same identity in all my devices.
+- I can revoke access from Google whenever you want.
 
-Resultado: inicio rápido y seguro que me deja tiempo para lo importante.
+Result: Fast and sure start that leaves me time for the important.

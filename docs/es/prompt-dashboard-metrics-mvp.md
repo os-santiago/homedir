@@ -1,109 +1,107 @@
-# Prompt para Codex — Iteración 1 · Dashboard de Métricas (MVP)
+# Prompt for codex - Iteration 1 · Dashboard of metrics (MVP)
 
-## Objetivo (visión de negocio)
-Como administradora/or quiero un dashboard de Métricas simple y rápido que me muestre, de un vistazo, la actividad clave del sitio para tomar decisiones sin navegar múltiples pantallas. Debe cargar rápido, ser claro y no exponer PII.
+## Objective (Business Vision)
+As administrator/or I want a simple and fast metric dashboard that shows me, at a glance, the key activity of the site to make decisions without navigating multiple screens. You must load quickly, be clear and not expose PII.
 
-## ALCANCE — IMPLEMENTACIÓN (CÓDIGO EN LA APLICACIÓN)
+## Scope - Implementation (application code)
 
-1) Pantalla/ruta de Admin → “Métricas”
-   - Crear/actualizar la vista única de dashboard.
-   - Mostrar “Última actualización: hace X min” con base en el timestamp de datos mostrados (no del sistema).
-   - Skeleton loaders breves mientras se resuelven los datos.
+1) Display/Admin route → “metric”
+   - Create/update the unique view of Dashboard.
+   - Show “Last update: X min” based on the timestamp of data shown (not the system).
+   - Skeleton Loaders short while the data is resolved.
 
-2) Selector de rango global (aplica a TODO el dashboard)
-   - Opciones: Hoy / Últimos 7 días / Últimos 30 días / Todo el evento.
-   - Usar la misma zona horaria del evento.
-   - Al cambiar el rango, refrescar tarjetas y tablas sin navegación y sin bloquear la UI.
+2) Global range selector (applies to the entire Dashboard)
+   - Options: Today / last 7 days / last 30 days / the entire event.
+   - Use the same time zone of the event.
+   - When changing the range, refresh cards and tables without navigation and without blocking the UI.
 
-3) Tarjetas de resumen (fila superior)
-   - “Registros a Mis Charlas (rango)” — total dentro del rango.
-   - “Visitas a eventos (rango)” — total dentro del rango.
-   - “Visitas a inicio (rango)” — total dentro del rango.
-   - “Visitas a perfil de usuario (rango)” — total dentro del rango.
-   - “CTAs (rango)” — tres contadores visibles: Releases | Reportar issue | Ko-fi ☕.
-   - Debajo de cada tarjeta, texto secundario breve explicando qué se cuenta (sin tecnicismos).
-   - Estados vacíos: mostrar “0” y el texto aclaratorio (no ocultar la tarjeta).
+3) Summary cards (upper row)
+   - "Records to my talks (range)" - Total within the range.
+   - "Visits to events (range)" - Total within the range.
+   - "Visits at Start (Rank)" - Total within the range.
+   - "User profile visits (range)" - Total within the range.
+   - "Ctas (rank)" - Three visible counters: releases | Report ISSUE | Ko-fi ☕.
+   - Under each card, short secondary text explaining what is counted (without technicalities).
+   - Empty states: show “0” and the explanatory text (not hide the card).
 
-4) Tablas esenciales (Top 10, sin paginación)
-   - “Charlas con más registros (rango)” — Columnas: Charla · Evento · Registros.
-   - “Eventos más visitados (rango)” — Columnas: Evento · Visitas.
-   - “Speakers más visitados (rango)” — Columnas: Orador/a · Visitas a perfil.
-   - “Escenarios más visitados (rango)” — Columnas: Escenario · Evento · Visitas.
-   - Orden descendente por la métrica principal; máximo 10 filas.
-   - Placeholder cuando no haya datos: “Sin datos suficientes en este rango.”
+4) Essential tables (Top 10, without pagination)
+   - “Talks with more records (range)” - Columns: talk · event · records.
+   - “Most visited events (range)” - Columns: Event · Visits.
+   - “Speakers more visited (range)” - Columns: speaker · Profile visits.
+   - “Most visited scenarios (rank)” - Columns: scenario · event · Visits.
+   - Descending order for the main metric; Maximum 10 rows.
+   - Placeholder when there is no data: "Without sufficient data in this range."
 
-5) Adaptadores de datos (solo lectura; sin PII)
-   - Conectar con las fuentes de métricas existentes y aplicar el rango seleccionado.
-   - Mapear IDs a nombres legibles (charla, evento, orador, escenario) usando servicios/domino existentes.
-   - Asegurar agregaciones correctas por rango para cada tarjeta/tabla.
-   - Performance: evitar N+1; realizar una sola lectura por refresh (reutilizar snapshot/caché si existe).
-   - No introducir nuevos identificadores personales ni datos sensibles.
+5) Data adapters (reading only; without PII)
+   - Connect with existing metric sources and apply the selected range.
+   - Mapear IDS to legible names (talk, event, speaker, stage) using existing services/dominoes.
+   - Ensure correct aggregations by range for each card/table.
+   - Performance: Avoid n+1; Make a single reading by refresh (reuse Snapshot/cache if it exists).
+   - Do not enter new personal identifiers or sensitive data.
 
-6) Estados y errores de presentación
-   - Mostrar placeholders y mensajes claros ante ausencia de datos.
-   - Manejo amable de errores de lectura (mensaje no técnico; no bloquear toda la vista).
+6) Presentation states and errors
+   - Show Placeholders and clear messages in the absence of data.
+   - Friendly management of reading errors (non -technical message; not blocking all the view).
 
-7) Accesibilidad y responsive (mínimos)
-   - Etiquetas accesibles/aria en tarjetas y tablas.
-   - Orden de tabulación lógico.
-   - Correcto comportamiento en pantallas medianas (laptop).
-   - Añadir data-testids para QA (ej.: `data-testid="metrics-card-registrations"`).
+7) Accessibility and Responsive (Minimum)
+   - Accessible labels/ARIA on cards and tables.
+   - Logical tabing order.
+   - Correct behavior in medium screens (laptop).
+   -Add Data-Testids for Qa (Ex.: `Data-Testid =" Metrics-Card-Registrations "`).
 
-8) Rendimiento (presupuesto de producto)
-   - Carga inicial percibida < 300 ms con datos típicos.
-   - Transiciones de rango fluidas sin jank.
+8) Performance (Product Budget)
+   - Initial load perceived <300 ms with typical data.
+   - Fluid range transitions without jank.
 
-## ALCANCE — DOCUMENTACIÓN (DOCS A REGISTRAR)
+## Scope - Documentation (docs to register)
 
-D1) Definiciones funcionales (diccionario de métricas)
-- “Registros a Mis Charlas”: total de registros confirmados a charlas dentro del rango.
-- “Visitas a eventos”: suma de vistas a páginas de detalle/listado de cada evento dentro del rango.
-- “Visitas a inicio”: vistas de la página de inicio dentro del rango.
-- “Visitas a perfil de usuario”: vistas a la sección de perfil (agregado, no PII).
-- “Speakers más visitados”: vistas al perfil del orador/a dentro del rango.
-- “Escenarios más visitados”: vistas al escenario (y su evento) dentro del rango.
-- “CTAs”: clics en “Releases”, “Reportar issue”, “Ko-fi”.
+D1) Functional definitions (metric dictionary)
+- "Records to my talks": Total records confirmed to talks within the range.
+- “Visits to events”: Sum of views of detail/listing pages of each event within the range.
+- “Visits at Start”: Views of the home page within the range.
+- "User profile visits": views of the profile section (aggregate, no PII).
+- "Speakers most visited": views of the speaker profile within the range.
+- "Most visited scenarios": views of the stage (and its event) within the range.
+- "Ctas": click on "Releases", "Report Issue", "Ko-Fi".
 
-D2) Guía de uso del dashboard (README corto en `docs/`)
-- Qué muestra cada tarjeta/tabla.
-- Cómo funcionan los rangos y la “Última actualización”.
-- Estados comunes (“Sin datos suficientes…”).
+D2) Dashboard use guide (short readme in `docs/`)
+- What shows each card/table.
+- How ranges and "last update" work.
+- Common states ("without sufficient data ...").
 
-D3) Copys/UX (glosario de textos)
-- Títulos/etiquetas de tarjetas y tablas.
-- Mensajes de estado (loaders, sin datos, error no técnico).
+D3) Copys/UX (text glossary)- Titles/card labels and tables.
+- State messages (Loaders, without data, non -technical error).
 
-D4) Criterios de rendimiento y privacidad
-- Presupuesto de carga (<300 ms).
-- Confirmación de “sin PII”.
-- Buenas prácticas de agregación/lectura.
+D4) Performance and privacy criteria
+- Load budget (<300 ms).
+- Confirmation of "Sin Pii".
+- Good aggregation/reading practices.
 
-## CRITERIOS DE ACEPTACIÓN (DoD)
+## Acceptance criteria (DOD)
 
-— Código —
-- CA1: Tarjetas muestran totales correctos según el rango seleccionado.
-- CA2: Tablas Top 10 ordenadas por su métrica; máximo 10 filas; placeholder cuando aplique.
-- CA3: Cambiar rango refresca tarjetas y tablas de forma consistente y fluida.
-- CA4: “Última actualización” se calcula con base en los datos mostrados y es legible (“hace X min”).
-- CA5: Carga inicial < 300 ms con datos típicos; transiciones sin bloqueos.
-- CA6: Sin PII en UI; accesibilidad mínima (aria, tab-order, contraste).
+- Code -
+- CA1: Cards show correct totals according to the selected range.
+- CA2: Tables Top 10 ordered by its metric; Maximum 10 rows; Placeholder When applying.
+- CA3: Change rank cool cards and tables consistently and fluidly.
+- CA4: “Last update” is calculated based on the data shown and is readable (“MIN MIN”).
+- CA5: Initial load <300 ms with typical data; transitions without blockages.
+- Ca6: Without Pii in UI; Minimum accessibility (ARIA, Tab-Aorder, contrast).
 
-— Docs —
-- CA7: Existe diccionario de métricas actualizado.
-- CA8: Existe guía breve de uso del dashboard en `docs/`.
-- CA9: Copys/UX documentados para mantener consistencia.
+- Docs -
+- CA7: There is an updated metric dictionary.
+- CA8: There is a brief guide for the use of the dashboard in `docs/`.
+- CA9: Copys/UX documented to maintain consistency.
 
-## PRUEBAS FUNCIONALES (USUARIO/OPERACIÓN)
-- Cambiar entre Hoy / 7 días / 30 días / Todo el evento → cifras cambian coherentemente.
-- Rango sin actividad en alguna categoría → ver “Sin datos suficientes” SOLO en esa tabla.
-- Verificar que sumas y totales son coherentes por rango.
-- Validar accesibilidad básica (tab-order, labels) y responsive en laptop.
-- Verificar que “Actualizado hace X min” cambia tras un nuevo refresh.
+## Functional tests (user/operation)
+- Change between today / 7 days / 30 days / the entire event → figures change consistently.
+- Rank without activity in any category → See “without sufficient data” only in that table.
+- Verify that sums and total are consistent by range.
+- Validate basic accessibility (Tab-Aorder, Labels) and Responsive in Laptop.
+- Verify that "updated x min" changes after a new refresh.
 
-## FUERA DE ALCANCE (Iteración 1)
-- Acciones “Ver” hacia pantallas de detalle, búsqueda y export CSV (Iteración 2).
-- Tendencias (%Δ), comparativas y picos (Iteración 3).
-- Segmentación por evento/escenario/speaker adicional (Iteración 4).
-- Insights de CTAs extendidos (históricos con medias/desviaciones) (Iteración 5).
-- Estado de salud del módulo de datos (Iteración 6).
-
+## Out of reach (iteration 1)
+- "See" actions to detail, search and export screens (iteration 2).
+- Trends (%δ), comparative and peaks (iteration 3).
+- Additional Scenario/Scenario/Steaker (Iteration 4).
+- Insights of extended ctas (historical with means/deviations) (iteration 5).
+- Health status of the data module (iteration 6).

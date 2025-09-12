@@ -1,48 +1,48 @@
 # Sistema de estilos
 
-Se introdujo un template de estilos móvil con tokens y utilidades reutilizables.
+A mobile styles were introduced with tokens and reusable utilities.
 
 ## Tokens
 
-| Nombre | Valor |
+| Name | Value |
 | ------ | ----- |
-| `--sp-1` | 4px |
-| `--sp-2` | 8px |
-| `--sp-3` | 12px |
-| `--sp-4` | 16px |
-| `--sp-6` | 24px |
-| `--sp-8` | 32px |
-| `--z-dropdown` | 1000 |
-| `--z-sticky` | 1100 |
-| `--z-modal` | 1200 |
-| `--motion-fast` | 120ms |
-| `--motion-base` | 200ms |
-| `--motion-gentle` | 280ms |
-| `--motion-modal` | 320ms |
-| `--ease-standard` | `cubic-bezier(0.2,0,0,1)` |
+| `--Sp-1` | 4px |
+| `--SP-2` | 8px |
+| `--SP-3` | 12px |
+| `--SP-4` | 16px |
+| `--SP-6` | 24px |
+| `--SP-8` | 32px |
+| `--Z-DopDown` | 1000 |
+| `--Z-STicky` | 1100 |
+| `--Z-modal` | 1200 |
+| `-Motion-Fast` | 120ms |
+| `-Motion-Base` | 200ms |
+| `-Motion-Gentle` | 280ms |
+| `-Motion-Modal` | 320ms |
+| `-Ease-Standard` | `Cubic-Bezier (0.2,0,0,1)` |
 
-## Utilidades
+## Utilities
 
-- `.u-p-*` / `.u-mb-*` para espaciado.
-- `.u-elev-*` para sombras.
-- `.u-truncate`, `.u-clamp-2` para truncado.
-- `.link-*` para enlaces accesibles con targets táctiles ≥ 44px.
-- `.animate-press` para micro‑interacciones.
+-`.U-P-*` / `.U-MB-*` for spacing.
+-`.u-elev-*` for shadows.
+-`
+- `.Link-*` for accessible links with tactile targets ≥ 44px.
+- `.Animate-Press` for micro-interactions.
 
-Ejemplo de enlace externo:
+External link example:
 
-```html
-<a class="link link-external link-tap" href="https://example.com" target="_blank" rel="noopener">Doc ↗</a>
-```
+`` html
+<a class = "link-external link-tap" href = "https://example.com" target = "_ blank" rel = "noopener"> doc ↗ </a>
+``
 
-## Antes / Después
+## Before / after
 
-| Vista | Antes | Después |
-|-------|-------|---------|
-| Métricas admin | ![Antes](admin-metrics-before.png) | ![Después](admin-metrics-after.png) |
+| View | Before | After |
+| ------ | ------ | -------- |
+| Metrics admin | ! [Before] (admin-metrics-before.png) | ! [After] (admin-metrics-after.png) |
 
-## Guía rápida
+## Quick guide
 
-- Incluir `styles.css` junto al HTML.
-- Respetar `prefers-reduced-motion` para usuarios que lo soliciten.
-- Evitar desbordes horizontales usando `.container` y utilidades de truncado.
+- Include `Styles.CSS` next to HTML.
+-Respect `Prefers-Deduced-Motion` for users who request it.
+- Avoid horizontal overflows using `.Container` and truncated utilities.

@@ -1,24 +1,24 @@
-# Diccionario de métricas del dashboard
+# Dashboard metric dictionary
 
-Este documento describe las métricas expuestas en el dashboard de administración y cómo se calculan.
+This document describes the metrics set forth in the administration dashboard and how they are calculated.
 
-## Registros a Mis Charlas
-Total de registros confirmados a charlas dentro del rango seleccionado.
+## Records to my talks
+Total records confirmed to talks within the selected range.
 
-## Visitas a eventos
-Suma de vistas a páginas de detalle o listado de cada evento dentro del rango.
+## Visits to events
+Sum of views to detail or listing pages of each event within the range.
 
-## Visitas a inicio
-Cantidad de vistas de la página de inicio del sitio dentro del rango.
+## Visits at home
+Number of views of the site home page inside the range.
 
-## Visitas a perfil de usuario
-Vistas a la sección de perfil de usuario, agregadas y sin incluir datos personales.
+## Visits to User Profile
+Views to the user profile section, added and not including personal data.
 
-## Speakers más visitados
-Número de vistas al perfil de cada orador u oradora dentro del rango.
+## Speakers most visited
+Number of views to the profile of each speaker or speaker within the range.
 
-## Escenarios más visitados
-Vistas a cada escenario y su evento asociado dentro del rango.
+## Most visited scenarios
+Views of each scenario and its associated event within the range.
 
-## CTAs
-Conteos de clics en los botones: Releases, Reportar issue y Ko-fi.
+## Ctas
+Click counts on the buttons: Releases, Report Issue and Ko-Fi.

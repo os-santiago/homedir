@@ -1,133 +1,130 @@
-# EventFlow — Historia de Desarrollo  
-*De cero a producción con Quarkus + OIDC + Qute, iterando con asistencia de IA.*
+# Eventflow - Development History  
+*From zero to production with quarkus + oidc + qute
 
 ---
 
-## 1) Historia desde el punto de vista de **requerimientos de usuario**
+## 1) History from the point of view of ** User Requirements **
 
-### Visión
-- **EventFlow** nace como una app libre para *descubrir eventos y navegar su contenido* (escenarios, charlas, horarios) de forma **simple, moderna y muy visual**.
-- Priorizamos: **claridad de información**, **navegación intuitiva**, **bajo impacto** (costo/huella) y **rapidez de entrega**.
+### Vision
+- ** Eventflow ** It is born as a free app to*discover events and navigate its content*(scenarios, talks, schedules) in a simple, modern and very visual way **.
+- We prioritize: ** Information clarity **, ** Intuitive navigation **, ** Low impact ** (Cost/footprint) and ** Speed ​​delivery **.
 
-### Épicas y funcionalidades
-- **Descubrimiento & navegación**
-  - Home con *tarjetas de evento*, ordenadas por proximidad temporal (“Faltan X días”).
-  - Detalle de evento con **agenda por día**, escenarios y charlas enlazadas.
-  - Flujo bidireccional: *Evento* ⇄ *Escenario* ⇄ *Charla* (enlaces cruzados).
-  - Botón “**Cómo llegar**”: muestra imagen del mapa del escenario.
-- **Perfil y personalización**
-  - “**Mis Charlas**”: registro personal de charlas favoritas.
-  - Estados por tiempo: *A tiempo* / *Pronto* / *En curso* / *Finalizada*.
-  - Mejoras UX: feedback de éxito/error, botón “Ir a Mis Charlas”.
-- **Administración**
-  - CRUD de **Eventos**, **Escenarios** y **Charlas** (acceso restringido por admin-list).
-  - Auto-ID por timestamp (no pedir ID).
-  - **Fecha del evento** administrable; inicio/fin del evento calculados desde la agenda.
-  - **mapUrl** administrable (link “Ver mapa” en el detalle).
-  - Importar/Exportar datos: pasó a **Backup/Restore** (ZIP) cuando agregamos persistencia.
-- **Oradores (Ponentes)**
-  - Modelo reutilizable: *Orador ↔ Charla*; una charla pertenece a un orador; una charla puede incluirse en múltiples eventos.
-  - Detalle de orador con biografía y charlas.
-- **UX/UI**
-  - Eliminación de entradas redundantes del menú (p. ej. “Eventos” si Home ya los muestra).
-  - Header con **logos** (EventFlow + “powered by OpenSourceSantiago”).
-  - **Project Header** (dashboard de estado): versión, releases, issues y Ko-fi.
-  - Home con *timeline* y layout coherente con la identidad (agua/viento, “code snippets”, consola/chat).
-
----
-
-## 2) Historia desde el punto de vista de **evolución técnica**
-
-### Autenticación & autorización
-- **OIDC con Google**  
-  - Incidentes iniciales: `invalid_client`, `redirect_uri_mismatch`, JWKS y scopes.
-  - Ajustes de Quarkus OIDC: `redirect-path`, `scopes=openId profile email`, corrección de callback y obtención fiable de *email* y *claims* (desde **ID Token** o *userinfo*).
-  - Logout: corrección de flujos y pruebas (303 esperado, cabecera `Location`).
-
-### Renderizado & templates (Qute)
-- Errores típicos resueltos:
-  - Tags mal cerrados (`{#main}` / `{/main}`, `{#raw}` / `{/raw}`).
-  - Doble `{#insert}` y *partials* con `include` + *slots*.
-  - Fugas de lógica al HTML (aparecía `{:else if ...}` en la vista): limpieza de condicionales.
-- Refactor: *partials* reutilizables y estilos consistentes.
-
-### Datos & persistencia
-- **Fase 1 (in-memory)**  
-  - `EventService` con `ConcurrentHashMap`.  
-  - Problema: en clúster/escala o reinicios, los datos desaparecían → *export vacíos* y vistas inconsistentes.
-- **Fase 2 (persistencia ligera)**
-  - **PVC de Kubernetes** como directorio de datos de la app.
-  - Capa asíncrona de **cola de persistencia**: cada cambio en Event/Orador/Charla se serializa a JSON (JSON-B/Jackson soportados por Quarkus) y se escribe a disco.
-  - **Carga al arranque**: bootstrap de datos desde el PVC y *logs* explícitos del proceso.
-  - **Backup/Restore manual**: ZIP de la última foto de datos y restauración segura (reemplazo atómico; validaciones y logs).
-  - Dashboard admin: métrica simple de espacio disponible y alertas básicas.
-- **Git sync**  
-  - Intento inicial (JGit) para “eventos como código” → bloqueado por **errores nativos** (Mandrel/GraalVM) y configuración `--initialize-at-run-time` frágil.  
-  - Decisión: **retirar Git** del runtime (v2.0.0) y centrarnos en **persistencia local + backup**.
-
-### JSON y librerías
-- Uso de **JSON-B (Yasson)** o **Jackson** (ambas soportadas en Quarkus + Java 21).  
-- Buenas prácticas:
-  - DTOs como *POJOs* o `record`.
-  - `java.time` (`LocalDateTime`, `LocalTime`) con formatos consistentes.
-  - `fail-on-unknown` según caso de compatibilidad; incluir solo non-null si aplica.
-  - Validación con Hibernate Validator (`@NotNull`, `@Email`, etc.).
-  - Tests con `quarkus-junit5` + `rest-assured` para serialización y endpoints.
-
-### Observabilidad & calidad
-- Reducción de *spam* de logs irrelevantes.
-- **Logs de pasos críticos** con clase, método y objetivo (p. ej., “PersistQueue.save(eventId=…) ok”).
-- Página admin de **estado** (carga inicial, errores de persistencia, métricas).
-- Revisión de *dead code*, duplicaciones (`fillDefaults`), uso seguro de streams/IO (try-with-resources).
-
-### CI/CD y flujo GitHub
-- Scripts `gh` para *issues*, *branches* y *PRs* desde PowerShell.
-- Reversiones y *tags*: volver a `v1.1.0` como base estable y marcar `v2.0.0` sin Git.
-- Problemas de red en `mvn test` → mitigaciones (repos locales, reintentos, flags).
+### epic and functionalities
+- ** Discovery & Navigation **
+  - Home with *event cards *, ordered by temporal proximity ("missing for days").
+  - Event detail with ** Agenda per day **, scenarios and walked talks.
+  - Bidirectional flow: * event * ⇄ * scenario * ⇄ * talk * (cross bonds).
+  - Button "** How to get **": show image of the stage map.
+- ** Profile and customization **
+  - "** My talks **": Personal record of favorite talks.
+  - states for time: *on time * / * / * / *in progress * / *finished *.
+  - UX improvements: success/error feedback, “Go to my talks” button.
+- **Administration**
+  - Crud of ** Events **, ** Scenarios ** and ** Talks ** (Access restricted by admin-list).
+  - Auto-ID by Timestamp (not asking ID).
+  - ** Event date ** Administrable; Home/End of the event calculated from the agenda.
+  - ** Mapurl ** Administrable (Link “View Map” in Detail).
+  - Import/export data: went to ** backup/restore ** (zip) when we add persistence.
+- ** Speakers (speakers) **
+  - Reusable model: *Speaker ↔ Talk *; A talk belongs to a speaker; A talk can be included in multiple events.
+  - Speaker detail with biography and talks.
+- ** UX/UI **
+  - Elimination of redundant entries from the menu (eg "events" if I have shown them).
+  - Header with ** Logos ** (Eventflow + "Powered by Opensourcesantiago").
+  - ** Project Header ** (State Dashboard): version, releases, ISSUES and KO-FI.
+  - Home with * Timeline * and layout consistent with identity (water/wind, "code snippets", console/chat).
 
 ---
 
-## 3) Historia desde el punto de vista de **desarrollo asistido por IA (Codex/ChatGPT)**
+## 2) History from the point of view of ** Technical evolution **
 
-### Lo que **funcionó bien**
-- **Iteraciones cortas y enfocadas**: prompts por *issue* con *Objetivo/Alcance/Archivos/Criterios de aceptación/Pruebas*.  
-- **Prompts “estilo PRD”** (requisitos de usuario): evitamos imponer soluciones; describimos resultados observables.
-- **Diagnóstico por logs**: incluir *stack traces*, URLs exactas, payloads y *headers* ayudó a cerrar incidentes rápido.
-- **Plantillas de prompt para UI**: especificar *paths*, *clases/IDs CSS*, “no hacer”, *responsive* y *accesibilidad*.
-- **Desambiguación de OIDC**: listar scopes, callback, `redirect-path`, cómo sacar claims del **ID Token** y *userinfo*.
+### Authentication & Authorization
+- ** Oidc with Google **  
+  - Initial incidents: `invalid_client`,` ~ redirect_uri_mismatch`, jwks and scopes.
+  - Quarkus oidc settings: `redirect-path`,` scopes = openid profile email`, callback correction and reliable obtaining*email*and*claims*(from ** id token ** or*userinfo*).
+  - Logout: correction of flows and tests (303 expected, head `location`).
 
-### Lo que **no funcionó bien**
-- **Prompts “megapaquete”**: demasiados cambios en uno → regresiones y *loops* de incidentes.  
-- **Suposiciones técnicas** en requerimientos de usuario: Qute se rompía por pequeños detalles (tags, inserts).  
-- **Persistir en Git** bajo *native image*: se volvió un callejón con JGit.  
-- **Ambiente ≠ local**: *redirect_uri*, *JWKS*, */q/oauth2/callback*, *Secure cookies*… variaban entre dev/prod.
+### Rendered & Templates (QUE)
+- Typical errors resolved:
+  - Badly closed tags (`{#main}` / `{ / main}` `{#raw}` / `{ / raw}`).
+  - Double `{#insert}` and *partials *with `include` + *slots *.
+  - Logic leaks to HTML (appeared `{: ELSE IF ...}` in view): Conditional cleaning.
+- Refactor: * partials * reusable and consistent styles.
 
-### Aprendizajes (cómo pedir mejor)
-- **Formato recomendado de prompt**
-  1. **Objetivo** (qué cambia para el usuario).
-  2. **Alcance** (qué sí / qué no toca).
-  3. **Archivos y rutas** exactas a editar/crear.
-  4. **Requisitos visuales** (layout, componentes, estilos, responsive).
-  5. **Criterios de aceptación** con ejemplos concretos.
-  6. **Pruebas manuales** y *reglas de no regresión*.
-  7. **No hacer** (explícito).
-- **Separar incidentes de features**: primero estabilizar (errores 500, plantillas), luego UI/UX.
-- **Logs accionables**: una línea por paso crítico, con *contexto* (clase/método/IDs).
-- **Reversión rápida**: si un hilo técnico (p. ej. JGit nativo) se empantana, *retirar y seguir*; documentar como deuda.
-- **Datos realistas**: para vistas y validaciones, proveer ejemplos (evento con 2 días, 3 escenarios, 5 charlas).
+### Data & Persistence
+- ** PHASE 1 (IN-MEMORY) **  
+  - `EntService` with` concurrenthashmap`.  
+  - Problem: In cluster/scale or reinforcements, the data disappeared → * export emptiness * and inconsistent views.
+- ** Phase 2 (light persistence) **
+  - ** PVC of Kubernetes ** as app directory of the app.
+  - Asynchronous layer of ** Persistence tail **: Each change in event/speaker/talk is serialized to Json (Json-B/Jackson supported by Quarkus) and is written to disk.
+  - ** Load to the start **: Bootstrap of data from the PVC and*Logs*explicit of the process.
+  - ** Backup/Restore Manual **: Zip of the last data and safe restoration photo (atomic replacement; validations and logs).
+  - Dashboard Admin: Simple metric of available space and basic alerts.
+- ** Git Sync **  
+  -Initial attempt (JGIT) for “events such as code” → blocked by ** native errors ** (Mandrel/Graralvm) and `` `` `` `` `` `` fragile `` `` `` configuration.  
+  - Decision: ** Remove git ** from the Runtime (v2.0.0) and focus on ** local persistence + backup **.
 
-### Playbook para futuras iteraciones
-- **Checklists** iniciales (OIDC, Qute, persistencia, rutas).
-- **Ramas cortas** + PRs chicos con *review checklist* (accesibilidad, responsive, logs).
-- **Feature flags** para cambios de navegación y layouts.
-- **Backups y migraciones**: versión de datos alineada con versión de app (compatibilidad).
-- **Trazabilidad de UX**: cada iteración parte de un *user story* y termina con *criterios checkeados* en prod.
+### JSON and LIBRERIAS- Use of ** JSON-B (Yasson) ** O ** Jackson ** (both supported in Quarkus + Java 21).  
+- Good practices:
+  - Dtos like * Pojos * o `Record`.
+  - `Java.time` (` `localdatetime`,` localtime`) with consistent formats.
+  -`Fail-on-undaknown` as case for compatibility; Include only non-null if applied.
+  - Validation with Hibernate Validator (`@notnull`,`@email`, etc.).
+  -Tests with `quarkus-junit5` +` rest-over` for serialization and endpoints.
+
+### Observability & Quality
+- Reduction of * spam * of irrelevant logs.
+- ** Logs of critical steps ** with class, method and objective (e.g., “persist.save (eventid =…) ok”).
+- Page admin of ** State ** (initial load, persistence errors, metrics).
+-Review of *Dead Code *, duplications (`filldefaults`), safe streams/io use (try-with-resource).
+
+### Ci/CD and GITHUB FLOW
+- Scripts `gh` for *issues *, *branches *and *PRS *from Powershell.
+- Reversions and *tags *: return to `v1.1.0` as a stable base and mark` v2.0.0` without git.
+- Network problems in `MVN test` → mitigations (local rests, reintents, flags).
 
 ---
 
-## Cierre (estado actual)
-- Versión estable sin Git en runtime, con **persistencia local** (PVC) y **backup/restore** manual.
-- UX más clara: Home como hub de eventos, **Project Header** informativo, navegación simple Evento ⇄ Escenario ⇄ Charla, “Mis Charlas” con feedback y filtros.
-- Base sólida para seguir: **Oradores** reutilizables, **agenda** precisa basada en fecha del evento, y **observabilidad** mínima lista.
+## 3) History from the point of view of ** Development assisted by Ia (codex/chatgpt) **
 
-**Siguiente foco**: pulir “Mis Eventos/Mis Charlas”, completar administración de Oradores↔Charlas reutilizables, reforzar pruebas E2E y accesibilidad, y continuar con mejoras visuales incrementales sin romper el flujo simple del sitio.
+### what ** worked well **
+- ** Short and focused iterations **: Prompts by*ISSUE*With*Objective/Scope/Files/Acceptance/Testing Criteria*.  
+- ** Prompts “PRD style” ** (user requirements): We avoid imposing solutions; We describe observable results.
+- ** Log diagnosis **: Include*Stack traces*, exact urls, payloads and*Headers*helped close rapid incidents.
+- ** Prompt templates for UI **: specify*paths*,*classes/ids css*, "do not do",*responsive*and*accessibility*.
+- ** Oidc Disambiguation **: Listar Scopes, Callback, `Redirect-Path`, how to get Claims out of ** ID token ** and*userinfo*.
+
+### what ** did not work well **
+- ** Prompts “Megapaque” **: Too many changes in one → regressions and*loops*of incidents.  
+- ** Technical assumptions ** In user requirements: QTE was broken by small details (Tags, Inserts).  
+-*  
+- ** Local environment **:*redirect_uri*,*jwks*,*/q/oauth2/callback*,*secure cookies*… they varied between DEV/prod.
+
+### Learnings (how to ask for better)
+- ** Recommended prompt format **
+  1. ** Objective ** (What changes for the user).
+  2. ** SCOPE ** (What if / what does not touch).
+  3. ** Files and routes ** Exact edit/create.
+  4. ** Visual requirements ** (Layout, components, styles, responsive).
+  5. ** Acceptance criteria ** with concrete examples.
+  6. ** Manual tests ** and*rules of non -regression*.
+  7. ** Do not do ** (explicit).
+- ** Separate features incidents **: first stabilize (errors 500, templates), then UI/UX.
+- ** ACTIONABLE LOGS **: A line by critical step, with*context*(class/method/ids).
+- ** Rapid reversion **: If a technical thread (eg native JGIT) is soaked,*withdraw and continue*; Document as debt.
+- ** Realistic data **: For views and validations, provide examples (event with 2 days, 3 scenarios, 5 talks).
+
+### Playbook for future iterations
+- ** Checklists ** Initials (Oidc, Qte, Persistence, Routes).
+- ** Short branches ** + PRS guys with*Review Checklist*(Accessibility, Responsive, Logs).
+- ** Feature Flags ** for navigation changes and layouts.
+- ** Backups and migrations **: Data version aligned with APP version (compatibility).
+- ** UX traceability **: Each iteration starts from a*User Story*and ends with*Checked criteria*in Prod.
+
+---
+
+## Closing (current state)
+- Stable version without git in runtime, with ** local persistence ** (PVC) and ** backup/restore ** manual.
+- Lighter UX: Home as Event Hub, ** Project Header ** Informative, Simple Navigation Event ⇄ Scenario ⇄ Talk, “My talks” with feedback and filters.
+- Solid base to follow: ** reusable speakers **, ** AGENDA ** Precise based on the date of the event, and ** Observability ** Minimum List.** Next focus **: polish “my events/my talks”, complete speaker administration↔ reusable, reinforce E2E and accessibility tests, and continue with incremental visual improvements without breaking the simple flow of the site.

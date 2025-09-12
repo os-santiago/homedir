@@ -1,14 +1,14 @@
-# Navegación móvil y accesibilidad
+# Mobile navigation and accessibility
 
-Se añadió soporte responsivo para el header y el menú principal. La navegación ahora funciona correctamente en pantallas pequeñas y mantiene contraste y foco visible.
+Responsible support for the Header and the main menu was added. Navigation now works correctly on small screens and maintains visible contrast and focus.
 
-## Checklist de accesibilidad
+## Accessibility Checklist
 
-- [x] Botón hamburger con `aria-controls` y `aria-expanded`.
-- [x] Navegación operable con teclado y lectores de pantalla.
-- [x] Contraste AA para enlaces y botones.
-- [x] Estados de foco visibles en header y menú.
+-[x] Hamburger button with `Aria-Controls` and` Aria-Expanded`.
+- [x] Operable navigation with keyboard and screen readers.
+- [x] AA contrast for links and buttons.
+- [X] Visible focus states in Header and Menu.
 
-## Capturas
+## Captures
 
-Las capturas antes/después se almacenan externamente.
+The catches before/then are stored externally.

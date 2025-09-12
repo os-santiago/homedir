@@ -1,29 +1,32 @@
+<<<<<<<< HEAD:docs/es/user-data.md
 # Datos de Usuario — Persistencia, Capacidad y Alto Rendimiento (v1)
+========
+# User Data - Persistence, Capacity and High Performance (V1)
+>>>>>>>> b60f5adbac7165f510c63f156fe57b324b2e59b0:docs/en/user-data.md
 
-Este documento resume las capacidades realmente implementadas para la persistencia de charlas y eventos registrados por los usuarios.
+This document summarizes the capacities really implemented for the persistence of talks and events registered by users.
 
-## Alcance actual
+## Current scope
 
-- **Persistencia asíncrona.** Los eventos, oradores y agendas de usuario se guardan en archivos JSON mediante una cola de un solo escritor con escrituras atómicas y reintentos. Si la cola se llena, las escrituras se descartan y se registra el error.
-- **Carga del último año.** Al iniciar la aplicación se determina el año más reciente disponible y se carga en memoria la agenda correspondiente.
-- **Lecturas desde memoria.** Las consultas se responden desde un _snapshot_ en memoria. La primera lectura abre una ventana de refresco de 1–2 s que coalesce múltiples solicitudes en un solo acceso a disco.
-- **Histórico bajo demanda.** Existe soporte a nivel de servicio para cargar o liberar años anteriores (`loadHistorical` / `unloadHistorical`) sujeto a evaluación de capacidad, aunque aún no hay interfaz de usuario.
-- **Admisión por capacidad.** Antes de acceder a rutas privadas se verifica memoria y espacio en disco; si el sistema está saturado se responde con “Debido a alta demanda, no podemos gestionar tus datos en este momento. Inténtalo más tarde.”
-- **Panel de capacidad.** En `/private/admin/capacity` se muestran el modo actual, uso de memoria y disco, y métricas de lecturas y escrituras.
+- ** Asynchronous persistence. ** User's events, speakers and agendas are saved in JSON files through a single writer with atomic writings and reintent. If the tail is filled, the Scriptures are discarded and the error is recorded.
+- ** Load of the last year. ** At the beginning of the application the most recent year available and the corresponding agenda is loaded in memory.
+- ** Readings from memory. ** The consultations are answered from a _snapshot_ in memory. The first reading opens a 1–2S soda window that coalesce multiple requests in a single access to disc.
+- ** Historical on demand. ** There is support at the service level to load or release previous years (`Loadhistorical` /` unloadhistorical`) subject to capacity evaluation, although there is still no user interface.
+- ** Admission for capacity. ** Before accessing private routes, memory and disk space are verified; If the system is saturated, it is answered with "due to high demand, we cannot manage your data at this time. Try it later."
+- ** Capacity panel. ** In `/Private/admin/capacity` the current mode, memory and disk, and readings and writings metrics are shown.
 
-## Configuración relevante
+## Relevant configuration
 
-```properties
-read.window=PT2S        # ventana de refresco para lecturas
-read.max-stale=PT10S    # máximo tiempo de datos obsoletos
-persist.queue.max=10000 # tamaño máximo de la cola de escrituras
-```
+`` Properties
+Read.window = PT2S # refresh window for readings
+Read.Max-Stale = PT10S # maximum obsolete data time
+persist.
+``
 
-Los datos se almacenan en la carpeta `data/` y las escrituras son atómicas (`archivo.tmp → replace`) con hasta tres reintentos.
+The data is stored in the `data/` folder and the deeds are atomic (`file.tmp → replace`) with up to three retents.
 
-## Fuera de alcance en v1
+## Out of V1 reach
 
-- Interfaz gráfica para recuperar histórico por año.
-- Edición de presupuestos de memoria o disco desde el panel de capacidad.
-- Alertas externas cuando la capacidad se satura.
-
+- Graphic interface to recover historical per year.
+- Edition of memory or disc budgets from the capacity panel.
+- External alerts when the capacity is saturated.

@@ -1,13 +1,13 @@
-# Historia de usuario — "Panel de control seguro para organizadores"
+# User history - "Insurance Control Panel for Organizers"
 
-Soy Laura, parte del equipo organizador. Ingreso con mi correo autorizado y la app me muestra la sección Admin. Desde allí creo eventos, escenarios y charlas con formularios claros y validaciones en vivo.
+I am Laura, part of the organizing team. Income with my authorized email and the app shows me the admin section. From there I create events, scenarios and talks with clear forms and live validations.
 
-Puedo editar detalles, cargar imágenes y programar horarios sin miedo a romper nada: solo los administradores listados pueden entrar aquí.
+I can edit details, load images and schedule schedules without fear of breaking anything: only listed administrators can enter here.
 
-Me siento en control:
+I feel in control:
 
-- Todo está agrupado por evento y charla.
-- Los cambios se guardan de inmediato.
-- Nadie sin permiso puede ver esta sección.
+- Everything is grouped by event and talk.
+- The changes are saved immediately.
+- No one without permission can see this section.
 
-Resultado: organizo el programa completo sin depender de herramientas externas.
+Result: I organize the complete program without depending on external tools.
