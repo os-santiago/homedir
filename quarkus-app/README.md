@@ -71,7 +71,7 @@ native executable:
 
 After getting a cup of coffee, you'll be able to run this executable directly:
 
-> ./target/eventflow-2.2.0-runner
+> ./target/eventflow-2.2.1-runner
 
 
 ## Google Login Demo
@@ -100,4 +100,3 @@ Configure SmallRye JWT to validate Google ID tokens against Google's public keys
 Set the `GOOGLE_CLIENT_ID` environment variable to your OAuth client ID so that
 tokens with a matching `aud` claim are accepted. Adjust the `issuer` value if
 your tokens use `accounts.google.com` without the `https` scheme.
-

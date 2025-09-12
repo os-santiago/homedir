@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.2.1] - 2025-09-12
+### Changed
+- Documentación reorganizada por idioma; se agregan glosario y principios base (Homedir) y se documenta la arquitectura de persistencia centralizada. Se eliminan documentos obsoletos.
+- Actualización de plataforma Quarkus a 3.26.2 en `quarkus-app`.
+
+### CI/Mantenimiento
+- Actualizaciones de Actions: `actions/github-script@v8`, `google-github-actions/auth@v3`, `google-github-actions/get-gke-credentials@v3`.
+
+### Notas
+- No hay cambios funcionales relevantes; versión de mantenimiento y documentación.
+
 ## [2.2.0] - 2025-08-17
 ### Added
 - Quality gate en PR: análisis estático (diff-aware), reglas de arquitectura (monorepo), cobertura en el diff, higiene de dependencias.
