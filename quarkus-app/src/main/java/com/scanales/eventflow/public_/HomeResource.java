@@ -89,7 +89,7 @@ public class HomeResource {
             "issuesUrl", "https://github.com/scanalesespinoza/eventflow/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
     var nowBox = nowBoxService.build();
-    return Templates.home(upcoming, past, today, "2.2.0", stats, links, nowBox);
+    return Templates.home(upcoming, past, today, "2.2.1", stats, links, nowBox);
   }
 
   @GET
