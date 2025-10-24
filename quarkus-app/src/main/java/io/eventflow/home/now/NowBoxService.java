@@ -6,10 +6,10 @@ import com.scanales.eventflow.service.EventService;
 import io.eventflow.time.AppClock;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.time.*;
 import java.util.*;
 import java.util.stream.*;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class NowBoxService {
@@ -38,20 +38,23 @@ public class NowBoxService {
       List<Talk> agenda = ev.getAgenda();
       if (agenda == null || agenda.isEmpty()) continue;
 
-      List<Talk> currents = agenda.stream()
-          .filter(t -> isCurrent(t, ev, now, tz))
-          .sorted(Comparator.comparing(t -> startAt(t, ev, tz)))
-          .collect(Collectors.toList());
+      List<Talk> currents =
+          agenda.stream()
+              .filter(t -> isCurrent(t, ev, now, tz))
+              .sorted(Comparator.comparing(t -> startAt(t, ev, tz)))
+              .collect(Collectors.toList());
 
-      List<Talk> past = agenda.stream()
-          .filter(t -> isPast(t, ev, now, tz))
-          .sorted(Comparator.comparing((Talk t) -> endAt(t, ev, tz)).reversed())
-          .collect(Collectors.toList());
+      List<Talk> past =
+          agenda.stream()
+              .filter(t -> isPast(t, ev, now, tz))
+              .sorted(Comparator.comparing((Talk t) -> endAt(t, ev, tz)).reversed())
+              .collect(Collectors.toList());
 
-      List<Talk> future = agenda.stream()
-          .filter(t -> isFuture(t, ev, now, tz))
-          .sorted(Comparator.comparing(t -> startAt(t, ev, tz)))
-          .collect(Collectors.toList());
+      List<Talk> future =
+          agenda.stream()
+              .filter(t -> isFuture(t, ev, now, tz))
+              .sorted(Comparator.comparing(t -> startAt(t, ev, tz)))
+              .collect(Collectors.toList());
 
       NowBoxView.EventNow en = new NowBoxView.EventNow();
       en.eventId = ev.getId();
@@ -66,12 +69,20 @@ public class NowBoxService {
     }
 
     NowBoxView view = new NowBoxView();
-    view.events = list.stream()
-        .sorted(Comparator
-            .comparing((NowBoxView.EventNow e) -> e.current == null)
-            .thenComparing(e -> e.current != null ? e.current.start :
-                (e.next != null ? e.next.start : (e.last != null ? e.last.end : ZonedDateTime.ofInstant(nowInstant, ZoneId.of("UTC")))))
-        ).collect(Collectors.toList());
+    view.events =
+        list.stream()
+            .sorted(
+                Comparator.comparing((NowBoxView.EventNow e) -> e.current == null)
+                    .thenComparing(
+                        e ->
+                            e.current != null
+                                ? e.current.start
+                                : (e.next != null
+                                    ? e.next.start
+                                    : (e.last != null
+                                        ? e.last.end
+                                        : ZonedDateTime.ofInstant(nowInstant, ZoneId.of("UTC"))))))
+            .collect(Collectors.toList());
     return view;
   }
 
@@ -88,7 +99,9 @@ public class NowBoxService {
 
   private boolean isFuture(Talk t, Event ev, ZonedDateTime now, ZoneId tz) {
     ZonedDateTime start = startAt(t, ev, tz);
-    return start != null && start.isAfter(now) && Duration.between(now, start).compareTo(lookahead) <= 0;
+    return start != null
+        && start.isAfter(now)
+        && Duration.between(now, start).compareTo(lookahead) <= 0;
   }
 
   private ZonedDateTime startAt(Talk t, Event ev, ZoneId tz) {
@@ -111,9 +124,10 @@ public class NowBoxService {
     v.end = endAt(t, ev, tz);
     v.room = t.getLocation();
     v.speaker = t.getSpeakerNames();
-    v.detailUrl = t.isBreak()
-        ? "/event/" + ev.getId() + "#break-" + t.getId()
-        : "/event/" + ev.getId() + "/talk/" + t.getId();
+    v.detailUrl =
+        t.isBreak()
+            ? "/event/" + ev.getId() + "#break-" + t.getId()
+            : "/event/" + ev.getId() + "/talk/" + t.getId();
     return v;
   }
 }

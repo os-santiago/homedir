@@ -16,12 +16,12 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -648,8 +648,7 @@ public class AdminMetricsResource {
                   long evViews = eventViewMap.getOrDefault(ev.getId(), 0L);
                   return new EventSummaryRow(ev.getId(), ev.getTitle(), evViews, s.views, s.regs);
                 })
-            .sorted(
-                java.util.Comparator.comparingLong(EventSummaryRow::eventViews).reversed())
+            .sorted(java.util.Comparator.comparingLong(EventSummaryRow::eventViews).reversed())
             .toList();
 
     long last = metrics.getLastUpdatedMillis();

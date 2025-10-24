@@ -185,8 +185,7 @@ public class AdminNotificationResourceTest {
     n2.title = "t";
     n2.message = "m";
     n2.dedupeKey = "dk";
-    n2.createdAt =
-        n.createdAt + GlobalNotificationConfig.dedupeWindow.toMillis() + 1;
+    n2.createdAt = n.createdAt + GlobalNotificationConfig.dedupeWindow.toMillis() + 1;
     // after the dedupe window it should be accepted again
     assertTrue(service.enqueue(n2));
 
