@@ -1,15 +1,2 @@
 extends:
   - '@commitlint/config-conventional'
-parserPreset:
-  parserOpts:
-    headerPattern: '^(?:(\w*)(?:\((.*)\))?:\s)?(.*)$'
-    headerCorrespondence:
-      - type
-      - scope
-      - subject
-rules:
-  type-empty:
-    - 0
-  subject-empty:
-    - 2
-    - never
