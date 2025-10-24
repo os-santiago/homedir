@@ -4,13 +4,13 @@ import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
+import io.eventflow.time.AppClock;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import io.eventflow.time.AppClock;
 import java.util.Set;
 import org.jboss.logging.Logger;
 

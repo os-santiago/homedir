@@ -40,7 +40,9 @@ public class NotificationSimulationResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "admin", roles = {"admin"})
+  @TestSecurity(
+      user = "admin",
+      roles = {"admin"})
   public void dryRunIncludesUpcoming() {
     Event e = sampleEvent();
     events.saveEvent(e);
@@ -60,13 +62,14 @@ public class NotificationSimulationResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "admin", roles = {"admin"})
+  @TestSecurity(
+      user = "admin",
+      roles = {"admin"})
   public void executeTestBroadcastEnqueues() {
     Event e = sampleEvent();
     events.saveEvent(e);
     Instant pivot = e.getStartDateTime().minusMinutes(5).toInstant();
-    Map<String, Object> req =
-        new HashMap<>();
+    Map<String, Object> req = new HashMap<>();
     req.put("eventId", e.getId());
     req.put("mode", "test-broadcast");
     req.put("pivot", pivot.toString());
@@ -82,7 +85,9 @@ public class NotificationSimulationResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "admin", roles = {"admin"})
+  @TestSecurity(
+      user = "admin",
+      roles = {"admin"})
   public void realBroadcastForbidden() {
     Event e = sampleEvent();
     events.saveEvent(e);
