@@ -32,14 +32,46 @@ AUTH_HEADERS = {"xi-api-key": KEY}
 JSON_HEADERS = {**AUTH_HEADERS, "Content-Type": "application/json"}
 
 
+def _normalise_metadata(meta: dict) -> dict:
+    """Return a metadata mapping compatible with the ElevenLabs API."""
+
+    if not isinstance(meta, dict):
+        return {}
+
+    normalised = {}
+    for key, value in meta.items():
+        if value is None:
+            continue
+        if isinstance(value, (str, int, float, bool)):
+            normalised[key] = value
+        else:
+            try:
+                normalised[key] = json.dumps(value, ensure_ascii=False)
+            except (TypeError, ValueError):
+                normalised[key] = str(value)
+    return normalised
+
+
 def create_doc(agent_id: str, meta: dict, text: str, index: int) -> dict:
     url = f"{API}/v1/convai/knowledge-base"
     params = {"agent_id": agent_id}
     data = {"name": meta.get("title_guess", f"Navia Chunk {index}")}
+    metadata = _normalise_metadata(meta)
+    if metadata:
+        data["metadata"] = json.dumps(metadata, ensure_ascii=False)
     filename = f"chunk-{index}.txt"
     files = {"file": (filename, text.encode("utf-8"), "text/plain; charset=utf-8")}
     response = requests.post(url, headers=AUTH_HEADERS, params=params, data=data, files=files, timeout=60)
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        detail = ""
+        try:
+            payload = response.json()
+            detail = payload.get("detail") or payload.get("message") or payload
+        except ValueError:
+            detail = response.text
+        raise SystemExit(f"Error al subir el chunk {index}: {response.status_code} → {detail}") from exc
     return response.json()
 
 
