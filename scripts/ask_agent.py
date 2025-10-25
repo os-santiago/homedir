@@ -91,11 +91,37 @@ def extract_messages(payload: dict) -> List[dict]:
     return []
 
 
+def extract_conversation_id(payload: dict) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+
+    direct_id = payload.get("id") or payload.get("conversation_id")
+    if isinstance(direct_id, str) and direct_id:
+        return direct_id
+
+    conversation = payload.get("conversation")
+    if isinstance(conversation, dict):
+        nested_id = conversation.get("id") or conversation.get("conversation_id")
+        if isinstance(nested_id, str) and nested_id:
+            return nested_id
+
+    conversations = payload.get("conversations")
+    if isinstance(conversations, list):
+        for item in conversations:
+            if isinstance(item, dict):
+                conv_id = item.get("id") or item.get("conversation_id")
+                if isinstance(conv_id, str) and conv_id:
+                    return conv_id
+
+    return None
+
+
 def request_with_fallback(
     method: str,
     agent_path: str,
     *,
     fallback_path: str | None = None,
+    fallback_method: str | None = None,
     json_payload: Dict | None = None,
     params: Dict | None = None,
     timeout: int = 60,
@@ -124,7 +150,10 @@ def request_with_fallback(
         fallback_json = clone_payload(json_payload)
         fallback_params = clone_payload(params)
 
-        if uses_body:
+        fallback_method_upper = (fallback_method or method).upper()
+        fallback_uses_body = fallback_method_upper in {"POST", "PUT", "PATCH"}
+
+        if fallback_uses_body:
             fallback_json = fallback_json or {}
             fallback_json.setdefault("agent_id", AGENT)
         else:
@@ -133,11 +162,11 @@ def request_with_fallback(
 
         fallback_url = f"{API}{fallback_path}".format(agent_id=AGENT)
         response = requests.request(
-            method,
+            fallback_method_upper,
             fallback_url,
-            headers=JSON_HEADERS if uses_body else AUTH_HEADERS,
-            json=fallback_json if fallback_json else None,
-            params=fallback_params if fallback_params else None,
+            headers=JSON_HEADERS if fallback_uses_body else AUTH_HEADERS,
+            json=fallback_json if fallback_uses_body else None,
+            params=fallback_params if not fallback_uses_body else None,
             timeout=timeout,
         )
 
@@ -180,14 +209,11 @@ def main() -> None:
         "POST",
         "/v1/convai/agents/{agent_id}/conversations",
         fallback_path="/v1/convai/conversations",
+        fallback_method="GET",
         json_payload={"mode": "text", "agent_id": AGENT},
     )
     conversation = conv_response.json()
-    conv_id = (
-        conversation.get("id")
-        or conversation.get("conversation_id")
-        or (conversation.get("conversation", {}) if isinstance(conversation, dict) else {}).get("id")
-    )
+    conv_id = extract_conversation_id(conversation)
     if not conv_id:
         raise SystemExit("No se pudo crear la conversación. Revisa la respuesta de la API.")
 
