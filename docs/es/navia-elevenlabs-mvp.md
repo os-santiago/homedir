@@ -45,7 +45,7 @@ El script genera archivos JSON en `./.navia/chunks/` con el texto y metadatos ne
 ELEVENLABS_API_KEY=... scripts/create_agent.sh
 ```
 
-El comando crea un agente en modo texto con RAG habilitado y guarda el resultado en `./.navia/agent.json`.
+El comando crea un agente en modo texto con RAG habilitado, instruido para buscar el contenido solicitado dentro de los chunks recuperados, corroborar que coincide y responder únicamente con evidencias recuperadas del índice señalando la URL (`source_url`) correspondiente. El resultado se guarda en `./.navia/agent.json`.
 
 ## 5. Subir chunks y construir el índice RAG
 
