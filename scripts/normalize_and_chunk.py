@@ -38,11 +38,23 @@ def main() -> None:
     base_url = os.environ.get("NAVIA_SITE_BASE", "http://localhost:8080")
 
     for path in RAW_CACHE.rglob("*.html"):
-        url_suffix = '/' + str(path.relative_to(RAW_CACHE)).replace('\\', '/')
-        url = base_url.rstrip('/') + url_suffix
+        relative_path = path.relative_to(RAW_CACHE)
+        relative_posix = str(relative_path).replace("\\", "/")
+
+        if relative_posix.endswith("/index.html"):
+            url_suffix = "/" + relative_posix[: -len("index.html")].rstrip("/")
+        elif relative_path.suffix == ".html":
+            url_suffix = "/" + relative_posix[: -len(".html")]
+        else:
+            url_suffix = "/" + relative_posix
+
+        if url_suffix == "/":
+            url = base_url.rstrip("/") or base_url
+        else:
+            url = base_url.rstrip("/") + url_suffix
+
         html = path.read_text(errors="ignore")
         # Guardar una copia del HTML original junto al chunk normalizado.
-        relative_path = path.relative_to(RAW_CACHE)
         raw_dump_path = (CHUNK_RAW_DIR / relative_path).with_suffix(".txt")
         raw_dump_path.parent.mkdir(parents=True, exist_ok=True)
         raw_dump_path.write_text(html, encoding="utf-8", errors="ignore")
