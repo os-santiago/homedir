@@ -13,26 +13,85 @@ from unittest import mock
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-class DummyResponse:
-    def __init__(self, *, status_code=200, json_data=None, text="", headers=None):
-        self.status_code = status_code
-        self._json_data = json_data if json_data is not None else {}
-        self.text = text
-        self.content = text.encode("utf-8")
-        self.headers = headers or {}
+class DummyDocuments:
+    def __init__(self, doc_map):
+        self._doc_map = doc_map
 
-    @property
-    def ok(self) -> bool:  # pragma: no cover - trivial
-        return self.status_code < 400
+    def list(self, *, agent_id, page_size=50):  # pragma: no cover - trivial delegation
+        return {"total": len(self._doc_map), "documents": [{"id": doc_id} for doc_id in self._doc_map]}
 
-    def raise_for_status(self) -> None:
-        if self.status_code >= 400:
-            import requests
+    def get(self, doc_id, *, agent_id):
+        meta = dict(self._doc_map.get(doc_id, {}))
+        return types.SimpleNamespace(
+            metadata=meta,
+            name=meta.get("title_guess"),
+            url=meta.get("source_url"),
+            id=doc_id,
+            extracted_inner_html=meta.get("extracted_inner_html"),
+        )
 
-            raise requests.HTTPError(response=self)
 
-    def json(self):  # pragma: no cover - simple passthrough
-        return self._json_data
+class DummyConversationStore:
+    def __init__(self):
+        self.transcript = []
+
+    def get(self, *, conversation_id):
+        return types.SimpleNamespace(transcript=self.transcript)
+
+
+class DummyClient:
+    def __init__(self, doc_map):
+        self.doc_map = doc_map
+        self.conversational_ai = types.SimpleNamespace(
+            knowledge_base=types.SimpleNamespace(documents=DummyDocuments(doc_map)),
+            conversations=DummyConversationStore(),
+        )
+
+
+class DummyConversation:
+    def __init__(
+        self,
+        client,
+        agent_id,
+        requires_auth,
+        audio_interface,
+        config,
+        callback_agent_response,
+        callback_user_transcript,
+        callback_latency_measurement,
+    ):
+        self._client = client
+        self._callback_agent_response = callback_agent_response
+        self._callback_user = callback_user_transcript
+        self._callback_latency = callback_latency_measurement
+        self._conversation_id = "conv-1"
+        self._agent_id = agent_id
+        self._ended = False
+
+    def start_session(self):  # pragma: no cover - trivial
+        pass
+
+    def end_session(self):  # pragma: no cover - trivial
+        self._ended = True
+
+    def wait_for_session_end(self):  # pragma: no cover - deterministic value
+        return self._conversation_id
+
+    def send_user_message(self, message):
+        self._callback_user(message)
+        self._callback_latency("170")
+        answer = "Puedes encontrarlo en la agenda."
+        self._callback_agent_response(answer)
+        chunk = types.SimpleNamespace(document_id="doc-1", chunk_id="chunk-123")
+        rag_info = types.SimpleNamespace(chunks=[chunk])
+        transcript = [
+            types.SimpleNamespace(role="user", message=message),
+            types.SimpleNamespace(role="agent", message=answer, rag_retrieval_info=rag_info),
+        ]
+        self._client.conversational_ai.conversations.transcript = transcript
+
+    def start_session_with_conversation(self):  # pragma: no cover - compatibility shim
+        self.start_session()
 
 
 class NaviaMVPFlowTest(unittest.TestCase):
@@ -55,20 +114,17 @@ class NaviaMVPFlowTest(unittest.TestCase):
         requests_stub = types.ModuleType("requests")
 
         class HTTPError(Exception):
-            def __init__(self, *args, response=None, **kwargs):
+            def __init__(self, *args, response=None, **kwargs):  # pragma: no cover - defensive stub
                 super().__init__(*args)
                 self.response = response
 
-        def _unpatched_factory(name):
-            def _unpatched(*args, **kwargs):
-                raise AssertionError(f"requests.{name} was called before being patched in the test")
-
-            return _unpatched
+        def _unpatched(*args, **kwargs):  # pragma: no cover - defensive
+            raise AssertionError("requests fue invocado sin ser parcheado en la prueba")
 
         requests_stub.HTTPError = HTTPError
-        requests_stub.post = _unpatched_factory("post")
-        requests_stub.get = _unpatched_factory("get")
-        requests_stub.request = _unpatched_factory("request")
+        requests_stub.post = _unpatched
+        requests_stub.get = _unpatched
+        requests_stub.request = _unpatched
         sys.modules["requests"] = requests_stub
         self.addCleanup(self._restore_requests_module)
 
@@ -110,9 +166,9 @@ class NaviaMVPFlowTest(unittest.TestCase):
 
         def post_side_effect(url, **kwargs):
             if url.endswith("/v1/convai/knowledge-base"):
-                return DummyResponse(json_data={"id": "doc-1"})
+                return types.SimpleNamespace(status_code=200, json=lambda: {"id": "doc-1"}, raise_for_status=lambda: None)
             if url.endswith("/v1/convai/knowledge-base/doc-1/rag-index"):
-                return DummyResponse(json_data={"status": "ok"})
+                return types.SimpleNamespace(status_code=200, json=lambda: {"status": "ok"}, raise_for_status=lambda: None)
             raise AssertionError(f"Unexpected POST url: {url}")
 
         with mock.patch("scripts.upload_chunks.requests.post", side_effect=post_side_effect):
@@ -124,62 +180,24 @@ class NaviaMVPFlowTest(unittest.TestCase):
 
         from scripts import ask_agent
 
-        def request_side_effect(method, url, **kwargs):
-            if url.endswith("/v1/convai/agents/agent-123/conversations/create"):
-                return DummyResponse(status_code=405, json_data={"detail": "use shared endpoint"})
-            if url.endswith("/v1/convai/conversations/create"):
-                return DummyResponse(json_data={"conversation": {"id": "conv-1"}})
-            if url.endswith("/v1/convai/agents/agent-123/conversations/conv-1/messages"):
-                return DummyResponse(status_code=405)
-            if url.endswith("/v1/convai/conversations/conv-1/messages/create"):
-                return DummyResponse(json_data={"id": "msg-1"})
-            if url.endswith("/v1/convai/agents/agent-123/conversations/conv-1") or url.endswith(
-                "/v1/convai/conversations/conv-1"
-            ):
-                payload = {
-                    "conversation": {
-                        "id": "conv-1",
-                        "messages": [
-                            {"role": "user", "content": "¿Dónde está el contenido?"},
-                            {
-                                "role": "assistant",
-                                "content": "Puedes encontrarlo en la agenda.",
-                                "documents": [{"id": "doc-1"}],
-                            },
-                        ],
-                    },
-                    "rag_references": [
-                        {
-                            "document": {
-                                "id": "doc-1",
-                                "metadata": doc_map["doc-1"],
-                            }
-                        }
-                    ],
-                }
-                return DummyResponse(json_data=payload)
-            raise AssertionError(f"Unexpected {method} request to {url}")
-
-        def get_side_effect(url, **kwargs):
-            if url.endswith("/v1/convai/knowledge-base/documents/doc-1"):
-                return DummyResponse(json_data={"metadata": doc_map["doc-1"]})
-            raise AssertionError(f"Unexpected GET url: {url}")
+        dummy_client = DummyClient(doc_map)
 
         with (
-            mock.patch("scripts.ask_agent.requests.request", side_effect=request_side_effect),
-            mock.patch("scripts.ask_agent.requests.get", side_effect=get_side_effect),
-            mock.patch("builtins.input", return_value="¿Dónde está el contenido?"),
-            mock.patch("time.sleep", return_value=None),
+            mock.patch("scripts.ask_agent.ElevenLabs", return_value=dummy_client),
+            mock.patch("scripts.ask_agent.Conversation", DummyConversation),
+            mock.patch("scripts.ask_agent.wait_for_conversation_id", return_value="conv-1"),
             io.StringIO() as buf,
             contextlib.redirect_stdout(buf),
         ):
-            ask_agent.main()
+            ask_agent.main(["--question", "¿Dónde está el contenido?"])
             output = buf.getvalue()
 
         self.assertIn("=== RESPUESTA DEL AGENTE ===", output)
         self.assertIn("Puedes encontrarlo en la agenda.", output)
         self.assertIn("Rutas sugeridas", output)
         self.assertIn("http://localhost:8080/agenda", output)
+        self.assertIn("📄 Documentos cacheados disponibles: 1", output)
+        self.assertIn("🧠 Documentos registrados en el agente: 1", output)
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
