@@ -54,7 +54,8 @@ def _format_error(detail) -> str:
         return str(detail)
 
 
-def create_doc(client: ElevenLabs, agent_id: str, meta: dict, text: str, index: int):
+def create_doc(client: ElevenLabs, agent_id: str, meta, text: str, index: int):
+    meta = meta or {}
     name = meta.get("title_guess", f"Navia Chunk {index}")
     filename = f"chunk-{index}.txt"
     try:
@@ -105,7 +106,7 @@ def main() -> None:
 
     for index, file_path in enumerate(files, start=1):
         data = json.loads(Path(file_path).read_text())
-        response = create_doc(client, AGENT, data["meta"], data["text"], index)
+        response = create_doc(client, AGENT, data.get("meta"), data["text"], index)
         doc_id = getattr(response, "id", None)
         if doc_id is None and isinstance(response, dict):  # pragma: no cover - backwards compatibility
             doc_id = response.get("id") or response.get("document_id")
