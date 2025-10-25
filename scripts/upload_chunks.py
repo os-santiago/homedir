@@ -3,6 +3,7 @@ import json
 import os
 import time
 from pathlib import Path
+from typing import List, Sequence
 
 try:
     from elevenlabs.client import ElevenLabs
@@ -54,15 +55,13 @@ def _format_error(detail) -> str:
         return str(detail)
 
 
-def create_doc(client: ElevenLabs, agent_id: str, meta, text: str, index: int):
+def create_doc(client: ElevenLabs, meta, text: str, index: int):
     meta = meta or {}
     name = meta.get("title_guess", f"Navia Chunk {index}")
-    filename = f"chunk-{index}.txt"
     try:
-        response = client.conversational_ai.add_to_knowledge_base(
-            agent_id=agent_id,
+        response = client.conversational_ai.knowledge_base.create_from_text(
             name=name,
-            file=(filename, text.encode("utf-8"), "text/plain"),
+            text=text,
         )
     except ApiError as exc:
         detail = _format_error(getattr(exc, "body", None))
@@ -73,18 +72,38 @@ def create_doc(client: ElevenLabs, agent_id: str, meta, text: str, index: int):
     return response
 
 
-def compute_rag(client: ElevenLabs, doc_id: str):
-    try:
-        return client.conversational_ai.knowledge_base.document.compute_rag_index(
-            documentation_id=doc_id,
-            model="multilingual_e5_large_instruct",
+def assign_documents_to_agent(
+    client: ElevenLabs, agent_id: str, document_ids: Sequence[str]
+) -> int:
+    agents_api = getattr(client.conversational_ai, "agents", None)
+    if agents_api is None or not hasattr(agents_api, "update"):
+        raise SystemExit(
+            "La versión del SDK de ElevenLabs instalada no permite asignar documentos al agente. "
+            "Actualiza la dependencia 'elevenlabs' e inténtalo de nuevo."
         )
+
+    unique_ids = []
+    seen = set()
+    for doc_id in document_ids:
+        if not doc_id or doc_id in seen:
+            continue
+        unique_ids.append(doc_id)
+        seen.add(doc_id)
+
+    if not unique_ids:
+        return 0
+
+    try:
+        agents_api.update(agent_id=agent_id, knowledge_base=unique_ids)
     except ApiError as exc:
         detail = _format_error(getattr(exc, "body", None))
         status = getattr(exc, "status_code", None)
         raise SystemExit(
-            f"Error al construir el índice RAG para {doc_id}: {status or 'desconocido'} → {detail or exc}"
+            f"Error al asignar documentos al agente {agent_id}: "
+            f"{status or 'desconocido'} → {detail or exc}"
         ) from exc
+
+    return len(unique_ids)
 
 
 def main() -> None:
@@ -102,21 +121,23 @@ def main() -> None:
     else:
         doc_map = {}
 
-    uploaded_ids = []
+    uploaded_ids: List[str] = []
 
     for index, file_path in enumerate(files, start=1):
         data = json.loads(Path(file_path).read_text())
-        response = create_doc(client, AGENT, data.get("meta"), data["text"], index)
+        meta = data.get("meta") or {}
+        name_guess = meta.get("title_guess", f"Navia Chunk {index}")
+        response = create_doc(client, meta, data["text"], index)
         doc_id = getattr(response, "id", None)
         if doc_id is None and isinstance(response, dict):  # pragma: no cover - backwards compatibility
             doc_id = response.get("id") or response.get("document_id")
         if doc_id:
-            metadata = dict(data.get("meta", {}))
+            metadata = dict(meta)
             metadata.setdefault("doc_id", doc_id)
+            metadata.setdefault("name", getattr(response, "name", None) or name_guess)
             if "source" in metadata and "source_url" not in metadata:
                 metadata["source_url"] = metadata["source"]
             doc_map[doc_id] = metadata
-            compute_rag(client, doc_id)
             uploaded_ids.append(doc_id)
         if index % 25 == 0:
             time.sleep(1)
@@ -124,6 +145,12 @@ def main() -> None:
     DOC_MAP_PATH.write_text(json.dumps(doc_map, ensure_ascii=False, indent=2))
     if uploaded_ids:
         print(f"Subidos {len(uploaded_ids)} chunks al agente {AGENT}")
+        assigned = assign_documents_to_agent(client, AGENT, doc_map.keys())
+        if assigned:
+            print(
+                f"Asignados {assigned} documentos al agente {AGENT}"
+                f" (incluidos {len(uploaded_ids)} nuevos)"
+            )
     else:
         print("No se subieron documentos nuevos. Revisa los chunks generados.")
 

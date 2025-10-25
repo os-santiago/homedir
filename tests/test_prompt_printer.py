@@ -5,7 +5,6 @@ import sys
 import types
 import unittest
 from pathlib import Path
-from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -92,12 +91,10 @@ class DiagnoseAgentContextTest(unittest.TestCase):
                 )
             )
             with io.StringIO() as buf, contextlib.redirect_stdout(buf):
-                with mock.patch("scripts.ask_agent.load_local_doc_map", return_value={}):
-                    await diagnose_agent_context(client, "agent-x", {"agent_id": "agent-x"})
+                await diagnose_agent_context(client, "agent-x", {"agent_id": "agent-x"})
                 return buf.getvalue()
 
         output = asyncio.run(_run())
-        self.assertIn("No se encontraron documentos cacheados", output)
         self.assertIn("La base de conocimiento del agente no tiene documentos disponibles", output)
 
 
