@@ -47,6 +47,8 @@ def main() -> None:
             relative_parts = relative_parts[1:]
 
         normalized_relative = pathlib.PurePosixPath(*relative_parts)
+        if normalized_relative.suffix == ".html":
+            normalized_relative = normalized_relative.with_suffix("")
         url_suffix = f"/{normalized_relative}" if relative_parts else ""
         url = base_url.rstrip('/') + url_suffix
         html = path.read_text(errors="ignore")
