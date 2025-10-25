@@ -3,6 +3,7 @@ import hashlib
 import os
 import pathlib
 from typing import Iterable
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -36,10 +37,27 @@ def main() -> None:
         raise SystemExit(f'No se encontró el cache en {RAW_CACHE}. Ejecuta el scrape primero.')
 
     base_url = os.environ.get("NAVIA_SITE_BASE", "http://localhost:8080")
+    parsed_base_url = urlparse(base_url)
+    if parsed_base_url.netloc:
+        base_netloc = parsed_base_url.netloc
+        base_path = parsed_base_url.path.strip("/")
+    else:
+        path_parts = [part for part in parsed_base_url.path.split("/") if part]
+        base_netloc = path_parts[0] if path_parts else ""
+        base_path = "/".join(path_parts[1:])
 
     for path in RAW_CACHE.rglob("*.html"):
         relative_path = path.relative_to(RAW_CACHE)
         relative_posix = str(relative_path).replace("\\", "/")
+
+        relative_parts = [part for part in relative_posix.split("/") if part]
+        if base_netloc and relative_parts and relative_parts[0] == base_netloc:
+            relative_parts = relative_parts[1:]
+        if base_path:
+            base_path_parts = [part for part in base_path.split("/") if part]
+            if relative_parts[: len(base_path_parts)] == base_path_parts:
+                relative_parts = relative_parts[len(base_path_parts) :]
+        relative_posix = "/".join(relative_parts)
 
         if relative_posix.endswith("/index.html"):
             url_suffix = "/" + relative_posix[: -len("index.html")].rstrip("/")
