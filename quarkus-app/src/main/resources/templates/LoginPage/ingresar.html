@@ -2,9 +2,51 @@
 {#title}Ingresar{/title}
 {#main}
 <h1>Ingresar</h1>
+{#if loginError}
+<div class="alert alert-danger" role="alert">
+  No se pudo iniciar sesión. Verifica tus credenciales e inténtalo nuevamente.
+</div>
+{/if}
 <p>
   <a href="/profile" class="btn btn-primary login-button">Ingresar con Google</a>
 </p>
+{#if localEnabled}
+<section class="card my-4">
+  <div class="card-body">
+    <h2 class="card-title h5">Modo local de desarrollo</h2>
+    <p class="card-text">
+      Usa las credenciales definidas en <code>application.properties</code> para iniciar sesión sin
+      depender de Google.
+    </p>
+    {#if localUsersDescription}
+    <p class="card-text"><strong>Cuentas disponibles:</strong> {localUsersDescription}</p>
+    {/if}
+    <form method="post" action="/j_security_check" class="mt-3" novalidate>
+      <div class="mb-3">
+        <label for="username" class="form-label">Correo electrónico</label>
+        <input
+          id="username"
+          name="username"
+          type="email"
+          class="form-control"
+          autocomplete="username"
+          required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          class="form-control"
+          autocomplete="current-password"
+          required>
+      </div>
+      <button type="submit" class="btn btn-outline-primary">Ingresar en modo local</button>
+    </form>
+  </div>
+</section>
+{/if}
 <p><a href="/">Volver al inicio</a></p>
 {/main}
 {/include}
