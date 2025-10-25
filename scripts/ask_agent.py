@@ -25,12 +25,18 @@ import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-from elevenlabs.client import ElevenLabs
-from elevenlabs.conversational_ai.conversation import (
-    AudioInterface,
-    Conversation,
-    ConversationInitiationData,
-)
+try:
+    from elevenlabs.client import ElevenLabs
+    from elevenlabs.conversational_ai.conversation import (
+        AudioInterface,
+        Conversation,
+        ConversationInitiationData,
+    )
+except ModuleNotFoundError as exc:  # pragma: no cover - dependency error path
+    raise SystemExit(
+        "No se encontró la dependencia 'elevenlabs'. "
+        "Instálala con 'pip install elevenlabs' y vuelve a intentar."
+    ) from exc
 
 AGENT_PATH = Path("./.navia/agent.json")
 DOC_MAP_PATH = Path("./.navia/documents.json")
