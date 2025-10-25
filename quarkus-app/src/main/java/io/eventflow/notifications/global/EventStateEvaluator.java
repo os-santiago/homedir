@@ -2,11 +2,11 @@ package io.eventflow.notifications.global;
 
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
+import io.eventflow.time.AppClock;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.*;
-import io.eventflow.time.AppClock;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /** Evaluates event state transitions to emit global notifications. */

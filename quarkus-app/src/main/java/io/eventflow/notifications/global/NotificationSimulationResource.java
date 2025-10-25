@@ -1,8 +1,8 @@
 package io.eventflow.notifications.global;
 
+import com.scanales.eventflow.service.EventService;
 import io.eventflow.time.AppClock;
 import io.eventflow.time.SimulatedClock;
-import com.scanales.eventflow.service.EventService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -10,8 +10,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.*;
 import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -61,8 +61,7 @@ public class NotificationSimulationResource {
     req.pivot = pivot;
     simClock.set(pivot);
     try {
-      List<GlobalNotification> plan =
-          SimulationEngine.plan(req, events, upcomingWin, endingWin);
+      List<GlobalNotification> plan = SimulationEngine.plan(req, events, upcomingWin, endingWin);
       if (plan.size() > maxItems) {
         plan = plan.subList(0, maxItems);
       }
@@ -79,8 +78,7 @@ public class NotificationSimulationResource {
     req.pivot = pivot;
     simClock.set(pivot);
     try {
-      List<GlobalNotification> plan =
-          SimulationEngine.plan(req, events, upcomingWin, endingWin);
+      List<GlobalNotification> plan = SimulationEngine.plan(req, events, upcomingWin, endingWin);
       if (plan.size() > maxItems) {
         plan = plan.subList(0, maxItems);
       }

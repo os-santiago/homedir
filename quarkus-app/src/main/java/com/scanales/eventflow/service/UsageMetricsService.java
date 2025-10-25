@@ -669,9 +669,8 @@ public class UsageMetricsService {
   }
 
   /**
-   * Resets all tracked metrics. Intended for administrative use and tests.
-   * Clears in-memory counters and removes any persisted metrics files so that
-   * a fresh dataset can be recorded.
+   * Resets all tracked metrics. Intended for administrative use and tests. Clears in-memory
+   * counters and removes any persisted metrics files so that a fresh dataset can be recorded.
    */
   public void reset() {
     counters.clear();

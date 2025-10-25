@@ -17,9 +17,7 @@ public class SimulationEngine {
     List<GlobalNotification> out = new ArrayList<>();
     Instant pivot = req.pivot;
     List<String> states =
-        req.states != null
-            ? req.states
-            : List.of("UPCOMING", "STARTED", "ENDING_SOON", "FINISHED");
+        req.states != null ? req.states : List.of("UPCOMING", "STARTED", "ENDING_SOON", "FINISHED");
     for (Event ev : events.listEvents()) {
       if (req.eventId != null && !req.eventId.equals(ev.getId())) continue;
       ZoneId tz = ev.getZoneId();
@@ -36,8 +34,18 @@ public class SimulationEngine {
           ZonedDateTime start =
               ZonedDateTime.of(ev.getDate().plusDays(t.getDay() - 1), t.getStartTime(), tz);
           ZonedDateTime end = start.plusMinutes(t.getDurationMinutes());
-          evalSlot(ev, t, isBreak ? "break" : "talk", start, end, now, upcomingWin, endingWin,
-              states, pivot, out);
+          evalSlot(
+              ev,
+              t,
+              isBreak ? "break" : "talk",
+              start,
+              end,
+              now,
+              upcomingWin,
+              endingWin,
+              states,
+              pivot,
+              out);
         }
       }
     }
@@ -118,10 +126,7 @@ public class SimulationEngine {
     n.dedupeKey =
         String.format(
             "global:%s:%s:%s:%d",
-            category,
-            talkId != null ? talkId : eventId,
-            type,
-            edge.toEpochSecond());
+            category, talkId != null ? talkId : eventId, type, edge.toEpochSecond());
     return n;
   }
 
