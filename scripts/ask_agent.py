@@ -222,7 +222,7 @@ def main() -> None:
             "POST",
             "/v1/convai/agents/{agent_id}/conversations",
             fallback_path="/v1/convai/conversations",
-            fallback_method="GET",
+            fallback_method="POST",
             json_payload={"mode": "text", "agent_id": AGENT},
         )
     except requests.HTTPError as exc:
