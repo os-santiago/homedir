@@ -79,11 +79,67 @@ def extract_messages(payload: dict) -> List[dict]:
     return []
 
 
+def request_with_fallback(
+    method: str,
+    agent_path: str,
+    *,
+    fallback_path: str | None = None,
+    json_payload: Dict | None = None,
+    params: Dict | None = None,
+    timeout: int = 60,
+):
+    """Send a request trying the legacy agent scoped path first and fall back otherwise."""
+
+    def clone_payload(payload: Dict | None) -> Dict | None:
+        if payload is None:
+            return None
+        return dict(payload)
+
+    method_upper = method.upper()
+    uses_body = method_upper in {"POST", "PUT", "PATCH"}
+
+    url = f"{API}{agent_path}".format(agent_id=AGENT)
+    response = requests.request(
+        method,
+        url,
+        headers=JSON_HEADERS if uses_body else AUTH_HEADERS,
+        json=clone_payload(json_payload),
+        params=clone_payload(params),
+        timeout=timeout,
+    )
+
+    if response.status_code == 404 and fallback_path:
+        fallback_json = clone_payload(json_payload)
+        fallback_params = clone_payload(params)
+
+        if uses_body:
+            fallback_json = fallback_json or {}
+            fallback_json.setdefault("agent_id", AGENT)
+        else:
+            fallback_params = fallback_params or {}
+            fallback_params.setdefault("agent_id", AGENT)
+
+        fallback_url = f"{API}{fallback_path}".format(agent_id=AGENT)
+        response = requests.request(
+            method,
+            fallback_url,
+            headers=JSON_HEADERS if uses_body else AUTH_HEADERS,
+            json=fallback_json if fallback_json else None,
+            params=fallback_params if fallback_params else None,
+            timeout=timeout,
+        )
+
+    response.raise_for_status()
+    return response
+
+
 def poll_conversation(conv_id: str, delay: float = 1.0, attempts: int = 10) -> dict:
-    url = f"{API}/v1/convai/agents/{AGENT}/conversations/{conv_id}"
     for _ in range(attempts):
-        response = requests.get(url, headers=AUTH_HEADERS, timeout=60)
-        response.raise_for_status()
+        response = request_with_fallback(
+            "GET",
+            f"/v1/convai/agents/{{agent_id}}/conversations/{conv_id}",
+            fallback_path=f"/v1/convai/conversations/{conv_id}",
+        )
         data = response.json()
         messages = extract_messages(data)
         if messages and messages[-1].get("role") == "assistant":
@@ -108,10 +164,12 @@ def extract_references(payload: dict) -> Iterable[Dict]:
 def main() -> None:
     question = input("Pregunta (ej: ¿Dónde está el evento 'Test event'?): ")
 
-    conv_response = requests.post(
-        f"{API}/v1/convai/agents/{AGENT}/conversations", headers=JSON_HEADERS, json={"mode": "text"}, timeout=60
+    conv_response = request_with_fallback(
+        "POST",
+        "/v1/convai/agents/{agent_id}/conversations",
+        fallback_path="/v1/convai/conversations",
+        json_payload={"mode": "text", "agent_id": AGENT},
     )
-    conv_response.raise_for_status()
     conversation = conv_response.json()
     conv_id = (
         conversation.get("id")
@@ -121,12 +179,12 @@ def main() -> None:
     if not conv_id:
         raise SystemExit("No se pudo crear la conversación. Revisa la respuesta de la API.")
 
-    requests.post(
-        f"{API}/v1/convai/agents/{AGENT}/conversations/{conv_id}/messages",
-        headers=JSON_HEADERS,
-        json={"role": "user", "content": question},
-        timeout=60,
-    ).raise_for_status()
+    request_with_fallback(
+        "POST",
+        f"/v1/convai/agents/{{agent_id}}/conversations/{conv_id}/messages",
+        fallback_path=f"/v1/convai/conversations/{conv_id}/messages",
+        json_payload={"role": "user", "content": question, "agent_id": AGENT},
+    )
 
     data = poll_conversation(conv_id)
 
