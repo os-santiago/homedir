@@ -107,26 +107,41 @@ class NaviaMVPFlowTest(unittest.TestCase):
         sys.path.insert(0, self._repo_in_path)
         self.addCleanup(self._restore_sys_path)
 
+        self._module_stubs = {}
+        self.addCleanup(self._restore_module_stubs)
+
+        def stub_module(name: str, module) -> None:
+            if name not in self._module_stubs:
+                self._module_stubs[name] = sys.modules.get(name)
+            sys.modules[name] = module
+
+        elevenlabs_module = types.ModuleType("elevenlabs")
+        client_module = types.ModuleType("elevenlabs.client")
+        core_module = types.ModuleType("elevenlabs.core")
+        api_error_module = types.ModuleType("elevenlabs.core.api_error")
+
+        class _DummyApiError(Exception):
+            def __init__(self, *, status_code=None, body=None, headers=None):
+                super().__init__("dummy")
+                self.status_code = status_code
+                self.body = body
+                self.headers = headers
+
+        class _PlaceholderClient:
+            def __init__(self, *args, **kwargs):
+                self.args = args
+                self.kwargs = kwargs
+
+        client_module.ElevenLabs = _PlaceholderClient
+        api_error_module.ApiError = _DummyApiError
+
+        stub_module("elevenlabs", elevenlabs_module)
+        stub_module("elevenlabs.client", client_module)
+        stub_module("elevenlabs.core", core_module)
+        stub_module("elevenlabs.core.api_error", api_error_module)
+
         os.environ["ELEVENLABS_API_KEY"] = "test-key"
         self.addCleanup(lambda: os.environ.pop("ELEVENLABS_API_KEY", None))
-
-        self._original_requests = sys.modules.get("requests")
-        requests_stub = types.ModuleType("requests")
-
-        class HTTPError(Exception):
-            def __init__(self, *args, response=None, **kwargs):  # pragma: no cover - defensive stub
-                super().__init__(*args)
-                self.response = response
-
-        def _unpatched(*args, **kwargs):  # pragma: no cover - defensive
-            raise AssertionError("requests fue invocado sin ser parcheado en la prueba")
-
-        requests_stub.HTTPError = HTTPError
-        requests_stub.post = _unpatched
-        requests_stub.get = _unpatched
-        requests_stub.request = _unpatched
-        sys.modules["requests"] = requests_stub
-        self.addCleanup(self._restore_requests_module)
 
         Path(".navia/chunks").mkdir(parents=True)
         Path(".navia").mkdir(exist_ok=True)
@@ -155,23 +170,46 @@ class NaviaMVPFlowTest(unittest.TestCase):
         except ValueError:  # pragma: no cover - defensive
             pass
 
-    def _restore_requests_module(self) -> None:
-        if self._original_requests is None:
-            sys.modules.pop("requests", None)
-        else:
-            sys.modules["requests"] = self._original_requests
+    def _restore_module_stubs(self) -> None:
+        for name, original in self._module_stubs.items():
+            if original is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = original
 
     def test_end_to_end_flow_uses_rag_metadata(self) -> None:
         from scripts import upload_chunks
 
-        def post_side_effect(url, **kwargs):
-            if url.endswith("/v1/convai/knowledge-base"):
-                return types.SimpleNamespace(status_code=200, json=lambda: {"id": "doc-1"}, raise_for_status=lambda: None)
-            if url.endswith("/v1/convai/knowledge-base/doc-1/rag-index"):
-                return types.SimpleNamespace(status_code=200, json=lambda: {"status": "ok"}, raise_for_status=lambda: None)
-            raise AssertionError(f"Unexpected POST url: {url}")
+        class DummyUploadSDK:
+            def __init__(self):
+                self.uploads = []
+                self.rag_calls = []
+                self.conversational_ai = types.SimpleNamespace(
+                    add_to_knowledge_base=self._add_to_knowledge_base,
+                    knowledge_base=types.SimpleNamespace(
+                        document=types.SimpleNamespace(compute_rag_index=self._compute_rag_index)
+                    ),
+                )
 
-        with mock.patch("scripts.upload_chunks.requests.post", side_effect=post_side_effect):
+            def _add_to_knowledge_base(self, *, agent_id=None, name=None, file=None, url=None):
+                if not agent_id:
+                    raise AssertionError("Se esperaba un agent_id para el upload")
+                doc_id = f"doc-{len(self.uploads) + 1}"
+                self.uploads.append({
+                    "agent_id": agent_id,
+                    "name": name,
+                    "file": file,
+                    "url": url,
+                })
+                return types.SimpleNamespace(id=doc_id, name=name)
+
+            def _compute_rag_index(self, documentation_id, *, model):
+                self.rag_calls.append((documentation_id, model))
+                return types.SimpleNamespace(status="ok")
+
+        dummy_sdk = DummyUploadSDK()
+
+        with mock.patch("scripts.upload_chunks.ElevenLabs", return_value=dummy_sdk):
             upload_chunks.main()
 
         doc_map = json.loads(Path(".navia/documents.json").read_text())

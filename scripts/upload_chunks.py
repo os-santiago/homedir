@@ -4,7 +4,14 @@ import os
 import time
 from pathlib import Path
 
-import requests
+try:
+    from elevenlabs.client import ElevenLabs
+    from elevenlabs.core.api_error import ApiError
+except ModuleNotFoundError as exc:  # pragma: no cover - dependency error path
+    raise SystemExit(
+        "No se encontró la dependencia 'elevenlabs'. "
+        "Instálala con 'pip install elevenlabs' y vuelve a intentar."
+    ) from exc
 
 API = os.environ.get("ELEVENLABS_BASE_URL", "https://api.elevenlabs.io")
 KEY = os.environ.get("ELEVENLABS_API_KEY")
@@ -28,65 +35,63 @@ AGENT = agent_payload.get("id") or agent_payload.get("agent_id")
 if not AGENT:
     raise SystemExit("El archivo ./.navia/agent.json no contiene un agent_id válido.")
 
-AUTH_HEADERS = {"xi-api-key": KEY}
-JSON_HEADERS = {**AUTH_HEADERS, "Content-Type": "application/json"}
+
+def _make_client() -> ElevenLabs:
+    client_kwargs = {"api_key": KEY}
+    if API and API != "https://api.elevenlabs.io":
+        client_kwargs["base_url"] = API
+    return ElevenLabs(**client_kwargs)
 
 
-def _normalise_metadata(meta: dict) -> dict:
-    """Return a metadata mapping compatible with the ElevenLabs API."""
-
-    if not isinstance(meta, dict):
-        return {}
-
-    normalised = {}
-    for key, value in meta.items():
-        if value is None:
-            continue
-        if isinstance(value, (str, int, float, bool)):
-            normalised[key] = value
-        else:
-            try:
-                normalised[key] = json.dumps(value, ensure_ascii=False)
-            except (TypeError, ValueError):
-                normalised[key] = str(value)
-    return normalised
-
-
-def create_doc(agent_id: str, meta: dict, text: str, index: int) -> dict:
-    url = f"{API}/v1/convai/knowledge-base"
-    params = {"agent_id": agent_id}
-    data = {"name": meta.get("title_guess", f"Navia Chunk {index}")}
-    metadata = _normalise_metadata(meta)
-    if metadata:
-        data["metadata"] = json.dumps(metadata, ensure_ascii=False)
-    filename = f"chunk-{index}.txt"
-    files = {"file": (filename, text.encode("utf-8"), "text/plain")}
-    response = requests.post(url, headers=AUTH_HEADERS, params=params, data=data, files=files, timeout=60)
+def _format_error(detail) -> str:
+    if detail is None:
+        return ""
+    if isinstance(detail, str):
+        return detail
     try:
-        response.raise_for_status()
-    except requests.HTTPError as exc:
-        detail = ""
-        try:
-            payload = response.json()
-            detail = payload.get("detail") or payload.get("message") or payload
-        except ValueError:
-            detail = response.text
-        raise SystemExit(f"Error al subir el chunk {index}: {response.status_code} → {detail}") from exc
-    return response.json()
+        return json.dumps(detail, ensure_ascii=False)
+    except (TypeError, ValueError):  # pragma: no cover - defensive
+        return str(detail)
 
 
-def compute_rag(doc_id: str) -> dict:
-    url = f"{API}/v1/convai/knowledge-base/{doc_id}/rag-index"
-    payload = {"model": "multilingual_e5_large_instruct"}
-    response = requests.post(url, headers=JSON_HEADERS, json=payload, timeout=60)
-    response.raise_for_status()
-    return response.json()
+def create_doc(client: ElevenLabs, agent_id: str, meta: dict, text: str, index: int):
+    name = meta.get("title_guess", f"Navia Chunk {index}")
+    filename = f"chunk-{index}.txt"
+    try:
+        response = client.conversational_ai.add_to_knowledge_base(
+            agent_id=agent_id,
+            name=name,
+            file=(filename, text.encode("utf-8"), "text/plain"),
+        )
+    except ApiError as exc:
+        detail = _format_error(getattr(exc, "body", None))
+        status = getattr(exc, "status_code", None)
+        raise SystemExit(
+            f"Error al subir el chunk {index}: {status or 'desconocido'} → {detail or exc}"
+        ) from exc
+    return response
+
+
+def compute_rag(client: ElevenLabs, doc_id: str):
+    try:
+        return client.conversational_ai.knowledge_base.document.compute_rag_index(
+            documentation_id=doc_id,
+            model="multilingual_e5_large_instruct",
+        )
+    except ApiError as exc:
+        detail = _format_error(getattr(exc, "body", None))
+        status = getattr(exc, "status_code", None)
+        raise SystemExit(
+            f"Error al construir el índice RAG para {doc_id}: {status or 'desconocido'} → {detail or exc}"
+        ) from exc
 
 
 def main() -> None:
     files = glob.glob("./.navia/chunks/*.json")
     if not files:
         raise SystemExit("No se encontraron chunks en ./.navia/chunks. Ejecuta scripts/normalize_and_chunk.py primero.")
+
+    client = _make_client()
 
     if DOC_MAP_PATH.exists():
         try:
@@ -96,22 +101,30 @@ def main() -> None:
     else:
         doc_map = {}
 
+    uploaded_ids = []
+
     for index, file_path in enumerate(files, start=1):
         data = json.loads(Path(file_path).read_text())
-        doc = create_doc(AGENT, data["meta"], data["text"], index)
-        doc_id = doc.get("id") or doc.get("document_id")
+        response = create_doc(client, AGENT, data["meta"], data["text"], index)
+        doc_id = getattr(response, "id", None)
+        if doc_id is None and isinstance(response, dict):  # pragma: no cover - backwards compatibility
+            doc_id = response.get("id") or response.get("document_id")
         if doc_id:
             metadata = dict(data.get("meta", {}))
             metadata.setdefault("doc_id", doc_id)
             if "source" in metadata and "source_url" not in metadata:
                 metadata["source_url"] = metadata["source"]
             doc_map[doc_id] = metadata
-            compute_rag(doc_id)
+            compute_rag(client, doc_id)
+            uploaded_ids.append(doc_id)
         if index % 25 == 0:
             time.sleep(1)
 
     DOC_MAP_PATH.write_text(json.dumps(doc_map, ensure_ascii=False, indent=2))
-    print(f"Subidos {len(files)} chunks al agente {AGENT}")
+    if uploaded_ids:
+        print(f"Subidos {len(uploaded_ids)} chunks al agente {AGENT}")
+    else:
+        print("No se subieron documentos nuevos. Revisa los chunks generados.")
 
 
 if __name__ == "__main__":
