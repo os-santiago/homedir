@@ -4,6 +4,18 @@
 
 Navia es el prototipo de **experiencia aumentada** de Homedir. Evoluciona la navegación tradicional hacia un modelo guiado por intención, combinando una consola conversacional con un marco de contenido que reacciona sin necesidad de clics. La primera entrega (Pilar 1) se integra como módulo experimental dentro de Homedir y se activa mediante un *feature flag* controlado por el usuario.
 
+### 🌊 Pitch de Navia — De navegar a surfear el valor
+
+En la mayoría de los sitios web, el verdadero valor está ahí… escondido entre menús, botones y rutas que el usuario debe aprender a recorrer. Cada clic, cada búsqueda, es una distancia entre lo que la organización ofrece y lo que el usuario realmente necesita.
+
+Navia nació para eliminar esa distancia. Es una capa de experiencia aumentada que convierte la navegación en una conversación guiada por intención. El usuario ya no navega el sitio: lo surfea.
+
+Navia entiende lo que la persona busca —un evento, un contenido, una acción— y la lleva directamente allí, sin pasos innecesarios. Al mismo tiempo, aprende de cada interacción y adapta la interfaz, simplificándola y priorizando lo que cada usuario valora más.
+
+Para el negocio, esto significa que el valor del sitio se vuelve accesible, visible y accionable. Lo que antes estaba oculto bajo la interfaz, ahora se transforma en una experiencia fluida, inteligente y personalizada.
+
+Navia conecta el propósito del negocio con la experiencia del usuario. Una interfaz que no se explora, se vive. Un sitio que no se busca, se surfea.
+
 ---
 
 ## 🎯 Objetivo del prototipo (Pilar 1)
