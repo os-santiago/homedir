@@ -53,7 +53,10 @@ def main() -> None:
                 "title_guess": path.stem.replace("-", " ").title(),
             }
             out_path = CHUNK_DIR / f"{doc_id}.json"
-            out_path.write_text(json.dumps({"meta": metadata, "text": chunk}, ensure_ascii=False), encoding="utf-8")
+            out_path.write_text(
+                json.dumps({"meta": metadata, "content": chunk, "text": chunk}, ensure_ascii=False),
+                encoding="utf-8",
+            )
             records.append(metadata)
 
     print(f"Chunks creados: {len(records)} → {CHUNK_DIR}")
