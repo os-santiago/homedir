@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 RAW_CACHE = pathlib.Path(os.environ.get("NAVIA_CACHE_DIR", "./.navia/site-cache")) / "raw"
 CHUNK_DIR = pathlib.Path(os.environ.get("NAVIA_CHUNK_DIR", "./.navia/chunks"))
 CHUNK_DIR.mkdir(parents=True, exist_ok=True)
+CHUNK_RAW_DIR = CHUNK_DIR / "raw"
+CHUNK_RAW_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def clean_text(html: str) -> str:
@@ -39,6 +41,11 @@ def main() -> None:
         url_suffix = '/' + str(path.relative_to(RAW_CACHE)).replace('\\', '/')
         url = base_url.rstrip('/') + url_suffix
         html = path.read_text(errors="ignore")
+        # Guardar una copia del HTML original junto al chunk normalizado.
+        relative_path = path.relative_to(RAW_CACHE)
+        raw_dump_path = (CHUNK_RAW_DIR / relative_path).with_suffix(".txt")
+        raw_dump_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_dump_path.write_text(html, encoding="utf-8", errors="ignore")
         text = clean_text(html)
         if len(text) < 40:
             continue
