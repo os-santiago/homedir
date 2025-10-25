@@ -22,6 +22,7 @@ import asyncio
 import json
 import os
 import sys
+import threading
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -80,11 +81,48 @@ class ResponseCollector:
             self._loop.call_soon_threadsafe(self._pending.set_result, response)
 
 
-def _threadsafe_printer(loop: asyncio.AbstractEventLoop, prefix: str):
-    def _print(message: str) -> None:
-        loop.call_soon_threadsafe(print, f"{prefix}{message}")
+class PromptAwarePrinter:
+    """Gestiona mensajes asíncronos sin interrumpir el ``input`` interactivo."""
 
-    return _print
+    def __init__(self, loop: asyncio.AbstractEventLoop) -> None:
+        self._loop = loop
+        self._lock = threading.Lock()
+        self._prompt_active = False
+        self._buffer: List[str] = []
+
+    def prompt_started(self) -> None:
+        with self._lock:
+            self._prompt_active = True
+
+    def prompt_finished(self) -> None:
+        buffered: List[str] = []
+        with self._lock:
+            self._prompt_active = False
+            if self._buffer:
+                buffered = list(self._buffer)
+                self._buffer.clear()
+        for message in buffered:
+            self._loop.call_soon_threadsafe(print, message)
+
+    def flush_buffer(self) -> None:
+        buffered: List[str] = []
+        with self._lock:
+            if self._buffer:
+                buffered = list(self._buffer)
+                self._buffer.clear()
+        for message in buffered:
+            self._loop.call_soon_threadsafe(print, message)
+
+    def make_printer(self, prefix: str):
+        def _printer(message: str) -> None:
+            full_message = f"{prefix}{message}"
+            with self._lock:
+                if self._prompt_active:
+                    self._buffer.append(full_message)
+                    return
+            self._loop.call_soon_threadsafe(print, full_message)
+
+        return _printer
 
 
 def load_agent_id() -> str:
@@ -106,6 +144,16 @@ def load_agent_id() -> str:
     if not agent_id:
         raise SystemExit("El archivo ./.navia/agent.json no contiene un agent_id válido.")
     return agent_id
+
+
+def load_agent_payload_file() -> Dict:
+    if not AGENT_PATH.exists():
+        return {}
+    try:
+        data = json.loads(AGENT_PATH.read_text())
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def load_local_doc_map() -> Dict[str, Dict]:
@@ -334,18 +382,25 @@ async def run_interactive(
     client: ElevenLabs,
     agent_id: str,
     conversation_id: str,
+    prompt_printer: PromptAwarePrinter,
     *,
     timeout: float,
 ) -> None:
     print("\n💬 Modo interactivo. Escribe 'salir' para terminar la conversación.")
     while True:
         try:
-            question = await asyncio.to_thread(input, "\nTu pregunta: ")
+            prompt_printer.prompt_started()
+            try:
+                question = await asyncio.to_thread(input, "\nTu pregunta: ")
+            finally:
+                prompt_printer.prompt_finished()
         except (EOFError, KeyboardInterrupt):
             print("\nInteracción cancelada.")
+            prompt_printer.flush_buffer()
             return
         if question.strip().lower() in {"", "salir", "exit", "quit"}:
             print("\nSesión finalizada por la persona usuaria.")
+            prompt_printer.flush_buffer()
             return
         await ask_and_display(
             conversation,
@@ -356,6 +411,7 @@ async def run_interactive(
             question,
             timeout=timeout,
         )
+        prompt_printer.flush_buffer()
 
 
 async def run_scenario(
@@ -419,6 +475,72 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+async def diagnose_agent_context(
+    client: ElevenLabs,
+    agent_id: str,
+    agent_payload: Optional[Dict],
+) -> None:
+    stored_agent_id: Optional[str] = None
+    if agent_payload:
+        stored_agent_id = agent_payload.get("id") or agent_payload.get("agent_id")
+
+    env_agent_id = os.getenv("AGENT_ID")
+    if env_agent_id and stored_agent_id and env_agent_id != stored_agent_id:
+        print(
+            "⚠️ La variable de entorno AGENT_ID difiere del identificador guardado en ./.navia/agent.json. "
+            "Verifica que Navia utilice el agente correcto antes de continuar."
+        )
+
+    local_doc_map = load_local_doc_map()
+    local_count = len(local_doc_map)
+    if local_count:
+        print(f"📄 Documentos cacheados disponibles: {local_count}")
+    else:
+        print(
+            "⚠️ No se encontraron documentos cacheados en ./.navia/documents.json. "
+            "Ejecuta scripts/normalize_and_chunk.py y scripts/upload_chunks.py para regenerarlos."
+        )
+
+    remote_total: Optional[int] = None
+    knowledge_base = getattr(getattr(client.conversational_ai, "knowledge_base", None), "documents", None)
+    list_method = getattr(knowledge_base, "list", None)
+    if callable(list_method):
+        try:
+            listing = await asyncio.to_thread(list_method, agent_id=agent_id, page_size=50)
+        except Exception as exc:
+            print(
+                "⚠️ No se pudo verificar la base de conocimiento remota. "
+                f"Mensaje del SDK: {exc}"
+            )
+        else:
+            payload = convert_model_to_dict(listing)
+            documents = payload.get("documents") or payload.get("items") or []
+            try:
+                remote_total = int(payload.get("total"))
+            except (TypeError, ValueError):
+                remote_total = None
+            if remote_total is None:
+                remote_total = len(documents)
+            if remote_total:
+                print(f"🧠 Documentos registrados en el agente: {remote_total}")
+            else:
+                print(
+                    "⚠️ La base de conocimiento del agente no tiene documentos disponibles. "
+                    "Vuelve a cargar los archivos con scripts/upload_chunks.py."
+                )
+    else:
+        print(
+            "⚠️ El SDK actual no permite listar documentos de la base de conocimiento. "
+            "Verifica manualmente que el agente tenga archivos cargados."
+        )
+
+    if local_count and remote_total and local_count != remote_total:
+        print(
+            "⚠️ Hay una discrepancia entre los documentos cacheados y los registrados en el agente. "
+            "Ejecuta nuevamente scripts/upload_chunks.py para sincronizarlos."
+        )
+
+
 async def main_async(args: argparse.Namespace) -> None:
     agent_id = load_agent_id()
     api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -426,6 +548,10 @@ async def main_async(args: argparse.Namespace) -> None:
     client = ElevenLabs(api_key=api_key)
     loop = asyncio.get_running_loop()
     collector = ResponseCollector(loop)
+    prompt_printer = PromptAwarePrinter(loop)
+
+    agent_payload = load_agent_payload_file()
+    await diagnose_agent_context(client, agent_id, agent_payload)
 
     conversation = Conversation(
         client,
@@ -437,8 +563,8 @@ async def main_async(args: argparse.Namespace) -> None:
             user_id=args.user_id,
         ),
         callback_agent_response=collector.handle_agent_response,
-        callback_user_transcript=_threadsafe_printer(loop, "👤 Usuario: "),
-        callback_latency_measurement=_threadsafe_printer(loop, "⏱️ Latencia: "),
+        callback_user_transcript=prompt_printer.make_printer("👤 Usuario: "),
+        callback_latency_measurement=prompt_printer.make_printer("⏱️ Latencia: "),
     )
 
     conversation.start_session()
@@ -484,6 +610,7 @@ async def main_async(args: argparse.Namespace) -> None:
                 client,
                 agent_id,
                 conversation_id,
+                prompt_printer,
                 timeout=args.timeout,
             )
     finally:
