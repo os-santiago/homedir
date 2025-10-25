@@ -61,7 +61,14 @@ def main() -> None:
             }
             out_path = CHUNK_DIR / f"{doc_id}.json"
             out_path.write_text(
-                json.dumps({"meta": metadata, "content": chunk, "text": chunk}, ensure_ascii=False),
+                json.dumps(
+                    {
+                        "meta": metadata,
+                        "content": f"{url}\n{html}",
+                        "text": chunk,
+                    },
+                    ensure_ascii=False,
+                ),
                 encoding="utf-8",
             )
             records.append(metadata)
