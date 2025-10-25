@@ -3,6 +3,7 @@ package com.scanales.eventflow.security;
 import io.quarkus.oidc.OidcSession;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -18,7 +19,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 public class SessionResource {
 
   @Inject SecurityIdentity identity;
-  @Inject OidcSession oidcSession;
+  @Inject Instance<OidcSession> oidcSession;
 
   @GET
   @Authenticated
@@ -28,8 +29,8 @@ public class SessionResource {
     JsonWebToken jwt = null;
     if (identity.getPrincipal() instanceof JsonWebToken jw) {
       jwt = jw;
-    } else if (oidcSession != null) {
-      jwt = oidcSession.getIdToken();
+    } else if (oidcSession.isResolvable()) {
+      jwt = oidcSession.get().getIdToken();
     }
     if (jwt != null) {
       Object claim = jwt.getClaim(Claims.exp.name());
@@ -48,8 +49,8 @@ public class SessionResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, Object> refresh() {
     // Simply accessing the ID token ensures the session remains active
-    if (oidcSession != null) {
-      oidcSession.getIdToken();
+    if (oidcSession.isResolvable()) {
+      oidcSession.get().getIdToken();
     }
     return session();
   }
