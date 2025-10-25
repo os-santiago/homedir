@@ -58,11 +58,13 @@ class DummyConversation:
         config,
         callback_agent_response,
         callback_user_transcript,
-        callback_latency_measurement,
+        callback_latency_measurement=None,
     ):
         self._client = client
         self._callback_agent_response = callback_agent_response
         self._callback_user = callback_user_transcript
+        if callback_latency_measurement is None:
+            callback_latency_measurement = lambda *_args, **_kwargs: None  # pragma: no cover - default noop
         self._callback_latency = callback_latency_measurement
         self._conversation_id = "conv-1"
         self._agent_id = agent_id
@@ -183,29 +185,42 @@ class NaviaMVPFlowTest(unittest.TestCase):
         class DummyUploadSDK:
             def __init__(self):
                 self.uploads = []
-                self.rag_calls = []
+                self.agent_id = "agent-123"
+                self.agent_updates = []
+                self.documents_store = {}
+
                 self.conversational_ai = types.SimpleNamespace(
-                    add_to_knowledge_base=self._add_to_knowledge_base,
                     knowledge_base=types.SimpleNamespace(
-                        document=types.SimpleNamespace(compute_rag_index=self._compute_rag_index)
+                        create_from_text=self._create_from_text,
+                        documents=types.SimpleNamespace(get=self._documents_get),
                     ),
+                    agents=types.SimpleNamespace(update=self._agents_update),
                 )
 
-            def _add_to_knowledge_base(self, *, agent_id=None, name=None, file=None, url=None):
-                if not agent_id:
-                    raise AssertionError("Se esperaba un agent_id para el upload")
+            def _create_from_text(self, *, name=None, text=None):
                 doc_id = f"doc-{len(self.uploads) + 1}"
                 self.uploads.append({
-                    "agent_id": agent_id,
                     "name": name,
-                    "file": file,
-                    "url": url,
+                    "text": text,
                 })
+                self.documents_store[doc_id] = {"id": doc_id, "name": name, "type": "file"}
                 return types.SimpleNamespace(id=doc_id, name=name)
 
-            def _compute_rag_index(self, documentation_id, *, model):
-                self.rag_calls.append((documentation_id, model))
-                return types.SimpleNamespace(status="ok")
+            def _agents_update(self, *, agent_id=None, knowledge_base=None):
+                if agent_id != self.agent_id:
+                    raise AssertionError("Agent ID inesperado al actualizar")
+                payload = {
+                    "agent_id": agent_id,
+                    "knowledge_base": list(knowledge_base or []),
+                }
+                self.agent_updates.append(payload)
+                return types.SimpleNamespace(agent_id=agent_id, knowledge_base=payload["knowledge_base"])
+
+            def _documents_get(self, documentation_id, *, agent_id=None):
+                data = self.documents_store.get(documentation_id)
+                if data is None:
+                    raise AssertionError(f"Documento desconocido: {documentation_id}")
+                return types.SimpleNamespace(**data)
 
         dummy_sdk = DummyUploadSDK()
 
@@ -215,6 +230,10 @@ class NaviaMVPFlowTest(unittest.TestCase):
         doc_map = json.loads(Path(".navia/documents.json").read_text())
         self.assertIn("doc-1", doc_map)
         self.assertEqual(doc_map["doc-1"]["source_url"], "http://localhost:8080/agenda")
+        self.assertEqual(doc_map["doc-1"]["name"], "Agenda principal")
+        self.assertEqual(len(dummy_sdk.agent_updates), 1)
+        assigned_docs = dummy_sdk.agent_updates[0]["knowledge_base"]
+        self.assertEqual(assigned_docs, ["doc-1"])
 
         from scripts import ask_agent
 
@@ -234,7 +253,6 @@ class NaviaMVPFlowTest(unittest.TestCase):
         self.assertIn("Puedes encontrarlo en la agenda.", output)
         self.assertIn("Rutas sugeridas", output)
         self.assertIn("http://localhost:8080/agenda", output)
-        self.assertIn("📄 Documentos cacheados disponibles: 1", output)
         self.assertIn("🧠 Documentos registrados en el agente: 1", output)
 
 
