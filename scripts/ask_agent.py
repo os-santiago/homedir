@@ -108,7 +108,7 @@ def request_with_fallback(
         timeout=timeout,
     )
 
-    if response.status_code == 404 and fallback_path:
+    if response.status_code in {404, 405} and fallback_path:
         fallback_json = clone_payload(json_payload)
         fallback_params = clone_payload(params)
 
