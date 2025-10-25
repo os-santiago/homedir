@@ -214,6 +214,49 @@ def format_json_snippet(payload: Dict | List | None, *, indent: int = 2, limit: 
     return snippet
 
 
+def build_navigation_hint(metadata: Dict, *, fallback: str) -> str:
+    """Return a human readable hint describing where to find the content."""
+
+    if not isinstance(metadata, dict):
+        return fallback
+
+    url = metadata.get("source_url") or metadata.get("source")
+    anchor = metadata.get("anchor") or metadata.get("anchor_id") or metadata.get("fragment")
+    base_url = url.split("#", 1)[0] if url else None
+    formatted_anchor: str | None = None
+    if base_url and anchor not in (None, ""):
+        formatted_anchor = str(anchor)
+        if formatted_anchor.startswith("#"):
+            formatted_anchor = formatted_anchor[1:]
+        url = f"{base_url}#{formatted_anchor}"
+    else:
+        formatted_anchor = None
+
+    path = metadata.get("source_path") or metadata.get("path")
+    chunk_index = metadata.get("chunk_index")
+    title = metadata.get("title") or metadata.get("title_guess")
+
+    parts: List[str] = []
+    if title:
+        parts.append(str(title))
+    if url:
+        parts.append(f"Visita {url}")
+    if path:
+        parts.append(f"Cache local: {path}")
+    if chunk_index not in (None, ""):
+        parts.append(f"Chunk #{chunk_index}")
+    if not parts:
+        return fallback
+
+    if base_url:
+        command = f"Render desde cache: python scripts/render_from_cache.py {base_url}"
+        if formatted_anchor:
+            command = f"{command} {formatted_anchor}"
+        parts.append(command)
+
+    return " — ".join(parts)
+
+
 def main() -> None:
     question = input("Pregunta (ej: ¿Dónde está el evento 'Test event'?): ")
 
@@ -305,12 +348,13 @@ def main() -> None:
                     metadata_map.setdefault(doc_id, doc_meta)
 
     if metadata_map:
-        print("\nFuentes:")
-        for doc_id, metadata in metadata_map.items():
-            source = metadata.get("source_url") or metadata.get("doc_id") or metadata.get("name")
-            print("-", source or doc_id)
+        print("\nRutas sugeridas:")
+        for doc_id in dict.fromkeys(doc_ids) or metadata_map.keys():
+            metadata = metadata_map.get(doc_id)
+            hint = build_navigation_hint(metadata, fallback=doc_id)
+            print("-", hint)
     elif doc_ids:
-        print("\nFuentes:")
+        print("\nRutas sugeridas:")
         for doc_id in dict.fromkeys(doc_ids):
             print("-", doc_id)
     else:
