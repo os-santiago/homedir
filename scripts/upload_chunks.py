@@ -7,7 +7,12 @@ from pathlib import Path
 import requests
 
 API = os.environ.get("ELEVENLABS_BASE_URL", "https://api.elevenlabs.io")
-KEY = os.environ["ELEVENLABS_API_KEY"]
+KEY = os.environ.get("ELEVENLABS_API_KEY")
+if not KEY:
+    raise SystemExit(
+        "No se encontró la variable de entorno ELEVENLABS_API_KEY. "
+        "Configúrala con tu API key de ElevenLabs antes de ejecutar este script."
+    )
 AGENT_PATH = Path("./.navia/agent.json")
 DOC_MAP_PATH = Path("./.navia/documents.json")
 
