@@ -3,7 +3,6 @@ import hashlib
 import os
 import pathlib
 from typing import Iterable
-from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -37,22 +36,13 @@ def main() -> None:
         raise SystemExit(f'No se encontró el cache en {RAW_CACHE}. Ejecuta el scrape primero.')
 
     base_url = os.environ.get("NAVIA_SITE_BASE", "http://localhost:8080")
-    parsed_base_url = urlparse(base_url)
-    base_netloc = parsed_base_url.netloc or parsed_base_url.path.lstrip("/")
 
     for path in RAW_CACHE.rglob("*.html"):
-        relative_path = path.relative_to(RAW_CACHE)
-        relative_parts = list(relative_path.parts)
-        if base_netloc and relative_parts and relative_parts[0] == base_netloc:
-            relative_parts = relative_parts[1:]
-
-        normalized_relative = pathlib.PurePosixPath(*relative_parts)
-        if normalized_relative.suffix == ".html":
-            normalized_relative = normalized_relative.with_suffix("")
-        url_suffix = f"/{normalized_relative}" if relative_parts else ""
+        url_suffix = '/' + str(path.relative_to(RAW_CACHE)).replace('\\', '/')
         url = base_url.rstrip('/') + url_suffix
         html = path.read_text(errors="ignore")
         # Guardar una copia del HTML original junto al chunk normalizado.
+        relative_path = path.relative_to(RAW_CACHE)
         raw_dump_path = (CHUNK_RAW_DIR / relative_path).with_suffix(".txt")
         raw_dump_path.parent.mkdir(parents=True, exist_ok=True)
         raw_dump_path.write_text(html, encoding="utf-8", errors="ignore")
