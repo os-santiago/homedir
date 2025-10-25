@@ -47,23 +47,37 @@ jobs:
 
       - name: Build Docker image
         working-directory: quarkus-app
-        env:
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          PRTAG: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER }}-${{ github.sha }}
         run: |
-          if [ -n "$PR_NUMBER" ]; then
+          set -euo pipefail
+
+          DEFAULT_IMAGE_NAME="${GITHUB_REPOSITORY#*/}"
+          IMAGE_NAME_VALUE="${IMAGE_NAME:-$DEFAULT_IMAGE_NAME}"
+
+          IMAGE_REPOSITORY="$IMAGE_NAME_VALUE"
+          if [ -n "${REGISTRY:-}" ]; then
+            IMAGE_REPOSITORY="${REGISTRY}/${IMAGE_NAME_VALUE}"
+          fi
+
+          IMAGE="${IMAGE_REPOSITORY}:${GITHUB_SHA}"
+
+          if [ -n "${PR_NUMBER:-}" ]; then
+            PRTAG="${IMAGE_REPOSITORY}:pr-${PR_NUMBER}-${GITHUB_SHA}"
             docker build \
               -f src/main/docker/Dockerfile.native \
               -t "$IMAGE" -t "$PRTAG" \
               .
-            echo "PRTAG=$PRTAG" >> $GITHUB_ENV
+            echo "PRTAG=$PRTAG" >> "$GITHUB_ENV"
           else
             docker build \
               -f src/main/docker/Dockerfile.native \
               -t "$IMAGE" \
               .
           fi
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+          {
+            echo "IMAGE=$IMAGE"
+            echo "IMAGE_REPOSITORY=$IMAGE_REPOSITORY"
+          } >> "$GITHUB_ENV"
 
       - name: Push Docker image
         env:
@@ -72,6 +86,11 @@ jobs:
           QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
           QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         run: |
+          if [ -z "${REGISTRY:-}" ]; then
+            echo "Registry not configured; skipping image push."
+            exit 0
+          fi
+
           echo "$QUAY_PASSWORD" | docker login "$REGISTRY" -u "$QUAY_USERNAME" --password-stdin
           docker push "$IMAGE"
           if [ -n "$PRTAG" ]; then
@@ -87,8 +106,8 @@ jobs:
           sudo apt-get update -y && sudo apt-get install -y skopeo jq
           if [ "$LOGGED_IN" = "1" ] && [ -n "$PRTAG" ]; then
             DIGEST="$(skopeo inspect --format '{{.Digest}}' docker://$PRTAG)"
-            echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" | tee image-ref.txt
-            echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
+            echo "REF=${IMAGE_REPOSITORY}@${DIGEST}" | tee image-ref.txt
+            echo "REF=${IMAGE_REPOSITORY}@${DIGEST}" >> $GITHUB_ENV
           else
             echo "REF=docker:${IMAGE}" | tee image-ref.txt
             echo "REF=docker:${IMAGE}" >> $GITHUB_ENV
@@ -102,9 +121,14 @@ jobs:
 
       - name: Tag & push version alias
         run: |
-          docker tag "$IMAGE" "${REGISTRY}/${IMAGE_NAME}:${VERSION}"
+          if [ -z "${REGISTRY:-}" ]; then
+            echo "Registry not configured; skipping remote tagging."
+            exit 0
+          fi
+
+          docker tag "$IMAGE" "${IMAGE_REPOSITORY}:${VERSION}"
           if [ "$LOGGED_IN" = "1" ]; then
-            docker push "${REGISTRY}/${IMAGE_NAME}:${VERSION}"
+            docker push "${IMAGE_REPOSITORY}:${VERSION}"
           fi
 
       - name: Sign images
@@ -114,7 +138,9 @@ jobs:
         run: |
           printf "%s" "$COSIGN_PRIVATE_KEY" > cosign.key
           cosign sign --key cosign.key --yes "$REF" || true
-          cosign sign --key cosign.key --yes "${REGISTRY}/${IMAGE_NAME}:${VERSION}" || true
+          if [ -n "${REGISTRY:-}" ]; then
+            cosign sign --key cosign.key --yes "${IMAGE_REPOSITORY}:${VERSION}" || true
+          fi
           rm -f cosign.key
 
       - name: Install Syft
@@ -131,5 +157,7 @@ jobs:
             syft packages "$REF" -o cyclonedx-json > sbom-image.cdx.json
           fi
           cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "$REF" || true
-          cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "${REGISTRY}/${IMAGE_NAME}:${VERSION}" || true
+          if [ -n "${REGISTRY:-}" ]; then
+            cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "${IMAGE_REPOSITORY}:${VERSION}" || true
+          fi
 
