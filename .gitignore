@@ -18,3 +18,10 @@ buildNumber.properties
 
 # Cosign key material
 cosign.key
+
+# Navia MVP artifacts
+.navia/
+.env
+.venv/
+__pycache__/
+
