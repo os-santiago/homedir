@@ -37,7 +37,19 @@ def load_local_doc_map() -> Dict[str, Dict]:
 
 
 def fetch_remote_metadata(agent_id: str, doc_id: str) -> Dict:
-    url = f"{API}/v1/convai/knowledge-base/{doc_id}"
+    """Fetch document metadata from the agent knowledge base.
+
+    The public API exposes document retrieval under the
+    `/v1/convai/knowledge-base/documents/{document_id}` endpoint using the
+    GET method (see https://elevenlabs.io/docs/agents-platform/api-reference/knowledge-base/get-document).
+    The previous implementation used the legacy `/knowledge-base/{id}` path
+    which now returns *405 Method Not Allowed* responses. Switching to the
+    documented endpoint fixes the issue and keeps compatibility with both
+    agent-scoped and shared documents by forwarding the agent identifier as a
+    query parameter.
+    """
+
+    url = f"{API}/v1/convai/knowledge-base/documents/{doc_id}"
     response = requests.get(url, headers=AUTH_HEADERS, params={"agent_id": agent_id}, timeout=60)
     if not response.ok:
         return {}
@@ -166,8 +178,8 @@ def main() -> None:
 
     conv_response = request_with_fallback(
         "POST",
-        "/v1/convai/agents/{agent_id}/conversations/initiate",
-        fallback_path="/v1/convai/conversations/initiate",
+        "/v1/convai/agents/{agent_id}/conversations",
+        fallback_path="/v1/convai/conversations",
         json_payload={"mode": "text", "agent_id": AGENT},
     )
     conversation = conv_response.json()
