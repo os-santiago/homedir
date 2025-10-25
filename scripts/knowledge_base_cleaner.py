@@ -48,7 +48,37 @@ class KnowledgeBaseCleaner:
     def delete_document(self, document_id: str) -> bool:
         """Elimina un documento específico."""
         try:
-            self.client.conversational_ai.knowledge_base.delete(document_id)
+            knowledge_base = self.client.conversational_ai.knowledge_base
+
+            # SDKs anteriores exponían el método delete directamente en
+            # `knowledge_base`. Las versiones recientes lo movieron a
+            # `knowledge_base.documents.delete`. Intentamos ambas opciones de
+            # forma segura para mantener compatibilidad hacia atrás.
+            delete_method = getattr(knowledge_base, "delete", None)
+
+            if not callable(delete_method):
+                documents_client = getattr(knowledge_base, "documents", None)
+                delete_method = getattr(documents_client, "delete", None)
+
+            if not callable(delete_method):
+                raise AttributeError(
+                    "El SDK de ElevenLabs no expone un método de borrado compatible."
+                )
+
+            # Algunas versiones aceptan el id como argumento posicional y otras
+            # requieren palabras clave. Probamos ambos enfoques antes de fallar.
+            try:
+                delete_method(document_id)
+            except TypeError:
+                for key in ("document_id", "knowledge_base_document_id", "id"):
+                    try:
+                        delete_method(**{key: document_id})
+                        break
+                    except TypeError:
+                        continue
+                else:
+                    raise
+
             print(f"\u2705 Documento eliminado: {document_id}")
             return True
         except Exception as exc:  # pylint: disable=broad-except
