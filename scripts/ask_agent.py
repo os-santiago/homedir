@@ -564,7 +564,6 @@ async def main_async(args: argparse.Namespace) -> None:
         ),
         callback_agent_response=collector.handle_agent_response,
         callback_user_transcript=prompt_printer.make_printer("👤 Usuario: "),
-        callback_latency_measurement=prompt_printer.make_printer("⏱️ Latencia: "),
     )
 
     conversation.start_session()
