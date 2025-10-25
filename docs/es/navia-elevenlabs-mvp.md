@@ -11,7 +11,7 @@ Este documento describe cómo reproducir el MVP que valida la integración entre
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install beautifulsoup4 requests
+pip install beautifulsoup4 requests elevenlabs
 ```
 
 > Nota: todos los comandos se asumen desde la raíz del repositorio.
