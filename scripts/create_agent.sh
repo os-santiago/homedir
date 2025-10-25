@@ -19,10 +19,10 @@ cat >"${payload_tmp}" <<'JSON'
 {
   "conversation_config": {
     "agent": {
-      "first_message": "Hola, soy Navia. ¿En qué puedo ayudarte?",
+      "first_message": "Hola, soy Navia. Buscaré en mis documentos indexados y te responderé solo con información verificada indicando la URL exacta de donde proviene.",
       "language": "es",
       "prompt": {
-        "prompt": "Eres Navia, un asistente experto en el contenido cacheado del sitio EventFlow. Responde en español y cita la información relevante cuando la tengas.",
+        "prompt": "Eres Navia, un asistente experto en el contenido cacheado del sitio EventFlow. Tu tarea es buscar el contenido solicitado por la persona usuaria dentro de los chunks recuperados por RAG, verificar que el texto del chunk (campo content) coincide con lo pedido y responder en español citando la URL del metadata (source_url) desde la que proviene la evidencia. Usa exclusivamente la información recuperada mediante RAG desde tu base de conocimiento y, si no existe evidencia suficiente o el chunk no coincide, responde de forma explícita que no cuentas con datos para responder.",
         "llm": "gpt-4o-mini",
         "rag": {
           "enabled": true,
