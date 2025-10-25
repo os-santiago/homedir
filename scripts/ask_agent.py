@@ -221,7 +221,10 @@ def main() -> None:
         conv_response = request_with_fallback(
             "POST",
             "/v1/convai/agents/{agent_id}/conversations",
-            fallback_path="/v1/convai/conversations",
+            # According to the public API docs the non agent scoped endpoint uses the
+            # ``/create`` suffix for conversation creation. Using ``/v1/convai/conversations``
+            # results in a 405 Method Not Allowed response.
+            fallback_path="/v1/convai/conversations/create",
             fallback_method="POST",
             json_payload={"mode": "text", "agent_id": AGENT},
         )
@@ -254,7 +257,9 @@ def main() -> None:
     request_with_fallback(
         "POST",
         f"/v1/convai/agents/{{agent_id}}/conversations/{conv_id}/messages",
-        fallback_path=f"/v1/convai/conversations/{conv_id}/messages",
+        # Same behaviour applies when appending new messages: the shared endpoint
+        # expects ``/create`` in the path.
+        fallback_path=f"/v1/convai/conversations/{conv_id}/messages/create",
         json_payload={"role": "user", "content": question, "agent_id": AGENT},
     )
 
