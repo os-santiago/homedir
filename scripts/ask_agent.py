@@ -263,7 +263,7 @@ def main() -> None:
     try:
         conv_response = request_with_fallback(
             "POST",
-            "/v1/convai/agents/{agent_id}/conversations",
+            "/v1/convai/agents/{agent_id}/conversations/create",
             # According to the public API docs the non agent scoped endpoint uses the
             # ``/create`` suffix for conversation creation. Using ``/v1/convai/conversations``
             # results in a 405 Method Not Allowed response.
