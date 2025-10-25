@@ -202,20 +202,54 @@ def extract_references(payload: dict) -> Iterable[Dict]:
     return last_message.get("documents", []) or []
 
 
+def format_json_snippet(payload: Dict | List | None, *, indent: int = 2, limit: int = 2000) -> str:
+    """Return a JSON formatted string limited to ``limit`` characters."""
+
+    try:
+        snippet = json.dumps(payload, indent=indent, ensure_ascii=False)
+    except (TypeError, ValueError):
+        snippet = str(payload)
+    if len(snippet) > limit:
+        return snippet[: limit - 3] + "..."
+    return snippet
+
+
 def main() -> None:
     question = input("Pregunta (ej: ¿Dónde está el evento 'Test event'?): ")
 
-    conv_response = request_with_fallback(
-        "POST",
-        "/v1/convai/agents/{agent_id}/conversations",
-        fallback_path="/v1/convai/conversations",
-        fallback_method="GET",
-        json_payload={"mode": "text", "agent_id": AGENT},
-    )
-    conversation = conv_response.json()
+    try:
+        conv_response = request_with_fallback(
+            "POST",
+            "/v1/convai/agents/{agent_id}/conversations",
+            fallback_path="/v1/convai/conversations",
+            fallback_method="GET",
+            json_payload={"mode": "text", "agent_id": AGENT},
+        )
+    except requests.HTTPError as exc:
+        response = getattr(exc, "response", None)
+        status = getattr(response, "status_code", "(sin código)")
+        detail = getattr(response, "text", "") or getattr(response, "content", b"")
+        raise SystemExit(
+            "Error al crear la conversación. La API devolvió "
+            f"HTTP {status}. Cuerpo: {detail!r}"
+        ) from exc
+
+    try:
+        conversation = conv_response.json()
+    except ValueError:
+        raw = conv_response.text
+        raise SystemExit(
+            "Error al interpretar la respuesta de creación de conversación como JSON. "
+            f"Contenido recibido: {raw!r}"
+        ) from None
     conv_id = extract_conversation_id(conversation)
     if not conv_id:
-        raise SystemExit("No se pudo crear la conversación. Revisa la respuesta de la API.")
+        snippet = format_json_snippet(conversation)
+        raise SystemExit(
+            "No se pudo determinar el identificador de la conversación. "
+            "Respuesta de la API:\n"
+            f"{snippet}"
+        )
 
     request_with_fallback(
         "POST",
