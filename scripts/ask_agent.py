@@ -222,11 +222,15 @@ def build_navigation_hint(metadata: Dict, *, fallback: str) -> str:
 
     url = metadata.get("source_url") or metadata.get("source")
     anchor = metadata.get("anchor") or metadata.get("anchor_id") or metadata.get("fragment")
-    if url and anchor:
-        anchor = str(anchor)
-        if anchor.startswith("#"):
-            anchor = anchor[1:]
-        url = f"{url.split('#', 1)[0]}#{anchor}"
+    base_url = url.split("#", 1)[0] if url else None
+    formatted_anchor: str | None = None
+    if base_url and anchor not in (None, ""):
+        formatted_anchor = str(anchor)
+        if formatted_anchor.startswith("#"):
+            formatted_anchor = formatted_anchor[1:]
+        url = f"{base_url}#{formatted_anchor}"
+    else:
+        formatted_anchor = None
 
     path = metadata.get("source_path") or metadata.get("path")
     chunk_index = metadata.get("chunk_index")
@@ -244,8 +248,11 @@ def build_navigation_hint(metadata: Dict, *, fallback: str) -> str:
     if not parts:
         return fallback
 
-    if url:
-        parts.append(f"Render desde cache: python scripts/render_from_cache.py {url}")
+    if base_url:
+        command = f"Render desde cache: python scripts/render_from_cache.py {base_url}"
+        if formatted_anchor:
+            command = f"{command} {formatted_anchor}"
+        parts.append(command)
 
     return " — ".join(parts)
 
