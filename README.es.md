@@ -69,3 +69,7 @@ La compilación produce SBOMs para dependencias e imágenes de contenedor y esca
 Proyecto respaldado por la comunidad OpenSource Santiago. Únete a nuestro [servidor de Discord](https://discord.gg/3eawzc9ybc).
 
 Para divulgación coordinada de vulnerabilidades, consulta [SECURITY.es.md](SECURITY.es.md).
+
+## Integración Navia × ElevenLabs
+Para ejecutar el MVP local que valida cache + RAG consulta [docs/es/navia-elevenlabs-mvp.md](docs/es/navia-elevenlabs-mvp.md).
+
