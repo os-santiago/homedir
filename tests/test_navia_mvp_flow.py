@@ -121,6 +121,8 @@ class NaviaMVPFlowTest(unittest.TestCase):
         client_module = types.ModuleType("elevenlabs.client")
         core_module = types.ModuleType("elevenlabs.core")
         api_error_module = types.ModuleType("elevenlabs.core.api_error")
+        conversational_ai_module = types.ModuleType("elevenlabs.conversational_ai")
+        conversation_module = types.ModuleType("elevenlabs.conversational_ai.conversation")
 
         class _DummyApiError(Exception):
             def __init__(self, *, status_code=None, body=None, headers=None):
@@ -134,13 +136,36 @@ class NaviaMVPFlowTest(unittest.TestCase):
                 self.args = args
                 self.kwargs = kwargs
 
+        class _PlaceholderAudioInterface:
+            def __init__(self, *args, **kwargs):
+                self.args = args
+                self.kwargs = kwargs
+
+        class _PlaceholderConversation:
+            def __init__(self, *args, **kwargs):
+                self.args = args
+                self.kwargs = kwargs
+
+        class _PlaceholderConversationInitiationData:
+            def __init__(self, *args, **kwargs):
+                self.args = args
+                self.kwargs = kwargs
+
         client_module.ElevenLabs = _PlaceholderClient
         api_error_module.ApiError = _DummyApiError
+        conversation_module.AudioInterface = _PlaceholderAudioInterface
+        conversation_module.Conversation = _PlaceholderConversation
+        conversation_module.ConversationInitiationData = _PlaceholderConversationInitiationData
+
+        elevenlabs_module.conversational_ai = conversational_ai_module
+        conversational_ai_module.conversation = conversation_module
 
         stub_module("elevenlabs", elevenlabs_module)
         stub_module("elevenlabs.client", client_module)
         stub_module("elevenlabs.core", core_module)
         stub_module("elevenlabs.core.api_error", api_error_module)
+        stub_module("elevenlabs.conversational_ai", conversational_ai_module)
+        stub_module("elevenlabs.conversational_ai.conversation", conversation_module)
 
         os.environ["ELEVENLABS_API_KEY"] = "test-key"
         self.addCleanup(lambda: os.environ.pop("ELEVENLABS_API_KEY", None))
@@ -191,8 +216,10 @@ class NaviaMVPFlowTest(unittest.TestCase):
 
                 self.conversational_ai = types.SimpleNamespace(
                     knowledge_base=types.SimpleNamespace(
-                        create_from_text=self._create_from_text,
-                        documents=types.SimpleNamespace(get=self._documents_get),
+                        documents=types.SimpleNamespace(
+                            create_from_text=self._create_from_text,
+                            get=self._documents_get,
+                        ),
                     ),
                     agents=types.SimpleNamespace(update=self._agents_update),
                 )

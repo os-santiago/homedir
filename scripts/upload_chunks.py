@@ -55,11 +55,36 @@ def _format_error(detail) -> str:
         return str(detail)
 
 
+def _resolve_create_from_text(client: ElevenLabs):
+    kb_api = getattr(client.conversational_ai, "knowledge_base", None)
+    if kb_api is None:
+        raise SystemExit(
+            "La versión del SDK de ElevenLabs instalada no expone la API de knowledge base. "
+            "Actualiza la dependencia 'elevenlabs' e inténtalo de nuevo."
+        )
+
+    create_fn = getattr(kb_api, "create_from_text", None)
+    if create_fn is not None:
+        return create_fn
+
+    documents_api = getattr(kb_api, "documents", None)
+    if documents_api is not None:
+        create_fn = getattr(documents_api, "create_from_text", None)
+        if create_fn is not None:
+            return create_fn
+
+    raise SystemExit(
+        "La versión del SDK de ElevenLabs instalada no permite crear documentos desde texto. "
+        "Actualiza la dependencia 'elevenlabs' e inténtalo de nuevo."
+    )
+
+
 def create_doc(client: ElevenLabs, meta, text: str, index: int):
     meta = meta or {}
     name = meta.get("title_guess", f"Navia Chunk {index}")
+    create_from_text = _resolve_create_from_text(client)
     try:
-        response = client.conversational_ai.knowledge_base.create_from_text(
+        response = create_from_text(
             name=name,
             text=text,
         )
