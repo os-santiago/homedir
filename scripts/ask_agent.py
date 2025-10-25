@@ -179,7 +179,7 @@ def main() -> None:
     conv_response = request_with_fallback(
         "POST",
         "/v1/convai/agents/{agent_id}/conversations",
-        fallback_path="/v1/convai/conversations/create",
+        fallback_path="/v1/convai/conversations",
         json_payload={"mode": "text", "agent_id": AGENT},
     )
     conversation = conv_response.json()
@@ -194,7 +194,7 @@ def main() -> None:
     request_with_fallback(
         "POST",
         f"/v1/convai/agents/{{agent_id}}/conversations/{conv_id}/messages",
-        fallback_path=f"/v1/convai/conversations/{conv_id}/messages/create",
+        fallback_path=f"/v1/convai/conversations/{conv_id}/messages",
         json_payload={"role": "user", "content": question, "agent_id": AGENT},
     )
 
