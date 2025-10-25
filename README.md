@@ -41,6 +41,15 @@ mvn -f quarkus-app/pom.xml quarkus:dev
 
 Then browse to `http://localhost:8080`.
 
+### Local authentication in development
+The dev profile disables Google Sign-In and enables in-memory accounts defined in
+`quarkus-app/src/main/resources/application.properties`:
+
+- `user@example.com` / `userpass` — regular user
+- `admin@example.org` / `adminpass` — administrator
+
+Use these credentials with the "Development mode" form on `/ingresar`.
+
 ### Google OAuth 2.0 setup
 Configure these properties in `application.properties` or environment variables:
 
