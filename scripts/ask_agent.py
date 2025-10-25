@@ -11,8 +11,8 @@ extremo del MVP:
 * Preguntas puntuales reutilizando el contexto de conversación (`--question`).
 * Modo interactivo para continuar explorando hasta encontrar el contenido
   deseado.
-* Resolución de metadatos de los documentos referenciados para recuperar el
-  material original desde el caché local.
+* Resolución de metadatos de los documentos referenciados directamente desde la
+  base de conocimiento remota.
 """
 
 from __future__ import annotations
@@ -40,7 +40,6 @@ except ModuleNotFoundError as exc:  # pragma: no cover - dependency error path
     ) from exc
 
 AGENT_PATH = Path("./.navia/agent.json")
-DOC_MAP_PATH = Path("./.navia/documents.json")
 DEFAULT_TIMEOUT = 30.0
 
 
@@ -156,16 +155,6 @@ def load_agent_payload_file() -> Dict:
     return data if isinstance(data, dict) else {}
 
 
-def load_local_doc_map() -> Dict[str, Dict]:
-    if not DOC_MAP_PATH.exists():
-        return {}
-    try:
-        data = json.loads(DOC_MAP_PATH.read_text())
-    except json.JSONDecodeError:
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
 def convert_model_to_dict(model: object) -> Dict:
     if model is None:
         return {}
@@ -184,27 +173,24 @@ async def resolve_doc_metadata(
     doc_ids: Iterable[str],
 ) -> Dict[str, Dict]:
     mapping: Dict[str, Dict] = {}
-    local_map = load_local_doc_map()
 
     for doc_id in doc_ids:
         if not doc_id or doc_id in mapping:
             continue
-        metadata = local_map.get(doc_id)
-        if not metadata:
-            try:
-                document = await asyncio.to_thread(
-                    client.conversational_ai.knowledge_base.documents.get,
-                    doc_id,
-                    agent_id=agent_id,
-                )
-            except Exception:
-                metadata = {}
-            else:
-                metadata = convert_model_to_dict(getattr(document, "metadata", {}))
-                metadata.setdefault("name", getattr(document, "name", None))
-                metadata.setdefault("source_url", getattr(document, "url", None))
-                metadata.setdefault("doc_id", getattr(document, "id", None))
-                metadata.setdefault("extracted_inner_html", getattr(document, "extracted_inner_html", None))
+        try:
+            document = await asyncio.to_thread(
+                client.conversational_ai.knowledge_base.documents.get,
+                doc_id,
+                agent_id=agent_id,
+            )
+        except Exception:
+            metadata = {}
+        else:
+            metadata = convert_model_to_dict(getattr(document, "metadata", {}))
+            metadata.setdefault("name", getattr(document, "name", None))
+            metadata.setdefault("source_url", getattr(document, "url", None))
+            metadata.setdefault("doc_id", getattr(document, "id", None))
+            metadata.setdefault("extracted_inner_html", getattr(document, "extracted_inner_html", None))
         if metadata:
             mapping[doc_id] = metadata
     return mapping
@@ -226,7 +212,6 @@ def build_navigation_hint(metadata: Dict, *, fallback: str) -> str:
     else:
         formatted_anchor = None
 
-    path = metadata.get("source_path") or metadata.get("path")
     chunk_index = metadata.get("chunk_index")
     chunk_id = metadata.get("chunk_id")
     title = metadata.get("title") or metadata.get("title_guess") or metadata.get("name")
@@ -236,20 +221,12 @@ def build_navigation_hint(metadata: Dict, *, fallback: str) -> str:
         parts.append(str(title))
     if url:
         parts.append(f"Visita {url}")
-    if path:
-        parts.append(f"Cache local: {path}")
     if chunk_index not in (None, ""):
         parts.append(f"Chunk #{chunk_index}")
     if chunk_id not in (None, ""):
         parts.append(f"Chunk id: {chunk_id}")
     if not parts:
         return fallback
-
-    if base_url:
-        command = f"Render desde cache: python scripts/render_from_cache.py {base_url}"
-        if formatted_anchor:
-            command = f"{command} {formatted_anchor}"
-        parts.append(command)
 
     return " — ".join(parts)
 
@@ -491,16 +468,6 @@ async def diagnose_agent_context(
             "Verifica que Navia utilice el agente correcto antes de continuar."
         )
 
-    local_doc_map = load_local_doc_map()
-    local_count = len(local_doc_map)
-    if local_count:
-        print(f"📄 Documentos cacheados disponibles: {local_count}")
-    else:
-        print(
-            "⚠️ No se encontraron documentos cacheados en ./.navia/documents.json. "
-            "Ejecuta scripts/normalize_and_chunk.py y scripts/upload_chunks.py para regenerarlos."
-        )
-
     remote_total: Optional[int] = None
     knowledge_base = getattr(getattr(client.conversational_ai, "knowledge_base", None), "documents", None)
     list_method = getattr(knowledge_base, "list", None)
@@ -532,12 +499,6 @@ async def diagnose_agent_context(
         print(
             "⚠️ El SDK actual no permite listar documentos de la base de conocimiento. "
             "Verifica manualmente que el agente tenga archivos cargados."
-        )
-
-    if local_count and remote_total and local_count != remote_total:
-        print(
-            "⚠️ Hay una discrepancia entre los documentos cacheados y los registrados en el agente. "
-            "Ejecuta nuevamente scripts/upload_chunks.py para sincronizarlos."
         )
 
 
