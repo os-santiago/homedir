@@ -63,9 +63,8 @@ def main() -> None:
             out_path.write_text(
                 json.dumps(
                     {
-                        "meta": metadata,
-                        "content": f"{url}\n{html}",
-                        "text": chunk,
+                        "text": f"{url}\n{html}",
+                        "name": metadata["doc_id"],
                     },
                     ensure_ascii=False,
                 ),
