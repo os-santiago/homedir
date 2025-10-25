@@ -60,7 +60,7 @@ def create_doc(agent_id: str, meta: dict, text: str, index: int) -> dict:
     if metadata:
         data["metadata"] = json.dumps(metadata, ensure_ascii=False)
     filename = f"chunk-{index}.txt"
-    files = {"file": (filename, text.encode("utf-8"), "text/plain; charset=utf-8")}
+    files = {"file": (filename, text.encode("utf-8"), "text/plain")}
     response = requests.post(url, headers=AUTH_HEADERS, params=params, data=data, files=files, timeout=60)
     try:
         response.raise_for_status()
