@@ -117,7 +117,14 @@ class KnowledgeBaseManager:
             return {"raw": body}
 
     def _fetch_agent_remote(self, agent_id: str) -> Optional[Dict[str, object]]:
-        agents_client = getattr(self.client.conversational_ai, "agents", None)
+        try:
+            agents_client = getattr(self.client.conversational_ai, "agents", None)
+        except ImportError as exc:  # pragma: no cover - depends on SDK internals
+            print(
+                "⚠️ No se pudo importar el cliente de agentes de ElevenLabs; se usará"
+                f" el fallback HTTP: {exc}"
+            )
+            agents_client = None
         if agents_client:
             for method_name in ("get", "retrieve", "fetch", "get_agent"):
                 method = getattr(agents_client, method_name, None)
