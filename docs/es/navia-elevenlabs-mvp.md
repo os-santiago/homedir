@@ -55,6 +55,16 @@ python scripts/upload_chunks.py
 
 Cada chunk se carga como documento en la base de conocimiento del agente y se indexa inmediatamente para RAG.
 
+### Alternativa: subir URLs directamente
+
+Si tienes un archivo `urls.txt` generado con `scripts/crawl_urls.py`, puedes cargar cada página sin pasar por el pipeline de _chunking_:
+
+```bash
+python scripts/upload_urls.py urls.txt
+```
+
+El script descarga cada URL, compone un documento que incluye tanto el texto extraído como la dirección original y lo sube al agente.
+
 ## 6. Consultar al agente
 
 ```bash
