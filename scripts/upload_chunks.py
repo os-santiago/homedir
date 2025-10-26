@@ -114,34 +114,63 @@ def compute_rag(client: ElevenLabs, doc_id: str, *, agent_id: str):
         ) from exc
 
 
-def _patch_agent_documents(agent_id: str, doc_ids):
-    base_url = (API or "https://api.elevenlabs.io").rstrip("/")
-    url = f"{base_url}/v1/conversational-ai/agents/{agent_id}"
-    payload = json.dumps({"knowledge_base": list(doc_ids)}).encode("utf-8")
+def _http_request(url: str, *, method: str, payload):
+    data = json.dumps(payload).encode("utf-8")
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "xi-api-key": KEY,
     }
-    request = Request(url, data=payload, headers=headers, method="PATCH")
-    try:
-        with urlopen(request) as response:
-            body = response.read().decode("utf-8", "replace")
-            if not body:
-                return None
-            try:
-                return json.loads(body)
-            except json.JSONDecodeError:
-                return body
-    except HTTPError as exc:  # pragma: no cover - depende de la API externa
-        detail = exc.read().decode("utf-8", "replace")
+    request = Request(url, data=data, headers=headers, method=method)
+    with urlopen(request) as response:
+        body = response.read().decode("utf-8", "replace")
+        if not body:
+            return None
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError:
+            return body
+
+
+def _patch_agent_documents(agent_id: str, doc_ids):
+    base_url = (API or "https://api.elevenlabs.io").rstrip("/")
+    doc_ids = list(doc_ids)
+    attempts = [
+        ("PATCH", f"{base_url}/v1/conversational-ai/agents/{agent_id}", {"knowledge_base": doc_ids}),
+        ("PATCH", f"{base_url}/v1/convai/agents/{agent_id}", {"knowledge_base": doc_ids}),
+        (
+            "POST",
+            f"{base_url}/v1/convai/agents/{agent_id}/knowledge-base",
+            {"document_ids": doc_ids},
+        ),
+        (
+            "PATCH",
+            f"{base_url}/v1/convai/agents/{agent_id}/knowledge-base",
+            {"document_ids": doc_ids},
+        ),
+    ]
+    last_error = None
+    for method, url, payload in attempts:
+        try:
+            return _http_request(url, method=method, payload=payload)
+        except HTTPError as exc:  # pragma: no cover - depende de la API externa
+            detail = exc.read().decode("utf-8", "replace")
+            last_error = (url, exc.code, detail or exc.reason)
+            if exc.code not in {404, 405}:
+                raise SystemExit(
+                    f"Error HTTP al asignar documentos al agente {agent_id}: {exc.code} → {detail or exc.reason}"
+                ) from exc
+        except URLError as exc:  # pragma: no cover - depende de la red del usuario
+            raise SystemExit(
+                f"No se pudo conectar a {url}: {exc.reason if hasattr(exc, 'reason') else exc}"
+            ) from exc
+    if last_error is not None:
+        url, code, detail = last_error
         raise SystemExit(
-            f"Error HTTP al asignar documentos al agente {agent_id}: {exc.code} → {detail or exc.reason}"
-        ) from exc
-    except URLError as exc:  # pragma: no cover - depende de la red del usuario
-        raise SystemExit(
-            f"No se pudo conectar a {url}: {exc.reason if hasattr(exc, 'reason') else exc}"
-        ) from exc
+            "No se pudo asignar la base de conocimiento al agente después de probar"
+            f" múltiples endpoints. Último intento {url} → {code}: {detail}"
+        )
+    return None
 
 
 def assign_documents(client: ElevenLabs, agent_id: str, doc_ids):
