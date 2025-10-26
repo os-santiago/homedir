@@ -31,6 +31,7 @@ class KnowledgeBaseManager:
         self.base_url = (os.getenv("ELEVENLABS_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
         self._agent_payload_cache: Optional[Dict[str, object]] = None
         self._doc_map_cache: Optional[Dict[str, Dict[str, object]]] = None
+        self._agents_client_import_error_logged = False
 
     # ------------------------------------------------------------------
     # Utilidades de configuración del agente
@@ -116,15 +117,20 @@ class KnowledgeBaseManager:
         except json.JSONDecodeError:
             return {"raw": body}
 
-    def _fetch_agent_remote(self, agent_id: str) -> Optional[Dict[str, object]]:
+    def _get_agents_client(self) -> Optional[object]:
         try:
-            agents_client = getattr(self.client.conversational_ai, "agents", None)
+            return getattr(self.client.conversational_ai, "agents", None)
         except ImportError as exc:  # pragma: no cover - depends on SDK internals
-            print(
-                "⚠️ No se pudo importar el cliente de agentes de ElevenLabs; se usará"
-                f" el fallback HTTP: {exc}"
-            )
-            agents_client = None
+            if not self._agents_client_import_error_logged:
+                print(
+                    "⚠️ No se pudo importar el cliente de agentes de ElevenLabs; se usará"
+                    f" el fallback HTTP: {exc}"
+                )
+                self._agents_client_import_error_logged = True
+            return None
+
+    def _fetch_agent_remote(self, agent_id: str) -> Optional[Dict[str, object]]:
+        agents_client = self._get_agents_client()
         if agents_client:
             for method_name in ("get", "retrieve", "fetch", "get_agent"):
                 method = getattr(agents_client, method_name, None)
@@ -237,7 +243,7 @@ class KnowledgeBaseManager:
         return updated
 
     def _update_agent_prompt_remote(self, agent_id: str, new_prompt: str) -> bool:
-        agents_client = getattr(self.client.conversational_ai, "agents", None)
+        agents_client = self._get_agents_client()
         if agents_client:
             for method_name in ("update", "partial_update", "patch"):
                 method = getattr(agents_client, method_name, None)
