@@ -3,6 +3,8 @@ import json
 import os
 import time
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 try:
     from elevenlabs.client import ElevenLabs
@@ -112,23 +114,56 @@ def compute_rag(client: ElevenLabs, doc_id: str, *, agent_id: str):
         ) from exc
 
 
+def _patch_agent_documents(agent_id: str, doc_ids):
+    base_url = (API or "https://api.elevenlabs.io").rstrip("/")
+    url = f"{base_url}/v1/conversational-ai/agents/{agent_id}"
+    payload = json.dumps({"knowledge_base": list(doc_ids)}).encode("utf-8")
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "xi-api-key": KEY,
+    }
+    request = Request(url, data=payload, headers=headers, method="PATCH")
+    try:
+        with urlopen(request) as response:
+            body = response.read().decode("utf-8", "replace")
+            if not body:
+                return None
+            try:
+                return json.loads(body)
+            except json.JSONDecodeError:
+                return body
+    except HTTPError as exc:  # pragma: no cover - depende de la API externa
+        detail = exc.read().decode("utf-8", "replace")
+        raise SystemExit(
+            f"Error HTTP al asignar documentos al agente {agent_id}: {exc.code} → {detail or exc.reason}"
+        ) from exc
+    except URLError as exc:  # pragma: no cover - depende de la red del usuario
+        raise SystemExit(
+            f"No se pudo conectar a {url}: {exc.reason if hasattr(exc, 'reason') else exc}"
+        ) from exc
+
+
 def assign_documents(client: ElevenLabs, agent_id: str, doc_ids):
     if not doc_ids:
         return None
-    agents_api = getattr(getattr(client.conversational_ai, "agents", None), "update", None)
-    if not callable(agents_api):
-        raise SystemExit(
-            "El SDK de ElevenLabs no permite actualizar los documentos del agente. "
-            "Actualiza la librería o revisa la compatibilidad."
-        )
     try:
-        return agents_api(agent_id=agent_id, knowledge_base=list(doc_ids))
-    except ApiError as exc:
-        detail = _format_error(getattr(exc, "body", None))
-        status = getattr(exc, "status_code", None)
-        raise SystemExit(
-            f"Error al asignar documentos al agente {agent_id}: {status or 'desconocido'} → {detail or exc}"
-        ) from exc
+        agents_api = getattr(getattr(client.conversational_ai, "agents", None), "update", None)
+    except ImportError:  # pragma: no cover - depende del SDK
+        agents_api = None
+    if callable(agents_api):
+        try:
+            return agents_api(agent_id=agent_id, knowledge_base=list(doc_ids))
+        except ApiError as exc:
+            detail = _format_error(getattr(exc, "body", None))
+            status = getattr(exc, "status_code", None)
+            raise SystemExit(
+                f"Error al asignar documentos al agente {agent_id}: {status or 'desconocido'} → {detail or exc}"
+            ) from exc
+        except ImportError:  # pragma: no cover - depende del SDK
+            pass
+    # Fallback a petición HTTP directa si el SDK falla o no expone el método
+    return _patch_agent_documents(agent_id, doc_ids)
 
 
 def main() -> None:
