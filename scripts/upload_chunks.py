@@ -54,16 +54,31 @@ def _format_error(detail) -> str:
         return str(detail)
 
 
+def _knowledge_base_documents(client: ElevenLabs):
+    knowledge_base = getattr(client.conversational_ai, "knowledge_base", None)
+    documents = getattr(knowledge_base, "documents", None)
+    if documents is None:
+        raise SystemExit(
+            "El SDK de ElevenLabs no expone la API de documentos de la base de conocimiento. "
+            "Actualiza la librería o verifica los cambios del SDK."
+        )
+    return documents
+
+
 def create_doc(client: ElevenLabs, agent_id: str, meta, text: str, index: int):
     meta = meta or {}
-    name = meta.get("title_guess", f"Navia Chunk {index}")
-    filename = f"chunk-{index}.txt"
-    try:
-        response = client.conversational_ai.add_to_knowledge_base(
-            agent_id=agent_id,
-            name=name,
-            file=(filename, text.encode("utf-8"), "text/plain"),
+    name = meta.get("title_guess") or meta.get("name") or f"Navia Chunk {index}"
+    documents = _knowledge_base_documents(client)
+    create_method = getattr(documents, "create_from_text", None)
+    if not callable(create_method):
+        raise SystemExit(
+            "El SDK de ElevenLabs no soporta 'create_from_text'. "
+            "Verifica la versión instalada o ajusta el script al nuevo método."
         )
+    try:
+        response = create_method(name=name, text=text, agent_id=agent_id)
+    except TypeError:
+        response = create_method(name=name, text=text)
     except ApiError as exc:
         detail = _format_error(getattr(exc, "body", None))
         status = getattr(exc, "status_code", None)
@@ -73,9 +88,19 @@ def create_doc(client: ElevenLabs, agent_id: str, meta, text: str, index: int):
     return response
 
 
-def compute_rag(client: ElevenLabs, doc_id: str):
+def compute_rag(client: ElevenLabs, doc_id: str, *, agent_id: str):
+    documents = _knowledge_base_documents(client)
+    compute_method = getattr(documents, "compute_rag_index", None)
+    if not callable(compute_method):  # pragma: no cover - depende del SDK
+        return None
     try:
-        return client.conversational_ai.knowledge_base.document.compute_rag_index(
+        return compute_method(
+            documentation_id=doc_id,
+            agent_id=agent_id,
+            model="multilingual_e5_large_instruct",
+        )
+    except TypeError:
+        return compute_method(
             documentation_id=doc_id,
             model="multilingual_e5_large_instruct",
         )
@@ -84,6 +109,25 @@ def compute_rag(client: ElevenLabs, doc_id: str):
         status = getattr(exc, "status_code", None)
         raise SystemExit(
             f"Error al construir el índice RAG para {doc_id}: {status or 'desconocido'} → {detail or exc}"
+        ) from exc
+
+
+def assign_documents(client: ElevenLabs, agent_id: str, doc_ids):
+    if not doc_ids:
+        return None
+    agents_api = getattr(getattr(client.conversational_ai, "agents", None), "update", None)
+    if not callable(agents_api):
+        raise SystemExit(
+            "El SDK de ElevenLabs no permite actualizar los documentos del agente. "
+            "Actualiza la librería o revisa la compatibilidad."
+        )
+    try:
+        return agents_api(agent_id=agent_id, knowledge_base=list(doc_ids))
+    except ApiError as exc:
+        detail = _format_error(getattr(exc, "body", None))
+        status = getattr(exc, "status_code", None)
+        raise SystemExit(
+            f"Error al asignar documentos al agente {agent_id}: {status or 'desconocido'} → {detail or exc}"
         ) from exc
 
 
@@ -110,19 +154,28 @@ def main() -> None:
         doc_id = getattr(response, "id", None)
         if doc_id is None and isinstance(response, dict):  # pragma: no cover - backwards compatibility
             doc_id = response.get("id") or response.get("document_id")
-        if doc_id:
-            metadata = dict(data.get("meta", {}))
-            metadata.setdefault("doc_id", doc_id)
-            if "source" in metadata and "source_url" not in metadata:
-                metadata["source_url"] = metadata["source"]
-            doc_map[doc_id] = metadata
-            compute_rag(client, doc_id)
-            uploaded_ids.append(doc_id)
+        if not doc_id:
+            continue
+        metadata = dict(data.get("meta", {}))
+        metadata.setdefault("doc_id", doc_id)
+        metadata.setdefault(
+            "name",
+            metadata.get("title_guess")
+            or metadata.get("name")
+            or f"Navia Chunk {index}",
+        )
+        if "source" in metadata and "source_url" not in metadata:
+            metadata["source_url"] = metadata["source"]
+        doc_map[doc_id] = metadata
+        compute_rag(client, doc_id, agent_id=AGENT)
+        uploaded_ids.append(doc_id)
         if index % 25 == 0:
             time.sleep(1)
 
     DOC_MAP_PATH.write_text(json.dumps(doc_map, ensure_ascii=False, indent=2))
+
     if uploaded_ids:
+        assign_documents(client, AGENT, uploaded_ids)
         print(f"Subidos {len(uploaded_ids)} chunks al agente {AGENT}")
     else:
         print("No se subieron documentos nuevos. Revisa los chunks generados.")
