@@ -4,6 +4,10 @@
 
 El módulo de Experiencia Aumentada de EventFlow3 es una iniciativa experimental orientada a explorar nuevas formas de interacción entre usuarios y plataformas en Homedir. Su objetivo es validar cómo la inteligencia artificial, la personalización dinámica y la navegación basada en intención pueden mejorar la experiencia digital sin comprometer la estabilidad del producto principal.
 
+## Producto: Navia
+
+El repositorio del proyecto Navia está en el repositorio: <https://github.com/os-santiago/navia-frontend>.
+
 ## Enfoque y Naturaleza Experimental
 
 El módulo funciona como un laboratorio de innovación controlada, diseñado para coexistir con el núcleo de Homedir sin acoplarse directamente.
