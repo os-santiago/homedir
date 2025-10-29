@@ -25,3 +25,10 @@ cosign.key
 .venv/
 __pycache__/
 
+
+# Jekyll build artifacts
+website/_site/
+website/.jekyll-cache/
+website/.sass-cache/
+website/vendor/
+website/.bundle/

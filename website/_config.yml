@@ -1,0 +1,111 @@
+# EventFlow documentation powered by Jekyll theme Chirpy
+
+lang: es
+timezone: America/Santiago
+
+# Site settings
+url: "https://scanalesespinoza.github.io"
+baseurl: "/eventflow"
+
+title: "EventFlow"
+tagline: "Plataforma inteligente para la gestión de eventos"
+description: "Documentación, noticias y notas técnicas de EventFlow"
+
+# Theme
+theme: jekyll-theme-chirpy
+
+# Build settings
+markdown: kramdown
+permalink: pretty
+paginate: 10
+paginate_path: "page/:num"
+
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge
+
+plugins:
+  - jekyll-archives
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+collections:
+  posts:
+    output: true
+
+# Archives configuration for Chirpy
+jekyll-archives:
+  enabled:
+    - categories
+    - tags
+  layout: archives
+  permalinks:
+    category: /categories/:name/
+    tag: /tags/:name/
+
+# Theme configuration overrides
+# See https://chirpy.cotes.page/posts/getting-started/ for the full list of options
+
+theme_mode: light
+
+avatar: /assets/img/avatar.svg
+
+social:
+  name: EventFlow
+  github: scanalesespinoza
+  twitter: opensourcescl
+  rss: true
+
+footer:
+  since: 2020
+  license:
+    enabled: true
+    name: Apache-2.0
+    link: https://www.apache.org/licenses/LICENSE-2.0
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      author: eventflow
+      toc: true
+      comments: false
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: page
+      comments: false
+
+compress_html:
+  clippings: all
+  comments: ["<!--", "-->" ]
+  endings: all
+  profile: false
+  blanklines: false
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+  - README.md
+
+keep_files:
+  - .git
+
+include:
+  - .htaccess
+
+# Site metadata
+repository: scanalesespinoza/eventflow
+
+analytics:
+  provider: false
+
+comment:
+  provider: false
+
