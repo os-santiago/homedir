@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">EventFlow Avatar</title>
+  <desc id="desc">Isotipo circular con iniciales EF</desc>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6f61" />
+      <stop offset="100%" stop-color="#6c63ff" />
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="60" fill="url(#grad)" />
+  <path d="M42 40h32v12H54v12h16v12H54v12h20v12H42z" fill="#ffffff"/>
+  <path d="M78 40h26v12H90v12h12v12H90v24H78z" fill="#ffffff"/>
+</svg>
