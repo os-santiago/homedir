@@ -25,3 +25,6 @@ cosign.key
 .venv/
 __pycache__/
 
+# Local Quarkus application data
+quarkus-app/data/
+
