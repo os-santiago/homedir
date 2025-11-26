@@ -41,6 +41,7 @@ public class PersistenceService {
   private ObjectMapper mapper;
   private BlockingQueue<Runnable> queue;
   private ThreadPoolExecutor executor;
+  private ScheduledExecutorService retryScheduler;
 
   @ConfigProperty(name = "persist.queue.max", defaultValue = "10000")
   int queueMax = 10000;
@@ -98,11 +99,40 @@ public class PersistenceService {
               t.setDaemon(true);
               return t;
             });
+    retryScheduler =
+        Executors.newSingleThreadScheduledExecutor(
+            r -> {
+              Thread t = new Thread(r, "persistence-retry");
+              t.setDaemon(true);
+              return t;
+            });
   }
 
   @PreDestroy
   void shutdown() {
+    retryScheduler.shutdown();
+    try {
+      if (!retryScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+        LOG.warn("persistence_retry_scheduler_shutdown_timeout");
+        retryScheduler.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      retryScheduler.shutdownNow();
+    }
+
+    flush();
+
     executor.shutdown();
+    try {
+      if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+        LOG.warn("persistence_writer_shutdown_timeout");
+        executor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      executor.shutdownNow();
+    }
   }
 
   /** Returns whether the storage has critically low free space. */
@@ -244,58 +274,70 @@ public class PersistenceService {
   }
 
   private void scheduleWrite(Path file, Object data) {
-    QueueItem item =
-        new QueueItem(
-            () -> {
-              checkDiskSpace();
-              if (lowDiskSpace) {
-                LOG.warn("Low disk space - skipping persistence");
-                return;
-              }
-              int attempts = 0;
-              boolean success = false;
-              while (attempts < 3 && !success) {
-                attempts++;
-                try {
-                  Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
-                  try {
-                    mapper.writeValue(tmp.toFile(), data);
-                    Files.move(
-                        tmp,
-                        file,
-                        StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.ATOMIC_MOVE);
-                    LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
-                    success = true;
-                    writesOk.incrementAndGet();
-                  } finally {
-                    try {
-                      Files.deleteIfExists(tmp);
-                    } catch (IOException ignore) {
-                      // ignore cleanup errors
-                    }
-                  }
-                } catch (IOException e) {
-                  if (attempts >= 3) {
-                    LOG.error("Failed to persist data to " + file, e);
-                    writesFail.incrementAndGet();
-                    lastError = e.getMessage();
-                  } else {
-                    LOG.warn(
-                        "Persistence attempt " + attempts + " failed for " + file + ", retrying");
-                    writesRetries.incrementAndGet();
-                    try {
-                      Thread.sleep(250);
-                    } catch (InterruptedException ie) {
-                      Thread.currentThread().interrupt();
-                      return;
-                    }
-                  }
-                }
-              }
-            });
+    scheduleWriteAttempt(file, data, 1, 250);
+  }
+
+  private void scheduleWriteAttempt(Path file, Object data, int attempt, long backoffMillis) {
+    QueueItem item = new QueueItem(() -> writeOnce(file, data, attempt, backoffMillis));
     try {
       executor.execute(item);
+    } catch (RejectedExecutionException e) {
+      queueDropped.incrementAndGet();
+      lastError = "queue_full";
+      LOG.warn("Persistence queue full - dropping write for " + file.getFileName());
+    }
+  }
+
+  private void writeOnce(Path file, Object data, int attempt, long backoffMillis) {
+    checkDiskSpace();
+    if (lowDiskSpace) {
+      LOG.warn("Low disk space - skipping persistence");
+      return;
+    }
+    try {
+      Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
+      try {
+        mapper.writeValue(tmp.toFile(), data);
+        Files.move(
+            tmp,
+            file,
+            StandardCopyOption.REPLACE_EXISTING,
+            StandardCopyOption.ATOMIC_MOVE);
+        LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
+        writesOk.incrementAndGet();
+      } finally {
+        try {
+          Files.deleteIfExists(tmp);
+        } catch (IOException ignore) {
+          // ignore cleanup errors
+        }
+      }
+    } catch (IOException e) {
+      if (attempt >= 3) {
+        LOG.error("Failed to persist data to " + file, e);
+        writesFail.incrementAndGet();
+        lastError = e.getMessage();
+      } else {
+        LOG.warn(
+            "Persistence attempt "
+                + attempt
+                + " failed for "
+                + file
+                + ", retrying in "
+                + backoffMillis
+                + "ms");
+        writesRetries.incrementAndGet();
+        scheduleRetry(file, data, attempt + 1, backoffMillis * 2);
+      }
+    }
+  }
+
+  private void scheduleRetry(Path file, Object data, int nextAttempt, long backoffMillis) {
+    try {
+      retryScheduler.schedule(
+          () -> scheduleWriteAttempt(file, data, nextAttempt, backoffMillis),
+          backoffMillis,
+          TimeUnit.MILLISECONDS);
     } catch (RejectedExecutionException e) {
       queueDropped.incrementAndGet();
       lastError = "queue_full";

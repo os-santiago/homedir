@@ -511,56 +511,57 @@ public class UsageMetricsService {
     meta.put("discarded", discards);
     file.put("meta", meta);
     Path tmp = metricsV2Path.resolveSibling("metrics-v2.json.tmp");
-    int attempts = 0;
-    long backoff = 50L;
-    while (attempts < 3) {
-      try {
-        Files.createDirectories(metricsV2Path.getParent());
-        byte[] json = mapper.writeValueAsBytes(file);
-        meta.put("fileSizeBytes", json.length);
-        json = mapper.writeValueAsBytes(file);
-        Files.write(tmp, json);
-        Files.move(
-            tmp,
-            metricsV2Path,
-            StandardCopyOption.REPLACE_EXISTING,
-            StandardCopyOption.ATOMIC_MOVE);
-        metricsPath = metricsV2Path;
-        schemaVersion = CURRENT_SCHEMA_VERSION;
-        lastFileSizeBytes = json.length;
-        lastFlushTime = System.currentTimeMillis();
-        bufferSize.set(0);
-        bufferWarned = false;
-        writesOk.incrementAndGet();
-        lastError = null;
-        if (migrateFromV1) {
-          try {
-            Files.deleteIfExists(metricsV1Path);
-          } catch (IOException ignored) {
-          }
-          migrateFromV1 = false;
-        }
-        dirty.set(false);
-        LOG.info("metrics_flush_ok");
-        updateHealthState();
-        return;
-      } catch (Exception e) {
-        attempts++;
-        lastError = e.getMessage();
+    attemptFlush(file, meta, tmp, 1, 50L);
+  }
+
+  private void attemptFlush(
+      Map<String, Object> file, Map<String, Object> meta, Path tmp, int attempt, long backoff) {
+    try {
+      Files.createDirectories(metricsV2Path.getParent());
+      byte[] json = mapper.writeValueAsBytes(file);
+      meta.put("fileSizeBytes", json.length);
+      json = mapper.writeValueAsBytes(file);
+      Files.write(tmp, json);
+      Files.move(
+          tmp,
+          metricsV2Path,
+          StandardCopyOption.REPLACE_EXISTING,
+          StandardCopyOption.ATOMIC_MOVE);
+      metricsPath = metricsV2Path;
+      schemaVersion = CURRENT_SCHEMA_VERSION;
+      lastFileSizeBytes = json.length;
+      lastFlushTime = System.currentTimeMillis();
+      bufferSize.set(0);
+      bufferWarned = false;
+      writesOk.incrementAndGet();
+      lastError = null;
+      if (migrateFromV1) {
         try {
-          Thread.sleep(backoff);
-        } catch (InterruptedException ie) {
-          Thread.currentThread().interrupt();
+          Files.deleteIfExists(metricsV1Path);
+        } catch (IOException ignored) {
         }
-        backoff *= 2;
+        migrateFromV1 = false;
+      }
+      dirty.set(false);
+      LOG.info("metrics_flush_ok");
+      updateHealthState();
+    } catch (Exception e) {
+      lastError = e.getMessage();
+      if (attempt >= 3) {
+        LOG.error("metrics_flush_fail");
+        increment("discarded_events");
+        flushFailures.incrementAndGet();
+        incrementDiscard("invalid");
+        writesFail.incrementAndGet();
+        updateHealthState();
+      } else {
+        long nextBackoff = backoff * 2;
+        scheduler.schedule(
+            () -> attemptFlush(file, meta, tmp, attempt + 1, nextBackoff),
+            backoff,
+            TimeUnit.MILLISECONDS);
       }
     }
-    LOG.error("metrics_flush_fail");
-    increment("discarded_events");
-    flushFailures.incrementAndGet();
-    incrementDiscard("invalid");
-    writesFail.incrementAndGet();
-    updateHealthState();
   }
 
   /** Returns a snapshot of all counters for read-only purposes. */
