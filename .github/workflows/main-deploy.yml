@@ -91,10 +91,17 @@ jobs:
           IMAGE="${REF}"
           CONTAINER_NAME=homedir
           APP_PORT="${APP_PORT:-8080}"
+          DATA_DIR=/opt/homedir/data
+          mkdir -p "${DATA_DIR}"
+          chown -R 1001:1001 "${DATA_DIR}" || true
           podman pull "$IMAGE"
           if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
             podman stop "${CONTAINER_NAME}" || true
             podman rm "${CONTAINER_NAME}" || true
           fi
-          podman run -d --name "${CONTAINER_NAME}" --restart=always -p "\${APP_PORT}:8080" "$IMAGE"
+          podman run -d --name "${CONTAINER_NAME}" --restart=always \
+            -p "\${APP_PORT}:8080" \
+            -e eventflow.data.dir=/work/data \
+            -v "\${DATA_DIR}:/work/data:Z" \
+            "$IMAGE"
           EOF
