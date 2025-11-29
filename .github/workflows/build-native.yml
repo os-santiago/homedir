@@ -8,8 +8,8 @@ jobs:
   build-native:
     runs-on: ubuntu-latest
     env:
-      REGISTRY: ${{ vars.REGISTRY }}
-      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+      REGISTRY: ${{ vars.REGISTRY || 'quay.io/sergio_canales_e' }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME || 'homedir' }}
       LOGGED_IN: 0
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
@@ -160,4 +160,3 @@ jobs:
           if [ -n "${REGISTRY:-}" ]; then
             cosign attach sbom --sbom sbom-image.cdx.json --type cyclonedx "${IMAGE_REPOSITORY}:${VERSION}" || true
           fi
-
