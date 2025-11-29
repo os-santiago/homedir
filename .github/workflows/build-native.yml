@@ -83,7 +83,7 @@ jobs:
         env:
           IMAGE: ${{ env.IMAGE }}
           PRTAG: ${{ env.PRTAG }}
-          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_USERNAME: ${{ vars.QUAY_USERNAME }}
           QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
         run: |
           if [ -z "${REGISTRY:-}" ]; then
