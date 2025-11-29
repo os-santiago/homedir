@@ -15,7 +15,8 @@ public class LogoutResource {
   private static final Logger LOG = Logger.getLogger(LogoutResource.class);
 
   @GET
-  public Response logout(@Context UriInfo uriInfo, @Context jakarta.ws.rs.core.HttpHeaders headers) {
+  public Response logout(
+      @Context UriInfo uriInfo, @Context jakarta.ws.rs.core.HttpHeaders headers) {
     LOG.info("Processing logout request");
 
     String forwardedProto = headers.getHeaderString("X-Forwarded-Proto");

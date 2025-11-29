@@ -298,11 +298,7 @@ public class PersistenceService {
       Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
       try {
         mapper.writeValue(tmp.toFile(), data);
-        Files.move(
-            tmp,
-            file,
-            StandardCopyOption.REPLACE_EXISTING,
-            StandardCopyOption.ATOMIC_MOVE);
+        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
         writesOk.incrementAndGet();
       } finally {
