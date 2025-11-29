@@ -83,6 +83,8 @@ jobs:
           VPS_PORT: ${{ env.VPS_PORT }}
           APP_PORT: ${{ env.APP_PORT }}
           REF: ${{ env.REF }}
+          OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
+          OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
         run: |
           if [ -z "${VPS_HOST}" ] || [ -z "${VPS_USER}" ]; then
             echo "VPS_HOST and VPS_USER must be set as repository variables"; exit 1; fi
@@ -102,6 +104,8 @@ jobs:
           podman run -d --name "${CONTAINER_NAME}" --restart=always \
             -p "\${APP_PORT}:8080" \
             -e eventflow.data.dir=/work/data \
+            -e OIDC_CLIENT_ID="${OIDC_CLIENT_ID}" \
+            -e OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET}" \
             -v "\${DATA_DIR}:/work/data:Z" \
             "$IMAGE"
           EOF
