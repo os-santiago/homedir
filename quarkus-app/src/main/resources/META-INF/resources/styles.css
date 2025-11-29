@@ -71,6 +71,7 @@ html {
 
 html,
 body {
+    min-height: 100%;
     max-width: 100%;
     overflow-x: hidden;
 }
@@ -84,6 +85,19 @@ body {
     transition: opacity 0.3s ease;
     font-size: var(--font-size-base);
     line-height: var(--line-height-base);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-shell {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
 }
 
 h1 {
@@ -1222,6 +1236,7 @@ footer {
     text-align: center;
     padding: 1rem 0;
     font-size: 0.9rem;
+    margin-top: auto;
 }
 
 @keyframes flow {
