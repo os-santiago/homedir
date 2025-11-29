@@ -29,12 +29,13 @@
     {#else}
         <div class="admin-card admin-table-wrapper">
             <table class="table admin-table">
-                <thead><tr><th>ID</th><th>Título</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Acciones</th></tr></thead>
                 <tbody>
                 {#for ev in events}
                     <tr>
                         <td>{ev.id}</td>
                         <td>{ev.title}</td>
+                        <td><span class="badge event-type {ev.typeCss}">{ev.typeLabel}</span></td>
                         <td class="action-group">
                             <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary">Editar</a>
                             <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="btn btn-secondary">Ver métricas</a>

@@ -1,6 +1,7 @@
 package com.scanales.eventflow.service;
 
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.EventType;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
@@ -32,6 +33,7 @@ public class EventService {
   @PostConstruct
   void init() {
     events.putAll(persistence.loadEvents());
+    events.values().forEach(this::ensureDefaults);
     LOG.infof("Loaded %d events into memory", events.size());
   }
 
@@ -253,5 +255,12 @@ public class EventService {
   public void reload() {
     events.clear();
     events.putAll(persistence.loadEvents());
+    events.values().forEach(this::ensureDefaults);
+  }
+
+  private void ensureDefaults(Event event) {
+    if (event.getType() == null) {
+      event.setType(EventType.OTHER);
+    }
   }
 }

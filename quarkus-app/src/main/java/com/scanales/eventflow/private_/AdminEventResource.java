@@ -3,6 +3,7 @@ package com.scanales.eventflow.private_;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.EventType;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
@@ -36,7 +37,10 @@ public class AdminEventResource {
     static native TemplateInstance list(java.util.List<Event> events, String message);
 
     static native TemplateInstance edit(
-        Event event, java.util.List<Speaker> speakers, String message);
+        Event event,
+        java.util.List<Speaker> speakers,
+        java.util.List<EventType> types,
+        String message);
   }
 
   @Inject SecurityIdentity identity;
@@ -73,7 +77,9 @@ public class AdminEventResource {
     if (!isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
-    return Response.ok(Templates.edit(new Event(), speakerService.listSpeakers(), message)).build();
+    return Response.ok(
+            Templates.edit(new Event(), speakerService.listSpeakers(), eventTypes(), message))
+        .build();
   }
 
   @GET
@@ -88,7 +94,9 @@ public class AdminEventResource {
     if (event == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    return Response.ok(Templates.edit(event, speakerService.listSpeakers(), message)).build();
+    return Response.ok(
+            Templates.edit(event, speakerService.listSpeakers(), eventTypes(), message))
+        .build();
   }
 
   @POST
@@ -97,6 +105,7 @@ public class AdminEventResource {
   public Response saveEvent(
       @FormParam("title") String title,
       @FormParam("description") String description,
+      @FormParam("type") String type,
       @FormParam("date") String date,
       @FormParam("timezone") String timezone,
       @FormParam("days") int days,
@@ -115,6 +124,7 @@ public class AdminEventResource {
     String id = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(now);
     Event event = new Event(id, title, description, days, now, identity.getAttribute("email"));
     event.setDateStr(date);
+    event.setType(EventType.fromNullable(type));
     event.setTimezone(sanitizeZone(timezone));
     event.setLogoUrl(sanitizeUrl(logoUrl));
     event.setMapUrl(sanitizeUrl(mapUrl));
@@ -137,6 +147,7 @@ public class AdminEventResource {
       @PathParam("id") String id,
       @FormParam("title") String title,
       @FormParam("description") String description,
+      @FormParam("type") String type,
       @FormParam("date") String date,
       @FormParam("timezone") String timezone,
       @FormParam("days") int days,
@@ -158,6 +169,7 @@ public class AdminEventResource {
     event.setTitle(title);
     event.setDescription(description);
     event.setDateStr(date);
+    event.setType(EventType.fromNullable(type));
     event.setTimezone(sanitizeZone(timezone));
     event.setDays(days);
     event.setLogoUrl(sanitizeUrl(logoUrl));
@@ -557,6 +569,7 @@ public class AdminEventResource {
   private void fillDefaults(Event event) {
     if (event.getTitle() == null) event.setTitle("VACIO");
     if (event.getDescription() == null) event.setDescription("VACIO");
+    if (event.getType() == null) event.setType(EventType.OTHER);
     if (event.getMapUrl() == null) event.setMapUrl("VACIO");
     if (event.getLogoUrl() == null) event.setLogoUrl("VACIO");
     if (event.getContactEmail() == null) event.setContactEmail("VACIO");
@@ -588,5 +601,9 @@ public class AdminEventResource {
           t.setSpeakers(java.util.List.of(new com.scanales.eventflow.model.Speaker("", "VACIO")));
       }
     }
+  }
+
+  private java.util.List<EventType> eventTypes() {
+    return java.util.List.of(EventType.values());
   }
 }

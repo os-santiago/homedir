@@ -23,6 +23,7 @@ public class Event {
   @NotBlank private String id;
   @NotBlank private String title;
   @NotBlank private String description;
+  private EventType type = EventType.OTHER;
   private List<Scenario> scenarios = new ArrayList<>();
 
   /** Number of days the event lasts. */
@@ -121,6 +122,14 @@ public class Event {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public EventType getType() {
+    return type == null ? EventType.OTHER : type;
+  }
+
+  public void setType(EventType type) {
+    this.type = type == null ? EventType.OTHER : type;
   }
 
   public List<Scenario> getScenarios() {
@@ -253,6 +262,14 @@ public class Event {
     } else {
       this.date = null;
     }
+  }
+
+  public String getTypeLabel() {
+    return getType().getLabel();
+  }
+
+  public String getTypeCss() {
+    return getType().getCssClass();
   }
 
   /** Returns the event date formatted for display, e.g. "5 de septiembre de 2025". */

@@ -23,9 +23,12 @@
                     </div>
                     <div class="event-main">
                         <h2 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h2>
-                        {#if e.isOngoing()}
-                        <span class="badge info">En curso</span>
-                        {/if}
+                        <div class="event-tags">
+                            <span class="badge event-type {e.typeCss}">{e.typeLabel}</span>
+                            {#if e.isOngoing()}
+                            <span class="badge info">En curso</span>
+                            {/if}
+                        </div>
                         {#if e.descriptionSummary}
                         <p class="event-description">{e.descriptionSummary}</p>
                         {/if}
@@ -72,10 +75,13 @@
                         </div>
                         <div class="event-main">
                             <h2 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h2>
+                            <div class="event-tags">
+                                <span class="badge event-type {e.typeCss}">{e.typeLabel}</span>
+                                <span class="badge past">Finalizado</span>
+                            </div>
                             {#if e.descriptionSummary}
                             <p class="event-description">{e.descriptionSummary}</p>
                             {/if}
-                            <span class="badge past">Finalizado</span>
                         </div>
                         <div class="event-countdown">
                             {#if e.formattedDate}
@@ -90,4 +96,3 @@
     </section>
 {/main}
 {/include}
-
