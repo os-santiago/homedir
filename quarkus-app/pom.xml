@@ -33,6 +33,11 @@
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>3.1.1</version>
             </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>6.1.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -40,27 +45,22 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-jackson</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-validator</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-qute</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-qute</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -69,22 +69,18 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-elytron-security-properties-file</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-jwt</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-security</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-health</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -99,7 +95,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-websockets</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -207,6 +202,59 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.8.1</version>
+                <configuration>
+                    <ignoreNonCompile>true</ignoreNonCompile>
+                    <!--
+                      Quarkus brings most compile/runtime classes via platform-managed extensions,
+                      so the dependency analyzer flags many false positives. We explicitly ignore
+                      those transitive/platform-managed artifacts and runtime-only extensions to
+                      keep the report actionable.
+                    -->
+                    <ignoredDependencies>
+                        <ignoredDependency>com.fasterxml.jackson.core:jackson-annotations</ignoredDependency>
+                        <ignoredDependency>com.fasterxml.jackson.core:jackson-core</ignoredDependency>
+                        <ignoredDependency>com.fasterxml.jackson.core:jackson-databind</ignoredDependency>
+                        <ignoredDependency>io.quarkus:quarkus-arc</ignoredDependency>
+                        <ignoredDependency>io.quarkus:quarkus-core</ignoredDependency>
+                        <ignoredDependency>io.quarkus:quarkus-jackson</ignoredDependency>
+                        <ignoredDependency>io.quarkus:quarkus-scheduler-api</ignoredDependency>
+                        <ignoredDependency>io.quarkus:quarkus-test-common</ignoredDependency>
+                        <ignoredDependency>io.quarkus.arc:arc</ignoredDependency>
+                        <ignoredDependency>io.quarkus.qute:qute-core</ignoredDependency>
+                        <ignoredDependency>io.quarkus.resteasy.reactive:resteasy-reactive</ignoredDependency>
+                        <ignoredDependency>io.quarkus.resteasy.reactive:resteasy-reactive-common</ignoredDependency>
+                        <ignoredDependency>io.quarkus.security:quarkus-security</ignoredDependency>
+                        <ignoredDependency>io.smallrye.reactive:mutiny</ignoredDependency>
+                        <ignoredDependency>io.vertx:vertx-web</ignoredDependency>
+                        <ignoredDependency>jakarta.annotation:jakarta.annotation-api</ignoredDependency>
+                        <ignoredDependency>jakarta.enterprise:jakarta.enterprise.cdi-api</ignoredDependency>
+                        <ignoredDependency>jakarta.inject:jakarta.inject-api</ignoredDependency>
+                        <ignoredDependency>jakarta.json:jakarta.json-api</ignoredDependency>
+                        <ignoredDependency>jakarta.validation:jakarta.validation-api</ignoredDependency>
+                        <ignoredDependency>jakarta.websocket:jakarta.websocket-api</ignoredDependency>
+                        <ignoredDependency>jakarta.websocket:jakarta.websocket-client-api</ignoredDependency>
+                        <ignoredDependency>jakarta.ws.rs:jakarta.ws.rs-api</ignoredDependency>
+                        <ignoredDependency>org.eclipse.microprofile.config:microprofile-config-api</ignoredDependency>
+                        <ignoredDependency>org.eclipse.microprofile.jwt:microprofile-jwt-auth-api</ignoredDependency>
+                        <ignoredDependency>org.hamcrest:hamcrest</ignoredDependency>
+                        <ignoredDependency>org.jboss.logging:jboss-logging</ignoredDependency>
+                        <ignoredDependency>org.junit.jupiter:junit-jupiter-api</ignoredDependency>
+                        <ignoredDependency>org.mockito:mockito-core</ignoredDependency>
+                    </ignoredDependencies>
+                    <ignoredUnusedDeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest-jackson</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-hibernate-validator</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest-qute</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-qute</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-elytron-security-properties-file</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-jwt</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-health</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-scheduler</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-websockets</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-junit5-mockito</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
+                </configuration>
                 <executions>
                     <execution>
                         <id>analyze</id>
@@ -214,9 +262,6 @@
                             <goal>analyze</goal>
                         </goals>
                         <phase>verify</phase>
-                        <configuration>
-                            <ignoreNonCompile>true</ignoreNonCompile>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

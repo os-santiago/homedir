@@ -74,6 +74,12 @@ ADMIN_LIST=sergio.canales.e@gmail.com,alice@example.org
 ### Importing events
 Upload a JSON file named `file` at `/private/admin/events` to import events. Duplicate IDs return `409 Conflict`; invalid JSON returns `400 Bad Request`.
 
+## Trabajo con codex
+- Tests rápidos: `scripts/test-fast.sh` (o `scripts/test-fast.ps1`) ejecuta `mvn -f quarkus-app/pom.xml -T 1C -Dquarkus.devservices.enabled=false -DskipITs=true test`.
+- Tests completos: `scripts/test-all.sh` (o `scripts/test-all.ps1`) ejecuta `mvn -f quarkus-app/pom.xml -T 1C -Dquarkus.devservices.enabled=false -DskipITs=false verify -Pcoverage`.
+- Build estándar: `mvn -f quarkus-app/pom.xml -T 1C package` (usa config de DevServices deshabilitada en dev).
+- Tooling Python: `python -m pytest tests` para validar scripts auxiliares.
+
 ## Supply chain
 The build produces SBOMs for dependencies and container images and scans images for known vulnerabilities. CI publishes artifacts like `target/bom.json` and `sbom-image.cdx.json`, and images can be signed with Cosign.
 

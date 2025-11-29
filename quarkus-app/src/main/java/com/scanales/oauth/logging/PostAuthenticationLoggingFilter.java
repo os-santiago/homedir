@@ -1,7 +1,5 @@
 package com.scanales.oauth.logging;
 
-import io.quarkus.oidc.AccessTokenCredential;
-import io.quarkus.oidc.IdTokenCredential;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.Priority;
@@ -23,25 +21,6 @@ public class PostAuthenticationLoggingFilter extends AbstractLoggingFilter {
   protected void handle(ContainerRequestContext requestContext) throws IOException {
     if (identity == null || identity.isAnonymous()) {
       return;
-    }
-
-    IdTokenCredential idToken = identity.getCredential(IdTokenCredential.class);
-    if (idToken != null) {
-      log.infov("ID Token: {0}", idToken.getToken());
-      String token = idToken.getToken();
-      String[] parts = token.split("\\.");
-      if (parts.length >= 2) {
-        String claimsJson =
-            new String(
-                java.util.Base64.getUrlDecoder().decode(parts[1]),
-                java.nio.charset.StandardCharsets.UTF_8);
-        log.infov("ID Token claims: {0}", claimsJson);
-      }
-    }
-
-    AccessTokenCredential accessToken = identity.getCredential(AccessTokenCredential.class);
-    if (accessToken != null) {
-      log.infov("Access Token: {0}", accessToken.getToken());
     }
 
     String sub = getClaim("sub");
@@ -66,16 +45,8 @@ public class PostAuthenticationLoggingFilter extends AbstractLoggingFilter {
     checkAttribute("picture", picture);
 
     log.infof(
-        "User Authenticated:%n"
-            + "sub: %s%n"
-            + "preferred_username: %s%n"
-            + "name: %s%n"
-            + "given_name: %s%n"
-            + "family_name: %s%n"
-            + "email: %s%n"
-            + "locale: %s%n"
-            + "picture: %s",
-        sub, preferredUsername, name, givenName, familyName, email, locale, picture);
+        "User authenticated: sub=%s preferred_username=%s email=%s",
+        sub, preferredUsername, email);
   }
 
   private String getClaim(String claimName) {

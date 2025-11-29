@@ -10,6 +10,23 @@ buildNumber.properties
 # https://maven.apache.org/wrapper/#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
 
+# General IDE/editor noise
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*.DS_Store
+
+# Logs and reports
+*.log
+reports/
+
+# Common build outputs
+dist/
+build/
+node_modules/
+
 # Eclipse m2e generated files
 # Eclipse Core
 .project
@@ -24,7 +41,9 @@ cosign.key
 .env
 .venv/
 __pycache__/
+.pytest_cache/
+.coverage
+coverage.xml
 
 # Local Quarkus application data
 quarkus-app/data/
-
