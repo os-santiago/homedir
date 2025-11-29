@@ -2,9 +2,43 @@
 {#title}Inicio{/title}
 {#breadcrumbs}<span>Inicio</span>{/breadcrumbs}
 {#main}
-{#include _now-box nowBox=nowBox /}
-<section class="home-section">
-    <h1 class="page-title">Eventos disponibles</h1>
+<section class="hero">
+    <div class="hero__content">
+        <div class="hero__kicker">Plataforma abierta · Homedir</div>
+        <h1>Agenda, notificaciones y eventos en un solo lugar</h1>
+        <p class="lead">Sigue actividades, comparte horarios y mantente al día con la comunidad sin perder contexto entre versiones.</p>
+        <div class="hero__actions">
+            <a href="#upcoming" class="btn animate-press">Ver eventos</a>
+            <a href="/private/profile" class="btn btn-ghost animate-press">Ir a mi perfil</a>
+        </div>
+        <div class="hero__stats">
+            <div class="stat-card">
+                <span class="stat-label">Versión</span>
+                <span class="stat-value">v{version}</span>
+                <span class="stat-hint">Backups aceptan mismo major.minor</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Próximos</span>
+                <span class="stat-value">{upcoming.size}</span>
+                <span class="stat-hint">Eventos en agenda</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Pasados</span>
+                <span class="stat-value">{past.size}</span>
+                <span class="stat-hint">Referencias y archivos</span>
+            </div>
+        </div>
+    </div>
+    <div class="hero__panel">
+        {#include _now-box nowBox=nowBox /}
+    </div>
+</section>
+
+<section class="home-section surface" id="upcoming">
+    <div class="section-heading">
+        <p class="section-subtitle">Programación</p>
+        <h1 class="page-title">Eventos disponibles</h1>
+    </div>
     {#if upcoming.isEmpty()}
         <p class="section-subtitle no-events">No hay eventos próximos por ahora. Vuelve pronto 👀</p>
     {#else}
@@ -56,8 +90,11 @@
     {/if}
     </section>
 
-    <section class="home-section">
-        <h1 class="page-title">Eventos pasados</h1>
+    <section class="home-section surface" id="past">
+        <div class="section-heading">
+            <p class="section-subtitle">Historial</p>
+            <h1 class="page-title">Eventos pasados</h1>
+        </div>
         {#if past.isEmpty()}
             <p class="section-subtitle no-events">Aún no tenemos eventos anteriores.</p>
         {#else}
