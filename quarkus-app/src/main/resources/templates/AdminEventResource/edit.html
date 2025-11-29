@@ -41,6 +41,13 @@ Nuevo Evento
         <label for="title">Titulo
           <input id="title" name="title" type="text" value="{event.title}">
         </label>
+        <label for="type">Tipo de evento
+          <select id="type" name="type">
+            {#for t in types}
+            <option value="{t.name()}"{#if event.type?? && event.type.name() == t.name()} selected{/if}>{t.label}</option>
+            {/for}
+          </select>
+        </label>
         <label for="date">Fecha de realización
           <input id="date" name="date" type="date" value="{event.dateStr}">
         </label>
