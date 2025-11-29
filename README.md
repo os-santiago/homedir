@@ -32,6 +32,10 @@ Latest stable release: **v2.2.1**.
 - In-app notifications for talk status changes
 - Supply chain security with SBOM generation, image signing and vulnerability scanning
 
+## Módulos
+- Hackathon (sin SQL, reutiliza persistencia JSON): `modules/hackathon/README.md`
+- aExperience (experimental): `modules/aexperience/README.md`
+
 ## Quick start
 Run the application in dev mode:
 

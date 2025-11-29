@@ -71,6 +71,7 @@ html {
 
 html,
 body {
+    min-height: 100%;
     max-width: 100%;
     overflow-x: hidden;
 }
@@ -84,6 +85,19 @@ body {
     transition: opacity 0.3s ease;
     font-size: var(--font-size-base);
     line-height: var(--line-height-base);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-shell {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
 }
 
 h1 {
@@ -1222,6 +1236,7 @@ footer {
     text-align: center;
     padding: 1rem 0;
     font-size: 0.9rem;
+    margin-top: auto;
 }
 
 @keyframes flow {
@@ -1342,6 +1357,44 @@ footer {
 .badge.warning { background: #ff9800; color: #fff; }
 .badge.info { background: #2196f3; color: #fff; }
 .badge.past { background: #9e9e9e; color: #fff; }
+.badge.event-type {
+    background: #e8f4ff;
+    color: #0d47a1;
+    border: 1px solid #bbdefb;
+    margin-bottom: 0;
+}
+.badge.event-type.event-type-hackathon {
+    background: #f3e5f5;
+    color: #6a1b9a;
+    border-color: #ce93d8;
+}
+.badge.event-type.event-type-meetup {
+    background: #fff3e0;
+    color: #e65100;
+    border-color: #ffcc80;
+}
+.badge.event-type.event-type-workshop {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-color: #a5d6a7;
+}
+.badge.event-type.event-type-conference {
+    background: #e3f2fd;
+    color: #0d47a1;
+    border-color: #90caf9;
+}
+.badge.event-type.event-type-other {
+    background: #eceff1;
+    color: #37474f;
+    border-color: #cfd8dc;
+}
+.event-tags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    align-items: center;
+    margin: 0.25rem 0;
+}
 
 @keyframes spin {
     from { transform: rotate(0deg); }
@@ -1403,6 +1456,120 @@ footer {
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
+}
+
+/* --- Admin layout coherence --- */
+.admin-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.admin-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+}
+
+.admin-card {
+    background: var(--color-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
+}
+
+.admin-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-sm);
+}
+.admin-actions .btn,
+.admin-actions form {
+    width: 100%;
+}
+.admin-actions form {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    flex-wrap: wrap;
+}
+.admin-actions input[type=\"file\"] {
+    flex: 1 1 auto;
+}
+
+.admin-table-wrapper {
+    overflow-x: auto;
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.admin-table th,
+.admin-table td {
+    padding: 0.65rem;
+}
+.admin-table th {
+    background-color: var(--color-dark);
+    color: var(--color-light);
+    text-align: left;
+}
+.admin-table tbody tr:nth-child(even) {
+    background: #f7f9fb;
+}
+.admin-table .action-group {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.admin-form {
+    display: grid;
+    gap: var(--space-sm);
+}
+.admin-form label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+    width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid #d0d7de;
+    border-radius: var(--radius-sm);
+}
+.admin-form fieldset {
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    margin: var(--space-sm) 0;
+}
+.admin-form legend {
+    font-weight: 600;
+    padding: 0 var(--space-xs);
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-sm);
+}
+.admin-card button:not(.btn) {
+    background-color: var(--color-primary);
+    color: var(--color-light);
+    border: none;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    min-height: 2.5rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.admin-card button:not(.btn):hover {
+    background-color: var(--color-accent);
+}
+.admin-card button:not(.btn):active {
+    transform: scale(0.98);
 }
 
 @media (max-width: 600px) {
