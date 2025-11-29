@@ -6,8 +6,8 @@ on:
     branches: [main]
 
 env:
-  REGISTRY: ${{ vars.REGISTRY }}
-  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  REGISTRY: ${{ vars.REGISTRY || 'quay.io/sergio_canales_e' }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME || 'homedir' }}
   VPS_HOST: ${{ vars.VPS_HOST }}
   VPS_USER: ${{ vars.VPS_USER }}
   VPS_PORT: ${{ vars.VPS_PORT || '22' }}

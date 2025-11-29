@@ -26,10 +26,13 @@ jobs:
           VPS_USER: ${{ vars.VPS_USER }}
           VPS_PORT: ${{ vars.VPS_PORT || '22' }}
           APP_PORT: ${{ vars.APP_PORT || '8080' }}
+          REGISTRY: ${{ vars.REGISTRY || 'quay.io/sergio_canales_e' }}
+          IMAGE_NAME: ${{ vars.IMAGE_NAME || 'homedir' }}
           REF: ${{ vars.IMAGE_REF }}
         run: |
           if [ -z "${VPS_HOST}" ] || [ -z "${VPS_USER}" ] || [ -z "${REF}" ]; then
             echo "VPS_HOST, VPS_USER, and IMAGE_REF vars are required"; exit 1; fi
+          echo "Using registry: ${REGISTRY:-unset}, image: ${IMAGE_NAME:-unset}"
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" <<EOF
           set -euo pipefail
           IMAGE="${REF}"
