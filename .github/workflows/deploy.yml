@@ -80,6 +80,11 @@ jobs:
           mkdir -p "${DATA_DIR}"
           chown -R 1001:1001 "${DATA_DIR}" || true
           podman pull "$IMAGE"
+          # Stop any container currently bound to the target port to avoid EADDRINUSE
+          for c in $(podman ps -a --format '{{.Names}} {{.Ports}}' | awk '/8080/ {print $1}'); do
+            podman stop "$c" || true
+            podman rm "$c" || true
+          done
           if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
             podman stop "${CONTAINER_NAME}" || true
             podman rm "${CONTAINER_NAME}" || true
