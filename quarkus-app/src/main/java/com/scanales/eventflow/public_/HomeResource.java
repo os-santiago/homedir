@@ -85,8 +85,8 @@ public class HomeResource {
             today.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     var links =
         Map.of(
-            "releasesUrl", "https://github.com/scanalesespinoza/eventflow/releases",
-            "issuesUrl", "https://github.com/scanalesespinoza/eventflow/issues",
+            "releasesUrl", "https://github.com/os-santiago/homedir/releases",
+            "issuesUrl", "https://github.com/os-santiago/homedir/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
     var nowBox = nowBoxService.build();
     return Templates.home(upcoming, past, today, "2.2.2", stats, links, nowBox);
@@ -99,4 +99,3 @@ public class HomeResource {
     return Response.status(Response.Status.MOVED_PERMANENTLY).location(URI.create("/")).build();
   }
 }
-
