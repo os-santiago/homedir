@@ -118,7 +118,7 @@ jobs:
           VPS_PORT: ${{ env.VPS_PORT }}
           APP_PORT: ${{ env.APP_PORT }}
           DATA_DIR: ${{ vars.DATA_DIR || '/opt/homedir/data' }}
-          IMAGE_REF: ${{ env.REF }}
+          FALLBACK_IMAGE_REF: ${{ vars.IMAGE_REF }}
           OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
           OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
           SESSION_KEY: ${{ secrets.SESSION_KEY }}
@@ -128,7 +128,7 @@ jobs:
             echo "VPS_HOST and VPS_USER must be set as repository variables"; exit 1; fi
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" <<EOF
           set -euo pipefail
-          IMAGE="${IMAGE_REF}"
+          IMAGE="${IMAGE_REF:-${REF:-${FALLBACK_IMAGE_REF:-}}}"
           if [ -z "$IMAGE" ]; then echo "Empty image ref" >&2; exit 1; fi
           CONTAINER_NAME=homedir
           APP_PORT="${APP_PORT:-8080}"
