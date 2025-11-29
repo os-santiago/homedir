@@ -8,10 +8,10 @@ on:
 env:
   REGISTRY: ${{ vars.REGISTRY }}
   IMAGE_NAME: ${{ vars.IMAGE_NAME }}
-  GKE_PROJECT: ${{ vars.GKE_PROJECT }}
-  GKE_CLUSTER: ${{ vars.GKE_CLUSTER }}
-  GKE_LOCATION: ${{ vars.GKE_LOCATION }}
-  GKE_NAMESPACE: ${{ vars.GKE_NAMESPACE || 'prod' }}
+  VPS_HOST: ${{ vars.VPS_HOST }}
+  VPS_USER: ${{ vars.VPS_USER }}
+  VPS_PORT: ${{ vars.VPS_PORT || '22' }}
+  APP_PORT: ${{ vars.APP_PORT || '8080' }}
   GH_TOKEN: ${{ github.token }}
 
 jobs:
@@ -62,31 +62,35 @@ jobs:
         run: |
           cosign verify --key <(printf "%s" "${COSIGN_PUBLIC_KEY}") "$REF" || exit 1
 
-      - name: Auth to GCP
-        uses: google-github-actions/auth@v3
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Get GKE credentials
-        uses: google-github-actions/get-gke-credentials@v3
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER }}
-          location: ${{ env.GKE_LOCATION }}
-          project_id: ${{ env.GKE_PROJECT }}
-
-      - name: Apply manifests & rollout (by digest)
+      - name: Prepare SSH key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
-          kubectl apply -n "$GKE_NAMESPACE" -f deployment/namespace.yaml
-          kubectl apply -n "$GKE_NAMESPACE" -f deployment/managed-cert.yaml
-          kubectl apply -n "$GKE_NAMESPACE" -f deployment/service.yaml
-          kubectl apply -n "$GKE_NAMESPACE" -f deployment/deployment.yaml
-          kubectl apply -n "$GKE_NAMESPACE" -f deployment/ingress.yaml
-          kubectl apply -n "$GKE_NAMESPACE" -f deployment/pvc.yaml
-          kubectl -n "$GKE_NAMESPACE" set image deployment/eventflow eventflow="$REF"
-          kubectl rollout status deployment/eventflow -n "$GKE_NAMESPACE"
+          if [ -z "${VPS_SSH_KEY:-}" ]; then
+            echo "VPS_SSH_KEY secret is required"; exit 1; fi
+          install -m 700 -d ~/.ssh
+          echo "${VPS_SSH_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-      - name: Add traceability tag (main-<shortsha>)
-        if: steps.ref.outcome == 'success'
+      - name: Deploy via Podman on VPS
+        env:
+          VPS_HOST: ${{ env.VPS_HOST }}
+          VPS_USER: ${{ env.VPS_USER }}
+          VPS_PORT: ${{ env.VPS_PORT }}
+          APP_PORT: ${{ env.APP_PORT }}
+          REF: ${{ env.REF }}
         run: |
-          SHORT=$(echo "${{ github.sha }}" | cut -c1-12)
-          skopeo copy docker://$REF docker://${REGISTRY}/${IMAGE_NAME}:main-${SHORT}
+          if [ -z "${VPS_HOST}" ] || [ -z "${VPS_USER}" ]; then
+            echo "VPS_HOST and VPS_USER must be set as repository variables"; exit 1; fi
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" <<EOF
+          set -euo pipefail
+          IMAGE="${REF}"
+          CONTAINER_NAME=homedir
+          APP_PORT="${APP_PORT:-8080}"
+          podman pull "$IMAGE"
+          if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
+            podman stop "${CONTAINER_NAME}" || true
+            podman rm "${CONTAINER_NAME}" || true
+          fi
+          podman run -d --name "${CONTAINER_NAME}" --restart=always -p "\${APP_PORT}:8080" "$IMAGE"
+          EOF
