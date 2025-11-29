@@ -22,7 +22,7 @@ La estrategia de persistencia de EventFlow está documentada en:
  - [ADR 2025-09-07: Persistencia centralizada](docs/es/architecture/ADR-2025-09-07-persistence-service-centralized.md)
 
 
-Latest stable release: **v2.2.1**.
+Latest stable release: **v2.2.2**.
 
 ## Features
 - Manage events, speakers, scenarios, and talks
@@ -91,3 +91,4 @@ The build produces SBOMs for dependencies and container images and scans images 
 Project supported by the OpenSource Santiago community. Join our [Discord server](https://discord.gg/3eawzc9ybc).
 
 For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
+

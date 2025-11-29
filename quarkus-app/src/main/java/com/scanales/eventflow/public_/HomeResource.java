@@ -89,7 +89,7 @@ public class HomeResource {
             "issuesUrl", "https://github.com/scanalesespinoza/eventflow/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
     var nowBox = nowBoxService.build();
-    return Templates.home(upcoming, past, today, "2.2.1", stats, links, nowBox);
+    return Templates.home(upcoming, past, today, "2.2.2", stats, links, nowBox);
   }
 
   @GET
@@ -99,3 +99,4 @@ public class HomeResource {
     return Response.status(Response.Status.MOVED_PERMANENTLY).location(URI.create("/")).build();
   }
 }
+
