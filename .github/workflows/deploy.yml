@@ -10,6 +10,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Try to load image ref from build artifact
+        id: artifact-ref
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-image-ref
+          path: /tmp/image-ref
+
+      - name: Read image ref from artifact (if present)
+        id: read-artifact
+        if: steps.artifact-ref.outcome == 'success'
+        run: |
+          set -euo pipefail
+          FILE=/tmp/image-ref/image-ref.txt
+          if [ -f "$FILE" ]; then
+            REF_LINE=$(cat "$FILE")
+            REF_VALUE=${REF_LINE#REF=}
+            if [ -n "$REF_VALUE" ]; then
+              echo "Using REF from artifact: $REF_VALUE"
+              echo "IMAGE_REF=$REF_VALUE" >> $GITHUB_ENV
+              exit 0
+            fi
+          fi
+          echo "No REF found in artifact; expecting IMAGE_REF var instead."
+
       - name: Prepare SSH key
         env:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
@@ -28,14 +53,16 @@ jobs:
           APP_PORT: ${{ vars.APP_PORT || '8080' }}
           REGISTRY: ${{ vars.REGISTRY || 'quay.io/sergio_canales_e' }}
           IMAGE_NAME: ${{ vars.IMAGE_NAME || 'homedir' }}
-          REF: ${{ vars.IMAGE_REF }}
+          IMAGE_REF: ${{ env.IMAGE_REF || vars.IMAGE_REF }}
         run: |
-          if [ -z "${VPS_HOST}" ] || [ -z "${VPS_USER}" ] || [ -z "${REF}" ]; then
-            echo "VPS_HOST, VPS_USER, and IMAGE_REF vars are required"; exit 1; fi
+          if [ -z "${VPS_HOST}" ] || [ -z "${VPS_USER}" ]; then
+            echo "VPS_HOST and VPS_USER must be set as repository variables"; exit 1; fi
+          if [ -z "${IMAGE_REF:-}" ]; then
+            echo "IMAGE_REF must be provided via artifact or vars"; exit 1; fi
           echo "Using registry: ${REGISTRY:-unset}, image: ${IMAGE_NAME:-unset}"
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" <<EOF
           set -euo pipefail
-          IMAGE="${REF}"
+          IMAGE="${IMAGE_REF}"
           CONTAINER_NAME=homedir
           APP_PORT="${APP_PORT:-8080}"
           podman pull "$IMAGE"
