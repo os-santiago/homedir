@@ -25,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -52,6 +54,8 @@ public class AdminBackupResource {
   String appVersion;
 
   private static final Logger LOG = Logger.getLogger(AdminBackupResource.class);
+  private static final Pattern BACKUP_VERSION =
+      Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
 
   private boolean isAdmin() {
     return AdminUtils.isAdmin(identity);
@@ -141,8 +145,8 @@ public class AdminBackupResource {
               UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
           .build();
     }
-    if (!fileName.matches("backup_.*_v" + java.util.regex.Pattern.quote(appVersion) + "\\.zip")) {
-      LOG.warnf("Incompatible backup version: %s", fileName);
+    if (!isCompatibleVersion(fileName)) {
+      LOG.warnf("Incompatible backup version: %s (app=%s)", fileName, appVersion);
       return Response.seeOther(
               UriBuilder.fromPath(redirect)
                   .queryParam("msg", "\u274c Versi\u00f3n incompatible.")
@@ -184,5 +188,26 @@ public class AdminBackupResource {
               UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Error al restaurar.").build())
           .build();
     }
+  }
+
+  /** Accept same major.minor, even if patch differs. */
+  private boolean isCompatibleVersion(String fileName) {
+    Matcher matcher = BACKUP_VERSION.matcher(fileName);
+    if (!matcher.matches()) {
+      return false;
+    }
+    String backupVersion = matcher.group(1);
+    String[] appParts = appVersion.split("\\.");
+    String[] backupParts = backupVersion.split("\\.");
+    if (appParts.length < 2 || backupParts.length < 2) {
+      return false;
+    }
+    boolean sameMajorMinor =
+        appParts[0].equals(backupParts[0]) && appParts[1].equals(backupParts[1]);
+    if (!sameMajorMinor) {
+      return false;
+    }
+    // If major.minor matches, allow different patch levels
+    return true;
   }
 }
