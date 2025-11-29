@@ -1405,6 +1405,120 @@ footer {
     animation: spin 1s linear infinite;
 }
 
+/* --- Admin layout coherence --- */
+.admin-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.admin-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+}
+
+.admin-card {
+    background: var(--color-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
+}
+
+.admin-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-sm);
+}
+.admin-actions .btn,
+.admin-actions form {
+    width: 100%;
+}
+.admin-actions form {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    flex-wrap: wrap;
+}
+.admin-actions input[type=\"file\"] {
+    flex: 1 1 auto;
+}
+
+.admin-table-wrapper {
+    overflow-x: auto;
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.admin-table th,
+.admin-table td {
+    padding: 0.65rem;
+}
+.admin-table th {
+    background-color: var(--color-dark);
+    color: var(--color-light);
+    text-align: left;
+}
+.admin-table tbody tr:nth-child(even) {
+    background: #f7f9fb;
+}
+.admin-table .action-group {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.admin-form {
+    display: grid;
+    gap: var(--space-sm);
+}
+.admin-form label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+    width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid #d0d7de;
+    border-radius: var(--radius-sm);
+}
+.admin-form fieldset {
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    margin: var(--space-sm) 0;
+}
+.admin-form legend {
+    font-weight: 600;
+    padding: 0 var(--space-xs);
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-sm);
+}
+.admin-card button:not(.btn) {
+    background-color: var(--color-primary);
+    color: var(--color-light);
+    border: none;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    min-height: 2.5rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.admin-card button:not(.btn):hover {
+    background-color: var(--color-accent);
+}
+.admin-card button:not(.btn):active {
+    transform: scale(0.98);
+}
+
 @media (max-width: 600px) {
     .nav-links {
         display: none;

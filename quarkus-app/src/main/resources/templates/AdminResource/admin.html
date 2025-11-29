@@ -2,20 +2,28 @@
 {#title}Panel de administraci\u00f3n{/title}
 {#breadcrumbs}<a href="/private/profile">Perfil</a><span class="sep">/</span><span>Admin</span>{/breadcrumbs}
 {#main}
-<section class="admin-overview">
-    <h1 class="page-title">Admin Panel</h1>
-    <p class="section-subtitle">Bienvenido {name}. Gestiona los eventos aquí.</p>
-    <div class="card action-group">
-        <a href="/private/admin/events" class="btn">Administrar eventos</a>
-        <a href="/private/admin/speakers" class="btn">Administrar oradores</a>
-        <a href="/private/admin/metrics" class="btn">Métricas</a>
-        <a href="/private/admin/capacity" class="btn">Capacidad</a>
-        <a href="/private/admin/backup" class="btn">Respaldo de datos</a>
-        <a href="/admin/notifications" class="btn">Notificaciones</a>
-        <a href="/private/admin/guide" class="btn">Guía</a>
-        <a href="/admin/notifications" class="btn">Broadcast de notificaciones</a>
-        <a href="/admin/notifications/sim" class="btn">Simulación de notificaciones</a>
-        <a href="/private/profile" class="btn btn-secondary">Volver a perfil</a>
+<section class="admin-page">
+    <div class="admin-header">
+        <div>
+            <p class="section-subtitle">Bienvenido {name}</p>
+            <h1 class="page-title">Panel de administración</h1>
+            <p class="section-subtitle">Gestiona eventos, oradores y métricas desde un solo lugar.</p>
+        </div>
+    </div>
+    <div class="admin-card">
+        <h2 class="card-title">Acciones rápidas</h2>
+        <div class="admin-actions">
+            <a href="/private/admin/events" class="btn">Administrar eventos</a>
+            <a href="/private/admin/speakers" class="btn">Administrar oradores</a>
+            <a href="/private/admin/metrics" class="btn">Métricas</a>
+            <a href="/private/admin/capacity" class="btn">Capacidad</a>
+            <a href="/private/admin/backup" class="btn">Respaldo de datos</a>
+            <a href="/admin/notifications" class="btn">Notificaciones</a>
+            <a href="/private/admin/guide" class="btn">Guía</a>
+            <a href="/admin/notifications" class="btn">Broadcast de notificaciones</a>
+            <a href="/admin/notifications/sim" class="btn">Simulación de notificaciones</a>
+            <a href="/private/profile" class="btn btn-secondary">Volver a perfil</a>
+        </div>
     </div>
 </section>
 {/main}
