@@ -59,6 +59,14 @@ jobs:
           echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_OUTPUT
           echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
 
+      - name: Validate image ref
+        run: |
+          echo "REF=${REF:-<empty>}"
+          if [ -z "${REF:-}" ]; then
+            echo "Image reference is empty; aborting deploy." >&2
+            exit 1
+          fi
+
       - name: Cosign verify (optional)
         if: steps.ref.outcome == 'success' && env.COSIGN_PUBLIC_KEY != ''
         env:
@@ -83,7 +91,7 @@ jobs:
           VPS_PORT: ${{ env.VPS_PORT }}
           APP_PORT: ${{ env.APP_PORT }}
           DATA_DIR: ${{ vars.DATA_DIR || '/opt/homedir/data' }}
-          REF: ${{ env.REF }}
+          IMAGE_REF: ${{ env.REF }}
           OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
           OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
           SESSION_KEY: ${{ secrets.SESSION_KEY }}
@@ -93,7 +101,8 @@ jobs:
             echo "VPS_HOST and VPS_USER must be set as repository variables"; exit 1; fi
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" <<EOF
           set -euo pipefail
-          IMAGE="${REF}"
+          IMAGE="${IMAGE_REF}"
+          if [ -z "$IMAGE" ]; then echo "Empty image ref" >&2; exit 1; fi
           CONTAINER_NAME=homedir
           APP_PORT="${APP_PORT:-8080}"
           DATA_DIR="${DATA_DIR:-/opt/homedir/data}"
