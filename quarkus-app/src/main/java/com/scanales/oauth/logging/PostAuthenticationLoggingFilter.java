@@ -45,8 +45,7 @@ public class PostAuthenticationLoggingFilter extends AbstractLoggingFilter {
     checkAttribute("picture", picture);
 
     log.infof(
-        "User authenticated: sub=%s preferred_username=%s email=%s",
-        sub, preferredUsername, email);
+        "User authenticated: sub=%s preferred_username=%s email=%s", sub, preferredUsername, email);
   }
 
   private String getClaim(String claimName) {
