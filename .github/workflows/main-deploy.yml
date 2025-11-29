@@ -25,6 +25,32 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Try to load image ref from build artifact
+        id: artifact-ref
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-image-ref
+          path: /tmp/image-ref
+
+      - name: Read image ref from artifact (if present)
+        id: read-artifact
+        if: steps.artifact-ref.outcome == 'success'
+        run: |
+          set -euo pipefail
+          FILE=/tmp/image-ref/image-ref.txt
+          if [ -f "$FILE" ]; then
+            REF_LINE=$(cat "$FILE")
+            REF_VALUE=${REF_LINE#REF=}
+            if [ -n "$REF_VALUE" ]; then
+              echo "Using REF from artifact: $REF_VALUE"
+              echo "REF=$REF_VALUE" >> $GITHUB_ENV
+              echo "ref=$REF_VALUE" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          echo "No REF found in artifact; will resolve via registry."
+
       - name: Login to Quay
         env:
           QUAY_USERNAME: ${{ vars.QUAY_USERNAME }}
@@ -34,6 +60,7 @@ jobs:
 
       - name: Resolve image digest
         id: ref
+        if: env.REF == ''
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq skopeo
