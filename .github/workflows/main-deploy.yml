@@ -82,6 +82,7 @@ jobs:
           VPS_USER: ${{ env.VPS_USER }}
           VPS_PORT: ${{ env.VPS_PORT }}
           APP_PORT: ${{ env.APP_PORT }}
+          DATA_DIR: ${{ vars.DATA_DIR || '/opt/homedir/data' }}
           REF: ${{ env.REF }}
           OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
           OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
@@ -95,7 +96,7 @@ jobs:
           IMAGE="${REF}"
           CONTAINER_NAME=homedir
           APP_PORT="${APP_PORT:-8080}"
-          DATA_DIR=/opt/homedir/data
+          DATA_DIR="${DATA_DIR:-/opt/homedir/data}"
           mkdir -p "${DATA_DIR}"
           chown -R 1001:1001 "${DATA_DIR}" || true
           podman pull "$IMAGE"
