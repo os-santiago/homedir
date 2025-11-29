@@ -523,10 +523,7 @@ public class UsageMetricsService {
       json = mapper.writeValueAsBytes(file);
       Files.write(tmp, json);
       Files.move(
-          tmp,
-          metricsV2Path,
-          StandardCopyOption.REPLACE_EXISTING,
-          StandardCopyOption.ATOMIC_MOVE);
+          tmp, metricsV2Path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
       metricsPath = metricsV2Path;
       schemaVersion = CURRENT_SCHEMA_VERSION;
       lastFileSizeBytes = json.length;
