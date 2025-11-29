@@ -43,7 +43,7 @@ public class NotificationService {
     try {
       digest = MessageDigest.getInstance("SHA-256");
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException("Missing SHA-256 MessageDigest", e);
     }
   }
 
