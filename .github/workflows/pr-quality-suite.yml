@@ -35,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Validate submodule clean
+        run: git submodule status
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -44,6 +46,13 @@ jobs:
       - name: Run Spotless
         working-directory: quarkus-app
         run: ./mvnw --batch-mode spotless:check
+      - name: Enforce clean working tree after format
+        run: |
+          if ! git diff --quiet; then
+            echo "❌ Hay cambios de formato pendientes. Ejecuta './mvnw -pl quarkus-app spotless:apply' y súbelos." >&2
+            git diff
+            exit 1
+          fi
 
   static:
     name: static
