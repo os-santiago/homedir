@@ -15,10 +15,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.jboss.logging.Logger;
 
 /** Repository persisting notifications per user using a single writer thread. */
 @ApplicationScoped
 public class NotificationRepository {
+
+  private static final Logger LOG = Logger.getLogger(NotificationRepository.class);
 
   @Inject ObjectMapper mapper;
   @Inject NotificationConfig config;
@@ -33,7 +36,7 @@ public class NotificationRepository {
     try {
       Files.createDirectories(baseDir);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to create notifications directory", e);
+      throw new NotificationPersistenceException("Failed to create notifications directory", e);
     }
     int size = config.maxQueueSize > 0 ? config.maxQueueSize : 10000;
     queue = new ArrayBlockingQueue<>(size);
@@ -85,7 +88,7 @@ public class NotificationRepository {
     try {
       data = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(list);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new NotificationPersistenceException("Failed to serialize notifications", e);
     }
     Path f = fileForUser(userId);
     Runnable task =
@@ -93,7 +96,7 @@ public class NotificationRepository {
           try {
             FileIO.atomicWrite(f, data);
           } catch (IOException e) {
-            // ignore
+            LOG.warnf(e, "Failed to persist notifications for user %s", userId);
           }
         };
     if (!queue.offer(task)) {
