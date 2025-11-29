@@ -83,15 +83,14 @@ jobs:
           # Stop any container currently bound to the target port to avoid EADDRINUSE
           for c in $(podman ps -a --format '{{.Names}} {{.Ports}}' | awk "/${APP_PORT:-8080}/ {print \$1}"); do
             podman stop "$c" || true
-            podman rm "$c" || true
+            podman rm -f "$c" || true
           done
           # Kill any other process still holding the port (defensive)
           if command -v fuser >/dev/null 2>&1; then
             fuser -k "${APP_PORT}/tcp" || true
           fi
           if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
-            podman stop "${CONTAINER_NAME}" || true
-            podman rm "${CONTAINER_NAME}" || true
+            podman rm -f "${CONTAINER_NAME}" || true
           fi
           podman run -d --name "${CONTAINER_NAME}" --restart=always \
             -p "\${APP_PORT}:8080" \
