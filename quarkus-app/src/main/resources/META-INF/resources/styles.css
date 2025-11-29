@@ -1210,17 +1210,17 @@ p.note {
 .event-name {
     font-size: 1.25rem;
     margin: 0 0 0.5rem;
-    color: var(--color-dark);
+    color: var(--color-light);
 }
 
 .event-name a {
-    color: var(--color-primary);
-    text-decoration: underline;
+    color: var(--color-light);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .event-name a:visited {
-    color: var(--color-primary);
-    text-decoration: underline;
+    color: var(--color-light);
 }
 
 .event-name a::after {
@@ -1231,7 +1231,7 @@ p.note {
 
 .event-date {
     font-size: 0.9rem;
-    color: #333;
+    color: var(--color-muted);
     margin: 0 0 0.25rem;
 }
 
