@@ -2,10 +2,17 @@
 {#title}Oradores{/title}
 {#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Oradores</span>{/breadcrumbs}
 {#main}
-<h1>Oradores</h1>
-<p><a href="#new-speaker" class="btn">Agregar Orador</a></p>
-{#if message}<p class="section-subtitle">{message}</p>{/if}
-<ul class="speaker-list">
+<section class="admin-page">
+  <div class="admin-header">
+    <div>
+      <h1 class="page-title">Oradores</h1>
+      {#if message}<p class="section-subtitle">{message}</p>{/if}
+    </div>
+    <div>
+      <a href="#new-speaker" class="btn">Agregar Orador</a>
+    </div>
+  </div>
+  <ul class="speaker-list">
   {#for s in speakers}
   <li class="card speaker-card">
     <form method="post" action="/private/admin/speakers" class="speaker-form">
@@ -110,7 +117,10 @@
     </form>
   </li>
 </ul>
-<p><a href="/private/admin">Volver al panel</a></p>
+  <div class="admin-card">
+    <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
+  </div>
+</section>
 <script>
 (function(){
   document.querySelectorAll('.cospeaker-toggle').forEach(cb => {
@@ -123,4 +133,3 @@
 </script>
 {/main}
 {/include}
-
