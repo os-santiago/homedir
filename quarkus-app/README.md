@@ -71,7 +71,7 @@ native executable:
 
 After getting a cup of coffee, you'll be able to run this executable directly:
 
-> ./target/eventflow-2.2.2-runner
+> ./target/eventflow-2.2.3-runner
 
 
 ## Google Login Demo

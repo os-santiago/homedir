@@ -89,7 +89,7 @@ public class HomeResource {
             "issuesUrl", "https://github.com/os-santiago/homedir/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
     var nowBox = nowBoxService.build();
-    return Templates.home(upcoming, past, today, "2.2.2", stats, links, nowBox);
+    return Templates.home(upcoming, past, today, "2.2.3", stats, links, nowBox);
   }
 
   @GET
