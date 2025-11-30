@@ -1,0 +1,39 @@
+{#include layout/base}
+{#title}Proyectos{/title}
+{#breadcrumbs}<span>Inicio</span> / <strong>Proyectos</strong>{/breadcrumbs}
+{#main}
+<section class="hero hero--compact">
+  <div class="hero__content">
+    <div class="hero__kicker">Roadmap · Homedir</div>
+    <h1>Proyectos activos</h1>
+    <p class="lead">Sigue el estado de los módulos y entra directo al repositorio o sección correspondiente.</p>
+    <div class="hero__actions">
+      <a href="https://github.com/os-santiago/homedir" class="btn animate-press" target="_blank" rel="noopener">Abrir repositorio</a>
+      <a href="/comunidad" class="btn btn-ghost animate-press">Unirme a la comunidad</a>
+    </div>
+  </div>
+</section>
+
+<section class="surface">
+  <div class="section-heading">
+    <p class="section-subtitle">Módulos</p>
+    <h2 class="page-title">Hoja de ruta visible</h2>
+  </div>
+  <div class="cards-grid project-grid">
+    {#for p in projects}
+    <article class="card project-card">
+      <div class="card-body">
+        <p class="eyebrow">{p.tag}</p>
+        <h3>{p.name}</h3>
+        <p class="muted">{p.description}</p>
+        <div class="project-meta">
+          <span class="badge neutral">{p.status}</span>
+          <a class="btn btn-ghost" href="{p.link}" target="_blank" rel="noopener">Abrir</a>
+        </div>
+      </div>
+    </article>
+    {/for}
+  </div>
+</section>
+{/main}
+{/include}

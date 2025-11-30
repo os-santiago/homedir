@@ -2,8 +2,44 @@
 {#title}Mi perfil{/title}
 {#main}
 <h1>Perfil de usuario</h1>
-<p><strong>Nombre completo:</strong> {name}</p>
-<p><strong>Email:</strong> {email}</p>
+{#if githubLinked}
+<div class="banner success">Cuenta de GitHub vinculada correctamente.</div>
+{/if}
+{#if githubError??}
+<div class="banner warning">No se pudo vincular GitHub ({githubError}). Inténtalo nuevamente.</div>
+{/if}
+{#if githubRequired && github == null}
+<div class="banner info">Vincula GitHub para aparecer en Comunidad y unirte con tu usuario.</div>
+{/if}
+
+<section class="profile-grid">
+  <article class="card">
+    <div class="card-body">
+      <p class="section-subtitle">Cuenta</p>
+      <h2 class="page-title">{name}</h2>
+      <p class="muted">{email}</p>
+      <div class="integration">
+        <div>
+          <p class="eyebrow">GitHub</p>
+          {#if github != null}
+            <h3>@{github.login}</h3>
+            <p class="muted">Conectado · id {github.id}</p>
+          {#else}
+            <p class="muted">Aún no vinculado.</p>
+          {/if}
+        </div>
+        <div class="integration-actions">
+          {#if github != null}
+            <a class="btn btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver perfil</a>
+            <a class="btn" href="/private/github/start?redirect=/private/profile">Actualizar vínculo</a>
+          {#else}
+            <a class="btn" href="/private/github/start?redirect=/private/profile">Vincular con GitHub</a>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
 
 <h2 class="page-title">Tus Charlas Registradas</h2>
 {#if groups.isEmpty()}

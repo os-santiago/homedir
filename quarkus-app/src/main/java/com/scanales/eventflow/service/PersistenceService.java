@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Speaker;
+import com.scanales.eventflow.model.UserProfile;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -55,6 +56,7 @@ public class PersistenceService {
   private final Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
   private final Path eventsFile = dataDir.resolve("events.json");
   private final Path speakersFile = dataDir.resolve("speakers.json");
+  private final Path profilesFile = dataDir.resolve("user-profiles.json");
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
 
@@ -150,6 +152,11 @@ public class PersistenceService {
     scheduleWrite(speakersFile, speakers);
   }
 
+  /** Persists user profiles asynchronously. */
+  public void saveUserProfiles(Map<String, UserProfile> profiles) {
+    scheduleWrite(profilesFile, profiles);
+  }
+
   /** Persists user schedules for the given year asynchronously. */
   public void saveUserSchedules(
       int year, Map<String, Map<String, UserScheduleService.TalkDetails>> schedules) {
@@ -164,6 +171,11 @@ public class PersistenceService {
   /** Loads speakers from disk or returns an empty map if none. */
   public Map<String, Speaker> loadSpeakers() {
     return read(speakersFile, new TypeReference<Map<String, Speaker>>() {});
+  }
+
+  /** Loads user profiles from disk or returns an empty map if none. */
+  public Map<String, UserProfile> loadUserProfiles() {
+    return read(profilesFile, new TypeReference<Map<String, UserProfile>>() {});
   }
 
   /** Loads user schedules for the given year from disk or returns an empty map if none. */

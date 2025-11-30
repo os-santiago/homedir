@@ -1,0 +1,113 @@
+{#include layout/base}
+{#title}Comunidad{/title}
+{#breadcrumbs}<span>Inicio</span> / <strong>Comunidad</strong>{/breadcrumbs}
+{#main}
+<section class="hero hero--compact">
+  <div class="hero__content">
+    <div class="hero__kicker">Personas · Comunidad</div>
+    <h1>Construimos Homedir juntos</h1>
+    <p class="lead">Explora el directorio de integrantes, conecta con la comunidad y únete usando tu cuenta vinculada de GitHub.</p>
+    <div class="hero__actions">
+      {#if isAuthenticated}
+        {#if current}
+          <span class="pill">Ya eres parte · @{current.github}</span>
+          <a href="#directorio" class="btn btn-ghost animate-press">Ver directorio</a>
+        {#else}
+          <form method="post" action="/comunidad/unirse">
+            <input type="hidden" name="redirect" value="/comunidad">
+            <button class="btn animate-press" type="submit">Unirme a la comunidad</button>
+          </form>
+          <a href="#directorio" class="btn btn-ghost animate-press">Ver directorio</a>
+        {/if}
+      {#else}
+        <a class="btn animate-press" href="/ingresar">Ingresar y unirme</a>
+        <a class="btn btn-ghost animate-press" href="#directorio">Ver directorio</a>
+      {/if}
+    </div>
+    <div class="hero__stats">
+      <div class="stat-card">
+        <span class="stat-label">Integrantes</span>
+        <span class="stat-value">{totalMembers}</span>
+        <span class="stat-hint">Activos en la comunidad</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Visibilidad</span>
+        <span class="stat-value">GitHub</span>
+        <span class="stat-hint">Se muestra tu usuario</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Acceso</span>
+        <span class="stat-value">Roles</span>
+        <span class="stat-hint">Colaborador · Administrador</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{#if joined}
+<div class="banner success">Ya quedaste registrado como miembro de la comunidad. ¡Gracias por sumarte!</div>
+{/if}
+{#if missingGithub || needsGithubLink}
+<div class="banner warning">
+  Vincula tu cuenta de GitHub para aparecer en el directorio.
+  <a class="btn btn-ghost inline" href="/private/profile?linkGithub=1&redirect=/comunidad">Vincular ahora</a>
+  <a class="btn btn-ghost inline" href="/private/github/start?redirect=/comunidad">Reintentar con GitHub</a>
+</div>
+{/if}
+{#if alreadyMember}
+<div class="banner info">Ya estabas registrado. Si necesitas actualizar tus datos, vuelve a vincular tu GitHub en el perfil.</div>
+{/if}
+
+{#if prUrl??}
+<div class="banner success">
+  Se creó el PR de integración: <a href="{prUrl}" target="_blank" rel="noopener">{prUrl}</a>. Gracias por sumarte.
+</div>
+{/if}
+{#if prError??}
+<div class="banner warning">
+  No se pudo generar el PR automáticamente. Por favor informa a la comunidad o vuelve a intentar.
+</div>
+{/if}
+<section class="surface" id="directorio">
+  <div class="section-heading with-actions">
+    <div>
+      <p class="section-subtitle">Directorio</p>
+      <h2 class="page-title">Personas de la comunidad</h2>
+    </div>
+    <form class="search-form" method="get" action="/comunidad">
+      <input type="search" name="q" value="{query ?: ''}" placeholder="Buscar por nombre o GitHub" aria-label="Buscar integrante">
+      <button class="btn" type="submit">Buscar</button>
+    </form>
+  </div>
+
+  {#if members.isEmpty()}
+    <p class="section-subtitle no-events">Aún no hay integrantes visibles con este filtro.</p>
+  {#else}
+  <div class="cards-grid community-grid">
+    {#for m in members}
+    <article class="card community-card">
+      <div class="community-card__header">
+        {#if m.avatarUrl??}
+          <img src="{m.avatarUrl}" alt="{m.name}" class="avatar xl">
+        {#else}
+          <div class="avatar xl placeholder">👤</div>
+        {/if}
+        <div>
+          <p class="eyebrow">{m.role}</p>
+          <h3>{m.name}</h3>
+          <p class="muted">@{m.github}</p>
+        </div>
+      </div>
+      <div class="community-card__meta">
+        <span class="badge neutral">Desde {m.since}</span>
+        {#if m.profileUrl??}
+          <a class="badge link-badge" href="{m.profileUrl}" target="_blank" rel="noopener">GitHub ↗</a>
+        {/if}
+      </div>
+    </article>
+    {/for}
+  </div>
+  {/if}
+</section>
+{/main}
+{/include}
