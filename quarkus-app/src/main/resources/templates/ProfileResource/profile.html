@@ -1,116 +1,169 @@
 {#include layout/base}
 {#title}Mi perfil{/title}
 {#main}
-<h1>Perfil de usuario</h1>
-{#if githubLinked}
-<div class="banner success">Cuenta de GitHub vinculada correctamente.</div>
-{/if}
-{#if githubError??}
-<div class="banner warning">No se pudo vincular GitHub ({githubError}). Inténtalo nuevamente.</div>
-{/if}
-{#if githubRequired && github == null}
-<div class="banner info">Vincula GitHub para aparecer en Comunidad y unirte con tu usuario.</div>
-{/if}
+<div class="profile-page">
+  <div class="profile-banners">
+    {#if githubLinked}
+      <div class="banner success">Cuenta de GitHub vinculada correctamente.</div>
+    {/if}
+    {#if githubError??}
+      <div class="banner warning">No se pudo vincular GitHub ({githubError}). Inténtalo nuevamente.</div>
+    {/if}
+    {#if githubRequired && github == null}
+      <div class="banner info">Vincula GitHub para aparecer en Comunidad y unirte con tu usuario.</div>
+    {/if}
+  </div>
 
-<section class="profile-grid">
-  <article class="card">
-    <div class="card-body">
-      <p class="section-subtitle">Cuenta</p>
-      <h2 class="page-title">{name}</h2>
-      <p class="muted">{email}</p>
-      <div class="integration">
-        <div>
-          <p class="eyebrow">GitHub</p>
-          {#if github != null}
-            <h3>@{github.login}</h3>
-            <p class="muted">Conectado · id {github.id}</p>
-          {#else}
-            <p class="muted">Aún no vinculado.</p>
-          {/if}
-        </div>
-        <div class="integration-actions">
-          {#if github != null}
-            <a class="btn btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver perfil</a>
-            <a class="btn" href="/private/github/start?redirect=/private/profile">Actualizar vínculo</a>
-          {#else}
-            <a class="btn" href="/private/github/start?redirect=/private/profile">Vincular con GitHub</a>
-          {/if}
-        </div>
+  <section class="profile-hero">
+    <div class="hero-content">
+      <p class="eyebrow">Perfil digital</p>
+      <h1>{name}</h1>
+      <p class="hero-subtitle">Gestiona tu agenda, elige tus charlas favoritas y mantente al día con la comunidad.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/private/profile">Ver Mi Perfil</a>
+        <a class="btn btn-ghost" href="/private/github/start?redirect=/private/profile">Vincular GitHub</a>
+      </div>
+      <div class="hero-meta">
+        <span class="meta-label">Correo</span>
+        <strong>{email}</strong>
+      </div>
+      <p id="summary" class="hero-summary">
+        Has agregado {totalTalks} charlas a tu agenda, has asistido a {attendedTalks} y calificado {ratedTalks}.
+      </p>
+    </div>
+    <div class="hero-panel">
+      <div class="stat-card">
+        <p class="stat-label">Charlas registradas</p>
+        <p class="stat-value">{totalTalks}</p>
+        <p class="stat-hint">Agregaste {totalTalks} charlas en tu agenda</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Asistidas</p>
+        <p class="stat-value">{attendedTalks}</p>
+        <p class="stat-hint">Confirmaste asistencia a {attendedTalks} charlas</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Calificaciones</p>
+        <p class="stat-value">{ratedTalks}</p>
+        <p class="stat-hint">Has valorado {ratedTalks} experiencias</p>
       </div>
     </div>
-  </article>
-</section>
+  </section>
 
-<h2 class="page-title">Tus Charlas Registradas</h2>
-{#if groups.isEmpty()}
-<p>Aún no hay charlas.</p>
-{#else}
-<p id="summary">Has agregado {totalTalks} charlas a tu agenda, has asistido a {attendedTalks} y calificado {ratedTalks}.</p>
-<div class="filter">
-  <button type="button" class="btn filter-btn" data-filter="all">Todas</button>
-  <button type="button" class="btn filter-btn" data-filter="attended">Asistidas</button>
-  <button type="button" class="btn filter-btn" data-filter="pending">No asistidas</button>
-</div>
-{#for g in groups}
-  <div class="event-group">
-    <h3 class="event-title">{g.event.title}</h3>
-    {#for d in g.days}
-      <h4 class="day-title">Día {d.day}</h4>
-      <div class="talks-day">
-        {#for t in d.talks}
-        <div class="talk-row" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating??}">
-          <div class="talk-time">
-            <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
-            <span>{t.startTimeStr} - {t.endTimeStr}</span>
+  <section class="profile-panels">
+    <article class="panel github-panel">
+      <div>
+        <p class="section-subtitle">Integraciones</p>
+        <h2>GitHub</h2>
+        {#if github != null}
+          <p class="muted">@{github.login} · ID {github.id}</p>
+          <div class="panel-actions">
+            <a class="btn btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver perfil</a>
+            <a class="btn" href="/private/github/start?redirect=/private/profile">Actualizar vínculo</a>
           </div>
-          <div class="talk-info">
-            <span class="talk-title"><a href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
-            <div class="speaker-avatars">
-              {#for s in t.speakers}
-                <a href="/speaker/{s.id}" title="{s.name}">
-                  {#if app:validUrl(s.photoUrl)}
-                    <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
-                  {#else}
-                    <span class="avatar placeholder">👤</span>
-                  {/if}
-                </a>
-              {/for}
+        {#else}
+          <p class="muted">Aún no vinculado.</p>
+          <a class="btn" href="/private/github/start?redirect=/private/profile">Vincular con GitHub</a>
+        {/if}
+      </div>
+    </article>
+    <article class="panel schedule-panel">
+      <p class="section-subtitle">Comunidad</p>
+      <h2>{groups.size()} eventos</h2>
+      <p class="muted">{groups.size()} iniciativas activas y colaboraciones abiertas.</p>
+      <a class="btn btn-primary" href="/comunidad">Explorar Comunidad</a>
+    </article>
+  </section>
+
+  <section class="talks-section">
+    <div class="talks-heading">
+      <div>
+        <p class="eyebrow">Agenda</p>
+        <h2>Charlas registradas</h2>
+      </div>
+      <div class="filter">
+        <button type="button" class="btn filter-btn" data-filter="all">Todas</button>
+        <button type="button" class="btn filter-btn" data-filter="attended">Asistidas</button>
+        <button type="button" class="btn filter-btn" data-filter="pending">No asistidas</button>
+      </div>
+    </div>
+
+    {#if groups.isEmpty()}
+      <p class="empty-state">Aún no has agregado charlas. Explora eventos y agrégalos a tu agenda.</p>
+    {#else}
+      <div class="talk-groups">
+        {#for g in groups}
+          <div class="talk-group">
+            <div class="talk-group-header">
+              <h3>{g.event.title}</h3>
+              <span class="muted">{g.days.size()} días · {g.event.speakers.size()} speakers</span>
             </div>
-            <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t, g.event)}</span>
+            {#for d in g.days}
+              <div class="day-block">
+                <h4>Día {d.day}</h4>
+                <div class="talks-day">
+                  {#for t in d.talks}
+                    <div class="talk-row" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}" data-rated="{info.get(t.id).rating??}">
+                      <div class="talk-time">
+                        <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
+                        <span>{t.startTimeStr} · {t.endTimeStr}</span>
+                      </div>
+                      <div class="talk-info">
+                        <span class="talk-title"><a href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
+                        <div class="speaker-avatars">
+                          {#for s in t.speakers}
+                            <a href="/speaker/{s.id}" title="{s.name}">
+                              {#if app:validUrl(s.photoUrl)}
+                                <img src="{s.photoUrl}" alt="{s.name}" class="avatar" />
+                              {#else}
+                                <span class="avatar placeholder">👤</span>
+                              {/if}
+                            </a>
+                          {/for}
+                        </div>
+                        <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t, g.event)}</span>
+                      </div>
+                      <div class="talk-actions">
+                        <div class="motivation-list">
+                          {#for m in info.get(t.id).motivations}
+                            <span class="badge motivation-badge" data-value="{m}">{m}</span>
+                          {/for}
+                        </div>
+                        <select class="motivation-select" data-talk-id="{t.id}">
+                          <option value="">Motivo...</option>
+                          <option>⭐ Relevante para mi trabajo</option>
+                          <option>🧠 Quiero aprender sobre esto</option>
+                          <option>🎤 Conozco al speaker</option>
+                          <option>🎯 Me pareció interesante</option>
+                        </select>
+                        <label class="attended-label" title="Asistí">
+                          <input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if info.get(t.id).attended}checked{/if}>
+                        </label>
+                        <select id="rating-{t.id}" class="rating-select" data-talk-id="{t.id}" title="Valorar">
+                          <option value="">★</option>
+                          <option value="1" {#if info.get(t.id).rating == 1}selected{/if}>1</option>
+                          <option value="2" {#if info.get(t.id).rating == 2}selected{/if}>2</option>
+                          <option value="3" {#if info.get(t.id).rating == 3}selected{/if}>3</option>
+                          <option value="4" {#if info.get(t.id).rating == 4}selected{/if}>4</option>
+                          <option value="5" {#if info.get(t.id).rating == 5}selected{/if}>5</option>
+                        </select>
+                        <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}" title="Eliminar">🗑️</button>
+                      </div>
+                    </div>
+                  {/for}
+                </div>
+              </div>
+            {/for}
           </div>
-          <div class="talk-actions">
-            <div class="motivation-list">
-              {#for m in info.get(t.id).motivations}
-                <span class="badge motivation-badge" data-value="{m}">{m}</span>
-              {/for}
-            </div>
-            <select class="motivation-select" data-talk-id="{t.id}">
-              <option value="">Motivo...</option>
-              <option>⭐ Relevante para mi trabajo</option>
-              <option>🧠 Quiero aprender sobre esto</option>
-              <option>🎤 Conozco al speaker</option>
-              <option>🎯 Me pareció interesante</option>
-            </select>
-            <label class="attended-label" title="Asistí"><input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if info.get(t.id).attended}checked{/if}></label>
-            <select id="rating-{t.id}" class="rating-select" data-talk-id="{t.id}" title="Valorar">
-              <option value="">★</option>
-              <option value="1" {#if info.get(t.id).rating == 1}selected{/if}>1</option>
-              <option value="2" {#if info.get(t.id).rating == 2}selected{/if}>2</option>
-              <option value="3" {#if info.get(t.id).rating == 3}selected{/if}>3</option>
-              <option value="4" {#if info.get(t.id).rating == 4}selected{/if}>4</option>
-              <option value="5" {#if info.get(t.id).rating == 5}selected{/if}>5</option>
-            </select>
-            <button class="btn btn-secondary remove-talk" data-talk-id="{t.id}" title="Eliminar">🗑️</button>
-          </div>
-        </div>
         {/for}
       </div>
-    {/for}
-  </div>
-{/for}
-{/if}
+    {/if}
+  </section>
+
   <p><a href="/logout">Salir</a></p>
-  <script>
+</div>
+
+<script>
   (function() {
     const updateTalk = async (id, data) => {
       try {
@@ -256,6 +309,5 @@
 
     updateSummary();
   })();
-    </script>
-  {/main}
-  {/include}
+</script>
+{/main}

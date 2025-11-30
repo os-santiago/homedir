@@ -2039,6 +2039,195 @@ footer {
     margin-top: var(--space-sm);
 }
 
+/* Profile redesign */
+.profile-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+.profile-banners {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.profile-hero {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(14, 165, 233, 0.15));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-lg);
+}
+.hero-content h1 {
+    font-size: clamp(2.3rem, 2rem + 1vw, 3rem);
+    margin: 0.25rem 0;
+}
+.hero-subtitle {
+    margin-bottom: var(--space-md);
+    color: rgba(255, 255, 255, 0.9);
+}
+.hero-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-sm);
+}
+.hero-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+.hero-summary {
+    margin-top: var(--space-md);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+.hero-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.75rem;
+}
+.stat-card {
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.stat-label {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.7);
+}
+.stat-value {
+    font-size: 2.3rem;
+    font-weight: 700;
+    margin: 0.25rem 0;
+}
+.stat-hint {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+.profile-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-md);
+}
+.panel {
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    min-height: 180px;
+}
+.panel-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: var(--space-sm);
+}
+.talks-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+.talks-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+.talk-groups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+.talk-group {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.02);
+}
+.talk-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: var(--space-sm);
+}
+.day-block {
+    margin-bottom: var(--space-md);
+}
+.talk-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-sm);
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    margin-bottom: 0.5rem;
+}
+.talk-row:last-child {
+    margin-bottom: 0;
+}
+.talk-time span {
+    color: var(--color-muted);
+    font-size: 0.95rem;
+}
+.talk-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.talk-title a {
+    font-weight: 600;
+    color: var(--color-light);
+}
+.speaker-avatars {
+    display: flex;
+    gap: 0.35rem;
+}
+.talk-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: flex-end;
+}
+.motivation-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+.motivation-select,
+.rating-select {
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-2);
+    color: var(--color-light);
+    padding: 0.25rem 0.5rem;
+}
+.empty-state {
+    color: var(--color-muted);
+    margin: var(--space-md) 0;
+}
+.filter {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.btn.filter-btn {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: var(--color-light);
+}
 /* Profile GitHub section */
 .profile-grid {
     display: grid;
