@@ -3,6 +3,7 @@ name: Promote by Digest
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 env:
   REGISTRY: ${{ vars.REGISTRY || 'quay.io/sergio_canales_e' }}
