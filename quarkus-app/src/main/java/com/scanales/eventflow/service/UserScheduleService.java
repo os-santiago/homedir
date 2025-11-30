@@ -304,8 +304,13 @@ public class UserScheduleService {
     long start = System.currentTimeMillis();
     try {
       Map<String, Map<String, TalkDetails>> data = persistence.loadUserSchedules(activeYear);
-      schedules.clear();
-      schedules.putAll(data);
+      Map<String, Map<String, TalkDetails>> snapshot = data != null ? data : java.util.Map.of();
+      if (snapshot.isEmpty() && !schedules.isEmpty()) {
+        LOG.debug("refresh_skipped_empty_snapshot");
+      } else {
+        schedules.clear();
+        schedules.putAll(snapshot);
+      }
     } catch (Exception e) {
       LOG.warn("refresh_failed", e);
     } finally {

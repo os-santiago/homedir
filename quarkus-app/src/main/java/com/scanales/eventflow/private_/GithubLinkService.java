@@ -56,7 +56,8 @@ public class GithubLinkService {
             + url(state);
 
     return Response.seeOther(URI.create(authorize))
-        .cookie(new jakarta.ws.rs.core.NewCookie("gh_state", state, "/", null, null, 300, true, true))
+        .cookie(
+            new jakarta.ws.rs.core.NewCookie("gh_state", state, "/", null, null, 300, true, true))
         .cookie(
             new jakarta.ws.rs.core.NewCookie(
                 "gh_redirect", target, "/", null, null, 300, false, false))
