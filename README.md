@@ -71,6 +71,7 @@ Register `https://eventflow.opensourcesantiago.io/private` as an authorized redi
 ### GitHub linking for Comunidad
 Set `GH_CLIENT_ID` and `GH_CLIENT_SECRET` as environment variables to enable the GitHub OAuth flow used to vincular cuentas y aparecer en la sección Comunidad.
 Homedir también necesita un token con acceso push (configura `GH_TOKEN` o `GITHUB_TOKEN`) para abrir un PR contra `os-santiago/os-santiago.github.io` y agregar el miembro al archivo `community/members.yaml`.
+Ensure `app.public-url` (for example via `APP_PUBLIC_URL=https://homedir.opensourcesantiago.io`) matches the public host so the GitHub callback URI `${app.public-url}/private/github/callback` is authorized in your OAuth app.
 
 ### Admin access
 Only emails listed in `ADMIN_LIST` can create or edit events:
