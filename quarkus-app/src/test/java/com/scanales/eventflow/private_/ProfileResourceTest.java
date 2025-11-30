@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.scanales.eventflow.service.UserScheduleService;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -12,9 +13,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@TestSecurity(user = "user@example.com", roles = {"user"})
 public class ProfileResourceTest {
 
   @Inject UserScheduleService userSchedule;
+
+  @Inject SecurityIdentity securityIdentity;
 
   @BeforeEach
   void setup() {
@@ -22,7 +26,6 @@ public class ProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void addTalkJson() {
     given()
         .header("Accept", "application/json")
@@ -37,7 +40,6 @@ public class ProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void removeTalkJson() {
     // ensure talk exists
     given()
@@ -61,7 +63,6 @@ public class ProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void addTalkHtmlRedirect() {
     given()
         .redirects()
@@ -77,7 +78,6 @@ public class ProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void removeTalkHtmlRedirect() {
     // ensure talk exists
     given()
@@ -102,7 +102,6 @@ public class ProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void updateTalkRejectsUnknownProperty() {
     given()
         .header("Accept", "application/json")
@@ -115,7 +114,6 @@ public class ProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void updateTalkInvalidRating() {
     given()
         .header("Accept", "application/json")
@@ -128,9 +126,9 @@ public class ProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void visitedParamAddsTalkAndMarksAttended() {
-    assertFalse(userSchedule.getTalkDetailsForUser("user@example.com").containsKey("t7"));
+    String email = currentUserEmail();
+    assertFalse(userSchedule.getTalkDetailsForUser(email).containsKey("t7"));
     given()
         .redirects()
         .follow(false)
@@ -139,15 +137,15 @@ public class ProfileResourceTest {
         .then()
         .statusCode(303)
         .header("Location", endsWith("/private/profile"));
-    var details = userSchedule.getTalkDetailsForUser("user@example.com").get("t7");
+    var details = userSchedule.getTalkDetailsForUser(email).get("t7");
     assertNotNull(details);
     assertTrue(details.attended);
   }
 
   @Test
-  @TestSecurity(user = "user@example.com")
   public void attendedParamAddsTalkAndMarksAttended() {
-    assertFalse(userSchedule.getTalkDetailsForUser("user@example.com").containsKey("t8"));
+    String email = currentUserEmail();
+    assertFalse(userSchedule.getTalkDetailsForUser(email).containsKey("t8"));
     given()
         .redirects()
         .follow(false)
@@ -156,8 +154,16 @@ public class ProfileResourceTest {
         .then()
         .statusCode(303)
         .header("Location", endsWith("/private/profile"));
-    var details = userSchedule.getTalkDetailsForUser("user@example.com").get("t8");
+    var details = userSchedule.getTalkDetailsForUser(email).get("t8");
     assertNotNull(details);
     assertTrue(details.attended);
+  }
+
+  private String currentUserEmail() {
+    Object emailAttr = securityIdentity.getAttribute("email");
+    if (emailAttr != null && !emailAttr.toString().isBlank()) {
+      return emailAttr.toString();
+    }
+    return securityIdentity.getPrincipal().getName();
   }
 }
