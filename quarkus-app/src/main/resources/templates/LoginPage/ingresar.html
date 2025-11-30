@@ -7,9 +7,19 @@
   No se pudo iniciar sesión. Verifica tus credenciales e inténtalo nuevamente.
 </div>
 {/if}
-<p>
-  <a href="/profile" class="btn btn-primary login-button">Ingresar con Google</a>
-</p>
+<section class="card auth-card">
+  <div class="card-body">
+    <p class="section-subtitle">Autenticación</p>
+    <div class="auth-actions">
+      <a href="/profile" class="btn btn-primary login-button">Ingresar con Google</a>
+      {#if githubEnabled}
+        <a href="/private/github/start?redirect=/private/profile" class="btn btn-ghost login-button">Ingresar con GitHub</a>
+      {#else}
+        <span class="muted small">Habilita GH_CLIENT_ID/GH_CLIENT_SECRET para activar GitHub.</span>
+      {/if}
+    </div>
+  </div>
+</section>
 {#if localEnabled}
 <section class="card my-4">
   <div class="card-body">

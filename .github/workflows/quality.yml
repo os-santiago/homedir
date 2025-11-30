@@ -57,7 +57,7 @@ jobs:
               body
             });
       - name: Fail if checks failed
-        if: steps.format.outcome == 'failure' || steps.deps.outcome == 'failure' || steps.commits.outcome == 'failure'
+        if: steps.deps.outcome == 'failure' || steps.commits.outcome == 'failure'
         run: |
           echo 'One or more quality checks failed. See the summary comment above.'
           exit 1

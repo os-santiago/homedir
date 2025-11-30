@@ -4,6 +4,7 @@ import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
+import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
@@ -46,7 +47,11 @@ public class ProfileResource {
         java.util.Map<String, TalkDetails> info,
         int totalTalks,
         long attendedTalks,
-        long ratedTalks);
+        long ratedTalks,
+        com.scanales.eventflow.model.UserProfile.GithubAccount github,
+        boolean githubLinked,
+        String githubError,
+        boolean githubRequired);
   }
 
   /** Talks grouped by day within an event. */
@@ -64,10 +69,15 @@ public class ProfileResource {
 
   @Inject UsageMetricsService metrics;
 
+  @Inject UserProfileService userProfiles;
+
   @GET
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance profile() {
+  public TemplateInstance profile(
+      @jakarta.ws.rs.QueryParam("githubLinked") boolean githubLinked,
+      @jakarta.ws.rs.QueryParam("githubError") String githubError,
+      @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub) {
     identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
 
     String name = getClaim("name");
@@ -127,7 +137,11 @@ public class ProfileResource {
         info,
         summary.total(),
         summary.attended(),
-        summary.rated());
+        summary.rated(),
+        userProfiles.upsert(email, name, email).getGithub(),
+        githubLinked,
+        githubError,
+        linkGithub);
   }
 
   @GET

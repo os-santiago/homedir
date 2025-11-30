@@ -23,7 +23,10 @@ public class LoginPageResource {
   @CheckedTemplate(basePath = "LoginPage")
   static class Templates {
     static native TemplateInstance ingresar(
-        boolean localEnabled, boolean loginError, String localUsersDescription);
+        boolean localEnabled,
+        boolean loginError,
+        String localUsersDescription,
+        boolean githubEnabled);
   }
 
   @GET
@@ -41,7 +44,14 @@ public class LoginPageResource {
         ConfigProvider.getConfig()
             .getOptionalValue("app.auth.local-users", String.class)
             .orElse("");
-    return Response.ok(Templates.ingresar(localEnabled, loginError, localUsersDescription))
+    var cfg = ConfigProvider.getConfig();
+    boolean githubEnabled =
+        cfg.getOptionalValue("GH_CLIENT_ID", String.class).filter(v -> !v.isBlank()).isPresent()
+            && cfg.getOptionalValue("GH_CLIENT_SECRET", String.class)
+                .filter(v -> !v.isBlank())
+                .isPresent();
+    return Response.ok(
+            Templates.ingresar(localEnabled, loginError, localUsersDescription, githubEnabled))
         .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
         .header("Pragma", "no-cache")
         .header("Vary", "Cookie")

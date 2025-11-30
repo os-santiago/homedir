@@ -24,6 +24,9 @@
         <button id="menuToggle" class="menu-toggle" data-menu-toggle aria-label="Menú" aria-controls="primary-navigation" aria-expanded="false">&#9776;</button>
         <div class="nav-links" id="primary-navigation" data-primary-navigation hidden>
             <a href="/" data-nav-link>Inicio</a>
+            <a href="/comunidad" data-nav-link>Comunidad</a>
+            <a href="/eventos" data-nav-link>Eventos</a>
+            <a href="/proyectos" data-nav-link>Proyectos</a>
             {#if app:isAuthenticated()}
                 {#if app:isAdmin()}
                     <a href="/private/admin" data-nav-link>Admin</a>

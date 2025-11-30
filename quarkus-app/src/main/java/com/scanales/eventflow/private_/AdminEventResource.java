@@ -94,8 +94,7 @@ public class AdminEventResource {
     if (event == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    return Response.ok(
-            Templates.edit(event, speakerService.listSpeakers(), eventTypes(), message))
+    return Response.ok(Templates.edit(event, speakerService.listSpeakers(), eventTypes(), message))
         .build();
   }
 

@@ -68,6 +68,10 @@ quarkus.oidc.logout.post-logout-path=/
 
 Register `https://eventflow.opensourcesantiago.io/private` as an authorized redirect URI for production deployments.
 
+### GitHub linking for Comunidad
+Set `GH_CLIENT_ID` and `GH_CLIENT_SECRET` as environment variables to enable the GitHub OAuth flow used to vincular cuentas y aparecer en la sección Comunidad.
+Homedir también necesita un token con acceso push (configura `GH_TOKEN` o `GITHUB_TOKEN`) para abrir un PR contra `os-santiago/os-santiago.github.io` y agregar el miembro al archivo `community/members.yaml`.
+
 ### Admin access
 Only emails listed in `ADMIN_LIST` can create or edit events:
 
@@ -91,4 +95,3 @@ The build produces SBOMs for dependencies and container images and scans images 
 Project supported by the OpenSource Santiago community. Join our [Discord server](https://discord.gg/3eawzc9ybc).
 
 For coordinated vulnerability disclosure, see [SECURITY.md](SECURITY.md).
-
