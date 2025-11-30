@@ -135,19 +135,22 @@ jobs:
           IMAGE="${IMAGE#docker:}"
           if [ -z "$IMAGE" ]; then echo "Empty image ref" >&2; exit 1; fi
           echo "Using image: ${IMAGE}"
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" <<EOF
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" <<'EOF'
           set -euo pipefail
           IMAGE="${IMAGE}"
           CONTAINER_NAME="${IMAGE_NAME:-homedir}"
           APP_PORT="${APP_PORT:-8080}"
           DATA_DIR="${DATA_DIR:-/opt/homedir/data}"
+          stop_named_container() {
+            if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
+              podman stop "${CONTAINER_NAME}" || true
+              podman rm -f "${CONTAINER_NAME}" || true
+            fi
+          }
           mkdir -p "${DATA_DIR}"
           chown -R 1001:1001 "${DATA_DIR}" || true
           podman pull "$IMAGE"
-          if podman ps -a --format '{{.Names}}' | grep -q "^\${CONTAINER_NAME}\$"; then
-            podman stop "\${CONTAINER_NAME}" || true
-            podman rm -f "\${CONTAINER_NAME}" || true
-          fi
+          stop_named_container
           # Stop any container currently bound to the target port to avoid EADDRINUSE
           for c in $(podman ps -a --format '{{.Names}} {{.Ports}}' | awk "/${APP_PORT:-8080}/ {print \$1}"); do
             podman stop "$c" || true
@@ -157,10 +160,8 @@ jobs:
           if command -v fuser >/dev/null 2>&1; then
             fuser -k "${APP_PORT}/tcp" || true
           fi
-          if podman ps -a --format '{{.Names}}' | grep -q "^\${CONTAINER_NAME}\$"; then
-            podman rm -f "\${CONTAINER_NAME}" || true
-          fi
-          podman run -d --name "\${CONTAINER_NAME}" --restart=always \
+          stop_named_container
+          podman run -d --name "${CONTAINER_NAME}" --restart=always \
             -p "\${APP_PORT}:8080" \
             -e eventflow.data.dir=/work/data \
             -e OIDC_CLIENT_ID="${OIDC_CLIENT_ID}" \
