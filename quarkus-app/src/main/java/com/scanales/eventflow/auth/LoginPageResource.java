@@ -46,9 +46,7 @@ public class LoginPageResource {
             .orElse("");
     var cfg = ConfigProvider.getConfig();
     boolean githubEnabled =
-        cfg.getOptionalValue("GH_CLIENT_ID", String.class)
-                .filter(v -> !v.isBlank())
-                .isPresent()
+        cfg.getOptionalValue("GH_CLIENT_ID", String.class).filter(v -> !v.isBlank()).isPresent()
             && cfg.getOptionalValue("GH_CLIENT_SECRET", String.class)
                 .filter(v -> !v.isBlank())
                 .isPresent();
