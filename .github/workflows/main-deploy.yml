@@ -122,7 +122,7 @@ jobs:
           FALLBACK_IMAGE_REF: ${{ vars.IMAGE_REF }}
           OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
           OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
-          GH_CLIENT_ID: ${{ vars.GH_CLIENT_ID || secrets.GH_CLIENT_ID }}
+          GH_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
           GH_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
           SESSION_KEY: ${{ secrets.SESSION_KEY }}
           NOTIFICATIONS_USER_HASH_SALT: ${{ secrets.NOTIFICATIONS_USER_HASH_SALT }}
