@@ -59,7 +59,9 @@ public class ProfileResource {
 
   /** Talks grouped by event. */
   public record EventGroup(
-      com.scanales.eventflow.model.Event event, java.util.List<DayGroup> days) {}
+      com.scanales.eventflow.model.Event event,
+      java.util.List<DayGroup> days,
+      java.util.List<com.scanales.eventflow.model.Speaker> speakers) {}
 
   @Inject SecurityIdentity identity;
 
@@ -106,14 +108,25 @@ public class ProfileResource {
             .filter(java.util.Objects::nonNull)
             .toList();
 
-    // Group talks by event and day
+    // Group talks by event and day, and collect speakers per event
     java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<Integer, java.util.List<Talk>>>
         grouped = new java.util.LinkedHashMap<>();
+    java.util.Map<
+            com.scanales.eventflow.model.Event,
+            java.util.Map<String, com.scanales.eventflow.model.Speaker>>
+        speakersByEvent = new java.util.LinkedHashMap<>();
     for (TalkInfo te : entries) {
       grouped
           .computeIfAbsent(te.event(), k -> new java.util.TreeMap<>())
           .computeIfAbsent(te.talk().getDay(), k -> new java.util.ArrayList<>())
           .add(te.talk());
+      java.util.Map<String, com.scanales.eventflow.model.Speaker> eventSpeakers =
+          speakersByEvent.computeIfAbsent(
+              te.event(),
+              k -> new java.util.LinkedHashMap<String, com.scanales.eventflow.model.Speaker>());
+      te.talk().getSpeakers().stream()
+          .filter(s -> s.getId() != null && !s.getId().isBlank())
+          .forEach(s -> eventSpeakers.putIfAbsent(s.getId(), s));
     }
     java.util.List<EventGroup> groups =
         grouped.entrySet().stream()
@@ -123,7 +136,11 @@ public class ProfileResource {
                         ev.getKey(),
                         ev.getValue().entrySet().stream()
                             .map(d -> new DayGroup(d.getKey(), d.getValue()))
-                            .toList()))
+                            .toList(),
+                        new java.util.ArrayList<>(
+                            speakersByEvent
+                                .getOrDefault(ev.getKey(), java.util.Map.of())
+                                .values())))
             .toList();
 
     var summary = userSchedule.getSummaryForUser(email);

@@ -13,7 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-@TestSecurity(user = "user@example.com", roles = {"user"})
+@TestSecurity(
+    user = "user@example.com",
+    roles = {"user"})
 public class ProfileResourceTest {
 
   @Inject UserScheduleService userSchedule;
