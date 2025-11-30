@@ -170,4 +170,6 @@ jobs:
             -e GH_TOKEN="${GH_TOKEN}" \
             -v "\${DATA_DIR}:/work/data:Z" \
             "$IMAGE"
+          podman ps -a --format '{{.Names}} {{.Image}} {{.Status}}' || true
+          podman images quay.io/sergio_canales_e/homedir --format '{{.Repository}}:{{.Tag}} {{.Digest}}' || true
           EOF
