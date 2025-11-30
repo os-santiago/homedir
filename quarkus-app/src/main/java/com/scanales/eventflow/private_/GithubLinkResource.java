@@ -13,12 +13,10 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -29,6 +27,7 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
 import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 @Path("/private/github")
@@ -45,16 +44,19 @@ public class GithubLinkResource {
 
   @Inject Config config;
 
+  @ConfigProperty(name = "app.public-url", defaultValue = "http://localhost:8080")
+  String publicUrl;
+
   @GET
   @Path("start")
   @Produces(MediaType.TEXT_HTML)
-  public Response start(@QueryParam("redirect") String redirect, @Context UriInfo uriInfo) {
+  public Response start(@QueryParam("redirect") String redirect) {
     if (!githubConfigured()) {
       return Response.seeOther(URI.create("/private/profile?githubConfig=missing")).build();
     }
 
     String state = UUID.randomUUID().toString();
-    URI callback = uriInfo.getBaseUriBuilder().path("private/github/callback").build();
+    URI callback = URI.create(canonicalCallback());
     String target = (redirect != null && !redirect.isBlank()) ? redirect : "/private/profile";
 
     URI authorize =
@@ -200,5 +202,13 @@ public class GithubLinkResource {
 
   private String url(String value) {
     return URLEncoder.encode(value, StandardCharsets.UTF_8);
+  }
+
+  private String canonicalCallback() {
+    String normalized = publicUrl;
+    if (normalized.endsWith("/")) {
+      normalized = normalized.substring(0, normalized.length() - 1);
+    }
+    return normalized + "/private/github/callback";
   }
 }
