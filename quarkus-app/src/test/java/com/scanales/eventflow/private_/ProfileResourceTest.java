@@ -159,6 +159,11 @@ public class ProfileResourceTest {
     assertTrue(details.attended);
   }
 
+  @Test
+  public void currentUserEmailDefaultsToPrincipalName() {
+    assertEquals(securityIdentity.getPrincipal().getName(), currentUserEmail());
+  }
+
   private String currentUserEmail() {
     Object emailAttr = securityIdentity.getAttribute("email");
     if (emailAttr != null && !emailAttr.toString().isBlank()) {
