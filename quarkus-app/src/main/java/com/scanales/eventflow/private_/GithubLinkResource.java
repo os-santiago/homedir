@@ -27,19 +27,12 @@ public class GithubLinkResource {
     return service.start(identity, redirect);
   }
 
-  @GET
-  @Path("callback")
-  @Produces(MediaType.TEXT_HTML)
   public Response callback(
       @QueryParam("code") String code,
       @QueryParam("state") String state,
       @QueryParam("error") String error,
       @CookieParam("gh_state") Cookie stateCookie,
       @CookieParam("gh_redirect") Cookie redirectCookie) {
-    if (error != null) {
-      return Response.seeOther(service.redirectWithParams("/private/profile?githubError=denied"))
-          .build(); // will not be reached because service already handles? we need method to redirect? Let's adjust.
-    }
     return service.handleCallback(code, state, error, stateCookie, redirectCookie, identity);
   }
 }
