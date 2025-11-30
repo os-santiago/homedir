@@ -121,8 +121,11 @@ jobs:
           FALLBACK_IMAGE_REF: ${{ vars.IMAGE_REF }}
           OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
           OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
+          GH_CLIENT_ID: ${{ vars.GH_CLIENT_ID || secrets.GH_CLIENT_ID }}
+          GH_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
           SESSION_KEY: ${{ secrets.SESSION_KEY }}
           NOTIFICATIONS_USER_HASH_SALT: ${{ secrets.NOTIFICATIONS_USER_HASH_SALT }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           if [ -z "${VPS_HOST}" ] || [ -z "${VPS_USER}" ]; then
             echo "VPS_HOST and VPS_USER must be set as repository variables"; exit 1; fi
@@ -156,9 +159,12 @@ jobs:
             -p "\${APP_PORT}:8080" \
             -e eventflow.data.dir=/work/data \
             -e OIDC_CLIENT_ID="${OIDC_CLIENT_ID}" \
-            -e OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET}" \
+          -e OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET}" \
+            -e GH_CLIENT_ID="${GH_CLIENT_ID}" \
+            -e GH_CLIENT_SECRET="${GH_CLIENT_SECRET}" \
             -e SESSION_KEY="${SESSION_KEY}" \
             -e NOTIFICATIONS_USER_HASH_SALT="${NOTIFICATIONS_USER_HASH_SALT}" \
+            -e GH_TOKEN="${GH_TOKEN}" \
             -v "\${DATA_DIR}:/work/data:Z" \
             "$IMAGE"
           EOF
