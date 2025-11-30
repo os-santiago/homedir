@@ -37,6 +37,8 @@ jobs:
       result: ${{ steps.report.outputs.result }}
     steps:
       - uses: actions/checkout@v5
+      - name: Validate submodule clean
+        run: git submodule status
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -47,14 +49,12 @@ jobs:
         id: spotless
         working-directory: quarkus-app
         run: ./mvnw --batch-mode spotless:check
-        continue-on-error: true
-      - name: Record style result
-        id: report
+      - name: Enforce clean working tree after format
         run: |
-          if [ "${{ steps.spotless.outcome }}" = "success" ]; then
-            echo "result=success" >> $GITHUB_OUTPUT
-          else
-            echo "result=failure" >> $GITHUB_OUTPUT
+          if ! git diff --quiet; then
+            echo "❌ Hay cambios de formato pendientes. Ejecuta './mvnw -pl quarkus-app spotless:apply' y súbelos." >&2
+            git diff
+            exit 1
           fi
 
   static:
