@@ -10,7 +10,7 @@
 
 Plataforma inteligente de gestión de eventos: espacios, actividades, ponentes, asistentes y planificación personalizada.
 
-Versión estable más reciente: **v2.2.2**.
+Versión estable más reciente: **v2.2.3**.
 
 ## Funciones
 - Gestiona eventos, ponentes, escenarios y charlas
