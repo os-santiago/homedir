@@ -7,6 +7,7 @@ import io.eventflow.home.now.NowBoxService;
 import io.eventflow.home.now.NowBoxView;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -30,6 +31,9 @@ public class HomeResource {
   @Inject UsageMetricsService metrics;
 
   @Inject NowBoxService nowBoxService;
+
+  @ConfigProperty(name = "homedir.ui.v2.enabled", defaultValue = "true")
+  boolean uiV2Enabled;
 
   @CheckedTemplate
   static class Templates {
@@ -89,6 +93,10 @@ public class HomeResource {
             "issuesUrl", "https://github.com/os-santiago/homedir/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
     var nowBox = nowBoxService.build();
+    if (uiV2Enabled) {
+      return Templates.home(upcoming, past, today, "2.2.3", stats, links, nowBox);
+    }
+    // TODO: definir template de fallback si en el futuro se desea una versión mínima
     return Templates.home(upcoming, past, today, "2.2.3", stats, links, nowBox);
   }
 
