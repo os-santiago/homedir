@@ -1,135 +1,206 @@
 {#include layout/base version=version stats=stats links=links}
-{#title}Inicio{/title}
-{#breadcrumbs}<span>Inicio</span>{/breadcrumbs}
+{#title}Homedir{/title}
+{#breadcrumbs}{/breadcrumbs}
 {#main}
-<section class="hero">
-    <div class="hero__content">
-        <div class="hero__kicker">Plataforma abierta · Homedir</div>
-        <h1>Agenda, notificaciones y eventos en un solo lugar</h1>
-        <p class="lead">Sigue actividades, comparte horarios y mantente al día con la comunidad sin perder contexto entre versiones.</p>
-        <div class="hero__actions">
-            <a href="#upcoming" class="btn animate-press">Ver eventos</a>
-            <a href="/private/profile" class="btn btn-ghost animate-press">Ir a mi perfil</a>
+<div class="hd-home">
+    <section class="hd-hero" id="inicio">
+        <div class="hd-page hd-hero-inner">
+            <div class="hd-hero-copy">
+                <h1 class="hd-hero-title">
+                    <!-- TODO: reemplazar con título exacto de la maqueta -->
+                    Organiza eventos inteligentes con Homedir
+                </h1>
+                <p class="hd-hero-subtitle">
+                    <!-- TODO: reemplazar con texto exacto de la maqueta -->
+                    Una plataforma pensada para comunidades, conferencias y experiencias memorables.
+                </p>
+                <div class="hd-hero-actions">
+                    <a href="/ingresar" class="hd-btn hd-btn-primary">Ingresar</a>
+                    <a href="/#como-funciona" class="hd-btn hd-btn-secondary">Cómo funciona</a>
+                </div>
+                <div class="hd-hero-stats">
+                    <div class="hd-hero-stat">
+                        <span class="hd-hero-stat-label">Versión</span>
+                        <span class="hd-hero-stat-value">v{version}</span>
+                    </div>
+                    <div class="hd-hero-stat">
+                        <span class="hd-hero-stat-label">Próximos eventos</span>
+                        <span class="hd-hero-stat-value">{upcoming.size}</span>
+                    </div>
+                    <div class="hd-hero-stat">
+                        <span class="hd-hero-stat-label">Eventos pasados</span>
+                        <span class="hd-hero-stat-value">{past.size}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hd-hero-visual">
+                <div class="hd-hero-placeholder">
+                    <!-- TODO: espacio para imagen / ilustración del hero según maqueta -->
+                </div>
+                <div class="hd-hero-widget">
+                    <div class="hd-hero-widget-head">
+                        <p class="hd-hero-widget-label">Ahora en Homedir</p>
+                        <p class="hd-hero-widget-hint">Agenda en vivo</p>
+                    </div>
+                    {#include _now-box nowBox=nowBox /}
+                </div>
+            </div>
         </div>
-        <div class="hero__stats">
-            <div class="stat-card">
-                <span class="stat-label">Versión</span>
-                <span class="stat-value">v{version}</span>
-                <span class="stat-hint">Backups aceptan mismo major.minor</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Próximos</span>
-                <span class="stat-value">{upcoming.size}</span>
-                <span class="stat-hint">Eventos en agenda</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Pasados</span>
-                <span class="stat-value">{past.size}</span>
-                <span class="stat-hint">Referencias y archivos</span>
-            </div>
-        </div>
-    </div>
-    <div class="hero__panel">
-        {#include _now-box nowBox=nowBox /}
-    </div>
-</section>
+    </section>
 
-<section class="home-section surface" id="upcoming">
-    <div class="section-heading">
-        <p class="section-subtitle">Programación</p>
-        <h1 class="page-title">Eventos disponibles</h1>
-    </div>
-    {#if upcoming.isEmpty()}
-        <p class="section-subtitle no-events">No hay eventos próximos por ahora. Vuelve pronto 👀</p>
-    {#else}
-        <div class="timeline">
-            <div class="timeline-label">Hoy: {today.format('dd/MM/yyyy')}</div>
-            {#for e in upcoming}
-            <div class="timeline-item">
-                <div class="timeline-marker"></div>
-                <article class="event-row">
-                    <div class="event-logo">
-                        {#if app:validUrl(e.logoUrl)}
-                        <img src="{e.logoUrl}" alt="Logo de {e.title}">
-                        {#else}
-                        <div class="no-logo">Sin logo disponible</div>
-                        {/if}
+    <section class="hd-section hd-section-about" id="que-es">
+        <div class="hd-page">
+            <h2 class="hd-section-title">
+                <!-- TODO: título desde maqueta -->
+                ¿Qué es Homedir?
+            </h2>
+            <p class="hd-section-intro">
+                <!-- TODO: texto desde maqueta -->
+                Homedir es una plataforma para gestionar eventos, espacios, actividades y comunidad en torno a tus experiencias.
+            </p>
+            <div class="hd-section-grid hd-about-grid">
+                <article class="hd-card">
+                    <h3 class="hd-card-title">Eventos completos</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Gestiona espacios, charlas, speakers y asistentes en un solo lugar.
+                    </p>
+                </article>
+                <article class="hd-card">
+                    <h3 class="hd-card-title">Pensado para comunidades</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Diseñado para comunidades técnicas, conferencias y meetups.
+                    </p>
+                </article>
+                <article class="hd-card">
+                    <h3 class="hd-card-title">En constante evolución</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Proyecto open-source impulsado por la comunidad de Open Source Santiago.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="hd-section hd-section-how" id="como-funciona">
+        <div class="hd-page">
+            <h2 class="hd-section-title">Cómo funciona Homedir</h2>
+            <div class="hd-steps">
+                <article class="hd-step">
+                    <span class="hd-step-number">01</span>
+                    <h3 class="hd-step-title">Crea tu evento</h3>
+                    <p class="hd-step-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Define espacios, escenarios y actividades desde la interfaz de administración.
+                    </p>
+                </article>
+                <article class="hd-step">
+                    <span class="hd-step-number">02</span>
+                    <h3 class="hd-step-title">Configura tu experiencia</h3>
+                    <p class="hd-step-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Ajusta horarios, tracks, speakers y flujos de asistentes.
+                    </p>
+                </article>
+                <article class="hd-step">
+                    <span class="hd-step-number">03</span>
+                    <h3 class="hd-step-title">Comparte con tu comunidad</h3>
+                    <p class="hd-step-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Publica la agenda y permite que tu comunidad explore las actividades.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="hd-section hd-section-for" id="para-quien-es">
+        <div class="hd-page">
+            <h2 class="hd-section-title">Pensado para organizadores y comunidades</h2>
+            <div class="hd-section-grid hd-for-grid">
+                <article class="hd-card">
+                    <h3 class="hd-card-title">Organizadores de conferencias</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Simplifica la creación de agendas complejas con múltiples escenarios y tracks.
+                    </p>
+                </article>
+                <article class="hd-card">
+                    <h3 class="hd-card-title">Meetups y comunidades</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Ofrece una experiencia clara a asistentes y speakers.
+                    </p>
+                </article>
+                <article class="hd-card">
+                    <h3 class="hd-card-title">Hackathons y workshops</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Coordina actividades, mentores y participantes sin perder el control.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="hd-section hd-section-community" id="comunidad">
+        <div class="hd-page">
+            <h2 class="hd-section-title">Comunidad y casos de uso</h2>
+            <p class="hd-section-intro">
+                <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                Homedir crece con aportes de la comunidad y casos de uso reales.
+            </p>
+            <div class="hd-community-grid">
+                <article class="hd-card">
+                    <h3 class="hd-card-title">Participa en la comunidad</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Únete a las conversaciones, comparte feedback y ayuda a priorizar nuevas funciones.
+                    </p>
+                    <div class="hd-links-list">
+                        <a class="hd-link" href="/comunidad">Directorio de comunidad</a>
+                        <a class="hd-link" href="/proyectos">Proyectos Homedir</a>
+                        <a class="hd-link" href="/eventos">Explorar eventos</a>
                     </div>
-                    <div class="event-main">
-                        <h2 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h2>
-                        <div class="event-tags">
-                            <span class="badge event-type {e.typeCss}">{e.typeLabel}</span>
-                            {#if e.isOngoing()}
-                            <span class="badge info">En curso</span>
-                            {/if}
-                        </div>
-                        {#if e.descriptionSummary}
-                        <p class="event-description">{e.descriptionSummary}</p>
-                        {/if}
-                        {#if app:validUrl(e.website) || app:validUrl(e.twitter) || app:validUrl(e.linkedin) || app:validUrl(e.instagram) || app:validEmail(e.contactEmail) || app:validUrl(e.ticketsUrl)}
-                        <div class="event-links">
-                            {#if app:validUrl(e.website)}<a href="{e.website}" target="_blank" rel="noopener" class="btn">🌐 Sitio Web</a>{/if}
-                            {#if app:validUrl(e.twitter)}<a href="{e.twitter}" target="_blank" rel="noopener" class="btn">🐦 Twitter</a>{/if}
-                            {#if app:validUrl(e.linkedin)}<a href="{e.linkedin}" target="_blank" rel="noopener" class="btn">💼 LinkedIn</a>{/if}
-                            {#if app:validUrl(e.instagram)}<a href="{e.instagram}" target="_blank" rel="noopener" class="btn">📸 Instagram</a>{/if}
-                            {#if app:validEmail(e.contactEmail)}<a href="mailto:{e.contactEmail}" target="_blank" rel="noopener" class="btn">📧 Email</a>{/if}
-                            {#if app:validUrl(e.ticketsUrl)}<a href="{e.ticketsUrl}" target="_blank" rel="noopener" class="btn">🎟️ Entradas</a>{/if}
-                        </div>
-                        {/if}
-                    </div>
-                    <div class="event-countdown">
-                        {#if e.formattedDate}
-                        <p class="event-date">{e.formattedDate}</p>
-                        {/if}
-                        <p class="days-left">{e.countdownLabel}</p>
+                </article>
+                <article class="hd-card">
+                    <h3 class="hd-card-title">Revisa avances del proyecto</h3>
+                    <p class="hd-card-text">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Sigue el roadmap, versiones y espacios donde puedes contribuir.
+                    </p>
+                    <div class="hd-links-list">
+                        <a class="hd-link" href="{links.releasesUrl}" target="_blank" rel="noopener">Releases</a>
+                        <a class="hd-link" href="{links.issuesUrl}" target="_blank" rel="noopener">Issues y feedback</a>
+                        <a class="hd-link" href="{links.donateUrl}" target="_blank" rel="noopener">Apoyar el proyecto</a>
                     </div>
                 </article>
             </div>
-            {/for}
         </div>
-    {/if}
     </section>
 
-    <section class="home-section surface" id="past">
-        <div class="section-heading">
-            <p class="section-subtitle">Historial</p>
-            <h1 class="page-title">Eventos pasados</h1>
-        </div>
-        {#if past.isEmpty()}
-            <p class="section-subtitle no-events">Aún no tenemos eventos anteriores.</p>
-        {#else}
-            <div class="timeline past-events">
-                {#for e in past}
-                <div class="timeline-item past">
-                    <div class="timeline-marker"></div>
-                    <article class="event-row past">
-                        <div class="event-logo">
-                            {#if app:validUrl(e.logoUrl)}
-                            <img src="{e.logoUrl}" alt="Logo de {e.title}">
-                            {#else}
-                            <div class="no-logo">Sin logo disponible</div>
-                            {/if}
-                        </div>
-                        <div class="event-main">
-                            <h2 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h2>
-                            <div class="event-tags">
-                                <span class="badge event-type {e.typeCss}">{e.typeLabel}</span>
-                                <span class="badge past">Finalizado</span>
-                            </div>
-                            {#if e.descriptionSummary}
-                            <p class="event-description">{e.descriptionSummary}</p>
-                            {/if}
-                        </div>
-                        <div class="event-countdown">
-                            {#if e.formattedDate}
-                            <p class="event-date">{e.formattedDate}</p>
-                            {/if}
-                        </div>
-                    </article>
+    <section class="hd-section hd-section-cta-final" id="cta-final">
+        <div class="hd-page">
+            <div class="hd-cta-box">
+                <div class="hd-cta-copy">
+                    <h2 class="hd-section-title">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Lleva tu siguiente evento a Homedir
+                    </h2>
+                    <p class="hd-section-intro">
+                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
+                        Comienza a crear tu agenda y comparte la experiencia con tu comunidad.
+                    </p>
                 </div>
-                {/for}
+                <div class="hd-cta-actions">
+                    <a href="/ingresar" class="hd-btn hd-btn-primary">Ingresar</a>
+                    <a href="/eventos" class="hd-btn hd-btn-secondary">Ver eventos</a>
+                </div>
             </div>
-        {/if}
+        </div>
     </section>
+</div>
 {/main}
 {/include}
