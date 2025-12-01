@@ -1,62 +1,72 @@
-{#include layout/base}
-{#title}Ingresar{/title}
-{#main}
-<h1>Ingresar</h1>
-{#if loginError}
-<div class="alert alert-danger" role="alert">
-  No se pudo iniciar sesión. Verifica tus credenciales e inténtalo nuevamente.
-</div>
-{/if}
-<section class="card auth-card">
-  <div class="card-body">
-    <p class="section-subtitle">Autenticación</p>
-    <div class="auth-actions">
-      <a href="/profile" class="btn btn-primary login-button">Ingresar con Google</a>
-      {#if githubEnabled}
-        <a href="/private/github/start?redirect=/private/profile" class="btn btn-ghost login-button">Ingresar con GitHub</a>
-      {#else}
-        <span class="muted small">Habilita GH_CLIENT_ID/GH_CLIENT_SECRET para activar GitHub.</span>
-      {/if}
+{#include layout/main}
+
+{#title}Ingresar · Homedir{/title}
+
+{#body}
+  <section class="hd-section hd-section-login">
+    <div class="hd-page hd-login-page">
+      <div class="hd-login-panel">
+        <h1 class="hd-page-title">Ingresar a Homedir</h1>
+        <p class="hd-page-intro">
+          Usa tu cuenta para administrar eventos y experiencias.
+        </p>
+        {#if loginError}
+          <div class="hd-alert hd-alert-danger" role="alert">
+            No se pudo iniciar sesión. Verifica tus credenciales e inténtalo nuevamente.
+          </div>
+        {/if}
+
+        <div class="hd-login-actions">
+          <a href="/profile" class="hd-btn hd-btn-primary">Ingresar con Google</a>
+          {#if githubEnabled}
+            <a href="/private/github/start?redirect=/private/profile" class="hd-btn hd-btn-secondary">Ingresar con GitHub</a>
+          {#else}
+            <span class="hd-login-hint">Habilita GH_CLIENT_ID/GH_CLIENT_SECRET para activar GitHub.</span>
+          {/if}
+        </div>
+
+        {#if localEnabled}
+          <div class="hd-card hd-card-surface hd-login-local">
+            <h2 class="hd-card-title">Modo local de desarrollo</h2>
+            <p class="hd-card-text">
+              Usa las credenciales definidas en <code>application.properties</code> para iniciar sesión sin
+              depender de Google.
+            </p>
+            {#if localUsersDescription}
+              <p class="hd-card-text"><strong>Cuentas disponibles:</strong> {localUsersDescription}</p>
+            {/if}
+            <form method="post" action="/j_security_check" class="hd-form" novalidate>
+              <div class="hd-form-field">
+                <label for="username" class="hd-form-label">Correo electrónico</label>
+                <input
+                  id="username"
+                  name="username"
+                  type="email"
+                  class="hd-form-input"
+                  autocomplete="username"
+                  required>
+              </div>
+              <div class="hd-form-field">
+                <label for="password" class="hd-form-label">Contraseña</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  class="hd-form-input"
+                  autocomplete="current-password"
+                  required>
+              </div>
+              <div class="hd-form-actions">
+                <button type="submit" class="hd-btn hd-btn-secondary">Ingresar en modo local</button>
+              </div>
+            </form>
+          </div>
+        {/if}
+
+        <p class="hd-login-hint"><a href="/">Volver al inicio</a></p>
+      </div>
     </div>
-  </div>
-</section>
-{#if localEnabled}
-<section class="card my-4">
-  <div class="card-body">
-    <h2 class="card-title h5">Modo local de desarrollo</h2>
-    <p class="card-text">
-      Usa las credenciales definidas en <code>application.properties</code> para iniciar sesión sin
-      depender de Google.
-    </p>
-    {#if localUsersDescription}
-    <p class="card-text"><strong>Cuentas disponibles:</strong> {localUsersDescription}</p>
-    {/if}
-    <form method="post" action="/j_security_check" class="mt-3" novalidate>
-      <div class="mb-3">
-        <label for="username" class="form-label">Correo electrónico</label>
-        <input
-          id="username"
-          name="username"
-          type="email"
-          class="form-control"
-          autocomplete="username"
-          required>
-      </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">Contraseña</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          class="form-control"
-          autocomplete="current-password"
-          required>
-      </div>
-      <button type="submit" class="btn btn-outline-primary">Ingresar en modo local</button>
-    </form>
-  </div>
-</section>
-{/if}
-<p><a href="/">Volver al inicio</a></p>
-{/main}
+  </section>
+  <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+{/body}
 {/include}

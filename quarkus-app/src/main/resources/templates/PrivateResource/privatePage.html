@@ -1,18 +1,59 @@
-{#include layout/base}
-{#title}P\u00e1gina privada{/title}
-{#main}
-<h1>P\u00e1gina privada</h1>
-<p><strong>Sub:</strong> {sub}</p>
-<p><strong>Preferred Username:</strong> {preferredUsername}</p>
-<p><strong>Name:</strong> {name}</p>
-<p><strong>Given Name:</strong> {givenName}</p>
-<p><strong>Family Name:</strong> {familyName}</p>
-<p><strong>Email:</strong> {email}</p>
-<p><strong>Locale:</strong> {locale}</p>
-<p><strong>Picture:</strong></p>
-{#if picture}
-    <img src="{picture}" alt="Profile picture" style="max-width: 150px;">
-{/if}
-<p><a href="/logout">Logout</a></p>
-{/main}
+{#include layout/main}
+
+{#title}Página privada · Homedir{/title}
+
+{#body}
+  <section class="hd-section hd-section-dashboard">
+    <div class="hd-page">
+      <div class="hd-dashboard-header">
+        <div>
+          <p class="hd-eyebrow">Área privada</p>
+          <h1 class="hd-page-title">Información de la sesión</h1>
+          <p class="hd-page-intro">Detalles básicos de tu identidad autenticada.</p>
+        </div>
+        <div class="hd-panel-actions">
+          <a href="/logout" class="hd-btn hd-btn-secondary">Cerrar sesión</a>
+        </div>
+      </div>
+
+      <div class="hd-panel">
+        <h2 class="hd-panel-title">Perfil</h2>
+        <div class="hd-kpi-grid">
+          <div class="hd-kpi">
+            <p class="hd-kpi-label">Sub</p>
+            <p class="hd-kpi-value">{sub}</p>
+          </div>
+          <div class="hd-kpi">
+            <p class="hd-kpi-label">Preferred Username</p>
+            <p class="hd-kpi-value">{preferredUsername}</p>
+          </div>
+          <div class="hd-kpi">
+            <p class="hd-kpi-label">Email</p>
+            <p class="hd-kpi-value">{email}</p>
+          </div>
+        </div>
+
+        <div class="hd-panel" style="margin-top: 1rem;">
+          <table class="hd-table">
+            <tbody>
+              <tr class="hd-table-row"><th class="hd-table-head">Nombre</th><td class="hd-table-cell">{name}</td></tr>
+              <tr class="hd-table-row"><th class="hd-table-head">Nombre dado</th><td class="hd-table-cell">{givenName}</td></tr>
+              <tr class="hd-table-row"><th class="hd-table-head">Apellido</th><td class="hd-table-cell">{familyName}</td></tr>
+              <tr class="hd-table-row"><th class="hd-table-head">Locale</th><td class="hd-table-cell">{locale}</td></tr>
+              <tr class="hd-table-row">
+                <th class="hd-table-head">Imagen</th>
+                <td class="hd-table-cell">
+                  {#if picture}
+                    <img src="{picture}" alt="Profile picture" style="max-width: 150px; border-radius: 0.5rem;">
+                  {/if}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+    </div>
+  </section>
+{/body}
 {/include}

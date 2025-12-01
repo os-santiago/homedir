@@ -1,37 +1,69 @@
-{#include layout/base}
-{#title}Simular notificaciones{/title}
-{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/admin/notifications">Notificaciones</a><span class="sep">/</span><span>Simular</span>{/breadcrumbs}
-{#main}
-<section class="container mx-auto px-4 py-6">
-  <h1 class="text-2xl font-semibold mb-4">Simular notificaciones</h1>
-  <form id="simForm" class="grid gap-3 card p-4">
-    <label class="sr-only" for="eventId">ID del evento</label>
-    <input id="eventId" class="input" placeholder="ID de evento">
-    <label class="sr-only" for="pivot">Hora pivote</label>
-    <input id="pivot" type="datetime-local" class="input">
-    <div class="row gap-2">
-      <label><input type="checkbox" id="incEvent" checked> Evento</label>
-      <label><input type="checkbox" id="incTalks" checked> Charlas</label>
-      <label><input type="checkbox" id="incBreaks" checked> Breaks</label>
+{#include layout/main}
+
+{#title}Simular notificaciones · Homedir{/title}
+
+{#body}
+  <section class="hd-section hd-section-dashboard">
+    <div class="hd-page">
+      <div class="hd-dashboard-header">
+        <div>
+          <p class="hd-eyebrow">Administración</p>
+          <h1 class="hd-page-title">Simular notificaciones</h1>
+          <p class="hd-page-intro">Ejecuta pruebas antes de publicar un broadcast global.</p>
+        </div>
+        <div class="hd-panel-actions">
+          <a href="/admin/notifications" class="hd-btn hd-btn-secondary">Volver a broadcast</a>
+        </div>
+      </div>
+
+      <div class="hd-panel">
+        <form id="simForm" class="hd-form" aria-label="Simular notificaciones">
+          <div class="hd-form-grid">
+            <div class="hd-form-field">
+              <label class="hd-form-label" for="eventId">ID del evento</label>
+              <input id="eventId" class="hd-form-input" placeholder="ID de evento">
+            </div>
+            <div class="hd-form-field">
+              <label class="hd-form-label" for="pivot">Hora pivote</label>
+              <input id="pivot" type="datetime-local" class="hd-form-input">
+            </div>
+          </div>
+          <div class="hd-form-field">
+            <span class="hd-form-label">¿Qué incluir?</span>
+            <div class="hd-form-actions">
+              <label class="hd-form-label"><input type="checkbox" id="incEvent" checked> Evento</label>
+              <label class="hd-form-label"><input type="checkbox" id="incTalks" checked> Charlas</label>
+              <label class="hd-form-label"><input type="checkbox" id="incBreaks" checked> Breaks</label>
+            </div>
+          </div>
+          <div class="hd-form-field">
+            <span class="hd-form-label">Estados</span>
+            <div class="hd-form-actions">
+              <label class="hd-form-label"><input type="checkbox" name="state" value="UPCOMING" checked> UPCOMING</label>
+              <label class="hd-form-label"><input type="checkbox" name="state" value="STARTED" checked> STARTED</label>
+              <label class="hd-form-label"><input type="checkbox" name="state" value="ENDING_SOON" checked> ENDING_SOON</label>
+              <label class="hd-form-label"><input type="checkbox" name="state" value="FINISHED" checked> FINISHED</label>
+            </div>
+          </div>
+          <div class="hd-form-actions">
+            <button id="previewBtn" class="hd-btn hd-btn-secondary" type="button">Previsualizar</button>
+            <button id="emitBtn" class="hd-btn hd-btn-primary" type="button">Emitir prueba</button>
+            <button id="sequenceBtn" class="hd-btn" type="button">Reproducción secuencial</button>
+          </div>
+          <label class="hd-form-label"><input type="checkbox" id="optinToggle"> Ver simulaciones en este navegador</label>
+        </form>
+      </div>
+
+      <div class="hd-panel">
+        <h2 class="hd-panel-title">Resultados</h2>
+        <table id="results" class="hd-table hidden">
+          <thead><tr><th class="hd-table-head">Tipo</th><th class="hd-table-head">Categoría</th><th class="hd-table-head">Título</th><th class="hd-table-head">Mensaje</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+      </div>
     </div>
-    <div class="row gap-2">
-      <label><input type="checkbox" name="state" value="UPCOMING" checked> UPCOMING</label>
-      <label><input type="checkbox" name="state" value="STARTED" checked> STARTED</label>
-      <label><input type="checkbox" name="state" value="ENDING_SOON" checked> ENDING_SOON</label>
-      <label><input type="checkbox" name="state" value="FINISHED" checked> FINISHED</label>
-    </div>
-    <div class="row gap-2">
-      <button id="previewBtn" class="btn-secondary" type="button">Previsualizar</button>
-      <button id="emitBtn" class="btn-primary" type="button">Emitir prueba</button>
-      <button id="sequenceBtn" class="btn" type="button">Reproducción secuencial</button>
-    </div>
-    <label class="flex items-center gap-2"><input type="checkbox" id="optinToggle"> Ver simulaciones en este navegador</label>
-  </form>
-  <table id="results" class="mt-4 table-auto w-full hidden">
-    <thead><tr><th>Tipo</th><th>Categoría</th><th>Título</th><th>Mensaje</th></tr></thead>
-    <tbody></tbody>
-  </table>
-</section>
-<script defer src="/js/admin-notifications-sim.js"></script>
-{/main}
+  </section>
+  <script defer src="/js/admin-notifications-sim.js"></script>
+{/body}
 {/include}
