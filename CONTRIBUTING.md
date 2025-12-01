@@ -134,3 +134,46 @@ The dependency check summarizes additions, updates and removals plus any violati
 - Mantén **≥ 70 %** de líneas y ramas en el diff de tu PR. El gating es progresivo: primera semana `warn`, luego `enforcing`.
 - Opcional: `mvn -f quarkus-app/pom.xml org.pitest:pitest-maven:1.16.1:mutationCoverage -DtargetClasses='io.eventflow.*'`.
 - Si falla el gate de cobertura, agrega o ajusta tests de las clases tocadas y vuelve a ejecutar.
+
+## Contribuir a la UI (frontend)
+
+La UI de Homedir está construida con:
+
+- Quarkus + Qute para el renderizado de vistas.
+- Templates en `quarkus-app/src/main/resources/templates`.
+- Estilos centralizados en `quarkus-app/src/main/resources/META-INF/resources/css/homedir.css`.
+
+### Cómo levantar la app para trabajar en la UI
+
+1. Ir al módulo `quarkus-app`:
+
+   ```bash
+   cd quarkus-app
+   ```
+
+2. Ejecutar en modo dev:
+
+   ```bash
+   mvn quarkus:dev
+   ```
+
+3. Abrir el navegador en http://localhost:8080.
+
+### Convenciones de diseño
+
+- Usa siempre el layout principal: `{#extends layout/main}` o `{#include layout/main}`.
+- Evita duplicar `<html>`, `<head>`, `<body>` en templates individuales.
+- Usa clases `hd-*` ya existentes siempre que sea posible.
+- No agregues estilos inline; extiende `homedir.css`.
+- Si necesitas nuevos componentes o variantes, documenta las clases en `docs/ui/architecture.md`.
+
+### Feature flag de UI
+
+La UI v2 está controlada por la propiedad `homedir.ui.v2.enabled` en `application.properties`.
+
+En caso de introducir una nueva versión futura, considera usar esta propiedad para hacer el cambio gradual o preparar un fallback.
+
+### Alineación con la maqueta
+
+- Los textos, colores y espaciados deben alinearse con la maqueta oficial de Homedir en Canva.
+- Donde veas comentarios `TODO: alinear con maqueta Canva`, reemplaza el contenido con los valores correctos y elimina el comentario.

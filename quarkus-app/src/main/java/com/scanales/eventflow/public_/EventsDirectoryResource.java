@@ -5,6 +5,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -23,6 +24,9 @@ public class EventsDirectoryResource {
   @Inject EventService eventService;
 
   @Inject UsageMetricsService metrics;
+
+  @ConfigProperty(name = "homedir.ui.v2.enabled", defaultValue = "true")
+  boolean uiV2Enabled;
 
   @CheckedTemplate
   static class Templates {
@@ -66,6 +70,10 @@ public class EventsDirectoryResource {
         Map.of(
             "upcoming", Integer.toString(upcoming.size()),
             "past", Integer.toString(past.size()));
+    if (uiV2Enabled) {
+      return Templates.eventos(upcoming, past, today, stats);
+    }
+    // TODO: definir template de fallback si en el futuro se desea una versión mínima
     return Templates.eventos(upcoming, past, today, stats);
   }
 }
