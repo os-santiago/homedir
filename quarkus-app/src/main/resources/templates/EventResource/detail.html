@@ -84,7 +84,7 @@ Evento
     <details class="agenda-day" open>
       <summary>Día {d}</summary>
       <div id="agenda-seq-{d}" class="agenda-view agenda-seq" data-agenda-seq>
-        <table class="table agenda-table">
+        <table class="hd-table agenda-table">
           <colgroup>
             <col style="width: 12%;">
             <col style="width: 60%;">
@@ -93,17 +93,17 @@ Evento
           </colgroup>
           <thead>
             <tr>
-              <th>Horario</th>
-              <th>Actividad</th>
-              <th>Ponentes</th>
-              <th>Escenario</th>
+              <th class="hd-table-head">Horario</th>
+              <th class="hd-table-head">Actividad</th>
+              <th class="hd-table-head">Ponentes</th>
+              <th class="hd-table-head">Escenario</th>
             </tr>
           </thead>
           <tbody>
             {#for t in event.getAgendaForDay(d)}
-            <tr>
-              <td class="agenda-time">{t.startTimeStr} - {t.endTimeStr}</td>
-              <td class="agenda-title">
+            <tr class="hd-table-row">
+              <td class="agenda-time hd-table-cell">{t.startTimeStr} - {t.endTimeStr}</td>
+              <td class="agenda-title hd-table-cell">
                 <span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>
                 {#if t.break}
                 <span class="agenda-title-text">{t.name}</span>
@@ -111,7 +111,7 @@ Evento
                 <a href="/event/{event.id}/talk/{t.id}" class="agenda-title-text">{t.name}</a>
                 {/if}
               </td>
-              <td class="agenda-speakers">
+              <td class="agenda-speakers hd-table-cell">
                 {#if !t.break && !t.speakers.isEmpty()}
                 <span class="speaker-avatars">
                   {#for s in t.speakers}
@@ -126,28 +126,28 @@ Evento
                 </span>
                 {/if}
               </td>
-              <td class="agenda-location"><a href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a></td>
+              <td class="agenda-location hd-table-cell"><a href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a></td>
             </tr>
             {/for}
           </tbody>
         </table>
       </div>
       <div id="agenda-grid-{d}" class="agenda-view agenda-grid hidden" data-agenda-grid>
-        <table class="table agenda-grid-table">
+        <table class="hd-table agenda-grid-table">
           <thead>
             <tr>
-              <th>Horario</th>
+              <th class="hd-table-head">Horario</th>
               {#for sc in event.scenarios}
-              <th>{sc.name}</th>
+              <th class="hd-table-head">{sc.name}</th>
               {/for}
             </tr>
           </thead>
           <tbody>
             {#for e in event.getAgendaGroupedByTimeSlot(d).entrySet()}
-            <tr>
-              <td class="agenda-time">{e.key}</td>
+            <tr class="hd-table-row">
+              <td class="agenda-time hd-table-cell">{e.key}</td>
               {#for sc in event.scenarios}
-              <td>
+              <td class="hd-table-cell">
                 {#for t in e.value}
                 {#if t.location == sc.id}
                 <div class="agenda-slot">

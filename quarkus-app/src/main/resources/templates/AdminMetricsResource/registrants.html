@@ -4,34 +4,55 @@
 {#main}
 <section class="admin-metrics">
   <h1 class="page-title">{talk.name} - {event.title}</h1>
-  <form method="get" class="filter">
+  <form method="get" class="filter hd-form">
     <input type="hidden" name="talk" value="{talk.id}">
-    <input type="search" name="name" placeholder="Nombre" value="{name}">
-    <input type="search" name="email" placeholder="Email" value="{email}">
-    <select name="size">
-      <option value="20"{#if size == 20} selected{/if}>20</option>
-      <option value="50"{#if size == 50} selected{/if}>50</option>
-      <option value="100"{#if size == 100} selected{/if}>100</option>
-    </select>
-    <button type="submit" class="btn btn-secondary">Filtrar</button>
+    <div class="hd-form-grid">
+      <div class="hd-form-field">
+        <label for="filter-name" class="hd-form-label">Nombre</label>
+        <input id="filter-name" type="search" name="name" value="{name}" class="hd-form-input">
+      </div>
+      <div class="hd-form-field">
+        <label for="filter-email" class="hd-form-label">Email</label>
+        <input id="filter-email" type="search" name="email" value="{email}" class="hd-form-input">
+      </div>
+      <div class="hd-form-field">
+        <label for="filter-size" class="hd-form-label">Resultados</label>
+        <select id="filter-size" name="size" class="hd-form-input">
+          <option value="20"{#if size == 20} selected{/if}>20</option>
+          <option value="50"{#if size == 50} selected{/if}>50</option>
+          <option value="100"{#if size == 100} selected{/if}>100</option>
+        </select>
+      </div>
+    </div>
+    <div class="hd-form-actions">
+      <button type="submit" class="hd-btn hd-btn-secondary">Filtrar</button>
+    </div>
   </form>
-  <table class="table registrants-table">
-    <thead><tr><th>Nombre</th><th>Email</th></tr></thead>
+  <table class="hd-table registrants-table">
+    <thead>
+      <tr>
+        <th class="hd-table-head">Nombre</th>
+        <th class="hd-table-head">Email</th>
+      </tr>
+    </thead>
     <tbody>
     {#for u in users}
-      <tr><td>{u.name}</td><td>{u.email}</td></tr>
+      <tr class="hd-table-row">
+        <td class="hd-table-cell">{u.name}</td>
+        <td class="hd-table-cell">{u.email}</td>
+      </tr>
     {/for}
     </tbody>
   </table>
   <div class="pagination">
     {#if hasPrev}
-      <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={prev}" class="btn btn-secondary">Anterior</a>
+      <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={prev}" class="hd-btn hd-btn-secondary">Anterior</a>
     {/if}
     {#if hasNext}
-      <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={next}" class="btn btn-secondary">Siguiente</a>
+      <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={next}" class="hd-btn hd-btn-secondary">Siguiente</a>
     {/if}
   </div>
-  <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Volver</a>
+  <a href="/private/admin/metrics/registrations" class="hd-btn hd-btn-secondary">Volver</a>
 </section>
 {/main}
 {/include}

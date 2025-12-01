@@ -6,16 +6,24 @@
   <h1 class="page-title">Registros por charla</h1>
   {#for ev in events}
     <h2>{ev.event.title}</h2>
-    <table>
-      <thead><tr><th>Charla</th><th>Registros</th></tr></thead>
+    <table class="hd-table">
+      <thead>
+        <tr>
+          <th class="hd-table-head">Charla</th>
+          <th class="hd-table-head">Registros</th>
+        </tr>
+      </thead>
       <tbody>
       {#for row in ev.rows}
-        <tr><td><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td><td>{row.registrations}</td></tr>
+        <tr class="hd-table-row">
+          <td class="hd-table-cell"><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td>
+          <td class="hd-table-cell">{row.registrations}</td>
+        </tr>
       {/for}
       </tbody>
     </table>
   {/for}
-  <a href="/private/admin/metrics" class="btn btn-secondary">Volver</a>
+  <a href="/private/admin/metrics" class="hd-btn hd-btn-secondary">Volver</a>
 </section>
 {/main}
 {/include}
