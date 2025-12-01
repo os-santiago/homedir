@@ -1,55 +1,64 @@
-{#include layout/base}
-{#title}Eventos{/title}
-{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Eventos</span>{/breadcrumbs}
-{#main}
-<section class="admin-page">
-    <div class="admin-header">
-        <div>
-            <h1 class="page-title"><span class="icon">🗓️</span>Eventos</h1>
-            {#if message}
-                <p class="section-subtitle">{message}</p>
-            {/if}
+{#include layout/main}
+
+{#title}Eventos · Homedir{/title}
+
+{#body}
+<section class="hd-section hd-section-dashboard">
+    <div class="hd-page">
+        <div class="hd-dashboard-header">
+            <div>
+                <p class="hd-eyebrow">Administración</p>
+                <h1 class="hd-page-title"><span class="icon">🗓️</span>Eventos</h1>
+                {#if message}
+                    <p class="hd-page-intro">{message}</p>
+                {/if}
+            </div>
+            <div class="hd-panel-actions">
+                <a href="/private/admin/events/new" class="hd-btn hd-btn-primary">Nuevo evento</a>
+                <a href="/private/admin" class="hd-btn hd-btn-secondary">Volver</a>
+            </div>
         </div>
-    </div>
-    <div class="admin-card">
-        <h2 class="card-title">Acciones</h2>
-        <div class="admin-actions">
-            <a href="/private/admin/events/new" class="btn">Nuevo evento</a>
-            <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="admin-form">
-                <label for="importFile">Importar JSON</label>
-                <input id="importFile" type="file" name="file" accept="application/json">
-                <button type="submit" class="btn btn-secondary">Importar</button>
+        <div class="hd-panel">
+            <h2 class="hd-panel-title">Importar eventos</h2>
+            <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="hd-form" aria-label="Importar eventos">
+                <div class="hd-form-field">
+                    <label for="importFile" class="hd-form-label">Importar JSON</label>
+                    <input id="importFile" type="file" name="file" accept="application/json" class="hd-form-input">
+                </div>
+                <div class="hd-form-actions">
+                    <button type="submit" class="hd-btn hd-btn-secondary">Importar</button>
+                </div>
             </form>
         </div>
+        {#if events.isEmpty()}
+            <div class="hd-panel">
+                <p class="hd-page-intro">No hay eventos registrados.</p>
+            </div>
+        {#else}
+            <div class="hd-panel">
+                <table class="hd-table">
+                    <thead><tr><th class="hd-table-head">ID</th><th class="hd-table-head">Título</th><th class="hd-table-head">Tipo</th><th class="hd-table-head">Acciones</th></tr></thead>
+                    <tbody>
+                    {#for ev in events}
+                        <tr class="hd-table-row">
+                            <td class="hd-table-cell">{ev.id}</td>
+                            <td class="hd-table-cell">{ev.title}</td>
+                            <td class="hd-table-cell"><span class="badge event-type {ev.typeCss}">{ev.typeLabel}</span></td>
+                            <td class="hd-table-cell">
+                                <a href="/private/admin/events/{ev.id}/edit" class="hd-btn hd-btn-secondary">Editar</a>
+                                <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="hd-btn">Ver métricas</a>
+                                <form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline" class="needs-confirm">
+                                    <button type="submit" class="hd-btn">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {/for}
+                    </tbody>
+                </table>
+            </div>
+        {/if}
+        <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
     </div>
-    {#if events.isEmpty()}
-        <div class="admin-card">
-            <p class="no-events">No hay eventos registrados.</p>
-        </div>
-    {#else}
-        <div class="admin-card admin-table-wrapper">
-            <table class="table admin-table">
-                <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Acciones</th></tr></thead>
-                <tbody>
-                {#for ev in events}
-                    <tr>
-                        <td>{ev.id}</td>
-                        <td>{ev.title}</td>
-                        <td><span class="badge event-type {ev.typeCss}">{ev.typeLabel}</span></td>
-                        <td class="action-group">
-                            <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary">Editar</a>
-                            <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="btn btn-secondary">Ver métricas</a>
-                            <form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline" class="needs-confirm">
-                                <button type="submit" class="btn btn-secondary">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                {/for}
-                </tbody>
-            </table>
-        </div>
-    {/if}
-    <a href="/private/admin" class="btn btn-secondary">Volver</a>
 </section>
-{/main}
+{/body}
 {/include}

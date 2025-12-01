@@ -6,19 +6,20 @@
   <title>{#insert title}Homedir{/}</title>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/css/homedir.css" />
+  <link rel="stylesheet" href="/css/notifications.css" />
 </head>
 <body class="hd-body">
   <a class="hd-skip-link" href="#main-content">Saltar al contenido principal</a>
   {#include fragments/nav.html/}
   <main id="main-content" class="hd-main">
     {#insert body}
-    <section class="hd-section">
-      <div class="hd-page">
-        @-- TODO: alinear estructura base de layout con la maqueta Canva --
-      </div>
-    </section>
     {/}
   </main>
   {#include fragments/footer.html/}
+  <script>window.__EF_AUTH__ = { isAuth: {app:isAuthenticated()} };</script>
+  <script src="/js/app.js" defer></script>
+  <script src="/js/notifications-adapter.js" defer></script>
+  <script src="/js/notifications.js" defer></script>
+  <script src="/js/global-notifications-ws.js" defer></script>
 </body>
 </html>
