@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Homedir es una plataforma open-source para organizar eventos, espacios y experiencias de comunidad." />
+  <!-- TODO: ajustar texto según maqueta y mensaje final -->
   <title>{#insert title}Homedir{/}</title>
+  <link rel="icon" href="/favicon.ico" />
+  <!-- TODO: reemplazar por íconos alineados a la marca Homedir -->
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/css/homedir.css" />
   <link rel="stylesheet" href="/css/notifications.css" />
@@ -11,7 +15,7 @@
 <body class="hd-body">
   <a class="hd-skip-link" href="#main-content">Saltar al contenido principal</a>
   {#include fragments/nav.html/}
-  <main id="main-content" class="hd-main">
+  <main id="main-content" class="hd-main" role="main">
     {#insert body}
     {/}
   </main>

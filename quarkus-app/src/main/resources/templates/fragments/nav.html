@@ -1,10 +1,15 @@
 <nav class="hd-nav" aria-label="Principal">
-  <div class="hd-nav-bar">
+  <div class="hd-nav-inner hd-nav-bar">
     <a href="/" class="hd-nav-brand">Homedir</a>
-    <button class="hd-nav-toggle" aria-label="Abrir menú" aria-expanded="false" data-hd-nav-toggle>
-      ☰
+    <button
+      class="hd-nav-toggle"
+      aria-label="Abrir menú"
+      aria-expanded="false"
+      aria-controls="primary-nav"
+      data-hd-nav-toggle>
+      <span aria-hidden="true">☰</span>
     </button>
-    <div class="hd-nav-menu" data-hd-nav-menu>
+    <div class="hd-nav-menu" id="primary-nav" data-hd-nav-menu>
       <a href="/" class="hd-nav-link">Inicio</a>
       <a href="/eventos" class="hd-nav-link">Eventos</a>
       <a href="/comunidad" class="hd-nav-link">Comunidad</a>
