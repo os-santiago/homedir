@@ -3,11 +3,12 @@ import io
 import json
 import os
 import sys
-import tempfile
 import types
 import unittest
 from pathlib import Path
 from unittest import mock
+import shutil
+import uuid
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -100,9 +101,12 @@ class NaviaMVPFlowTest(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         self._cwd = os.getcwd()
-        self._tempdir = tempfile.TemporaryDirectory()
-        self.addCleanup(self._tempdir.cleanup)
-        os.chdir(self._tempdir.name)
+        self._temp_root = REPO_ROOT / ".tmp" / "pytest-work"
+        self._temp_root.mkdir(parents=True, exist_ok=True)
+        self._workdir = self._temp_root / f"navia-{uuid.uuid4().hex}"
+        self._workdir.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(self._cleanup_tempdir)
+        os.chdir(self._workdir)
 
         # Ensure the repository is importable after changing directories.
         self._repo_in_path = str(REPO_ROOT)
@@ -190,6 +194,9 @@ class NaviaMVPFlowTest(unittest.TestCase):
     def tearDown(self) -> None:
         os.chdir(self._cwd)
         super().tearDown()
+
+    def _cleanup_tempdir(self) -> None:
+        shutil.rmtree(self._workdir, ignore_errors=True)
 
     def _restore_sys_path(self) -> None:
         try:
