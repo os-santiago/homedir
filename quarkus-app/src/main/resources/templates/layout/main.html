@@ -15,12 +15,16 @@
 </head>
 <body class="hd-body">
   <a class="hd-skip-link" href="#main-content">Saltar al contenido principal</a>
-  {#include fragments/nav.html/}
+  {#if !noNav}
+    {#include fragments/nav.html/}
+  {/if}
   <main id="main-content" class="hd-main" role="main">
     {#insert body}
     {/}
   </main>
-  {#include fragments/footer.html/}
+  {#if !noFooter}
+    {#include fragments/footer.html/}
+  {/if}
   <script>window.__EF_AUTH__ = { isAuth: {app:isAuthenticated()} };</script>
   <script src="/js/app.js" defer></script>
   <script src="/js/notifications-adapter.js" defer></script>
