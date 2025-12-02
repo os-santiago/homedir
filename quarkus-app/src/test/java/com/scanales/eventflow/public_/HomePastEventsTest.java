@@ -8,7 +8,9 @@ import com.scanales.eventflow.service.EventService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,17 +42,61 @@ public class HomePastEventsTest {
             .get("/")
             .then()
             .statusCode(200)
-            .body(containsString("Eventos pasados"))
+            .body(containsString("Past events"))
+            .body(containsString("Upcoming events"))
             .extract()
             .asString();
 
-    int pastIdx = html.indexOf("Eventos pasados");
-    int pastEventIdx = html.indexOf("Evento Pasado");
-    int upcomingIdx = html.indexOf("Eventos disponibles");
-    int upcomingEventIdx = html.indexOf("Evento Futuro");
+    int upcomingIdx = html.indexOf("Upcoming events");
+    int pastIdx = html.indexOf("Past events");
+    int updatedIdx = html.indexOf("Updated");
 
-    org.junit.jupiter.api.Assertions.assertTrue(upcomingEventIdx > upcomingIdx);
-    org.junit.jupiter.api.Assertions.assertTrue(pastEventIdx > pastIdx);
-    org.junit.jupiter.api.Assertions.assertTrue(upcomingEventIdx < pastIdx);
+    List<Event> events = eventService.listEvents();
+    int expectedUpcoming = countUpcoming(events);
+    int expectedPast = countPast(events);
+
+    Assertions.assertEquals(expectedUpcoming, extractStatValue(html, "Upcoming events"));
+    Assertions.assertEquals(expectedPast, extractStatValue(html, "Past events"));
+    Assertions.assertTrue(upcomingIdx >= 0, "Upcoming events section should render");
+    Assertions.assertTrue(pastIdx > upcomingIdx, "Past section should follow upcoming stats");
+    Assertions.assertTrue(updatedIdx > pastIdx, "Stats section order should end with Updated");
+  }
+
+  private static int extractStatValue(String html, String label) {
+    String marker = "<span class=\"label\">" + label + "</span>";
+    int labelIdx = html.indexOf(marker);
+    Assertions.assertTrue(labelIdx >= 0, label + " label should be present on the page");
+    int valueStart = html.indexOf("<span class=\"value\">", labelIdx);
+    Assertions.assertTrue(valueStart >= 0, "value span missing for " + label);
+    int valueEnd = html.indexOf("</span>", valueStart);
+    Assertions.assertTrue(valueEnd >= 0, "value span not closed for " + label);
+    String valueText = html.substring(valueStart + "<span class=\"value\">".length(), valueEnd).trim();
+    return Integer.parseInt(valueText);
+  }
+
+  private static int countUpcoming(List<Event> events) {
+    LocalDate today = LocalDate.now();
+    return (int)
+        events.stream()
+            .filter(
+                e -> {
+                  var end = e.getEndDateTime();
+                  LocalDate endDate = end == null ? null : end.toLocalDate();
+                  return endDate == null || !endDate.isBefore(today);
+                })
+            .count();
+  }
+
+  private static int countPast(List<Event> events) {
+    LocalDate today = LocalDate.now();
+    return (int)
+        events.stream()
+            .filter(
+                e -> {
+                  var end = e.getEndDateTime();
+                  LocalDate endDate = end == null ? null : end.toLocalDate();
+                  return endDate != null && endDate.isBefore(today);
+                })
+            .count();
   }
 }
