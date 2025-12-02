@@ -348,8 +348,6 @@ function generateVillageInhabitants() {
 
     inhabitantsLayer.appendChild(member);
   });
-
-  updateCommunityStats(members);
 }
 
 function generateDemoInhabitants() {
@@ -512,30 +510,6 @@ function updateProfileDisplay() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  allUsers = generateDemoInhabitants();
-  updateCommunityStats(allUsers);
-
-  const openLoginBtn = document.getElementById('openLoginBtn');
-  if (openLoginBtn) openLoginBtn.addEventListener('click', openLoginModal);
-
-  const closeLoginBtn = document.getElementById('closeLoginBtn');
-  if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeLoginModal);
-
-  const googleLogin = document.getElementById('googleLogin');
-  if (googleLogin) googleLogin.addEventListener('click', () => handleLogin('google'));
-
-  const githubLogin = document.getElementById('githubLogin');
-  if (githubLogin) githubLogin.addEventListener('click', () => handleLogin('github'));
-
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-
-  const loginCharacterBtn = document.getElementById('loginCharacterBtn');
-  if (loginCharacterBtn) loginCharacterBtn.addEventListener('click', openLoginModal);
-
-  const logoutCharacterBtn = document.getElementById('logoutCharacterBtn');
-  if (logoutCharacterBtn) logoutCharacterBtn.addEventListener('click', handleLogout);
-
   const communityCard = document.getElementById('communityCard');
   const eventsCard = document.getElementById('eventsCard');
   const projectsCard = document.getElementById('projectsCard');
@@ -592,10 +566,5 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-  updateNavigation();
-  updateCharacterSheet();
   onConfigChange(defaultConfig);
-  fetchCurrentUserProfile();
-  fetchLandingStats && fetchLandingStats();
 });

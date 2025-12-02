@@ -70,17 +70,24 @@
         <a href="/notifications/center" class="nav-link">Notifications</a>
       </div>
       <div class="nav-actions">
-        <button class="login-btn-nav" id="openLoginBtn">Login</button>
-        <div class="user-menu" id="userMenuNav">
-          <div class="user-avatar" id="navAvatar" aria-hidden="true">HD</div>
-          <div class="user-dropdown">
-            <div class="user-name" id="navUserName">Logged in</div>
-            <div class="user-actions">
-              <a href="/profile" class="btn">Profile</a>
-              <a href="/logout" class="btn" id="logoutBtn">Logout</a>
+        {#if !vm.character.loggedIn}
+          <a class="login-btn-nav" href="{loginUrl}">
+            Login
+          </a>
+        {/if}
+
+        {#if vm.character.loggedIn}
+          <div class="user-menu">
+            <div class="user-avatar" aria-hidden="true">{vm.character.displayName.substring(0,1)}</div>
+            <div class="user-dropdown">
+              <div class="user-name">{vm.character.displayName}</div>
+              <div class="user-actions">
+                <a href="/profile" class="btn">Profile</a>
+                <a href="{logoutUrl}" class="btn">Logout</a>
+              </div>
             </div>
           </div>
-        </div>
+        {/if}
       </div>
     </div>
   </nav>
@@ -91,66 +98,68 @@
 
   <footer class="character-sheet">
     <div class="character-container">
-      <div class="novice-warning" id="noviceWarning">
-        You're playing as a NOVICE guest! Login to save your progress and unlock your full character potential!
-      </div>
+      {#if !vm.character.loggedIn}
+        <div class="novice-warning" id="noviceWarning">
+          You're playing as a NOVICE guest! Login to save your progress and unlock your full character potential!
+        </div>
+      {/if}
       <div class="character-header">
         <div class="character-title">
-          <h3 id="characterName">NOVICE GUEST</h3>
-          <span class="character-class" id="characterClass">VISITOR</span>
+          <h3 id="characterName">{vm.character.displayName.or('NOVICE GUEST')}</h3>
+          <span class="character-class" id="characterClass">{vm.character.roleLabel.or('VISITOR')}</span>
         </div>
-        <div class="character-level" id="characterLevel">LEVEL 1</div>
+        <div class="character-level" id="characterLevel">LEVEL {vm.character.level ?: 1}</div>
       </div>
       <div class="character-main">
         <div class="character-vitals">
           <div class="vital-bar">
-            <div class="vital-label"><span class="vital-name">❤️ HP (HEALTH)</span> <span class="vital-value" id="hpValue">10 / 100</span></div>
+            <div class="vital-label"><span class="vital-name">❤️ HP (HEALTH)</span> <span class="vital-value" id="hpValue">{vm.character.hpPercent ?: 10} / 100</span></div>
             <div class="vital-progress">
-              <div class="vital-fill hp-fill" id="hpBar" style="width: 10%"></div>
+              <div class="vital-fill hp-fill" id="hpBar" style="width: {vm.character.hpPercent ?: 10}%"></div>
             </div>
           </div>
           <div class="vital-bar">
-            <div class="vital-label"><span class="vital-name">⚡ SP (SKILL)</span> <span class="vital-value" id="spValue">5 / 100</span></div>
+            <div class="vital-label"><span class="vital-name">⚡ SP (SKILL)</span> <span class="vital-value" id="spValue">{vm.character.spPercent ?: 5} / 100</span></div>
             <div class="vital-progress">
-              <div class="vital-fill sp-fill" id="spBar" style="width: 5%"></div>
+              <div class="vital-fill sp-fill" id="spBar" style="width: {vm.character.spPercent ?: 5}%"></div>
             </div>
           </div>
           <div class="vital-bar">
-            <div class="vital-label"><span class="vital-name">⭐ XP (EXPERIENCE)</span> <span class="vital-value" id="xpValue">0 / 100</span></div>
+            <div class="vital-label"><span class="vital-name">⭐ XP (EXPERIENCE)</span> <span class="vital-value" id="xpValue">{vm.character.xpCurrent ?: 0} / {vm.character.xpMax ?: 100}</span></div>
             <div class="vital-progress">
-              <div class="vital-fill xp-fill" id="xpBar" style="width: 0%"></div>
+              <div class="vital-fill xp-fill" id="xpBar" style="width: { (vm.character.xpCurrent * 100 / vm.character.xpMax) ?: 0 }%"></div>
             </div>
           </div>
         </div>
         <div class="character-stats">
           <div class="stat-box">
             <div class="stat-icon">🎯</div>
-            <div class="stat-value" id="contributionsStat">0</div>
+            <div class="stat-value" id="contributionsStat">{vm.character.contributions ?: 0}</div>
             <div class="stat-label">Contributions</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon">🏆</div>
-            <div class="stat-value" id="questsStat">0</div>
+            <div class="stat-value" id="questsStat">{vm.character.quests ?: 0}</div>
             <div class="stat-label">Quests</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon">📅</div>
-            <div class="stat-value" id="eventsStat">0</div>
+            <div class="stat-value" id="eventsStat">{vm.character.events ?: 0}</div>
             <div class="stat-label">Events</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon">🚀</div>
-            <div class="stat-value" id="projectsStat">0</div>
+            <div class="stat-value" id="projectsStat">{vm.character.projects ?: 0}</div>
             <div class="stat-label">Projects</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon">🤝</div>
-            <div class="stat-value" id="connectionsStat">0</div>
+            <div class="stat-value" id="connectionsStat">{vm.character.connections ?: 0}</div>
             <div class="stat-label">Connections</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon">💎</div>
-            <div class="stat-value" id="experienceStat">0</div>
+            <div class="stat-value" id="experienceStat">{vm.character.totalXp ?: 0}</div>
             <div class="stat-label">Total XP</div>
           </div>
         </div>
@@ -182,8 +191,12 @@
         </div>
       </div>
       <div class="character-actions" id="characterActions">
-        <button class="character-action-btn" id="loginCharacterBtn"><span>🎮 LOGIN TO SAVE CHARACTER</span></button>
-        <button class="character-action-btn" id="logoutCharacterBtn" style="display: none;"><span>🚪 LOGOUT</span></button>
+        {#if !vm.character.loggedIn}
+          <button class="character-action-btn" id="loginCharacterBtn"><span>🎮 LOGIN TO SAVE CHARACTER</span></button>
+        {/if}
+        {#if vm.character.loggedIn}
+          <button class="character-action-btn" id="logoutCharacterBtn"><span>🚪 LOGOUT</span></button>
+        {/if}
       </div>
     </div>
   </footer>
