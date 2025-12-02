@@ -93,11 +93,9 @@ public class HomeResource {
             "issuesUrl", "https://github.com/os-santiago/homedir/issues",
             "donateUrl", "https://ko-fi.com/sergiocanales");
     var nowBox = nowBoxService.build();
-    if (uiV2Enabled) {
-      return Templates.home(upcoming, past, today, "2.2.3", stats, links, nowBox);
-    }
+    var template = Templates.home(upcoming, past, today, "2.2.3", stats, links, nowBox);
     // TODO: definir template de fallback si en el futuro se desea una versión mínima
-    return Templates.home(upcoming, past, today, "2.2.3", stats, links, nowBox);
+    return template.data("noNav", true).data("noFooter", true);
   }
 
   @GET
