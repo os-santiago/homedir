@@ -1,317 +1,270 @@
-{#include layout/main}
+{#extends layout/main}
 
-{#title}Homedir{/title}
+{#title}HomeDir{/title}
 
 {#body}
-<div class="hd-home">
-    <section class="hd-hero" id="inicio">
-        <div class="hd-page hd-hero-inner">
-            <div class="hd-hero-copy">
-                <h1 class="hd-hero-title">
-                    <!-- TODO: reemplazar con título exacto de la maqueta -->
-                    Organiza eventos inteligentes con Homedir
-                </h1>
-                <p class="hd-hero-subtitle">
-                    <!-- TODO: reemplazar con texto exacto de la maqueta -->
-                    Una plataforma pensada para comunidades, conferencias y experiencias memorables.
-                </p>
-                <div class="hd-hero-actions">
-                    <a href="/ingresar" class="hd-btn hd-btn-primary">Ingresar</a>
-                    <a href="/#como-funciona" class="hd-btn hd-btn-secondary">Cómo funciona</a>
-                </div>
-                <div class="hd-hero-stats">
-                    <div class="hd-hero-stat">
-                        <span class="hd-hero-stat-label">Versión</span>
-                        <span class="hd-hero-stat-value">v{version}</span>
-                    </div>
-                    <div class="hd-hero-stat">
-                        <span class="hd-hero-stat-label">Próximos eventos</span>
-                        <span class="hd-hero-stat-value">{upcoming.size}</span>
-                    </div>
-                    <div class="hd-hero-stat">
-                        <span class="hd-hero-stat-label">Eventos finalizados</span>
-                        <span class="hd-hero-stat-value">{past.size}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="hd-hero-visual">
-                <div class="hd-hero-placeholder">
-                    <!-- TODO: espacio para imagen / ilustración del hero según maqueta -->
-                </div>
-                <div class="hd-hero-widget">
-                    <div class="hd-hero-widget-head">
-                        <p class="hd-hero-widget-label">Ahora en Homedir</p>
-                        <p class="hd-hero-widget-hint">Agenda en vivo</p>
-                    </div>
-                    {#include _now-box nowBox=nowBox /}
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="hd-visually-hidden" aria-hidden="true">
-        <h2>Eventos disponibles</h2>
-        <p>Hoy: {today.format('dd/MM/yyyy')}</p>
-        {#for e in upcoming}
-        <p>{e.title} · {e.countdownLabel}</p>
-        {/for}
-        <h2>Eventos pasados</h2>
-        {#for e in past}
-        <p>{e.title}</p>
-        {/for}
-    </section>
-
-    <section class="home-section surface hd-section-events" id="upcoming">
-        <div class="section-heading">
-            <p class="section-subtitle">Programación</p>
-            <h2 class="page-title">Eventos disponibles</h2>
-        </div>
-        {#if upcoming.isEmpty()}
-            <p class="section-subtitle no-events">No hay eventos próximos por ahora. Vuelve pronto 👀</p>
-        {#else}
-            <div class="timeline">
-                <div class="timeline-label">Hoy: {today.format('dd/MM/yyyy')}</div>
-                {#for e in upcoming}
-                <div class="timeline-item">
-                    <div class="timeline-marker"></div>
-                    <article class="event-row">
-                        <div class="event-logo">
-                            {#if app:validUrl(e.logoUrl)}
-                            <img src="{e.logoUrl}" alt="Logo de {e.title}">
-                            {#else}
-                            <div class="no-logo">Sin logo disponible</div>
-                            {/if}
-                        </div>
-                        <div class="event-main">
-                            <h3 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h3>
-                            <div class="event-tags">
-                                <span class="badge event-type {e.typeCss}">{e.typeLabel}</span>
-                                {#if e.isOngoing()}
-                                <span class="badge info">En curso</span>
-                                {/if}
-                            </div>
-                            {#if e.descriptionSummary}
-                            <p class="event-description">{e.descriptionSummary}</p>
-                            {/if}
-                            {#if app:validUrl(e.website) || app:validUrl(e.twitter) || app:validUrl(e.linkedin) || app:validUrl(e.instagram) || app:validEmail(e.contactEmail) || app:validUrl(e.ticketsUrl)}
-                            <div class="event-links">
-                                {#if app:validUrl(e.website)}<a href="{e.website}" target="_blank" rel="noopener" class="btn">🌐 Sitio Web</a>{/if}
-                                {#if app:validUrl(e.twitter)}<a href="{e.twitter}" target="_blank" rel="noopener" class="btn">🐦 Twitter</a>{/if}
-                                {#if app:validUrl(e.linkedin)}<a href="{e.linkedin}" target="_blank" rel="noopener" class="btn">💼 LinkedIn</a>{/if}
-                                {#if app:validUrl(e.instagram)}<a href="{e.instagram}" target="_blank" rel="noopener" class="btn">📸 Instagram</a>{/if}
-                                {#if app:validEmail(e.contactEmail)}<a href="mailto:{e.contactEmail}" target="_blank" rel="noopener" class="btn">📧 Email</a>{/if}
-                                {#if app:validUrl(e.ticketsUrl)}<a href="{e.ticketsUrl}" target="_blank" rel="noopener" class="btn">🎟️ Entradas</a>{/if}
-                            </div>
-                            {/if}
-                        </div>
-                        <div class="event-countdown">
-                            {#if e.formattedDate}
-                            <p class="event-date">{e.formattedDate}</p>
-                            {/if}
-                            <p class="days-left">{e.countdownLabel}</p>
-                        </div>
-                    </article>
-                </div>
-                {/for}
-            </div>
-        {/if}
-        </section>
-
-        <section class="home-section surface hd-section-events" id="past">
-            <div class="section-heading">
-                <p class="section-subtitle">Historial</p>
-                <h2 class="page-title">Eventos pasados</h2>
-            </div>
-            {#if past.isEmpty()}
-                <p class="section-subtitle no-events">Aún no tenemos eventos anteriores.</p>
-            {#else}
-                <div class="timeline past-events">
-                    {#for e in past}
-                    <div class="timeline-item past">
-                        <div class="timeline-marker"></div>
-                        <article class="event-row past">
-                            <div class="event-logo">
-                                {#if app:validUrl(e.logoUrl)}
-                                <img src="{e.logoUrl}" alt="Logo de {e.title}">
-                                {#else}
-                                <div class="no-logo">Sin logo disponible</div>
-                                {/if}
-                            </div>
-                            <div class="event-main">
-                                <h3 class="event-name"><a href="/event/{e.id}" title="Ver detalles del evento">{e.title}</a></h3>
-                                <div class="event-tags">
-                                    <span class="badge event-type {e.typeCss}">{e.typeLabel}</span>
-                                    <span class="badge past">Finalizado</span>
-                                </div>
-                                {#if e.descriptionSummary}
-                                <p class="event-description">{e.descriptionSummary}</p>
-                                {/if}
-                            </div>
-                            <div class="event-countdown">
-                                {#if e.formattedDate}
-                                <p class="event-date">{e.formattedDate}</p>
-                                {/if}
-                            </div>
-                        </article>
-                    </div>
-                    {/for}
-                </div>
-            {/if}
-        </section>
-
-    <section class="hd-section hd-section-about" id="que-es">
-        <div class="hd-page">
-            <h2 class="hd-section-title">
-                <!-- TODO: título desde maqueta -->
-                ¿Qué es Homedir?
-            </h2>
-            <p class="hd-section-intro">
-                <!-- TODO: texto desde maqueta -->
-                Homedir es una plataforma para gestionar eventos, espacios, actividades y comunidad en torno a tus experiencias.
-            </p>
-            <div class="hd-section-grid hd-about-grid">
-                <article class="hd-card">
-                    <h3 class="hd-card-title">Eventos completos</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Gestiona espacios, charlas, speakers y asistentes en un solo lugar.
-                    </p>
-                </article>
-                <article class="hd-card">
-                    <h3 class="hd-card-title">Pensado para comunidades</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Diseñado para comunidades técnicas, conferencias y meetups.
-                    </p>
-                </article>
-                <article class="hd-card">
-                    <h3 class="hd-card-title">En constante evolución</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Proyecto open-source impulsado por la comunidad de Open Source Santiago.
-                    </p>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <section class="hd-section hd-section-how" id="como-funciona">
-        <div class="hd-page">
-            <h2 class="hd-section-title">Cómo funciona Homedir</h2>
-            <div class="hd-steps">
-                <article class="hd-step">
-                    <span class="hd-step-number">01</span>
-                    <h3 class="hd-step-title">Crea tu evento</h3>
-                    <p class="hd-step-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Define espacios, escenarios y actividades desde la interfaz de administración.
-                    </p>
-                </article>
-                <article class="hd-step">
-                    <span class="hd-step-number">02</span>
-                    <h3 class="hd-step-title">Configura tu experiencia</h3>
-                    <p class="hd-step-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Ajusta horarios, tracks, speakers y flujos de asistentes.
-                    </p>
-                </article>
-                <article class="hd-step">
-                    <span class="hd-step-number">03</span>
-                    <h3 class="hd-step-title">Comparte con tu comunidad</h3>
-                    <p class="hd-step-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Publica la agenda y permite que tu comunidad explore las actividades.
-                    </p>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <section class="hd-section hd-section-for" id="para-quien-es">
-        <div class="hd-page">
-            <h2 class="hd-section-title">Pensado para organizadores y comunidades</h2>
-            <div class="hd-section-grid hd-for-grid">
-                <article class="hd-card">
-                    <h3 class="hd-card-title">Organizadores de conferencias</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Simplifica la creación de agendas complejas con múltiples escenarios y tracks.
-                    </p>
-                </article>
-                <article class="hd-card">
-                    <h3 class="hd-card-title">Meetups y comunidades</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Ofrece una experiencia clara a asistentes y speakers.
-                    </p>
-                </article>
-                <article class="hd-card">
-                    <h3 class="hd-card-title">Hackathons y workshops</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Coordina actividades, mentores y participantes sin perder el control.
-                    </p>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <section class="hd-section hd-section-community" id="comunidad">
-        <div class="hd-page">
-            <h2 class="hd-section-title">Comunidad y casos de uso</h2>
-            <p class="hd-section-intro">
-                <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                Homedir crece con aportes de la comunidad y casos de uso reales.
-            </p>
-            <div class="hd-community-grid">
-                <article class="hd-card">
-                    <h3 class="hd-card-title">Participa en la comunidad</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Únete a las conversaciones, comparte feedback y ayuda a priorizar nuevas funciones.
-                    </p>
-                    <div class="hd-links-list">
-                        <a class="hd-link" href="/comunidad">Directorio de comunidad</a>
-                        <a class="hd-link" href="/proyectos">Proyectos Homedir</a>
-                        <a class="hd-link" href="/eventos">Explorar eventos</a>
-                    </div>
-                </article>
-                <article class="hd-card">
-                    <h3 class="hd-card-title">Revisa avances del proyecto</h3>
-                    <p class="hd-card-text">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Sigue el roadmap, versiones y espacios donde puedes contribuir.
-                    </p>
-                    <div class="hd-links-list">
-                        <a class="hd-link" href="{links.releasesUrl}" target="_blank" rel="noopener">Releases</a>
-                        <a class="hd-link" href="{links.issuesUrl}" target="_blank" rel="noopener">Issues y feedback</a>
-                        <a class="hd-link" href="{links.donateUrl}" target="_blank" rel="noopener">Apoyar el proyecto</a>
-                    </div>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <section class="hd-section hd-section-cta-final" id="cta-final">
-        <div class="hd-page">
-            <div class="hd-cta-box">
-                <div class="hd-cta-copy">
-                    <h2 class="hd-section-title">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Lleva tu siguiente evento a Homedir
-                    </h2>
-                    <p class="hd-section-intro">
-                        <!-- TODO: reemplazar este texto con el contenido exacto de la maqueta Canva -->
-                        Comienza a crear tu agenda y comparte la experiencia con tu comunidad.
-                    </p>
-                </div>
-                <div class="hd-cta-actions">
-                    <a href="/ingresar" class="hd-btn hd-btn-primary">Ingresar</a>
-                    <a href="/eventos" class="hd-btn hd-btn-secondary">Ver eventos</a>
-                </div>
-            </div>
-        </div>
-    </section>
+<div class="floating-shapes">
+  <div class="shape shape-1">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle cx="60" cy="60" r="52" fill="url(#grad1)" opacity="0.12" />
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ff8bd1" />
+          <stop offset="100%" stop-color="#7bd7ff" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="shape shape-2">
+    <svg viewBox="0 0 160 160" aria-hidden="true">
+      <rect x="18" y="18" width="124" height="124" rx="28" ry="28" fill="#7bd7ff" opacity="0.1" />
+      <rect x="36" y="36" width="88" height="88" rx="22" ry="22" fill="#ff8bd1" opacity="0.16" />
+    </svg>
+  </div>
+  <div class="shape shape-3">
+    <svg viewBox="0 0 140 140" aria-hidden="true">
+      <polygon points="70,8 130,52 106,132 34,132 10,52" fill="#caffbf" opacity="0.12" />
+      <circle cx="70" cy="78" r="24" fill="#7bd7ff" opacity="0.18" />
+    </svg>
+  </div>
+  <div class="shape shape-4">
+    <svg viewBox="0 0 140 140" aria-hidden="true">
+      <path
+        d="M20,40 C30,12 110,6 120,40 C128,70 112,118 72,126 C40,132 12,94 20,40 Z"
+        fill="#ff8bd1"
+        opacity="0.1" />
+      <path d="M44,54 C46,32 96,30 96,56 C96,82 64,78 64,100" stroke="#7bd7ff" stroke-width="6" opacity="0.22" />
+    </svg>
+  </div>
 </div>
+
+<nav class="top-nav">
+  <div class="inner">
+    <div class="logo">
+      <div class="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" role="img" aria-label="HomeDir logo">
+          <rect x="6" y="6" width="52" height="52" rx="12" fill="#0d071b" stroke="#ff8bd1" stroke-width="3" />
+          <path d="M20 44 L20 22 L32 14 L44 22 L44 44" fill="none" stroke="#7bd7ff" stroke-width="3" />
+          <rect x="28" y="32" width="8" height="12" fill="#ff8bd1" />
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span id="navPlatformName">HomeDir</span>
+        <span class="logo-subtitle" id="navTagline">by OpenSourceSantiago</span>
+      </div>
+    </div>
+    <div class="links">
+      <a href="#communityCard">Community</a>
+      <a href="#eventsSection">Events</a>
+      <a href="#projectsSection">Projects</a>
+    </div>
+    <div class="nav-actions">
+      <!-- TODO: integrar estado real de login Qute con esta nav -->
+      <button class="login-btn-nav" id="openLoginBtn">Login</button>
+      <div class="user-menu" id="userMenuNav">
+        <div class="user-avatar" aria-hidden="true">HD</div>
+        <div class="user-dropdown">
+          <div class="user-name">Logged in</div>
+          <div class="user-actions">
+            <a href="/profile" class="btn">Profile</a>
+            <a href="/logout" class="btn">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="app-container">
+  <div class="public-content">
+    <header class="public-header">
+      <div class="content">
+        <h1 id="mainTitle">HomeDir</h1>
+        <p class="tagline" id="mainTagline">
+          by OpenSourceSantiago - The community platform to scale your teams and projects
+        </p>
+        <div class="meta">
+          <span>Open-source community</span>
+          <span>Pixel-art inspired UI</span>
+          <span>Community-first workflow</span>
+        </div>
+        <div class="actions">
+          <button class="pixel-button">Launch Campus</button>
+          <a class="cta" href="/docs">Explore Docs</a>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="label">Version</span>
+          <span class="value">{version}</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Upcoming events</span>
+          <span class="value">{upcoming.size ?: 0}</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Past events</span>
+          <span class="value">{past.size ?: 0}</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Updated</span>
+          <span class="value">{stats.get('lastUpdated')}</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-sections">
+      <article class="section-card" id="communityCard">
+        <div>
+          <p class="eyebrow">Community</p>
+          <h2 id="communityTitle">Community Campus</h2>
+          <p id="communityDescription">
+            Dive into the HomeDir community campus to connect, build and level up your events together.
+          </p>
+          <div class="meta">
+            <span class="badge">Live beta</span>
+            <span class="activity-text">{upcoming.size ?: 0} events this month</span>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="openCommunity">Enter campus</button>
+            <button class="btn" id="viewRoadmap">View roadmap</button>
+          </div>
+        </div>
+        <div class="visual">
+          <div class="badge">Pixel social hub</div>
+          <p class="detail">Backed by arcades, squads, and open collaboration.</p>
+        </div>
+      </article>
+
+      <article class="section-card" id="eventsSection">
+        <div>
+          <p class="eyebrow">Events</p>
+          <h2 id="eventsTitle">Events & Experiences</h2>
+          <p>
+            Keep track of meetups, conferences, and workshops with our adaptive agenda for teams and communities.
+          </p>
+          <div class="meta">
+            <span class="activity-text">{upcoming.size ?: 0} events coming up</span>
+            <span class="activity-text">{past.size ?: 0} archived</span>
+          </div>
+          <div class="actions">
+            <a href="/event" class="btn primary">View events</a>
+            <a href="/ingresar" class="btn">Create new</a>
+          </div>
+        </div>
+        <div class="visual">
+          <div class="badge">Real-time schedule</div>
+          <p class="detail">Follow sessions, speakers, and live talks.</p>
+        </div>
+      </article>
+
+      <article class="section-card" id="projectsSection">
+        <div>
+          <p class="eyebrow">Projects</p>
+          <h2 id="projectsTitle">Open Projects</h2>
+          <p>
+            Collaborate on open-source initiatives, find squads to join, and boost your builder profile with HomeDir.
+          </p>
+          <div class="meta">
+            <span class="activity-text">Fresh collaborations weekly</span>
+            <span class="activity-text">New squads forming</span>
+          </div>
+          <div class="actions">
+            <a href="/projects" class="btn primary">Browse projects</a>
+            <a href="/docs" class="btn">Contribute guide</a>
+          </div>
+        </div>
+        <div class="visual">
+          <div class="badge">Missions</div>
+          <p class="detail">Stack buffs, complete missions, and unlock perks.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+
+  <div class="community-view" id="communityView" style="display: none;">
+    <div class="community-header">
+      <button class="back-button" id="backButton">⬅ Back to overview</button>
+      <div class="view-meta">
+        <span class="badge">Community campus</span>
+        <span class="activity-text">Live rooms and quests</span>
+      </div>
+    </div>
+    <div class="village-container">
+      <div class="village-landscape">
+        <div class="village-sky"></div>
+        <div class="village-ground"></div>
+        <div class="village-buildings">
+          <div class="building hall">Hall</div>
+          <div class="building lab">Builder Lab</div>
+          <div class="building arcade">Arcade</div>
+        </div>
+      </div>
+      <aside class="community-stats">
+        <h3>Community stats</h3>
+        <ul class="list">
+          <li class="item">Connected squads</li>
+          <li class="item">Live workshops</li>
+          <li class="item">Mentor hours</li>
+          <li class="item">Daily quests</li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<footer class="character-sheet">
+  <div class="novice-warning">New to HomeDir? Start your character sheet and unlock perks.</div>
+  <div class="avatar">
+    <img src="/images/default-avatar.png" alt="Player avatar" />
+    <div>
+      <p class="label">Player</p>
+      <p class="value">Community Builder</p>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat">
+      <p class="label">XP</p>
+      <p class="value">1200</p>
+    </div>
+    <div class="stat">
+      <p class="label">Allies</p>
+      <p class="value">24</p>
+    </div>
+    <div class="stat">
+      <p class="label">Quests</p>
+      <p class="value">8 active</p>
+    </div>
+    <div class="stat">
+      <p class="label">Artifacts</p>
+      <p class="value">5</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="pixel-button">Edit sheet</button>
+    <button class="pixel-button">Save loadout</button>
+  </div>
+</footer>
+
+<div class="login-modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="modal-content">
+    <button class="close-modal" id="closeLoginBtn" aria-label="Close login modal">×</button>
+    <h2 id="loginTitle">Login to HomeDir</h2>
+    <p class="modal-subtitle">Jump back into your community quests.</p>
+    <div class="input-group">
+      <label for="emailInput">Email</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" />
+    </div>
+    <div class="input-group">
+      <label for="passwordInput">Password</label>
+      <input type="password" id="passwordInput" placeholder="••••••••" />
+    </div>
+    <div class="modal-actions">
+      <button class="pixel-button" id="loginSubmit">Login</button>
+      <button class="btn" id="forgotPassword">Forgot password?</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 {/body}
-{/include}
