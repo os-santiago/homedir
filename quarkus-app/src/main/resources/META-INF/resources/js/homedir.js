@@ -278,6 +278,8 @@ async function handleLogin(provider) {
   closeLoginModal();
   updateNavigation();
   updateCharacterSheet();
+  updateCommunityStats(allUsers);
+  updateProfileDisplay();
   showToast(`Welcome, ${randomName}! 🎉 Your character has been created!`);
 
   btn.classList.remove('loading');
@@ -288,6 +290,8 @@ function handleLogout() {
   currentUser = null;
   updateNavigation();
   updateCharacterSheet();
+  updateCommunityStats(allUsers);
+  updateProfileDisplay();
   showToast('Logged out successfully - Character data saved!');
 }
 
@@ -446,6 +450,8 @@ async function fetchCurrentUserProfile() {
 
     updateNavigation();
     updateCharacterSheet();
+    updateCommunityStats(allUsers);
+    updateProfileDisplay();
   } catch (e) {
     console.error('Error loading current user profile', e);
   }
@@ -506,6 +512,9 @@ function updateProfileDisplay() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  allUsers = generateDemoInhabitants();
+  updateCommunityStats(allUsers);
+
   const openLoginBtn = document.getElementById('openLoginBtn');
   if (openLoginBtn) openLoginBtn.addEventListener('click', openLoginModal);
 
@@ -528,7 +537,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoutCharacterBtn) logoutCharacterBtn.addEventListener('click', handleLogout);
 
   const communityCard = document.getElementById('communityCard');
-  if (communityCard) communityCard.addEventListener('click', showCommunityView);
+  if (communityCard) {
+    communityCard.addEventListener('click', (event) => {
+      if (event.target.closest('a') || event.target.closest('button')) {
+        return;
+      }
+      showCommunityView();
+    });
+  }
+
+  const openCommunityButton = document.getElementById('openCommunity');
+  if (openCommunityButton) {
+    openCommunityButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showCommunityView();
+    });
+  }
 
   const backButton = document.getElementById('backButton');
   if (backButton) backButton.addEventListener('click', hideCommunityView);
@@ -542,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  updateNavigation();
   updateCharacterSheet();
   onConfigChange(defaultConfig);
   fetchCurrentUserProfile();

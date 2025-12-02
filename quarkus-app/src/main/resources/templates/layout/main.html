@@ -1,36 +1,38 @@
 <!DOCTYPE html>
 {@ boolean noNav = false}
 {@ boolean noFooter = false}
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Homedir es una plataforma open-source para organizar eventos, espacios y experiencias de comunidad." />
-  <!-- TODO: ajustar texto según maqueta y mensaje final -->
-  <title>{#insert title}Homedir{/}</title>
-  <link rel="icon" href="/favicon.ico" />
-  <!-- TODO: reemplazar por íconos alineados a la marca Homedir -->
-  <link rel="stylesheet" href="/styles.css" />
-  <link rel="stylesheet" href="/css/homedir.css" />
-  <link rel="stylesheet" href="/css/notifications.css" />
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{#insert title}HomeDir - Community Platform{/}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime&display=swap" rel="stylesheet">
+
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/css/homedir.css" />
+    <link rel="stylesheet" href="/css/notifications.css" />
 </head>
 <body class="hd-body">
-  <a class="hd-skip-link" href="#main-content">Saltar al contenido principal</a>
-  {#if noNav != true}
-    {#include fragments/nav.html/}
-  {/if}
-  <main id="main-content" class="hd-main" role="main">
-    {#insert body}
-    {/}
-  </main>
-  {#if noFooter != true}
-    {#include fragments/footer.html/}
-  {/if}
-  <script>window.__EF_AUTH__ = { isAuth: {app:isAuthenticated()} };</script>
-  <script src="/js/app.js" defer></script>
-  <script src="/js/notifications-adapter.js" defer></script>
-  <script src="/js/notifications.js" defer></script>
-  <script src="/js/global-notifications-ws.js" defer></script>
+    {#if noNav != true}
+        {#include fragments/nav.html/}
+    {/if}
+    <main id="main-content" class="hd-main" role="main">
+        {#insert body}
+        {/}
+    </main>
+    {#if noFooter != true}
+        {#include fragments/footer.html/}
+    {/if}
+
+    <script src="/js/homedir.js"></script>
+    <script>window.__EF_AUTH__ = { isAuth: {app:isAuthenticated()} };</script>
+    <script src="/js/app.js" defer></script>
+    <script src="/js/notifications-adapter.js" defer></script>
+    <script src="/js/notifications.js" defer></script>
+    <script src="/js/global-notifications-ws.js" defer></script>
 </body>
 </html>
