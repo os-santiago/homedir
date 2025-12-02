@@ -4,6 +4,7 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.EventService;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.InstanceHandle;
 import io.quarkus.qute.TemplateExtension;
 import io.quarkus.security.identity.SecurityIdentity;
 import java.net.URI;
@@ -36,18 +37,17 @@ public class AppTemplateExtensions {
   }
 
   public static boolean isAuthenticated() {
-    SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
+    SecurityIdentity identity = resolveIdentity();
     return identity != null && !identity.isAnonymous();
   }
 
   public static boolean isAdmin() {
-    SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
-    return AdminUtils.isAdmin(identity);
+    return AdminUtils.isAdmin(resolveIdentity());
   }
 
   /** Returns the display name of the authenticated user or {@code null}. */
   public static String userName() {
-    SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
+    SecurityIdentity identity = resolveIdentity();
     if (identity == null || identity.isAnonymous()) {
       return null;
     }
@@ -60,7 +60,7 @@ public class AppTemplateExtensions {
 
   /** Returns the avatar URL of the authenticated user if available. */
   public static String userAvatar() {
-    SecurityIdentity identity = Arc.container().instance(SecurityIdentity.class).get();
+    SecurityIdentity identity = resolveIdentity();
     if (identity == null || identity.isAnonymous()) {
       return null;
     }
@@ -202,7 +202,7 @@ public class AppTemplateExtensions {
 
   /** Returns the event id that contains the given talk. */
   public static String eventIdByTalk(String talkId) {
-    EventService es = Arc.container().instance(EventService.class).get();
+    EventService es = resolveEventService();
     if (es == null || talkId == null) {
       return null;
     }
@@ -212,11 +212,35 @@ public class AppTemplateExtensions {
 
   /** Returns the event id that contains the given scenario. */
   public static String eventIdByScenario(String scenarioId) {
-    EventService es = Arc.container().instance(EventService.class).get();
+    EventService es = resolveEventService();
     if (es == null || scenarioId == null) {
       return null;
     }
     Event ev = es.findEventByScenario(scenarioId);
     return ev != null ? ev.getId() : null;
+  }
+
+  private static SecurityIdentity resolveIdentity() {
+    return getBean(SecurityIdentity.class);
+  }
+
+  private static EventService resolveEventService() {
+    return getBean(EventService.class);
+  }
+
+  private static <T> T getBean(Class<T> type) {
+    try {
+      var container = Arc.container();
+      if (container == null) {
+        return null;
+      }
+      InstanceHandle<T> handle = container.instance(type);
+      if (handle == null || !handle.isAvailable()) {
+        return null;
+      }
+      return handle.get();
+    } catch (IllegalStateException e) {
+      return null;
+    }
   }
 }
