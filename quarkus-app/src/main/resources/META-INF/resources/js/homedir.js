@@ -392,6 +392,32 @@ function updateCommunityStats(inhabitants) {
   if (totalProjectsEl) totalProjectsEl.textContent = totalProjects;
 }
 
+// Fuente de verdad para las estadísticas mostradas en la landing.
+// En el futuro debe alinearse con los datos reales de Homedir.
+async function fetchLandingStats() {
+  try {
+    const response = await fetch('/api/landing/stats');
+    if (!response.ok) {
+      console.error('Failed to fetch landing stats', response.status);
+      return;
+    }
+
+    const stats = await response.json();
+
+    const membersEl = document.getElementById('totalMembers');
+    const xpEl = document.getElementById('totalXP');
+    const questsEl = document.getElementById('totalQuests');
+    const projectsEl = document.getElementById('totalProjects');
+
+    if (membersEl) membersEl.textContent = stats.totalMembers ?? 0;
+    if (xpEl) xpEl.textContent = (stats.totalXP ?? 0).toLocaleString();
+    if (questsEl) questsEl.textContent = stats.totalQuests ?? 0;
+    if (projectsEl) projectsEl.textContent = stats.totalProjects ?? 0;
+  } catch (e) {
+    console.error('Error loading landing stats', e);
+  }
+}
+
 function showCommunityView() {
   const publicContent = document.getElementById('publicContent') || document.querySelector('.public-content');
   const communityView = document.getElementById('communityView');
@@ -459,4 +485,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateCharacterSheet();
   onConfigChange(defaultConfig);
+  fetchLandingStats();
 });
