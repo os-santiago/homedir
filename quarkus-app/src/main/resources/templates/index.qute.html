@@ -98,28 +98,36 @@
             <div class="stat-item">
               <div class="stat-icon">👥</div>
               <div class="stat-info">
-                <div class="stat-value" id="totalMembers">0</div>
+                <div class="stat-value" id="totalMembers">
+                  {vm.community.totalMembers ?: 0}
+                </div>
                 <div class="stat-label">Members online</div>
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">⭐</div>
               <div class="stat-info">
-                <div class="stat-value" id="totalXP">0</div>
+                <div class="stat-value" id="totalXP">
+                  {vm.community.totalXp ?: 0}
+                </div>
                 <div class="stat-label">Total XP</div>
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">🏆</div>
               <div class="stat-info">
-                <div class="stat-value" id="totalQuests">0</div>
+                <div class="stat-value" id="totalQuests">
+                  {vm.community.totalQuests ?: 0}
+                </div>
                 <div class="stat-label">Quests Completed</div>
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">🚀</div>
               <div class="stat-info">
-                <div class="stat-value" id="totalProjects">0</div>
+                <div class="stat-value" id="totalProjects">
+                  {vm.community.totalProjects ?: 0}
+                </div>
                 <div class="stat-label">Active Projects</div>
               </div>
             </div>

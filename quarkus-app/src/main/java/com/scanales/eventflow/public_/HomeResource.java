@@ -1,7 +1,9 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.public_.landing.LandingService;
+import com.scanales.eventflow.public_.landing.LandingViewModel;
 import com.scanales.eventflow.service.UsageMetricsService;
-import io.quarkus.qute.CheckedTemplate;
+import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.security.PermitAll;
@@ -19,10 +21,9 @@ public class HomeResource {
 
   @Inject UsageMetricsService metrics;
 
-  @CheckedTemplate(basePath = "")
-  static class Templates {
-    static native TemplateInstance index();
-  }
+  @Inject Template index;
+
+  @Inject LandingService landingService;
 
   @GET
   @PermitAll
@@ -31,7 +32,11 @@ public class HomeResource {
       @jakarta.ws.rs.core.Context HttpHeaders headers,
       @jakarta.ws.rs.core.Context RoutingContext context) {
     metrics.recordPageView("/", headers, context);
-    return Templates.index();
+    LandingViewModel viewModel = landingService.buildViewModel();
+    return index
+        .data("vm", viewModel)
+        .data("loginUrl", "/ingresar")
+        .data("logoutUrl", "/logout");
   }
 
   @GET
