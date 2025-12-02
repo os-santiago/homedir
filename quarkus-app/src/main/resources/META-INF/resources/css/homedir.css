@@ -34,7 +34,7 @@ body,
     radial-gradient(circle at 80% 0%, rgba(123, 215, 255, 0.12), transparent 30%),
     linear-gradient(135deg, var(--hd-bg-start), var(--hd-bg-end));
   color: var(--hd-text);
-  font-family: 'Courier Prime', system-ui, -apple-system, sans-serif;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
   min-height: 100vh;
   letter-spacing: 0.01em;
   line-height: 1.6;
@@ -154,7 +154,7 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-family: 'Press Start 2P', 'Courier Prime', monospace;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
   letter-spacing: 0.05em;
 }
 
@@ -283,7 +283,7 @@ textarea:focus-visible {
 .public-header h1 {
   margin: 0 0 16px;
   font-size: clamp(22px, 3vw, 30px);
-  font-family: 'Press Start 2P', 'Courier Prime', monospace;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
   letter-spacing: 0.04em;
 }
 
@@ -369,7 +369,7 @@ textarea:focus-visible {
 .stat-card .value {
   font-size: 16px;
   color: #fff;
-  font-family: 'Press Start 2P', 'Courier Prime', monospace;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
 }
 
 .main-sections {
@@ -664,7 +664,7 @@ textarea:focus-visible {
 
 .character-title h3 {
   margin: 0;
-  font-family: 'Press Start 2P', 'Courier Prime', monospace;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
 }
 
 .character-class {
