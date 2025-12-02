@@ -134,18 +134,22 @@ function closeLoginModal() {
 function updateNavigation() {
   const loginBtn = document.getElementById('openLoginBtn');
   const userMenu = document.getElementById('userMenuNav');
-  const navAvatar = document.getElementById('navAvatar');
-  const navUserName = document.getElementById('navUserName');
+  const avatarEl = document.getElementById('navAvatar');
+  const nameEl = document.getElementById('navUserName');
+
+  if (!loginBtn || !userMenu) {
+    return;
+  }
 
   if (currentUser) {
-    const emoji = currentUser.display_name?.charAt(0) || 'H';
-    if (loginBtn) loginBtn.style.display = 'none';
-    if (userMenu) userMenu.classList.add('active');
-    if (navAvatar) navAvatar.textContent = emoji;
-    if (navUserName) navUserName.textContent = currentUser.display_name;
+    const emoji = currentUser.display_name ? currentUser.display_name.charAt(0) : '👤';
+    loginBtn.style.display = 'none';
+    userMenu.classList.add('active');
+    if (avatarEl) avatarEl.textContent = emoji;
+    if (nameEl) nameEl.textContent = currentUser.display_name || 'Player';
   } else {
-    if (loginBtn) loginBtn.style.display = 'block';
-    if (userMenu) userMenu.classList.remove('active');
+    loginBtn.style.display = 'block';
+    userMenu.classList.remove('active');
   }
 }
 
@@ -392,6 +396,61 @@ function updateCommunityStats(inhabitants) {
   if (totalProjectsEl) totalProjectsEl.textContent = totalProjects;
 }
 
+async function fetchCurrentUserProfile() {
+  try {
+    const response = await fetch('/api/me', {
+      headers: {
+        Accept: 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch current user profile', response.status);
+      return;
+    }
+
+    const profile = await response.json();
+    if (!profile) {
+      return;
+    }
+
+    if (!profile.authenticated) {
+      // Usuario anónimo: mantenemos el modo NOVICE GUEST
+      currentUser = null;
+      updateNavigation();
+      updateCharacterSheet();
+      return;
+    }
+
+    // TODO: cuando Homedir tenga un perfil de usuario completo,
+    // alinear estos campos con el modelo real.
+    currentUser = {
+      user_id: profile.userId || profile.displayName || 'me',
+      display_name: profile.displayName || 'Player',
+      avatar_url: profile.avatarUrl || '',
+      level: profile.level ?? 1,
+      experience: profile.experience ?? 0,
+      contributions: profile.contributions ?? 0,
+      quests_completed: profile.questsCompleted ?? 0,
+      events_attended: profile.eventsAttended ?? 0,
+      projects_hosted: profile.projectsHosted ?? 0,
+      connections: profile.connections ?? 0
+    };
+
+    const existingIndex = allUsers.findIndex((u) => u.user_id === currentUser.user_id);
+    if (existingIndex === -1) {
+      allUsers.push(currentUser);
+    } else {
+      allUsers[existingIndex] = currentUser;
+    }
+
+    updateNavigation();
+    updateCharacterSheet();
+  } catch (e) {
+    console.error('Error loading current user profile', e);
+  }
+}
+
 // Fuente de verdad para las estadísticas mostradas en la landing.
 // En el futuro debe alinearse con los datos reales de Homedir.
 async function fetchLandingStats() {
@@ -485,5 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateCharacterSheet();
   onConfigChange(defaultConfig);
-  fetchLandingStats();
+  fetchCurrentUserProfile();
+  fetchLandingStats && fetchLandingStats();
 });
