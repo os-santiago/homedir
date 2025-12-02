@@ -84,7 +84,7 @@ jobs:
           chown -R 1001:1001 "${DATA_DIR}" || true
           podman pull "$IMAGE"
           # Stop any container currently bound to the target port to avoid EADDRINUSE
-          for c in $(podman ps -a --format '{{.Names}} {{.Ports}}' | awk "/${APP_PORT:-8080}/ {print \$1}"); do
+          for c in $(podman ps -a --format '{{.Names}} {{.Ports}}' | awk -v port="$APP_PORT" '$2 ~ port {print $1}'); do
             podman stop "$c" || true
             podman rm -f "$c" || true
           done
@@ -93,18 +93,19 @@ jobs:
             fuser -k "${APP_PORT}/tcp" || true
           fi
           if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
+            podman stop "${CONTAINER_NAME}" || true
             podman rm -f "${CONTAINER_NAME}" || true
           fi
-          podman run -d --name "${CONTAINER_NAME}" --restart=always \
-            -p "\${APP_PORT}:8080" \
+          podman run -d --name "${CONTAINER_NAME}" --replace --restart=always \
+            -p "${APP_PORT}:8080" \
             -e eventflow.data.dir=/work/data \
             -e OIDC_CLIENT_ID="${OIDC_CLIENT_ID}" \
             -e OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET}" \
             -e GH_CLIENT_ID="${GH_CLIENT_ID}" \
-          -e GH_CLIENT_SECRET="${GH_CLIENT_SECRET}" \
+            -e GH_CLIENT_SECRET="${GH_CLIENT_SECRET}" \
             -e SESSION_KEY="${SESSION_KEY}" \
             -e NOTIFICATIONS_USER_HASH_SALT="${NOTIFICATIONS_USER_HASH_SALT}" \
             -e GH_TOKEN="${GH_TOKEN}" \
-            -v "\${DATA_DIR}:/work/data:Z" \
+            -v "${DATA_DIR}:/work/data:Z" \
             "$IMAGE"
           EOF
