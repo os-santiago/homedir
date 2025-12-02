@@ -183,6 +183,22 @@ textarea:focus-visible {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.nav-link {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-right: 1rem;
+  text-decoration: none;
+  color: #ffffff;
+  opacity: 0.9;
+  font-family: 'Courier New', monospace;
+}
+
+.nav-link:hover {
+  opacity: 1;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
 .top-nav .nav-actions {
   display: flex;
   align-items: center;

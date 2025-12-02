@@ -537,12 +537,38 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoutCharacterBtn) logoutCharacterBtn.addEventListener('click', handleLogout);
 
   const communityCard = document.getElementById('communityCard');
+  const eventsCard = document.getElementById('eventsCard');
+  const projectsCard = document.getElementById('projectsCard');
+
   if (communityCard) {
     communityCard.addEventListener('click', (event) => {
       if (event.target.closest('a') || event.target.closest('button')) {
         return;
       }
+      event.preventDefault();
       showCommunityView();
+      // TODO: si en el futuro existe una sección /community completa,
+      // evaluar si esta card debe navegar ahí en vez de usar solo showCommunityView().
+    });
+  }
+
+  if (eventsCard) {
+    eventsCard.addEventListener('click', (event) => {
+      if (event.target.closest('a') || event.target.closest('button')) {
+        return;
+      }
+      event.preventDefault();
+      window.location.href = '/eventos';
+    });
+  }
+
+  if (projectsCard) {
+    projectsCard.addEventListener('click', (event) => {
+      if (event.target.closest('a') || event.target.closest('button')) {
+        return;
+      }
+      event.preventDefault();
+      window.location.href = '/proyectos';
     });
   }
 
