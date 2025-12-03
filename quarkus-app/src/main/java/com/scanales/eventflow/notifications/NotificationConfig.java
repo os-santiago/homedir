@@ -110,27 +110,29 @@ public class NotificationConfig {
     }
 
     if (configured == null || configured.isEmpty() || "changeme".equalsIgnoreCase(configured)) {
+      String generated = generateRandomSalt();
       if (devProfile) {
-        String generated = generateRandomSalt();
         LOG.warn(
             "notifications.user-hash.salt is not set or insecure; generating a random dev/test salt");
-        return generated;
+      } else {
+        LOG.warn(
+            "notifications.user-hash.salt is not set; generating a random salt for this deployment (set a strong secret for stability)");
       }
-      throw new IllegalStateException(
-          "notifications.user-hash.salt must be set to a strong secret (min 16 chars)");
+      return generated;
     }
 
     if (configured.length() < MIN_SALT_LENGTH) {
+      String generated = generateRandomSalt();
       if (devProfile) {
         LOG.warnf(
-            "notifications.user-hash.salt length is weak (%d). Use at least %d chars in dev/test.",
-            configured.length(), MIN_SALT_LENGTH);
+            "notifications.user-hash.salt length is weak (%d). Using generated salt for dev/test.",
+            configured.length());
       } else {
-        throw new IllegalStateException(
-            String.format(
-                "notifications.user-hash.salt too short (%d). Use at least %d characters.",
-                configured.length(), MIN_SALT_LENGTH));
+        LOG.warnf(
+            "notifications.user-hash.salt too short (%d). Using generated salt; set a longer value for production.",
+            configured.length());
       }
+      return generated;
     }
     return configured;
   }
