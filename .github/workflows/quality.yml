@@ -5,10 +5,14 @@ on:
     branches: ["main"]
     paths:
       - 'quarkus-app/**'
+  workflow_dispatch:
 
 jobs:
   quality:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: read
       pull-requests: write
@@ -18,46 +22,36 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - name: Format
-        id: format
-        run: mvn -q -f quarkus-app/pom.xml spotless:check
+          cache: maven
+
+      - name: Spotless format check
+        id: spotless
+        working-directory: quarkus-app
+        run: ./mvnw --batch-mode spotless:check
         continue-on-error: true
-      - name: Dependencies
-        id: deps
-        run: mvn -q -f quarkus-app/pom.xml enforcer:enforce
+
+      - name: Dependency/enforcer check
+        id: enforcer
+        working-directory: quarkus-app
+        run: ./mvnw --batch-mode enforcer:enforce -DskipTests
         continue-on-error: true
-      - name: Commit message
-        id: commits
+
+      - name: Commit lint (informativo)
+        id: commitlint
+        if: github.event_name == 'pull_request'
         uses: wagoid/commitlint-github-action@v6
         continue-on-error: true
+
       - name: Summary
         if: always()
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const format='${{ steps.format.outcome }}';
-            const deps='${{ steps.deps.outcome }}';
-            const commits='${{ steps.commits.outcome }}';
-            const fmtMsg = format === 'success'
-              ? 'pass'
-              : 'fail - run `mvn -f quarkus-app/pom.xml spotless:apply`';
-            const depMsg = deps === 'success'
-              ? 'pass'
-              : 'fail - run `mvn -f quarkus-app/pom.xml enforcer:enforce`';
-            const commitMsg = commits === 'success'
-              ? 'pass'
-              : 'fail - use Conventional Commits (e.g., `chore: update deps`)';
-
-            const body = `### Quality checks\n- Format: ${fmtMsg}\n- Dependencies: ${depMsg}\n- Commits: ${commitMsg}\n`;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body
-            });
-      - name: Fail if checks failed
-        if: steps.deps.outcome == 'failure' || steps.commits.outcome == 'failure'
         run: |
-          echo 'One or more quality checks failed. See the summary comment above.'
+          echo "## Quality Gate" >> $GITHUB_STEP_SUMMARY
+          echo "- Spotless:   ${{ steps.spotless.outcome || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Enforcer:   ${{ steps.enforcer.outcome || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commitlint: ${{ steps.commitlint.outcome || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any check failed
+        if: steps.spotless.outcome == 'failure' || steps.enforcer.outcome == 'failure'
+        run: |
+          echo "Quality Gate failed; see summary for details."
           exit 1

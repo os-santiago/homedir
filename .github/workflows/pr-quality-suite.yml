@@ -1,4 +1,4 @@
-name: PR Quality — Suite
+name: PR Quality - Suite
 
 on:
   pull_request:
@@ -33,8 +33,8 @@ jobs:
   style:
     name: style
     runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.report.outputs.result }}
+    needs: paths
+    if: needs.paths.outputs.app_changed == 'true'
     steps:
       - uses: actions/checkout@v5
       - name: Validate submodule clean
@@ -52,7 +52,7 @@ jobs:
       - name: Enforce clean working tree after format
         run: |
           if ! git diff --quiet; then
-            echo "❌ Hay cambios de formato pendientes. Ejecuta './mvnw -pl quarkus-app spotless:apply' y súbelos." >&2
+            echo "? Hay cambios de formato pendientes. Ejecuta './mvnw -pl quarkus-app spotless:apply' y subelos." >&2
             git diff
             exit 1
           fi
@@ -81,23 +81,24 @@ jobs:
   deps:
     name: deps
     needs: paths
+    if: needs.paths.outputs.deps_changed == 'true'
     uses: ./.github/workflows/pr-deps-hygiene.yml
     secrets: inherit
 
   summary:
     name: summary
-    needs: [style, static, arch, tests_cov, deps]
+    needs: [paths, style, static, arch, tests_cov, deps]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Quality Suite Summary
         run: |
-          echo "## PR Quality — Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## PR Quality - Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Style:       ${{ needs.style.outputs.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Style:       ${{ needs.style.result || (needs.paths.outputs.app_changed == 'true' && 'skipped' || 'not-applicable') }}" >> $GITHUB_STEP_SUMMARY
           echo "- Static:      ${{ needs.static.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
           echo "- Arch:        ${{ needs.arch.result   || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
           echo "- Tests/Cover: ${{ needs.tests_cov.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Deps:        ${{ needs.deps.result   || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Deps:        ${{ needs.deps.result   || (needs.paths.outputs.deps_changed == 'true' && 'skipped' || 'not-applicable') }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "_Los reportes detallados están adjuntos como artifacts de cada job._" >> $GITHUB_STEP_SUMMARY
+          echo "_Los reportes detallados estan adjuntos como artifacts de cada job._" >> $GITHUB_STEP_SUMMARY
