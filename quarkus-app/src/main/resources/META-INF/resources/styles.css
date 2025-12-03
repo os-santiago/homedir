@@ -2525,6 +2525,230 @@ footer {
     flex-wrap: wrap;
 }
 
+/* Comunidad */
+.hd-main {
+    width: 100%;
+}
+
+.hd-page--community {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.hd-section--hero {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(34, 211, 238, 0.16));
+}
+
+.hd-section--alt {
+    background: rgba(15, 23, 42, 0.5);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.hd-container {
+    width: 100%;
+    max-width: 1120px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 3vw, 1.75rem);
+}
+
+.hd-grid {
+    display: grid;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.hd-grid--2cols {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.hd-grid--3cols {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.hd-grid--4cols {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.hd-grid--stats {
+    align-items: stretch;
+}
+
+.hd-grid--cards {
+    align-items: start;
+}
+
+.hd-hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.hd-eyebrow {
+    margin: 0;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+}
+
+.hd-hero-panel {
+    height: 100%;
+}
+
+.hd-hero-panel--pixel {
+    background: linear-gradient(145deg, rgba(37, 99, 235, 0.2), rgba(15, 23, 42, 0.75));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: clamp(1rem, 2vw, 1.5rem);
+    box-shadow: var(--shadow-md);
+}
+
+.hd-character-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: clamp(1rem, 2vw, 1.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.hd-character-title {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.hd-character-username {
+    margin: 0;
+    color: var(--color-muted);
+}
+
+.hd-character-username span {
+    color: var(--color-light);
+}
+
+.hd-character-stats {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: var(--color-light);
+}
+
+.hd-character-stats span:first-child {
+    color: var(--color-muted);
+}
+
+.hd-btn--full {
+    width: 100%;
+}
+
+.hd-section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+}
+
+.hd-section-subtitle {
+    margin: 0;
+    color: var(--color-muted);
+}
+
+.hd-stat-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.hd-stat-label {
+    margin: 0 0 0.5rem 0;
+    color: var(--color-muted);
+}
+
+.hd-stat-value {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-light);
+}
+
+.hd-card--contributor {
+    gap: 0.75rem;
+}
+
+.hd-card-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--color-light);
+}
+
+.hd-card-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.hd-card-list span:first-child {
+    color: var(--color-muted);
+}
+
+.hd-list--activity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.hd-activity-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.hd-activity-main {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.hd-activity-user {
+    color: var(--color-light);
+    font-weight: 700;
+}
+
+.hd-activity-action {
+    color: var(--color-muted);
+}
+
+.hd-activity-repo {
+    color: var(--color-accent);
+}
+
+.hd-activity-when {
+    color: var(--color-muted);
+    font-size: 0.95rem;
+}
+
+.hd-nav-link--active {
+    color: var(--color-light);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3);
+}
+
 @media (max-width: 768px) {
     .hd-hero-inner {
         grid-template-columns: 1fr;

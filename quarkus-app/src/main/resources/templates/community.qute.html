@@ -1,14 +1,103 @@
-{#include layouts/main}
-  {#title}Comunidad{/title}
+{#include layout/main}
+  {#title}Community – HomeDir{/title}
+  {#body}
+    <div class="hd-page hd-page--community">
+      <section class="hd-section hd-section--hero">
+        <div class="hd-container hd-grid hd-grid--2cols">
+          <div class="hd-hero-text">
+            <p class="hd-eyebrow">Community</p>
+            <h1 class="hd-hero-title">{vm.orgName}</h1>
+            <p class="hd-hero-subtitle">{vm.orgDescription}</p>
+          </div>
+          <div class="hd-hero-panel hd-hero-panel--pixel">
+            <div class="hd-character-card">
+              <h2 class="hd-character-title">Tu perfil GitHub</h2>
+              <p class="hd-character-username">user: <span>GitHub user (placeholder)</span></p>
+              <ul class="hd-character-stats">
+                <li><span>Repos:</span> <span>—</span></li>
+                <li><span>Stars:</span> <span>—</span></li>
+                <li><span>Followers:</span> <span>—</span></li>
+              </ul>
+              <button class="hd-btn hd-btn-primary hd-btn--full">
+                Conectar con GitHub (placeholder)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-  {#content}
-  <header class="section-header">
-    <h1>Comunidad</h1>
-    <p class="section-subtitle">Actividad y perfiles de la organización OSS Santiago</p>
-  </header>
+      <section class="hd-section">
+        <div class="hd-container">
+          <div class="hd-grid hd-grid--4cols hd-grid--stats">
+            <article class="hd-stat-card">
+              <p class="hd-stat-label">Miembros estimados</p>
+              <p class="hd-stat-value">{vm.totalMembers}</p>
+            </article>
+            <article class="hd-stat-card">
+              <p class="hd-stat-label">Contribuidores</p>
+              <p class="hd-stat-value">{vm.totalContributors}</p>
+            </article>
+            <article class="hd-stat-card">
+              <p class="hd-stat-label">Commits</p>
+              <p class="hd-stat-value">{vm.totalCommits}</p>
+            </article>
+            <article class="hd-stat-card">
+              <p class="hd-stat-label">PRs &amp; Issues</p>
+              <p class="hd-stat-value">
+                {vm.totalPullRequests} PR / {vm.totalIssues} Issues
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
 
-  <section class="section-body">
-    <p>Próxima iteración: conectar GitHub y datos de la comunidad.</p>
-  </section>
-  {/content}
+      <section class="hd-section">
+        <div class="hd-container">
+          <header class="hd-section-header">
+            <h2 class="hd-section-title">Top contributors</h2>
+            <p class="hd-section-subtitle">
+              Principales colaborador@s en los repositorios de OSS Santiago.
+            </p>
+          </header>
+
+          <div class="hd-grid hd-grid--3cols hd-grid--cards">
+            {#for c in vm.topContributors}
+            <article class="hd-card hd-card--contributor">
+              <h3 class="hd-card-title">@{c.username}</h3>
+              <ul class="hd-card-list">
+                <li><span>Commits:</span> <span>{c.commits}</span></li>
+                <li><span>PRs:</span> <span>{c.pullRequests}</span></li>
+                <li><span>Issues:</span> <span>{c.issues}</span></li>
+              </ul>
+            </article>
+            {/for}
+          </div>
+        </div>
+      </section>
+
+      <section class="hd-section hd-section--alt">
+        <div class="hd-container">
+          <header class="hd-section-header">
+            <h2 class="hd-section-title">Actividad reciente</h2>
+            <p class="hd-section-subtitle">
+              Últimos movimientos en los repos de la comunidad (datos mock por ahora).
+            </p>
+          </header>
+
+          <div class="hd-list hd-list--activity">
+            {#for a in vm.recentActivity}
+            <article class="hd-activity-item">
+              <div class="hd-activity-main">
+                <span class="hd-activity-user">@{a.username}</span>
+                <span class="hd-activity-action">{a.action}</span>
+                <span class="hd-activity-repo">{a.repo}</span>
+              </div>
+              <span class="hd-activity-when">{a.when}</span>
+            </article>
+            {/for}
+          </div>
+        </div>
+      </section>
+    </div>
+  {/body}
 {/include}

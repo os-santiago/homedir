@@ -1,5 +1,6 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.public_.view.CommunityViewModel;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.inject.Inject;
@@ -22,24 +23,28 @@ public class PublicPagesResource {
 
   @GET
   public TemplateInstance home() {
-    return home.data("pageTitle", "Home");
+    return home.data("pageTitle", "Home").data("activePage", "home");
   }
 
   @GET
   @Path("/community")
   public TemplateInstance community() {
-    return community.data("pageTitle", "Comunidad");
+    CommunityViewModel vm = CommunityViewModel.mock();
+    return community
+        .data("pageTitle", "Comunidad")
+        .data("vm", vm)
+        .data("activePage", "community");
   }
 
   @GET
   @Path("/projects")
   public TemplateInstance projects() {
-    return projects.data("pageTitle", "Proyectos");
+    return projects.data("pageTitle", "Proyectos").data("activePage", "projects");
   }
 
   @GET
   @Path("/events")
   public TemplateInstance events() {
-    return events.data("pageTitle", "Eventos");
+    return events.data("pageTitle", "Eventos").data("activePage", "events");
   }
 }
