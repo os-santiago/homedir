@@ -1,139 +1,172 @@
 {#include layouts/main}
   {#body}
-    <div class="public-content" id="publicContent">
+    <section class="public-content" id="publicContent">
       <header class="public-header">
-        <h1 id="mainTitle">HomeDir</h1>
-        <p class="tagline" id="mainTagline">
-          by OpenSourceSantiago - The community platform to scale your teams and projects
-        </p>
+        <div>
+          <h1 id="mainTitle">HomeDir</h1>
+          <p class="tagline" id="mainTagline">
+            by OpenSourceSantiago - The community platform to scale your teams and projects
+          </p>
+        </div>
+        <div class="meta">
+          <span>{vm.community.totalMembers ?: 0} members</span>
+          <span>{vm.community.totalProjects ?: 0} projects</span>
+          <span>{vm.character.loggedIn ? 'Member' : 'Visitor'}</span>
+        </div>
       </header>
 
-      <main class="main-sections">
+      <div class="main-sections">
         <article class="section-card" id="communityCard">
-          <div class="icon-wrapper" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
-              <rect x="10" y="10" width="44" height="44" rx="10" fill="#0d071b" stroke="#ff8bd1" stroke-width="3" />
-              <path d="M16 40 L16 26 L32 16 L48 26 L48 40" fill="none" stroke="#7bd7ff" stroke-width="3" />
-              <circle cx="32" cy="34" r="6" fill="#ff8bd1" />
-            </svg>
+          <div>
+            <h2>Community</h2>
+            <p>Modern toolbox for community building and open-source tech innovation.</p>
+            <div class="activity-text">Live teams, quests and adventures</div>
           </div>
-          <h2 id="communityTitle">Community</h2>
-          <p id="communityDescription">
-            Modern toolbox for community building and opensource technology innovation
-          </p>
-          <div class="activity-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <span class="activity-text">2.4k active members</span>
+          <div class="actions">
+            <button class="btn primary">Explore</button>
+            <button class="btn">Roster</button>
           </div>
         </article>
 
         <article class="section-card" id="eventsCard">
-          <div class="icon-wrapper" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
-              <rect x="12" y="16" width="40" height="32" rx="6" ry="6" fill="#0d071b" stroke="#7bd7ff" stroke-width="3" />
-              <path d="M18 26 H46" stroke="#ff8bd1" stroke-width="3" />
-              <rect x="22" y="32" width="8" height="8" fill="#7bd7ff" />
-              <rect x="34" y="32" width="8" height="8" fill="#ff8bd1" />
-            </svg>
+          <div>
+            <h2>Events</h2>
+            <p>Scale your squads with collaborative meetups, workshops and challenges.</p>
+            <div class="activity-text">Adaptive agenda, live streaming</div>
           </div>
-          <h2 id="eventsTitle">Events</h2>
-          <p id="eventsDescription">Scale your teams with collaborative meetups and tech conferences</p>
-          <div class="activity-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <span class="activity-text">Adaptive agenda for your squads</span>
+          <div class="actions">
+            <button class="btn primary">Attend</button>
+            <button class="btn">Schedule</button>
           </div>
         </article>
 
         <article class="section-card" id="projectsCard">
-          <div class="icon-wrapper" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
-              <rect x="12" y="14" width="40" height="36" rx="8" ry="8" fill="#0d071b" stroke="#caffbf" stroke-width="3" />
-              <path d="M20 40 L32 22 L44 40 Z" fill="#7bd7ff" opacity="0.8" />
-              <circle cx="32" cy="34" r="4" fill="#ff8bd1" />
-            </svg>
+          <div>
+            <h2>Projects</h2>
+            <p>Innovation hub for your open-source technology missions and squads.</p>
+            <div class="activity-text">Fresh collaborations weekly</div>
           </div>
-          <h2 id="projectsTitle">Projects</h2>
-          <p id="projectsDescription">Innovation hub for your opensource technology projects</p>
-          <div class="activity-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <span class="activity-text">Fresh collaborations weekly</span>
+          <div class="actions">
+            <button class="btn primary">Join</button>
+            <button class="btn">Propose</button>
           </div>
         </article>
-      </main>
-    </div>
-
-    <div class="community-view" id="communityView" style="display: none;">
-      <div class="community-header">
-        <button class="back-button" id="backButton">⬅ Back to overview</button>
-        <div class="view-meta">
-          <span class="badge">Community campus</span>
-          <span class="activity-text">Live rooms and quests</span>
-        </div>
       </div>
-      <div class="village-container">
-        <div class="village-landscape">
-          <div class="village-sky"></div>
-          <div class="village-ground"></div>
-          <div class="village-buildings">
-            <div class="building hall">Hall</div>
-            <div class="building lab">Builder Lab</div>
-            <div class="building arcade">Arcade</div>
+
+      <section class="community-view" id="communityView">
+        <div class="village-container">
+          <div class="community-header">
+            <div class="meta">
+              <span>Community campus</span>
+              <span>Live rooms &amp; quests</span>
+            </div>
           </div>
-          <div class="village-paths">
-            <div class="path"></div>
-            <div class="path"></div>
-            <div class="path"></div>
+          <div class="village-landscape">
+            <div class="inhabitants-layer" id="inhabitantsLayer"></div>
           </div>
-          <div class="inhabitants-layer" id="inhabitantsLayer"></div>
         </div>
         <aside class="community-stats">
           <h3>Community stats</h3>
           <div class="stat-grid">
             <div class="stat-item">
               <div class="stat-icon">👥</div>
-              <div class="stat-info">
-                <div class="stat-value" id="totalMembers">
-                  {vm.community.totalMembers ?: 0}
-                </div>
+              <div>
+                <span class="stat-value">{vm.community.totalMembers ?: 0}</span>
                 <div class="stat-label">Members online</div>
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">⭐</div>
-              <div class="stat-info">
-                <div class="stat-value" id="totalXP">
-                  {vm.community.totalXp ?: 0}
-                </div>
+              <div>
+                <span class="stat-value">{vm.community.totalXp ?: 0}</span>
                 <div class="stat-label">Total XP</div>
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">🏆</div>
-              <div class="stat-info">
-                <div class="stat-value" id="totalQuests">
-                  {vm.community.totalQuests ?: 0}
-                </div>
-                <div class="stat-label">Quests Completed</div>
+              <div>
+                <span class="stat-value">{vm.community.totalQuests ?: 0}</span>
+                <div class="stat-label">Quests done</div>
               </div>
             </div>
             <div class="stat-item">
               <div class="stat-icon">🚀</div>
-              <div class="stat-info">
-                <div class="stat-value" id="totalProjects">
-                  {vm.community.totalProjects ?: 0}
-                </div>
-                <div class="stat-label">Active Projects</div>
+              <div>
+                <span class="stat-value">{vm.community.totalProjects ?: 0}</span>
+                <div class="stat-label">Active projects</div>
               </div>
             </div>
           </div>
         </aside>
+      </section>
+
+      <div class="character-sheet">
+        <div class="character-container">
+          {#if !vm.character.loggedIn}
+            <div class="novice-warning">You're playing as a NOVICE guest! Login to save your progress.</div>
+          {/if}
+          <div class="character-header">
+            <div>
+              <h3 id="characterName">{vm.character.displayName.or('NOVICE GUEST')}</h3>
+              <span class="character-class">{vm.character.roleLabel.or('VISITOR')}</span>
+            </div>
+            <div class="character-level" id="characterLevel">LEVEL {vm.character.level ?: 1}</div>
+          </div>
+          <div class="character-main">
+            <div class="character-vitals">
+              <div class="vital-bar">
+                <div class="vital-label">
+                  <span class="vital-name">HP</span>
+                  <span class="vital-value" id="hpValue">{vm.character.hpPercent ?: 10} / 100</span>
+                </div>
+                <div class="vital-progress">
+                  <div class="vital-fill hp-fill" id="hpBar" style="width: {vm.character.hpPercent ?: 10}%"></div>
+                </div>
+              </div>
+              <div class="vital-bar">
+                <div class="vital-label">
+                  <span class="vital-name">SP</span>
+                  <span class="vital-value" id="spValue">{vm.character.spPercent ?: 5} / 100</span>
+                </div>
+                <div class="vital-progress">
+                  <div class="vital-fill sp-fill" id="spBar" style="width: {vm.character.spPercent ?: 5}%"></div>
+                </div>
+              </div>
+              <div class="vital-bar">
+                <div class="vital-label">
+                  <span class="vital-name">XP</span>
+                  <span class="vital-value" id="xpValue">{vm.character.xpCurrent ?: 0} / {vm.character.xpMax ?: 100}</span>
+                </div>
+                <div class="vital-progress">
+                  <div class="vital-fill xp-fill" id="xpBar" style="width: {(vm.character.xpCurrent * 100 / vm.character.xpMax) ?: 0}%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="character-stats">
+              <div class="stat-box">
+                <div class="stat-icon">🎯</div>
+                <div class="value">{vm.character.contributions ?: 0}</div>
+                <div class="label">Contributions</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-icon">🏆</div>
+                <div class="value">{vm.character.quests ?: 0}</div>
+                <div class="label">Quests</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-icon">📅</div>
+                <div class="value">{vm.character.events ?: 0}</div>
+                <div class="label">Events</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-icon">🚀</div>
+                <div class="value">{vm.character.projects ?: 0}</div>
+                <div class="label">Projects</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   {/body}
 {/include}

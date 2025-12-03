@@ -422,6 +422,23 @@ textarea:focus-visible {
   box-shadow: 0 10px 30px rgba(255, 99, 195, 0.25);
 }
 
+.btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--hd-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+}
+
+.btn.outline {
+  background: transparent;
+}
+
 .section-card .visual {
   display: flex;
   flex-direction: column;
