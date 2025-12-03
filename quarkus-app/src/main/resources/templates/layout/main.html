@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {@ boolean noNav = false}
 {@ boolean noFooter = false}
+{@ String activePage = ""}
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -18,7 +19,7 @@
 </head>
 <body class="hd-body">
     {#if noNav != true}
-        {#include fragments/nav.html/}
+        {#include fragments/nav.html activePage=activePage/}
     {/if}
     <main id="main-content" class="hd-main" role="main">
         {#insert body}

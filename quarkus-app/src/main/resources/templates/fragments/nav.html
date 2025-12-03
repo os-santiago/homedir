@@ -1,3 +1,4 @@
+{@ String activePage = "" }
 <nav class="hd-nav" aria-label="Principal">
   <div class="hd-nav-inner hd-nav-bar">
     <a href="/" class="hd-nav-brand">Homedir</a>
@@ -10,12 +11,12 @@
       <span aria-hidden="true">☰</span>
     </button>
     <div class="hd-nav-menu" id="primary-nav" data-hd-nav-menu>
-      <a href="/" class="hd-nav-link">Inicio</a>
-      <a href="/eventos" class="hd-nav-link">Eventos</a>
-      <a href="/comunidad" class="hd-nav-link">Comunidad</a>
-      <a href="/notifications/center" class="hd-nav-link">Notificaciones</a>
-      <a href="/docs" class="hd-nav-link">Docs</a>
-      <a href="/contacto" class="hd-nav-link">Contacto</a>
+      <a href="/" class="hd-nav-link {#if activePage == 'home'}hd-nav-link--active{/if}">Inicio</a>
+      <a href="/events" class="hd-nav-link {#if activePage == 'events'}hd-nav-link--active{/if}">Eventos</a>
+      <a href="/community" class="hd-nav-link {#if activePage == 'community'}hd-nav-link--active{/if}">Comunidad</a>
+      <a href="/notifications/center" class="hd-nav-link {#if activePage == 'notifications'}hd-nav-link--active{/if}">Notificaciones</a>
+      <a href="/docs" class="hd-nav-link {#if activePage == 'docs'}hd-nav-link--active{/if}">Docs</a>
+      <a href="/contacto" class="hd-nav-link {#if activePage == 'contact'}hd-nav-link--active{/if}">Contacto</a>
     </div>
     <div class="hd-nav-actions">
       <a href="/ingresar" class="hd-btn hd-btn-primary">Ingresar</a>
