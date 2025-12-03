@@ -1,7 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.containsString;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -10,14 +10,12 @@ import org.junit.jupiter.api.Test;
 public class HomeResourceRedirectTest {
 
   @Test
-  public void eventsPathRedirectsToHome() {
+  public void eventsPathShowsEventsPage() {
     given()
-        .redirects()
-        .follow(false)
         .when()
         .get("/events")
         .then()
-        .statusCode(301)
-        .header("Location", endsWith("/"));
+        .statusCode(200)
+        .body(containsString("Eventos OSS Santiago"));
   }
 }

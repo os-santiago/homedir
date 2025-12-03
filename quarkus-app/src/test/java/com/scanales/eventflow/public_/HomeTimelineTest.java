@@ -17,8 +17,8 @@ public class HomeTimelineTest {
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("Community campus"))
-        .body(containsString("Adaptive agenda"))
-        .body(containsString("Community stats"));
+        .body(containsString("HomeDir"))
+        .body(containsString("Plataforma comunitaria"))
+        .body(containsString("OSS Santiago"));
   }
 }

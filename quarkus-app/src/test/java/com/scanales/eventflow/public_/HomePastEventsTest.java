@@ -17,8 +17,8 @@ public class HomePastEventsTest {
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("Community"))
-        .body(containsString("Events"))
-        .body(containsString("Projects"));
+        .body(containsString("Comunidad"))
+        .body(containsString("Eventos"))
+        .body(containsString("Proyectos"));
   }
 }
