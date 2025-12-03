@@ -1,175 +1,45 @@
-name: Promote by Digest
+name: Main Pipeline Orchestrator
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or tag to orchestrate (defaults to main)'
+        required: false
+        default: main
 
-env:
-  REGISTRY: ${{ vars.REGISTRY || 'quay.io/sergio_canales_e' }}
-  IMAGE_NAME: ${{ vars.IMAGE_NAME || 'homedir' }}
-  VPS_HOST: ${{ vars.VPS_HOST }}
-  VPS_USER: ${{ vars.VPS_USER }}
-  VPS_PORT: ${{ vars.VPS_PORT || '22' }}
-  APP_PORT: ${{ vars.APP_PORT || '8080' }}
-  GH_TOKEN: ${{ github.token }}
+permissions:
+  actions: write
+  contents: read
 
 jobs:
-  build:
-    uses: ./.github/workflows/build-native.yml
-    secrets: inherit
-
-  deploy:
-    needs: build
+  orchestrate:
     runs-on: ubuntu-latest
+    env:
+      TARGET_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref_name }}
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Try to load image ref from build artifact
-        id: artifact-ref
-        continue-on-error: true
-        uses: actions/download-artifact@v4
+      - name: Dispatch native build workflow
+        uses: actions/github-script@v7
         with:
-          name: pr-image-ref
-          path: /tmp/image-ref
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const ref = process.env.TARGET_REF || context.ref;
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build-native.yml',
+              ref,
+            });
 
-      - name: Read image ref from artifact (if present)
-        id: read-artifact
-        if: steps.artifact-ref.outcome == 'success'
-        run: |
-          set -euo pipefail
-          FILE=/tmp/image-ref/image-ref.txt
-          if [ -f "$FILE" ]; then
-            REF_LINE=$(cat "$FILE")
-            REF_VALUE=${REF_LINE#REF=}
-            if [ -n "$REF_VALUE" ]; then
-              echo "Using REF from artifact: $REF_VALUE"
-              echo "REF=$REF_VALUE" >> $GITHUB_ENV
-              echo "ref=$REF_VALUE" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-          fi
-          echo "No REF found in artifact; will resolve via registry."
+            core.info(`Dispatched build-native.yml for ref ${ref}`);
+            await core.summary
+              .addHeading('Orchestration')
+              .addRaw(`Native build dispatched for **${ref}**.`)
+              .addRaw('Publish workflow will run after the native build succeeds.', true)
+              .write();
 
-      - name: Login to Quay
-        env:
-          QUAY_USERNAME: ${{ vars.QUAY_USERNAME }}
-          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+      - name: Record orchestration details
         run: |
-          echo "${QUAY_PASSWORD}" | docker login "${REGISTRY}" -u "${QUAY_USERNAME}" --password-stdin
-
-      - name: Resolve image digest
-        id: ref
-        if: env.REF == ''
-        run: |
-          set -euo pipefail
-          sudo apt-get update -y && sudo apt-get install -y jq skopeo
-          prs=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls -H "Accept: application/vnd.github+json")
-          pr=$(echo "$prs" | jq -r '.[0].number // empty')
-          if [ -n "$pr" ]; then
-            head=$(echo "$prs" | jq -r '.[0].head.sha')
-            prtag="docker://${REGISTRY}/${IMAGE_NAME}:pr-${pr}-${head}"
-            headtag="docker://${REGISTRY}/${IMAGE_NAME}:${head}"
-          else
-            head="${{ github.sha }}"
-            headtag="docker://${REGISTRY}/${IMAGE_NAME}:${head}"
-          fi
-          if [ -n "$pr" ] && DIGEST=$(skopeo inspect --format '{{.Digest}}' "$prtag" 2>/dev/null); then
-            :
-          elif DIGEST=$(skopeo inspect --format '{{.Digest}}' "$headtag" 2>/dev/null); then
-            :
-          else
-            echo "No image found for $prtag or $headtag" >&2
-            exit 1
-          fi
-          echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" | tee /tmp/ref.txt
-          echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_OUTPUT
-          echo "REF=${REGISTRY}/${IMAGE_NAME}@${DIGEST}" >> $GITHUB_ENV
-
-      - name: Validate image ref
-        run: |
-          echo "REF=${REF:-<empty>}"
-          if [ -z "${REF:-}" ]; then
-            echo "Image reference is empty; aborting deploy." >&2
-            exit 1
-          fi
-
-      - name: Cosign verify (optional)
-        if: steps.ref.outcome == 'success' && env.COSIGN_PUBLIC_KEY != ''
-        env:
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-        run: |
-          cosign verify --key <(printf "%s" "${COSIGN_PUBLIC_KEY}") "$REF" || exit 1
-
-      - name: Prepare SSH key
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-        run: |
-          if [ -z "${VPS_SSH_KEY:-}" ]; then
-            echo "VPS_SSH_KEY secret is required"; exit 1; fi
-          install -m 700 -d ~/.ssh
-          echo "${VPS_SSH_KEY}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-      - name: Deploy via Podman on VPS
-        env:
-          VPS_HOST: ${{ env.VPS_HOST }}
-          VPS_USER: ${{ env.VPS_USER }}
-          VPS_PORT: ${{ env.VPS_PORT }}
-          APP_PORT: ${{ env.APP_PORT }}
-          IMAGE_NAME: ${{ vars.IMAGE_NAME || 'homedir' }}
-          DATA_DIR: ${{ vars.DATA_DIR || '/opt/homedir/data' }}
-          FALLBACK_IMAGE_REF: ${{ vars.IMAGE_REF }}
-          OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
-          OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
-          GH_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
-          GH_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
-          SESSION_KEY: ${{ secrets.SESSION_KEY }}
-          NOTIFICATIONS_USER_HASH_SALT: ${{ secrets.NOTIFICATIONS_USER_HASH_SALT }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          if [ -z "${VPS_HOST}" ] || [ -z "${VPS_USER}" ]; then
-            echo "VPS_HOST and VPS_USER must be set as repository variables"; exit 1; fi
-          IMAGE="${IMAGE_REF:-${REF:-${FALLBACK_IMAGE_REF:-}}}"
-          IMAGE="${IMAGE#docker://}"
-          IMAGE="${IMAGE#docker:}"
-          if [ -z "$IMAGE" ]; then echo "Empty image ref" >&2; exit 1; fi
-          echo "Using image: ${IMAGE}"
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "${VPS_USER}@${VPS_HOST}" IMAGE="${IMAGE}" APP_PORT="${APP_PORT:-8080}" DATA_DIR="${DATA_DIR:-/opt/homedir/data}" IMAGE_NAME="${IMAGE_NAME:-homedir}" <<'EOF'
-          set -euo pipefail
-          CONTAINER_NAME="${IMAGE_NAME}"
-          stop_named_container() {
-            if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
-              podman stop "${CONTAINER_NAME}" || true
-              podman rm -f "${CONTAINER_NAME}" || true
-            fi
-          }
-          mkdir -p "${DATA_DIR}"
-          chown -R 1001:1001 "${DATA_DIR}" || true
-          podman pull "$IMAGE"
-          stop_named_container
-          # Stop any container currently bound to the target port to avoid EADDRINUSE
-          for c in $(podman ps -a --format '{{.Names}} {{.Ports}}' | awk "/${APP_PORT:-8080}/ {print \$1}"); do
-            podman stop "$c" || true
-            podman rm -f "$c" || true
-          done
-          # Kill any other process still holding the port (defensive)
-          if command -v fuser >/dev/null 2>&1; then
-            fuser -k "${APP_PORT}/tcp" || true
-          fi
-          stop_named_container
-          podman run -d --name "${CONTAINER_NAME}" --restart=always \
-            -p "0.0.0.0:${APP_PORT:-8080}:8080" \
-            -e eventflow.data.dir=/work/data \
-            -e OIDC_CLIENT_ID="${OIDC_CLIENT_ID}" \
-            -e OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET}" \
-            -e GH_CLIENT_ID="${GH_CLIENT_ID}" \
-            -e GH_CLIENT_SECRET="${GH_CLIENT_SECRET}" \
-            -e SESSION_KEY="${SESSION_KEY}" \
-            -e NOTIFICATIONS_USER_HASH_SALT="${NOTIFICATIONS_USER_HASH_SALT}" \
-            -e GH_TOKEN="${GH_TOKEN}" \
-            -v "${DATA_DIR:-/opt/homedir/data}:/work/data:Z" \
-            "$IMAGE"
-          podman ps -a --format '{{.Names}} {{.Image}} {{.Status}}' || true
-          podman images quay.io/sergio_canales_e/homedir --format '{{.Repository}}:{{.Tag}} {{.Digest}}' || true
-          EOF
+          echo "Ref dispatched: ${TARGET_REF:-${GITHUB_REF_NAME}}"
