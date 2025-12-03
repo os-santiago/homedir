@@ -79,18 +79,21 @@ public class CommunityResource {
     boolean needsGithub =
         isAuthenticated() && userProfileService.find(userId).map(p -> !p.hasGithub()).orElse(true);
 
-    return Templates.community(
-        filtered,
-        query,
-        joined,
-        missingGithub,
-        already,
-        needsGithub,
-        isAuthenticated(),
-        current,
-        communityService.countMembers(),
-        decode(prUrl),
-        prError);
+    TemplateInstance template =
+        Templates.community(
+            filtered,
+            query,
+            joined,
+            missingGithub,
+            already,
+            needsGithub,
+            isAuthenticated(),
+            current,
+            communityService.countMembers(),
+            decode(prUrl),
+            prError);
+
+    return withLayoutData(template, "comunidad");
   }
 
   @POST
@@ -195,4 +198,24 @@ public class CommunityResource {
 
   public record MemberView(
       String name, String github, String role, String profileUrl, String avatarUrl, String since) {}
+
+  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+    String name = currentUserName().orElse(null);
+    return templateInstance
+        .data("activePage", activePage)
+        .data("userAuthenticated", isAuthenticated())
+        .data("userName", name)
+        .data("userInitial", initialFrom(name));
+  }
+
+  private String initialFrom(String name) {
+    if (name == null) {
+      return null;
+    }
+    String trimmed = name.trim();
+    if (trimmed.isEmpty()) {
+      return null;
+    }
+    return trimmed.substring(0, 1).toUpperCase();
+  }
 }

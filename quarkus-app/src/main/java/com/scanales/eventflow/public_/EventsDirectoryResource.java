@@ -5,6 +5,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -24,6 +25,8 @@ public class EventsDirectoryResource {
   @Inject EventService eventService;
 
   @Inject UsageMetricsService metrics;
+
+  @Inject SecurityIdentity identity;
 
   @ConfigProperty(name = "homedir.ui.v2.enabled", defaultValue = "true")
   boolean uiV2Enabled;
@@ -70,10 +73,32 @@ public class EventsDirectoryResource {
         Map.of(
             "upcoming", Integer.toString(upcoming.size()),
             "past", Integer.toString(past.size()));
+    TemplateInstance template = Templates.eventos(upcoming, past, today, stats);
     if (uiV2Enabled) {
-      return Templates.eventos(upcoming, past, today, stats);
+      return withLayoutData(template, "eventos");
     }
     // TODO: definir template de fallback si en el futuro se desea una versión mínima
-    return Templates.eventos(upcoming, past, today, stats);
+    return withLayoutData(template, "eventos");
+  }
+
+  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+    boolean authenticated = identity != null && !identity.isAnonymous();
+    String userName = authenticated ? identity.getPrincipal().getName() : null;
+    return templateInstance
+        .data("activePage", activePage)
+        .data("userAuthenticated", authenticated)
+        .data("userName", userName)
+        .data("userInitial", initialFrom(userName));
+  }
+
+  private String initialFrom(String name) {
+    if (name == null) {
+      return null;
+    }
+    String trimmed = name.trim();
+    if (trimmed.isEmpty()) {
+      return null;
+    }
+    return trimmed.substring(0, 1).toUpperCase();
   }
 }
