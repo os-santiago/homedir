@@ -1,5 +1,8 @@
 package com.scanales.eventflow.public_.landing;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public record LandingCharacterStats(
     boolean loggedIn,
     String displayName,
