@@ -1,14 +1,122 @@
-{#include layouts/main}
-  {#title}Proyectos{/title}
+{#include layout/main}
+  {#title}Proyectos – HomeDir{/title}
+  {#body}
+    <main class="hd-main hd-main--page">
 
-  {#content}
-  <header class="section-header">
-    <h1>Proyectos</h1>
-    <p class="section-subtitle">Repositorios y colaboración activa de OSS Santiago</p>
-  </header>
+      <!-- Hero Proyectos -->
+      <section class="hd-section hd-section--hero">
+        <div class="hd-container hd-grid hd-grid--2cols">
+          <div class="hd-hero-text">
+            <p class="hd-eyebrow">Projects</p>
+            <h1 class="hd-hero-title">
+              Proyectos OSS Santiago
+            </h1>
+            <p class="hd-hero-subtitle">
+              {vm.orgDescription}
+            </p>
+          </div>
 
-  <section class="section-body">
-    <p>Próxima iteración: conectar el catálogo de proyectos.</p>
-  </section>
-  {/content}
+          <div class="hd-hero-panel hd-hero-panel--projects">
+            <h2 class="hd-panel-title">Resumen de la organización</h2>
+            <ul class="hd-panel-list">
+              <li>
+                <span>Total repositorios</span>
+                <span>{vm.totalRepositories}</span>
+              </li>
+              <li>
+                <span>Repos activos</span>
+                <span>{vm.activeRepositories}</span>
+              </li>
+              <li>
+                <span>Stars acumuladas</span>
+                <span>{vm.totalStars}</span>
+              </li>
+              <li>
+                <span>Contribuidores recientes</span>
+                <span>{vm.totalContributors}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Top 5 repos -->
+      <section class="hd-section">
+        <div class="hd-container">
+          <header class="hd-section-header">
+            <h2 class="hd-section-title">Top 5 proyectos principales</h2>
+            <p class="hd-section-subtitle">
+              Repositorios destacados por actividad, colaboración y uso dentro de la comunidad.
+            </p>
+          </header>
+
+          <div class="hd-grid hd-grid--3cols hd-grid--cards">
+            {#for p in vm.featuredProjects}
+            <article class="hd-card hd-card--project">
+              <header class="hd-card-header">
+                <h3 class="hd-card-title">
+                  <a href="{p.url}" target="_blank" rel="noopener noreferrer">
+                    {p.name}
+                  </a>
+                </h3>
+                <span class="hd-pill hd-pill--language">
+                  {p.primaryLanguage}
+                </span>
+              </header>
+
+              <p class="hd-card-description">
+                {p.description}
+              </p>
+
+              <dl class="hd-card-meta">
+                <div class="hd-card-meta-row">
+                  <dt>⭐ Stars</dt>
+                  <dd>{p.stars}</dd>
+                </div>
+                <div class="hd-card-meta-row">
+                  <dt>🍴 Forks</dt>
+                  <dd>{p.forks}</dd>
+                </div>
+                <div class="hd-card-meta-row">
+                  <dt>🐛 Issues abiertas</dt>
+                  <dd>{p.openIssues}</dd>
+                </div>
+                <div class="hd-card-meta-row">
+                  <dt>👥 Contribuidores activos</dt>
+                  <dd>{p.activeContributors}</dd>
+                </div>
+              </dl>
+
+              <div class="hd-card-footer">
+                <span class="hd-badge hd-badge--accent">
+                  Score actividad: {p.activityScore}
+                </span>
+                <span class="hd-card-meta-text">
+                  Última actividad: {p.lastActivity}
+                </span>
+              </div>
+            </article>
+            {/for}
+          </div>
+        </div>
+      </section>
+
+      <!-- Placeholder de sección futura de colaboración -->
+      <section class="hd-section hd-section--alt">
+        <div class="hd-container">
+          <header class="hd-section-header">
+            <h2 class="hd-section-title">Colaboración y contribuciones</h2>
+            <p class="hd-section-subtitle">
+              En una próxima iteración, esta sección mostrará filtros y gráficos de contribuciones por proyecto, lenguaje y periodo de tiempo.
+            </p>
+          </header>
+
+          <div class="hd-placeholder">
+            <p>Placeholder: métricas avanzadas y visualizaciones de colaboración vendrán aquí.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  {/body}
 {/include}
