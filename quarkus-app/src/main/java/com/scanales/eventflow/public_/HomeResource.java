@@ -16,7 +16,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 
-@Path("/")
+@Path("/legacy-home")
 public class HomeResource {
 
   @Inject UsageMetricsService metrics;
@@ -31,7 +31,8 @@ public class HomeResource {
   public TemplateInstance home(
       @jakarta.ws.rs.core.Context HttpHeaders headers,
       @jakarta.ws.rs.core.Context RoutingContext context) {
-    metrics.recordPageView("/", headers, context);
+    // TODO: Legacy landing page kept for reference; main public routes moved to PublicPagesResource.
+    metrics.recordPageView("/legacy-home", headers, context);
     LandingViewModel viewModel = landingService.buildViewModel();
     return index
         .data("vm", viewModel)
