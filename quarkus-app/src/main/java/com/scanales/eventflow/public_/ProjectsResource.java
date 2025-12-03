@@ -3,6 +3,7 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.service.UsageMetricsService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -15,6 +16,8 @@ import java.util.List;
 public class ProjectsResource {
 
   @Inject UsageMetricsService metrics;
+
+  @Inject SecurityIdentity identity;
 
   @CheckedTemplate
   static class Templates {
@@ -48,9 +51,31 @@ public class ProjectsResource {
                 "En diseño",
                 "/comunidad",
                 "Personas"));
-    return Templates.proyectos(projects);
+    TemplateInstance template = Templates.proyectos(projects);
+    return withLayoutData(template, "proyectos");
   }
 
   public record ProjectCard(
       String name, String description, String status, String link, String tag) {}
+
+  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+    boolean authenticated = identity != null && !identity.isAnonymous();
+    String userName = authenticated ? identity.getPrincipal().getName() : null;
+    return templateInstance
+        .data("activePage", activePage)
+        .data("userAuthenticated", authenticated)
+        .data("userName", userName)
+        .data("userInitial", initialFrom(userName));
+  }
+
+  private String initialFrom(String name) {
+    if (name == null) {
+      return null;
+    }
+    String trimmed = name.trim();
+    if (trimmed.isEmpty()) {
+      return null;
+    }
+    return trimmed.substring(0, 1).toUpperCase();
+  }
 }

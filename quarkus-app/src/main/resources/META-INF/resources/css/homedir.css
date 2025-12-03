@@ -149,6 +149,7 @@ body::before {
    HEADER / NAVBAR
    =========================================== */
 
+.hd-top-nav,
 .top-nav {
   position: relative;
   z-index: 10;
@@ -162,58 +163,169 @@ body::before {
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
 }
 
+.hd-logo,
 .logo {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
 }
 
+.hd-logo-link,
 .logo-link {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   text-decoration: none;
   color: inherit;
 }
 
+.hd-logo-icon,
 .logo-icon {
   width: 48px;
   height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.7rem;
+  font-size: 1.1rem;
   background: rgba(255, 255, 255, 0.15);
   border: 3px solid rgba(255, 255, 255, 0.7);
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
 }
 
+.hd-logo-text,
 .logo-text {
   display: flex;
   flex-direction: column;
+  line-height: 1.2;
 }
 
-.logo-text span:first-child {
-  font-size: 0.8rem;
+.hd-logo-title {
+  font-size: 0.85rem;
   letter-spacing: 3px;
   text-transform: uppercase;
   text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
 }
 
+.hd-logo-subtitle,
 .logo-subtitle {
-  font-size: 0.5rem;
+  font-size: 0.55rem;
   opacity: 0.8;
   letter-spacing: 2px;
 }
 
-/* Nav actions */
+.hd-main-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.hd-nav-link,
+.nav-link {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-decoration: none;
+  color: #ffffff;
+  opacity: 0.9;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.hd-nav-link:hover,
+.nav-link:hover,
+.hd-nav-link.is-active,
+.nav-link.nav-link-active {
+  opacity: 1;
+  border-bottom-color: #ffd700;
+}
+
+.hd-user-area {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.hd-notifications-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  color: #ffffff;
+  font-size: 0.85rem;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.hd-user-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+.hd-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.hd-user-name {
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+}
+
+.hd-login-btn,
+.login-btn-nav {
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+  border-right: 4px solid rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+  transition: all 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hd-login-btn:hover,
+.login-btn-nav:hover {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.hd-login-btn:active,
+.login-btn-nav:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Nav actions (legacy/compat) */
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-}
-
-.nav-actions .login-btn-nav {
-  margin-left: 0.5rem;
 }
 
 .eyebrow {
