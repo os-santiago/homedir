@@ -1,10 +1,10 @@
 {#if activePage is null}
   {@ String activePage = ""}
 {/if}
-<header class="hd-top-nav" aria-label="Navegación principal">
+<header class="hd-top-nav" aria-label="Navegacion principal">
   <div class="hd-logo">
     <a href="/" class="hd-logo-link" aria-label="Ir al inicio de HomeDir">
-      <span class="hd-logo-icon" aria-hidden="true">⌂</span>
+      <span class="hd-logo-icon" aria-hidden="true">?</span>
       <div class="hd-logo-text">
         <span class="hd-logo-title">HomeDir</span>
         <span class="hd-logo-subtitle">by OpenSourceSantiago</span>
@@ -17,17 +17,18 @@
     <a href="/comunidad" class="hd-nav-link {#if activePage == 'comunidad'}is-active{/if}">Comunidad</a>
     <a href="/proyectos" class="hd-nav-link {#if activePage == 'proyectos'}is-active{/if}">Proyectos</a>
     <a href="/eventos" class="hd-nav-link {#if activePage == 'eventos'}is-active{/if}">Eventos</a>
+    <a href="/notifications/center" class="hd-nav-link">Notificaciones</a>
   </nav>
 
   <div class="hd-user-area">
-    <button class="hd-notifications-btn" title="Notificaciones" type="button" aria-label="Notificaciones">
-      🔔
-    </button>
+    <a class="hd-notifications-btn" href="/notifications/center" title="Notificaciones" aria-label="Notificaciones">
+      ?
+    </a>
 
     {#if userAuthenticated}
-      <div class="hd-user-menu" aria-label="Menú de usuario">
+      <div class="hd-user-menu" aria-label="Menu de usuario">
         <div class="hd-user-avatar" aria-hidden="true">
-          {#if userInitial??}{userInitial}{#else}👤{/if}
+          {#if userInitial??}{userInitial}{#else}??{/if}
         </div>
         <span class="hd-user-name">{userName ?: 'Usuario'}</span>
       </div>
