@@ -1,0 +1,108 @@
+<!-- Character Sheet Footer -->
+<div class="character-sheet">
+    <div class="character-container">
+        <div class="character-header">
+            <div class="character-title">
+                <h3>Character Sheet</h3>
+                <span class="character-class" id="characterClass">VISITOR</span>
+                <div class="novice-warning" id="noviceWarning">LOG IN TO SAVE PROGRESS</div>
+            </div>
+            <div class="character-level" id="characterLevel">LEVEL 1</div>
+        </div>
+
+        <div class="character-main">
+            <div class="character-vitals">
+                <div class="vital-bar">
+                    <div class="vital-label">
+                        <span>HP</span>
+                        <span id="hpValue">10 / 100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill hp-fill" id="hpBar" style="width: 10%"></div>
+                    </div>
+                </div>
+                <div class="vital-bar">
+                    <div class="vital-label">
+                        <span>SP</span>
+                        <span id="spValue">5 / 100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill sp-fill" id="spBar" style="width: 5%"></div>
+                    </div>
+                </div>
+                <div class="vital-bar">
+                    <div class="vital-label">
+                        <span>XP</span>
+                        <span id="xpValue">0 / 100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill xp-fill" id="xpBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="character-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="contributionsStat">0</div>
+                    <div class="stat-label">contribs</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="questsStat">0</div>
+                    <div class="stat-label">quests</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="eventsStat">0</div>
+                    <div class="stat-label">events</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="projectsStat">0</div>
+                    <div class="stat-label">projects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="connectionsStat">0</div>
+                    <div class="stat-label">network</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="experienceStat">0</div>
+                    <div class="stat-label">total xp</div>
+                </div>
+            </div>
+
+            <div class="character-equipment">
+                <div class="equipment-header">
+                    <span>INVENTORY</span>
+                    <span class="equipment-count">0 / 6 ITEMS</span>
+                </div>
+                <div class="equipment-grid">
+                    <div class="equipment-slot empty">
+                        <div class="equipment-tooltip">EMPTY SLOT</div>
+                    </div>
+                    <div class="equipment-slot empty">
+                        <div class="equipment-tooltip">EMPTY SLOT</div>
+                    </div>
+                    <div class="equipment-slot empty">
+                        <div class="equipment-tooltip">EMPTY SLOT</div>
+                    </div>
+                    <div class="equipment-slot empty">
+                        <div class="equipment-tooltip">EMPTY SLOT</div>
+                    </div>
+                    <div class="equipment-slot empty">
+                        <div class="equipment-tooltip">EMPTY SLOT</div>
+                    </div>
+                    <div class="equipment-slot empty">
+                        <div class="equipment-tooltip">EMPTY SLOT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 1rem;">
+            <button class="login-btn" id="loginCharacterBtn" style="margin: 0 auto;">
+                Connect Character
+            </button>
+            <button class="logout-btn-nav" id="logoutCharacterBtn" style="display: none; margin: 0 auto;">
+                Disconnect
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,39 +1,74 @@
-{#if activePage is null}
-  {@ String activePage = ""}
-{/if}
-<header class="hd-top-nav" aria-label="Navegacion principal">
-  <div class="hd-logo">
-    <a href="/" class="hd-logo-link" aria-label="Ir al inicio de HomeDir">
-      <span class="hd-logo-icon" aria-hidden="true">?</span>
-      <div class="hd-logo-text">
-        <span class="hd-logo-title">HomeDir</span>
-        <span class="hd-logo-subtitle">by OpenSourceSantiago</span>
-      </div>
-    </a>
+<nav class="top-nav" aria-label="Navegacion principal">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 15 L85 45 L85 85 L15 85 L15 45 Z" fill="#ffffff" stroke="#ffffff" stroke-width="3" />
+        <path d="M50 15 L85 45 L75 45 L50 25 L25 45 L15 45 Z" fill="#FFD700" stroke="#ffffff" stroke-width="2" />
+        <rect x="42" y="60" width="16" height="25" fill="#667eea" stroke="#ffffff" stroke-width="2" />
+        <rect x="25" y="52" width="12" height="12" fill="#764ba2" stroke="#ffffff" stroke-width="2" />
+        <rect x="63" y="52" width="12" height="12" fill="#764ba2" stroke="#ffffff" stroke-width="2" />
+        <rect x="28" y="55" width="2" height="2" fill="#ffffff" />
+        <rect x="32" y="55" width="2" height="2" fill="#ffffff" />
+        <rect x="66" y="55" width="2" height="2" fill="#ffffff" />
+        <rect x="70" y="55" width="2" height="2" fill="#ffffff" />
+        <rect x="65" y="30" width="8" height="15" fill="#ffffff" stroke="#ffffff" stroke-width="2" />
+        <rect x="66" y="27" width="6" height="3" fill="#FFD700" />
+        <path d="M50 20 Q45 15 40 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
+        <path d="M50 20 Q55 15 60 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
+        <circle cx="50" cy="22" r="2" fill="#FFD700" />
+      </svg>
+    </div>
+    <div class="logo-text"><span id="navPlatformName">HomeDir</span> <span class="logo-subtitle" id="navTagline">by
+        OpenSourceSantiago</span>
+    </div>
   </div>
 
-  <nav class="hd-main-nav">
-    <a href="/" class="hd-nav-link {#if activePage == 'home'}is-active{/if}">Home</a>
-    <a href="/comunidad" class="hd-nav-link {#if activePage == 'comunidad'}is-active{/if}">Comunidad</a>
-    <a href="/proyectos" class="hd-nav-link {#if activePage == 'proyectos'}is-active{/if}">Proyectos</a>
-    <a href="/eventos" class="hd-nav-link {#if activePage == 'eventos'}is-active{/if}">Eventos</a>
-    <a href="/notifications/center" class="hd-nav-link">Notificaciones</a>
-  </nav>
+  <div class="nav-actions">
+    <!-- Legacy Nav Links mapped to hidden/new structure or kept simple -->
+    <!-- Re-implementing nav links as simple links in nav-actions or a separate bar if needed. 
+          For now, keeping them simple or assuming they might go into a menu? 
+          The retro design has a user menu and login button, but lacks a visible main menu in the top bar in the reference.
+          I will insert the main navigation links here to ensure functionality is not lost, styled simply. -->
+    <style>
+      .retro-nav-link {
+        color: white;
+        text-decoration: none;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        margin-right: 15px;
+      }
 
-  <div class="hd-user-area">
-    <a class="hd-notifications-btn" href="/notifications/center" title="Notificaciones" aria-label="Notificaciones">
-      ?
-    </a>
+      .retro-nav-link:hover {
+        text-decoration: underline;
+        color: #FFD700;
+      }
+
+      .retro-nav-link.is-active {
+        color: #FFD700;
+        font-weight: bold;
+        border-bottom: 2px solid #FFD700;
+      }
+    </style>
+    {#if activePage is null}
+    {@ String activePage = ""}
+    {/if}
+    <a href="/" class="retro-nav-link {#if activePage == 'home'}is-active{/if}">Home</a>
+    <a href="/comunidad" class="retro-nav-link {#if activePage == 'comunidad'}is-active{/if}">Comunidad</a>
+    <a href="/proyectos" class="retro-nav-link {#if activePage == 'proyectos'}is-active{/if}">Proyectos</a>
+    <a href="/eventos" class="retro-nav-link {#if activePage == 'eventos'}is-active{/if}">Eventos</a>
+
+    {#include fragments/notifications-bell.html/}
 
     {#if userAuthenticated}
-      <div class="hd-user-menu" aria-label="Menu de usuario">
-        <div class="hd-user-avatar" aria-hidden="true">
-          {#if userInitial??}{userInitial}{#else}??{/if}
-        </div>
-        <span class="hd-user-name">{userName ?: 'Usuario'}</span>
-      </div>
+    <div class="user-menu active" id="userMenuNav">
+      <div class="user-avatar-small" id="navAvatar">
+        {#if userInitial??}{userInitial}{#else}👤{/if}
+      </div><span id="navUserName">{userName ?: 'Usuario'}</span> <a href="/logout" class="logout-btn-nav"
+        id="logoutBtn">Logout</a>
+    </div>
     {#else}
-      <a href="/ingresar" class="hd-login-btn">Login</a>
+    <a href="/ingresar" class="login-btn-nav" id="openLoginBtn">Login</a>
     {/if}
   </div>
-</header>
+</nav>

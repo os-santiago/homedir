@@ -6,6 +6,7 @@
 {@ String userName = ""}
 {@ String userInitial = ""}
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,39 +14,47 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime&display=swap"
     rel="stylesheet" />
 
   <link rel="icon" href="/favicon.ico" />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/css/homedir.css" />
   <link rel="stylesheet" href="/css/notifications.css" />
+  <link rel="stylesheet" href="/css/retro-theme.css" />
 </head>
+
 <body class="homedir-body">
   {#include fragments/floating-shapes /}
 
-  {#if noNav != true}
+  <div class="app-container">
+    {#if noNav != true}
     {#include fragments/header
-      activePage=activePage
-      userAuthenticated=userAuthenticated
-      userName=userName
-      userInitial=userInitial /}
-  {/if}
+    activePage=activePage
+    userAuthenticated=userAuthenticated
+    userName=userName
+    userInitial=userInitial /}
+    {/if}
 
-  <main id="main-content" class="homedir-main" role="main">
-    {#insert body}{/}
-  </main>
+    <main id="main-content" class="homedir-main" role="main">
+      {#insert body}{/}
+    </main>
 
-  {#if noFooter != true}
+    {#include fragments/character-sheet.html/}
+
+    {#if noFooter != true}
     {#include fragments/footer.html/}
-  {/if}
+    {/if}
+  </div>
 
+  {#include fragments/login-modal.html/}
   <script src="/js/homedir.js"></script>
-  <script>window.__EF_AUTH__ = { isAuth: {app:isAuthenticated()} };</script>
+  <script>window.__EF_AUTH__ = { isAuth: { app: isAuthenticated() } };</script>
   <script src="/js/app.js" defer></script>
   <script src="/js/notifications-adapter.js" defer></script>
   <script src="/js/notifications.js" defer></script>
   <script src="/js/global-notifications-ws.js" defer></script>
+  <script src="/js/retro-theme.js" defer></script>
 </body>
+
 </html>

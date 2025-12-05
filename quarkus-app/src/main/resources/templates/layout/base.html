@@ -1,79 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{#insert title}Homedir{/}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/css/homedir.css">
     <link rel="stylesheet" href="/css/notifications.css">
+    <link rel="stylesheet" href="/css/retro-theme.css">
     <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
-    <script>window.__EF_NOTIFICATIONS_MODE__='global';</script>
+    <script>window.__EF_NOTIFICATIONS_MODE__ = 'global';</script>
     <script src="/js/notifications-adapter.js" defer></script>
     <script src="/js/app.js" defer></script>
     <script src="/js/notifications.js" defer></script>
     <script src="/js/global-notifications-ws.js" defer></script>
 </head>
-<body>
-<script>
-  window.__EF_AUTH__ = { isAuth: {app:isAuthenticated()} };
-  if (window.__EF_AUTH__.isAuth) { document.documentElement.classList.add('auth'); }
-</script>
-<div class="page-shell">
-    <a href="#main-content" class="skip-link">Ir al contenido principal</a>
-    <header class="nav-menu" id="nav-menu" aria-label="Principal">
-        <a href="/" class="nav-logo"><h2 class="title">Homedir</h2></a>
-        <button id="menuToggle" class="menu-toggle" data-menu-toggle aria-label="Menú" aria-controls="primary-navigation" aria-expanded="false">&#9776;</button>
-        <div class="nav-links" id="primary-navigation" data-primary-navigation hidden>
-            <a href="/#inicio" data-nav-link>Inicio</a>
-            <a href="/#que-es" data-nav-link>Qué es</a>
-            <a href="/#como-funciona" data-nav-link>Cómo funciona</a>
-            <a href="/#para-quien-es" data-nav-link>Para quién</a>
-            <a href="/#comunidad" data-nav-link>Comunidad</a>
-            <a href="/eventos" data-nav-link>Eventos</a>
-            <a href="/proyectos" data-nav-link>Proyectos</a>
-            {#if app:isAuthenticated()}
-                {#if app:isAdmin()}
-                    <a href="/private/admin" data-nav-link>Admin</a>
-                {/if}
-            {/if}
-            {#include fragments/notifications-bell.html/}
-            {#if app:isAuthenticated()}
-                <div class="user-menu" data-user-menu>
-                    <button id="userMenuBtn" class="user-menu-btn" data-user-menu-btn aria-label="Usuario" aria-expanded="false" aria-controls="userDropdown">
-                        {#if app:userAvatar()}
-                            <img src="{app:userAvatar()}" alt="{app:userName()}" class="avatar" />
-                        {#else}
-                            <span class="avatar placeholder">👤</span>
-                        {/if}
-                        <span class="user-name">{app:userName()}</span>
-                    </button>
-                    <div class="dropdown" id="userDropdown" hidden>
-                        <a href="/private/profile">Perfil</a>
-                        <a href="/logout">Salir</a>
-                    </div>
-                </div>
-            {#else}
-                <a href="/ingresar" class="btn btn-primary login-button" data-nav-link>Ingresar</a>
-            {/if}
-        </div>
-    </header>
-    <nav class="breadcrumbs" aria-label="Ruta de navegación">{#insert breadcrumbs}{/}</nav>
-    <div id="notification" class="notification hidden" role="alert"></div>
-    <div id="loading" class="loading hidden"><div class="spinner"></div></div>
-    <main id="main-content" class="container">
-        {#insert main}{/}
-        {#if version?? || links??}
-            {#include partials/project-header version=version stats=stats links=links /}
-        {/if}
-    </main>
-    <footer>
-        <div class="container">
-            <p>&copy; {app:currentYear()} Homedir &ndash; v{app:version()}</p>
-        </div>
-    </footer>
-</div>
 
-{#include fragments/toasts.qute.html/}
+<body>
+    <script>
+        window.__EF_AUTH__ = { isAuth: { app: isAuthenticated() } };
+        if (window.__EF_AUTH__.isAuth) { document.documentElement.classList.add('auth'); }
+    </script>
+    {#include fragments/floating-shapes.html/}
+    <div class="app-container">
+        <a href="#main-content" class="skip-link">Ir al contenido principal</a>
+        {#include fragments/header
+        activePage=""
+        userAuthenticated=app:isAuthenticated()
+        userName=app:userName()
+        userInitial=app:userAvatar() /}
+        <!-- Legacy Nav removed/replaced by header fragment -->
+        <nav class="breadcrumbs" aria-label="Ruta de navegación">{#insert breadcrumbs}{/}</nav>
+        <nav class="breadcrumbs" aria-label="Ruta de navegación">{#insert breadcrumbs}{/}</nav>
+        <div id="notification" class="notification hidden" role="alert"></div>
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+        </div>
+        <main id="main-content" class="container">
+            {#insert main}{/}
+            {#if version?? || links??}
+            {#include partials/project-header version=version stats=stats links=links /}
+            {/if}
+        </main>
+        {#include fragments/character-sheet.html/}
+        {#include fragments/footer.html/}
+    </div>
+    <script src="/js/retro-theme.js" defer></script>
+
+    {#include fragments/login-modal.html/}
+    {#include fragments/toasts.qute.html/}
 </body>
+
 </html>
