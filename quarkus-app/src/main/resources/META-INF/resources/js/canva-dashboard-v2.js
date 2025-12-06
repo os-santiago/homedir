@@ -248,51 +248,67 @@ function updateCharacterSheet() {
 }
 
 // Login Functions
-async function handleLogin(provider) {
-    const btn = provider === 'google' ? document.getElementById('googleLogin') : document.getElementById('githubLogin');
-    if (btn) {
-        btn.classList.add('loading');
-        btn.disabled = true;
+// Login Functions
+// Using Real Backend Flow
+function handleLogin(provider) {
+    if (provider === 'github') {
+        window.location.href = '/private/github/start?redirect=' + encodeURIComponent(window.location.pathname);
+    } else {
+        // Google or others using standard endpoint
+        window.location.href = '/ingresar';
     }
+}
 
-    // Simulate login
-    const demoNames = ['Alex Chen', 'Maria Garcia', 'Jamal Johnson', 'Sofia Rodriguez', 'Kai Nakamura'];
-    const randomName = demoNames[Math.floor(Math.random() * demoNames.length)];
-    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+async function fetchCurrentUserProfile() {
+    try {
+        const response = await fetch('/api/me', {
+            headers: {
+                Accept: 'application/json'
+            }
+        });
 
-    const demoLevel = Math.floor(Math.random() * 5) + 1;
-    const demoExperience = Math.floor(Math.random() * 500);
+        if (!response.ok) {
+            console.error('Failed to fetch current user profile', response.status);
+            return;
+        }
 
-    const newUser = {
-        user_id: userId,
-        display_name: randomName,
-        avatar_url: '',
-        level: demoLevel,
-        experience: demoExperience,
-        contributions: Math.floor(Math.random() * 30),
-        quests_completed: Math.floor(Math.random() * 10),
-        events_attended: Math.floor(Math.random() * 5),
-        projects_hosted: Math.floor(Math.random() * 3),
-        connections: Math.floor(Math.random() * 20),
-        login_provider: provider,
-        created_at: new Date().toISOString()
-    };
+        const profile = await response.json();
+        if (!profile) return;
 
-    const result = await window.dataSdk.create(newUser);
-
-    if (result.isOk) {
-        currentUser = newUser;
-        closeLoginModal();
+        if (!profile.authenticated) {
+            currentUser = null;
+        } else {
+            currentUser = {
+                user_id: profile.userId,
+                display_name: profile.displayName || 'Player',
+                avatar_url: profile.avatarUrl || '',
+                level: profile.level ?? 1,
+                experience: profile.experience ?? 0,
+                contributions: profile.contributions ?? 0,
+                quests_completed: profile.questsCompleted ?? 0,
+                events_attended: profile.eventsAttended ?? 0,
+                projects_hosted: profile.projectsHosted ?? 0,
+                connections: profile.connections ?? 0
+            };
+        }
         updateNavigation();
         updateCharacterSheet();
-        showToast(`Welcome, ${randomName}! 🎉 Your character has been created!`);
-    } else {
-        showToast('Login failed. Please try again.');
-    }
+        updateProfileDisplay();
 
-    if (btn) {
-        btn.classList.remove('loading');
-        btn.disabled = false;
+    } catch (e) {
+        console.error('Error loading current user profile', e);
+    }
+}
+
+function checkGithubLinkSuccess() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('githubLinked') === '1') {
+        showToast('🎉 GitHub Account Linked Successfully!');
+        // Clean URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        // Refresh profile to get updated stats/avatar
+        fetchCurrentUserProfile();
     }
 }
 
@@ -334,5 +350,7 @@ if (window.dataSdk) {
 // Run on load
 document.addEventListener('DOMContentLoaded', () => {
     initListeners();
+    fetchCurrentUserProfile(); // Fetch real data
+    checkGithubLinkSuccess(); // Check for redirects
     updateCharacterSheet();
 });
