@@ -16,6 +16,6 @@ public class HomeResourceRedirectTest {
         .get("/events")
         .then()
         .statusCode(200)
-        .body(containsString("Eventos OSS Santiago"));
+        .body(containsString("Eventos y charlas"));
   }
 }
