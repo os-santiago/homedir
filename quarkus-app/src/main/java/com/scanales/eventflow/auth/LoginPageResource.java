@@ -18,7 +18,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 @Path("/ingresar")
 public class LoginPageResource {
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
   @CheckedTemplate(basePath = "LoginPage")
   static class Templates {
@@ -26,7 +27,9 @@ public class LoginPageResource {
         boolean localEnabled,
         boolean loginError,
         String localUsersDescription,
-        boolean githubEnabled);
+        boolean githubEnabled,
+        boolean userAuthenticated,
+        String userName);
   }
 
   @GET
@@ -36,22 +39,22 @@ public class LoginPageResource {
       return Response.seeOther(URI.create("/profile")).build();
     }
     boolean loginError = error != null;
-    boolean localEnabled =
-        ConfigProvider.getConfig()
-            .getOptionalValue("app.auth.local-enabled", Boolean.class)
-            .orElse(false);
-    String localUsersDescription =
-        ConfigProvider.getConfig()
-            .getOptionalValue("app.auth.local-users", String.class)
-            .orElse("");
+    boolean localEnabled = ConfigProvider.getConfig()
+        .getOptionalValue("app.auth.local-enabled", Boolean.class)
+        .orElse(false);
+    String localUsersDescription = ConfigProvider.getConfig()
+        .getOptionalValue("app.auth.local-users", String.class)
+        .orElse("");
     var cfg = ConfigProvider.getConfig();
-    boolean githubEnabled =
-        cfg.getOptionalValue("GH_CLIENT_ID", String.class).filter(v -> !v.isBlank()).isPresent()
-            && cfg.getOptionalValue("GH_CLIENT_SECRET", String.class)
-                .filter(v -> !v.isBlank())
-                .isPresent();
+    boolean githubEnabled = cfg.getOptionalValue("GH_CLIENT_ID", String.class).filter(v -> !v.isBlank()).isPresent()
+        && cfg.getOptionalValue("GH_CLIENT_SECRET", String.class)
+            .filter(v -> !v.isBlank())
+            .isPresent();
+    boolean isAuthenticated = identity != null && !identity.isAnonymous();
+    String userName = isAuthenticated ? identity.getPrincipal().getName() : null;
+
     return Response.ok(
-            Templates.ingresar(localEnabled, loginError, localUsersDescription, githubEnabled))
+        Templates.ingresar(localEnabled, loginError, localUsersDescription, githubEnabled, isAuthenticated, userName))
         .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
         .header("Pragma", "no-cache")
         .header("Vary", "Cookie")

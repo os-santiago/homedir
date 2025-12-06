@@ -479,15 +479,17 @@ function updateProfileDisplay() {
 }
 
 // Event Listeners
-document.getElementById('openLoginBtn').addEventListener('click', openLoginModal);
-document.getElementById('closeLoginBtn').addEventListener('click', closeLoginModal);
-document.getElementById('googleLogin').addEventListener('click', () => handleLogin('google'));
-document.getElementById('githubLogin').addEventListener('click', () => handleLogin('github'));
-document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-document.getElementById('loginCharacterBtn').addEventListener('click', openLoginModal);
-document.getElementById('logoutCharacterBtn').addEventListener('click', handleLogout);
-document.getElementById('communityCard').addEventListener('click', showCommunityView);
-document.getElementById('backButton').addEventListener('click', hideCommunityView);
+// Event Listeners
+const el = (id) => document.getElementById(id);
+if (el('openLoginBtn')) el('openLoginBtn').addEventListener('click', openLoginModal);
+if (el('closeLoginBtn')) el('closeLoginBtn').addEventListener('click', closeLoginModal);
+if (el('googleLogin')) el('googleLogin').addEventListener('click', () => handleLogin('google'));
+if (el('githubLogin')) el('githubLogin').addEventListener('click', () => handleLogin('github'));
+if (el('logoutBtn')) el('logoutBtn').addEventListener('click', handleLogout);
+if (el('loginCharacterBtn')) el('loginCharacterBtn').addEventListener('click', openLoginModal);
+if (el('logoutCharacterBtn')) el('logoutCharacterBtn').addEventListener('click', handleLogout);
+if (el('communityCard')) el('communityCard').addEventListener('click', showCommunityView);
+if (el('backButton')) el('backButton').addEventListener('click', hideCommunityView);
 
 // Close modal when clicking outside
 document.getElementById('loginModal').addEventListener('click', (e) => {
