@@ -164,6 +164,11 @@
       border-bottom-color: #ffd700;
     }
 
+    .retro-nav-link:visited {
+      color: #abc5ff;
+      border-bottom-color: #abc5ff;
+    }
+
     .user-avatar-small {
       width: 32px;
       height: 32px;
