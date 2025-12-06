@@ -1,6 +1,6 @@
 
-let currentUser = null;
-let allUsers = [];
+var currentUser = null;
+var allUsers = [];
 
 // Equipment/Collectibles System
 const COLLECTIBLES = [

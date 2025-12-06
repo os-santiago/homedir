@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Proyectos</title>
+  <title>Ingresar · Homedir</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -103,7 +103,7 @@
 
     <a href="/" class="retro-nav-link ">Home</a>
     <a href="/comunidad" class="retro-nav-link ">Comunidad</a>
-    <a href="/proyectos" class="retro-nav-link is-active">Proyectos</a>
+    <a href="/proyectos" class="retro-nav-link ">Proyectos</a>
     <a href="/eventos" class="retro-nav-link ">Eventos</a>
 
 <a href="/notifications/center"
@@ -119,72 +119,29 @@
 </nav>
     <main id="main-content" class="homedir-main" role="main">
 
-<nav class="breadcrumbs"><span>Inicio</span> / <strong>Proyectos</strong></nav>
-
 <header class="page-header">
   <div class="section-header">
-    <p class="section-subtitle">Roadmap · Homedir</p>
-    <h1>Proyectos activos</h1>
+    <p class="section-subtitle">Acceso · Homedir</p>
+    <h1>Ingresar a Homedir</h1>
   </div>
-  <p class="section-subtitle">Sigue el estado de los módulos y entra directo al repositorio o sección correspondiente.
-  </p>
-
-  <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-    <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank" rel="noopener">Abrir
-      repositorio</a>
-    <a href="/comunidad" class="btn-primary"
-      style="background: transparent; border: 1px solid white; color: white;">Unirme a la comunidad</a>
-  </div>
+  <p class="section-subtitle">Usa tu cuenta para administrar eventos y experiencias.</p>
 </header>
 
 <section class="page-grid">
-  <div class="section-header" style="grid-column: 1 / -1; margin-top: 1rem;">
-    <p class="section-subtitle">Módulos</p>
-    <h2 class="page-title">Hoja de ruta visible</h2>
+  <div class="section-card" style="grid-column: 1 / -1; max-width: 600px; margin: 0 auto;">
+
+    <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+      <a href="/profile" class="btn-primary" style="text-align: center;">Ingresar con Google</a>
+      <a href="/private/github/start?redirect=/private/profile" class="btn-primary"
+        style="background: transparent; border: 1px solid white; color: white; text-align: center;">Ingresar con
+        GitHub</a>
+    </div>
+
+
+    <p style="text-align: center; margin-top: 2rem; font-size: 0.8rem;">
+      <a href="/" class="nav-link">Volver al inicio</a>
+    </p>
   </div>
-
-  <article class="section-card">
-    <div style="display: flex; flex-direction: column; height: 100%;">
-      <p class="eyebrow">Backend</p>
-      <h3 style="margin-bottom: 0.5rem;">Homedir Core</h3>
-      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Base de la plataforma: autenticación, perfiles y orquestación de módulos.</p>
-
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-        <span class="badge"
-          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En producción</span>
-        <a class="nav-link" href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener">Abrir ↗</a>
-      </div>
-    </div>
-  </article>
-  <article class="section-card">
-    <div style="display: flex; flex-direction: column; height: 100%;">
-      <p class="eyebrow">Tiempo real</p>
-      <h3 style="margin-bottom: 0.5rem;">Notificaciones Globales</h3>
-      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Canal WebSocket y centro de notificaciones para eventos y alertas.</p>
-
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-        <span class="badge"
-          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">Beta</span>
-        <a class="nav-link" href="https://github.com/os-santiago/homedir/tree/main/quarkus-app" target="_blank" rel="noopener">Abrir ↗</a>
-      </div>
-    </div>
-  </article>
-  <article class="section-card">
-    <div style="display: flex; flex-direction: column; height: 100%;">
-      <p class="eyebrow">Personas</p>
-      <h3 style="margin-bottom: 0.5rem;">Comunidad</h3>
-      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Directorio de integrantes y onboarding con GitHub para contribuir.</p>
-
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-        <span class="badge"
-          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En diseño</span>
-        <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">Abrir ↗</a>
-      </div>
-    </div>
-  </article>
 </section>
     </main>
 

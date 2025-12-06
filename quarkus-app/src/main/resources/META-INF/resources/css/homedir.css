@@ -14,12 +14,19 @@
 }
 
 :root {
-  --font-display: 'Press Start 2P', cursive;
-  --font-body: 'Courier Prime', 'Courier New', monospace;
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
 
-  --text-xs: 0.75rem;
-  /* 12px */
-  --text-sm: 0.875rem;
+  /* Color Palette */
+  --color-accent: #ffd700;
+  --color-text-main: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(0, 0, 0, 0.45);
+
+  --text-xs: 0.85rem;
+  /* 14px approx */
+  --text-sm: 0.95rem;
+  /* 15px approx */
   /* 14px */
   --text-base: 1rem;
   /* 16px */
@@ -55,25 +62,52 @@ body {
   min-height: 100vh;
 }
 
-/* Pixel grid sutil en el fondo */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-  pointer-events: none;
+/* Removed Pixel grid sutil en el fondo */
+
+/* Base Tag Styles */
+main {
+  display: block;
+  width: 100%;
+  min-height: 80vh;
+  position: relative;
   z-index: 1;
 }
 
-.floating-shapes {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  overflow: hidden;
+section {
+  display: block;
+  width: 100%;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+article {
+  display: block;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+footer {
+  display: block;
+  width: 100%;
+  padding: 3rem 0;
+  text-align: center;
+  opacity: 0.8;
+  font-size: 0.8rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Common Layout Utils */
+.page-container {
+  width: 100%;
+}
+
+position: fixed;
+inset: 0;
+pointer-events: none;
+z-index: 2;
+overflow: hidden;
 }
 
 .shape {
@@ -246,11 +280,11 @@ body::before {
 
 .hd-nav-link,
 .nav-link {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-decoration: none;
   color: #ffffff;
   opacity: 0.9;
@@ -391,9 +425,11 @@ body::before {
 }
 
 .nav-link {
-  font-size: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-decoration: none;
   color: #ffffff;
   opacity: 0.9;
