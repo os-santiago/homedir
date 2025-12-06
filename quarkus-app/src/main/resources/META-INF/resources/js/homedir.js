@@ -102,8 +102,8 @@ function onConfigChange(newConfig) {
     mainTagline.textContent = `${tagline} - The community platform to scale your teams and projects`;
   }
 
-  document.body.style.background = `linear-gradient(135deg, ${config.background_start || defaultConfig.background_start} 0%, ${config.background_end || defaultConfig.background_end} 100%)`;
-  document.body.style.color = config.text_color || defaultConfig.text_color;
+  // document.body.style.background = `linear-gradient(135deg, ${config.background_start || defaultConfig.background_start} 0%, ${config.background_end || defaultConfig.background_end} 100%)`;
+  // document.body.style.color = config.text_color || defaultConfig.text_color;
 }
 
 function showToast(message) {
@@ -277,7 +277,7 @@ async function handleLogin(provider) {
 
   closeLoginModal();
   updateNavigation();
-  updateCharacterSheet();
+  // updateCharacterSheet();
   updateCommunityStats(allUsers);
   updateProfileDisplay();
   showToast(`Welcome, ${randomName}! 🎉 Your character has been created!`);
@@ -289,7 +289,7 @@ async function handleLogin(provider) {
 function handleLogout() {
   currentUser = null;
   updateNavigation();
-  updateCharacterSheet();
+  // updateCharacterSheet();
   updateCommunityStats(allUsers);
   updateProfileDisplay();
   showToast('Logged out successfully - Character data saved!');
@@ -447,7 +447,7 @@ async function fetchCurrentUserProfile() {
     }
 
     updateNavigation();
-    updateCharacterSheet();
+    // updateCharacterSheet();
     updateCommunityStats(allUsers);
     updateProfileDisplay();
   } catch (e) {
@@ -566,5 +566,5 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  onConfigChange(defaultConfig);
+  // onConfigChange(defaultConfig);
 });

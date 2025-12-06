@@ -1,366 +1,43 @@
 {#include layout/main}
 
 {#body}
-<div class="floating-shapes">
-  <div class="shape shape-1">
-    <svg viewBox="0 0 120 120" aria-hidden="true">
-      <circle cx="60" cy="60" r="52" fill="url(#grad1)" opacity="0.12" />
-      <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ff8bd1" />
-          <stop offset="100%" stop-color="#7bd7ff" />
-        </linearGradient>
-      </defs>
-    </svg>
+<section class="hero-section">
+  <h1 class="hero-title">PLATAFORMA COMUNITARIA PARA ESCALAR TUS PROYECTOS OPEN SOURCE.</h1>
+  <div class="hero-actions">
+    <button class="btn-primary">Comenzar</button>
+    <button class="btn-secondary">Saber más</button>
   </div>
-  <div class="shape shape-2">
-    <svg viewBox="0 0 160 160" aria-hidden="true">
-      <rect x="18" y="18" width="124" height="124" rx="28" ry="28" fill="#7bd7ff" opacity="0.1" />
-      <rect x="36" y="36" width="88" height="88" rx="22" ry="22" fill="#ff8bd1" opacity="0.16" />
-    </svg>
+</section>
+
+<section class="content-grid">
+  <!-- Comunidad -->
+  <div class="img-card" onclick="window.location.href='/comunidad'">
+    <div class="img-placeholder">
+      <span class="card-label">Comunidad</span>
+    </div>
   </div>
-  <div class="shape shape-3">
-    <svg viewBox="0 0 140 140" aria-hidden="true">
-      <polygon points="70,8 130,52 106,132 34,132 10,52" fill="#caffbf" opacity="0.12" />
-      <circle cx="70" cy="78" r="24" fill="#7bd7ff" opacity="0.18" />
-    </svg>
+
+  <!-- Proyectos -->
+  <div class="img-card" onclick="window.location.href='/proyectos'">
+    <div class="img-placeholder">
+      <span class="card-label">Proyectos</span>
+    </div>
   </div>
-  <div class="shape shape-4">
-    <svg viewBox="0 0 140 140" aria-hidden="true">
-      <path
-        d="M20,40 C30,12 110,6 120,40 C128,70 112,118 72,126 C40,132 12,94 20,40 Z"
-        fill="#ff8bd1"
-        opacity="0.1" />
-      <path d="M44,54 C46,32 96,30 96,56 C96,82 64,78 64,100" stroke="#7bd7ff" stroke-width="6" opacity="0.22" />
-    </svg>
+
+  <!-- Eventos -->
+  <div class="img-card" onclick="window.location.href='/eventos'">
+    <div class="img-placeholder">
+      <span class="card-label">Eventos</span>
+    </div>
   </div>
+</section>
+
+<div style="display:none;">
+  <!-- Keeping logic elements hidden but present if needed for Qute context -->
+  {upcoming.size} {past.size}
 </div>
 
-<nav class="top-nav">
-  <div class="inner">
-    <div class="logo">
-      <div class="logo-icon" aria-hidden="true">
-        <svg viewBox="0 0 64 64" role="img" aria-label="HomeDir logo">
-          <rect x="6" y="6" width="52" height="52" rx="12" fill="#0d071b" stroke="#ff8bd1" stroke-width="3" />
-          <path d="M20 44 L20 22 L32 14 L44 22 L44 44" fill="none" stroke="#7bd7ff" stroke-width="3" />
-          <rect x="28" y="32" width="8" height="12" fill="#ff8bd1" />
-        </svg>
-      </div>
-      <div class="logo-text">
-        <span id="navPlatformName">HomeDir</span>
-        <span class="logo-subtitle" id="navTagline">by OpenSourceSantiago</span>
-      </div>
-    </div>
-    <div class="links">
-      <a href="/comunidad" class="nav-link">Community</a>
-      <a href="/eventos" class="nav-link">Events</a>
-      <a href="/proyectos" class="nav-link">Projects</a>
-      <a href="/notifications/center" class="nav-link">Notifications</a>
-    </div>
-    <div class="nav-actions">
-      <!-- TODO: integrar estado real de login Qute con esta nav -->
-      <button class="login-btn-nav" id="openLoginBtn">Login</button>
-      <div class="user-menu" id="userMenuNav">
-        <div class="user-avatar" id="navAvatar" aria-hidden="true">HD</div>
-        <div class="user-dropdown">
-          <div class="user-name" id="navUserName">Logged in</div>
-          <div class="user-actions">
-            <a href="/profile" class="btn">Profile</a>
-            <a href="/logout" class="btn" id="logoutBtn">Logout</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<div class="app-container">
-  <div class="public-content" id="publicContent">
-    <header class="public-header">
-      <div class="content">
-        <h1 id="mainTitle">HomeDir</h1>
-        <p class="tagline" id="mainTagline">
-          by OpenSourceSantiago - The community platform to scale your teams and projects
-        </p>
-        <div class="meta">
-          <span>Open-source community</span>
-          <span>Pixel-art inspired UI</span>
-          <span>Community-first workflow</span>
-        </div>
-        <div class="actions">
-          <button class="pixel-button">Launch Campus</button>
-          <a class="cta" href="/docs">Explore Docs</a>
-        </div>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="label">Version</span>
-          <span class="value">{version}</span>
-        </div>
-        <div class="stat-card">
-          <span class="label">Upcoming events</span>
-          <span class="value">{upcoming.size ?: 0}</span>
-        </div>
-        <div class="stat-card">
-          <span class="label">Past events</span>
-          <span class="value">{past.size ?: 0}</span>
-        </div>
-        <div class="stat-card">
-          <span class="label">Updated</span>
-          <span class="value">{stats.get('lastUpdated')}</span>
-        </div>
-      </div>
-    </header>
-
-    <main class="main-sections">
-      <article class="section-card" id="communityCard">
-        <div>
-          <p class="eyebrow">Community</p>
-          <h2 id="communityTitle">Community Campus</h2>
-          <p id="communityDescription">
-            Dive into the HomeDir community campus to connect, build and level up your events together.
-          </p>
-          <div class="meta">
-            <span class="badge">Live beta</span>
-            <span class="activity-text">{upcoming.size ?: 0} events this month</span>
-          </div>
-          <div class="actions">
-            <button class="btn primary" id="openCommunity">Enter campus</button>
-            <button class="btn" id="viewRoadmap">View roadmap</button>
-          </div>
-        </div>
-        <div class="visual">
-          <div class="badge">Pixel social hub</div>
-          <p class="detail">Backed by arcades, squads, and open collaboration.</p>
-        </div>
-      </article>
-
-      <article class="section-card" id="eventsCard">
-        <div>
-          <p class="eyebrow">Events</p>
-          <h2 id="eventsTitle">Events & Experiences</h2>
-          <p>
-            Keep track of meetups, conferences, and workshops with our adaptive agenda for teams and communities.
-          </p>
-          <div class="meta">
-            <span class="activity-text">{upcoming.size ?: 0} events coming up</span>
-            <span class="activity-text">{past.size ?: 0} archived</span>
-          </div>
-          <div class="actions">
-            <a href="/eventos" class="btn primary">View events</a>
-            <a href="/ingresar" class="btn">Create new</a>
-          </div>
-        </div>
-        <div class="visual">
-          <div class="badge">Real-time schedule</div>
-          <p class="detail">Follow sessions, speakers, and live talks.</p>
-        </div>
-      </article>
-
-      <article class="section-card" id="projectsCard">
-        <div>
-          <p class="eyebrow">Projects</p>
-          <h2 id="projectsTitle">Open Projects</h2>
-          <p>
-            Collaborate on open-source initiatives, find squads to join, and boost your builder profile with HomeDir.
-          </p>
-          <div class="meta">
-            <span class="activity-text">Fresh collaborations weekly</span>
-            <span class="activity-text">New squads forming</span>
-          </div>
-          <div class="actions">
-            <a href="/proyectos" class="btn primary">Browse projects</a>
-            <a href="/docs" class="btn">Contribute guide</a>
-          </div>
-        </div>
-        <div class="visual">
-          <div class="badge">Missions</div>
-          <p class="detail">Stack buffs, complete missions, and unlock perks.</p>
-        </div>
-      </article>
-    </main>
-  </div>
-
-  <div class="community-view" id="communityView" style="display: none;">
-    <div class="community-header">
-      <button class="back-button" id="backButton">⬅ Back to overview</button>
-      <div class="view-meta">
-        <span class="badge">Community campus</span>
-        <span class="activity-text">Live rooms and quests</span>
-      </div>
-    </div>
-    <div class="village-container">
-      <div class="village-landscape">
-        <div class="village-sky"></div>
-        <div class="village-ground"></div>
-        <div class="village-buildings">
-          <div class="building hall">Hall</div>
-          <div class="building lab">Builder Lab</div>
-          <div class="building arcade">Arcade</div>
-        </div>
-        <div class="inhabitants-layer" id="inhabitantsLayer"></div>
-      </div>
-      <aside class="community-stats">
-        <h3>Community stats</h3>
-        <div class="stat-grid">
-          <div class="stat-item">
-            <div class="stat-icon">👥</div>
-            <div class="stat-info">
-              <div class="stat-value" id="totalMembers">0</div>
-              <div class="stat-label">Members online</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">⭐</div>
-            <div class="stat-info">
-              <div class="stat-value" id="totalXP">0</div>
-              <div class="stat-label">Total XP</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">🏆</div>
-            <div class="stat-info">
-              <div class="stat-value" id="totalQuests">0</div>
-              <div class="stat-label">Quests Completed</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">🚀</div>
-            <div class="stat-info">
-              <div class="stat-value" id="totalProjects">0</div>
-              <div class="stat-label">Active Projects</div>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </div>
-</div>
-
-<footer class="character-sheet">
-  <div class="character-container">
-    <div class="novice-warning" id="noviceWarning">
-      You're playing as a NOVICE guest! Login to save your progress and unlock your full character potential!
-    </div>
-    <div class="character-header">
-      <div class="character-title">
-        <h3 id="characterName">NOVICE GUEST</h3>
-        <span class="character-class" id="characterClass">VISITOR</span>
-      </div>
-      <div class="character-level" id="characterLevel">LEVEL 1</div>
-    </div>
-    <div class="character-main">
-      <div class="character-vitals">
-        <div class="vital-bar">
-          <div class="vital-label"><span class="vital-name">❤️ HP (HEALTH)</span> <span class="vital-value" id="hpValue">10 / 100</span></div>
-          <div class="vital-progress">
-            <div class="vital-fill hp-fill" id="hpBar" style="width: 10%"></div>
-          </div>
-        </div>
-        <div class="vital-bar">
-          <div class="vital-label"><span class="vital-name">⚡ SP (SKILL)</span> <span class="vital-value" id="spValue">5 / 100</span></div>
-          <div class="vital-progress">
-            <div class="vital-fill sp-fill" id="spBar" style="width: 5%"></div>
-          </div>
-        </div>
-        <div class="vital-bar">
-          <div class="vital-label"><span class="vital-name">⭐ XP (EXPERIENCE)</span> <span class="vital-value" id="xpValue">0 / 100</span></div>
-          <div class="vital-progress">
-            <div class="vital-fill xp-fill" id="xpBar" style="width: 0%"></div>
-          </div>
-        </div>
-      </div>
-      <div class="character-stats">
-        <div class="stat-box">
-          <div class="stat-icon">🎯</div>
-          <div class="stat-value" id="contributionsStat">0</div>
-          <div class="stat-label">Contributions</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">🏆</div>
-          <div class="stat-value" id="questsStat">0</div>
-          <div class="stat-label">Quests</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">📅</div>
-          <div class="stat-value" id="eventsStat">0</div>
-          <div class="stat-label">Events</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">🚀</div>
-          <div class="stat-value" id="projectsStat">0</div>
-          <div class="stat-label">Projects</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">🤝</div>
-          <div class="stat-value" id="connectionsStat">0</div>
-          <div class="stat-label">Connections</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">💎</div>
-          <div class="stat-value" id="experienceStat">0</div>
-          <div class="stat-label">Total XP</div>
-        </div>
-      </div>
-      <div class="character-equipment">
-        <div class="equipment-header">
-          <h4>🎒 EQUIPMENT</h4>
-        </div>
-        <div class="equipment-grid" id="equipmentGrid">
-          <div class="equipment-slot empty" data-slot="0">
-            <div class="equipment-tooltip">EMPTY SLOT</div>
-          </div>
-          <div class="equipment-slot empty" data-slot="1">
-            <div class="equipment-tooltip">EMPTY SLOT</div>
-          </div>
-          <div class="equipment-slot empty" data-slot="2">
-            <div class="equipment-tooltip">EMPTY SLOT</div>
-          </div>
-          <div class="equipment-slot empty" data-slot="3">
-            <div class="equipment-tooltip">EMPTY SLOT</div>
-          </div>
-          <div class="equipment-slot empty" data-slot="4">
-            <div class="equipment-tooltip">EMPTY SLOT</div>
-          </div>
-          <div class="equipment-slot empty" data-slot="5">
-            <div class="equipment-tooltip">EMPTY SLOT</div>
-          </div>
-        </div>
-        <div class="equipment-count">0 / 6 ITEMS</div>
-      </div>
-    </div>
-    <div class="character-actions" id="characterActions">
-      <button class="character-action-btn" id="loginCharacterBtn"><span>🎮 LOGIN TO SAVE CHARACTER</span></button>
-      <button class="character-action-btn" id="logoutCharacterBtn" style="display: none;"><span>🚪 LOGOUT</span></button>
-    </div>
-  </div>
-</footer>
-
-<div class="login-modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-  <div class="login-card">
-    <button class="close-modal" id="closeLoginBtn" aria-label="Close login">×</button>
-    <h2 id="loginTitle">Welcome to HomeDir</h2>
-    <p class="modal-subtitle">Login to manage your profile and data</p>
-    <div class="login-buttons">
-      <button class="login-btn" id="googleLogin">
-        <svg viewbox="0 0 24 24" fill="currentColor">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-        </svg>
-        Continue with Google
-      </button>
-      <button class="login-btn" id="githubLogin">
-        <svg viewbox="0 0 24 24" fill="currentColor">
-          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-        </svg>
-        Continue with GitHub
-      </button>
-    </div>
-  </div>
-</div>
-
+{#include fragments/login-modal.html/}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 {/body}
 {/include}
