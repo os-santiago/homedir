@@ -27,11 +27,14 @@ import org.jboss.logging.Logger;
 public class GithubLinkService {
   private static final Logger LOG = Logger.getLogger(GithubLinkService.class);
 
-  @Inject UserProfileService profiles;
+  @Inject
+  UserProfileService profiles;
 
-  @Inject ObjectMapper objectMapper;
+  @Inject
+  ObjectMapper objectMapper;
 
-  @Inject Config config;
+  @Inject
+  Config config;
 
   @ConfigProperty(name = "app.public-url", defaultValue = "http://localhost:8080")
   String publicUrl;
@@ -45,15 +48,14 @@ public class GithubLinkService {
     String callback = canonicalCallback();
     String target = (redirect != null && !redirect.isBlank()) ? redirect : "/private/profile";
 
-    String authorize =
-        "https://github.com/login/oauth/authorize?client_id="
-            + url(getGithubClientId())
-            + "&redirect_uri="
-            + url(callback)
-            + "&scope="
-            + url("read:user user:email")
-            + "&state="
-            + url(state);
+    String authorize = "https://github.com/login/oauth/authorize?client_id="
+        + url(getGithubClientId())
+        + "&redirect_uri="
+        + url(callback)
+        + "&scope="
+        + url("read:user user:email")
+        + "&state="
+        + url(state);
 
     return Response.seeOther(URI.create(authorize))
         .cookie(
@@ -75,6 +77,12 @@ public class GithubLinkService {
       LOG.warnf("GitHub OAuth returned error: %s", error);
       return redirectWithParams("/private/profile?githubError=denied");
     }
+    // Handle anonymous users trying to "Login" instead of "Link"
+    if (identity.isAnonymous()) {
+      // We currently do not support creating a session via GitHub (only linking).
+      // Redirect to login page with explanation.
+      return Response.seeOther(URI.create("/ingresar?error=github_login_unsupported")).build();
+    }
     if (code == null || code.isBlank()) {
       return redirectWithParams("/private/profile?githubError=missingCode");
     }
@@ -87,21 +95,19 @@ public class GithubLinkService {
 
     try {
       HttpClient client = HttpClient.newHttpClient();
-      HttpRequest tokenRequest =
-          HttpRequest.newBuilder()
-              .uri(URI.create("https://github.com/login/oauth/access_token"))
-              .header("Accept", "application/json")
-              .POST(
-                  HttpRequest.BodyPublishers.ofString(
-                      "client_id="
-                          + url(getGithubClientId())
-                          + "&client_secret="
-                          + url(getGithubClientSecret())
-                          + "&code="
-                          + url(code)))
-              .build();
-      HttpResponse<String> tokenResponse =
-          client.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
+      HttpRequest tokenRequest = HttpRequest.newBuilder()
+          .uri(URI.create("https://github.com/login/oauth/access_token"))
+          .header("Accept", "application/json")
+          .POST(
+              HttpRequest.BodyPublishers.ofString(
+                  "client_id="
+                      + url(getGithubClientId())
+                      + "&client_secret="
+                      + url(getGithubClientSecret())
+                      + "&code="
+                      + url(code)))
+          .build();
+      HttpResponse<String> tokenResponse = client.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
       if (tokenResponse.statusCode() >= 400) {
         LOG.warnf("GitHub token exchange failed: %s", tokenResponse.body());
         return redirectWithParams("/private/profile?githubError=token");
@@ -112,14 +118,12 @@ public class GithubLinkService {
         LOG.warnf("GitHub token missing access_token field: %s", tokenResponse.body());
         return redirectWithParams("/private/profile?githubError=token");
       }
-      HttpRequest meRequest =
-          HttpRequest.newBuilder()
-              .uri(URI.create("https://api.github.com/user"))
-              .header("Accept", "application/json")
-              .header("Authorization", "Bearer " + accessToken)
-              .build();
-      HttpResponse<String> meResponse =
-          client.send(meRequest, HttpResponse.BodyHandlers.ofString());
+      HttpRequest meRequest = HttpRequest.newBuilder()
+          .uri(URI.create("https://api.github.com/user"))
+          .header("Accept", "application/json")
+          .header("Authorization", "Bearer " + accessToken)
+          .build();
+      HttpResponse<String> meResponse = client.send(meRequest, HttpResponse.BodyHandlers.ofString());
       if (meResponse.statusCode() >= 400) {
         LOG.warnf("GitHub user fetch failed: %s", meResponse.body());
         return redirectWithParams("/private/profile?githubError=user");
@@ -134,10 +138,9 @@ public class GithubLinkService {
       String ghId = userJson.path("id").asText();
 
       String userId = currentUserId(identity);
-      String name =
-          AdminUtils.getClaim(identity, "name") != null
-              ? AdminUtils.getClaim(identity, "name")
-              : identity.getPrincipal().getName();
+      String name = AdminUtils.getClaim(identity, "name") != null
+          ? AdminUtils.getClaim(identity, "name")
+          : identity.getPrincipal().getName();
       String email = AdminUtils.getClaim(identity, "email");
 
       profiles.linkGithub(

@@ -13,12 +13,13 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 @Path("/private/github")
-@Authenticated
-public class GithubLinkResource {
+public class GithubLinkResource {t
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
-  @Inject GithubLinkService service;
+  @Inject
+  GithubLinkService service;
 
   @GET
   @Path("start")
