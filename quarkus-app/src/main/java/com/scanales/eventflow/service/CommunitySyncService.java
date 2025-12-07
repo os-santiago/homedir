@@ -51,7 +51,8 @@ public class CommunitySyncService {
   @ConfigProperty(name = "community.github.default-branch", defaultValue = "main")
   String defaultBranch;
 
-  @Inject Config config;
+  @Inject
+  Config config;
 
   private final HttpClient client = HttpClient.newBuilder().build();
   private final ObjectMapper jsonMapper = new ObjectMapper();
@@ -84,8 +85,7 @@ public class CommunitySyncService {
     }
     try {
       MembersPayload payload = loadMembers();
-      List<CommunityMember> members =
-          payload.members != null ? new ArrayList<>(payload.members) : new ArrayList<>();
+      List<CommunityMember> members = payload.members != null ? new ArrayList<>(payload.members) : new ArrayList<>();
       if (members.stream().anyMatch(m -> memberEqual(m, member))) {
         LOG.infov("Member already registered: {0}", member.getGithub());
         return Optional.empty();
@@ -115,6 +115,7 @@ public class CommunitySyncService {
       return existing.getGithub().equalsIgnoreCase(candidate.getGithub());
     }
     return existing.getUserId() != null
+        && candidate.getUserId() != null
         && existing.getUserId().equalsIgnoreCase(candidate.getUserId());
   }
 
@@ -222,15 +223,14 @@ public class CommunitySyncService {
   }
 
   private String branchSha(String branch) throws Exception {
-    HttpRequest request =
-        requestBuilder()
-            .uri(
-                URI.create(
-                    String.format(
-                        "https://api.github.com/repos/%s/%s/git/ref/heads/%s",
-                        repoOwner, repoName, branch)))
-            .GET()
-            .build();
+    HttpRequest request = requestBuilder()
+        .uri(
+            URI.create(
+                String.format(
+                    "https://api.github.com/repos/%s/%s/git/ref/heads/%s",
+                    repoOwner, repoName, branch)))
+        .GET()
+        .build();
     HttpResponse<String> response = send(request);
     if (response.statusCode() >= 400) {
       throw new IllegalStateException("Unable to fetch branch sha: " + response.body());
@@ -256,7 +256,8 @@ public class CommunitySyncService {
     return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
 
-  private record MembersPayload(List<CommunityMember> members, String sha) {}
+  private record MembersPayload(List<CommunityMember> members, String sha) {
+  }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   private static class JsonFileResponse {
@@ -267,7 +268,8 @@ public class CommunitySyncService {
   private static class CommunityData {
     public List<CommunityMember> members;
 
-    CommunityData() {}
+    CommunityData() {
+    }
 
     CommunityData(List<CommunityMember> members) {
       this.members = members;
