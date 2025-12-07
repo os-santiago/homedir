@@ -13,7 +13,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 @Path("/private/github")
-public class GithubLinkResource {t
+public class GithubLinkResource {
 
   @Inject
   SecurityIdentity identity;
