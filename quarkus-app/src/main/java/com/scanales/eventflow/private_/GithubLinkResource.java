@@ -28,6 +28,9 @@ public class GithubLinkResource {t
     return service.start(identity, redirect);
   }
 
+  @GET
+  @Path("callback")
+  @Produces(MediaType.TEXT_HTML)
   public Response callback(
       @QueryParam("code") String code,
       @QueryParam("state") String state,

@@ -191,7 +191,7 @@ public class GithubLinkService {
     if (normalized.endsWith("/")) {
       normalized = normalized.substring(0, normalized.length() - 1);
     }
-    return normalized + "/auth/post-login";
+    return normalized + "/private/github/callback";
   }
 
   private String currentUserId(SecurityIdentity identity) {
