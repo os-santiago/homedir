@@ -8,6 +8,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 PORT = int(os.environ.get("WEBHOOK_PORT", "9000"))
 LOGFILE = os.environ.get("WEBHOOK_LOGFILE", "/var/log/homedir-webhook.log")
 UPDATE_SCRIPT = os.environ.get("UPDATE_SCRIPT", "/usr/local/bin/homedir-update.sh")
+STATUS_CMD = os.environ.get(
+    "STATUS_CMD",
+    "podman ps --filter name=homedir --format '{{.Image}} {{.Status}}'",
+)
+LOG_LINES = int(os.environ.get("WEBHOOK_LOG_LINES", "80"))
 
 
 def log_line(msg: str) -> None:
@@ -33,6 +38,48 @@ def extract_tag(payload: dict) -> str | None:
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         return  # silence default logging
+
+    def do_GET(self):
+        status_out = ""
+        status_err = None
+        try:
+            result = subprocess.run(
+                STATUS_CMD,
+                shell=True,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            status_out = result.stdout.strip() or "(no container found)"
+            if result.returncode != 0:
+                status_err = result.stderr.strip()
+        except Exception as exc:  # noqa: BLE001
+            status_err = str(exc)
+
+        logs_text = "(log file not found)"
+        try:
+            with open(LOGFILE, "r", encoding="utf-8", errors="replace") as fh:
+                lines = fh.readlines()
+                logs_text = "".join(lines[-LOG_LINES:]) if lines else "(log is empty)"
+        except FileNotFoundError:
+            pass
+        except Exception as exc:  # noqa: BLE001
+            logs_text = f"(error reading log: {exc})"
+
+        body = [
+            f"status: {status_out}",
+        ]
+        if status_err:
+            body.append(f"status_error: {status_err}")
+        body.append("")
+        body.append(f"last {LOG_LINES} log lines from {LOGFILE}:")
+        body.append(logs_text)
+        response = "\n".join(body)
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(response.encode("utf-8"))
 
     def do_POST(self):
         length = int(self.headers.get("content-length", 0))
