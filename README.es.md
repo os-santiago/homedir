@@ -10,7 +10,7 @@
 
 Plataforma inteligente de gestión de eventos: espacios, actividades, ponentes, asistentes y planificación personalizada.
 
-Versión estable más reciente: **v2.2.10**.
+Versión estable más reciente: **v2.2.11**.
 
 ## Funciones
 - Gestiona eventos, ponentes, escenarios y charlas
@@ -72,4 +72,3 @@ Para divulgación coordinada de vulnerabilidades, consulta [SECURITY.es.md](SECU
 
 ## Integración Navia × ElevenLabs
 Para ejecutar el MVP local que valida cache + RAG consulta [docs/es/navia-elevenlabs-mvp.md](docs/es/navia-elevenlabs-mvp.md).
-

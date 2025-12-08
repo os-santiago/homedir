@@ -22,7 +22,7 @@ La estrategia de persistencia de EventFlow está documentada en:
  - [ADR 2025-09-07: Persistencia centralizada](docs/es/architecture/ADR-2025-09-07-persistence-service-centralized.md)
 
 
-Latest stable release: **v2.2.10**.
+Latest stable release: **v2.2.11**.
 
 ## Features
 - Manage events, speakers, scenarios, and talks
