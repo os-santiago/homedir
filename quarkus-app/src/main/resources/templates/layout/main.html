@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {@ boolean noNav = false}
 {@ boolean noFooter = false}
+{@ boolean noCharacterSheet = false}
 {@ String activePage = ""}
 {@ boolean userAuthenticated = false}
 {@ String userName = ""}
@@ -36,7 +37,9 @@
       {#insert body}{/}
     </main>
 
+    {#if noCharacterSheet != true}
     {#include fragments/character-sheet.html/}
+    {/if}
 
     {#if noFooter != true}
     {#include fragments/footer.html/}
