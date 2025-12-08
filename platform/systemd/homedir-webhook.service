@@ -1,0 +1,14 @@
+[Unit]
+Description=Webhook listener for homedir image updates
+After=network.target
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /usr/local/bin/homedir-webhook.py
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target

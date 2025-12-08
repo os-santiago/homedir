@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Optional: override with ENV_FILE=/path/to/envfile
+ENV_FILE="${ENV_FILE:-/etc/homedir.env}"
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "$ENV_FILE"
+  set +a
+fi
+
+TAG="${1:-${DEPLOY_TAG:-}}"
+if [[ -z "$TAG" ]]; then
+  echo "usage: homedir-update.sh <tag> (or set DEPLOY_TAG in env)" >&2
+  exit 1
+fi
+
+REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
+IMAGE="${REPO}:${TAG}"
+LOGFILE="${LOGFILE:-/var/log/homedir-update.log}"
+CONTAINER="${CONTAINER_NAME:-homedir}"
+HOST_PORT="${HOST_PORT:-8080}"
+CONTAINER_PORT="${CONTAINER_PORT:-8080}"
+DATA_VOLUME="${DATA_VOLUME:-/work/data:/work/data:Z}"
+
+log() {
+  echo "$(date -Iseconds): $*" >> "$LOGFILE"
+}
+
+start_container() {
+  local image="$1"
+  systemctl stop homedir-podman-run.scope >/dev/null 2>&1 || true
+  systemctl reset-failed homedir-podman-run.scope >/dev/null 2>&1 || true
+
+  env_args=()
+  [[ -f "$ENV_FILE" ]] && env_args+=(--env-file "$ENV_FILE")
+
+  podman run -d --name "$CONTAINER" --restart=always \
+    -p "${HOST_PORT}:${CONTAINER_PORT}" \
+    "${env_args[@]}" \
+    -v "$DATA_VOLUME" \
+    "$image" >>"$LOGFILE" 2>&1
+}
+
+log "starting update for tag=${TAG}"
+
+prev_image=""
+if podman container exists "$CONTAINER" >/dev/null 2>&1; then
+  prev_image=$(podman inspect -f '{{.Config.Image}}' "$CONTAINER" 2>/dev/null || true)
+  log "previous container image=${prev_image}"
+fi
+
+if ! podman pull "$IMAGE" >>"$LOGFILE" 2>&1; then
+  log "failed to pull ${IMAGE}"
+  exit 1
+fi
+
+new_digest=$(podman image inspect "$IMAGE" --format '{{.Digest}}')
+log "pulled ${IMAGE} digest=${new_digest}"
+
+if podman container exists "$CONTAINER" >/dev/null 2>&1; then
+  log "removing existing container ${CONTAINER}"
+  podman rm -f "$CONTAINER" >>"$LOGFILE" 2>&1 || true
+fi
+
+if start_container "$IMAGE"; then
+  log "deployed ${IMAGE} (digest ${new_digest})"
+  exit 0
+fi
+
+log "deploy failed for ${IMAGE}"
+
+if [[ -n "$prev_image" ]]; then
+  log "attempting rollback to ${prev_image}"
+  podman rm -f "$CONTAINER" >>"$LOGFILE" 2>&1 || true
+  if start_container "$prev_image"; then
+    log "rollback succeeded using ${prev_image}"
+    exit 0
+  else
+    log "rollback failed for ${prev_image}"
+  fi
+fi
+
+exit 1
