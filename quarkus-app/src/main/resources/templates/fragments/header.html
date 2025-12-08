@@ -10,11 +10,17 @@
 
   <div class="nav-actions">
     {#if userAuthenticated}
-    <a href="/profile" class="btn-nav-outline">{userName}</a>
+    <div class="user-menu" style="display: flex; align-items: center; gap: 0.5rem;">
+      <div class="avatar-circle"
+        style="width: 32px; height: 32px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+        {userInitial}
+      </div>
+      <a href="/private/profile" class="btn-nav-outline" style="border: none; padding: 0;">{userName}</a>
+    </div>
     <a href="/logout" class="btn-nav-outline">Logout</a>
     {#else}
-    <a href="/ingresar" class="btn-nav-outline">Registrarse</a>
-    <a href="/ingresar" class="btn-nav-outline">Ingresar</a>
+    <!-- "El botón login debe enviar a private/profile" -->
+    <a href="/private/profile" class="btn-nav-outline">Ingresar</a>
     {/if}
   </div>
 </nav>
