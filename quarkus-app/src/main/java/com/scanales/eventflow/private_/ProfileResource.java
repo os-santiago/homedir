@@ -51,27 +51,37 @@ public class ProfileResource {
         com.scanales.eventflow.model.UserProfile.GithubAccount github,
         boolean githubLinked,
         String githubError,
-        boolean githubRequired);
+        boolean githubRequired,
+        boolean userAuthenticated,
+        String userName,
+        String userInitial);
   }
 
   /** Talks grouped by day within an event. */
-  public record DayGroup(int day, java.util.List<Talk> talks) {}
+  public record DayGroup(int day, java.util.List<Talk> talks) {
+  }
 
   /** Talks grouped by event. */
   public record EventGroup(
       com.scanales.eventflow.model.Event event,
       java.util.List<DayGroup> days,
-      java.util.List<com.scanales.eventflow.model.Speaker> speakers) {}
+      java.util.List<com.scanales.eventflow.model.Speaker> speakers) {
+  }
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
-  @Inject EventService eventService;
+  @Inject
+  EventService eventService;
 
-  @Inject UserScheduleService userSchedule;
+  @Inject
+  UserScheduleService userSchedule;
 
-  @Inject UsageMetricsService metrics;
+  @Inject
+  UsageMetricsService metrics;
 
-  @Inject UserProfileService userProfiles;
+  @Inject
+  UserProfileService userProfiles;
 
   @GET
   @Authenticated
@@ -102,46 +112,38 @@ public class ProfileResource {
 
     var info = userSchedule.getTalkDetailsForUser(email);
     var talkIds = info.keySet();
-    java.util.List<TalkInfo> entries =
-        talkIds.stream()
-            .map(eventService::findTalkInfo)
-            .filter(java.util.Objects::nonNull)
-            .toList();
+    java.util.List<TalkInfo> entries = talkIds.stream()
+        .map(eventService::findTalkInfo)
+        .filter(java.util.Objects::nonNull)
+        .toList();
 
     // Group talks by event and day, and collect speakers per event
-    java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<Integer, java.util.List<Talk>>>
-        grouped = new java.util.LinkedHashMap<>();
-    java.util.Map<
-            com.scanales.eventflow.model.Event,
-            java.util.Map<String, com.scanales.eventflow.model.Speaker>>
-        speakersByEvent = new java.util.LinkedHashMap<>();
+    java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<Integer, java.util.List<Talk>>> grouped = new java.util.LinkedHashMap<>();
+    java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<String, com.scanales.eventflow.model.Speaker>> speakersByEvent = new java.util.LinkedHashMap<>();
     for (TalkInfo te : entries) {
       grouped
           .computeIfAbsent(te.event(), k -> new java.util.TreeMap<>())
           .computeIfAbsent(te.talk().getDay(), k -> new java.util.ArrayList<>())
           .add(te.talk());
-      java.util.Map<String, com.scanales.eventflow.model.Speaker> eventSpeakers =
-          speakersByEvent.computeIfAbsent(
-              te.event(),
-              k -> new java.util.LinkedHashMap<String, com.scanales.eventflow.model.Speaker>());
+      java.util.Map<String, com.scanales.eventflow.model.Speaker> eventSpeakers = speakersByEvent.computeIfAbsent(
+          te.event(),
+          k -> new java.util.LinkedHashMap<String, com.scanales.eventflow.model.Speaker>());
       te.talk().getSpeakers().stream()
           .filter(s -> s.getId() != null && !s.getId().isBlank())
           .forEach(s -> eventSpeakers.putIfAbsent(s.getId(), s));
     }
-    java.util.List<EventGroup> groups =
-        grouped.entrySet().stream()
-            .map(
-                ev ->
-                    new EventGroup(
-                        ev.getKey(),
-                        ev.getValue().entrySet().stream()
-                            .map(d -> new DayGroup(d.getKey(), d.getValue()))
-                            .toList(),
-                        new java.util.ArrayList<>(
-                            speakersByEvent
-                                .getOrDefault(ev.getKey(), java.util.Map.of())
-                                .values())))
-            .toList();
+    java.util.List<EventGroup> groups = grouped.entrySet().stream()
+        .map(
+            ev -> new EventGroup(
+                ev.getKey(),
+                ev.getValue().entrySet().stream()
+                    .map(d -> new DayGroup(d.getKey(), d.getValue()))
+                    .toList(),
+                new java.util.ArrayList<>(
+                    speakersByEvent
+                        .getOrDefault(ev.getKey(), java.util.Map.of())
+                        .values())))
+        .toList();
 
     var summary = userSchedule.getSummaryForUser(email);
     return Templates.profile(
@@ -158,7 +160,10 @@ public class ProfileResource {
         userProfiles.upsert(email, name, email).getGithub(),
         githubLinked,
         githubError,
-        linkGithub);
+        linkGithub,
+        true,
+        name,
+        name.substring(0, 1).toUpperCase());
   }
 
   @GET
@@ -198,8 +203,7 @@ public class ProfileResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response updateTalk(@PathParam("id") String id, @Valid UpdateRequest req) {
     String email = getEmail();
-    boolean ok =
-        userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations, req.comment);
+    boolean ok = userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations, req.comment);
     String status = ok ? "updated" : "missing";
     return Response.ok(java.util.Map.of("status", status)).build();
   }
@@ -209,12 +213,13 @@ public class ProfileResource {
       Boolean attended,
       @Min(1) @Max(5) Integer rating,
       java.util.Set<String> motivations,
-      @jakarta.validation.constraints.Size(max = 200) String comment) {}
+      @jakarta.validation.constraints.Size(max = 200) String comment) {
+  }
 
   @POST
   @Path("add/{id}")
   @Authenticated
-  @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_HTML})
+  @Produces({ MediaType.APPLICATION_JSON, MediaType.TEXT_HTML })
   public Response addTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
     String email = getEmail();
     String name = getClaim("name");
@@ -262,7 +267,7 @@ public class ProfileResource {
   @POST
   @Path("remove/{id}")
   @Authenticated
-  @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_HTML})
+  @Produces({ MediaType.APPLICATION_JSON, MediaType.TEXT_HTML })
   public Response removeTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
     String email = getEmail();
     boolean removed = userSchedule.removeTalkForUser(email, id);
