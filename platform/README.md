@@ -4,7 +4,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 
 ## Contents
 - `scripts/homedir-update.sh` – pulls a tagged image, restarts the container, and rolls back on failure.
-- `scripts/homedir-webhook.py` – listens for Quay webhooks and triggers `homedir-update.sh` with the tag from the payload.
+- `scripts/homedir-webhook.py` – listens for Quay webhooks and triggers `homedir-update.sh` with the tag from the payload. GET `/` on the same port returns `podman ps`-like status and the tail of the webhook log.
 - `systemd/homedir-webhook.service` – runs the webhook listener.
 - `systemd/homedir-update.service` / `systemd/homedir-update.timer` – optional manual/timer runner; keep disabled unless you set a tag.
 - `nginx/homedir.conf`, `nginx/int.conf` – HTTPS reverse proxies with a maintenance page for 502/503/504.
