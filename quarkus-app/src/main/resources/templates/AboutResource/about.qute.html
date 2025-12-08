@@ -1,0 +1,34 @@
+{#include layout/main}
+
+{#title}About · Homedir{/title}
+
+{#body}
+<section class="hd-section">
+    <div class="hd-page">
+        <div class="hd-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+            <h1 class="hd-page-title">About Homedir</h1>
+            <p class="hd-page-intro">System Status & Version Information</p>
+
+            <div class="hd-list-group" style="text-align: left; margin-top: 2rem;">
+                <div class="hd-list-group-item">
+                    <strong>Version:</strong> <span>{version}</span>
+                </div>
+                <div class="hd-list-group-item">
+                    <strong>Commit Hash:</strong> <code>{commitId}</code>
+                </div>
+                <div class="hd-list-group-item">
+                    <strong>Build Time:</strong> <span>{buildTime}</span>
+                </div>
+                <div class="hd-list-group-item">
+                    <strong>Environment:</strong> <span class="badge">{environment}</span>
+                </div>
+            </div>
+
+            <div class="hd-actions" style="margin-top: 2rem; justify-content: center;">
+                <a href="/" class="hd-btn hd-btn-primary">Back to Home</a>
+            </div>
+        </div>
+    </div>
+</section>
+{/body}
+{/include}
