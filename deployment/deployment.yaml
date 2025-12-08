@@ -24,7 +24,7 @@ spec:
       containers:
         - name: homedir
           # Alias tag; production uses immutable digests
-          image: quay.io/sergio_canales_e/homedir:2.2.3
+          image: quay.io/sergio_canales_e/homedir:2.2.10
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -117,4 +117,3 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       terminationGracePeriodSeconds: 30
-
