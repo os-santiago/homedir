@@ -16,104 +16,75 @@
         </div>
     </div>
 
-    <div class="dashboard-divider"></div>
+    <div class="dash-stat-card">
+        <div class="stat-icon">💎</div>
+        <div class="stat-value">0</div>
+        <div class="stat-label">TOTAL XP</div>
+    </div>
+</div>
+</div>
 
-    <!-- Main Grid (3 Columns) -->
-    <div class="dashboard-grid">
+<!-- Col 3: Equipment -->
+<div class="dashboard-col equipment-col">
+    <div class="equipment-header-box">
+        🎒 EQUIPMENT
+    </div>
+    <div class="equipment-slot-grid">
+        <div class="dash-slot"></div>
+        <div class="dash-slot"></div>
+        <div class="dash-slot"></div>
+        <div class="dash-slot"></div>
+        <div class="dash-slot"></div>
+        <!-- Character Sheet Footer -->
+        <div class="retro-dashboard">
+            <!-- Top Warning -->
+            <div class="dashboard-warning">
+                ⚠️ You're playing as a NOVICE guest! Login to save your progress and unlock your full character
+                potential!
+            </div>
 
-        <!-- Col 1: Vitals -->
-        <div class="dashboard-col vitals-col">
-            <!-- HP -->
-            <div class="vital-card">
-                <div class="vital-header">
-                    <span class="vital-icon">❤️</span>
-                    <span class="vital-name">HP (HEALTH)</span>
-                    <span class="vital-val">10 / 100</span>
+            <!-- Header Row -->
+            <div class="dashboard-header">
+                <div class="identity-box">
+                    <span class="identity-name">NOVICE GUEST</span>
+                    <span class="identity-class">VISITOR</span>
                 </div>
-                <div class="vital-bar-track">
-                    <div class="vital-bar-fill hp" style="width: 10%"></div>
+                <div class="level-box">
+                    LEVEL 1
                 </div>
             </div>
-            <!-- SP -->
-            <div class="vital-card">
-                <div class="vital-header">
-                    <span class="vital-icon">⚡</span>
-                    <span class="vital-name">SP (SKILL)</span>
-                    <span class="vital-val">5 / 100</span>
-                </div>
-                <div class="vital-bar-track">
-                    <div class="vital-bar-fill sp" style="width: 5%"></div>
-                </div>
-            </div>
-            <!-- XP -->
-            <div class="vital-card">
-                <div class="vital-header">
-                    <span class="vital-icon">⭐</span>
-                    <span class="vital-name">XP (EXPERIENCE)</span>
-                    <span class="vital-val">0 / 100</span>
-                </div>
-                <div class="vital-bar-track">
-                    <div class="vital-bar-fill xp" style="width: 0%"></div>
-                </div>
+
+            <div class="dash-stat-card">
+                <div class="stat-icon">💎</div>
+                <div class="stat-value">0</div>
+                <div class="stat-label">TOTAL XP</div>
             </div>
         </div>
-
-        <!-- Col 2: Stats Grid -->
-        <div class="dashboard-col stats-col">
-            <div class="stat-card-grid">
-                <div class="dash-stat-card">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">CONTRIBUTIONS</div>
-                </div>
-                <div class="dash-stat-card">
-                    <div class="stat-icon">🏆</div>
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">QUESTS</div>
-                </div>
-                <div class="dash-stat-card">
-                    <div class="stat-icon">📅</div>
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">EVENTS</div>
-                </div>
-                <div class="dash-stat-card">
-                    <div class="stat-icon">🚀</div>
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">PROJECTS</div>
-                </div>
-                <div class="dash-stat-card">
-                    <div class="stat-icon">🤝</div>
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">CONNECTIONS</div>
-                </div>
-                <div class="dash-stat-card">
-                    <div class="stat-icon">💎</div>
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">TOTAL XP</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Col 3: Equipment -->
-        <div class="dashboard-col equipment-col">
-            <div class="equipment-header-box">
-                🎒 EQUIPMENT
-            </div>
-            <div class="equipment-slot-grid">
-                <div class="dash-slot"></div>
-                <div class="dash-slot"></div>
-                <div class="dash-slot"></div>
-                <div class="dash-slot"></div>
-                <div class="dash-slot"></div>
-                <div class="dash-slot"></div>
-            </div>
-        </div>
-
     </div>
 
-    <div class="dashboard-footer">
-        <button class="retro-login-btn" id="loginCharacterBtn">🎮 LOGIN TO SAVE CHARACTER</button>
-        <button class="retro-login-btn" id="logoutCharacterBtn"
-            style="display: none; border-color: #ff4500; color: #ff4500;">🚪 LOGOUT</button>
+    <!-- Col 3: Equipment -->
+    <div class="dashboard-col equipment-col">
+        <div class="equipment-header-box">
+            🎒 EQUIPMENT
+        </div>
+        <div class="equipment-slot-grid">
+            <div class="dash-slot"></div>
+            <div class="dash-slot"></div>
+            <div class="dash-slot"></div>
+            <div class="dash-slot"></div>
+            <div class="dash-slot"></div>
+            <div class="dash-slot"></div>
+        </div>
     </div>
+
+</div>
+
+<div class="dashboard-footer">
+    {#if userSession.loggedIn}
+    <a href="/logout" class="retro-login-btn" style="text-decoration: none; border-color: #ff4500; color: #ff4500;">🚪
+        LOGOUT</a>
+    {#else}
+    <a href="/private/profile" class="retro-login-btn" style="text-decoration: none;">🎮 LOGIN TO SAVE CHARACTER</a>
+    {/if}
+</div>
 </div>

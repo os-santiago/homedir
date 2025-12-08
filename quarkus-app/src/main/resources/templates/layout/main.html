@@ -32,11 +32,7 @@
 
   <div class="app-container">
     {#if noNav != true}
-    {#include fragments/header
-    activePage=activePage
-    userAuthenticated=userAuthenticated
-    userName=userName
-    userInitial=userInitial /}
+    {#include fragments/header /}
     {/if}
 
     <main id="main-content" class="homedir-main" role="main">
