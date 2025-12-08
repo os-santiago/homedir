@@ -22,6 +22,16 @@
                 <div class="hd-list-group-item">
                     <strong>Environment:</strong> <span class="badge">{environment}</span>
                 </div>
+                <div class="hd-list-group-item">
+                    <strong>Google Auth:</strong>
+                    {#if oidcConfigured}<span style="color: lightgreen;">Configured</span>{#else}<span
+                        style="color: red;">Misconfigured (Using default/missing)</span>{/if}
+                </div>
+                <div class="hd-list-group-item">
+                    <strong>GitHub Auth:</strong>
+                    {#if githubConfigured}<span style="color: lightgreen;">Configured</span>{#else}<span
+                        style="color: red;">Missing Client ID</span>{/if}
+                </div>
             </div>
 
             <div class="hd-actions" style="margin-top: 2rem; justify-content: center;">

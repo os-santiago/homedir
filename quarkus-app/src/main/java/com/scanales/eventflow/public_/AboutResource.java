@@ -22,7 +22,9 @@ public class AboutResource {
                 String version,
                 String commitId,
                 String buildTime,
-                String environment);
+                String environment,
+                boolean oidcConfigured,
+                boolean githubConfigured);
     }
 
     @GET
@@ -47,6 +49,16 @@ public class AboutResource {
                 .getOptionalValue("quarkus.profile", String.class)
                 .orElse("dev");
 
-        return Templates.about(version, commitId, buildTime, environment);
+        String oidcClientId = ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.oidc.client-id", String.class)
+                .orElse("missing");
+        boolean oidcConfigured = !"dev-client".equals(oidcClientId) && !"missing".equals(oidcClientId);
+
+        String ghClientId = ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.oidc.github.client-id", String.class)
+                .orElse("missing");
+        boolean githubConfigured = ghClientId != null && !ghClientId.isEmpty() && !"missing".equals(ghClientId);
+
+        return Templates.about(version, commitId, buildTime, environment, oidcConfigured, githubConfigured);
     }
 }
