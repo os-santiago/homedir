@@ -19,11 +19,14 @@ import java.net.URI;
 @Path("/legacy-home")
 public class HomeResource {
 
-  @Inject UsageMetricsService metrics;
+  @Inject
+  UsageMetricsService metrics;
 
-  @Inject Template index;
+  @Inject
+  Template index;
 
-  @Inject LandingService landingService;
+  @Inject
+  LandingService landingService;
 
   @GET
   @PermitAll
@@ -31,12 +34,13 @@ public class HomeResource {
   public TemplateInstance home(
       @jakarta.ws.rs.core.Context HttpHeaders headers,
       @jakarta.ws.rs.core.Context RoutingContext context) {
-    // TODO: Legacy landing page kept for reference; main public routes moved to PublicPagesResource.
+    // TODO: Legacy landing page kept for reference; main public routes moved to
+    // PublicPagesResource.
     metrics.recordPageView("/legacy-home", headers, context);
     LandingViewModel viewModel = landingService.buildViewModel();
     return index
         .data("vm", viewModel)
-        .data("loginUrl", "/ingresar")
+        .data("loginUrl", "/private/profile")
         .data("logoutUrl", "/logout");
   }
 

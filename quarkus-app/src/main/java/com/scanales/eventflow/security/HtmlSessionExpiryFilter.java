@@ -25,11 +25,11 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 @Priority(Priorities.AUTHORIZATION)
 public class HtmlSessionExpiryFilter implements ContainerRequestFilter {
 
-  private static final Set<String> PUBLIC_PATHS =
-      Set.of("/", "/login", "/ingresar", "/profile", "/health", "/metrics");
+  private static final Set<String> PUBLIC_PATHS = Set.of("/", "/login", "/profile", "/health", "/metrics");
   private static final Pattern STATIC_PATTERN = Pattern.compile("^/(css|js|images|static|img)/.*");
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
   @ConfigProperty(name = "app.auth.redirect-on-expire", defaultValue = "true")
   boolean redirectOnExpire;

@@ -21,8 +21,11 @@ import org.jboss.logging.Logger;
 /**
  * Simple per-IP rate limiter for auth/public/API endpoints.
  *
- * <p>Uses a fixed window counter per bucket (auth/logout/api) and per client key (first
- * X-Forwarded-For IP or "unknown"). Defaults are conservative and can be tuned via config.
+ * <p>
+ * Uses a fixed window counter per bucket (auth/logout/api) and per client key
+ * (first
+ * X-Forwarded-For IP or "unknown"). Defaults are conservative and can be tuned
+ * via config.
  */
 @Provider
 @PreMatching
@@ -31,8 +34,7 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
   private static final Logger LOG = Logger.getLogger(RateLimitingFilter.class);
 
-  private static final Set<String> AUTH_PATHS =
-      Set.of("/login", "/ingresar", "/auth", "/j_security_check");
+  private static final Set<String> AUTH_PATHS = Set.of("/login", "/auth", "/j_security_check");
   private static final Set<String> LOGOUT_PATHS = Set.of("/logout");
   private static final Set<String> SKIP_PATHS = Set.of("/", "/health", "/metrics");
   private static final Pattern STATIC_PATTERN = Pattern.compile("^/(css|js|images|static|img)/.*");
@@ -91,15 +93,14 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     String clientKey = extractClientKey(ctx);
     long now = System.currentTimeMillis();
 
-    Counter c =
-        counters.compute(
-            bucket.key(clientKey),
-            (k, v) -> {
-              if (v == null || now - v.windowStartMs >= bucket.windowMs) {
-                return new Counter(now, 1);
-              }
-              return new Counter(v.windowStartMs, v.count + 1);
-            });
+    Counter c = counters.compute(
+        bucket.key(clientKey),
+        (k, v) -> {
+          if (v == null || now - v.windowStartMs >= bucket.windowMs) {
+            return new Counter(now, 1);
+          }
+          return new Counter(v.windowStartMs, v.count + 1);
+        });
 
     if (now - c.windowStartMs < bucket.windowMs && c.count > bucket.limit) {
       LOG.warnf(
