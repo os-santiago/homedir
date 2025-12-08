@@ -11,13 +11,17 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Unit tests for {@link UserScheduleService} that avoid hitting private HTTP endpoints. */
+/**
+ * Unit tests for {@link UserScheduleService} that avoid hitting private HTTP
+ * endpoints.
+ */
 public class UserScheduleServiceTest {
 
-  @TempDir Path tempDir;
+  @TempDir
+  Path tempDir;
 
   private UserScheduleService newService() throws Exception {
-    System.setProperty("eventflow.data.dir", tempDir.toString());
+    System.setProperty("homedir.data.dir", tempDir.toString());
     PersistenceService ps = new PersistenceService();
     ps.objectMapper = new ObjectMapper();
     ps.init();

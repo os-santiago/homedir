@@ -29,7 +29,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
- * Persists application data to JSON files using an asynchronous writer. All write operations are
+ * Persists application data to JSON files using an asynchronous writer. All
+ * write operations are
  * queued on a single thread to avoid blocking user interactions.
  */
 @ApplicationScoped
@@ -37,7 +38,8 @@ public class PersistenceService {
 
   private static final Logger LOG = Logger.getLogger(PersistenceService.class);
 
-  @Inject ObjectMapper objectMapper;
+  @Inject
+  ObjectMapper objectMapper;
 
   private ObjectMapper mapper;
   private BlockingQueue<Runnable> queue;
@@ -53,7 +55,7 @@ public class PersistenceService {
   private final AtomicLong queueDropped = new AtomicLong();
   private volatile String lastError;
 
-  private final Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
+  private final Path dataDir = Paths.get(System.getProperty("homedir.data.dir", "data"));
   private final Path eventsFile = dataDir.resolve("events.json");
   private final Path speakersFile = dataDir.resolve("speakers.json");
   private final Path profilesFile = dataDir.resolve("user-profiles.json");
@@ -65,13 +67,12 @@ public class PersistenceService {
 
   @PostConstruct
   void init() {
-    mapper =
-        objectMapper
-            .copy()
-            .enable(SerializationFeature.INDENT_OUTPUT)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .registerModule(new JavaTimeModule());
+    mapper = objectMapper
+        .copy()
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .registerModule(new JavaTimeModule());
     try {
       Files.createDirectories(dataDir);
       LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
@@ -89,25 +90,23 @@ public class PersistenceService {
       queueMax = 10000;
     }
     queue = new ArrayBlockingQueue<>(queueMax);
-    executor =
-        new ThreadPoolExecutor(
-            1,
-            1,
-            0L,
-            TimeUnit.MILLISECONDS,
-            queue,
-            r -> {
-              Thread t = new Thread(r, "persistence-writer");
-              t.setDaemon(true);
-              return t;
-            });
-    retryScheduler =
-        Executors.newSingleThreadScheduledExecutor(
-            r -> {
-              Thread t = new Thread(r, "persistence-retry");
-              t.setDaemon(true);
-              return t;
-            });
+    executor = new ThreadPoolExecutor(
+        1,
+        1,
+        0L,
+        TimeUnit.MILLISECONDS,
+        queue,
+        r -> {
+          Thread t = new Thread(r, "persistence-writer");
+          t.setDaemon(true);
+          return t;
+        });
+    retryScheduler = Executors.newSingleThreadScheduledExecutor(
+        r -> {
+          Thread t = new Thread(r, "persistence-retry");
+          t.setDaemon(true);
+          return t;
+        });
   }
 
   @PreDestroy
@@ -165,24 +164,31 @@ public class PersistenceService {
 
   /** Loads events from disk or returns an empty map if none. */
   public Map<String, Event> loadEvents() {
-    return read(eventsFile, new TypeReference<Map<String, Event>>() {});
+    return read(eventsFile, new TypeReference<Map<String, Event>>() {
+    });
   }
 
   /** Loads speakers from disk or returns an empty map if none. */
   public Map<String, Speaker> loadSpeakers() {
-    return read(speakersFile, new TypeReference<Map<String, Speaker>>() {});
+    return read(speakersFile, new TypeReference<Map<String, Speaker>>() {
+    });
   }
 
   /** Loads user profiles from disk or returns an empty map if none. */
   public Map<String, UserProfile> loadUserProfiles() {
-    return read(profilesFile, new TypeReference<Map<String, UserProfile>>() {});
+    return read(profilesFile, new TypeReference<Map<String, UserProfile>>() {
+    });
   }
 
-  /** Loads user schedules for the given year from disk or returns an empty map if none. */
+  /**
+   * Loads user schedules for the given year from disk or returns an empty map if
+   * none.
+   */
   public Map<String, Map<String, UserScheduleService.TalkDetails>> loadUserSchedules(int year) {
     return read(
         scheduleFile(year),
-        new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {});
+        new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {
+        });
   }
 
   /** Lists all years that have user schedule files. */
@@ -193,9 +199,8 @@ public class PersistenceService {
           .map(Path::toString)
           .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
           .map(
-              n ->
-                  n.substring(
-                      SCHEDULE_FILE_PREFIX.length(), n.length() - SCHEDULE_FILE_SUFFIX.length()))
+              n -> n.substring(
+                  SCHEDULE_FILE_PREFIX.length(), n.length() - SCHEDULE_FILE_SUFFIX.length()))
           .map(
               s -> {
                 try {
@@ -213,31 +218,30 @@ public class PersistenceService {
   }
 
   /**
-   * Returns the most recent user schedule year within the last year or the current year if none.
+   * Returns the most recent user schedule year within the last year or the
+   * current year if none.
    */
   public int findLatestUserScheduleYear() {
     int currentYear = java.time.Year.now().getValue();
     try (var stream = Files.list(dataDir)) {
-      var years =
-          stream
-              .map(Path::getFileName)
-              .map(Path::toString)
-              .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
-              .map(
-                  n ->
-                      n.substring(
-                          SCHEDULE_FILE_PREFIX.length(),
-                          n.length() - SCHEDULE_FILE_SUFFIX.length()))
-              .map(
-                  s -> {
-                    try {
-                      return Integer.parseInt(s);
-                    } catch (NumberFormatException e) {
-                      return -1;
-                    }
-                  })
-              .filter(y -> y >= currentYear - 1)
-              .collect(Collectors.toList());
+      var years = stream
+          .map(Path::getFileName)
+          .map(Path::toString)
+          .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
+          .map(
+              n -> n.substring(
+                  SCHEDULE_FILE_PREFIX.length(),
+                  n.length() - SCHEDULE_FILE_SUFFIX.length()))
+          .map(
+              s -> {
+                try {
+                  return Integer.parseInt(s);
+                } catch (NumberFormatException e) {
+                  return -1;
+                }
+              })
+          .filter(y -> y >= currentYear - 1)
+          .collect(Collectors.toList());
       return years.isEmpty()
           ? currentYear
           : years.stream().mapToInt(Integer::intValue).max().orElse(currentYear);
@@ -266,7 +270,8 @@ public class PersistenceService {
       long writesFail,
       long writesRetries,
       long droppedDueCapacity,
-      String lastError) {}
+      String lastError) {
+  }
 
   public QueueStats getQueueStats() {
     long oldest = 0L;
@@ -392,7 +397,8 @@ public class PersistenceService {
   /** Blocks until all queued persistence tasks are finished. */
   public void flush() {
     try {
-      Future<?> f = executor.submit(() -> {});
+      Future<?> f = executor.submit(() -> {
+      });
       f.get();
     } catch (Exception e) {
       // ignore

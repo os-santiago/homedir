@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t eventflow-native:2.2.11 .
+# docker build -f src/main/docker/Dockerfile.native -t homedir-native:2.2.12 .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 eventflow-native:2.2.11
+# docker run -i --rm -p 8080:8080 homedir-native:2.2.12
 #
 # The base image has been switched to a distroless variant to reduce the attack surface
 ###

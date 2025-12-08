@@ -17,14 +17,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.jboss.logging.Logger;
 
-/** Repository persisting notifications per user using a single writer thread. */
+/**
+ * Repository persisting notifications per user using a single writer thread.
+ */
 @ApplicationScoped
 public class NotificationRepository {
 
   private static final Logger LOG = Logger.getLogger(NotificationRepository.class);
 
-  @Inject ObjectMapper mapper;
-  @Inject NotificationConfig config;
+  @Inject
+  ObjectMapper mapper;
+  @Inject
+  NotificationConfig config;
 
   private Path baseDir;
   private ThreadPoolExecutor executor;
@@ -32,7 +36,7 @@ public class NotificationRepository {
 
   @PostConstruct
   void init() {
-    baseDir = Paths.get(System.getProperty("eventflow.data.dir", "data"), "notifications");
+    baseDir = Paths.get(System.getProperty("homedir.data.dir", "data"), "notifications");
     try {
       Files.createDirectories(baseDir);
     } catch (IOException e) {
@@ -40,18 +44,17 @@ public class NotificationRepository {
     }
     int size = config.maxQueueSize > 0 ? config.maxQueueSize : 10000;
     queue = new ArrayBlockingQueue<>(size);
-    executor =
-        new ThreadPoolExecutor(
-            1,
-            1,
-            0L,
-            TimeUnit.MILLISECONDS,
-            queue,
-            r -> {
-              Thread t = new Thread(r, "notification-writer");
-              t.setDaemon(true);
-              return t;
-            });
+    executor = new ThreadPoolExecutor(
+        1,
+        1,
+        0L,
+        TimeUnit.MILLISECONDS,
+        queue,
+        r -> {
+          Thread t = new Thread(r, "notification-writer");
+          t.setDaemon(true);
+          return t;
+        });
   }
 
   @PreDestroy
@@ -91,14 +94,13 @@ public class NotificationRepository {
       throw new NotificationPersistenceException("Failed to serialize notifications", e);
     }
     Path f = fileForUser(userId);
-    Runnable task =
-        () -> {
-          try {
-            FileIO.atomicWrite(f, data);
-          } catch (IOException e) {
-            LOG.warnf(e, "Failed to persist notifications for user %s", userId);
-          }
-        };
+    Runnable task = () -> {
+      try {
+        FileIO.atomicWrite(f, data);
+      } catch (IOException e) {
+        LOG.warnf(e, "Failed to persist notifications for user %s", userId);
+      }
+    };
     if (!queue.offer(task)) {
       // drop silently; guard will have already checked depth
     } else {

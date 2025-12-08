@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.scanales</groupId>
-    <artifactId>eventflow</artifactId>
-    <version>2.2.12</version>
+    <artifactId>homedir</artifactId>
+    <version>2.2.13</version>
 
     <properties>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>

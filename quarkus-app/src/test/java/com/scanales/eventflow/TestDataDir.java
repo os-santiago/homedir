@@ -13,8 +13,8 @@ public class TestDataDir implements QuarkusTestResourceLifecycleManager {
     try {
       tempDir = Files.createTempDirectory("eventflow-test");
       String path = tempDir.toString();
-      System.setProperty("eventflow.data.dir", path);
-      return Map.of("eventflow.data.dir", path);
+      System.setProperty("homedir.data.dir", path);
+      return Map.of("homedir.data.dir", path);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

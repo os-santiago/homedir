@@ -42,20 +42,23 @@ public class AdminBackupResource {
     static native TemplateInstance index(String message);
   }
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
-  @Inject EventService eventService;
+  @Inject
+  EventService eventService;
 
-  @Inject SpeakerService speakerService;
+  @Inject
+  SpeakerService speakerService;
 
-  @Inject PersistenceService persistence;
+  @Inject
+  PersistenceService persistence;
 
   @ConfigProperty(name = "quarkus.application.version")
   String appVersion;
 
   private static final Logger LOG = Logger.getLogger(AdminBackupResource.class);
-  private static final Pattern BACKUP_VERSION =
-      Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
+  private static final Pattern BACKUP_VERSION = Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
 
   private boolean isAdmin() {
     return AdminUtils.isAdmin(identity);
@@ -81,7 +84,7 @@ public class AdminBackupResource {
     }
     try {
       persistence.flush();
-      java.nio.file.Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
+      java.nio.file.Path dataDir = Paths.get(System.getProperty("homedir.data.dir", "data"));
       if (!Files.exists(dataDir)) {
         return Response.status(Response.Status.BAD_REQUEST)
             .entity("\u274c Error: No hay datos para respaldar.")
@@ -133,27 +136,27 @@ public class AdminBackupResource {
     if (file == null || file.size() == 0) {
       LOG.warn("No file uploaded for restore");
       return Response.seeOther(
-              UriBuilder.fromPath(redirect)
-                  .queryParam("msg", "\u274c Archivo inv\u00e1lido.")
-                  .build())
+          UriBuilder.fromPath(redirect)
+              .queryParam("msg", "\u274c Archivo inv\u00e1lido.")
+              .build())
           .build();
     }
     String fileName = file.fileName();
     if (fileName == null || !fileName.endsWith(".zip")) {
       LOG.warnf("Invalid backup type: %s", fileName);
       return Response.seeOther(
-              UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
+          UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
           .build();
     }
     if (!isCompatibleVersion(fileName)) {
       LOG.warnf("Incompatible backup version: %s (app=%s)", fileName, appVersion);
       return Response.seeOther(
-              UriBuilder.fromPath(redirect)
-                  .queryParam("msg", "\u274c Versi\u00f3n incompatible.")
-                  .build())
+          UriBuilder.fromPath(redirect)
+              .queryParam("msg", "\u274c Versi\u00f3n incompatible.")
+              .build())
           .build();
     }
-    java.nio.file.Path dataDir = Paths.get(System.getProperty("eventflow.data.dir", "data"));
+    java.nio.file.Path dataDir = Paths.get(System.getProperty("homedir.data.dir", "data"));
     try {
       Files.createDirectories(dataDir);
       long free = dataDir.toFile().getUsableSpace();
@@ -161,9 +164,9 @@ public class AdminBackupResource {
       if (free < size) {
         LOG.warn("Not enough disk space for restore");
         return Response.seeOther(
-                UriBuilder.fromPath(redirect)
-                    .queryParam("msg", "\u274c Espacio insuficiente.")
-                    .build())
+            UriBuilder.fromPath(redirect)
+                .queryParam("msg", "\u274c Espacio insuficiente.")
+                .build())
             .build();
       }
       try (InputStream in = Files.newInputStream(file.filePath());
@@ -180,12 +183,12 @@ public class AdminBackupResource {
       speakerService.reload();
       LOG.infof("Backup restored from %s", fileName);
       return Response.seeOther(
-              UriBuilder.fromPath(redirect).queryParam("msg", "\u2705 Backup restaurado.").build())
+          UriBuilder.fromPath(redirect).queryParam("msg", "\u2705 Backup restaurado.").build())
           .build();
     } catch (Exception e) {
       LOG.error("Failed to restore backup", e);
       return Response.seeOther(
-              UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Error al restaurar.").build())
+          UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Error al restaurar.").build())
           .build();
     }
   }
@@ -202,8 +205,7 @@ public class AdminBackupResource {
     if (appParts.length < 2 || backupParts.length < 2) {
       return false;
     }
-    boolean sameMajorMinor =
-        appParts[0].equals(backupParts[0]) && appParts[1].equals(backupParts[1]);
+    boolean sameMajorMinor = appParts[0].equals(backupParts[0]) && appParts[1].equals(backupParts[1]);
     if (!sameMajorMinor) {
       return false;
     }

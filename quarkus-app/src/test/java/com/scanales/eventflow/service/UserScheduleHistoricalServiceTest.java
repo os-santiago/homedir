@@ -13,7 +13,8 @@ import org.junit.jupiter.api.io.TempDir;
 /** Tests loading and unloading historical user schedules. */
 public class UserScheduleHistoricalServiceTest {
 
-  @TempDir Path tempDir;
+  @TempDir
+  Path tempDir;
 
   static class TestCapacityService extends CapacityService {
     Mode mode = Mode.ADMITTING;
@@ -30,7 +31,7 @@ public class UserScheduleHistoricalServiceTest {
   }
 
   private UserScheduleService newService(TestCapacityService cap) throws Exception {
-    System.setProperty("eventflow.data.dir", tempDir.toString());
+    System.setProperty("homedir.data.dir", tempDir.toString());
     PersistenceService ps = new PersistenceService();
     ps.objectMapper = new ObjectMapper();
     ps.init();
