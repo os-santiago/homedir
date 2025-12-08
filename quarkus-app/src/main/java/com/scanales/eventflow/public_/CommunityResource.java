@@ -32,11 +32,14 @@ import java.util.Optional;
 @Path("/comunidad")
 public class CommunityResource {
 
-  @Inject CommunityService communityService;
+  @Inject
+  CommunityService communityService;
 
-  @Inject UserProfileService userProfileService;
+  @Inject
+  UserProfileService userProfileService;
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
   @CheckedTemplate
   static class Templates {
@@ -54,9 +57,8 @@ public class CommunityResource {
         String prError);
   }
 
-  private static final DateTimeFormatter DATE_FMT =
-      DateTimeFormatter.ofPattern("dd MMM yyyy", new Locale("es", "ES"))
-          .withZone(ZoneId.systemDefault());
+  private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy", new Locale("es", "ES"))
+      .withZone(ZoneId.systemDefault());
 
   @GET
   @PermitAll
@@ -72,26 +74,23 @@ public class CommunityResource {
     List<MemberView> filtered = communityService.search(query).stream().map(this::toView).toList();
 
     String userId = currentUserId().orElse(null);
-    MemberView current =
-        userId != null
-            ? communityService.findByUserId(userId).map(this::toView).orElse(null)
-            : null;
-    boolean needsGithub =
-        isAuthenticated() && userProfileService.find(userId).map(p -> !p.hasGithub()).orElse(true);
+    MemberView current = userId != null
+        ? communityService.findByUserId(userId).map(this::toView).orElse(null)
+        : null;
+    boolean needsGithub = isAuthenticated() && userProfileService.find(userId).map(p -> !p.hasGithub()).orElse(true);
 
-    TemplateInstance template =
-        Templates.community(
-            filtered,
-            query,
-            joined,
-            missingGithub,
-            already,
-            needsGithub,
-            isAuthenticated(),
-            current,
-            communityService.countMembers(),
-            decode(prUrl),
-            prError);
+    TemplateInstance template = Templates.community(
+        filtered,
+        query,
+        joined,
+        missingGithub,
+        already,
+        needsGithub,
+        isAuthenticated(),
+        current,
+        communityService.countMembers(),
+        decode(prUrl),
+        prError);
 
     return withLayoutData(template, "comunidad");
   }
@@ -103,7 +102,7 @@ public class CommunityResource {
   public Response join(@FormParam("redirect") String redirect) {
     String userId = currentUserId().orElse(null);
     if (userId == null) {
-      return Response.seeOther(URI.create("/ingresar")).build();
+      return Response.seeOther(URI.create("/private/profile")).build();
     }
     var profile = userProfileService.upsert(userId, currentUserName().orElse(null), userEmail());
     if (!profile.hasGithub()) {
@@ -161,8 +160,7 @@ public class CommunityResource {
   }
 
   private MemberView toView(CommunityMember member) {
-    String since =
-        member.getJoinedAt() != null ? DATE_FMT.format(member.getJoinedAt()) : "Recién llegado";
+    String since = member.getJoinedAt() != null ? DATE_FMT.format(member.getJoinedAt()) : "Recién llegado";
     return new MemberView(
         member.getDisplayName(),
         member.getGithub(),
@@ -197,7 +195,8 @@ public class CommunityResource {
   }
 
   public record MemberView(
-      String name, String github, String role, String profileUrl, String avatarUrl, String since) {}
+      String name, String github, String role, String profileUrl, String avatarUrl, String since) {
+  }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
     String name = currentUserName().orElse(null);

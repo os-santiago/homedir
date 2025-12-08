@@ -81,7 +81,7 @@ public class GithubLinkService {
     if (identity.isAnonymous()) {
       // We currently do not support creating a session via GitHub (only linking).
       // Redirect to login page with explanation.
-      return Response.seeOther(URI.create("/ingresar?error=github_login_unsupported")).build();
+      return Response.seeOther(URI.create("/private/profile?error=github_login_unsupported")).build();
     }
     if (code == null || code.isBlank()) {
       return redirectWithParams("/private/profile?githubError=missingCode");

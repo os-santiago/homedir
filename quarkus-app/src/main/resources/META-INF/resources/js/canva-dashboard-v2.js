@@ -255,7 +255,7 @@ function handleLogin(provider) {
         window.location.href = '/private/github/start?redirect=' + encodeURIComponent(window.location.pathname);
     } else {
         // Google or others using standard endpoint
-        window.location.href = '/ingresar';
+        window.location.href = '/private/profile';
     }
 }
 
