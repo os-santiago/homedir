@@ -654,3 +654,107 @@ button {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===========================================
+   STANDARD UI COMPONENTS (HD-*)
+   =========================================== */
+
+/* Panels & Sections */
+.hd-section { padding: 4rem 1rem; }
+.hd-page { max-width: 1200px; margin: 0 auto; }
+.hd-panel { 
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(10px);
+}
+.hd-card-surface {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+/* Headers & Text */
+.hd-dashboard-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+    margin-bottom: 2rem;
+    flex-wrap: wrap; 
+    gap: 1rem; 
+}
+.hd-page-title { font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0; }
+.hd-panel-title { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.hd-eyebrow { 
+    text-transform: uppercase; 
+    letter-spacing: 2px; 
+    font-size: 0.8rem; 
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+.hd-page-intro { color: var(--text-gray); font-size: 1.1rem; line-height: 1.5; max-width: 600px; }
+
+/* KPIs */
+.hd-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+.hd-kpi { 
+    background: rgba(255, 255, 255, 0.05); 
+    padding: 1.5rem; 
+    border-radius: 12px; 
+    border-left: 4px solid var(--accent-color);
+}
+.hd-kpi-label { font-size: 0.9rem; color: var(--text-gray); margin-bottom: 0.5rem; }
+.hd-kpi-value { font-size: 2rem; font-weight: 700; }
+
+/* Components */
+.hd-btn { 
+    padding: 0.6rem 1.2rem; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center;
+    gap: 0.5rem; 
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+}
+.hd-btn-primary { background: var(--primary-gradient); color: white; }
+.hd-btn-secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.hd-btn-ghost { background: transparent; color: var(--text-gray); }
+.hd-btn:hover { transform: translateY(-2px); filter: brightness(1.1); color: white; }
+
+.hd-alert { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+.hd-alert-success { background: rgba(0, 255, 128, 0.1); color: #8affc1; border: 1px solid rgba(0, 255, 128, 0.2); }
+.hd-alert-warning { background: rgba(255, 170, 0, 0.1); color: #ffca80; border: 1px solid rgba(255, 170, 0, 0.2); }
+.hd-alert-info { background: rgba(0, 150, 255, 0.1); color: #80caff; border: 1px solid rgba(0, 150, 255, 0.2); }
+.hd-alert-danger { background: rgba(255, 0, 80, 0.1); color: #ff80a0; border: 1px solid rgba(255, 0, 80, 0.2); }
+
+/* Talks */
+.talk-row { display: flex; flex-direction: column; gap: 0.5rem; position: relative; }
+.talk-time { font-size: 0.9rem; color: var(--text-gray); display: flex; align-items: center; gap: 0.5rem; }
+.talk-info { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.talk-title { font-weight: 700; font-size: 1.1rem; }
+.talk-title a { transition: color 0.2s; }
+.talk-title a:hover { color: var(--accent-color); }
+
+.badge { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.motivation-badge { background: rgba(255,255,255,0.1); color: var(--text-gray); border: 1px solid rgba(255,255,255,0.1); }
+
+.talk-actions { margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.hd-form-input { 
+    background: rgba(0,0,0,0.3); 
+    border: 1px solid rgba(255,255,255,0.2); 
+    color: white; 
+    padding: 0.5rem; 
+    border-radius: 6px; 
+}
+.hd-form-input:focus { outline: 2px solid var(--accent-color); border-color: transparent; }
+
+/* Avatars */
+.speaker-avatars { display: flex; gap: -8px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--bg-dark); object-fit: cover; }
+.avatar.placeholder { background: #333; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
