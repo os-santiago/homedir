@@ -1,90 +1,87 @@
 {#include layout/main}
 {#title}Proyectos · Homedir{/title}
 {#body}
-<main id="main-content" class="homedir-main" role="main">
+<nav class="breadcrumbs"><span>Inicio</span> / <strong>Proyectos</strong></nav>
 
-  <nav class="breadcrumbs"><span>Inicio</span> / <strong>Proyectos</strong></nav>
+<header class="page-header">
+  <div class="section-header">
+    <p class="section-subtitle">Roadmap · Homedir</p>
+    <h1>Proyectos activos</h1>
+  </div>
+  <p class="section-subtitle">Sigue el estado de los módulos y entra directo al repositorio o sección
+    correspondiente.
+  </p>
 
-  <header class="page-header">
-    <div class="section-header">
-      <p class="section-subtitle">Roadmap · Homedir</p>
-      <h1>Proyectos activos</h1>
-    </div>
-    <p class="section-subtitle">Sigue el estado de los módulos y entra directo al repositorio o sección
-      correspondiente.
-    </p>
+  <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+    <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank" rel="noopener">Abrir
+      repositorio</a>
 
-    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-      <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank" rel="noopener">Abrir
-        repositorio</a>
+    {#if !userSession.communityMember}
+    {#if userSession.githubLinked}
+    <a href="/comunidad" class="btn-primary"
+      style="background: transparent; border: 1px solid white; color: white;">Unirme a la comunidad</a>
+    {#else}
+    <a href="/private/github/start?redirect=/proyectos" class="btn-primary"
+      style="background: transparent; border: 1px solid white; color: white;">Conectar GitHub para unirme</a>
+    {/if}
+    {/if}
+  </div>
+</header>
 
-      {#if !userSession.communityMember}
-      {#if userSession.githubLinked}
-      <a href="/comunidad" class="btn-primary"
-        style="background: transparent; border: 1px solid white; color: white;">Unirme a la comunidad</a>
-      {#else}
-      <a href="/private/github/start?redirect=/proyectos" class="btn-primary"
-        style="background: transparent; border: 1px solid white; color: white;">Conectar GitHub para unirme</a>
-      {/if}
-      {/if}
-    </div>
-  </header>
+<section class="page-grid">
+  <div class="section-header" style="grid-column: 1 / -1; margin-top: 1rem;">
+    <p class="section-subtitle">Módulos</p>
+    <h2 class="page-title">Hoja de ruta visible</h2>
+  </div>
 
-  <section class="page-grid">
-    <div class="section-header" style="grid-column: 1 / -1; margin-top: 1rem;">
-      <p class="section-subtitle">Módulos</p>
-      <h2 class="page-title">Hoja de ruta visible</h2>
-    </div>
+  <article class="section-card">
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <p class="eyebrow">Backend</p>
+      <h3 style="margin-bottom: 0.5rem;">Homedir Core</h3>
+      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Base de la plataforma:
+        autenticación, perfiles y orquestación de módulos.</p>
 
-    <article class="section-card">
-      <div style="display: flex; flex-direction: column; height: 100%;">
-        <p class="eyebrow">Backend</p>
-        <h3 style="margin-bottom: 0.5rem;">Homedir Core</h3>
-        <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Base de la plataforma:
-          autenticación, perfiles y orquestación de módulos.</p>
-
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-          <span class="badge"
-            style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En
-            producción</span>
-          <a class="nav-link" href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener">Abrir
-            ↗</a>
-        </div>
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+        <span class="badge"
+          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En
+          producción</span>
+        <a class="nav-link" href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener">Abrir
+          ↗</a>
       </div>
-    </article>
-    <article class="section-card">
-      <div style="display: flex; flex-direction: column; height: 100%;">
-        <p class="eyebrow">Tiempo real</p>
-        <h3 style="margin-bottom: 0.5rem;">Notificaciones Globales</h3>
-        <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Canal WebSocket y centro de
-          notificaciones para eventos y alertas.</p>
+    </div>
+  </article>
+  <article class="section-card">
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <p class="eyebrow">Tiempo real</p>
+      <h3 style="margin-bottom: 0.5rem;">Notificaciones Globales</h3>
+      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Canal WebSocket y centro de
+        notificaciones para eventos y alertas.</p>
 
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-          <span class="badge"
-            style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">Beta</span>
-          <a class="nav-link" href="https://github.com/os-santiago/homedir/tree/main/quarkus-app" target="_blank"
-            rel="noopener">Abrir ↗</a>
-        </div>
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+        <span class="badge"
+          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">Beta</span>
+        <a class="nav-link" href="https://github.com/os-santiago/homedir/tree/main/quarkus-app" target="_blank"
+          rel="noopener">Abrir ↗</a>
       </div>
-    </article>
-    <article class="section-card">
-      <div style="display: flex; flex-direction: column; height: 100%;">
-        <p class="eyebrow">Personas</p>
-        <h3 style="margin-bottom: 0.5rem;">Comunidad</h3>
-        <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Directorio de integrantes y
-          onboarding con GitHub para contribuir.</p>
+    </div>
+  </article>
+  <article class="section-card">
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <p class="eyebrow">Personas</p>
+      <h3 style="margin-bottom: 0.5rem;">Comunidad</h3>
+      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Directorio de integrantes y
+        onboarding con GitHub para contribuir.</p>
 
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-          <span class="badge"
-            style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En
-            diseño</span>
-          <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">Abrir ↗</a>
-        </div>
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+        <span class="badge"
+          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En
+          diseño</span>
+        <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">Abrir ↗</a>
       </div>
-    </article>
-  </section>
-</main>
+    </div>
+  </article>
+</section>
 {/body}
