@@ -54,6 +54,9 @@ public class UserSessionService {
             if (gh != null) {
                 githubLinked = true;
                 githubLogin = gh.login();
+                if (gh.avatarUrl() != null && !gh.avatarUrl().isBlank()) {
+                    picture = gh.avatarUrl();
+                }
             }
         }
 

@@ -63,10 +63,12 @@
                 </div>
                 <div class="hd-panel-actions">
                     {#if github != null}
-                    <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver
-                        perfil</a>
-                    <a class="hd-btn hd-btn-secondary" href="/private/github/start?redirect=/private/profile">Actualizar
-                        vínculo</a>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver
+                            perfil</a>
+                        <span style="font-size: 0.9em; opacity: 0.7;">(Vinculado)</span>
+                        <!-- Optional: <a href="..." style="font-size: 0.8em;">Actualizar</a> -->
+                    </div>
                     {#else}
                     <a class="hd-btn hd-btn-primary" href="/private/github/start?redirect=/private/profile">Vincular con
                         GitHub</a>
