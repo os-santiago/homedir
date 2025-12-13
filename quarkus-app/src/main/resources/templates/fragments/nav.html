@@ -17,7 +17,17 @@
       <a href="/contacto" class="hd-nav-link {#if activePage == 'contact'}hd-nav-link--active{/if}">Contacto</a>
     </div>
     <div class="hd-nav-actions">
+      {#if userSession.loggedIn}
+      <a href="/private/profile" class="hd-user-avatar" style="text-decoration: none; width: 40px; height: 40px;" aria-label="Mi Perfil">
+        {#if userSession.avatarUrl}
+          <img src="{userSession.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+        {#else}
+          {userSession.displayName.substring(0,1)}
+        {/if}
+      </a>
+      {#else}
       <a href="/private/profile" class="hd-btn hd-btn-primary">Ingresar</a>
+      {/if}
     </div>
   </div>
 </nav>
