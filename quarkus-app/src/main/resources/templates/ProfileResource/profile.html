@@ -166,11 +166,11 @@
                                     <select id="rating-{t.id}" class="rating-select hd-form-input" data-talk-id="{t.id}"
                                         title="Valorar">
                                         <option value="">★</option>
-                                        <option value="1" {#if tInfo.rating==1}selected{/if}>1</option>
-                                        <option value="2" {#if tInfo.rating==2}selected{/if}>2</option>
-                                        <option value="3" {#if tInfo.rating==3}selected{/if}>3</option>
-                                        <option value="4" {#if tInfo.rating==4}selected{/if}>4</option>
-                                        <option value="5" {#if tInfo.rating==5}selected{/if}>5</option>
+                                        <option value="1" {#if tInfo.rating eq 1}selected{/if}>1</option>
+                                        <option value="2" {#if tInfo.rating eq 2}selected{/if}>2</option>
+                                        <option value="3" {#if tInfo.rating eq 3}selected{/if}>3</option>
+                                        <option value="4" {#if tInfo.rating eq 4}selected{/if}>4</option>
+                                        <option value="5" {#if tInfo.rating eq 5}selected{/if}>5</option>
                                     </select>
                                     <button class="hd-btn hd-btn-secondary remove-talk" data-talk-id="{t.id}"
                                         title="Eliminar">🗑️</button>
