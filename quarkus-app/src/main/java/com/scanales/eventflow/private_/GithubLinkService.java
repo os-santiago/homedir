@@ -187,11 +187,7 @@ public class GithubLinkService {
   }
 
   private String canonicalCallback() {
-    String normalized = publicUrl;
-    if (normalized.endsWith("/")) {
-      normalized = normalized.substring(0, normalized.length() - 1);
-    }
-    return normalized + "/private/github/callback";
+    return "https://homedir.opensourcesantiago.io/private/github/callback";
   }
 
   private String currentUserId(SecurityIdentity identity) {
