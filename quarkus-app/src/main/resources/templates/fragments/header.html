@@ -35,7 +35,7 @@
       <span id="notif-badge" class="badge hidden">0</span>
     </a>
 
-    {#if userSession.loggedIn}
+    {#if userSession.loggedIn || userAuthenticated}
     <div class="user-menu-container" style="position: relative; margin-left: 1rem;">
       <button class="user-menu-btn" onclick="this.nextElementSibling.classList.toggle('show')"
         style="background: transparent; border: none; color: white; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-family: var(--font-display);">
@@ -45,10 +45,14 @@
         {#else}
         <div class="avatar-circle"
           style="width: 32px; height: 32px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
-          {userSession.displayName.substring(0,1)}
+          {#if userSession.displayName}
+            {userSession.displayName.substring(0,1)}
+          {#else}
+            {userInitial}
+          {/if}
         </div>
         {/if}
-        <span class="user-name">{userSession.displayName}</span>
+        <span class="user-name">{userSession.displayName ?: userName}</span>
         <span class="dropdown-arrow">▼</span>
       </button>
 
@@ -57,7 +61,7 @@
         <div class="dropdown-header"
           style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
           <small style="color: #888;">Signed in as</small><br>
-          <strong>{userSession.email}</strong>
+          <strong>{userSession.email ?: userName}</strong>
         </div>
 
         <a href="/private/profile" class="dropdown-item"
