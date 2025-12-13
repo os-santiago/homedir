@@ -29,3 +29,8 @@
   4. Usar `gh cli` (sesión válida disponible) para crear PR y monitorear hasta el push de la imagen.
   5. Monitorear endpoint [https://int.opensourcesantiago.io](https://int.opensourcesantiago.io) para ver cuando la imagen de contenedor es descargada y ejecutada en prod.
   6. Verificar finalmente en [https://homedir.opensourcesantiago.io/about](https://homedir.opensourcesantiago.io/about) para confirmar que el commit ya está productivo.
+  7. **Guía Detallada**: Ver `.agent/workflows/production_fix_cycle.md` para el paso a paso de diagnótico, implementación robusta y verificación.
+
+- **Robustez en Templates (UI)**:
+  - Evitar depender exclusivamente de objetos globales (e.g., `userSession`) que pueden fallar en resolución de beans.
+  - Usar siempre variables pasadas por el Controlador (`userAuthenticated`, `userName`) como fallback para ocultar/mostrar elementos críticos de UI (Login, Avatars).
