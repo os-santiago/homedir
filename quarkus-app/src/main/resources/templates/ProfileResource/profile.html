@@ -2,277 +2,287 @@
 {#title}Mi perfil · Homedir{/title}
 {#body}
 <section class="hd-section hd-section-dashboard">
-  <div class="hd-page">
-    <div class="hd-dashboard-header">
-      <div>
-        <p class="hd-eyebrow">Perfil digital</p>
-        <h1 class="hd-page-title">{name}</h1>
-        <p class="hd-page-intro">Gestiona tu agenda, elige tus charlas favoritas y mantente al día con la comunidad.</p>
-      </div>
-      <div class="hd-panel-actions">
-        <a class="hd-btn hd-btn-primary" href="/private/profile">Refrescar</a>
-        <a class="hd-btn" href="/logout">Salir</a>
-      </div>
-    </div>
-
-    <div class="hd-panel">
-      <div class="hd-panel-actions" style="margin-bottom: 1rem;">
-        {#if githubLinked}
-        <div class="hd-alert hd-alert-success">Cuenta de GitHub vinculada correctamente.</div>
-        {/if}
-        {#if githubError??}
-        <div class="hd-alert hd-alert-warning">No se pudo vincular GitHub ({githubError}). Inténtalo nuevamente.</div>
-        {/if}
-        {#if githubRequired && github == null}
-        <div class="hd-alert hd-alert-info">Vincula GitHub para aparecer en Comunidad y unirte con tu usuario.</div>
-        {/if}
-      </div>
-      <div class="hd-kpi-grid">
-        <div class="hd-kpi">
-          <p class="hd-kpi-label">Correo</p>
-          <p class="hd-kpi-value">{email}</p>
-        </div>
-        <div class="hd-kpi">
-          <p class="hd-kpi-label">Charlas registradas</p>
-          <p class="hd-kpi-value">{totalTalks}</p>
-        </div>
-        <div class="hd-kpi">
-          <p class="hd-kpi-label">Asistidas</p>
-          <p class="hd-kpi-value">{attendedTalks}</p>
-        </div>
-        <div class="hd-kpi">
-          <p class="hd-kpi-label">Calificaciones</p>
-          <p class="hd-kpi-value">{ratedTalks}</p>
-        </div>
-      </div>
-    </div>
-
-    <section class="hd-panel">
-      <div class="hd-dashboard-header">
-        <div>
-          <p class="hd-eyebrow">Integraciones</p>
-          <h2 class="hd-panel-title">GitHub</h2>
-          {#if github != null}
-          <p class="hd-page-intro">@{github.login} · ID {github.id}</p>
-          {#else}
-          <p class="hd-page-intro">Aún no vinculado.</p>
-          {/if}
-        </div>
-        <div class="hd-panel-actions">
-          {#if github != null}
-          <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver perfil</a>
-          <a class="hd-btn hd-btn-secondary" href="/private/github/start?redirect=/private/profile">Actualizar
-            vínculo</a>
-          {#else}
-          <a class="hd-btn hd-btn-primary" href="/private/github/start?redirect=/private/profile">Vincular con
-            GitHub</a>
-          {/if}
-        </div>
-      </div>
-    </section>
-
-    <section class="hd-panel">
-      <div class="hd-dashboard-header">
-        <div>
-          <p class="hd-eyebrow">Comunidad</p>
-          <h2 class="hd-panel-title">{groups.size()} eventos</h2>
-          <p class="hd-page-intro">{groups.size()} iniciativas activas y colaboraciones abiertas.</p>
-        </div>
-        <div class="hd-panel-actions">
-          <a class="hd-btn hd-btn-primary" href="/comunidad">Explorar Comunidad</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="hd-panel">
-      <div class="hd-dashboard-header">
-        <div>
-          <p class="hd-eyebrow">Agenda</p>
-          <h2 class="hd-panel-title">Charlas registradas</h2>
-          <p id="summary" class="hd-page-intro">
-            Has agregado {totalTalks} charlas a tu agenda, has asistido a {attendedTalks} y calificado {ratedTalks}.
-          </p>
-        </div>
-        <div class="hd-panel-actions">
-          <button type="button" class="hd-btn" data-filter="all">Todas</button>
-          <button type="button" class="hd-btn" data-filter="attended">Asistidas</button>
-          <button type="button" class="hd-btn" data-filter="pending">No asistidas</button>
-        </div>
-      </div>
-
-      {#if groups.isEmpty()}
-      <p class="hd-page-intro">Aún no has agregado charlas. Explora eventos y agrégalos a tu agenda.</p>
-      {#else}
-      <div class="talk-groups">
-        {#for g in groups}
-        <div class="hd-card-surface" style="margin-bottom: 1.25rem;">
-          <div class="hd-dashboard-header" style="margin-bottom: 0.5rem;">
+    <div class="hd-page">
+        <div class="hd-dashboard-header">
             <div>
-              <h3 class="hd-panel-title">{g.event.title}</h3>
-              <p class="hd-page-intro">{g.days.size()} días · {g.speakers.size()} speakers</p>
+                <p class="hd-eyebrow">Perfil digital</p>
+                <h1 class="hd-page-title">{name}</h1>
+                <p class="hd-page-intro">Gestiona tu agenda, elige tus charlas favoritas y mantente al día con la
+                    comunidad.</p>
             </div>
-          </div>
-          {#for d in g.days}
-          <div class="hd-card-surface" style="margin-bottom: 0.5rem;">
-            <h4 class="hd-panel-title">Día {d.day}</h4>
-            <div class="talks-day">
-              {#for t in d.talks}
-              <div class="talk-row hd-card-surface" data-talk-id="{t.id}" data-attended="{info.get(t.id).attended}"
-                data-rated="{info.get(t.id).rating??}" style="margin-bottom: 0.75rem;">
-                <div class="talk-time">
-                  <span class="attendance-icon">{#if info.get(t.id).attended}✅{#else}❌{/if}</span>
-                  <span>{t.startTimeStr} · {t.endTimeStr}</span>
-                </div>
-                <div class="talk-info">
-                  <span class="talk-title"><a href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
-                  <div class="speaker-avatars">
-                    {#for s in t.speakers}
-                    <a href="/speaker/{s.id}" title="{s.name}">
-                      {#if app:validUrl(s.photoUrl)}
-                      <img src="{s.photoUrl}" alt="{s.name}" class="avatar" />
-                      {#else}
-                      <span class="avatar placeholder">👤</span>
-                      {/if}
-                    </a>
-                    {/for}
-                  </div>
-                  <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t, g.event)}</span>
-                </div>
-                <div class="talk-actions">
-                  <div class="motivation-list">
-                    {#for m in info.get(t.id).motivations}
-                    <span class="badge motivation-badge" data-value="{m}">{m}</span>
-                    {/for}
-                  </div>
-                  <select class="motivation-select hd-form-input" data-talk-id="{t.id}">
-                    <option value="">Motivo...</option>
-                    <option>⭐ Relevante para mi trabajo</option>
-                    <option>🧠 Quiero aprender sobre esto</option>
-                    <option>🎤 Conozco al speaker</option>
-                    <option>🎯 Me pareció interesante</option>
-                  </select>
-                  <label class="attended-label" title="Asistí">
-                    <input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if
-                      info.get(t.id).attended}checked{/if}>
-                  </label>
-                  <select id="rating-{t.id}" class="rating-select hd-form-input" data-talk-id="{t.id}" title="Valorar">
-                    <option value="">★</option>
-                    <option value="1" {#if info.get(t.id).rating==1}selected{/if}>1</option>
-                    <option value="2" {#if info.get(t.id).rating==2}selected{/if}>2</option>
-                    <option value="3" {#if info.get(t.id).rating==3}selected{/if}>3</option>
-                    <option value="4" {#if info.get(t.id).rating==4}selected{/if}>4</option>
-                    <option value="5" {#if info.get(t.id).rating==5}selected{/if}>5</option>
-                  </select>
-                  <button class="hd-btn hd-btn-secondary remove-talk" data-talk-id="{t.id}"
-                    title="Eliminar">🗑️</button>
-                </div>
-              </div>
-              {/for}
+            <div class="hd-panel-actions">
+                <a class="hd-btn hd-btn-primary" href="/private/profile">Refrescar</a>
+                <a class="hd-btn" href="/logout">Salir</a>
             </div>
-          </div>
-          {/for}
         </div>
-        {/for}
-      </div>
-      {/if}
-    </section>
-    <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
-  </div>
+
+        <div class="hd-panel">
+            <div class="hd-panel-actions" style="margin-bottom: 1rem;">
+                {#if githubLinked}
+                <div class="hd-alert hd-alert-success">Cuenta de GitHub vinculada correctamente.</div>
+                {/if}
+                {#if githubError??}
+                <div class="hd-alert hd-alert-warning">No se pudo vincular GitHub ({githubError}). Inténtalo nuevamente.
+                </div>
+                {/if}
+                {#if githubRequired && github == null}
+                <div class="hd-alert hd-alert-info">Vincula GitHub para aparecer en Comunidad y unirte con tu usuario.
+                </div>
+                {/if}
+            </div>
+            <div class="hd-kpi-grid">
+                <div class="hd-kpi">
+                    <p class="hd-kpi-label">Correo</p>
+                    <p class="hd-kpi-value">{email}</p>
+                </div>
+                <div class="hd-kpi">
+                    <p class="hd-kpi-label">Charlas registradas</p>
+                    <p class="hd-kpi-value">{totalTalks}</p>
+                </div>
+                <div class="hd-kpi">
+                    <p class="hd-kpi-label">Asistidas</p>
+                    <p class="hd-kpi-value">{attendedTalks}</p>
+                </div>
+                <div class="hd-kpi">
+                    <p class="hd-kpi-label">Calificaciones</p>
+                    <p class="hd-kpi-value">{ratedTalks}</p>
+                </div>
+            </div>
+        </div>
+
+        <section class="hd-panel">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">Integraciones</p>
+                    <h2 class="hd-panel-title">GitHub</h2>
+                    {#if github != null}
+                    <p class="hd-page-intro">@{github.login} · ID {github.id}</p>
+                    {#else}
+                    <p class="hd-page-intro">Aún no vinculado.</p>
+                    {/if}
+                </div>
+                <div class="hd-panel-actions">
+                    {#if github != null}
+                    <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver
+                        perfil</a>
+                    <a class="hd-btn hd-btn-secondary" href="/private/github/start?redirect=/private/profile">Actualizar
+                        vínculo</a>
+                    {#else}
+                    <a class="hd-btn hd-btn-primary" href="/private/github/start?redirect=/private/profile">Vincular con
+                        GitHub</a>
+                    {/if}
+                </div>
+            </div>
+        </section>
+
+        <section class="hd-panel">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">Comunidad</p>
+                    <h2 class="hd-panel-title">{groups.size()} eventos</h2>
+                    <p class="hd-page-intro">{groups.size()} iniciativas activas y colaboraciones abiertas.</p>
+                </div>
+                <div class="hd-panel-actions">
+                    <a class="hd-btn hd-btn-primary" href="/comunidad">Explorar Comunidad</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="hd-panel">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">Agenda</p>
+                    <h2 class="hd-panel-title">Charlas registradas</h2>
+                    <p id="summary" class="hd-page-intro">
+                        Has agregado {totalTalks} charlas a tu agenda, has asistido a {attendedTalks} y calificado
+                        {ratedTalks}.
+                    </p>
+                </div>
+                <div class="hd-panel-actions">
+                    <button type="button" class="hd-btn" data-filter="all">Todas</button>
+                    <button type="button" class="hd-btn" data-filter="attended">Asistidas</button>
+                    <button type="button" class="hd-btn" data-filter="pending">No asistidas</button>
+                </div>
+            </div>
+
+            {#if groups.isEmpty()}
+            <p class="hd-page-intro">Aún no has agregado charlas. Explora eventos y agrégalos a tu agenda.</p>
+            {#else}
+            <div class="talk-groups">
+                {#for g in groups}
+                <div class="hd-card-surface" style="margin-bottom: 1.25rem;">
+                    <div class="hd-dashboard-header" style="margin-bottom: 0.5rem;">
+                        <div>
+                            <h3 class="hd-panel-title">{g.event.title}</h3>
+                            <p class="hd-page-intro">{g.days.size()} días · {g.speakers.size()} speakers</p>
+                        </div>
+                    </div>
+                    {#for d in g.days}
+                    <div class="hd-card-surface" style="margin-bottom: 0.5rem;">
+                        <h4 class="hd-panel-title">Día {d.day}</h4>
+                        <div class="talks-day">
+                            {#for t in d.talks}
+                            {#let tInfo = info.get(t.id)}
+                            <div class="talk-row hd-card-surface" data-talk-id="{t.id}" data-attended="{tInfo.attended}"
+                                data-rated="{tInfo.rating??}" style="margin-bottom: 0.75rem;">
+                                <div class="talk-time">
+                                    <span class="attendance-icon">{#if tInfo.attended}✅{#else}❌{/if}</span>
+                                    <span>{t.startTimeStr} · {t.endTimeStr}</span>
+                                </div>
+                                <div class="talk-info">
+                                    <span class="talk-title"><a
+                                            href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
+                                    <div class="speaker-avatars">
+                                        {#for s in t.speakers}
+                                        <a href="/speaker/{s.id}" title="{s.name}">
+                                            {#if app:validUrl(s.photoUrl)}
+                                            <img src="{s.photoUrl}" alt="{s.name}" class="avatar" />
+                                            {#else}
+                                            <span class="avatar placeholder">👤</span>
+                                            {/if}
+                                        </a>
+                                        {/for}
+                                    </div>
+                                    <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t,
+                                        g.event)}</span>
+                                </div>
+                                <div class="talk-actions">
+                                    <div class="motivation-list">
+                                        {#for m in tInfo.motivations}
+                                        <span class="badge motivation-badge" data-value="{m}">{m}</span>
+                                        {/for}
+                                    </div>
+                                    <select class="motivation-select hd-form-input" data-talk-id="{t.id}">
+                                        <option value="">Motivo...</option>
+                                        <option>⭐ Relevante para mi trabajo</option>
+                                        <option>🧠 Quiero aprender sobre esto</option>
+                                        <option>🎤 Conozco al speaker</option>
+                                        <option>🎯 Me pareció interesante</option>
+                                    </select>
+                                    <label class="attended-label" title="Asistí">
+                                        <input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if
+                                            tInfo.attended}checked{/if}>
+                                    </label>
+                                    <select id="rating-{t.id}" class="rating-select hd-form-input" data-talk-id="{t.id}"
+                                        title="Valorar">
+                                        <option value="">★</option>
+                                        <option value="1" {#if tInfo.rating==1}selected{/if}>1</option>
+                                        <option value="2" {#if tInfo.rating==2}selected{/if}>2</option>
+                                        <option value="3" {#if tInfo.rating==3}selected{/if}>3</option>
+                                        <option value="4" {#if tInfo.rating==4}selected{/if}>4</option>
+                                        <option value="5" {#if tInfo.rating==5}selected{/if}>5</option>
+                                    </select>
+                                    <button class="hd-btn hd-btn-secondary remove-talk" data-talk-id="{t.id}"
+                                        title="Eliminar">🗑️</button>
+                                </div>
+                            </div>
+                            {/let}
+                            {/for}
+                        </div>
+                    </div>
+                    {/for}
+                </div>
+                {/for}
+            </div>
+            {/if}
+        </section>
+        <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+    </div>
 </section>
 
 <script>
-  (function () {
-    const updateTalk = async (id, data) => {
-      try {
-        const res = await fetch('/private/profile/update/' + id, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(data)
+    (function () {
+        const updateTalk = async (id, data) => {
+            try {
+                const res = await fetch('/private/profile/update/' + id, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!res.ok) {
+                    showNotification('error', 'Error al guardar los cambios');
+                }
+            } catch (e) {
+                showNotification('error', 'Error al guardar los cambios');
+            }
+        };
+
+        const updateSummary = () => {
+            const total = document.querySelectorAll('.talk-row').length;
+            const attended = document.querySelectorAll('.talk-row[data-attended="true"]').length;
+            const rated = document.querySelectorAll('.talk-row[data-rated="true"]').length;
+            const summary = document.getElementById('summary');
+            if (summary) {
+                summary.textContent = 'Has agregado ' + total + ' charlas a tu agenda, has asistido a ' + attended + ' y calificado ' + rated + '.';
+            }
+        };
+
+        document.querySelectorAll('.remove-talk').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('¿Estás seguro?')) return;
+                const id = btn.dataset.talkId;
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/private/profile/remove/' + id, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        btn.closest('.talk-row').remove();
+                        updateSummary();
+                    } else {
+                        showNotification('error', 'No se pudo eliminar la charla');
+                    }
+                } catch (e) {
+                    showNotification('error', 'No se pudo eliminar la charla');
+                }
+            });
         });
-        if (!res.ok) {
-          showNotification('error', 'Error al guardar los cambios');
-        }
-      } catch (e) {
-        showNotification('error', 'Error al guardar los cambios');
-      }
-    };
 
-    const updateSummary = () => {
-      const total = document.querySelectorAll('.talk-row').length;
-      const attended = document.querySelectorAll('.talk-row[data-attended="true"]').length;
-      const rated = document.querySelectorAll('.talk-row[data-rated="true"]').length;
-      const summary = document.getElementById('summary');
-      if (summary) {
-        summary.textContent = 'Has agregado ' + total + ' charlas a tu agenda, has asistido a ' + attended + ' y calificado ' + rated + '.';
-      }
-    };
-
-    document.querySelectorAll('.remove-talk').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('¿Estás seguro?')) return;
-        const id = btn.dataset.talkId;
-        btn.disabled = true;
-        try {
-          const res = await fetch('/private/profile/remove/' + id, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify(data)
-          });
-          if (res.ok) {
-            btn.closest('.talk-row').remove();
-            updateSummary();
-          } else {
-            showNotification('error', 'No se pudo eliminar la charla');
-          }
-        } catch (e) {
-          showNotification('error', 'No se pudo eliminar la charla');
-        }
-      });
-    });
-
-    document.querySelectorAll('.motivation-select').forEach(select => {
-      select.addEventListener('change', async () => {
-        const id = select.dataset.talkId;
-        const motivation = select.value;
-        if (!motivation) return;
-        await updateTalk(id, { motivation });
-      });
-    });
-
-    document.querySelectorAll('.attended-checkbox').forEach(cb => {
-      cb.addEventListener('change', async () => {
-        const id = cb.dataset.talkId;
-        const attended = cb.checked;
-        const row = cb.closest('.talk-row');
-        row.dataset.attended = attended;
-        await updateTalk(id, { attended });
-        updateSummary();
-      });
-    });
-
-    document.querySelectorAll('.rating-select').forEach(sel => {
-      sel.addEventListener('change', async () => {
-        const id = sel.dataset.talkId;
-        const rating = sel.value ? parseInt(sel.value, 10) : null;
-        const row = sel.closest('.talk-row');
-        row.dataset.rated = rating != null;
-        await updateTalk(id, { rating });
-        updateSummary();
-      });
-    });
-
-    const filterButtons = document.querySelectorAll('[data-filter]');
-    const rows = document.querySelectorAll('.talk-row');
-    filterButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const filter = btn.dataset.filter;
-        rows.forEach(row => {
-          const attended = row.dataset.attended === 'true';
-          if (filter === 'attended') row.hidden = !attended;
-          else if (filter === 'pending') row.hidden = attended;
-          else row.hidden = false;
+        document.querySelectorAll('.motivation-select').forEach(select => {
+            select.addEventListener('change', async () => {
+                const id = select.dataset.talkId;
+                const motivation = select.value;
+                if (!motivation) return;
+                await updateTalk(id, { motivation });
+            });
         });
-      });
-    });
-  })();
+
+        document.querySelectorAll('.attended-checkbox').forEach(cb => {
+            cb.addEventListener('change', async () => {
+                const id = cb.dataset.talkId;
+                const attended = cb.checked;
+                const row = cb.closest('.talk-row');
+                row.dataset.attended = attended;
+                await updateTalk(id, { attended });
+                updateSummary();
+            });
+        });
+
+        document.querySelectorAll('.rating-select').forEach(sel => {
+            sel.addEventListener('change', async () => {
+                const id = sel.dataset.talkId;
+                const rating = sel.value ? parseInt(sel.value, 10) : null;
+                const row = sel.closest('.talk-row');
+                row.dataset.rated = rating != null;
+                await updateTalk(id, { rating });
+                updateSummary();
+            });
+        });
+
+        const filterButtons = document.querySelectorAll('[data-filter]');
+        const rows = document.querySelectorAll('.talk-row');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const filter = btn.dataset.filter;
+                rows.forEach(row => {
+                    const attended = row.dataset.attended === 'true';
+                    if (filter === 'attended') row.hidden = !attended;
+                    else if (filter === 'pending') row.hidden = attended;
+                    else row.hidden = false;
+                });
+            });
+        });
+    })();
 </script>
