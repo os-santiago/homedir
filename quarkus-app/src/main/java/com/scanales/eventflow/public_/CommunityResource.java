@@ -54,7 +54,8 @@ public class CommunityResource {
         MemberView current,
         long totalMembers,
         String prUrl,
-        String prError);
+        String prError,
+        List<MemberView> leaderboard);
   }
 
   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.of("es", "ES"))
@@ -79,6 +80,13 @@ public class CommunityResource {
         : null;
     boolean needsGithub = isAuthenticated() && userProfileService.find(userId).map(p -> !p.hasGithub()).orElse(true);
 
+    List<MemberView> leaderboard = communityService.listMembers().stream()
+        .filter(m -> m.getContributions() > 0)
+        .sorted((a, b) -> Integer.compare(b.getContributions(), a.getContributions()))
+        .limit(3)
+        .map(this::toView)
+        .toList();
+
     TemplateInstance template = Templates.community(
         filtered,
         query,
@@ -90,7 +98,8 @@ public class CommunityResource {
         current,
         communityService.countMembers(),
         decode(prUrl),
-        prError);
+        prError,
+        leaderboard);
 
     return withLayoutData(template, "comunidad");
   }
@@ -167,7 +176,11 @@ public class CommunityResource {
         member.roleLabel(),
         member.getProfileUrl(),
         member.getAvatarUrl(),
-        since);
+        since,
+        member.getLevel(),
+        member.getXp(),
+        member.getContributions(),
+        member.getBadges());
   }
 
   private CommunityMember buildMember(
@@ -195,7 +208,8 @@ public class CommunityResource {
   }
 
   public record MemberView(
-      String name, String github, String role, String profileUrl, String avatarUrl, String since) {
+      String name, String github, String role, String profileUrl, String avatarUrl, String since,
+      int level, int xp, int contributions, List<String> badges) {
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {

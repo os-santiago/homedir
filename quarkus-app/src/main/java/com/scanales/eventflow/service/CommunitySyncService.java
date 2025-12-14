@@ -70,7 +70,11 @@ public class CommunitySyncService {
     try {
       MembersPayload payload = loadMembers();
       cache.set(payload);
-      return payload.members != null ? payload.members : Collections.emptyList();
+      if (payload.members != null) {
+        payload.members.forEach(CommunityMember::calculateGamification);
+        return payload.members;
+      }
+      return Collections.emptyList();
     } catch (Exception e) {
       LOG.warn("Unable to load community members", e);
       MembersPayload cached = cache.get();
