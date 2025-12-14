@@ -86,11 +86,14 @@ public class CommunitySyncService {
 
   public Optional<String> createMemberPullRequest(CommunityMember member) {
     if (githubToken == null || githubToken.isBlank()) {
-      LOG.warn("Github token for community sync is missing");
+      LOG.error("Github token for community sync is missing or empty");
       return Optional.empty();
     }
+    LOG.info("Using GitHub Token: "
+        + (githubToken.length() > 4 ? "..." + githubToken.substring(githubToken.length() - 4) : "INVALID"));
     try {
       MembersPayload payload = loadMembers();
+      // ...
       List<CommunityMember> members = payload.members != null ? new ArrayList<>(payload.members) : new ArrayList<>();
       if (members.stream().anyMatch(m -> memberEqual(m, member))) {
         LOG.infov("Member already registered: {0}", member.getGithub());
@@ -101,6 +104,7 @@ public class CommunitySyncService {
       String baseSha = branchSha(defaultBranch);
       createBranch(branch, baseSha);
       String yaml = serializeMembers(new CommunityData(members));
+      LOG.infov("Serialized YAML (len={0}): {1}", yaml.length(), yaml);
       String content = Base64.getEncoder().encodeToString(yaml.getBytes(StandardCharsets.UTF_8));
       String message = "Add " + member.getDisplayName() + " to Comunidad";
       updateFile(branch, message, payload.sha, content);
@@ -187,6 +191,7 @@ public class CommunitySyncService {
     HttpRequest request = builder.PUT(HttpRequest.BodyPublishers.ofString(body)).build();
     HttpResponse<String> response = send(request);
     if (response.statusCode() >= 400) {
+      LOG.errorf("File update failed. Status: %d, Body: %s", response.statusCode(), response.body());
       throw new IllegalStateException("File update failed: " + response.body());
     }
   }
