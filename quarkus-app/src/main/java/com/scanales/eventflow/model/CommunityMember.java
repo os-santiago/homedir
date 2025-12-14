@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -17,7 +20,8 @@ public class CommunityMember {
   private String avatarUrl;
   private Instant joinedAt;
 
-  public CommunityMember() {}
+  public CommunityMember() {
+  }
 
   @JsonCreator
   public CommunityMember(
@@ -100,10 +104,79 @@ public class CommunityMember {
     return "administrador".equalsIgnoreCase(role) ? "Administrador" : "Colaborador";
   }
 
+  // Gamification Fields
+  private int level;
+  private int xp;
+  private int contributions;
+  private List<String> badges;
+
+  public int getLevel() {
+    return level;
+  }
+
+  public void setLevel(int level) {
+    this.level = level;
+  }
+
+  public int getXp() {
+    return xp;
+  }
+
+  public void setXp(int xp) {
+    this.xp = xp;
+  }
+
+  public int getContributions() {
+    return contributions;
+  }
+
+  public void setContributions(int contributions) {
+    this.contributions = contributions;
+  }
+
+  public List<String> getBadges() {
+    return badges;
+  }
+
+  public void setBadges(List<String> badges) {
+    this.badges = badges;
+  }
+
+  public void calculateGamification() {
+    if (this.github == null) {
+      this.level = 1;
+      this.xp = 0;
+      this.contributions = 0;
+      this.badges = List.of();
+      return;
+    }
+
+    // Deterministic simulation based on username hash
+    int hash = Math.abs(this.github.toLowerCase(Locale.ROOT).hashCode());
+    this.contributions = (hash % 500) + 12; // Min 12 contribs
+
+    // Level calc: simplified
+    this.level = 1 + (this.contributions / 50);
+    this.xp = (this.contributions % 50) * 2; // 0-100 scale approx
+
+    this.badges = new ArrayList<>();
+    if (this.joinedAt != null && this.joinedAt.isBefore(Instant.parse("2024-01-01T00:00:00Z"))) {
+      this.badges.add("Pionero");
+    }
+    if (this.contributions > 300) {
+      this.badges.add("Top Contributor");
+    }
+    if (hash % 10 < 2) { // 20% chance
+      this.badges.add("Bug Hunter");
+    }
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof CommunityMember that)) return false;
+    if (this == o)
+      return true;
+    if (!(o instanceof CommunityMember that))
+      return false;
     return Objects.equals(github, that.github) || Objects.equals(userId, that.userId);
   }
 

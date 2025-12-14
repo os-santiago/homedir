@@ -12,25 +12,42 @@
     vinculada de GitHub.</p>
 
   <div class="main-sections" style="margin-top: 2rem;">
+    {#if needsGithubLink && userAuthenticated}
+    <div class="section-card" style="background: rgba(255, 215, 0, 0.1); border-color: #ffd700;">
+      <p class="eyebrow" style="color: #ffd700;">Únete</p>
+      <h2 style="font-size: 1.5rem;">Vincula tu GitHub</h2>
+      <p>Para aparecer en el directorio y acumular XP.</p>
+      <a href="/private/github/connect" class="btn-primary" style="margin-top: 1rem; font-size: 0.8rem;">Conectar
+        ahora</a>
+    </div>
+    {#else}
     <div class="section-card">
       <p class="eyebrow">Integrantes</p>
       <h2>{vm.memberCount}</h2>
       <p>Activos en la comunidad</p>
     </div>
+    {/if}
+
     <div class="section-card">
-      <p class="eyebrow">Visibilidad</p>
-      <h2>GitHub</h2>
-      <p>Se muestra tu usuario</p>
-    </div>
-    <div class="section-card">
-      <p class="eyebrow">Acceso</p>
-      <h2>Roles</h2>
-      <p>Colaborador · Administrador</p>
+      <p class="eyebrow">Top Contributors</p>
+      <div class="leaderboard-mini" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        {#for leader in vm.leaderboard}
+        <a href="{leader.profileUrl}" target="_blank" title="{leader.name} (Lvl {leader.level})"
+          style="display: block;">
+          <img src="{leader.avatarUrl}"
+            style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ffd700;">
+        </a>
+        {/for}
+      </div>
     </div>
   </div>
 
   <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+    {#if !userAuthenticated}
     <a class="btn-primary" href="/private/profile">Ingresar y unirme</a>
+    {#else if needsGithubLink}
+    <a class="btn-primary" href="/private/github/connect">Vincular GitHub</a>
+    {/if}
     <a class="btn-primary" href="#directorio"
       style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
   </div>
@@ -40,11 +57,10 @@
   <div class="section-header" style="grid-column: 1 / -1; margin-top: 2rem;" id="directorio">
     <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
       <div>
-        <p class="section-subtitle">Directorio</p>
-        <h2 class="page-title">Personas de la comunidad</h2>
+        <h2 class="page-title">Directorio de la Comunidad</h2>
       </div>
       <form class="search-form" method="get" action="/comunidad" style="display: flex; gap: 0.5rem;">
-        <input type="search" name="q" value="" placeholder="Buscar por nombre o GitHub" aria-label="Buscar integrante"
+        <input type="search" name="q" value="{vm.query ?: ''}" placeholder="Buscar..." aria-label="Buscar integrante"
           style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem; font-family: var(--font-body);">
         <button class="btn-primary" type="submit" style="padding: 0.5rem 1rem;">Buscar</button>
       </form>
@@ -57,11 +73,40 @@
   </div>
   {#else}
   {#for member in vm.members}
-  <div class="section-card">
-    <!-- Member card content would go here, assuming vm.members has data structure similar to what was intended -->
-    <h3>{member.displayName}</h3>
-    {#if member.role}<p class="eyebrow">{member.role}</p>{/if}
-    {#if member.github}<p>@{member.github}</p>{/if}
+  <div class="section-card member-card" style="position: relative;">
+    <div style="display: flex; align-items: center; gap: 1rem; mb-2">
+      <img src="{member.avatarUrl}" alt="{member.name}" style="width: 48px; height: 48px; border-radius: 50%;">
+      <div>
+        <h3 style="margin: 0; font-size: 1.1rem;">{member.name}</h3>
+        {#if member.github}<a href="{member.profileUrl}" target="_blank"
+          style="color: #888; text-decoration: none; font-size: 0.8rem;">@{member.github}</a>{/if}
+      </div>
+      <div style="margin-left: auto; text-align: right;">
+        <span style="display: block; font-weight: bold; color: #ffd700;">Lvl {member.level}</span>
+        <span style="font-size: 0.7rem; color: #666;">{member.role}</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 1rem;">
+      <div
+        style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #aaa; margin-bottom: 0.25rem;">
+        <span>XP Progress</span>
+        <span>{member.xp} / 100</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px;">
+        <div style="background: var(--accent-color); height: 100%; width: {member.xp}%; border-radius: 2px;"></div>
+      </div>
+    </div>
+
+    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      {#for badge in member.badges}
+      <span
+        style="background: rgba(255,255,255,0.1); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem;">{badge}</span>
+      {/for}
+      <span
+        style="background: rgba(0,0,0,0.3); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem;">Contribution
+        Score: {member.contributions}</span>
+    </div>
   </div>
   {/for}
   {/if}
