@@ -142,7 +142,7 @@ public class CommunityResource {
     if (communityService.findByUserId(userId).isPresent()
         || communityService.findByGithub(gh.login()).isPresent()) {
       LOG.info("join: already member");
-      return Response.seeOther(URI.create("/comunidad?already=1")).build();
+      return Response.seeOther(URI.create("/comunidad?already=true")).build();
     }
 
     CommunityMember newMember = buildMember(profile, userId);
@@ -155,7 +155,7 @@ public class CommunityResource {
 
     if (prUrl.isPresent()) {
       String encoded = URLEncoder.encode(prUrl.get(), StandardCharsets.UTF_8);
-      return Response.seeOther(URI.create("/comunidad?joined=1&prUrl=" + encoded)).build();
+      return Response.seeOther(URI.create("/comunidad?joined=true&prUrl=" + encoded)).build();
     }
     LOG.error("join: requestJoin failed (Optional.empty)");
     systemErrorService.logError("ERROR", "CommunityResource", "Join request returned empty Optional", null, userId);
