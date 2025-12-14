@@ -22,6 +22,8 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.microprofile.config.Config;
@@ -160,7 +162,32 @@ public class CommunitySyncService {
   }
 
   private String serializeMembers(CommunityData data) throws JsonProcessingException {
-    return yamlMapper.writeValueAsString(data);
+    // Manual Map construction to avoid Native Reflection issues with POJOs
+    Map<String, Object> root = new java.util.HashMap<>();
+    List<Map<String, Object>> membersList = new ArrayList<>();
+
+    if (data.members != null) {
+      for (CommunityMember m : data.members) {
+        Map<String, Object> map = new java.util.LinkedHashMap<>(); // Preserve order
+        map.put("userId", m.getUserId());
+        map.put("displayName", m.getDisplayName());
+        map.put("github", m.getGithub());
+        map.put("role", m.getRole());
+        map.put("profileUrl", m.getProfileUrl());
+        map.put("avatarUrl", m.getAvatarUrl());
+        // Explicit String conversion for Instant
+        map.put("joinedAt", m.getJoinedAt() != null ? m.getJoinedAt().toString() : null);
+
+        // Add gamification if present/needed, or skip if transient
+        // map.put("level", m.getLevel()); // etc
+
+        membersList.add(map);
+      }
+    }
+    root.put("members", membersList);
+
+    LOG.info("Serializing Map structure...");
+    return yamlMapper.writeValueAsString(root);
   }
 
   private HttpRequest contentRequest(String ref) {
