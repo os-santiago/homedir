@@ -71,6 +71,8 @@
     <a class="btn-primary" href="/private/profile">Ingresar y unirme</a>
     {#else if needsGithubLink}
     <a class="btn-primary" href="/private/github/start?redirect=/comunidad">Vincular GitHub</a>
+    {#else if joined}
+    <button disabled class="btn-primary" style="opacity: 0.7; cursor: default;">Solicitud en proceso</button>
     {#else if !alreadyMember}
     <form action="/comunidad/join" method="POST" style="display:inline;">
       <button type="submit" class="btn-primary" style="cursor: pointer;">Unirme a la comunidad</button>
