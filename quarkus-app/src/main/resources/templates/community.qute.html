@@ -17,7 +17,8 @@
       <p class="eyebrow" style="color: #ffd700;">Únete</p>
       <h2 style="font-size: 1.5rem;">Vincula tu GitHub</h2>
       <p>Para aparecer en el directorio y acumular XP.</p>
-      <a href="/private/github/connect" class="btn-primary" style="margin-top: 1rem; font-size: 0.8rem;">Conectar
+      <a href="/private/github/start?redirect=/comunidad" class="btn-primary"
+        style="margin-top: 1rem; font-size: 0.8rem;">Conectar
         ahora</a>
     </div>
     {#else}
@@ -46,7 +47,7 @@
     {#if !userAuthenticated}
     <a class="btn-primary" href="/private/profile">Ingresar y unirme</a>
     {#else if needsGithubLink}
-    <a class="btn-primary" href="/private/github/connect">Vincular GitHub</a>
+    <a class="btn-primary" href="/private/github/start?redirect=/comunidad">Vincular GitHub</a>
     {/if}
     <a class="btn-primary" href="#directorio"
       style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
