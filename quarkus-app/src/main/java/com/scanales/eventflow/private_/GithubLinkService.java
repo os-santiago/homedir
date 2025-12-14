@@ -152,7 +152,7 @@ public class GithubLinkService {
   }
 
   private String canonicalCallback() {
-    return "https://homedir.opensourcesantiago.io/private/github/callback";
+    return "https://homedir.opensourcesantiago.io/auth/github/callback";
   }
 
   private String currentUserId(SecurityIdentity identity) {

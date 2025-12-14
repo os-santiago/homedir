@@ -7,10 +7,12 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import jakarta.annotation.security.PermitAll;
 import java.net.URI;
 import org.jboss.logging.Logger;
 
 @Path("/auth/github")
+@PermitAll
 public class GithubAuthResource {
 
     private static final Logger LOG = Logger.getLogger(GithubAuthResource.class);
