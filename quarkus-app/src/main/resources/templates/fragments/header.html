@@ -37,24 +37,29 @@
 
     {#if userSession.loggedIn || userAuthenticated}
     <div class="user-menu-container" style="position: relative; margin-left: 1rem;">
-      <button class="user-menu-btn" onclick="this.nextElementSibling.classList.toggle('show')"
-        style="background: transparent; border: none; color: white; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-family: var(--font-display);">
-        {#if userSession.avatarUrl}
-        <img src="{userSession.avatarUrl}" alt="Avatar" class="avatar-circle"
-          style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent-color);">
-        {#else}
-        <div class="avatar-circle"
-          style="width: 32px; height: 32px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
-          {#if userSession.displayName}
-            {userSession.displayName.substring(0,1)}
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <a href="/private/profile" class="user-profile-link"
+          style="text-decoration: none; color: white; display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-display);">
+          {#if userSession.avatarUrl}
+          <img src="{userSession.avatarUrl}" alt="Avatar" class="avatar-circle"
+            style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent-color);">
           {#else}
+          <div class="avatar-circle"
+            style="width: 32px; height: 32px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+            {#if userSession.displayName}
+            {userSession.displayName.substring(0,1)}
+            {#else}
             {userInitial}
+            {/if}
+          </div>
           {/if}
-        </div>
-        {/if}
-        <span class="user-name">{userSession.displayName ?: userName}</span>
-        <span class="dropdown-arrow">▼</span>
-      </button>
+          <span class="user-name">{userSession.displayName ?: userName}</span>
+        </a>
+        <button class="user-menu-btn" onclick="this.parentElement.nextElementSibling.classList.toggle('show')"
+          style="background: transparent; border: none; color: white; cursor: pointer; padding: 0.25rem;">
+          <span class="dropdown-arrow">▼</span>
+        </button>
+      </div>
 
       <div class="dropdown-menu"
         style="display: none; position: absolute; top: 100%; right: 0; background: rgba(0,0,0,0.9); border: 1px solid var(--accent-color); border-radius: 4px; padding: 0.5rem; min-width: 200px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
