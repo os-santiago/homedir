@@ -61,6 +61,7 @@ public class CommunitySyncService {
 
   @PostConstruct
   void init() {
+    yamlMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
     yamlMapper.findAndRegisterModules();
     yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     yamlMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);

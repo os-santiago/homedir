@@ -18,6 +18,7 @@ public class CommunityMember {
   private String role;
   private String profileUrl;
   private String avatarUrl;
+  @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
   private Instant joinedAt;
 
   public CommunityMember() {
