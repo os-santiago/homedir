@@ -63,6 +63,7 @@ public class CommunitySyncService {
   void init() {
     yamlMapper.findAndRegisterModules();
     yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    yamlMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     githubToken = config.getOptionalValue("GH_TOKEN", String.class).orElse("");
   }
 
