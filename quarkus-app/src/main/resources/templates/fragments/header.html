@@ -74,6 +74,13 @@
           👤 Mi Perfil
         </a>
 
+        {#if userSession.isAdmin}
+        <a href="/private/admin" class="dropdown-item"
+          style="display: block; color: #ff80a0; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
+          ⚙️ Panel Administración
+        </a>
+        {/if}
+
         {#if !userSession.githubLinked}
         <a href="/private/github/connect" class="dropdown-item"
           style="display: block; color: #ffd700; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
