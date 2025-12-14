@@ -61,7 +61,9 @@ public class CommunitySyncService {
 
   @PostConstruct
   void init() {
-    yamlMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+    com.fasterxml.jackson.datatype.jsr310.JavaTimeModule module = new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule();
+    module.addSerializer(java.time.Instant.class, com.fasterxml.jackson.databind.ser.std.ToStringSerializer.instance);
+    yamlMapper.registerModule(module);
     yamlMapper.findAndRegisterModules();
     yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     yamlMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -276,7 +278,7 @@ public class CommunitySyncService {
     public String sha;
   }
 
-  private static class CommunityData {
+  public static class CommunityData {
     public List<CommunityMember> members;
 
     CommunityData(List<CommunityMember> members) {
