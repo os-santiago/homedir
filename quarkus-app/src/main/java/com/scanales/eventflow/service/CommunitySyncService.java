@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 import java.util.ArrayList;
+import com.scanales.eventflow.service.SystemErrorService;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.microprofile.config.Config;
@@ -55,6 +56,9 @@ public class CommunitySyncService {
 
   @Inject
   Config config;
+
+  @Inject
+  SystemErrorService systemErrorService;
 
   private final HttpClient client = HttpClient.newBuilder().build();
   private final ObjectMapper jsonMapper = new ObjectMapper();
