@@ -278,6 +278,7 @@ public class CommunitySyncService {
     public String sha;
   }
 
+  @io.quarkus.runtime.annotations.RegisterForReflection
   public static class CommunityData {
     public List<CommunityMember> members;
 
