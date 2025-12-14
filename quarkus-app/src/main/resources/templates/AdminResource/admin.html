@@ -3,35 +3,34 @@
 {#title}Panel de administración · Homedir{/title}
 
 {#body}
-  <section class="hd-section hd-section-dashboard">
-    <div class="hd-page">
-      <div class="hd-dashboard-header">
-        <div>
-          <p class="hd-eyebrow">Administración</p>
-          <h1 class="hd-page-title">Panel de administración</h1>
-          <p class="hd-page-intro">Gestiona eventos, oradores y métricas desde un solo lugar.</p>
-        </div>
-        <div class="hd-panel-actions">
-          <a href="/private/profile" class="hd-btn hd-btn-secondary">Volver a perfil</a>
-        </div>
-      </div>
+<section class="retro-container">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <h1 class="retro-title-large">Panel de Administración</h1>
+    <p class="retro-subtitle">Gestiona eventos, oradores y métricas desde un solo lugar.</p>
+  </div>
 
-      <div class="hd-panel">
-        <h2 class="hd-panel-title">Acciones rápidas</h2>
-        <div class="hd-panel-actions">
-          <a href="/private/admin/events" class="hd-btn hd-btn-primary">Administrar eventos</a>
-          <a href="/private/admin/speakers" class="hd-btn">Administrar oradores</a>
-          <a href="/private/admin/metrics" class="hd-btn">Métricas</a>
-          <a href="/private/admin/capacity" class="hd-btn">Capacidad</a>
-          <a href="/private/admin/backup" class="hd-btn">Respaldo de datos</a>
-          <a href="/admin/notifications" class="hd-btn">Notificaciones</a>
-          <a href="/private/admin/guide" class="hd-btn">Guía</a>
-          <a href="/admin/notifications" class="hd-btn">Broadcast de notificaciones</a>
-          <a href="/admin/notifications/sim" class="hd-btn">Simulación de notificaciones</a>
-        </div>
-      </div>
-      <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+  <div class="retro-box">
+    <h2 class="retro-title" style="margin-bottom: 1.5rem;">Acciones rápidas</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+      <a href="/private/admin/events" class="retro-btn">Administrar eventos</a>
+      <a href="/private/admin/speakers" class="retro-btn">Administrar oradores</a>
+      <a href="/private/admin/metrics" class="retro-btn">Métricas</a>
+      <a href="/private/admin/capacity" class="retro-btn">Capacidad</a>
+      <a href="/private/admin/backup" class="retro-btn">Respaldo de datos</a>
     </div>
-  </section>
+  </div>
+
+  <div class="retro-box" style="margin-top: 2rem;">
+    <h2 class="retro-title" style="margin-bottom: 1.5rem;">Notificaciones</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+      <a href="/admin/notifications" class="retro-btn">Gestionar Notificaciones</a>
+      <a href="/admin/notifications/sim" class="retro-btn">Simular Eventos</a>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 2rem;">
+    <a href="/private/admin/guide" class="retro-link">Ver Guía de Administración</a>
+  </div>
+</section>
 {/body}
 {/include}

@@ -66,7 +66,9 @@ public class UserSessionService {
         // Or we leave it false until Epic E implements the lookup.
         boolean communityMember = false;
 
-        return new UserSession(true, name, email, picture, githubLinked, githubLogin, communityMember);
+        boolean isAdmin = com.scanales.eventflow.util.AdminUtils.isAdmin(identity);
+
+        return new UserSession(true, name, email, picture, githubLinked, githubLogin, communityMember, isAdmin);
     }
 
     private String getClaim(SecurityIdentity identity, String claim) {

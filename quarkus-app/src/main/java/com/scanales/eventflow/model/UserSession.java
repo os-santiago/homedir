@@ -15,9 +15,10 @@ public record UserSession(
         String avatarUrl,
         boolean githubLinked,
         String githubLogin,
-        boolean communityMember) {
+        boolean communityMember,
+        boolean isAdmin) {
 
     public static UserSession anonymous() {
-        return new UserSession(false, null, null, null, false, null, false);
+        return new UserSession(false, null, null, null, false, null, false, false);
     }
 }
