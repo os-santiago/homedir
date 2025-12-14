@@ -1,0 +1,61 @@
+{#include layout/main}
+
+{#title}Errores del Sistema · Panel de Administración{/title}
+
+{#body}
+<section class="retro-container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 class="retro-title-large">Consola de Errores</h1>
+        <p class="retro-subtitle">Registro de fallos del sistema y excepciones.</p>
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+        <a href="/private/admin" class="retro-btn">← Volver al Panel</a>
+    </div>
+
+    <div class="retro-box">
+        {#if errors.isEmpty}
+        <p style="text-align: center;">No hay errores registrados.</p>
+        {#else}
+        <div style="overflow-x: auto;">
+            <table class="retro-table" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Severidad</th>
+                        <th>Fuente</th>
+                        <th>Mensaje</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#for error in errors}
+                    <tr>
+                        <td>{error.createdAt}</td>
+                        <td>
+                            <span
+                                class="retro-tag {error.severity == 'ERROR' ? 'retro-tag-error' : 'retro-tag-warning'}">
+                                {error.severity}
+                            </span>
+                        </td>
+                        <td>{error.source}</td>
+                        <td style="max-width: 300px; word-wrap: break-word;">{error.message}</td>
+                        <td>{error.userId}</td>
+                        <td>
+                            {#if !error.resolved}
+                            <a href="/private/admin/errors/resolve/{error.id}" class="retro-btn-small">Resolver</a>
+                            {#else}
+                            <span class="retro-text-muted">Resuelto</span>
+                            {/if}
+                        </td>
+                    </tr>
+                    {/for}
+                </tbody>
+            </table>
+        </div>
+        {/if}
+    </div>
+</section>
+{/body}
+{/include}

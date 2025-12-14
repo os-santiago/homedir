@@ -1,0 +1,49 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.scanales:homedir >------------------------
+[INFO] Building homedir 2.3.6
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.1:enforce (enforce) @ homedir ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.BanDuplicatePomDependencyVersions passed
+[INFO] Rule 2: org.apache.maven.enforcer.rules.dependency.RequireUpperBoundDeps passed
+[INFO] Rule 3: org.apache.maven.enforcer.rules.dependency.DependencyConvergence passed
+[INFO] 
+[INFO] --- git-commit-id:9.0.1:revision (get-the-git-infos) @ homedir ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ homedir ---
+[INFO] Copying 106 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ homedir ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 122 source files with javac [debug parameters target 21] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/sergi/git/homedir/quarkus-app/src/main/java/com/scanales/eventflow/public_/CommunityResource.java:[99,42] method community in class com.scanales.eventflow.public_.CommunityResource.Templates cannot be applied to given types;
+  required: java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>,java.lang.String,boolean,boolean,boolean,boolean,boolean,com.scanales.eventflow.public_.CommunityResource.MemberView,long,java.lang.String,java.lang.String,java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>,boolean
+  found:    java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>,java.lang.String,boolean,boolean,boolean,boolean,boolean,com.scanales.eventflow.public_.CommunityResource.MemberView,long,java.lang.String,java.lang.String,java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>
+  reason: actual and formal argument lists differ in length
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.247 s
+[INFO] Finished at: 2025-12-14T17:58:52-03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.0:compile (default-compile) on project homedir: Compilation failure
+[ERROR] /C:/Users/sergi/git/homedir/quarkus-app/src/main/java/com/scanales/eventflow/public_/CommunityResource.java:[99,42] method community in class com.scanales.eventflow.public_.CommunityResource.Templates cannot be applied to given types;
+[ERROR]   required: java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>,java.lang.String,boolean,boolean,boolean,boolean,boolean,com.scanales.eventflow.public_.CommunityResource.MemberView,long,java.lang.String,java.lang.String,java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>,boolean
+[ERROR]   found:    java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>,java.lang.String,boolean,boolean,boolean,boolean,boolean,com.scanales.eventflow.public_.CommunityResource.MemberView,long,java.lang.String,java.lang.String,java.util.List<com.scanales.eventflow.public_.CommunityResource.MemberView>
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -45,6 +45,9 @@ public class CommunityResource {
   @Inject
   SecurityIdentity identity;
 
+  @Inject
+  com.scanales.eventflow.service.SystemErrorService systemErrorService;
+
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance community(
@@ -59,7 +62,8 @@ public class CommunityResource {
         long totalMembers,
         String prUrl,
         String prError,
-        List<MemberView> leaderboard);
+        List<MemberView> leaderboard,
+        boolean githubLinked);
   }
 
   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.of("es", "ES"))
@@ -74,7 +78,8 @@ public class CommunityResource {
       @QueryParam("missingGithub") boolean missingGithub,
       @QueryParam("already") boolean already,
       @QueryParam("prUrl") String prUrl,
-      @QueryParam("prError") String prError) {
+      @QueryParam("prError") String prError,
+      @QueryParam("githubLinked") boolean githubLinked) {
 
     List<MemberView> filtered = communityService.search(query).stream().map(this::toView).toList();
 
@@ -103,7 +108,8 @@ public class CommunityResource {
         communityService.countMembers(),
         decode(prUrl),
         prError,
-        leaderboard);
+        leaderboard,
+        githubLinked);
 
     return withLayoutData(template, "comunidad");
   }
@@ -152,6 +158,7 @@ public class CommunityResource {
       return Response.seeOther(URI.create("/comunidad?joined=1&prUrl=" + encoded)).build();
     }
     LOG.error("join: requestJoin failed (Optional.empty)");
+    systemErrorService.logError("ERROR", "CommunityResource", "Join request returned empty Optional", null, userId);
     return Response.seeOther(URI.create("/comunidad?prError=github")).build();
   }
 
