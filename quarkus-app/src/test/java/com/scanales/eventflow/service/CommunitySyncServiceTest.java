@@ -13,7 +13,9 @@ public class CommunitySyncServiceTest {
     @Test
     public void testSerialization() throws Exception {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        yamlMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
         yamlMapper.findAndRegisterModules();
+        yamlMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         CommunityMember member = new CommunityMember();
         member.setUserId("user1");
