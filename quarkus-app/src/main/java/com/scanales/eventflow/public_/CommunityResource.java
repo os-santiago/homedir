@@ -29,8 +29,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import org.jboss.logging.Logger;
+
 @Path("/comunidad")
 public class CommunityResource {
+
+  private static final Logger LOG = Logger.getLogger(CommunityResource.class);
 
   @Inject
   CommunityService communityService;
@@ -109,12 +113,16 @@ public class CommunityResource {
   @Authenticated
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response join(@FormParam("redirect") String redirect) {
+    LOG.info("CommunityResource.join() called");
     String userId = currentUserId().orElse(null);
     if (userId == null) {
+      LOG.warn("join: userId is null");
       return Response.seeOther(URI.create("/private/profile")).build();
     }
     var profile = userProfileService.upsert(userId, currentUserName().orElse(null), userEmail());
     if (!profile.hasGithub()) {
+      LOG.info("join: profile has no github");
+      // ... redirect logic ...
       String target = "/private/profile?linkGithub=1&redirect=/comunidad";
       if (redirect != null && !redirect.isBlank()) {
         target = "/private/profile?linkGithub=1&redirect=" + redirect;
@@ -122,18 +130,28 @@ public class CommunityResource {
       return Response.seeOther(URI.create(target)).build();
     }
     var gh = profile.getGithub();
+    LOG.infov("join: profile github={0}", gh.login());
+
+    // ... existing checks ...
     if (communityService.findByUserId(userId).isPresent()
         || communityService.findByGithub(gh.login()).isPresent()) {
+      LOG.info("join: already member");
       return Response.seeOther(URI.create("/comunidad?already=1")).build();
     }
+
     CommunityMember newMember = buildMember(profile, userId);
     String role = AdminUtils.isAdmin(identity) ? "administrador" : "colaborador";
     newMember.setRole(role);
+
+    LOG.info("join: calling requestJoin");
     Optional<String> prUrl = communityService.requestJoin(newMember);
+    LOG.infov("join: requestJoin result present={0}", prUrl.isPresent());
+
     if (prUrl.isPresent()) {
       String encoded = URLEncoder.encode(prUrl.get(), StandardCharsets.UTF_8);
       return Response.seeOther(URI.create("/comunidad?joined=1&prUrl=" + encoded)).build();
     }
+    LOG.error("join: requestJoin failed (Optional.empty)");
     return Response.seeOther(URI.create("/comunidad?prError=github")).build();
   }
 
