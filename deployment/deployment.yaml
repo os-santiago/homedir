@@ -81,6 +81,11 @@ spec:
                 secretKeyRef:
                   name: google-oauth
                   key: redirect-uri
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homedir-secrets
+                  key: gh-token
           resources:
             # Allow burst for ~10k concurrent users while keeping baseline small
             requests:
