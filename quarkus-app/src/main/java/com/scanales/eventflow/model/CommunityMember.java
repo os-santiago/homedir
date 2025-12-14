@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@io.quarkus.runtime.annotations.RegisterForReflection
 public class CommunityMember {
 
   private String userId;
