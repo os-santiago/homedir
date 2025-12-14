@@ -4,8 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.scanales.eventflow.model.UserProfile;
-import com.scanales.eventflow.service.UserProfileService;
-import com.scanales.eventflow.service.UserSessionService;
+
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
@@ -13,7 +12,6 @@ import jakarta.inject.Inject;
 import java.security.Principal;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 
 @QuarkusTest
 public class UserSessionServiceTest {

@@ -268,9 +268,6 @@ public class CommunitySyncService {
   private static class CommunityData {
     public List<CommunityMember> members;
 
-    CommunityData() {
-    }
-
     CommunityData(List<CommunityMember> members) {
       this.members = members;
     }

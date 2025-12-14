@@ -8,18 +8,18 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 public class NotificationServiceTest {
 
-  @Inject NotificationService notifications;
-  @Inject NotificationConfig config;
+  @Inject
+  NotificationService notifications;
 
   @Test
   public void dedupePreventsDuplicates() {
     notifications.reset();
-    config.enabled = true;
-    config.maxQueueSize = 10000;
-    config.dropOnQueueFull = false;
-    config.userCap = 100;
-    config.globalCap = 1000;
-    config.dedupeWindow = java.time.Duration.ofMinutes(30);
+    NotificationConfig.enabled = true;
+    NotificationConfig.maxQueueSize = 10000;
+    NotificationConfig.dropOnQueueFull = false;
+    NotificationConfig.userCap = 100;
+    NotificationConfig.globalCap = 1000;
+    NotificationConfig.dedupeWindow = java.time.Duration.ofMinutes(30);
     Notification n = new Notification();
     n.userId = "u1";
     n.talkId = "t1";
@@ -35,12 +35,12 @@ public class NotificationServiceTest {
   @Test
   public void queueFullReturnsVolatile() {
     notifications.reset();
-    config.enabled = true;
-    config.maxQueueSize = 0;
-    config.dropOnQueueFull = false;
-    config.userCap = 100;
-    config.globalCap = 1000;
-    config.dedupeWindow = java.time.Duration.ofMinutes(30);
+    NotificationConfig.enabled = true;
+    NotificationConfig.maxQueueSize = 0;
+    NotificationConfig.dropOnQueueFull = false;
+    NotificationConfig.userCap = 100;
+    NotificationConfig.globalCap = 1000;
+    NotificationConfig.dedupeWindow = java.time.Duration.ofMinutes(30);
     Notification n = new Notification();
     n.userId = "u2";
     n.talkId = "t1";

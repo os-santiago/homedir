@@ -20,11 +20,14 @@ public class NotificationService {
 
   private static final Logger LOG = Logger.getLogger(NotificationService.class);
 
-  @Inject NotificationRepository repository;
-  @Inject NotificationStore store;
-  @Inject NotificationConfig config;
-  @Inject ResourceGuards guards;
-  @Inject NotificationSocketService socketService;
+  @Inject
+  NotificationRepository repository;
+  @Inject
+  NotificationStore store;
+  @Inject
+  ResourceGuards guards;
+  @Inject
+  NotificationSocketService socketService;
 
   private final ConcurrentHashMap<String, Long> dedupe = new ConcurrentHashMap<>();
 
@@ -49,7 +52,7 @@ public class NotificationService {
 
   /** Enqueues a notification, applying dedupe and capacity checks. */
   public NotificationResult enqueue(Notification n) {
-    if (!config.enabled) {
+    if (!NotificationConfig.enabled) {
       return NotificationResult.ERROR;
     }
     long now = System.currentTimeMillis();
@@ -58,35 +61,35 @@ public class NotificationService {
       n.id = UUID.randomUUID().toString();
     }
     if (n.dedupeKey == null) {
-      n.dedupeKey = NotificationKey.build(n.userId, n.talkId, n.type, now, config.dedupeWindow);
+      n.dedupeKey = NotificationKey.build(n.userId, n.talkId, n.type, now, NotificationConfig.dedupeWindow);
     }
     Long last = dedupe.put(n.dedupeKey, now);
-    if (last != null && now - last < config.dedupeWindow.toMillis()) {
+    if (last != null && now - last < NotificationConfig.dedupeWindow.toMillis()) {
       deduped.incrementAndGet();
       log(n, "duplicate");
       return NotificationResult.DROPPED_DUPLICATE;
     }
 
     Deque<Notification> list = store.getUserList(n.userId);
-    if (list.size() >= config.userCap || store.totalSize() >= config.globalCap) {
+    if (list.size() >= NotificationConfig.userCap || store.totalSize() >= NotificationConfig.globalCap) {
       dropped.incrementAndGet();
       log(n, "capacity");
       return NotificationResult.DROPPED_CAPACITY;
     }
     list.addLast(n);
-    if (list.size() > config.userCap) {
+    if (list.size() > NotificationConfig.userCap) {
       list.removeFirst();
     }
     enqueued.incrementAndGet();
 
     NotificationResult result;
-    if (guards.checkQueueDepth(repository.queueDepth(), config.maxQueueSize)
+    if (guards.checkQueueDepth(repository.queueDepth(), NotificationConfig.maxQueueSize)
         && guards.checkDiskBudget(repository.baseDir(), 10L * 1024 * 1024)) {
       repository.replace(n.userId, list.stream().toList());
       persisted.incrementAndGet();
       log(n, "persisted");
       result = NotificationResult.ACCEPTED_PERSISTED;
-    } else if (config.dropOnQueueFull) {
+    } else if (NotificationConfig.dropOnQueueFull) {
       list.removeLast();
       dropped.incrementAndGet();
       log(n, "drop.queue");
@@ -114,12 +117,12 @@ public class NotificationService {
    * @param userId the owner
    * @param filter one of "all" o "unread"
    * @param cursor timestamp cursor; notifications newer than this are skipped
-   * @param limit max items to return
+   * @param limit  max items to return
    */
   public NotificationPage listPage(String userId, String filter, Long cursor, int limit) {
     java.util.Deque<Notification> list = store.getUserList(userId);
-    java.util.stream.Stream<Notification> stream =
-        list.stream().sorted((a, b) -> Long.compare(b.createdAt, a.createdAt));
+    java.util.stream.Stream<Notification> stream = list.stream()
+        .sorted((a, b) -> Long.compare(b.createdAt, a.createdAt));
     if ("unread".equalsIgnoreCase(filter)) {
       stream = stream.filter(n -> n.readAt == null);
     }
@@ -141,7 +144,8 @@ public class NotificationService {
   public boolean markRead(String userId, String id) {
     java.util.Deque<Notification> list = store.getUserList(userId);
     Notification found = list.stream().filter(n -> n.id.equals(id)).findFirst().orElse(null);
-    if (found == null) return false;
+    if (found == null)
+      return false;
     if (found.readAt == null) {
       found.readAt = System.currentTimeMillis();
       repository.replace(userId, list.stream().toList());
@@ -195,14 +199,14 @@ public class NotificationService {
 
   /** Page result for notification listings. */
   public record NotificationPage(
-      java.util.List<Notification> items, Long nextCursor, long unreadCount) {}
+      java.util.List<Notification> items, Long nextCursor, long unreadCount) {
+  }
 
   /** Purges notifications older than the retention period. */
   public void purgeOld() {
-    long cutoff =
-        Instant.now()
-            .minus(config.retentionDays, java.time.temporal.ChronoUnit.DAYS)
-            .toEpochMilli();
+    long cutoff = Instant.now()
+        .minus(NotificationConfig.retentionDays, java.time.temporal.ChronoUnit.DAYS)
+        .toEpochMilli();
     store.purgeOlderThan(cutoff);
   }
 
@@ -219,8 +223,9 @@ public class NotificationService {
   }
 
   private String hashUser(String userId) {
-    if (userId == null) return "";
-    byte[] d = digest.digest((config.userHashSalt + userId).getBytes(StandardCharsets.UTF_8));
+    if (userId == null)
+      return "";
+    byte[] d = digest.digest((NotificationConfig.userHashSalt + userId).getBytes(StandardCharsets.UTF_8));
     return HexFormat.of().formatHex(d).substring(0, 16);
   }
 }

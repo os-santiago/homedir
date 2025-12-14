@@ -1,6 +1,5 @@
 package com.scanales.eventflow.private_;
 
-import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.CookieParam;

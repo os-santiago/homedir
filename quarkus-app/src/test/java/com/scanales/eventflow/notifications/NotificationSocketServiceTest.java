@@ -18,12 +18,12 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class NotificationSocketServiceTest {
 
-  @Inject NotificationSocketService service;
-  @Inject NotificationConfig config;
+  @Inject
+  NotificationSocketService service;
 
   @Test
   void emitsToCorrectUserAndLimitsConnections() {
-    config.streamMaxConnectionsPerUser = 1;
+    NotificationConfig.streamMaxConnectionsPerUser = 1;
     Session s1 = mock(Session.class);
     RemoteEndpoint.Async async1 = mock(RemoteEndpoint.Async.class);
     when(s1.getAsyncRemote()).thenReturn(async1);

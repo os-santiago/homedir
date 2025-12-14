@@ -20,15 +20,19 @@ public class TalkStateEvaluator {
 
   private static final Logger LOG = Logger.getLogger(TalkStateEvaluator.class);
 
-  @Inject UserScheduleService schedules;
-  @Inject EventService events;
-  @Inject NotificationService notifications;
-  @Inject NotificationConfig config;
-  @Inject AppClock clock;
+  @Inject
+  UserScheduleService schedules;
+  @Inject
+  EventService events;
+  @Inject
+  NotificationService notifications;
+  @Inject
+  AppClock clock;
 
   @Scheduled(every = "{notifications.scheduler.interval}")
   void evaluate() {
-    if (!config.schedulerEnabled) return;
+    if (!NotificationConfig.schedulerEnabled)
+      return;
     Set<String> users = schedules.listUsers();
     for (String user : users) {
       for (String talkId : schedules.getTalksForUser(user)) {
@@ -43,13 +47,14 @@ public class TalkStateEvaluator {
 
   private void evaluateTalk(String user, String talkId) {
     TalkInfo info = events.findTalkInfo(talkId);
-    if (info == null) return;
+    if (info == null)
+      return;
     Talk talk = info.talk();
-    if (talk.getStartTime() == null || talk.getEndTime() == null) return;
-    ZoneId zone =
-        info.event() != null && info.event().getTimezone() != null
-            ? ZoneId.of(info.event().getTimezone())
-            : ZoneId.of("America/Santiago");
+    if (talk.getStartTime() == null || talk.getEndTime() == null)
+      return;
+    ZoneId zone = info.event() != null && info.event().getTimezone() != null
+        ? ZoneId.of(info.event().getTimezone())
+        : ZoneId.of("America/Santiago");
     ZonedDateTime now = clock.now(zone);
     ZonedDateTime start = now.with(talk.getStartTime());
     long diff = ChronoUnit.MINUTES.between(now, start);
@@ -59,10 +64,10 @@ public class TalkStateEvaluator {
       start = start.plusDays(1);
     }
     ZonedDateTime end = start.plusMinutes(talk.getDurationMinutes());
-    if (now.isBefore(start) && start.minus(config.upcomingWindow).isBefore(now)) {
+    if (now.isBefore(start) && start.minus(NotificationConfig.upcomingWindow).isBefore(now)) {
       enqueue(user, talkId, info, NotificationType.UPCOMING, "Charla pronto");
     } else if (!now.isBefore(start) && now.isBefore(end)) {
-      if (end.minus(config.endingSoonWindow).isBefore(now)) {
+      if (end.minus(NotificationConfig.endingSoonWindow).isBefore(now)) {
         enqueue(user, talkId, info, NotificationType.ENDING_SOON, "Termina pronto");
       } else {
         enqueue(user, talkId, info, NotificationType.STARTED, "Ha comenzado");

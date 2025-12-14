@@ -19,8 +19,8 @@ public class NotificationSocketService {
 
   private static final Logger LOG = Logger.getLogger(NotificationSocketService.class);
 
-  @Inject NotificationConfig config;
-  @Inject ObjectMapper mapper;
+  @Inject
+  ObjectMapper mapper;
 
   private final ConcurrentMap<String, Set<Session>> sessions = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, AtomicInteger> connections = new ConcurrentHashMap<>();
@@ -28,7 +28,7 @@ public class NotificationSocketService {
   /** Registers a user session enforcing connection limits. */
   public void register(String userId, Session session) {
     AtomicInteger count = connections.computeIfAbsent(userId, k -> new AtomicInteger());
-    if (count.incrementAndGet() > config.streamMaxConnectionsPerUser) {
+    if (count.incrementAndGet() > NotificationConfig.streamMaxConnectionsPerUser) {
       count.decrementAndGet();
       throw new WebApplicationException(
           Response.status(Response.Status.TOO_MANY_REQUESTS).entity("max connections").build());
