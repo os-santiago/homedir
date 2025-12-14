@@ -1,7 +1,5 @@
 package com.scanales.eventflow.private_;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.AdminUtils;
@@ -12,9 +10,6 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Locale;
@@ -31,7 +26,7 @@ public class GithubLinkService {
   UserProfileService profiles;
 
   @Inject
-  ObjectMapper objectMapper;
+  com.scanales.eventflow.service.GithubService githubService;
 
   @Inject
   Config config;
@@ -95,48 +90,13 @@ public class GithubLinkService {
     }
 
     try {
-      HttpClient client = HttpClient.newHttpClient();
-      HttpRequest tokenRequest = HttpRequest.newBuilder()
-          .uri(URI.create("https://github.com/login/oauth/access_token"))
-          .header("Accept", "application/json")
-          .POST(
-              HttpRequest.BodyPublishers.ofString(
-                  "client_id="
-                      + url(getGithubClientId())
-                      + "&client_secret="
-                      + url(getGithubClientSecret())
-                      + "&code="
-                      + url(code)))
-          .build();
-      HttpResponse<String> tokenResponse = client.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
-      if (tokenResponse.statusCode() >= 400) {
-        LOG.warnf("GitHub token exchange failed: %s", tokenResponse.body());
-        return redirectWithParams("/private/profile?githubError=token");
-      }
-      JsonNode tokenJson = objectMapper.readTree(tokenResponse.body());
-      String accessToken = tokenJson.path("access_token").asText();
-      if (accessToken == null || accessToken.isBlank()) {
-        LOG.warnf("GitHub token missing access_token field: %s", tokenResponse.body());
-        return redirectWithParams("/private/profile?githubError=token");
-      }
-      HttpRequest meRequest = HttpRequest.newBuilder()
-          .uri(URI.create("https://api.github.com/user"))
-          .header("Accept", "application/json")
-          .header("Authorization", "Bearer " + accessToken)
-          .build();
-      HttpResponse<String> meResponse = client.send(meRequest, HttpResponse.BodyHandlers.ofString());
-      if (meResponse.statusCode() >= 400) {
-        LOG.warnf("GitHub user fetch failed: %s", meResponse.body());
-        return redirectWithParams("/private/profile?githubError=user");
-      }
-      JsonNode userJson = objectMapper.readTree(meResponse.body());
-      String login = userJson.path("login").asText();
-      if (login == null || login.isBlank()) {
-        return redirectWithParams("/private/profile?githubError=user");
-      }
-      String htmlUrl = userJson.path("html_url").asText();
-      String avatarUrl = userJson.path("avatar_url").asText();
-      String ghId = userJson.path("id").asText();
+      String accessToken = githubService.exchangeCode(code);
+      com.scanales.eventflow.service.GithubService.GithubProfile profile = githubService.fetchUser(accessToken);
+
+      String login = profile.login();
+      String htmlUrl = profile.htmlUrl();
+      String avatarUrl = profile.avatarUrl();
+      String ghId = profile.id();
 
       String userId = currentUserId(identity);
       String name = AdminUtils.getClaim(identity, "name") != null
