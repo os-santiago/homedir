@@ -17,7 +17,8 @@ public class UserProfileService {
 
   private static final Logger LOG = Logger.getLogger(UserProfileService.class);
 
-  @Inject PersistenceService persistence;
+  @Inject
+  PersistenceService persistence;
 
   private final Map<String, UserProfile> profiles = new ConcurrentHashMap<>();
 
@@ -56,15 +57,14 @@ public class UserProfileService {
 
   public UserProfile linkGithub(
       String userId, String name, String email, UserProfile.GithubAccount githubAccount) {
-    String key = normalize(userId);
+
     UserProfile profile = upsert(userId, name, email);
-    UserProfile.GithubAccount updated =
-        new UserProfile.GithubAccount(
-            githubAccount.login(),
-            githubAccount.profileUrl(),
-            githubAccount.avatarUrl(),
-            githubAccount.id(),
-            githubAccount.linkedAt() != null ? githubAccount.linkedAt() : Instant.now());
+    UserProfile.GithubAccount updated = new UserProfile.GithubAccount(
+        githubAccount.login(),
+        githubAccount.profileUrl(),
+        githubAccount.avatarUrl(),
+        githubAccount.id(),
+        githubAccount.linkedAt() != null ? githubAccount.linkedAt() : Instant.now());
     profile.setGithub(updated);
     persist();
     return profile;

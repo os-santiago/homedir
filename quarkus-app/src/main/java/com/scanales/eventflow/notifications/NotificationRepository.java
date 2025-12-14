@@ -27,8 +27,6 @@ public class NotificationRepository {
 
   @Inject
   ObjectMapper mapper;
-  @Inject
-  NotificationConfig config;
 
   private Path baseDir;
   private ThreadPoolExecutor executor;
@@ -42,7 +40,7 @@ public class NotificationRepository {
     } catch (IOException e) {
       throw new NotificationPersistenceException("Failed to create notifications directory", e);
     }
-    int size = config.maxQueueSize > 0 ? config.maxQueueSize : 10000;
+    int size = NotificationConfig.maxQueueSize > 0 ? NotificationConfig.maxQueueSize : 10000;
     queue = new ArrayBlockingQueue<>(size);
     executor = new ThreadPoolExecutor(
         1,

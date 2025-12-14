@@ -16,25 +16,28 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class TalkStateEvaluatorTest {
 
-  @Inject TalkStateEvaluator evaluator;
-  @Inject NotificationService notifications;
-  @Inject EventService events;
-  @Inject UserScheduleService schedules;
-  @Inject NotificationConfig config;
+  @Inject
+  TalkStateEvaluator evaluator;
+  @Inject
+  NotificationService notifications;
+  @Inject
+  EventService events;
+  @Inject
+  UserScheduleService schedules;
 
   @BeforeEach
   void setup() {
     notifications.reset();
     schedules.reset();
     events.reset();
-    config.enabled = true;
-    config.schedulerEnabled = true;
-    config.userCap = 100;
-    config.globalCap = 1000;
-    config.maxQueueSize = 10000;
-    config.dedupeWindow = java.time.Duration.ofMinutes(30);
-    config.upcomingWindow = java.time.Duration.ofMinutes(15);
-    config.endingSoonWindow = java.time.Duration.ofMinutes(10);
+    NotificationConfig.enabled = true;
+    NotificationConfig.schedulerEnabled = true;
+    NotificationConfig.userCap = 100;
+    NotificationConfig.globalCap = 1000;
+    NotificationConfig.maxQueueSize = 10000;
+    NotificationConfig.dedupeWindow = java.time.Duration.ofMinutes(30);
+    NotificationConfig.upcomingWindow = java.time.Duration.ofMinutes(15);
+    NotificationConfig.endingSoonWindow = java.time.Duration.ofMinutes(10);
     Event e = new Event("e1", "E", "d");
     e.setTimezone("UTC");
     LocalTime now = LocalTime.now();

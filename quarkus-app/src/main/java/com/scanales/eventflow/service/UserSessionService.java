@@ -2,7 +2,7 @@ package com.scanales.eventflow.service;
 
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.UserSession;
-import io.quarkus.oidc.UserInfo;
+
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.RequestScoped;

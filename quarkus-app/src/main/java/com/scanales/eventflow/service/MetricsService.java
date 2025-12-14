@@ -9,16 +9,19 @@ import java.lang.management.ManagementFactory;
 @ApplicationScoped
 public class MetricsService {
 
-  public record Metrics(double cpu, double memory, double disk, boolean lowDisk) {}
+  public record Metrics(double cpu, double memory, double disk, boolean lowDisk) {
+  }
 
-  @Inject PersistenceService persistenceService;
+  @Inject
+  PersistenceService persistenceService;
 
   public Metrics getMetrics() {
     double cpu = 0d;
     var os = ManagementFactory.getOperatingSystemMXBean();
     if (os instanceof OperatingSystemMXBean bean) {
-      cpu = bean.getSystemCpuLoad();
-      if (cpu < 0) cpu = 0d; // can be -1 when undefined
+      cpu = bean.getCpuLoad();
+      if (cpu < 0)
+        cpu = 0d; // can be -1 when undefined
     }
     Runtime rt = Runtime.getRuntime();
     double mem = 1d - ((double) rt.freeMemory() / (double) rt.totalMemory());

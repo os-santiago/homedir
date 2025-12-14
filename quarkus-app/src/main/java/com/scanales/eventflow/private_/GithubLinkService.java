@@ -59,10 +59,11 @@ public class GithubLinkService {
 
     return Response.seeOther(URI.create(authorize))
         .cookie(
-            new jakarta.ws.rs.core.NewCookie("gh_state", state, "/", null, null, 300, true, true))
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_state").value(state).path("/").maxAge(300).secure(true)
+                .httpOnly(true).build())
         .cookie(
-            new jakarta.ws.rs.core.NewCookie(
-                "gh_redirect", target, "/", null, null, 300, false, false))
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect").value(target).path("/").maxAge(300).secure(false)
+                .httpOnly(false).build())
         .build();
   }
 
@@ -152,9 +153,11 @@ public class GithubLinkService {
       String target = redirectCookie != null ? redirectCookie.getValue() : "/private/profile";
       String sep = target.contains("?") ? "&" : "?";
       return Response.seeOther(URI.create(target + sep + "githubLinked=1"))
-          .cookie(new jakarta.ws.rs.core.NewCookie("gh_state", "", "/", null, null, 0, true, true))
+          .cookie(new jakarta.ws.rs.core.NewCookie.Builder("gh_state").value("").path("/").maxAge(0).secure(true)
+              .httpOnly(true).build())
           .cookie(
-              new jakarta.ws.rs.core.NewCookie("gh_redirect", "", "/", null, null, 0, false, false))
+              new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect").value("").path("/").maxAge(0).secure(false)
+                  .httpOnly(false).build())
           .build();
     } catch (Exception e) {
       LOG.error("GitHub OAuth callback failed", e);
@@ -164,9 +167,11 @@ public class GithubLinkService {
 
   private Response redirectWithParams(String target) {
     return Response.seeOther(URI.create(target))
-        .cookie(new jakarta.ws.rs.core.NewCookie("gh_state", "", "/", null, null, 0, true, true))
+        .cookie(new jakarta.ws.rs.core.NewCookie.Builder("gh_state").value("").path("/").maxAge(0).secure(true)
+            .httpOnly(true).build())
         .cookie(
-            new jakarta.ws.rs.core.NewCookie("gh_redirect", "", "/", null, null, 0, false, false))
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect").value("").path("/").maxAge(0).secure(false)
+                .httpOnly(false).build())
         .build();
   }
 

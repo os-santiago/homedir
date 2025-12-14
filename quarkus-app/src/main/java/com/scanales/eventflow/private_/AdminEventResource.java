@@ -43,15 +43,19 @@ public class AdminEventResource {
         String message);
   }
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
   private static final Logger LOG = Logger.getLogger(AdminEventResource.class);
 
-  @Inject EventService eventService;
+  @Inject
+  EventService eventService;
 
-  @Inject SpeakerService speakerService;
+  @Inject
+  SpeakerService speakerService;
 
-  @Inject ObjectMapper objectMapper;
+  @Inject
+  ObjectMapper objectMapper;
 
   private boolean isAdmin() {
     return AdminUtils.isAdmin(identity);
@@ -78,7 +82,7 @@ public class AdminEventResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(
-            Templates.edit(new Event(), speakerService.listSpeakers(), eventTypes(), message))
+        Templates.edit(new Event(), speakerService.listSpeakers(), eventTypes(), message))
         .build();
   }
 
@@ -209,9 +213,8 @@ public class AdminEventResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (scenarioId == null || scenarioId.isBlank()) {
-      var ts =
-          java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-              .format(java.time.LocalDateTime.now());
+      var ts = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+          .format(java.time.LocalDateTime.now());
       scenarioId = eventId + "-sala-" + ts;
     }
     Scenario scenario = new Scenario(scenarioId, name);
@@ -251,10 +254,9 @@ public class AdminEventResource {
     if (!isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
-    String reqId =
-        requestId == null || requestId.isBlank()
-            ? java.util.UUID.randomUUID().toString()
-            : requestId;
+    String reqId = requestId == null || requestId.isBlank()
+        ? java.util.UUID.randomUUID().toString()
+        : requestId;
     String user = identity.getAttribute("email");
     Event event = eventService.getEvent(eventId);
     if (event == null) {
@@ -275,24 +277,21 @@ public class AdminEventResource {
       LOG.warnf(
           "accion=charla_crear_validacion_fallida causa=faltan_campos usuario=%s eventoId=%s requestId=%s",
           user, eventId, reqId);
-      String msg =
-          java.net.URLEncoder.encode(
-              "Campos obligatorios", java.nio.charset.StandardCharsets.UTF_8);
+      String msg = java.net.URLEncoder.encode(
+          "Campos obligatorios", java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
     }
-    Talk base =
-        speakerId != null && !speakerId.isBlank()
-            ? speakerService.getTalk(speakerId, talkId)
-            : speakerService.findTalk(talkId);
+    Talk base = speakerId != null && !speakerId.isBlank()
+        ? speakerService.getTalk(speakerId, talkId)
+        : speakerService.findTalk(talkId);
     if (base == null) {
       LOG.warnf(
           "accion=charla_crear_validacion_fallida causa=charla_no_encontrada talkId=%s eventoId=%s requestId=%s",
           talkId, eventId, reqId);
-      String msg =
-          java.net.URLEncoder.encode(
-              "Charla no encontrada", java.nio.charset.StandardCharsets.UTF_8);
+      String msg = java.net.URLEncoder.encode(
+          "Charla no encontrada", java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
@@ -306,9 +305,8 @@ public class AdminEventResource {
       LOG.warnf(
           "accion=charla_crear_rechazada motivo=duplicado charlaExistenteId=%s eventoId=%s requestId=%s",
           talkId, eventId, reqId);
-      String msg =
-          java.net.URLEncoder.encode(
-              "Esta charla ya existe para el evento", java.nio.charset.StandardCharsets.UTF_8);
+      String msg = java.net.URLEncoder.encode(
+          "Esta charla ya existe para el evento", java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
@@ -325,10 +323,9 @@ public class AdminEventResource {
       LOG.warnf(
           "accion=charla_crear_rechazada motivo=conflicto_agenda charlaExistenteId=%s eventoId=%s requestId=%s",
           overlap.getId(), eventId, reqId);
-      String raw =
-          String.format(
-              "No se pudo agregar: hay un solapamiento en %s dia %d %s con '%s'",
-              location, day, start, overlap.getName());
+      String raw = String.format(
+          "No se pudo agregar: hay un solapamiento en %s dia %d %s con '%s'",
+          location, day, start, overlap.getName());
       String msg = java.net.URLEncoder.encode(raw, java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
@@ -338,19 +335,17 @@ public class AdminEventResource {
       eventService.saveTalk(eventId, talk);
       LOG.infof(
           "accion=charla_crear_exito charlaId=%s eventoId=%s requestId=%s", talkId, eventId, reqId);
-      String msg =
-          java.net.URLEncoder.encode(
-              "✅ Charla '" + base.getName() + "' agregada al evento.",
-              java.nio.charset.StandardCharsets.UTF_8);
+      String msg = java.net.URLEncoder.encode(
+          "✅ Charla '" + base.getName() + "' agregada al evento.",
+          java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "accion=charla_crear_error motivo=excepcion requestId=%s", reqId);
-      String msg =
-          java.net.URLEncoder.encode(
-              "No pudimos agregar la charla en este momento. Intenta nuevamente",
-              java.nio.charset.StandardCharsets.UTF_8);
+      String msg = java.net.URLEncoder.encode(
+          "No pudimos agregar la charla en este momento. Intenta nuevamente",
+          java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
@@ -398,9 +393,8 @@ public class AdminEventResource {
         || startTime == null
         || startTime.isBlank()
         || duration <= 0) {
-      String msg =
-          java.net.URLEncoder.encode(
-              "Campos obligatorios", java.nio.charset.StandardCharsets.UTF_8);
+      String msg = java.net.URLEncoder.encode(
+          "Campos obligatorios", java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
@@ -408,16 +402,14 @@ public class AdminEventResource {
     Talk talk;
     if (breakId != null && !breakId.isBlank()) {
       final String existingId = breakId;
-      talk =
-          event.getAgenda().stream()
-              .filter(t -> t.getId().equals(existingId))
-              .findFirst()
-              .orElse(new Talk(existingId, name));
+      talk = event.getAgenda().stream()
+          .filter(t -> t.getId().equals(existingId))
+          .findFirst()
+          .orElse(new Talk(existingId, name));
       talk.setName(name);
     } else {
-      var ts =
-          java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-              .format(java.time.LocalDateTime.now());
+      var ts = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+          .format(java.time.LocalDateTime.now());
       breakId = eventId + "-break-" + ts;
       talk = new Talk(breakId, name);
     }
@@ -429,19 +421,17 @@ public class AdminEventResource {
     talk.setBreak(true);
     Talk overlap = eventService.findOverlap(eventId, talk);
     if (overlap != null) {
-      String raw =
-          String.format(
-              "No se pudo agregar: hay un solapamiento en %s dia %d %s con '%s'",
-              location, day, startTime, overlap.getName());
+      String raw = String.format(
+          "No se pudo agregar: hay un solapamiento en %s dia %d %s con '%s'",
+          location, day, startTime, overlap.getName());
       String msg = java.net.URLEncoder.encode(raw, java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
     }
     eventService.saveTalk(eventId, talk);
-    String msg =
-        java.net.URLEncoder.encode(
-            "✅ Break agregado al evento.", java.nio.charset.StandardCharsets.UTF_8);
+    String msg = java.net.URLEncoder.encode(
+        "✅ Break agregado al evento.", java.nio.charset.StandardCharsets.UTF_8);
     return Response.status(Response.Status.SEE_OTHER)
         .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
         .build();
@@ -539,7 +529,7 @@ public class AdminEventResource {
       return null;
     }
     try {
-      var u = new java.net.URL(url);
+      var u = java.net.URI.create(url).toURL();
       u.toURI();
       return url;
     } catch (Exception e) {
@@ -566,36 +556,58 @@ public class AdminEventResource {
   }
 
   private void fillDefaults(Event event) {
-    if (event.getTitle() == null) event.setTitle("VACIO");
-    if (event.getDescription() == null) event.setDescription("VACIO");
-    if (event.getType() == null) event.setType(EventType.OTHER);
-    if (event.getMapUrl() == null) event.setMapUrl("VACIO");
-    if (event.getLogoUrl() == null) event.setLogoUrl("VACIO");
-    if (event.getContactEmail() == null) event.setContactEmail("VACIO");
-    if (event.getWebsite() == null) event.setWebsite("VACIO");
-    if (event.getTwitter() == null) event.setTwitter("VACIO");
-    if (event.getLinkedin() == null) event.setLinkedin("VACIO");
-    if (event.getInstagram() == null) event.setInstagram("VACIO");
-    if (event.getTicketsUrl() == null) event.setTicketsUrl("VACIO");
-    if (event.getTimezone() == null) event.setTimezone("UTC");
-    if (event.getCreator() == null) event.setCreator("VACIO");
-    if (event.getCreatedAt() == null) event.setCreatedAt(java.time.LocalDateTime.now());
+    if (event.getTitle() == null)
+      event.setTitle("VACIO");
+    if (event.getDescription() == null)
+      event.setDescription("VACIO");
+    if (event.getType() == null)
+      event.setType(EventType.OTHER);
+    if (event.getMapUrl() == null)
+      event.setMapUrl("VACIO");
+    if (event.getLogoUrl() == null)
+      event.setLogoUrl("VACIO");
+    if (event.getContactEmail() == null)
+      event.setContactEmail("VACIO");
+    if (event.getWebsite() == null)
+      event.setWebsite("VACIO");
+    if (event.getTwitter() == null)
+      event.setTwitter("VACIO");
+    if (event.getLinkedin() == null)
+      event.setLinkedin("VACIO");
+    if (event.getInstagram() == null)
+      event.setInstagram("VACIO");
+    if (event.getTicketsUrl() == null)
+      event.setTicketsUrl("VACIO");
+    if (event.getTimezone() == null)
+      event.setTimezone("UTC");
+    if (event.getCreator() == null)
+      event.setCreator("VACIO");
+    if (event.getCreatedAt() == null)
+      event.setCreatedAt(java.time.LocalDateTime.now());
 
     if (event.getScenarios() != null) {
       for (Scenario sc : event.getScenarios()) {
-        if (sc.getName() == null) sc.setName("VACIO");
-        if (sc.getFeatures() == null) sc.setFeatures("VACIO");
-        if (sc.getLocation() == null) sc.setLocation("VACIO");
-        if (sc.getId() == null) sc.setId(java.util.UUID.randomUUID().toString());
+        if (sc.getName() == null)
+          sc.setName("VACIO");
+        if (sc.getFeatures() == null)
+          sc.setFeatures("VACIO");
+        if (sc.getLocation() == null)
+          sc.setLocation("VACIO");
+        if (sc.getId() == null)
+          sc.setId(java.util.UUID.randomUUID().toString());
       }
     }
 
     if (event.getAgenda() != null) {
       for (Talk t : event.getAgenda()) {
-        if (t.getName() == null) t.setName("VACIO");
-        if (t.getDescription() == null) t.setDescription("VACIO");
-        if (t.getLocation() == null) t.setLocation("VACIO");
-        if (t.getStartTime() == null) t.setStartTime(java.time.LocalTime.MIDNIGHT);
+        if (t.getName() == null)
+          t.setName("VACIO");
+        if (t.getDescription() == null)
+          t.setDescription("VACIO");
+        if (t.getLocation() == null)
+          t.setLocation("VACIO");
+        if (t.getStartTime() == null)
+          t.setStartTime(java.time.LocalTime.MIDNIGHT);
         if (t.getSpeakers() == null || t.getSpeakers().isEmpty())
           t.setSpeakers(java.util.List.of(new com.scanales.eventflow.model.Speaker("", "VACIO")));
       }

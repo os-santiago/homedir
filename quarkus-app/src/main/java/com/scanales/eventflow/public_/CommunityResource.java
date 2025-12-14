@@ -57,7 +57,7 @@ public class CommunityResource {
         String prError);
   }
 
-  private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy", new Locale("es", "ES"))
+  private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.of("es", "ES"))
       .withZone(ZoneId.systemDefault());
 
   @GET

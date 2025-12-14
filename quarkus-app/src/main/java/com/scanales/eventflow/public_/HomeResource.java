@@ -26,7 +26,11 @@ public class HomeResource {
   Template index;
 
   @Inject
+
   LandingService landingService;
+
+  @Inject
+  com.scanales.eventflow.service.UserSessionService userSessionService;
 
   @GET
   @PermitAll
@@ -40,6 +44,7 @@ public class HomeResource {
     LandingViewModel viewModel = landingService.buildViewModel();
     return index
         .data("vm", viewModel)
+        .data("userSession", userSessionService.getCurrentSession())
         .data("loginUrl", "/private/profile")
         .data("logoutUrl", "/logout");
   }

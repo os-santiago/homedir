@@ -15,15 +15,23 @@ import jakarta.ws.rs.core.MediaType;
 @Produces(MediaType.TEXT_HTML)
 public class PublicPagesResource {
 
-  @Inject Template home;
+  @Inject
+  Template home;
 
-  @Inject Template community;
+  @Inject
+  Template community;
 
-  @Inject Template projects;
+  @Inject
+  Template projects;
 
-  @Inject Template events;
+  @Inject
+  Template events;
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
+
+  @Inject
+  com.scanales.eventflow.service.UserSessionService userSessionService;
 
   @GET
   public TemplateInstance home() {
@@ -49,7 +57,8 @@ public class PublicPagesResource {
   @GET
   @Path("/events")
   public TemplateInstance events() {
-    return withLayoutData(events.data("pageTitle", "Eventos"), "eventos");
+    return withLayoutData(
+        events.data("pageTitle", "Eventos").data("today", java.time.LocalDate.now()), "eventos");
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
@@ -59,6 +68,7 @@ public class PublicPagesResource {
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)
+        .data("userSession", userSessionService.getCurrentSession())
         .data("userInitial", initialFrom(userName));
   }
 
