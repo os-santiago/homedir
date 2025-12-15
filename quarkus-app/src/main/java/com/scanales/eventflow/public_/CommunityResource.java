@@ -101,7 +101,7 @@ public class CommunityResource {
         query,
         joined,
         missingGithub,
-        already,
+        (current != null) || already,
         needsGithub,
         isAuthenticated(),
         current,
