@@ -2,7 +2,7 @@ package com.scanales.eventflow.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -23,10 +23,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
-import java.util.ArrayList;
-import com.scanales.eventflow.service.SystemErrorService;
+
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import io.quarkus.scheduler.Scheduled;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -55,6 +56,14 @@ public class CommunitySyncService {
   String defaultBranch;
 
   @Inject
+  @ConfigProperty(name = "community.sync.max-members", defaultValue = "500")
+  int maxMembers;
+
+  @Inject
+  @ConfigProperty(name = "community.sync.max-prs", defaultValue = "100")
+  int maxPrs;
+
+  @Inject
   Config config;
 
   @Inject
@@ -63,7 +72,19 @@ public class CommunitySyncService {
   private final HttpClient client = HttpClient.newBuilder().build();
   private final ObjectMapper jsonMapper = new ObjectMapper();
   private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-  private final AtomicReference<MembersPayload> cache = new AtomicReference<>();
+
+  // Cache
+  private final AtomicReference<List<CommunityMember>> cachedMembers = new AtomicReference<>(Collections.emptyList());
+  private final AtomicReference<List<Object>> cachedPrs = new AtomicReference<>(Collections.emptyList()); // Storing raw
+                                                                                                          // PR data or
+                                                                                                          // simplified
+                                                                                                          // objects
+  private final AtomicReference<Instant> lastSync = new AtomicReference<>();
+  private final AtomicReference<String> syncStatus = new AtomicReference<>("IDLE");
+  private final AtomicBoolean paused = new AtomicBoolean(false);
+  private final AtomicReference<MembersPayload> cache = new AtomicReference<>(); // Keeping legacy cache just in case
+                                                                                 // for internal loadMembers logic
+                                                                                 // sharing
 
   @PostConstruct
   void init() {
@@ -71,25 +92,88 @@ public class CommunitySyncService {
     module.addSerializer(java.time.Instant.class, com.fasterxml.jackson.databind.ser.std.ToStringSerializer.instance);
     yamlMapper.registerModule(module);
     yamlMapper.findAndRegisterModules();
-    yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     yamlMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     githubToken = config.getOptionalValue("GH_TOKEN", String.class).orElse("");
+    // Trigger initial sync async
+    new Thread(this::sync).start();
+  }
+
+  @Scheduled(every = "5m")
+  public void sync() {
+    if (paused.get()) {
+      LOG.warn("Sync PAUSED due to limits reached.");
+      syncStatus.set("PAUSED");
+      return;
+    }
+    syncStatus.set("SYNCING");
+    try {
+      LOG.info("Starting scheduled community sync...");
+      // 1. Fetch Members
+      MembersPayload payload = loadMembers();
+      if (payload.members != null) {
+        if (payload.members.size() > maxMembers) {
+          LOG.errorf("Max members limit reached (%d > %d). Pausing sync.", payload.members.size(), maxMembers);
+          paused.set(true);
+          syncStatus.set("LIMIT_REACHED");
+          return;
+        }
+        payload.members.forEach(CommunityMember::calculateGamification);
+        cachedMembers.set(payload.members);
+        // Update legacy cache for PR logic
+        cache.set(payload);
+      }
+
+      // 2. Fetch PRs
+      List<Object> prs = fetchOpenPullRequests();
+      if (prs.size() > maxPrs) {
+        LOG.errorf("Max PRs limit reached (%d > %d). Pausing sync.", prs.size(), maxPrs);
+        paused.set(true);
+        syncStatus.set("LIMIT_REACHED");
+        return;
+      }
+      cachedPrs.set(prs);
+
+      lastSync.set(Instant.now());
+      syncStatus.set("OK");
+      LOG.info("Community sync complete. Members: " + cachedMembers.get().size() + ", PRs: " + cachedPrs.get().size());
+
+    } catch (Exception e) {
+      LOG.error("Community sync failed", e);
+      syncStatus.set("ERROR: " + e.getMessage());
+      systemErrorService.logError("ERROR", "CommunitySync", "Failed to sync: " + e.getMessage(), null, "SYSTEM");
+    }
   }
 
   public List<CommunityMember> fetchMembers() {
-    try {
-      MembersPayload payload = loadMembers();
-      cache.set(payload);
-      if (payload.members != null) {
-        payload.members.forEach(CommunityMember::calculateGamification);
-        return payload.members;
+    // Return cached immediately
+    return cachedMembers.get();
+  }
+
+  public boolean hasPendingJoinRequest(String githubLogin) {
+    if (githubLogin == null)
+      return false;
+    // Basic check in cached PRs titles/bodies
+    String q = githubLogin.toLowerCase();
+    return cachedPrs.get().stream().anyMatch(pr -> {
+      // Assuming PR object is a Map or JsonNode. Let's make fetchOpenPullRequests
+      // return List<Map>
+      if (pr instanceof Map<?, ?> m) {
+        String title = (String) m.get("title");
+        String body = (String) m.get("body");
+        return (title != null && title.toLowerCase().contains(q)) || (body != null && body.toLowerCase().contains(q));
       }
-      return Collections.emptyList();
-    } catch (Exception e) {
-      LOG.warn("Unable to load community members", e);
-      MembersPayload cached = cache.get();
-      return cached != null && cached.members != null ? cached.members : Collections.emptyList();
-    }
+      return false;
+    });
+  }
+
+  public Map<String, Object> getSyncStatus() {
+    Map<String, Object> status = new java.util.HashMap<>();
+    status.put("status", syncStatus.get());
+    status.put("members", cachedMembers.get().size());
+    status.put("prs", cachedPrs.get().size());
+    status.put("lastSync", lastSync.get());
+    status.put("paused", paused.get());
+    return status;
   }
 
   public Optional<String> createMemberPullRequest(CommunityMember member) {
@@ -296,6 +380,26 @@ public class CommunitySyncService {
     return builder;
   }
 
+  private List<Object> fetchOpenPullRequests() {
+    try {
+      HttpRequest request = requestBuilder()
+          .uri(URI.create(
+              String.format("https://api.github.com/repos/%s/%s/pulls?state=open&per_page=100", repoOwner, repoName)))
+          .GET()
+          .build();
+      HttpResponse<String> response = send(request);
+      if (response.statusCode() == 200) {
+        return jsonMapper.readValue(response.body(), new com.fasterxml.jackson.core.type.TypeReference<List<Object>>() {
+        });
+      }
+      LOG.warn("Failed to fetch PRs: " + response.statusCode());
+      return Collections.emptyList();
+    } catch (Exception e) {
+      LOG.warn("Error fetching PRs", e);
+      return Collections.emptyList();
+    }
+  }
+
   private String encode(String value) {
     return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
@@ -313,7 +417,10 @@ public class CommunitySyncService {
   public static class CommunityData {
     public List<CommunityMember> members;
 
-    CommunityData(List<CommunityMember> members) {
+    public CommunityData() {
+    }
+
+    public CommunityData(List<CommunityMember> members) {
       this.members = members;
     }
   }

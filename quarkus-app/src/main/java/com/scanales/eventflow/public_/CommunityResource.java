@@ -88,6 +88,9 @@ public class CommunityResource {
         ? communityService.findByUserId(userId).map(this::toView).orElse(null)
         : null;
     boolean needsGithub = isAuthenticated() && userProfileService.find(userId).map(p -> !p.hasGithub()).orElse(true);
+    String githubLogin = userId != null
+        ? userProfileService.find(userId).map(p -> p.getGithub() != null ? p.getGithub().login() : null).orElse(null)
+        : null;
 
     List<MemberView> leaderboard = communityService.listMembers().stream()
         .filter(m -> m.getContributions() > 0)
@@ -99,7 +102,7 @@ public class CommunityResource {
     TemplateInstance template = Templates.community(
         filtered,
         query,
-        joined,
+        joined || communityService.hasPendingJoinRequest(githubLogin),
         missingGithub,
         (current != null) || already,
         needsGithub,
