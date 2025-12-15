@@ -405,12 +405,12 @@ public class CommunitySyncService {
   }
 
   @io.quarkus.runtime.annotations.RegisterForReflection
-  private record MembersPayload(List<CommunityMember> members, String sha) {
+  public record MembersPayload(List<CommunityMember> members, String sha) {
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   @io.quarkus.runtime.annotations.RegisterForReflection
-  private static class JsonFileResponse {
+  public static class JsonFileResponse {
     public String content;
     public String sha;
   }
