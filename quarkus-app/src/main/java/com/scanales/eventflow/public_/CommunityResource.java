@@ -40,6 +40,9 @@ public class CommunityResource {
   CommunityService communityService;
 
   @Inject
+  com.scanales.eventflow.service.QuestService questService;
+
+  @Inject
   UserProfileService userProfileService;
 
   @Inject
@@ -93,8 +96,14 @@ public class CommunityResource {
         : null;
 
     List<MemberView> leaderboard = communityService.listMembers().stream()
-        .filter(m -> m.getContributions() > 0)
-        .sorted((a, b) -> Integer.compare(b.getContributions(), a.getContributions()))
+        .map(m -> {
+          // Enrich with Gamification Data
+          var qp = questService.getProfile(m.getUserId()); // Assuming userId matches username for mock
+          m.setLevel(qp.level);
+          m.setXp(qp.currentXp);
+          return m;
+        })
+        .sorted((a, b) -> Integer.compare(b.getXp(), a.getXp())) // Sort by XP
         .limit(3)
         .map(this::toView)
         .toList();

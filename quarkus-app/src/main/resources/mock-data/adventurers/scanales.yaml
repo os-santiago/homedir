@@ -1,0 +1,12 @@
+username: scanales
+currentXp: 450
+history:
+  - title: "Fix Login Button"
+    xp: 50
+    date: "2025-12-14"
+  - title: "Refactor Community Sync"
+    xp: 150
+    date: "2025-12-15"
+  - title: "Deploy v3.0.0"
+    xp: 250
+    date: "2025-12-16"

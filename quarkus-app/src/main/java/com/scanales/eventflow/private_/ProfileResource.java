@@ -13,6 +13,9 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import com.scanales.eventflow.model.QuestClass;
+import com.scanales.eventflow.model.QuestProfile;
+import com.scanales.eventflow.service.QuestService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -55,7 +58,9 @@ public class ProfileResource {
         boolean userAuthenticated,
         String userName,
         String userInitial,
-        java.util.List<ClassOption> classOptions);
+
+        java.util.List<ClassOption> classOptions,
+        QuestProfile questProfile);
   }
 
   /** Display option for class selection. */
@@ -82,6 +87,8 @@ public class ProfileResource {
   UsageMetricsService metrics;
   @Inject
   SecurityIdentity identity;
+  @Inject
+  QuestService questService;
 
   @GET
   @Authenticated
@@ -109,7 +116,7 @@ public class ProfileResource {
 
     com.scanales.eventflow.model.QuestClass currentQc = userProfile.getQuestClass();
 
-    java.util.List<ClassOption> classOptions = java.util.Arrays.stream(com.scanales.eventflow.model.QuestClass.values())
+    java.util.List<ClassOption> classOptions = java.util.Arrays.stream(QuestClass.values())
         .map(qc -> new ClassOption(
             qc.name(),
             qc.getDisplayName(),
@@ -117,6 +124,9 @@ public class ProfileResource {
             qc.getDescription(),
             qc == currentQc))
         .toList();
+
+    // Fetch Gamification Profile
+    QuestProfile questProfile = questService.getProfile(email);
 
     return Templates.profile(
         name,
@@ -136,7 +146,8 @@ public class ProfileResource {
         true,
         name,
         name.substring(0, 1).toUpperCase(),
-        classOptions);
+        classOptions,
+        questProfile);
   }
 
   @GET

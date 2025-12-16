@@ -1,0 +1,37 @@
+{#include layout/main}
+{#title}Tablero de Misiones{/title}
+{#body}
+<div class="quest-board-container nes-container is-dark with-title">
+    <h2 class="title" style="background-color: #212529;">Tablero de Misiones</h2>
+
+    <p class="nes-text is-primary">¡Bienvenido, Aventurero! Completa misiones para ganar XP y subir de nivel.</p>
+    <p class="nes-text">Misiones Disponibles: {quests.size}</p>
+
+    <div class="quests-list">
+        {#if quests.isEmpty}
+        <div class="nes-container is-rounded is-centered">
+            <p>No hay misiones disponibles por el momento.</p>
+        </div>
+        {#else}
+        {#for quest in quests}
+        <div class="nes-container is-rounded with-title quest-card" style="margin-bottom: 1rem;">
+            <p class="title">{quest.difficulty} Rank</p>
+            <div class="quest-content" style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="quest-info">
+                    <h3 class="nes-text is-primary">{quest.title}</h3>
+                    <p>{quest.description}</p>
+                    <span class="nes-badge">
+                        <span class="is-warning">{quest.xpReward} XP</span>
+                    </span>
+                </div>
+                <div class="quest-action">
+                    <a href="{quest.url}" target="_blank" class="nes-btn is-primary">Ver Misión</a>
+                </div>
+            </div>
+        </div>
+        {/for}
+        {/if}
+    </div>
+</div>
+{/body}
+{/include}

@@ -1,0 +1,21 @@
+levels:
+  - level: 1
+    xpRequired: 0
+  - level: 2
+    xpRequired: 100
+  - level: 3
+    xpRequired: 300
+  - level: 4
+    xpRequired: 600
+  - level: 5
+    xpRequired: 1000
+  - level: 6
+    xpRequired: 1500
+  - level: 7
+    xpRequired: 2100
+  - level: 8
+    xpRequired: 2800
+  - level: 9
+    xpRequired: 3600
+  - level: 10
+    xpRequired: 4500

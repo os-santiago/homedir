@@ -79,6 +79,41 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
+                    <p class="hd-eyebrow">Hoja de Vida</p>
+                    <h2 class="hd-panel-title">Nivel {questProfile.level}</h2>
+                    <p class="hd-page-intro">Experiencia: {questProfile.currentXp} XP / {questProfile.nextLevelXp} XP
+                    </p>
+                </div>
+                <div class="hd-panel-actions">
+                    <a class="hd-btn hd-btn-primary" href="/private/quests">Tablero de Misiones</a>
+                </div>
+            </div>
+
+            <div style="margin: 1rem 0;">
+                <progress class="nes-progress is-primary" value="{questProfile.currentXp}"
+                    max="{questProfile.nextLevelXp}" style="width: 100%; height: 24px; border-radius: 4px;"></progress>
+            </div>
+
+            <h3 class="hd-panel-title" style="font-size: 1.2rem; margin-bottom: 0.5rem;">Historial de Misiones</h3>
+            {#if questProfile.history.isEmpty}
+            <p class="hd-page-intro">Aún no has completado misiones.</p>
+            {#else}
+            <ul style="list-style: none; padding: 0;">
+                {#for h in questProfile.history}
+                <li
+                    style="padding: 0.5rem 0; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between;">
+                    <span>{h.title}</span>
+                    <span><span style="color: #28a745; font-weight: bold;">+{h.xp} XP</span> <span
+                            style="font-size: 0.8em; opacity: 0.7;">({h.date})</span></span>
+                </li>
+                {/for}
+            </ul>
+            {/if}
+        </section>
+
+        <section class="hd-panel">
+            <div class="hd-dashboard-header">
+                <div>
                     <p class="hd-eyebrow">Identidad</p>
                     <h2 class="hd-panel-title">Tu Gremio (Quest Class)</h2>
                     <p class="hd-page-intro">Elige tu arquetipo para que la comunidad conozca tu rol principal.</p>
