@@ -38,8 +38,15 @@
       <span style="font-size: 1.2rem;">✨</span>
       <span>¡Ya eres parte de la comunidad!</span>
     </div>
-    <a class="btn-primary" href="#directorio"
-      style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
+    <div style="display: flex; gap: 1rem;">
+      <a class="btn-primary" href="#directorio"
+        style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
+      <a class="btn-primary"
+        href="https://github.com/os-santiago/os-santiago.github.io/blob/main/community/members.yaml" target="_blank"
+        style="background: transparent; border: 1px solid rgba(255,255,255,0.5); color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+        Editar members.yaml
+      </a>
+    </div>
 
     {#else}
     {#if !userSession.loggedIn}
@@ -58,14 +65,23 @@
       </button>
     </form>
     {#else}
-    <!-- Logged in, GitHub Linked, but NOT community member -->
+    {#if joined}
+    <button disabled class="btn-primary" style="opacity: 0.7; cursor: not-allowed;">Solicitud en proceso...</button>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+      Tu solicitud ha sido enviada. Revisa tus <a href="{prUrl}" target="_blank"
+        style="color: white; text-decoration: underline;">Pull Requests</a>.
+    </p>
+    {#else}
     <form action="/comunidad/unirse" method="POST">
       <input type="hidden" name="redirect" value="/comunidad" />
       <button type="submit" class="btn-primary">Unirme a la comunidad</button>
     </form>
     {/if}
+    {/if}
+    {#if !userSession.communityMember}
     <a class="btn-primary" href="#directorio"
       style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
+    {/if}
     {/if}
   </header>
 
