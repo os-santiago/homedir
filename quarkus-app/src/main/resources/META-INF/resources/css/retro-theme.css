@@ -142,7 +142,7 @@
       font-family: var(--font-display);
       font-size: 1.1rem;
       font-weight: 700;
-      color: #ffffff;
+      color: rgba(255, 255, 255, 0.85);
       text-decoration: none;
       text-transform: uppercase;
       letter-spacing: 1px;
