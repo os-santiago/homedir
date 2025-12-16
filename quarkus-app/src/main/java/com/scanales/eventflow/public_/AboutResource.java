@@ -55,7 +55,7 @@ public class AboutResource {
         boolean oidcConfigured = !"dev-client".equals(oidcClientId) && !"missing".equals(oidcClientId);
 
         String ghClientId = ConfigProvider.getConfig()
-                .getOptionalValue("quarkus.oidc.github.client-id", String.class)
+                .getOptionalValue("GH_CLIENT_ID", String.class)
                 .orElse("missing");
         boolean githubConfigured = ghClientId != null && !ghClientId.isEmpty() && !"missing".equals(ghClientId);
 

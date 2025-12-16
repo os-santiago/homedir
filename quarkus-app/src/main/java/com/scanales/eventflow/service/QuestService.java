@@ -38,6 +38,12 @@ public class QuestService {
     // Cache for levels
     private List<LevelConfig> levelConfigs;
 
+    @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quests.github.repo-owner", defaultValue = "os-santiago")
+    String repoOwner;
+
+    @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quests.github.repo-name", defaultValue = "community-directory")
+    String repoName;
+
     @Inject
     public QuestService() {
         loadGamificationConfig();
@@ -129,7 +135,8 @@ public class QuestService {
         try {
             // Simplified GitHub API call - list issues
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.github.com/repos/os-santiago/community-directory/issues?state=open"))
+                    .uri(URI.create(
+                            String.format("https://api.github.com/repos/%s/%s/issues?state=open", repoOwner, repoName)))
                     .header("Accept", "application/vnd.github.v3+json")
                     .GET()
                     .build();
@@ -151,12 +158,29 @@ public class QuestService {
         return Collections.emptyList();
     }
 
-    private List<Quest> mapIssuesToQuests(List<GithubIssue> issues) {
+    List<Quest> mapIssuesToQuests(List<GithubIssue> issues) {
         List<Quest> quests = new ArrayList<>();
         for (GithubIssue issue : issues) {
             // Calculate mock XP based on labels or randomness
             int xp = 50;
-            String difficulty = "D"; // Default
+            String difficulty = "D";
+            String status = "OPEN";
+
+            if (issue.labels != null) {
+                for (GithubLabel label : issue.labels) {
+                    if (label.name.startsWith("xp:")) {
+                        try {
+                            xp = Integer.parseInt(label.name.substring(3));
+                        } catch (NumberFormatException e) {
+                            // ignore
+                        }
+                    } else if (label.name.startsWith("difficulty:")) {
+                        difficulty = label.name.substring(11).toUpperCase();
+                    } else if (label.name.startsWith("status:")) {
+                        status = label.name.substring(7).toUpperCase();
+                    }
+                }
+            }
 
             quests.add(new Quest(
                     String.valueOf(issue.number),
@@ -165,7 +189,7 @@ public class QuestService {
                             : "",
                     xp,
                     difficulty,
-                    "OPEN",
+                    status,
                     issue.html_url));
         }
         return quests;
@@ -199,5 +223,10 @@ public class QuestService {
         public String title;
         public String body;
         public String html_url;
+        public List<GithubLabel> labels;
+    }
+
+    public static class GithubLabel {
+        public String name;
     }
 }
