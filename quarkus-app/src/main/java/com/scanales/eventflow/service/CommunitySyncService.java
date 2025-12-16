@@ -229,6 +229,7 @@ public class CommunitySyncService {
     clone.setRole(member.getRole());
     clone.setProfileUrl(member.getProfileUrl());
     clone.setAvatarUrl(member.getAvatarUrl());
+    clone.setQuestClass(member.getQuestClass());
     clone.setJoinedAt(Instant.now());
     return clone;
   }
@@ -268,6 +269,10 @@ public class CommunitySyncService {
         // Skills
         if (m.getSkills() != null && !m.getSkills().isEmpty()) {
           map.put("skills", m.getSkills());
+        }
+        // Quest Class
+        if (m.getQuestClass() != null) {
+          map.put("questClass", m.getQuestClass().toValue());
         }
 
         // Add gamification if present/needed, or skip if transient

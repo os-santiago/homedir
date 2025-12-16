@@ -67,7 +67,6 @@
                         <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver
                             perfil</a>
                         <span style="font-size: 0.9em; opacity: 0.7;">(Vinculado)</span>
-                        <!-- Optional: <a href="..." style="font-size: 0.8em;">Actualizar</a> -->
                     </div>
                     {#else}
                     <a class="hd-btn hd-btn-primary" href="/private/github/start?redirect=/private/profile">Vincular con
@@ -75,6 +74,33 @@
                     {/if}
                 </div>
             </div>
+        </section>
+
+        <section class="hd-panel">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">Identidad</p>
+                    <h2 class="hd-panel-title">Tu Gremio (Quest Class)</h2>
+                    <p class="hd-page-intro">Elige tu arquetipo para que la comunidad conozca tu rol principal.</p>
+                </div>
+            </div>
+            <form action="/private/profile/update-class" method="POST" style="margin-top: 1rem;">
+                <div class="class-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    {#for opt in classOptions}
+                    <label class="class-card hd-card-surface"
+                        style="cursor: pointer; position: relative; border: 2px solid transparent; padding: 1rem;">
+                        <input type="radio" name="questClass" value="{opt.value}"
+                            style="position: absolute; top: 1rem; right: 1rem;" {#if opt.checked}checked{/if}>
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">{opt.emoji}</div>
+                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: bold;">{opt.displayName}</h3>
+                        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">{opt.description}</p>
+                    </label>
+                    {/for}
+                </div>
+                <!-- Hack: if currentClass is null, allow clearing? No, let's force selection or keep as is. -->
+                <button type="submit" class="hd-btn hd-btn-primary">Guardar Clase</button>
+            </form>
         </section>
 
         <section class="hd-panel">

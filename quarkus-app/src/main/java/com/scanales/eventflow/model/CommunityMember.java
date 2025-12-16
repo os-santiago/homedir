@@ -112,6 +112,15 @@ public class CommunityMember {
   private int contributions;
   private List<String> badges;
   private List<String> skills = new ArrayList<>();
+  private QuestClass questClass;
+
+  public QuestClass getQuestClass() {
+    return questClass;
+  }
+
+  public void setQuestClass(QuestClass questClass) {
+    this.questClass = questClass;
+  }
 
   public List<String> getSkills() {
     return skills;

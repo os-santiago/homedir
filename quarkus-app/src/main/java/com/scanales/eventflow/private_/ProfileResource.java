@@ -54,14 +54,18 @@ public class ProfileResource {
         boolean githubRequired,
         boolean userAuthenticated,
         String userName,
-        String userInitial);
+        String userInitial,
+        java.util.List<ClassOption> classOptions);
+  }
+
+  /** Display option for class selection. */
+  public record ClassOption(String value, String displayName, String emoji, String description, boolean checked) {
   }
 
   /** Talks grouped by day within an event. */
   public record DayGroup(int day, java.util.List<Talk> talks) {
   }
 
-  /** Talks grouped by event. */
   public record EventGroup(
       com.scanales.eventflow.model.Event event,
       java.util.List<DayGroup> days,
@@ -69,19 +73,15 @@ public class ProfileResource {
   }
 
   @Inject
-  SecurityIdentity identity;
-
-  @Inject
   EventService eventService;
-
   @Inject
   UserScheduleService userSchedule;
-
-  @Inject
-  UsageMetricsService metrics;
-
   @Inject
   UserProfileService userProfiles;
+  @Inject
+  UsageMetricsService metrics;
+  @Inject
+  SecurityIdentity identity;
 
   @GET
   @Authenticated
@@ -90,62 +90,34 @@ public class ProfileResource {
       @jakarta.ws.rs.QueryParam("githubLinked") boolean githubLinked,
       @jakarta.ws.rs.QueryParam("githubError") String githubError,
       @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub) {
-    identity.getAttributes().forEach((k, v) -> LOG.infov("{0} = {1}", k, v));
-
+    String email = getEmail();
     String name = getClaim("name");
+    if (name == null) {
+      name = email;
+    }
     String givenName = getClaim("given_name");
     String familyName = getClaim("family_name");
-    String email = getClaim("email");
-
-    if (name == null) {
-      name = identity.getPrincipal().getName();
-    }
-
     String sub = getClaim("sub");
     if (sub == null) {
-      sub = identity.getPrincipal().getName();
+      sub = email;
     }
 
-    if (email == null) {
-      email = sub;
-    }
-
+    var groups = getEventGroupsForUser(email);
     var info = userSchedule.getTalkDetailsForUser(email);
-    var talkIds = info.keySet();
-    java.util.List<TalkInfo> entries = talkIds.stream()
-        .map(eventService::findTalkInfo)
-        .filter(java.util.Objects::nonNull)
-        .toList();
-
-    // Group talks by event and day, and collect speakers per event
-    java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<Integer, java.util.List<Talk>>> grouped = new java.util.LinkedHashMap<>();
-    java.util.Map<com.scanales.eventflow.model.Event, java.util.Map<String, com.scanales.eventflow.model.Speaker>> speakersByEvent = new java.util.LinkedHashMap<>();
-    for (TalkInfo te : entries) {
-      grouped
-          .computeIfAbsent(te.event(), k -> new java.util.TreeMap<>())
-          .computeIfAbsent(te.talk().getDay(), k -> new java.util.ArrayList<>())
-          .add(te.talk());
-      java.util.Map<String, com.scanales.eventflow.model.Speaker> eventSpeakers = speakersByEvent.computeIfAbsent(
-          te.event(),
-          k -> new java.util.LinkedHashMap<String, com.scanales.eventflow.model.Speaker>());
-      te.talk().getSpeakers().stream()
-          .filter(s -> s.getId() != null && !s.getId().isBlank())
-          .forEach(s -> eventSpeakers.putIfAbsent(s.getId(), s));
-    }
-    java.util.List<EventGroup> groups = grouped.entrySet().stream()
-        .map(
-            ev -> new EventGroup(
-                ev.getKey(),
-                ev.getValue().entrySet().stream()
-                    .map(d -> new DayGroup(d.getKey(), d.getValue()))
-                    .toList(),
-                new java.util.ArrayList<>(
-                    speakersByEvent
-                        .getOrDefault(ev.getKey(), java.util.Map.of())
-                        .values())))
-        .toList();
-
     var summary = userSchedule.getSummaryForUser(email);
+    var userProfile = userProfiles.upsert(email, name, email);
+
+    com.scanales.eventflow.model.QuestClass currentQc = userProfile.getQuestClass();
+
+    java.util.List<ClassOption> classOptions = java.util.Arrays.stream(com.scanales.eventflow.model.QuestClass.values())
+        .map(qc -> new ClassOption(
+            qc.name(),
+            qc.getDisplayName(),
+            qc.getEmoji(),
+            qc.getDescription(),
+            qc == currentQc))
+        .toList();
+
     return Templates.profile(
         name,
         givenName,
@@ -157,13 +129,14 @@ public class ProfileResource {
         summary.total(),
         summary.attended(),
         summary.rated(),
-        userProfiles.upsert(email, name, email).getGithub(),
+        userProfile.getGithub(),
         githubLinked,
         githubError,
         linkGithub,
         true,
         name,
-        name.substring(0, 1).toUpperCase());
+        name.substring(0, 1).toUpperCase(),
+        classOptions);
   }
 
   @GET
@@ -285,6 +258,23 @@ public class ProfileResource {
         .build();
   }
 
+  @POST
+  @Path("update-class")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response updateClass(
+      @jakarta.ws.rs.FormParam("questClass") String questClass,
+      @jakarta.ws.rs.FormParam("redirect") String redirect) {
+    String userId = getEmail();
+    com.scanales.eventflow.model.QuestClass qc = com.scanales.eventflow.model.QuestClass.fromValue(questClass);
+    userProfiles.updateQuestClass(userId, qc);
+
+    if (redirect != null && !redirect.isBlank()) {
+      return Response.seeOther(java.net.URI.create(redirect)).build();
+    }
+    return Response.seeOther(java.net.URI.create("/private/profile")).build();
+  }
+
   private boolean acceptsJson(HttpHeaders headers) {
     String accept = headers.getHeaderString(HttpHeaders.ACCEPT);
     return accept != null && accept.toLowerCase().contains(MediaType.APPLICATION_JSON);
@@ -307,5 +297,44 @@ public class ProfileResource {
       email = identity.getPrincipal().getName();
     }
     return email;
+  }
+
+  private java.util.List<EventGroup> getEventGroupsForUser(String email) {
+    java.util.Set<String> talkIds = userSchedule.getTalksForUser(email);
+    java.util.Map<com.scanales.eventflow.model.Event, java.util.List<com.scanales.eventflow.model.Talk>> talksByEvent = new java.util.HashMap<>();
+
+    for (String id : talkIds) {
+      com.scanales.eventflow.model.TalkInfo info = eventService.findTalkInfo(id);
+      if (info != null) {
+        talksByEvent.computeIfAbsent(info.event(), k -> new java.util.ArrayList<>()).add(info.talk());
+      }
+    }
+
+    java.util.List<EventGroup> groups = new java.util.ArrayList<>();
+    for (java.util.Map.Entry<com.scanales.eventflow.model.Event, java.util.List<com.scanales.eventflow.model.Talk>> entry : talksByEvent
+        .entrySet()) {
+      com.scanales.eventflow.model.Event event = entry.getKey();
+      java.util.List<com.scanales.eventflow.model.Talk> talks = entry.getValue();
+
+      // Group by day
+      java.util.Map<Integer, java.util.List<com.scanales.eventflow.model.Talk>> talksByDay = talks.stream()
+          .collect(java.util.stream.Collectors.groupingBy(com.scanales.eventflow.model.Talk::getDay));
+
+      java.util.List<DayGroup> dayGroups = talksByDay.entrySet().stream()
+          .sorted(java.util.Map.Entry.comparingByKey())
+          .map(e -> {
+            e.getValue().sort(java.util.Comparator.comparing(com.scanales.eventflow.model.Talk::getStartTime));
+            return new DayGroup(e.getKey(), e.getValue());
+          })
+          .toList();
+
+      java.util.List<com.scanales.eventflow.model.Speaker> speakers = talks.stream()
+          .flatMap(t -> t.getSpeakers().stream())
+          .distinct()
+          .toList();
+
+      groups.add(new EventGroup(event, dayGroups, speakers));
+    }
+    return groups;
   }
 }
