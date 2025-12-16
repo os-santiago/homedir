@@ -1,6 +1,7 @@
 package com.scanales.eventflow.service;
 
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.model.QuestClass;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -52,6 +53,17 @@ public class UserProfileService {
       profile.setEmail(email);
     }
     persist();
+    return profile;
+  }
+
+  public UserProfile updateQuestClass(String userId, QuestClass questClass) {
+    if (userId == null)
+      return null;
+    UserProfile profile = find(userId).orElse(null);
+    if (profile != null) {
+      profile.setQuestClass(questClass);
+      persist();
+    }
     return profile;
   }
 

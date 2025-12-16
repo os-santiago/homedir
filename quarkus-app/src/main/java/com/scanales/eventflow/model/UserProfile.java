@@ -12,19 +12,35 @@ public class UserProfile {
   private String name;
   private String email;
   private GithubAccount github;
+  private QuestClass questClass;
 
-  public UserProfile() {}
+  public UserProfile() {
+  }
 
   @JsonCreator
   public UserProfile(
       @JsonProperty("userId") String userId,
       @JsonProperty("name") String name,
       @JsonProperty("email") String email,
-      @JsonProperty("github") GithubAccount github) {
+      @JsonProperty("github") GithubAccount github,
+      @JsonProperty("questClass") QuestClass questClass) {
     this.userId = userId;
     this.name = name;
     this.email = email;
     this.github = github;
+    this.questClass = questClass;
+  }
+
+  public UserProfile(String userId, String name, String email, GithubAccount github) {
+    this(userId, name, email, github, null);
+  }
+
+  public QuestClass getQuestClass() {
+    return questClass;
+  }
+
+  public void setQuestClass(QuestClass questClass) {
+    this.questClass = questClass;
   }
 
   public String getUserId() {

@@ -198,6 +198,10 @@ public class CommunityResource {
 
   private MemberView toView(CommunityMember member) {
     String since = member.getJoinedAt() != null ? DATE_FMT.format(member.getJoinedAt()) : "Recién llegado";
+    String questClassStr = member.getQuestClass() != null
+        ? member.getQuestClass().getEmoji() + " " + member.getQuestClass().getDisplayName()
+        : null;
+
     return new MemberView(
         member.getDisplayName(),
         member.getGithub(),
@@ -209,7 +213,8 @@ public class CommunityResource {
         member.getXp(),
         member.getContributions(),
         member.getBadges(),
-        member.getSkills());
+        member.getSkills(),
+        questClassStr);
   }
 
   private CommunityMember buildMember(
@@ -238,7 +243,7 @@ public class CommunityResource {
 
   public record MemberView(
       String name, String github, String role, String profileUrl, String avatarUrl, String since,
-      int level, int xp, int contributions, List<String> badges, List<String> skills) {
+      int level, int xp, int contributions, List<String> badges, List<String> skills, String questClass) {
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
