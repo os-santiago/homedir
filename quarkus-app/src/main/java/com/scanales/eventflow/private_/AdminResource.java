@@ -25,7 +25,6 @@ public class AdminResource {
 
     static native TemplateInstance errors(java.util.List<com.scanales.eventflow.model.SystemError> errors);
 
-    static native TemplateInstance sync(java.util.Map<String, Object> status);
   }
 
   @Inject
