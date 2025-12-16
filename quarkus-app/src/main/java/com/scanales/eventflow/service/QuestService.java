@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.scanales.eventflow.model.Quest;
 import com.scanales.eventflow.model.QuestProfile;
+import com.scanales.eventflow.model.UserProfile;
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,7 +34,6 @@ public class QuestService {
 
     // Mock Data Paths
     private static final String GAMIFICATION_PATH = "/mock-data/gamification.yaml";
-    private static final String ADVENTURERS_PATH = "/mock-data/adventurers/";
 
     // Cache for levels
     private List<LevelConfig> levelConfigs;
@@ -48,6 +48,9 @@ public class QuestService {
     public QuestService() {
         loadGamificationConfig();
     }
+
+    @Inject
+    UserProfileService userProfileService;
 
     private void loadGamificationConfig() {
         try (InputStream is = getClass().getResourceAsStream(GAMIFICATION_PATH)) {
@@ -67,35 +70,31 @@ public class QuestService {
     }
 
     public QuestProfile getProfile(String username) {
-        // Try to load mock data first
-        try (InputStream is = getClass().getResourceAsStream(ADVENTURERS_PATH + username + ".yaml")) {
-            if (is != null) {
-                String yaml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                return parseProfile(yaml);
+        int currentXp = 0;
+        List<QuestProfile.QuestHistoryItem> history = new ArrayList<>();
+
+        if (username != null) {
+            UserProfile profile = userProfileService.find(username).orElse(null);
+            if (profile != null) {
+                currentXp = profile.getCurrentXp();
+                if (profile.getHistory() != null) {
+                    for (UserProfile.QuestHistoryItem item : profile.getHistory()) {
+                        history.add(new QuestProfile.QuestHistoryItem(item.title(), item.xp(), item.date()));
+                    }
+                }
+            } else {
+                // Return empty profile for unknown user, or could create one
+                // For read-only view, 0 is fine.
             }
-        } catch (IOException e) {
-            Log.warn("Failed to load mock profile for " + username, e);
         }
 
-        // Fallback: Default profile
-        return new QuestProfile(username, 1, 0, getXpForLevel(2), Collections.emptyList());
-    }
-
-    private QuestProfile parseProfile(String yaml) throws JsonProcessingException {
-        // Simple DTO for YAML matching
-        MockProfile mock = yamlMapper.readValue(yaml, MockProfile.class);
-
-        int currentLevel = calculateLevel(mock.currentXp);
+        int currentLevel = calculateLevel(currentXp);
         int nextLevelXp = getXpForLevel(currentLevel + 1);
 
-        List<QuestProfile.QuestHistoryItem> history = new ArrayList<>();
-        if (mock.history != null) {
-            for (MockHistoryItem item : mock.history) {
-                history.add(new QuestProfile.QuestHistoryItem(item.title, item.xp, item.date));
-            }
-        }
+        // Reverse history to show newest first
+        Collections.reverse(history);
 
-        return new QuestProfile(mock.username, currentLevel, mock.currentXp, nextLevelXp, history);
+        return new QuestProfile(username, currentLevel, currentXp, nextLevelXp, history);
     }
 
     public int calculateLevel(int xp) {
@@ -211,18 +210,6 @@ public class QuestService {
     private static class LevelConfig {
         public int level;
         public int xpRequired;
-    }
-
-    private static class MockProfile {
-        public String username;
-        public int currentXp;
-        public List<MockHistoryItem> history;
-    }
-
-    private static class MockHistoryItem {
-        public String title;
-        public int xp;
-        public String date;
     }
 
     // Minimal Issue representation

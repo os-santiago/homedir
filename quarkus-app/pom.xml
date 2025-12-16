@@ -4,7 +4,7 @@
 
     <groupId>com.scanales</groupId>
     <artifactId>homedir</artifactId>
-    <version>3.2.5</version>
+    <version>3.4.0</version>
 
     <properties>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>

@@ -1,0 +1,744 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.scanales:homedir >------------------------
+[INFO] Building homedir 3.4.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ homedir ---
+[INFO] Deleting C:\Users\sergi\git\homedir\quarkus-app\target
+[INFO] 
+[INFO] --- enforcer:3.6.1:enforce (enforce) @ homedir ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.BanDuplicatePomDependencyVersions passed
+[INFO] Rule 2: org.apache.maven.enforcer.rules.dependency.RequireUpperBoundDeps passed
+[INFO] Rule 3: org.apache.maven.enforcer.rules.dependency.DependencyConvergence passed
+[INFO] 
+[INFO] --- git-commit-id:9.0.1:revision (get-the-git-infos) @ homedir ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ homedir ---
+[INFO] Copying 110 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ homedir ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 127 source files with javac [debug parameters target 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ homedir ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ homedir ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 50 source files with javac [debug parameters target 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ homedir ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+2025-12-16 20:56:01,969 INFO  [io.qua.sma.jwt.dep.SmallryeJwtDevModeProcessor] (build-25) The smallrye-jwt extension has configured an in-memory key pair, which is not enabled in production. Please ensure the correct keys/locations are set in production to avoid potential issues.
+2025-12-16 20:56:06,824 INFO  [io.qua.sma.jwt.dep.SmallryeJwtDevModeProcessor] (build-55) The smallrye-jwt extension has configured an in-memory key pair, which is not enabled in production. Please ensure the correct keys/locations are set in production to avoid potential issues.
+[INFO] Running com.scanales.eventflow.security.SessionExpiryFilterTest
+2025-12-16 20:56:10,104 INFO  [org.hib.val.int.uti.Version] (main) HV000001: Hibernate Validator 9.0.1.Final
+2025-12-16 20:56:10,336 INFO  [io.und.websockets] (main) UT026003: Adding annotated server endpoint class io.eventflow.notifications.global.GlobalNotificationsWs for path /ws/global-notifications
+2025-12-16 20:56:10,549 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.oidc.authentication.force-redirect-https" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-12-16 20:56:10,553 WARN  [io.qua.config] (main) The "quarkus.log.console.enable" config property is deprecated and should not be used anymore.
+2025-12-16 20:56:11,417 INFO  [com.sca.eve.ser.QuestService] (main) Loaded gamification config with 10 levels.
+2025-12-16 20:56:11,426 INFO  [com.sca.eve.ser.QuestService] (main) Loaded gamification config with 10 levels.
+2025-12-16 20:56:11,557 INFO  [io.quarkus] (main) homedir 3.0.0 on JVM (powered by Quarkus 3.26.4) started in 11.038s. Listening on: http://localhost:8081
+2025-12-16 20:56:11,558 INFO  [io.quarkus] (main) Profile test activated. 
+2025-12-16 20:56:11,558 INFO  [io.quarkus] (main) Installed features: [cdi, compose, hibernate-validator, oidc, qute, rest, rest-jackson, rest-qute, scheduler, security, security-properties-file, smallrye-context-propagation, smallrye-health, smallrye-jwt, vertx, websockets, websockets-client]
+2025-12-16 20:56:12,065 INFO  [com.sca.eve.ser.CommunitySyncService] (executor-thread-3) Starting scheduled community sync...
+2025-12-16 20:56:12,065 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-1) Using data directory C:\Users\sergi\AppData\Local\Temp\eventflow-test1290848903266105255
+2025-12-16 20:56:12,066 INFO  [com.sca.eve.ser.CommunitySyncService] (Thread-358) Starting scheduled community sync...
+2025-12-16 20:56:12,066 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-1) Persistence data found
+2025-12-16 20:56:12,067 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-2) No persistence file C:\Users\sergi\AppData\Local\Temp\eventflow-test1290848903266105255\events.json found - starting empty
+2025-12-16 20:56:12,069 INFO  [com.sca.eve.ser.EventService] (executor-thread-2) Loaded 0 events into memory
+2025-12-16 20:56:12,072 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-1) No persistence file C:\Users\sergi\AppData\Local\Temp\eventflow-test1290848903266105255\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:13,042 INFO  [com.sca.eve.ser.CommunitySyncService] (Thread-358) Community sync complete. Members: 1, PRs: 0
+2025-12-16 20:56:13,042 INFO  [com.sca.eve.ser.CommunitySyncService] (executor-thread-3) Community sync complete. Members: 1, PRs: 0
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.537 s -- in com.scanales.eventflow.security.SessionExpiryFilterTest
+[INFO] Running com.scanales.eventflow.admin.AdminAccessTest
+2025-12-16 20:56:13,128 INFO  [io.quarkus] (main) homedir stopped in 0.038s
+2025-12-16 20:56:13,819 INFO  [io.und.websockets] (main) UT026003: Adding annotated server endpoint class io.eventflow.notifications.global.GlobalNotificationsWs for path /ws/global-notifications
+2025-12-16 20:56:14,041 WARN  [io.qua.config] (main) Unrecognized configuration key "quarkus.oidc.authentication.force-redirect-https" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+2025-12-16 20:56:14,048 WARN  [io.qua.config] (main) The "quarkus.log.console.enable" config property is deprecated and should not be used anymore.
+2025-12-16 20:56:14,087 WARN  [com.sca.eve.ser.UserScheduleService] (user-schedule-refresh) refresh_failed: java.lang.RuntimeException: Error injecting com.fasterxml.jackson.databind.ObjectMapper com.scanales.eventflow.service.PersistenceService.objectMapper
+	at com.scanales.eventflow.service.PersistenceService_Bean.doCreate(Unknown Source)
+	at com.scanales.eventflow.service.PersistenceService_Bean.create(Unknown Source)
+	at com.scanales.eventflow.service.PersistenceService_Bean.create(Unknown Source)
+	at io.quarkus.arc.impl.AbstractSharedContext.createInstanceHandle(AbstractSharedContext.java:119)
+	at io.quarkus.arc.impl.AbstractSharedContext$1.get(AbstractSharedContext.java:38)
+	at io.quarkus.arc.impl.AbstractSharedContext$1.get(AbstractSharedContext.java:35)
+	at io.quarkus.arc.generator.Default_jakarta_enterprise_context_ApplicationScoped_ContextInstances.c45(Unknown Source)
+	at io.quarkus.arc.generator.Default_jakarta_enterprise_context_ApplicationScoped_ContextInstances.computeIfAbsent(Unknown Source)
+	at io.quarkus.arc.impl.AbstractSharedContext.get(AbstractSharedContext.java:35)
+	at io.quarkus.arc.impl.ClientProxies.getApplicationScopedDelegate(ClientProxies.java:23)
+	at com.scanales.eventflow.service.PersistenceService_ClientProxy.arc$delegate(Unknown Source)
+	at com.scanales.eventflow.service.PersistenceService_ClientProxy.loadUserSchedules(Unknown Source)
+	at com.scanales.eventflow.service.UserScheduleService.refreshSnapshot(UserScheduleService.java:306)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.NullPointerException: Cannot invoke "io.quarkus.arc.ArcContainer.getActiveContext(java.lang.Class)" because "<local2>" is null
+	at io.quarkus.jackson.runtime.ObjectMapperProducer_ProducerMethod_objectMapper_KgqnG0Hv0d6QYgKd-v-HRXlW39Y_Bean.get(Unknown Source)
+	at io.quarkus.jackson.runtime.ObjectMapperProducer_ProducerMethod_objectMapper_KgqnG0Hv0d6QYgKd-v-HRXlW39Y_Bean.get(Unknown Source)
+	... 19 more
+
+2025-12-16 20:56:14,619 INFO  [com.sca.eve.ser.QuestService] (main) Loaded gamification config with 10 levels.
+2025-12-16 20:56:14,625 INFO  [com.sca.eve.ser.QuestService] (main) Loaded gamification config with 10 levels.
+2025-12-16 20:56:14,712 INFO  [io.quarkus] (main) homedir 3.0.0 on JVM (powered by Quarkus 3.26.4) started in 1.474s. Listening on: http://localhost:8081
+2025-12-16 20:56:14,712 INFO  [io.quarkus] (main) Profile test activated. 
+2025-12-16 20:56:14,713 INFO  [io.quarkus] (main) Installed features: [cdi, compose, hibernate-validator, oidc, qute, rest, rest-jackson, rest-qute, scheduler, security, security-properties-file, smallrye-context-propagation, smallrye-health, smallrye-jwt, vertx, websockets, websockets-client]
+2025-12-16 20:56:15,052 INFO  [com.sca.eve.ser.CommunitySyncService] (executor-thread-3) Starting scheduled community sync...
+2025-12-16 20:56:15,053 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-2) Using data directory C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437
+2025-12-16 20:56:15,053 INFO  [com.sca.eve.ser.CommunitySyncService] (Thread-362) Starting scheduled community sync...
+2025-12-16 20:56:15,053 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-2) Persistence data found
+2025-12-16 20:56:15,055 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-2) No persistence file C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\events.json found - starting empty
+2025-12-16 20:56:15,055 INFO  [com.sca.eve.ser.EventService] (executor-thread-2) Loaded 0 events into memory
+2025-12-16 20:56:15,056 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-1) No persistence file C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:15,372 INFO  [com.sca.eve.ser.CommunitySyncService] (executor-thread-3) Community sync complete. Members: 1, PRs: 0
+2025-12-16 20:56:15,372 INFO  [com.sca.eve.ser.CommunitySyncService] (Thread-362) Community sync complete. Members: 1, PRs: 0
+2025-12-16 20:56:15,631 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:15,631 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:15,632 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:15,632 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:15,632 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:15,632 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:15,632 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:15,632 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=alice preferred_username=null email=null
+2025-12-16 20:56:15,728 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:15,728 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:15,728 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:15,728 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:15,728 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:15,728 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:15,728 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:15,728 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=sergio.canales.e@gmail.com preferred_username=null email=null
+2025-12-16 20:56:15,729 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-3) No persistence file C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\speakers.json found - starting empty
+2025-12-16 20:56:15,729 INFO  [com.sca.eve.ser.SpeakerService] (executor-thread-3) Loaded 0 speakers into memory
+2025-12-16 20:56:15,766 INFO  [com.sca.eve.ser.PersistenceService] (executor-thread-3) No persistence file C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\user-profiles.json found - starting empty
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.170 s -- in com.scanales.eventflow.admin.AdminAccessTest
+[INFO] Running com.scanales.eventflow.json.JsonSerializationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.075 s -- in com.scanales.eventflow.json.JsonSerializationTest
+[INFO] Running com.scanales.eventflow.notifications.NotificationServiceTest
+2025-12-16 20:56:16,349 INFO  [com.sca.eve.not.NotificationService] (main) enqueue result=2111015f-a43b-40b2-9413-3cbb320a67f1 user_hash=bdc52ed48bcce42a talkId=t1 type=UPCOMING reason=volatile
+2025-12-16 20:56:16,371 INFO  [com.sca.eve.not.NotificationService] (main) enqueue result=aee6d3cb-5819-4e11-ad2f-5c7f8c6f0be2 user_hash=cf39032daeaff210 talkId=t1 type=STARTED reason=persisted
+2025-12-16 20:56:16,371 INFO  [com.sca.eve.not.NotificationService] (main) enqueue result=aee6d3cb-5819-4e11-ad2f-5c7f8c6f0be2 user_hash=cf39032daeaff210 talkId=t1 type=STARTED reason=duplicate
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.038 s -- in com.scanales.eventflow.notifications.NotificationServiceTest
+[INFO] Running com.scanales.eventflow.notifications.NotificationSocketServiceTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (C:\Users\sergi\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.5\byte-buddy-agent-1.17.5.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2025-12-16 20:56:17,090 INFO  [com.sca.eve.ser.PersistenceService] (user-schedule-refresh) No persistence file C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\user-schedule-2025.json found - starting empty
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.496 s -- in com.scanales.eventflow.notifications.NotificationSocketServiceTest
+[INFO] Running com.scanales.eventflow.notifications.TalkStateEvaluatorTest
+2025-12-16 20:56:17,925 INFO  [com.sca.eve.ser.UserScheduleService] (main) addTalk(user=user@example.com, talk=t1, result=added)
+2025-12-16 20:56:17,927 INFO  [com.sca.eve.ser.UserScheduleService] (main) addTalk(user=user@example.com, talk=t2, result=added)
+2025-12-16 20:56:17,927 INFO  [com.sca.eve.ser.UserScheduleService] (main) addTalk(user=user@example.com, talk=t3, result=added)
+2025-12-16 20:56:17,929 INFO  [com.sca.eve.ser.UserScheduleService] (main) addTalk(user=user@example.com, talk=t4, result=added)
+2025-12-16 20:56:17,941 INFO  [com.sca.eve.not.NotificationService] (main) enqueue result=40423c8b-5b28-4172-b495-c71ed0376635 user_hash=f5d55dfb2a6642d2 talkId=t4 type=FINISHED reason=persisted
+2025-12-16 20:56:17,946 INFO  [com.sca.eve.not.NotificationService] (main) enqueue result=68c94f7b-e27e-4007-b2d1-6a15de91df99 user_hash=f5d55dfb2a6642d2 talkId=t1 type=FINISHED reason=persisted
+2025-12-16 20:56:17,951 INFO  [com.sca.eve.not.NotificationService] (main) enqueue result=4fdc5b11-2430-43f0-8b5e-d1f638d32539 user_hash=f5d55dfb2a6642d2 talkId=t2 type=FINISHED reason=persisted
+2025-12-16 20:56:17,952 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:17.952482600Z
+2025-12-16 20:56:17,957 INFO  [com.sca.eve.not.NotificationService] (main) enqueue result=ea794cf4-a227-43ab-b42d-1a0501dbaa5b user_hash=f5d55dfb2a6642d2 talkId=t3 type=FINISHED reason=persisted
+2025-12-16 20:56:17,958 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:17.958070900Z
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.069 s -- in com.scanales.eventflow.notifications.TalkStateEvaluatorTest
+[INFO] Running com.scanales.eventflow.private_.AdminMetricsExportTest
+2025-12-16 20:56:17,996 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:17.996968700Z
+2025-12-16 20:56:18,003 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:18.003048Z
+2025-12-16 20:56:18,009 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:18.009080Z
+2025-12-16 20:56:18,013 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:18.013135100Z
+2025-12-16 20:56:18,018 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:18.018288100Z
+2025-12-16 20:56:18,021 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:18.021853Z
+2025-12-16 20:56:18,025 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change OK->DEGRADADO
+2025-12-16 20:56:18,025 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:18.025861Z
+2025-12-16 20:56:18,030 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:18.030545500Z
+2025-12-16 20:56:18,043 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:18.043655500Z
+2025-12-16 20:56:18,052 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:18.052312Z
+2025-12-16 20:56:18,122 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:18,122 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:18,122 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:18,123 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:18,123 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:18,123 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:18,124 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:18,124 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=sergio.canales.e@gmail.com preferred_username=null email=null
+2025-12-16 20:56:18,181 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change OK->DEGRADADO
+2025-12-16 20:56:18,185 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:18.185061Z
+2025-12-16 20:56:18,188 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:18.188580200Z
+2025-12-16 20:56:18,194 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:18.194139400Z
+2025-12-16 20:56:18,198 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:18.198140Z
+2025-12-16 20:56:18,203 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:18.203748800Z
+2025-12-16 20:56:18,213 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:18,214 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:18,214 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:18,214 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:18,214 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:18,214 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:18,214 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:18,214 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=sergio.canales.e@gmail.com preferred_username=null email=null
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.250 s -- in com.scanales.eventflow.private_.AdminMetricsExportTest
+[INFO] Running com.scanales.eventflow.private_.ProfileResourceTest
+2025-12-16 20:56:18,240 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:18.240490800Z
+2025-12-16 20:56:18,326 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:18,326 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:18,327 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:18,327 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:18,327 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:18,327 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:18,327 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:18,327 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:18,384 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:18.384449Z
+2025-12-16 20:56:18,405 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:18,406 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:18,406 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:18,406 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:18,406 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:18,406 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:18,406 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:18,406 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:18,413 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) addTalk(user=user@example.com, talk=t1, result=added)
+2025-12-16 20:56:18,414 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) buffer_threshold_reached
+2025-12-16 20:56:18,414 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) health_state_change DEGRADADO->ERROR
+2025-12-16 20:56:18,415 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:18,417 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:18.417355200Z
+2025-12-16 20:56:19,092 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.092204600Z
+2025-12-16 20:56:19,113 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.113198100Z
+2025-12-16 20:56:19,133 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,134 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,134 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,134 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,135 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,135 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,135 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,135 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,135 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) addTalk(user=user@example.com, talk=t8, result=added)
+2025-12-16 20:56:19,136 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,140 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.140630500Z
+2025-12-16 20:56:19,144 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.144135300Z
+2025-12-16 20:56:19,171 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.171213600Z
+2025-12-16 20:56:19,190 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,190 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,190 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,190 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,190 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,190 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,190 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,192 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,192 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) addTalk(user=user@example.com, talk=t4, result=added)
+2025-12-16 20:56:19,192 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,197 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.197622300Z
+2025-12-16 20:56:19,218 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,218 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,218 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,218 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,218 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,218 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,218 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,218 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,218 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) removeTalk(user=user@example.com, talk=t4, result=removed)
+2025-12-16 20:56:19,219 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,222 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.222045700Z
+2025-12-16 20:56:19,234 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.234315900Z
+2025-12-16 20:56:19,248 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,249 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,249 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,249 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,249 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,249 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,249 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,249 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,250 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) addTalk(user=user@example.com, talk=t3, result=added)
+2025-12-16 20:56:19,250 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,253 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.253592Z
+2025-12-16 20:56:19,262 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.262160700Z
+2025-12-16 20:56:19,276 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,277 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,277 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,277 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,277 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,277 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,277 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,277 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,339 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.339219100Z
+2025-12-16 20:56:19,351 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,352 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,352 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,352 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,352 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,352 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,352 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,352 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,352 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) addTalk(user=user@example.com, talk=t7, result=added)
+2025-12-16 20:56:19,353 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,357 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.357153300Z
+2025-12-16 20:56:19,360 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.360808Z
+2025-12-16 20:56:19,365 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.365153900Z
+2025-12-16 20:56:19,380 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,380 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,380 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,380 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,380 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,380 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,380 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,380 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,380 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) addTalk(user=user@example.com, talk=t2, result=added)
+2025-12-16 20:56:19,381 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,385 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.385605200Z
+2025-12-16 20:56:19,403 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,403 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,403 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,403 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,403 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,403 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,403 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,403 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+2025-12-16 20:56:19,403 INFO  [com.sca.eve.ser.UserScheduleService] (executor-thread-3) removeTalk(user=user@example.com, talk=t2, result=removed)
+2025-12-16 20:56:19,404 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,408 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:19.408272Z
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.216 s -- in com.scanales.eventflow.private_.ProfileResourceTest
+[INFO] Running com.scanales.eventflow.public_.EventResourceMapLinkTest
+2025-12-16 20:56:19,460 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.460452700Z
+2025-12-16 20:56:19,474 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,474 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,527 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.527028400Z
+2025-12-16 20:56:19,531 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.531051600Z
+2025-12-16 20:56:19,535 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.535607700Z
+2025-12-16 20:56:19,542 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,542 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in com.scanales.eventflow.public_.EventResourceMapLinkTest
+[INFO] Running com.scanales.eventflow.public_.EventScenarioResourceTest
+2025-12-16 20:56:19,565 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.565894200Z
+2025-12-16 20:56:19,570 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.570433600Z
+2025-12-16 20:56:19,577 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.577641900Z
+2025-12-16 20:56:19,587 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,588 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in com.scanales.eventflow.public_.EventScenarioResourceTest
+[INFO] Running com.scanales.eventflow.public_.EventTalkResourceTest
+2025-12-16 20:56:19,611 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.611073300Z
+2025-12-16 20:56:19,617 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.617385700Z
+2025-12-16 20:56:19,622 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.622476100Z
+2025-12-16 20:56:19,630 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,632 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,632 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in com.scanales.eventflow.public_.EventTalkResourceTest
+[INFO] Running com.scanales.eventflow.public_.HealthResourceTest
+2025-12-16 20:56:19,658 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.658877400Z
+2025-12-16 20:56:19,663 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.663473500Z
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s -- in com.scanales.eventflow.public_.HealthResourceTest
+[INFO] Running com.scanales.eventflow.public_.HomePastEventsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.scanales.eventflow.public_.HomePastEventsTest
+[INFO] Running com.scanales.eventflow.public_.HomeResourceRedirectTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in com.scanales.eventflow.public_.HomeResourceRedirectTest
+[INFO] Running com.scanales.eventflow.public_.HomeTimelineTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 s -- in com.scanales.eventflow.public_.HomeTimelineTest
+[INFO] Running com.scanales.eventflow.public_.NotificationsMenuTest
+2025-12-16 20:56:19,826 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,826 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,826 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,826 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,827 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,827 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,827 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,827 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.059 s -- in com.scanales.eventflow.public_.NotificationsMenuTest
+[INFO] Running com.scanales.eventflow.public_.SpeakerResourceTalkEventsTest
+2025-12-16 20:56:19,855 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.855227800Z
+2025-12-16 20:56:19,860 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:19.860432300Z
+2025-12-16 20:56:19,866 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.866022800Z
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.038 s -- in com.scanales.eventflow.public_.SpeakerResourceTalkEventsTest
+[INFO] Running com.scanales.eventflow.public_.TalkResourceTest
+2025-12-16 20:56:19,883 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.883818800Z
+2025-12-16 20:56:19,889 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.889695200Z
+2025-12-16 20:56:19,894 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:19.894821200Z
+2025-12-16 20:56:19,900 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.900351800Z
+2025-12-16 20:56:19,903 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,904 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,904 WARN  [com.sca.eve.pub.TalkResource] (executor-thread-3) Talk s1-talk-1 missing data: location
+2025-12-16 20:56:19,919 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.919992300Z
+2025-12-16 20:56:19,925 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.925058900Z
+2025-12-16 20:56:19,935 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,935 WARN  [com.sca.eve.ser.UsageMetricsService] (executor-thread-3) discarded_buffer_full
+2025-12-16 20:56:19,936 INFO  [com.sca.eve.ser.PersistenceService] (user-schedule-refresh) Loaded 0 entries from C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\user-schedule-2025.json
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.065 s -- in com.scanales.eventflow.public_.TalkResourceTest
+[INFO] Running com.scanales.eventflow.security.SessionResourceTest
+2025-12-16 20:56:19,950 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:19.950846600Z
+2025-12-16 20:56:19,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:19,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:19,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:19,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:19,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:19,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:19,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:19,969 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=user@example.com preferred_username=null email=null
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.046 s -- in com.scanales.eventflow.security.SessionResourceTest
+[INFO] Running com.scanales.eventflow.service.EventServiceOverlapTest
+2025-12-16 20:56:20,007 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:20.007256200Z
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.scanales.eventflow.service.EventServiceOverlapTest
+2025-12-16 20:56:20,013 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:20.013414300Z
+[INFO] Running com.scanales.eventflow.service.MetricsServiceTest
+2025-12-16 20:56:20,019 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:20.019501100Z
+2025-12-16 20:56:20,024 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:20.024396500Z
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.625 s -- in com.scanales.eventflow.service.MetricsServiceTest
+[INFO] Running com.scanales.eventflow.service.QuestServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.237 s -- in com.scanales.eventflow.service.QuestServiceTest
+[INFO] Running com.scanales.eventflow.service.SpeakerServiceCoSpeakerTest
+2025-12-16 20:56:21,894 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:21.894588100Z
+2025-12-16 20:56:21,898 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:21.898105200Z
+2025-12-16 20:56:21,902 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:21.902160500Z
+2025-12-16 20:56:21,907 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:21.907033700Z
+2025-12-16 20:56:21,926 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:21.926656500Z
+2025-12-16 20:56:21,931 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:21.931694800Z
+2025-12-16 20:56:21,937 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:21.937728500Z
+2025-12-16 20:56:21,942 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:21.942245400Z
+2025-12-16 20:56:21,973 INFO  [com.sca.eve.ser.PersistenceService] (main) Loaded 1 entries from C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\events.json
+2025-12-16 20:56:21,977 INFO  [com.sca.eve.ser.PersistenceService] (main) Loaded 3 entries from C:\Users\sergi\AppData\Local\Temp\eventflow-test5473346684737561437\speakers.json
+2025-12-16 20:56:21,984 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:21.984247700Z
+2025-12-16 20:56:21,987 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:21.987791Z
+2025-12-16 20:56:21,994 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:21.994025100Z
+2025-12-16 20:56:21,998 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:21.998632300Z
+2025-12-16 20:56:22,003 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.003210900Z
+2025-12-16 20:56:22,014 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.014877100Z
+2025-12-16 20:56:22,016 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.016901800Z
+2025-12-16 20:56:22,020 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.020940100Z
+2025-12-16 20:56:22,024 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.024957Z
+2025-12-16 20:56:22,029 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.029485700Z
+2025-12-16 20:56:22,034 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.034518700Z
+2025-12-16 20:56:22,038 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.038589400Z
+2025-12-16 20:56:22,043 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.043323800Z
+2025-12-16 20:56:22,047 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.047841400Z
+2025-12-16 20:56:22,052 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.052169400Z
+2025-12-16 20:56:22,055 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.055680800Z
+2025-12-16 20:56:22,057 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.057725300Z
+2025-12-16 20:56:22,059 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.059235600Z
+2025-12-16 20:56:22,071 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.071605700Z
+2025-12-16 20:56:22,075 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.075137700Z
+2025-12-16 20:56:22,078 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.078670800Z
+2025-12-16 20:56:22,081 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.081949Z
+2025-12-16 20:56:22,087 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.087000700Z
+2025-12-16 20:56:22,090 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.090514800Z
+2025-12-16 20:56:22,095 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.095525800Z
+2025-12-16 20:56:22,098 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.098040800Z
+2025-12-16 20:56:22,100 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.100553600Z
+2025-12-16 20:56:22,104 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted speakers.json at 2025-12-16T23:56:22.104682400Z
+2025-12-16 20:56:22,109 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.109203Z
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.231 s -- in com.scanales.eventflow.service.SpeakerServiceCoSpeakerTest
+[INFO] Running com.scanales.eventflow.service.UsageMetricsServiceBufferTest
+2025-12-16 20:56:22,120 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change OK->DEGRADADO
+2025-12-16 20:56:22,121 WARN  [com.sca.eve.ser.UsageMetricsService] (main) buffer_threshold_reached
+2025-12-16 20:56:22,121 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change DEGRADADO->ERROR
+2025-12-16 20:56:22,121 WARN  [com.sca.eve.ser.UsageMetricsService] (main) discarded_buffer_full
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.scanales.eventflow.service.UsageMetricsServiceBufferTest
+[INFO] Running com.scanales.eventflow.service.UsageMetricsServiceQualityTest
+2025-12-16 20:56:22,131 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change OK->DEGRADADO
+2025-12-16 20:56:22,132 WARN  [com.sca.eve.ser.UsageMetricsService] (main) buffer_threshold_reached
+2025-12-16 20:56:22,133 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change DEGRADADO->ERROR
+2025-12-16 20:56:22,138 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change OK->DEGRADADO
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.scanales.eventflow.service.UsageMetricsServiceQualityTest
+[INFO] Running com.scanales.eventflow.service.UserSessionServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.317 s -- in com.scanales.eventflow.service.UserSessionServiceTest
+[INFO] Running com.scanales.logout.LogoutResourceTest
+2025-12-16 20:56:22,488 INFO  [com.sca.log.LogoutResource] (executor-thread-3) Processing logout request
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.055 s -- in com.scanales.logout.LogoutResourceTest
+[INFO] Running com.scanales.oauth.OAuthLoginTest
+2025-12-16 20:56:22,807 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:22,807 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:22,807 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:22,807 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:22,808 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:22,808 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:22,808 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:22,808 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=alice preferred_username=null email=null
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.319 s -- in com.scanales.oauth.OAuthLoginTest
+[INFO] Running io.eventflow.home.now.NowBoxServiceTest
+2025-12-16 20:56:22,850 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.850637500Z
+2025-12-16 20:56:22,857 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:22.857228300Z
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in io.eventflow.home.now.NowBoxServiceTest
+[INFO] Running io.eventflow.home.now.NowBoxTemplateTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in io.eventflow.home.now.NowBoxTemplateTest
+[INFO] Running io.eventflow.notifications.global.AdminNotificationPageAccessTest
+2025-12-16 20:56:22,911 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:22,911 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:22,911 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:22,911 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:22,911 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:22,911 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:22,912 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:22,912 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.079 s -- in io.eventflow.notifications.global.AdminNotificationPageAccessTest
+[INFO] Running io.eventflow.notifications.global.AdminNotificationResourceTest
+2025-12-16 20:56:23,201 WARN  [com.sca.eve.ser.UsageMetricsService] (vert.x-eventloop-thread-1) buffer_threshold_reached
+2025-12-16 20:56:23,201 WARN  [com.sca.eve.ser.UsageMetricsService] (vert.x-eventloop-thread-1) health_state_change DEGRADADO->ERROR
+2025-12-16 20:56:23,212 WARN  [com.sca.eve.ser.UsageMetricsService] (vert.x-eventloop-thread-0) discarded_buffer_full
+2025-12-16 20:56:23,763 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:23,764 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:23,764 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:23,764 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:23,764 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:23,764 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:23,764 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:23,764 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:23,856 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:23,856 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:23,856 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:23,856 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:23,856 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:23,856 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:23,856 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:23,856 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:23,906 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:23,907 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:23,907 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:23,907 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:23,907 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:23,907 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:23,907 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:23,907 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:23,932 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:23,932 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:23,932 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:23,932 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:23,932 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:23,932 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:23,932 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:23,932 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:23,968 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:23,968 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:23,968 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:23,968 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:23,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:23,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:23,969 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:23,969 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:24,007 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:24,008 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:24,008 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:24,008 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:24,008 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:24,008 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:24,008 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:24,008 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:24,022 WARN  [com.sca.eve.ser.UsageMetricsService] (vert.x-eventloop-thread-1) discarded_buffer_full
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.106 s -- in io.eventflow.notifications.global.AdminNotificationResourceTest
+[INFO] Running io.eventflow.notifications.global.EventAndBreakEvaluatorTest
+2025-12-16 20:56:25,068 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.068563800Z
+2025-12-16 20:56:25,076 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.076197700Z
+2025-12-16 20:56:25,107 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.107558900Z
+2025-12-16 20:56:25,113 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.113134600Z
+2025-12-16 20:56:25,116 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.116574700Z
+2025-12-16 20:56:25,121 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.121895300Z
+2025-12-16 20:56:25,145 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.145321100Z
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.084 s -- in io.eventflow.notifications.global.EventAndBreakEvaluatorTest
+[INFO] Running io.eventflow.notifications.global.GlobalNotificationsWsTest
+2025-12-16 20:56:25,149 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:25.149843Z
+2025-12-16 20:56:25,171 WARN  [com.sca.eve.ser.UsageMetricsService] (vert.x-eventloop-thread-0) discarded_buffer_full
+2025-12-16 20:56:26,193 WARN  [com.sca.eve.ser.UsageMetricsService] (vert.x-eventloop-thread-1) discarded_buffer_full
+2025-12-16 20:56:26,200 WARN  [com.sca.eve.ser.UsageMetricsService] (vert.x-eventloop-thread-0) discarded_buffer_full
+[WARNING] Tests run: 3, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 1.062 s -- in io.eventflow.notifications.global.GlobalNotificationsWsTest
+[INFO] Running io.eventflow.notifications.global.NotificationSimulationResourceTest
+2025-12-16 20:56:26,214 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:26.214301100Z
+2025-12-16 20:56:26,220 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:26.220981200Z
+2025-12-16 20:56:26,231 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:26,231 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:26,231 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:26,231 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:26,231 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:26,231 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:26,231 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:26,231 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:26,245 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:26.245111500Z
+2025-12-16 20:56:26,249 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:26.249111400Z
+2025-12-16 20:56:26,262 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:26,262 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:26,262 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:26,262 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:26,262 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:26,262 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:26,262 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:26,262 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+2025-12-16 20:56:26,276 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:26.276347900Z
+2025-12-16 20:56:26,281 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted events.json at 2025-12-16T23:56:26.281911800Z
+2025-12-16 20:56:26,294 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: preferred_username
+2025-12-16 20:56:26,295 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: name
+2025-12-16 20:56:26,295 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: given_name
+2025-12-16 20:56:26,295 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: family_name
+2025-12-16 20:56:26,295 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: email
+2025-12-16 20:56:26,295 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: locale
+2025-12-16 20:56:26,295 WARN  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) Missing OIDC claim: picture
+2025-12-16 20:56:26,295 INFO  [com.sca.oau.log.PostAuthenticationLoggingFilter] (executor-thread-3) User authenticated: sub=admin preferred_username=null email=null
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.118 s -- in io.eventflow.notifications.global.NotificationSimulationResourceTest
+[INFO] Running io.eventflow.notifications.rest.NotificationPageResourceTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in io.eventflow.notifications.rest.NotificationPageResourceTest
+[INFO] Running io.eventflow.notifications.rest.NotificationResourceTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.081 s -- in io.eventflow.notifications.rest.NotificationResourceTest
+[INFO] Running com.scanales.eventflow.metrics.ServerErrorMetricsMapperTest
+2025-12-16 20:56:26,701 ERROR [com.sca.eve.met.ServerErrorMetricsMapper] (main) Server error while processing api/test: java.lang.RuntimeException: boom
+	at com.scanales.eventflow.metrics.ServerErrorMetricsMapperTest.recordsServerErrorAndReturns500(ServerErrorMetricsMapperTest.java:22)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:787)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:478)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$4(TestMethodTestDescriptor.java:221)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:217)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:159)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:157)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:147)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:145)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:101)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:161)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:147)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:145)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:101)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:161)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:147)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:145)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:101)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:230)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:204)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:172)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:101)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:64)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:150)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:63)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:109)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:91)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:194)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:150)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:124)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.284 s -- in com.scanales.eventflow.metrics.ServerErrorMetricsMapperTest
+[INFO] Running com.scanales.eventflow.model.TalkSanitizationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.scanales.eventflow.model.TalkSanitizationTest
+[INFO] Running com.scanales.eventflow.security.RateLimitingFilterTest
+2025-12-16 20:56:26,847 WARN  [com.sca.eve.sec.RateLimitingFilter] (main) Rate limit exceeded bucket=auth client=1.1.1.1 path=/login count=3 limit=2 windowSeconds=60
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.120 s -- in com.scanales.eventflow.security.RateLimitingFilterTest
+[INFO] Running com.scanales.eventflow.service.CommunitySyncServiceTest
+---
+members:
+- userId: "user1"
+  displayName: "Test User"
+  github: "testuser"
+  joinedAt: "2025-12-16T23:56:27.086724600Z"
+  level: 0
+  xp: 0
+  contributions: 0
+  skills: []
+
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.329 s -- in com.scanales.eventflow.service.CommunitySyncServiceTest
+[INFO] Running com.scanales.eventflow.service.UserScheduleHistoricalServiceTest
+2025-12-16 20:56:27,216 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-5393432094214418062
+2025-12-16 20:56:27,216 INFO  [com.sca.eve.ser.PersistenceService] (main) Persistence data found
+2025-12-16 20:56:27,218 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-5393432094214418062\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:27,237 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-11689409699184004138
+2025-12-16 20:56:27,238 INFO  [com.sca.eve.ser.PersistenceService] (main) Persistence data found
+2025-12-16 20:56:27,238 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-11689409699184004138\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:27,283 INFO  [com.sca.eve.ser.PersistenceService] (main) Loaded 1 entries from C:\Users\sergi\AppData\Local\Temp\junit-11689409699184004138\user-schedule-2023.json
+2025-12-16 20:56:27,291 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-12775472851004709341
+2025-12-16 20:56:27,291 INFO  [com.sca.eve.ser.PersistenceService] (main) Data directory is empty
+2025-12-16 20:56:27,291 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-12775472851004709341\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:27,291 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-12775472851004709341\user-schedule-2023.json found - starting empty
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.113 s -- in com.scanales.eventflow.service.UserScheduleHistoricalServiceTest
+[INFO] Running com.scanales.eventflow.service.UserScheduleServiceTest
+2025-12-16 20:56:27,304 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-4798239771482434826
+2025-12-16 20:56:27,304 INFO  [com.sca.eve.ser.PersistenceService] (main) Persistence data found
+2025-12-16 20:56:27,304 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-4798239771482434826\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:27,312 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-4502173269757432889
+2025-12-16 20:56:27,312 INFO  [com.sca.eve.ser.PersistenceService] (main) Data directory is empty
+2025-12-16 20:56:27,313 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-4502173269757432889\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:27,314 INFO  [com.sca.eve.ser.UserScheduleService] (main) addTalk(user=user@example.com, talk=t1, result=added)
+2025-12-16 20:56:27,326 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:27.326367700Z
+2025-12-16 20:56:27,330 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:27.330392Z
+2025-12-16 20:56:27,336 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-5554733669247500698
+2025-12-16 20:56:27,336 INFO  [com.sca.eve.ser.PersistenceService] (main) Data directory is empty
+2025-12-16 20:56:27,336 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-5554733669247500698\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:27,336 INFO  [com.sca.eve.ser.UserScheduleService] (main) addTalk(user=user@example.com, talk=t1, result=added)
+2025-12-16 20:56:27,343 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:27.343669900Z
+2025-12-16 20:56:27,345 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-5554733669247500698
+2025-12-16 20:56:27,345 INFO  [com.sca.eve.ser.PersistenceService] (main) Persistence data found
+2025-12-16 20:56:27,349 INFO  [com.sca.eve.ser.PersistenceService] (main) Loaded 1 entries from C:\Users\sergi\AppData\Local\Temp\junit-5554733669247500698\user-schedule-2025.json
+2025-12-16 20:56:27,357 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-2867653282071266210
+2025-12-16 20:56:27,357 INFO  [com.sca.eve.ser.PersistenceService] (main) Data directory is empty
+2025-12-16 20:56:27,357 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-2867653282071266210\user-schedule-2025.json found - starting empty
+2025-12-16 20:56:27,357 INFO  [com.sca.eve.ser.UserScheduleService] (main) addTalk(user=user@example.com, talk=t1, result=added)
+2025-12-16 20:56:27,357 INFO  [com.sca.eve.ser.UserScheduleService] (main) removeTalk(user=user@example.com, talk=t1, result=removed)
+2025-12-16 20:56:27,358 INFO  [com.sca.eve.ser.UserScheduleService] (main) removeTalk(user=user@example.com, talk=t1, result=not-found)
+2025-12-16 20:56:27,360 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:27.360785600Z
+2025-12-16 20:56:27,365 INFO  [com.sca.eve.ser.PersistenceService] (persistence-writer) Persisted user-schedule-2025.json at 2025-12-16T23:56:27.365330600Z
+2025-12-16 20:56:27,372 INFO  [com.sca.eve.ser.PersistenceService] (main) Using data directory C:\Users\sergi\AppData\Local\Temp\junit-8461557283581815329
+2025-12-16 20:56:27,373 INFO  [com.sca.eve.ser.PersistenceService] (main) Data directory is empty
+2025-12-16 20:56:27,373 INFO  [com.sca.eve.ser.PersistenceService] (main) No persistence file C:\Users\sergi\AppData\Local\Temp\junit-8461557283581815329\user-schedule-2025.json found - starting empty
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.081 s -- in com.scanales.eventflow.service.UserScheduleServiceTest
+[INFO] Running com.scanales.eventflow.util.AppTemplateExtensionsTalkStateTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.scanales.eventflow.util.AppTemplateExtensionsTalkStateTest
+[INFO] Running com.scanales.eventflow.util.AppTemplateExtensionsZoneDetailTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.scanales.eventflow.util.AppTemplateExtensionsZoneDetailTest
+[INFO] Running com.scanales.eventflow.util.TrendUtilsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.scanales.eventflow.util.TrendUtilsTest
+[INFO] Running io.eventflow.notifications.api.NotificationDTOValidatorTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.349 s -- in io.eventflow.notifications.api.NotificationDTOValidatorTest
+2025-12-16 20:56:27,776 INFO  [com.sca.eve.ser.UsageMetricsService] (main) metrics_flush_start
+2025-12-16 20:56:27,779 INFO  [com.sca.eve.ser.UsageMetricsService] (main) metrics_flush_ok
+2025-12-16 20:56:27,779 WARN  [com.sca.eve.ser.UsageMetricsService] (main) health_state_change ERROR->OK
+2025-12-16 20:56:27,822 INFO  [io.quarkus] (main) homedir stopped in 0.073s
+[INFO] 
+[INFO] Results:
+[INFO] 
+[WARNING] Tests run: 96, Failures: 0, Errors: 0, Skipped: 1
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  45.639 s
+[INFO] Finished at: 2025-12-16T20:56:28-03:00
+[INFO] ------------------------------------------------------------------------
