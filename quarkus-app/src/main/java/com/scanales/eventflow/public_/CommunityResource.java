@@ -208,7 +208,8 @@ public class CommunityResource {
         member.getLevel(),
         member.getXp(),
         member.getContributions(),
-        member.getBadges());
+        member.getBadges(),
+        member.getSkills());
   }
 
   private CommunityMember buildMember(
@@ -237,7 +238,7 @@ public class CommunityResource {
 
   public record MemberView(
       String name, String github, String role, String profileUrl, String avatarUrl, String since,
-      int level, int xp, int contributions, List<String> badges) {
+      int level, int xp, int contributions, List<String> badges, List<String> skills) {
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
