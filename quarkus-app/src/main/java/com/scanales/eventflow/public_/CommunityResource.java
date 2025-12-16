@@ -51,7 +51,7 @@ public class CommunityResource {
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance community(
-        List<MemberView> members,
+        List<MemberView> filtered,
         String query,
         boolean joined,
         boolean missingGithub,

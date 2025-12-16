@@ -32,57 +32,65 @@
       </div>
     </div>
 
-    {#if userSession.communityMember}
-    <div class="user-badge"
-      style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 0.5rem;">
-      <span style="font-size: 1.2rem;">✨</span>
-      <span>¡Ya eres parte de la comunidad!</span>
-    </div>
-    <div style="display: flex; gap: 1rem;">
-      <a class="btn-primary" href="#directorio"
-        style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
-      <a class="btn-primary"
-        href="https://github.com/os-santiago/os-santiago.github.io/blob/main/community/members.yaml" target="_blank"
-        style="background: transparent; border: 1px solid rgba(255,255,255,0.5); color: rgba(255,255,255,0.7); font-size: 0.9rem;">
-        Editar members.yaml
-      </a>
-    </div>
+    <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+      {#if userSession.communityMember}
+      <div class="user-badge"
+        style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 0.5rem; align-self: flex-start;">
+        <span style="font-size: 1.2rem;">✨</span>
+        <span>¡Ya eres parte de la comunidad!</span>
+      </div>
+      <div style="display: flex; gap: 1rem;">
+        <a class="btn-primary" href="#directorio"
+          style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
+        <a class="btn-primary"
+          href="https://github.com/os-santiago/os-santiago.github.io/blob/main/community/members.yaml" target="_blank"
+          style="background: transparent; border: 1px solid rgba(255,255,255,0.5); color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+          Ver members.yaml
+        </a>
+      </div>
 
-    {#else}
-    {#if !userSession.loggedIn}
-    <a href="/private/profile" class="btn-primary">Inicia Sesión para unirte</a>
-    {#else if !userSession.githubLinked}
-    <form action="/private/github/start" method="GET">
-      <input type="hidden" name="redirect" value="/comunidad" />
-      <button type="submit" class="btn-primary" style="background: #24292e; border: 1px solid rgba(255,255,255,0.2);">
-        <svg height="20" viewBox="0 0 16 16" version="1.1" width="20" aria-hidden="true"
-          style="fill:white; vertical-align: text-bottom; margin-right: 0.5rem;">
-          <path fill-rule="evenodd"
-            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
-          </path>
-        </svg>
-        Conectar GitHub para unirte
-      </button>
-    </form>
-    {#else}
-    {#if joined}
-    <button disabled class="btn-primary" style="opacity: 0.7; cursor: not-allowed;">Solicitud en proceso...</button>
-    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-      Tu solicitud ha sido enviada. Revisa tus <a href="{prUrl}" target="_blank"
-        style="color: white; text-decoration: underline;">Pull Requests</a>.
-    </p>
-    {#else}
-    <form action="/comunidad/unirse" method="POST">
-      <input type="hidden" name="redirect" value="/comunidad" />
-      <button type="submit" class="btn-primary">Unirme a la comunidad</button>
-    </form>
-    {/if}
-    {/if}
-    {#if !userSession.communityMember}
-    <a class="btn-primary" href="#directorio"
-      style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
-    {/if}
-    {/if}
+      {#else}
+      {#if !userSession.loggedIn}
+      <div style="align-self: flex-start;">
+        <a href="/private/profile" class="btn-primary">Inicia Sesión para unirte</a>
+      </div>
+      {#else if !userSession.githubLinked}
+      <form action="/private/github/start" method="GET" style="align-self: flex-start;">
+        <input type="hidden" name="redirect" value="/comunidad" />
+        <button type="submit" class="btn-primary" style="background: #24292e; border: 1px solid rgba(255,255,255,0.2);">
+          <svg height="20" viewBox="0 0 16 16" version="1.1" width="20" aria-hidden="true"
+            style="fill:white; vertical-align: text-bottom; margin-right: 0.5rem;">
+            <path fill-rule="evenodd"
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+            </path>
+          </svg>
+          Conectar GitHub para unirte
+        </button>
+      </form>
+      {#else}
+      {#if joined}
+      <div style="align-self: flex-start;">
+        <button disabled class="btn-primary" style="opacity: 0.7; cursor: not-allowed;">Solicitud en proceso...</button>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+          Tu solicitud ha sido enviada. Revisa tus <a href="{prUrl}" target="_blank"
+            style="color: white; text-decoration: underline;">Pull Requests</a>.
+        </p>
+      </div>
+      {#else}
+      <form action="/comunidad/unirse" method="POST" style="align-self: flex-start;">
+        <input type="hidden" name="redirect" value="/comunidad" />
+        <button type="submit" class="btn-primary">Unirme a la comunidad</button>
+      </form>
+      {/if}
+      {/if}
+      {#if !userSession.communityMember}
+      <div style="align-self: flex-start;">
+        <a class="btn-primary" href="#directorio"
+          style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
+      </div>
+      {/if}
+      {/if}
+    </div>
   </header>
 
   <section class="page-grid">
@@ -93,16 +101,53 @@
           <h2 class="page-title">Personas de la comunidad</h2>
         </div>
         <form class="search-form" method="get" action="/comunidad" style="display: flex; gap: 0.5rem;">
-          <input type="search" name="q" value="" placeholder="Buscar por nombre o GitHub" aria-label="Buscar integrante"
+          <input type="search" name="q" value="{query}" placeholder="Buscar por nombre o GitHub"
+            aria-label="Buscar integrante"
             style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem; font-family: var(--font-body);">
           <button class="btn-primary" type="submit" style="padding: 0.5rem 1rem;">Buscar</button>
         </form>
       </div>
     </div>
 
+    {#if filtered.size == 0}
     <div class="section-card" style="grid-column: 1 / -1;">
       <p>Aún no hay integrantes visibles con este filtro.</p>
     </div>
-  </section>
+    {#else}
+    {#for member in filtered}
+    <a href="{member.profileUrl}" target="_blank" class="section-card"
+      style="text-decoration: none; color: inherit; transition: transform 0.2s;"
+      onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        {#if member.avatarUrl}
+        <img src="{member.avatarUrl}" alt="{member.name}"
+          style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+        {#else}
+        <div
+          style="width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+          <span style="font-size: 1.2rem;">👤</span>
+        </div>
+        {/if}
+        <div>
+          <h3 style="margin: 0; font-size: 1.1rem; color: white;">{member.name}</h3>
+          {#if member.role}
+          <span
+            style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.2rem 0.5rem; border-radius: 10px; margin-top: 0.2rem; display: inline-block;">{member.role}</span>
+          {/if}
+        </div>
+      </div>
+      {#if member.github}
+      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+        <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true" style="fill: currentColor;">
+          <path fill-rule="evenodd"
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+          </path>
+        </svg>
+        @{member.github}
+      </div>
+      {/if}
+    </a>
+    {/for}
+    {/if}
 </main>
 {/body}
