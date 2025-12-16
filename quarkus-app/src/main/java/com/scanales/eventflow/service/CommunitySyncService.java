@@ -265,6 +265,10 @@ public class CommunitySyncService {
         map.put("avatarUrl", m.getAvatarUrl());
         // Explicit String conversion for Instant
         map.put("joinedAt", m.getJoinedAt() != null ? m.getJoinedAt().toString() : null);
+        // Skills
+        if (m.getSkills() != null && !m.getSkills().isEmpty()) {
+          map.put("skills", m.getSkills());
+        }
 
         // Add gamification if present/needed, or skip if transient
         // map.put("level", m.getLevel()); // etc

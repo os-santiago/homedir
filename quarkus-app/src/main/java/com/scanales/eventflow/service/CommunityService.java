@@ -29,7 +29,9 @@ public class CommunityService {
             m -> (m.getDisplayName() != null
                 && m.getDisplayName().toLowerCase(Locale.ROOT).contains(q))
                 || (m.getGithub() != null
-                    && m.getGithub().toLowerCase(Locale.ROOT).contains(q)))
+                    && m.getGithub().toLowerCase(Locale.ROOT).contains(q))
+                || (m.getSkills() != null
+                    && m.getSkills().stream().anyMatch(s -> s.toLowerCase(Locale.ROOT).contains(q))))
         .collect(Collectors.toList());
   }
 

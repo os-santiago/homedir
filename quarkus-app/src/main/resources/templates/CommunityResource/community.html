@@ -101,7 +101,7 @@
           <h2 class="page-title">Personas de la comunidad</h2>
         </div>
         <form class="search-form" method="get" action="/comunidad" style="display: flex; gap: 0.5rem;">
-          <input type="search" name="q" value="{query}" placeholder="Buscar por nombre o GitHub"
+          <input type="search" name="q" value="{query}" placeholder="Buscar por nombre, GitHub o habilidades"
             aria-label="Buscar integrante"
             style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem; font-family: var(--font-body);">
           <button class="btn-primary" type="submit" style="padding: 0.5rem 1rem;">Buscar</button>
@@ -133,6 +133,14 @@
           {#if member.role}
           <span
             style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.2rem 0.5rem; border-radius: 10px; margin-top: 0.2rem; display: inline-block;">{member.role}</span>
+          {/if}
+          {#if member.skills && member.skills.size > 0}
+          <div style="margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.3rem;">
+            {#for skill in member.skills}
+            <span
+              style="font-size: 0.75rem; background: rgba(56, 139, 253, 0.1); color: #79c0ff; padding: 0.1rem 0.5rem; border-radius: 12px; border: 1px solid rgba(56, 139, 253, 0.2);">{skill}</span>
+            {/for}
+          </div>
           {/if}
         </div>
       </div>
