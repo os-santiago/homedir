@@ -1,33 +1,36 @@
 <nav class="top-nav" aria-label="Navegacion principal">
   <div class="logo">
-    <div class="logo-icon">
-      <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 15 L85 45 L85 85 L15 85 L15 45 Z" fill="#ffffff" stroke="#ffffff" stroke-width="3" />
-        <path d="M50 15 L85 45 L75 45 L50 25 L25 45 L15 45 Z" fill="#FFD700" stroke="#ffffff" stroke-width="2" />
-        <rect x="42" y="60" width="16" height="25" fill="#667eea" stroke="#ffffff" stroke-width="2" />
-        <rect x="25" y="52" width="12" height="12" fill="#764ba2" stroke="#ffffff" stroke-width="2" />
-        <rect x="63" y="52" width="12" height="12" fill="#764ba2" stroke="#ffffff" stroke-width="2" />
-        <rect x="28" y="55" width="2" height="2" fill="#ffffff" />
-        <rect x="32" y="55" width="2" height="2" fill="#ffffff" />
-        <rect x="66" y="55" width="2" height="2" fill="#ffffff" />
-        <rect x="70" y="55" width="2" height="2" fill="#ffffff" />
-        <rect x="65" y="30" width="8" height="15" fill="#ffffff" stroke="#ffffff" stroke-width="2" />
-        <rect x="66" y="27" width="6" height="3" fill="#FFD700" />
-        <path d="M50 20 Q45 15 40 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
-        <path d="M50 20 Q55 15 60 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
-        <circle cx="50" cy="22" r="2" fill="#FFD700" />
-      </svg>
-    </div>
-    <div class="logo-text"><span id="navPlatformName">HomeDir</span> <span class="logo-subtitle" id="navTagline">by
-        OpenSourceSantiago</span>
-    </div>
+    <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+      <div class="logo-icon">
+        <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 15 L85 45 L85 85 L15 85 L15 45 Z" fill="#ffffff" stroke="#ffffff" stroke-width="3" />
+          <path d="M50 15 L85 45 L75 45 L50 25 L25 45 L15 45 Z" fill="#FFD700" stroke="#ffffff" stroke-width="2" />
+          <rect x="42" y="60" width="16" height="25" fill="#667eea" stroke="#ffffff" stroke-width="2" />
+          <rect x="25" y="52" width="12" height="12" fill="#764ba2" stroke="#ffffff" stroke-width="2" />
+          <rect x="63" y="52" width="12" height="12" fill="#764ba2" stroke="#ffffff" stroke-width="2" />
+          <rect x="28" y="55" width="2" height="2" fill="#ffffff" />
+          <rect x="32" y="55" width="2" height="2" fill="#ffffff" />
+          <rect x="66" y="55" width="2" height="2" fill="#ffffff" />
+          <rect x="70" y="55" width="2" height="2" fill="#ffffff" />
+          <rect x="65" y="30" width="8" height="15" fill="#ffffff" stroke="#ffffff" stroke-width="2" />
+          <rect x="66" y="27" width="6" height="3" fill="#FFD700" />
+          <path d="M50 20 Q45 15 40 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
+          <path d="M50 20 Q55 15 60 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
+          <circle cx="50" cy="22" r="2" fill="#FFD700" />
+        </svg>
+      </div>
+      <div class="logo-text"><span id="navPlatformName">HomeDir</span> <span class="logo-subtitle" id="navTagline">by
+          OpenSourceSantiago</span>
+      </div>
+    </a>
   </div>
 
   <div class="nav-actions">
-    <a href="/" class="retro-nav-link">Home</a>
-    <a href="/comunidad" class="retro-nav-link">Comunidad</a>
-    <a href="/proyectos" class="retro-nav-link">Proyectos</a>
-    <a href="/eventos" class="retro-nav-link">Eventos</a>
+    <a href="/" class="retro-nav-link {#if activePage == 'home'}active{/if}">Home</a>
+    <a href="/comunidad" class="retro-nav-link {#if activePage == 'comunidad'}active{/if}">Comunidad</a>
+    <a href="/proyectos" class="retro-nav-link {#if activePage == 'proyectos'}active{/if}">Proyectos</a>
+    <a href="/eventos" class="retro-nav-link {#if activePage == 'eventos'}active{/if}">Eventos</a>
+    <a href="/quests" class="retro-nav-link {#if activePage == 'quests'}active{/if}">Quests</a>
 
     <a href="/notifications/center" class="nav-link notifications-bell" aria-label="Notificaciones" data-nav-link>
       <span class="icon-bell" aria-hidden="true"></span>
@@ -105,3 +108,10 @@
     {/if}
   </div>
 </nav>
+<div class="alpha-banner"
+  style="background: linear-gradient(90deg, #ff00cc, #333399); color: white; text-align: center; padding: 0.2rem; font-size: 0.8rem; font-family: var(--font-mono); border-bottom: 1px solid rgba(255,255,255,0.2);">
+  <span style="background: rgba(0,0,0,0.3); padding: 0 0.5rem; border-radius: 4px;">ALPHA v3.1.1</span>
+  · <a href="https://github.com/os-santiago/homedir" target="_blank"
+    style="color: white; text-decoration: underline;">GitHub Repo</a>
+  · <span style="opacity: 0.8;">DevRel, OpenSource, InnerSource Community Platform</span>
+</div>
