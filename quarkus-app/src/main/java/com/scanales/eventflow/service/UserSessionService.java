@@ -18,6 +18,9 @@ public class UserSessionService {
     @Inject
     UserProfileService userProfileService;
 
+    @Inject
+    CommunityService communityService;
+
     // Optional: Inject UserInfo if available (standard in OIDC)
     // @Inject UserInfo userInfo;
 
@@ -61,10 +64,13 @@ public class UserSessionService {
         }
 
         // Community Member check:
-        // Future expansion: check against a loaded list of members.
-        // For now, if they have GitHub linked, we might assume they are "connected".
-        // Or we leave it false until Epic E implements the lookup.
         boolean communityMember = false;
+        if (email != null) {
+            communityMember = communityService.findByUserId(email).isPresent();
+        }
+        if (!communityMember && githubLogin != null) {
+            communityMember = communityService.findByGithub(githubLogin).isPresent();
+        }
 
         boolean isAdmin = com.scanales.eventflow.util.AdminUtils.isAdmin(identity);
 
