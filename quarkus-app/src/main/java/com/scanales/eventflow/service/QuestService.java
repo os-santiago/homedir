@@ -182,6 +182,13 @@ public class QuestService {
                 }
             }
 
+            List<String> assignees = new ArrayList<>();
+            if (issue.assignees != null) {
+                for (GithubUser user : issue.assignees) {
+                    assignees.add(user.login);
+                }
+            }
+
             quests.add(new Quest(
                     String.valueOf(issue.number),
                     issue.title,
@@ -190,7 +197,8 @@ public class QuestService {
                     xp,
                     difficulty,
                     status,
-                    issue.html_url));
+                    issue.html_url,
+                    assignees));
         }
         return quests;
     }
@@ -224,6 +232,11 @@ public class QuestService {
         public String body;
         public String html_url;
         public List<GithubLabel> labels;
+        public List<GithubUser> assignees;
+    }
+
+    public static class GithubUser {
+        public String login;
     }
 
     public static class GithubLabel {

@@ -5,7 +5,15 @@
     <h2 class="title" style="background-color: #212529;">Tablero de Misiones</h2>
 
     <p class="nes-text is-primary">¡Bienvenido, Aventurero! Completa misiones para ganar XP y subir de nivel.</p>
-    <p class="nes-text">Misiones Disponibles: {quests.size}</p>
+
+    <div style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center;">
+        <span class="nes-text">Misiones Disponibles: {quests.size}</span>
+        <div style="margin-left: auto;">
+            <a href="/quests" class="nes-btn {#if filter.or('all') == 'all'}is-primary{#else}is-normal{/if}">Todas</a>
+            <a href="/quests?filter=mine" class="nes-btn {#if filter == 'mine'}is-primary{#else}is-normal{/if}">Mis
+                Misiones</a>
+        </div>
+    </div>
 
     <div class="quests-list">
         {#if quests.isEmpty}
