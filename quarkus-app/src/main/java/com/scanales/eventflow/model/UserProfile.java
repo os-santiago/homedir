@@ -15,6 +15,7 @@ public class UserProfile {
 
   private QuestClass questClass;
   private int currentXp;
+  private java.util.List<String> activeQuests = new java.util.ArrayList<>();
   private java.util.List<QuestHistoryItem> history = new java.util.ArrayList<>();
 
   public UserProfile() {
@@ -28,6 +29,7 @@ public class UserProfile {
       @JsonProperty("github") GithubAccount github,
       @JsonProperty("questClass") QuestClass questClass,
       @JsonProperty("currentXp") int currentXp,
+      @JsonProperty("activeQuests") java.util.List<String> activeQuests,
       @JsonProperty("history") java.util.List<QuestHistoryItem> history) {
     this.userId = userId;
     this.name = name;
@@ -35,11 +37,12 @@ public class UserProfile {
     this.github = github;
     this.questClass = questClass;
     this.currentXp = currentXp;
+    this.activeQuests = activeQuests != null ? activeQuests : new java.util.ArrayList<>();
     this.history = history != null ? history : new java.util.ArrayList<>();
   }
 
   public UserProfile(String userId, String name, String email, GithubAccount github) {
-    this(userId, name, email, github, null, 0, null);
+    this(userId, name, email, github, null, 0, null, null);
   }
 
   public QuestClass getQuestClass() {
@@ -88,6 +91,14 @@ public class UserProfile {
 
   public void setCurrentXp(int currentXp) {
     this.currentXp = currentXp;
+  }
+
+  public java.util.List<String> getActiveQuests() {
+    return activeQuests;
+  }
+
+  public void setActiveQuests(java.util.List<String> activeQuests) {
+    this.activeQuests = activeQuests;
   }
 
   public java.util.List<QuestHistoryItem> getHistory() {

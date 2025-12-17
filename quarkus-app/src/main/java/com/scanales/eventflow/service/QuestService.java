@@ -155,4 +155,62 @@ public class QuestService {
         public int level;
         public int xpRequired;
     }
+
+    public void startQuest(String userId, String questId, String githubToken) {
+        var profileOpt = userProfileService.find(userId);
+        if (profileOpt.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+        var profile = profileOpt.get();
+
+        // 1. Check if already active
+        if (profile.getActiveQuests() != null && profile.getActiveQuests().contains(questId)) {
+            Log.info("Quest " + questId + " already active for user " + userId);
+            return;
+        }
+
+        // 2. Add to active quests
+        if (profile.getActiveQuests() == null) {
+            profile.setActiveQuests(new ArrayList<>());
+        }
+        profile.getActiveQuests().add(questId);
+        userProfileService.update(profile);
+        Log.info("User " + userId + " started quest " + questId);
+
+        // 3. Automation (Specific to Zero to Hero)
+        if ("q-001".equals(questId)) {
+            forkRepository(githubToken);
+        }
+    }
+
+    private void forkRepository(String token) {
+        if (token == null || token.isBlank()) {
+            Log.warn("No GitHub token available for forking.");
+            return;
+        }
+
+        try (java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient()) {
+            String forkUrl = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/forks";
+
+            var request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(forkUrl))
+                    .header("Authorization", "Bearer " + token)
+                    .header("Accept", "application/vnd.github+json")
+                    .header("X-GitHub-Api-Version", "2022-11-28")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            client.sendAsync(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        if (response.statusCode() == 202) {
+                            Log.info("Fork triggered successfully.");
+                        } else {
+                            Log.error("Failed to trigger fork. Status: " + response.statusCode() + " Body: "
+                                    + response.body());
+                        }
+                    });
+        } catch (Exception e) {
+            Log.error("Error triggering fork automation", e);
+        }
+    }
 }

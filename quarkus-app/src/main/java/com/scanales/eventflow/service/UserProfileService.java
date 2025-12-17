@@ -56,6 +56,13 @@ public class UserProfileService {
     return profile;
   }
 
+  public void update(UserProfile profile) {
+    if (profile != null && profile.getUserId() != null) {
+      profiles.put(normalize(profile.getUserId()), profile);
+      persist();
+    }
+  }
+
   public UserProfile updateQuestClass(String userId, QuestClass questClass) {
     if (userId == null)
       return null;

@@ -41,26 +41,60 @@ public class QuestBoardResource {
         if ("mine".equalsIgnoreCase(filter)) {
             String userId = currentUserId();
             if (userId != null) {
-                var profile = userProfileService.find(userId);
-                if (profile.isPresent() && profile.get().getGithub() != null) {
-                    String login = profile.get().getGithub().login();
+                var profileOpt = userProfileService.find(userId);
+                if (profileOpt.isPresent()) {
+                    var profile = profileOpt.get();
+                    var activeQuests = profile.getActiveQuests() != null ? profile.getActiveQuests()
+                            : List.<String>of();
+                    String login = profile.getGithub() != null ? profile.getGithub().login() : null;
+
                     quests = quests.stream()
-                            .filter(q -> q.assignees() != null && q.assignees().stream()
-                                    .anyMatch(a -> a.equalsIgnoreCase(login)))
+                            .filter(q -> (activeQuests.contains(q.id())) || // Locally active
+                                    (login != null && q.assignees() != null && q.assignees().stream()
+                                            .anyMatch(a -> a.equalsIgnoreCase(login))) // GitHub active
+                            )
                             .toList();
                 } else {
-                    // No github linked, so no assigned quests
                     quests = java.util.Collections.emptyList();
                 }
             } else {
-                // Not logged in, can't see "mine"
-                // Redirect to login or show empty?
-                // For now return empty
                 quests = java.util.Collections.emptyList();
             }
         }
 
         return withLayoutData(Templates.quests(quests, filter), "quests");
+    }
+
+    @jakarta.ws.rs.POST
+    @Path("/{id}/start")
+    @Authenticated
+    public jakarta.ws.rs.core.Response start(@jakarta.ws.rs.PathParam("id") String id) {
+        String userId = currentUserId();
+        if (userId == null) {
+            return jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.UNAUTHORIZED).build();
+        }
+
+        // Get GitHub token if available (from OIDC context)
+        String token = null;
+        if (identity.getPrincipal() instanceof io.quarkus.oidc.runtime.OidcJwtCallerPrincipal jwt) {
+            // Check specific claim or access token
+            // Note: For Google auth this won't be a GitHub token.
+            // We need to handle this carefully.
+            // Ideally we used the stored access token if we did the GitHub Flow
+            // differently.
+            // For now, let's try to get it if available or null.
+            // token = jwt.getRawToken(); // This is the ID Token usually.
+        }
+
+        // TODO: Pass actual GitHub token if we can get it from OIDC UserInfo or stored
+        // creds.
+        // For MVP 3.6.2, we passed null unless we have a clear way to get it.
+        // If we use GitHub Login, the access token might be accessible via
+        // `identity.getCredential(AccessTokenCredential.class)`
+
+        questService.startQuest(userId, id, token);
+
+        return jakarta.ws.rs.core.Response.seeOther(java.net.URI.create("/quests?filter=mine")).build();
     }
 
     @jakarta.ws.rs.POST

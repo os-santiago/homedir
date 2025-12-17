@@ -58,15 +58,27 @@
             <p style="flex-grow: 1; margin-bottom: 1.5rem; opacity: 0.8; font-size: 0.9rem;">{quest.description}</p>
 
             <div class="quest-actions" style="margin-top: auto; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <a href="{quest.url}" target="_blank" class="nes-btn is-primary is-small" style="flex: 1;">
-                    Ver Misión <i class="nes-icon is-small external-link"></i>
+                {#if userSession.activeQuests.contains(quest.id)}
+                <a href="{quest.url}" target="_blank" class="nes-btn is-warning is-small" style="flex: 1;">
+                    Continuar <i class="nes-icon is-small external-link"></i>
                 </a>
-
                 <form action="/quests/{quest.id}/complete" method="POST" style="flex: 1;">
                     <button type="submit" class="nes-btn is-success is-small" style="width: 100%;">
                         Reclamar
                     </button>
                 </form>
+                {#else if quest.status == 'OPEN'}
+                <a href="{quest.url}" target="_blank" class="nes-btn is-primary is-small" style="flex: 1;">
+                    Ver
+                </a>
+                <form action="/quests/{quest.id}/start" method="POST" style="flex: 1;">
+                    <button type="submit" class="nes-btn is-primary is-small" style="width: 100%;">
+                        Comenzar
+                    </button>
+                </form>
+                {#else}
+                <span class="nes-text is-disabled">Cerrada</span>
+                {/if}
             </div>
 
             {#if quest.status == 'CLOSED'}
@@ -74,6 +86,10 @@
                 style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10;">
                 <span class="nes-text is-success"
                     style="background: black; padding: 1rem; border: 4px double #00c4a7;">COMPLETADA</span>
+            </div>
+            {#else if userSession.activeQuests.contains(quest.id)}
+            <div class="nes-badge" style="position: absolute; top: -10px; right: -10px; z-index: 5;">
+                <span class="is-warning">EN PROGRESO</span>
             </div>
             {/if}
 

@@ -85,12 +85,17 @@ public class UserSessionService {
         int nextLevelXp = questService.getXpForLevel(level + 1);
 
         QuestClass questClass = null;
+        java.util.List<String> activeQuests = java.util.Collections.emptyList();
+
         if (profile.isPresent()) {
             questClass = profile.get().getQuestClass();
+            if (profile.get().getActiveQuests() != null) {
+                activeQuests = profile.get().getActiveQuests();
+            }
         }
 
         return new UserSession(true, name, email, picture, githubLinked, githubLogin, communityMember, isAdmin, level,
-                currentXp, nextLevelXp, questClass);
+                currentXp, nextLevelXp, questClass, activeQuests);
     }
 
     private String getClaim(SecurityIdentity identity, String claim) {

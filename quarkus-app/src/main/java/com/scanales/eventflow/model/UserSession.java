@@ -20,9 +20,11 @@ public record UserSession(
         int level,
         int currentXp,
         int nextLevelXp,
-        QuestClass questClass) {
+        QuestClass questClass,
+        java.util.List<String> activeQuests) {
 
     public static UserSession anonymous() {
-        return new UserSession(false, null, null, null, false, null, false, false, 1, 0, 100, null);
+        return new UserSession(false, null, null, null, false, null, false, false, 1, 0, 100, null,
+                java.util.Collections.emptyList());
     }
 }
