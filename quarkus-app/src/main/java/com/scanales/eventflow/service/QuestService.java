@@ -307,6 +307,10 @@ public class QuestService {
         int recalculatedXp = 0;
 
         for (UserProfile.QuestHistoryItem item : originalHistory) {
+            if (item == null || item.title() == null) {
+                continue; // Skip corrupt data
+            }
+
             if (item.title().startsWith("Completada Misión: ")) {
                 if (!seenTitles.contains(item.title())) {
                     seenTitles.add(item.title());
