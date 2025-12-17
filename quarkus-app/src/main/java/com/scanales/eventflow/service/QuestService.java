@@ -19,6 +19,7 @@ import java.util.List;
 
 @Startup
 @ApplicationScoped
+@io.quarkus.runtime.annotations.RegisterForReflection(targets = { QuestService.QuestsYaml.class, Quest.class })
 public class QuestService {
 
     private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
