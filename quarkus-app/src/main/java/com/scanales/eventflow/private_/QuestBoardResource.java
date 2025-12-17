@@ -106,15 +106,28 @@ public class QuestBoardResource {
             return jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.UNAUTHORIZED).build();
         }
 
-        // Validate quest exists (simple lookup for now)
-        List<Quest> quests = questService.getQuestBoard();
-        Quest quest = quests.stream().filter(q -> q.id().equals(id)).findFirst().orElse(null);
-
-        if (quest != null) {
-            userProfileService.addXp(userId, quest.xpReward(), "Completada Misión: " + quest.title());
+        try {
+            questService.completeQuest(userId, id);
+        } catch (IllegalArgumentException e) {
+            // Log.warn("Invalid quest completion attempt: " + e.getMessage());
         }
 
         return jakarta.ws.rs.core.Response.seeOther(java.net.URI.create("/quests")).build();
+    }
+
+    @jakarta.ws.rs.POST
+    @Path("/fix-history")
+    @Authenticated
+    public jakarta.ws.rs.core.Response fixHistory() {
+        String userId = currentUserId();
+        if (userId == null) {
+            return jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.UNAUTHORIZED).build();
+        }
+
+        questService.fixQuestHistory(userId);
+
+        // Redirect back to profile or quests
+        return jakarta.ws.rs.core.Response.seeOther(java.net.URI.create("/private/profile")).build();
     }
 
     private String currentUserId() {
