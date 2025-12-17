@@ -243,4 +243,99 @@ public class QuestService {
             Log.error("Error triggering fork automation", e);
         }
     }
+
+    public void completeQuest(String userId, String questId) {
+        var profileOpt = userProfileService.find(userId);
+        if (profileOpt.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+        var profile = profileOpt.get();
+
+        // Find Quest Definition
+        Quest quest = getQuestBoard().stream()
+                .filter(q -> q.id().equals(questId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found"));
+
+        // Validate History (Deduplication)
+        if (!quest.repeatable()) {
+            boolean alreadyCompleted = false;
+            if (profile.getHistory() != null) {
+                // Check by title since history items store title, not ID directly (historical
+                // design)
+                // Using "Completada Misión: " prefix convention or just title match
+                String expectedTitle = "Completada Misión: " + quest.title();
+                alreadyCompleted = profile.getHistory().stream()
+                        .anyMatch(item -> item.title().equals(expectedTitle));
+            }
+
+            if (alreadyCompleted) {
+                Log.warn("User " + userId + " tried to complete non-repeatable quest " + questId + " again.");
+                return; // Idempotent success (don't throw error to avoid UI crash, just don't award XP)
+            }
+        }
+
+        // Award XP
+        userProfileService.addXp(userId, quest.xpReward(), "Completada Misión: " + quest.title());
+
+        // Remove from active list if present
+        if (profile.getActiveQuests() != null && profile.getActiveQuests().contains(questId)) {
+            profile.getActiveQuests().remove(questId);
+            userProfileService.update(profile);
+        }
+    }
+
+    public void fixQuestHistory(String userId) {
+        var profileOpt = userProfileService.find(userId);
+        if (profileOpt.isEmpty()) {
+            return;
+        }
+        var profile = profileOpt.get();
+        if (profile.getHistory() == null || profile.getHistory().isEmpty()) {
+            return;
+        }
+
+        List<UserProfile.QuestHistoryItem> originalHistory = new ArrayList<>(profile.getHistory());
+        List<UserProfile.QuestHistoryItem> distinctHistory = new ArrayList<>();
+        java.util.Set<String> seenTitles = new java.util.HashSet<>();
+
+        // Reconstruct history (Keep Oldest or Newest? Usually keep Oldest for "First
+        // time completed")
+        // But since list is likely appended, preserving Order is good.
+        // We want to keep the FIRST occurrence of a "Completada Misión: X"
+
+        int recalculatedXp = 0;
+
+        for (UserProfile.QuestHistoryItem item : originalHistory) {
+            if (item.title().startsWith("Completada Misión: ")) {
+                if (!seenTitles.contains(item.title())) {
+                    seenTitles.add(item.title());
+                    distinctHistory.add(item);
+                    recalculatedXp += item.xp();
+                } else {
+                    Log.info("Removing duplicate history entry: " + item.title());
+                }
+            } else {
+                // Non-quest history (e.g. "Participación Evento"), keep it
+                distinctHistory.add(item);
+                recalculatedXp += item.xp();
+            }
+        }
+
+        // Apply changes
+        if (distinctHistory.size() < originalHistory.size()) {
+            Log.info("Fixing history for user " + userId + ". Removed "
+                    + (originalHistory.size() - distinctHistory.size()) + " duplicates.");
+            profile.setHistory(distinctHistory);
+
+            // Fix XP total
+            // Current XP might be higher than sum of history if initial XP > 0 or external
+            // sources
+            // But usually CurrentXP = Sum(History). Let's trust the recalc for safety
+            // against inflation.
+            profile.setCurrentXp(recalculatedXp);
+
+            userProfileService.update(profile);
+        }
+    }
 }
