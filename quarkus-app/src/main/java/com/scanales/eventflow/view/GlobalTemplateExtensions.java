@@ -47,4 +47,24 @@ public class GlobalTemplateExtensions {
         }
         return CharacterProfile.visitor();
     }
+
+    @TemplateGlobal(name = "system")
+    public static SystemStatus system() {
+        try {
+            com.scanales.eventflow.service.PersistenceService persistence = Arc.container()
+                    .instance(com.scanales.eventflow.service.PersistenceService.class).get();
+            if (persistence != null) {
+                boolean lowDisk = persistence.isLowDiskSpace();
+                // We could also check queue depth, but low disk is the critical one for now
+                return new SystemStatus(lowDisk, lowDisk ? "Modo degradado: Almacenamiento crítico." : "Normal");
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return new SystemStatus(false, "Unknown");
+    }
+
+    @io.quarkus.runtime.annotations.RegisterForReflection
+    public record SystemStatus(boolean degraded, String message) {
+    }
 }

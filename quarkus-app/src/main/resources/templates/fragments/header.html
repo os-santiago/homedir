@@ -138,3 +138,9 @@
     style="color: white; text-decoration: underline;">GitHub Repo</a>
   · <span style="opacity: 0.8;">DevRel, OpenSource, InnerSource Community Platform</span>
 </div>
+{#if system.degraded}
+<div class="system-banner"
+  style="background: #e74c3c; color: white; text-align: center; padding: 0.5rem; font-weight: bold;">
+  ⚠️ {system.message} - Algunas funciones pueden estar deshabilitadas.
+</div>
+{/if}

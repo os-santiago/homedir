@@ -162,6 +162,9 @@ public class AdminMetricsResource {
   @Inject
   SpeakerService speakerService;
 
+  @Inject
+  com.scanales.eventflow.service.PersistenceService persistenceService;
+
   @GET
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
@@ -241,6 +244,21 @@ public class AdminMetricsResource {
         ctaQ,
         data.eventRows());
     return Response.ok(Templates.index(data)).build();
+  }
+
+  @GET
+  @Path("persistence")
+  @Authenticated
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response persistence() {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("queue", persistenceService.getQueueStats());
+    stats.put("diskUsagePct", persistenceService.getDiskUsage());
+    stats.put("lowDiskSpace", persistenceService.isLowDiskSpace());
+    return Response.ok(stats).build();
   }
 
   @GET
