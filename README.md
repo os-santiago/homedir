@@ -2,8 +2,9 @@
 > **DevRel, OpenSource, InnerSource Community Platform**
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Release Pipeline](https://github.com/os-santiago/homedir/actions/workflows/release.yml/badge.svg)](https://github.com/os-santiago/homedir/actions/workflows/release.yml)
-[![PR Check](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml/badge.svg)](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml)
+[![CI Tests](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml/badge.svg?branch=main&label=CI%20Tests)](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml)
+[![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version)](https://github.com/os-santiago/homedir/releases)
+[![Discord](https://img.shields.io/discord/1146869584323219467?logo=discord&label=Join%20the%20chat%20on%20Discord&color=5865F2)](https://discord.gg/3eawzc9ybc)
 
 **Homedir** es una plataforma única diseñada para potenciar comunidades técnicas modernas. A diferencia de soluciones genéricas, Homedir se centra en la **identidad, el desarrollo profesional y la gamificación** de la participación en comunidades, actuando como un puente entre desarrolladores individuales y el ecosistema Open Source / Inner Source.
 
