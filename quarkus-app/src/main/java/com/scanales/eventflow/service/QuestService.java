@@ -124,7 +124,7 @@ public class QuestService {
 
     private void loadQuests() {
         // 1. Try to load from initial-quests.yaml (Resilient Fallback)
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("quests/initial-quests.yaml")) {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("initial-quests.yaml")) {
             if (is != null) {
                 QuestsYaml data = yamlMapper.readValue(is, QuestsYaml.class);
                 if (data != null && data.quests != null) {
