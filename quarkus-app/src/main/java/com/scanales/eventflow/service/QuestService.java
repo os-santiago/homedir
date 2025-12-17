@@ -123,13 +123,45 @@ public class QuestService {
     }
 
     private void loadQuests() {
-        // 1. Try to load from initial-quests.yaml (Resilient Fallback)
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("initial-quests.yaml")) {
+        // 1. Try to load from Remote URL (Primary Source)
+        String questsUrl = org.eclipse.microprofile.config.ConfigProvider.getConfig()
+                .getOptionalValue("quests.content.url", String.class)
+                .orElse(null);
+
+        if (questsUrl != null && !questsUrl.isBlank()) {
+            try (java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient()) {
+                var request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create(questsUrl))
+                        .GET()
+                        .build();
+
+                Log.info("Fetching quests from: " + questsUrl);
+
+                var response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 200) {
+                    QuestsYaml data = yamlMapper.readValue(response.body(), QuestsYaml.class);
+                    if (data != null && data.quests != null) {
+                        this.quests = data.quests;
+                        Log.info("Loaded " + quests.size() + " quests from remote URL.");
+                        return; // Success, skip fallback
+                    }
+                } else {
+                    Log.error("Failed to fetch quests from URL. Status: " + response.statusCode());
+                }
+            } catch (Exception e) {
+                Log.error("Error fetching remote quests", e);
+            }
+        }
+
+        // 2. Fallback: Local Resource (Only if remote fails or not configured)
+        Log.warn("Falling back to local initial-quests.yaml");
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("quests/initial-quests.yaml")) {
             if (is != null) {
                 QuestsYaml data = yamlMapper.readValue(is, QuestsYaml.class);
                 if (data != null && data.quests != null) {
                     this.quests = data.quests;
-                    Log.info("Loaded " + quests.size() + " quests from local YAML.");
+                    Log.info("Loaded " + quests.size() + " quests from local YAML (Fallback).");
                 }
             } else {
                 Log.warn("initial-quests.yaml not found in classpath.");
@@ -137,9 +169,6 @@ public class QuestService {
         } catch (Exception e) {
             Log.error("Failed to load local quests", e);
         }
-
-        // 2. Ideally we would merge with GitHub Issues here (Async)
-        // For now, we rely on the static YAML as the primary source for resilience.
     }
 
     public static class QuestsYaml {
