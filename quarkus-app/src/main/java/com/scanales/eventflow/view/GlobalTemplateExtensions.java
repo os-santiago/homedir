@@ -11,6 +11,20 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class GlobalTemplateExtensions {
 
+    @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quarkus.application.version")
+    String appVersion;
+
+    @TemplateGlobal(name = "appVersion")
+    public static String appVersion() {
+        // Static method cannot access instance field injected by CDI directly easily
+        // unless we use Arc container
+        try {
+            return Arc.container().instance(GlobalTemplateExtensions.class).get().appVersion;
+        } catch (Exception e) {
+            return "dev";
+        }
+    }
+
     /**
      * Exposes the current user session to all templates as {userSession}.
      */
