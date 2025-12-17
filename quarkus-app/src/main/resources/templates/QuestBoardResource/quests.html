@@ -32,8 +32,11 @@
                         <span class="is-warning">{quest.xpReward} XP</span>
                     </span>
                 </div>
-                <div class="quest-action">
+                <div class="quest-action" style="display: flex; gap: 0.5rem;">
                     <a href="{quest.url}" target="_blank" class="nes-btn is-primary">Ver Misión</a>
+                    <form action="/quests/{quest.id}/complete" method="POST">
+                        <button type="submit" class="nes-btn is-success">Reclamar XP</button>
+                    </form>
                 </div>
             </div>
         </div>

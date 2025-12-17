@@ -109,7 +109,7 @@ public class QuestService {
         return level;
     }
 
-    private int getXpForLevel(int level) {
+    public int getXpForLevel(int level) {
         return levelConfigs.stream()
                 .filter(l -> l.level == level)
                 .map(l -> l.xpRequired)

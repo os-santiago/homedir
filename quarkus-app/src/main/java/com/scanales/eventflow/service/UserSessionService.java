@@ -21,6 +21,9 @@ public class UserSessionService {
     @Inject
     CommunityService communityService;
 
+    @Inject
+    QuestService questService;
+
     // Optional: Inject UserInfo if available (standard in OIDC)
     // @Inject UserInfo userInfo;
 
@@ -51,9 +54,12 @@ public class UserSessionService {
         Optional<UserProfile> profile = userProfileService.find(email);
         boolean githubLinked = false;
         String githubLogin = null;
+        int currentXp = 0;
 
         if (profile.isPresent()) {
-            var gh = profile.get().getGithub();
+            var p = profile.get();
+            currentXp = p.getCurrentXp();
+            var gh = p.getGithub();
             if (gh != null) {
                 githubLinked = true;
                 githubLogin = gh.login();
@@ -74,7 +80,11 @@ public class UserSessionService {
 
         boolean isAdmin = com.scanales.eventflow.util.AdminUtils.isAdmin(identity);
 
-        return new UserSession(true, name, email, picture, githubLinked, githubLogin, communityMember, isAdmin);
+        int level = questService.calculateLevel(currentXp);
+        int nextLevelXp = questService.getXpForLevel(level + 1);
+
+        return new UserSession(true, name, email, picture, githubLinked, githubLogin, communityMember, isAdmin, level,
+                currentXp, nextLevelXp);
     }
 
     private String getClaim(SecurityIdentity identity, String claim) {

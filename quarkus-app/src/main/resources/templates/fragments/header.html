@@ -59,6 +59,10 @@
           </div>
           {/if}
           <span class="user-name">{userSession.displayName ?: userName}</span>
+          <span class="nes-badge is-splited" style="margin-left: 0.5rem; transform: scale(0.8);">
+            <span class="is-dark">LV</span>
+            <span class="is-warning">{userSession.level}</span>
+          </span>
         </a>
         <button class="user-menu-btn" onclick="this.parentElement.nextElementSibling.classList.toggle('show')"
           style="background: transparent; border: none; color: white; cursor: pointer; padding: 0.25rem;">
@@ -72,6 +76,18 @@
           style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
           <small style="color: #888;">Signed in as</small><br>
           <strong>{userSession.email ?: userName}</strong>
+          <div style="margin-top: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #ffd700;">
+              <span>LVL {userSession.level}</span>
+              <span>{userSession.currentXp} / {userSession.nextLevelXp} XP</span>
+            </div>
+            <div class="xp-bar-container"
+              style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 2px;">
+              <div class="xp-bar-fill"
+                style="width: {(userSession.currentXp / userSession.nextLevelXp) * 100}%; height: 100%; background: linear-gradient(90deg, #ffd700, #ff80a0); transition: width 0.5s ease;">
+              </div>
+            </div>
+          </div>
         </div>
 
         <a href="/private/profile" class="dropdown-item"

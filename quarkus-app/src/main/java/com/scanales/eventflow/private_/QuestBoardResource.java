@@ -59,6 +59,25 @@ public class QuestBoardResource {
         return withLayoutData(Templates.quests(quests, filter), "quests");
     }
 
+    @jakarta.ws.rs.POST
+    @Path("/{id}/complete")
+    public jakarta.ws.rs.core.Response complete(@jakarta.ws.rs.PathParam("id") String id) {
+        String userId = currentUserId();
+        if (userId == null) {
+            return jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.UNAUTHORIZED).build();
+        }
+
+        // Validate quest exists (simple lookup for now)
+        List<Quest> quests = questService.getQuestBoard();
+        Quest quest = quests.stream().filter(q -> q.id().equals(id)).findFirst().orElse(null);
+
+        if (quest != null) {
+            userProfileService.addXp(userId, quest.xpReward(), "Completada Misión: " + quest.title());
+        }
+
+        return jakarta.ws.rs.core.Response.seeOther(java.net.URI.create("/quests")).build();
+    }
+
     private String currentUserId() {
         if (identity == null || identity.isAnonymous()) {
             return null;

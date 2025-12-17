@@ -67,6 +67,19 @@ public class UserProfileService {
     return profile;
   }
 
+  public UserProfile addXp(String userId, int amount, String reason) {
+    if (userId == null)
+      return null;
+    UserProfile profile = find(userId).orElse(null);
+    if (profile != null) {
+      profile.setCurrentXp(profile.getCurrentXp() + amount);
+      profile.addHistoryItem(
+          new UserProfile.QuestHistoryItem(reason, amount, java.time.LocalDate.now().toString()));
+      persist();
+    }
+    return profile;
+  }
+
   public UserProfile linkGithub(
       String userId, String name, String email, UserProfile.GithubAccount githubAccount) {
 

@@ -16,9 +16,12 @@ public record UserSession(
         boolean githubLinked,
         String githubLogin,
         boolean communityMember,
-        boolean isAdmin) {
+        boolean isAdmin,
+        int level,
+        int currentXp,
+        int nextLevelXp) {
 
     public static UserSession anonymous() {
-        return new UserSession(false, null, null, null, false, null, false, false);
+        return new UserSession(false, null, null, null, false, null, false, false, 1, 0, 100);
     }
 }
