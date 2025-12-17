@@ -2,6 +2,7 @@ package com.scanales.eventflow.service;
 
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.UserSession;
+import com.scanales.eventflow.model.QuestClass;
 
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -83,8 +84,13 @@ public class UserSessionService {
         int level = questService.calculateLevel(currentXp);
         int nextLevelXp = questService.getXpForLevel(level + 1);
 
+        QuestClass questClass = null;
+        if (profile.isPresent()) {
+            questClass = profile.get().getQuestClass();
+        }
+
         return new UserSession(true, name, email, picture, githubLinked, githubLogin, communityMember, isAdmin, level,
-                currentXp, nextLevelXp);
+                currentXp, nextLevelXp, questClass);
     }
 
     private String getClaim(SecurityIdentity identity, String claim) {

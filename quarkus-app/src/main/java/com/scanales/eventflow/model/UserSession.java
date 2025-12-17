@@ -19,9 +19,10 @@ public record UserSession(
         boolean isAdmin,
         int level,
         int currentXp,
-        int nextLevelXp) {
+        int nextLevelXp,
+        QuestClass questClass) {
 
     public static UserSession anonymous() {
-        return new UserSession(false, null, null, null, false, null, false, false, 1, 0, 100);
+        return new UserSession(false, null, null, null, false, null, false, false, 1, 0, 100, null);
     }
 }

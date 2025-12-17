@@ -114,6 +114,53 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
+                    <p class="hd-eyebrow">Progreso</p>
+                    <h2 class="hd-panel-title">Árbol de Habilidades</h2>
+                    <p class="hd-page-intro">Desbloquea nuevas capacidades subiendo de nivel.</p>
+                </div>
+            </div>
+            <style>
+                .skill-node.locked {
+                    opacity: 0.5;
+                    border: 1px solid transparent;
+                }
+
+                .skill-node.unlocked {
+                    opacity: 1;
+                    border: 1px solid #ffd700;
+                }
+            </style>
+            <div class="skill-tree" style="display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0;">
+                <div class="skill-node hd-card-surface {#if questProfile.level >= 1}unlocked{#else}locked{/if}"
+                    style="min-width: 120px; text-align: center; padding: 1rem;">
+                    <div style="font-size: 2rem;">🌱</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">Novato</div>
+                    <div style="font-size: 0.8rem;">Lv. 1</div>
+                </div>
+                <div class="skill-node hd-card-surface {#if questProfile.level >= 3}unlocked{#else}locked{/if}"
+                    style="min-width: 120px; text-align: center; padding: 1rem;">
+                    <div style="font-size: 2rem;">🔨</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">Contribuidor</div>
+                    <div style="font-size: 0.8rem;">Lv. 3</div>
+                </div>
+                <div class="skill-node hd-card-surface {#if questProfile.level >= 5}unlocked{#else}locked{/if}"
+                    style="min-width: 120px; text-align: center; padding: 1rem;">
+                    <div style="font-size: 2rem;">🚀</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">Mentor</div>
+                    <div style="font-size: 0.8rem;">Lv. 5</div>
+                </div>
+                <div class="skill-node hd-card-surface {#if questProfile.level >= 10}unlocked{#else}locked{/if}"
+                    style="min-width: 120px; text-align: center; padding: 1rem;">
+                    <div style="font-size: 2rem;">🧙‍♂️</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">Legend</div>
+                    <div style="font-size: 0.8rem;">Lv. 10</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="hd-panel">
+            <div class="hd-dashboard-header">
+                <div>
                     <p class="hd-eyebrow">Identidad</p>
                     <h2 class="hd-panel-title">Tu Gremio (Quest Class)</h2>
                     <p class="hd-page-intro">Elige tu arquetipo para que la comunidad conozca tu rol principal.</p>

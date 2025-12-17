@@ -58,7 +58,12 @@
             {/if}
           </div>
           {/if}
-          <span class="user-name">{userSession.displayName ?: userName}</span>
+          <span class="user-name">
+            {#if userSession.questClass}
+            <span title="{userSession.questClass.displayName}">{userSession.questClass.emoji}</span>
+            {/if}
+            {userSession.displayName ?: userName}
+          </span>
           <span class="nes-badge is-splited" style="margin-left: 0.5rem; transform: scale(0.8);">
             <span class="is-dark">LV</span>
             <span class="is-warning">{userSession.level}</span>
