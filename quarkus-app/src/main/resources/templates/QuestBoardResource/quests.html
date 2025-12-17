@@ -1,48 +1,94 @@
 {#include layout/main}
 {#title}Tablero de Misiones{/title}
 {#body}
-<div class="quest-board-container nes-container is-dark with-title">
-    <h2 class="title" style="background-color: #212529;">Tablero de Misiones</h2>
+<div class="content-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
 
-    <p class="nes-text is-primary">¡Bienvenido, Aventurero! Completa misiones para ganar XP y subir de nivel.</p>
-
-    <div style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center;">
-        <span class="nes-text">Misiones Disponibles: {quests.size}</span>
-        <div style="margin-left: auto;">
-            <a href="/quests" class="nes-btn {#if filter.or('all') == 'all'}is-primary{#else}is-normal{/if}">Todas</a>
-            <a href="/quests?filter=mine" class="nes-btn {#if filter == 'mine'}is-primary{#else}is-normal{/if}">Mis
-                Misiones</a>
-        </div>
+    <div class="quest-header" style="margin-bottom: 3rem; text-align: center;">
+        <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 1rem;">TABLERO DE MISIONES</h1>
+        <p class="nes-text is-primary" style="max-width: 800px; margin: 0 auto;">
+            Cumple objetivos, gana XP y sube de rango en la comunidad.
+            <br>
+            <span style="opacity: 0.7;">Las misiones se sincronizan con nuestras actividades Open Source.</span>
+        </p>
     </div>
 
-    <div class="quests-list">
+    <!-- Filters -->
+    <div
+        style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: center;">
+        <a href="/quests" class="nes-btn {#if filter.or('all') == 'all'}is-primary{#else}is-normal{/if}">Todas</a>
+        <a href="/quests?filter=mine" class="nes-btn {#if filter == 'mine'}is-primary{#else}is-normal{/if}">Mis
+            Misiones</a>
+        <span class="nes-badge">
+            <span class="is-dark">Total: {quests.size}</span>
+        </span>
+    </div>
+
+    <!-- Quest Grid -->
+    <div class="quest-grid"
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
         {#if quests.isEmpty}
-        <div class="nes-container is-rounded is-centered">
-            <p>No hay misiones disponibles por el momento.</p>
+        <div class="hd-card-surface"
+            style="grid-column: 1 / -1; padding: 3rem; text-align: center; border: 2px dashed rgba(255,255,255,0.2);">
+            <i class="nes-icon trophy is-large" style="margin-bottom: 1rem; filter: grayscale(1);"></i>
+            <h3 class="title">No hay misiones activas</h3>
+            <p>Parece que está todo tranquilo por ahora.</p>
+            <div style="margin-top: 2rem;">
+                <p class="nes-text is-warning">¿Quieres generar tus propias misiones?</p>
+                <a href="https://github.com/os-santiago/homedir" target="_blank" class="nes-btn is-primary">
+                    Contribuir en GitHub
+                </a>
+            </div>
         </div>
         {#else}
         {#for quest in quests}
-        <div class="nes-container is-rounded with-title quest-card" style="margin-bottom: 1rem;">
-            <p class="title">{quest.difficulty} Rank</p>
-            <div class="quest-content" style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="quest-info">
-                    <h3 class="nes-text is-primary">{quest.title}</h3>
-                    <p>{quest.description}</p>
-                    <span class="nes-badge">
-                        <span class="is-warning">{quest.xpReward} XP</span>
+        <div class="hd-card-surface quest-card"
+            style="position: relative; padding: 1.5rem; display: flex; flex-direction: column; transition: transform 0.2s;">
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <span class="nes-badge">
+                    <span
+                        class="{#if quest.difficulty == 'EASY'}is-success{#else if quest.difficulty == 'MEDIUM'}is-warning{#else}is-error{/if}">
+                        Rank {quest.difficulty}
                     </span>
-                </div>
-                <div class="quest-action" style="display: flex; gap: 0.5rem;">
-                    <a href="{quest.url}" target="_blank" class="nes-btn is-primary">Ver Misión</a>
-                    <form action="/quests/{quest.id}/complete" method="POST">
-                        <button type="submit" class="nes-btn is-success">Reclamar XP</button>
-                    </form>
-                </div>
+                </span>
+                <span class="nes-text is-disabled">XP +{quest.xpReward}</span>
             </div>
+
+            <h3 class="title" style="margin-bottom: 1rem; font-size: 1.2rem; min-height: 3em;">{quest.title}</h3>
+            <p style="flex-grow: 1; margin-bottom: 1.5rem; opacity: 0.8; font-size: 0.9rem;">{quest.description}</p>
+
+            <div class="quest-actions" style="margin-top: auto; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="{quest.url}" target="_blank" class="nes-btn is-primary is-small" style="flex: 1;">
+                    Ver Misión <i class="nes-icon is-small external-link"></i>
+                </a>
+
+                <form action="/quests/{quest.id}/complete" method="POST" style="flex: 1;">
+                    <button type="submit" class="nes-btn is-success is-small" style="width: 100%;">
+                        Reclamar
+                    </button>
+                </form>
+            </div>
+
+            {#if quest.status == 'CLOSED'}
+            <div
+                style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10;">
+                <span class="nes-text is-success"
+                    style="background: black; padding: 1rem; border: 4px double #00c4a7;">COMPLETADA</span>
+            </div>
+            {/if}
+
         </div>
         {/for}
         {/if}
     </div>
 </div>
+
+<style>
+    .quest-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        border-color: var(--primary-color, #ff00cc);
+    }
+</style>
 {/body}
 {/include}

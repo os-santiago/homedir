@@ -14,7 +14,6 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/quests")
-@Authenticated
 public class QuestBoardResource {
 
     @Inject
@@ -53,6 +52,11 @@ public class QuestBoardResource {
                     // No github linked, so no assigned quests
                     quests = java.util.Collections.emptyList();
                 }
+            } else {
+                // Not logged in, can't see "mine"
+                // Redirect to login or show empty?
+                // For now return empty
+                quests = java.util.Collections.emptyList();
             }
         }
 
@@ -61,6 +65,7 @@ public class QuestBoardResource {
 
     @jakarta.ws.rs.POST
     @Path("/{id}/complete")
+    @Authenticated
     public jakarta.ws.rs.core.Response complete(@jakarta.ws.rs.PathParam("id") String id) {
         String userId = currentUserId();
         if (userId == null) {

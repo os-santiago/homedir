@@ -22,29 +22,15 @@ public class QuestServiceTest {
     UserProfileService userProfileService;
 
     @Test
-    public void testLabelParsing() {
-        QuestService.GithubIssue issue = new QuestService.GithubIssue();
-        issue.number = 1;
-        issue.title = "Test Quest";
-        issue.body = "Description";
-        issue.html_url = "http://example.com";
+    public void testGetQuestBoard_YamlLoading() {
+        // This test assumes initial-quests.yaml is present in src/main/resources
+        List<Quest> quests = questService.getQuestBoard();
+        Assertions.assertNotNull(quests);
+        Assertions.assertFalse(quests.isEmpty(), "Quest board should not be empty (should load from YAML)");
 
-        QuestService.GithubLabel l1 = new QuestService.GithubLabel();
-        l1.name = "xp:200";
-        QuestService.GithubLabel l2 = new QuestService.GithubLabel();
-        l2.name = "difficulty:S";
-        QuestService.GithubLabel l3 = new QuestService.GithubLabel();
-        l3.name = "status:IN_PROGRESS";
-
-        issue.labels = List.of(l1, l2, l3);
-
-        List<Quest> quests = questService.mapIssuesToQuests(List.of(issue));
-
-        Assertions.assertEquals(1, quests.size());
-        Quest q = quests.get(0);
-        Assertions.assertEquals(200, q.xpReward());
-        Assertions.assertEquals("S", q.difficulty());
-        Assertions.assertEquals("IN_PROGRESS", q.status());
+        Quest q1 = quests.get(0);
+        Assertions.assertNotNull(q1.xpReward());
+        Assertions.assertNotNull(q1.title());
     }
 
     @Test

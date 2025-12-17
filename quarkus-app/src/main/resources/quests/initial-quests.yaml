@@ -1,0 +1,36 @@
+quests:
+  - id: "q-001"
+    title: "Enlista tu Refugio"
+    description: "Crea un fork del repositorio 'homedir' o registra tu propio repositorio de configuración en el directorio de la comunidad."
+    xp: 100
+    difficulty: "EASY"
+    status: "OPEN"
+    url: "https://github.com/os-santiago/homedir"
+    labels: ["onboarding", "git"]
+
+  - id: "q-002"
+    title: "Primer Contacto"
+    description: "Únete a la comunidad vinculando tu cuenta de GitHub en tu perfil de HomeDir."
+    xp: 50
+    difficulty: "EASY"
+    status: "OPEN"
+    url: "/private/profile"
+    labels: ["social", "profile"]
+
+  - id: "q-003"
+    title: "Reporta una Anomalía"
+    description: "Encuentra un bug o sugiere una mejora creando un Issue en el repositorio oficial."
+    xp: 150
+    difficulty: "MEDIUM"
+    status: "OPEN"
+    url: "https://github.com/os-santiago/homedir/issues"
+    labels: ["contribution", "bug-hunt"]
+
+  - id: "q-004"
+    title: "Contribución de Código"
+    description: "Envía un Pull Request (PR) al repositorio. Puede ser documentación, fix o feature."
+    xp: 300
+    difficulty: "HARD"
+    status: "OPEN"
+    url: "https://github.com/os-santiago/homedir/pulls"
+    labels: ["contribution", "code"]
