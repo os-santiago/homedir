@@ -257,6 +257,12 @@ public class QuestService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Quest not found"));
 
+        // Validate Quest is Active (Must be started first)
+        if (profile.getActiveQuests() == null || !profile.getActiveQuests().contains(questId)) {
+            Log.warn("User " + userId + " tried to complete quest " + questId + " without starting it first.");
+            throw new IllegalArgumentException("Quest must be started before completion");
+        }
+
         // Validate History (Deduplication)
         if (!quest.repeatable()) {
             boolean alreadyCompleted = false;
