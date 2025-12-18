@@ -16,6 +16,7 @@ import io.quarkus.security.identity.SecurityIdentity;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.QuestProfile;
 import com.scanales.eventflow.service.QuestService;
+import com.scanales.eventflow.config.AppMessages;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -61,7 +62,8 @@ public class ProfileResource {
 
         java.util.List<ClassOption> classOptions,
         QuestProfile questProfile,
-        String currentLanguage);
+        String currentLanguage,
+        AppMessages i18n);
   }
 
   /** Display option for class selection. */
@@ -90,6 +92,8 @@ public class ProfileResource {
   SecurityIdentity identity;
   @Inject
   QuestService questService;
+  @Inject
+  AppMessages messages;
 
   @GET
   @Authenticated
@@ -163,7 +167,8 @@ public class ProfileResource {
         name.substring(0, 1).toUpperCase(),
         classOptions,
         questProfile,
-        finalLang)
+        finalLang,
+        messages)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
