@@ -86,17 +86,17 @@
                     <h2 class="hd-panel-title">{i18n.resume_history}</h2>
                 </div>
             </div>
-            {#if history.isEmpty()}
+            {#if questProfile.history.isEmpty()}
             <p>{i18n.resume_no_history}</p>
             {#else}
             <ul class="hd-list">
-                {#for item in history}
+                {#for item in questProfile.history}
                 <li class="hd-list-item">
                     <div class="hd-list-content">
-                        <strong>{item.questId}</strong>
-                        <span class="hd-list-meta">{item.completedAt}</span>
+                        <strong>{item.title}</strong>
+                        <span class="hd-list-meta">{item.date}</span>
                     </div>
-                    <span class="hd-badge">+{item.xpEarned} XP</span>
+                    <span class="hd-badge">+{item.xp} XP</span>
                 </li>
                 {/for}
             </ul>
