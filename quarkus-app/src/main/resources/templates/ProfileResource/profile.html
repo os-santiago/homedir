@@ -2,6 +2,28 @@
 {#title}{i18n.profile_title}{/title}
 {#body}
 <section class="hd-section hd-section-dashboard">
+    <style>
+        .hd-class-option {
+            opacity: 0.5;
+            filter: grayscale(100%);
+            transition: all 0.3s ease;
+        }
+
+        .hd-class-option:hover {
+            opacity: 0.9;
+            filter: grayscale(20%);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .hd-class-option.selected {
+            opacity: 1;
+            filter: none;
+            border-color: var(--primary-color) !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+    </style>
     <div class="hd-page">
         <div class="hd-dashboard-header">
             <div>
@@ -140,7 +162,7 @@
                 </div>
             </div>
 
-            <form action="/private/profile/class" method="POST" style="margin-top: 2rem;">
+            <form action="/private/profile/update-class" method="POST" style="margin-top: 2rem;">
                 <div class="hd-grid-classes"
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                     {#for opt in classOptions}
