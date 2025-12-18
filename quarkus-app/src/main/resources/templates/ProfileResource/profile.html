@@ -68,7 +68,7 @@
                 <div>
                     <p class="hd-eyebrow">{i18n.section_resume}</p>
                     <h2 class="hd-panel-title">{i18n.resume_level(questProfile.level)}</h2>
-                    <p class="hd-page-intro">{i18n.resume_exp(currentXp, questProfile.nextLevelXp)}</p>
+                    <p class="hd-page-intro">{i18n.resume_exp(questProfile.currentXp, questProfile.nextLevelXp)}</p>
                 </div>
             </div>
 
@@ -77,7 +77,7 @@
             <div
                 style="background: #eee; border-radius: 8px; height: 20px; width: 100%; overflow: hidden; margin-bottom: 2rem;">
                 <div
-                    style="background: var(--primary-color); height: 100%; width: {(currentXp / questProfile.nextLevelXp) * 100}%">
+                    style="background: var(--primary-color); height: 100%; width: {(questProfile.currentXp / questProfile.nextLevelXp) * 100}%">
                 </div>
             </div>
 

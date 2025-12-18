@@ -1,0 +1,90 @@
+Build & Publish Native Image	Build Native Executable	﻿2025-12-18T18:55:35.5187061Z ##[group]Run ./mvnw package -Pnative -Dquarkus.native.container-build=true -Dquarkus.application.version=3.300.4 -DskipTests
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5187908Z [36;1m./mvnw package -Pnative -Dquarkus.native.container-build=true -Dquarkus.application.version=3.300.4 -DskipTests[0m
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5217210Z shell: /usr/bin/bash -e {0}
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5217446Z env:
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5217731Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5218188Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5218544Z   VERSION: v3.300.4
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5218734Z   CLEAN_VERSION: 3.300.4
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:35.5218930Z ##[endgroup]
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:40.4104114Z [INFO] Scanning for projects...
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:40.5350404Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:40.5351021Z [INFO] ------------------------< com.scanales:homedir >------------------------
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:40.5351626Z [INFO] Building homedir 3.300.0
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:40.5352032Z [INFO]   from pom.xml
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:40.5352808Z [INFO] --------------------------------[ jar ]---------------------------------
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:41.9243717Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:41.9244977Z [INFO] --- enforcer:3.6.1:enforce (enforce) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.1331520Z [INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.1338370Z [INFO] Rule 1: org.apache.maven.enforcer.rules.BanDuplicatePomDependencyVersions passed
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.1975835Z [INFO] Rule 2: org.apache.maven.enforcer.rules.dependency.RequireUpperBoundDeps passed
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.2238576Z [INFO] Rule 3: org.apache.maven.enforcer.rules.dependency.DependencyConvergence passed
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.2250886Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.2253151Z [INFO] --- git-commit-id:9.0.1:revision (get-the-git-infos) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.6979669Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.6982741Z [INFO] --- resources:3.3.1:resources (default-resources) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.7666795Z [INFO] Copying 113 resources from src/main/resources to target/classes
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.7975720Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.7978513Z [INFO] --- compiler:3.14.0:compile (default-compile) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.9385957Z [INFO] Recompiling the module because of changed source code.
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:42.9507432Z [INFO] Compiling 129 source files with javac [debug parameters target 21] to target/classes
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:46.3621393Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:46.3622053Z [INFO] --- resources:3.3.1:testResources (default-testResources) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:46.3677913Z [INFO] Copying 2 resources from src/test/resources to target/test-classes
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:46.3687321Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:46.3690185Z [INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:46.3815586Z [INFO] Recompiling the module because of changed dependency.
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:46.3824284Z [INFO] Compiling 49 source files with javac [debug parameters target 21] to target/test-classes
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.0237039Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.0237930Z [INFO] --- surefire:3.5.3:test (default-test) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.1366069Z [INFO] Tests are skipped.
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.1374180Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.1376527Z [INFO] --- jar:3.4.1:jar (default-jar) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.4454734Z [INFO] Building jar: /home/runner/work/homedir/homedir/quarkus-app/target/homedir-3.300.0.jar
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.7423807Z [INFO] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:47.7424326Z [INFO] --- quarkus:3.26.4:build (default) @ homedir ---
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:49.6199092Z [WARNING] [io.quarkus.config] Unrecognized configuration key "quarkus.oidc.authentication.force-redirect-https" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7067392Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [day] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_day()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7070533Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [speakers] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_days_speakers()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7073208Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [days] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_days_speakers()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7075612Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [attended] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_intro()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7078221Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [rated] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_intro()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7080563Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [added] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_intro()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7083185Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [count] in the message template of: com.scanales.eventflow.config.AppMessages#community_initiatives()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7085939Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [error] in the message template of: com.scanales.eventflow.config.AppMessages#msg_github_error()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7104287Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [current] in the message template of: com.scanales.eventflow.config.AppMessages#resume_exp()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7106598Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [total] in the message template of: com.scanales.eventflow.config.AppMessages#resume_exp()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:50.7108890Z [WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [level] in the message template of: com.scanales.eventflow.config.AppMessages#resume_level()
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9171716Z [INFO] ------------------------------------------------------------------------
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9174241Z [INFO] BUILD FAILURE
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9176775Z [INFO] ------------------------------------------------------------------------
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9185498Z [INFO] Total time:  11.529 s
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9188894Z [INFO] Finished at: 2025-12-18T18:55:51Z
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9189699Z [INFO] ------------------------------------------------------------------------
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9201091Z [ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.26.4:build (default) on project homedir: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: Build failed due to errors
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9203760Z [ERROR] 	[error]: Build step io.quarkus.qute.deployment.QuteProcessor#processTemplateErrors threw an exception: io.quarkus.qute.TemplateException: Found incorrect expressions (1):
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9219285Z [ERROR] 	[1] ProfileResource/profile.html:71:46 - {i18n.resume_exp(currentXp,questProfile.nextLevelXp)}: Property/method [resume_exp(currentXp,questProfile.nextLevelXp)] not found on class [com.scanales.eventflow.config.AppMessages] nor handled by an extension method
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9232324Z [ERROR] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9233249Z [ERROR] 	at io.quarkus.qute.deployment.QuteProcessor.processTemplateErrors(QuteProcessor.java:274)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9234442Z [ERROR] 	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:733)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9235505Z [ERROR] 	at io.quarkus.deployment.ExtensionLoader$3.execute(ExtensionLoader.java:874)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9236371Z [ERROR] 	at io.quarkus.builder.BuildContext.run(BuildContext.java:255)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9237211Z [ERROR] 	at org.jboss.threads.ContextHandler$1.runWith(ContextHandler.java:18)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9238216Z [ERROR] 	at org.jboss.threads.EnhancedQueueExecutor$Task.doRunWith(EnhancedQueueExecutor.java:2651)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9239790Z [ERROR] 	at org.jboss.threads.EnhancedQueueExecutor$Task.run(EnhancedQueueExecutor.java:2630)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9240916Z [ERROR] 	at org.jboss.threads.EnhancedQueueExecutor.runThreadBody(EnhancedQueueExecutor.java:1622)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9242070Z [ERROR] 	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1589)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9243284Z [ERROR] 	at java.base/java.lang.Thread.run(Thread.java:1583)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9243941Z [ERROR] 	at org.jboss.threads.JBossThread.run(JBossThread.java:501)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9246168Z [ERROR] 	Suppressed: io.quarkus.qute.TemplateException: ProfileResource/profile.html:71:46 - {i18n.resume_exp(currentXp,questProfile.nextLevelXp)}: Property/method [resume_exp(currentXp,questProfile.nextLevelXp)] not found on class [com.scanales.eventflow.config.AppMessages] nor handled by an extension method
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9248468Z [ERROR] 		at io.quarkus.qute.TemplateException$Builder.build(TemplateException.java:173)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9249576Z [ERROR] 		at io.quarkus.qute.deployment.QuteProcessor.processTemplateErrors(QuteProcessor.java:251)
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9250673Z [ERROR] 		... 10 more
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9251003Z [ERROR] -> [Help 1]
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9251297Z [ERROR] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9251768Z [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9252714Z [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9253247Z [ERROR] 
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9253877Z [ERROR] For more information about the errors and possible solutions, please read the following articles:
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9254916Z [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
+Build & Publish Native Image	Build Native Executable	2025-12-18T18:55:51.9810793Z ##[error]Process completed with exit code 1.
