@@ -5,46 +5,43 @@
     <div class="hd-page">
         <div class="hd-dashboard-header">
             <div>
-                <p class="hd-eyebrow">Perfil digital</p>
+                <p class="hd-eyebrow">{msg:profile.eyebrow}</p>
                 <h1 class="hd-page-title">{name}</h1>
-                <p class="hd-page-intro">Gestiona tu agenda, elige tus charlas favoritas y mantente al día con la
-                    comunidad.</p>
+                <p class="hd-page-intro">{msg:profile.intro}</p>
             </div>
             <div class="hd-panel-actions">
-                <a class="hd-btn hd-btn-primary" href="/private/profile">Refrescar</a>
-                <a class="hd-btn" href="/logout">Salir</a>
+                <a class="hd-btn hd-btn-primary" href="/private/profile">{msg:btn.refresh}</a>
+                <a class="hd-btn" href="/logout">{msg:btn.logout}</a>
             </div>
         </div>
 
         <div class="hd-panel">
             <div class="hd-panel-actions" style="margin-bottom: 1rem;">
                 {#if githubLinked}
-                <div class="hd-alert hd-alert-success">Cuenta de GitHub vinculada correctamente.</div>
+                <div class="hd-alert hd-alert-success">{msg:msg.github_linked}</div>
                 {/if}
                 {#if githubError??}
-                <div class="hd-alert hd-alert-warning">No se pudo vincular GitHub ({githubError}). Inténtalo nuevamente.
-                </div>
+                <div class="hd-alert hd-alert-warning">{msg:msg.github_error(githubError)}</div>
                 {/if}
                 {#if githubRequired && github == null}
-                <div class="hd-alert hd-alert-info">Vincula GitHub para aparecer en Comunidad y unirte con tu usuario.
-                </div>
+                <div class="hd-alert hd-alert-info">{msg:msg.github_required}</div>
                 {/if}
             </div>
             <div class="hd-kpi-grid">
                 <div class="hd-kpi">
-                    <p class="hd-kpi-label">Correo</p>
+                    <p class="hd-kpi-label">{msg:label.email}</p>
                     <p class="hd-kpi-value">{email}</p>
                 </div>
                 <div class="hd-kpi">
-                    <p class="hd-kpi-label">Charlas registradas</p>
+                    <p class="hd-kpi-label">{msg:label.registered_talks}</p>
                     <p class="hd-kpi-value">{totalTalks}</p>
                 </div>
                 <div class="hd-kpi">
-                    <p class="hd-kpi-label">Asistidas</p>
+                    <p class="hd-kpi-label">{msg:label.attended_talks}</p>
                     <p class="hd-kpi-value">{attendedTalks}</p>
                 </div>
                 <div class="hd-kpi">
-                    <p class="hd-kpi-label">Calificaciones</p>
+                    <p class="hd-kpi-label">{msg:label.ratings}</p>
                     <p class="hd-kpi-value">{ratedTalks}</p>
                 </div>
             </div>
@@ -53,24 +50,24 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">Integraciones</p>
-                    <h2 class="hd-panel-title">GitHub</h2>
+                    <p class="hd-eyebrow">{msg:section.integrations}</p>
+                    <h2 class="hd-panel-title">{msg:section.gitHub}</h2>
                     {#if github != null}
                     <p class="hd-page-intro">@{github.login} · ID {github.id}</p>
                     {#else}
-                    <p class="hd-page-intro">Aún no vinculado.</p>
+                    <p class="hd-page-intro">{msg:msg.no_github}</p>
                     {/if}
                 </div>
                 <div class="hd-panel-actions">
                     {#if github != null}
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank" rel="noopener">Ver
-                            perfil</a>
-                        <span style="font-size: 0.9em; opacity: 0.7;">(Vinculado)</span>
+                        <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank"
+                            rel="noopener">{msg:btn.view_profile}</a>
+                        <span style="font-size: 0.9em; opacity: 0.7;">{msg:msg.linked}</span>
                     </div>
                     {#else}
-                    <a class="hd-btn hd-btn-primary" href="/private/github/start?redirect=/private/profile">Vincular con
-                        GitHub</a>
+                    <a class="hd-btn hd-btn-primary"
+                        href="/private/github/start?redirect=/private/profile">{msg:btn.link_github}</a>
                     {/if}
                 </div>
             </div>
@@ -79,13 +76,12 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">Hoja de Vida</p>
-                    <h2 class="hd-panel-title">Nivel {questProfile.level}</h2>
-                    <p class="hd-page-intro">Experiencia: {questProfile.currentXp} XP / {questProfile.nextLevelXp} XP
-                    </p>
+                    <p class="hd-eyebrow">{msg:section.resume}</p>
+                    <h2 class="hd-panel-title">{msg:resume.level(questProfile.level)}</h2>
+                    <p class="hd-page-intro">{msg:resume.exp(questProfile.currentXp, questProfile.nextLevelXp)}</p>
                 </div>
                 <div class="hd-panel-actions">
-                    <a class="hd-btn hd-btn-primary" href="/quests">Tablero de Misiones</a>
+                    <a class="hd-btn hd-btn-primary" href="/quests">{msg:btn.quest_board}</a>
                 </div>
             </div>
 
@@ -94,9 +90,9 @@
                     max="{questProfile.nextLevelXp}" style="width: 100%; height: 24px; border-radius: 4px;"></progress>
             </div>
 
-            <h3 class="hd-panel-title" style="font-size: 1.2rem; margin-bottom: 0.5rem;">Historial de Misiones</h3>
+            <h3 class="hd-panel-title" style="font-size: 1.2rem; margin-bottom: 0.5rem;">{msg:resume.history}</h3>
             {#if questProfile.history.isEmpty}
-            <p class="hd-page-intro">Aún no has completado misiones.</p>
+            <p class="hd-page-intro">{msg:resume.no_history}</p>
             {#else}
             <ul style="list-style: none; padding: 0;">
                 {#for h in questProfile.history}
@@ -114,9 +110,9 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">Progreso</p>
-                    <h2 class="hd-panel-title">Árbol de Habilidades</h2>
-                    <p class="hd-page-intro">Desbloquea nuevas capacidades subiendo de nivel.</p>
+                    <p class="hd-eyebrow">{msg:section.progress}</p>
+                    <h2 class="hd-panel-title">{msg:progress.tree}</h2>
+                    <p class="hd-page-intro">{msg:progress.intro}</p>
                 </div>
             </div>
             <style>
@@ -134,25 +130,25 @@
                 <div class="skill-node hd-card-surface {#if questProfile.level >= 1}unlocked{#else}locked{/if}"
                     style="min-width: 120px; text-align: center; padding: 1rem;">
                     <div style="font-size: 2rem;">🌱</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">Novato</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.novice}</div>
                     <div style="font-size: 0.8rem;">Lv. 1</div>
                 </div>
                 <div class="skill-node hd-card-surface {#if questProfile.level >= 3}unlocked{#else}locked{/if}"
                     style="min-width: 120px; text-align: center; padding: 1rem;">
                     <div style="font-size: 2rem;">🔨</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">Contribuidor</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.contributor}</div>
                     <div style="font-size: 0.8rem;">Lv. 3</div>
                 </div>
                 <div class="skill-node hd-card-surface {#if questProfile.level >= 5}unlocked{#else}locked{/if}"
                     style="min-width: 120px; text-align: center; padding: 1rem;">
                     <div style="font-size: 2rem;">🚀</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">Mentor</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.mentor}</div>
                     <div style="font-size: 0.8rem;">Lv. 5</div>
                 </div>
                 <div class="skill-node hd-card-surface {#if questProfile.level >= 10}unlocked{#else}locked{/if}"
                     style="min-width: 120px; text-align: center; padding: 1rem;">
                     <div style="font-size: 2rem;">🧙‍♂️</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">Legend</div>
+                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.legend}</div>
                     <div style="font-size: 0.8rem;">Lv. 10</div>
                 </div>
             </div>
@@ -161,9 +157,9 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">Identidad</p>
-                    <h2 class="hd-panel-title">Tu Gremio (Quest Class)</h2>
-                    <p class="hd-page-intro">Elige tu arquetipo para que la comunidad conozca tu rol principal.</p>
+                    <p class="hd-eyebrow">{msg:section.identity}</p>
+                    <h2 class="hd-panel-title">{msg:identity.guild}</h2>
+                    <p class="hd-page-intro">{msg:identity.intro}</p>
                 </div>
             </div>
             <form action="/private/profile/update-class" method="POST" style="margin-top: 1rem;">
@@ -180,20 +176,38 @@
                     </label>
                     {/for}
                 </div>
-                <!-- Hack: if currentClass is null, allow clearing? No, let's force selection or keep as is. -->
-                <button type="submit" class="hd-btn hd-btn-primary">Guardar Clase</button>
+                <button type="submit" class="hd-btn hd-btn-primary">{msg:btn.save_class}</button>
             </form>
         </section>
 
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">Comunidad</p>
-                    <h2 class="hd-panel-title">{groups.size()} eventos</h2>
-                    <p class="hd-page-intro">{groups.size()} iniciativas activas y colaboraciones abiertas.</p>
+                    <p class="hd-eyebrow">{msg:section.settings}</p>
+                    <h2 class="hd-panel-title">{msg:settings.language}</h2>
+                    <p class="hd-page-intro">{msg:settings.language_intro}</p>
+                </div>
+            </div>
+            <form action="/private/profile/update-locale" method="POST" style="margin-top: 1rem; max-width: 400px;">
+                <div style="margin-bottom: 1rem;">
+                    <select name="locale" class="hd-form-input">
+                        <option value="en" {#if currentLanguage eq 'en' }selected{/if}>🇺🇸 English</option>
+                        <option value="es" {#if currentLanguage eq 'es' }selected{/if}>🇪🇸 Español</option>
+                    </select>
+                </div>
+                <button type="submit" class="hd-btn">{msg:settings.save}</button>
+            </form>
+        </section>
+
+        <section class="hd-panel">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">{msg:section.community}</p>
+                    <h2 class="hd-panel-title">{msg:community.initiatives(groups.size())}</h2>
+                    <p class="hd-page-intro">{msg:community.initiatives(groups.size())}</p>
                 </div>
                 <div class="hd-panel-actions">
-                    <a class="hd-btn hd-btn-primary" href="/comunidad">Explorar Comunidad</a>
+                    <a class="hd-btn hd-btn-primary" href="/comunidad">{msg:btn.explore_community}</a>
                 </div>
             </div>
         </section>
@@ -201,22 +215,21 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">Agenda</p>
-                    <h2 class="hd-panel-title">Charlas registradas</h2>
+                    <p class="hd-eyebrow">{msg:section.agenda}</p>
+                    <h2 class="hd-panel-title">{msg:label.registered_talks}</h2>
                     <p id="summary" class="hd-page-intro">
-                        Has agregado {totalTalks} charlas a tu agenda, has asistido a {attendedTalks} y calificado
-                        {ratedTalks}.
+                        {msg:agenda.intro(totalTalks, attendedTalks, ratedTalks)}
                     </p>
                 </div>
                 <div class="hd-panel-actions">
-                    <button type="button" class="hd-btn" data-filter="all">Todas</button>
-                    <button type="button" class="hd-btn" data-filter="attended">Asistidas</button>
-                    <button type="button" class="hd-btn" data-filter="pending">No asistidas</button>
+                    <button type="button" class="hd-btn" data-filter="all">{msg:btn.all}</button>
+                    <button type="button" class="hd-btn" data-filter="attended">{msg:btn.attended}</button>
+                    <button type="button" class="hd-btn" data-filter="pending">{msg:btn.pending}</button>
                 </div>
             </div>
 
             {#if groups.isEmpty()}
-            <p class="hd-page-intro">Aún no has agregado charlas. Explora eventos y agrégalos a tu agenda.</p>
+            <p class="hd-page-intro">{msg:agenda.no_talks}</p>
             {#else}
             <div class="talk-groups">
                 {#for g in groups}
@@ -224,12 +237,12 @@
                     <div class="hd-dashboard-header" style="margin-bottom: 0.5rem;">
                         <div>
                             <h3 class="hd-panel-title">{g.event.title}</h3>
-                            <p class="hd-page-intro">{g.days.size()} días · {g.speakers.size()} speakers</p>
+                            <p class="hd-page-intro">{msg:agenda.days_speakers(g.days.size(), g.speakers.size())}</p>
                         </div>
                     </div>
                     {#for d in g.days}
                     <div class="hd-card-surface" style="margin-bottom: 0.5rem;">
-                        <h4 class="hd-panel-title">Día {d.day}</h4>
+                        <h4 class="hd-panel-title">{msg:agenda.day(d.day)}</h4>
                         <div class="talks-day">
                             {#for t in d.talks}
                             {#let tInfo = info.get(t.id)}
