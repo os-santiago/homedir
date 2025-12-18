@@ -100,7 +100,7 @@ public interface AppMessages {
     String resume_level(Object level);
 
     @Message("Experience: {0} XP / {1} XP")
-    String resume_exp(long current, long total);
+    String resume_exp(int current, int total);
 
     @Message("Quest History")
     String resume_history();
