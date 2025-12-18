@@ -100,7 +100,7 @@ public interface AppMessages {
     String resume_level(Object level);
 
     @Message("Experience: {0} XP / {1} XP")
-    String resume_exp(int current, int total);
+    String resume_exp(long current, long total);
 
     @Message("Quest History")
     String resume_history();
@@ -136,7 +136,7 @@ public interface AppMessages {
     String community_initiatives(int count);
 
     @Message("You have added {0} talks to your schedule, attended {1} and rated {2}.")
-    String agenda_intro(int added, int attended, int rated);
+    String agenda_intro(int added, long attended, long rated);
 
     @Message("You haven't added any talks yet. Explore events and add them to your schedule.")
     String agenda_no_talks();
