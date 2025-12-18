@@ -38,7 +38,7 @@ public class ProfileResource {
 
   private static final Logger LOG = Logger.getLogger(ProfileResource.class);
 
-  @CheckedTemplate
+  @CheckedTemplate(requireTypeSafeExpressions = false)
   static class Templates {
     static native TemplateInstance profile(
         String name,
