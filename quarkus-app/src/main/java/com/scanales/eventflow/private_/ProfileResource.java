@@ -60,7 +60,8 @@ public class ProfileResource {
         String userInitial,
 
         java.util.List<ClassOption> classOptions,
-        QuestProfile questProfile);
+        QuestProfile questProfile,
+        String currentLanguage);
   }
 
   /** Display option for class selection. */
@@ -96,7 +97,8 @@ public class ProfileResource {
   public TemplateInstance profile(
       @jakarta.ws.rs.QueryParam("githubLinked") boolean githubLinked,
       @jakarta.ws.rs.QueryParam("githubError") String githubError,
-      @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub) {
+      @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
     String email = getEmail();
     String name = getClaim("name");
     if (name == null) {
@@ -108,6 +110,19 @@ public class ProfileResource {
     if (sub == null) {
       sub = email;
     }
+
+    // Locale Resolution
+    String lang = "en";
+    if (localeCookie != null && !localeCookie.isBlank()) {
+      lang = localeCookie;
+    } else {
+      // Fallback to profile preference if available
+      java.util.Optional<com.scanales.eventflow.model.UserProfile> p = userProfiles.find(email);
+      if (p.isPresent() && p.get().getPreferredLocale() != null) {
+        lang = p.get().getPreferredLocale();
+      }
+    }
+    final String finalLang = lang;
 
     var groups = getEventGroupsForUser(email);
     var info = userSchedule.getTalkDetailsForUser(email);
@@ -147,7 +162,9 @@ public class ProfileResource {
         name,
         name.substring(0, 1).toUpperCase(),
         classOptions,
-        questProfile);
+        questProfile,
+        finalLang)
+        .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
   @GET
@@ -284,6 +301,36 @@ public class ProfileResource {
       return Response.seeOther(java.net.URI.create(redirect)).build();
     }
     return Response.seeOther(java.net.URI.create("/private/profile")).build();
+  }
+
+  @POST
+  @Path("update-locale")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response updateLocale(
+      @jakarta.ws.rs.FormParam("locale") String locale,
+      @jakarta.ws.rs.FormParam("redirect") String redirect) {
+    String userId = getEmail();
+
+    // Validate locale simple check
+    if (locale == null || (!locale.equals("en") && !locale.equals("es"))) {
+      locale = "en"; // Default fallback
+    }
+
+    // 1. Update user profile preference
+    userProfiles.updateLocale(userId, locale);
+
+    // 2. Set Cookie
+    jakarta.ws.rs.core.NewCookie localeCookie = new jakarta.ws.rs.core.NewCookie.Builder("QP_LOCALE")
+        .value(locale)
+        .path("/")
+        .maxAge(60 * 60 * 24 * 365) // 1 year
+        .build();
+
+    String target = (redirect != null && !redirect.isBlank()) ? redirect : "/private/profile";
+    return Response.seeOther(java.net.URI.create(target))
+        .cookie(localeCookie)
+        .build();
   }
 
   private boolean acceptsJson(HttpHeaders headers) {

@@ -102,6 +102,17 @@ public class UserProfileService {
     return profile;
   }
 
+  public UserProfile updateLocale(String userId, String locale) {
+    if (userId == null)
+      return null;
+    UserProfile profile = find(userId).orElse(null);
+    if (profile != null) {
+      profile.setPreferredLocale(locale);
+      persist();
+    }
+    return profile;
+  }
+
   public Optional<UserProfile> findByGithubLogin(String githubLogin) {
     if (githubLogin == null || githubLogin.isBlank()) {
       return Optional.empty();

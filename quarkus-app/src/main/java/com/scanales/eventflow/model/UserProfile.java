@@ -11,6 +11,7 @@ public class UserProfile {
   private String userId;
   private String name;
   private String email;
+  private String preferredLocale;
   private GithubAccount github;
 
   private QuestClass questClass;
@@ -34,6 +35,7 @@ public class UserProfile {
     this.userId = userId;
     this.name = name;
     this.email = email;
+    this.preferredLocale = null;
     this.github = github;
     this.questClass = questClass;
     this.currentXp = currentXp;
@@ -43,6 +45,14 @@ public class UserProfile {
 
   public UserProfile(String userId, String name, String email, GithubAccount github) {
     this(userId, name, email, github, null, 0, null, null);
+  }
+
+  public String getPreferredLocale() {
+    return preferredLocale;
+  }
+
+  public void setPreferredLocale(String preferredLocale) {
+    this.preferredLocale = preferredLocale;
   }
 
   public QuestClass getQuestClass() {
