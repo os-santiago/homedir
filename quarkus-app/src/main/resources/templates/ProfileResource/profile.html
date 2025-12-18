@@ -1,36 +1,36 @@
 {#include layout/main activePage="profile"}
-{#title}{msg.profile_title}{/title}
+{#title}{i18n.profile_title}{/title}
 {#body}
 <section class="hd-section hd-section-dashboard">
     <div class="hd-page">
         <div class="hd-dashboard-header">
             <div>
-                <p class="hd-eyebrow">{msg.profile_eyebrow}</p>
+                <p class="hd-eyebrow">{i18n.profile_eyebrow}</p>
                 <h1 class="hd-page-title">{name}</h1>
-                <p class="hd-page-intro">{msg.profile_intro}</p>
+                <p class="hd-page-intro">{i18n.profile_intro}</p>
             </div>
             <div class="hd-panel-actions">
-                <a class="hd-btn hd-btn-primary" href="/private/profile">{msg.btn_refresh}</a>
-                <a class="hd-btn" href="/logout">{msg.btn_logout}</a>
+                <a class="hd-btn hd-btn-primary" href="/private/profile">{i18n.btn_refresh}</a>
+                <a class="hd-btn" href="/logout">{i18n.btn_logout}</a>
             </div>
         </div>
 
         <div class="hd-panel">
             <div class="hd-panel-actions" style="margin-bottom: 1rem;">
                 {#if githubLinked}
-                <div class="hd-alert hd-alert-success">{msg.msg_github_linked}</div>
+                <div class="hd-alert hd-alert-success">{i18n.msg_github_linked}</div>
                 {/if}
                 {#if githubError??}
-                <div class="hd-alert hd-alert-warning">{msg.msg_github_error(githubError)}</div>
+                <div class="hd-alert hd-alert-warning">{i18n.msg_github_error(githubError)}</div>
                 {/if}
                 {#if githubRequired && github == null}
-                <div class="hd-alert hd-alert-danger">{msg.msg_github_required}</div>
+                <div class="hd-alert hd-alert-danger">{i18n.msg_github_required}</div>
                 {/if}
             </div>
 
             <div class="hd-grid-details">
                 <div class="hd-detail-item">
-                    <span class="hd-detail-label">{msg.label_email}</span>
+                    <span class="hd-detail-label">{i18n.label_email}</span>
                     <span class="hd-detail-value">{email}</span>
                 </div>
                 <!-- Add more user details here -->
@@ -42,20 +42,20 @@
 
             <div class="hd-integration-card">
                 <div class="hd-integration-header">
-                    <h3>{msg.section_gitHub}</h3>
+                    <h3>{i18n.section_gitHub}</h3>
                     {#if githubLinked}
-                    <span class="hd-badge hd-badge-success">{msg.msg_linked}</span>
+                    <span class="hd-badge hd-badge-success">{i18n.msg_linked}</span>
                     {/if}
                 </div>
                 {#if github == null}
-                <p>{msg.msg_no_github}</p>
-                <a href="/private/github/link?redirect=/private/profile" class="hd-btn">{msg.btn_link_github}</a>
+                <p>{i18n.msg_no_github}</p>
+                <a href="/private/github/link?redirect=/private/profile" class="hd-btn">{i18n.btn_link_github}</a>
                 {#else}
                 <div class="hd-github-user">
                     <img src="{github.avatarUrl}" alt="GitHub Avatar" class="hd-avatar">
                     <div class="hd-github-info">
                         <strong>{github.login}</strong>
-                        <a href="{github.profileUrl}" target="_blank" class="hd-link">{msg.btn_view_profile}</a>
+                        <a href="{github.profileUrl}" target="_blank" class="hd-link">{i18n.btn_view_profile}</a>
                     </div>
                 </div>
                 {/if}
@@ -66,13 +66,13 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg.section_resume}</p>
-                    <h2 class="hd-panel-title">{msg.resume_level(questProfile.level)}</h2>
-                    <p class="hd-page-intro">{msg.resume_exp(currentXp, questProfile.nextLevelXp)}</p>
+                    <p class="hd-eyebrow">{i18n.section_resume}</p>
+                    <h2 class="hd-panel-title">{i18n.resume_level(questProfile.level)}</h2>
+                    <p class="hd-page-intro">{i18n.resume_exp(currentXp, questProfile.nextLevelXp)}</p>
                 </div>
             </div>
 
-            <h3 class="hd-section-subtitle">{msg.section_progress}</h3>
+            <h3 class="hd-section-subtitle">{i18n.section_progress}</h3>
             <!-- Progress Bar -->
             <div
                 style="background: #eee; border-radius: 8px; height: 20px; width: 100%; overflow: hidden; margin-bottom: 2rem;">
@@ -83,11 +83,11 @@
 
             <div class="hd-dashboard-header">
                 <div>
-                    <h2 class="hd-panel-title">{msg.resume_history}</h2>
+                    <h2 class="hd-panel-title">{i18n.resume_history}</h2>
                 </div>
             </div>
             {#if history.isEmpty()}
-            <p>{msg.resume_no_history}</p>
+            <p>{i18n.resume_no_history}</p>
             {#else}
             <ul class="hd-list">
                 {#for item in history}
@@ -103,28 +103,28 @@
             {/if}
 
             <div style="margin-top: 3rem;">
-                <h3 class="hd-section-subtitle">{msg.progress_tree}</h3>
-                <p>{msg.progress_intro}</p>
+                <h3 class="hd-section-subtitle">{i18n.progress_tree}</h3>
+                <p>{i18n.progress_intro}</p>
 
                 <div class="hd-skill-tree">
                     <div class="hd-skill-node {#if questProfile.level >= 1}unlocked{/if}">
                         <div class="hd-skill-icon">🌱</div>
-                        <div class="hd-skill-label">{msg.progress_novice}</div>
+                        <div class="hd-skill-label">{i18n.progress_novice}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 5}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 5}unlocked{/if}">
                         <div class="hd-skill-icon">🛠️</div>
-                        <div class="hd-skill-label">{msg.progress_contributor}</div>
+                        <div class="hd-skill-label">{i18n.progress_contributor}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 10}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 10}unlocked{/if}">
                         <div class="hd-skill-icon">🧑‍🏫</div>
-                        <div class="hd-skill-label">{msg.progress_mentor}</div>
+                        <div class="hd-skill-label">{i18n.progress_mentor}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 20}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 20}unlocked{/if}">
                         <div class="hd-skill-icon">🏆</div>
-                        <div class="hd-skill-label">{msg.progress_legend}</div>
+                        <div class="hd-skill-label">{i18n.progress_legend}</div>
                     </div>
                 </div>
             </div>
@@ -134,9 +134,9 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg.section_identity}</p>
-                    <h2 class="hd-panel-title">{msg.identity_guild}</h2>
-                    <p class="hd-page-intro">{msg.identity_intro}</p>
+                    <p class="hd-eyebrow">{i18n.section_identity}</p>
+                    <h2 class="hd-panel-title">{i18n.identity_guild}</h2>
+                    <p class="hd-page-intro">{i18n.identity_intro}</p>
                 </div>
             </div>
 
@@ -154,16 +154,16 @@
                     </label>
                     {/for}
                 </div>
-                <button type="submit" class="hd-btn hd-btn-primary">{msg.btn_save_class}</button>
+                <button type="submit" class="hd-btn hd-btn-primary">{i18n.btn_save_class}</button>
             </form>
         </section>
 
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg.section_settings}</p>
-                    <h2 class="hd-panel-title">{msg.settings_language}</h2>
-                    <p class="hd-page-intro">{msg.settings_language_intro}</p>
+                    <p class="hd-eyebrow">{i18n.section_settings}</p>
+                    <h2 class="hd-panel-title">{i18n.settings_language}</h2>
+                    <p class="hd-page-intro">{i18n.settings_language_intro}</p>
                 </div>
             </div>
             <form action="/private/profile/update-locale" method="POST" style="margin-top: 1rem; max-width: 400px;">
@@ -173,19 +173,19 @@
                         <option value="es" {#if currentLanguage eq 'es' }selected{/if}>🇪🇸 Español</option>
                     </select>
                 </div>
-                <button type="submit" class="hd-btn">{msg.settings_save}</button>
+                <button type="submit" class="hd-btn">{i18n.settings_save}</button>
             </form>
         </section>
 
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg.section_community}</p>
-                    <h2 class="hd-panel-title">{msg.btn_explore_community}</h2>
-                    <p class="hd-page-intro">{msg.community_initiatives(5)}</p>
+                    <p class="hd-eyebrow">{i18n.section_community}</p>
+                    <h2 class="hd-panel-title">{i18n.btn_explore_community}</h2>
+                    <p class="hd-page-intro">{i18n.community_initiatives(5)}</p>
                 </div>
                 <div class="hd-panel-actions">
-                    <a class="hd-btn" href="/comunidad">{msg.btn_explore_community}</a>
+                    <a class="hd-btn" href="/comunidad">{i18n.btn_explore_community}</a>
                 </div>
             </div>
         </section>
@@ -193,31 +193,31 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg.section_agenda}</p>
-                    <h2 class="hd-panel-title">{msg.section_agenda}</h2>
-                    <p class="hd-page-intro">{msg.agenda_intro(totalTalks, attendedTalks, ratedTalks)}</p>
+                    <p class="hd-eyebrow">{i18n.section_agenda}</p>
+                    <h2 class="hd-panel-title">{i18n.section_agenda}</h2>
+                    <p class="hd-page-intro">{i18n.agenda_intro(totalTalks, attendedTalks, ratedTalks)}</p>
                 </div>
             </div>
 
             <div class="hd-tabs">
-                <button class="hd-tab active">{msg.btn_all}</button>
-                <button class="hd-tab">{msg.btn_attended}</button>
-                <button class="hd-tab">{msg.btn_pending}</button>
+                <button class="hd-tab active">{i18n.btn_all}</button>
+                <button class="hd-tab">{i18n.btn_attended}</button>
+                <button class="hd-tab">{i18n.btn_pending}</button>
             </div>
 
             {#if groups.isEmpty()}
             <div class="hd-empty-state">
-                <p>{msg.agenda_no_talks}</p>
-                <a href="/eventos" class="hd-btn">{msg.btn_quest_board}</a>
+                <p>{i18n.agenda_no_talks}</p>
+                <a href="/eventos" class="hd-btn">{i18n.btn_quest_board}</a>
             </div>
             {#else}
             {#for group in groups}
             <div class="hd-event-group">
                 <h3 class="hd-event-title">{group.event.title}</h3>
-                <p class="hd-event-meta">{msg.agenda_days_speakers(group.days.size, group.speakers.size)}</p>
+                <p class="hd-event-meta">{i18n.agenda_days_speakers(group.days.size, group.speakers.size)}</p>
 
                 {#for dayGroup in group.days}
-                <h4 class="hd-day-header">{msg.agenda_day(dayGroup.day)}</h4>
+                <h4 class="hd-day-header">{i18n.agenda_day(dayGroup.day)}</h4>
                 <div class="hd-grid-schedule">
                     {#for talk in dayGroup.talks}
                     {#let details = info.get(talk.id)}

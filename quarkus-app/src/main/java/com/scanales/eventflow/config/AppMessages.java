@@ -3,7 +3,7 @@ package com.scanales.eventflow.config;
 import io.quarkus.qute.i18n.Message;
 import io.quarkus.qute.i18n.MessageBundle;
 
-@MessageBundle("msg")
+@MessageBundle("i18n")
 public interface AppMessages {
 
     @Message("My Profile · Homedir")
