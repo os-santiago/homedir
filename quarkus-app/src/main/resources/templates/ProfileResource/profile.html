@@ -1,172 +1,150 @@
 {#include layout/main activePage="profile"}
-{#title}Mi perfil · Homedir{/title}
+{#title}{msg.profile_title}{/title}
 {#body}
 <section class="hd-section hd-section-dashboard">
     <div class="hd-page">
         <div class="hd-dashboard-header">
             <div>
-                <p class="hd-eyebrow">{msg:profile.eyebrow}</p>
+                <p class="hd-eyebrow">{msg.profile_eyebrow}</p>
                 <h1 class="hd-page-title">{name}</h1>
-                <p class="hd-page-intro">{msg:profile.intro}</p>
+                <p class="hd-page-intro">{msg.profile_intro}</p>
             </div>
             <div class="hd-panel-actions">
-                <a class="hd-btn hd-btn-primary" href="/private/profile">{msg:btn.refresh}</a>
-                <a class="hd-btn" href="/logout">{msg:btn.logout}</a>
+                <a class="hd-btn hd-btn-primary" href="/private/profile">{msg.btn_refresh}</a>
+                <a class="hd-btn" href="/logout">{msg.btn_logout}</a>
             </div>
         </div>
 
         <div class="hd-panel">
             <div class="hd-panel-actions" style="margin-bottom: 1rem;">
                 {#if githubLinked}
-                <div class="hd-alert hd-alert-success">{msg:msg.github_linked}</div>
+                <div class="hd-alert hd-alert-success">{msg.msg_github_linked}</div>
                 {/if}
                 {#if githubError??}
-                <div class="hd-alert hd-alert-warning">{msg:msg.github_error(githubError)}</div>
+                <div class="hd-alert hd-alert-warning">{msg.msg_github_error(githubError)}</div>
                 {/if}
                 {#if githubRequired && github == null}
-                <div class="hd-alert hd-alert-info">{msg:msg.github_required}</div>
+                <div class="hd-alert hd-alert-danger">{msg.msg_github_required}</div>
                 {/if}
             </div>
-            <div class="hd-kpi-grid">
-                <div class="hd-kpi">
-                    <p class="hd-kpi-label">{msg:label.email}</p>
-                    <p class="hd-kpi-value">{email}</p>
+
+            <div class="hd-grid-details">
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{msg.label_email}</span>
+                    <span class="hd-detail-value">{email}</span>
                 </div>
-                <div class="hd-kpi">
-                    <p class="hd-kpi-label">{msg:label.registered_talks}</p>
-                    <p class="hd-kpi-value">{totalTalks}</p>
-                </div>
-                <div class="hd-kpi">
-                    <p class="hd-kpi-label">{msg:label.attended_talks}</p>
-                    <p class="hd-kpi-value">{attendedTalks}</p>
-                </div>
-                <div class="hd-kpi">
-                    <p class="hd-kpi-label">{msg:label.ratings}</p>
-                    <p class="hd-kpi-value">{ratedTalks}</p>
-                </div>
+                <!-- Add more user details here -->
             </div>
         </div>
 
         <section class="hd-panel">
-            <div class="hd-dashboard-header">
-                <div>
-                    <p class="hd-eyebrow">{msg:section.integrations}</p>
-                    <h2 class="hd-panel-title">{msg:section.gitHub}</h2>
-                    {#if github != null}
-                    <p class="hd-page-intro">@{github.login} · ID {github.id}</p>
-                    {#else}
-                    <p class="hd-page-intro">{msg:msg.no_github}</p>
+            <h2 class="hd-panel-title">Integrations</h2>
+
+            <div class="hd-integration-card">
+                <div class="hd-integration-header">
+                    <h3>{msg.section_gitHub}</h3>
+                    {#if githubLinked}
+                    <span class="hd-badge hd-badge-success">{msg.msg_linked}</span>
                     {/if}
                 </div>
-                <div class="hd-panel-actions">
-                    {#if github != null}
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <a class="hd-btn hd-btn-ghost" href="{github.profileUrl}" target="_blank"
-                            rel="noopener">{msg:btn.view_profile}</a>
-                        <span style="font-size: 0.9em; opacity: 0.7;">{msg:msg.linked}</span>
+                {#if github == null}
+                <p>{msg.msg_no_github}</p>
+                <a href="/private/github/link?redirect=/private/profile" class="hd-btn">{msg.btn_link_github}</a>
+                {#else}
+                <div class="hd-github-user">
+                    <img src="{github.avatarUrl}" alt="GitHub Avatar" class="hd-avatar">
+                    <div class="hd-github-info">
+                        <strong>{github.login}</strong>
+                        <a href="{github.profileUrl}" target="_blank" class="hd-link">{msg.btn_view_profile}</a>
                     </div>
-                    {#else}
-                    <a class="hd-btn hd-btn-primary"
-                        href="/private/github/start?redirect=/private/profile">{msg:btn.link_github}</a>
-                    {/if}
                 </div>
+                {/if}
             </div>
         </section>
 
+        <!-- Gamification Section -->
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg:section.resume}</p>
-                    <h2 class="hd-panel-title">{msg:resume.level(questProfile.level)}</h2>
-                    <p class="hd-page-intro">{msg:resume.exp(questProfile.currentXp, questProfile.nextLevelXp)}</p>
-                </div>
-                <div class="hd-panel-actions">
-                    <a class="hd-btn hd-btn-primary" href="/quests">{msg:btn.quest_board}</a>
+                    <p class="hd-eyebrow">{msg.section_resume}</p>
+                    <h2 class="hd-panel-title">{msg.resume_level(questProfile.level)}</h2>
+                    <p class="hd-page-intro">{msg.resume_exp(currentXp, questProfile.nextLevelXp)}</p>
                 </div>
             </div>
 
-            <div style="margin: 1rem 0;">
-                <progress class="nes-progress is-primary" value="{questProfile.currentXp}"
-                    max="{questProfile.nextLevelXp}" style="width: 100%; height: 24px; border-radius: 4px;"></progress>
+            <h3 class="hd-section-subtitle">{msg.section_progress}</h3>
+            <!-- Progress Bar -->
+            <div
+                style="background: #eee; border-radius: 8px; height: 20px; width: 100%; overflow: hidden; margin-bottom: 2rem;">
+                <div
+                    style="background: var(--primary-color); height: 100%; width: {(currentXp / questProfile.nextLevelXp) * 100}%">
+                </div>
             </div>
 
-            <h3 class="hd-panel-title" style="font-size: 1.2rem; margin-bottom: 0.5rem;">{msg:resume.history}</h3>
-            {#if questProfile.history.isEmpty}
-            <p class="hd-page-intro">{msg:resume.no_history}</p>
+            <div class="hd-dashboard-header">
+                <div>
+                    <h2 class="hd-panel-title">{msg.resume_history}</h2>
+                </div>
+            </div>
+            {#if history.isEmpty()}
+            <p>{msg.resume_no_history}</p>
             {#else}
-            <ul style="list-style: none; padding: 0;">
-                {#for h in questProfile.history}
-                <li
-                    style="padding: 0.5rem 0; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between;">
-                    <span>{h.title}</span>
-                    <span><span style="color: #28a745; font-weight: bold;">+{h.xp} XP</span> <span
-                            style="font-size: 0.8em; opacity: 0.7;">({h.date})</span></span>
+            <ul class="hd-list">
+                {#for item in history}
+                <li class="hd-list-item">
+                    <div class="hd-list-content">
+                        <strong>{item.questId}</strong>
+                        <span class="hd-list-meta">{item.completedAt}</span>
+                    </div>
+                    <span class="hd-badge">+{item.xpEarned} XP</span>
                 </li>
                 {/for}
             </ul>
             {/if}
+
+            <div style="margin-top: 3rem;">
+                <h3 class="hd-section-subtitle">{msg.progress_tree}</h3>
+                <p>{msg.progress_intro}</p>
+
+                <div class="hd-skill-tree">
+                    <div class="hd-skill-node {#if questProfile.level >= 1}unlocked{/if}">
+                        <div class="hd-skill-icon">🌱</div>
+                        <div class="hd-skill-label">{msg.progress_novice}</div>
+                    </div>
+                    <div class="hd-skill-connector {#if questProfile.level >= 5}active{/if}"></div>
+                    <div class="hd-skill-node {#if questProfile.level >= 5}unlocked{/if}">
+                        <div class="hd-skill-icon">🛠️</div>
+                        <div class="hd-skill-label">{msg.progress_contributor}</div>
+                    </div>
+                    <div class="hd-skill-connector {#if questProfile.level >= 10}active{/if}"></div>
+                    <div class="hd-skill-node {#if questProfile.level >= 10}unlocked{/if}">
+                        <div class="hd-skill-icon">🧑‍🏫</div>
+                        <div class="hd-skill-label">{msg.progress_mentor}</div>
+                    </div>
+                    <div class="hd-skill-connector {#if questProfile.level >= 20}active{/if}"></div>
+                    <div class="hd-skill-node {#if questProfile.level >= 20}unlocked{/if}">
+                        <div class="hd-skill-icon">🏆</div>
+                        <div class="hd-skill-label">{msg.progress_legend}</div>
+                    </div>
+                </div>
+            </div>
+
         </section>
 
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg:section.progress}</p>
-                    <h2 class="hd-panel-title">{msg:progress.tree}</h2>
-                    <p class="hd-page-intro">{msg:progress.intro}</p>
+                    <p class="hd-eyebrow">{msg.section_identity}</p>
+                    <h2 class="hd-panel-title">{msg.identity_guild}</h2>
+                    <p class="hd-page-intro">{msg.identity_intro}</p>
                 </div>
             </div>
-            <style>
-                .skill-node.locked {
-                    opacity: 0.5;
-                    border: 1px solid transparent;
-                }
 
-                .skill-node.unlocked {
-                    opacity: 1;
-                    border: 1px solid #ffd700;
-                }
-            </style>
-            <div class="skill-tree" style="display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0;">
-                <div class="skill-node hd-card-surface {#if questProfile.level >= 1}unlocked{#else}locked{/if}"
-                    style="min-width: 120px; text-align: center; padding: 1rem;">
-                    <div style="font-size: 2rem;">🌱</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.novice}</div>
-                    <div style="font-size: 0.8rem;">Lv. 1</div>
-                </div>
-                <div class="skill-node hd-card-surface {#if questProfile.level >= 3}unlocked{#else}locked{/if}"
-                    style="min-width: 120px; text-align: center; padding: 1rem;">
-                    <div style="font-size: 2rem;">🔨</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.contributor}</div>
-                    <div style="font-size: 0.8rem;">Lv. 3</div>
-                </div>
-                <div class="skill-node hd-card-surface {#if questProfile.level >= 5}unlocked{#else}locked{/if}"
-                    style="min-width: 120px; text-align: center; padding: 1rem;">
-                    <div style="font-size: 2rem;">🚀</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.mentor}</div>
-                    <div style="font-size: 0.8rem;">Lv. 5</div>
-                </div>
-                <div class="skill-node hd-card-surface {#if questProfile.level >= 10}unlocked{#else}locked{/if}"
-                    style="min-width: 120px; text-align: center; padding: 1rem;">
-                    <div style="font-size: 2rem;">🧙‍♂️</div>
-                    <div style="font-weight: bold; margin-top: 0.5rem;">{msg:progress.legend}</div>
-                    <div style="font-size: 0.8rem;">Lv. 10</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="hd-panel">
-            <div class="hd-dashboard-header">
-                <div>
-                    <p class="hd-eyebrow">{msg:section.identity}</p>
-                    <h2 class="hd-panel-title">{msg:identity.guild}</h2>
-                    <p class="hd-page-intro">{msg:identity.intro}</p>
-                </div>
-            </div>
-            <form action="/private/profile/update-class" method="POST" style="margin-top: 1rem;">
-                <div class="class-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <form action="/private/profile/class" method="POST" style="margin-top: 2rem;">
+                <div class="hd-grid-classes"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                     {#for opt in classOptions}
-                    <label class="class-card hd-card-surface"
+                    <label class="hd-card hd-class-option {#if opt.checked}selected{/if}"
                         style="cursor: pointer; position: relative; border: 2px solid transparent; padding: 1rem;">
                         <input type="radio" name="questClass" value="{opt.value}"
                             style="position: absolute; top: 1rem; right: 1rem;" {#if opt.checked}checked{/if}>
@@ -176,16 +154,16 @@
                     </label>
                     {/for}
                 </div>
-                <button type="submit" class="hd-btn hd-btn-primary">{msg:btn.save_class}</button>
+                <button type="submit" class="hd-btn hd-btn-primary">{msg.btn_save_class}</button>
             </form>
         </section>
 
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg:section.settings}</p>
-                    <h2 class="hd-panel-title">{msg:settings.language}</h2>
-                    <p class="hd-page-intro">{msg:settings.language_intro}</p>
+                    <p class="hd-eyebrow">{msg.section_settings}</p>
+                    <h2 class="hd-panel-title">{msg.settings_language}</h2>
+                    <p class="hd-page-intro">{msg.settings_language_intro}</p>
                 </div>
             </div>
             <form action="/private/profile/update-locale" method="POST" style="margin-top: 1rem; max-width: 400px;">
@@ -195,19 +173,19 @@
                         <option value="es" {#if currentLanguage eq 'es' }selected{/if}>🇪🇸 Español</option>
                     </select>
                 </div>
-                <button type="submit" class="hd-btn">{msg:settings.save}</button>
+                <button type="submit" class="hd-btn">{msg.settings_save}</button>
             </form>
         </section>
 
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg:section.community}</p>
-                    <h2 class="hd-panel-title">{msg:community.initiatives(groups.size())}</h2>
-                    <p class="hd-page-intro">{msg:community.initiatives(groups.size())}</p>
+                    <p class="hd-eyebrow">{msg.section_community}</p>
+                    <h2 class="hd-panel-title">{msg.btn_explore_community}</h2>
+                    <p class="hd-page-intro">{msg.community_initiatives(5)}</p>
                 </div>
                 <div class="hd-panel-actions">
-                    <a class="hd-btn hd-btn-primary" href="/comunidad">{msg:btn.explore_community}</a>
+                    <a class="hd-btn" href="/comunidad">{msg.btn_explore_community}</a>
                 </div>
             </div>
         </section>
@@ -215,98 +193,80 @@
         <section class="hd-panel">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{msg:section.agenda}</p>
-                    <h2 class="hd-panel-title">{msg:label.registered_talks}</h2>
-                    <p id="summary" class="hd-page-intro">
-                        {msg:agenda.intro(totalTalks, attendedTalks, ratedTalks)}
-                    </p>
-                </div>
-                <div class="hd-panel-actions">
-                    <button type="button" class="hd-btn" data-filter="all">{msg:btn.all}</button>
-                    <button type="button" class="hd-btn" data-filter="attended">{msg:btn.attended}</button>
-                    <button type="button" class="hd-btn" data-filter="pending">{msg:btn.pending}</button>
+                    <p class="hd-eyebrow">{msg.section_agenda}</p>
+                    <h2 class="hd-panel-title">{msg.section_agenda}</h2>
+                    <p class="hd-page-intro">{msg.agenda_intro(totalTalks, attendedTalks, ratedTalks)}</p>
                 </div>
             </div>
 
+            <div class="hd-tabs">
+                <button class="hd-tab active">{msg.btn_all}</button>
+                <button class="hd-tab">{msg.btn_attended}</button>
+                <button class="hd-tab">{msg.btn_pending}</button>
+            </div>
+
             {#if groups.isEmpty()}
-            <p class="hd-page-intro">{msg:agenda.no_talks}</p>
+            <div class="hd-empty-state">
+                <p>{msg.agenda_no_talks}</p>
+                <a href="/eventos" class="hd-btn">{msg.btn_quest_board}</a>
+            </div>
             {#else}
-            <div class="talk-groups">
-                {#for g in groups}
-                <div class="hd-card-surface" style="margin-bottom: 1.25rem;">
-                    <div class="hd-dashboard-header" style="margin-bottom: 0.5rem;">
-                        <div>
-                            <h3 class="hd-panel-title">{g.event.title}</h3>
-                            <p class="hd-page-intro">{msg:agenda.days_speakers(g.days.size(), g.speakers.size())}</p>
+            {#for group in groups}
+            <div class="hd-event-group">
+                <h3 class="hd-event-title">{group.event.title}</h3>
+                <p class="hd-event-meta">{msg.agenda_days_speakers(group.days.size, group.speakers.size)}</p>
+
+                {#for dayGroup in group.days}
+                <h4 class="hd-day-header">{msg.agenda_day(dayGroup.day)}</h4>
+                <div class="hd-grid-schedule">
+                    {#for talk in dayGroup.talks}
+                    {#let details = info.get(talk.id)}
+                    <div class="hd-card hd-talk-card talk-row" data-talk-id="{talk.id}"
+                        data-attended="{details.attended}" data-rated="{#if details.rating}true{#else}false{/if}">
+                        <div class="hd-talk-header">
+                            <span class="hd-talk-time">{talk.startTimeStr}</span>
                         </div>
-                    </div>
-                    {#for d in g.days}
-                    <div class="hd-card-surface" style="margin-bottom: 0.5rem;">
-                        <h4 class="hd-panel-title">{msg:agenda.day(d.day)}</h4>
-                        <div class="talks-day">
-                            {#for t in d.talks}
-                            {#let tInfo = info.get(t.id)}
-                            <div class="talk-row hd-card-surface" data-talk-id="{t.id}" data-attended="{tInfo.attended}"
-                                data-rated="{tInfo.rating??}" style="margin-bottom: 0.75rem;">
-                                <div class="talk-time">
-                                    <span class="attendance-icon">{#if tInfo.attended}✅{#else}❌{/if}</span>
-                                    <span>{t.startTimeStr} · {t.endTimeStr}</span>
-                                </div>
-                                <div class="talk-info">
-                                    <span class="talk-title"><a
-                                            href="/event/{g.event.id}/talk/{t.id}">{t.name}</a></span>
-                                    <div class="speaker-avatars">
-                                        {#for s in t.speakers}
-                                        <a href="/speaker/{s.id}" title="{s.name}">
-                                            {#if app:validUrl(s.photoUrl)}
-                                            <img src="{s.photoUrl}" alt="{s.name}" class="avatar" />
-                                            {#else}
-                                            <span class="avatar placeholder">👤</span>
-                                            {/if}
-                                        </a>
-                                        {/for}
-                                    </div>
-                                    <span class="badge talk-state {app:talkStateClass(t, g.event)}">{app:talkState(t,
-                                        g.event)}</span>
-                                </div>
-                                <div class="talk-actions">
-                                    <div class="motivation-list">
-                                        {#for m in tInfo.motivations}
-                                        <span class="badge motivation-badge" data-value="{m}">{m}</span>
-                                        {/for}
-                                    </div>
-                                    <select class="motivation-select hd-form-input" data-talk-id="{t.id}">
-                                        <option value="">Motivo...</option>
-                                        <option>⭐ Relevante para mi trabajo</option>
-                                        <option>🧠 Quiero aprender sobre esto</option>
-                                        <option>🎤 Conozco al speaker</option>
-                                        <option>🎯 Me pareció interesante</option>
-                                    </select>
-                                    <label class="attended-label" title="Asistí">
-                                        <input type="checkbox" class="attended-checkbox" data-talk-id="{t.id}" {#if
-                                            tInfo.attended}checked{/if}>
-                                    </label>
-                                    <select id="rating-{t.id}" class="rating-select hd-form-input" data-talk-id="{t.id}"
-                                        title="Valorar">
-                                        <option value="">★</option>
-                                        <option value="1" {#if tInfo.rating eq 1}selected{/if}>1</option>
-                                        <option value="2" {#if tInfo.rating eq 2}selected{/if}>2</option>
-                                        <option value="3" {#if tInfo.rating eq 3}selected{/if}>3</option>
-                                        <option value="4" {#if tInfo.rating eq 4}selected{/if}>4</option>
-                                        <option value="5" {#if tInfo.rating eq 5}selected{/if}>5</option>
-                                    </select>
-                                    <button class="hd-btn hd-btn-secondary remove-talk" data-talk-id="{t.id}"
-                                        title="Eliminar">🗑️</button>
-                                </div>
+                        <h4 class="hd-talk-title">
+                            <a href="/eventos/{group.event.id}/talks/{talk.id}">{talk.name}</a>
+                        </h4>
+                        <p class="hd-talk-speaker">{talk.speakerNames}</p>
+
+                        <div class="talk-actions">
+                            <div class="motivation-list">
+                                {#for m in details.motivations}
+                                <span class="badge motivation-badge" data-value="{m}">{m}</span>
+                                {/for}
                             </div>
-                            {/let}
-                            {/for}
+                            <select class="motivation-select hd-form-input" data-talk-id="{talk.id}">
+                                <option value="">Motivo...</option>
+                                <option>⭐ Relevante para mi trabajo</option>
+                                <option>🧠 Quiero aprender sobre esto</option>
+                                <option>🎤 Conozco al speaker</option>
+                                <option>🎯 Me pareció interesante</option>
+                            </select>
+                            <label class="attended-label" title="Asistí">
+                                <input type="checkbox" class="attended-checkbox" data-talk-id="{talk.id}" {#if
+                                    details.attended}checked{/if}>
+                            </label>
+                            <select id="rating-{talk.id}" class="rating-select hd-form-input" data-talk-id="{talk.id}"
+                                title="Valorar">
+                                <option value="">★</option>
+                                <option value="1" {#if details.rating eq 1}selected{/if}>1</option>
+                                <option value="2" {#if details.rating eq 2}selected{/if}>2</option>
+                                <option value="3" {#if details.rating eq 3}selected{/if}>3</option>
+                                <option value="4" {#if details.rating eq 4}selected{/if}>4</option>
+                                <option value="5" {#if details.rating eq 5}selected{/if}>5</option>
+                            </select>
+                            <button class="hd-btn hd-btn-secondary remove-talk" data-talk-id="{talk.id}"
+                                title="Eliminar">🗑️</button>
                         </div>
                     </div>
+                    {/let}
                     {/for}
                 </div>
                 {/for}
             </div>
+            {/for}
             {/if}
         </section>
         <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
@@ -349,7 +309,7 @@
                     const res = await fetch('/private/profile/remove/' + id, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({})
                     });
                     if (res.ok) {
                         btn.closest('.talk-row').remove();
@@ -409,3 +369,4 @@
         });
     })();
 </script>
+{/body}
