@@ -58,8 +58,7 @@ Como administradora/or quiero un dashboard de Métricas simple y rápido que me 
 D1) Definiciones funcionales (diccionario de métricas)
 - “Registros a Mis Charlas”: total de registros confirmados a charlas dentro del rango.
 - “Visitas a eventos”: suma de vistas a páginas de detalle/listado de cada evento dentro del rango.
-- “Visitas a inicio”: vistas de la página de inicio dentro del rango.
-- “Visitas a perfil de usuario”: vistas a la sección de perfil (agregado, no PII).
+- “Visitas a inicio”: vistas de- La lógica de cálculo y reglas se describen en `features/metrics.md`. a perfil de usuario”: vistas a la sección de perfil (agregado, no PII).
 - “Speakers más visitados”: vistas al perfil del orador/a dentro del rango.
 - “Escenarios más visitados”: vistas al escenario (y su evento) dentro del rango.
 - “CTAs”: clics en “Releases”, “Reportar issue”, “Ko-fi”.

@@ -1,25 +1,25 @@
 # Política de Seguridad
 
-EventFlow toma la seguridad de nuestros usuarios y colaboradores en serio. Si crees que has encontrado una vulnerabilidad, sigue el proceso a continuación para ayudarnos a solucionarla de forma rápida y responsable.
+Homedir toma la seguridad de nuestros usuarios y colaboradores en serio. Si crees que has encontrado una vulnerabilidad, sigue el proceso a continuación para ayudarnos a solucionarla de forma rápida y responsable.
 
 ---
 
-## ✅ Versiones soportadas (solo mayores)
+## Versiones soportadas (solo mayores)
 
 Solo damos soporte a la línea de versión mayor actualmente activa. Cuando se publica una nueva versión mayor, las anteriores quedan sin soporte inmediatamente.
 
-**Versión mayor activa actual (al 2025-08-09): `2.x`**
+**Versión mayor activa actual: `2.x`**
 
 | Versión | Soporte |
-|-------:|---------------------------|
-| 2.x | ✅ Activa (funciones + seguridad) |
-| < 2.x | ❌ Sin soporte |
+|-------:|-----------|
+| 2.x | Activa |
+| < 2.x | Sin soporte |
 
 > Esta política mantiene el proyecto rápido y seguro, en línea con nuestro enfoque de desarrollo basado en trunk.
 
 ---
 
-## 🔐 Reportar una vulnerabilidad
+## Reportar una vulnerabilidad
 
 **No abras un Issue o Discussion público para problemas de seguridad.**
 
@@ -30,7 +30,7 @@ Usa uno de estos canales privados:
 
 2. **Email**
    Envía los detalles a **sergio.canales.e@gmail.com** con el asunto:
-   `EVENTFLOW SECURITY: <título corto>`
+   `HOMEDIR SECURITY: <título corto>`
 
 Incluye cuando aplique:
 - Versiones afectadas (ej. `2.2.1`)
@@ -42,7 +42,7 @@ Incluye cuando aplique:
 
 ---
 
-## ⏱️ Respuesta y tiempos
+## Respuesta y tiempos
 
 Apuntamos a los siguientes SLA:
 
@@ -63,14 +63,14 @@ Apuntamos a los siguientes SLA:
 
 ---
 
-## 🔏 Divulgación y CVE
+## Divulgación y CVE
 
 - Publicaremos un **GitHub Security Advisory** con detalles, créditos (si se desea) y versiones corregidas.
 - Cuando aplique, solicitaremos un **CVE ID** y lo referiremos en el advisory y en las notas de versión.
 
 ---
 
-## 🛡️ Refugio seguro para investigación de buena fe
+## Refugio seguro para investigación de buena fe
 
 No perseguiremos ni apoyaremos acciones legales para la **investigación de seguridad de buena fe** que:
 - Evite violaciones de privacidad, degradación del servicio o destrucción/exfiltración de datos
@@ -79,7 +79,3 @@ No perseguiremos ni apoyaremos acciones legales para la **investigación de segu
 - Mantenga los detalles confidenciales hasta que haya un arreglo y se acuerde una divulgación coordinada
 
 Actividades fuera de alcance incluyen ingeniería social, ataques físicos, spam y DDoS.
-
----
-
-_Última actualización: 2025-08-09_

@@ -1,26 +1,60 @@
-# Documentación (Español)
+# HomeDir
+> **DevRel, OpenSource, InnerSource Community Platform**
 
-## Guías
-- [Glosario](00-glossary.md)
-- [Principios](00-principles.md)
-- [Visión y Roadmap](01-vision.md)
-- [Arquitectura](02-architecture.md)
-- [Guardrails](03-guardrails.md)
-- [Persistencia HDP](04-persistence-hdp.md)
-- [Instrucciones a Codex](05-contribution-codex.md)
-- [Frontend del lado del servidor](07-frontend-server-side.md)
-- [Notificaciones](notifications.md)
-- [Historia de EventFlow](eventflow_history_09-08-2025.md)
-- [Métricas de uso](metrics.md)
-- [Diccionario de métricas del dashboard](metrics-definitions.md)
-- [Métricas de CTAs](metrics-ctas.md)
-- [Tendencias del dashboard de métricas](metrics-trends.md)
-- [Experiencia de Usuario — ¿Por qué EventFlow es para mí?](product-user-experience.md)
-- [Prompt Codex – Dashboard de Métricas (MVP)](prompt-dashboard-metrics-mvp.md)
-- [Runbook de Operación – Notificaciones](runbook-notifications.md)
-- [Datos de Usuario — Persistencia, Capacidad y Alto Rendimiento](user-data.md)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![CI Tests](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml/badge.svg?branch=main&label=CI%20Tests)](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml)
+[![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version)](https://github.com/os-santiago/homedir/releases)
+[![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white)](https://discord.gg/3eawzc9ybc)
 
-## Secciones
-- [Arquitectura](architecture/)
-- [Funcionalidades](features/)
-- [UI](ui/)
+**Homedir** es una plataforma única diseñada para potenciar comunidades técnicas modernas. A diferencia de soluciones genéricas, Homedir se centra en la **identidad, el desarrollo profesional y la gamificación** de la participación en comunidades, actuando como un puente entre desarrolladores individuales y el ecosistema Open Source / Inner Source.
+
+## Diferencial de Mercado: HomeDir & OpenQuest
+> *"Más allá de la simulación."*
+
+A diferencia de plataformas que funcionan como **"laboratorios eternos de cosas simuladas"** (e.g., Code Cloud), **HomeDir y OpenQuest** abren el mundo a **tareas reales**.
+
+- **Experiencia Verificable**: No simulamos el trabajo; gamificamos el trabajo real. Las misiones son Issues de producción, los bugs son reales, y la experiencia (XP) es prueba de capacidad técnica demostrable.
+- **Para Organizaciones Reales**: Transformamos backlogs aburridos en un **Tablero de Misiones (OpenQuest)** que motiva a equipos y comunidades.
+- **Identidad Profesional Completa**: Tu perfil no muestra solo "cursos terminados", sino el impacto real que has tenido en proyectos vivos.
+
+## Características Principales
+
+### 🌟 DevRel & Community
+- **Perfiles Gamificados**: Los usuarios ganan XP y suben de nivel (Engineer, Mage, Warrior, Scientist) según sus contribuciones.
+- **Directorio de Miembros**: Visibilidad para todos los integrantes, con búsqueda por skills y roles.
+- **Integración GitHub**: Vinculación automática de cuentas y Pull Requests para unirse a la comunidad.
+
+### 🛡️ Desarrollo Profesional
+- **Quest Board**: Misiones técnicas reales (Issues) que otorgan recompensas y reconocimiento.
+- **Showcase de Proyectos**: Espacio para destacar proyectos comunitarios y personales.
+
+### 🚀 Stack Tecnológico e Innovación
+Homedir está construido sobre tecnologías nativas de nube híbrida, testeado tanto en contenedores como en VPS tradicionales y Google Cloud.
+
+- **Gestión de Eventos**: Sistema robusto para meetups, charlas y speakers.
+- **Persistencia Singular**: Estrategia de persistencia optimizada (JSON/YAML backend con capacidades de GitOps).
+- **Manejo de Sesiones & Cache**: Implementación personalizada de sesiones seguras y caché distribuido (in-memory/Redis ready) para alta performance.
+- **Salud y Resiliencia**: Mecanismos avanzados de Health Checks y tolerancia a fallos.
+- **Buenas Prácticas**: Arquitectura hexagonal, Clean Code, y pipelines de CI/CD rigurosos (Calidad, Seguridad, Supply Chain).
+
+## Quick start
+Ejecutar la aplicación en modo desarrollo:
+
+```bash
+mvn -f quarkus-app/pom.xml quarkus:dev
+```
+
+Luego visita `http://localhost:8080`.
+
+## Configuración y Auth
+La plataforma soporta autenticación híbrida:
+- **Google OAuth**: Para acceso general y autenticación segura.
+- **GitHub OAuth**: Para vinculación de identidad de desarrollador y operaciones de git.
+- **Local Dev**: Modo offline para desarrollo rápido.
+
+## Comunidad
+Proyecto impulsado por la comunidad **OpenSource Santiago**.
+Únete a nuestro [Discord](https://discord.gg/3eawzc9ybc).
+
+---
+*Homedir: Donde el código encuentra su hogar.*
