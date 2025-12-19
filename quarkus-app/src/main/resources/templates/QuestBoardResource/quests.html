@@ -3,88 +3,82 @@
 {#body}
 <section class="hd-section">
     <div class="hd-page">
-        <div class="hd-dashboard-header"
-            style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+        <div class="hd-dashboard-header quest-dashboard-header">
             <p class="hd-eyebrow">{i18n.quest_board_eyebrow}</p>
             <h1 class="hd-page-title">{i18n.quest_board_title}</h1>
-            <p class="hd-page-intro" style="max-width: 600px;">
+            <p class="hd-page-intro quest-page-intro">
                 {i18n.quest_board_intro}
             </p>
         </div>
 
-        <div class="hd-tabs" style="justify-content: center; margin-bottom: 2rem;">
+        <div class="hd-tabs quest-tabs">
             <a href="/quests" class="hd-tab {#if filter.or('all') == 'all'}active{/if}">{i18n.btn_all}</a>
             <a href="/quests?filter=mine" class="hd-tab {#if filter == 'mine'}active{/if}">{i18n.quest_filter_mine}</a>
-            <span class="hd-badge" style="margin-left: 1rem;">{i18n.quest_total(quests.size)}</span>
+            <span class="hd-badge quest-total-badge">{i18n.quest_total(quests.size)}</span>
         </div>
 
-        <div class="hd-grid-classes"
-            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        <div class="hd-grid-classes quest-grid">
             {#if quests.isEmpty}
-            <div class="hd-panel" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
-                <div style="font-size: 3rem; opacity: 0.5; margin-bottom: 1rem;">📭</div>
+            <div class="hd-panel quest-empty-panel">
+                <div class="quest-empty-icon">📭</div>
                 <h3 class="hd-panel-title">{i18n.quest_empty_title}</h3>
-                <p style="opacity: 0.7; margin-bottom: 2rem;">{i18n.quest_empty_desc}</p>
-                <div style="margin-bottom: 1rem;">{i18n.quest_empty_cta_text}</div>
+                <p class="quest-empty-desc">{i18n.quest_empty_desc}</p>
+                <div class="quest-empty-cta">{i18n.quest_empty_cta_text}</div>
                 <a href="https://github.com/os-santiago/homedir" target="_blank" class="hd-btn hd-btn-primary">
                     {i18n.quest_empty_cta_btn}
                 </a>
             </div>
             {#else}
             {#for quest in quests}
-            <div class="hd-card quest-card"
-                style="display: flex; flex-direction: column; position: relative; overflow: hidden;">
+            <div class="hd-card quest-card">
                 {#if quest.status == 'CLOSED'}
-                <div
-                    style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                    <span class="hd-badge hd-badge-success" style="font-size: 1.2rem; padding: 0.5rem 1rem;">✅
+                <div class="quest-completed-overlay">
+                    <span class="hd-badge hd-badge-success quest-completed-badge">✅
                         {i18n.badge_completed}</span>
                 </div>
                 {/if}
 
-                <div
-                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                    <span class="hd-badge"
-                        style="{#if quest.difficulty == 'EASY'}background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.4);{#else if quest.difficulty == 'MEDIUM'}background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.4);{#else}background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.4);{/if}">
+                <div class="quest-card-header">
+                    <span
+                        class="hd-badge {#if quest.difficulty == 'EASY'}quest-rank-badge-easy{#else if quest.difficulty == 'MEDIUM'}quest-rank-badge-medium{#else}quest-rank-badge-hard{/if}">
                         {i18n.quest_rank(quest.difficulty)}
                     </span>
-                    <span class="hd-badge" style="background: rgba(255, 255, 255, 0.1);">+{quest.xpReward} XP</span>
+                    <span class="hd-badge quest-xp-badge">+{quest.xpReward} XP</span>
                 </div>
 
-                <h3 class="hd-panel-title" style="font-size: 1.3rem; margin-bottom: 0.5rem;">{quest.title}</h3>
-                <p style="flex-grow: 1; opacity: 0.8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                <h3 class="hd-panel-title quest-card-title">{quest.title}</h3>
+                <p class="quest-card-description">
                     {quest.description}
                 </p>
 
-                <div style="margin-top: auto; display: flex; gap: 0.8rem;">
+                <div class="quest-actions">
                     {#if userSession.activeQuests.contains(quest.id)}
-                    <a href="{quest.url}" target="_blank" class="hd-btn" style="flex: 1; text-align: center;">
+                    <a href="{quest.url}" target="_blank" class="hd-btn quest-action-btn">
                         {i18n.btn_instructions} ↗
                     </a>
-                    <form action="/quests/{quest.id}/complete" method="POST" style="flex: 1;">
-                        <button type="submit" class="hd-btn hd-btn-primary" style="width: 100%;">
+                    <form action="/quests/{quest.id}/complete" method="POST" class="quest-action-form">
+                        <button type="submit" class="hd-btn hd-btn-primary quest-action-submit">
                             {i18n.btn_claim}
                         </button>
                     </form>
                     {#else if quest.status == 'OPEN'}
-                    <a href="{quest.url}" target="_blank" class="hd-btn" style="flex: 1; text-align: center;">
+                    <a href="{quest.url}" target="_blank" class="hd-btn quest-action-btn">
                         {i18n.btn_view_details}
                     </a>
-                    <form action="/quests/{quest.id}/start" method="POST" style="flex: 1;">
-                        <button type="submit" class="hd-btn hd-btn-primary" style="width: 100%;">
+                    <form action="/quests/{quest.id}/start" method="POST" class="quest-action-form">
+                        <button type="submit" class="hd-btn hd-btn-primary quest-action-submit">
                             {i18n.btn_start}
                         </button>
                     </form>
                     {#else}
-                    <button disabled class="hd-btn" style="width: 100%; opacity: 0.5; cursor: not-allowed;">
+                    <button disabled class="hd-btn quest-closed-btn">
                         {i18n.btn_closed}
                     </button>
                     {/if}
                 </div>
 
                 {#if userSession.activeQuests.contains(quest.id) && quest.status != 'CLOSED'}
-                <div
-                    style="position: absolute; top: 0; right: 0; background: var(--primary-color); color: white; padding: 0.2rem 0.8rem; border-bottom-left-radius: 8px; font-size: 0.8rem; font-weight: bold;">
+                <div class="quest-in-progress-badge">
                     {i18n.badge_in_progress}
                 </div>
                 {/if}

@@ -5,7 +5,7 @@
 
 
 
-  <header class="page-header">
+  <header class="page-header events-page-header">
     <div class="section-header">
       <p class="section-subtitle">Personas · Comunidad</p>
       <h1>Construimos Homedir juntos</h1>
@@ -14,7 +14,7 @@
       cuenta
       vinculada de GitHub.</p>
 
-    <div class="main-sections" style="margin-top: 2rem;">
+    <div class="main-sections">
       <div class="section-card">
         <p class="eyebrow">Integrantes</p>
         <h2>{totalMembers}</h2>
@@ -32,50 +32,45 @@
       </div>
     </div>
 
-    <section class="leaderboard-section" style="margin-top: 2rem;">
+    <section class="leaderboard-section community-leaderboard-section">
       <h2 class="section-subtitle">Top Heroes</h2>
-      <div class="leaderboard-grid"
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+      <div class="leaderboard-grid community-leaderboard-grid">
         {#for hero in leaderboard}
-        <div class="hd-card-surface" style="padding: 1rem; display: flex; align-items: center; gap: 1rem;">
-          <div style="font-size: 1.5rem; font-weight: bold; color: #f1c40f;">#{hero_count}</div>
+        <div class="hd-card-surface community-hero-card">
+          <div class="community-hero-rank">#{hero_count}</div>
           <div>
-            <h3 style="margin: 0; font-size: 1rem;">{hero.name}</h3>
-            <p style="font-size: 0.8rem; margin: 0; opacity: 0.8;">Nivel {hero.level} · {hero.xp} XP</p>
+            <h3 class="community-hero-name">{hero.name}</h3>
+            <p class="community-hero-stats">Nivel {hero.level} · {hero.xp} XP</p>
           </div>
         </div>
         {/for}
       </div>
     </section>
 
-    <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+    <div class="header-actions">
       {#if userSession.communityMember}
-      <div class="user-badge"
-        style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 0.5rem; align-self: flex-start;">
-        <span style="font-size: 1.2rem;">✨</span>
+      <div class="user-badge community-user-badge">
+        <span class="community-user-icon">✨</span>
         <span>¡Ya eres parte de la comunidad!</span>
       </div>
-      <div style="display: flex; gap: 1rem;">
-        <a class="btn-primary" href="#directorio"
-          style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
-        <a class="btn-primary"
-          href="https://github.com/os-santiago/os-santiago.github.io/blob/main/community/members.yaml" target="_blank"
-          style="background: transparent; border: 1px solid rgba(255,255,255,0.5); color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+      <div class="community-actions-row">
+        <a class="btn-primary btn-transparent" href="#directorio">Ver directorio</a>
+        <a class="btn-primary btn-outline-dim"
+          href="https://github.com/os-santiago/os-santiago.github.io/blob/main/community/members.yaml" target="_blank">
           Ver members.yaml
         </a>
       </div>
 
       {#else}
       {#if !userSession.loggedIn}
-      <div style="align-self: flex-start;">
+      <div class="btn-align-start">
         <a href="/private/profile" class="btn-primary">Inicia Sesión para unirte</a>
       </div>
       {#else if !userSession.githubLinked}
-      <form action="/private/github/start" method="GET" style="align-self: flex-start;">
+      <form action="/private/github/start" method="GET" class="btn-align-start">
         <input type="hidden" name="redirect" value="/comunidad" />
-        <button type="submit" class="btn-primary" style="background: #24292e; border: 1px solid rgba(255,255,255,0.2);">
-          <svg height="20" viewBox="0 0 16 16" version="1.1" width="20" aria-hidden="true"
-            style="fill:white; vertical-align: text-bottom; margin-right: 0.5rem;">
+        <button type="submit" class="btn-primary btn-github-dark">
+          <svg height="20" viewBox="0 0 16 16" version="1.1" width="20" aria-hidden="true" class="icon-github">
             <path fill-rule="evenodd"
               d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
             </path>
@@ -85,24 +80,23 @@
       </form>
       {#else}
       {#if joined}
-      <div style="align-self: flex-start;">
-        <button disabled class="btn-primary" style="opacity: 0.7; cursor: not-allowed;">Solicitud en proceso...</button>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-          Tu solicitud ha sido enviada. Revisa tus <a href="{prUrl}" target="_blank"
-            style="color: white; text-decoration: underline;">Pull Requests</a>.
+      <div class="btn-align-start">
+        <button disabled class="btn-primary btn-disabled">Solicitud en proceso...</button>
+        <p class="text-status-msg">
+          Tu solicitud ha sido enviada. Revisa tus <a href="{prUrl}" target="_blank" class="link-underline-white">Pull
+            Requests</a>.
         </p>
       </div>
       {#else}
-      <form action="/comunidad/unirse" method="POST" style="align-self: flex-start;">
+      <form action="/comunidad/unirse" method="POST" class="btn-align-start">
         <input type="hidden" name="redirect" value="/comunidad" />
         <button type="submit" class="btn-primary">Unirme a la comunidad</button>
       </form>
       {/if}
       {/if}
       {#if !userSession.communityMember}
-      <div style="align-self: flex-start;">
-        <a class="btn-primary" href="#directorio"
-          style="background: transparent; border: 1px solid white; color: white;">Ver directorio</a>
+      <div class="btn-align-start">
+        <a class="btn-primary btn-transparent" href="#directorio">Ver directorio</a>
       </div>
       {/if}
       {/if}
@@ -110,17 +104,16 @@
   </header>
 
   <section class="page-grid">
-    <div class="section-header" style="grid-column: 1 / -1; margin-top: 2rem;" id="directorio">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+    <div class="section-header events-section-margin" style="grid-column: 1 / -1;" id="directorio">
+      <div class="community-directory-header">
         <div>
           <p class="section-subtitle">Directorio</p>
           <h2 class="page-title">Personas de la comunidad</h2>
         </div>
-        <form class="search-form" method="get" action="/comunidad" style="display: flex; gap: 0.5rem;">
+        <form class="search-form community-search-form" method="get" action="/comunidad">
           <input type="search" name="q" value="{query}" placeholder="Buscar por nombre, GitHub o habilidades"
-            aria-label="Buscar integrante"
-            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem; font-family: var(--font-body);">
-          <button class="btn-primary" type="submit" style="padding: 0.5rem 1rem;">Buscar</button>
+            aria-label="Buscar integrante" class="community-search-input">
+          <button class="btn-primary btn-search-submit" type="submit">Buscar</button>
         </form>
       </div>
     </div>
@@ -131,41 +124,33 @@
     </div>
     {#else}
     {#for member in filtered}
-    <a href="{member.profileUrl}" target="_blank" class="section-card"
-      style="text-decoration: none; color: inherit; transition: transform 0.2s;"
-      onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+    <a href="{member.profileUrl}" target="_blank" class="section-card community-member-card">
+      <div class="member-card-content">
         {#if member.avatarUrl}
-        <img src="{member.avatarUrl}" alt="{member.name}"
-          style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+        <img src="{member.avatarUrl}" alt="{member.name}" class="member-avatar">
         {#else}
-        <div
-          style="width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
-          <span style="font-size: 1.2rem;">👤</span>
+        <div class="member-avatar-placeholder">
+          <span class="community-user-icon">👤</span>
         </div>
         {/if}
         <div>
-          <h3 style="margin: 0; font-size: 1.1rem; color: white;">{member.name}</h3>
+          <h3 class="member-name">{member.name}</h3>
           {#if member.role}
-          <span
-            style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.2rem 0.5rem; border-radius: 10px; margin-top: 0.2rem; display: inline-block;">{member.role}</span>
+          <span class="member-role-badge">{member.role}</span>
           {/if}
-          <span
-            style="font-size: 0.8rem; background: rgba(255,193,7,0.2); color: #ffc107; padding: 0.2rem 0.5rem; border-radius: 10px; margin-top: 0.2rem; display: inline-block;">Lvl
-            {member.level}</span>
+          <span class="member-level-badge">Lvl {member.level}</span>
           {#if member.skills && member.skills.size > 0}
-          <div style="margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.3rem;">
+          <div class="member-skills-container">
             {#for skill in member.skills}
-            <span
-              style="font-size: 0.75rem; background: rgba(56, 139, 253, 0.1); color: #79c0ff; padding: 0.1rem 0.5rem; border-radius: 12px; border: 1px solid rgba(56, 139, 253, 0.2);">{skill}</span>
+            <span class="member-skill-badge">{skill}</span>
             {/for}
           </div>
           {/if}
         </div>
       </div>
       {#if member.github}
-      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-        <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true" style="fill: currentColor;">
+      <div class="member-github-link">
+        <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true" class="icon-fill-current">
           <path fill-rule="evenodd"
             d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
           </path>

@@ -2,28 +2,7 @@
 {#title}{i18n.profile_title}{/title}
 {#body}
 <section class="hd-section hd-section-dashboard">
-    <style>
-        .hd-class-option {
-            opacity: 0.5;
-            filter: grayscale(100%);
-            transition: all 0.3s ease;
-        }
 
-        .hd-class-option:hover {
-            opacity: 0.9;
-            filter: grayscale(20%);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .hd-class-option.selected {
-            opacity: 1;
-            filter: none;
-            border-color: var(--primary-color) !important;
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-    </style>
     <div class="hd-page">
         <div class="hd-dashboard-header">
             <div>
@@ -38,7 +17,7 @@
         </div>
 
         <div class="hd-panel">
-            <div class="hd-panel-actions" style="margin-bottom: 1rem;">
+            <div class="hd-panel-actions hd-panel-actions-margin">
                 {#if githubLinked}
                 <div class="hd-alert hd-alert-success">{i18n.msg_github_linked}</div>
                 {/if}
@@ -96,10 +75,10 @@
 
             <h3 class="hd-section-subtitle">{i18n.section_progress}</h3>
             <!-- Progress Bar -->
-            <div
-                style="background: #eee; border-radius: 8px; height: 20px; width: 100%; overflow: hidden; margin-bottom: 2rem;">
-                <div
-                    style="background: var(--primary-color); height: 100%; width: {(questProfile.currentXp / questProfile.nextLevelXp) * 100}%">
+            <!-- Progress Bar -->
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill"
+                    style="--xp-percent: {(questProfile.currentXp / questProfile.nextLevelXp) * 100}%">
                 </div>
             </div>
 
@@ -124,7 +103,7 @@
             </ul>
             {/if}
 
-            <div style="margin-top: 3rem;">
+            <div class="profile-progress-tree-section">
                 <h3 class="hd-section-subtitle">{i18n.progress_tree}</h3>
                 <p>{i18n.progress_intro}</p>
 
@@ -162,17 +141,15 @@
                 </div>
             </div>
 
-            <form action="/private/profile/update-class" method="POST" style="margin-top: 2rem;">
-                <div class="hd-grid-classes"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <form action="/private/profile/update-class" method="POST" class="profile-class-form">
+                <div class="hd-grid-classes hd-grid-classes-layout">
                     {#for opt in classOptions}
-                    <label class="hd-card hd-class-option {#if opt.checked}selected{/if}"
-                        style="cursor: pointer; position: relative; border: 2px solid transparent; padding: 1rem;">
-                        <input type="radio" name="questClass" value="{opt.value}"
-                            style="position: absolute; top: 1rem; right: 1rem;" {#if opt.checked}checked{/if}>
-                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">{opt.emoji}</div>
-                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: bold;">{opt.displayName}</h3>
-                        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">{opt.description}</p>
+                    <label class="hd-card hd-class-option {#if opt.checked}selected{/if} hd-card-option-label">
+                        <input type="radio" name="questClass" value="{opt.value}" class="hd-radio-input" {#if
+                            opt.checked}checked{/if}>
+                        <div class="class-emoji">{opt.emoji}</div>
+                        <h3 class="class-title">{opt.displayName}</h3>
+                        <p class="class-desc">{opt.description}</p>
                     </label>
                     {/for}
                 </div>
@@ -188,8 +165,8 @@
                     <p class="hd-page-intro">{i18n.settings_language_intro}</p>
                 </div>
             </div>
-            <form action="/private/profile/update-locale" method="POST" style="margin-top: 1rem; max-width: 400px;">
-                <div style="margin-bottom: 1rem;">
+            <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
+                <div class="form-group-margin">
                     <select name="locale" class="hd-form-input">
                         <option value="en" {#if currentLanguage eq 'en' }selected{/if}>🇺🇸 English</option>
                         <option value="es" {#if currentLanguage eq 'es' }selected{/if}>🇪🇸 Español</option>

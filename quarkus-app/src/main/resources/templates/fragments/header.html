@@ -1,6 +1,6 @@
 <nav class="top-nav" aria-label="Navegacion principal">
   <div class="logo">
-    <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; color: #ffffff;">
+    <a href="/" class="header-logo-link">
       <div class="logo-icon">
         <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M50 15 L85 45 L85 85 L15 85 L15 45 Z" fill="#ffffff" stroke="#ffffff" stroke-width="3" />
@@ -19,9 +19,9 @@
           <circle cx="50" cy="22" r="2" fill="#FFD700" />
         </svg>
       </div>
-      <div class="logo-text" style="font-weight: 800; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
-        <span id="navPlatformName" style="font-size: 1.4rem;">HomeDir</span>
-        <span class="logo-subtitle" id="navTagline" style="color: #ffd700; font-weight: 600;">by
+      <div class="logo-text header-logo-text">
+        <span id="navPlatformName" class="header-platform-name">HomeDir</span>
+        <span class="logo-subtitle header-logo-subtitle" id="navTagline">by
           OpenSourceSantiago</span>
       </div>
     </a>
@@ -41,16 +41,13 @@
     </a>
 
     {#if userSession.loggedIn || userAuthenticated}
-    <div class="user-menu-container" style="position: relative; margin-left: 1rem;">
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <a href="/private/profile" class="user-profile-link"
-          style="text-decoration: none; color: white; display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-display);">
+    <div class="user-menu-container user-menu-wrapper">
+      <div class="user-menu-toggle">
+        <a href="/private/profile" class="user-profile-link user-profile-link-styled">
           {#if userSession.avatarUrl}
-          <img src="{userSession.avatarUrl}" alt="Avatar" class="avatar-circle"
-            style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent-color);">
+          <img src="{userSession.avatarUrl}" alt="Avatar" class="avatar-circle header-avatar-circle">
           {#else}
-          <div class="avatar-circle"
-            style="width: 32px; height: 32px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+          <div class="avatar-circle header-avatar-fallback">
             {#if userSession.displayName}
             {userSession.displayName.substring(0,1)}
             {#else}
@@ -64,64 +61,57 @@
             {/if}
             {userSession.displayName ?: userName}
           </span>
-          <span class="nes-badge is-splited" style="margin-left: 0.5rem; transform: scale(0.8);">
+          <span class="nes-badge is-splited header-level-badge">
             <span class="is-dark">LV</span>
             <span class="is-warning">{userSession.level}</span>
           </span>
         </a>
-        <button class="user-menu-btn" onclick="this.parentElement.nextElementSibling.classList.toggle('show')"
-          style="background: transparent; border: none; color: white; cursor: pointer; padding: 0.25rem;">
+        <button class="user-menu-btn user-menu-btn-styled"
+          onclick="this.parentElement.nextElementSibling.classList.toggle('show')">
           <span class="dropdown-arrow">▼</span>
         </button>
       </div>
 
-      <div class="dropdown-menu"
-        style="display: none; position: absolute; top: 100%; right: 0; background: rgba(0,0,0,0.9); border: 1px solid var(--accent-color); border-radius: 4px; padding: 0.5rem; min-width: 200px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-        <div class="dropdown-header"
-          style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-          <small style="color: #888;">{i18n.nav_signed_in_as}</small><br>
+      <div class="dropdown-menu header-dropdown-menu">
+        <div class="dropdown-header header-dropdown-header">
+          <small class="text-signed-in">{i18n.nav_signed_in_as}</small><br>
           <strong>{userSession.email ?: userName}</strong>
-          <div style="margin-top: 0.5rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #ffd700;">
+          <div class="header-xp-stats">
+            <div class="header-xp-values">
               <span>LVL {userSession.level}</span>
               <span>{userSession.currentXp} / {userSession.nextLevelXp} XP</span>
             </div>
-            <div class="xp-bar-container"
-              style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 2px;">
-              <div class="xp-bar-fill"
-                style="width: {(userSession.currentXp / userSession.nextLevelXp) * 100}%; height: 100%; background: linear-gradient(90deg, #ffd700, #ff80a0); transition: width 0.5s ease;">
+            <div class="xp-bar-container header-xp-bar-bg">
+              <div class="xp-bar-fill header-xp-bar-fill"
+                style="--xp-percent: {(userSession.currentXp / userSession.nextLevelXp) * 100}%;">
               </div>
             </div>
           </div>
         </div>
 
-        <a href="/private/profile" class="dropdown-item"
-          style="display: block; color: white; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
+        <a href="/private/profile" class="dropdown-item header-dropdown-item">
           👤 {i18n.nav_my_profile}
         </a>
 
         {#if userSession.isAdmin}
-        <a href="/private/admin" class="dropdown-item"
-          style="display: block; color: #ff80a0; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
+        <a href="/private/admin" class="dropdown-item header-dropdown-item header-dropdown-item-admin">
           ⚙️ {i18n.nav_admin_panel}
         </a>
         {/if}
 
         {#if !userSession.githubLinked}
-        <a href="/private/github/connect" class="dropdown-item"
-          style="display: block; color: #ffd700; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
+        <a href="/private/github/connect" class="dropdown-item header-dropdown-item header-dropdown-item-connect">
           🔗 {i18n.nav_connect_github}
         </a>
         {#else}
-        <div class="dropdown-item" style="padding: 0.5rem; color: #8affc1;">
-          <span style="font-size: 0.8rem;">GitHub: @{userSession.githubLogin}</span>
+        <div class="dropdown-item header-dropdown-item-github">
+          <span class="header-github-login">GitHub: @{userSession.githubLogin}</span>
         </div>
         {/if}
 
-        <div class="dropdown-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 0.5rem 0;"></div>
+        <div class="dropdown-divider header-dropdown-divider"></div>
 
-        <a href="/logout" class="dropdown-item"
-          style="display: block; color: #ff80a0; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
+        <a href="/logout" class="dropdown-item header-dropdown-item header-dropdown-item-admin">
           🚪 {i18n.nav_logout}
         </a>
       </div>
@@ -131,16 +121,13 @@
     {/if}
   </div>
 </nav>
-<div class="alpha-banner"
-  style="background: linear-gradient(90deg, #ff00cc, #333399); color: white; text-align: center; padding: 0.2rem; font-size: 0.8rem; font-family: var(--font-mono); border-bottom: 1px solid rgba(255,255,255,0.2);">
-  <span style="background: rgba(0,0,0,0.3); padding: 0 0.5rem; border-radius: 4px;">ALPHA v{appVersion}</span>
-  · <a href="https://github.com/os-santiago/homedir" target="_blank"
-    style="color: white; text-decoration: underline;">GitHub Repo</a>
-  · <span style="opacity: 0.8;">DevRel, OpenSource, InnerSource Community Platform</span>
+<div class="alpha-banner">
+  <span class="alpha-badge">ALPHA v{appVersion}</span>
+  · <a href="https://github.com/os-santiago/homedir" target="_blank" class="link-white-underline">GitHub Repo</a>
+  · <span class="text-opacity-80">DevRel, OpenSource, InnerSource Community Platform</span>
 </div>
 {#if system.degraded}
-<div class="system-banner"
-  style="background: #e74c3c; color: white; text-align: center; padding: 0.5rem; font-weight: bold;">
+<div class="system-banner">
   ⚠️ {system.message} - Algunas funciones pueden estar deshabilitadas.
 </div>
 {/if}

@@ -18,11 +18,11 @@
     </div>
     <div class="hd-nav-actions">
       {#if userSession.loggedIn}
-      <a href="/private/profile" class="hd-user-avatar" style="text-decoration: none; width: 40px; height: 40px;" aria-label="Mi Perfil">
+      <a href="/private/profile" class="hd-user-avatar nav-user-avatar-link" aria-label="Mi Perfil">
         {#if userSession.avatarUrl}
-          <img src="{userSession.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+        <img src="{userSession.avatarUrl}" alt="Avatar" class="nav-user-avatar-img">
         {#else}
-          {userSession.displayName.substring(0,1)}
+        {userSession.displayName.substring(0,1)}
         {/if}
       </a>
       {#else}

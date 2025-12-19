@@ -10,7 +10,7 @@
                 <p class="hd-eyebrow">Administración</p>
                 <h1 class="hd-page-title"><span class="icon">🗓️</span>Eventos</h1>
                 {#if message}
-                    <p class="hd-page-intro">{message}</p>
+                <p class="hd-page-intro">{message}</p>
                 {/if}
             </div>
             <div class="hd-panel-actions">
@@ -20,7 +20,8 @@
         </div>
         <div class="hd-panel">
             <h2 class="hd-panel-title">Importar eventos</h2>
-            <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="hd-form" aria-label="Importar eventos">
+            <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="hd-form"
+                aria-label="Importar eventos">
                 <div class="hd-form-field">
                     <label for="importFile" class="hd-form-label">Importar JSON</label>
                     <input id="importFile" type="file" name="file" accept="application/json" class="hd-form-input">
@@ -31,31 +32,39 @@
             </form>
         </div>
         {#if events.isEmpty()}
-            <div class="hd-panel">
-                <p class="hd-page-intro">No hay eventos registrados.</p>
-            </div>
+        <div class="hd-panel">
+            <p class="hd-page-intro">No hay eventos registrados.</p>
+        </div>
         {#else}
-            <div class="hd-panel">
-                <table class="hd-table">
-                    <thead><tr><th class="hd-table-head">ID</th><th class="hd-table-head">Título</th><th class="hd-table-head">Tipo</th><th class="hd-table-head">Acciones</th></tr></thead>
-                    <tbody>
+        <div class="hd-panel">
+            <table class="hd-table">
+                <thead>
+                    <tr>
+                        <th class="hd-table-head">ID</th>
+                        <th class="hd-table-head">Título</th>
+                        <th class="hd-table-head">Tipo</th>
+                        <th class="hd-table-head">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {#for ev in events}
-                        <tr class="hd-table-row">
-                            <td class="hd-table-cell">{ev.id}</td>
-                            <td class="hd-table-cell">{ev.title}</td>
-                            <td class="hd-table-cell"><span class="badge event-type {ev.typeCss}">{ev.typeLabel}</span></td>
-                            <td class="hd-table-cell">
-                                <a href="/private/admin/events/{ev.id}/edit" class="hd-btn hd-btn-secondary">Editar</a>
-                                <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="hd-btn">Ver métricas</a>
-                                <form method="post" action="/private/admin/events/{ev.id}/delete" style="display:inline" class="needs-confirm">
-                                    <button type="submit" class="hd-btn">Eliminar</button>
-                                </form>
-                            </td>
-                        </tr>
+                    <tr class="hd-table-row">
+                        <td class="hd-table-cell">{ev.id}</td>
+                        <td class="hd-table-cell">{ev.title}</td>
+                        <td class="hd-table-cell"><span class="badge event-type {ev.typeCss}">{ev.typeLabel}</span></td>
+                        <td class="hd-table-cell">
+                            <a href="/private/admin/events/{ev.id}/edit" class="hd-btn hd-btn-secondary">Editar</a>
+                            <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="hd-btn">Ver métricas</a>
+                            <form method="post" action="/private/admin/events/{ev.id}/delete"
+                                class="needs-confirm form-inline">
+                                <button type="submit" class="hd-btn">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
                     {/for}
-                    </tbody>
-                </table>
-            </div>
+                </tbody>
+            </table>
+        </div>
         {/if}
         <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
     </div>
