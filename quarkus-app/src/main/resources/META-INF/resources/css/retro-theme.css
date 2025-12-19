@@ -594,10 +594,28 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 1.5rem;
-      animation: pulse 2s ease-in-out infinite, powerUp 3s ease-in-out infinite;
+      border-radius: 99px;
+
+      animation: pulseGlow 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      will-change: transform, box-shadow;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.5), 0 0 45px rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    /* Old animations kept for reference or other potential uses, though currently unused by icon-wrapper */
     @keyframes pulse {
       0% {
         transform: scale(1);
