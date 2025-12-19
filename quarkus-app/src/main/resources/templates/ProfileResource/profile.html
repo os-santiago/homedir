@@ -260,11 +260,11 @@
                                 {/for}
                             </div>
                             <select class="motivation-select hd-form-input" data-talk-id="{talk.id}">
-                                <option value="">Motivo...</option>
-                                <option>⭐ Relevante para mi trabajo</option>
-                                <option>🧠 Quiero aprender sobre esto</option>
-                                <option>🎤 Conozco al speaker</option>
-                                <option>🎯 Me pareció interesante</option>
+                                <option value="">{i18n.motivation_placeholder}</option>
+                                <option>{i18n.motivation_work}</option>
+                                <option>{i18n.motivation_learning}</option>
+                                <option>{i18n.motivation_speaker}</option>
+                                <option>{i18n.motivation_interesting}</option>
                             </select>
                             <label class="attended-label" title="Asistí">
                                 <input type="checkbox" class="attended-checkbox" data-talk-id="{talk.id}" {#if
@@ -305,10 +305,10 @@
                     body: JSON.stringify(data)
                 });
                 if (!res.ok) {
-                    showNotification('error', 'Error al guardar los cambios');
+                    showNotification('error', '{i18n.msg_error_saving}');
                 }
             } catch (e) {
-                showNotification('error', 'Error al guardar los cambios');
+                showNotification('error', '{i18n.msg_error_saving}');
             }
         };
 
@@ -324,7 +324,7 @@
 
         document.querySelectorAll('.remove-talk').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (!confirm('¿Estás seguro?')) return;
+                if (!confirm('{i18n.msg_confirm_delete}')) return;
                 const id = btn.dataset.talkId;
                 btn.disabled = true;
                 try {
@@ -337,10 +337,10 @@
                         btn.closest('.talk-row').remove();
                         updateSummary();
                     } else {
-                        showNotification('error', 'No se pudo eliminar la charla');
+                        showNotification('error', '{i18n.msg_error_removing}');
                     }
                 } catch (e) {
-                    showNotification('error', 'No se pudo eliminar la charla');
+                    showNotification('error', '{i18n.msg_error_removing}');
                 }
             });
         });

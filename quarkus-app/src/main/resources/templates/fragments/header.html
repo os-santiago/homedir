@@ -28,11 +28,11 @@
   </div>
 
   <div class="nav-actions">
-    <a href="/" class="retro-nav-link {#if activePage == 'home'}is-active{/if}">Home</a>
-    <a href="/comunidad" class="retro-nav-link {#if activePage == 'comunidad'}is-active{/if}">Comunidad</a>
-    <a href="/proyectos" class="retro-nav-link {#if activePage == 'proyectos'}is-active{/if}">Proyectos</a>
-    <a href="/eventos" class="retro-nav-link {#if activePage == 'eventos'}is-active{/if}">Eventos</a>
-    <a href="/quests" class="retro-nav-link {#if activePage == 'quests'}is-active{/if}">Quests</a>
+    <a href="/" class="retro-nav-link {#if activePage == 'home'}is-active{/if}">{i18n.nav_home}</a>
+    <a href="/comunidad" class="retro-nav-link {#if activePage == 'comunidad'}is-active{/if}">{i18n.nav_community}</a>
+    <a href="/proyectos" class="retro-nav-link {#if activePage == 'proyectos'}is-active{/if}">{i18n.nav_projects}</a>
+    <a href="/eventos" class="retro-nav-link {#if activePage == 'eventos'}is-active{/if}">{i18n.nav_events}</a>
+    <a href="/quests" class="retro-nav-link {#if activePage == 'quests'}is-active{/if}">{i18n.nav_quests}</a>
 
     <a href="/notifications/center" class="nav-link notifications-bell" aria-label="Notificaciones" data-nav-link>
       <span class="icon-bell" aria-hidden="true"></span>
@@ -79,7 +79,7 @@
         style="display: none; position: absolute; top: 100%; right: 0; background: rgba(0,0,0,0.9); border: 1px solid var(--accent-color); border-radius: 4px; padding: 0.5rem; min-width: 200px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
         <div class="dropdown-header"
           style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-          <small style="color: #888;">Signed in as</small><br>
+          <small style="color: #888;">{i18n.nav_signed_in_as}</small><br>
           <strong>{userSession.email ?: userName}</strong>
           <div style="margin-top: 0.5rem;">
             <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #ffd700;">
@@ -97,20 +97,20 @@
 
         <a href="/private/profile" class="dropdown-item"
           style="display: block; color: white; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
-          👤 Mi Perfil
+          👤 {i18n.nav_my_profile}
         </a>
 
         {#if userSession.isAdmin}
         <a href="/private/admin" class="dropdown-item"
           style="display: block; color: #ff80a0; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
-          ⚙️ Panel Administración
+          ⚙️ {i18n.nav_admin_panel}
         </a>
         {/if}
 
         {#if !userSession.githubLinked}
         <a href="/private/github/connect" class="dropdown-item"
           style="display: block; color: #ffd700; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
-          🔗 Conectar GitHub
+          🔗 {i18n.nav_connect_github}
         </a>
         {#else}
         <div class="dropdown-item" style="padding: 0.5rem; color: #8affc1;">
@@ -122,12 +122,12 @@
 
         <a href="/logout" class="dropdown-item"
           style="display: block; color: #ff80a0; padding: 0.5rem; text-decoration: none; transition: background 0.2s;">
-          🚪 Cerrar Sesión
+          🚪 {i18n.nav_logout}
         </a>
       </div>
     </div>
     {#else}
-    <a href="/private/profile" class="login-btn-nav">Login</a>
+    <a href="/private/profile" class="login-btn-nav">{i18n.nav_login}</a>
     {/if}
   </div>
 </nav>
