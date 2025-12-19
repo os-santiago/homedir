@@ -162,19 +162,21 @@
     }
 
     .retro-nav-link:hover {
-      color: #ffd700;
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-      border-bottom-color: rgba(255, 215, 0, 0.5);
-    }
-
-    .retro-nav-link.is-active {
-      color: #ffd700;
-      border-bottom-color: #ffd700;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      border-bottom-color: rgba(255, 255, 255, 0.5);
     }
 
     .retro-nav-link:visited {
-      color: #abc5ff;
-      border-bottom-color: #abc5ff;
+      color: rgba(255, 255, 255, 0.85);
+      border-bottom-color: transparent;
+    }
+
+    /* Active state must be last to override visited */
+    .retro-nav-link.is-active {
+      color: #ffd700;
+      border-bottom-color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
     }
 
     .user-avatar-small {
