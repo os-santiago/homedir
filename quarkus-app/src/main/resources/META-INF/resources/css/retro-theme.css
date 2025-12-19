@@ -8,6 +8,14 @@
       box-sizing: border-box;
     }
 
+    a,
+    a:hover,
+    a:focus,
+    a:active,
+    a:visited {
+      text-decoration: none;
+    }
+
     html,
     body {
       width: 100%;
