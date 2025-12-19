@@ -14,6 +14,7 @@
     a:active,
     a:visited {
       text-decoration: none;
+      color: inherit;
     }
 
     html,
@@ -167,12 +168,7 @@
       border-bottom-color: rgba(255, 255, 255, 0.5);
     }
 
-    .retro-nav-link:visited {
-      color: rgba(255, 255, 255, 0.85);
-      border-bottom-color: transparent;
-    }
-
-    /* Active state must be last to override visited */
+    /* Active state for nav links */
     .retro-nav-link.is-active {
       color: #ffd700;
       border-bottom-color: #ffd700;
@@ -2277,15 +2273,44 @@
 
     .quest-page-intro {
       max-width: 600px;
+      text-align: center;
     }
 
     .quest-tabs {
-      justify-content: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 2rem;
     }
 
+    .quest-tabs-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .quest-tabs .hd-tab {
+      color: rgba(255, 255, 255, 0.8);
+      padding: 0.5rem 1rem;
+      transition: color 0.2s ease;
+    }
+
+    .quest-tabs .hd-tab:hover {
+      color: white;
+    }
+
+    .quest-tabs .hd-tab.active {
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    .quest-tab-separator {
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 300;
+    }
+
     .quest-total-badge {
-      margin-left: 1rem;
+      margin-left: auto;
     }
 
     .quest-grid {
@@ -2595,12 +2620,6 @@
     .community-actions-row {
       display: flex;
       gap: 1rem;
-    }
-
-    .btn-transparent {
-      background: transparent;
-      border: 1px solid white;
-      color: white;
     }
 
     .btn-outline-dim {
@@ -3137,12 +3156,6 @@
       display: flex;
       gap: 1rem;
       justify-content: center;
-    }
-
-    .btn-outline-white {
-      background: transparent;
-      border: 1px solid white;
-      color: white;
     }
 
     .project-section-header {

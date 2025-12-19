@@ -12,8 +12,12 @@
         </div>
 
         <div class="hd-tabs quest-tabs">
-            <a href="/quests" class="hd-tab {#if filter.or('all') == 'all'}active{/if}">{i18n.btn_all}</a>
-            <a href="/quests?filter=mine" class="hd-tab {#if filter == 'mine'}active{/if}">{i18n.quest_filter_mine}</a>
+            <div class="quest-tabs-links">
+                <a href="/quests" class="hd-tab {#if filter.or('all') == 'all'}active{/if}">{i18n.btn_all}</a>
+                <span class="quest-tab-separator">|</span>
+                <a href="/quests?filter=mine"
+                    class="hd-tab {#if filter == 'mine'}active{/if}">{i18n.quest_filter_mine}</a>
+            </div>
             <span class="hd-badge quest-total-badge">{i18n.quest_total(quests.size)}</span>
         </div>
 
