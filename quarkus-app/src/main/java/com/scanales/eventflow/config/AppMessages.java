@@ -155,4 +155,127 @@ public interface AppMessages {
 
     @Message("Save Preferences")
     String settings_save();
+
+    @Message("Error saving changes")
+    String msg_error_saving();
+
+    @Message("Could not remove talk")
+    String msg_error_removing();
+
+    @Message("Are you sure?")
+    String msg_confirm_delete();
+
+    @Message("Reason...")
+    String motivation_placeholder();
+
+    @Message("Relevant to my work")
+    String motivation_work();
+
+    @Message("I want to learn about this")
+    String motivation_learning();
+
+    @Message("I know the speaker")
+    String motivation_speaker();
+
+    @Message("I found it interesting")
+    String motivation_interesting();
+
+    // --- Global Navigation ---
+    @Message("Home")
+    String nav_home();
+
+    @Message("Community")
+    String nav_community();
+
+    @Message("Projects")
+    String nav_projects();
+
+    @Message("Events")
+    String nav_events();
+
+    @Message("Quests")
+    String nav_quests();
+
+    @Message("Login")
+    String nav_login();
+
+    @Message("My Profile")
+    String nav_my_profile();
+
+    @Message("Admin Panel")
+    String nav_admin_panel();
+
+    @Message("Connect GitHub")
+    String nav_connect_github();
+
+    @Message("Logout")
+    String nav_logout();
+
+    @Message("Signed in as")
+    String nav_signed_in_as();
+
+    // --- Home Page ---
+    @Message("COMMUNITY PLATFORM TO SCALE YOUR OPEN SOURCE PROJECTS.")
+    String home_hero_title();
+
+    @Message("Get Started")
+    String home_hero_start();
+
+    @Message("Learn More")
+    String home_hero_learn_more();
+
+    // --- Quest Board ---
+    @Message("Quest Board")
+    String quest_board_title();
+
+    @Message("Challenges & Rewards")
+    String quest_board_eyebrow();
+
+    @Message("Complete objectives, earn XP and unlock new ranks in the community. Quests sync with your GitHub activity.")
+    String quest_board_intro();
+
+    @Message("My Quests")
+    String quest_filter_mine();
+
+    @Message("Total: {0}")
+    String quest_total(int count);
+
+    @Message("No active quests")
+    String quest_empty_title();
+
+    @Message("It looks quiet for now.")
+    String quest_empty_desc();
+
+    @Message("Want to create your own quests?")
+    String quest_empty_cta_text();
+
+    @Message("Contribute on GitHub")
+    String quest_empty_cta_btn();
+
+    @Message("Rank {0}")
+    String quest_rank(String difficulty);
+
+    @Message("Start")
+    String btn_start();
+
+    @Message("Claim")
+    String btn_claim();
+
+    @Message("Continue")
+    String btn_continue();
+
+    @Message("View Details")
+    String btn_view_details();
+
+    @Message("Instructions")
+    String btn_instructions();
+
+    @Message("Closed")
+    String btn_closed();
+
+    @Message("IN PROGRESS")
+    String badge_in_progress();
+
+    @Message("COMPLETED")
+    String badge_completed();
 }
