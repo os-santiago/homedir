@@ -224,6 +224,15 @@ public interface AppMessages {
     @Message("Learn More")
     String home_hero_learn_more();
 
+    @Message("Join the Guild")
+    String btn_join_guild();
+
+    @Message("Explore Quests")
+    String btn_explore_quests();
+
+    @Message("Real Work")
+    String hero_subtitle();
+
     // --- Quest Board ---
     @Message("Quest Board")
     String quest_board_title();
@@ -278,4 +287,325 @@ public interface AppMessages {
 
     @Message("COMPLETED")
     String badge_completed();
+
+    // --- Header & Global ---
+    @Message("Main Navigation")
+    String header_aria_label();
+
+    @Message("The community platform to scale your teams and projects")
+    String platform_tagline();
+
+    @Message("by OpenSourceSantiago")
+    String platform_by();
+
+    @Message("GitHub Repo")
+    String header_alpha_repo();
+
+    @Message("DevRel, OpenSource, InnerSource Community Platform")
+    String header_alpha_text();
+
+    @Message("Some features may be disabled.")
+    String header_system_degraded();
+
+    @Message("Notifications")
+    String nav_notifications();
+
+    // --- Home Page (Index) ---
+    @Message("Modern toolbox for community building and open-source tech innovation.")
+    String home_community_desc();
+
+    @Message("Live teams, quests and adventures")
+    String home_community_activity();
+
+    @Message("Explore")
+    String home_btn_explore();
+
+    @Message("Roster")
+    String home_btn_roster();
+
+    @Message("Scale your squads with collaborative meetups, workshops and challenges.")
+    String home_events_desc();
+
+    @Message("Adaptive agenda, live streaming")
+    String home_events_activity();
+
+    @Message("Attend")
+    String home_btn_attend();
+
+    @Message("Schedule")
+    String home_btn_schedule();
+
+    @Message("Innovation hub for your open-source technology missions and squads.")
+    String home_projects_desc();
+
+    @Message("Fresh collaborations weekly")
+    String home_projects_activity();
+
+    @Message("Join")
+    String home_btn_join();
+
+    @Message("Propose")
+    String home_btn_propose();
+
+    @Message("Community campus")
+    String home_village_title();
+
+    @Message("Live rooms & quests")
+    String home_village_desc();
+
+    @Message("Community stats")
+    String home_stats_title();
+
+    @Message("Members online")
+    String home_stats_members();
+
+    @Message("Total XP")
+    String home_stats_xp();
+
+    @Message("Quests done")
+    String home_stats_quests();
+
+    @Message("Active projects")
+    String home_stats_projects();
+
+    @Message("You're playing as a NOVICE guest! Login to save your progress.")
+    String home_guest_warning();
+
+    @Message("NOVICE GUEST")
+    String home_guest_name();
+
+    @Message("VISITOR")
+    String home_guest_role();
+
+    @Message("LEVEL {0}")
+    String home_level(int level);
+
+    @Message("Contributions")
+    String home_stat_contributions();
+
+    @Message("{0} members")
+    String meta_members(int count);
+
+    @Message("{0} projects")
+    String meta_projects(int count);
+
+    @Message("Member")
+    String role_member();
+
+    @Message("Visitor")
+    String role_visitor();
+
+    // --- Public Page ---
+    @Message("Public Page")
+    String public_title();
+
+    @Message("Everyone can see this page.")
+    String public_description();
+
+    @Message("Login with Google")
+    String btn_login_google();
+
+    // --- Community Page ---
+    @Message("Community - HomeDir")
+    String community_title();
+
+    @Message("People · Community")
+    String community_subtitle();
+
+    @Message("Building Homedir together")
+    String community_hero_title();
+
+    @Message("Explore the member directory, connect with the community and join using your linked GitHub account.")
+    String community_hero_desc();
+
+    @Message("Error processing request")
+    String community_error_title();
+
+    @Message("There was a problem creating your Pull Request. The team has been notified.")
+    String community_error_desc();
+
+    @Message("Detail: {0}")
+    String community_error_detail(String detail);
+
+    @Message("Account linked!")
+    String community_linked_title();
+
+    @Message("Your GitHub account has been connected successfully. You can now join the community.")
+    String community_linked_desc();
+
+    @Message("Request Sent")
+    String community_joined_title();
+
+    @Message("A Pull Request has been created to add you to the directory.")
+    String community_joined_desc();
+
+    @Message("View Pull Request")
+    String btn_view_pr();
+
+    @Message("Join")
+    String community_join_card_eyebrow();
+
+    @Message("Link your GitHub")
+    String community_join_card_title();
+
+    @Message("To appear in the directory and earn XP.")
+    String community_join_card_desc();
+
+    @Message("Connect now")
+    String btn_connect_now();
+
+    @Message("Members")
+    String community_members_eyebrow();
+
+    @Message("Active in the community")
+    String community_members_desc();
+
+    @Message("Top Contributors")
+    String community_top_contributors();
+
+    @Message("Login and join")
+    String btn_login_join();
+
+    @Message("Request in process")
+    String btn_request_processing();
+
+    @Message("Join the community")
+    String btn_join_community();
+
+    @Message("Already a member")
+    String btn_already_member();
+
+    @Message("View directory")
+    String btn_view_directory();
+
+    @Message("Community Directory")
+    String directory_title();
+
+    @Message("Search...")
+    String search_placeholder();
+
+    @Message("Search member")
+    String search_aria_label();
+
+    @Message("Search")
+    String btn_search();
+
+    @Message("No visible members yet with this filter.")
+    String directory_empty();
+
+    @Message("Official Member")
+    String badge_official_member();
+
+    @Message("XP Progress")
+    String xp_progress();
+
+    @Message("Contribution Score: {0}")
+    String contribution_score(int score);
+
+    // --- Events Page ---
+    @Message("Events - HomeDir")
+    String events_title();
+
+    @Message("Agenda · HomeDir")
+    String events_subtitle();
+
+    @Message("Events and talks")
+    String events_hero_title();
+
+    @Message("Check the full schedule, past highlights and direct links for each edition.")
+    String events_hero_desc();
+
+    @Message("Upcoming")
+    String events_card_upcoming();
+
+    @Message("Scheduled")
+    String events_card_upcoming_desc();
+
+    @Message("Past")
+    String events_card_past();
+
+    @Message("References")
+    String events_card_past_desc();
+
+    @Message("Today")
+    String events_card_today();
+
+    @Message("Local timezone")
+    String events_card_today_desc();
+
+    @Message("Upcoming events")
+    String events_section_upcoming_subtitle();
+
+    @Message("Ongoing or starting soon")
+    String events_section_upcoming_title();
+
+    @Message("No upcoming events for now.")
+    String events_empty_upcoming();
+
+    @Message("History")
+    String events_section_past_subtitle();
+
+    @Message("Past events")
+    String events_section_past_title();
+
+    @Message("No past records yet.")
+    String events_empty_past();
+
+    // --- Projects Page ---
+    @Message("Projects · HomeDir")
+    String projects_title();
+
+    @Message("Roadmap · HomeDir")
+    String projects_subtitle();
+
+    @Message("Active Projects")
+    String projects_hero_title();
+
+    @Message("Follow module status and go directly to the repository or section.")
+    String projects_hero_desc();
+
+    @Message("Open repository")
+    String btn_open_repo();
+
+    @Message("Connect GitHub to join")
+    String btn_connect_join();
+
+    @Message("Modules")
+    String projects_section_modules();
+
+    @Message("Visible roadmap")
+    String projects_section_roadmap();
+
+    @Message("Backend")
+    String project_backend_eyebrow();
+
+    @Message("Basic platform: authentication, profiles and module orchestration.")
+    String project_backend_desc();
+
+    @Message("In Production")
+    String badge_production();
+
+    @Message("Open")
+    String btn_open();
+
+    @Message("Realtime")
+    String project_realtime_eyebrow();
+
+    @Message("Global Notifications")
+    String project_realtime_title();
+
+    @Message("WebSocket channel and notification center for events and alerts.")
+    String project_realtime_desc();
+
+    @Message("Beta")
+    String badge_beta();
+
+    @Message("People")
+    String project_people_eyebrow();
+
+    @Message("Member directory and onboarding with GitHub to contribute.")
+    String project_people_desc();
+
+    @Message("In Design")
+    String badge_design();
 }

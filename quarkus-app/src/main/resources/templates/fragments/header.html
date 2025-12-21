@@ -1,4 +1,4 @@
-<nav class="top-nav" aria-label="Navegacion principal">
+<nav class="top-nav" aria-label="{i18n.header_aria_label}">
   <div class="logo">
     <a href="/" class="header-logo-link">
       <div class="logo-icon">
@@ -21,8 +21,7 @@
       </div>
       <div class="logo-text header-logo-text">
         <span id="navPlatformName" class="header-platform-name">HomeDir</span>
-        <span class="logo-subtitle header-logo-subtitle" id="navTagline">by
-          OpenSourceSantiago</span>
+        <span class="logo-subtitle header-logo-subtitle" id="navTagline">{i18n.platform_by}</span>
       </div>
     </a>
   </div>
@@ -34,9 +33,10 @@
     <a href="/eventos" class="retro-nav-link {#if activePage == 'eventos'}is-active{/if}">{i18n.nav_events}</a>
     <a href="/quests" class="retro-nav-link {#if activePage == 'quests'}is-active{/if}">{i18n.nav_quests}</a>
 
-    <a href="/notifications/center" class="nav-link notifications-bell" aria-label="Notificaciones" data-nav-link>
+    <a href="/notifications/center" class="nav-link notifications-bell" aria-label="{i18n.nav_notifications}"
+      data-nav-link>
       <span class="icon-bell" aria-hidden="true"></span>
-      <span class="sr-only">Notificaciones</span>
+      <span class="sr-only">{i18n.nav_notifications}</span>
       <span id="notif-badge" class="badge hidden">0</span>
     </a>
 
@@ -123,11 +123,12 @@
 </nav>
 <div class="alpha-banner">
   <span class="alpha-badge">ALPHA v{appVersion}</span>
-  · <a href="https://github.com/os-santiago/homedir" target="_blank" class="link-white-underline">GitHub Repo</a>
-  · <span class="text-opacity-80">DevRel, OpenSource, InnerSource Community Platform</span>
+  · <a href="https://github.com/os-santiago/homedir" target="_blank"
+    class="link-white-underline">{i18n.header_alpha_repo}</a>
+  · <span class="text-opacity-80">{i18n.header_alpha_text}</span>
 </div>
 {#if system.degraded}
 <div class="system-banner">
-  ⚠️ {system.message} - Algunas funciones pueden estar deshabilitadas.
+  ⚠️ {system.message} - {i18n.header_system_degraded}
 </div>
 {/if}

@@ -1,58 +1,57 @@
-{#include layout/main activePage="comunidad"}
-{#title}Comunidad - HomeDir{/title}
+{#include layout/main activePage="community"}
+{#title}{i18n.community_title}{/title}
 {#body}
+<nav class="breadcrumbs"><span>{i18n.nav_home}</span> / <strong>{i18n.nav_community}</strong></nav>
 
 
 <header class="page-header events-page-header">
   <div class="section-header">
-    <p class="section-subtitle">Personas · Comunidad</p>
-    <h1>Construimos Homedir juntos</h1>
+    <p class="section-subtitle">{i18n.community_subtitle}</p>
+    <h1>{i18n.community_hero_title}</h1>
   </div>
-  <p class="section-subtitle">Explora el directorio de integrantes, conecta con la comunidad y únete usando tu cuenta
-    vinculada de GitHub.</p>
+  <p class="section-subtitle">{i18n.community_hero_desc}</p>
 
   {#if prError}
   <div class="retro-box retro-box-error">
-    <h3 class="text-error-header">Error al procesar solicitud</h3>
-    <p>Hubo un problema al crear tu Pull Request. El equipo ha sido notificado.</p>
-    <p class="text-status-msg">Detalle: {prError}</p>
+    <h3 class="text-error-header">{i18n.community_error_title}</h3>
+    <p>{i18n.community_error_desc}</p>
+    <p class="text-status-msg">{i18n.community_error_detail(prError)}</p>
   </div>
   {/if}
 
   {#if githubLinked}
   <div class="retro-box retro-box-success">
-    <h3 class="text-success-header">¡Cuenta vinculada!</h3>
-    <p>Tu cuenta de GitHub ha sido conectada exitosamente. Ahora puedes unirte a la comunidad.</p>
+    <h3 class="text-success-header">{i18n.community_linked_title}</h3>
+    <p>{i18n.community_linked_desc}</p>
   </div>
   {/if}
 
   {#if joined}
   <div class="retro-box retro-box-success">
-    <h3 class="text-success-header">Solicitud Enviada</h3>
-    <p>Se ha creado un Pull Request para agregarte al directorio.</p>
-    {#if prUrl}<a href="{prUrl}" target="_blank" class="retro-btn-small">Ver Pull Request</a>{/if}
+    <h3 class="text-success-header">{i18n.community_joined_title}</h3>
+    <p>{i18n.community_joined_desc}</p>
+    {#if prUrl}<a href="{prUrl}" target="_blank" class="retro-btn-small">{i18n.btn_view_pr}</a>{/if}
   </div>
   {/if}
 
   <div class="main-sections">
     {#if needsGithubLink && isAuthenticated}
     <div class="section-card section-card-join">
-      <p class="eyebrow text-join-highlight">Únete</p>
-      <h2 class="header-platform-name">Vincula tu GitHub</h2>
-      <p>Para aparecer en el directorio y acumular XP.</p>
-      <a href="/private/github/start?redirect=/comunidad" class="btn-primary join-btn-margin">Conectar
-        ahora</a>
+      <p class="eyebrow text-join-highlight">{i18n.community_join_card_eyebrow}</p>
+      <h2 class="header-platform-name">{i18n.community_join_card_title}</h2>
+      <p>{i18n.community_join_card_desc}</p>
+      <a href="/private/github/start?redirect=/comunidad" class="btn-primary join-btn-margin">{i18n.btn_connect_now}</a>
     </div>
     {#else}
     <div class="section-card">
-      <p class="eyebrow">Integrantes</p>
+      <p class="eyebrow">{i18n.community_members_eyebrow}</p>
       <h2>{totalMembers}</h2>
-      <p>Activos en la comunidad</p>
+      <p>{i18n.community_members_desc}</p>
     </div>
     {/if}
 
     <div class="section-card">
-      <p class="eyebrow">Top Contributors</p>
+      <p class="eyebrow">{i18n.community_top_contributors}</p>
       <div class="leaderboard-mini leaderboard-mini-container">
         {#for leader in leaderboard}
         <a href="{leader.profileUrl}" target="_blank" title="{leader.name} (Lvl {leader.level})"
@@ -66,20 +65,20 @@
 
   <div class="header-actions">
     {#if !isAuthenticated}
-    <a class="btn-primary" href="/private/profile">Ingresar y unirme</a>
+    <a class="btn-primary" href="/private/profile">{i18n.btn_login_join}</a>
     {#else if needsGithubLink}
-    <a class="btn-primary" href="/private/github/start?redirect=/comunidad">Vincular GitHub</a>
+    <a class="btn-primary" href="/private/github/start?redirect=/comunidad">{i18n.btn_link_github}</a>
     {#else if joined}
-    <button disabled class="btn-primary btn-disabled">Solicitud en proceso</button>
+    <button disabled class="btn-primary btn-disabled">{i18n.btn_request_processing}</button>
     {#else if !alreadyMember}
     <form action="/comunidad/join" method="POST" class="form-inline">
-      <button type="submit" class="btn-primary btn-cursor-pointer">Unirme a la comunidad</button>
+      <button type="submit" class="btn-primary btn-cursor-pointer">{i18n.btn_join_community}</button>
     </form>
     {#else}
-    <button disabled class="btn-primary btn-disabled">Ya eres miembro</button>
+    <button disabled class="btn-primary btn-disabled">{i18n.btn_already_member}</button>
     {/if}
 
-    <a class="btn-primary" href="#directorio">Ver directorio</a>
+    <a class="btn-primary" href="#directorio">{i18n.btn_view_directory}</a>
   </div>
 </header>
 
@@ -87,19 +86,19 @@
   <div class="section-header events-section-margin" style="grid-column: 1 / -1;" id="directorio">
     <div class="community-directory-header">
       <div>
-        <h2 class="page-title">Directorio de la Comunidad</h2>
+        <h2 class="page-title">{i18n.directory_title}</h2>
       </div>
       <form class="search-form community-search-form" method="get" action="/comunidad">
-        <input type="search" name="q" value="{query ?: ''}" placeholder="Buscar..." aria-label="Buscar integrante"
-          class="community-search-input">
-        <button class="btn-primary btn-search-submit" type="submit">Buscar</button>
+        <input type="search" name="q" value="{query ?: ''}" placeholder="{i18n.search_placeholder}"
+          aria-label="{i18n.search_aria_label}" class="community-search-input">
+        <button class="btn-primary btn-search-submit" type="submit">{i18n.btn_search}</button>
       </form>
     </div>
   </div>
 
   {#if members.isEmpty()}
   <div class="section-card events-full-width">
-    <p>Aún no hay integrantes visibles con este filtro.</p>
+    <p>{i18n.directory_empty}</p>
   </div>
   {#else}
   {#for member in members}
@@ -112,7 +111,7 @@
           class="member-github-link-small">@{member.github}</a>{/if}
       </div>
       <div class="member-status-container">
-        <div class="member-badge" title="Miembro Oficial">
+        <div class="member-badge" title="{i18n.badge_official_member}">
           <span class="community-user-icon">🏅</span>
         </div>
         <span class="member-lvl-text">Lvl {member.level}</span>
@@ -122,7 +121,7 @@
 
     <div class="xp-progress-container">
       <div class="xp-progress-labels">
-        <span>XP Progress</span>
+        <span>{i18n.xp_progress}</span>
         <span>{member.xp} / 100</span>
       </div>
       <div class="xp-progress-bg">
@@ -134,8 +133,7 @@
       {#for badge in member.badges}
       <span class="member-badge-pill">{badge}</span>
       {/for}
-      <span class="member-score-pill">Contribution
-        Score: {member.contributions}</span>
+      <span class="member-score-pill">{i18n.contribution_score(member.contributions)}</span>
     </div>
   </div>
   {/for}

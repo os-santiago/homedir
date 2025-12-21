@@ -1,27 +1,24 @@
 {#include layout/main}
-{#title}Proyectos · Homedir{/title}
+{#title}{i18n.projects_title}{/title}
 {#body}
-<nav class="breadcrumbs"><span>Inicio</span> / <strong>Proyectos</strong></nav>
+<nav class="breadcrumbs"><span>{i18n.nav_home}</span> / <strong>{i18n.nav_projects}</strong></nav>
 
 <header class="page-header">
   <div class="section-header">
-    <p class="section-subtitle">Roadmap · Homedir</p>
-    <h1>Proyectos activos</h1>
+    <p class="section-subtitle">{i18n.projects_title}</p>
+    <h1>{i18n.projects_hero_title}</h1>
   </div>
-  <p class="section-subtitle">Sigue el estado de los módulos y entra directo al repositorio o sección
-    correspondiente.
-  </p>
+  <p class="section-subtitle">{i18n.projects_hero_desc}</p>
 
   <div class="project-actions">
-    <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank" rel="noopener">Abrir
-      repositorio</a>
+    <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank"
+      rel="noopener">{i18n.btn_open_repo}</a>
 
     {#if !userSession.communityMember}
     {#if userSession.githubLinked}
-    <a href="/comunidad" class="btn-primary">Unirme a la comunidad</a>
+    <a href="/comunidad" class="btn-primary">{i18n.btn_join_community}</a>
     {#else}
-    <a href="/private/github/start?redirect=/proyectos" class="btn-primary">Conectar GitHub para
-      unirme</a>
+    <a href="/private/github/start?redirect=/proyectos" class="btn-primary">{i18n.btn_connect_join}</a>
     {/if}
     {/if}
   </div>
@@ -29,50 +26,32 @@
 
 <section class="page-grid">
   <div class="section-header project-section-header">
-    <p class="section-subtitle">Módulos</p>
-    <h2 class="page-title">Hoja de ruta visible</h2>
+    <p class="section-subtitle">{i18n.projects_section_modules}</p>
+    <h2 class="page-title">{i18n.projects_section_roadmap}</h2>
   </div>
-
-  <article class="section-card">
-    <div class="project-card-content">
-      <p class="eyebrow">Backend</p>
-      <h3 class="project-card-title">Homedir Core</h3>
-      <p class="project-card-desc">Base de la plataforma:
-        autenticación, perfiles y orquestación de módulos.</p>
-
-      <div class="project-card-footer">
-        <span class="badge project-status-badge">En
-          producción</span>
-        <a class="nav-link" href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener">Abrir
-          ↗</a>
-      </div>
-    </div>
   </article>
   <article class="section-card">
     <div class="project-card-content">
-      <p class="eyebrow">Tiempo real</p>
-      <h3 class="project-card-title">Notificaciones Globales</h3>
-      <p class="project-card-desc">Canal WebSocket y centro de
-        notificaciones para eventos y alertas.</p>
+      <p class="eyebrow">{i18n.project_realtime_eyebrow}</p>
+      <h3 class="project-card-title">{i18n.project_realtime_title}</h3>
+      <p class="project-card-desc">{i18n.project_realtime_desc}</p>
 
       <div class="project-card-footer">
-        <span class="badge project-status-badge">Beta</span>
+        <span class="badge project-status-badge">{i18n.badge_beta}</span>
         <a class="nav-link" href="https://github.com/os-santiago/homedir/tree/main/quarkus-app" target="_blank"
-          rel="noopener">Abrir ↗</a>
+          rel="noopener">{i18n.btn_open} ↗</a>
       </div>
     </div>
   </article>
   <article class="section-card">
     <div class="project-card-content">
-      <p class="eyebrow">Personas</p>
-      <h3 class="project-card-title">Comunidad</h3>
-      <p class="project-card-desc">Directorio de integrantes y
-        onboarding con GitHub para contribuir.</p>
+      <p class="eyebrow">{i18n.project_people_eyebrow}</p>
+      <h3 class="project-card-title">{i18n.nav_community}</h3>
+      <p class="project-card-desc">{i18n.project_people_desc}</p>
 
       <div class="project-card-footer">
-        <span class="badge project-status-badge">En
-          diseño</span>
-        <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">Abrir ↗</a>
+        <span class="badge project-status-badge">{i18n.badge_design}</span>
+        <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">{i18n.btn_open} ↗</a>
       </div>
     </div>
   </article>
