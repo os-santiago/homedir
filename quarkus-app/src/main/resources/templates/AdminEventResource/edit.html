@@ -13,11 +13,11 @@ Nuevo Evento · Homedir
       <div>
         <p class="hd-eyebrow">Evento</p>
         <h1 class="hd-page-title">
-        {#if event.id}
+          {#if event.id}
           Editar Evento
-        {#else}
+          {#else}
           Nuevo Evento
-        {/if}
+          {/if}
         </h1>
         {#if message}<p class="hd-page-intro">{message}</p>{/if}
       </div>
@@ -38,9 +38,11 @@ Nuevo Evento · Homedir
 
     <div id="event-info" class="hd-panel">
       <h2 class="hd-panel-title">Datos del evento</h2>
-      <form method="post" action="{#if event.id}/private/admin/events/{event.id}/edit{#else}/private/admin/events/new{/if}" class="hd-form">
+      <form method="post"
+        action="{#if event.id}/private/admin/events/{event.id}/edit{#else}/private/admin/events/new{/if}"
+        class="hd-form">
         {#if event.id}
-          <p class="hd-form-hint">ID: {event.id}</p>
+        <p class="hd-form-hint">ID: {event.id}</p>
         {/if}
         <div class="hd-form-grid">
           <div class="hd-form-field">
@@ -51,7 +53,7 @@ Nuevo Evento · Homedir
             <label for="type" class="hd-form-label">Tipo de evento</label>
             <select id="type" name="type" class="hd-form-input">
               {#for t in types}
-              <option value="{t.name()}"{#if event.type?? && event.type.name() == t.name()} selected{/if}>{t.label}</option>
+              <option value="{t.name()}" {#if event.type?? && event.type.name() == t.name()} selected{/if}>{t.label}</option>
               {/for}
             </select>
           </div>
@@ -63,7 +65,7 @@ Nuevo Evento · Homedir
             <label for="timezone" class="hd-form-label">Zona horaria</label>
             <select id="timezone" name="timezone" class="hd-form-input">
               {#for tz in app:commonTimezones()}
-              <option value="{tz}"{#if tz == event.timezone} selected{/if}>{tz} ({app:zoneDetail(tz)})</option>
+              <option value="{tz}" {#if tz == event.timezone} selected{/if}>{tz} ({app:zoneDetail(tz)})</option>
               {/for}
             </select>
           </div>
@@ -85,7 +87,8 @@ Nuevo Evento · Homedir
           </div>
           <div class="hd-form-field">
             <label for="contactEmail" class="hd-form-label">Correo de contacto</label>
-            <input id="contactEmail" name="contactEmail" type="email" value="{event.contactEmail}" class="hd-form-input">
+            <input id="contactEmail" name="contactEmail" type="email" value="{event.contactEmail}"
+              class="hd-form-input">
           </div>
           <div class="hd-form-field">
             <label for="ticketsUrl" class="hd-form-label">Link de entradas</label>
@@ -96,7 +99,8 @@ Nuevo Evento · Homedir
           <label for="description" class="hd-form-label">Descripción</label>
           <textarea id="description" name="description" class="hd-form-input">{event.description}</textarea>
         </div>
-        <p class="hd-form-hint">Horario calculado: {#if event.startTimeStr}{event.startTimeStr} - {event.endTimeStr}{#else}Sin charlas{/if}</p>
+        <p class="hd-form-hint">Horario calculado: {#if event.startTimeStr}{event.startTimeStr} -
+          {event.endTimeStr}{#else}Sin charlas{/if}</p>
         <fieldset class="hd-form-field">
           <legend class="hd-form-label">Redes Sociales</legend>
           <div class="hd-form-grid">
@@ -124,20 +128,25 @@ Nuevo Evento · Homedir
     <div id="scenarios" class="hd-panel">
       <h2 class="hd-panel-title">Escenarios</h2>
       {#for sc in event.scenarios}
-      <div class="hd-card-surface" style="margin-bottom: 1rem;">
+      <div class="hd-card-surface card-bottom-margin">
         <form method="post" action="/private/admin/events/{event.id}/scenario" class="hd-form">
           <input type="hidden" name="scenarioId" value="{sc.id}">
           <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input" value="{sc.id}" disabled></div>
-            <div class="hd-form-field"><label class="hd-form-label">Nombre</label><input name="name" value="{sc.name}" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Características</label><input name="features" value="{sc.features}" placeholder="Características" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Ubicación</label><input name="location" value="{sc.location}" placeholder="Ubicación" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input"
+                value="{sc.id}" disabled></div>
+            <div class="hd-form-field"><label class="hd-form-label">Nombre</label><input name="name" value="{sc.name}"
+                class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Características</label><input name="features"
+                value="{sc.features}" placeholder="Características" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Ubicación</label><input name="location"
+                value="{sc.location}" placeholder="Ubicación" class="hd-form-input"></div>
           </div>
           <div class="hd-form-actions">
             <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
           </div>
         </form>
-        <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete" class="needs-confirm hd-form-actions">
+        <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete"
+          class="needs-confirm hd-form-actions">
           <button type="submit" class="hd-btn">Eliminar</button>
         </form>
       </div>
@@ -145,9 +154,12 @@ Nuevo Evento · Homedir
       <div class="hd-card-surface">
         <form method="post" action="/private/admin/events/{event.id}/scenario" class="hd-form">
           <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">Nombre</label><input name="name" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Características</label><input name="features" placeholder="Características" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Ubicación</label><input name="location" placeholder="Ubicación" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Nombre</label><input name="name"
+                class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Características</label><input name="features"
+                placeholder="Características" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Ubicación</label><input name="location"
+                placeholder="Ubicación" class="hd-form-input"></div>
           </div>
           <div class="hd-form-actions">
             <button type="submit" class="hd-btn hd-btn-primary">Agregar escenario</button>
@@ -160,27 +172,31 @@ Nuevo Evento · Homedir
       <h2 class="hd-panel-title">Charlas</h2>
       {#for t in event.agenda}
       {#if !t.break}
-      <div class="hd-card-surface" style="margin-bottom: 1rem;">
+      <div class="hd-card-surface card-bottom-margin">
         <form method="post" action="/private/admin/events/{event.id}/talk" class="hd-form">
           <input type="hidden" name="talkId" value="{t.id}">
           <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input" value="{t.id}" disabled></div>
-            <div class="hd-form-field"><label class="hd-form-label">Charla</label><p class="hd-form-hint">{t.name}{#if !t.speakers.isEmpty()} · {t.getSpeakerNames()}{/if}</p></div>
+            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input"
+                value="{t.id}" disabled></div>
+            <div class="hd-form-field"><label class="hd-form-label">Charla</label>
+              <p class="hd-form-hint">{t.name}{#if !t.speakers.isEmpty()} · {t.getSpeakerNames()}{/if}</p>
+            </div>
             <div class="hd-form-field">
               <label class="hd-form-label">Ubicación</label>
               <select name="location" class="hd-form-input">
-              {#for sc in event.scenarios}
-              <option value="{sc.id}"{#if sc.id == t.location} selected{/if}>{sc.name}</option>
-              {/for}
+                {#for sc in event.scenarios}
+                <option value="{sc.id}" {#if sc.id == t.location} selected{/if}>{sc.name}</option>
+                {/for}
               </select>
             </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime" type="time" value="{t.startTimeStr}" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
+                type="time" value="{t.startTimeStr}" class="hd-form-input"></div>
             <div class="hd-form-field">
               <label class="hd-form-label">Día</label>
               <select name="day" class="hd-form-input">
-              {#for d in event.dayList}
-              <option value="{d}"{#if t.day == d} selected{/if}>Día {d}</option>
-              {/for}
+                {#for d in event.dayList}
+                <option value="{d}" {#if t.day == d} selected{/if}>Día {d}</option>
+                {/for}
               </select>
             </div>
           </div>
@@ -188,7 +204,8 @@ Nuevo Evento · Homedir
             <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
           </div>
         </form>
-        <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete" style="display:inline" class="needs-confirm hd-form-actions">
+        <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete"
+          class="needs-confirm hd-form-actions form-inline">
           <button type="submit" class="hd-btn">Eliminar</button>
         </form>
       </div>
@@ -211,27 +228,28 @@ Nuevo Evento · Homedir
               <select id="talkSelect" name="talkId" class="hd-form-input">
                 <option value="">Seleccione charla</option>
                 {#for sp in speakers}
-                  {#for t in sp.talks}
-                  <option value="{t.id}" data-speaker="{sp.id}">{t.name}</option>
-                  {/for}
+                {#for t in sp.talks}
+                <option value="{t.id}" data-speaker="{sp.id}">{t.name}</option>
+                {/for}
                 {/for}
               </select>
             </div>
             <div class="hd-form-field">
               <label class="hd-form-label">Ubicación</label>
               <select name="location" class="hd-form-input">
-              {#for sc in event.scenarios}
-              <option value="{sc.id}">{sc.name}</option>
-              {/for}
+                {#for sc in event.scenarios}
+                <option value="{sc.id}">{sc.name}</option>
+                {/for}
               </select>
             </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime" type="time" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
+                type="time" class="hd-form-input"></div>
             <div class="hd-form-field">
               <label class="hd-form-label">Día</label>
               <select name="day" class="hd-form-input">
-              {#for d in event.dayList}
-              <option value="{d}">Día {d}</option>
-              {/for}
+                {#for d in event.dayList}
+                <option value="{d}">Día {d}</option>
+                {/for}
               </select>
             </div>
           </div>
@@ -246,28 +264,32 @@ Nuevo Evento · Homedir
       <h2 class="hd-panel-title">Breaks</h2>
       {#for t in event.agenda}
       {#if t.break}
-      <div class="hd-card-surface" style="margin-bottom: 1rem;">
+      <div class="hd-card-surface card-bottom-margin">
         <form method="post" action="/private/admin/events/{event.id}/break" class="hd-form">
           <input type="hidden" name="breakId" value="{t.id}">
           <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input" value="{t.id}" disabled></div>
-            <div class="hd-form-field"><label class="hd-form-label">Break</label><input name="name" value="{t.name}" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Duración</label><input name="duration" type="number" min="1" value="{t.durationMinutes}" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input"
+                value="{t.id}" disabled></div>
+            <div class="hd-form-field"><label class="hd-form-label">Break</label><input name="name" value="{t.name}"
+                class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Duración</label><input name="duration" type="number"
+                min="1" value="{t.durationMinutes}" class="hd-form-input"></div>
             <div class="hd-form-field">
               <label class="hd-form-label">Ubicación</label>
               <select name="location" class="hd-form-input">
-              {#for sc in event.scenarios}
-              <option value="{sc.id}"{#if sc.id == t.location} selected{/if}>{sc.name}</option>
-              {/for}
+                {#for sc in event.scenarios}
+                <option value="{sc.id}" {#if sc.id == t.location} selected{/if}>{sc.name}</option>
+                {/for}
               </select>
             </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime" type="time" value="{t.startTimeStr}" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
+                type="time" value="{t.startTimeStr}" class="hd-form-input"></div>
             <div class="hd-form-field">
               <label class="hd-form-label">Día</label>
               <select name="day" class="hd-form-input">
-              {#for d in event.dayList}
-              <option value="{d}"{#if t.day == d} selected{/if}>Día {d}</option>
-              {/for}
+                {#for d in event.dayList}
+                <option value="{d}" {#if t.day == d} selected{/if}>Día {d}</option>
+                {/for}
               </select>
             </div>
           </div>
@@ -275,7 +297,8 @@ Nuevo Evento · Homedir
             <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
           </div>
         </form>
-        <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete" style="display:inline" class="needs-confirm hd-form-actions">
+        <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete"
+          class="needs-confirm hd-form-actions form-inline">
           <button type="submit" class="hd-btn">Eliminar</button>
         </form>
       </div>
@@ -284,23 +307,26 @@ Nuevo Evento · Homedir
       <div class="hd-card-surface">
         <form method="post" action="/private/admin/events/{event.id}/break" class="hd-form">
           <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">Break</label><input name="name" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Duración</label><input name="duration" type="number" min="1" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Break</label><input name="name"
+                class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Duración</label><input name="duration" type="number"
+                min="1" class="hd-form-input"></div>
             <div class="hd-form-field">
               <label class="hd-form-label">Ubicación</label>
               <select name="location" class="hd-form-input">
-              {#for sc in event.scenarios}
-              <option value="{sc.id}">{sc.name}</option>
-              {/for}
+                {#for sc in event.scenarios}
+                <option value="{sc.id}">{sc.name}</option>
+                {/for}
               </select>
             </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime" type="time" class="hd-form-input"></div>
+            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
+                type="time" class="hd-form-input"></div>
             <div class="hd-form-field">
               <label class="hd-form-label">Día</label>
               <select name="day" class="hd-form-input">
-              {#for d in event.dayList}
-              <option value="{d}">Día {d}</option>
-              {/for}
+                {#for d in event.dayList}
+                <option value="{d}">Día {d}</option>
+                {/for}
               </select>
             </div>
           </div>
@@ -314,17 +340,18 @@ Nuevo Evento · Homedir
     <div id="agenda" class="hd-panel">
       <h2 class="hd-panel-title">Agenda</h2>
       {#for d in event.dayList}
-      <div class="hd-card-surface" style="margin-bottom: 1rem;">
+      <div class="hd-card-surface card-bottom-margin">
         <h3 class="hd-panel-title">Día {d}</h3>
         {#for sc in event.scenarios}
-          {#if !event.getAgendaForDayAndScenario(d, sc.id).isEmpty()}
-          <h4 style="margin: 0 0 0.5rem 0;">{sc.name}</h4>
-          <ul class="hd-list">
-            {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
-              <li class="hd-table-cell" style="list-style: none; padding: 0.4rem 0;">{#if t.break}☕{#else}🗣️{/if} {t.startTimeStr} - {t.endTimeStr} | {t.name} <span class="badge {app:talkStateClass(t, event)}">{app:talkState(t, event)}</span></li>
-            {/for}
-          </ul>
-          {/if}
+        {#if !event.getAgendaForDayAndScenario(d, sc.id).isEmpty()}
+        <h4 class="agenda-day-title">{sc.name}</h4>
+        <ul class="hd-list">
+          {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
+          <li class="hd-table-cell agenda-item-list">{#if t.break}☕{#else}🗣️{/if} {t.startTimeStr} - {t.endTimeStr} |
+            {t.name} <span class="badge {app:talkStateClass(t, event)}">{app:talkState(t, event)}</span></li>
+          {/for}
+        </ul>
+        {/if}
         {/for}
       </div>
       {/for}
@@ -335,14 +362,14 @@ Nuevo Evento · Homedir
   </div>
 </section>
 <script>
-  (function(){
+  (function () {
     const speakerSelect = document.getElementById('speakerSelect');
     const talkSelect = document.getElementById('talkSelect');
     if (speakerSelect && talkSelect) {
-      function filterTalks(){
+      function filterTalks() {
         const sid = speakerSelect.value;
         Array.from(talkSelect.options).forEach(opt => {
-          if(!opt.value) return;
+          if (!opt.value) return;
           opt.hidden = sid && opt.dataset.speaker !== sid;
         });
         talkSelect.value = '';

@@ -4,21 +4,21 @@
 
 {#body}
 <section class="retro-container">
-    <div style="text-align: center; margin-bottom: 2rem;">
+    <div class="admin-dashboard-header">
         <h1 class="retro-title-large">Consola de Errores</h1>
         <p class="retro-subtitle">Registro de fallos del sistema y excepciones.</p>
     </div>
 
-    <div style="margin-bottom: 1rem;">
+    <div class="errors-back-link">
         <a href="/private/admin" class="retro-btn">← Volver al Panel</a>
     </div>
 
     <div class="retro-box">
         {#if errors.isEmpty}
-        <p style="text-align: center;">No hay errores registrados.</p>
+        <p class="errors-empty-state">No hay errores registrados.</p>
         {#else}
-        <div style="overflow-x: auto;">
-            <table class="retro-table" style="width: 100%;">
+        <div class="errors-table-wrapper">
+            <table class="retro-table errors-table-full">
                 <thead>
                     <tr>
                         <th>Fecha</th>
@@ -40,7 +40,7 @@
                             </span>
                         </td>
                         <td>{error.source}</td>
-                        <td style="max-width: 300px; word-wrap: break-word;">{error.message}</td>
+                        <td class="error-message-cell">{error.message}</td>
                         <td>{error.userId}</td>
                         <td>
                             {#if !error.resolved}

@@ -5,11 +5,11 @@
 {#body}
 <section class="hd-section">
     <div class="hd-page">
-        <div class="hd-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div class="hd-card about-card">
             <h1 class="hd-page-title">Status</h1>
 
 
-            <div class="hd-list-group" style="text-align: left; margin-top: 2rem;">
+            <div class="hd-list-group about-list-group">
                 <div class="hd-list-group-item">
                     <strong>Version:</strong> <span>{version}</span>
                 </div>
@@ -24,17 +24,17 @@
                 </div>
                 <div class="hd-list-group-item">
                     <strong>Google Auth:</strong>
-                    {#if oidcConfigured}<span style="color: lightgreen;">Configured</span>{#else}<span
-                        style="color: red;">Misconfigured (Using default/missing)</span>{/if}
+                    {#if oidcConfigured}<span class="text-success">Configured</span>{#else}<span
+                        class="text-danger">Misconfigured (Using default/missing)</span>{/if}
                 </div>
                 <div class="hd-list-group-item">
                     <strong>GitHub Auth:</strong>
-                    {#if githubConfigured}<span style="color: lightgreen;">Configured</span>{#else}<span
-                        style="color: red;">Missing Client ID</span>{/if}
+                    {#if githubConfigured}<span class="text-success">Configured</span>{#else}<span
+                        class="text-danger">Missing Client ID</span>{/if}
                 </div>
             </div>
 
-            <div class="hd-actions" style="margin-top: 2rem; justify-content: center;">
+            <div class="hd-actions about-actions">
                 <a href="/" class="hd-btn hd-btn-primary">Back to Home</a>
             </div>
         </div>

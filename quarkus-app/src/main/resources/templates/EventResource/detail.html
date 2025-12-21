@@ -28,7 +28,8 @@ Evento
           {/if}
         </div>
         {#if event.formattedDate}
-        <p class="event-datetime">{event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} hrs{#if event.timezone} ({event.timezone}){/if}.</p>
+        <p class="event-datetime">{event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} hrs{#if
+          event.timezone} ({event.timezone}){/if}.</p>
         {/if}
         {#if event.description}
         <p class="event-description">{event.description}</p>
@@ -86,10 +87,10 @@ Evento
       <div id="agenda-seq-{d}" class="agenda-view agenda-seq" data-agenda-seq>
         <table class="hd-table agenda-table">
           <colgroup>
-            <col style="width: 12%;">
-            <col style="width: 60%;">
-            <col style="width: 10%;">
-            <col style="width: 18%;">
+            <col class="col-time">
+            <col class="col-activity">
+            <col class="col-speakers">
+            <col class="col-scenario">
           </colgroup>
           <thead>
             <tr>
@@ -126,7 +127,8 @@ Evento
                 </span>
                 {/if}
               </td>
-              <td class="agenda-location hd-table-cell"><a href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a></td>
+              <td class="agenda-location hd-table-cell"><a
+                  href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a></td>
             </tr>
             {/for}
           </tbody>

@@ -120,7 +120,7 @@
               <span class="vital-value" id="hpValue">{vm.character.hpPercent ?: 10} / 100</span>
             </div>
             <div class="vital-progress">
-              <div class="vital-fill hp-fill" id="hpBar" style="width: {vm.character.hpPercent ?: 10}%"></div>
+              <div class="vital-fill hp-fill" id="hpBar" style="--fill-width: {vm.character.hpPercent ?: 10}%"></div>
             </div>
           </div>
           <div class="vital-bar">
@@ -129,7 +129,7 @@
               <span class="vital-value" id="spValue">{vm.character.spPercent ?: 5} / 100</span>
             </div>
             <div class="vital-progress">
-              <div class="vital-fill sp-fill" id="spBar" style="width: {vm.character.spPercent ?: 5}%"></div>
+              <div class="vital-fill sp-fill" id="spBar" style="--fill-width: {vm.character.spPercent ?: 5}%"></div>
             </div>
           </div>
           <div class="vital-bar">
@@ -139,7 +139,7 @@
             </div>
             <div class="vital-progress">
               <div class="vital-fill xp-fill" id="xpBar"
-                style="width: {(vm.character.xpCurrent * 100 / vm.character.xpMax) ?: 0}%"></div>
+                style="--fill-width: {(vm.character.xpCurrent * 100 / vm.character.xpMax) ?: 0}%"></div>
             </div>
           </div>
         </div>

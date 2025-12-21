@@ -1,17 +1,39 @@
-# Historia de usuario — "Notificaciones que me acompañan sin estorbar"
+# Sistema de Notificaciones
 
-Soy Carolina. Entro a EventFlow desde el celular, reviso “Eventos disponibles” y registro mis charlas favoritas. Arriba, junto al menú, veo una campanita sin número: no tengo nada pendiente… por ahora.
+Homedir implementa un sistema de notificaciones en tiempo real para actualizaciones de estado de charlas y anuncios globales.
 
-Un rato antes de mi primera charla, aparece un aviso sutil abajo de la pantalla: “Comienza en 10 min”. Es un toast liviano: no tapa lo que estoy haciendo. Si toco el aviso, voy directo al detalle de la charla; si no, desaparece solo a los pocos segundos. Como registré varias, recibo 2 o 3 avisos seguidos y uso “Cerrar todas” para limpiar la cola de una.
+## Arquitectura
 
-Durante el día, la app me avisa cuando una charla “está en curso”, cuando “está por finalizar” y al final “ha finalizado”. Todo sin bloquearme. Si pierdo señal un momento, al volver, las notificaciones se ponen al día solas.
+### Actualizaciones en Tiempo Real (WebSocket)
+- **Canal**: `/notifications/stream`
+- **Auth**: Basada en Tickets (HMAC SHA-256). Usuario obtiene ticket desde `/notifications/auth`.
+- **Alcance**: Anuncios globales y alertas específicas de usuario.
 
-Cuando quiero ver todo con calma, toco la campana (ahora con numerito). Entro al Centro de Notificaciones, que muestra las actividades del día en curso y me permite filtrar Todas o No leídas, marcar como leídas o eliminar varias a la vez. Todo está ordenado en tarjetas compactas, los textos no se cortan raro, y los botones son cómodos de pulsar.
+### Componentes
+- **Backend**: Endpoint Quarkus WebSocket.
+- **Frontend**: Cliente Vanilla JS (reconect con backoff exponencial).
+- **Seguridad**:
+    - **Firmas HMAC**: Verifican fuente de solicitudes.
+    - **CORS/Origin**: Restringido a dominios de confianza.
+    - **Rate Limiting**: Previene inundación.
 
-Me siento acompañada, no perseguida:
+## Operaciones (Runbook)
 
-- Solo recibo avisos de mis charlas registradas.
-- Si llegan muchas, puedo cerrarlas de golpe o gestionarlas luego en la campana.
-- En móvil se ve limpio, legible y accesible (buen contraste, foco visible, sin scroll lateral).
+### Broadcast de Anuncios
+Para enviar mensaje a todos los conectados, usa la API Admin (requiere `ADMIN_API_KEY`).
 
-Resultado: llego a tiempo, no me pierdo nada y la app nunca se interpone en mi camino.
+```bash
+curl -X POST https://homedir.opensourcesantiago.io/api/admin/notifications/broadcast \
+  -H "X-API-Key: <SECRET_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Mantenimiento en 10 mins", "level": "WARN"}'
+```
+
+### Troubleshooting
+- **Fallo de Conexión**: Verifica que `NOTIFICATIONS_USER_HASH_SALT` esté configurado en el servidor.
+- **Sin Mensajes**: Revisa conexión WebSocket en DevTools del navegador (Network > WS).
+- **Latencia**: Diseñado para consistencia eventual; retrasos leves (<2s) son normales bajo carga.
+
+## Integración
+- **Cambio Estado Charla**: Disparado automáticamente cuando el estado cambia (ej. a `ACCEPTED`).
+- **UI**: Toasts aparecen arriba a la derecha.

@@ -63,13 +63,14 @@ public class PublicPagesResource {
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
     boolean authenticated = identity != null && !identity.isAnonymous();
-    String userName = authenticated ? identity.getPrincipal().getName() : null;
+    String userName = authenticated ? identity.getPrincipal().getName() : "";
+    String userInitial = initialFrom(userName);
     return templateInstance
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
-        .data("userName", userName)
+        .data("userName", userName != null ? userName : "")
         .data("userSession", userSessionService.getCurrentSession())
-        .data("userInitial", initialFrom(userName));
+        .data("userInitial", userInitial != null ? userInitial : "");
   }
 
   private String initialFrom(String name) {
