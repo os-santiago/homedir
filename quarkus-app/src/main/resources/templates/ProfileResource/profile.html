@@ -1,5 +1,13 @@
 {#include layout/main activePage="profile"}
 {#title}{i18n.profile_title}{/title}
+
+{#head}
+<meta property="og:title" content="{ogTitle}" />
+<meta property="og:description" content="{ogDescription}" />
+<meta property="og:image" content="https://homedir-d48e2.web.app/images/og-default.png" />
+<meta property="og:type" content="profile" />
+{/head}
+
 {#body}
 <section class="hd-section hd-section-dashboard">
     <style>

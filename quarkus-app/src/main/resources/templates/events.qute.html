@@ -1,54 +1,53 @@
 {#include layout/main activePage="events"}
-{#title}Eventos - Homedir{/title}
+{#title}{i18n.events_title}{/title}
 {#body}
-<nav class="breadcrumbs"><span>Inicio</span> / <strong>Eventos</strong></nav>
+<nav class="breadcrumbs"><span>{i18n.nav_home}</span> / <strong>{i18n.nav_events}</strong></nav>
 
 <header class="page-header">
   <div class="section-header">
-    <p class="section-subtitle">Agenda · Homedir</p>
-    <h1>Eventos y charlas</h1>
+    <p class="section-subtitle">{i18n.events_subtitle}</p>
+    <h1>{i18n.events_hero_title}</h1>
   </div>
-  <p class="section-subtitle">Consulta la programación completa, los pasados destacados y los enlaces directos de cada
-    edición.</p>
+  <p class="section-subtitle">{i18n.events_hero_desc}</p>
 
   <div class="main-sections" style="margin-top: 2rem;">
     <div class="section-card">
-      <p class="eyebrow">Próximos</p>
+      <p class="eyebrow">{i18n.events_card_upcoming}</p>
       <h2>0</h2>
-      <p>En agenda</p>
+      <p>{i18n.events_card_upcoming_desc}</p>
     </div>
     <div class="section-card">
-      <p class="eyebrow">Pasados</p>
+      <p class="eyebrow">{i18n.events_card_past}</p>
       <h2>0</h2>
-      <p>Referencias</p>
+      <p>{i18n.events_card_past_desc}</p>
     </div>
     <div class="section-card">
-      <p class="eyebrow">Hoy</p>
+      <p class="eyebrow">{i18n.events_card_today}</p>
       <h2>{today}</h2>
-      <p>Zona horaria local</p>
+      <p>{i18n.events_card_today_desc}</p>
     </div>
   </div>
 </header>
 
 <section class="page-grid">
   <div class="section-header" style="grid-column: 1 / -1;">
-    <p class="section-subtitle">Próximos eventos</p>
-    <h2 class="page-title">En curso o por iniciar</h2>
+    <p class="section-subtitle">{i18n.events_section_upcoming_subtitle}</p>
+    <h2 class="page-title">{i18n.events_section_upcoming_title}</h2>
   </div>
 
   <div class="section-card" style="grid-column: 1 / -1;">
-    <p>No hay eventos próximos por ahora.</p>
+    <p>{i18n.events_empty_upcoming}</p>
   </div>
 </section>
 
 <section class="page-grid">
   <div class="section-header" style="grid-column: 1 / -1; margin-top: 2rem;">
-    <p class="section-subtitle">Historial</p>
-    <h2 class="page-title">Eventos pasados</h2>
+    <p class="section-subtitle">{i18n.events_section_past_subtitle}</p>
+    <h2 class="page-title">{i18n.events_section_past_title}</h2>
   </div>
 
   <div class="section-card" style="grid-column: 1 / -1;">
-    <p>Aún no hay registros pasados.</p>
+    <p>{i18n.events_empty_past}</p>
   </div>
 </section>
 {/body}

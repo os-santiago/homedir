@@ -5,10 +5,13 @@ import com.scanales.eventflow.service.UserSessionService;
 import com.scanales.eventflow.model.CharacterProfile;
 import com.scanales.eventflow.service.CharacterService;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.Unremovable;
 import io.quarkus.qute.TemplateGlobal;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
+@Unremovable
 public class GlobalTemplateExtensions {
 
     @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quarkus.application.version")
@@ -76,6 +79,14 @@ public class GlobalTemplateExtensions {
             // ignore
         }
         return new SystemStatus(false, "Unknown");
+    }
+
+    @Inject
+    com.scanales.eventflow.config.AppMessages appMessages;
+
+    @TemplateGlobal(name = "i18n")
+    public static com.scanales.eventflow.config.AppMessages i18n() {
+        return Arc.container().instance(com.scanales.eventflow.config.AppMessages.class).get();
     }
 
     @io.quarkus.runtime.annotations.RegisterForReflection

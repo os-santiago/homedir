@@ -1,4 +1,4 @@
-<nav class="top-nav" aria-label="Navegacion principal">
+<nav class="top-nav" aria-label="{i18n.header_aria_label}">
   <div class="logo">
     <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; color: #ffffff;">
       <div class="logo-icon">
@@ -21,8 +21,7 @@
       </div>
       <div class="logo-text" style="font-weight: 800; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
         <span id="navPlatformName" style="font-size: 1.4rem;">HomeDir</span>
-        <span class="logo-subtitle" id="navTagline" style="color: #ffd700; font-weight: 600;">by
-          OpenSourceSantiago</span>
+        <span class="logo-subtitle" id="navTagline" style="color: #ffd700; font-weight: 600;">{i18n.platform_by}</span>
       </div>
     </a>
   </div>
@@ -34,9 +33,10 @@
     <a href="/eventos" class="retro-nav-link {#if activePage == 'eventos'}is-active{/if}">{i18n.nav_events}</a>
     <a href="/quests" class="retro-nav-link {#if activePage == 'quests'}is-active{/if}">{i18n.nav_quests}</a>
 
-    <a href="/notifications/center" class="nav-link notifications-bell" aria-label="Notificaciones" data-nav-link>
+    <a href="/notifications/center" class="nav-link notifications-bell" aria-label="{i18n.nav_notifications}"
+      data-nav-link>
       <span class="icon-bell" aria-hidden="true"></span>
-      <span class="sr-only">Notificaciones</span>
+      <span class="sr-only">{i18n.nav_notifications}</span>
       <span id="notif-badge" class="badge hidden">0</span>
     </a>
 
@@ -135,12 +135,12 @@
   style="background: linear-gradient(90deg, #ff00cc, #333399); color: white; text-align: center; padding: 0.2rem; font-size: 0.8rem; font-family: var(--font-mono); border-bottom: 1px solid rgba(255,255,255,0.2);">
   <span style="background: rgba(0,0,0,0.3); padding: 0 0.5rem; border-radius: 4px;">ALPHA v{appVersion}</span>
   · <a href="https://github.com/os-santiago/homedir" target="_blank"
-    style="color: white; text-decoration: underline;">GitHub Repo</a>
-  · <span style="opacity: 0.8;">DevRel, OpenSource, InnerSource Community Platform</span>
+    style="color: white; text-decoration: underline;">{i18n.header_alpha_repo}</a>
+  · <span style="opacity: 0.8;">{i18n.header_alpha_text}</span>
 </div>
 {#if system.degraded}
 <div class="system-banner"
   style="background: #e74c3c; color: white; text-align: center; padding: 0.5rem; font-weight: bold;">
-  ⚠️ {system.message} - Algunas funciones pueden estar deshabilitadas.
+  ⚠️ {system.message} - {i18n.header_system_degraded}
 </div>
 {/if}

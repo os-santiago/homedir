@@ -28,9 +28,13 @@ public class QuestBoardResource {
     @Inject
     com.scanales.eventflow.service.UserProfileService userProfileService;
 
-    @CheckedTemplate
+    @Inject
+    com.scanales.eventflow.config.AppMessages messages;
+
+    @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
-        public static native TemplateInstance quests(List<Quest> quests, String filter);
+        public static native TemplateInstance quests(List<Quest> quests, String filter,
+                com.scanales.eventflow.config.AppMessages i18n);
     }
 
     @GET
@@ -62,7 +66,7 @@ public class QuestBoardResource {
             }
         }
 
-        return withLayoutData(Templates.quests(quests, filter), "quests");
+        return withLayoutData(Templates.quests(quests, filter, messages), "quests");
     }
 
     @jakarta.ws.rs.POST

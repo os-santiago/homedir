@@ -32,12 +32,9 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Optional;
-import org.jboss.logging.Logger;
 
 @Path("/private/profile")
 public class ProfileResource {
-
-  private static final Logger LOG = Logger.getLogger(ProfileResource.class);
 
   @CheckedTemplate(requireTypeSafeExpressions = false)
   static class Templates {
@@ -63,7 +60,9 @@ public class ProfileResource {
         java.util.List<ClassOption> classOptions,
         QuestProfile questProfile,
         String currentLanguage,
-        AppMessages i18n);
+        AppMessages i18n,
+        String ogTitle,
+        String ogDescription);
   }
 
   /** Display option for class selection. */
@@ -147,6 +146,15 @@ public class ProfileResource {
     // Fetch Gamification Profile
     QuestProfile questProfile = questService.getProfile(email);
 
+    // Viral Feature: Social Tags
+    String ogTitle = (name != null ? name : "Developer") + "'s Homedir";
+    String questClass = (userProfile != null && userProfile.getQuestClass() != null)
+        ? userProfile.getQuestClass().toString()
+        : "Novice";
+    int xp = (userProfile != null) ? userProfile.getCurrentXp() : 0;
+    String ogDescription = "Level " + (xp / 1000) + " " + questClass + ". Current XP: " + xp
+        + ". Solving real engineering problems.";
+
     return Templates.profile(
         name,
         givenName,
@@ -168,7 +176,9 @@ public class ProfileResource {
         classOptions,
         questProfile,
         finalLang,
-        messages)
+        messages,
+        ogTitle,
+        ogDescription)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 

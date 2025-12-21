@@ -1,28 +1,26 @@
 {#include layout/main}
-{#title}Proyectos · Homedir{/title}
+{#title}{i18n.projects_title}{/title}
 {#body}
-<nav class="breadcrumbs"><span>Inicio</span> / <strong>Proyectos</strong></nav>
+<nav class="breadcrumbs"><span>{i18n.nav_home}</span> / <strong>{i18n.nav_projects}</strong></nav>
 
 <header class="page-header">
   <div class="section-header">
-    <p class="section-subtitle">Roadmap · Homedir</p>
-    <h1>Proyectos activos</h1>
+    <p class="section-subtitle">{i18n.projects_title}</p>
+    <h1>{i18n.projects_hero_title}</h1>
   </div>
-  <p class="section-subtitle">Sigue el estado de los módulos y entra directo al repositorio o sección
-    correspondiente.
-  </p>
+  <p class="section-subtitle">{i18n.projects_hero_desc}</p>
 
   <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-    <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank" rel="noopener">Abrir
-      repositorio</a>
+    <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank"
+      rel="noopener">{i18n.btn_open_repo}</a>
 
     {#if !userSession.communityMember}
     {#if userSession.githubLinked}
     <a href="/comunidad" class="btn-primary"
-      style="background: transparent; border: 1px solid white; color: white;">Unirme a la comunidad</a>
+      style="background: transparent; border: 1px solid white; color: white;">{i18n.btn_join_community}</a>
     {#else}
     <a href="/private/github/start?redirect=/proyectos" class="btn-primary"
-      style="background: transparent; border: 1px solid white; color: white;">Conectar GitHub para unirme</a>
+      style="background: transparent; border: 1px solid white; color: white;">{i18n.btn_connect_join}</a>
     {/if}
     {/if}
   </div>
@@ -30,56 +28,51 @@
 
 <section class="page-grid">
   <div class="section-header" style="grid-column: 1 / -1; margin-top: 1rem;">
-    <p class="section-subtitle">Módulos</p>
-    <h2 class="page-title">Hoja de ruta visible</h2>
+    <p class="section-subtitle">{i18n.projects_section_modules}</p>
+    <h2 class="page-title">{i18n.projects_section_roadmap}</h2>
   </div>
 
   <article class="section-card">
     <div style="display: flex; flex-direction: column; height: 100%;">
-      <p class="eyebrow">Backend</p>
+      <p class="eyebrow">{i18n.project_backend_eyebrow}</p>
       <h3 style="margin-bottom: 0.5rem;">Homedir Core</h3>
-      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Base de la plataforma:
-        autenticación, perfiles y orquestación de módulos.</p>
+      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">{i18n.project_backend_desc}</p>
 
       <div
         style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
         <span class="badge"
-          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En
-          producción</span>
-        <a class="nav-link" href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener">Abrir
+          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">{i18n.badge_production}</span>
+        <a class="nav-link" href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener">{i18n.btn_open}
           ↗</a>
       </div>
     </div>
   </article>
   <article class="section-card">
     <div style="display: flex; flex-direction: column; height: 100%;">
-      <p class="eyebrow">Tiempo real</p>
-      <h3 style="margin-bottom: 0.5rem;">Notificaciones Globales</h3>
-      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Canal WebSocket y centro de
-        notificaciones para eventos y alertas.</p>
+      <p class="eyebrow">{i18n.project_realtime_eyebrow}</p>
+      <h3 style="margin-bottom: 0.5rem;">{i18n.project_realtime_title}</h3>
+      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">{i18n.project_realtime_desc}</p>
 
       <div
         style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
         <span class="badge"
-          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">Beta</span>
+          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">{i18n.badge_beta}</span>
         <a class="nav-link" href="https://github.com/os-santiago/homedir/tree/main/quarkus-app" target="_blank"
-          rel="noopener">Abrir ↗</a>
+          rel="noopener">{i18n.btn_open} ↗</a>
       </div>
     </div>
   </article>
   <article class="section-card">
     <div style="display: flex; flex-direction: column; height: 100%;">
-      <p class="eyebrow">Personas</p>
-      <h3 style="margin-bottom: 0.5rem;">Comunidad</h3>
-      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">Directorio de integrantes y
-        onboarding con GitHub para contribuir.</p>
+      <p class="eyebrow">{i18n.project_people_eyebrow}</p>
+      <h3 style="margin-bottom: 0.5rem;">{i18n.nav_community}</h3>
+      <p style="opacity: 0.9; font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem;">{i18n.project_people_desc}</p>
 
       <div
         style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
         <span class="badge"
-          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">En
-          diseño</span>
-        <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">Abrir ↗</a>
+          style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 8px; font-size: 0.6rem; text-transform: uppercase;">{i18n.badge_design}</span>
+        <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">{i18n.btn_open} ↗</a>
       </div>
     </div>
   </article>
