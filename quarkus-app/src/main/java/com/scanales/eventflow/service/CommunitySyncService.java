@@ -235,19 +235,70 @@ public class CommunitySyncService {
   }
 
   private MembersPayload loadMembers() throws Exception {
-    HttpRequest request = contentRequest(defaultBranch);
-    HttpResponse<String> response = send(request);
+    // Try GitHub API first (works with token)
+    try {
+      HttpRequest request = contentRequest(defaultBranch);
+      HttpResponse<String> response = send(request);
+
+      if (response.statusCode() == 404) {
+        return new MembersPayload(new ArrayList<>(), null);
+      }
+
+      // If 403 (Forbidden) and no token, try raw URL fallback
+      if (response.statusCode() == 403 && (githubToken == null || githubToken.isBlank())) {
+        LOG.info("GitHub API returned 403 without token. Trying raw content URL...");
+        return loadMembersFromRaw();
+      }
+
+      if (response.statusCode() >= 400) {
+        throw new IllegalStateException("GitHub API responded with " + response.statusCode());
+      }
+
+      JsonFileResponse json = jsonMapper.readValue(response.body(), JsonFileResponse.class);
+      byte[] decoded = Base64.getDecoder().decode(json.content.replaceAll("\\n", ""));
+      CommunityData data = yamlMapper.readValue(decoded, CommunityData.class);
+      List<CommunityMember> list = data.members != null ? data.members : new ArrayList<>();
+      return new MembersPayload(list, json.sha);
+
+    } catch (Exception e) {
+      // If API fails and no token, try raw URL as fallback
+      if (githubToken == null || githubToken.isBlank()) {
+        LOG.warn("GitHub API failed, attempting raw URL fallback: " + e.getMessage());
+        return loadMembersFromRaw();
+      }
+      throw e;
+    }
+  }
+
+  private MembersPayload loadMembersFromRaw() throws Exception {
+    String rawUrl = String.format(
+        "https://raw.githubusercontent.com/%s/%s/%s/%s",
+        repoOwner, repoName, defaultBranch, membersPath);
+
+    LOG.info("Fetching community members from raw URL: " + rawUrl);
+
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(rawUrl))
+        .GET()
+        .build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
     if (response.statusCode() == 404) {
+      LOG.warn("Members file not found at raw URL");
       return new MembersPayload(new ArrayList<>(), null);
     }
+
     if (response.statusCode() >= 400) {
-      throw new IllegalStateException("GitHub responded with " + response.statusCode());
+      throw new IllegalStateException("Raw GitHub content responded with " + response.statusCode());
     }
-    JsonFileResponse json = jsonMapper.readValue(response.body(), JsonFileResponse.class);
-    byte[] decoded = Base64.getDecoder().decode(json.content.replaceAll("\n", ""));
-    CommunityData data = yamlMapper.readValue(decoded, CommunityData.class);
+
+    // Parse YAML directly from response
+    CommunityData data = yamlMapper.readValue(response.body(), CommunityData.class);
     List<CommunityMember> list = data.members != null ? data.members : new ArrayList<>();
-    return new MembersPayload(list, json.sha);
+
+    LOG.info("Successfully loaded " + list.size() + " members from raw URL");
+    return new MembersPayload(list, null); // No SHA available from raw URL
   }
 
   private String serializeMembers(CommunityData data) throws JsonProcessingException {

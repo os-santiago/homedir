@@ -1,3 +1,10 @@
+{#if filtered.size == 0}
+<div class="section-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem 2rem;">
+    <span class="material-symbols-outlined"
+        style="font-size: 4rem; opacity: 0.5; display: block; margin-bottom: 1rem;">group_off</span>
+    <p style="font-size: 1.1rem; opacity: 0.9;">No hay usuarios disponibles en este momento...</p>
+</div>
+{#else}
 {#for member in filtered}
 <a href="{member.profileUrl}" target="_blank" class="section-card community-member-card">
     <div class="member-card-content">
@@ -32,3 +39,4 @@
     {/if}
 </a>
 {/for}
+{/if}
