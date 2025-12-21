@@ -1,0 +1,91 @@
+name: Update Docs on Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  update-docs:
+    name: Sync Changelog & Release Notes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Prepare Release Data
+        id: release_data
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger: Fetching latest release info..."
+            # Fetch latest release json
+            JSON=$(gh release view --json tagName,body,publishedAt)
+            TAG_NAME=$(echo "$JSON" | jq -r .tagName)
+            BODY=$(echo "$JSON" | jq -r .body)
+            PUBLISHED_AT=$(echo "$JSON" | jq -r .publishedAt | cut -d'T' -f1)
+          else
+            echo "Release event trigger..."
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            BODY="${{ github.event.release.body }}"
+            PUBLISHED_AT="$(date +'%Y-%m-%d')"
+          fi
+          
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          echo "PUBLISHED_AT=$PUBLISHED_AT" >> $GITHUB_ENV
+          
+          # Write body to file to handle multiline safely
+          echo "$BODY" > release_body.txt
+
+      - name: Update CHANGELOG.md
+        run: |
+          # Create new entry header
+          echo -e "\n## [${TAG_NAME}] - ${PUBLISHED_AT}\n" > new_entry.md
+          cat release_body.txt >> new_entry.md
+          echo -e "\n" >> new_entry.md
+          
+          # Prepend to original file (skipping the first # Changelog line if desired, 
+          # but here we just append after the title or at top. 
+          # Let's start after line 2 assuming standard format or just simple concatenation)
+          
+          # Simple prepend approach:
+          # 1. Keep the title
+          head -n 2 CHANGELOG.md > temp_changelog.md
+          # 2. Add new entry
+          cat new_entry.md >> temp_changelog.md
+          # 3. Add the rest of the file
+          tail -n +3 CHANGELOG.md >> temp_changelog.md
+          
+          mv temp_changelog.md CHANGELOG.md
+
+      - name: Update RELEASE_NOTES.md
+        run: |
+          # Similar approach for RELEASE_NOTES.md
+          echo -e "# Homedir ${TAG_NAME#v}\n" > new_notes.md
+          cat release_body.txt >> new_notes.md
+          echo -e "\n\n" >> new_notes.md
+          
+          cat RELEASE_NOTES.md >> new_notes.md
+          mv new_notes.md RELEASE_NOTES.md
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add CHANGELOG.md RELEASE_NOTES.md
+          
+          # Commit only if changes exist
+          if ! git diff --staged --quiet; then
+            git commit -m "docs: release ${TAG_NAME} changelog sync"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi

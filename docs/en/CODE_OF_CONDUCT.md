@@ -1,23 +1,23 @@
-# EventFlow Community Code of Conduct
+# Homedir Community Code of Conduct
 
-Disponible en [español](CODE_OF_CONDUCT.es.md).
+Available in [Spanish](../es/CODE_OF_CONDUCT.md).
 
 ## Our Pledge
 
-We, as EventFlow maintainers, contributors, organizers, speakers, sponsors, volunteers, and users, pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
+We, as Homedir maintainers, contributors, organizers, speakers, sponsors, volunteers, and users, pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
 We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
 
 ## Our Standards
 
-Examples of behavior that contributes to a positive environment for the EventFlow community include:
+Examples of behavior that contributes to a positive environment for the Homedir community include:
 
 * Demonstrating empathy and kindness toward other people
 * Being respectful of differing opinions, viewpoints, and experiences
 * Giving and gracefully accepting constructive feedback
 * Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
 * Focusing on what is best not just for us as individuals, but for the overall community
-* Respecting event timeboxes, speaker slots, and moderator guidance in live or online sessions related to EventFlow
+* Respecting event timeboxes, speaker slots, and moderator guidance in live or online sessions related to Homedir
 
 Examples of unacceptable behavior include:
 
@@ -31,29 +31,29 @@ Examples of unacceptable behavior include:
 
 ## Enforcement Responsibilities
 
-EventFlow **maintainers and moderators** are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior they deem inappropriate, threatening, offensive, or harmful.
+Homedir **maintainers and moderators** are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior they deem inappropriate, threatening, offensive, or harmful.
 
 Maintainers and moderators have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, discussions, and other contributions that are not aligned to this Code of Conduct, and will communicate reasons for moderation decisions when appropriate.
 
 ## Scope
 
-This Code of Conduct applies in **all EventFlow community spaces**, including but not limited to:
+This Code of Conduct applies in **all Homedir community spaces**, including but not limited to:
 - GitHub (Issues, Pull Requests, Discussions, wiki, and code reviews)
 - Community calls, demos, and webinars
-- Event spaces where EventFlow is presented or used (online or in person)
-- Official social media accounts or communications representing EventFlow
+- Event spaces where Homedir is presented or used (online or in person)
+- Official social media accounts or communications representing Homedir
 
 It also applies when an individual is **officially representing** the community in public spaces (e.g., using an official email address, posting via an official social account, or acting as an appointed representative).
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the EventFlow maintainers responsible for enforcement at **sergio.canales.e@gmail.com**.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the Homedir maintainers responsible for enforcement at **sergio.canales.e@gmail.com**.
 
 All complaints will be reviewed and investigated promptly and fairly. All maintainers and moderators are obligated to respect the privacy and security of the reporter of any incident.
 
 ## Enforcement Guidelines
 
-EventFlow maintainers and moderators will follow these Community Impact Guidelines in determining the consequences for any action they deem in violation of this Code of Conduct:
+Homedir maintainers and moderators will follow these Community Impact Guidelines in determining the consequences for any action they deem in violation of this Code of Conduct:
 
 ### 1. Correction
 

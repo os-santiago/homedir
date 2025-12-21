@@ -1,38 +1,38 @@
 # Security Policy
 
-Disponible en [español](SECURITY.es.md).
+Available in [Spanish](../es/SECURITY.md).
 
-EventFlow takes the security of our users and contributors seriously. If you believe you’ve found a vulnerability, please follow the process below to help us fix it quickly and responsibly.
+Homedir takes the security of our users and contributors seriously. If you believe you’ve found a vulnerability, please follow the process below to help us fix it quickly and responsibly.
 
 ---
 
-## ✅ Supported Versions (Major-only)
+## Supported Versions (Major-only)
 
 We support **only the currently active major release line**. When a new major is released, all previous majors become **unsupported** (EOL) immediately.
 
-**Current active major (as of 2025-08-09): `2.x`**
+**Current active major: `2.x`**
 
-| Version | Supported                 |
-|--------:|---------------------------|
-| 2.x     | ✅ Active (features + security) |
-| < 2.x   | ❌ Unsupported             |
+| Version | Supported |
+|--------:|-----------|
+| 2.x     | Active    |
+| < 2.x   | Unsupported |
 
 > This major-only policy keeps the project fast and secure in line with our trunk-based development approach.
 
 ---
 
-## 🔐 Reporting a Vulnerability
+## Reporting a Vulnerability
 
 **Please do not open a public Issue or Discussion for security problems.**
 
 Use one of these private channels:
 
-1. **GitHub – Private vulnerability report (preferred)**  
+1. **GitHub – Private vulnerability report (preferred)**
    Go to the repository **Security** tab → **Report a vulnerability** and follow the form.
 
-2. **Email**  
-   Send details to **sergio.canales.e@gmail.com** with the subject:  
-   `EVENTFLOW SECURITY: <short title>`
+2. **Email**
+   Send details to **sergio.canales.e@gmail.com** with the subject:
+   `HOMEDIR SECURITY: <short title>`
 
 Please include (as applicable):
 - Affected versions (e.g., `2.2.1`)
@@ -44,7 +44,7 @@ Please include (as applicable):
 
 ---
 
-## ⏱️ Our Response & Timelines
+## Our Response & Timelines
 
 We aim for the following SLAs:
 
@@ -65,14 +65,14 @@ We aim for the following SLAs:
 
 ---
 
-## 🔏 Disclosure & CVE
+## Disclosure & CVE
 
 - We will publish a **GitHub Security Advisory** with details, credits (if desired), and fixed versions.
 - When appropriate, we will request a **CVE ID** and reference it in the advisory and release notes.
 
 ---
 
-## 🛡️ Safe Harbor for Good-Faith Research
+## Safe Harbor for Good-Faith Research
 
 We do not pursue or support legal action for **good-faith security research** that:
 - Avoids privacy violations, service degradation, or data destruction/exfiltration
@@ -81,7 +81,3 @@ We do not pursue or support legal action for **good-faith security research** th
 - Keeps details confidential until a fix is available and a coordinated disclosure is agreed
 
 Out-of-scope activities include social engineering, physical attacks, spam, and DDoS.
-
----
-
-_Last updated: 2025-08-09_

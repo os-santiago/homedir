@@ -1,6 +1,6 @@
 # Arquitectura
 
-Esta sección reúne registros de diseño y notas técnicas sobre la persistencia de EventFlow.
+Esta sección reúne registros de diseño y notas técnicas sobre la persistencia de Homedir.
 
 - [Opciones de persistencia](persistence-options.md)
 - [Servicio de persistencia](persistence-service.md)
