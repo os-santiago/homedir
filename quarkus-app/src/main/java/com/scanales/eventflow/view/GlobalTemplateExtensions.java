@@ -81,14 +81,6 @@ public class GlobalTemplateExtensions {
         return new SystemStatus(false, "Unknown");
     }
 
-<<<<<<< HEAD
-    @Inject
-    com.scanales.eventflow.config.AppMessages appMessages;
-
-    @TemplateGlobal(name = "i18n")
-    public static com.scanales.eventflow.config.AppMessages i18n() {
-        return Arc.container().instance(com.scanales.eventflow.config.AppMessages.class).get();
-=======
     @TemplateGlobal(name = "i18n")
     public static com.scanales.eventflow.config.AppMessages i18n() {
         try {
@@ -96,7 +88,6 @@ public class GlobalTemplateExtensions {
         } catch (Exception e) {
             return null;
         }
->>>>>>> origin/main
     }
 
     @io.quarkus.runtime.annotations.RegisterForReflection
