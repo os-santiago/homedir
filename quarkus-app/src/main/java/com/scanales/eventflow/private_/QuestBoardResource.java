@@ -1,6 +1,7 @@
 package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.model.Quest;
+import com.scanales.eventflow.model.UserSession;
 import com.scanales.eventflow.service.QuestService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -28,9 +29,9 @@ public class QuestBoardResource {
     @Inject
     com.scanales.eventflow.service.UserProfileService userProfileService;
 
-    @CheckedTemplate
+    @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
-        public static native TemplateInstance quests(List<Quest> quests, String filter);
+        public static native TemplateInstance quests(List<Quest> quests, String filter, UserSession userSession);
     }
 
     @GET
@@ -62,7 +63,8 @@ public class QuestBoardResource {
             }
         }
 
-        return withLayoutData(Templates.quests(quests, filter), "quests");
+        UserSession session = userSessionService.getCurrentSession();
+        return withLayoutData(Templates.quests(quests, filter, session), "quests");
     }
 
     @jakarta.ws.rs.POST

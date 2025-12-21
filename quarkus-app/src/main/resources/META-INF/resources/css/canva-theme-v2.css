@@ -129,18 +129,6 @@
     letter-spacing: 1px;
 }
 
-.hd-btn-primary {
-    background: linear-gradient(90deg, #a64bf4 0%, #667eea 100%);
-    color: white;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.hd-btn-primary:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
-}
-
 .hd-btn-secondary {
     background: rgba(255, 255, 255, 0.1);
     color: white;
@@ -153,9 +141,7 @@
 }
 
 .hd-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.2);
-    color: white;
+    color: #ffd700;
 }
 
 .hd-alert {
@@ -486,4 +472,16 @@
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.quest-dashboard-header {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.quest-dashboard-header .hd-eyebrow,
+.quest-dashboard-header .hd-page-title,
+.quest-dashboard-header .hd-page-intro {
+    text-align: center;
 }

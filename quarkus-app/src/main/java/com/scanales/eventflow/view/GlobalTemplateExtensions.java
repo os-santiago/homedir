@@ -78,6 +78,15 @@ public class GlobalTemplateExtensions {
         return new SystemStatus(false, "Unknown");
     }
 
+    @TemplateGlobal(name = "i18n")
+    public static com.scanales.eventflow.config.AppMessages i18n() {
+        try {
+            return Arc.container().instance(com.scanales.eventflow.config.AppMessages.class).get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @io.quarkus.runtime.annotations.RegisterForReflection
     public record SystemStatus(boolean degraded, String message) {
     }

@@ -1,9 +1,9 @@
-{#include layout/main activePage="events"}
+{#include layout/main activePage="eventos"}
 {#title}Eventos - Homedir{/title}
 {#body}
-<nav class="breadcrumbs"><span>Inicio</span> / <strong>Eventos</strong></nav>
 
-<header class="page-header">
+
+<header class="page-header events-page-header">
   <div class="section-header">
     <p class="section-subtitle">Agenda · Homedir</p>
     <h1>Eventos y charlas</h1>
@@ -11,12 +11,7 @@
   <p class="section-subtitle">Consulta la programación completa, los pasados destacados y los enlaces directos de cada
     edición.</p>
 
-  <div class="main-sections" style="margin-top: 2rem;">
-    <div class="section-card">
-      <p class="eyebrow">Próximos</p>
-      <h2>0</h2>
-      <p>En agenda</p>
-    </div>
+  <div class="main-sections events-stats-container">
     <div class="section-card">
       <p class="eyebrow">Pasados</p>
       <h2>0</h2>
@@ -27,27 +22,32 @@
       <h2>{today}</h2>
       <p>Zona horaria local</p>
     </div>
+    <div class="section-card">
+      <p class="eyebrow">Próximos</p>
+      <h2>0</h2>
+      <p>En agenda</p>
+    </div>
   </div>
 </header>
 
 <section class="page-grid">
-  <div class="section-header" style="grid-column: 1 / -1;">
+  <div class="section-header events-full-width">
     <p class="section-subtitle">Próximos eventos</p>
     <h2 class="page-title">En curso o por iniciar</h2>
   </div>
 
-  <div class="section-card" style="grid-column: 1 / -1;">
+  <div class="section-card events-full-width">
     <p>No hay eventos próximos por ahora.</p>
   </div>
 </section>
 
 <section class="page-grid">
-  <div class="section-header" style="grid-column: 1 / -1; margin-top: 2rem;">
+  <div class="section-header events-full-width events-section-margin">
     <p class="section-subtitle">Historial</p>
     <h2 class="page-title">Eventos pasados</h2>
   </div>
 
-  <div class="section-card" style="grid-column: 1 / -1;">
+  <div class="section-card events-full-width">
     <p>Aún no hay registros pasados.</p>
   </div>
 </section>
