@@ -28,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
 
@@ -66,7 +67,10 @@ public class CommunityResource {
         String prUrl,
         String prError,
         List<MemberView> leaderboard,
-        boolean githubLinked);
+        boolean githubLinked,
+        String sort);
+
+    static native TemplateInstance listFragment(List<MemberView> filtered);
   }
 
   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.of("es", "ES"))
@@ -77,14 +81,29 @@ public class CommunityResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance view(
       @QueryParam("q") String query,
+      @QueryParam("sort") String sort,
       @QueryParam("joined") boolean joined,
       @QueryParam("missingGithub") boolean missingGithub,
       @QueryParam("already") boolean already,
       @QueryParam("prUrl") String prUrl,
       @QueryParam("prError") String prError,
-      @QueryParam("githubLinked") boolean githubLinked) {
+      @QueryParam("githubLinked") boolean githubLinked,
+      @jakarta.ws.rs.HeaderParam("X-Partial-Content") boolean partialContent) {
 
-    List<MemberView> filtered = communityService.search(query).stream().map(this::toView).toList();
+    List<MemberView> filtered = communityService.listMembers().stream().map(this::toView)
+        .collect(Collectors.toList()); // Use mutable list for sorting
+
+    // Sorting Logic
+    if ("desc".equalsIgnoreCase(sort)) {
+      filtered.sort((m1, m2) -> m2.name().compareToIgnoreCase(m1.name()));
+    } else {
+      // Default to ascending if not specified or "asc"
+      filtered.sort((m1, m2) -> m1.name().compareToIgnoreCase(m2.name()));
+    }
+
+    if (partialContent) {
+      return Templates.listFragment(filtered);
+    }
 
     String userId = currentUserId().orElse(null);
     MemberView current = userId != null
@@ -121,7 +140,8 @@ public class CommunityResource {
         decode(prUrl),
         prError,
         leaderboard,
-        githubLinked);
+        githubLinked,
+        sort);
 
     return withLayoutData(template, "comunidad");
   }

@@ -7,9 +7,10 @@ Escenario
 {/if}
 {/title}
 {#breadcrumbs}
-  {#if scenario}
-  <a href="/">Inicio</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span class="sep">/</span><span>Escenario: {scenario.name}</span>
-  {/if}
+{#if scenario}
+<a href="/">Inicio</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span
+  class="sep">/</span><span>Escenario: {scenario.name}</span>
+{/if}
 {/breadcrumbs}
 {#main}
 {#if scenario}
@@ -19,19 +20,19 @@ Escenario
   {#if scenario.features}<p>{scenario.features}</p>{/if}
   {#if !talks.isEmpty()}
   <ul class="talk-list">
-  {#for t in talks}
+    {#for t in talks}
     <li class="card talk-card">
       <h3 class="talk-title">{t.name}</h3>
       {#if !t.break && !t.speakers.isEmpty()}
       <div class="speaker-avatars">
         {#for s in t.speakers}
-          <a href="/speaker/{s.id}" title="{s.name}">
-            {#if app:validUrl(s.photoUrl)}
-              <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
-            {#else}
-              <span class="avatar placeholder">👤</span>
-            {/if}
-          </a>
+        <a href="/speaker/{s.id}" title="{s.name}">
+          {#if app:validUrl(s.photoUrl)}
+          <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
+          {#else}
+          <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
+          {/if}
+        </a>
         {/for}
       </div>
       {/if}
@@ -40,9 +41,9 @@ Escenario
         {#if event}<span class="chip">{event.getScenarioName(t.location)}</span>{/if}
       </div>
       <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
-  {#if !t.break && event}<a href="/event/{event.id}/talk/{t.id}" class="btn btn-secondary">Ver charla</a>{/if}
+      {#if !t.break && event}<a href="/event/{event.id}/talk/{t.id}" class="btn btn-secondary">Ver charla</a>{/if}
     </li>
-  {/for}
+    {/for}
   </ul>
   {#else}
   <p>No hay charlas para este escenario.</p>

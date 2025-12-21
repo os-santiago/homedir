@@ -8,6 +8,7 @@ import io.quarkus.arc.Arc;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.qute.TemplateGlobal;
 import jakarta.enterprise.context.ApplicationScoped;
+import io.quarkus.runtime.LaunchMode;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
@@ -88,6 +89,11 @@ public class GlobalTemplateExtensions {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @TemplateGlobal(name = "isDev")
+    public static boolean isDev() {
+        return LaunchMode.current() == LaunchMode.DEVELOPMENT;
     }
 
     @io.quarkus.runtime.annotations.RegisterForReflection

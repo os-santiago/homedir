@@ -1,25 +1,35 @@
 {#include layout/base}
 {#title}{#if speaker}{speaker.name}{#else}Orador{/if}{/title}
 {#breadcrumbs}
-  {#if speaker}
-  <a href="/">Inicio</a><span class="sep">/</span><span>Orador: {speaker.name}</span>
-  {/if}
+{#if speaker}
+<a href="/">Inicio</a><span class="sep">/</span><span>Orador: {speaker.name}</span>
+{/if}
 {/breadcrumbs}
 {#main}
 {#if speaker}
 <section class="speaker-detail">
   <div class="card speaker-summary">
     <div class="speaker-header">
-      {#if speaker.photoUrl}<img src="{speaker.photoUrl}" alt="Foto de {speaker.name}" class="speaker-photo" width="80" height="80">{/if}
+      {#if speaker.photoUrl}<img src="{speaker.photoUrl}" alt="Foto de {speaker.name}" class="speaker-photo" width="80"
+        height="80">{/if}
       <div class="speaker-info">
         <h1 class="page-title">{speaker.name}</h1>
         {#if speaker.bio}<p class="speaker-bio">{speaker.bio}</p>{/if}
-        {#if app:validUrl(speaker.website) || app:validUrl(speaker.twitter) || app:validUrl(speaker.linkedin) || app:validUrl(speaker.instagram)}
+        {#if app:validUrl(speaker.website) || app:validUrl(speaker.twitter) || app:validUrl(speaker.linkedin) ||
+        app:validUrl(speaker.instagram)}
         <div class="speaker-links">
-          {#if app:validUrl(speaker.website)}<a href="{speaker.website}" target="_blank" rel="noopener" class="btn">🌐 Sitio web</a>{/if}
-          {#if app:validUrl(speaker.twitter)}<a href="{speaker.twitter}" target="_blank" rel="noopener" class="btn">🐦 Twitter</a>{/if}
-          {#if app:validUrl(speaker.linkedin)}<a href="{speaker.linkedin}" target="_blank" rel="noopener" class="btn">💼 LinkedIn</a>{/if}
-          {#if app:validUrl(speaker.instagram)}<a href="{speaker.instagram}" target="_blank" rel="noopener" class="btn">📸 Instagram</a>{/if}
+          {#if app:validUrl(speaker.website)}<a href="{speaker.website}" target="_blank" rel="noopener"
+            class="btn"><span class="material-symbols-outlined"
+              style="font-size: 1.2em; vertical-align: middle;">language</span> Sitio web</a>{/if}
+          {#if app:validUrl(speaker.twitter)}<a href="{speaker.twitter}" target="_blank" rel="noopener" class="btn"><img
+              src="https://cdn.simpleicons.org/twitter/white" width="16" height="16" alt="Twitter"
+              style="vertical-align: middle;"> Twitter</a>{/if}
+          {#if app:validUrl(speaker.linkedin)}<a href="{speaker.linkedin}" target="_blank" rel="noopener"
+            class="btn"><img src="https://cdn.simpleicons.org/linkedin/white" width="16" height="16" alt="LinkedIn"
+              style="vertical-align: middle;"> LinkedIn</a>{/if}
+          {#if app:validUrl(speaker.instagram)}<a href="{speaker.instagram}" target="_blank" rel="noopener"
+            class="btn"><img src="https://cdn.simpleicons.org/instagram/white" width="16" height="16" alt="Instagram"
+              style="vertical-align: middle;"> Instagram</a>{/if}
         </div>
         {/if}
       </div>
@@ -27,7 +37,7 @@
   </div>
   {#if !speaker.talks.isEmpty()}
   <div class="card">
-    <h2 class="card-title"><span class="icon">🎤</span>Charlas</h2>
+    <h2 class="card-title"><span class="icon"><span class="material-symbols-outlined">mic</span></span>Charlas</h2>
     <ul class="talk-list">
       {#for t in speaker.talks}
       <li class="card talk-card">

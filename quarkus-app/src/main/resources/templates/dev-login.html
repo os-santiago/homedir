@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Development Login</title>
+    <link rel="stylesheet" href="/css/dev-login.css">
+</head>
+
+<body class="dev-login-page">
+    <div class="dev-login-container">
+        <h1 class="dev-login-title">HomeDir</h1>
+
+        <div class="dev-login-card">
+            <h2 class="dev-warning-header">Local Development Login</h2>
+            <p class="dev-warning-text">
+                These credentials are for <strong>local development only</strong>. No real production data is accessed.
+            </p>
+
+            <div class="dev-credentials-grid">
+                <div class="dev-credential-card">
+                    <strong>Admin User</strong>
+                    User: <code>admin@example.org</code><br>
+                    Pass: <code>adminpass</code>
+                </div>
+                <div class="dev-credential-card">
+                    <strong>Regular User</strong>
+                    User: <code>user@example.com</code><br>
+                    Pass: <code>userpass</code>
+                </div>
+            </div>
+
+            <form method="POST" action="j_security_check" class="dev-login-form">
+                <div class="dev-form-group">
+                    <label for="username" class="dev-form-label">Email</label>
+                    <input type="text" id="username" name="username" placeholder="admin@example.org"
+                        class="dev-form-input">
+                </div>
+                <div class="dev-form-group">
+                    <label for="password" class="dev-form-label">Password</label>
+                    <input type="password" id="password" name="password" placeholder="adminpass" class="dev-form-input">
+                </div>
+                <button type="submit" class="dev-submit-btn">Sign In (Local)</button>
+            </form>
+        </div>
+
+        <p><a href="/" class="dev-back-link">Back to home</a></p>
+    </div>
+</body>
+
+</html>

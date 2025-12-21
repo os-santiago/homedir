@@ -53,7 +53,8 @@ Nuevo Evento · Homedir
             <label for="type" class="hd-form-label">Tipo de evento</label>
             <select id="type" name="type" class="hd-form-input">
               {#for t in types}
-              <option value="{t.name()}" {#if event.type?? && event.type.name() == t.name()} selected{/if}>{t.label}</option>
+              <option value="{t.name()}" {#if t eq event.type} selected{/if}>{t.label}
+              </option>
               {/for}
             </select>
           </div>
@@ -347,7 +348,11 @@ Nuevo Evento · Homedir
         <h4 class="agenda-day-title">{sc.name}</h4>
         <ul class="hd-list">
           {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
-          <li class="hd-table-cell agenda-item-list">{#if t.break}☕{#else}🗣️{/if} {t.startTimeStr} - {t.endTimeStr} |
+          <li class="hd-table-cell agenda-item-list">{#if t.break}<span class="material-symbols-outlined"
+              style="font-size: 1.2em; vertical-align: text-bottom;">coffee</span>{#else}<span
+              class="material-symbols-outlined"
+              style="font-size: 1.2em; vertical-align: text-bottom;">record_voice_over</span>{/if} {t.startTimeStr} -
+            {t.endTimeStr} |
             {t.name} <span class="badge {app:talkStateClass(t, event)}">{app:talkState(t, event)}</span></li>
           {/for}
         </ul>

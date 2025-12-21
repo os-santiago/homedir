@@ -1,0 +1,34 @@
+{#for member in filtered}
+<a href="{member.profileUrl}" target="_blank" class="section-card community-member-card">
+    <div class="member-card-content">
+        {#if member.avatarUrl}
+        <img src="{member.avatarUrl}" alt="{member.name}" class="member-avatar">
+        {#else}
+        <div class="member-avatar-placeholder">
+            <span class="material-symbols-outlined">person</span>
+        </div>
+        {/if}
+        <div>
+            <h3 class="member-name">{member.name}</h3>
+            {#if member.role}
+            <span class="member-role-badge">{member.role}</span>
+            {/if}
+            <span class="member-level-badge">Lvl {member.level}</span>
+            {#if member.skills && member.skills.size > 0}
+            <div class="member-skills-container">
+                {#for skill in member.skills}
+                <span class="member-skill-badge">{skill}</span>
+                {/for}
+            </div>
+            {/if}
+        </div>
+    </div>
+    {#if member.github}
+    <div class="member-github-link">
+        <img src="https://cdn.simpleicons.org/github/white" width="16" height="16" alt="GitHub"
+            class="icon-fill-current" style="margin-right: 4px;">
+        @{member.github}
+    </div>
+    {/if}
+</a>
+{/for}

@@ -117,22 +117,22 @@
 
                 <div class="hd-skill-tree">
                     <div class="hd-skill-node {#if questProfile.level >= 1}unlocked{/if}">
-                        <div class="hd-skill-icon">🌱</div>
+                        <div class="hd-skill-icon"><span class="material-symbols-outlined">sprout</span></div>
                         <div class="hd-skill-label">{i18n.progress_novice}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 5}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 5}unlocked{/if}">
-                        <div class="hd-skill-icon">🛠️</div>
+                        <div class="hd-skill-icon"><span class="material-symbols-outlined">build</span></div>
                         <div class="hd-skill-label">{i18n.progress_contributor}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 10}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 10}unlocked{/if}">
-                        <div class="hd-skill-icon">🧑‍🏫</div>
+                        <div class="hd-skill-icon"><span class="material-symbols-outlined">school</span></div>
                         <div class="hd-skill-label">{i18n.progress_mentor}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 20}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 20}unlocked{/if}">
-                        <div class="hd-skill-icon">🏆</div>
+                        <div class="hd-skill-icon"><span class="material-symbols-outlined">emoji_events</span></div>
                         <div class="hd-skill-label">{i18n.progress_legend}</div>
                     </div>
                 </div>
@@ -176,8 +176,8 @@
             <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
                 <div class="form-group-margin">
                     <select name="locale" class="hd-form-input">
-                        <option value="en" {#if currentLanguage eq 'en' }selected{/if}>🇺🇸 English</option>
-                        <option value="es" {#if currentLanguage eq 'es' }selected{/if}>🇪🇸 Español</option>
+                        <option value="en" {#if currentLanguage eq 'en' }selected{/if}>English</option>
+                        <option value="es" {#if currentLanguage eq 'es' }selected{/if}>Español</option>
                     </select>
                 </div>
                 <button type="submit" class="hd-btn">{i18n.settings_save}</button>
@@ -257,7 +257,7 @@
                             </label>
                             <select id="rating-{talk.id}" class="rating-select hd-form-input" data-talk-id="{talk.id}"
                                 title="Valorar">
-                                <option value="">★</option>
+                                <option value="">-</option>
                                 <option value="1" {#if details.rating eq 1}selected{/if}>1</option>
                                 <option value="2" {#if details.rating eq 2}selected{/if}>2</option>
                                 <option value="3" {#if details.rating eq 3}selected{/if}>3</option>
@@ -265,7 +265,7 @@
                                 <option value="5" {#if details.rating eq 5}selected{/if}>5</option>
                             </select>
                             <button class="hd-btn hd-btn-secondary remove-talk" data-talk-id="{talk.id}"
-                                title="Eliminar">🗑️</button>
+                                title="Eliminar"><span class="material-symbols-outlined">delete</span></button>
                         </div>
                     </div>
                     {/let}

@@ -37,18 +37,24 @@ Evento
         {#if app:validUrl(event.website) || app:validUrl(event.twitter) || app:validUrl(event.linkedin)
         || app:validUrl(event.instagram) || app:validEmail(event.contactEmail) || app:validUrl(event.ticketsUrl)}
         <div class="event-links">
-          {#if app:validUrl(event.website)}<a href="{event.website}" target="_blank" rel="noopener" class="btn">🌐 Sitio
+          {#if app:validUrl(event.website)}<a href="{event.website}" target="_blank" rel="noopener" class="btn"><span
+              class="material-symbols-outlined" style="font-size: 1.2em; vertical-align: middle;">language</span> Sitio
             Web</a>{/if}
-          {#if app:validUrl(event.twitter)}<a href="{event.twitter}" target="_blank" rel="noopener" class="btn">🐦
-            Twitter</a>{/if}
-          {#if app:validUrl(event.linkedin)}<a href="{event.linkedin}" target="_blank" rel="noopener" class="btn">💼
-            LinkedIn</a>{/if}
-          {#if app:validUrl(event.instagram)}<a href="{event.instagram}" target="_blank" rel="noopener" class="btn">📸
-            Instagram</a>{/if}
+          {#if app:validUrl(event.twitter)}<a href="{event.twitter}" target="_blank" rel="noopener" class="btn"><img
+              src="https://cdn.simpleicons.org/twitter/white" width="16" height="16" alt="Twitter"
+              style="vertical-align: middle;"> Twitter</a>{/if}
+          {#if app:validUrl(event.linkedin)}<a href="{event.linkedin}" target="_blank" rel="noopener" class="btn"><img
+              src="https://cdn.simpleicons.org/linkedin/white" width="16" height="16" alt="LinkedIn"
+              style="vertical-align: middle;"> LinkedIn</a>{/if}
+          {#if app:validUrl(event.instagram)}<a href="{event.instagram}" target="_blank" rel="noopener" class="btn"><img
+              src="https://cdn.simpleicons.org/instagram/white" width="16" height="16" alt="Instagram"
+              style="vertical-align: middle;"> Instagram</a>{/if}
           {#if app:validEmail(event.contactEmail)}<a href="mailto:{event.contactEmail}" target="_blank" rel="noopener"
-            class="btn">📧 Email</a>{/if}
+            class="btn"><span class="material-symbols-outlined"
+              style="font-size: 1.2em; vertical-align: middle;">email</span> Email</a>{/if}
           {#if app:validUrl(event.ticketsUrl)}<a href="{event.ticketsUrl}" target="_blank" rel="noopener"
-            class="btn">🎟️ Entradas</a>{/if}
+            class="btn"><span class="material-symbols-outlined"
+              style="font-size: 1.2em; vertical-align: middle;">confirmation_number</span> Entradas</a>{/if}
         </div>
         {/if}
       </div>
@@ -63,7 +69,8 @@ Evento
   </div>
   {#if !event.scenarios.isEmpty()}
   <div class="card">
-    <h2 class="card-title"><span class="icon">🏟️</span>Escenarios</h2>
+    <h2 class="card-title"><span class="icon"><span class="material-symbols-outlined">podium</span></span>Escenarios
+    </h2>
     <div class="scenario-grid">
       {#for s in event.scenarios}
       <article class="scenario-card">
@@ -105,7 +112,8 @@ Evento
             <tr class="hd-table-row">
               <td class="agenda-time hd-table-cell">{t.startTimeStr} - {t.endTimeStr}</td>
               <td class="agenda-title hd-table-cell">
-                <span class="icon">{#if t.break}☕{#else}🗣️{/if}</span>
+                <span class="icon">{#if t.break}<span class="material-symbols-outlined">coffee</span>{#else}<span
+                    class="material-symbols-outlined">record_voice_over</span>{/if}</span>
                 {#if t.break}
                 <span class="agenda-title-text">{t.name}</span>
                 {#else}
@@ -120,7 +128,7 @@ Evento
                     {#if app:validUrl(s.photoUrl)}
                     <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
                     {#else}
-                    <span class="avatar placeholder">👤</span>
+                    <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
                     {/if}
                   </a>
                   {/for}

@@ -1,0 +1,42 @@
+{
+  "6d513ded-13fd-4609-a43f-54c116288cfb" : {
+    "id" : "6d513ded-13fd-4609-a43f-54c116288cfb",
+    "createdAt" : "2025-12-21T22:45:43.474787766Z",
+    "severity" : "ERROR",
+    "source" : "CommunitySync",
+    "message" : "Failed to sync: GitHub responded with 403",
+    "stackTrace" : "",
+    "userId" : "SYSTEM",
+    "resolved" : false
+  },
+  "f32d4c5f-1377-409b-9857-eed0a6626522" : {
+    "id" : "f32d4c5f-1377-409b-9857-eed0a6626522",
+    "createdAt" : "2025-12-21T22:45:43.474502530Z",
+    "severity" : "ERROR",
+    "source" : "CommunitySync",
+    "message" : "Failed to sync: GitHub responded with 403",
+    "stackTrace" : "",
+    "userId" : "SYSTEM",
+    "resolved" : false
+  },
+  "0bf66554-3bbd-45a5-b54b-4f719f39b27a" : {
+    "id" : "0bf66554-3bbd-45a5-b54b-4f719f39b27a",
+    "createdAt" : "2025-12-21T22:48:26.524315825Z",
+    "severity" : "ERROR",
+    "source" : "CommunitySync",
+    "message" : "Failed to sync: GitHub responded with 403",
+    "stackTrace" : "",
+    "userId" : "SYSTEM",
+    "resolved" : false
+  },
+  "77a87852-e594-4a76-8989-5bde5a44151f" : {
+    "id" : "77a87852-e594-4a76-8989-5bde5a44151f",
+    "createdAt" : "2025-12-21T22:48:26.524308631Z",
+    "severity" : "ERROR",
+    "source" : "CommunitySync",
+    "message" : "Failed to sync: GitHub responded with 403",
+    "stackTrace" : "",
+    "userId" : "SYSTEM",
+    "resolved" : false
+  }
+}

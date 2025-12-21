@@ -50,7 +50,7 @@
     <div class="header-actions">
       {#if userSession.communityMember}
       <div class="user-badge community-user-badge">
-        <span class="community-user-icon">✨</span>
+        <span class="material-symbols-outlined">verified</span>
         <span>¡Ya eres parte de la comunidad!</span>
       </div>
       <div class="community-actions-row">
@@ -70,11 +70,8 @@
       <form action="/private/github/start" method="GET" class="btn-align-start">
         <input type="hidden" name="redirect" value="/comunidad" />
         <button type="submit" class="btn-primary btn-github-dark">
-          <svg height="20" viewBox="0 0 16 16" version="1.1" width="20" aria-hidden="true" class="icon-github">
-            <path fill-rule="evenodd"
-              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
-            </path>
-          </svg>
+          <img src="https://cdn.simpleicons.org/github/white" width="20" height="20" alt="GitHub" class="icon-github"
+            style="margin-right: 8px;">
           Conectar GitHub para unirte
         </button>
       </form>
@@ -106,60 +103,104 @@
   <section class="page-grid">
     <div class="section-header events-section-margin" style="grid-column: 1 / -1;" id="directorio">
       <div class="community-directory-header">
-        <div>
+        <div class="community-directory-title">
           <p class="section-subtitle">Directorio</p>
           <h2 class="page-title">Personas de la comunidad</h2>
         </div>
-        <form class="search-form community-search-form" method="get" action="/comunidad">
-          <input type="search" name="q" value="{query}" placeholder="Buscar por nombre, GitHub o habilidades"
-            aria-label="Buscar integrante" class="community-search-input">
-          <button class="btn-primary btn-search-submit" type="submit">Buscar</button>
-        </form>
+        <div class="community-search-container">
+          <p class="section-subtitle">Buscar por nombre, GitHub o habilidades</p>
+          <div class="community-search-row">
+            <form class="search-form community-search-form" method="get" action="/comunidad" style="flex: 1;">
+              <input type="search" name="q" value="{query}" placeholder="Buscar integrante..."
+                aria-label="Buscar integrante" class="community-search-input">
+              <input type="hidden" name="sort" value="{sort}" />
+              <button class="btn-primary btn-search-submit" type="submit" aria-label="Buscar">
+                <span class="material-symbols-outlined">search</span>
+              </button>
+            </form>
+            <div class="community-sort-controls">
+              <span class="sort-label">Ordenar:</span>
+              <a href="/comunidad?q={query}&sort=asc" class="sort-btn {#if sort != 'desc'}active{/if}">Asc</a>
+              <span class="sort-separator">|</span>
+              <a href="/comunidad?q={query}&sort=desc" class="sort-btn {#if sort == 'desc'}active{/if}">Desc</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    {#if filtered.size == 0}
-    <div class="section-card" style="grid-column: 1 / -1;">
-      <p>Aún no hay integrantes visibles con este filtro.</p>
+    <div id="members-list-container" style="display: contents;">
+      {#include CommunityResource/listFragment.html /}
     </div>
-    {#else}
-    {#for member in filtered}
-    <a href="{member.profileUrl}" target="_blank" class="section-card community-member-card">
-      <div class="member-card-content">
-        {#if member.avatarUrl}
-        <img src="{member.avatarUrl}" alt="{member.name}" class="member-avatar">
-        {#else}
-        <div class="member-avatar-placeholder">
-          <span class="community-user-icon">👤</span>
-        </div>
-        {/if}
-        <div>
-          <h3 class="member-name">{member.name}</h3>
-          {#if member.role}
-          <span class="member-role-badge">{member.role}</span>
-          {/if}
-          <span class="member-level-badge">Lvl {member.level}</span>
-          {#if member.skills && member.skills.size > 0}
-          <div class="member-skills-container">
-            {#for skill in member.skills}
-            <span class="member-skill-badge">{skill}</span>
-            {/for}
-          </div>
-          {/if}
-        </div>
-      </div>
-      {#if member.github}
-      <div class="member-github-link">
-        <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true" class="icon-fill-current">
-          <path fill-rule="evenodd"
-            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
-          </path>
-        </svg>
-        @{member.github}
-      </div>
-      {/if}
-    </a>
-    {/for}
-    {/if}
 </main>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.querySelector('.community-search-input');
+    const cards = document.querySelectorAll('.community-member-card');
+    const listContainer = document.getElementById('members-list-container');
+    const form = document.querySelector('.community-search-form');
+
+    // Create no results message element
+    const noResultsMsg = document.createElement('div');
+    noResultsMsg.className = 'section-card';
+    noResultsMsg.style.gridColumn = '1 / -1';
+    noResultsMsg.style.display = 'none';
+    noResultsMsg.innerHTML = '<p>No se encontraron integrantes que coincidan con tu búsqueda.</p>';
+    if (listContainer) {
+      listContainer.appendChild(noResultsMsg);
+    }
+
+    function filterMembers(query) {
+      if (!query) {
+        cards.forEach(card => card.style.display = 'flex');
+        noResultsMsg.style.display = 'none';
+        return;
+      }
+
+      const q = query.toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(q)) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    if (searchInput) {
+      // Filter on input
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        filterMembers(query);
+
+        // Update URL without reloading
+        const url = new URL(window.location.href);
+        if (query) {
+          url.searchParams.set('q', query);
+        } else {
+          url.searchParams.delete('q');
+        }
+        window.history.replaceState({}, '', url);
+      });
+
+      // Prevent form submission to keep it client-side
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+        });
+      }
+
+      // Initial filter if query exists on load
+      if (searchInput.value) {
+        filterMembers(searchInput.value);
+      }
+    }
+  });
+</script>
 {/body}
