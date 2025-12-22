@@ -1,8 +1,7 @@
 {#if filtered.size == 0}
-<div class="section-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem 2rem;">
-    <span class="material-symbols-outlined"
-        style="font-size: 4rem; opacity: 0.5; display: block; margin-bottom: 1rem;">group_off</span>
-    <p style="font-size: 1.1rem; opacity: 0.9;">No hay usuarios disponibles en este momento...</p>
+<div class="section-card empty-state-card">
+    <span class="material-symbols-outlined empty-state-icon">group_off</span>
+    <p class="empty-state-text">No hay usuarios disponibles en este momento...</p>
 </div>
 {#else}
 {#for member in filtered}

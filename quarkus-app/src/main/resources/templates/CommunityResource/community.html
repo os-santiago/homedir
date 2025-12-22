@@ -67,7 +67,10 @@
       {#else}
       {#if !userSession.loggedIn}
       <div class="btn-align-start">
-        <a href="/private/profile" class="btn-primary">Inicia Sesión para unirte</a>
+        <a href="/private/profile" class="btn-primary btn-github-dark">
+          <img src="https://cdn.simpleicons.org/github/white" width="20" height="20" alt="GitHub" class="icon-github">
+          Inicia Sesión para unirte
+        </a>
       </div>
       {#else if !userSession.githubLinked}
       <form action="/private/github/start" method="GET" class="btn-align-start">

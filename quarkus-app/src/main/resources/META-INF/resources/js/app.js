@@ -1,25 +1,25 @@
-(function(){
-  const origFetch = window.fetch;
-  const isCriticalApi = (url) => typeof url === 'string' && url.startsWith('/api/private/');
-  window.fetch = async function(input, init = {}) {
-    if (!init.credentials) { init.credentials = 'include'; }
-    init.headers = new Headers(init.headers || {});
-    if (!init.headers.has('Authorization')) {
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      if (token) { init.headers.set('Authorization', `Bearer ${token}`); }
-    }
-    const res = await origFetch(input, init);
-    const url = typeof input === 'string' ? input : (input && input.url) || '';
-    if (res.status === 401) {
-      if (isCriticalApi(url) && res.headers.get('X-Session-Expired') === 'true') {
-        try { sessionStorage.clear(); localStorage.clear(); } catch (e) {}
-        if (location.pathname !== '/') { location.assign('/?session=expired'); }
-      } else {
-        console.debug('non-critical 401', url);
-      }
-    }
-    return res;
-  };
+(function () {
+    const origFetch = window.fetch;
+    const isCriticalApi = (url) => typeof url === 'string' && url.startsWith('/api/private/');
+    window.fetch = async function (input, init = {}) {
+        if (!init.credentials) { init.credentials = 'include'; }
+        init.headers = new Headers(init.headers || {});
+        if (!init.headers.has('Authorization')) {
+            const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+            if (token) { init.headers.set('Authorization', `Bearer ${token}`); }
+        }
+        const res = await origFetch(input, init);
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (res.status === 401) {
+            if (isCriticalApi(url) && res.headers.get('X-Session-Expired') === 'true') {
+                try { sessionStorage.clear(); localStorage.clear(); } catch (e) { }
+                if (location.pathname !== '/') { location.assign('/?session=expired'); }
+            } else {
+                console.debug('non-critical 401', url);
+            }
+        }
+        return res;
+    };
 })();
 
 /**
@@ -126,6 +126,42 @@ function setupUserMenu() {
             }
         });
     }
+}
+
+function setupUserMenuActiveState() {
+    // Seleccionar el contenedor user-menu-toggle
+    const userMenuToggle = document.querySelector('.user-menu-toggle');
+    const userProfileLink = document.querySelector('.user-profile-link');
+
+    if (!userMenuToggle) return;
+
+    // Restaurar el estado activo si está guardado en sessionStorage
+    const isActive = sessionStorage.getItem('userMenuActive');
+    if (isActive === 'true') {
+        userMenuToggle.classList.add('active');
+    }
+
+    // Agregar evento click al enlace del perfil y a todo el toggle
+    if (userProfileLink) {
+        userProfileLink.addEventListener('click', () => {
+            userMenuToggle.classList.add('active');
+            sessionStorage.setItem('userMenuActive', 'true');
+        });
+    }
+
+    // Detectar clics en cualquier parte del user-menu-toggle
+    userMenuToggle.addEventListener('click', () => {
+        userMenuToggle.classList.add('active');
+        sessionStorage.setItem('userMenuActive', 'true');
+    });
+
+    // Limpiar el estado activo cuando se navega a otra pestaña
+    const navLinks = document.querySelectorAll('.retro-nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            sessionStorage.removeItem('userMenuActive');
+        });
+    });
 }
 
 function setupAgendaToggle() {
@@ -271,6 +307,7 @@ function restoreScroll() {
 function onDomContentLoaded() {
     setupMenu();
     setupUserMenu();
+    setupUserMenuActiveState();
     setupAgendaToggle();
     setupViewFullAgenda();
     adjustLayout();

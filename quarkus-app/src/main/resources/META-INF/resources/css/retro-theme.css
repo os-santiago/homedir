@@ -2424,11 +2424,13 @@
       margin-top: auto;
       display: flex;
       gap: 0.8rem;
+      align-items: center;
     }
 
     .quest-action-btn {
       flex: 1;
-      text-align: center;
+      text-align: start;
+      white-space: nowrap;
     }
 
     .quest-action-form {
@@ -2647,7 +2649,10 @@
 
     .btn-github-dark {
       background: #24292e;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 8px solid rgba(0, 0, 0, 0.4);
+      border-right: 6px solid rgba(0, 0, 0, 0.3);
+      padding: 0.8rem 1.5rem;
     }
 
     .icon-github {
@@ -2790,6 +2795,25 @@
       fill: currentColor;
     }
 
+    .empty-state-card {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      opacity: 0.5;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state-text {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+
     /* Header Styles */
     .header-logo-link {
       text-decoration: none;
@@ -2823,6 +2847,26 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      background: var(--color-surface-2);
+      border-radius: 10px;
+      padding: 0.5rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .user-menu-toggle.active {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .user-menu-toggle.active .user-profile-link-styled {
+      color: #ffd700;
+    }
+
+    .user-menu-toggle.active .user-menu-btn-styled {
+      color: #ffd700;
+    }
+
+    .user-menu-toggle.active .user-name {
+      color: #ffd700;
     }
 
     .user-profile-link-styled {
@@ -3209,6 +3253,18 @@
       padding: 2px 8px;
       font-size: 0.6rem;
       text-transform: uppercase;
+    }
+
+    .project-card-icon {
+      font-size: 4rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .section-card .project-card-icon .material-symbols-outlined {
+      font-size: inherit;
     }
 
     /* Utilities */
