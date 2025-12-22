@@ -68,7 +68,15 @@
       width: 60px;
       height: 60px;
       position: relative;
+      border-radius: 30px;
       animation: logoFloat 3s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon .material-symbols-outlined {
+      font-size: 40px;
     }
 
     @keyframes logoFloat {
@@ -623,6 +631,10 @@
       animation: pulseGlow 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
       will-change: transform, box-shadow;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .icon-wrapper .material-symbols-outlined {
+      font-size: 55px;
     }
 
     @keyframes pulseGlow {
@@ -2412,11 +2424,13 @@
       margin-top: auto;
       display: flex;
       gap: 0.8rem;
+      align-items: center;
     }
 
     .quest-action-btn {
       flex: 1;
-      text-align: center;
+      text-align: start;
+      white-space: nowrap;
     }
 
     .quest-action-form {
@@ -2635,7 +2649,10 @@
 
     .btn-github-dark {
       background: #24292e;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 8px solid rgba(0, 0, 0, 0.4);
+      border-right: 6px solid rgba(0, 0, 0, 0.3);
+      padding: 0.8rem 1.5rem;
     }
 
     .icon-github {
@@ -2662,10 +2679,14 @@
 
     .community-directory-header {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
       gap: 1rem;
+    }
+
+    .community-directory-title {
+      text-align: center;
     }
 
     .community-search-form {
@@ -2774,6 +2795,25 @@
       fill: currentColor;
     }
 
+    .empty-state-card {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      opacity: 0.5;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state-text {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+
     /* Header Styles */
     .header-logo-link {
       text-decoration: none;
@@ -2807,6 +2847,26 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      background: var(--color-surface-2);
+      border-radius: 10px;
+      padding: 0.5rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .user-menu-toggle.active {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .user-menu-toggle.active .user-profile-link-styled {
+      color: #ffd700;
+    }
+
+    .user-menu-toggle.active .user-menu-btn-styled {
+      color: #ffd700;
+    }
+
+    .user-menu-toggle.active .user-name {
+      color: #ffd700;
     }
 
     .user-profile-link-styled {
@@ -3195,6 +3255,18 @@
       text-transform: uppercase;
     }
 
+    .project-card-icon {
+      font-size: 4rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .section-card .project-card-icon .material-symbols-outlined {
+      font-size: inherit;
+    }
+
     /* Utilities */
     .ui-hidden {
       display: none !important;
@@ -3402,4 +3474,71 @@
     .profile-picture {
       max-width: 150px;
       border-radius: 0.5rem;
+    }
+
+    /* Community Search & Sort */
+    .community-search-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .community-search-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .community-sort-controls {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      margin-top: 0;
+      white-space: nowrap;
+    }
+
+    .sort-label {
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sort-btn {
+      color: rgba(255, 255, 255, 0.6);
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .sort-btn:hover {
+      color: #fff;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+
+    .sort-btn.active {
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .sort-separator {
+      opacity: 0.4;
+      margin: 0 2px;
+    }
+
+    /* Added via Refactoring */
+    .notifications-bell .material-symbols-outlined {
+      font-size: 24px;
+    }
+
+    .btn-search-submit .material-symbols-outlined {
+      font-size: 1.2rem;
     }

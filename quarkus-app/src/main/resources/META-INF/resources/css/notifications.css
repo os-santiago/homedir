@@ -10,16 +10,18 @@
   pointer-events: none;
   z-index: 1000;
 }
+
 #ef-toast-container[data-position="top"] {
   top: 0.5rem;
   bottom: auto;
 }
+
 .ef-toast {
   background: #333;
   color: #fff;
   padding: 0.75rem 1rem;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   width: min(360px, 90%);
   pointer-events: auto;
   display: flex;
@@ -28,18 +30,22 @@
   min-height: 48px;
   overflow-wrap: anywhere;
 }
+
 .ef-toast.hide {
   opacity: 0;
   transform: translateY(20px);
 }
+
 .ef-toast__title {
   font-weight: bold;
 }
+
 .ef-toast__actions {
   margin-top: 0.5rem;
   display: flex;
   gap: 0.5rem;
 }
+
 .ef-toast button,
 .ef-toast a {
   min-height: 44px;
@@ -54,12 +60,14 @@
   text-decoration: none;
   border-radius: 4px;
 }
+
 .ef-toast button:focus,
 .ef-toast a:focus,
 #ef-toast-close-all:focus {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
+
 #ef-toast-close-all {
   margin-bottom: 0.5rem;
   min-height: 44px;
@@ -70,6 +78,7 @@
   border: none;
   border-radius: 4px;
 }
+
 @media (prefers-reduced-motion: reduce) {
   .ef-toast {
     transition: none;
@@ -165,15 +174,19 @@
   min-height: 44px;
   text-decoration: none;
   color: inherit;
+  background: none;
+  border: none;
 }
 
 .notifications-bell:focus {
-  outline: 2px solid #000;
-  outline-offset: 2px;
+  outline: none;
+  border: none;
+  background: none;
 }
 
 .notifications-bell .icon-bell::before {
-  content: "\1F514"; /* bell emoji */
+  content: "\1F514";
+  /* bell emoji */
 }
 
 .notifications-bell .icon-bell {
@@ -192,4 +205,18 @@
   line-height: 1.2;
   min-width: 1.2em;
   text-align: center;
+}
+
+.notifications-bell .badge.hidden {
+  display: none;
+}
+
+.notifications-bell:hover,
+.notifications-bell:active,
+.notifications-bell.active {
+  background: none;
+  border: none;
+  opacity: 1;
+  border-bottom-color: transparent;
+  outline: none;
 }

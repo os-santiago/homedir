@@ -2,22 +2,7 @@
   <div class="logo">
     <a href="/" class="header-logo-link">
       <div class="logo-icon">
-        <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M50 15 L85 45 L85 85 L15 85 L15 45 Z" fill="#ffffff" stroke="#ffffff" stroke-width="3" />
-          <path d="M50 15 L85 45 L75 45 L50 25 L25 45 L15 45 Z" fill="#FFD700" stroke="#ffffff" stroke-width="2" />
-          <rect x="42" y="60" width="16" height="25" fill="#2d3748" stroke="#ffffff" stroke-width="2" />
-          <rect x="25" y="52" width="12" height="12" fill="#4a5568" stroke="#ffffff" stroke-width="2" />
-          <rect x="63" y="52" width="12" height="12" fill="#4a5568" stroke="#ffffff" stroke-width="2" />
-          <rect x="28" y="55" width="2" height="2" fill="#ffffff" />
-          <rect x="32" y="55" width="2" height="2" fill="#ffffff" />
-          <rect x="66" y="55" width="2" height="2" fill="#ffffff" />
-          <rect x="70" y="55" width="2" height="2" fill="#ffffff" />
-          <rect x="65" y="30" width="8" height="15" fill="#ffffff" stroke="#ffffff" stroke-width="2" />
-          <rect x="66" y="27" width="6" height="3" fill="#FFD700" />
-          <path d="M50 20 Q45 15 40 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
-          <path d="M50 20 Q55 15 60 12" stroke="#FFD700" stroke-width="2" fill="none" opacity="0.6" />
-          <circle cx="50" cy="22" r="2" fill="#FFD700" />
-        </svg>
+        <span class="material-symbols-outlined">token</span>
       </div>
       <div class="logo-text header-logo-text">
         <span id="navPlatformName" class="header-platform-name">HomeDir</span>
@@ -35,7 +20,7 @@
 
     <a href="/notifications/center" class="nav-link notifications-bell" aria-label="{i18n.nav_notifications}"
       data-nav-link>
-      <span class="icon-bell" aria-hidden="true"></span>
+      <span class="material-symbols-outlined">notifications</span>
       <span class="sr-only">{i18n.nav_notifications}</span>
       <span id="notif-badge" class="badge hidden">0</span>
     </a>
@@ -68,7 +53,7 @@
         </a>
         <button class="user-menu-btn user-menu-btn-styled"
           onclick="this.parentElement.nextElementSibling.classList.toggle('show')">
-          <span class="dropdown-arrow">▼</span>
+          <span class="material-symbols-outlined">expand_more</span>
         </button>
       </div>
 
@@ -90,18 +75,18 @@
         </div>
 
         <a href="/private/profile" class="dropdown-item header-dropdown-item">
-          👤 {i18n.nav_my_profile}
+          <span class="material-symbols-outlined">person</span> {i18n.nav_my_profile}
         </a>
 
         {#if userSession.isAdmin}
         <a href="/private/admin" class="dropdown-item header-dropdown-item header-dropdown-item-admin">
-          ⚙️ {i18n.nav_admin_panel}
+          <span class="material-symbols-outlined">settings</span> {i18n.nav_admin_panel}
         </a>
         {/if}
 
         {#if !userSession.githubLinked}
         <a href="/private/github/connect" class="dropdown-item header-dropdown-item header-dropdown-item-connect">
-          🔗 {i18n.nav_connect_github}
+          <span class="material-symbols-outlined">link</span> {i18n.nav_connect_github}
         </a>
         {#else}
         <div class="dropdown-item header-dropdown-item-github">
@@ -112,12 +97,12 @@
         <div class="dropdown-divider header-dropdown-divider"></div>
 
         <a href="/logout" class="dropdown-item header-dropdown-item header-dropdown-item-admin">
-          🚪 {i18n.nav_logout}
+          <span class="material-symbols-outlined">logout</span> {i18n.nav_logout}
         </a>
       </div>
     </div>
     {#else}
-    <a href="/private/profile" class="login-btn-nav">{i18n.nav_login}</a>
+    <a href="{#if isDev}/login.html{#else}/private/profile{/if}" class="login-btn-nav">{i18n.nav_login}</a>
     {/if}
   </div>
 </nav>
@@ -129,6 +114,7 @@
 </div>
 {#if system.degraded}
 <div class="system-banner">
-  ⚠️ {system.message} - {i18n.header_system_degraded}
+  <span class="material-symbols-outlined" style="vertical-align: middle;">warning</span> {system.message} -
+  {i18n.header_system_degraded}
 </div>
 {/if}

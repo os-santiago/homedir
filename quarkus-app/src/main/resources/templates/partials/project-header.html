@@ -6,16 +6,22 @@
                 <img src="/img/eventflow-logo.png" alt="Homedir" class="logo-main" />
                 <div class="meta">
                     <span>Estado: <strong>{#if stats?? && stats.status??}{stats.status}{#else}—{/if}</strong></span>
-                    <span>Versión: <strong>{#if version??}Persistente con soporte de Eventos, Oradores y Charlas – v{version}{#else}—{/if}</strong></span>
-                    <span>Última actualización: {#if stats?? && stats.lastUpdated??}{stats.lastUpdated}{#else}—{/if}</span>
+                    <span>Versión: <strong>{#if version??}Persistente con soporte de Eventos, Oradores y Charlas –
+                            v{version}{#else}—{/if}</strong></span>
+                    <span>Última actualización: {#if stats?? &&
+                        stats.lastUpdated??}{stats.lastUpdated}{#else}—{/if}</span>
                 </div>
             </div>
-            <p class="note">Homedir es una plataforma para gestionar eventos, actividades, espacios y charlas. Esto es OpenSource, gratuito y con dedicación y pasión por la tecnología.</p>
+            <p class="note">Homedir es una plataforma para gestionar eventos, actividades, espacios y charlas. Esto es
+                OpenSource, gratuito y con dedicación y pasión por la tecnología.</p>
         </div>
     </div>
     <div class="sidebar-actions">
-        <a href="/cta/releases" target="_blank" rel="noopener" class="side-btn secondary" aria-label="Abrir Releases">Releases</a>
-        <a href="/cta/issues" target="_blank" rel="noopener" class="side-btn secondary" aria-label="Reportar issue">Reportar issue</a>
-        <a href="/cta/kofi" target="_blank" rel="noopener" class="side-btn primary" aria-label="Ko-fi">Ko-fi ☕</a>
+        <a href="/cta/releases" target="_blank" rel="noopener" class="side-btn secondary"
+            aria-label="Abrir Releases">Releases</a>
+        <a href="/cta/issues" target="_blank" rel="noopener" class="side-btn secondary"
+            aria-label="Reportar issue">Reportar issue</a>
+        <a href="/cta/kofi" target="_blank" rel="noopener" class="side-btn primary" aria-label="Ko-fi">Ko-fi <span
+                class="material-symbols-outlined" style="font-size: 1em; vertical-align: middle;">coffee</span></a>
     </div>
 </section>

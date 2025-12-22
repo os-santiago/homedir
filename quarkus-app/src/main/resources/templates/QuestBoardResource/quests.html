@@ -24,11 +24,15 @@
         <div class="hd-grid-classes quest-grid">
             {#if quests.isEmpty}
             <div class="hd-panel quest-empty-panel">
-                <div class="quest-empty-icon">📭</div>
+                <div class="quest-empty-icon">
+                    <span class="material-symbols-outlined" style="font-size: 48px;">mark_email_unread</span>
+                </div>
                 <h3 class="hd-panel-title">{i18n.quest_empty_title}</h3>
                 <p class="quest-empty-desc">{i18n.quest_empty_desc}</p>
                 <div class="quest-empty-cta">{i18n.quest_empty_cta_text}</div>
                 <a href="https://github.com/os-santiago/homedir" target="_blank" class="hd-btn hd-btn-primary">
+                    <img src="https://cdn.simpleicons.org/github/white" alt="" width="20" height="20"
+                        style="margin-right: 8px;">
                     {i18n.quest_empty_cta_btn}
                 </a>
             </div>
@@ -37,7 +41,9 @@
             <div class="hd-card quest-card">
                 {#if quest.status == 'CLOSED'}
                 <div class="quest-completed-overlay">
-                    <span class="hd-badge hd-badge-success quest-completed-badge">✅
+                    <span class="hd-badge hd-badge-success quest-completed-badge">
+                        <span class="material-symbols-outlined"
+                            style="font-size: 16px; vertical-align: middle;">check_circle</span>
                         {i18n.badge_completed}</span>
                 </div>
                 {/if}
@@ -58,7 +64,8 @@
                 <div class="quest-actions">
                     {#if userSession.activeQuests.contains(quest.id)}
                     <a href="{quest.url}" target="_blank" class="hd-btn quest-action-btn">
-                        {i18n.btn_instructions} ↗
+                        {i18n.btn_instructions} <span class="material-symbols-outlined"
+                            style="font-size: 16px; vertical-align: middle;">open_in_new</span>
                     </a>
                     <form action="/quests/{quest.id}/complete" method="POST" class="quest-action-form">
                         <button type="submit" class="hd-btn hd-btn-primary quest-action-submit">

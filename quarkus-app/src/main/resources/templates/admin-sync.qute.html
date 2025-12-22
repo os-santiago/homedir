@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estado de Sincronización - HomeDir Admin</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="/css/retro-theme.css">
 </head>
 
@@ -41,7 +43,8 @@
 
             {#if status.paused}
             <div class="admin-paused-warning">
-                <strong class="text-error">⚠ SERVICIO PAUSADO</strong>
+                <strong class="text-error"><span class="material-symbols-outlined"
+                        style="vertical-align: sub;">warning</span> SERVICIO PAUSADO</strong>
                 <p>Se han alcanzado los límites de memoria configurados. La sincronización automática está detenida.</p>
             </div>
             {/if}

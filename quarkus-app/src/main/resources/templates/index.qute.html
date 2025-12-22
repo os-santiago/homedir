@@ -69,28 +69,30 @@
       <h3>{i18n.home_stats_title}</h3>
       <div class="stat-grid">
         <div class="stat-item">
-          <div class="stat-icon">👥</div>
+          <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px;">group</span></div>
           <div>
             <span class="stat-value">{vm.community.totalMembers ?: 0}</span>
             <div class="stat-label">{i18n.home_stats_members}</div>
           </div>
         </div>
         <div class="stat-item">
-          <div class="stat-icon">⭐</div>
+          <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px;">star</span></div>
           <div>
             <span class="stat-value">{vm.community.totalXp ?: 0}</span>
             <div class="stat-label">{i18n.home_stats_xp}</div>
           </div>
         </div>
         <div class="stat-item">
-          <div class="stat-icon">🏆</div>
+          <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px;">emoji_events</span>
+          </div>
           <div>
             <span class="stat-value">{vm.community.totalQuests ?: 0}</span>
             <div class="stat-label">{i18n.home_stats_quests}</div>
           </div>
         </div>
         <div class="stat-item">
-          <div class="stat-icon">🚀</div>
+          <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px;">rocket_launch</span>
+          </div>
           <div>
             <span class="stat-value">{vm.community.totalProjects ?: 0}</span>
             <div class="stat-label">{i18n.home_stats_projects}</div>
@@ -145,22 +147,26 @@
         </div>
         <div class="character-stats">
           <div class="stat-box">
-            <div class="stat-icon">🎯</div>
+            <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 20px;">track_changes</span>
+            </div>
             <div class="value">{vm.character.contributions ?: 0}</div>
             <div class="label">{i18n.home_stat_contributions}</div>
           </div>
           <div class="stat-box">
-            <div class="stat-icon">🏆</div>
+            <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 20px;">emoji_events</span>
+            </div>
             <div class="value">{vm.character.quests ?: 0}</div>
             <div class="label">{i18n.nav_quests}</div>
           </div>
           <div class="stat-box">
-            <div class="stat-icon">📅</div>
+            <div class="stat-icon"><span class="material-symbols-outlined"
+                style="font-size: 20px;">calendar_month</span></div>
             <div class="value">{vm.character.events ?: 0}</div>
             <div class="label">{i18n.nav_events}</div>
           </div>
           <div class="stat-box">
-            <div class="stat-icon">🚀</div>
+            <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 20px;">rocket_launch</span>
+            </div>
             <div class="value">{vm.character.projects ?: 0}</div>
             <div class="label">{i18n.nav_projects}</div>
           </div>

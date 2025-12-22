@@ -6,7 +6,8 @@
 {#if talk}
 <a href="/">Inicio</a>
 {#if event}<span class="sep">/</span><a href="/event/{event.id}">{event.title}</a>{/if}
-{#if talk.location && event}<span class="sep">/</span><a href="/event/{event.id}/scenario/{talk.location}">{event.getScenarioName(talk.location)}</a>{/if}
+{#if talk.location && event}<span class="sep">/</span><a
+  href="/event/{event.id}/scenario/{talk.location}">{event.getScenarioName(talk.location)}</a>{/if}
 <span class="sep">/</span><span>Charla: {talk.name ?: talk.id}</span>
 {/if}
 {/breadcrumbs}
@@ -19,124 +20,129 @@
     {#if talk.location && event}<span class="chip">{event.getScenarioName(talk.location)}</span>{/if}
   </div>
   {#if !talk.description || talk.speakers.isEmpty() || !talk.location || !talk.startTime || !event}
-    <p>Charla en preparación. Pronto estará disponible</p>
+  <p>Charla en preparación. Pronto estará disponible</p>
   {/if}
   {#if talk.description}<p class="talk-description">{talk.description}</p>{/if}
   {#if !talk.speakers.isEmpty()}
-    <div class="speaker-avatars">
-      {#for s in talk.speakers}
-        <a href="/speaker/{s.id}" title="{s.name}">
-          {#if app:validUrl(s.photoUrl)}
-            <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
-          {#else}
-            <span class="avatar placeholder">👤</span>
-          {/if}
-        </a>
-      {/for}
-    </div>
-    <p><strong>Orador:</strong> <a href="/speaker/{talk.speakers[0].id}">{talk.speakers[0].name}</a></p>
-    {#if talk.speakers.size > 1}
-      <p><strong>Co-Speaker:</strong> <a href="/speaker/{talk.speakers[1].id}">{talk.speakers[1].name}</a></p>
-    {/if}
+  <div class="speaker-avatars">
+    {#for s in talk.speakers}
+    <a href="/speaker/{s.id}" title="{s.name}">
+      {#if app:validUrl(s.photoUrl)}
+      <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
+      {#else}
+      <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
+      {/if}
+    </a>
+    {/for}
+  </div>
+  <p><strong>Orador:</strong> <a href="/speaker/{talk.speakers[0].id}">{talk.speakers[0].name}</a></p>
+  {#if talk.speakers.size > 1}
+  <p><strong>Co-Speaker:</strong> <a href="/speaker/{talk.speakers[1].id}">{talk.speakers[1].name}</a></p>
+  {/if}
   {/if}
   <p><strong>Horario:</strong> {#if talk.startTimeStr}{talk.startTimeStr}{#else}Por confirmar{/if}</p>
   <p><strong>Ubicación:</strong>
     {#if talk.location}
-      {#if event}{event.getScenarioName(talk.location)}{#else}{talk.location}{/if}
+    {#if event}{event.getScenarioName(talk.location)}{#else}{talk.location}{/if}
     {#else}
-      Por confirmar
+    Por confirmar
     {/if}
   </p>
   {#if talk.durationMinutes > 0}<p><strong>Duración:</strong> {talk.durationMinutes} min</p>{/if}
   {#if app:isAuthenticated()}
   <p>
     <button id="addTalkBtn" class="btn">
-      {#if inSchedule}<span class="icon">✔</span> Ver en mi perfil{#else}<span class="icon">➕</span> Agregar a mis charlas{/if}
+      {#if inSchedule}<span class="icon"><span class="material-symbols-outlined">check</span></span> Ver en mi
+      perfil{#else}<span class="icon"><span class="material-symbols-outlined">add</span></span> Agregar a mis
+      charlas{/if}
     </button>
   </p>
   <script>
-  (function() {
-    const btn = document.getElementById('addTalkBtn');
-    if (!btn) return;
-    if ({inSchedule}) {
-      btn.classList.add('btn-secondary');
-      btn.dataset.state = 'profile';
-    }
-    btn.addEventListener('click', async () => {
-      if (btn.disabled) return;
-      if (btn.dataset.state === 'profile') {
-        window.location.href = '/private/profile';
-        return;
+    (function () {
+      const btn = document.getElementById('addTalkBtn');
+      if (!btn) return;
+      if ({ inSchedule }) {
+        btn.classList.add('btn-secondary');
+        btn.dataset.state = 'profile';
       }
-      btn.disabled = true;
-      try {
-        const res = await fetch('/private/profile/add/{talk.id}', {
-          method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
-          body: '{}'
-        });
-        const contentType = res.headers.get('content-type') || '';
-        if (res.ok && contentType.includes('application/json')) {
-          const data = await res.json();
-          if (data.status === 'added') {
-            showNotification('success', 'Agregado a mi perfil');
-            btn.classList.add('btn-secondary');
-            btn.innerHTML = '<span class="icon">✔</span> Ver en mi perfil';
+      btn.addEventListener('click', async () => {
+        if (btn.disabled) return;
+        if (btn.dataset.state === 'profile') {
+          window.location.href = '/private/profile';
+          return;
+        }
+        btn.disabled = true;
+        try {
+          const res = await fetch('/private/profile/add/{talk.id}', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: '{}'
+          });
+          const contentType = res.headers.get('content-type') || '';
+          if (res.ok && contentType.includes('application/json')) {
+            const data = await res.json();
+            if (data.status === 'added') {
+              showNotification('success', 'Agregado a mi perfil');
+              btn.classList.add('btn-secondary');
+              btn.innerHTML = '<span class="icon"><span class="material-symbols-outlined">check</span></span> Ver en mi perfil';
+              btn.disabled = false;
+              btn.dataset.state = 'profile';
+            } else if (data.status === 'exists') {
+              showNotification('info', 'La charla ya estaba registrada. <a href="/private/profile">Ver en mi perfil</a>');
+              btn.classList.add('btn-secondary');
+              btn.innerHTML = '<span class="icon"><span class="material-symbols-outlined">check</span></span> Ver en mi perfil';
+              btn.disabled = false;
+              btn.dataset.state = 'profile';
+            } else if (data.status === 'error') {
+              showNotification('error', data.message || 'Ocurrió un error');
+              btn.disabled = false;
+              return;
+            }
+          } else if (res.status === 401) {
+            showNotification('info', 'Debe iniciar sesión para agregar la charla');
             btn.disabled = false;
-            btn.dataset.state = 'profile';
-          } else if (data.status === 'exists') {
-            showNotification('info', 'La charla ya estaba registrada. <a href="/private/profile">Ver en mi perfil</a>');
-            btn.classList.add('btn-secondary');
-            btn.innerHTML = '<span class="icon">✔</span> Ver en mi perfil';
-            btn.disabled = false;
-            btn.dataset.state = 'profile';
-          } else if (data.status === 'error') {
-            showNotification('error', data.message || 'Ocurrió un error');
+            return;
+          } else {
+            showNotification('error', 'Ocurrió un error al registrar la charla');
             btn.disabled = false;
             return;
           }
-        } else if (res.status === 401) {
-          showNotification('info', 'Debe iniciar sesión para agregar la charla');
-          btn.disabled = false;
-          return;
-        } else {
+        } catch (e) {
           showNotification('error', 'Ocurrió un error al registrar la charla');
           btn.disabled = false;
           return;
         }
-      } catch (e) {
-        showNotification('error', 'Ocurrió un error al registrar la charla');
-        btn.disabled = false;
-        return;
-      }
-    });
-  })();
+      });
+    })();
   </script>
   {/if}
   {#if !occurrences.isEmpty()}
   <div class="card">
-    <h2 class="card-title"><span class="icon">⏰</span>Horarios</h2>
+    <h2 class="card-title"><span class="icon"><span class="material-symbols-outlined">schedule</span></span>Horarios
+    </h2>
     <ul class="agenda-list">
-    {#for t in occurrences}
-        <li class="agenda-item">
-          <span class="icon">⏰</span>Día {t.day} - {t.startTimeStr} ({t.durationMinutes} min) -
-          {#if t.location}
-            {#if event}
-              <a href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
-            {#else}
-              <span>{t.location}</span>
-            {/if}
-          {#else}
-            <span>Ubicación por confirmar</span>
-          {/if}
-        </li>
-    {/for}
+      {#for t in occurrences}
+      <li class="agenda-item">
+        <span class="icon"><span class="material-symbols-outlined">schedule</span></span>Día {t.day} - {t.startTimeStr}
+        ({t.durationMinutes} min) -
+        {#if t.location}
+        {#if event}
+        <a href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+        {#else}
+        <span>{t.location}</span>
+        {/if}
+        {#else}
+        <span>Ubicación por confirmar</span>
+        {/if}
+      </li>
+      {/for}
     </ul>
   </div>
   {/if}
   <div class="action-group">
-    {#if talk.location && event}<a href="/event/{event.id}/scenario/{talk.location}" class="btn btn-secondary">Volver al escenario</a>{/if}
+    {#if talk.location && event}<a href="/event/{event.id}/scenario/{talk.location}" class="btn btn-secondary">Volver al
+      escenario</a>{/if}
     {#if event}<a href="/event/{event.id}" class="btn">Volver al evento</a>{/if}
   </div>
 </section>
