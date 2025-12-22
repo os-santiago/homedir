@@ -2916,7 +2916,8 @@
       position: absolute;
       top: 100%;
       right: 0;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(10px);
       border: 1px solid var(--accent-color);
       border-radius: 4px;
       padding: 0.5rem;
@@ -3358,12 +3359,17 @@
     }
 
     .profile-settings-form {
-      margin-top: 1rem;
+      margin: 1rem auto 0;
       max-width: 400px;
     }
 
     .form-group-margin {
       margin-bottom: 1rem;
+    }
+
+    .form-actions-centered {
+      text-align: center;
+      margin-top: 1.5rem;
     }
 
     .page-title {
