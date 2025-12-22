@@ -222,7 +222,12 @@ public class CommunityResource {
   }
 
   private boolean isAuthenticated() {
-    return identity != null && !identity.isAnonymous();
+    try {
+      return identity != null && !identity.isAnonymous();
+    } catch (Exception e) {
+      LOG.warn("Security identity check failed (treating as anonymous): " + e.getMessage());
+      return false;
+    }
   }
 
   private MemberView toView(CommunityMember member) {

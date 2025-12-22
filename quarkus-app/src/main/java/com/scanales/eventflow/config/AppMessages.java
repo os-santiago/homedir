@@ -96,410 +96,43 @@ public interface AppMessages {
     @Message("Settings")
     String section_settings();
 
-    @Message("Level {0}")
+    @Message("Level {level}")
     String resume_level(Object level);
 
-    @Message("Experience: {0} XP / {1} XP")
+    @Message("Experience: {current} XP / {total} XP")
     String resume_exp(int current, int total);
 
-    @Message("Quest History")
-    String resume_history();
-
-    @Message("You haven't completed any quests yet.")
-    String resume_no_history();
-
-    @Message("Skill Tree")
-    String progress_tree();
-
-    @Message("Unlock new capabilities by leveling up.")
-    String progress_intro();
-
-    @Message("Novice")
-    String progress_novice();
-
-    @Message("Contributor")
-    String progress_contributor();
-
-    @Message("Mentor")
-    String progress_mentor();
-
-    @Message("Legend")
-    String progress_legend();
-
-    @Message("Your Guild (Quest Class)")
-    String identity_guild();
-
-    @Message("Choose your archetype so the community knows your main role.")
-    String identity_intro();
-
-    @Message("{0} active initiatives and open collaborations.")
+    @Message("{count} active initiatives and open collaborations.")
     String community_initiatives(int count);
 
-    @Message("You have added {0} talks to your schedule, attended {1} and rated {2}.")
+    @Message("You have added {added} talks to your schedule, attended {attended} and rated {rated}.")
     String agenda_intro(int added, long attended, long rated);
 
-    @Message("You haven't added any talks yet. Explore events and add them to your schedule.")
-    String agenda_no_talks();
-
-    @Message("{0} days · {1} speakers")
+    @Message("{days} days · {speakers} speakers")
     String agenda_days_speakers(int days, int speakers);
 
-    @Message("Day {0}")
+    @Message("Day {day}")
     String agenda_day(int day);
 
-    @Message("Language")
-    String settings_language();
-
-    @Message("Select your preferred language.")
-    String settings_language_intro();
-
-    @Message("Save Preferences")
-    String settings_save();
-
-    @Message("Error saving changes")
-    String msg_error_saving();
-
-    @Message("Could not remove talk")
-    String msg_error_removing();
-
-    @Message("Are you sure?")
-    String msg_confirm_delete();
-
-    @Message("Reason...")
-    String motivation_placeholder();
-
-    @Message("Relevant to my work")
-    String motivation_work();
-
-    @Message("I want to learn about this")
-    String motivation_learning();
-
-    @Message("I know the speaker")
-    String motivation_speaker();
-
-    @Message("I found it interesting")
-    String motivation_interesting();
-
-    // --- Global Navigation ---
-    @Message("Home")
-    String nav_home();
-
-    @Message("Community")
-    String nav_community();
-
-    @Message("Projects")
-    String nav_projects();
-
-    @Message("Events")
-    String nav_events();
-
-    @Message("Quests")
-    String nav_quests();
-
-    @Message("Login")
-    String nav_login();
-
-    @Message("My Profile")
-    String nav_my_profile();
-
-    @Message("Admin Panel")
-    String nav_admin_panel();
-
-    @Message("Connect GitHub")
-    String nav_connect_github();
-
-    @Message("Logout")
-    String nav_logout();
-
-    @Message("Signed in as")
-    String nav_signed_in_as();
-
-    // --- Home Page ---
-    @Message("COMMUNITY PLATFORM TO SCALE YOUR OPEN SOURCE PROJECTS.")
-    String home_hero_title();
-
-    @Message("Get Started")
-    String home_hero_start();
-
-    @Message("Learn More")
-    String home_hero_learn_more();
-
-    @Message("Join the Guild")
-    String btn_join_guild();
-
-    @Message("Explore Quests")
-    String btn_explore_quests();
-
-    @Message("Real Work")
-    String hero_subtitle();
-
-    // --- Quest Board ---
-    @Message("Quest Board")
-    String quest_board_title();
-
-    @Message("Challenges & Rewards")
-    String quest_board_eyebrow();
-
-    @Message("Complete objectives, earn XP and unlock new ranks in the community. Quests sync with your GitHub activity.")
-    String quest_board_intro();
-
-    @Message("My Quests")
-    String quest_filter_mine();
-
-    @Message("Total: {0}")
+    @Message("Total: {count}")
     String quest_total(int count);
 
-    @Message("No active quests")
-    String quest_empty_title();
-
-    @Message("It looks quiet for now.")
-    String quest_empty_desc();
-
-    @Message("Want to create your own quests?")
-    String quest_empty_cta_text();
-
-    @Message("Contribute on GitHub")
-    String quest_empty_cta_btn();
-
-    @Message("Rank {0}")
+    @Message("Rank {difficulty}")
     String quest_rank(String difficulty);
 
-    @Message("Start")
-    String btn_start();
-
-    @Message("Claim")
-    String btn_claim();
-
-    @Message("Continue")
-    String btn_continue();
-
-    @Message("View Details")
-    String btn_view_details();
-
-    @Message("Instructions")
-    String btn_instructions();
-
-    @Message("Closed")
-    String btn_closed();
-
-    @Message("IN PROGRESS")
-    String badge_in_progress();
-
-    @Message("COMPLETED")
-    String badge_completed();
-
-    // --- Header & Global ---
-    @Message("Main Navigation")
-    String header_aria_label();
-
-    @Message("The community platform to scale your teams and projects")
-    String platform_tagline();
-
-    @Message("by OpenSourceSantiago")
-    String platform_by();
-
-    @Message("GitHub Repo")
-    String header_alpha_repo();
-
-    @Message("DevRel, OpenSource, InnerSource Community Platform")
-    String header_alpha_text();
-
-    @Message("Some features may be disabled.")
-    String header_system_degraded();
-
-    @Message("Notifications")
-    String nav_notifications();
-
-    // --- Home Page (Index) ---
-    @Message("Modern toolbox for community building and open-source tech innovation.")
-    String home_community_desc();
-
-    @Message("Live teams, quests and adventures")
-    String home_community_activity();
-
-    @Message("Explore")
-    String home_btn_explore();
-
-    @Message("Roster")
-    String home_btn_roster();
-
-    @Message("Scale your squads with collaborative meetups, workshops and challenges.")
-    String home_events_desc();
-
-    @Message("Adaptive agenda, live streaming")
-    String home_events_activity();
-
-    @Message("Attend")
-    String home_btn_attend();
-
-    @Message("Schedule")
-    String home_btn_schedule();
-
-    @Message("Innovation hub for your open-source technology missions and squads.")
-    String home_projects_desc();
-
-    @Message("Fresh collaborations weekly")
-    String home_projects_activity();
-
-    @Message("Join")
-    String home_btn_join();
-
-    @Message("Propose")
-    String home_btn_propose();
-
-    @Message("Community campus")
-    String home_village_title();
-
-    @Message("Live rooms & quests")
-    String home_village_desc();
-
-    @Message("Community stats")
-    String home_stats_title();
-
-    @Message("Members online")
-    String home_stats_members();
-
-    @Message("Total XP")
-    String home_stats_xp();
-
-    @Message("Quests done")
-    String home_stats_quests();
-
-    @Message("Active projects")
-    String home_stats_projects();
-
-    @Message("You're playing as a NOVICE guest! Login to save your progress.")
-    String home_guest_warning();
-
-    @Message("NOVICE GUEST")
-    String home_guest_name();
-
-    @Message("VISITOR")
-    String home_guest_role();
-
-    @Message("LEVEL {0}")
+    @Message("LEVEL {level}")
     String home_level(int level);
 
-    @Message("Contributions")
-    String home_stat_contributions();
-
-    @Message("{0} members")
+    @Message("{count} members")
     String meta_members(int count);
 
-    @Message("{0} projects")
+    @Message("{count} projects")
     String meta_projects(int count);
 
-    @Message("Member")
-    String role_member();
-
-    @Message("Visitor")
-    String role_visitor();
-
-    // --- Public Page ---
-    @Message("Public Page")
-    String public_title();
-
-    @Message("Everyone can see this page.")
-    String public_description();
-
-    @Message("Login with Google")
-    String btn_login_google();
-
-    // --- Community Page ---
-    @Message("Community - HomeDir")
-    String community_title();
-
-    @Message("People · Community")
-    String community_subtitle();
-
-    @Message("Building Homedir together")
-    String community_hero_title();
-
-    @Message("Explore the member directory, connect with the community and join using your linked GitHub account.")
-    String community_hero_desc();
-
-    @Message("Error processing request")
-    String community_error_title();
-
-    @Message("There was a problem creating your Pull Request. The team has been notified.")
-    String community_error_desc();
-
-    @Message("Detail: {0}")
+    @Message("Detail: {detail}")
     String community_error_detail(String detail);
 
-    @Message("Account linked!")
-    String community_linked_title();
-
-    @Message("Your GitHub account has been connected successfully. You can now join the community.")
-    String community_linked_desc();
-
-    @Message("Request Sent")
-    String community_joined_title();
-
-    @Message("A Pull Request has been created to add you to the directory.")
-    String community_joined_desc();
-
-    @Message("View Pull Request")
-    String btn_view_pr();
-
-    @Message("Join")
-    String community_join_card_eyebrow();
-
-    @Message("Link your GitHub")
-    String community_join_card_title();
-
-    @Message("To appear in the directory and earn XP.")
-    String community_join_card_desc();
-
-    @Message("Connect now")
-    String btn_connect_now();
-
-    @Message("Members")
-    String community_members_eyebrow();
-
-    @Message("Active in the community")
-    String community_members_desc();
-
-    @Message("Top Contributors")
-    String community_top_contributors();
-
-    @Message("Login and join")
-    String btn_login_join();
-
-    @Message("Request in process")
-    String btn_request_processing();
-
-    @Message("Join the community")
-    String btn_join_community();
-
-    @Message("Already a member")
-    String btn_already_member();
-
-    @Message("View directory")
-    String btn_view_directory();
-
-    @Message("Community Directory")
-    String directory_title();
-
-    @Message("Search...")
-    String search_placeholder();
-
-    @Message("Search member")
-    String search_aria_label();
-
-    @Message("Search")
-    String btn_search();
-
-    @Message("No visible members yet with this filter.")
-    String directory_empty();
-
-    @Message("Official Member")
-    String badge_official_member();
-
-    @Message("XP Progress")
-    String xp_progress();
-
-    @Message("Contribution Score: {0}")
+    @Message("Contribution Score: {score}")
     String contribution_score(int score);
 
     // --- Events Page ---
@@ -608,4 +241,352 @@ public interface AppMessages {
 
     @Message("In Design")
     String badge_design();
+
+    @Message("You are browsing as a guest.")
+    String home_guest_warning();
+
+    @Message("Guest")
+    String home_guest_name();
+
+    @Message("Visitor")
+    String home_guest_role();
+
+    @Message("Contributions")
+    String home_stat_contributions();
+
+    @Message("Quests")
+    String nav_quests();
+
+    @Message("Events")
+    String nav_events();
+
+    @Message("Projects")
+    String nav_projects();
+
+    @Message("Home")
+    String nav_home();
+
+    @Message("Join Us")
+    String home_btn_join();
+
+    @Message("Propose Talk")
+    String home_btn_propose();
+
+    @Message("Community Village")
+    String home_village_title();
+
+    @Message("Connect with other developers, share knowledge and grow together.")
+    String home_village_desc();
+
+    @Message("Community Stats")
+    String home_stats_title();
+
+    @Message("Members")
+    String home_stats_members();
+
+    @Message("Total XP")
+    String home_stats_xp();
+
+    @Message("Quests Completed")
+    String home_stats_quests();
+
+    @Message("Active Projects")
+    String home_stats_projects();
+
+    @Message("Join Community")
+    String btn_join_community();
+
+    @Message("Community")
+    String nav_community();
+
+    @Message("Latest community activity")
+    String home_community_activity();
+
+    @Message("Join the community to collaborate and grow.")
+    String home_community_desc();
+
+    @Message("Explore")
+    String home_btn_explore();
+
+    @Message("Roster")
+    String home_btn_roster();
+
+    @Message("Check out upcoming events and talks.")
+    String home_events_desc();
+
+    @Message("Upcoming events")
+    String home_events_activity();
+
+    @Message("Attend")
+    String home_btn_attend();
+
+    @Message("Schedule")
+    String home_btn_schedule();
+
+    @Message("Contribute to open source projects.")
+    String home_projects_desc();
+
+    @Message("Project updates")
+    String home_projects_activity();
+
+    @Message("Platform by")
+    String platform_by();
+
+    @Message("The hub for developer communities")
+    String platform_tagline();
+
+    @Message("Member")
+    String role_member();
+
+    @Message("Visitor")
+    String role_visitor();
+
+    @Message("No talks found for this day.")
+    String agenda_no_talks();
+
+    @Message("Official Member")
+    String badge_official_member();
+
+    @Message("Completed")
+    String badge_completed();
+
+    @Message("In Progress")
+    String badge_in_progress();
+
+    @Message("Already a member")
+    String btn_already_member();
+
+    @Message("Claim Reward")
+    String btn_claim();
+
+    @Message("Closed")
+    String btn_closed();
+
+    @Message("Connect Now")
+    String btn_connect_now();
+
+    @Message("Explore Quests")
+    String btn_explore_quests();
+
+    @Message("Instructions")
+    String btn_instructions();
+
+    @Message("Join Guild")
+    String btn_join_guild();
+
+    @Message("Sign in with Google")
+    String btn_login_google();
+
+    @Message("Login or Join")
+    String btn_login_join();
+
+    @Message("Processing Request...")
+    String btn_request_processing();
+
+    @Message("Search")
+    String btn_search();
+
+    @Message("Start Quest")
+    String btn_start();
+
+    @Message("View Details")
+    String btn_view_details();
+
+    @Message("View Directory")
+    String btn_view_directory();
+
+    @Message("View PR")
+    String btn_view_pr();
+
+    @Message("Error Description")
+    String community_error_desc();
+
+    @Message("Error Title")
+    String community_error_title();
+
+    @Message("Community Hero Description")
+    String community_hero_desc();
+
+    @Message("Community Hero Title")
+    String community_hero_title();
+
+    @Message("Join our community to access exclusive content and events.")
+    String community_join_card_desc();
+
+    @Message("Join Us")
+    String community_join_card_eyebrow();
+
+    @Message("Become a Member")
+    String community_join_card_title();
+
+    @Message("You have successfully joined the community!")
+    String community_joined_desc();
+
+    @Message("Welcome!")
+    String community_joined_title();
+
+    @Message("Your account is now linked with GitHub.")
+    String community_linked_desc();
+
+    @Message("Account Linked")
+    String community_linked_title();
+
+    @Message("Meet our amazing community members.")
+    String community_members_desc();
+
+    @Message("Members")
+    String community_members_eyebrow();
+
+    @Message("Community Subtitle")
+    String community_subtitle();
+
+    @Message("Community Title")
+    String community_title();
+
+    @Message("Top Contributors")
+    String community_top_contributors();
+
+    @Message("No members found in directory.")
+    String directory_empty();
+
+    @Message("Member Directory")
+    String directory_title();
+
+    @Message("Alpha Repo")
+    String header_alpha_repo();
+
+    @Message("This is an alpha version. Things might break.")
+    String header_alpha_text();
+
+    @Message("Header Navigation")
+    String header_aria_label();
+
+    @Message("System is currently degraded.")
+    String header_system_degraded();
+
+    @Message("Hero Subtitle")
+    String hero_subtitle();
+
+    @Message("Guild Identity")
+    String identity_guild();
+
+    @Message("Identity Intro")
+    String identity_intro();
+
+    @Message("Interesting")
+    String motivation_interesting();
+
+    @Message("Learning")
+    String motivation_learning();
+
+    @Message("What is your motivation?")
+    String motivation_placeholder();
+
+    @Message("Speaker")
+    String motivation_speaker();
+
+    @Message("Work")
+    String motivation_work();
+
+    @Message("Are you sure you want to delete this?")
+    String msg_confirm_delete();
+
+    @Message("Error removing item.")
+    String msg_error_removing();
+
+    @Message("Error saving item.")
+    String msg_error_saving();
+
+    @Message("Admin Panel")
+    String nav_admin_panel();
+
+    @Message("Connect GitHub")
+    String nav_connect_github();
+
+    @Message("Login")
+    String nav_login();
+
+    @Message("Logout")
+    String nav_logout();
+
+    @Message("My Profile")
+    String nav_my_profile();
+
+    @Message("Notifications")
+    String nav_notifications();
+
+    @Message("Signed in as")
+    String nav_signed_in_as();
+
+    @Message("Contributor")
+    String progress_contributor();
+
+    @Message("Progress Intro")
+    String progress_intro();
+
+    @Message("Legend")
+    String progress_legend();
+
+    @Message("Mentor")
+    String progress_mentor();
+
+    @Message("Novice")
+    String progress_novice();
+
+    @Message("Progress Tree")
+    String progress_tree();
+
+    @Message("Public Description")
+    String public_description();
+
+    @Message("Public Title")
+    String public_title();
+
+    @Message("Quest Board")
+    String quest_board_eyebrow();
+
+    @Message("Complete quests to earn XP and badges.")
+    String quest_board_intro();
+
+    @Message("Quest Board")
+    String quest_board_title();
+
+    @Message("View Quests")
+    String quest_empty_cta_btn();
+
+    @Message("No quests available right now.")
+    String quest_empty_cta_text();
+
+    @Message("Check back later for new quests.")
+    String quest_empty_desc();
+
+    @Message("No Quests")
+    String quest_empty_title();
+
+    @Message("My Quests")
+    String quest_filter_mine();
+
+    @Message("Resume History")
+    String resume_history();
+
+    @Message("No history available.")
+    String resume_no_history();
+
+    @Message("Search")
+    String search_aria_label();
+
+    @Message("Search...")
+    String search_placeholder();
+
+    @Message("Language")
+    String settings_language();
+
+    @Message("Choose your preferred language.")
+    String settings_language_intro();
+
+    @Message("Save Settings")
+    String settings_save();
+
+    @Message("XP Progress")
+    String xp_progress();
 }

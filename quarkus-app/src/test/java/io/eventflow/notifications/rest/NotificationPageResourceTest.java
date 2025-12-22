@@ -17,6 +17,6 @@ public class NotificationPageResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Notificaciones"))
-        .body(containsString("actividades del día en curso"));
+        .body(containsString("avisos globales"));
   }
 }

@@ -696,6 +696,44 @@ footer {
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
 }
 
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(220, 53, 69, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  border: 4px solid rgba(255, 100, 100, 0.6);
+  border-bottom: 8px solid rgba(139, 0, 0, 0.5);
+  border-right: 6px solid rgba(139, 0, 0, 0.4);
+  transition: all 0.1s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(255, 0, 0, 0.1);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: white;
+  text-decoration: none;
+}
+
+.btn-danger:hover {
+  transform: translateY(4px);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3), inset 0 0 30px rgba(255, 50, 50, 0.2);
+  background: rgba(220, 53, 69, 0.45);
+  color: #fff;
+  border-color: rgba(255, 100, 100, 0.9);
+}
+
+.btn-danger:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
 /* ===========================================
    FOOTER
    =========================================== */
@@ -799,4 +837,220 @@ footer {
   .section-body {
     padding: 1.25rem 1rem;
   }
+}
+
+/* ===========================================
+   HEADER EXTRAS - USER MENU & BANNER
+   =========================================== */
+
+/* Alpha Banner */
+.alpha-banner {
+  background: var(--color-surface-2);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.65rem;
+  text-align: center;
+  padding: 0.3rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-body);
+  position: relative;
+  z-index: 10;
+}
+
+.alpha-badge {
+  background: #ffd700;
+  color: var(--color-surface-2);
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+}
+
+.system-banner {
+  background: #ffa500;
+  color: var(--color-surface-2);
+  text-align: center;
+  padding: 0.5rem;
+  font-weight: bold;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* User Menu & Dropdown */
+.user-menu-wrapper {
+  position: relative;
+}
+
+.user-menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-surface-2);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease;
+}
+
+.user-profile-link-styled {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.6rem;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.8rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-profile-link-styled:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.header-avatar-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.header-avatar-fallback {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary, #667eea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.user-menu-btn-styled {
+  background: none;
+  border: none;
+  color: #ffffff;
+  padding: 0.35rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-menu-btn-styled:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-accent);
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  background: var(--color-surface-2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 25px var(--color-surface-2);
+  z-index: 100;
+  color: #fff;
+}
+
+.dropdown-menu.show {
+  display: block;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.dropdown-header {
+  background-color: var(--color-surface-2);
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.5rem;
+}
+
+.text-signed-in {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.header-xp-stats {
+  margin-top: 0.75rem;
+}
+
+.header-xp-values {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  font-family: var(--font-display);
+  color: var(--color-accent);
+}
+
+.xp-bar-container {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--color-accent);
+  width: var(--xp-percent, 0%);
+  transition: width 0.5s ease;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: background 0.1s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.dropdown-item .material-symbols-outlined {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Level badge small fix */
+.header-level-badge {
+  font-size: 0.6rem !important;
+  margin-left: 0.4rem;
+  transform: scale(0.9);
 }
