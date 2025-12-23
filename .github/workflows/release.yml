@@ -1,55 +1,45 @@
-name: Release Pipeline
+name: Production Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'quarkus-app/**'
-      - '.github/workflows/release.yml'
+  workflow_dispatch:
+    inputs:
+      release_level:
+        description: 'Release Level (auto calculates if empty)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - patch
+          - minor
+          - major
 
 jobs:
-  semantic-release:
-    name: Tag & Release
+  release:
+    name: Tag & Deploy
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      new_version: ${{ steps.tag_version.outputs.new_tag }}
-      changelog: ${{ steps.tag_version.outputs.changelog }}
+      packages: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for changelog generation
+          fetch-depth: 0 # Required for changelog/version calc
 
-      - name: Bump version and push tag
+      - name: Calculate Next Version
         id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
+        uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
+          custom_release_rules: feat:minor,fix:patch,chore:patch,refactor:patch,perf:patch
           release_branches: main
           tag_prefix: v
-
-      - name: Create GitHub Release
-        if: endsWith(steps.tag_version.outputs.new_tag, '.0')
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-and-publish:
-    name: Build & Publish Native Image
-    needs: semantic-release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+          dry_run: false # We allow it to tag, or we can tag manually. Let's let it tag.
+          # If we want manual control, we can set dry_run: true and tag manually in next step.
+          # For "auto versioning", let this action handle it.
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -58,39 +48,28 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Set Version from Tag
-        run: echo "VERSION=${{ needs.semantic-release.outputs.new_version }}" >> $GITHUB_ENV
-      
-      - name: Remove v prefix from version for Build
-        run: echo "CLEAN_VERSION=${VERSION#v}" >> $GITHUB_ENV
-
-      - name: Build Native Executable
+      - name: Build with Maven
         working-directory: quarkus-app
-        # We pass the version to maven to bake it into the artifact
-        run: ./mvnw package -Pnative -Dquarkus.native.container-build=true -Dquarkus.application.version=${{ env.CLEAN_VERSION }} -DskipTests
+        # Use the calculated version (new_tag includes v, clean_version does not? new_version usually has no v if configured, let's check docs or use strip)
+        # Action outputs: new_tag (v1.0.0), new_version (1.0.0)
+        run: ./mvnw package -Drevision=${{ steps.tag_version.outputs.new_version }} -DskipTests
 
-      - name: Login to Quay.io
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: quay.io
-          username: ${{ vars.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Docker Image
         working-directory: quarkus-app
         env:
-          FULL_IMAGE_NAME: ${{ vars.REGISTRY }}/${{ vars.IMAGE_NAME }}
+          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/homedir
+          TAG: ${{ steps.tag_version.outputs.new_version }}
         run: |
-          docker build -f src/main/docker/Dockerfile.native \
-            -t $FULL_IMAGE_NAME:latest \
-            -t $FULL_IMAGE_NAME:${{ needs.semantic-release.outputs.new_version }} .
-          docker push $FULL_IMAGE_NAME:latest
-          docker push $FULL_IMAGE_NAME:${{ needs.semantic-release.outputs.new_version }}
-
-  cleanup-branch:
-    name: Cleanup Branch
-    if: github.event.pull_request.merged == true # Note: on: push doesn't have PR context directly. This logic is better handled by GitHub Settings.
-    runs-on: ubuntu-latest
-    steps:
-      - name: Explain Cleanup
-        run: echo "Branch cleanup is recommended to be handled by Repo Settings 'Automatically delete head branches'."
+          docker build -f src/main/docker/Dockerfile.jvm \
+            -t $IMAGE_NAME:latest \
+            -t $IMAGE_NAME:$TAG .
+            
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$TAG

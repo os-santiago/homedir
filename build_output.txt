@@ -1,0 +1,99 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.scanales:homedir >------------------------
+[INFO] Building homedir 3.300.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.1:enforce (enforce) @ homedir ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.BanDuplicatePomDependencyVersions passed
+[INFO] Rule 2: org.apache.maven.enforcer.rules.dependency.RequireUpperBoundDeps passed
+[INFO] Rule 3: org.apache.maven.enforcer.rules.dependency.DependencyConvergence passed
+[INFO] 
+[INFO] --- git-commit-id:9.0.1:revision (get-the-git-infos) @ homedir ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ homedir ---
+[INFO] Copying 117 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ homedir ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ homedir ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ homedir ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ homedir ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ homedir ---
+[INFO] 
+[INFO] --- quarkus:3.26.4:build (default) @ homedir ---
+[WARNING] [io.quarkus.config] Unrecognized configuration key "quarkus.oidc.authentication.force-redirect-https" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [day] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_day()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [speakers] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_days_speakers()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [days] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_days_speakers()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [attended] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_intro()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [rated] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_intro()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [added] in the message template of: com.scanales.eventflow.config.AppMessages#agenda_intro()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [detail] in the message template of: com.scanales.eventflow.config.AppMessages#community_error_detail()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [count] in the message template of: com.scanales.eventflow.config.AppMessages#community_initiatives()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [score] in the message template of: com.scanales.eventflow.config.AppMessages#contribution_score()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [level] in the message template of: com.scanales.eventflow.config.AppMessages#home_level()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [count] in the message template of: com.scanales.eventflow.config.AppMessages#meta_members()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [count] in the message template of: com.scanales.eventflow.config.AppMessages#meta_projects()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [error] in the message template of: com.scanales.eventflow.config.AppMessages#msg_github_error()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [difficulty] in the message template of: com.scanales.eventflow.config.AppMessages#quest_rank()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [count] in the message template of: com.scanales.eventflow.config.AppMessages#quest_total()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [current] in the message template of: com.scanales.eventflow.config.AppMessages#resume_exp()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [total] in the message template of: com.scanales.eventflow.config.AppMessages#resume_exp()
+[WARNING] [io.quarkus.qute.deployment.MessageBundleProcessor] Unused parameter found [level] in the message template of: com.scanales.eventflow.config.AppMessages#resume_level()
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.735 s
+[INFO] Finished at: 2025-12-19T22:06:30-03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.26.4:build (default) on project homedir: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: Build failed due to errors
+[ERROR] 	[error]: Build step io.quarkus.qute.deployment.QuteProcessor#processTemplateErrors threw an exception: io.quarkus.qute.TemplateException: Found incorrect expressions (4):
+[ERROR] 	[1] PublicResource/publicPage.html:2:9 - {i18n.public_title}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 	[2] PublicResource/publicPage.html:4:5 - {i18n.public_title}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 	[3] PublicResource/publicPage.html:5:4 - {i18n.public_description}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 	[4] PublicResource/publicPage.html:6:23 - {i18n.btn_login_google}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 
+[ERROR] 	at io.quarkus.qute.deployment.QuteProcessor.processTemplateErrors(QuteProcessor.java:274)
+[ERROR] 	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:733)
+[ERROR] 	at io.quarkus.deployment.ExtensionLoader$3.execute(ExtensionLoader.java:874)
+[ERROR] 	at io.quarkus.builder.BuildContext.run(BuildContext.java:255)
+[ERROR] 	at org.jboss.threads.ContextHandler$1.runWith(ContextHandler.java:18)
+[ERROR] 	at org.jboss.threads.EnhancedQueueExecutor$Task.doRunWith(EnhancedQueueExecutor.java:2651)
+[ERROR] 	at org.jboss.threads.EnhancedQueueExecutor$Task.run(EnhancedQueueExecutor.java:2630)
+[ERROR] 	at org.jboss.threads.EnhancedQueueExecutor.runThreadBody(EnhancedQueueExecutor.java:1622)
+[ERROR] 	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1589)
+[ERROR] 	at java.base/java.lang.Thread.run(Thread.java:1583)
+[ERROR] 	at org.jboss.threads.JBossThread.run(JBossThread.java:501)
+[ERROR] 	Suppressed: io.quarkus.qute.TemplateException: PublicResource/publicPage.html:2:9 - {i18n.public_title}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 		at io.quarkus.qute.TemplateException$Builder.build(TemplateException.java:173)
+[ERROR] 		at io.quarkus.qute.deployment.QuteProcessor.processTemplateErrors(QuteProcessor.java:239)
+[ERROR] 		... 10 more
+[ERROR] 	Suppressed: io.quarkus.qute.TemplateException: PublicResource/publicPage.html:4:5 - {i18n.public_title}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 		at io.quarkus.qute.TemplateException$Builder.build(TemplateException.java:173)
+[ERROR] 		at io.quarkus.qute.deployment.QuteProcessor.processTemplateErrors(QuteProcessor.java:239)
+[ERROR] 		... 10 more
+[ERROR] 	Suppressed: io.quarkus.qute.TemplateException: PublicResource/publicPage.html:5:4 - {i18n.public_description}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 		at io.quarkus.qute.TemplateException$Builder.build(TemplateException.java:173)
+[ERROR] 		at io.quarkus.qute.deployment.QuteProcessor.processTemplateErrors(QuteProcessor.java:239)
+[ERROR] 		... 10 more
+[ERROR] 	Suppressed: io.quarkus.qute.TemplateException: PublicResource/publicPage.html:6:23 - {i18n.btn_login_google}: Only type-safe expressions are allowed in the checked template defined via: com.scanales.oauth.PublicResource$Templates.publicPage(); an expression must be based on a checked template parameter [], or bound via a param declaration, or the requirement must be relaxed via @CheckedTemplate(requireTypeSafeExpressions = false)
+[ERROR] 		at io.quarkus.qute.TemplateException$Builder.build(TemplateException.java:173)
+[ERROR] 		at io.quarkus.qute.deployment.QuteProcessor.processTemplateErrors(QuteProcessor.java:239)
+[ERROR] 		... 10 more
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
