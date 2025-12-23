@@ -1,40 +1,56 @@
-{#include layout/base}
+{#include layout/main activePage="notifications"}
 {#title}Centro de Notificaciones{/title}
-{#breadcrumbs}<span>Notificaciones</span>{/breadcrumbs}
-{#main}
+
+{#body}
 <section class="notifications-center">
-  <header class="mb-4">
-    <h1 class="page-title">Centro de Notificaciones</h1>
-    <p class="text-muted">
-      Aquí verás avisos globales sobre cambios en la agenda de eventos disponibles.
-      Marca como leídas o elimina las que no necesites.
-    </p>
-    <p class="text-muted">
-      El servicio de notificaciones alertará sobre las actividades del día en curso.
-    </p>
-  </header>
-  <div class="actions">
-    <div class="filters">
-      <button class="btn" data-filter="all">Todas</button>
-      <button class="btn" data-filter="unread">No leídas</button>
-    </div>
-    <div class="actions-right">
-      <button class="btn" id="selectAll">Seleccionar todos</button>
-      <button class="btn" id="markAllRead">Marcar todas como leídas</button>
-      <button class="btn" id="deleteSelected">Eliminar seleccionadas</button>
-      <button class="btn btn-danger" id="deleteAll">Borrar todo</button>
+  <div class="page-header">
+    <div class="section-header">
+      <h1 class="page-title">Centro de Notificaciones</h1>
+      <p class="section-subtitle">
+        Aquí verás avisos globales sobre cambios en la agenda de eventos disponibles.
+        Marca como leídas o elimina las que no necesites.
+      </p>
     </div>
   </div>
-  <div id="notif-list" class="grid gap-3" aria-live="polite" aria-atomic="false"></div>
-  <div id="empty" class="text-sm text-muted-foreground hidden">Sin notificaciones por ahora.</div>
-  <dialog id="confirmDeleteAll">
-    <p>Está seguro desea eliminar todas las notificaciones recibidas?</p>
-    <div class="actions">
-      <button class="btn btn-danger" id="confirmDeleteAllBtn">Confirmar</button>
-      <button class="btn" id="cancelDeleteAllBtn">Cancelar</button>
+
+  <div class="page-grid section-grid-full">
+    <div class="section-body flex flex-col" style="min-height: 400px;">
+      <div class="hd-tabs quest-tabs mb-6">
+        <div class="quest-tabs-links" style="border: none !important;">
+          <button class="hd-tab active btn-link-filter bg-transparent border-0 cursor-pointer text-base"
+            style="background: transparent; border: none !important; outline: none;" data-filter="all">Todas</button>
+          <span class="quest-tab-separator">|</span>
+          <button class="hd-tab btn-link-filter bg-transparent border-0 cursor-pointer text-base"
+            style="background: transparent; border: none !important; outline: none;" data-filter="unread">No
+            leídas</button>
+        </div>
+        <div class="actions-right ml-auto flex gap-2">
+          <button class="btn-primary btn-sm" id="selectAll">Seleccionar todos</button>
+          <button class="btn-primary btn-sm" id="markAllRead">Marcar leídas</button>
+          <button class="btn-primary btn-sm" id="deleteSelected">Eliminar selección</button>
+          <button class="btn-danger btn-sm" id="deleteAll">Borrar todo</button>
+        </div>
+      </div>
+
+      <div id="notif-list" aria-live="polite" aria-atomic="false"></div>
+      <div id="empty" class="hidden">
+        <span class="material-symbols-outlined">notifications_off</span>
+        <p>Sin notificaciones por ahora.</p>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="confirmDeleteAll" class="section-body"
+    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 100;">
+    <h2 class="text-xl mb-4 font-bold">¿Eliminar todo?</h2>
+    <p class="mb-4">¿Estás seguro que deseas eliminar todas las notificaciones recibidas?</p>
+    <div class="actions flex gap-4 justify-end">
+      <button class="btn-danger" id="confirmDeleteAllBtn">Confirmar</button>
+      <button class="btn-primary" id="cancelDeleteAllBtn">Cancelar</button>
     </div>
   </dialog>
+
   <script defer src="/js/notifications-center.js"></script>
 </section>
-{/main}
+{/body}
 {/include}

@@ -58,7 +58,11 @@
                 </div>
                 {#if github == null}
                 <p>{i18n.msg_no_github}</p>
-                <a href="/private/github/link?redirect=/private/profile" class="hd-btn">{i18n.btn_link_github}</a>
+                <a href="/private/github/link?redirect=/private/profile" class="btn-primary btn-github-dark">
+                    <img src="https://cdn.simpleicons.org/github/white" width="20" height="20" alt="GitHub"
+                        class="icon-github" style="margin-right: 8px;">
+                    {i18n.btn_link_github}
+                </a>
                 {#else}
                 <div class="hd-github-user">
                     <img src="{github.avatarUrl}" alt="GitHub Avatar" class="hd-avatar">
@@ -161,7 +165,9 @@
                     </label>
                     {/for}
                 </div>
-                <button type="submit" class="hd-btn hd-btn-primary">{i18n.btn_save_class}</button>
+                <div class="form-actions-centered">
+                    <button type="submit" class="hd-btn hd-btn-primary">{i18n.btn_save_class}</button>
+                </div>
             </form>
         </section>
 
@@ -174,13 +180,15 @@
                 </div>
             </div>
             <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
-                <div class="form-group-margin">
+                <div class="form-group-margin form-actions-centered">
                     <select name="locale" class="hd-form-input">
                         <option value="en" {#if currentLanguage eq 'en' }selected{/if}>English</option>
                         <option value="es" {#if currentLanguage eq 'es' }selected{/if}>Español</option>
                     </select>
                 </div>
-                <button type="submit" class="hd-btn">{i18n.settings_save}</button>
+                <div class="form-actions-centered">
+                    <button type="submit" class="hd-btn hd-btn-primary">{i18n.settings_save}</button>
+                </div>
             </form>
         </section>
 

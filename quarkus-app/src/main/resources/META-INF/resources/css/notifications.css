@@ -90,7 +90,7 @@
 }
 
 .notifications-center {
-  padding: 1rem;
+  /* Padding handled by .section-body */
   overflow-x: hidden;
   overflow-wrap: anywhere;
 }
@@ -98,7 +98,28 @@
 #notif-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: 1rem;
+  flex: 1;
+}
+
+#empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 300px;
+  flex: 1;
+}
+
+#empty .material-symbols-outlined {
+  font-size: 3rem;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+#empty p {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .notifications-center .notif .title {
@@ -116,16 +137,35 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .notifications-center .actions .filters,
 .notifications-center .actions .actions-right {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .notifications-center .actions .actions-right {
   margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .notifications-center .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .notifications-center .actions .filters,
+  .notifications-center .actions .actions-right {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .notifications-center .actions .actions-right {
+    margin-left: 0;
+  }
 }
 
 .notifications-center .btn-link {
