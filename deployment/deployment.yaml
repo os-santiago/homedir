@@ -24,7 +24,7 @@ spec:
       containers:
         - name: homedir
           # Alias tag; production uses immutable digests
-          image: quay.io/sergio_canales_e/homedir:2.2.11
+          image: ghcr.io/os-santiago/homedir:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
