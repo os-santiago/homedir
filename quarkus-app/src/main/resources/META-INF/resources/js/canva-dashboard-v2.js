@@ -1,22 +1,7 @@
-
-var currentUser = null;
-var allUsers = [];
+// Variables inherited from homedir.js: currentUser, allUsers
 
 // Equipment/Collectibles System
-const COLLECTIBLES = [
-    { id: 'laptop', icon: '💻', name: 'DEVELOPER LAPTOP', rarity: 'common', description: '+5 Coding Power' },
-    { id: 'keyboard', icon: '⌨️', name: 'MECHANICAL KEYBOARD', rarity: 'rare', description: '+10 Typing Speed' },
-    { id: 'coffee', icon: '☕', name: 'ENERGY COFFEE', rarity: 'common', description: '+3 Focus' },
-    { id: 'badge', icon: '🏅', name: 'CONTRIBUTOR BADGE', rarity: 'epic', description: '+15 Reputation' },
-    { id: 'trophy', icon: '🏆', name: 'CHAMPION TROPHY', rarity: 'legendary', description: '+25 Achievement' },
-    { id: 'book', icon: '📚', name: 'CODE MANUAL', rarity: 'rare', description: '+8 Knowledge' },
-    { id: 'rocket', icon: '🚀', name: 'LAUNCH ROCKET', rarity: 'epic', description: '+20 Deployment' },
-    { id: 'gem', icon: '💎', name: 'RARE GEM', rarity: 'legendary', description: '+30 Value' },
-    { id: 'shield', icon: '🛡️', name: 'SECURITY SHIELD', rarity: 'epic', description: '+18 Protection' },
-    { id: 'wand', icon: '🪄', name: 'DEBUG WAND', rarity: 'rare', description: '+12 Bug Fix' },
-    { id: 'crown', icon: '👑', name: 'LEADER CROWN', rarity: 'legendary', description: '+35 Leadership' },
-    { id: 'glasses', icon: '👓', name: 'CODE GLASSES', rarity: 'common', description: '+4 Vision' }
-];
+// COLLECTIBLES inherited from homedir.js
 
 // Function to get random collectibles for a user
 function generateEquipment(level, experience) {
