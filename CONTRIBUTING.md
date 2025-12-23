@@ -1,31 +1,27 @@
 # Release Process
 
-This project uses a **CI-Friendly Versioning** strategy.
-Git tags are the single source of truth for versions to ensure consistency between code, git, and docker images.
+This project uses a **Manual Trigger / Auto-Versioning** release strategy.
+- **Source of Truth**: Git Tags (calculated by the workflow based on Conventional Commits).
+- **Versioning**: CI-Friendly Maven Versioning (`${revision}`).
 
 ## How to Release
+Releases are triggered manually by administrators.
 
-1.  **Commit Code**: Ensure your changes are merged to `main`.
-2.  **Tag**: Create a SemVer tag (must start with `v`, e.g., `v3.305.0`):
-    ```bash
-    git tag v3.305.0
-    git push origin v3.305.0
-    ```
-3.  **Automated Build**: GitHub Actions will trigger:
-    - A Maven build injecting the version `3.305.0` (overriding `${revision}`).
-    - A Docker build tagging the image with `3.305.0` and `latest`.
-    - A push to `ghcr.io`.
+1.  Go to the **Actions** tab in GitHub.
+2.  Select the **Production Release** workflow.
+3.  Click **Run workflow**.
+4.  (Optional) Select a release level (Patch, Minor, Major), or leave empty to let the system calculate it based on commit history (feat=minor, fix=patch).
+
+The workflow will:
+1.  Calculate the next version (e.g., `v3.305.1`).
+2.  Creating and push the Git Tag.
+3.  Build the Maven artifact with version `3.305.1`.
+4.  Build and push the Docker image `ghcr.io/os-santiago/homedir:3.305.1`.
 
 ## Local Development
-
 The project uses the Maven `${revision}` property. 
 - **Default**: Defined in `pom.xml` properties (e.g., `3.304.1-SNAPSHOT`).
 - **Override**: You can build with a specific version locally:
     ```bash
     ./mvnw package -Drevision=1.0.0-custom
     ```
-
-## CI/CD Configuration
-The workflow is defined in `.github/workflows/deploy.yml`. It uses:
-- `mvn package -Drevision=${VERSION}`
-- `ghcr.io` as the container registry.
