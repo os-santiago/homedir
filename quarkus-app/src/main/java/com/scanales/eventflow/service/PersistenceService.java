@@ -77,7 +77,6 @@ public class PersistenceService {
         .enable(SerializationFeature.INDENT_OUTPUT)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .registerModule(new JavaTimeModule());
 
     dataDir = Paths.get(dataDirPath);

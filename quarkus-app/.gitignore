@@ -43,3 +43,5 @@ compile_log.txt
 cookies.txt
 failed_log*.txt
 test_log*.txt
+
+data/
