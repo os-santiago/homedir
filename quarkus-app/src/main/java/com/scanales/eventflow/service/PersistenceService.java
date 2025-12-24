@@ -56,11 +56,14 @@ public class PersistenceService {
   private final AtomicLong queueDropped = new AtomicLong();
   private volatile String lastError;
 
-  private final Path dataDir = Paths.get(System.getProperty("homedir.data.dir", "data"));
-  private final Path eventsFile = dataDir.resolve("events.json");
-  private final Path speakersFile = dataDir.resolve("speakers.json");
-  private final Path profilesFile = dataDir.resolve("user-profiles.json");
-  private final Path systemErrorsFile = dataDir.resolve("system-errors.json");
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDirPath;
+
+  private Path dataDir;
+  private Path eventsFile;
+  private Path speakersFile;
+  private Path profilesFile;
+  private Path systemErrorsFile;
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
 
@@ -74,7 +77,15 @@ public class PersistenceService {
         .enable(SerializationFeature.INDENT_OUTPUT)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .registerModule(new JavaTimeModule());
+
+    dataDir = Paths.get(dataDirPath);
+    eventsFile = dataDir.resolve("events.json");
+    speakersFile = dataDir.resolve("speakers.json");
+    profilesFile = dataDir.resolve("user-profiles.json");
+    systemErrorsFile = dataDir.resolve("system-errors.json");
+
     try {
       Files.createDirectories(dataDir);
       LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
