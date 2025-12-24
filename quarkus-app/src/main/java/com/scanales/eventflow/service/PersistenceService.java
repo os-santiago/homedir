@@ -57,7 +57,7 @@ public class PersistenceService {
   private volatile String lastError;
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
-  String dataDirPath;
+  String dataDirPath = "data";
 
   private Path dataDir;
   private Path eventsFile;
@@ -72,6 +72,10 @@ public class PersistenceService {
 
   @PostConstruct
   void init() {
+    String sysProp = System.getProperty("homedir.data.dir");
+    if (sysProp != null && !sysProp.isBlank()) {
+      dataDirPath = sysProp;
+    }
     mapper = objectMapper
         .copy()
         .enable(SerializationFeature.INDENT_OUTPUT)

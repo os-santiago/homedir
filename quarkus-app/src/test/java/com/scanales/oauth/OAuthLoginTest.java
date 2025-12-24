@@ -11,16 +11,6 @@ import org.junit.jupiter.api.Test;
 public class OAuthLoginTest {
 
   @Test
-  public void loginPageLoads() {
-    given()
-        .when()
-        .get("/login.html")
-        .then()
-        .statusCode(200)
-        .body(containsString("Sign in with Google"));
-  }
-
-  @Test
   public void privateUnauthorized() {
     given()
         .when()

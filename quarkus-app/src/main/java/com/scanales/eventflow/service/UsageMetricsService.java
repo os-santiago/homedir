@@ -89,13 +89,17 @@ public class UsageMetricsService {
   int bufferMaxSize;
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
-  String dataDir;
+  String dataDir = "data";
 
   @Inject
   ObjectMapper mapper;
 
   @PostConstruct
   void init() {
+    String sysProp = System.getProperty("homedir.data.dir");
+    if (sysProp != null && !sysProp.isBlank()) {
+      dataDir = sysProp;
+    }
     this.metricsV1Path = Paths.get(dataDir, "metrics-v1.json");
     this.metricsV2Path = Paths.get(dataDir, "metrics-v2.json");
     load();
