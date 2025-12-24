@@ -35,3 +35,11 @@ pom.xml.versionsBackup
 release.properties
 # Ignore Maven wrapper binary
 .mvn/wrapper/maven-wrapper.jar
+
+# Custom Ignores
+*.log
+*_log.txt
+compile_log.txt
+cookies.txt
+failed_log*.txt
+test_log*.txt
