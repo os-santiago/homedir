@@ -50,15 +50,16 @@ public class UsageMetricsService {
   private volatile HealthState currentState = HealthState.OK;
   private volatile boolean bufferWarned;
 
-  private final Path metricsV1Path = Paths.get("data", "metrics-v1.json");
-  private final Path metricsV2Path = Paths.get("data", "metrics-v2.json");
+  private Path metricsV1Path;
+  private Path metricsV2Path;
   private Path metricsPath;
   private boolean migrateFromV1;
   private int schemaVersion = CURRENT_SCHEMA_VERSION;
   private long lastFileSizeBytes;
 
   @RegisterForReflection
-  public record Registrant(String name, String email) {}
+  public record Registrant(String name, String email) {
+  }
 
   @ConfigProperty(name = "metrics.flush-interval", defaultValue = "PT10S")
   Duration flushInterval;
@@ -87,10 +88,16 @@ public class UsageMetricsService {
   @ConfigProperty(name = "metrics.buffer.max-size", defaultValue = "10000")
   int bufferMaxSize;
 
-  @Inject ObjectMapper mapper;
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDir;
+
+  @Inject
+  ObjectMapper mapper;
 
   @PostConstruct
   void init() {
+    this.metricsV1Path = Paths.get(dataDir, "metrics-v1.json");
+    this.metricsV2Path = Paths.get(dataDir, "metrics-v2.json");
     load();
     lastFlushTime = System.currentTimeMillis();
     scheduler.scheduleWithFixedDelay(
@@ -129,10 +136,9 @@ public class UsageMetricsService {
           Object disc = meta.get("discarded");
           if (disc instanceof Map<?, ?> dm) {
             dm.forEach(
-                (k, v) ->
-                    discardedByReason
-                        .computeIfAbsent(String.valueOf(k), r -> new LongAdder())
-                        .add(((Number) v).longValue()));
+                (k, v) -> discardedByReason
+                    .computeIfAbsent(String.valueOf(k), r -> new LongAdder())
+                    .add(((Number) v).longValue()));
           }
           Object sv = meta.get("schemaVersion");
           if (sv instanceof Number n) {
@@ -200,7 +206,8 @@ public class UsageMetricsService {
   }
 
   private boolean isBot(String ua) {
-    if (ua == null) return false;
+    if (ua == null)
+      return false;
     String u = ua.toLowerCase();
     return u.contains("bot")
         || u.contains("spider")
@@ -476,7 +483,8 @@ public class UsageMetricsService {
   }
 
   private boolean isBurst(String sessionId) {
-    if (sessionId == null) return false;
+    if (sessionId == null)
+      return false;
     long now = System.currentTimeMillis();
     RateLimiter rl = rates.computeIfAbsent(sessionId, k -> new RateLimiter());
     synchronized (rl) {
@@ -496,7 +504,8 @@ public class UsageMetricsService {
   }
 
   private void flushSafe() {
-    if (!dirty.get()) return;
+    if (!dirty.get())
+      return;
     LOG.info("metrics_flush_start");
     Map<String, Long> snapshot = Map.copyOf(counters);
     Map<String, Long> discards = getDiscarded();
@@ -599,7 +608,10 @@ public class UsageMetricsService {
         burstPerMinute);
   }
 
-  /** Returns the last modification time of the metrics file or {@code 0} if unavailable. */
+  /**
+   * Returns the last modification time of the metrics file or {@code 0} if
+   * unavailable.
+   */
   public long getLastUpdatedMillis() {
     try {
       if (Files.exists(metricsPath)) {
@@ -621,7 +633,8 @@ public class UsageMetricsService {
       long writesFail,
       String lastError,
       long fileSizeBytes,
-      Map<String, Long> discards) {}
+      Map<String, Long> discards) {
+  }
 
   public enum HealthState {
     OK,
@@ -667,8 +680,10 @@ public class UsageMetricsService {
   }
 
   /**
-   * Resets all tracked metrics. Intended for administrative use and tests. Clears in-memory
-   * counters and removes any persisted metrics files so that a fresh dataset can be recorded.
+   * Resets all tracked metrics. Intended for administrative use and tests. Clears
+   * in-memory
+   * counters and removes any persisted metrics files so that a fresh dataset can
+   * be recorded.
    */
   public void reset() {
     counters.clear();
