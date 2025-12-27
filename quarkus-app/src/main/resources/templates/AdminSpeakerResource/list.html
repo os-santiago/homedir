@@ -87,12 +87,12 @@
               </div>
               <div class="hd-form-field">
                 <label class="hd-form-label"><input type="checkbox" class="cospeaker-toggle" name="hasCo" {#if
-                    t.speakers.size > 1}checked{/if}> Co-Speaker</label>
-                <select name="coSpeakerId" class="cospeaker-select hd-form-input" {#if t.speakers.size <= 1} hidden{/if}>
+                    t.speakers.size gt 1}checked{/if}> Co-Speaker</label>
+                <select name="coSpeakerId" class="cospeaker-select hd-form-input" {#if t.speakers.size <=1} hidden{/if}>
                   <option value="">Seleccione co-speaker</option>
                   {#for sp in speakers}
                   {#if sp.id != s.id}
-                  <option value="{sp.id}" {#if t.speakers.size > 1 && t.speakers[1].id == sp.id}selected{/if}>{sp.name}
+                  <option value="{sp.id}" {#if t.speakers.size gt 1 && t.speakers[1].id eq sp.id}selected{/if}>{sp.name}
                   </option>
                   {/if}
                   {/for}
@@ -171,7 +171,7 @@
         </div>
       </form>
     </div>
-    <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+
   </div>
 </section>
 <script>

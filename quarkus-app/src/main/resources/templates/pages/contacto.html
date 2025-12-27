@@ -3,44 +3,46 @@
 {#title}Contacto · Homedir{/title}
 
 {#body}
-  @-- TODO: alinear contenido y estilo con maqueta Canva --
-  <section class="hd-section hd-section-page-header">
-    <div class="hd-page">
-      <h1 class="hd-page-title">Contacto</h1>
-      <p class="hd-page-intro">
-        @-- TODO --
-        Si quieres usar Homedir en tu comunidad o evento, conversemos.
-      </p>
-    </div>
-  </section>
 
-  <section class="hd-section hd-section-page-content">
-    <div class="hd-page">
-      <form class="hd-form hd-contact-form">
-        @-- TODO: conectar este formulario a un mecanismo real (correo / backend) en otra iteración --
-        <div class="hd-form-field">
-          <label for="name" class="hd-form-label">Nombre</label>
-          <input id="name" type="text" class="hd-form-input" placeholder="Tu nombre" />
-        </div>
-        <div class="hd-form-field">
-          <label for="email" class="hd-form-label">Correo electrónico</label>
-          <input id="email" type="email" class="hd-form-input" placeholder="tu@correo.com" />
-        </div>
-        <div class="hd-form-field">
-          <label for="message" class="hd-form-label">Mensaje</label>
-          <textarea id="message" class="hd-form-input" rows="4" placeholder="Cuéntanos sobre tu evento o comunidad"></textarea>
-        </div>
-        <div class="hd-form-actions">
-          <button type="submit" class="hd-btn hd-btn-primary" disabled>
-            Enviar mensaje
-          </button>
-        </div>
-        <p class="hd-form-hint">
-          @-- aclaración --
-          Este formulario es solo de demostración por ahora. En una próxima iteración se conectará con un canal real de contacto.
-        </p>
-      </form>
-    </div>
-  </section>
+<section class="hd-section hd-section-page-header">
+  <div class="hd-page">
+    <h1 class="hd-page-title">Contacto</h1>
+    <p class="hd-page-intro">
+      @-- TODO --
+      Si quieres usar Homedir en tu comunidad o evento, conversemos.
+    </p>
+  </div>
+</section>
+
+<section class="hd-section hd-section-page-content">
+  <div class="hd-page">
+    <form class="hd-form hd-contact-form">
+      @-- TODO: conectar este formulario a un mecanismo real (correo / backend) en otra iteración --
+      <div class="hd-form-field">
+        <label for="name" class="hd-form-label">Nombre</label>
+        <input id="name" type="text" class="hd-form-input" placeholder="Tu nombre" />
+      </div>
+      <div class="hd-form-field">
+        <label for="email" class="hd-form-label">Correo electrónico</label>
+        <input id="email" type="email" class="hd-form-input" placeholder="tu@correo.com" />
+      </div>
+      <div class="hd-form-field">
+        <label for="message" class="hd-form-label">Mensaje</label>
+        <textarea id="message" class="hd-form-input" rows="4"
+          placeholder="Cuéntanos sobre tu evento o comunidad"></textarea>
+      </div>
+      <div class="hd-form-actions">
+        <button type="submit" class="hd-btn hd-btn-primary" disabled>
+          Enviar mensaje
+        </button>
+      </div>
+      <p class="hd-form-hint">
+        @-- aclaración --
+        Este formulario es solo de demostración por ahora. En una próxima iteración se conectará con un canal real de
+        contacto.
+      </p>
+    </form>
+  </div>
+</section>
 {/body}
 {/include}
