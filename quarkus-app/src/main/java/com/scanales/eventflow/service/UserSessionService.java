@@ -29,7 +29,12 @@ public class UserSessionService {
     // @Inject UserInfo userInfo;
 
     public UserSession getCurrentSession() {
-        if (identity.isAnonymous()) {
+        try {
+            if (identity.isAnonymous()) {
+                return UserSession.anonymous();
+            }
+        } catch (Exception e) {
+            // Fallback if security subsystem is degraded or failing
             return UserSession.anonymous();
         }
 
