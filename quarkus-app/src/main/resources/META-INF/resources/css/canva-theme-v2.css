@@ -29,6 +29,30 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
+.hd-panel.centered {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hd-panel.centered .hd-dashboard-header {
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.hd-panel.centered .hd-panel-actions {
+    justify-content: center;
+}
+
+.hd-panel.centered .hd-list,
+.hd-panel.centered .progress-bar-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
 .hd-card-surface {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
@@ -144,6 +168,19 @@
     color: #ffd700;
 }
 
+/* Specific GitHub Button */
+.btn-github-dark {
+    background-color: #24292e !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+}
+
+.btn-github-dark:hover {
+    background-color: #2f363d !important;
+    color: #fff !important;
+    transform: translateY(4px);
+}
+
 .hd-alert {
     padding: 1rem;
     border-radius: 8px;
@@ -249,6 +286,49 @@
     border-color: transparent;
 }
 
+/* Tabs */
+.hd-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.hd-tab {
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    font-family: 'Exo 2', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    /* Default (Inactive) - Match hd-btn-secondary */
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hd-tab:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffd700;
+    transform: translateY(-2px);
+}
+
+.hd-tab.active {
+    /* Active - Match hd-btn-primary */
+    background: linear-gradient(135deg, var(--color-primary, #667eea), #1d4ed8);
+    color: #fff;
+    border: 1px solid transparent;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
 /* Avatars */
 .speaker-avatars {
     display: flex;
@@ -269,6 +349,109 @@
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
+}
+
+/* ===========================================
+   SKILL TREE (Gamification)
+   =========================================== */
+/* Standard Material Symbols Class */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    /* Preferred icon size */
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+}
+
+.hd-skill-tree {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    /* Connectors handle spacing */
+    flex-wrap: wrap;
+    margin: 2rem 0;
+}
+
+.hd-skill-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100px;
+    text-align: center;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    filter: grayscale(1);
+}
+
+.hd-skill-node.unlocked {
+    opacity: 1;
+    filter: grayscale(0);
+}
+
+.hd-skill-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    /* Dimmed by default */
+}
+
+.hd-skill-node.unlocked .hd-skill-icon {
+    background: linear-gradient(135deg, #a64bf4, #667eea);
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(166, 75, 244, 0.6);
+    color: #ffd700;
+    /* Yellow Icon */
+}
+
+/* Ensure the material symbol span inherits the yellow color */
+.hd-skill-node.unlocked .hd-skill-icon .material-symbols-outlined {
+    color: #ffd700;
+}
+
+.hd-skill-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 700;
+}
+
+.hd-skill-node.unlocked .hd-skill-label {
+    color: #ffd700;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.hd-skill-connector {
+    width: 60px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 -10px;
+    /* Overlap slightly with nodes/margins */
+    z-index: -1;
+    position: relative;
+    top: -15px;
+    /* Align with icon center approx */
+}
+
+.hd-skill-connector.active {
+    background: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 /* ===========================================
@@ -482,6 +665,23 @@
 
 .quest-dashboard-header .hd-eyebrow,
 .quest-dashboard-header .hd-page-title,
-.quest-dashboard-header .hd-page-intro {
-    text-align: center;
+/* User Class Icon in Header */
+.user-class-icon .material-symbols-outlined {
+    font-size: 1.2rem;
+    vertical-align: middle;
+    color: #ffd700;
+    margin-right: 4px;
+}
+
+/* Guild Identity Layout - 2 Columns Override */
+.hd-grid-classes-layout {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem;
+}
+
+@media (max-width: 600px) {
+    .hd-grid-classes-layout {
+        grid-template-columns: 1fr !important;
+    }
 }
