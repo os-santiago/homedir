@@ -13,6 +13,10 @@
   box-sizing: border-box;
 }
 
+.text-nowrap {
+  white-space: nowrap;
+}
+
 :root {
   --font-display: 'Orbitron', sans-serif;
   --font-body: 'Exo 2', sans-serif;
@@ -952,7 +956,7 @@ footer {
   top: calc(100% + 10px);
   right: 0;
   width: 260px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;

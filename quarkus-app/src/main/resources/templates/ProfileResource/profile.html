@@ -24,7 +24,7 @@
             </div>
         </div>
 
-        <div class="hd-panel">
+        <div class="hd-panel centered">
             <div class="hd-panel-actions hd-panel-actions-margin">
                 {#if githubLinked}
                 <div class="hd-alert hd-alert-success">{i18n.msg_github_linked}</div>
@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <section class="hd-panel">
+        <section class="hd-panel centered">
             <h2 class="hd-panel-title">Integrations</h2>
 
             <div class="hd-integration-card">
@@ -76,7 +76,7 @@
         </section>
 
         <!-- Gamification Section -->
-        <section class="hd-panel">
+        <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n.section_resume}</p>
@@ -121,7 +121,7 @@
 
                 <div class="hd-skill-tree">
                     <div class="hd-skill-node {#if questProfile.level >= 1}unlocked{/if}">
-                        <div class="hd-skill-icon"><span class="material-symbols-outlined">sprout</span></div>
+                        <div class="hd-skill-icon"><span class="material-symbols-outlined">spa</span></div>
                         <div class="hd-skill-label">{i18n.progress_novice}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 5}active{/if}"></div>
@@ -144,7 +144,7 @@
 
         </section>
 
-        <section class="hd-panel">
+        <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n.section_identity}</p>
@@ -159,7 +159,15 @@
                     <label class="hd-card hd-class-option {#if opt.checked}selected{/if} hd-card-option-label">
                         <input type="radio" name="questClass" value="{opt.value}" class="hd-radio-input" {#if
                             opt.checked}checked{/if}>
-                        <div class="class-emoji">{opt.emoji}</div>
+                        <div class="class-emoji">
+                            {#switch opt.value}
+                            {#case 'ENGINEER'}<span class="material-symbols-outlined">engineering</span>{/case}
+                            {#case 'SCIENTIST'}<span class="material-symbols-outlined">science</span>{/case}
+                            {#case 'WARRIOR'}<span class="material-symbols-outlined">security</span>{/case}
+                            {#case 'MAGE'}<span class="material-symbols-outlined">auto_fix_high</span>{/case}
+                            {#else}{opt.emoji}{/else}
+                            {/switch}
+                        </div>
                         <h3 class="class-title">{opt.displayName}</h3>
                         <p class="class-desc">{opt.description}</p>
                     </label>
@@ -169,9 +177,17 @@
                     <button type="submit" class="hd-btn hd-btn-primary">{i18n.btn_save_class}</button>
                 </div>
             </form>
+            <script>
+                document.addEventListener('change', function (e) {
+                    if (e.target.name === 'questClass' && e.target.classList.contains('hd-radio-input')) {
+                        document.querySelectorAll('.hd-class-option').forEach(el => el.classList.remove('selected'));
+                        e.target.closest('.hd-class-option').classList.add('selected');
+                    }
+                });
+            </script>
         </section>
 
-        <section class="hd-panel">
+        <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n.section_settings}</p>
@@ -192,20 +208,9 @@
             </form>
         </section>
 
-        <section class="hd-panel">
-            <div class="hd-dashboard-header">
-                <div>
-                    <p class="hd-eyebrow">{i18n.section_community}</p>
-                    <h2 class="hd-panel-title">{i18n.btn_explore_community}</h2>
-                    <p class="hd-page-intro">{i18n.community_initiatives(5)}</p>
-                </div>
-                <div class="hd-panel-actions">
-                    <a class="hd-btn" href="/comunidad">{i18n.btn_explore_community}</a>
-                </div>
-            </div>
-        </section>
 
-        <section class="hd-panel">
+
+        <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n.section_agenda}</p>
@@ -215,9 +220,9 @@
             </div>
 
             <div class="hd-tabs">
-                <button class="hd-tab active">{i18n.btn_all}</button>
-                <button class="hd-tab">{i18n.btn_attended}</button>
-                <button class="hd-tab">{i18n.btn_pending}</button>
+                <button class="hd-tab active" data-filter="all">{i18n.btn_all}</button>
+                <button class="hd-tab" data-filter="attended">{i18n.btn_attended}</button>
+                <button class="hd-tab" data-filter="pending">{i18n.btn_pending}</button>
             </div>
 
             {#if groups.isEmpty()}
@@ -373,6 +378,10 @@
         const rows = document.querySelectorAll('.talk-row');
         filterButtons.forEach(btn => {
             btn.addEventListener('click', () => {
+                // Toggle active state
+                filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
                 const filter = btn.dataset.filter;
                 rows.forEach(row => {
                     const attended = row.dataset.attended === 'true';
@@ -382,5 +391,6 @@
                 });
             });
         });
-   </script>
+    })();
+</script>
 {/body}

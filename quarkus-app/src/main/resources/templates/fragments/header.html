@@ -6,7 +6,7 @@
       </div>
       <div class="logo-text header-logo-text">
         <span id="navPlatformName" class="header-platform-name">HomeDir</span>
-        <span class="logo-subtitle header-logo-subtitle" id="navTagline">{i18n.platform_by}</span>
+        <span class="logo-subtitle header-logo-subtitle" id="navTagline">{i18n.platform_by} OpenSourceSantiago</span>
       </div>
     </a>
   </div>
@@ -43,7 +43,15 @@
           {/if}
           <span class="user-name">
             {#if userSession.questClass}
-            <span title="{userSession.questClass.displayName}">{userSession.questClass.emoji}</span>
+            <span title="{userSession.questClass.displayName}" class="user-class-icon">
+              {#switch userSession.questClass.toString()}
+              {#case 'ENGINEER'}<span class="material-symbols-outlined">engineering</span>{/case}
+              {#case 'SCIENTIST'}<span class="material-symbols-outlined">science</span>{/case}
+              {#case 'WARRIOR'}<span class="material-symbols-outlined">security</span>{/case}
+              {#case 'MAGE'}<span class="material-symbols-outlined">auto_fix_high</span>{/case}
+              {#else}{userSession.questClass.emoji}{/else}
+              {/switch}
+            </span>
             {/if}
             {userSession.displayName ?: userName}
           </span>
