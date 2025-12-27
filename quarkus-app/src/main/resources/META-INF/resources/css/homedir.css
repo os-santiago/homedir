@@ -866,7 +866,7 @@ footer {
 
 .alpha-badge {
   background: #ffd700;
-  color: var(--color-surface-2);
+  color: #ffffff;
   font-weight: bold;
   padding: 1px 4px;
   border-radius: 4px;

@@ -115,7 +115,7 @@ public class ProfileResource {
     }
 
     // Locale Resolution
-    String lang = "en";
+    String lang = "es";
     if (localeCookie != null && !localeCookie.isBlank()) {
       lang = localeCookie;
     } else {
@@ -179,7 +179,7 @@ public class ProfileResource {
         messages,
         ogTitle,
         ogDescription)
-        .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
+        .data("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
   @GET
@@ -329,7 +329,7 @@ public class ProfileResource {
 
     // Validate locale simple check
     if (locale == null || (!locale.equals("en") && !locale.equals("es"))) {
-      locale = "en"; // Default fallback
+      locale = "es"; // Default fallback
     }
 
     // 1. Update user profile preference

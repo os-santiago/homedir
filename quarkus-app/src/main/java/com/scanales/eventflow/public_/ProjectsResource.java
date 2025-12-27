@@ -24,6 +24,12 @@ public class ProjectsResource {
   @jakarta.inject.Inject
   org.eclipse.microprofile.config.Config config;
 
+  @Inject
+  com.scanales.eventflow.config.AppMessages messages;
+
+  @Inject
+  io.vertx.core.http.HttpServerRequest request;
+
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance proyectos(List<ProjectCard> projects);
@@ -102,11 +108,22 @@ public class ProjectsResource {
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : null;
+
+    // Locale Resolution
+    String lang = "es";
+    io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+    if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+      lang = localeCookie.getValue();
+    }
+
     return templateInstance
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)
-        .data("userInitial", initialFrom(userName));
+        .data("userInitial", initialFrom(userName))
+        .data("i18n", messages)
+        .data("currentLanguage", lang)
+        .data("locale", java.util.Locale.forLanguageTag(lang));
   }
 
   private String initialFrom(String name) {

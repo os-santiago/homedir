@@ -29,6 +29,12 @@ public class QuestBoardResource {
     @Inject
     com.scanales.eventflow.service.UserProfileService userProfileService;
 
+    @Inject
+    com.scanales.eventflow.config.AppMessages messages;
+
+    @Inject
+    io.vertx.core.http.HttpServerRequest request;
+
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
         public static native TemplateInstance quests(List<Quest> quests, String filter, UserSession userSession);
@@ -151,12 +157,23 @@ public class QuestBoardResource {
     private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
         boolean authenticated = identity != null && !identity.isAnonymous();
         String userName = authenticated ? identity.getPrincipal().getName() : null;
+
+        // Locale Resolution
+        String lang = "es";
+        io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+        if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+            lang = localeCookie.getValue();
+        }
+
         return templateInstance
                 .data("activePage", activePage)
                 .data("userAuthenticated", authenticated)
                 .data("userName", userName)
                 .data("userSession", userSessionService.getCurrentSession())
-                .data("userInitial", initialFrom(userName));
+                .data("userInitial", initialFrom(userName))
+                .data("i18n", messages)
+                .data("currentLanguage", lang)
+                .data("locale", java.util.Locale.forLanguageTag(lang));
     }
 
     private String initialFrom(String name) {

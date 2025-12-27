@@ -31,13 +31,23 @@ public class TalkResource {
         boolean inSchedule);
   }
 
-  @Inject EventService eventService;
+  @Inject
+  EventService eventService;
 
-  @Inject SecurityIdentity identity;
+  @Inject
+  SecurityIdentity identity;
 
-  @Inject UserScheduleService userSchedule;
+  @Inject
+  UserScheduleService userSchedule;
 
-  @Inject UsageMetricsService metrics;
+  @Inject
+  UsageMetricsService metrics;
+
+  @Inject
+  com.scanales.eventflow.config.AppMessages messages;
+
+  @Inject
+  io.vertx.core.http.HttpServerRequest request;
 
   private String canonicalize(String rawId) {
     int talkIdx = rawId.indexOf("-talk-");
@@ -76,11 +86,16 @@ public class TalkResource {
       }
 
       java.util.List<String> missing = new java.util.ArrayList<>();
-      if (talk.getLocation() == null) missing.add("location");
-      if (talk.getName() == null) missing.add("name");
-      if (talk.getStartTime() == null) missing.add("startTime");
-      if (event == null) missing.add("event");
-      if (talk.getSpeakers() == null || talk.getSpeakers().isEmpty()) missing.add("speaker");
+      if (talk.getLocation() == null)
+        missing.add("location");
+      if (talk.getName() == null)
+        missing.add("name");
+      if (talk.getStartTime() == null)
+        missing.add("startTime");
+      if (event == null)
+        missing.add("event");
+      if (talk.getSpeakers() == null || talk.getSpeakers().isEmpty())
+        missing.add("speaker");
       if (!missing.isEmpty()) {
         LOG.warnf("Talk %s missing data: %s", canonicalId, String.join(", ", missing));
       }
@@ -96,7 +111,18 @@ public class TalkResource {
           inSchedule = userSchedule.getTalksForUser(email).contains(canonicalId);
         }
       }
-      return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)).build();
+
+      // Locale Resolution
+      String lang = "es";
+      io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+      if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+        lang = localeCookie.getValue();
+      }
+
+      return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)
+          .data("i18n", messages)
+          .data("currentLanguage", lang)
+          .data("locale", java.util.Locale.forLanguageTag(lang))).build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", id);
       return Response.serverError().build();

@@ -3010,6 +3010,7 @@
 
     .alpha-badge {
       background: rgba(0, 0, 0, 0.3);
+      color: #ffffff;
       padding: 0 0.5rem;
       border-radius: 4px;
     }

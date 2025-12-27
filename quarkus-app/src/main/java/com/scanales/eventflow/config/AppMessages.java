@@ -6,61 +6,61 @@ import io.quarkus.qute.i18n.MessageBundle;
 @MessageBundle("i18n")
 public interface AppMessages {
 
-    @Message("My Profile · Homedir")
+    @Message("Mi Perfil · Homedir")
     String profile_title();
 
-    @Message("Digital Profile")
+    @Message("Perfil Digital")
     String profile_eyebrow();
 
-    @Message("Manage your schedule, pick your favorite talks, and keep up with the community.")
+    @Message("Gestiona tu agenda, elige tus charlas favoritas y mantente al día con la comunidad.")
     String profile_intro();
 
-    @Message("Refresh")
+    @Message("Actualizar")
     String btn_refresh();
 
-    @Message("Logout")
+    @Message("Salir")
     String btn_logout();
 
-    @Message("View profile")
+    @Message("Ver perfil")
     String btn_view_profile();
 
-    @Message("Link GitHub")
+    @Message("Conectar GitHub")
     String btn_link_github();
 
-    @Message("Quest Board")
+    @Message("Tablero de Misiones")
     String btn_quest_board();
 
-    @Message("Save Class")
+    @Message("Guardar Clase")
     String btn_save_class();
 
     @Message("Explore Community")
     String btn_explore_community();
 
-    @Message("All")
+    @Message("Todas")
     String btn_all();
 
-    @Message("Attended")
+    @Message("Asistidas")
     String btn_attended();
 
-    @Message("Pending")
+    @Message("Pendientes")
     String btn_pending();
 
-    @Message("GitHub account linked successfully.")
+    @Message("Cuenta de GitHub vinculada exitosamente.")
     String msg_github_linked();
 
-    @Message("Could not link GitHub ({0}). Please try again.")
+    @Message("No se pudo vincular GitHub ({error}). Inténtalo de nuevo.")
     String msg_github_error(String error);
 
-    @Message("Link GitHub to appear in Community and join with your user.")
+    @Message("Vincula GitHub para aparecer en la Comunidad y unirte con tu usuario.")
     String msg_github_required();
 
-    @Message("Not linked yet.")
+    @Message("Aún no vinculado.")
     String msg_no_github();
 
-    @Message("(Linked)")
+    @Message("(Vinculado)")
     String msg_linked();
 
-    @Message("Email")
+    @Message("Correo")
     String label_email();
 
     @Message("Registered Talks")
@@ -72,31 +72,31 @@ public interface AppMessages {
     @Message("Ratings")
     String label_ratings();
 
-    @Message("Integrations")
+    @Message("Integraciones")
     String section_integrations();
 
     @Message("GitHub")
     String section_gitHub();
 
-    @Message("Resume")
+    @Message("Resumen")
     String section_resume();
 
-    @Message("Progress")
+    @Message("Progreso")
     String section_progress();
 
-    @Message("Identity")
+    @Message("Identidad")
     String section_identity();
 
-    @Message("Community")
+    @Message("Comunidad")
     String section_community();
 
     @Message("Agenda")
     String section_agenda();
 
-    @Message("Settings")
+    @Message("Configuración")
     String section_settings();
 
-    @Message("Level {level}")
+    @Message("Nivel {level}")
     String resume_level(Object level);
 
     @Message("Experience: {current} XP / {total} XP")
@@ -105,13 +105,13 @@ public interface AppMessages {
     @Message("{count} active initiatives and open collaborations.")
     String community_initiatives(int count);
 
-    @Message("You have added {added} talks to your schedule, attended {attended} and rated {rated}.")
+    @Message("Has agregado {added} charlas a tu agenda, has asistido a {attended} y calificado {rated}.")
     String agenda_intro(int added, long attended, long rated);
 
-    @Message("{days} days · {speakers} speakers")
+    @Message("{days} días · {speakers} oradores")
     String agenda_days_speakers(int days, int speakers);
 
-    @Message("Day {day}")
+    @Message("Día {day}")
     String agenda_day(int day);
 
     @Message("Total: {count}")
@@ -135,327 +135,342 @@ public interface AppMessages {
     @Message("Contribution Score: {score}")
     String contribution_score(int score);
 
+    @Message("Gamify <span class=\"hd-text-gradient\">Real Work</span>.<br>No Simulations.")
+    String home_hero_title_new();
+
+    @Message("Build a verifiable engineering profile by solving real Open Source issues. Earn XP, level up, and join the elite guild.")
+    String home_hero_subtitle_new();
+
+    @Message("HomeDir · Plataforma Comunitaria OSSantiago")
+    String footer_platform();
+
+    @Message("Construido con Quarkus · Qute · Open Source")
+    String footer_tech_stack();
+
+    @Message("Acerca de / Versión")
+    String footer_about();
+
     // --- Events Page ---
-    @Message("Events - HomeDir")
+    @Message("Eventos - HomeDir")
     String events_title();
 
     @Message("Agenda · HomeDir")
     String events_subtitle();
 
-    @Message("Events and talks")
+    @Message("Eventos y charlas")
     String events_hero_title();
 
-    @Message("Check the full schedule, past highlights and direct links for each edition.")
+    @Message("Revisa el calendario completo, destacados pasados y enlaces directos para cada edición.")
     String events_hero_desc();
 
-    @Message("Upcoming")
+    @Message("Próximos")
     String events_card_upcoming();
 
-    @Message("Scheduled")
+    @Message("Programados")
     String events_card_upcoming_desc();
 
-    @Message("Past")
+    @Message("Pasados")
     String events_card_past();
 
-    @Message("References")
+    @Message("Referencias")
     String events_card_past_desc();
 
-    @Message("Today")
+    @Message("Hoy")
     String events_card_today();
 
-    @Message("Local timezone")
+    @Message("Hora local")
     String events_card_today_desc();
 
-    @Message("Upcoming events")
+    @Message("Próximos eventos")
     String events_section_upcoming_subtitle();
 
-    @Message("Ongoing or starting soon")
+    @Message("En curso o por comenzar")
     String events_section_upcoming_title();
 
-    @Message("No upcoming events for now.")
+    @Message("No hay eventos próximos por ahora.")
     String events_empty_upcoming();
 
-    @Message("History")
+    @Message("Historial")
     String events_section_past_subtitle();
 
-    @Message("Past events")
+    @Message("Eventos pasados")
     String events_section_past_title();
 
-    @Message("No past records yet.")
+    @Message("No hay registros pasados aún.")
     String events_empty_past();
 
     // --- Projects Page ---
-    @Message("Projects · HomeDir")
+    @Message("Proyectos · HomeDir")
     String projects_title();
 
     @Message("Roadmap · HomeDir")
     String projects_subtitle();
 
-    @Message("Active Projects")
+    @Message("Proyectos Activos")
     String projects_hero_title();
 
-    @Message("Follow module status and go directly to the repository or section.")
+    @Message("Sigue el estado de los módulos y ve directamente al repositorio o sección.")
     String projects_hero_desc();
 
-    @Message("Open repository")
+    @Message("Abrir repositorio")
     String btn_open_repo();
 
-    @Message("Connect GitHub to join")
+    @Message("Conectar GitHub para unirse")
     String btn_connect_join();
 
-    @Message("Modules")
+    @Message("Módulos")
     String projects_section_modules();
 
-    @Message("Visible roadmap")
+    @Message("Roadmap visible")
     String projects_section_roadmap();
 
     @Message("Backend")
     String project_backend_eyebrow();
 
-    @Message("Basic platform: authentication, profiles and module orchestration.")
+    @Message("Plataforma básica: autenticación, perfiles y orquestación de módulos.")
     String project_backend_desc();
 
-    @Message("In Production")
+    @Message("En Producción")
     String badge_production();
 
-    @Message("Open")
+    @Message("Abrir")
     String btn_open();
 
-    @Message("Realtime")
+    @Message("Tiempo Real")
     String project_realtime_eyebrow();
 
-    @Message("Global Notifications")
+    @Message("Notificaciones Globales")
     String project_realtime_title();
 
-    @Message("WebSocket channel and notification center for events and alerts.")
+    @Message("Canal WebSocket y centro de notificaciones para eventos y alertas.")
     String project_realtime_desc();
 
     @Message("Beta")
     String badge_beta();
 
-    @Message("People")
+    @Message("Personas")
     String project_people_eyebrow();
 
-    @Message("Member directory and onboarding with GitHub to contribute.")
+    @Message("Directorio de miembros y onboarding con GitHub para contribuir.")
     String project_people_desc();
 
-    @Message("In Design")
+    @Message("En Diseño")
     String badge_design();
 
-    @Message("You are browsing as a guest.")
+    @Message("Estás navegando como invitado.")
     String home_guest_warning();
 
-    @Message("Guest")
+    @Message("Invitado")
     String home_guest_name();
 
-    @Message("Visitor")
+    @Message("Visitante")
     String home_guest_role();
 
-    @Message("Contributions")
+    @Message("Contribuciones")
     String home_stat_contributions();
 
-    @Message("Quests")
+    @Message("Misiones")
     String nav_quests();
 
-    @Message("Events")
+    @Message("Eventos")
     String nav_events();
 
-    @Message("Projects")
+    @Message("Proyectos")
     String nav_projects();
 
-    @Message("Home")
+    @Message("Inicio")
     String nav_home();
 
-    @Message("Join Us")
+    @Message("Únete")
     String home_btn_join();
 
-    @Message("Propose Talk")
+    @Message("Proponer Charla")
     String home_btn_propose();
 
-    @Message("Community Village")
+    @Message("Aldea Comunitaria")
     String home_village_title();
 
-    @Message("Connect with other developers, share knowledge and grow together.")
+    @Message("Conecta con otros desarrolladores, comparte conocimiento y crezcan juntos.")
     String home_village_desc();
 
-    @Message("Community Stats")
+    @Message("Estadísticas de la Comunidad")
     String home_stats_title();
 
-    @Message("Members")
+    @Message("Miembros")
     String home_stats_members();
 
     @Message("Total XP")
     String home_stats_xp();
 
-    @Message("Quests Completed")
+    @Message("Misiones Completadas")
     String home_stats_quests();
 
-    @Message("Active Projects")
+    @Message("Proyectos Activos")
     String home_stats_projects();
 
-    @Message("Join Community")
+    @Message("Unirse a la Comunidad")
     String btn_join_community();
 
-    @Message("Community")
+    @Message("Comunidad")
     String nav_community();
 
-    @Message("Latest community activity")
+    @Message("Última actividad de la comunidad")
     String home_community_activity();
 
-    @Message("Join the community to collaborate and grow.")
+    @Message("Únete a la comunidad para colaborar y crecer.")
     String home_community_desc();
 
-    @Message("Explore")
+    @Message("Explorar")
     String home_btn_explore();
 
-    @Message("Roster")
+    @Message("Lista")
     String home_btn_roster();
 
-    @Message("Check out upcoming events and talks.")
+    @Message("Revisa los próximos eventos y charlas.")
     String home_events_desc();
 
-    @Message("Upcoming events")
+    @Message("Próximos eventos")
     String home_events_activity();
 
-    @Message("Attend")
+    @Message("Asistir")
     String home_btn_attend();
 
-    @Message("Schedule")
+    @Message("Agenda")
     String home_btn_schedule();
 
-    @Message("Contribute to open source projects.")
+    @Message("Contribuye a proyectos open source.")
     String home_projects_desc();
 
-    @Message("Project updates")
+    @Message("Actualizaciones del proyecto")
     String home_projects_activity();
 
-    @Message("Platform by")
+    @Message("Plataforma por")
     String platform_by();
 
-    @Message("The hub for developer communities")
+    @Message("El hub para comunidades de desarrolladores")
     String platform_tagline();
 
-    @Message("Member")
+    @Message("Miembro")
     String role_member();
 
-    @Message("Visitor")
+    @Message("Visitante")
     String role_visitor();
 
-    @Message("No talks found for this day.")
+    @Message("No se encontraron charlas para este día.")
     String agenda_no_talks();
 
-    @Message("Official Member")
+    @Message("Miembro Oficial")
     String badge_official_member();
 
-    @Message("Completed")
+    @Message("Completado")
     String badge_completed();
 
-    @Message("In Progress")
+    @Message("En Progreso")
     String badge_in_progress();
 
-    @Message("Already a member")
+    @Message("Ya eres miembro")
     String btn_already_member();
 
-    @Message("Claim Reward")
+    @Message("Reclamar")
     String btn_claim();
 
-    @Message("Closed")
+    @Message("Cerrada")
     String btn_closed();
 
-    @Message("Connect Now")
+    @Message("Conectar Ahora")
     String btn_connect_now();
 
-    @Message("Explore Quests")
+    @Message("Explorar Misiones")
     String btn_explore_quests();
 
-    @Message("Instructions")
+    @Message("Instrucciones")
     String btn_instructions();
 
-    @Message("Join Guild")
+    @Message("Unirse al Gremio")
     String btn_join_guild();
 
-    @Message("Sign in with Google")
+    @Message("Ingresar con Google")
     String btn_login_google();
 
-    @Message("Login or Join")
+    @Message("Entrar o Unirse")
     String btn_login_join();
 
-    @Message("Processing Request...")
+    @Message("Procesando...")
     String btn_request_processing();
 
-    @Message("Search")
+    @Message("Buscar")
     String btn_search();
 
-    @Message("Start Quest")
+    @Message("Comenzar")
     String btn_start();
 
-    @Message("View Details")
+    @Message("Ver Detalles")
     String btn_view_details();
 
-    @Message("View Directory")
+    @Message("Ver Directorio")
     String btn_view_directory();
 
-    @Message("View PR")
+    @Message("Ver PR")
     String btn_view_pr();
 
-    @Message("Error Description")
+    @Message("Ocurrió un problema al cargar la comunidad.")
     String community_error_desc();
 
-    @Message("Error Title")
+    @Message("Error de Comunidad")
     String community_error_title();
 
-    @Message("Community Hero Description")
+    @Message("Construye tu perfil de ingeniero resolviendo problemas reales.")
     String community_hero_desc();
 
-    @Message("Community Hero Title")
+    @Message("Comunidad Open Source Santiago")
     String community_hero_title();
 
-    @Message("Join our community to access exclusive content and events.")
+    @Message("Únete a nuestra comunidad para acceder a contenido y eventos exclusivos.")
     String community_join_card_desc();
 
-    @Message("Join Us")
+    @Message("Únete")
     String community_join_card_eyebrow();
 
-    @Message("Become a Member")
+    @Message("Conviértete en Miembro")
     String community_join_card_title();
 
-    @Message("You have successfully joined the community!")
+    @Message("¡Te has unido exitosamente a la comunidad!")
     String community_joined_desc();
 
-    @Message("Welcome!")
+    @Message("¡Bienvenido!")
     String community_joined_title();
 
-    @Message("Your account is now linked with GitHub.")
+    @Message("Tu cuenta ahora está vinculada con GitHub.")
     String community_linked_desc();
 
-    @Message("Account Linked")
+    @Message("Cuenta Vinculada")
     String community_linked_title();
 
-    @Message("Meet our amazing community members.")
+    @Message("Conoce a los increíbles miembros de nuestra comunidad.")
     String community_members_desc();
 
-    @Message("Members")
+    @Message("Miembros")
     String community_members_eyebrow();
 
-    @Message("Community Subtitle")
+    @Message("Conecta, Colabora, Crece")
     String community_subtitle();
 
-    @Message("Community Title")
+    @Message("Nuestra Comunidad")
     String community_title();
 
-    @Message("Top Contributors")
+    @Message("Mejores Colaboradores")
     String community_top_contributors();
 
-    @Message("No members found in directory.")
+    @Message("No se encontraron miembros en el directorio.")
     String directory_empty();
 
-    @Message("Member Directory")
+    @Message("Directorio de Miembros")
     String directory_title();
 
-    @Message("Alpha Repo")
+    @Message("Repositorio GitHub")
     String header_alpha_repo();
 
-    @Message("This is an alpha version. Things might break.")
+    @Message("Esta es una versión alpha. Podría fallar.")
     String header_alpha_text();
 
     @Message("Header Navigation")
@@ -467,126 +482,127 @@ public interface AppMessages {
     @Message("Hero Subtitle")
     String hero_subtitle();
 
-    @Message("Guild Identity")
+    @Message("Tu Gremio (Clase de Misión)")
     String identity_guild();
 
-    @Message("Identity Intro")
+    @Message("Elige tu arquetipo para que la comunidad conozca tu rol principal.")
     String identity_intro();
 
-    @Message("Interesting")
+    @Message("Interesante")
     String motivation_interesting();
 
-    @Message("Learning")
+    @Message("Aprendizaje")
     String motivation_learning();
 
-    @Message("What is your motivation?")
+    @Message("Seleccionar...")
     String motivation_placeholder();
 
-    @Message("Speaker")
+    @Message("Orador")
     String motivation_speaker();
 
-    @Message("Work")
+    @Message("Trabajo")
     String motivation_work();
 
-    @Message("Are you sure you want to delete this?")
+    @Message("¿Estás seguro de que quieres eliminar esta charla?")
     String msg_confirm_delete();
 
-    @Message("Error removing item.")
+    @Message("Error al eliminar")
     String msg_error_removing();
 
-    @Message("Error saving item.")
+    @Message("Error al guardar")
     String msg_error_saving();
 
-    @Message("Admin Panel")
+    @Message("Panel Administración")
     String nav_admin_panel();
 
-    @Message("Connect GitHub")
+    @Message("Conectar GitHub")
     String nav_connect_github();
 
-    @Message("Login")
+    @Message("Ingresar")
     String nav_login();
 
-    @Message("Logout")
+    @Message("Salir")
     String nav_logout();
 
-    @Message("My Profile")
+    @Message("Mi Perfil")
     String nav_my_profile();
 
-    @Message("Notifications")
+    @Message("Notificaciones")
     String nav_notifications();
 
-    @Message("Signed in as")
+    @Message("Conectado como")
     String nav_signed_in_as();
 
-    @Message("Contributor")
+    @Message("Colaborador")
     String progress_contributor();
 
-    @Message("Progress Intro")
+    @Message("Completa misiones para desbloquear nuevos rangos.")
     String progress_intro();
 
-    @Message("Legend")
+    @Message("Leyenda")
     String progress_legend();
 
     @Message("Mentor")
     String progress_mentor();
 
-    @Message("Novice")
+    @Message("Novato")
     String progress_novice();
 
-    @Message("Progress Tree")
+    @Message("Árbol de Progreso")
     String progress_tree();
 
-    @Message("Public Description")
+    @Message("Descripción Pública")
     String public_description();
 
-    @Message("Public Title")
+    @Message("Título Público")
     String public_title();
 
-    @Message("Quest Board")
+    @Message("Tablero de Misiones")
     String quest_board_eyebrow();
 
-    @Message("Complete quests to earn XP and badges.")
+    @Message("Completa misiones para ganar XP e insignias.")
     String quest_board_intro();
 
-    @Message("Quest Board")
+    @Message("Tablero de Misiones")
     String quest_board_title();
 
-    @Message("View Quests")
+    @Message("Ver Misiones")
     String quest_empty_cta_btn();
 
-    @Message("No quests available right now.")
+    @Message("No hay misiones disponibles por ahora.")
     String quest_empty_cta_text();
 
-    @Message("Check back later for new quests.")
+    @Message("Vuelve más tarde para ver nuevas misiones.")
     String quest_empty_desc();
 
-    @Message("No Quests")
+    @Message("Sin Misiones")
     String quest_empty_title();
 
-    @Message("My Quests")
+    @Message("Mis Misiones")
     String quest_filter_mine();
 
-    @Message("Resume History")
+    @Message("Historial de Misiones")
     String resume_history();
 
-    @Message("No history available.")
+    @Message("Aún no has completado ninguna misión.")
     String resume_no_history();
 
-    @Message("Search")
+    @Message("Buscar")
     String search_aria_label();
 
-    @Message("Search...")
+    @Message("Buscar...")
     String search_placeholder();
 
-    @Message("Language")
+    @Message("Idioma")
     String settings_language();
 
-    @Message("Choose your preferred language.")
+    @Message("Selecciona tu idioma preferido.")
     String settings_language_intro();
 
-    @Message("Save Settings")
+    @Message("Guardar Preferencias")
     String settings_save();
 
-    @Message("XP Progress")
+    @Message("Progreso de XP")
     String xp_progress();
+
 }

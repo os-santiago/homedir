@@ -2,6 +2,7 @@ package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.public_.view.CommunityViewModel;
 import com.scanales.eventflow.public_.view.ProjectsViewModel;
+import io.quarkus.qute.Location;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -19,19 +20,28 @@ public class PublicPagesResource {
   Template home;
 
   @Inject
-  Template community;
+  @Location("pages/comunidad.html")
+  Template communityPage;
 
   @Inject
-  Template projects;
+  @Location("ProjectsResource/proyectos.html")
+  Template projectsPage;
 
   @Inject
-  Template events;
+  @Location("pages/eventos.html")
+  Template eventsPage;
 
   @Inject
   SecurityIdentity identity;
 
   @Inject
   com.scanales.eventflow.service.UserSessionService userSessionService;
+
+  @Inject
+  com.scanales.eventflow.config.AppMessages messages;
+
+  @Inject
+  io.vertx.core.http.HttpServerRequest request;
 
   @GET
   public TemplateInstance home() {
@@ -43,7 +53,7 @@ public class PublicPagesResource {
   public TemplateInstance community() {
     CommunityViewModel vm = CommunityViewModel.mock();
     return withLayoutData(
-        community.data("pageTitle", "Comunidad").data("vm", vm), "comunidad");
+        communityPage.data("pageTitle", "Comunidad").data("vm", vm), "comunidad");
   }
 
   @GET
@@ -51,26 +61,37 @@ public class PublicPagesResource {
   public TemplateInstance projects() {
     ProjectsViewModel vm = ProjectsViewModel.mock();
     return withLayoutData(
-        projects.data("pageTitle", "Proyectos").data("vm", vm), "proyectos");
+        projectsPage.data("pageTitle", "Proyectos").data("vm", vm), "proyectos");
   }
 
   @GET
   @Path("/events")
   public TemplateInstance events() {
     return withLayoutData(
-        events.data("pageTitle", "Eventos").data("today", java.time.LocalDate.now()), "eventos");
+        eventsPage.data("pageTitle", "Eventos").data("today", java.time.LocalDate.now()), "eventos");
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : "";
     String userInitial = initialFrom(userName);
+
+    // Locale Resolution: Cookie -> Accept-Language -> Default 'es'
+    String lang = "es";
+    io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+    if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+      lang = localeCookie.getValue();
+    }
+
     return templateInstance
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName != null ? userName : "")
         .data("userSession", userSessionService.getCurrentSession())
-        .data("userInitial", userInitial != null ? userInitial : "");
+        .data("userInitial", userInitial != null ? userInitial : "")
+        .data("i18n", messages)
+        .data("currentLanguage", lang)
+        .data("locale", java.util.Locale.forLanguageTag(lang));
   }
 
   private String initialFrom(String name) {

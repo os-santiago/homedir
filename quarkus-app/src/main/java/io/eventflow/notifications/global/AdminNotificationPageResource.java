@@ -17,10 +17,19 @@ public class AdminNotificationPageResource {
     static native TemplateInstance notifications();
   }
 
+  @jakarta.inject.Inject
+  com.scanales.eventflow.config.AppMessages appMessages;
+
   @GET
   @Produces(MediaType.TEXT_HTML)
   @RolesAllowed("admin")
-  public TemplateInstance page() {
-    return Templates.notifications();
+  public TemplateInstance page(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+    String lang = "es";
+    if (localeCookie != null && !localeCookie.isBlank()) {
+      lang = localeCookie;
+    }
+    return Templates.notifications()
+        .data("locale", java.util.Locale.forLanguageTag(lang))
+        .data("currentLanguage", lang);
   }
 }

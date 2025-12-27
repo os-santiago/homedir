@@ -26,9 +26,17 @@ public class SpeakerResource {
     static native TemplateInstance detail(Speaker speaker, Map<String, List<Event>> talkEvents);
   }
 
-  @Inject SpeakerService speakerService;
+  @Inject
+  SpeakerService speakerService;
 
-  @Inject EventService eventService;
+  @Inject
+  EventService eventService;
+
+  @Inject
+  com.scanales.eventflow.config.AppMessages messages;
+
+  @Inject
+  io.vertx.core.http.HttpServerRequest request;
 
   @GET
   @Path("{id}")
@@ -45,6 +53,17 @@ public class SpeakerResource {
         }
       }
     }
-    return Templates.detail(sp, talkEvents);
+
+    // Locale Resolution
+    String lang = "es";
+    io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+    if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+      lang = localeCookie.getValue();
+    }
+
+    return Templates.detail(sp, talkEvents)
+        .data("i18n", messages)
+        .data("currentLanguage", lang)
+        .data("locale", java.util.Locale.forLanguageTag(lang));
   }
 }

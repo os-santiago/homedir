@@ -21,9 +21,17 @@ public class EventResource {
     static native TemplateInstance detail(Event event);
   }
 
-  @Inject EventService eventService;
+  @Inject
+  EventService eventService;
 
-  @Inject UsageMetricsService metrics;
+  @Inject
+  UsageMetricsService metrics;
+
+  @Inject
+  com.scanales.eventflow.config.AppMessages messages;
+
+  @Inject
+  io.vertx.core.http.HttpServerRequest request;
 
   @GET
   @Path("{id}")
@@ -38,9 +46,18 @@ public class EventResource {
     metrics.recordPageView("/event", sessionId, ua);
     metrics.recordEventView(id, sessionId, ua);
     Event event = eventService.getEvent(id);
-    if (event == null) {
-      return Templates.detail(null);
+
+    // Locale Resolution
+    String lang = "es";
+    io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+    if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+      lang = localeCookie.getValue();
     }
-    return Templates.detail(event);
+
+    TemplateInstance template = (event == null) ? Templates.detail(null) : Templates.detail(event);
+    return template
+        .data("i18n", messages)
+        .data("currentLanguage", lang)
+        .data("locale", java.util.Locale.forLanguageTag(lang));
   }
 }

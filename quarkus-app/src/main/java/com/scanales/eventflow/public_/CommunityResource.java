@@ -52,6 +52,12 @@ public class CommunityResource {
   @Inject
   com.scanales.eventflow.service.SystemErrorService systemErrorService;
 
+  @Inject
+  com.scanales.eventflow.config.AppMessages messages;
+
+  @Inject
+  io.vertx.core.http.HttpServerRequest request;
+
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance community(
@@ -282,11 +288,22 @@ public class CommunityResource {
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
     String name = currentUserName().orElse(null);
+
+    // Locale Resolution
+    String lang = "es";
+    io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+    if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+      lang = localeCookie.getValue();
+    }
+
     return templateInstance
         .data("activePage", activePage)
         .data("userAuthenticated", isAuthenticated())
         .data("userName", name)
-        .data("userInitial", initialFrom(name));
+        .data("userInitial", initialFrom(name))
+        .data("i18n", messages)
+        .data("currentLanguage", lang)
+        .data("locale", java.util.Locale.forLanguageTag(lang));
   }
 
   private String initialFrom(String name) {

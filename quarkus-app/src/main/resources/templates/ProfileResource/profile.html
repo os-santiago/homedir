@@ -47,7 +47,7 @@
         </div>
 
         <section class="hd-panel centered">
-            <h2 class="hd-panel-title">Integrations</h2>
+            <h2 class="hd-panel-title">{i18n.section_integrations}</h2>
 
             <div class="hd-integration-card">
                 <div class="hd-integration-header">
@@ -198,8 +198,9 @@
             <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
                 <div class="form-group-margin form-actions-centered">
                     <select name="locale" class="hd-form-input">
+                        <option value="es" {#if currentLanguage eq 'es' or !currentLanguage}selected{/if}>Español
+                        </option>
                         <option value="en" {#if currentLanguage eq 'en' }selected{/if}>English</option>
-                        <option value="es" {#if currentLanguage eq 'es' }selected{/if}>Español</option>
                     </select>
                 </div>
                 <div class="form-actions-centered">
@@ -215,7 +216,7 @@
                 <div>
                     <p class="hd-eyebrow">{i18n.section_agenda}</p>
                     <h2 class="hd-panel-title">{i18n.section_agenda}</h2>
-                    <p class="hd-page-intro">{i18n.agenda_intro(totalTalks, attendedTalks, ratedTalks)}</p>
+                    <p id="summary" class="hd-page-intro">{i18n.agenda_intro(totalTalks, attendedTalks, ratedTalks)}</p>
                 </div>
             </div>
 

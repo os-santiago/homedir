@@ -16,10 +16,19 @@ public class NotificationPageResource {
     static native TemplateInstance center();
   }
 
+  @jakarta.inject.Inject
+  com.scanales.eventflow.config.AppMessages appMessages;
+
   @GET
   @Path("/center")
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance center() {
-    return Templates.center();
+  public TemplateInstance center(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+    String lang = "es";
+    if (localeCookie != null && !localeCookie.isBlank()) {
+      lang = localeCookie;
+    }
+    return Templates.center()
+        .data("locale", java.util.Locale.forLanguageTag(lang))
+        .data("currentLanguage", lang);
   }
 }

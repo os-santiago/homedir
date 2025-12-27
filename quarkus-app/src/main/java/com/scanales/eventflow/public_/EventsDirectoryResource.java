@@ -34,6 +34,12 @@ public class EventsDirectoryResource {
   @Inject
   com.scanales.eventflow.service.UserSessionService sessionService;
 
+  @Inject
+  com.scanales.eventflow.config.AppMessages messages;
+
+  @Inject
+  io.vertx.core.http.HttpServerRequest request;
+
   @ConfigProperty(name = "homedir.ui.v2.enabled", defaultValue = "true")
   boolean uiV2Enabled;
 
@@ -88,12 +94,23 @@ public class EventsDirectoryResource {
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : null;
+
+    // Locale Resolution
+    String lang = "es";
+    io.vertx.core.http.Cookie localeCookie = request.getCookie("QP_LOCALE");
+    if (localeCookie != null && (localeCookie.getValue().equals("en") || localeCookie.getValue().equals("es"))) {
+      lang = localeCookie.getValue();
+    }
+
     return templateInstance
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)
         .data("userSession", sessionService.getCurrentSession())
-        .data("userInitial", initialFrom(userName));
+        .data("userInitial", initialFrom(userName))
+        .data("i18n", messages)
+        .data("currentLanguage", lang)
+        .data("locale", java.util.Locale.forLanguageTag(lang));
   }
 
   private String initialFrom(String name) {
