@@ -342,9 +342,13 @@ footer {
   font-size: 0.85rem;
 }
 
-.hd-user-name {
+.hd-user-name,
+.user-name {
   font-size: 0.65rem;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .hd-login-btn,
@@ -1056,4 +1060,734 @@ footer {
   font-size: 0.6rem !important;
   margin-left: 0.4rem;
   transform: scale(0.9);
+}
+
+/* ===========================================
+   FIXES & MISSING STYLES (Profile & GitHub)
+   =========================================== */
+
+/* GitHub Integration */
+.hd-github-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hd-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.hd-github-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.hd-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.hd-link:hover {
+  text-decoration: underline;
+}
+
+
+
+/* =========================================================
+   HomeDir Profile Components (HD-*)
+   - Component-only styles to coexist with retro-theme.css
+   ========================================================= */
+
+/* ===========================================
+   STANDARD UI COMPONENTS (HD-*)
+   =========================================== */
+
+/* Panels & Sections */
+.hd-section {
+  padding: 4rem 1rem;
+}
+
+.hd-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hd-panel {
+  background: rgba(20, 10, 40, 0.6);
+  /* Darker, more contrast */
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  /* Gold border hint */
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.hd-panel.centered {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hd-panel.centered .hd-dashboard-header {
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.hd-panel.centered .hd-panel-actions {
+  justify-content: center;
+}
+
+.hd-panel.centered .hd-list,
+.hd-panel.centered .progress-bar-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hd-card-surface {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Headers & Text */
+.hd-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.hd-page-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  font-family: 'Orbitron', 'Exo 2', sans-serif;
+  /* Retro font */
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(166, 75, 244, 0.5);
+}
+
+.hd-panel-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  font-family: 'Exo 2', sans-serif;
+  color: #fff;
+}
+
+.hd-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+  color: #ffd700;
+  /* Gold */
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.hd-page-intro {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+/* KPIs */
+.hd-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.hd-kpi {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid #a64bf4;
+}
+
+.hd-kpi-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.hd-kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* Components */
+.hd-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  /* More retro/boxy */
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  border: none;
+  text-decoration: none;
+  font-family: 'Exo 2', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hd-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hd-btn-ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hd-btn:hover {
+  color: #ffd700;
+}
+
+/* Specific GitHub Button */
+.btn-github-dark {
+  background-color: #24292e !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+.btn-github-dark:hover {
+  background-color: #2f363d !important;
+  color: #fff !important;
+  transform: translateY(4px);
+}
+
+.hd-alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.hd-alert-success {
+  background: rgba(0, 255, 128, 0.1);
+  color: #8affc1;
+  border: 1px solid rgba(0, 255, 128, 0.2);
+}
+
+.hd-alert-warning {
+  background: rgba(255, 170, 0, 0.1);
+  color: #ffca80;
+  border: 1px solid rgba(255, 170, 0, 0.2);
+}
+
+.hd-alert-info {
+  background: rgba(0, 150, 255, 0.1);
+  color: #80caff;
+  border: 1px solid rgba(0, 150, 255, 0.2);
+}
+
+.hd-alert-danger {
+  background: rgba(255, 0, 80, 0.1);
+  color: #ff80a0;
+  border: 1px solid rgba(255, 0, 80, 0.2);
+}
+
+/* Talks */
+.talk-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1rem;
+}
+
+.talk-time {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.talk-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.talk-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.talk-title a {
+  transition: color 0.2s;
+  color: #fff;
+}
+
+.talk-title a:hover {
+  color: #ffd700;
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.motivation-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.talk-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.hd-form-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.hd-form-input:focus {
+  outline: 2px solid #a64bf4;
+  border-color: transparent;
+}
+
+/* Tabs */
+.hd-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.hd-tab {
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  font-family: 'Exo 2', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  /* Default (Inactive) - Match hd-btn-secondary */
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hd-tab:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffd700;
+  transform: translateY(-2px);
+}
+
+.hd-tab.active {
+  /* Active - Match hd-btn-primary */
+  background: linear-gradient(135deg, var(--color-primary, #667eea), #1d4ed8);
+  color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Avatars */
+.speaker-avatars {
+  display: flex;
+  gap: -8px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #222;
+  object-fit: cover;
+}
+
+.avatar.placeholder {
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+/* ===========================================
+   SKILL TREE (Gamification)
+   =========================================== */
+/* Standard Material Symbols Class */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+.hd-skill-tree {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  /* Connectors handle spacing */
+  flex-wrap: wrap;
+  margin: 2rem 0;
+  flex-direction: row;
+  /* Force horizontal */
+}
+
+.hd-skill-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100px;
+  text-align: center;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  filter: grayscale(1);
+}
+
+.hd-skill-node.unlocked {
+  opacity: 1;
+  filter: grayscale(0);
+}
+
+.hd-skill-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  /* Dimmed by default */
+}
+
+.hd-skill-node.unlocked .hd-skill-icon {
+  background: linear-gradient(135deg, #a64bf4, #667eea);
+  border-color: #ffd700;
+  box-shadow: 0 0 15px rgba(166, 75, 244, 0.6);
+  color: #ffd700;
+  /* Yellow Icon */
+}
+
+/* Ensure the material symbol span inherits the yellow color */
+.hd-skill-node.unlocked .hd-skill-icon .material-symbols-outlined {
+  color: #ffd700;
+}
+
+.hd-skill-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 700;
+}
+
+.hd-skill-node.unlocked .hd-skill-label {
+  color: #ffd700;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.hd-skill-connector {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 -10px;
+  /* Overlap slightly with nodes/margins */
+  z-index: -1;
+  position: relative;
+  top: -15px;
+  /* Align with icon center approx */
+}
+
+.hd-skill-connector.active {
+  background: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* ===========================================
+   RETRO DASHBOARD (Required by Character Sheet)
+   =========================================== */
+.retro-dashboard {
+  background: rgba(26, 22, 53, 0.9);
+  padding: 1.5rem;
+  margin-top: 2rem;
+  border-top: 4px solid #b8860b;
+  color: #ffd700;
+  font-family: 'Courier New', Courier, monospace;
+  position: relative;
+  border-radius: 8px;
+}
+
+.dashboard-warning {
+  border: 1px solid #ff4500;
+  color: #ff4500;
+  padding: 0.75rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.identity-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffd700;
+  margin-right: 0.5rem;
+}
+
+.identity-class {
+  border: 1px solid #ffd700;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  color: #ffd700;
+}
+
+.level-box {
+  border: 2px solid #ffd700;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.4rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  color: #ffd700;
+}
+
+.dashboard-divider {
+  height: 2px;
+  background: #ffd700;
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Col 1: Vitals */
+.vital-card {
+  border: 1px solid #555;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.vital-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.vital-bar-track {
+  height: 10px;
+  background: #222;
+  border: 1px solid #444;
+}
+
+.vital-bar-fill {
+  height: 100%;
+}
+
+.vital-bar-fill.hp {
+  background: #ff4444;
+}
+
+.vital-bar-fill.sp {
+  background: #4444ff;
+}
+
+.vital-bar-fill.xp {
+  background: #ffff44;
+}
+
+/* Col 2: Stats Grid */
+.stat-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.dash-stat-card {
+  background: rgba(15, 12, 34, 0.8);
+  border: 1px solid rgba(51, 43, 85, 0.8);
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 0.1rem;
+}
+
+.stat-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+}
+
+/* Col 3: Equipment */
+.equipment-header-box {
+  border: 1px solid #ffd700;
+  padding: 0.4rem;
+  text-align: center;
+  margin-bottom: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: #ffd700;
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+}
+
+.equipment-slot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.dash-slot {
+  aspect-ratio: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #444;
+  background-image: linear-gradient(45deg, #111 25%, transparent 25%, transparent 50%, #111 50%, #111 75%, transparent 75%, transparent);
+  background-size: 10px 10px;
+}
+
+.dashboard-footer {
+  text-align: center;
+}
+
+.retro-login-btn {
+  background: transparent;
+  border: 2px solid #ffd700;
+  color: #ffd700;
+  padding: 0.8rem 2rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  transition: all 0.2s;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.retro-login-btn:hover {
+  background: rgba(255, 215, 0, 0.1);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quest-dashboard-header {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.quest-dashboard-header .hd-eyebrow,
+.quest-dashboard-header .hd-page-title,
+/* User Class Icon in Header */
+.user-class-icon .material-symbols-outlined {
+  font-size: 1.2rem;
+  vertical-align: middle;
+  color: #ffd700;
+  margin-right: 4px;
+}
+
+/* Guild Identity Layout - 2 Columns Override */
+.hd-grid-classes-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .hd-grid-classes-layout {
+    grid-template-columns: 1fr !important;
+  }
 }

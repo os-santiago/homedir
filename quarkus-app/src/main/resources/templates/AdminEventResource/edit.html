@@ -66,7 +66,7 @@ Nuevo Evento · Homedir
             <label for="timezone" class="hd-form-label">Zona horaria</label>
             <select id="timezone" name="timezone" class="hd-form-input">
               {#for tz in app:commonTimezones()}
-              <option value="{tz}" {#if tz == event.timezone} selected{/if}>{tz} ({app:zoneDetail(tz)})</option>
+              <option value="{tz}" {#if tz eq event.timezone} selected{/if}>{tz} ({app:zoneDetail(tz)})</option>
               {/for}
             </select>
           </div>
@@ -186,7 +186,7 @@ Nuevo Evento · Homedir
               <label class="hd-form-label">Ubicación</label>
               <select name="location" class="hd-form-input">
                 {#for sc in event.scenarios}
-                <option value="{sc.id}" {#if sc.id == t.location} selected{/if}>{sc.name}</option>
+                <option value="{sc.id}" {#if sc.id eq t.location} selected{/if}>{sc.name}</option>
                 {/for}
               </select>
             </div>
@@ -196,7 +196,7 @@ Nuevo Evento · Homedir
               <label class="hd-form-label">Día</label>
               <select name="day" class="hd-form-input">
                 {#for d in event.dayList}
-                <option value="{d}" {#if t.day == d} selected{/if}>Día {d}</option>
+                <option value="{d}" {#if t.day eq d} selected{/if}>Día {d}</option>
                 {/for}
               </select>
             </div>
@@ -279,7 +279,7 @@ Nuevo Evento · Homedir
               <label class="hd-form-label">Ubicación</label>
               <select name="location" class="hd-form-input">
                 {#for sc in event.scenarios}
-                <option value="{sc.id}" {#if sc.id == t.location} selected{/if}>{sc.name}</option>
+                <option value="{sc.id}" {#if sc.id eq t.location} selected{/if}>{sc.name}</option>
                 {/for}
               </select>
             </div>
@@ -289,7 +289,7 @@ Nuevo Evento · Homedir
               <label class="hd-form-label">Día</label>
               <select name="day" class="hd-form-input">
                 {#for d in event.dayList}
-                <option value="{d}" {#if t.day == d} selected{/if}>Día {d}</option>
+                <option value="{d}" {#if t.day eq d} selected{/if}>Día {d}</option>
                 {/for}
               </select>
             </div>
@@ -363,7 +363,7 @@ Nuevo Evento · Homedir
     </div>
     {/if}
 
-    <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+
   </div>
 </section>
 <script>

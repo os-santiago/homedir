@@ -3,36 +3,36 @@
 {#title}Backup · Homedir{/title}
 
 {#body}
-  <section class="hd-section hd-section-dashboard">
-    <div class="hd-page hd-page-narrow">
-      <div class="hd-dashboard-header">
-        <div>
-          <p class="hd-eyebrow">Administración</p>
-          <h1 class="hd-page-title">Respaldo de datos</h1>
-          {#if message}<p class="hd-page-intro">{message}</p>{/if}
-        </div>
-        <div class="hd-panel-actions">
-          <a href="/private/admin" class="hd-btn hd-btn-secondary">Volver</a>
-        </div>
+<section class="hd-section hd-section-dashboard">
+  <div class="hd-page hd-page-narrow">
+    <div class="hd-dashboard-header">
+      <div>
+        <p class="hd-eyebrow">Administración</p>
+        <h1 class="hd-page-title">Respaldo de datos</h1>
+        {#if message}<p class="hd-page-intro">{message}</p>{/if}
       </div>
-
-      <div class="hd-panel">
-        <h2 class="hd-panel-title">Operaciones</h2>
-        <div class="hd-panel-actions">
-          <a href="/private/admin/backup/download" class="hd-btn hd-btn-primary">Descargar backup</a>
-        </div>
-        <form method="post" action="/private/admin/backup/upload" enctype="multipart/form-data" class="hd-form">
-          <div class="hd-form-field">
-            <label for="backupFile" class="hd-form-label">Archivo ZIP</label>
-            <input id="backupFile" type="file" name="file" accept=".zip" class="hd-form-input">
-          </div>
-          <div class="hd-form-actions">
-            <button type="submit" class="hd-btn hd-btn-secondary">Subir backup</button>
-          </div>
-        </form>
-        <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
+      <div class="hd-panel-actions">
+        <a href="/private/admin" class="hd-btn hd-btn-secondary">Volver</a>
       </div>
     </div>
-  </section>
+
+    <div class="hd-panel">
+      <h2 class="hd-panel-title">Operaciones</h2>
+      <div class="hd-panel-actions">
+        <a href="/private/admin/backup/download" class="hd-btn hd-btn-primary">Descargar backup</a>
+      </div>
+      <form method="post" action="/private/admin/backup/upload" enctype="multipart/form-data" class="hd-form">
+        <div class="hd-form-field">
+          <label for="backupFile" class="hd-form-label">Archivo ZIP</label>
+          <input id="backupFile" type="file" name="file" accept=".zip" class="hd-form-input">
+        </div>
+        <div class="hd-form-actions">
+          <button type="submit" class="hd-btn hd-btn-secondary">Subir backup</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</section>
 {/body}
 {/include}
