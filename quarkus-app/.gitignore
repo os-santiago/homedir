@@ -45,3 +45,4 @@ failed_log*.txt
 test_log*.txt
 
 data/
+*.out

@@ -10,6 +10,8 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.net.URI;
 
 @Path("/")
 @Produces(MediaType.TEXT_HTML)
@@ -35,15 +37,17 @@ public class PublicPagesResource {
 
   @GET
   public TemplateInstance home() {
-    return withLayoutData(home.data("pageTitle", "Home"), "home");
+    return withLayoutData(home
+        .data("pageTitle", "HomeDir - Comunidad Open Source")
+        .data("pageDescription",
+            "Únete a la comunidad de tecnología más activa de Santiago. Eventos, proyectos open source y crecimiento profesional gamificado."),
+        "home");
   }
 
   @GET
   @Path("/community")
-  public TemplateInstance community() {
-    CommunityViewModel vm = CommunityViewModel.mock();
-    return withLayoutData(
-        community.data("pageTitle", "Comunidad").data("vm", vm), "comunidad");
+  public Response community() {
+    return Response.seeOther(URI.create("/comunidad")).build();
   }
 
   @GET
@@ -51,14 +55,24 @@ public class PublicPagesResource {
   public TemplateInstance projects() {
     ProjectsViewModel vm = ProjectsViewModel.mock();
     return withLayoutData(
-        projects.data("pageTitle", "Proyectos").data("vm", vm), "proyectos");
+        projects
+            .data("pageTitle", "Proyectos - HomeDir")
+            .data("pageDescription",
+                "Explora y colabora en proyectos Open Source de la comunidad. Gana experiencia y contribuye al ecosistema.")
+            .data("vm", vm),
+        "proyectos");
   }
 
   @GET
   @Path("/events")
   public TemplateInstance events() {
     return withLayoutData(
-        events.data("pageTitle", "Eventos").data("today", java.time.LocalDate.now()), "eventos");
+        events
+            .data("pageTitle", "Eventos - HomeDir")
+            .data("pageDescription",
+                "Participa en nuestros meetups, talleres y conferencias. Conecta con otros desarrolladores y aprende nuevas tecnologías.")
+            .data("today", java.time.LocalDate.now()),
+        "eventos");
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {

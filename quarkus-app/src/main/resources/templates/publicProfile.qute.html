@@ -1,0 +1,93 @@
+{#include layout/main activePage="community"}
+{#title}{pageTitle}{/title}
+
+{#body}
+<link rel="stylesheet" href="/css/wrapped.css">
+
+<div class="wrapped-body-container">
+    <div class="wrapped-container">
+
+        <!-- Header Section -->
+        <header class="wrapped-header">
+            <div class="wrapped-avatar-container">
+                <img src="{avatarUrl}" alt="{displayName}" class="wrapped-avatar">
+                <div class="wrapped-rank-badge">{questClass}</div>
+            </div>
+            <h1 class="wrapped-title">{displayName}</h1>
+            <p class="wrapped-subtitle">
+                <span class="wrapped-stat-value gold" style="font-size: 1.2rem;">LVL {level}</span> • {questClassEmoji}
+                {questClass} Guild
+            </p>
+        </header>
+
+        <!-- Bento Grid -->
+        <div class="wrapped-grid">
+
+            <!-- Card 1: Main Stats (XP) -->
+            <div class="wrapped-card">
+                <span class="wrapped-stat-label">Total Experience</span>
+                <span class="wrapped-stat-value neon">{currentXp} XP</span>
+                <div class="wrapped-xp-channel">
+                    <div class="wrapped-xp-bar" style="width: {xpPercentage}%;"></div>
+                </div>
+                <p class="wrapped-subtext">Top Contributor</p>
+            </div>
+
+            <!-- Card 2: Quests Completed -->
+            <div class="wrapped-card">
+                <span class="wrapped-stat-label">Quests Completed</span>
+                <span class="wrapped-stat-value purple">{questsCompleted}</span>
+                <p class="wrapped-subtext">Missions Accomplished</p>
+            </div>
+
+            <!-- Card 3: Badges Collection -->
+            <div class="wrapped-card wrapped-card-full">
+                <span class="wrapped-stat-label">Badges & Titles</span>
+                <div class="wrapped-badges">
+                    {#for badge in badges}
+                    <span class="wrapped-badge-pill"><span class="material-symbols-outlined"
+                            style="font-size: 16px;">verified</span> {badge}</span>
+                    {#else}
+                    <span class="wrapped-empty-msg">No badges earned yet. Join quests to unlock!</span>
+                    {/for}
+                </div>
+            </div>
+
+            <!-- Card 4: Recent History -->
+            <div class="wrapped-card wrapped-card-full">
+                <span class="wrapped-stat-label">Recent Activity</span>
+                <div class="wrapped-list-container">
+                    {#for item in history}
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{item.title}</span>
+                        <span class="wrapped-item-xp">+{item.xp} XP</span>
+                    </div>
+                    {#else}
+                    <p class="wrapped-empty-msg">No recent activity recorded.</p>
+                    {/for}
+                </div>
+            </div>
+
+            <!-- Card 5: Community Status -->
+            <div class="wrapped-card">
+                <span class="wrapped-stat-label">Community Status</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                    <span class="material-symbols-outlined" style="color: var(--accent-green)">check_circle</span>
+                    <span class="wrapped-stat-value" style="font-size: 1.5rem; color: white;">Active</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Call to Action -->
+        <div class="wrapped-cta">
+            <h2>{i18n.public_profile_cta_title}</h2>
+            <p>{i18n.public_profile_cta_desc}</p>
+            <a href="/private/profile" class="wrapped-btn-primary">
+                {i18n.public_profile_cta_btn}
+            </a>
+        </div>
+
+    </div>
+</div>
+{/body}
