@@ -27,7 +27,7 @@
     </a>
 
     {#if userSession.loggedIn || userAuthenticated}
-    <div class="user-menu-container user-menu-wrapper">
+    <div class="user-menu-container user-menu-wrapper" id="userMenuNav">
       <div class="user-menu-toggle">
         <a href="/private/profile" class="user-profile-link user-profile-link-styled">
           {#if userSession.avatarUrl}
@@ -52,8 +52,7 @@
             <span class="is-warning">{userSession.level}</span>
           </span>
         </a>
-        <button class="user-menu-btn user-menu-btn-styled"
-          onclick="this.parentElement.nextElementSibling.classList.toggle('show')">
+        <button class="user-menu-btn user-menu-btn-styled" onclick="toggleUserMenu(event)">
           <span class="material-symbols-outlined">expand_more</span>
         </button>
       </div>

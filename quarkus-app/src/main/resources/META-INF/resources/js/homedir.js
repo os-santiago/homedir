@@ -153,6 +153,16 @@ function updateNavigation() {
   }
 }
 
+// Toggle user menu dropdown
+function toggleUserMenu(event) {
+  if (event) event.stopPropagation();
+  const userMenu = document.getElementById('userMenuNav');
+  if (!userMenu) return;
+  userMenu.classList.toggle('active');
+  const dropdown = document.querySelector('.header-dropdown-menu');
+  if (dropdown) dropdown.classList.toggle('show');
+}
+
 function updateCharacterSheet() {
   const characterName = document.getElementById('characterName');
   const characterClass = document.getElementById('characterClass');
@@ -567,4 +577,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   // onConfigChange(defaultConfig);
+  // Close user menu when clicking outside
+  document.addEventListener('click', (e) => {
+    // If the click is on the user menu button, ignore (handled by toggleUserMenu)
+    if (e.target.closest('.user-menu-btn')) return;
+    const userMenu = document.getElementById('userMenuNav');
+    if (userMenu) {
+      userMenu.classList.remove('active');
+      const dropdown = document.querySelector('.header-dropdown-menu');
+      if (dropdown) dropdown.classList.remove('show');
+    }
+  });
 });
