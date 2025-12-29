@@ -83,6 +83,13 @@
                     <h2 class="hd-panel-title">{i18n.resume_level(questProfile.level)}</h2>
                     <p class="hd-page-intro">{i18n.resume_exp(questProfile.currentXp, questProfile.nextLevelXp)}</p>
                 </div>
+                {#if githubLinked}
+                <div class="hd-panel-actions">
+                    <button class="hd-btn hd-btn-secondary" onclick="shareProfile('{github.login}')">
+                        <span class="material-symbols-outlined">share</span> {i18n.btn_share_profile}
+                    </button>
+                </div>
+                {/if}
             </div>
 
             <h3 class="hd-section-subtitle">{i18n.section_progress}</h3>
@@ -289,6 +296,22 @@
 </section>
 
 <script>
+    function shareProfile(handle) {
+        const url = window.location.origin + '/u/' + handle;
+        const text = 'Check out my developer profile on HomeDir!';
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'My HomeDir Profile',
+                text: text,
+                url: url
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Profile link copied to clipboard: ' + url);
+            });
+        }
+    }
     (function () {
         const updateTalk = async (id, data) => {
             try {
@@ -382,5 +405,6 @@
                 });
             });
         });
-   </script>
+    })();
+</script>
 {/body}

@@ -587,6 +587,18 @@ public interface AppMessages {
     @Message("Save Settings")
     String settings_save();
 
+    @Message("Public Profile CTA Title")
+    String public_profile_cta_title();
+
+    @Message("Public Profile CTA Description")
+    String public_profile_cta_desc();
+
+    @Message("Public Profile CTA Button")
+    String public_profile_cta_btn();
+
+    @Message("Share Profile")
+    String btn_share_profile();
+
     @Message("XP Progress")
     String xp_progress();
 }
