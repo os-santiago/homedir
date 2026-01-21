@@ -1,105 +1,172 @@
-{#include layout/base}
-{#title}Métricas{/title}
-{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><span>Métricas</span>{/breadcrumbs}
-{#main}
-<section class="admin-metrics">
-  <h1 class="page-title">Métricas</h1>
-  <form method="get" class="metrics-toolbar" data-testid="metrics-toolbar">
-    <div class="range-chips">
-      <button type="submit" name="range" value="today" class="chip {#if data.range == 'today'}active{/if}" data-testid="range-today">Hoy</button>
-      <button type="submit" name="range" value="7" class="chip {#if data.range == '7'}active{/if}" data-testid="range-7">7 días</button>
-      <button type="submit" name="range" value="30" class="chip {#if data.range == '30'}active{/if}" data-testid="range-30">30 días</button>
-      <button type="submit" name="range" value="all" class="chip {#if data.range == 'all'}active{/if}" data-testid="range-all">Todo</button>
+{#include layout/main}
+{#title}Métricas · Homedir{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <p class="section-subtitle"
+          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
+          Administración</p>
+        <h1 class="page-title">Métricas</h1>
+      </div>
+      <div class="action-group">
+        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
+      </div>
     </div>
-    <select name="event" data-testid="filter-event">
-      <option value=""{#if !data.eventId} selected{/if}>Todos los eventos</option>
-      {#for ev in data.events}
-        <option value="{ev.id}"{#if data.eventId == ev.id} selected{/if}>{ev.title}</option>
-      {/for}
-    </select>
-    <input type="search" name="speaker" list="speakers" placeholder="Buscar…" value="{data.speakerId}" data-testid="filter-speaker">
-    <datalist id="speakers">
-      {#for sp in data.speakers}
-        <option value="{sp.id}">{sp.name}</option>
-      {/for}
-    </datalist>
-    <a href="/private/admin/metrics/export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary" data-testid="export-csv">Exportar CSV</a>
-    <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Registros por charla</a>
-  </form>
+  </div>
+</section>
 
-  <div class="cards-grid">
+<div class="container">
+  <div class="card" style="margin-bottom: 2rem;">
+    <form method="get" class="form-group" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" name="range" value="today"
+          class="btn {#if data.range == 'today'}btn-primary{#else}btn-secondary{/if}">Hoy</button>
+        <button type="submit" name="range" value="7"
+          class="btn {#if data.range == '7'}btn-primary{#else}btn-secondary{/if}">7 días</button>
+        <button type="submit" name="range" value="30"
+          class="btn {#if data.range == '30'}btn-primary{#else}btn-secondary{/if}">30 días</button>
+        <button type="submit" name="range" value="all"
+          class="btn {#if data.range == 'all'}btn-primary{#else}btn-secondary{/if}">Todo</button>
+      </div>
+
+      <select name="event" class="form-select" style="width: auto;">
+        <option value="" {#if !data.eventId} selected{/if}>Todos los eventos</option>
+        {#for ev in data.events}
+        <option value="{ev.id}" {#if data.eventId eq ev.id} selected{/if}>{ev.title}</option>
+        {/for}
+      </select>
+
+      <input type="search" name="speaker" list="speakers" placeholder="Orador..." value="{data.speakerId}"
+        class="form-input" style="width: auto;">
+      <datalist id="speakers">
+        {#for sp in data.speakers}
+        <option value="{sp.id}">{sp.name}</option>
+        {/for}
+      </datalist>
+
+      <a href="/private/admin/metrics/export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}"
+        class="btn btn-secondary">Exportar CSV</a>
+      <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Registros por charla</a>
+    </form>
+  </div>
+
+  <div class="page-grid">
     <div class="card">
       <h2 class="card-title">Resumen</h2>
-      <div class="kpi-grid">
-        <div class="kpi"><span class="label">Eventos vistos</span><span class="value">{data.eventsViewed}</span></div>
-        <div class="kpi"><span class="label">Charlas vistas</span><span class="value">{data.talksViewed}</span></div>
-        <div class="kpi"><span class="label">Registros</span><span class="value">{data.talksRegistered}</span></div>
-        <div class="kpi"><span class="label">Visitas escenario</span><span class="value">{data.stageVisits}</span></div>
-        <div class="kpi"><span class="label">Conversión</span><span class="value">{data.globalConversion}</span></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
+        <div class="stat-card"><span class="stat-label">Eventos vistos</span><span
+            class="stat-value">{data.eventsViewed}</span></div>
+        <div class="stat-card"><span class="stat-label">Charlas vistas</span><span
+            class="stat-value">{data.talksViewed}</span></div>
+        <div class="stat-card"><span class="stat-label">Registros</span><span
+            class="stat-value">{data.talksRegistered}</span></div>
+        <div class="stat-card"><span class="stat-label">Visitas escenario</span><span
+            class="stat-value">{data.stageVisits}</span></div>
+        <div class="stat-card"><span class="stat-label">Conversión</span><span
+            class="stat-value">{data.globalConversion}</span></div>
       </div>
     </div>
 
     <div class="card">
       <h2 class="card-title">Top Charlas</h2>
       {#if data.topTalks.isEmpty}
-        <p>Sin datos.</p>
+      <p class="text-muted">Sin datos.</p>
       {#else}
-      <div class="list list-table">
-        <div class="list-header">
-          <span>Título</span><span>Vistas</span><span>Registros</span><span>Conv%</span>
-        </div>
-        {#for row in data.topTalks}
-        <div class="list-row">
-          <span class="title"><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></span>
-          <span class="metric">{row.views}</span>
-          <span class="metric">{row.registrations}</span>
-          <span class="metric">{row.conversion}</span>
-        </div>
-        {/for}
-      </div>
+      <table class="table" style="font-size: 0.9rem;">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Título</th>
+            <th style="text-align: right;">Vistas</th>
+            <th style="text-align: right;">Reg</th>
+            <th style="text-align: right;">%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#for row in data.topTalks}
+          <tr>
+            <td><a href="/private/admin/metrics/registrants?talk={row.id}"
+                style="color: var(--color-primary);">{row.name}</a></td>
+            <td style="text-align: right;">{row.views}</td>
+            <td style="text-align: right;">{row.registrations}</td>
+            <td style="text-align: right;">{row.conversion}</td>
+          </tr>
+          {/for}
+        </tbody>
+      </table>
       {/if}
     </div>
 
     <div class="card">
       <h2 class="card-title">Eventos</h2>
       {#if data.eventRows.isEmpty}
-        <p>Sin datos.</p>
+      <p class="text-muted">Sin datos.</p>
       {#else}
-      <div class="list list-table">
-        <div class="list-header">
-          <span>Evento</span><span>Vistas</span><span>Charlas vistas</span><span>Registros</span>
-        </div>
-        {#for row in data.eventRows}
-        <div class="list-row">
-          <span class="title">{row.name}</span>
-          <span class="metric">{row.eventViews}</span>
-          <span class="metric">{row.talkViews}</span>
-          <span class="metric">{row.registrations}</span>
-        </div>
-        {/for}
-      </div>
+      <table class="table" style="font-size: 0.9rem;">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Evento</th>
+            <th style="text-align: right;">Vistas</th>
+            <th style="text-align: right;">C. Vistas</th>
+            <th style="text-align: right;">Reg</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#for row in data.eventRows}
+          <tr>
+            <td>{row.name}</td>
+            <td style="text-align: right;">{row.eventViews}</td>
+            <td style="text-align: right;">{row.talkViews}</td>
+            <td style="text-align: right;">{row.registrations}</td>
+          </tr>
+          {/for}
+        </tbody>
+      </table>
       {/if}
     </div>
 
     <div class="card">
       <h2 class="card-title">Calidad de datos</h2>
-      <div class="list">
-        <div class="list-row"><span class="label">dedupe</span><span class="metric">{data.discards.get('dedupe')}</span></div>
-        <div class="list-row"><span class="label">bot</span><span class="metric">{data.discards.get('bot')}</span></div>
-        <div class="list-row"><span class="label">burst</span><span class="metric">{data.discards.get('burst')}</span></div>
-        <div class="list-row"><span class="label">buffer_full</span><span class="metric">{data.discards.get('buffer_full')}</span></div>
-      </div>
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>dedupe</td>
+            <td style="text-align: right;">{data.discards.get('dedupe')}</td>
+          </tr>
+          <tr>
+            <td>bot</td>
+            <td style="text-align: right;">{data.discards.get('bot')}</td>
+          </tr>
+          <tr>
+            <td>burst</td>
+            <td style="text-align: right;">{data.discards.get('burst')}</td>
+          </tr>
+          <tr>
+            <td>buffer_full</td>
+            <td style="text-align: right;">{data.discards.get('buffer_full')}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="card">
       <h2 class="card-title">Mantenimiento</h2>
-      <div class="list">
-        <div class="list-row"><span class="label">schemaVersion</span><span class="metric">{data.schemaVersion}</span></div>
-        <div class="list-row"><span class="label">fileSizeBytes</span><span class="metric">{data.fileSizeBytes}</span></div>
-      </div>
+      <table class="table" style="margin-bottom: 1rem;">
+        <tbody>
+          <tr>
+            <td>schemaVersion</td>
+            <td style="text-align: right;">{data.schemaVersion}</td>
+          </tr>
+          <tr>
+            <td>fileSizeBytes</td>
+            <td style="text-align: right;">{data.fileSizeBytes}</td>
+          </tr>
+        </tbody>
+      </table>
       <div class="action-group">
         <form method="post" action="/private/admin/metrics/reset" onsubmit="return confirm('¿Borrar datos?');">
-          <button type="submit" class="btn">Reset data</button>
+          <button type="submit" class="btn btn-danger">Reset data</button>
         </form>
         <a href="/private/admin/metrics/data" class="btn btn-secondary">Download data</a>
       </div>
@@ -107,16 +174,28 @@
 
     <div class="card">
       <h2 class="card-title">Salud</h2>
-      <div class="status">
-        <span class="badge metrics-health {data.dataHealth.css}" aria-live="polite" data-testid="metrics-health-badge">{data.dataHealth.state}</span>
+      <div style="margin-bottom: 1rem;">
+        <span class="badge"
+          style="padding: 0.5rem 1rem; border-radius: 4px; background: rgba(255,255,255,0.1);">{data.dataHealth.state}</span>
       </div>
-      <div class="list">
-        <div class="list-row"><span class="label">lastFlush</span><span class="metric">{data.health.lastFlush}</span></div>
-        <div class="list-row"><span class="label">flushInterval</span><span class="metric">{data.health.flushIntervalMillis} ms</span></div>
-        <div class="list-row"><span class="label">buffer</span><span class="metric">{data.health.bufferCurrentSize}/{data.health.bufferMaxSize}</span></div>
-      </div>
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>lastFlush</td>
+            <td style="text-align: right;">{data.health.lastFlush}</td>
+          </tr>
+          <tr>
+            <td>flushInterval</td>
+            <td style="text-align: right;">{data.health.flushIntervalMillis} ms</td>
+          </tr>
+          <tr>
+            <td>buffer</td>
+            <td style="text-align: right;">{data.health.bufferCurrentSize}/{data.health.bufferMaxSize}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-</section>
-{/main}
+</div>
+{/body}
 {/include}
