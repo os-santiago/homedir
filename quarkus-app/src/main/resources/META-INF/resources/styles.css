@@ -422,23 +422,25 @@ a.nav-logo:hover {
     position: absolute;
     right: 0;
     top: 100%;
-    background-color: var(--color-light);
-    color: var(--color-dark);
+    background-color: var(--color-surface);
+    color: var(--color-light);
     min-width: 150px;
     border-radius: 4px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--color-border);
+    z-index: var(--z-dropdown);
 }
 
 .dropdown a {
     display: block;
     padding: 0.5rem 1rem;
-    color: var(--color-dark);
+    color: var(--color-light);
     text-decoration: none;
 }
 
 .dropdown a:hover {
-    background-color: var(--color-bg);
-    color: var(--color-dark);
+    background-color: var(--color-surface-2);
+    color: var(--color-accent);
 }
 
 .user-menu.open .dropdown {
@@ -3333,6 +3335,7 @@ footer {
         align-items: flex-start;
     }
 }
+
 /* ===========================================
    FORMS
    =========================================== */
@@ -3389,4 +3392,3 @@ footer {
     margin-top: var(--space-lg);
     justify-content: flex-start;
 }
-
