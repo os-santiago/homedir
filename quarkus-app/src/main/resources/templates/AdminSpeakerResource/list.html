@@ -1,183 +1,195 @@
 {#include layout/main}
 {#title}Oradores · Homedir{/title}
 {#body}
-<section class="hd-section hd-section-dashboard">
-  <div class="hd-page">
-    <div class="hd-dashboard-header">
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div>
-        <p class="hd-eyebrow">Administración</p>
-        <h1 class="hd-page-title">Oradores</h1>
-        {#if message}<p class="hd-page-intro">{message}</p>{/if}
+        <p class="section-subtitle"
+          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
+          Administración</p>
+        <h1 class="page-title">Oradores</h1>
+        {#if message}<p class="section-subtitle">{message}</p>{/if}
       </div>
-      <div class="hd-panel-actions">
-        <a href="#new-speaker" class="hd-btn hd-btn-primary">Agregar orador</a>
-        <a href="/private/admin" class="hd-btn hd-btn-secondary">Volver al panel</a>
-      </div>
-    </div>
-
-    {#for s in speakers}
-    <div class="hd-panel">
-      <div class="hd-dashboard-header hd-panel-actions-margin">
-        <div>
-          <p class="hd-eyebrow">ID {s.id}</p>
-          <h2 class="hd-panel-title">{s.name}</h2>
-        </div>
-        <div class="hd-panel-actions">
-          <form method="post" action="/private/admin/speakers/{s.id}/delete" class="needs-confirm">
-            <button type="submit" class="hd-btn">Eliminar</button>
-          </form>
-        </div>
-      </div>
-      <form method="post" action="/private/admin/speakers" class="hd-form">
-        <input type="hidden" name="id" value="{s.id}">
-        <div class="hd-form-grid">
-          <div class="hd-form-field">
-            <label class="hd-form-label">Nombre</label>
-            <input name="name" value="{s.name}" placeholder="Nombre" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label class="hd-form-label">Foto URL</label>
-            <input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label class="hd-form-label">Sitio</label>
-            <input name="website" value="{s.website}" placeholder="Sitio" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label class="hd-form-label">Twitter</label>
-            <input name="twitter" value="{s.twitter}" placeholder="Twitter" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label class="hd-form-label">LinkedIn</label>
-            <input name="linkedin" value="{s.linkedin}" placeholder="LinkedIn" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label class="hd-form-label">Instagram</label>
-            <input name="instagram" value="{s.instagram}" placeholder="Instagram" class="hd-form-input">
-          </div>
-        </div>
-        <div class="hd-form-field">
-          <label class="hd-form-label">Bio</label>
-          <textarea name="bio" rows="3" placeholder="Bio" class="hd-form-input">{s.bio}</textarea>
-        </div>
-        <div class="hd-form-actions">
-          <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
-        </div>
-      </form>
-
-      <div class="hd-panel hd-form-actions-margin">
-        <h3 class="hd-panel-title">Charlas</h3>
-        {#for t in s.talks}
-        <div class="hd-card-surface card-bottom-margin">
-          <form method="post" action="/private/admin/speakers/{s.id}/talk" class="hd-form">
-            <input type="hidden" name="talkId" value="{t.id}">
-            <div class="hd-form-grid">
-              <div class="hd-form-field">
-                <label class="hd-form-label">Título</label>
-                <input name="name" value="{t.name}" placeholder="Título" class="hd-form-input">
-              </div>
-              <div class="hd-form-field">
-                <label class="hd-form-label">Duración</label>
-                <input name="duration" type="number" min="1" value="{t.durationMinutes}" placeholder="Duración"
-                  class="hd-form-input">
-              </div>
-              <div class="hd-form-field">
-                <label class="hd-form-label">Descripción</label>
-                <input name="description" value="{t.description}" placeholder="Descripcion" class="hd-form-input">
-              </div>
-              <div class="hd-form-field">
-                <label class="hd-form-label"><input type="checkbox" class="cospeaker-toggle" name="hasCo" {#if
-                    t.speakers.size gt 1}checked{/if}> Co-Speaker</label>
-                <select name="coSpeakerId" class="cospeaker-select hd-form-input" {#if t.speakers.size <=1} hidden{/if}>
-                  <option value="">Seleccione co-speaker</option>
-                  {#for sp in speakers}
-                  {#if sp.id != s.id}
-                  <option value="{sp.id}" {#if t.speakers.size gt 1 && t.speakers[1].id eq sp.id}selected{/if}>{sp.name}
-                  </option>
-                  {/if}
-                  {/for}
-                </select>
-              </div>
-            </div>
-            <div class="hd-form-actions">
-              <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
-            </div>
-          </form>
-          <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete"
-            class="needs-confirm hd-form-actions">
-            <button type="submit" class="hd-btn">Eliminar</button>
-          </form>
-        </div>
-        {/for}
-
-        <div class="hd-card-surface">
-          <form method="post" action="/private/admin/speakers/{s.id}/talk" class="hd-form">
-            <div class="hd-form-grid">
-              <div class="hd-form-field">
-                <label class="hd-form-label">Título</label>
-                <input name="name" placeholder="Título" class="hd-form-input">
-              </div>
-              <div class="hd-form-field">
-                <label class="hd-form-label">Duración</label>
-                <input name="duration" type="number" min="1" placeholder="Duración" class="hd-form-input">
-              </div>
-              <div class="hd-form-field">
-                <label class="hd-form-label">Descripción</label>
-                <input name="description" placeholder="Descripcion" class="hd-form-input">
-              </div>
-              <div class="hd-form-field">
-                <label class="hd-form-label"><input type="checkbox" class="cospeaker-toggle" name="hasCo">
-                  Co-Speaker</label>
-                <select name="coSpeakerId" class="cospeaker-select hd-form-input" hidden>
-                  <option value="">Seleccione co-speaker</option>
-                  {#for sp in speakers}
-                  {#if sp.id != s.id}
-                  <option value="{sp.id}">{sp.name}</option>
-                  {/if}
-                  {/for}
-                </select>
-              </div>
-            </div>
-            <div class="hd-form-actions">
-              <button type="submit" class="hd-btn hd-btn-primary">Agregar</button>
-            </div>
-          </form>
-        </div>
+      <div class="action-group">
+        <a href="#new-speaker" class="btn btn-primary">Agregar orador</a>
+        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
       </div>
     </div>
-    {/for}
-
-    <div id="new-speaker" class="hd-panel">
-      <h2 class="hd-panel-title">Nuevo orador</h2>
-      <form method="post" action="/private/admin/speakers" class="hd-form">
-        <div class="hd-form-grid">
-          <div class="hd-form-field"><label class="hd-form-label">Nombre</label><input name="name" placeholder="Nombre"
-              class="hd-form-input"></div>
-          <div class="hd-form-field"><label class="hd-form-label">Foto URL</label><input name="photoUrl"
-              placeholder="Foto URL" class="hd-form-input"></div>
-          <div class="hd-form-field"><label class="hd-form-label">Sitio</label><input name="website" placeholder="Sitio"
-              class="hd-form-input"></div>
-          <div class="hd-form-field"><label class="hd-form-label">Twitter</label><input name="twitter"
-              placeholder="Twitter" class="hd-form-input"></div>
-          <div class="hd-form-field"><label class="hd-form-label">LinkedIn</label><input name="linkedin"
-              placeholder="LinkedIn" class="hd-form-input"></div>
-          <div class="hd-form-field"><label class="hd-form-label">Instagram</label><input name="instagram"
-              placeholder="Instagram" class="hd-form-input"></div>
-        </div>
-        <div class="hd-form-field"><label class="hd-form-label">Bio</label><textarea name="bio" rows="3"
-            placeholder="Bio" class="hd-form-input"></textarea></div>
-        <div class="hd-form-actions">
-          <button type="submit" class="hd-btn hd-btn-primary">Agregar</button>
-        </div>
-      </form>
-    </div>
-
   </div>
 </section>
+
+<div class="container">
+  {#for s in speakers}
+  <div class="card">
+    <div
+      style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">
+      <div>
+        <p class="section-subtitle" style="font-size: 0.8rem;">ID {s.id}</p>
+        <h2 class="card-title" style="margin: 0;">{s.name}</h2>
+      </div>
+      <div>
+        <form method="post" action="/private/admin/speakers/{s.id}/delete" class="needs-confirm inline-form">
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+
+    <form method="post" action="/private/admin/speakers">
+      <input type="hidden" name="id" value="{s.id}">
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input name="name" value="{s.name}" placeholder="Nombre" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Foto URL</label>
+          <input name="photoUrl" value="{s.photoUrl}" placeholder="Foto URL" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sitio</label>
+          <input name="website" value="{s.website}" placeholder="Sitio" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Twitter</label>
+          <input name="twitter" value="{s.twitter}" placeholder="Twitter" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">LinkedIn</label>
+          <input name="linkedin" value="{s.linkedin}" placeholder="LinkedIn" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instagram</label>
+          <input name="instagram" value="{s.instagram}" placeholder="Instagram" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea name="bio" rows="3" placeholder="Bio" class="form-textarea">{s.bio}</textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-secondary">Guardar</button>
+      </div>
+    </form>
+
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+      <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Charlas</h3>
+      {#for t in s.talks}
+      <div
+        style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+        <form method="post" action="/private/admin/speakers/{s.id}/talk">
+          <input type="hidden" name="talkId" value="{t.id}">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Título</label>
+              <input name="name" value="{t.name}" placeholder="Título" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duración</label>
+              <input name="duration" type="number" min="1" value="{t.durationMinutes}" placeholder="Duración"
+                class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descripción</label>
+              <input name="description" value="{t.description}" placeholder="Descripcion" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox"
+                  class="cospeaker-toggle" name="hasCo" {#if t.speakers.size gt 1}checked{/if}> Co-Speaker</label>
+              <select name="coSpeakerId" class="cospeaker-select form-select" {#if t.speakers.size <=1} hidden{/if}>
+                <option value="">Seleccione co-speaker</option>
+                {#for sp in speakers}
+                {#if sp.id != s.id}
+                <option value="{sp.id}" {#if t.speakers.size gt 1 && t.speakers[1].id eq sp.id}selected{/if}>{sp.name}
+                </option>
+                {/if}
+                {/for}
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-secondary">Guardar</button>
+          </div>
+        </form>
+        <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete"
+          class="needs-confirm form-actions item-header" style="margin-top: 0;">
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+      {/for}
+
+      <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
+        <form method="post" action="/private/admin/speakers/{s.id}/talk">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Título</label>
+              <input name="name" placeholder="Título" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duración</label>
+              <input name="duration" type="number" min="1" placeholder="Duración" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descripción</label>
+              <input name="description" placeholder="Descripcion" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;"><input type="checkbox"
+                  class="cospeaker-toggle" name="hasCo">
+                Co-Speaker</label>
+              <select name="coSpeakerId" class="cospeaker-select form-select" hidden>
+                <option value="">Seleccione co-speaker</option>
+                {#for sp in speakers}
+                {#if sp.id != s.id}
+                <option value="{sp.id}">{sp.name}</option>
+                {/if}
+                {/for}
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Agregar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {/for}
+
+  <div id="new-speaker" class="card">
+    <h2 class="card-title">Nuevo orador</h2>
+    <form method="post" action="/private/admin/speakers">
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group"><label class="form-label">Nombre</label><input name="name" placeholder="Nombre"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">Foto URL</label><input name="photoUrl" placeholder="Foto URL"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">Sitio</label><input name="website" placeholder="Sitio"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">Twitter</label><input name="twitter" placeholder="Twitter"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">LinkedIn</label><input name="linkedin" placeholder="LinkedIn"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">Instagram</label><input name="instagram"
+            placeholder="Instagram" class="form-input"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Bio</label><textarea name="bio" rows="3" placeholder="Bio"
+          class="form-textarea"></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Agregar</button>
+      </div>
+    </form>
+  </div>
+
+</div>
 <script>
   (function () {
     document.querySelectorAll('.cospeaker-toggle').forEach(cb => {
-      const sel = cb.closest('.hd-form').querySelector('.cospeaker-select');
+      /* Find the closest form, then find the select within that form context */
+      const container = cb.closest('.form-group');
+      const sel = container.querySelector('.cospeaker-select');
       const update = () => sel.hidden = !cb.checked;
       cb.addEventListener('change', update);
       update();

@@ -48,7 +48,7 @@ public interface AppMessages {
     @Message("GitHub account linked successfully.")
     String msg_github_linked();
 
-    @Message("Could not link GitHub ({0}). Please try again.")
+    @Message("Could not link GitHub ({error}). Please try again.")
     String msg_github_error(String error);
 
     @Message("Link GitHub to appear in Community and join with your user.")

@@ -3,72 +3,86 @@
 {#title}Eventos · Homedir{/title}
 
 {#body}
-<section class="hd-section hd-section-dashboard">
-    <div class="hd-page">
-        <div class="hd-dashboard-header">
+<section class="page-header">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
-                <p class="hd-eyebrow">Administración</p>
-                <h1 class="hd-page-title"><span class="icon"><span
-                            class="material-symbols-outlined">calendar_month</span></span>Eventos</h1>
+                <p class="section-subtitle"
+                    style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
+                    Administración</p>
+                <h1 class="page-title"><span class="icon" style="vertical-align: middle;"><span
+                            class="material-symbols-outlined">calendar_month</span></span> Eventos</h1>
                 {#if message}
-                <p class="hd-page-intro">{message}</p>
+                <p class="section-subtitle">{message}</p>
                 {/if}
             </div>
-            <div class="hd-panel-actions">
-                <a href="/private/admin/events/new" class="hd-btn hd-btn-primary">Nuevo evento</a>
-                <a href="/private/admin" class="hd-btn hd-btn-secondary">Volver</a>
+            <div class="action-group">
+                <a href="/private/admin/events/new" class="btn btn-primary"><span
+                        class="material-symbols-outlined">add</span> Nuevo evento</a>
+                <a href="/private/admin" class="btn btn-secondary">Volver</a>
             </div>
         </div>
-        <div class="hd-panel">
-            <h2 class="hd-panel-title">Importar eventos</h2>
-            <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="hd-form"
-                aria-label="Importar eventos">
-                <div class="hd-form-field">
-                    <label for="importFile" class="hd-form-label">Importar JSON</label>
-                    <input id="importFile" type="file" name="file" accept="application/json" class="hd-form-input">
-                </div>
-                <div class="hd-form-actions">
-                    <button type="submit" class="hd-btn hd-btn-secondary">Importar</button>
-                </div>
-            </form>
-        </div>
-        {#if events.isEmpty()}
-        <div class="hd-panel">
-            <p class="hd-page-intro">No hay eventos registrados.</p>
-        </div>
-        {#else}
-        <div class="hd-panel">
-            <table class="hd-table">
-                <thead>
-                    <tr>
-                        <th class="hd-table-head">ID</th>
-                        <th class="hd-table-head">Título</th>
-                        <th class="hd-table-head">Tipo</th>
-                        <th class="hd-table-head">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {#for ev in events}
-                    <tr class="hd-table-row">
-                        <td class="hd-table-cell">{ev.id}</td>
-                        <td class="hd-table-cell">{ev.title}</td>
-                        <td class="hd-table-cell"><span class="badge event-type {ev.typeCss}">{ev.typeLabel}</span></td>
-                        <td class="hd-table-cell">
-                            <a href="/private/admin/events/{ev.id}/edit" class="hd-btn hd-btn-secondary">Editar</a>
-                            <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="hd-btn">Ver métricas</a>
-                            <form method="post" action="/private/admin/events/{ev.id}/delete"
-                                class="needs-confirm form-inline">
-                                <button type="submit" class="hd-btn">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {/for}
-                </tbody>
-            </table>
-        </div>
-        {/if}
-
     </div>
 </section>
+
+<div class="container">
+    <div class="card">
+        <h2 class="card-title">Importar eventos</h2>
+        <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="form-group"
+            aria-label="Importar eventos" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1;">
+                <label for="importFile" class="form-label">Importar JSON</label>
+                <input id="importFile" type="file" name="file" accept="application/json" class="form-input">
+            </div>
+            <div>
+                <button type="submit" class="btn btn-secondary">Importar</button>
+            </div>
+        </form>
+    </div>
+
+    {#if events.isEmpty()}
+    <div class="card">
+        <p class="text-muted">No hay eventos registrados.</p>
+    </div>
+    {#else}
+    <div class="card" style="overflow-x: auto;">
+        <table class="table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <th class="u-p-2" style="text-align: left;">ID</th>
+                    <th class="u-p-2" style="text-align: left;">Título</th>
+                    <th class="u-p-2" style="text-align: left;">Tipo</th>
+                    <th class="u-p-2" style="text-align: left;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {#for ev in events}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td class="u-p-2">{ev.id}</td>
+                    <td class="u-p-2" style="font-weight: 500;">{ev.title}</td>
+                    <td class="u-p-2"><span class="badge event-type {ev.typeCss}"
+                            style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: rgba(255,255,255,0.1);">{ev.typeLabel}</span>
+                    </td>
+                    <td class="u-p-2">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary"
+                                style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Editar</a>
+                            <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="btn btn-ghost"
+                                style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Métricas</a>
+                            <form method="post" action="/private/admin/events/{ev.id}/delete"
+                                class="needs-confirm inline-form">
+                                <button type="submit" class="btn btn-danger"
+                                    style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Eliminar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {/for}
+            </tbody>
+        </table>
+    </div>
+    {/if}
+
+</div>
 {/body}
 {/include}

@@ -1,128 +1,128 @@
 {#include layout/main}
-
 {#title}Capacidad · Homedir{/title}
-
 {#body}
-<section class="hd-section hd-section-dashboard">
-  <div class="hd-page hd-page-narrow">
-    <div class="hd-dashboard-header">
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div>
-        <p class="hd-eyebrow">Administración</p>
-        <h1 class="hd-page-title">Control de capacidad</h1>
-        <p class="hd-page-intro">Monitorea el estado de memoria y disco para proteger el login.</p>
+        <p class="section-subtitle"
+          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
+          Administración</p>
+        <h1 class="page-title">Control de capacidad</h1>
+        <p class="section-subtitle">Monitorea el estado de memoria y disco para proteger el login.</p>
       </div>
-      <div class="hd-panel-actions">
-        <a href="/private/admin" class="hd-btn hd-btn-secondary">Volver a admin</a>
+      <div class="action-group">
+        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="hd-panel">
-      <h2 class="hd-panel-title">Estado actual</h2>
-      <table class="hd-table">
+<div class="container">
+  <div class="page-grid">
+    <div class="card">
+      <h2 class="card-title">Estado actual</h2>
+      <table class="table">
         <tbody>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Modo actual</th>
-            <td class="hd-table-cell">{#if status.mode == 'ADMITTING'}Admitiendo{#else}Conteniendo nuevos logins{/if}
-            </td>
+          <tr>
+            <th>Modo actual</th>
+            <td>{#if status.mode == 'ADMITTING'}Admitiendo{#else}Conteniendo nuevos logins{/if}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Usuarios activos</th>
-            <td class="hd-table-cell">{status.activeUsers}</td>
+          <tr>
+            <th>Usuarios activos</th>
+            <td>{status.activeUsers}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Memoria usada</th>
-            <td class="hd-table-cell">{status.memoryPercent}%</td>
+          <tr>
+            <th>Memoria usada</th>
+            <td>{status.memoryPercent}%</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Disco libre</th>
-            <td class="hd-table-cell">{status.diskFreePercent}%</td>
+          <tr>
+            <th>Disco libre</th>
+            <td>{status.diskFreePercent}%</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Última evaluación</th>
-            <td class="hd-table-cell">{status.lastEvaluation}</td>
+          <tr>
+            <th>Última evaluación</th>
+            <td>{status.lastEvaluation}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Tendencia</th>
-            <td class="hd-table-cell">{status.trendNameLower}</td>
+          <tr>
+            <th>Tendencia</th>
+            <td>{status.trendNameLower}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="hd-panel">
-      <h2 class="hd-panel-title">Lecturas</h2>
-      <table class="hd-table">
+    <div class="card">
+      <h2 class="card-title">Lecturas</h2>
+      <table class="table">
         <tbody>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Lecturas desde memoria</th>
-            <td class="hd-table-cell">{reads.memory}</td>
+          <tr>
+            <th>Lecturas desde memoria</th>
+            <td>{reads.memory}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Refrescos ejecutados</th>
-            <td class="hd-table-cell">{reads.refreshCount}</td>
+          <tr>
+            <th>Refrescos ejecutados</th>
+            <td>{reads.refreshCount}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Lecturas coalescidas</th>
-            <td class="hd-table-cell">{reads.refreshCoalesced}</td>
+          <tr>
+            <th>Lecturas coalescidas</th>
+            <td>{reads.refreshCoalesced}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Duración último refresco</th>
-            <td class="hd-table-cell">{reads.refreshLastDurationMs} ms</td>
+          <tr>
+            <th>Duración último refresco</th>
+            <td>{reads.refreshLastDurationMs} ms</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Duración p95</th>
-            <td class="hd-table-cell">{reads.refreshP95Ms} ms</td>
+          <tr>
+            <th>Duración p95</th>
+            <td>{reads.refreshP95Ms} ms</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Lecturas servidas en refresco</th>
-            <td class="hd-table-cell">{reads.staleServed}</td>
+          <tr>
+            <th>Lecturas servidas en refresco</th>
+            <td>{reads.staleServed}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="hd-panel">
-      <h2 class="hd-panel-title">Escrituras</h2>
-      <table class="hd-table">
+    <div class="card">
+      <h2 class="card-title">Escrituras</h2>
+      <table class="table">
         <tbody>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Cola</th>
-            <td class="hd-table-cell">{writes.depth}/{writes.max}</td>
+          <tr>
+            <th>Cola</th>
+            <td>{writes.depth}/{writes.max}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Antigüedad más vieja</th>
-            <td class="hd-table-cell">{writes.oldestAgeMs} ms</td>
+          <tr>
+            <th>Antigüedad más vieja</th>
+            <td>{writes.oldestAgeMs} ms</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Resultados</th>
-            <td class="hd-table-cell">OK: {writes.writesOk} · Fallos: {writes.writesFail} · Reintentos:
-              {writes.writesRetries}</td>
+          <tr>
+            <th>Resultados</th>
+            <td>OK: {writes.writesOk} · Fallos: {writes.writesFail} · Reintentos: {writes.writesRetries}</td>
           </tr>
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Descartados por capacidad</th>
-            <td class="hd-table-cell">{writes.droppedDueCapacity}</td>
+          <tr>
+            <th>Descartados por capacidad</th>
+            <td>{writes.droppedDueCapacity}</td>
           </tr>
           {#if writes.lastError}
-          <tr class="hd-table-row">
-            <th class="hd-table-head">Último error</th>
-            <td class="hd-table-cell">{writes.lastError}</td>
+          <tr>
+            <th>Último error</th>
+            <td>{writes.lastError}</td>
           </tr>
           {/if}
         </tbody>
       </table>
-      <div class="hd-form-actions hd-form-actions-margin">
-        <button class="hd-btn hd-btn-secondary" type="button" onclick="copyState()">Copiar estado</button>
+      <div style="margin-top: 1rem;">
+        <button class="btn btn-secondary" type="button" onclick="copyState()">Copiar estado</button>
       </div>
     </div>
-
-    <script>
-      function copyState() {
-        const text = `Modo: {status.mode}\nMemoria usada: {status.memoryPercent}%\nDisco libre: {status.diskFreePercent}%\nLecturas: {reads.memory}\nCola escrituras: {writes.depth}/{writes.max}`;
-        navigator.clipboard.writeText(text);
-      }
-    </script>
-
   </div>
-</section>
+</div>
+<script>
+  function copyState() {
+    const text = `Modo: {status.mode}\nMemoria usada: {status.memoryPercent}%\nDisco libre: {status.diskFreePercent}%\nLecturas: {reads.memory}\nCola escrituras: {writes.depth}/{writes.max}`;
+    navigator.clipboard.writeText(text);
+  }
+</script>
 {/body}
 {/include}

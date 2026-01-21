@@ -7,365 +7,375 @@ Nuevo Evento · Homedir
 {/if}
 {/title}
 {#body}
-<section class="hd-section hd-section-dashboard">
-  <div class="hd-page">
-    <div class="hd-dashboard-header">
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div>
-        <p class="hd-eyebrow">Evento</p>
-        <h1 class="hd-page-title">
+        <p class="section-subtitle"
+          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">Evento</p>
+        <h1 class="page-title">
           {#if event.id}
           Editar Evento
           {#else}
           Nuevo Evento
           {/if}
         </h1>
-        {#if message}<p class="hd-page-intro">{message}</p>{/if}
+        {#if message}<p class="section-subtitle">{message}</p>{/if}
       </div>
-      <div class="hd-panel-actions">
-        <a href="/private/admin/events" class="hd-btn hd-btn-secondary">Volver a la administración de Eventos</a>
+      <div class="action-group">
+        <a href="/private/admin/events" class="btn btn-secondary">Volver a eventos</a>
       </div>
     </div>
+  </div>
+</section>
 
-    <nav class="hd-subnav">
-      <a href="#event-info">Evento</a>
+<div class="container">
+
+  <div class="sub-nav">
+    <a href="#event-info" class="btn btn-ghost">Evento</a>
+    {#if event.id}
+    <a href="#scenarios" class="btn btn-ghost">Escenarios</a>
+    <a href="#talks" class="btn btn-ghost">Charlas</a>
+    <a href="#breaks" class="btn btn-ghost">Breaks</a>
+    <a href="#agenda" class="btn btn-ghost">Agenda</a>
+    {/if}
+  </div>
+
+  <div id="event-info" class="card">
+    <h2 class="card-title">Datos del evento</h2>
+    <form method="post"
+      action="{#if event.id}/private/admin/events/{event.id}/edit{#else}/private/admin/events/new{/if}">
       {#if event.id}
-      <a href="#scenarios">Escenarios</a>
-      <a href="#talks">Charlas</a>
-      <a href="#breaks">Breaks</a>
-      <a href="#agenda">Agenda</a>
+      <p class="form-hint" style="margin-bottom: 1rem;">ID: {event.id}</p>
       {/if}
-    </nav>
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group">
+          <label for="title" class="form-label">Título</label>
+          <input id="title" name="title" type="text" value="{event.title}" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="type" class="form-label">Tipo de evento</label>
+          <select id="type" name="type" class="form-select">
+            {#for t in types}
+            <option value="{t.name()}" {#if t eq event.type} selected{/if}>{t.label}
+            </option>
+            {/for}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="date" class="form-label">Fecha de realización</label>
+          <input id="date" name="date" type="date" value="{event.dateStr}" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="timezone" class="form-label">Zona horaria</label>
+          <select id="timezone" name="timezone" class="form-select">
+            {#for tz in app:commonTimezones()}
+            <option value="{tz}" {#if tz eq event.timezone} selected{/if}>{tz} ({app:zoneDetail(tz)})</option>
+            {/for}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="days" class="form-label">Días del evento</label>
+          <input id="days" name="days" type="number" min="1" max="10" value="{event.days}" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="logoUrl" class="form-label">Logo URL</label>
+          <input id="logoUrl" name="logoUrl" type="url" value="{event.logoUrl}" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="mapUrl" class="form-label">Mapa URL</label>
+          <input id="mapUrl" name="mapUrl" type="url" value="{event.mapUrl}" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="website" class="form-label">Sitio Web</label>
+          <input id="website" name="website" type="url" value="{event.website}" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="contactEmail" class="form-label">Correo de contacto</label>
+          <input id="contactEmail" name="contactEmail" type="email" value="{event.contactEmail}" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="ticketsUrl" class="form-label">Link de entradas</label>
+          <input id="ticketsUrl" name="ticketsUrl" type="url" value="{event.ticketsUrl}" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="description" class="form-label">Descripción</label>
+        <textarea id="description" name="description" class="form-textarea" rows="4">{event.description}</textarea>
+      </div>
+      <p class="form-hint">Horario calculado: {#if event.startTimeStr}{event.startTimeStr} -
+        {event.endTimeStr}{#else}Sin charlas{/if}</p>
 
-    <div id="event-info" class="hd-panel">
-      <h2 class="hd-panel-title">Datos del evento</h2>
-      <form method="post"
-        action="{#if event.id}/private/admin/events/{event.id}/edit{#else}/private/admin/events/new{/if}"
-        class="hd-form">
-        {#if event.id}
-        <p class="hd-form-hint">ID: {event.id}</p>
-        {/if}
-        <div class="hd-form-grid">
-          <div class="hd-form-field">
-            <label for="title" class="hd-form-label">Título</label>
-            <input id="title" name="title" type="text" value="{event.title}" class="hd-form-input">
+      <fieldset class="form-group"
+        style="border: 1px solid var(--color-border); padding: 1rem; border-radius: var(--radius-sm); margin-top: 1rem;">
+        <legend class="form-label" style="padding: 0 0.5rem;">Redes Sociales</legend>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label for="twitter" class="form-label">Twitter/X</label>
+            <input id="twitter" name="twitter" type="url" value="{event.twitter}" class="form-input">
           </div>
-          <div class="hd-form-field">
-            <label for="type" class="hd-form-label">Tipo de evento</label>
-            <select id="type" name="type" class="hd-form-input">
-              {#for t in types}
-              <option value="{t.name()}" {#if t eq event.type} selected{/if}>{t.label}
-              </option>
-              {/for}
-            </select>
+          <div class="form-group">
+            <label for="linkedin" class="form-label">LinkedIn</label>
+            <input id="linkedin" name="linkedin" type="url" value="{event.linkedin}" class="form-input">
           </div>
-          <div class="hd-form-field">
-            <label for="date" class="hd-form-label">Fecha de realización</label>
-            <input id="date" name="date" type="date" value="{event.dateStr}" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label for="timezone" class="hd-form-label">Zona horaria</label>
-            <select id="timezone" name="timezone" class="hd-form-input">
-              {#for tz in app:commonTimezones()}
-              <option value="{tz}" {#if tz eq event.timezone} selected{/if}>{tz} ({app:zoneDetail(tz)})</option>
-              {/for}
-            </select>
-          </div>
-          <div class="hd-form-field">
-            <label for="days" class="hd-form-label">Días del evento</label>
-            <input id="days" name="days" type="number" min="1" max="10" value="{event.days}" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label for="logoUrl" class="hd-form-label">Logo URL</label>
-            <input id="logoUrl" name="logoUrl" type="url" value="{event.logoUrl}" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label for="mapUrl" class="hd-form-label">Mapa URL</label>
-            <input id="mapUrl" name="mapUrl" type="url" value="{event.mapUrl}" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label for="website" class="hd-form-label">Sitio Web</label>
-            <input id="website" name="website" type="url" value="{event.website}" class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label for="contactEmail" class="hd-form-label">Correo de contacto</label>
-            <input id="contactEmail" name="contactEmail" type="email" value="{event.contactEmail}"
-              class="hd-form-input">
-          </div>
-          <div class="hd-form-field">
-            <label for="ticketsUrl" class="hd-form-label">Link de entradas</label>
-            <input id="ticketsUrl" name="ticketsUrl" type="url" value="{event.ticketsUrl}" class="hd-form-input">
+          <div class="form-group">
+            <label for="instagram" class="form-label">Instagram</label>
+            <input id="instagram" name="instagram" type="url" value="{event.instagram}" class="form-input">
           </div>
         </div>
-        <div class="hd-form-field">
-          <label for="description" class="hd-form-label">Descripción</label>
-          <textarea id="description" name="description" class="hd-form-input">{event.description}</textarea>
+      </fieldset>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  {#if event.id}
+  <div id="scenarios" class="card">
+    <h2 class="card-title">Escenarios</h2>
+    {#for sc in event.scenarios}
+    <div
+      style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+      <form method="post" action="/private/admin/events/{event.id}/scenario">
+        <input type="hidden" name="scenarioId" value="{sc.id}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+          <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{sc.id}"
+              disabled></div>
+          <div class="form-group"><label class="form-label">Nombre</label><input name="name" value="{sc.name}"
+              class="form-input"></div>
+          <div class="form-group"><label class="form-label">Características</label><input name="features"
+              value="{sc.features}" placeholder="Características" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Ubicación</label><input name="location"
+              value="{sc.location}" placeholder="Ubicación" class="form-input"></div>
         </div>
-        <p class="hd-form-hint">Horario calculado: {#if event.startTimeStr}{event.startTimeStr} -
-          {event.endTimeStr}{#else}Sin charlas{/if}</p>
-        <fieldset class="hd-form-field">
-          <legend class="hd-form-label">Redes Sociales</legend>
-          <div class="hd-form-grid">
-            <div class="hd-form-field">
-              <label for="twitter" class="hd-form-label">Twitter/X</label>
-              <input id="twitter" name="twitter" type="url" value="{event.twitter}" class="hd-form-input">
-            </div>
-            <div class="hd-form-field">
-              <label for="linkedin" class="hd-form-label">LinkedIn</label>
-              <input id="linkedin" name="linkedin" type="url" value="{event.linkedin}" class="hd-form-input">
-            </div>
-            <div class="hd-form-field">
-              <label for="instagram" class="hd-form-label">Instagram</label>
-              <input id="instagram" name="instagram" type="url" value="{event.instagram}" class="hd-form-input">
-            </div>
-          </div>
-        </fieldset>
-        <div class="hd-form-actions">
-          <button type="submit" class="hd-btn hd-btn-primary">Guardar</button>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-secondary">Guardar</button>
+        </div>
+      </form>
+      <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete"
+        class="needs-confirm form-actions" style="margin-top: 0;">
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+      </form>
+    </div>
+    {/for}
+    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
+      <form method="post" action="/private/admin/events/{event.id}/scenario">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+          <div class="form-group"><label class="form-label">Nombre</label><input name="name" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Características</label><input name="features"
+              placeholder="Características" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Ubicación</label><input name="location"
+              placeholder="Ubicación" class="form-input"></div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Agregar escenario</button>
         </div>
       </form>
     </div>
+  </div>
 
-    {#if event.id}
-    <div id="scenarios" class="hd-panel">
-      <h2 class="hd-panel-title">Escenarios</h2>
-      {#for sc in event.scenarios}
-      <div class="hd-card-surface card-bottom-margin">
-        <form method="post" action="/private/admin/events/{event.id}/scenario" class="hd-form">
-          <input type="hidden" name="scenarioId" value="{sc.id}">
-          <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input"
-                value="{sc.id}" disabled></div>
-            <div class="hd-form-field"><label class="hd-form-label">Nombre</label><input name="name" value="{sc.name}"
-                class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Características</label><input name="features"
-                value="{sc.features}" placeholder="Características" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Ubicación</label><input name="location"
-                value="{sc.location}" placeholder="Ubicación" class="hd-form-input"></div>
+  <div id="talks" class="card">
+    <h2 class="card-title">Charlas</h2>
+    {#for t in event.agenda}
+    {#if !t.break}
+    <div
+      style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+      <form method="post" action="/private/admin/events/{event.id}/talk">
+        <input type="hidden" name="talkId" value="{t.id}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+          <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{t.id}" disabled>
           </div>
-          <div class="hd-form-actions">
-            <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
+          <div class="form-group"><label class="form-label">Charla</label>
+            <p class="form-hint" style="color: var(--color-light); font-weight: 500;">{t.name}{#if
+              !t.speakers.isEmpty()} · {t.getSpeakerNames()}{/if}</p>
           </div>
-        </form>
-        <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete"
-          class="needs-confirm hd-form-actions">
-          <button type="submit" class="hd-btn">Eliminar</button>
-        </form>
-      </div>
-      {/for}
-      <div class="hd-card-surface">
-        <form method="post" action="/private/admin/events/{event.id}/scenario" class="hd-form">
-          <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">Nombre</label><input name="name"
-                class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Características</label><input name="features"
-                placeholder="Características" class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Ubicación</label><input name="location"
-                placeholder="Ubicación" class="hd-form-input"></div>
+          <div class="form-group">
+            <label class="form-label">Ubicación</label>
+            <select name="location" class="form-select">
+              {#for sc in event.scenarios}
+              <option value="{sc.id}" {#if sc.id eq t.location} selected{/if}>{sc.name}</option>
+              {/for}
+            </select>
           </div>
-          <div class="hd-form-actions">
-            <button type="submit" class="hd-btn hd-btn-primary">Agregar escenario</button>
+          <div class="form-group"><label class="form-label">Hora inicio</label><input name="startTime" type="time"
+              value="{t.startTimeStr}" class="form-input"></div>
+          <div class="form-group">
+            <label class="form-label">Día</label>
+            <select name="day" class="form-select">
+              {#for d in event.dayList}
+              <option value="{d}" {#if t.day eq d} selected{/if}>Día {d}</option>
+              {/for}
+            </select>
           </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="talks" class="hd-panel">
-      <h2 class="hd-panel-title">Charlas</h2>
-      {#for t in event.agenda}
-      {#if !t.break}
-      <div class="hd-card-surface card-bottom-margin">
-        <form method="post" action="/private/admin/events/{event.id}/talk" class="hd-form">
-          <input type="hidden" name="talkId" value="{t.id}">
-          <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input"
-                value="{t.id}" disabled></div>
-            <div class="hd-form-field"><label class="hd-form-label">Charla</label>
-              <p class="hd-form-hint">{t.name}{#if !t.speakers.isEmpty()} · {t.getSpeakerNames()}{/if}</p>
-            </div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Ubicación</label>
-              <select name="location" class="hd-form-input">
-                {#for sc in event.scenarios}
-                <option value="{sc.id}" {#if sc.id eq t.location} selected{/if}>{sc.name}</option>
-                {/for}
-              </select>
-            </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
-                type="time" value="{t.startTimeStr}" class="hd-form-input"></div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Día</label>
-              <select name="day" class="hd-form-input">
-                {#for d in event.dayList}
-                <option value="{d}" {#if t.day eq d} selected{/if}>Día {d}</option>
-                {/for}
-              </select>
-            </div>
-          </div>
-          <div class="hd-form-actions">
-            <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
-          </div>
-        </form>
-        <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete"
-          class="needs-confirm hd-form-actions form-inline">
-          <button type="submit" class="hd-btn">Eliminar</button>
-        </form>
-      </div>
-      {/if}
-      {/for}
-      <div class="hd-card-surface">
-        <form method="post" action="/private/admin/events/{event.id}/talk" class="hd-form">
-          <div class="hd-form-grid">
-            <div class="hd-form-field">
-              <label class="hd-form-label" for="speakerSelect">Seleccione orador</label>
-              <select id="speakerSelect" name="speakerId" class="hd-form-input">
-                <option value="">Seleccione orador</option>
-                {#for sp in speakers}
-                <option value="{sp.id}">{sp.name}</option>
-                {/for}
-              </select>
-            </div>
-            <div class="hd-form-field">
-              <label class="hd-form-label" for="talkSelect">Seleccione charla</label>
-              <select id="talkSelect" name="talkId" class="hd-form-input">
-                <option value="">Seleccione charla</option>
-                {#for sp in speakers}
-                {#for t in sp.talks}
-                <option value="{t.id}" data-speaker="{sp.id}">{t.name}</option>
-                {/for}
-                {/for}
-              </select>
-            </div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Ubicación</label>
-              <select name="location" class="hd-form-input">
-                {#for sc in event.scenarios}
-                <option value="{sc.id}">{sc.name}</option>
-                {/for}
-              </select>
-            </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
-                type="time" class="hd-form-input"></div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Día</label>
-              <select name="day" class="hd-form-input">
-                {#for d in event.dayList}
-                <option value="{d}">Día {d}</option>
-                {/for}
-              </select>
-            </div>
-          </div>
-          <div class="hd-form-actions">
-            <button type="submit" class="hd-btn hd-btn-primary">Agregar charla</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="breaks" class="hd-panel">
-      <h2 class="hd-panel-title">Breaks</h2>
-      {#for t in event.agenda}
-      {#if t.break}
-      <div class="hd-card-surface card-bottom-margin">
-        <form method="post" action="/private/admin/events/{event.id}/break" class="hd-form">
-          <input type="hidden" name="breakId" value="{t.id}">
-          <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">ID</label><input class="hd-form-input"
-                value="{t.id}" disabled></div>
-            <div class="hd-form-field"><label class="hd-form-label">Break</label><input name="name" value="{t.name}"
-                class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Duración</label><input name="duration" type="number"
-                min="1" value="{t.durationMinutes}" class="hd-form-input"></div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Ubicación</label>
-              <select name="location" class="hd-form-input">
-                {#for sc in event.scenarios}
-                <option value="{sc.id}" {#if sc.id eq t.location} selected{/if}>{sc.name}</option>
-                {/for}
-              </select>
-            </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
-                type="time" value="{t.startTimeStr}" class="hd-form-input"></div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Día</label>
-              <select name="day" class="hd-form-input">
-                {#for d in event.dayList}
-                <option value="{d}" {#if t.day eq d} selected{/if}>Día {d}</option>
-                {/for}
-              </select>
-            </div>
-          </div>
-          <div class="hd-form-actions">
-            <button type="submit" class="hd-btn hd-btn-secondary">Guardar</button>
-          </div>
-        </form>
-        <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete"
-          class="needs-confirm hd-form-actions form-inline">
-          <button type="submit" class="hd-btn">Eliminar</button>
-        </form>
-      </div>
-      {/if}
-      {/for}
-      <div class="hd-card-surface">
-        <form method="post" action="/private/admin/events/{event.id}/break" class="hd-form">
-          <div class="hd-form-grid">
-            <div class="hd-form-field"><label class="hd-form-label">Break</label><input name="name"
-                class="hd-form-input"></div>
-            <div class="hd-form-field"><label class="hd-form-label">Duración</label><input name="duration" type="number"
-                min="1" class="hd-form-input"></div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Ubicación</label>
-              <select name="location" class="hd-form-input">
-                {#for sc in event.scenarios}
-                <option value="{sc.id}">{sc.name}</option>
-                {/for}
-              </select>
-            </div>
-            <div class="hd-form-field"><label class="hd-form-label">Hora inicio</label><input name="startTime"
-                type="time" class="hd-form-input"></div>
-            <div class="hd-form-field">
-              <label class="hd-form-label">Día</label>
-              <select name="day" class="hd-form-input">
-                {#for d in event.dayList}
-                <option value="{d}">Día {d}</option>
-                {/for}
-              </select>
-            </div>
-          </div>
-          <div class="hd-form-actions">
-            <button type="submit" class="hd-btn hd-btn-primary">Agregar break</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="agenda" class="hd-panel">
-      <h2 class="hd-panel-title">Agenda</h2>
-      {#for d in event.dayList}
-      <div class="hd-card-surface card-bottom-margin">
-        <h3 class="hd-panel-title">Día {d}</h3>
-        {#for sc in event.scenarios}
-        {#if !event.getAgendaForDayAndScenario(d, sc.id).isEmpty()}
-        <h4 class="agenda-day-title">{sc.name}</h4>
-        <ul class="hd-list">
-          {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
-          <li class="hd-table-cell agenda-item-list">{#if t.break}<span class="material-symbols-outlined"
-              style="font-size: 1.2em; vertical-align: text-bottom;">coffee</span>{#else}<span
-              class="material-symbols-outlined"
-              style="font-size: 1.2em; vertical-align: text-bottom;">record_voice_over</span>{/if} {t.startTimeStr} -
-            {t.endTimeStr} |
-            {t.name} <span class="badge {app:talkStateClass(t, event)}">{app:talkState(t, event)}</span></li>
-          {/for}
-        </ul>
-        {/if}
-        {/for}
-      </div>
-      {/for}
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-secondary">Guardar</button>
+        </div>
+      </form>
+      <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete"
+        class="needs-confirm inline-form form-actions" style="margin-top: 0;">
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+      </form>
     </div>
     {/if}
-
-
+    {/for}
+    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
+      <form method="post" action="/private/admin/events/{event.id}/talk">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="speakerSelect">Seleccione orador</label>
+            <select id="speakerSelect" name="speakerId" class="form-select">
+              <option value="">Seleccione orador</option>
+              {#for sp in speakers}
+              <option value="{sp.id}">{sp.name}</option>
+              {/for}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="talkSelect">Seleccione charla</label>
+            <select id="talkSelect" name="talkId" class="form-select">
+              <option value="">Seleccione charla</option>
+              {#for sp in speakers}
+              {#for t in sp.talks}
+              <option value="{t.id}" data-speaker="{sp.id}">{t.name}</option>
+              {/for}
+              {/for}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ubicación</label>
+            <select name="location" class="form-select">
+              {#for sc in event.scenarios}
+              <option value="{sc.id}">{sc.name}</option>
+              {/for}
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Hora inicio</label><input name="startTime" type="time"
+              class="form-input"></div>
+          <div class="form-group">
+            <label class="form-label">Día</label>
+            <select name="day" class="form-select">
+              {#for d in event.dayList}
+              <option value="{d}">Día {d}</option>
+              {/for}
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Agregar charla</button>
+        </div>
+      </form>
+    </div>
   </div>
-</section>
+
+  <div id="breaks" class="card">
+    <h2 class="card-title">Breaks</h2>
+    {#for t in event.agenda}
+    {#if t.break}
+    <div
+      style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+      <form method="post" action="/private/admin/events/{event.id}/break">
+        <input type="hidden" name="breakId" value="{t.id}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+          <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{t.id}" disabled>
+          </div>
+          <div class="form-group"><label class="form-label">Break</label><input name="name" value="{t.name}"
+              class="form-input"></div>
+          <div class="form-group"><label class="form-label">Duración</label><input name="duration" type="number" min="1"
+              value="{t.durationMinutes}" class="form-input"></div>
+          <div class="form-group">
+            <label class="form-label">Ubicación</label>
+            <select name="location" class="form-select">
+              {#for sc in event.scenarios}
+              <option value="{sc.id}" {#if sc.id eq t.location} selected{/if}>{sc.name}</option>
+              {/for}
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Hora inicio</label><input name="startTime" type="time"
+              value="{t.startTimeStr}" class="form-input"></div>
+          <div class="form-group">
+            <label class="form-label">Día</label>
+            <select name="day" class="form-select">
+              {#for d in event.dayList}
+              <option value="{d}" {#if t.day eq d} selected{/if}>Día {d}</option>
+              {/for}
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-secondary">Guardar</button>
+        </div>
+      </form>
+      <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete"
+        class="needs-confirm inline-form form-actions" style="margin-top: 0;">
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+      </form>
+    </div>
+    {/if}
+    {/for}
+    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
+      <form method="post" action="/private/admin/events/{event.id}/break">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+          <div class="form-group"><label class="form-label">Break</label><input name="name" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Duración</label><input name="duration" type="number" min="1"
+              class="form-input"></div>
+          <div class="form-group">
+            <label class="form-label">Ubicación</label>
+            <select name="location" class="form-select">
+              {#for sc in event.scenarios}
+              <option value="{sc.id}">{sc.name}</option>
+              {/for}
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Hora inicio</label><input name="startTime" type="time"
+              class="form-input"></div>
+          <div class="form-group">
+            <label class="form-label">Día</label>
+            <select name="day" class="form-select">
+              {#for d in event.dayList}
+              <option value="{d}">Día {d}</option>
+              {/for}
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Agregar break</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="agenda" class="card">
+    <h2 class="card-title">Agenda</h2>
+    {#for d in event.dayList}
+    <div
+      style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+      <h3 class="card-title" style="font-size: 1.1rem;">Día {d}</h3>
+      {#for sc in event.scenarios}
+      {#if !event.getAgendaForDayAndScenario(d, sc.id).isEmpty()}
+      <h4 style="margin: 0.5rem 0; color: var(--color-accent);">{sc.name}</h4>
+      <ul style="list-style: none; padding-left: 0;">
+        {#for t in event.getAgendaForDayAndScenario(d, sc.id)}
+        <li style="padding: 0.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">{#if t.break}<span
+            class="material-symbols-outlined"
+            style="font-size: 1.2em; vertical-align: text-bottom;">coffee</span>{#else}<span
+            class="material-symbols-outlined"
+            style="font-size: 1.2em; vertical-align: text-bottom;">record_voice_over</span>{/if} {t.startTimeStr} -
+          {t.endTimeStr} |
+          {t.name} <span class="badge {app:talkStateClass(t, event)}"
+            style="font-size: 0.75rem; padding: 0.1rem 0.4rem; border-radius: 4px; border: 1px solid currentColor;">{app:talkState(t,
+            event)}</span></li>
+        {/for}
+      </ul>
+      {/if}
+      {/for}
+    </div>
+    {/for}
+  </div>
+  {/if}
+
+</div>
 <script>
   (function () {
     const speakerSelect = document.getElementById('speakerSelect');

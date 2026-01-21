@@ -1,70 +1,76 @@
 {#include layout/main}
-
 {#title}Broadcast de notificaciones · Homedir{/title}
-
 {#body}
-<section class="hd-section hd-section-dashboard">
-  <div class="hd-page">
-    <div class="hd-dashboard-header">
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div>
-        <p class="hd-eyebrow">Administración</p>
-        <h1 class="hd-page-title">Broadcast de notificaciones</h1>
-        <p class="hd-page-intro">Envía y gestiona avisos globales para todos los usuarios conectados.</p>
+        <p class="section-subtitle"
+          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
+          Administración</p>
+        <h1 class="page-title">Broadcast de notificaciones</h1>
+        <p class="section-subtitle">Envía y gestiona avisos globales para todos los usuarios conectados.</p>
       </div>
-      <div class="hd-panel-actions">
-        <a href="/admin/notifications/sim" class="hd-btn">Simular notificaciones</a>
-        <a href="/private/admin" class="hd-btn hd-btn-secondary">Volver al panel</a>
+      <div class="action-group">
+        <a href="/admin/notifications/sim" class="btn btn-secondary">Simular notificaciones</a>
+        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
       </div>
-    </div>
-
-    <div class="hd-panel">
-      <h2 class="hd-panel-title">Emitir broadcast</h2>
-      <form id="broadcast" class="hd-form" aria-label="Broadcast de notificaciones">
-        <div class="hd-form-grid">
-          <div class="hd-form-field">
-            <label for="type" class="hd-form-label">Tipo de notificación</label>
-            <select id="type" name="type" class="hd-form-input">
-              <option>AGENDA_UPDATED</option>
-              <option>ANNOUNCEMENT</option>
-            </select>
-          </div>
-          <div class="hd-form-field">
-            <label for="eventId" class="hd-form-label">ID de evento (opcional)</label>
-            <input id="eventId" class="hd-form-input" name="eventId" placeholder="eventId (opcional)">
-          </div>
-          <div class="hd-form-field">
-            <label for="expiresMinutes" class="hd-form-label">Expira en minutos</label>
-            <input id="expiresMinutes" class="hd-form-input" name="expiresMinutes" type="number" min="1"
-              placeholder="Duración (opcional)">
-          </div>
-        </div>
-        <div class="hd-form-field">
-          <label for="title" class="hd-form-label">Título</label>
-          <input id="title" class="hd-form-input" name="title" placeholder="Título" required>
-        </div>
-        <div class="hd-form-field">
-          <label for="message" class="hd-form-label">Mensaje</label>
-          <textarea id="message" class="hd-form-input" name="message" placeholder="Mensaje" required></textarea>
-        </div>
-        <div class="hd-form-actions">
-          <button class="hd-btn hd-btn-primary" type="submit">Enviar a todos</button>
-          <span class="hd-form-hint">Se emite a todos los conectados; persistirá en el backlog global.</span>
-        </div>
-      </form>
-    </div>
-
-    <div class="hd-panel hd-panel-actions">
-      <button id="broadcast-demo" class="hd-btn hd-btn-secondary" type="button">Broadcast demo</button>
-      <button id="clearAll" class="hd-btn" type="button">Borrar backlog</button>
-    </div>
-
-    <div class="hd-panel">
-      <h2 class="hd-panel-title">Últimas notificaciones</h2>
-      <div id="admin-list" class="hd-list" aria-live="polite"></div>
-
     </div>
   </div>
 </section>
+
+<div class="container">
+  <div class="card">
+    <h2 class="card-title">Emitir broadcast</h2>
+    <form id="broadcast" class="form-group" aria-label="Broadcast de notificaciones">
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group">
+          <label for="type" class="form-label">Tipo de notificación</label>
+          <select id="type" name="type" class="form-select">
+            <option>AGENDA_UPDATED</option>
+            <option>ANNOUNCEMENT</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eventId" class="form-label">ID de evento (opcional)</label>
+          <input id="eventId" class="form-input" name="eventId" placeholder="eventId (opcional)">
+        </div>
+        <div class="form-group">
+          <label for="expiresMinutes" class="form-label">Expira en minutos</label>
+          <input id="expiresMinutes" class="form-input" name="expiresMinutes" type="number" min="1"
+            placeholder="Duración (opcional)">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="title" class="form-label">Título</label>
+        <input id="title" class="form-input" name="title" placeholder="Título" required>
+      </div>
+      <div class="form-group">
+        <label for="message" class="form-label">Mensaje</label>
+        <textarea id="message" class="form-textarea" name="message" placeholder="Mensaje" required></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Enviar a todos</button>
+        <span class="form-hint" style="margin-left: 1rem;">Se emite a todos los conectados; persistirá en el backlog
+          global.</span>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Acciones</h2>
+    <div class="action-group">
+      <button id="broadcast-demo" class="btn btn-secondary" type="button">Broadcast demo</button>
+      <button id="clearAll" class="btn btn-danger" type="button">Borrar backlog</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Últimas notificaciones</h2>
+    <div id="admin-list" class="list" aria-live="polite"></div>
+  </div>
+</div>
 <script defer src="/js/admin-notifications.js"></script>
 {/body}
 {/include}
