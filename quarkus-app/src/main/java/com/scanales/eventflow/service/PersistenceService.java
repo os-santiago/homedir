@@ -317,12 +317,18 @@ public class PersistenceService {
         lastError);
   }
 
+  // Version tracking for files to prevent stale overwrites and coalesce writes
+  private final ConcurrentHashMap<Path, AtomicLong> fileVersions = new ConcurrentHashMap<>();
+
   private void scheduleWrite(Path file, Object data) {
-    scheduleWriteAttempt(file, data, 1, 250);
+    AtomicLong versionCounter = fileVersions.computeIfAbsent(file, k -> new AtomicLong(0));
+    long version = versionCounter.incrementAndGet();
+    scheduleWriteAttempt(file, data, version, 1, 250);
   }
 
-  private void scheduleWriteAttempt(Path file, Object data, int attempt, long backoffMillis) {
-    QueueItem item = new QueueItem(() -> writeOnce(file, data, attempt, backoffMillis));
+  private void scheduleWriteAttempt(
+      Path file, Object data, long version, int attempt, long backoffMillis) {
+    QueueItem item = new QueueItem(() -> writeOnce(file, data, version, attempt, backoffMillis));
     try {
       executor.execute(item);
     } catch (RejectedExecutionException e) {
@@ -332,7 +338,16 @@ public class PersistenceService {
     }
   }
 
-  private void writeOnce(Path file, Object data, int attempt, long backoffMillis) {
+  private void writeOnce(Path file, Object data, long version, int attempt, long backoffMillis) {
+    // Stale check: if a newer version has been scheduled, skip this write.
+    // This handles both optimization (skipping intermediate states) and correctness
+    // (preventing stale retries).
+    AtomicLong currentCounter = fileVersions.get(file);
+    if (currentCounter != null && currentCounter.get() > version) {
+      LOG.debugf("Skipping stale write for %s (v%d < v%d)", file.getFileName(), version, currentCounter.get());
+      return;
+    }
+
     checkDiskSpace();
     if (lowDiskSpace) {
       LOG.warn("Low disk space - skipping persistence");
@@ -343,7 +358,7 @@ public class PersistenceService {
       try {
         mapper.writeValue(tmp.toFile(), data);
         Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        LOG.infof("Persisted %s at %s", file.getFileName(), java.time.Instant.now());
+        LOG.infof("Persisted %s at %s (v%d)", file.getFileName(), java.time.Instant.now(), version);
         writesOk.incrementAndGet();
       } finally {
         try {
@@ -367,15 +382,18 @@ public class PersistenceService {
                 + backoffMillis
                 + "ms");
         writesRetries.incrementAndGet();
-        scheduleRetry(file, data, attempt + 1, backoffMillis * 2);
+        // Important: Pass the ORIGINAL version to the retry so it remains verifiable
+        // against current state
+        scheduleRetry(file, data, version, attempt + 1, backoffMillis * 2);
       }
     }
   }
 
-  private void scheduleRetry(Path file, Object data, int nextAttempt, long backoffMillis) {
+  private void scheduleRetry(
+      Path file, Object data, long version, int nextAttempt, long backoffMillis) {
     try {
       retryScheduler.schedule(
-          () -> scheduleWriteAttempt(file, data, nextAttempt, backoffMillis),
+          () -> scheduleWriteAttempt(file, data, version, nextAttempt, backoffMillis),
           backoffMillis,
           TimeUnit.MILLISECONDS);
     } catch (RejectedExecutionException e) {
