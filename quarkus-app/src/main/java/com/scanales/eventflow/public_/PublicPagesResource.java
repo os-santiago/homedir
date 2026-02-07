@@ -54,7 +54,7 @@ public class PublicPagesResource {
 
   @GET
   public TemplateInstance home() {
-    List<GithubContributor> contributors = githubService.fetchContributors("os-santiago", "homedir");
+    List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
     int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
 
