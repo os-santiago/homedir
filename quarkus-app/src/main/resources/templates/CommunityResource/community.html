@@ -13,7 +13,7 @@
   </header>
 
   <section class="page-grid">
-    <div class="section-card events-full-width">
+    <div class="section-card events-full-width community-shell-card">
       <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10">
         <div class="community-tabs">
           <button type="button" class="btn-primary community-tab active" data-view="featured">Destacado</button>
@@ -43,6 +43,20 @@
 </main>
 
 <style>
+  .community-shell-card,
+  .community-shell-card:hover {
+    transform: none;
+    animation: none;
+    cursor: default;
+    background: rgba(0, 0, 0, 0.45);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
+  }
+
+  .community-shell-card::before,
+  .community-shell-card:hover::before {
+    content: none;
+  }
+
   .community-tabs {
     display: flex;
     gap: 0.75rem;
@@ -97,6 +111,7 @@
     transition: all 0.12s ease;
     animation: none;
     cursor: default;
+    will-change: transform;
   }
 
   .community-list .section-card::before {
