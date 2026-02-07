@@ -1,0 +1,13 @@
+id: "ec75335911e0"
+title: "Introducing CLI Agent Orchestrator: Transforming Developer CLI Tools into a Multi-Agent Powerhouse"
+url: "https://aws.amazon.com/blogs/opensource/introducing-cli-agent-orchestrator-transforming-developer-cli-tools-into-a-multi-agent-powerhouse/"
+summary: "Today we are introducing CLI Agent Orchestrator (CAO, pronounced “kay-oh”), an open source, multi-agent orchestration framework that transforms how developers work with AI-powered CLI tools such as Amazon Q CLI and Claude Code. While individual developer CLI tools excel at focused tasks with sophisticated reasoning..."
+source: "aws.amazon.com"
+published_at: "2025-10-21T17:09:26Z"
+created_at: "2026-02-07T19:58:14Z"
+tags:
+  - "ai"
+  - "developers"
+  - "open-source"
+  - "technology"
+  - "community-curated"

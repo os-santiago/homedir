@@ -1,0 +1,290 @@
+{
+  "generated_at": "2026-02-07T19:58:14Z",
+  "api_base": "https://homedir.opensourcesantiago.io",
+  "limit": 18,
+  "min_score": 2.0,
+  "selected": [
+    {
+      "id": "012d7c12ffba",
+      "title": "Introducing Node Readiness Controller",
+      "url": "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+      "source": "kubernetes.io",
+      "score": 17.51,
+      "tags": [
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "ai",
+        "developers",
+        "technology"
+      ],
+      "file": "20260207-introducing-node-readiness-controller-012d7c12ffba.yml"
+    },
+    {
+      "id": "195996357ddf",
+      "title": "Cluster API v1.12: Introducing In-place Updates and Chained Upgrades",
+      "url": "https://kubernetes.io/blog/2026/01/27/cluster-api-v1-12-release/",
+      "source": "kubernetes.io",
+      "score": 14.253,
+      "tags": [
+        "platform-engineering",
+        "open-source",
+        "trending-tech",
+        "developers",
+        "ai",
+        "technology"
+      ],
+      "file": "20260207-cluster-api-v1-12-introducing-in-place-updates-and-chained-upgra-195996357ddf.yml"
+    },
+    {
+      "id": "5f24a0d5d802",
+      "title": "Headlamp in 2025: Project Highlights",
+      "url": "https://kubernetes.io/blog/2026/01/22/headlamp-in-2025-project-highlights/",
+      "source": "kubernetes.io",
+      "score": 14.03,
+      "tags": [
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "ai",
+        "developers",
+        "technology"
+      ],
+      "file": "20260207-headlamp-in-2025-project-highlights-5f24a0d5d802.yml"
+    },
+    {
+      "id": "60d95a2ba86e",
+      "title": "Kubernetes v1.35: Extended Toleration Operators to Support Numeric Comparisons (Alpha)",
+      "url": "https://kubernetes.io/blog/2026/01/05/kubernetes-v1-35-numeric-toleration-operators/",
+      "source": "kubernetes.io",
+      "score": 12.5,
+      "tags": [
+        "ai",
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "developers",
+        "technology"
+      ],
+      "file": "20260207-kubernetes-v1-35-extended-toleration-operators-to-support-numeri-60d95a2ba86e.yml"
+    },
+    {
+      "id": "6c3e98baaa9c",
+      "title": "Announcing the Checkpoint/Restore Working Group",
+      "url": "https://kubernetes.io/blog/2026/01/21/introducing-checkpoint-restore-wg/",
+      "source": "kubernetes.io",
+      "score": 11.017,
+      "tags": [
+        "ai",
+        "trending-tech",
+        "open-source",
+        "platform-engineering",
+        "technology",
+        "community-curated"
+      ],
+      "file": "20260207-announcing-the-checkpoint-restore-working-group-6c3e98baaa9c.yml"
+    },
+    {
+      "id": "9aa00e464c14",
+      "title": "Introducing Kthena: LLM inference for the cloud native era",
+      "url": "https://www.cncf.io/blog/2026/01/28/introducing-kthena-llm-inference-for-the-cloud-native-era/",
+      "source": "cncf.io",
+      "score": 10.292,
+      "tags": [
+        "ai",
+        "developers",
+        "trending-tech",
+        "open-source",
+        "platform-engineering",
+        "technology"
+      ],
+      "file": "20260207-introducing-kthena-llm-inference-for-the-cloud-native-era-9aa00e464c14.yml"
+    },
+    {
+      "id": "0e8d91c1d157",
+      "title": "Strands Agents and the Model-Driven Approach",
+      "url": "https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/",
+      "source": "aws.amazon.com",
+      "score": 9.4,
+      "tags": [
+        "ai",
+        "developers",
+        "open-source",
+        "technology",
+        "community-curated"
+      ],
+      "file": "20260207-strands-agents-and-the-model-driven-approach-0e8d91c1d157.yml"
+    },
+    {
+      "id": "997d2c1393e3",
+      "title": "Ingress NGINX: Statement from the Kubernetes Steering and Security Response Committees",
+      "url": "https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/",
+      "source": "kubernetes.io",
+      "score": 9.307,
+      "tags": [
+        "platform-engineering",
+        "open-source",
+        "ai",
+        "developers",
+        "trending-tech",
+        "technology"
+      ],
+      "file": "20260207-ingress-nginx-statement-from-the-kubernetes-steering-and-securit-997d2c1393e3.yml"
+    },
+    {
+      "id": "7b033295bab2",
+      "title": "What’s new at Stack Overflow: February 2026",
+      "url": "https://stackoverflow.blog/2026/02/02/what-s-new-at-stack-overflow-february-2026/",
+      "source": "stackoverflow.blog",
+      "score": 8.292,
+      "tags": [
+        "trending-tech",
+        "open-source",
+        "ai",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "file": "20260207-what-s-new-at-stack-overflow-february-2026-7b033295bab2.yml"
+    },
+    {
+      "id": "367b17ff0d4c",
+      "title": "Experimenting with Gateway API using kind",
+      "url": "https://kubernetes.io/blog/2026/01/28/experimenting-gateway-api-with-kind/",
+      "source": "kubernetes.io",
+      "score": 8.267,
+      "tags": [
+        "ai",
+        "trending-tech",
+        "open-source",
+        "developers",
+        "platform-engineering",
+        "technology"
+      ],
+      "file": "20260207-experimenting-with-gateway-api-using-kind-367b17ff0d4c.yml"
+    },
+    {
+      "id": "6d9a82af9b82",
+      "title": "Uniform API server access using clientcmd",
+      "url": "https://kubernetes.io/blog/2026/01/19/clientcmd-apiserver-access/",
+      "source": "kubernetes.io",
+      "score": 7.937,
+      "tags": [
+        "open-source",
+        "developers",
+        "ai",
+        "platform-engineering",
+        "trending-tech",
+        "technology"
+      ],
+      "file": "20260207-uniform-api-server-access-using-clientcmd-6d9a82af9b82.yml"
+    },
+    {
+      "id": "7b076d0e107d",
+      "title": "Continuous AI in practice: What developers can automate today with agentic CI",
+      "url": "https://github.blog/ai-and-ml/generative-ai/continuous-ai-in-practice-what-developers-can-automate-today-with-agentic-ci/",
+      "source": "github.blog",
+      "score": 7.715,
+      "tags": [
+        "ai",
+        "open-source",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "file": "20260207-continuous-ai-in-practice-what-developers-can-automate-today-wit-7b076d0e107d.yml"
+    },
+    {
+      "id": "a43fa7631085",
+      "title": "Kubernetes v1.35: Mutable PersistentVolume Node Affinity (alpha)",
+      "url": "https://kubernetes.io/blog/2026/01/08/kubernetes-v1-35-mutable-pv-nodeaffinity/",
+      "source": "kubernetes.io",
+      "score": 7.5,
+      "tags": [
+        "developers",
+        "ai",
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "technology"
+      ],
+      "file": "20260207-kubernetes-v1-35-mutable-persistentvolume-node-affinity-alpha-a43fa7631085.yml"
+    },
+    {
+      "id": "f0d9c561f4af",
+      "title": "The 3Cs: A Framework for AI Agent Security",
+      "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+      "source": "docker.com",
+      "score": 7.45,
+      "tags": [
+        "ai",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "file": "20260207-the-3cs-a-framework-for-ai-agent-security-f0d9c561f4af.yml"
+    },
+    {
+      "id": "ec75335911e0",
+      "title": "Introducing CLI Agent Orchestrator: Transforming Developer CLI Tools into a Multi-Agent Powerhouse",
+      "url": "https://aws.amazon.com/blogs/opensource/introducing-cli-agent-orchestrator-transforming-developer-cli-tools-into-a-multi-agent-powerhouse/",
+      "source": "aws.amazon.com",
+      "score": 7.4,
+      "tags": [
+        "ai",
+        "developers",
+        "open-source",
+        "technology",
+        "community-curated"
+      ],
+      "file": "20260207-introducing-cli-agent-orchestrator-transforming-developer-cli-to-ec75335911e0.yml"
+    },
+    {
+      "id": "6ae186c0015a",
+      "title": "New Conversion from cgroup v1 CPU Shares to v2 CPU Weight",
+      "url": "https://kubernetes.io/blog/2026/01/30/new-cgroup-v1-to-v2-cpu-conversion-formula/",
+      "source": "kubernetes.io",
+      "score": 7.373,
+      "tags": [
+        "open-source",
+        "ai",
+        "developers",
+        "platform-engineering",
+        "trending-tech",
+        "technology"
+      ],
+      "file": "20260207-new-conversion-from-cgroup-v1-cpu-shares-to-v2-cpu-weight-6ae186c0015a.yml"
+    },
+    {
+      "id": "67553a258530",
+      "title": "The autonomous enterprise and the four pillars of platform control: 2026 forecast",
+      "url": "https://www.cncf.io/blog/2026/01/23/the-autonomous-enterprise-and-the-four-pillars-of-platform-control-2026-forecast/",
+      "source": "cncf.io",
+      "score": 7.087,
+      "tags": [
+        "platform-engineering",
+        "ai",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "file": "20260207-the-autonomous-enterprise-and-the-four-pillars-of-platform-contr-67553a258530.yml"
+    },
+    {
+      "id": "7004e043e722",
+      "title": "Kubernetes v1.35: A Better Way to Pass Service Account Tokens to CSI Drivers",
+      "url": "https://kubernetes.io/blog/2026/01/07/kubernetes-v1-35-csi-sa-tokens-secrets-field-beta/",
+      "source": "kubernetes.io",
+      "score": 6.5,
+      "tags": [
+        "trending-tech",
+        "ai",
+        "open-source",
+        "developers",
+        "platform-engineering",
+        "technology"
+      ],
+      "file": "20260207-kubernetes-v1-35-a-better-way-to-pass-service-account-tokens-to--7004e043e722.yml"
+    }
+  ]
+}

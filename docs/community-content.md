@@ -10,7 +10,9 @@ This module powers `/comunidad` with curated content loaded from files and commu
   - `new`: sorted by `created_at` descending.
 
 ## Content Directory
-- Production target: `/var/lib/homedir/community/content`
+- Production target: `${homedir.data.dir}/community/content`
+- Current VPS runtime target: `/work/data/community/content`
+- Legacy path: `/var/lib/homedir/community/content` (supported if linked or configured)
 - Config env var: `COMMUNITY_CONTENT_DIR`
 - App default (when env not set): `${homedir.data.dir}/community/content`
 

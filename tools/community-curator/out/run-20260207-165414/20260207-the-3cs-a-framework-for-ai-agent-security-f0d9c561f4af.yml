@@ -1,0 +1,12 @@
+id: "f0d9c561f4af"
+title: "The 3Cs: A Framework for AI Agent Security"
+url: "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/"
+summary: "Every time execution models change, security frameworks need to change with them. Agents force the next shift. The Unattended Laptop Problem No developer would leave their laptop unattended and unlocked. The risk is obvious. A developer laptop has root-level access to production systems, repositories, databases, cre..."
+source: "docker.com"
+published_at: "2026-02-04T02:02:19Z"
+created_at: "2026-02-07T19:54:28Z"
+tags:
+  - "ai"
+  - "developers"
+  - "technology"
+  - "community-curated"
