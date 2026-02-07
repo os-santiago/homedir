@@ -1,0 +1,13 @@
+id: "0e8d91c1d157"
+title: "Strands Agents and the Model-Driven Approach"
+url: "https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/"
+summary: "Until recently, building AI agents meant wrestling with complex orchestration frameworks. Developers wrote elaborate state machines, predefined workflows, and extensive error-handling code to guide language models through multi-step tasks. We needed to build elaborate decision trees to handle “what if the API call f..."
+source: "aws.amazon.com"
+published_at: "2025-09-12T19:41:49Z"
+created_at: "2026-02-07T19:58:14Z"
+tags:
+  - "ai"
+  - "developers"
+  - "open-source"
+  - "technology"
+  - "community-curated"

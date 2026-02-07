@@ -1,0 +1,306 @@
+{
+  "updated_at": "2026-02-07T19:54:28Z",
+  "urls": [
+    "https://aws.amazon.com/blogs/opensource/introducing-cli-agent-orchestrator-transforming-developer-cli-tools-into-a-multi-agent-powerhouse/",
+    "https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/",
+    "https://blog.alaindichiappari.dev/p/software-engineering-is-back",
+    "https://github.blog/ai-and-ml/generative-ai/continuous-ai-in-practice-what-developers-can-automate-today-with-agentic-ci/",
+    "https://kubernetes.io/blog/2026/01/05/kubernetes-v1-35-numeric-toleration-operators/",
+    "https://kubernetes.io/blog/2026/01/08/kubernetes-v1-35-mutable-pv-nodeaffinity/",
+    "https://kubernetes.io/blog/2026/01/19/clientcmd-apiserver-access/",
+    "https://kubernetes.io/blog/2026/01/21/introducing-checkpoint-restore-wg/",
+    "https://kubernetes.io/blog/2026/01/22/headlamp-in-2025-project-highlights/",
+    "https://kubernetes.io/blog/2026/01/27/cluster-api-v1-12-release/",
+    "https://kubernetes.io/blog/2026/01/28/experimenting-gateway-api-with-kind/",
+    "https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/",
+    "https://kubernetes.io/blog/2026/01/30/new-cgroup-v1-to-v2-cpu-conversion-formula/",
+    "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+    "https://stackoverflow.blog/2026/02/02/what-s-new-at-stack-overflow-february-2026/",
+    "https://www.cncf.io/blog/2026/01/23/the-autonomous-enterprise-and-the-four-pillars-of-platform-control-2026-forecast/",
+    "https://www.cncf.io/blog/2026/01/28/introducing-kthena-llm-inference-for-the-cloud-native-era/",
+    "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/"
+  ],
+  "records": [
+    {
+      "id": "012d7c12ffba",
+      "title": "Introducing Node Readiness Controller",
+      "url": "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+      "source": "kubernetes.io",
+      "tags": [
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "ai",
+        "developers",
+        "technology"
+      ],
+      "score": 17.51,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "195996357ddf",
+      "title": "Cluster API v1.12: Introducing In-place Updates and Chained Upgrades",
+      "url": "https://kubernetes.io/blog/2026/01/27/cluster-api-v1-12-release/",
+      "source": "kubernetes.io",
+      "tags": [
+        "platform-engineering",
+        "open-source",
+        "trending-tech",
+        "developers",
+        "ai",
+        "technology"
+      ],
+      "score": 14.253,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "5f24a0d5d802",
+      "title": "Headlamp in 2025: Project Highlights",
+      "url": "https://kubernetes.io/blog/2026/01/22/headlamp-in-2025-project-highlights/",
+      "source": "kubernetes.io",
+      "tags": [
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "ai",
+        "developers",
+        "technology"
+      ],
+      "score": 14.03,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "60d95a2ba86e",
+      "title": "Kubernetes v1.35: Extended Toleration Operators to Support Numeric Comparisons (Alpha)",
+      "url": "https://kubernetes.io/blog/2026/01/05/kubernetes-v1-35-numeric-toleration-operators/",
+      "source": "kubernetes.io",
+      "tags": [
+        "ai",
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "developers",
+        "technology"
+      ],
+      "score": 12.5,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "6c3e98baaa9c",
+      "title": "Announcing the Checkpoint/Restore Working Group",
+      "url": "https://kubernetes.io/blog/2026/01/21/introducing-checkpoint-restore-wg/",
+      "source": "kubernetes.io",
+      "tags": [
+        "ai",
+        "trending-tech",
+        "open-source",
+        "platform-engineering",
+        "technology",
+        "community-curated"
+      ],
+      "score": 11.017,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "9aa00e464c14",
+      "title": "Introducing Kthena: LLM inference for the cloud native era",
+      "url": "https://www.cncf.io/blog/2026/01/28/introducing-kthena-llm-inference-for-the-cloud-native-era/",
+      "source": "cncf.io",
+      "tags": [
+        "ai",
+        "developers",
+        "trending-tech",
+        "open-source",
+        "platform-engineering",
+        "technology"
+      ],
+      "score": 10.292,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "0e8d91c1d157",
+      "title": "Strands Agents and the Model-Driven Approach",
+      "url": "https://aws.amazon.com/blogs/opensource/strands-agents-and-the-model-driven-approach/",
+      "source": "aws.amazon.com",
+      "tags": [
+        "ai",
+        "developers",
+        "open-source",
+        "technology",
+        "community-curated"
+      ],
+      "score": 9.4,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "997d2c1393e3",
+      "title": "Ingress NGINX: Statement from the Kubernetes Steering and Security Response Committees",
+      "url": "https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/",
+      "source": "kubernetes.io",
+      "tags": [
+        "platform-engineering",
+        "open-source",
+        "ai",
+        "developers",
+        "trending-tech",
+        "technology"
+      ],
+      "score": 9.307,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "7b033295bab2",
+      "title": "What’s new at Stack Overflow: February 2026",
+      "url": "https://stackoverflow.blog/2026/02/02/what-s-new-at-stack-overflow-february-2026/",
+      "source": "stackoverflow.blog",
+      "tags": [
+        "trending-tech",
+        "open-source",
+        "ai",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "score": 8.292,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "367b17ff0d4c",
+      "title": "Experimenting with Gateway API using kind",
+      "url": "https://kubernetes.io/blog/2026/01/28/experimenting-gateway-api-with-kind/",
+      "source": "kubernetes.io",
+      "tags": [
+        "ai",
+        "trending-tech",
+        "open-source",
+        "developers",
+        "platform-engineering",
+        "technology"
+      ],
+      "score": 8.267,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "6d9a82af9b82",
+      "title": "Uniform API server access using clientcmd",
+      "url": "https://kubernetes.io/blog/2026/01/19/clientcmd-apiserver-access/",
+      "source": "kubernetes.io",
+      "tags": [
+        "open-source",
+        "developers",
+        "ai",
+        "platform-engineering",
+        "trending-tech",
+        "technology"
+      ],
+      "score": 7.937,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "7b076d0e107d",
+      "title": "Continuous AI in practice: What developers can automate today with agentic CI",
+      "url": "https://github.blog/ai-and-ml/generative-ai/continuous-ai-in-practice-what-developers-can-automate-today-with-agentic-ci/",
+      "source": "github.blog",
+      "tags": [
+        "ai",
+        "open-source",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "score": 7.715,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "a43fa7631085",
+      "title": "Kubernetes v1.35: Mutable PersistentVolume Node Affinity (alpha)",
+      "url": "https://kubernetes.io/blog/2026/01/08/kubernetes-v1-35-mutable-pv-nodeaffinity/",
+      "source": "kubernetes.io",
+      "tags": [
+        "developers",
+        "ai",
+        "open-source",
+        "platform-engineering",
+        "trending-tech",
+        "technology"
+      ],
+      "score": 7.5,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "f0d9c561f4af",
+      "title": "The 3Cs: A Framework for AI Agent Security",
+      "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+      "source": "docker.com",
+      "tags": [
+        "ai",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "score": 7.45,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "ec75335911e0",
+      "title": "Introducing CLI Agent Orchestrator: Transforming Developer CLI Tools into a Multi-Agent Powerhouse",
+      "url": "https://aws.amazon.com/blogs/opensource/introducing-cli-agent-orchestrator-transforming-developer-cli-tools-into-a-multi-agent-powerhouse/",
+      "source": "aws.amazon.com",
+      "tags": [
+        "ai",
+        "developers",
+        "open-source",
+        "technology",
+        "community-curated"
+      ],
+      "score": 7.4,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "6ae186c0015a",
+      "title": "New Conversion from cgroup v1 CPU Shares to v2 CPU Weight",
+      "url": "https://kubernetes.io/blog/2026/01/30/new-cgroup-v1-to-v2-cpu-conversion-formula/",
+      "source": "kubernetes.io",
+      "tags": [
+        "open-source",
+        "ai",
+        "developers",
+        "platform-engineering",
+        "trending-tech",
+        "technology"
+      ],
+      "score": 7.373,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "769aa949e23c",
+      "title": "Coding agents have replaced every framework I used",
+      "url": "https://blog.alaindichiappari.dev/p/software-engineering-is-back",
+      "source": "blog.alaindichiappari.dev",
+      "tags": [
+        "ai",
+        "developers",
+        "trending-tech",
+        "technology",
+        "community-curated"
+      ],
+      "score": 7.189,
+      "added_at": "2026-02-07T19:54:28Z"
+    },
+    {
+      "id": "67553a258530",
+      "title": "The autonomous enterprise and the four pillars of platform control: 2026 forecast",
+      "url": "https://www.cncf.io/blog/2026/01/23/the-autonomous-enterprise-and-the-four-pillars-of-platform-control-2026-forecast/",
+      "source": "cncf.io",
+      "tags": [
+        "platform-engineering",
+        "ai",
+        "developers",
+        "technology",
+        "community-curated"
+      ],
+      "score": 7.087,
+      "added_at": "2026-02-07T19:54:28Z"
+    }
+  ]
+}
