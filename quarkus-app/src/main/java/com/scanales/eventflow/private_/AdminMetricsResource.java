@@ -439,7 +439,7 @@ public class AdminMetricsResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     try {
-      java.nio.file.Path dataDir = Paths.get(System.getProperty("homedir.data.dir", "data"));
+      java.nio.file.Path dataDir = resolveDataDir();
       java.nio.file.Path file = dataDir.resolve("metrics-v2.json");
       if (!Files.exists(file)) {
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -593,8 +593,17 @@ public class AdminMetricsResource {
   @ConfigProperty(name = "metrics.min-view-threshold", defaultValue = "20")
   int minViews;
 
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDirPath;
+
   private MetricsData buildData(String range, String eventId, String stageId, String speakerId) {
     return buildData(range, eventId, stageId, speakerId, minViews);
+  }
+
+  private java.nio.file.Path resolveDataDir() {
+    String sysProp = System.getProperty("homedir.data.dir");
+    String resolved = (sysProp != null && !sysProp.isBlank()) ? sysProp : dataDirPath;
+    return Paths.get(resolved);
   }
 
   private MetricsData buildData(
