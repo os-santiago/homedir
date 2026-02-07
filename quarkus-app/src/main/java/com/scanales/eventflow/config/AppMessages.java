@@ -685,7 +685,7 @@ public interface AppMessages {
     @Message("Latest community content")
     String home_social_highlights_title();
 
-    @Message("Open Social")
+    @Message("Open")
     String home_btn_open_social();
 
     @Message("No social updates loaded yet. Open Social to check the latest refresh.")
@@ -697,7 +697,7 @@ public interface AppMessages {
     @Message("Upcoming agenda")
     String home_events_highlights_title();
 
-    @Message("Open Events")
+    @Message("Open")
     String home_btn_open_events();
 
     @Message("No upcoming events yet. Visit Events for historical sessions.")
@@ -715,7 +715,7 @@ public interface AppMessages {
     @Message("Build with the core contributors")
     String home_project_highlights_title();
 
-    @Message("Open Project")
+    @Message("Open")
     String home_btn_open_project();
 
     @Message("total contributions")
