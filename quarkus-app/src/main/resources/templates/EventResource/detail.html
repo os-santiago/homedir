@@ -1,196 +1,241 @@
-{#include layout/base}
+{#include layout/main activePage="eventos"}
 {#title}
 {#if event}
-{event.title}
+{event.title} - Homedir
 {#else}
-Evento
+Evento no encontrado - Homedir
 {/if}
 {/title}
-{#breadcrumbs}
+
+{#body}
 {#if event}
-<a href="/">Inicio</a><span class="sep">/</span><span>{event.title}</span>
-{/if}
-{/breadcrumbs}
-{#main}
-{#if event}
-<section class="event-detail">
-  <div class="card event-summary">
-    <div class="event-header">
-      {#if app:validUrl(event.logoUrl)}
-      <img src="{event.logoUrl}" alt="Logo de {event.title}" class="event-logo">
-      {/if}
-      <div class="event-info">
-        <h1 class="page-title">{event.title}</h1>
-        <div class="event-tags">
-          <span class="badge event-type {event.typeCss}">{event.typeLabel}</span>
-          {#if event.isOngoing()}
-          <span class="badge info">En curso</span>
-          {/if}
-        </div>
-        {#if event.formattedDate}
-        <p class="event-datetime">{event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} hrs{#if
-          event.timezone} ({event.timezone}){/if}.</p>
-        {/if}
-        {#if event.description}
-        <p class="event-description">{event.description}</p>
-        {/if}
-        {#if app:validUrl(event.website) || app:validUrl(event.twitter) || app:validUrl(event.linkedin)
-        || app:validUrl(event.instagram) || app:validEmail(event.contactEmail) || app:validUrl(event.ticketsUrl)}
-        <div class="event-links">
-          {#if app:validUrl(event.website)}<a href="{event.website}" target="_blank" rel="noopener" class="btn"><span
-              class="material-symbols-outlined" style="font-size: 1.2em; vertical-align: middle;">language</span> Sitio
-            Web</a>{/if}
-          {#if app:validUrl(event.twitter)}<a href="{event.twitter}" target="_blank" rel="noopener" class="btn"><img
-              src="https://cdn.simpleicons.org/twitter/white" width="16" height="16" alt="Twitter"
-              style="vertical-align: middle;"> Twitter</a>{/if}
-          {#if app:validUrl(event.linkedin)}<a href="{event.linkedin}" target="_blank" rel="noopener" class="btn"><img
-              src="https://cdn.simpleicons.org/linkedin/white" width="16" height="16" alt="LinkedIn"
-              style="vertical-align: middle;"> LinkedIn</a>{/if}
-          {#if app:validUrl(event.instagram)}<a href="{event.instagram}" target="_blank" rel="noopener" class="btn"><img
-              src="https://cdn.simpleicons.org/instagram/white" width="16" height="16" alt="Instagram"
-              style="vertical-align: middle;"> Instagram</a>{/if}
-          {#if app:validEmail(event.contactEmail)}<a href="mailto:{event.contactEmail}" target="_blank" rel="noopener"
-            class="btn"><span class="material-symbols-outlined"
-              style="font-size: 1.2em; vertical-align: middle;">email</span> Email</a>{/if}
-          {#if app:validUrl(event.ticketsUrl)}<a href="{event.ticketsUrl}" target="_blank" rel="noopener"
-            class="btn"><span class="material-symbols-outlined"
-              style="font-size: 1.2em; vertical-align: middle;">confirmation_number</span> Entradas</a>{/if}
-        </div>
-        {/if}
-      </div>
-    </div>
-    {#if app:validUrl(event.mapUrl)}
-    <p><strong>Lugar:</strong> <a href="{event.mapUrl}" target="_blank" rel="noopener">Ver mapa</a></p>
-    {/if}
-    <p><strong>Duración:</strong> {event.days} día{#if event.days > 1}s{/if}</p>
-    {#if !event.agenda.isEmpty()}
-    <p><a href="#agenda" id="view-full-agenda" class="btn btn-secondary">Ver agenda completa</a></p>
-    {/if}
+<header class="page-header">
+  <div class="section-header">
+    <p class="section-subtitle">
+        <a href="/eventos" class="hd-link">← Volver a Eventos</a>
+        {#if event.isOngoing()} · <span class="badge info">En curso</span>{/if}
+    </p>
+    <h1 class="public-title">{event.title}</h1>
   </div>
-  {#if !event.scenarios.isEmpty()}
-  <div class="card">
-    <h2 class="card-title"><span class="icon"><span class="material-symbols-outlined">podium</span></span>Escenarios
-    </h2>
-    <div class="scenario-grid">
-      {#for s in event.scenarios}
-      <article class="scenario-card">
-        <h3>{s.name}</h3>
-        {#if s.location}<p class="scenario-location">{s.location}</p>{/if}
-        <a href="/event/{event.id}/scenario/{s.id}" class="btn">Ver charlas</a>
-      </article>
-      {/for}
-    </div>
-  </div>
+  
+  {#if event.formattedDate}
+  <p class="section-subtitle">
+    <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">calendar_month</span>
+    {event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} hrs{#if event.timezone} ({event.timezone}){/if}
+  </p>
   {/if}
-  {#if !event.agenda.isEmpty()}
-  <div class="card agenda" id="agenda">
-    <div class="view-toggle">
-      <button id="agendaSeqBtn" data-agenda-seq-btn class="btn active" type="button">Secuencial</button>
-      <button id="agendaGridBtn" data-agenda-grid-btn class="btn btn-secondary" type="button">Por escenario</button>
-    </div>
-    {#for d in event.dayList}
-    <details class="agenda-day" open>
-      <summary>Día {d}</summary>
-      <div id="agenda-seq-{d}" class="agenda-view agenda-seq" data-agenda-seq>
-        <table class="hd-table agenda-table">
-          <colgroup>
-            <col class="col-time">
-            <col class="col-activity">
-            <col class="col-speakers">
-            <col class="col-scenario">
-          </colgroup>
-          <thead>
-            <tr>
-              <th class="hd-table-head">Horario</th>
-              <th class="hd-table-head">Actividad</th>
-              <th class="hd-table-head">Ponentes</th>
-              <th class="hd-table-head">Escenario</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#for t in event.getAgendaForDay(d)}
-            <tr class="hd-table-row">
-              <td class="agenda-time hd-table-cell">{t.startTimeStr} - {t.endTimeStr}</td>
-              <td class="agenda-title hd-table-cell">
-                <span class="icon">{#if t.break}<span class="material-symbols-outlined">coffee</span>{#else}<span
-                    class="material-symbols-outlined">record_voice_over</span>{/if}</span>
-                {#if t.break}
-                <span class="agenda-title-text">{t.name}</span>
-                {#else}
-                <a href="/event/{event.id}/talk/{t.id}" class="agenda-title-text">{t.name}</a>
-                {/if}
-              </td>
-              <td class="agenda-speakers hd-table-cell">
-                {#if !t.break && !t.speakers.isEmpty()}
-                <span class="speaker-avatars">
-                  {#for s in t.speakers}
-                  <a href="/speaker/{s.id}" title="{s.name}">
-                    {#if app:validUrl(s.photoUrl)}
-                    <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
-                    {#else}
-                    <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
-                    {/if}
-                  </a>
-                  {/for}
-                </span>
-                {/if}
-              </td>
-              <td class="agenda-location hd-table-cell"><a
-                  href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a></td>
-            </tr>
-            {/for}
-          </tbody>
-        </table>
-      </div>
-      <div id="agenda-grid-{d}" class="agenda-view agenda-grid hidden" data-agenda-grid>
-        <table class="hd-table agenda-grid-table">
-          <thead>
-            <tr>
-              <th class="hd-table-head">Horario</th>
-              {#for sc in event.scenarios}
-              <th class="hd-table-head">{sc.name}</th>
-              {/for}
-            </tr>
-          </thead>
-          <tbody>
-            {#for e in event.getAgendaGroupedByTimeSlot(d).entrySet()}
-            <tr class="hd-table-row">
-              <td class="agenda-time hd-table-cell">{e.key}</td>
-              {#for sc in event.scenarios}
-              <td class="hd-table-cell">
-                {#for t in e.value}
-                {#if t.location == sc.id}
-                <div class="agenda-slot">
-                  {#if t.break}
-                  {t.name}
-                  {#else}
-                  <a href="/event/{event.id}/talk/{t.id}">{t.name}</a>
-                  {#if !t.speakers.isEmpty()}
-                  <div class="agenda-slot-speakers">
-                    {#for s in t.speakers}
-                    <a href="/speaker/{s.id}">{s.name}</a>{#if !s_isLast}, {/if}
-                    {/for}
-                  </div>
-                  {/if}
-                  {/if}
+  
+  {#if app:validUrl(event.mapUrl)}
+  <p class="section-subtitle">
+      <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
+      <a href="{event.mapUrl}" target="_blank" rel="noopener" class="hd-link">Ver mapa del lugar</a>
+  </p>
+  {/if}
+</header>
+
+<div class="page-grid">
+    <!-- Main Info Column -->
+    <div style="grid-column: 1 / -1;">
+        <div class="section-card">
+            <div style="display: flex; gap: 2rem; flex-wrap: wrap; align-items: start;">
+                {#if app:validUrl(event.logoUrl)}
+                <div style="flex: 0 0 150px;">
+                    <img src="{event.logoUrl}" alt="Logo de {event.title}" style="width: 100%; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2);">
                 </div>
                 {/if}
-                {/for}
-              </td>
-              {/for}
-            </tr>
+                
+                <div style="flex: 1; min-width: 300px;">
+                    <div class="event-tags" style="margin-bottom: 1rem;">
+                        <span class="badge event-type {event.typeCss}">{event.typeLabel}</span>
+                        <span class="badge">Duración: {event.days} día{#if event.days > 1}s{/if}</span>
+                    </div>
+                
+                    {#if event.description}
+                    <p class="event-description" style="font-size: 1.1rem; margin-bottom: 1.5rem;">{event.description}</p>
+                    {/if}
+                    
+                    {#if app:validUrl(event.website) || app:validUrl(event.twitter) || app:validUrl(event.linkedin) || app:validUrl(event.instagram) || app:validEmail(event.contactEmail) || app:validUrl(event.ticketsUrl)}
+                    <div class="event-links" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        {#if app:validUrl(event.ticketsUrl)}
+                        <a href="{event.ticketsUrl}" target="_blank" rel="noopener" class="btn-primary">
+                            <span class="material-symbols-outlined">confirmation_number</span> Entradas
+                        </a>
+                        {/if}
+                        
+                        {#if app:validUrl(event.website)}
+                        <a href="{event.website}" target="_blank" rel="noopener" class="btn login-btn-nav">
+                            <span class="material-symbols-outlined">language</span> Web
+                        </a>
+                        {/if}
+                        
+                        {#if app:validUrl(event.twitter)}
+                        <a href="{event.twitter}" target="_blank" rel="noopener" class="btn login-btn-nav">Twitter</a>
+                        {/if}
+                        
+                        {#if app:validUrl(event.linkedin)}
+                        <a href="{event.linkedin}" target="_blank" rel="noopener" class="btn login-btn-nav">LinkedIn</a>
+                        {/if}
+                        
+                        {#if app:validUrl(event.instagram)}
+                        <a href="{event.instagram}" target="_blank" rel="noopener" class="btn login-btn-nav">Instagram</a>
+                        {/if}
+                    </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenarios Section -->
+    {#if !event.scenarios.isEmpty()}
+    <div style="grid-column: 1 / -1; margin-top: 2rem;">
+        <div class="section-header">
+            <h2>Escenarios</h2>
+        </div>
+        <div class="main-sections" style="padding: 0; margin-top: 1rem; justify-content: start;">
+            {#for s in event.scenarios}
+            <article class="section-card" style="min-width: 250px;">
+                <div class="icon-wrapper" style="width: 50px; height: 50px; margin-bottom: 1rem;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">podium</span>
+                </div>
+                <h3>{s.name}</h3>
+                {#if s.location}<p style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 1rem;">{s.location}</p>{/if}
+                <a href="/event/{event.id}/scenario/{s.id}" class="hd-link">Ver charlas →</a>
+            </article>
             {/for}
-          </tbody>
-        </table>
-      </div>
-    </details>
-    {/for}
-  </div>
-  {/if}
-  <a href="/" class="btn">Volver al inicio</a>
-</section>
+        </div>
+    </div>
+    {/if}
+
+    <!-- Agenda Section -->
+    {#if !event.agenda.isEmpty()}
+    <div id="agenda" style="grid-column: 1 / -1; margin-top: 3rem;">
+        <div class="section-header" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>Agenda</h2>
+            <div class="view-toggle">
+                <button id="agendaSeqBtn" data-agenda-seq-btn class="btn login-btn-nav active" type="button">Secuencial</button>
+                <button id="agendaGridBtn" data-agenda-grid-btn class="btn login-btn-nav" type="button" style="opacity: 0.7;">Por Escenario</button>
+            </div>
+        </div>
+
+        {#for d in event.dayList}
+        <div class="section-card" style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1.5rem; color: var(--color-accent); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                Día {d}
+            </h3>
+            
+            <!-- Sequential View -->
+            <div id="agenda-seq-{d}" class="agenda-view agenda-seq" data-agenda-seq>
+                <table class="hd-table agenda-table">
+                    <thead>
+                        <tr>
+                            <th>Horario</th>
+                            <th>Actividad</th>
+                            <th>Ponentes</th>
+                            <th>Escenario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#for t in event.getAgendaForDay(d)}
+                        <tr class="hd-table-row">
+                            <td class="agenda-time hd-table-cell">{t.startTimeStr} - {t.endTimeStr}</td>
+                            <td class="agenda-title hd-table-cell">
+                                <span class="icon">
+                                    {#if t.break}
+                                    <span class="material-symbols-outlined">coffee</span>
+                                    {#else}
+                                    <span class="material-symbols-outlined">record_voice_over</span>
+                                    {/if}
+                                </span>
+                                {#if t.break}
+                                <span>{t.name}</span>
+                                {#else}
+                                <a href="/event/{event.id}/talk/{t.id}">{t.name}</a>
+                                {/if}
+                            </td>
+                            <td class="agenda-speakers hd-table-cell">
+                                {#if !t.break && !t.speakers.isEmpty()}
+                                <div class="speaker-avatars">
+                                    {#for s in t.speakers}
+                                    <a href="/speaker/{s.id}" title="{s.name}" style="text-decoration: none;">
+                                        {#if app:validUrl(s.photoUrl)}
+                                        <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+                                        {#else}
+                                        <span class="avatar placeholder"><span class="material-symbols-outlined" style="font-size: 16px;">person</span></span>
+                                        {/if}
+                                    </a>
+                                    {/for}
+                                </div>
+                                {/if}
+                            </td>
+                            <td class="agenda-location hd-table-cell">
+                                <a href="/event/{event.id}/scenario/{t.location}">{event.getScenarioName(t.location)}</a>
+                            </td>
+                        </tr>
+                        {/for}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Grid View -->
+            <div id="agenda-grid-{d}" class="agenda-view agenda-grid hidden" data-agenda-grid>
+                <div style="overflow-x: auto;">
+                    <table class="hd-table agenda-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Horario</th>
+                                {#for sc in event.scenarios}
+                                <th>{sc.name}</th>
+                                {/for}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#for e in event.getAgendaGroupedByTimeSlot(d).entrySet()}
+                            <tr class="hd-table-row">
+                                <td class="agenda-time hd-table-cell" style="text-align: center;">{e.key}</td>
+                                {#for sc in event.scenarios}
+                                <td class="hd-table-cell">
+                                    {#for t in e.value}
+                                    {#if t.location == sc.id}
+                                    <div class="agenda-slot">
+                                        {#if t.break}
+                                        {t.name}
+                                        {#else}
+                                        <a href="/event/{event.id}/talk/{t.id}">{t.name}</a>
+                                        {#if !t.speakers.isEmpty()}
+                                        <div class="agenda-slot-speakers">
+                                            {#for s in t.speakers}
+                                            {s.name}{#if !s_isLast}, {/if}
+                                            {/for}
+                                        </div>
+                                        {/if}
+                                        {/if}
+                                    </div>
+                                    {/if}
+                                    {/for}
+                                </td>
+                                {/for}
+                            </tr>
+                            {/for}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {/for}
+    </div>
+    {/if}
+
+</div>
 {#else}
-<p class="no-events">Evento no encontrado.</p>
+<div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+    <div class="section-card" style="text-align: center;">
+        <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">event_busy</span>
+        <h2>Evento no encontrado</h2>
+        <p>Lo sentimos, no pudimos encontrar el evento que buscas.</p>
+        <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">Explorar otros eventos</a>
+    </div>
+</div>
 {/if}
-{/main}
+{/body}
 {/include}
