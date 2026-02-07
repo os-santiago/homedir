@@ -2053,6 +2053,36 @@ footer {
    HOME HIGHLIGHTS (Social / Events / Project)
    =========================================== */
 
+.homedir-main-home {
+  max-width: 1360px;
+  padding: 1.2rem 1.25rem 1.6rem;
+  gap: 0.95rem;
+}
+
+.homedir-main-home .home-highlight-hero {
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.homedir-main-home .home-panorama-grid {
+  margin: 0 auto 0.9rem;
+  padding: 0;
+  gap: 0.8rem;
+}
+
+.homedir-main-home .home-pane {
+  min-height: 470px;
+  margin-bottom: 0;
+}
+
+.homedir-main-home .home-top-metric {
+  padding: 0.62rem 0.76rem;
+}
+
+.homedir-main-home .home-pane-item {
+  padding: 0.58rem;
+}
+
 .home-highlight-hero {
   gap: 0.65rem;
   margin-bottom: 1rem;
@@ -2339,6 +2369,14 @@ footer {
 }
 
 @media (max-width: 1120px) {
+  .homedir-main-home {
+    max-width: 1200px;
+  }
+
+  .homedir-main-home .home-panorama-grid {
+    gap: 0.75rem;
+  }
+
   .home-panorama-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2353,6 +2391,15 @@ footer {
 }
 
 @media (max-width: 860px) {
+  .homedir-main-home {
+    padding: 0.95rem 0.85rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .homedir-main-home .home-highlight-hero {
+    margin-bottom: 0.3rem;
+  }
+
   .home-top-metrics {
     grid-template-columns: 1fr;
   }
