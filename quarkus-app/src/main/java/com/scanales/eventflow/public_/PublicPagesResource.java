@@ -3,7 +3,6 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.model.Event;
-import com.scanales.eventflow.public_.view.ProjectsViewModel;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
@@ -30,9 +29,6 @@ public class PublicPagesResource {
 
   @Inject
   Template home;
-
-  @Inject
-  Template projects;
 
   @Inject
   Template events;
@@ -96,15 +92,8 @@ public class PublicPagesResource {
 
   @GET
   @Path("/projects")
-  public TemplateInstance projects() {
-    ProjectsViewModel vm = ProjectsViewModel.mock();
-    return withLayoutData(
-        projects
-            .data("pageTitle", "Proyectos - HomeDir")
-            .data("pageDescription",
-                "Explora y colabora en proyectos Open Source de la comunidad. Gana experiencia y contribuye al ecosistema.")
-            .data("vm", vm),
-        "proyectos");
+  public Response projects() {
+    return Response.seeOther(URI.create("/proyectos")).build();
   }
 
   @GET
