@@ -4,7 +4,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 
 ## Contents
 - `scripts/homedir-update.sh` – pulls a tagged image, restarts the container, and rolls back on failure.
-- `scripts/homedir-webhook.py` – listens for Quay webhooks and triggers `homedir-update.sh` with the tag from the payload. GET `/` on the same port returns `podman ps`-like status and the tail of the webhook log.
+- `scripts/homedir-webhook.py` – listens for Quay webhooks and triggers `homedir-update.sh` with the tag from the payload (ignores `latest`-only webhooks). GET `/` on the same port returns `podman ps`-like status and the tail of the webhook log.
 - `systemd/homedir-webhook.service` – runs the webhook listener.
 - `systemd/homedir-update.service` / `systemd/homedir-update.timer` – optional manual/timer runner; keep disabled unless you set a tag.
 - `nginx/homedir.conf`, `nginx/int.conf` – HTTPS reverse proxies with a maintenance page for 502/503/504.
@@ -24,3 +24,5 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - The update script expects a specific tag; no `latest` is used.  
 - Secrets must never land in git—always inject via `/etc/homedir.env` or your secret manager.  
 - Nginx returns the maintenance page when the backend is down, avoiding default 502/Cloudflare responses.
+- Persistence path must be consistent across deploys: set `HOMEDIR_DATA_DIR` and keep `JAVA_TOOL_OPTIONS=-Dhomedir.data.dir=<same-path>` in `/etc/homedir.env`.
+- The default volume mapping (`/work/data:/work/data:Z`) and data-dir env vars must point to the same in-container path.

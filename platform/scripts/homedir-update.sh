@@ -23,6 +23,16 @@ CONTAINER="${CONTAINER_NAME:-homedir}"
 HOST_PORT="${HOST_PORT:-8080}"
 CONTAINER_PORT="${CONTAINER_PORT:-8080}"
 DATA_VOLUME="${DATA_VOLUME:-/work/data:/work/data:Z}"
+container_data_dir="$(echo "$DATA_VOLUME" | awk -F: '{print $2}')"
+if [[ -z "$container_data_dir" ]]; then
+  container_data_dir="/work/data"
+fi
+
+HOMEDIR_DATA_DIR="${HOMEDIR_DATA_DIR:-$container_data_dir}"
+if [[ "${JAVA_TOOL_OPTIONS:-}" != *"-Dhomedir.data.dir="* ]]; then
+  JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-} -Dhomedir.data.dir=${HOMEDIR_DATA_DIR}"
+fi
+JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS#"${JAVA_TOOL_OPTIONS%%[![:space:]]*}"}"
 
 log() {
   echo "$(date -Iseconds): $*" >> "$LOGFILE"
@@ -39,11 +49,14 @@ start_container() {
   podman run -d --name "$CONTAINER" --restart=always \
     -p "${HOST_PORT}:${CONTAINER_PORT}" \
     "${env_args[@]}" \
+    -e "HOMEDIR_DATA_DIR=${HOMEDIR_DATA_DIR}" \
+    -e "JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}" \
     -v "$DATA_VOLUME" \
     "$image" >>"$LOGFILE" 2>&1
 }
 
 log "starting update for tag=${TAG}"
+log "runtime data dir configured as ${HOMEDIR_DATA_DIR} (volume=${DATA_VOLUME})"
 
 prev_image=""
 if podman container exists "$CONTAINER" >/dev/null 2>&1; then
