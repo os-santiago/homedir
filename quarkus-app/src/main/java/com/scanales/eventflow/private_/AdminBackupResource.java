@@ -57,6 +57,9 @@ public class AdminBackupResource {
   @ConfigProperty(name = "quarkus.application.version")
   String appVersion;
 
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDirPath;
+
   private static final Logger LOG = Logger.getLogger(AdminBackupResource.class);
   private static final Pattern BACKUP_VERSION = Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
 
@@ -84,7 +87,7 @@ public class AdminBackupResource {
     }
     try {
       persistence.flush();
-      java.nio.file.Path dataDir = Paths.get(System.getProperty("homedir.data.dir", "data"));
+      java.nio.file.Path dataDir = resolveDataDir();
       if (!Files.exists(dataDir)) {
         return Response.status(Response.Status.BAD_REQUEST)
             .entity("\u274c Error: No hay datos para respaldar.")
@@ -156,7 +159,7 @@ public class AdminBackupResource {
               .build())
           .build();
     }
-    java.nio.file.Path dataDir = Paths.get(System.getProperty("homedir.data.dir", "data"));
+    java.nio.file.Path dataDir = resolveDataDir();
     try {
       Files.createDirectories(dataDir);
       long free = dataDir.toFile().getUsableSpace();
@@ -211,5 +214,11 @@ public class AdminBackupResource {
     }
     // If major.minor matches, allow different patch levels
     return true;
+  }
+
+  private java.nio.file.Path resolveDataDir() {
+    String sysProp = System.getProperty("homedir.data.dir");
+    String resolved = (sysProp != null && !sysProp.isBlank()) ? sysProp : dataDirPath;
+    return Paths.get(resolved);
   }
 }

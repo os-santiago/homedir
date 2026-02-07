@@ -15,6 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
@@ -28,13 +29,18 @@ public class NotificationRepository {
   @Inject
   ObjectMapper mapper;
 
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDirPath;
+
   private Path baseDir;
   private ThreadPoolExecutor executor;
   private BlockingQueue<Runnable> queue;
 
   @PostConstruct
   void init() {
-    baseDir = Paths.get(System.getProperty("homedir.data.dir", "data"), "notifications");
+    String sysProp = System.getProperty("homedir.data.dir");
+    String resolved = (sysProp != null && !sysProp.isBlank()) ? sysProp : dataDirPath;
+    baseDir = Paths.get(resolved, "notifications");
     try {
       Files.createDirectories(baseDir);
     } catch (IOException e) {

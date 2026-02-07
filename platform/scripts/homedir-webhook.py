@@ -32,7 +32,7 @@ def extract_tag(payload: dict) -> str | None:
     for t in tags:
         if t and t != "latest":
             return t
-    return tags[0] if tags else None
+    return None
 
 
 class Handler(BaseHTTPRequestHandler):
