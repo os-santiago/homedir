@@ -22,11 +22,11 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="stylesheet" href="/styles.css" />
-  <link rel="stylesheet" href="/css/homedir.css" />
-  <link rel="stylesheet" href="/css/notifications.css" />
-  <link rel="stylesheet" href="/css/retro-theme.css" />
+  <link rel="icon" href="/favicon.ico?v={app:version()}" />
+  <link rel="stylesheet" href="/styles.css?v={app:version()}" />
+  <link rel="stylesheet" href="/css/homedir.css?v={app:version()}" />
+  <link rel="stylesheet" href="/css/notifications.css?v={app:version()}" />
+  <link rel="stylesheet" href="/css/retro-theme.css?v={app:version()}" />
   <!-- Open Graph / Social Sharing Defaults -->
   <meta property="og:site_name" content="HomeDir" />
   <meta property="og:type" content="website" />
@@ -63,12 +63,12 @@
   </div>
 
   {#include fragments/login-modal.html/}
-  <script src="/js/homedir.js"></script>
+  <script src="/js/homedir.js?v={app:version()}"></script>
   <script>window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };</script>
-  <script src="/js/app.js" defer></script>
-  <script src="/js/notifications-adapter.js" defer></script>
-  <script src="/js/notifications.js" defer></script>
-  <script src="/js/global-notifications-ws.js" defer></script>
+  <script src="/js/app.js?v={app:version()}" defer></script>
+  <script src="/js/notifications-adapter.js?v={app:version()}" defer></script>
+  <script src="/js/notifications.js?v={app:version()}" defer></script>
+  <script src="/js/global-notifications-ws.js?v={app:version()}" defer></script>
 </body>
 
 </html>
