@@ -3,6 +3,7 @@
 {@ boolean noFooter = false}
 {@ boolean noCharacterSheet = false}
 {@ String activePage = ""}
+{@ String mainClass = ""}
 {@ boolean userAuthenticated = false}
 {@ String userName = ""}
 {@ String userInitial = ""}
@@ -51,7 +52,7 @@
     {#include fragments/header /}
     {/if}
 
-    <main id="main-content" class="homedir-main" role="main">
+    <main id="main-content" class="homedir-main {mainClass}" role="main">
       {#insert body}{/}
     </main>
 
