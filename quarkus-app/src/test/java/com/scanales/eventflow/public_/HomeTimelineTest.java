@@ -32,7 +32,7 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("Community"))
+        .body(containsString("Social"))
         .body(containsString("OSS Santiago"));
   }
 }
