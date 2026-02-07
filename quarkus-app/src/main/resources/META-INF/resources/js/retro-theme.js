@@ -3,7 +3,7 @@ var currentUser = null;
 var allUsers = [];
 
 // Equipment/Collectibles System
-const COLLECTIBLES = [
+var COLLECTIBLES = [
   { id: 'laptop', icon: '💻', name: 'DEVELOPER LAPTOP', rarity: 'common', description: '+5 Coding Power' },
   { id: 'keyboard', icon: '��️', name: 'MECHANICAL KEYBOARD', rarity: 'rare', description: '+10 Typing Speed' },
   { id: 'coffee', icon: '☕', name: 'ENERGY COFFEE', rarity: 'common', description: '+3 Focus' },
@@ -65,7 +65,7 @@ function updateEquipmentDisplay(equipment = []) {
   document.querySelector('.equipment-count').textContent = `${filledCount} / 6 ITEMS`;
 }
 
-const defaultConfig = {
+var defaultConfig = {
   platform_name: "HomeDir",
   tagline: "by OpenSourceSantiago",
   community_title: "Community",
@@ -84,7 +84,7 @@ const defaultConfig = {
 let config = defaultConfig;
 
 // Data SDK Handler
-const dataHandler = {
+var dataHandler = {
   onDataChanged(data) {
     allUsers = data;
 
@@ -361,9 +361,9 @@ function handleLogout() {
 }
 
 // Tech Campus Functions
-const TECH_AVATARS = ['👨����💻', '👩‍💻', '🧑‍💻', '👨‍🎨', '👩‍🎨', '🧑‍🎨', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '🦸‍♂️', '🦸‍♀️', '🧙‍♂️', '🧙‍♀️', '🤖', '👾', '🚀'];
+var TECH_AVATARS = ['👨����💻', '👩‍💻', '🧑‍💻', '👨‍🎨', '👩‍🎨', '🧑‍🎨', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '🦸‍♂️', '🦸‍♀️', '🧙‍♂️', '🧙‍♀️', '🤖', '👾', '🚀'];
 
-const TECH_ROLES = [
+var TECH_ROLES = [
   { emoji: '⚛️', name: 'FRONTEND' },
   { emoji: '⚙️', name: 'BACKEND' },
   { emoji: '🎨', name: 'DESIGNER' },
@@ -375,7 +375,7 @@ const TECH_ROLES = [
   { emoji: '📈', name: 'PRODUCT' }
 ];
 
-const STATUS_TYPES = ['online', 'busy', 'away'];
+var STATUS_TYPES = ['online', 'busy', 'away'];
 
 function generateVillageInhabitants() {
   const inhabitantsLayer = document.getElementById('inhabitantsLayer');
@@ -480,7 +480,7 @@ function updateProfileDisplay() {
 
 // Event Listeners
 // Event Listeners
-const el = (id) => document.getElementById(id);
+var el = (id) => document.getElementById(id);
 if (el('openLoginBtn')) el('openLoginBtn').addEventListener('click', openLoginModal);
 if (el('closeLoginBtn')) el('closeLoginBtn').addEventListener('click', closeLoginModal);
 if (el('googleLogin')) el('googleLogin').addEventListener('click', () => handleLogin('google'));
