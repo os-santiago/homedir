@@ -260,7 +260,7 @@ public interface AppMessages {
     @Message("Events")
     String nav_events();
 
-    @Message("Projects")
+    @Message("Project")
     String nav_projects();
 
     @Message("Home")
@@ -296,7 +296,7 @@ public interface AppMessages {
     @Message("Join Community")
     String btn_join_community();
 
-    @Message("Community")
+    @Message("Social")
     String nav_community();
 
     @Message("Latest community activity")
@@ -636,10 +636,10 @@ public interface AppMessages {
     @Message("by OpenSourceSantiago — Community platform to scale your open source teams and projects.")
     String home_tagline();
 
-    @Message("Community")
+    @Message("Social")
     String home_community_title();
 
-    @Message("Connect with other developers.")
+    @Message("Discover curated community content.")
     String home_community_card_desc();
 
     @Message("Events")
@@ -648,7 +648,7 @@ public interface AppMessages {
     @Message("Upcoming meetups and gatherings.")
     String home_events_card_desc();
 
-    @Message("Projects")
+    @Message("Project")
     String home_projects_title();
 
     @Message("Collaborate on open source projects.")
