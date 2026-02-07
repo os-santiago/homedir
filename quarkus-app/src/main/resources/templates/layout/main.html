@@ -27,7 +27,6 @@
   <link rel="stylesheet" href="/css/homedir.css" />
   <link rel="stylesheet" href="/css/notifications.css" />
   <link rel="stylesheet" href="/css/retro-theme.css" />
-  <link rel="stylesheet" href="/css/canva-theme-v2.css" />
   <!-- Open Graph / Social Sharing Defaults -->
   <meta property="og:site_name" content="HomeDir" />
   <meta property="og:type" content="website" />
@@ -65,12 +64,11 @@
 
   {#include fragments/login-modal.html/}
   <script src="/js/homedir.js"></script>
-  <script>window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: { userAuthenticated } } } };</script>
+  <script>window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };</script>
   <script src="/js/app.js" defer></script>
   <script src="/js/notifications-adapter.js" defer></script>
   <script src="/js/notifications.js" defer></script>
   <script src="/js/global-notifications-ws.js" defer></script>
-  <script src="/js/retro-theme.js" defer></script>
 </body>
 
 </html>
