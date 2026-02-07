@@ -1782,6 +1782,105 @@ footer {
   opacity: 0.5;
 }
 
+/* ===========================================
+   UTILITIES (Refactor)
+   =========================================== */
+.text-center {
+  text-align: center;
+}
+
+.text-sm {
+  font-size: 0.9rem;
+}
+
+.icon-wrapper-center {
+  margin: 0 auto 1rem;
+}
+
+.flex-between-center {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grid-responsive-lg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.contributors-grid-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.event-card-lg {
+  padding: 1rem;
+  border-left: 4px solid var(--color-accent);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+}
+
+.event-date-box {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  text-align: center;
+  min-width: 60px;
+  border-radius: 4px;
+}
+
+.event-day {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--color-accent);
+}
+
+.event-month {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.contributor-card-block {
+  text-align: center;
+  display: block;
+}
+
+.contributor-avatar-sm {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s;
+}
+
+.contributor-login {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.join-cta-box {
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+}
+
+.empty-state-lg {
+  text-align: center;
+  padding: 2rem;
+}
+
+/* ... existing code ... */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
