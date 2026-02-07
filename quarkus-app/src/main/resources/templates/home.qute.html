@@ -1,105 +1,137 @@
 {#include layout/main activePage="home"}
-{#title}HomeDir - Community Platform{/title}
+{#title}Home{/title}
 {#body}
-<header class="public-header">
-  <p class="eyebrow">{i18n.home_eyebrow}</p>
-  <h1 class="public-title">HomeDir</h1>
+<header class="public-header home-highlight-hero">
+  <p class="eyebrow">Home</p>
+  <h1 class="public-title">Social · Events · Project</h1>
   <p class="tagline">
-    {i18n.home_tagline}
+    One-page highlights to quickly discover what is new in the Community platform for OSS Santiago.
   </p>
+  <div class="home-hero-pills">
+    <a href="#social" class="home-hero-pill">Social</a>
+    <a href="#events" class="home-hero-pill">Events</a>
+    <a href="#project" class="home-hero-pill">Project</a>
+  </div>
 </header>
 
-<!-- Main Navigation Cards -->
-<div class="page-grid">
-  <a href="/comunidad" class="section-card">
-    <div class="icon-wrapper icon-wrapper-center">
-      <span class="material-symbols-outlined" style="font-size: 32px;">groups</span>
-    </div>
-    <h2 class="text-center">{i18n.home_community_title}</h2>
-    <p class="text-center text-sm">{i18n.home_community_card_desc}</p>
+<section class="page-grid home-quick-grid">
+  <a href="/comunidad" class="section-card home-quick-card home-quick-card-social">
+    <span class="material-symbols-outlined home-quick-icon">groups</span>
+    <h2>Social</h2>
+    <p>Community news, curated content and fast discovery.</p>
+    <p class="home-quick-metric">{socialHighlightsCount} updates available</p>
   </a>
-  <a href="/eventos" class="section-card">
-    <div class="icon-wrapper icon-wrapper-center">
-      <span class="material-symbols-outlined" style="font-size: 32px;">calendar_month</span>
-    </div>
-    <h2 class="text-center">{i18n.home_events_title}</h2>
-    <p class="text-center text-sm">{i18n.home_events_card_desc}</p>
+
+  <a href="/eventos" class="section-card home-quick-card home-quick-card-events">
+    <span class="material-symbols-outlined home-quick-icon">calendar_month</span>
+    <h2>Events</h2>
+    <p>Upcoming meetups and activities with direct access.</p>
+    <p class="home-quick-metric">{upcomingCount} upcoming events</p>
   </a>
-  <a href="/proyectos" class="section-card">
-    <div class="icon-wrapper icon-wrapper-center">
-      <span class="material-symbols-outlined" style="font-size: 32px;">rocket_launch</span>
-    </div>
-    <h2 class="text-center">{i18n.home_projects_title}</h2>
-    <p class="text-center text-sm">{i18n.home_projects_card_desc}</p>
+
+  <a href="/proyectos" class="section-card home-quick-card home-quick-card-project">
+    <span class="material-symbols-outlined home-quick-icon">rocket_launch</span>
+    <h2>Project</h2>
+    <p>Open collaboration, contributors and delivery momentum.</p>
+    <p class="home-quick-metric">{projectContributorCount} active contributors</p>
   </a>
-</div>
+</section>
 
-<!-- Secondary Content Grid (Events & Contributors) -->
-<div class="page-grid grid-responsive-lg">
+<section class="page-grid home-highlight-grid" id="social">
+  <div class="section-header home-highlight-header home-highlight-full">
+    <p class="section-subtitle">Social highlights</p>
+    <h2 class="page-title">Latest community content</h2>
+    <a href="/comunidad" class="btn-primary">Open Social</a>
+  </div>
 
-  <!-- Popular Events Section -->
-  <section class="section-card">
-    <div class="section-header flex-between-center" style="margin-bottom: 1.5rem;">
-      <h2 style="font-size: 1.2rem; margin: 0;">{i18n.home_popular_events_title}</h2>
-      <a href="/eventos" class="btn-primary"
-        style="padding: 0.4rem 0.8rem; font-size: 0.7rem;">{i18n.home_view_all_events}</a>
+  {#if socialHighlights.isEmpty()}
+  <article class="section-card home-highlight-empty home-highlight-full">
+    <span class="material-symbols-outlined">rss_feed</span>
+    <p>No social updates loaded yet. Open Social to check the latest refresh.</p>
+  </article>
+  {#else}
+  {#for item in socialHighlights}
+  <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="section-card home-social-card">
+    <div class="home-card-top">
+      <span class="home-chip">Social</span>
+      <span class="home-source">{item.source}</span>
     </div>
+    <h3>{item.title}</h3>
+    <p>{item.summary}</p>
+  </a>
+  {/for}
+  {/if}
+</section>
 
-    {#if popularEvents.isEmpty()}
-    <div class="empty-state-lg">
-      <span class="material-symbols-outlined" style="font-size: 48px; opacity: 0.5;">event_busy</span>
-      <p style="margin-top: 1rem;">{i18n.home_no_events}</p>
-      <a href="/eventos" class="btn-primary" style="margin-top: 1rem;">{i18n.home_browse_past_events}</a>
+<section class="page-grid home-highlight-grid" id="events">
+  <div class="section-header home-highlight-header home-highlight-full">
+    <p class="section-subtitle">Events highlights</p>
+    <h2 class="page-title">Upcoming agenda</h2>
+    <a href="/eventos" class="btn-primary">Open Events</a>
+  </div>
+
+  {#if popularEvents.isEmpty()}
+  <article class="section-card home-highlight-empty home-highlight-full">
+    <span class="material-symbols-outlined">event_busy</span>
+    <p>No upcoming events yet. Visit Events for historical sessions.</p>
+  </article>
+  {#else}
+  {#for event in popularEvents}
+  <a href="/event/{event.id}" class="section-card home-event-card">
+    <div class="home-card-top">
+      <span class="home-chip">Event</span>
+      <span class="home-source">{event.formattedDate ?: 'Date TBA'}</span>
     </div>
+    <h3>{event.title}</h3>
+    <p>{event.descriptionSummary ?: 'Open the event for full details.'}</p>
+  </a>
+  {/for}
+  {/if}
+</section>
+
+<section class="page-grid home-highlight-grid" id="project">
+  <div class="section-header home-highlight-header home-highlight-full">
+    <p class="section-subtitle">Project highlights</p>
+    <h2 class="page-title">Build with the core contributors</h2>
+    <a href="/proyectos" class="btn-primary">Open Project</a>
+  </div>
+
+  <article class="section-card home-project-contributors">
+    <div class="home-card-top">
+      <span class="home-chip">Project</span>
+      <span class="home-source">{projectContributionTotal} total contributions</span>
+    </div>
+    <h3>Top contributors</h3>
+
+    {#if projectHighlights.isEmpty()}
+    <p>No contributor data available at the moment.</p>
     {#else}
-    <div class="events-grid" style="display: grid; gap: 1rem;">
-      {#for event in popularEvents}
-      <a href="/event/{event.id}" class="section-card event-card-lg">
-        <div class="event-date-box">
-          <span class="event-day">{event.date.dayOfMonth}</span>
-          <span class="event-month">{event.date.month}</span>
-        </div>
-        <div class="event-info">
-          <h3 style="font-size: 1rem; margin: 0; color: white;">{event.title}</h3>
-          <span class="event-location" style="font-size: 0.8rem; opacity: 0.7;">{event.formattedDate ?: 'Fecha por
-            confirmar'}</span>
-        </div>
-      </a>
-      {/for}
-    </div>
-    {/if}
-  </section>
-
-  <!-- Top Contributors Section -->
-  <section class="section-card">
-    <div class="section-header" style="margin-bottom: 1.5rem;">
-      <h2 style="font-size: 1.2rem; margin: 0;">{i18n.home_top_contributors_title}</h2>
-      <p class="subtitle" style="font-size: 0.8rem; margin: 0;">{i18n.home_contributors_subtitle}</p>
-    </div>
-
-    {#if topContributors.isEmpty()}
-    <div class="empty-state-lg">
-      <p>{i18n.home_no_contributors}</p>
-    </div>
-    {#else}
-    <div class="contributors-grid contributors-grid-sm">
-      {#for contributor in topContributors}
-      <a href="{contributor.htmlUrl}" target="_blank" class="contributor-card contributor-card-block"
+    <div class="home-contributor-grid">
+      {#for contributor in projectHighlights}
+      <a href="{contributor.htmlUrl}" target="_blank" rel="noopener noreferrer" class="home-contributor-card"
         title="{contributor.login}">
-        <img src="{contributor.avatarUrl}" alt="{contributor.login}" class="contributor-avatar contributor-avatar-sm">
-        <span class="contributor-name contributor-login">{contributor.login}</span>
+        <img src="{contributor.avatarUrl}" alt="{contributor.login}" loading="lazy">
+        <span>{contributor.login}</span>
       </a>
       {/for}
     </div>
     {/if}
+  </article>
 
-    <div class="join-cta join-cta-box">
-      <p style="font-size: 0.9rem; margin-bottom: 1rem;">{i18n.home_join_community_text}</p>
-      <a href="https://github.com/os-santiago/homedir" target="_blank" class="btn-primary">
-        <span class="material-symbols-outlined" style="font-size: 18px;">code</span> {i18n.home_contribute_btn}
+  <article class="section-card home-project-actions">
+    <div class="home-card-top">
+      <span class="home-chip">Project</span>
+      <span class="home-source">Ready to contribute</span>
+    </div>
+    <h3>Pick a path and start</h3>
+    <p>Explore project tracks, choose an issue, and contribute through the shared workflow.</p>
+    <div class="home-project-actions-row">
+      <a href="/proyectos" class="btn-primary">Explore tracks</a>
+      <a href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener noreferrer" class="btn-primary">
+        View repository
       </a>
     </div>
-  </section>
-</div>
+  </article>
+</section>
 {/body}
 {/include}
