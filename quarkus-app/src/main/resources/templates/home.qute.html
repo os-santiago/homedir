@@ -1,134 +1,127 @@
 {#include layout/main activePage="home"}
-{#title}Home{/title}
+{#title}{i18n.nav_home}{/title}
 {#body}
 <header class="public-header home-highlight-hero">
-  <p class="eyebrow">Home</p>
-  <h1 class="public-title">Social · Events · Project</h1>
+  <p class="eyebrow">{i18n.nav_home}</p>
+  <h1 class="public-title">{i18n.home_hero_title_combined}</h1>
   <p class="tagline">
-    One-page highlights to quickly discover what is new in the Community platform for OSS Santiago.
+    {i18n.home_hero_desc}
   </p>
-  <div class="home-hero-pills">
-    <a href="#social" class="home-hero-pill">Social</a>
-    <a href="#events" class="home-hero-pill">Events</a>
-    <a href="#project" class="home-hero-pill">Project</a>
+  <div class="home-top-metrics">
+    <a href="#home-social" class="home-top-metric">
+      <span class="home-chip">{i18n.home_pill_social}</span>
+      <strong>{socialHighlightsCount}</strong>
+      <small>{i18n.home_metric_updates}</small>
+    </a>
+    <a href="#home-events" class="home-top-metric">
+      <span class="home-chip">{i18n.home_pill_events}</span>
+      <strong>{upcomingCount}</strong>
+      <small>{i18n.home_metric_upcoming}</small>
+    </a>
+    <a href="#home-project" class="home-top-metric">
+      <span class="home-chip">{i18n.home_pill_project}</span>
+      <strong>{projectContributorCount}</strong>
+      <small>{i18n.home_metric_contributors}</small>
+    </a>
   </div>
 </header>
 
-<section class="page-grid home-quick-grid">
-  <a href="/comunidad" class="section-card home-quick-card home-quick-card-social">
-    <span class="material-symbols-outlined home-quick-icon">groups</span>
-    <h2>Social</h2>
-    <p>Community news, curated content and fast discovery.</p>
-    <p class="home-quick-metric">{socialHighlightsCount} updates available</p>
-  </a>
-
-  <a href="/eventos" class="section-card home-quick-card home-quick-card-events">
-    <span class="material-symbols-outlined home-quick-icon">calendar_month</span>
-    <h2>Events</h2>
-    <p>Upcoming meetups and activities with direct access.</p>
-    <p class="home-quick-metric">{upcomingCount} upcoming events</p>
-  </a>
-
-  <a href="/proyectos" class="section-card home-quick-card home-quick-card-project">
-    <span class="material-symbols-outlined home-quick-icon">rocket_launch</span>
-    <h2>Project</h2>
-    <p>Open collaboration, contributors and delivery momentum.</p>
-    <p class="home-quick-metric">{projectContributorCount} active contributors</p>
-  </a>
-</section>
-
-<section class="page-grid home-highlight-grid" id="social">
-  <div class="section-header home-highlight-header home-highlight-full">
-    <p class="section-subtitle">Social highlights</p>
-    <h2 class="page-title">Latest community content</h2>
-    <a href="/comunidad" class="btn-primary">Open Social</a>
-  </div>
-
-  {#if socialHighlights.isEmpty()}
-  <article class="section-card home-highlight-empty home-highlight-full">
-    <span class="material-symbols-outlined">rss_feed</span>
-    <p>No social updates loaded yet. Open Social to check the latest refresh.</p>
-  </article>
-  {#else}
-  {#for item in socialHighlights}
-  <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="section-card home-social-card">
-    <div class="home-card-top">
-      <span class="home-chip">Social</span>
-      <span class="home-source">{item.source}</span>
+<section class="page-grid home-panorama-grid">
+  <article class="section-card home-pane" id="home-social">
+    <div class="home-pane-header">
+      <div>
+        <p class="section-subtitle">{i18n.home_social_highlights_eyebrow}</p>
+        <h2 class="page-title">{i18n.home_social_highlights_title}</h2>
+      </div>
+      <a href="/comunidad" class="btn-primary">{i18n.home_btn_open_social}</a>
     </div>
-    <h3>{item.title}</h3>
-    <p>{item.summary}</p>
-  </a>
-  {/for}
-  {/if}
-</section>
-
-<section class="page-grid home-highlight-grid" id="events">
-  <div class="section-header home-highlight-header home-highlight-full">
-    <p class="section-subtitle">Events highlights</p>
-    <h2 class="page-title">Upcoming agenda</h2>
-    <a href="/eventos" class="btn-primary">Open Events</a>
-  </div>
-
-  {#if popularEvents.isEmpty()}
-  <article class="section-card home-highlight-empty home-highlight-full">
-    <span class="material-symbols-outlined">event_busy</span>
-    <p>No upcoming events yet. Visit Events for historical sessions.</p>
-  </article>
-  {#else}
-  {#for event in popularEvents}
-  <a href="/event/{event.id}" class="section-card home-event-card">
-    <div class="home-card-top">
-      <span class="home-chip">Event</span>
-      <span class="home-source">{event.formattedDate ?: 'Date TBA'}</span>
-    </div>
-    <h3>{event.title}</h3>
-    <p>{event.descriptionSummary ?: 'Open the event for full details.'}</p>
-  </a>
-  {/for}
-  {/if}
-</section>
-
-<section class="page-grid home-highlight-grid" id="project">
-  <div class="section-header home-highlight-header home-highlight-full">
-    <p class="section-subtitle">Project highlights</p>
-    <h2 class="page-title">Build with the core contributors</h2>
-    <a href="/proyectos" class="btn-primary">Open Project</a>
-  </div>
-
-  <article class="section-card home-project-contributors">
-    <div class="home-card-top">
-      <span class="home-chip">Project</span>
-      <span class="home-source">{projectContributionTotal} total contributions</span>
-    </div>
-    <h3>Top contributors</h3>
-
-    {#if projectHighlights.isEmpty()}
-    <p>No contributor data available at the moment.</p>
+    {#if socialHighlights.isEmpty()}
+    <article class="home-highlight-empty">
+      <span class="material-symbols-outlined">rss_feed</span>
+      <p>{i18n.home_social_empty}</p>
+    </article>
     {#else}
-    <div class="home-contributor-grid">
-      {#for contributor in projectHighlights}
-      <a href="{contributor.htmlUrl}" target="_blank" rel="noopener noreferrer" class="home-contributor-card"
-        title="{contributor.login}">
-        <img src="{contributor.avatarUrl}" alt="{contributor.login}" loading="lazy">
-        <span>{contributor.login}</span>
+    <div class="home-pane-list">
+      {#for item in socialHighlights}
+      <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="home-pane-item">
+        <div class="home-card-top">
+          <span class="home-chip">{i18n.home_pill_social}</span>
+          <span class="home-source">{item.source}</span>
+        </div>
+        <h3 class="home-pane-title">{item.title}</h3>
+        <p class="home-pane-summary">{item.summary}</p>
       </a>
       {/for}
     </div>
     {/if}
   </article>
 
-  <article class="section-card home-project-actions">
-    <div class="home-card-top">
-      <span class="home-chip">Project</span>
-      <span class="home-source">Ready to contribute</span>
+  <article class="section-card home-pane" id="home-events">
+    <div class="home-pane-header">
+      <div>
+        <p class="section-subtitle">{i18n.home_events_highlights_eyebrow}</p>
+        <h2 class="page-title">{i18n.home_events_highlights_title}</h2>
+      </div>
+      <a href="/eventos" class="btn-primary">{i18n.home_btn_open_events}</a>
     </div>
-    <h3>Pick a path and start</h3>
-    <p>Explore project tracks, choose an issue, and contribute through the shared workflow.</p>
+    {#if popularEvents.isEmpty()}
+    <article class="home-highlight-empty">
+      <span class="material-symbols-outlined">event_busy</span>
+      <p>{i18n.home_events_empty}</p>
+    </article>
+    {#else}
+    <div class="home-pane-list">
+      {#for event in popularEvents}
+      <a href="/event/{event.id}" class="home-pane-item">
+        <div class="home-card-top">
+          <span class="home-chip">{i18n.home_pill_events}</span>
+          <span class="home-source">{event.formattedDate ?: i18n.home_event_date_tba}</span>
+        </div>
+        <h3 class="home-pane-title">{event.title}</h3>
+        <p class="home-pane-summary">{event.descriptionSummary ?: i18n.home_event_desc_default}</p>
+      </a>
+      {/for}
+    </div>
+    {/if}
+  </article>
+
+  <article class="section-card home-pane" id="home-project">
+    <div class="home-pane-header">
+      <div>
+        <p class="section-subtitle">{i18n.home_project_highlights_eyebrow}</p>
+        <h2 class="page-title">{i18n.home_project_highlights_title}</h2>
+      </div>
+      <a href="/proyectos" class="btn-primary">{i18n.home_btn_open_project}</a>
+    </div>
+
+    <div class="home-project-brief">
+      <p><span>{i18n.home_project_release_label}</span><strong>v{app:version()}</strong></p>
+      <p><span>{i18n.home_project_commit_label}</span><strong>{app:gitCommit()}</strong></p>
+      <p><span>{i18n.home_metric_contributors}</span><strong>{projectContributorCount}</strong></p>
+      <p><span>{i18n.home_project_total_contributions}</span><strong>{projectContributionTotal}</strong></p>
+    </div>
+
+    {#if projectHighlights.isEmpty()}
+    <p class="home-pane-summary">{i18n.home_project_no_data}</p>
+    {#else}
+    <div class="home-contributor-grid home-contributor-grid-compact">
+      {#for contributor in projectHighlights}
+      <a href="{contributor.htmlUrl}" target="_blank" rel="noopener noreferrer" class="home-contributor-card"
+        title="{contributor.login}">
+        <span class="home-contributor-avatar-shell">
+          <img src="{contributor.avatarUrl}" alt="{contributor.login}" loading="lazy" class="home-contributor-avatar">
+        </span>
+        <span class="home-contributor-login">{contributor.login}</span>
+        <span class="home-contributor-meta">{contributor.contributions} {i18n.home_project_contribs_unit}</span>
+      </a>
+      {/for}
+    </div>
+    {/if}
+
     <div class="home-project-actions-row">
-      <a href="/proyectos" class="btn-primary">Explore tracks</a>
+      <a href="/proyectos" class="btn-primary">{i18n.home_btn_explore_tracks}</a>
       <a href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener noreferrer" class="btn-primary">
-        View repository
+        {i18n.home_btn_view_repo}
       </a>
     </div>
   </article>

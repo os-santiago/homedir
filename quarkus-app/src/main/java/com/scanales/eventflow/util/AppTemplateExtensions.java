@@ -7,6 +7,8 @@ import io.quarkus.arc.Arc;
 import io.quarkus.arc.InstanceHandle;
 import io.quarkus.qute.TemplateExtension;
 import io.quarkus.security.identity.SecurityIdentity;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -16,6 +18,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Pattern;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -34,6 +37,10 @@ public class AppTemplateExtensions {
     } catch (Exception e) {
       return "dev";
     }
+  }
+
+  public static String gitCommit() {
+    return gitProperties().getProperty("git.commit.id.abbrev", "dev");
   }
 
   public static boolean isAuthenticated() {
@@ -241,6 +248,29 @@ public class AppTemplateExtensions {
       return handle.get();
     } catch (IllegalStateException e) {
       return null;
+    }
+  }
+
+  private static volatile Properties gitProperties;
+
+  private static Properties gitProperties() {
+    if (gitProperties != null) {
+      return gitProperties;
+    }
+    synchronized (AppTemplateExtensions.class) {
+      if (gitProperties != null) {
+        return gitProperties;
+      }
+      Properties loaded = new Properties();
+      try (InputStream is = AppTemplateExtensions.class.getResourceAsStream("/git.properties")) {
+        if (is != null) {
+          loaded.load(is);
+        }
+      } catch (IOException ignored) {
+        // Fall back to defaults when git metadata is unavailable.
+      }
+      gitProperties = loaded;
+      return gitProperties;
     }
   }
 }
