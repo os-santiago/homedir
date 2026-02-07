@@ -18,7 +18,21 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("Plataforma comunitaria"))
+        .body(containsString("Community platform"))
+        .body(containsString("OSS Santiago"));
+  }
+
+  @Test
+  public void homeHighlightsCommunityAndEventsInSpanish() {
+    given()
+        .header("Accept-Language", "es")
+        .accept("text/html")
+        .when()
+        .get("/")
+        .then()
+        .statusCode(200)
+        .body(containsString("HomeDir"))
+        .body(containsString("Community"))
         .body(containsString("OSS Santiago"));
   }
 }

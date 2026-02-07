@@ -629,4 +629,28 @@ public interface AppMessages {
 
     @Message("Contribute on GitHub")
     String home_contribute_btn();
+
+    @Message("Retro Platform · OSS Santiago Community")
+    String home_eyebrow();
+
+    @Message("by OpenSourceSantiago — Community platform to scale your open source teams and projects.")
+    String home_tagline();
+
+    @Message("Community")
+    String home_community_title();
+
+    @Message("Connect with other developers.")
+    String home_community_card_desc();
+
+    @Message("Events")
+    String home_events_title();
+
+    @Message("Upcoming meetups and gatherings.")
+    String home_events_card_desc();
+
+    @Message("Projects")
+    String home_projects_title();
+
+    @Message("Collaborate on open source projects.")
+    String home_projects_card_desc();
 }

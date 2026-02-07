@@ -1,212 +1,180 @@
 {#include layout/main activePage="comunidad"}
-{#title}Comunidad · Homedir{/title}
+{#title}Comunidad Curada · Homedir{/title}
 {#body}
 <main id="main-content" class="homedir-main" role="main">
-
-
-
   <header class="page-header events-page-header">
     <div class="section-header">
-      <p class="section-subtitle">Personas · Comunidad</p>
-      <h1>Construimos Homedir juntos</h1>
+      <p class="section-subtitle">Comunidad · Curación colaborativa</p>
+      <h1>Contenido recomendado por la comunidad</h1>
     </div>
-    <p class="section-subtitle">Explora el directorio de integrantes, conecta con la comunidad y únete usando tu
-      cuenta
-      vinculada de GitHub.</p>
-
-    <div class="main-sections">
-      <div class="section-card">
-        <span class="material-symbols-outlined section-icon">group</span>
-        <p class="eyebrow">Integrantes</p>
-        <h2>{totalMembers}</h2>
-        <p>Activos en la comunidad</p>
-      </div>
-      <div class="section-card">
-        <span class="material-symbols-outlined section-icon">lock_open</span>
-        <p class="eyebrow">Acceso</p>
-        <h2>Roles</h2>
-        <p class="text-nowrap">Colaborador · Administrador</p>
-      </div>
-      <div class="section-card">
-        <span class="material-symbols-outlined section-icon">visibility</span>
-        <p class="eyebrow">Visibilidad</p>
-        <h2>GitHub</h2>
-        <p>Se muestra tu usuario</p>
-      </div>
-    </div>
-
-    <section class="leaderboard-section community-leaderboard-section">
-      <h2 class="section-subtitle">Top Heroes</h2>
-      <div class="leaderboard-grid community-leaderboard-grid">
-        {#for hero in leaderboard}
-        <div class="hd-card-surface community-hero-card">
-          <div class="community-hero-rank">#{hero_count}</div>
-          <div>
-            <h3 class="community-hero-name">{hero.name}</h3>
-            <p class="community-hero-stats">Nivel {hero.level} · {hero.xp} XP</p>
-          </div>
-        </div>
-        {/for}
-      </div>
-    </section>
-
-    <div class="header-actions">
-      {#if userSession.communityMember}
-      <div class="user-badge community-user-badge">
-        <span class="material-symbols-outlined">verified</span>
-        <span>¡Ya eres parte de la comunidad!</span>
-      </div>
-      <div class="community-actions-row">
-        <a class="btn-primary" href="#directorio">Ver directorio</a>
-        <a class="btn-primary btn-outline-dim"
-          href="https://github.com/os-santiago/os-santiago.github.io/blob/main/community/members.yaml" target="_blank">
-          Ver members.yaml
-        </a>
-      </div>
-
-      {#else}
-      {#if !userSession.loggedIn}
-      <div class="btn-align-start">
-        <a href="/private/profile" class="btn-primary btn-github-dark">
-          <img src="https://cdn.simpleicons.org/github/white" width="20" height="20" alt="GitHub" class="icon-github">
-          Inicia Sesión para unirte
-        </a>
-      </div>
-      {#else if !userSession.githubLinked}
-      <form action="/private/github/start" method="GET" class="btn-align-start">
-        <input type="hidden" name="redirect" value="/comunidad" />
-        <button type="submit" class="btn-primary btn-github-dark">
-          <img src="https://cdn.simpleicons.org/github/white" width="20" height="20" alt="GitHub" class="icon-github"
-            style="margin-right: 8px;">
-          Conectar GitHub para unirte
-        </button>
-      </form>
-      {#else}
-      {#if joined}
-      <div class="btn-align-start">
-        <button disabled class="btn-primary btn-disabled">Solicitud en proceso...</button>
-        <p class="text-status-msg">
-          Tu solicitud ha sido enviada. Revisa tus <a href="{prUrl}" target="_blank" class="link-underline-white">Pull
-            Requests</a>.
-        </p>
-      </div>
-      {#else}
-      <form action="/comunidad/unirse" method="POST" class="btn-align-start">
-        <input type="hidden" name="redirect" value="/comunidad" />
-        <button type="submit" class="btn-primary">Unirme a la comunidad</button>
-      </form>
-      {/if}
-      {/if}
-      {#if !userSession.communityMember}
-      <div class="btn-align-start">
-        <a class="btn-primary" href="#directorio">Ver directorio</a>
-      </div>
-      {/if}
-      {/if}
-    </div>
+    <p class="section-subtitle">
+      Descubre recursos curados, vota en 3 estados y sigue lo más relevante de la semana.
+    </p>
   </header>
 
   <section class="page-grid">
-    <div class="section-header events-section-margin" style="grid-column: 1 / -1;" id="directorio">
-      <div class="community-directory-header">
-        <div class="community-directory-title">
-          <p class="section-subtitle">Directorio</p>
-          <h2 class="page-title">Personas de la comunidad</h2>
+    <div class="section-card events-full-width">
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10">
+        <div class="community-tabs">
+          <button type="button" class="btn-primary community-tab active" data-view="featured">Destacado</button>
+          <button type="button" class="btn-primary community-tab" data-view="new">Nuevo</button>
         </div>
-        <div class="community-search-container">
-          <p class="section-subtitle">Buscar por nombre, GitHub o habilidades</p>
-          <div class="community-search-row">
-            <form class="search-form community-search-form" method="get" action="/comunidad" style="flex: 1;">
-              <input type="search" name="q" value="{query}" placeholder="Buscar integrante..."
-                aria-label="Buscar integrante" class="community-search-input">
-              <input type="hidden" name="sort" value="{sort}" />
-              <button class="btn-primary btn-search-submit" type="submit" aria-label="Buscar">
-                <span class="material-symbols-outlined">search</span>
-              </button>
-            </form>
-            <div class="community-sort-controls">
-              <span class="sort-label">Ordenar:</span>
-              <a href="/comunidad?q={query}&sort=asc" class="sort-btn {#if sort != 'desc'}active{/if}">Asc</a>
-              <span class="sort-separator">|</span>
-              <a href="/comunidad?q={query}&sort=desc" class="sort-btn {#if sort == 'desc'}active{/if}">Desc</a>
-            </div>
-          </div>
+
+        <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
+
+        <div id="community-skeleton" class="community-skeleton hidden" aria-hidden="true">
+          <div class="section-card community-skeleton-card"></div>
+          <div class="section-card community-skeleton-card"></div>
+          <div class="section-card community-skeleton-card"></div>
+        </div>
+
+        <div id="community-empty" class="community-empty hidden">
+          <p>No hay contenido curado disponible por ahora.</p>
+        </div>
+
+        <div id="community-list" class="community-list"></div>
+
+        <div class="community-actions">
+          <button id="community-load-more" type="button" class="btn-primary hidden">Cargar más</button>
         </div>
       </div>
     </div>
-
-    <div id="members-list-container" style="display: contents;">
-      {#include CommunityResource/listFragment.html /}
-    </div>
+  </section>
 </main>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.querySelector('.community-search-input');
-    const cards = document.querySelectorAll('.community-member-card');
-    const listContainer = document.getElementById('members-list-container');
-    const form = document.querySelector('.community-search-form');
 
-    // Create no results message element
-    const noResultsMsg = document.createElement('div');
-    noResultsMsg.className = 'section-card';
-    noResultsMsg.style.gridColumn = '1 / -1';
-    noResultsMsg.style.display = 'none';
-    noResultsMsg.innerHTML = '<p>No se encontraron integrantes que coincidan con tu búsqueda.</p>';
-    if (listContainer) {
-      listContainer.appendChild(noResultsMsg);
+<style>
+  .community-tabs {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .community-tab.active {
+    filter: brightness(1.1);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25) inset;
+  }
+
+  .community-feedback {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 80, 80, 0.12);
+  }
+
+  .community-feedback.hidden {
+    display: none;
+  }
+
+  .community-skeleton {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .community-skeleton.hidden {
+    display: none;
+  }
+
+  .community-skeleton-card {
+    min-height: 110px;
+    opacity: 0.6;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  .community-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .community-item-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 0.6rem;
+  }
+
+  .community-item-title {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .community-item-meta {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-bottom: 0.6rem;
+  }
+
+  .community-item-summary {
+    margin: 0 0 0.8rem;
+    line-height: 1.5;
+  }
+
+  .community-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .community-tag {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+  }
+
+  .community-votes {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .community-vote-btn {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    font-size: 0.78rem;
+  }
+
+  .community-vote-btn.active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.14);
+  }
+
+  .community-vote-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  .community-empty.hidden {
+    display: none;
+  }
+
+  .community-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.45;
     }
-
-    function filterMembers(query) {
-      if (!query) {
-        cards.forEach(card => card.style.display = 'flex');
-        noResultsMsg.style.display = 'none';
-        return;
-      }
-
-      const q = query.toLowerCase();
-      let visibleCount = 0;
-
-      cards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        if (text.includes(q)) {
-          card.style.display = 'flex';
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
-
-      noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    50% {
+      opacity: 0.75;
     }
-
-    if (searchInput) {
-      // Filter on input
-      searchInput.addEventListener('input', (e) => {
-        const query = e.target.value;
-        filterMembers(query);
-
-        // Update URL without reloading
-        const url = new URL(window.location.href);
-        if (query) {
-          url.searchParams.set('q', query);
-        } else {
-          url.searchParams.delete('q');
-        }
-        window.history.replaceState({}, '', url);
-      });
-
-      // Prevent form submission to keep it client-side
-      if (form) {
-        form.addEventListener('submit', (e) => {
-          e.preventDefault();
-        });
-      }
-
-      // Initial filter if query exists on load
-      if (searchInput.value) {
-        filterMembers(searchInput.value);
-      }
+    100% {
+      opacity: 0.45;
     }
-  });
-</script>
+  }
+</style>
+<script src="/js/community-content.js" defer></script>
 {/body}
+{/include}
+
