@@ -1,84 +1,493 @@
 {#include layout/main activePage="proyectos"}
-{#title}Proyectos - Homedir{/title}
+{#title}Project · Homedir{/title}
 {#body}
-
-
-<header class="page-header events-page-header">
+<header class="page-header project-hd-hero">
   <div class="section-header">
-    <p class="section-subtitle">Roadmap · Homedir</p>
-    <h1>Proyectos activos</h1>
+    <p class="section-subtitle">Project · Homedir</p>
+    <h1>Control de avance del producto</h1>
   </div>
-  <p class="section-subtitle">Sigue el estado de los módulos y entra directo al repositorio o sección
-    correspondiente.
+  <p class="section-subtitle project-hd-tagline">
+    Una sola vista para entender estado real, features activas, releases y señales de progreso de <strong>homedir</strong>.
   </p>
-
-  <div class="project-actions">
-    <a href="https://github.com/os-santiago/homedir" class="btn-primary" target="_blank" rel="noopener">Abrir
-      repositorio</a>
-    <a href="/comunidad" class="btn-primary">Unirme a la comunidad</a>
+  <div class="project-hd-actions">
+    <a href="{dashboard.repository.htmlUrl}" target="_blank" rel="noopener" class="btn-primary">Repositorio</a>
+    <a href="{dashboard.repository.htmlUrl}/releases" target="_blank" rel="noopener" class="btn-primary">Releases</a>
+    <a href="{dashboard.repository.htmlUrl}/issues" target="_blank" rel="noopener" class="btn-primary">Issues</a>
   </div>
 </header>
 
-<section class="page-grid">
-  <div class="section-header project-section-header">
-    <p class="section-subtitle">Módulos</p>
-    <h2 class="page-title">Hoja de ruta visible</h2>
-  </div>
-
-  <article class="section-card">
-    <div class="project-card-content">
-      <div class="project-card-icon">
-        <span class="material-symbols-outlined">storage</span>
-      </div>
-      <p class="eyebrow">Backend</p>
-      <h3 class="project-card-title">Homedir Core</h3>
-      <p class="project-card-desc">Base de la plataforma:
-        autenticación, perfiles y orquestación de módulos.</p>
-
-      <div class="project-card-footer">
-        <span class="badge project-status-badge">En
-          producción</span>
-        <a class="nav-link" href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener">Abrir
-          <span class="material-symbols-outlined" style="font-size: 1em; vertical-align: middle;">open_in_new</span></a>
-      </div>
-    </div>
+<section class="page-grid project-hd-metrics-grid">
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">Stars</p>
+    <h2 class="project-hd-metric-value">{dashboard.repository.stars}</h2>
+    <p class="project-hd-metric-note">Señal de interés comunitario</p>
   </article>
-  <article class="section-card">
-    <div class="project-card-content">
-      <div class="project-card-icon">
-        <span class="material-symbols-outlined">notifications_active</span>
-      </div>
-      <p class="eyebrow">Tiempo real</p>
-      <h3 class="project-card-title">Notificaciones Globales</h3>
-      <p class="project-card-desc">Canal WebSocket y centro de
-        notificaciones para eventos y alertas.</p>
-
-      <div class="project-card-footer">
-        <span class="badge project-status-badge">Beta</span>
-        <a class="nav-link" href="https://github.com/os-santiago/homedir/tree/main/quarkus-app" target="_blank"
-          rel="noopener">Abrir <span class="material-symbols-outlined"
-            style="font-size: 1em; vertical-align: middle;">open_in_new</span></a>
-      </div>
-    </div>
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">Forks</p>
+    <h2 class="project-hd-metric-value">{dashboard.repository.forks}</h2>
+    <p class="project-hd-metric-note">Ramas de colaboración activas</p>
   </article>
-  <article class="section-card">
-    <div class="project-card-content">
-      <div class="project-card-icon">
-        <span class="material-symbols-outlined">groups</span>
-      </div>
-      <p class="eyebrow">Personas</p>
-      <h3 class="project-card-title">Comunidad</h3>
-      <p class="project-card-desc">Directorio de integrantes y
-        onboarding con GitHub para contribuir.</p>
-
-      <div class="project-card-footer">
-        <span class="badge project-status-badge">En
-          diseño</span>
-        <a class="nav-link" href="/comunidad" target="_blank" rel="noopener">Abrir <span
-            class="material-symbols-outlined" style="font-size: 1em; vertical-align: middle;">open_in_new</span></a>
-      </div>
-    </div>
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">Issues</p>
+    <h2 class="project-hd-metric-value">{dashboard.repository.openIssues}</h2>
+    <p class="project-hd-metric-note">Backlog abierto actual</p>
+  </article>
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">Contribuidores</p>
+    <h2 class="project-hd-metric-value">{dashboard.contributorCount}</h2>
+    <p class="project-hd-metric-note">Contribuciones: {dashboard.totalContributions}</p>
+  </article>
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">Último push</p>
+    <h2 class="project-hd-metric-value project-hd-metric-small">{dashboard.lastPushAgo}</h2>
+    <p class="project-hd-metric-note">Actividad de código reciente</p>
+  </article>
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">Última release</p>
+    <h2 class="project-hd-metric-value project-hd-metric-small">{dashboard.latestRelease}</h2>
+    <p class="project-hd-metric-note">{dashboard.latestReleaseAgo}</p>
   </article>
 </section>
+
+<section class="page-grid project-hd-panorama-grid">
+  <article class="section-card project-hd-progress-card">
+    <div class="project-hd-progress-head">
+      <div>
+        <p class="section-subtitle">Avances</p>
+        <h2 class="page-title">Estado de implementación</h2>
+      </div>
+      <strong class="project-hd-progress-percent">{dashboard.progressPercent}%</strong>
+    </div>
+    <div class="project-hd-progress-track">
+      <div class="project-hd-progress-fill" style="--progress:{dashboard.progressPercent}%"></div>
+    </div>
+    <div class="project-hd-status-row">
+      <span class="project-hd-status live">LIVE {dashboard.liveFeatures}</span>
+      <span class="project-hd-status beta">BETA {dashboard.betaFeatures}</span>
+      <span class="project-hd-status next">NEXT {dashboard.nextFeatures}</span>
+    </div>
+    <div class="project-hd-highlights">
+      {#for h in dashboard.highlights}
+      <div class="project-hd-highlight-item">
+        <p class="project-hd-highlight-title">{h.title}</p>
+        <strong>{h.value}</strong>
+        <small>{h.note}</small>
+      </div>
+      {/for}
+    </div>
+    <p class="project-hd-footnote">Snapshot actualizado {dashboard.snapshotAgo}</p>
+  </article>
+
+  <article class="section-card project-hd-release-card">
+    <div class="project-hd-release-head">
+      <div>
+        <p class="section-subtitle">Releases</p>
+        <h2 class="page-title">Historial reciente</h2>
+      </div>
+      <a href="{dashboard.repository.htmlUrl}/releases" target="_blank" rel="noopener" class="btn-primary">Ver todas</a>
+    </div>
+    {#if dashboard.releases.isEmpty()}
+    <p class="project-hd-empty">No hay releases publicadas en este momento.</p>
+    {#else}
+    <div class="project-hd-release-list">
+      {#for r in dashboard.releases}
+      <a href="{r.url}" target="_blank" rel="noopener" class="project-hd-release-item">
+        <div>
+          <h3>{r.label}</h3>
+          <p>{r.tag}</p>
+        </div>
+        <div class="project-hd-release-meta">
+          {#if r.prerelease}
+          <span class="project-hd-status beta">PRE</span>
+          {/if}
+          <small>{r.publishedAgo}</small>
+        </div>
+      </a>
+      {/for}
+    </div>
+    {/if}
+  </article>
+</section>
+
+<section class="page-grid project-hd-features-grid">
+  <div class="section-header project-hd-full">
+    <p class="section-subtitle">Features</p>
+    <h2 class="page-title">Mapa funcional de Homedir</h2>
+  </div>
+  {#for f in dashboard.features}
+  <article class="section-card project-hd-feature-card">
+    <div class="project-hd-feature-head">
+      <h3>{f.title}</h3>
+      <span class="project-hd-status {f.statusClass}">{f.statusLabel}</span>
+    </div>
+    <p>{f.description}</p>
+    <a href="{f.href}" target="_blank" rel="noopener" class="project-hd-link">Abrir</a>
+  </article>
+  {/for}
+</section>
+
+<section class="page-grid">
+  <div class="section-header project-hd-full">
+    <p class="section-subtitle">Team</p>
+    <h2 class="page-title">Contribuidores destacados</h2>
+  </div>
+  <article class="section-card project-hd-contributors-card project-hd-full">
+    {#if dashboard.topContributors.isEmpty()}
+    <p class="project-hd-empty">Aún no hay datos de contribuidores disponibles.</p>
+    {#else}
+    <div class="project-hd-contributors-grid">
+      {#for c in dashboard.topContributors}
+      <a href="{c.htmlUrl}" target="_blank" rel="noopener" class="project-hd-contributor-item" title="{c.login}">
+        <img src="{c.avatarUrl}" alt="{c.login}">
+        <strong>{c.login}</strong>
+        <small>{c.contributions} contribs</small>
+      </a>
+      {/for}
+    </div>
+    {/if}
+  </article>
+</section>
+
+<style>
+  .project-hd-hero {
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .project-hd-tagline {
+    max-width: 940px;
+  }
+
+  .project-hd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    justify-content: center;
+  }
+
+  .project-hd-metrics-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .project-hd-metric {
+    padding: 0.85rem 0.8rem;
+    min-height: 140px;
+  }
+
+  .project-hd-metric-label {
+    margin: 0 0 0.3rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.85;
+  }
+
+  .project-hd-metric-value {
+    margin: 0 0 0.25rem;
+    font-size: 1.45rem;
+    line-height: 1.2;
+  }
+
+  .project-hd-metric-small {
+    font-size: 0.95rem;
+  }
+
+  .project-hd-metric-note {
+    margin: 0;
+    font-size: 0.75rem;
+    opacity: 0.86;
+    line-height: 1.35;
+  }
+
+  .project-hd-panorama-grid {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 0.9rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .project-hd-progress-card,
+  .project-hd-release-card {
+    padding: 1rem;
+  }
+
+  .project-hd-progress-head,
+  .project-hd-release-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .project-hd-progress-head .page-title,
+  .project-hd-release-head .page-title {
+    margin: 0;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+  }
+
+  .project-hd-progress-percent {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: #ffd700;
+  }
+
+  .project-hd-progress-track {
+    height: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.35);
+    margin-bottom: 0.7rem;
+    overflow: hidden;
+  }
+
+  .project-hd-progress-fill {
+    height: 100%;
+    width: var(--progress);
+    background: linear-gradient(90deg, #ffd700, #ffad33);
+  }
+
+  .project-hd-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .project-hd-status {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+  }
+
+  .project-hd-status.live {
+    border-color: rgba(120, 255, 160, 0.8);
+    color: #8affc1;
+  }
+
+  .project-hd-status.beta {
+    border-color: rgba(255, 215, 0, 0.8);
+    color: #ffd700;
+  }
+
+  .project-hd-status.next {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .project-hd-highlights {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .project-hd-highlight-item {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.55rem;
+  }
+
+  .project-hd-highlight-title {
+    margin: 0 0 0.2rem;
+    font-size: 0.63rem;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  .project-hd-highlight-item strong {
+    display: block;
+    font-size: 0.86rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .project-hd-highlight-item small {
+    opacity: 0.78;
+    font-size: 0.7rem;
+  }
+
+  .project-hd-footnote {
+    margin: 0.7rem 0 0;
+    font-size: 0.72rem;
+    opacity: 0.8;
+  }
+
+  .project-hd-release-list {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .project-hd-release-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.55rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .project-hd-release-item h3 {
+    margin: 0;
+    font-size: 0.88rem;
+  }
+
+  .project-hd-release-item p {
+    margin: 0.12rem 0 0;
+    font-size: 0.72rem;
+    opacity: 0.8;
+  }
+
+  .project-hd-release-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    white-space: nowrap;
+  }
+
+  .project-hd-release-meta small {
+    opacity: 0.8;
+    font-size: 0.7rem;
+  }
+
+  .project-hd-features-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .project-hd-full {
+    grid-column: 1 / -1;
+  }
+
+  .project-hd-feature-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-height: 190px;
+  }
+
+  .project-hd-feature-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .project-hd-feature-head h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  .project-hd-feature-card p {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    opacity: 0.92;
+  }
+
+  .project-hd-link {
+    margin-top: auto;
+    font-size: 0.75rem;
+    text-decoration: none;
+    color: #ffd700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .project-hd-contributors-card {
+    padding: 0.9rem;
+  }
+
+  .project-hd-contributors-grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .project-hd-contributor-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.26);
+    padding: 0.4rem 0.35rem;
+  }
+
+  .project-hd-contributor-item img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    object-fit: cover;
+  }
+
+  .project-hd-contributor-item strong {
+    max-width: 100%;
+    font-size: 0.66rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .project-hd-contributor-item small {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.45px;
+    color: #ffd700;
+  }
+
+  .project-hd-empty {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+
+  @media (max-width: 1200px) {
+    .project-hd-metrics-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .project-hd-panorama-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .project-hd-features-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .project-hd-contributors-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .project-hd-metrics-grid,
+    .project-hd-features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .project-hd-highlights {
+      grid-template-columns: 1fr;
+    }
+
+    .project-hd-contributors-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>
 {/body}
 {/include}
