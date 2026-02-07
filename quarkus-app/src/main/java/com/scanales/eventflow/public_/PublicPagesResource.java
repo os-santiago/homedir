@@ -55,10 +55,10 @@ public class PublicPagesResource {
   @GET
   public TemplateInstance home() {
     List<GithubContributor> contributors = githubService.fetchContributors("os-santiago", "homedir");
-    List<GithubContributor> projectHighlights = contributors.stream().limit(8).toList();
+    List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
     int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
 
-    List<Event> popularEvents = eventService.findUpcomingEvents(4);
+    List<Event> popularEvents = eventService.findUpcomingEvents(3);
     int upcomingCount =
         (int)
             eventService.listEvents().stream()
@@ -66,7 +66,7 @@ public class PublicPagesResource {
                 .filter(event -> !event.getDate().isBefore(LocalDate.now()))
                 .count();
 
-    List<CommunityContentItem> socialHighlights = communityContentService.listNew(4, 0);
+    List<CommunityContentItem> socialHighlights = communityContentService.listNew(3, 0);
     int socialHighlightsCount = communityContentService.metrics().cacheSize();
 
     if (contributors.isEmpty()) {

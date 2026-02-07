@@ -653,4 +653,102 @@ public interface AppMessages {
 
     @Message("Collaborate on open source projects.")
     String home_projects_card_desc();
+
+    // Home Page Highlights
+    @Message("Social")
+    String home_pill_social();
+
+    @Message("Events")
+    String home_pill_events();
+
+    @Message("Project")
+    String home_pill_project();
+
+    @Message("Social · Events · Project")
+    String home_hero_title_combined();
+
+    @Message("One-page highlights to quickly discover what is new in the Community platform for OSS Santiago.")
+    String home_hero_desc();
+
+    @Message("updates available")
+    String home_metric_updates();
+
+    @Message("upcoming events")
+    String home_metric_upcoming();
+
+    @Message("active contributors")
+    String home_metric_contributors();
+
+    @Message("Social highlights")
+    String home_social_highlights_eyebrow();
+
+    @Message("Latest community content")
+    String home_social_highlights_title();
+
+    @Message("Open Social")
+    String home_btn_open_social();
+
+    @Message("No social updates loaded yet. Open Social to check the latest refresh.")
+    String home_social_empty();
+
+    @Message("Events highlights")
+    String home_events_highlights_eyebrow();
+
+    @Message("Upcoming agenda")
+    String home_events_highlights_title();
+
+    @Message("Open Events")
+    String home_btn_open_events();
+
+    @Message("No upcoming events yet. Visit Events for historical sessions.")
+    String home_events_empty();
+
+    @Message("Date TBA")
+    String home_event_date_tba();
+
+    @Message("Open the event for full details.")
+    String home_event_desc_default();
+
+    @Message("Project highlights")
+    String home_project_highlights_eyebrow();
+
+    @Message("Build with the core contributors")
+    String home_project_highlights_title();
+
+    @Message("Open Project")
+    String home_btn_open_project();
+
+    @Message("total contributions")
+    String home_project_total_contributions();
+
+    @Message("Latest release")
+    String home_project_release_label();
+
+    @Message("Latest commit")
+    String home_project_commit_label();
+
+    @Message("contribs")
+    String home_project_contribs_unit();
+
+    @Message("Top contributors")
+    String home_project_top_contributors();
+
+    @Message("No contributor data available at the moment.")
+    String home_project_no_data();
+
+    @Message("Ready to contribute")
+    String home_project_actions_chip();
+
+    @Message("Pick a path and start")
+    String home_project_actions_title();
+
+    @Message("Explore project tracks, choose an issue, and contribute through the shared workflow.")
+    String home_project_actions_desc();
+
+    @Message("Explore tracks")
+    String home_btn_explore_tracks();
+
+    @Message("View repository")
+    String home_btn_view_repo();
+
 }
