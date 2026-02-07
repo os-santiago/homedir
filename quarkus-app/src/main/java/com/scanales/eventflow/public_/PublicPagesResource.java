@@ -1,5 +1,7 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.community.CommunityContentItem;
+import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.public_.view.ProjectsViewModel;
 import com.scanales.eventflow.service.EventService;
@@ -16,6 +18,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import org.jboss.logging.Logger;
 
@@ -46,10 +49,26 @@ public class PublicPagesResource {
   @Inject
   EventService eventService;
 
+  @Inject
+  CommunityContentService communityContentService;
+
   @GET
   public TemplateInstance home() {
     List<GithubContributor> contributors = githubService.fetchContributors("os-santiago", "homedir");
-    List<Event> popularEvents = eventService.findUpcomingEvents(3);
+    List<GithubContributor> projectHighlights = contributors.stream().limit(8).toList();
+    int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
+
+    List<Event> popularEvents = eventService.findUpcomingEvents(4);
+    int upcomingCount =
+        (int)
+            eventService.listEvents().stream()
+                .filter(event -> event.getDate() != null)
+                .filter(event -> !event.getDate().isBefore(LocalDate.now()))
+                .count();
+
+    List<CommunityContentItem> socialHighlights = communityContentService.listNew(4, 0);
+    int socialHighlightsCount = communityContentService.metrics().cacheSize();
+
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
     }
@@ -59,7 +78,13 @@ public class PublicPagesResource {
         .data("pageDescription",
             "Únete a la comunidad de tecnología más activa de Santiago. Eventos, proyectos open source y crecimiento profesional gamificado.")
         .data("topContributors", contributors)
-        .data("popularEvents", popularEvents),
+        .data("projectHighlights", projectHighlights)
+        .data("popularEvents", popularEvents)
+        .data("socialHighlights", socialHighlights)
+        .data("socialHighlightsCount", socialHighlightsCount)
+        .data("upcomingCount", upcomingCount)
+        .data("projectContributorCount", contributors.size())
+        .data("projectContributionTotal", contributionTotal),
         "home");
   }
 

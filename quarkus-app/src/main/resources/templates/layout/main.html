@@ -27,6 +27,43 @@
   <link rel="stylesheet" href="/css/homedir.css" />
   <link rel="stylesheet" href="/css/notifications.css" />
   <link rel="stylesheet" href="/css/retro-theme.css" />
+  <link rel="stylesheet" href="/css/canva-theme-v2.css" />
+  <!-- Open Graph / Social Sharing Defaults -->
+  <meta property="og:site_name" content="HomeDir" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{pageTitle ?: 'HomeDir - Community Platform'}" />
+  <meta property="og:description"
+    content="{pageDescription ?: 'Join the Open Source Santiago community platform. Level up your skills, join quests, and showcase your profile.'}" />
+  <meta property="og:image" content="{pageImage ?: 'https://homedir.opensourcesantiago.io/images/og-default.png'}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{pageTitle ?: 'HomeDir'}" />
+  <meta name="twitter:description" content="{pageDescription ?: 'Join the Open Source Santiago community platform.'}" />
+  <meta name="twitter:image" content="{pageImage ?: 'https://homedir.opensourcesantiago.io/images/og-default.png'}" />
+
+
+  {#insert head}{/}
+</head>
+
+<body class="homedir-body">
+  {#include fragments/floating-shapes.html /}
+
+  <div class="app-container">
+    {#if noNav != true}
+    {#include fragments/header /}
+    {/if}
+
+    <main id="main-content" class="homedir-main" role="main">
+      {#insert body}{/}
+    </main>
+
+
+
+    {#if noFooter != true}
+    {#include fragments/footer.html/}
+    {/if}
+  </div>
+
+  {#include fragments/login-modal.html/}
   <script src="/js/homedir.js"></script>
   <script>window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: { userAuthenticated } } } };</script>
   <script src="/js/app.js" defer></script>
@@ -34,6 +71,6 @@
   <script src="/js/notifications.js" defer></script>
   <script src="/js/global-notifications-ws.js" defer></script>
   <script src="/js/retro-theme.js" defer></script>
-  </body>
+</body>
 
 </html>
