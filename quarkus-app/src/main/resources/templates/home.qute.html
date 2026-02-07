@@ -9,43 +9,64 @@
   </p>
 </header>
 
-<div class="main-sections">
+<!-- Main Navigation Cards -->
+<div class="page-grid">
   <a href="/comunidad" class="section-card">
-    <h2>Comunidad</h2>
+    <div class="icon-wrapper" style="margin: 0 auto 1rem;">
+      <span class="material-symbols-outlined" style="font-size: 32px;">groups</span>
+    </div>
+    <h2 style="text-align: center;">Comunidad</h2>
+    <p style="text-align: center; font-size: 0.9rem;">Conecta con otros developers.</p>
   </a>
   <a href="/eventos" class="section-card">
-    <h2>Eventos</h2>
+    <div class="icon-wrapper" style="margin: 0 auto 1rem;">
+      <span class="material-symbols-outlined" style="font-size: 32px;">calendar_month</span>
+    </div>
+    <h2 style="text-align: center;">Eventos</h2>
+    <p style="text-align: center; font-size: 0.9rem;">Próximas juntas y meetups.</p>
   </a>
   <a href="/proyectos" class="section-card">
-    <h2>Proyectos</h2>
+    <div class="icon-wrapper" style="margin: 0 auto 1rem;">
+      <span class="material-symbols-outlined" style="font-size: 32px;">rocket_launch</span>
+    </div>
+    <h2 style="text-align: center;">Proyectos</h2>
+    <p style="text-align: center; font-size: 0.9rem;">Colabora en proyectos open source.</p>
   </a>
 </div>
 
-<div class="split-layout">
+<!-- Secondary Content Grid (Events & Contributors) -->
+<div class="page-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+
   <!-- Popular Events Section -->
-  <section class="events-section">
-    <div class="section-header">
-      <h2>{i18n.home_popular_events_title ?: 'Popular Events'}</h2>
-      <a href="/eventos" class="view-all-link">{i18n.home_view_all_events ?: 'View All'} →</a>
+  <section class="section-card">
+    <div class="section-header"
+      style="margin-bottom: 1.5rem; flex-direction: row; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 1.2rem; margin: 0;">{i18n.home_popular_events_title ?: 'Eventos Recientes'}</h2>
+      <a href="/eventos" class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.7rem;">Ver Todos</a>
     </div>
 
     {#if popularEvents.isEmpty()}
-    <div class="empty-state-card">
-      <span class="material-symbols-outlined">event_busy</span>
-      <p>{i18n.home_no_events ?: 'No upcoming events at the moment.'}</p>
-      <a href="/eventos" class="btn btn-sm btn-outline">{i18n.home_browse_past_events ?: 'Browse Past Events'}</a>
+    <div class="empty-state-card" style="text-align: center; padding: 2rem;">
+      <span class="material-symbols-outlined" style="font-size: 48px; opacity: 0.5;">event_busy</span>
+      <p style="margin-top: 1rem;">{i18n.home_no_events ?: 'No hay eventos próximos.'}</p>
+      <a href="/eventos" class="btn-primary" style="margin-top: 1rem;">Ver Eventos Pasados</a>
     </div>
     {#else}
-    <div class="events-grid">
+    <div class="events-grid" style="display: grid; gap: 1rem;">
       {#for event in popularEvents}
-      <a href="/event/{event.id}" class="event-card-mini">
-        <div class="event-date">
-          <span class="day">{event.date.dayOfMonth}</span>
-          <span class="month">{event.date.month}</span>
+      <a href="/event/{event.id}" class="section-card"
+        style="padding: 1rem; border-left: 4px solid var(--color-accent); display: flex; align-items: center; gap: 1rem; text-decoration: none;">
+        <div class="event-date"
+          style="background: rgba(0,0,0,0.3); padding: 0.5rem; text-align: center; min-width: 60px; border-radius: 4px;">
+          <span class="day"
+            style="display: block; font-size: 1.2rem; font-weight: bold; color: var(--color-accent);">{event.date.dayOfMonth}</span>
+          <span class="month"
+            style="display: block; font-size: 0.7rem; text-transform: uppercase;">{event.date.month}</span>
         </div>
         <div class="event-info">
-          <h3>{event.title}</h3>
-          <span class="event-location">{event.formattedDate ?: 'Fecha por confirmar'}</span>
+          <h3 style="font-size: 1rem; margin: 0; color: white;">{event.title}</h3>
+          <span class="event-location" style="font-size: 0.8rem; opacity: 0.7;">{event.formattedDate ?: 'Fecha por
+            confirmar'}</span>
         </div>
       </a>
       {/for}
@@ -54,32 +75,36 @@
   </section>
 
   <!-- Top Contributors Section -->
-  <section class="contributors-section">
-    <div class="section-header">
-      <h2>{i18n.home_top_contributors_title ?: 'Top Contributors'}</h2>
-      <p class="subtitle">{i18n.home_contributors_subtitle ?: 'Heroes of the homedir repository'}</p>
+  <section class="section-card">
+    <div class="section-header" style="margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1.2rem; margin: 0;">{i18n.home_top_contributors_title ?: 'Top Contributors'}</h2>
+      <p class="subtitle" style="font-size: 0.8rem; margin: 0;">Heroes of the homedir repository</p>
     </div>
 
     {#if topContributors.isEmpty()}
-    <div class="empty-state-text">
+    <div class="empty-state-text" style="text-align: center; padding: 2rem;">
       <p>{i18n.home_no_contributors ?: 'Unable to load contributors.'}</p>
     </div>
     {#else}
-    <div class="contributors-grid">
+    <div class="contributors-grid"
+      style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
       {#for contributor in topContributors}
-      <a href="{contributor.htmlUrl}" target="_blank" class="contributor-card" title="{contributor.login}">
-        <img src="{contributor.avatarUrl}" alt="{contributor.login}" class="contributor-avatar">
-        <span class="contributor-name">{contributor.login}</span>
-        <span class="contribution-count">{contributor.contributions} commits</span>
+      <a href="{contributor.htmlUrl}" target="_blank" class="contributor-card" title="{contributor.login}"
+        style="text-align: center; display: block;">
+        <img src="{contributor.avatarUrl}" alt="{contributor.login}" class="contributor-avatar"
+          style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); transition: transform 0.2s;">
+        <span class="contributor-name"
+          style="display: block; font-size: 0.7rem; margin-top: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{contributor.login}</span>
       </a>
       {/for}
     </div>
     {/if}
 
-    <div class="join-cta">
-      <p>{i18n.home_join_community_text ?: 'Want to appear here?'}</p>
-      <a href="https://github.com/os-santiago/homedir" target="_blank" class="btn btn-primary btn-sm">
-        <span class="material-symbols-outlined">code</span> {i18n.home_contribute_btn ?: 'Contribute on GitHub'}
+    <div class="join-cta" style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+      <p style="font-size: 0.9rem; margin-bottom: 1rem;">{i18n.home_join_community_text ?: '¿Quieres aparecer aquí?'}
+      </p>
+      <a href="https://github.com/os-santiago/homedir" target="_blank" class="btn-primary">
+        <span class="material-symbols-outlined" style="font-size: 18px;">code</span> {i18n.home_contribute_btn ?: 'Contribuir en GitHub'}
       </a>
     </div>
   </section>
