@@ -14,12 +14,12 @@
   <div class="main-sections events-stats-container">
     <div class="section-card">
       <p class="eyebrow">{i18n.events_card_upcoming}</p>
-      <h2>0</h2>
+      <h2>{upcomingCount}</h2>
       <p>{i18n.events_card_upcoming_desc}</p>
     </div>
     <div class="section-card">
       <p class="eyebrow">{i18n.events_card_past}</p>
-      <h2>0</h2>
+      <h2>{pastCount}</h2>
       <p>{i18n.events_card_past_desc}</p>
     </div>
     <div class="section-card">
@@ -37,9 +37,27 @@
     <h2 class="page-title">{i18n.events_section_upcoming_title}</h2>
   </div>
 
+  {#if upcomingEvents.isEmpty()}
   <div class="section-card events-full-width">
     <p>{i18n.events_empty_upcoming}</p>
   </div>
+  {#else}
+  <div class="events-grid events-full-width">
+    {#for event in upcomingEvents}
+    <a href="/event/{event.id}" class="event-card">
+      <div class="event-date-large">
+        <span class="day">{event.date.dayOfMonth}</span>
+        <span class="month">{event.date.month}</span>
+      </div>
+      <div class="event-info">
+        <h3>{event.title}</h3>
+        <p>{event.descriptionSummary}</p>
+        <span class="event-meta"><span class="material-symbols-outlined">event</span> {event.formattedDate ?: 'Fecha por confirmar'}</span>
+      </div>
+    </a>
+    {/for}
+  </div>
+  {/if}
 </section>
 
 <section class="page-grid">
@@ -48,9 +66,20 @@
     <h2 class="page-title">{i18n.events_section_past_title}</h2>
   </div>
 
+  {#if pastEvents.isEmpty()}
   <div class="section-card events-full-width">
     <p>{i18n.events_empty_past}</p>
   </div>
+  {#else}
+  <div class="events-list events-full-width">
+    {#for event in pastEvents}
+    <a href="/event/{event.id}" class="event-list-item">
+      <span class="event-date-inline">{event.formattedDate}</span>
+      <span class="event-title-inline">{event.title}</span>
+    </a>
+    {/for}
+  </div>
+  {/if}
 </section>
 {/body}
 {/include}

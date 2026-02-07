@@ -1,7 +1,11 @@
 package com.scanales.eventflow.public_;
 
-import com.scanales.eventflow.public_.view.CommunityViewModel;
+import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.public_.view.ProjectsViewModel;
+import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.GithubService;
+import com.scanales.eventflow.service.GithubService.GithubContributor;
+import com.scanales.eventflow.service.UserSessionService;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -12,16 +16,17 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.List;
+import org.jboss.logging.Logger;
 
 @Path("/")
 @Produces(MediaType.TEXT_HTML)
 public class PublicPagesResource {
 
-  @Inject
-  Template home;
+  private static final Logger LOG = Logger.getLogger(PublicPagesResource.class);
 
   @Inject
-  Template community;
+  Template home;
 
   @Inject
   Template projects;
@@ -33,14 +38,28 @@ public class PublicPagesResource {
   SecurityIdentity identity;
 
   @Inject
-  com.scanales.eventflow.service.UserSessionService userSessionService;
+  UserSessionService userSessionService;
+
+  @Inject
+  GithubService githubService;
+
+  @Inject
+  EventService eventService;
 
   @GET
   public TemplateInstance home() {
+    List<GithubContributor> contributors = githubService.fetchContributors("os-santiago", "homedir");
+    List<Event> popularEvents = eventService.findUpcomingEvents(3);
+    if (contributors.isEmpty()) {
+      LOG.debug("No contributors available for home page.");
+    }
+
     return withLayoutData(home
         .data("pageTitle", "HomeDir - Comunidad Open Source")
         .data("pageDescription",
-            "Únete a la comunidad de tecnología más activa de Santiago. Eventos, proyectos open source y crecimiento profesional gamificado."),
+            "Únete a la comunidad de tecnología más activa de Santiago. Eventos, proyectos open source y crecimiento profesional gamificado.")
+        .data("topContributors", contributors)
+        .data("popularEvents", popularEvents),
         "home");
   }
 
@@ -66,12 +85,18 @@ public class PublicPagesResource {
   @GET
   @Path("/events")
   public TemplateInstance events() {
+    List<Event> upcoming = eventService.findUpcomingEvents(10);
+    List<Event> past = eventService.findPastEvents(10);
     return withLayoutData(
         events
             .data("pageTitle", "Eventos - HomeDir")
             .data("pageDescription",
                 "Participa en nuestros meetups, talleres y conferencias. Conecta con otros desarrolladores y aprende nuevas tecnologías.")
-            .data("today", java.time.LocalDate.now()),
+            .data("today", java.time.LocalDate.now())
+            .data("upcomingEvents", upcoming)
+            .data("pastEvents", past)
+            .data("upcomingCount", upcoming.size())
+            .data("pastCount", past.size()),
         "eventos");
   }
 

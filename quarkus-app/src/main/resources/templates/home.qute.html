@@ -2,61 +2,87 @@
 {#title}HomeDir - Community Platform{/title}
 {#body}
 <header class="public-header">
-  <p class="eyebrow">Plataforma retro · Comunidad OSSantiago</p>
+  <p class="eyebrow">Plataforma retro · Comunidad OSS Santiago</p>
   <h1 class="public-title">HomeDir</h1>
   <p class="tagline">
     by OpenSourceSantiago — Plataforma comunitaria para escalar tus equipos y proyectos open source.
   </p>
 </header>
 
-<section class="main-sections">
+<div class="main-sections">
   <a href="/comunidad" class="section-card">
-    <div class="icon-wrapper" aria-hidden="true">
-      <span class="material-symbols-outlined">groups</span>
-    </div>
     <h2>Comunidad</h2>
-    <p>
-      Estadísticas y actividad de la organización OSS Santiago: miembros, contribuciones y perfiles GitHub.
-    </p>
-    <div class="activity-dots">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <span class="activity-text">Explorar Comunidad</span>
-    </div>
   </a>
-
   <a href="/eventos" class="section-card">
-    <div class="icon-wrapper" aria-hidden="true">
-      <span class="material-symbols-outlined">event</span>
-    </div>
     <h2>Eventos</h2>
-    <p>
-      Agenda y gestión de meetups, conferencias y actividades, alimentado por el módulo de eventos.
-    </p>
-    <div class="activity-dots">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <span class="activity-text">Ver Eventos</span>
-    </div>
   </a>
-
   <a href="/proyectos" class="section-card">
-    <div class="icon-wrapper" aria-hidden="true">
-      <span class="material-symbols-outlined">code</span>
-    </div>
     <h2>Proyectos</h2>
-    <p>
-      Repositorios clave de la organización OSS Santiago y la colaboración activa de la comunidad.
-    </p>
-    <div class="activity-dots">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <span class="activity-text">Ver Proyectos</span>
-    </div>
   </a>
-</section>
+</div>
+
+<div class="split-layout">
+  <!-- Popular Events Section -->
+  <section class="events-section">
+    <div class="section-header">
+      <h2>{i18n.home_popular_events_title ?: 'Popular Events'}</h2>
+      <a href="/eventos" class="view-all-link">{i18n.home_view_all_events ?: 'View All'} →</a>
+    </div>
+
+    {#if popularEvents.isEmpty()}
+    <div class="empty-state-card">
+      <span class="material-symbols-outlined">event_busy</span>
+      <p>{i18n.home_no_events ?: 'No upcoming events at the moment.'}</p>
+      <a href="/eventos" class="btn btn-sm btn-outline">{i18n.home_browse_past_events ?: 'Browse Past Events'}</a>
+    </div>
+    {#else}
+    <div class="events-grid">
+      {#for event in popularEvents}
+      <a href="/event/{event.id}" class="event-card-mini">
+        <div class="event-date">
+          <span class="day">{event.date.dayOfMonth}</span>
+          <span class="month">{event.date.month}</span>
+        </div>
+        <div class="event-info">
+          <h3>{event.title}</h3>
+          <span class="event-location">{event.formattedDate ?: 'Fecha por confirmar'}</span>
+        </div>
+      </a>
+      {/for}
+    </div>
+    {/if}
+  </section>
+
+  <!-- Top Contributors Section -->
+  <section class="contributors-section">
+    <div class="section-header">
+      <h2>{i18n.home_top_contributors_title ?: 'Top Contributors'}</h2>
+      <p class="subtitle">{i18n.home_contributors_subtitle ?: 'Heroes of the homedir repository'}</p>
+    </div>
+
+    {#if topContributors.isEmpty()}
+    <div class="empty-state-text">
+      <p>{i18n.home_no_contributors ?: 'Unable to load contributors.'}</p>
+    </div>
+    {#else}
+    <div class="contributors-grid">
+      {#for contributor in topContributors}
+      <a href="{contributor.htmlUrl}" target="_blank" class="contributor-card" title="{contributor.login}">
+        <img src="{contributor.avatarUrl}" alt="{contributor.login}" class="contributor-avatar">
+        <span class="contributor-name">{contributor.login}</span>
+        <span class="contribution-count">{contributor.contributions} commits</span>
+      </a>
+      {/for}
+    </div>
+    {/if}
+
+    <div class="join-cta">
+      <p>{i18n.home_join_community_text ?: 'Want to appear here?'}</p>
+      <a href="https://github.com/os-santiago/homedir" target="_blank" class="btn btn-primary btn-sm">
+        <span class="material-symbols-outlined">code</span> {i18n.home_contribute_btn ?: 'Contribute on GitHub'}
+      </a>
+    </div>
+  </section>
+</div>
 {/body}
 {/include}

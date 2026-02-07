@@ -601,4 +601,32 @@ public interface AppMessages {
 
     @Message("XP Progress")
     String xp_progress();
+
+    // --- Home Page Refactor ---
+    @Message("Popular Events")
+    String home_popular_events_title();
+
+    @Message("View All")
+    String home_view_all_events();
+
+    @Message("No upcoming events at the moment.")
+    String home_no_events();
+
+    @Message("Browse Past Events")
+    String home_browse_past_events();
+
+    @Message("Top Contributors")
+    String home_top_contributors_title();
+
+    @Message("Heroes of the homedir repository")
+    String home_contributors_subtitle();
+
+    @Message("Unable to load contributors.")
+    String home_no_contributors();
+
+    @Message("Want to appear here?")
+    String home_join_community_text();
+
+    @Message("Contribute on GitHub")
+    String home_contribute_btn();
 }
