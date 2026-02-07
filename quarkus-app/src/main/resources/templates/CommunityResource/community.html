@@ -43,6 +43,11 @@
 </main>
 
 <style>
+  /* Community page runs in low-motion mode to prevent scroll flicker and repaint spikes. */
+  .floating-shapes {
+    display: none;
+  }
+
   .community-shell-card,
   .community-shell-card:hover {
     transform: none;
@@ -108,10 +113,12 @@
     border-bottom: 6px solid rgba(0, 0, 0, 0.7);
     border-right: 5px solid rgba(0, 0, 0, 0.6);
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
-    transition: all 0.12s ease;
+    transition: border-color 0.08s linear, background-color 0.08s linear;
     animation: none;
     cursor: default;
-    will-change: transform;
+    transform: none;
+    content-visibility: auto;
+    contain-intrinsic-size: 180px;
   }
 
   .community-list .section-card::before {
@@ -119,8 +126,9 @@
   }
 
   .community-list .section-card:hover {
-    transform: translateY(4px);
-    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6);
+    transform: none;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 255, 255, 0.85);
     background: rgba(0, 0, 0, 0.55);
   }
 
@@ -177,6 +185,7 @@
     padding: 0.35rem 0.65rem;
     cursor: pointer;
     font-size: 0.78rem;
+    transition: border-color 0.08s linear, background-color 0.08s linear;
   }
 
   .community-vote-btn.active {
@@ -208,6 +217,17 @@
     }
     100% {
       opacity: 0.45;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .community-skeleton-card {
+      animation: none;
+    }
+
+    .community-list .section-card,
+    .community-vote-btn {
+      transition: none;
     }
   }
 </style>
