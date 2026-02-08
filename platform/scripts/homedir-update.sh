@@ -23,7 +23,7 @@ CONTAINER="${CONTAINER_NAME:-homedir}"
 HOST_PORT="${HOST_PORT:-8080}"
 CONTAINER_PORT="${CONTAINER_PORT:-8080}"
 DATA_VOLUME="${DATA_VOLUME:-/work/data:/work/data:Z}"
-LOCKFILE="${LOCKFILE:-/var/lock/homedir-update.lock}"
+LOCKDIR="${LOCKDIR:-/var/lock/homedir-update.lock.d}"
 container_data_dir="$(echo "$DATA_VOLUME" | awk -F: '{print $2}')"
 if [[ -z "$container_data_dir" ]]; then
   container_data_dir="/work/data"
@@ -39,11 +39,14 @@ log() {
   echo "$(date -Iseconds): $*" >> "$LOGFILE"
 }
 
-exec 9>"$LOCKFILE"
-if ! flock -n 9; then
+if ! mkdir "$LOCKDIR" 2>/dev/null; then
   log "another update is already running; skipping tag=${TAG}"
   exit 0
 fi
+cleanup_lock() {
+  rmdir "$LOCKDIR" 2>/dev/null || true
+}
+trap cleanup_lock EXIT
 
 start_container() {
   local image="$1"
