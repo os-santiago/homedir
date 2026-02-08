@@ -47,6 +47,14 @@ public class CommunityResource {
     return render("featured", "all", "moderation");
   }
 
+  @GET
+  @Path("/propose")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance propose() {
+    return render("featured", "all", "propose");
+  }
+
   private TemplateInstance render(String viewParam, String filterParam, String forcedSubmenu) {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
@@ -76,7 +84,7 @@ public class CommunityResource {
   @Path("/feed")
   @PermitAll
   public Response feed() {
-    return Response.seeOther(URI.create("/comunidad?view=featured&filter=members")).build();
+    return Response.seeOther(URI.create("/comunidad/propose")).build();
   }
 
   @GET
