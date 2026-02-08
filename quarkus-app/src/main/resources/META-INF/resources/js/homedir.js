@@ -1,8 +1,8 @@
-let currentUser = null;
-let allUsers = [];
+var currentUser = window.currentUser || null;
+var allUsers = window.allUsers || [];
 
 // Equipment/Collectibles System
-const COLLECTIBLES = [
+var COLLECTIBLES = window.COLLECTIBLES || [
   { id: 'laptop', icon: '💻', name: 'DEVELOPER LAPTOP', rarity: 'common', description: '+5 Coding Power' },
   { id: 'keyboard', icon: '⌨️', name: 'MECHANICAL KEYBOARD', rarity: 'rare', description: '+10 Typing Speed' },
   { id: 'coffee', icon: '☕', name: 'ENERGY COFFEE', rarity: 'common', description: '+3 Focus' },
@@ -16,6 +16,9 @@ const COLLECTIBLES = [
   { id: 'crown', icon: '👑', name: 'LEADER CROWN', rarity: 'legendary', description: '+35 Leadership' },
   { id: 'glasses', icon: '👓', name: 'CODE GLASSES', rarity: 'common', description: '+4 Vision' }
 ];
+window.currentUser = currentUser;
+window.allUsers = allUsers;
+window.COLLECTIBLES = COLLECTIBLES;
 
 function generateEquipment(level, experience) {
   const equipment = [];
