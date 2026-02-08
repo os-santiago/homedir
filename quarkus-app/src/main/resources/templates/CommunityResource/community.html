@@ -16,6 +16,7 @@
   {#include fragments/community-submenu.html /}
 
   <section class="page-grid">
+    {#if activeCommunitySubmenu == 'picks'}
     <div class="section-card events-full-width community-shell-card">
       <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}">
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
@@ -49,34 +50,9 @@
         </div>
       </div>
     </div>
+    {/if}
 
-    <div class="section-card events-full-width community-board-preview">
-      <div class="section-header">
-        <p class="section-subtitle">Community · Board</p>
-        <h2 class="page-title">Quienes participan</h2>
-      </div>
-      <div class="community-board-grid">
-        <article class="community-board-card">
-          <h3>HomeDir users</h3>
-          <p class="community-board-value">{homedirUsers}</p>
-          <p>People who signed in with Google and created a Homedir account.</p>
-          <a class="btn-primary" href="/comunidad/board/homedir-users">View members</a>
-        </article>
-        <article class="community-board-card">
-          <h3>GitHub users</h3>
-          <p class="community-board-value">{githubUsers}</p>
-          <p>Contributors with a linked GitHub account in the OSSantiago ecosystem.</p>
-          <a class="btn-primary" href="/comunidad/board/github-users">View members</a>
-        </article>
-        <article class="community-board-card">
-          <h3>Discord users</h3>
-          <p class="community-board-value">{discordUsers}</p>
-          <p>People who joined our official OSSantiago Discord server.</p>
-          <a class="btn-primary" href="/comunidad/board/discord-users">View members</a>
-        </article>
-      </div>
-    </div>
-
+    {#if activeCommunitySubmenu == 'propose' || activeCommunitySubmenu == 'moderation'}
     <div class="section-card events-full-width community-submissions-card" id="community-submissions-root" data-authenticated="{isAuthenticated}" data-admin="{isAdmin}" data-active-submenu="{activeCommunitySubmenu}">
       <div class="section-header">
         <p class="section-subtitle">Community · Feed</p>
@@ -135,6 +111,7 @@
       </div>
       {/if}
     </div>
+    {/if}
   </section>
 
 <style>
@@ -316,13 +293,6 @@
     margin-top: 1rem;
   }
 
-  .community-board-preview,
-  .community-board-preview:hover {
-    transform: none;
-    animation: none;
-    cursor: default;
-  }
-
   .community-submissions-card,
   .community-submissions-card:hover {
     transform: none;
@@ -439,32 +409,6 @@
     background: rgba(255, 120, 120, 0.16);
   }
 
-  .community-board-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .community-board-card {
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    border-radius: 10px;
-    padding: 1rem;
-    background: rgba(0, 0, 0, 0.3);
-    display: grid;
-    gap: 0.6rem;
-  }
-
-  .community-board-card h3,
-  .community-board-card p {
-    margin: 0;
-  }
-
-  .community-board-value {
-    font-size: 1.8rem;
-    line-height: 1;
-    font-weight: 700;
-  }
-
   @keyframes pulse {
     0% {
       opacity: 0.45;
@@ -488,11 +432,6 @@
     }
   }
 
-  @media (max-width: 980px) {
-    .community-board-grid {
-      grid-template-columns: 1fr;
-    }
-  }
 </style>
 <script src="/js/community-content.js?v={app:version()}" defer></script>
 <script src="/js/community-submissions.js?v={app:version()}" defer></script>
