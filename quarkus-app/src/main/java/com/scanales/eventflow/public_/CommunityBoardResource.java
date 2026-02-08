@@ -55,7 +55,7 @@ public class CommunityBoardResource {
             summary.homedirUsers(),
             summary.githubUsers(),
             summary.discordUsers());
-    return withLayoutData(template);
+    return withLayoutData(template, "board");
   }
 
   @GET
@@ -86,14 +86,15 @@ public class CommunityBoardResource {
             slice.offset(),
             normalizeHighlightedMember(highlightedMember),
             slice.items());
-    return withLayoutData(template);
+    return withLayoutData(template, "board");
   }
 
-  private TemplateInstance withLayoutData(TemplateInstance template) {
+  private TemplateInstance withLayoutData(TemplateInstance template, String activeCommunitySubmenu) {
     boolean authenticated = isAuthenticated();
     String name = currentUserName().orElse(null);
     return template
         .data("activePage", "comunidad")
+        .data("activeCommunitySubmenu", activeCommunitySubmenu)
         .data("userAuthenticated", authenticated)
         .data("userName", name)
         .data("userInitial", initialFrom(name));

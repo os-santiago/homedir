@@ -10,16 +10,11 @@
       Descubre recursos curados, vota en 3 estados y sigue lo más relevante de la semana.
     </p>
   </header>
+  {#include fragments/community-submenu.html /}
 
   <section class="page-grid">
     <div class="section-card events-full-width community-shell-card">
       <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}">
-        <div class="community-tabs">
-          <button type="button" class="btn-primary community-tab active" data-view="featured">Community Picks</button>
-          <button type="button" class="btn-primary community-tab" data-view="new">Community Feed</button>
-          <a class="btn-primary community-tab-link" href="/comunidad/board">Community Board</a>
-        </div>
-
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
 
         <div id="community-skeleton" class="community-skeleton hidden" aria-hidden="true">
@@ -88,22 +83,6 @@
     content: none;
   }
 
-  .community-tabs {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .community-tab-link {
-    text-decoration: none;
-  }
-
-  .community-tab.active {
-    filter: brightness(1.1);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25) inset;
-  }
-
   .community-feedback {
     margin-bottom: 1rem;
     padding: 0.75rem;
@@ -142,7 +121,7 @@
     gap: 1rem;
   }
 
-  /* Match Home card behavior and disable retro glow sweep on Social cards */
+  /* Match Home card behavior and disable retro glow sweep on Community cards */
   .community-item-card,
   .community-list .section-card {
     background: rgba(0, 0, 0, 0.45);

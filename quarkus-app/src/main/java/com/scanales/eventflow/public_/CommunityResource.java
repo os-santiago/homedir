@@ -45,6 +45,7 @@ public class CommunityResource {
             summary.discordUsers());
     return template
         .data("activePage", "comunidad")
+        .data("activeCommunitySubmenu", "new".equals(initialView) ? "feed" : "picks")
         .data("userAuthenticated", authenticated)
         .data("userName", currentUserName().orElse(null))
         .data("userInitial", initialFrom(currentUserName().orElse(null)));

@@ -64,7 +64,7 @@ public class CommunityMemberResource {
             member.memberSince(),
             profileLinkFor(group, member),
             "/comunidad/board/" + group.path());
-    return Response.ok(withLayoutData(template)).build();
+    return Response.ok(withLayoutData(template, "board")).build();
   }
 
   private String profileLinkFor(CommunityBoardGroup group, CommunityBoardMemberView member) {
@@ -88,11 +88,12 @@ public class CommunityMemberResource {
     };
   }
 
-  private TemplateInstance withLayoutData(TemplateInstance template) {
+  private TemplateInstance withLayoutData(TemplateInstance template, String activeCommunitySubmenu) {
     boolean authenticated = isAuthenticated();
     String name = currentUserName().orElse(null);
     return template
         .data("activePage", "comunidad")
+        .data("activeCommunitySubmenu", activeCommunitySubmenu)
         .data("userAuthenticated", authenticated)
         .data("userName", name)
         .data("userInitial", initialFrom(name));
