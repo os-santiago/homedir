@@ -296,7 +296,7 @@ public interface AppMessages {
     @Message("Join Community")
     String btn_join_community();
 
-    @Message("Social")
+    @Message("Community")
     String nav_community();
 
     @Message("Latest community activity")
