@@ -11,6 +11,7 @@ This module powers `/comunidad` with curated content loaded from files and commu
 - Community Board:
   - `/comunidad/board` summary (HomeDir users, GitHub users, Discord users).
   - `/comunidad/board/{group}` detail list with search and profile-link copy.
+  - `/community/member/{group}/{id}` stable shareable member profile page.
 
 ## Content Directory
 - Production target: `${homedir.data.dir}/community/content`

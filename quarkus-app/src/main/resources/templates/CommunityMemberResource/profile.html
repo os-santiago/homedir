@@ -1,0 +1,90 @@
+{#include layout/main activePage="comunidad"}
+{#title}{displayName} · Community Member{/title}
+{#body}
+  <header class="page-header events-page-header">
+    <div class="section-header">
+      <p class="section-subtitle">Community · Member</p>
+      <h1>{displayName}</h1>
+    </div>
+    <p class="section-subtitle">{groupTitle}</p>
+  </header>
+
+  <section class="page-grid">
+    <div class="section-card events-full-width board-member-shell">
+      <article class="board-member-profile">
+        {#if avatarUrl}
+          <img class="board-member-avatar-lg" src="{avatarUrl}" alt="{displayName}" loading="lazy" />
+        {#else}
+          <div class="board-member-avatar-lg board-member-avatar-fallback-lg">
+            {displayName.substring(0,1)}
+          </div>
+        {/if}
+
+        <div class="board-member-profile-text">
+          <h2>{displayName}</h2>
+          <p>{handle}</p>
+          {#if memberSince}
+            <small>Member since {memberSince}</small>
+          {/if}
+        </div>
+      </article>
+
+      <div class="board-member-profile-actions">
+        <a class="btn-primary" href="{profileLink}">Open profile</a>
+        <a class="btn-primary" href="{boardLink}">Back to board</a>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .board-member-shell,
+    .board-member-shell:hover {
+      transform: none;
+      animation: none;
+      cursor: default;
+    }
+
+    .board-member-profile {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .board-member-avatar-lg {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 3px solid rgba(255, 255, 255, 0.65);
+      background: rgba(0, 0, 0, 0.45);
+      flex-shrink: 0;
+    }
+
+    .board-member-avatar-fallback-lg {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .board-member-profile-text h2,
+    .board-member-profile-text p {
+      margin: 0;
+    }
+
+    .board-member-profile-text p {
+      margin-top: 0.2rem;
+      opacity: 0.9;
+    }
+
+    .board-member-profile-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  </style>
+{/body}
+{/include}
