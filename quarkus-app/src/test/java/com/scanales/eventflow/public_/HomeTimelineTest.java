@@ -18,8 +18,10 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("Community platform"))
-        .body(containsString("OSS Santiago"));
+        .body(containsString("Welcome"))
+        .body(containsString("Highlights"))
+        .body(containsString("Latest community content"))
+        .body(containsString("Upcoming agenda"));
   }
 
   @Test
@@ -32,7 +34,8 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("Social"))
-        .body(containsString("OSS Santiago"));
+        .body(containsString("Welcome"))
+        .body(containsString("HomeDir: tu comunidad para construir, aprender y compartir."))
+        .body(containsString("Latest community content"));
   }
 }
