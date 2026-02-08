@@ -16,6 +16,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -220,10 +221,27 @@ public class PersistenceService {
     scheduleWrite(communitySubmissionsFile, submissions);
   }
 
+  /** Persists community submissions synchronously. */
+  public void saveCommunitySubmissionsSync(Map<String, CommunitySubmission> submissions) {
+    writeSync(communitySubmissionsFile, submissions);
+  }
+
   /** Loads community submissions from disk or returns an empty map if none. */
   public Map<String, CommunitySubmission> loadCommunitySubmissions() {
     return read(communitySubmissionsFile, new TypeReference<Map<String, CommunitySubmission>>() {
     });
+  }
+
+  /** Last modified timestamp for community submissions file, or -1 when unavailable. */
+  public long communitySubmissionsLastModifiedMillis() {
+    try {
+      if (!Files.exists(communitySubmissionsFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(communitySubmissionsFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
   }
 
   /**
@@ -398,7 +416,7 @@ public class PersistenceService {
       Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
       try {
         mapper.writeValue(tmp.toFile(), data);
-        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        moveWithFallback(tmp, file);
         LOG.infof("Persisted %s at %s (v%d)", file.getFileName(), java.time.Instant.now(), version);
         writesOk.incrementAndGet();
         lastError = null;
@@ -431,6 +449,39 @@ public class PersistenceService {
     }
   }
 
+  private void writeSync(Path file, Object data) {
+    checkDiskSpace();
+    if (lowDiskSpace) {
+      writesFail.incrementAndGet();
+      lastError = "low_disk_space";
+      throw new IllegalStateException("low_disk_space");
+    }
+    try {
+      Path parent = file.getParent();
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
+      Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
+      try {
+        mapper.writeValue(tmp.toFile(), data);
+        moveWithFallback(tmp, file);
+        LOG.infof("Persisted %s at %s (sync)", file.getFileName(), java.time.Instant.now());
+        writesOk.incrementAndGet();
+        lastError = null;
+      } finally {
+        try {
+          Files.deleteIfExists(tmp);
+        } catch (IOException ignore) {
+          // ignore cleanup errors
+        }
+      }
+    } catch (IOException e) {
+      writesFail.incrementAndGet();
+      lastError = e.getMessage();
+      throw new IllegalStateException("failed_to_persist_data", e);
+    }
+  }
+
   private void scheduleRetry(
       Path file, Object data, long version, int nextAttempt, long backoffMillis) {
     scheduledRetries.incrementAndGet();
@@ -450,6 +501,14 @@ public class PersistenceService {
       queueDropped.incrementAndGet();
       lastError = "retry_scheduler_rejected";
       LOG.warn("Persistence retry scheduler rejected write for " + file.getFileName());
+    }
+  }
+
+  private static void moveWithFallback(Path source, Path target) throws IOException {
+    try {
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    } catch (AtomicMoveNotSupportedException e) {
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
     }
   }
 

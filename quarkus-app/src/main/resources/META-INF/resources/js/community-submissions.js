@@ -19,7 +19,6 @@
   const moderationListEl = document.getElementById("community-moderation-list");
   const moderationEmptyEl = document.getElementById("community-moderation-empty");
   const moderationPanel = document.getElementById("community-moderation-panel");
-  const moderatedIds = new Set();
 
   if (!feedbackEl) {
     return;
@@ -105,7 +104,7 @@
       ? items.filter((item) => {
           const id = String(item && item.id ? item.id : "");
           const status = String(item && item.status ? item.status : "pending").toLowerCase();
-          return Boolean(id) && status === "pending" && !moderatedIds.has(id);
+          return Boolean(id) && status === "pending";
         })
       : [];
     moderationListEl.textContent = "";
@@ -180,7 +179,6 @@
         try {
           hideFeedback();
           await moderateSubmission(submissionId, action, note.value.trim());
-          moderatedIds.add(submissionId);
           card.remove();
           if (moderationListEl.children.length === 0) {
             moderationEmptyEl.classList.remove("hidden");
