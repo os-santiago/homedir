@@ -250,6 +250,7 @@
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
       const errorCode = String(data.error || "");
+      const detail = String(data.detail || "");
       if (response.status === 403) {
         throw new Error("Solo admins pueden moderar propuestas.");
       }
@@ -260,7 +261,8 @@
         throw new Error("La URL ya existe en el feed curado.");
       }
       if (response.status === 503 || errorCode === "approve_storage_unavailable") {
-        throw new Error("No fue posible publicar el contenido en este momento. Reintenta en unos minutos.");
+        const suffix = detail ? ` (${detail})` : "";
+        throw new Error(`No fue posible publicar el contenido en este momento. Reintenta en unos minutos.${suffix}`);
       }
       throw new Error(errorCode || "No se pudo procesar la moderación.");
     }

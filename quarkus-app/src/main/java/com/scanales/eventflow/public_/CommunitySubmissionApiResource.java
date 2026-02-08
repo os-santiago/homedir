@@ -21,10 +21,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import org.jboss.logging.Logger;
 
 @Path("/api/community/submissions")
 @Produces(MediaType.APPLICATION_JSON)
 public class CommunitySubmissionApiResource {
+  private static final Logger LOG = Logger.getLogger(CommunitySubmissionApiResource.class);
 
   @Inject CommunitySubmissionService submissionService;
   @Inject SecurityIdentity identity;
@@ -56,8 +58,9 @@ public class CommunitySubmissionApiResource {
     } catch (CommunitySubmissionService.RateLimitExceededException e) {
       return Response.status(429).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
+      LOG.errorf(e, "community_submission_create_storage_unavailable user=%s", userId.orElse("unknown"));
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-          .entity(Map.of("error", "submission_storage_unavailable"))
+          .entity(Map.of("error", "submission_storage_unavailable", "detail", storageDetail(e)))
           .build();
     }
   }
@@ -114,8 +117,9 @@ public class CommunitySubmissionApiResource {
     } catch (CommunitySubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
+      LOG.errorf(e, "community_submission_approve_storage_unavailable id=%s", id);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-          .entity(Map.of("error", "approve_storage_unavailable"))
+          .entity(Map.of("error", "approve_storage_unavailable", "detail", storageDetail(e)))
           .build();
     }
   }
@@ -135,10 +139,18 @@ public class CommunitySubmissionApiResource {
     } catch (CommunitySubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
+      LOG.errorf(e, "community_submission_reject_storage_unavailable id=%s", id);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-          .entity(Map.of("error", "reject_storage_unavailable"))
+          .entity(Map.of("error", "reject_storage_unavailable", "detail", storageDetail(e)))
           .build();
     }
+  }
+
+  private static String storageDetail(IllegalStateException e) {
+    if (e == null || e.getMessage() == null || e.getMessage().isBlank()) {
+      return "unknown";
+    }
+    return e.getMessage();
   }
 
   private int normalizeLimit(Integer rawLimit) {
