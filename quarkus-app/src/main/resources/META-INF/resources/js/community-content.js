@@ -6,6 +6,8 @@
 
   const authenticated = String(root.dataset.authenticated || "false") === "true";
   const pageSize = Number.parseInt(root.dataset.pageSize || "10", 10) || 10;
+  const initialViewFromData = String(root.dataset.initialView || "").trim().toLowerCase();
+  const initialViewFromUrl = new URLSearchParams(window.location.search).get("view");
 
   const listEl = document.getElementById("community-list");
   const skeletonEl = document.getElementById("community-skeleton");
@@ -21,6 +23,16 @@
     total: 0,
     loading: false
   };
+
+  function normalizeView(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "new" || normalized === "featured") {
+      return normalized;
+    }
+    return "featured";
+  }
+
+  state.view = normalizeView(initialViewFromUrl || initialViewFromData);
 
   function escapeText(value) {
     return value == null ? "" : String(value);
@@ -239,12 +251,16 @@
   loadMoreBtn.addEventListener("click", () => load(false));
 
   tabButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.view === state.view);
     btn.addEventListener("click", () => {
       const nextView = btn.dataset.view;
       if (!nextView || nextView === state.view) {
         return;
       }
       state.view = nextView;
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", state.view);
+      window.history.replaceState({}, "", url.toString());
       tabButtons.forEach((candidate) => {
         candidate.classList.toggle("active", candidate.dataset.view === state.view);
       });

@@ -13,10 +13,11 @@
 
   <section class="page-grid">
     <div class="section-card events-full-width community-shell-card">
-      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10">
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}">
         <div class="community-tabs">
-          <button type="button" class="btn-primary community-tab active" data-view="featured">Destacado</button>
-          <button type="button" class="btn-primary community-tab" data-view="new">Nuevo</button>
+          <button type="button" class="btn-primary community-tab active" data-view="featured">Community Picks</button>
+          <button type="button" class="btn-primary community-tab" data-view="new">Community Feed</button>
+          <a href="/community/board" class="btn-primary community-tab-link">Community Board</a>
         </div>
 
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
@@ -69,6 +70,13 @@
   .community-tab.active {
     filter: brightness(1.1);
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25) inset;
+  }
+
+  .community-tab-link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .community-feedback {
