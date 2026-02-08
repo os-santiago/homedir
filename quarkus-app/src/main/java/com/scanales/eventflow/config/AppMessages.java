@@ -670,6 +670,18 @@ public interface AppMessages {
     @Message("One-page highlights to quickly discover what is new in the Community platform for OSS Santiago.")
     String home_hero_desc();
 
+    @Message("Welcome")
+    String home_welcome_title();
+
+    @Message("HomeDir: your community to build, learn, and share.")
+    String home_welcome_en();
+
+    @Message("HomeDir: tu comunidad para construir, aprender y compartir.")
+    String home_welcome_es();
+
+    @Message("Highlights")
+    String home_highlights_intro();
+
     @Message("updates available")
     String home_metric_updates();
 
