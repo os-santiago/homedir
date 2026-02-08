@@ -7,7 +7,6 @@ import com.scanales.eventflow.service.PersistenceService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -161,6 +160,9 @@ public class CommunitySubmissionService {
     if (current.status() == CommunitySubmissionStatus.APPROVED) {
       return current;
     }
+    if (hasDuplicateUrl(current.url(), current.id())) {
+      throw new DuplicateSubmissionException("duplicate_url_submission");
+    }
     Instant now = Instant.now();
     String contentId = current.contentId() != null ? current.contentId() : "submission-" + current.id();
     String contentFile = current.contentFile();
@@ -251,7 +253,18 @@ public class CommunitySubmissionService {
   }
 
   private boolean hasDuplicateUrl(String normalizedUrl) {
+    return hasDuplicateUrl(normalizedUrl, null);
+  }
+
+  private boolean hasDuplicateUrl(String normalizedUrl, String excludeSubmissionId) {
+    if (normalizedUrl == null || normalizedUrl.isBlank()) {
+      return false;
+    }
+    if (contentService.containsUrl(normalizedUrl)) {
+      return true;
+    }
     return submissions.values().stream()
+        .filter(item -> excludeSubmissionId == null || !excludeSubmissionId.equals(item.id()))
         .filter(item -> item.status() != CommunitySubmissionStatus.REJECTED)
         .anyMatch(item -> normalizedUrl.equals(item.url()));
   }
@@ -279,26 +292,7 @@ public class CommunitySubmissionService {
   }
 
   private static String sanitizeUrl(String raw) {
-    if (raw == null || raw.isBlank()) {
-      return null;
-    }
-    try {
-      URI uri = URI.create(raw.trim());
-      String scheme = uri.getScheme();
-      if (scheme == null) {
-        return null;
-      }
-      String normalizedScheme = scheme.toLowerCase(Locale.ROOT);
-      if (!normalizedScheme.equals("http") && !normalizedScheme.equals("https")) {
-        return null;
-      }
-      if (uri.getHost() == null || uri.getHost().isBlank()) {
-        return null;
-      }
-      return uri.normalize().toString();
-    } catch (Exception e) {
-      return null;
-    }
+    return CommunityUrlNormalizer.normalize(raw);
   }
 
   private static List<String> sanitizeTags(List<String> rawTags, int maxTags) {

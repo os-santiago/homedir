@@ -12,9 +12,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -84,6 +86,14 @@ public class CommunityContentService {
     return Optional.ofNullable(cache.get().byId().get(id));
   }
 
+  public boolean containsUrl(String normalizedUrl) {
+    if (normalizedUrl == null || normalizedUrl.isBlank()) {
+      return false;
+    }
+    maybeRefreshAsyncOnDemand();
+    return cache.get().urls().contains(normalizedUrl);
+  }
+
   public CommunityContentMetrics metrics() {
     CacheSnapshot snapshot = cache.get();
     return new CommunityContentMetrics(
@@ -139,6 +149,7 @@ public class CommunityContentService {
     int filesLoaded = 0;
     int filesInvalid = 0;
     Map<String, CommunityContentItem> byId = new HashMap<>();
+    Set<String> urls = new HashSet<>();
     List<CommunityContentItem> items = new ArrayList<>();
     try {
       if (!Files.exists(dir)) {
@@ -175,6 +186,9 @@ public class CommunityContentService {
               continue;
             }
             byId.put(item.id(), item);
+            if (item.url() != null && !item.url().isBlank()) {
+              urls.add(item.url());
+            }
             filesLoaded++;
           }
         }
@@ -186,7 +200,14 @@ public class CommunityContentService {
     }
     long durationMs = Duration.between(started, Instant.now()).toMillis();
     CacheSnapshot snapshot =
-        new CacheSnapshot(List.copyOf(items), Map.copyOf(byId), Instant.now(), durationMs, filesLoaded, filesInvalid);
+        new CacheSnapshot(
+            List.copyOf(items),
+            Map.copyOf(byId),
+            Set.copyOf(urls),
+            Instant.now(),
+            durationMs,
+            filesLoaded,
+            filesInvalid);
     cache.set(snapshot);
     LOG.infov(
         "Community content cache refreshed reason={0} items={1} loaded={2} invalid={3} durationMs={4}",
@@ -226,12 +247,13 @@ public class CommunityContentService {
   private record CacheSnapshot(
       List<CommunityContentItem> items,
       Map<String, CommunityContentItem> byId,
+      Set<String> urls,
       Instant loadedAt,
       long loadDurationMs,
       int filesLoaded,
       int filesInvalid) {
     static CacheSnapshot empty() {
-      return new CacheSnapshot(List.of(), Map.of(), null, 0L, 0, 0);
+      return new CacheSnapshot(List.of(), Map.of(), Set.of(), null, 0L, 0, 0);
     }
   }
 }

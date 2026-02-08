@@ -96,6 +96,39 @@ public class CommunitySubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "user@example.com")
+  void createRejectsDuplicateWhenResourceAlreadyCurated() throws Exception {
+    Path dir = contentDir();
+    Files.writeString(
+        dir.resolve("20260208-curated-item.yml"),
+        """
+        id: curated-item-1
+        title: "Already curated"
+        url: "https://example.org/article"
+        summary: "Already in feed."
+        source: "example.org"
+        created_at: "2026-02-08T10:00:00Z"
+        """);
+    contentService.refreshNowForTests();
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Duplicado",
+              "url":"https://example.org/article?utm_source=twitter",
+              "summary":"No debería entrar por duplicado"
+            }
+            """)
+        .when()
+        .post("/api/community/submissions")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("duplicate_url_submission"));
+  }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
   void pendingListRequiresAdmin() {
     submissionService.create(
         "member@example.com",
@@ -114,6 +147,43 @@ public class CommunitySubmissionApiResourceTest {
         .then()
         .statusCode(403)
         .body("error", equalTo("admin_required"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminApproveRejectsDuplicateWhenCuratedAppearsAfterSubmission() throws Exception {
+    CommunitySubmission created =
+        submissionService.create(
+            "member@example.com",
+            "Member",
+            new CommunitySubmissionService.CreateRequest(
+                "Artículo candidato",
+                "https://example.org/deep-dive",
+                "Resumen",
+                "Example",
+                List.of("java")));
+
+    Path dir = contentDir();
+    Files.writeString(
+        dir.resolve("20260208-existing.yml"),
+        """
+        id: curated-existing
+        title: "Existing"
+        url: "https://example.org/deep-dive?utm_campaign=weekly"
+        summary: "Already published."
+        source: "example.org"
+        created_at: "2026-02-08T12:00:00Z"
+        """);
+    contentService.refreshNowForTests();
+
+    given()
+        .contentType("application/json")
+        .body("{\"note\":\"dup\"}")
+        .when()
+        .put("/api/community/submissions/" + created.id() + "/approve")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("duplicate_url_submission"));
   }
 
   @Test
@@ -163,5 +233,9 @@ public class CommunitySubmissionApiResourceTest {
       Thread.sleep(80);
     }
     return false;
+  }
+
+  private Path contentDir() {
+    return Path.of(System.getProperty("homedir.data.dir"), "community", "content");
   }
 }
