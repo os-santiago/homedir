@@ -61,6 +61,55 @@
         </article>
       </div>
     </div>
+
+    <div class="section-card events-full-width community-submissions-card" id="community-submissions-root" data-authenticated="{isAuthenticated}">
+      <div class="section-header">
+        <p class="section-subtitle">Community · Feed</p>
+        <h2 class="page-title">Proponer contenido</h2>
+      </div>
+      <p class="section-subtitle">Comparte un recurso relevante y el equipo lo revisará para publicarlo en Comunidad.</p>
+      <div id="community-submission-feedback" class="community-feedback hidden" role="alert"></div>
+
+      {#if isAuthenticated}
+      <form id="community-submission-form" class="community-submission-form">
+        <label class="community-field">
+          <span>Título</span>
+          <input type="text" name="title" maxlength="140" required placeholder="Ej: Kubernetes 1.35: novedades para platform teams" />
+        </label>
+        <label class="community-field">
+          <span>URL</span>
+          <input type="url" name="url" maxlength="400" required placeholder="https://..." />
+        </label>
+        <label class="community-field">
+          <span>Resumen</span>
+          <textarea name="summary" maxlength="360" rows="3" required placeholder="1-3 líneas con el contexto más importante"></textarea>
+        </label>
+        <label class="community-field">
+          <span>Fuente (opcional)</span>
+          <input type="text" name="source" maxlength="80" placeholder="Ej: CNCF Blog" />
+        </label>
+        <label class="community-field">
+          <span>Tags (opcional, separadas por coma)</span>
+          <input type="text" name="tags" maxlength="180" placeholder="ai, opensource, platform engineering" />
+        </label>
+        <div class="community-actions">
+          <button id="community-submit-btn" type="submit" class="btn-primary">Enviar propuesta</button>
+        </div>
+      </form>
+      <div class="community-submissions-list-wrap">
+        <h3>Mis propuestas</h3>
+        <div id="community-submissions-empty" class="community-empty hidden">
+          <p>Aún no has enviado propuestas.</p>
+        </div>
+        <div id="community-submissions-list" class="community-submissions-list"></div>
+      </div>
+      {#else}
+      <div class="community-empty">
+        <p>Inicia sesión para proponer contenido al Community Feed.</p>
+        <a class="btn-primary" href="/private/profile">Iniciar sesión</a>
+      </div>
+      {/if}
+    </div>
   </section>
 
 <style>
@@ -232,6 +281,96 @@
     cursor: default;
   }
 
+  .community-submissions-card,
+  .community-submissions-card:hover {
+    transform: none;
+    animation: none;
+    cursor: default;
+  }
+
+  .community-submission-form {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .community-field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .community-field span {
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+
+  .community-field input,
+  .community-field textarea {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    color: inherit;
+    padding: 0.55rem 0.65rem;
+    font: inherit;
+  }
+
+  .community-submissions-list-wrap {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .community-submissions-list-wrap h3 {
+    margin: 0;
+  }
+
+  .community-submissions-list {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .community-submission-item {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .community-submission-title {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .community-submission-meta {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+
+  .community-submission-status {
+    display: inline-flex;
+    width: fit-content;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.74rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .community-submission-status.pending {
+    background: rgba(255, 215, 120, 0.16);
+  }
+
+  .community-submission-status.approved {
+    background: rgba(120, 255, 160, 0.16);
+  }
+
+  .community-submission-status.rejected {
+    background: rgba(255, 120, 120, 0.16);
+  }
+
   .community-board-grid {
     display: grid;
     gap: 1rem;
@@ -288,5 +427,6 @@
   }
 </style>
 <script src="/js/community-content.js?v={app:version()}" defer></script>
+<script src="/js/community-submissions.js?v={app:version()}" defer></script>
 {/body}
 {/include}

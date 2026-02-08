@@ -98,6 +98,10 @@ public class CommunityContentService {
     refreshNow("test");
   }
 
+  public void forceRefreshAsync(String reason) {
+    triggerRefreshAsync(true, reason == null || reason.isBlank() ? "manual" : reason);
+  }
+
   private void maybeRefreshAsyncOnDemand() {
     CacheSnapshot snapshot = cache.get();
     if (snapshot.loadedAt() == null) {

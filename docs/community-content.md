@@ -81,6 +81,18 @@ Featured window:
 - `GET /api/community/content/{id}`
 - `PUT /api/community/content/{id}/vote`
 
+### Community Feed submissions
+- `POST /api/community/submissions` (auth required)
+- `GET /api/community/submissions/mine` (auth required)
+- `GET /api/community/submissions/pending` (admin only)
+- `PUT /api/community/submissions/{id}/approve` (admin only)
+- `PUT /api/community/submissions/{id}/reject` (admin only)
+
+Submission notes:
+- Proposals are persisted asynchronously in `${homedir.data.dir}/community/submissions/pending.json`.
+- Daily guardrail per user: `community.submissions.daily-limit` (default `5`).
+- On approve, Homedir generates one YAML item in the curated content directory so the existing feed/ranking/votes pipeline remains unchanged.
+
 ## Community Board Data Sources
 - `HomeDir users`: internal `UserProfile` store (Google-auth users with local profile).
 - `GitHub users`: union of linked GitHub accounts in `UserProfile` + synced community members.
