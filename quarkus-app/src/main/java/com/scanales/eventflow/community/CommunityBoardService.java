@@ -10,6 +10,7 @@ import com.scanales.eventflow.service.UserProfileService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,16 +84,25 @@ public class CommunityBoardService {
     discordCache.set(DiscordCache.empty());
   }
 
+  public Optional<CommunityBoardMemberView> findMember(CommunityBoardGroup group, String id) {
+    String normalizedId = normalizeId(id);
+    if (normalizedId == null) {
+      return Optional.empty();
+    }
+    return members(group).stream().filter(member -> normalizedId.equals(member.id())).findFirst();
+  }
+
   private List<CommunityBoardMemberView> homedirMembers() {
-    List<CommunityBoardMemberView> out = new ArrayList<>();
+    Map<String, CommunityBoardMemberView> byId = new LinkedHashMap<>();
     for (UserProfile profile : userProfileService.allProfiles().values()) {
-      String id = normalizeId(firstNonBlank(profile.getUserId(), profile.getEmail()));
+      String identitySeed = firstNonBlank(profile.getUserId(), profile.getEmail());
+      String githubLogin = profile.getGithub() != null ? trimToNull(profile.getGithub().login()) : null;
+      String id = homedirMemberId(identitySeed, githubLogin);
       if (id == null) {
         continue;
       }
       String displayName =
           firstNonBlank(profile.getName(), usernameFromEmail(profile.getEmail()), "Homedir user");
-      String githubLogin = profile.getGithub() != null ? trimToNull(profile.getGithub().login()) : null;
       String handle =
           githubLogin != null
               ? "@" + githubLogin
@@ -102,12 +112,12 @@ public class CommunityBoardService {
           profile.getGithub() != null && profile.getGithub().linkedAt() != null
               ? DATE_FMT.format(profile.getGithub().linkedAt())
               : null;
-      String link =
-          githubLogin != null
-              ? "/u/" + githubLogin
-              : "/comunidad/board/homedir-users?member=" + urlEncode(id);
-      out.add(new CommunityBoardMemberView(id, displayName, handle, avatarUrl, since, link, link));
+      String link = memberSharePath(CommunityBoardGroup.HOMEDIR_USERS, id);
+      CommunityBoardMemberView candidate =
+          new CommunityBoardMemberView(id, displayName, handle, avatarUrl, since, link, link);
+      byId.putIfAbsent(id, candidate);
     }
+    List<CommunityBoardMemberView> out = new ArrayList<>(byId.values());
     out.sort(memberComparator());
     return List.copyOf(out);
   }
@@ -147,7 +157,7 @@ public class CommunityBoardService {
     for (Map.Entry<String, GithubMemberSeed> entry : byLogin.entrySet()) {
       String login = entry.getKey();
       GithubMemberSeed seed = entry.getValue();
-      String link = "/u/" + login;
+      String link = memberSharePath(CommunityBoardGroup.GITHUB_USERS, login);
       out.add(
           new CommunityBoardMemberView(
               login,
@@ -210,7 +220,7 @@ public class CommunityBoardService {
       String handle = firstNonBlank(text(node, "handle", null), displayName);
       String avatar = text(node, "avatar_url", null);
       String joined = normalizeDateLabel(text(node, "joined_at", null));
-      String link = "/comunidad/board/discord-users?member=" + urlEncode(id);
+      String link = memberSharePath(CommunityBoardGroup.DISCORD_USERS, id);
       out.add(new CommunityBoardMemberView(id, displayName, handle, avatar, joined, link, link));
     }
     out.sort(memberComparator());
@@ -349,6 +359,22 @@ public class CommunityBoardService {
     return value == null ? null : value.toLowerCase(Locale.ROOT);
   }
 
+  private static String homedirMemberId(String identitySeed, String githubLogin) {
+    String github = normalizeId(githubLogin);
+    if (github != null) {
+      return "gh-" + github;
+    }
+    String seed = normalizeId(identitySeed);
+    if (seed == null) {
+      return null;
+    }
+    return "hd-" + shortHash(seed, 16);
+  }
+
+  private static String memberSharePath(CommunityBoardGroup group, String id) {
+    return "/community/member/" + group.path() + "/" + urlEncode(id);
+  }
+
   private static String firstNonBlank(String... values) {
     if (values == null) {
       return null;
@@ -368,6 +394,21 @@ public class CommunityBoardService {
     }
     String trimmed = value.trim();
     return trimmed.isEmpty() ? null : trimmed;
+  }
+
+  private static String shortHash(String value, int maxLength) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hashed = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+      StringBuilder hex = new StringBuilder(hashed.length * 2);
+      for (byte b : hashed) {
+        hex.append(String.format("%02x", b));
+      }
+      int end = Math.min(hex.length(), Math.max(6, maxLength));
+      return hex.substring(0, end);
+    } catch (Exception e) {
+      return Integer.toHexString(value.hashCode());
+    }
   }
 
   public record BoardSlice(

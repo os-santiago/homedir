@@ -67,6 +67,7 @@ public class CommunityBoardResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("board-user"))
+        .body(containsString("/community/member/github-users/board-user"))
         .body(containsString("Copy profile link"));
   }
 
@@ -80,5 +81,28 @@ public class CommunityBoardResourceTest {
         .then()
         .statusCode(303)
         .header("Location", containsString("/comunidad/board"));
+  }
+
+  @Test
+  void memberSharePageRenders() {
+    given()
+        .when()
+        .get("/community/member/github-users/board-user")
+        .then()
+        .statusCode(200)
+        .body(containsString("Board User"))
+        .body(containsString("Open profile"));
+  }
+
+  @Test
+  void spanishMemberAliasRedirectsToCanonicalSharePath() {
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/comunidad/member/github-users/board-user")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/community/member/github-users/board-user"));
   }
 }
