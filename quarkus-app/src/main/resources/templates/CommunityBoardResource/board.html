@@ -1,0 +1,66 @@
+{#include layout/main activePage="comunidad"}
+{#title}Community Board · Homedir{/title}
+{#body}
+  <header class="page-header events-page-header">
+    <div class="section-header">
+      <p class="section-subtitle">Community · Board</p>
+      <h1>Community Board</h1>
+    </div>
+    <p class="section-subtitle">
+      Explore who is participating in HomeDir today and jump directly into member directories.
+    </p>
+  </header>
+
+  <section class="page-grid">
+    <article class="section-card">
+      <p class="eyebrow">HomeDir users</p>
+      <h2>{summary.homedirUsers}</h2>
+      <p>People who signed in with Google and created a Homedir account.</p>
+      <a class="btn-primary" href="/community/board/homedir-users">View members</a>
+    </article>
+
+    <article class="section-card">
+      <p class="eyebrow">GitHub users</p>
+      <h2>{summary.githubUsers}</h2>
+      <p>Contributors with a linked GitHub account in the OSSantiago ecosystem.</p>
+      <a class="btn-primary" href="/community/board/github-users">View members</a>
+    </article>
+
+    <article class="section-card">
+      <p class="eyebrow">Discord users</p>
+      <h2>{summary.discordUsers}</h2>
+      <p>People who joined our official OSSantiago Discord server.</p>
+      <a class="btn-primary" href="/community/board/discord-users">View members</a>
+    </article>
+  </section>
+
+  <section class="page-grid">
+    <article class="section-card events-full-width">
+      <p class="eyebrow">Quick access</p>
+      <h2>Community content</h2>
+      <p>Use Feed and Picks to discover updates while Board focuses on people and membership.</p>
+      <div class="community-board-actions">
+        <a class="btn-primary" href="/community/feed">Open Community Feed</a>
+        <a class="btn-primary" href="/community/picks">Open Community Picks</a>
+      </div>
+      <small class="community-board-small">Last refresh: {summary.loadedAtText}</small>
+    </article>
+  </section>
+
+  <style>
+    .community-board-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .community-board-small {
+      display: block;
+      margin-top: 0.75rem;
+      opacity: 0.75;
+    }
+  </style>
+{/body}
+{/include}
+

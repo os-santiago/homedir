@@ -1,0 +1,119 @@
+{#include layout/main activePage="comunidad"}
+{#title}{member.displayName} · Community Member{/title}
+{#body}
+  <header class="page-header events-page-header">
+    <div class="section-header">
+      <p class="section-subtitle">Community · Member</p>
+      <h1>{member.displayName}</h1>
+    </div>
+    <p class="section-subtitle">{groupMeta.title}</p>
+    <div class="community-board-actions">
+      <a class="btn-primary" href="/community/board/{member.groupKey}">Back to group</a>
+      <a class="btn-primary" href="/community/board">Back to board</a>
+    </div>
+  </header>
+
+  <section class="page-grid">
+    <article class="section-card events-full-width member-profile-card">
+      <div class="member-profile-head">
+        {#if member.avatarUrl}
+          <img src="{member.avatarUrl}" alt="{member.displayName}" class="member-profile-avatar">
+        {#else}
+          <div class="member-profile-avatar member-profile-avatar-fallback">{member.displayName.substring(0,1).toUpperCase}</div>
+        {/if}
+        <div>
+          <p class="eyebrow">Identifier</p>
+          <h2>{member.identifier}</h2>
+          <p>Member since: {member.joinedAtText}</p>
+        </div>
+      </div>
+      <div class="member-profile-actions">
+        <button type="button" class="btn-primary" id="copy-profile-link" data-path="{member.sharePath}">Copy profile link</button>
+        {#if member.publicProfilePath}
+          <a class="btn-primary" href="{member.publicProfilePath}" target="_blank" rel="noopener noreferrer">Open public profile</a>
+        {/if}
+      </div>
+    </article>
+  </section>
+
+  <style>
+    .community-board-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .member-profile-card {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .member-profile-head {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .member-profile-avatar {
+      width: 84px;
+      height: 84px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .member-profile-avatar-fallback {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .member-profile-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  </style>
+
+  <script>
+    (function () {
+      var button = document.getElementById("copy-profile-link");
+      if (!button) {
+        return;
+      }
+
+      function copyPath(path) {
+        var text = window.location.origin + path;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        }
+        var input = document.createElement("input");
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+        return Promise.resolve();
+      }
+
+      button.addEventListener("click", function () {
+        var path = button.getAttribute("data-path");
+        if (!path) return;
+        copyPath(path).then(function () {
+          var previous = button.textContent;
+          button.textContent = "Copied";
+          setTimeout(function () {
+            button.textContent = previous;
+          }, 1200);
+        });
+      });
+    })();
+  </script>
+{/body}
+{/include}
+
