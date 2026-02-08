@@ -19,17 +19,24 @@
   const moderationListEl = document.getElementById("community-moderation-list");
   const moderationEmptyEl = document.getElementById("community-moderation-empty");
   const moderationPanel = document.getElementById("community-moderation-panel");
+  const moderatedIds = new Set();
 
-  if (!form || !submitBtn || !listEl || !emptyEl || !feedbackEl) {
+  if (!feedbackEl) {
     return;
   }
 
   function showFeedback(message) {
+    if (!feedbackEl) {
+      return;
+    }
     feedbackEl.textContent = message;
     feedbackEl.classList.remove("hidden");
   }
 
   function hideFeedback() {
+    if (!feedbackEl) {
+      return;
+    }
     feedbackEl.textContent = "";
     feedbackEl.classList.add("hidden");
   }
@@ -57,6 +64,9 @@
   }
 
   function renderList(items) {
+    if (!listEl || !emptyEl) {
+      return;
+    }
     listEl.textContent = "";
     if (!Array.isArray(items) || items.length === 0) {
       emptyEl.classList.remove("hidden");
@@ -91,13 +101,20 @@
     if (!isAdmin || !moderationListEl || !moderationEmptyEl) {
       return;
     }
+    const pendingItems = Array.isArray(items)
+      ? items.filter((item) => {
+          const id = String(item && item.id ? item.id : "");
+          const status = String(item && item.status ? item.status : "pending").toLowerCase();
+          return Boolean(id) && status === "pending" && !moderatedIds.has(id);
+        })
+      : [];
     moderationListEl.textContent = "";
-    if (!Array.isArray(items) || items.length === 0) {
+    if (pendingItems.length === 0) {
       moderationEmptyEl.classList.remove("hidden");
       return;
     }
     moderationEmptyEl.classList.add("hidden");
-    items.forEach((item) => {
+    pendingItems.forEach((item) => {
       const card = document.createElement("article");
       card.className = "community-submission-item";
 
@@ -161,7 +178,13 @@
         approveBtn.disabled = true;
         rejectBtn.disabled = true;
         try {
+          hideFeedback();
           await moderateSubmission(submissionId, action, note.value.trim());
+          moderatedIds.add(submissionId);
+          card.remove();
+          if (moderationListEl.children.length === 0) {
+            moderationEmptyEl.classList.remove("hidden");
+          }
           await Promise.all([loadMine(), loadPending()]);
           showFeedback(
             action === "approve"
@@ -180,6 +203,9 @@
   }
 
   async function loadMine() {
+    if (!listEl || !emptyEl) {
+      return;
+    }
     try {
       const response = await fetch("/api/community/submissions/mine?limit=20&offset=0", {
         headers: { Accept: "application/json" }
@@ -196,7 +222,7 @@
   }
 
   async function loadPending() {
-    if (!isAdmin) {
+    if (!isAdmin || !moderationListEl || !moderationEmptyEl) {
       return;
     }
     try {
@@ -253,52 +279,54 @@
     return Array.from(new Set(parts)).slice(0, 8);
   }
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    hideFeedback();
-    submitBtn.disabled = true;
+  if (form && submitBtn) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      hideFeedback();
+      submitBtn.disabled = true;
 
-    const formData = new FormData(form);
-    const payload = {
-      title: String(formData.get("title") || "").trim(),
-      url: String(formData.get("url") || "").trim(),
-      summary: String(formData.get("summary") || "").trim(),
-      source: String(formData.get("source") || "").trim() || null,
-      tags: parseTags(formData.get("tags"))
-    };
+      const formData = new FormData(form);
+      const payload = {
+        title: String(formData.get("title") || "").trim(),
+        url: String(formData.get("url") || "").trim(),
+        summary: String(formData.get("summary") || "").trim(),
+        source: String(formData.get("source") || "").trim() || null,
+        tags: parseTags(formData.get("tags"))
+      };
 
-    try {
-      const response = await fetch("/api/community/submissions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        const errorCode = String(data.error || "");
-        if (response.status === 429) {
-          throw new Error("Llegaste al límite diario de propuestas.");
+      try {
+        const response = await fetch("/api/community/submissions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const errorCode = String(data.error || "");
+          if (response.status === 429) {
+            throw new Error("Llegaste al límite diario de propuestas.");
+          }
+          if (response.status === 409) {
+            throw new Error("Ya existe una propuesta para esa URL.");
+          }
+          if (response.status === 400 && errorCode) {
+            throw new Error(`Datos inválidos: ${errorCode}`);
+          }
+          throw new Error("No se pudo enviar la propuesta.");
         }
-        if (response.status === 409) {
-          throw new Error("Ya existe una propuesta para esa URL.");
-        }
-        if (response.status === 400 && errorCode) {
-          throw new Error(`Datos inválidos: ${errorCode}`);
-        }
-        throw new Error("No se pudo enviar la propuesta.");
+        form.reset();
+        showFeedback("Propuesta enviada. Quedó pendiente de revisión.");
+        await Promise.all([loadMine(), loadPending()]);
+      } catch (error) {
+        showFeedback(error instanceof Error ? error.message : "No se pudo enviar la propuesta.");
+      } finally {
+        submitBtn.disabled = false;
       }
-      form.reset();
-      showFeedback("Propuesta enviada. Quedó pendiente de revisión.");
-      await Promise.all([loadMine(), loadPending()]);
-    } catch (error) {
-      showFeedback(error instanceof Error ? error.message : "No se pudo enviar la propuesta.");
-    } finally {
-      submitBtn.disabled = false;
-    }
-  });
+    });
+  }
 
   Promise.all([loadMine(), loadPending()]).then(() => {
     if (isAdmin && activeSubmenu === "moderation" && moderationPanel) {

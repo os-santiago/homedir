@@ -17,7 +17,8 @@ public class CommunityModerationPageTest {
         .get("/comunidad/moderation")
         .then()
         .statusCode(200)
-        .body(containsString("Proponer contenido"));
+        .body(containsString("Moderation queue"))
+        .body(containsString("Solo administradores pueden moderar propuestas."));
   }
 
   @Test
