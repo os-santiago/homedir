@@ -9,6 +9,7 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.SystemError;
+import com.scanales.eventflow.community.CommunitySubmission;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,6 +25,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -64,11 +66,16 @@ public class PersistenceService {
   private Path speakersFile;
   private Path profilesFile;
   private Path systemErrorsFile;
+  private Path communitySubmissionsFile;
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
 
   private volatile boolean lowDiskSpace;
   private static final long MIN_FREE_BYTES = 50L * 1024 * 1024; // 50 MB
+  private static final int MAX_WRITE_ATTEMPTS = 3;
+  private static final long INITIAL_RETRY_BACKOFF_MS = 250L;
+  private static final long FLUSH_TIMEOUT_MS = 15000L;
+  private final AtomicInteger scheduledRetries = new AtomicInteger();
 
   @PostConstruct
   void init() {
@@ -88,6 +95,7 @@ public class PersistenceService {
     speakersFile = dataDir.resolve("speakers.json");
     profilesFile = dataDir.resolve("user-profiles.json");
     systemErrorsFile = dataDir.resolve("system-errors.json");
+    communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
 
     try {
       Files.createDirectories(dataDir);
@@ -127,6 +135,8 @@ public class PersistenceService {
 
   @PreDestroy
   void shutdown() {
+    flush();
+
     retryScheduler.shutdown();
     try {
       if (!retryScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
@@ -137,8 +147,6 @@ public class PersistenceService {
       Thread.currentThread().interrupt();
       retryScheduler.shutdownNow();
     }
-
-    flush();
 
     executor.shutdown();
     try {
@@ -204,6 +212,17 @@ public class PersistenceService {
   /** Loads system errors */
   public Map<String, SystemError> loadSystemErrors() {
     return read(systemErrorsFile, new TypeReference<Map<String, SystemError>>() {
+    });
+  }
+
+  /** Persists community submissions asynchronously. */
+  public void saveCommunitySubmissions(Map<String, CommunitySubmission> submissions) {
+    scheduleWrite(communitySubmissionsFile, submissions);
+  }
+
+  /** Loads community submissions from disk or returns an empty map if none. */
+  public Map<String, CommunitySubmission> loadCommunitySubmissions() {
+    return read(communitySubmissionsFile, new TypeReference<Map<String, CommunitySubmission>>() {
     });
   }
 
@@ -323,7 +342,7 @@ public class PersistenceService {
   private void scheduleWrite(Path file, Object data) {
     AtomicLong versionCounter = fileVersions.computeIfAbsent(file, k -> new AtomicLong(0));
     long version = versionCounter.incrementAndGet();
-    scheduleWriteAttempt(file, data, version, 1, 250);
+    scheduleWriteAttempt(file, data, version, 1, INITIAL_RETRY_BACKOFF_MS);
   }
 
   private void scheduleWriteAttempt(
@@ -350,16 +369,39 @@ public class PersistenceService {
 
     checkDiskSpace();
     if (lowDiskSpace) {
-      LOG.warn("Low disk space - skipping persistence");
+      if (attempt >= MAX_WRITE_ATTEMPTS) {
+        writesFail.incrementAndGet();
+        lastError = "low_disk_space";
+        LOG.errorf(
+            "Low disk space after %d attempts - dropping write for %s (v%d)",
+            attempt,
+            file.getFileName(),
+            version);
+      } else {
+        writesRetries.incrementAndGet();
+        lastError = "low_disk_space_retry";
+        LOG.warnf(
+            "Low disk space on attempt %d for %s (v%d), retrying in %dms",
+            attempt,
+            file.getFileName(),
+            version,
+            backoffMillis);
+        scheduleRetry(file, data, version, attempt + 1, backoffMillis * 2);
+      }
       return;
     }
     try {
+      Path parent = file.getParent();
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
       Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
       try {
         mapper.writeValue(tmp.toFile(), data);
         Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         LOG.infof("Persisted %s at %s (v%d)", file.getFileName(), java.time.Instant.now(), version);
         writesOk.incrementAndGet();
+        lastError = null;
       } finally {
         try {
           Files.deleteIfExists(tmp);
@@ -368,7 +410,7 @@ public class PersistenceService {
         }
       }
     } catch (IOException e) {
-      if (attempt >= 3) {
+      if (attempt >= MAX_WRITE_ATTEMPTS) {
         LOG.error("Failed to persist data to " + file, e);
         writesFail.incrementAndGet();
         lastError = e.getMessage();
@@ -391,15 +433,23 @@ public class PersistenceService {
 
   private void scheduleRetry(
       Path file, Object data, long version, int nextAttempt, long backoffMillis) {
+    scheduledRetries.incrementAndGet();
     try {
       retryScheduler.schedule(
-          () -> scheduleWriteAttempt(file, data, version, nextAttempt, backoffMillis),
+          () -> {
+            try {
+              scheduleWriteAttempt(file, data, version, nextAttempt, backoffMillis);
+            } finally {
+              scheduledRetries.decrementAndGet();
+            }
+          },
           backoffMillis,
           TimeUnit.MILLISECONDS);
     } catch (RejectedExecutionException e) {
+      scheduledRetries.decrementAndGet();
       queueDropped.incrementAndGet();
-      lastError = "queue_full";
-      LOG.warn("Persistence queue full - dropping write for " + file.getFileName());
+      lastError = "retry_scheduler_rejected";
+      LOG.warn("Persistence retry scheduler rejected write for " + file.getFileName());
     }
   }
 
@@ -441,13 +491,43 @@ public class PersistenceService {
 
   /** Blocks until all queued persistence tasks are finished. */
   public void flush() {
-    try {
-      Future<?> f = executor.submit(() -> {
-      });
-      f.get();
-    } catch (Exception e) {
-      // ignore
+    if (executor == null || retryScheduler == null) {
+      return;
     }
+    long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(FLUSH_TIMEOUT_MS);
+    while (System.nanoTime() < deadlineNanos) {
+      if (executor.isShutdown()) {
+        return;
+      }
+      try {
+        Future<?> f = executor.submit(() -> {
+        });
+        f.get(2, TimeUnit.SECONDS);
+      } catch (RejectedExecutionException ignored) {
+        return;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
+      } catch (ExecutionException | TimeoutException ignored) {
+        // keep trying until deadline
+      }
+
+      if (queue.isEmpty() && executor.getActiveCount() == 0 && scheduledRetries.get() == 0) {
+        return;
+      }
+
+      try {
+        Thread.sleep(25);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
+      }
+    }
+    LOG.warnf(
+        "persistence_flush_timeout depth=%d active=%d pendingRetries=%d",
+        queue.size(),
+        executor.getActiveCount(),
+        scheduledRetries.get());
   }
 
   private Path scheduleFile(int year) {
