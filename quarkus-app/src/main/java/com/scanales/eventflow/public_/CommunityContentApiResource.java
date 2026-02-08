@@ -52,13 +52,15 @@ public class CommunityContentApiResource {
   @GET
   public Response list(
       @QueryParam("view") String viewParam,
+      @QueryParam("filter") String filterParam,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
     String view = normalizeView(viewParam);
+    ContentFilter filter = normalizeFilter(filterParam);
     int limit = normalizeLimit(limitParam);
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
 
-    List<CommunityContentItem> all = contentService.allItems();
+    List<CommunityContentItem> all = applyFilter(contentService.allItems(), filter);
     String userId = currentUserId().orElse(null);
     Map<String, CommunityVoteAggregate> aggregates = aggregatesFor(all, userId);
 
@@ -82,7 +84,7 @@ public class CommunityContentApiResource {
             metrics.filesLoaded(),
             metrics.filesInvalid());
 
-    return Response.ok(new ContentListResponse(view, limit, offset, ordered.size(), items, cacheMeta)).build();
+    return Response.ok(new ContentListResponse(view, filter.apiValue, limit, offset, ordered.size(), items, cacheMeta)).build();
   }
 
   @GET
@@ -155,6 +157,31 @@ public class CommunityContentApiResource {
     return Math.min(rawLimit, MAX_LIMIT);
   }
 
+  private ContentFilter normalizeFilter(String rawFilter) {
+    if (rawFilter == null || rawFilter.isBlank()) {
+      return ContentFilter.ALL;
+    }
+    return switch (rawFilter.trim().toLowerCase(Locale.ROOT)) {
+      case "internet" -> ContentFilter.INTERNET;
+      case "members" -> ContentFilter.MEMBERS;
+      default -> ContentFilter.ALL;
+    };
+  }
+
+  private List<CommunityContentItem> applyFilter(List<CommunityContentItem> items, ContentFilter filter) {
+    if (filter == ContentFilter.ALL) {
+      return items;
+    }
+    return items.stream()
+        .filter(item -> {
+          ContentOrigin origin = detectOrigin(item);
+          return filter == ContentFilter.MEMBERS
+              ? origin == ContentOrigin.MEMBERS
+              : origin == ContentOrigin.INTERNET;
+        })
+        .toList();
+  }
+
   private Map<String, CommunityVoteAggregate> aggregatesFor(
       List<CommunityContentItem> all, String userId) {
     List<String> ids = all.stream().map(CommunityContentItem::id).toList();
@@ -212,12 +239,14 @@ public class CommunityContentApiResource {
       CommunityContentItem item, CommunityVoteAggregate aggregate, double score) {
     VoteCounts counts = new VoteCounts(aggregate.recommended(), aggregate.mustSee(), aggregate.notForMe());
     String myVote = aggregate.myVote() == null ? null : aggregate.myVote().apiValue();
+    ContentOrigin origin = detectOrigin(item);
     return new ContentItemResponse(
         item.id(),
         item.title(),
         item.url(),
         item.summary(),
         item.source(),
+        origin.apiValue,
         item.createdAt(),
         item.publishedAt(),
         item.tags(),
@@ -225,6 +254,18 @@ public class CommunityContentApiResource {
         counts,
         myVote,
         score);
+  }
+
+  private ContentOrigin detectOrigin(CommunityContentItem item) {
+    if (item == null) {
+      return ContentOrigin.INTERNET;
+    }
+    String id = item.id() == null ? "" : item.id().toLowerCase(Locale.ROOT);
+    String source = item.source() == null ? "" : item.source().trim().toLowerCase(Locale.ROOT);
+    if (id.startsWith("submission-") || "community member".equals(source) || "member".equals(source)) {
+      return ContentOrigin.MEMBERS;
+    }
+    return ContentOrigin.INTERNET;
   }
 
   private Optional<String> currentUserId() {
@@ -260,6 +301,7 @@ public class CommunityContentApiResource {
 
   public record ContentListResponse(
       String view,
+      String filter,
       int limit,
       int offset,
       int total,
@@ -281,6 +323,7 @@ public class CommunityContentApiResource {
       String url,
       String summary,
       String source,
+      String origin,
       @JsonProperty("created_at") Instant createdAt,
       @JsonProperty("published_at") Instant publishedAt,
       List<String> tags,
@@ -293,5 +336,27 @@ public class CommunityContentApiResource {
   public record VoteCounts(
       long recommended, @JsonProperty("must_see") long mustSee, @JsonProperty("not_for_me") long notForMe) {
   }
-}
 
+  private enum ContentFilter {
+    ALL("all"),
+    INTERNET("internet"),
+    MEMBERS("members");
+
+    final String apiValue;
+
+    ContentFilter(String apiValue) {
+      this.apiValue = apiValue;
+    }
+  }
+
+  private enum ContentOrigin {
+    INTERNET("internet"),
+    MEMBERS("members");
+
+    final String apiValue;
+
+    ContentOrigin(String apiValue) {
+      this.apiValue = apiValue;
+    }
+  }
+}

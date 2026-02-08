@@ -57,6 +57,17 @@ public class CommunityContentApiResourceTest {
         source: "example.org"
         created_at: "2026-02-06T10:00:00Z"
         """);
+    Files.writeString(
+        dir.resolve("20260205-member-item-3.yml"),
+        """
+        id: submission-member-item-3
+        title: "Aporte de comunidad"
+        url: "https://community.example.org/post"
+        summary: "Resumen desde miembros."
+        source: "Community member"
+        created_at: "2026-02-05T10:00:00Z"
+        tags: ["community"]
+        """);
     contentService.refreshNowForTests();
   }
 
@@ -69,8 +80,36 @@ public class CommunityContentApiResourceTest {
         .then()
         .statusCode(200)
         .body("view", equalTo("new"))
-        .body("total", greaterThanOrEqualTo(2))
+        .body("filter", equalTo("all"))
+        .body("total", greaterThanOrEqualTo(3))
         .body("items[0].id", equalTo("java-item-1"));
+  }
+
+  @Test
+  void filterMembersReturnsOnlyMemberContent() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/content?view=new&filter=members&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("filter", equalTo("members"))
+        .body("total", equalTo(1))
+        .body("items[0].id", equalTo("submission-member-item-3"))
+        .body("items[0].origin", equalTo("members"));
+  }
+
+  @Test
+  void filterInternetExcludesMemberSubmissions() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/content?view=new&filter=internet&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("filter", equalTo("internet"))
+        .body("total", equalTo(2))
+        .body("items[0].origin", equalTo("internet"));
   }
 
   @Test
@@ -109,4 +148,3 @@ public class CommunityContentApiResourceTest {
         .body("item.my_vote", equalTo("must_see"));
   }
 }
-

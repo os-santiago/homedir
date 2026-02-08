@@ -78,6 +78,7 @@ Featured window:
 
 ## API
 - `GET /api/community/content?view=new|featured&limit=&offset=`
+  - Optional filter: `filter=all|internet|members`
 - `GET /api/community/content/{id}`
 - `PUT /api/community/content/{id}/vote`
 
