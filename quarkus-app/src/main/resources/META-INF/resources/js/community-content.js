@@ -6,6 +6,7 @@
 
   const authenticated = String(root.dataset.authenticated || "false") === "true";
   const pageSize = Number.parseInt(root.dataset.pageSize || "10", 10) || 10;
+  const initialView = String(root.dataset.initialView || "featured") === "new" ? "new" : "featured";
 
   const listEl = document.getElementById("community-list");
   const skeletonEl = document.getElementById("community-skeleton");
@@ -15,7 +16,7 @@
   const tabButtons = Array.from(document.querySelectorAll(".community-tab"));
 
   const state = {
-    view: "featured",
+    view: initialView,
     items: [],
     offset: 0,
     total: 0,
@@ -250,6 +251,10 @@
       });
       load(true);
     });
+  });
+
+  tabButtons.forEach((candidate) => {
+    candidate.classList.toggle("active", candidate.dataset.view === state.view);
   });
 
   listEl.addEventListener("click", (event) => {

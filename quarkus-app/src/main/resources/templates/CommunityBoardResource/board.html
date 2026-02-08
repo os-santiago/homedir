@@ -1,0 +1,81 @@
+{#include layout/main activePage="comunidad"}
+{#title}Community Board · Homedir{/title}
+{#body}
+  <header class="page-header events-page-header">
+    <div class="section-header">
+      <p class="section-subtitle">Community · Board</p>
+      <h1>Community Board</h1>
+    </div>
+    <p class="section-subtitle">
+      Quienes participan, desde donde colaboran y como compartir su presencia en la comunidad.
+    </p>
+  </header>
+
+  <section class="page-grid">
+    <div class="section-card events-full-width board-shell">
+      <div class="board-summary-grid">
+        <article class="board-summary-card">
+          <p class="section-subtitle">HomeDir users</p>
+          <h2>{homedirUsers}</h2>
+          <p>People who signed in with Google and created a Homedir account.</p>
+          <a class="btn-primary" href="/comunidad/board/homedir-users">View members</a>
+        </article>
+
+        <article class="board-summary-card">
+          <p class="section-subtitle">GitHub users</p>
+          <h2>{githubUsers}</h2>
+          <p>Contributors with a linked GitHub account in the OSSantiago ecosystem.</p>
+          <a class="btn-primary" href="/comunidad/board/github-users">View members</a>
+        </article>
+
+        <article class="board-summary-card">
+          <p class="section-subtitle">Discord users</p>
+          <h2>{discordUsers}</h2>
+          <p>People who joined our official OSSantiago Discord server.</p>
+          <a class="btn-primary" href="/comunidad/board/discord-users">View members</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .board-shell,
+    .board-shell:hover {
+      transform: none;
+      animation: none;
+      cursor: default;
+    }
+
+    .board-summary-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .board-summary-card {
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-radius: 10px;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.35);
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .board-summary-card h2 {
+      margin: 0;
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .board-summary-card p {
+      margin: 0;
+    }
+
+    @media (max-width: 980px) {
+      .board-summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{/body}
+{/include}

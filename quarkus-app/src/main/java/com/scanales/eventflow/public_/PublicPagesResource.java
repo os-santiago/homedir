@@ -13,6 +13,7 @@ import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -88,6 +89,30 @@ public class PublicPagesResource {
   @Path("/community")
   public Response community() {
     return Response.seeOther(URI.create("/comunidad")).build();
+  }
+
+  @GET
+  @Path("/community/feed")
+  public Response communityFeed() {
+    return Response.seeOther(URI.create("/comunidad/feed")).build();
+  }
+
+  @GET
+  @Path("/community/picks")
+  public Response communityPicks() {
+    return Response.seeOther(URI.create("/comunidad/picks")).build();
+  }
+
+  @GET
+  @Path("/community/board")
+  public Response communityBoard() {
+    return Response.seeOther(URI.create("/comunidad/board")).build();
+  }
+
+  @GET
+  @Path("/community/board/{group}")
+  public Response communityBoardGroup(@PathParam("group") String group) {
+    return Response.seeOther(URI.create("/comunidad/board/" + group)).build();
   }
 
   @GET

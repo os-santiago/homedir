@@ -13,10 +13,11 @@
 
   <section class="page-grid">
     <div class="section-card events-full-width community-shell-card">
-      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10">
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}">
         <div class="community-tabs">
-          <button type="button" class="btn-primary community-tab active" data-view="featured">Destacado</button>
-          <button type="button" class="btn-primary community-tab" data-view="new">Nuevo</button>
+          <button type="button" class="btn-primary community-tab active" data-view="featured">Community Picks</button>
+          <button type="button" class="btn-primary community-tab" data-view="new">Community Feed</button>
+          <a class="btn-primary community-tab-link" href="/comunidad/board">Community Board</a>
         </div>
 
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
@@ -36,6 +37,33 @@
         <div class="community-actions">
           <button id="community-load-more" type="button" class="btn-primary hidden">Cargar más</button>
         </div>
+      </div>
+    </div>
+
+    <div class="section-card events-full-width community-board-preview">
+      <div class="section-header">
+        <p class="section-subtitle">Community · Board</p>
+        <h2 class="page-title">Quienes participan</h2>
+      </div>
+      <div class="community-board-grid">
+        <article class="community-board-card">
+          <h3>HomeDir users</h3>
+          <p class="community-board-value">{homedirUsers}</p>
+          <p>People who signed in with Google and created a Homedir account.</p>
+          <a class="btn-primary" href="/comunidad/board/homedir-users">View members</a>
+        </article>
+        <article class="community-board-card">
+          <h3>GitHub users</h3>
+          <p class="community-board-value">{githubUsers}</p>
+          <p>Contributors with a linked GitHub account in the OSSantiago ecosystem.</p>
+          <a class="btn-primary" href="/comunidad/board/github-users">View members</a>
+        </article>
+        <article class="community-board-card">
+          <h3>Discord users</h3>
+          <p class="community-board-value">{discordUsers}</p>
+          <p>People who joined our official OSSantiago Discord server.</p>
+          <a class="btn-primary" href="/comunidad/board/discord-users">View members</a>
+        </article>
       </div>
     </div>
   </section>
@@ -64,6 +92,11 @@
     display: flex;
     gap: 0.75rem;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .community-tab-link {
+    text-decoration: none;
   }
 
   .community-tab.active {
@@ -213,6 +246,39 @@
     margin-top: 1rem;
   }
 
+  .community-board-preview,
+  .community-board-preview:hover {
+    transform: none;
+    animation: none;
+    cursor: default;
+  }
+
+  .community-board-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .community-board-card {
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .community-board-card h3,
+  .community-board-card p {
+    margin: 0;
+  }
+
+  .community-board-value {
+    font-size: 1.8rem;
+    line-height: 1;
+    font-weight: 700;
+  }
+
   @keyframes pulse {
     0% {
       opacity: 0.45;
@@ -233,6 +299,12 @@
     .community-item-card,
     .community-vote-btn {
       transition: none;
+    }
+  }
+
+  @media (max-width: 980px) {
+    .community-board-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
