@@ -408,6 +408,8 @@ footer {
   gap: 0.75rem;
   text-align: center;
   margin-top: 0.5rem;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .public-title {
