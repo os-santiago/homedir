@@ -7,6 +7,7 @@ import com.scanales.eventflow.service.PersistenceService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -129,20 +130,22 @@ public class CommunitySubmissionService {
     if (normalizedUserId == null) {
       return List.of();
     }
+    Comparator<Instant> createdAtComparator = Comparator.nullsLast(Comparator.reverseOrder());
     return paginate(
         submissions.values().stream()
             .filter(item -> normalizedUserId.equals(item.userId()))
-            .sorted(Comparator.comparing(CommunitySubmission::createdAt).reversed())
+            .sorted(Comparator.comparing(CommunitySubmission::createdAt, createdAtComparator))
             .toList(),
         limit,
         offset);
   }
 
   public List<CommunitySubmission> listPending(int limit, int offset) {
+    Comparator<Instant> createdAtComparator = Comparator.nullsLast(Comparator.reverseOrder());
     return paginate(
         submissions.values().stream()
             .filter(item -> item.status() == CommunitySubmissionStatus.PENDING)
-            .sorted(Comparator.comparing(CommunitySubmission::createdAt).reversed())
+            .sorted(Comparator.comparing(CommunitySubmission::createdAt, createdAtComparator))
             .toList(),
         limit,
         offset);
@@ -160,16 +163,22 @@ public class CommunitySubmissionService {
     if (current.status() == CommunitySubmissionStatus.APPROVED) {
       return current;
     }
+    String normalizedUrl = sanitizeUrl(current.url());
+    if (normalizedUrl == null) {
+      throw new ValidationException("invalid_submission_data");
+    }
     if (hasDuplicateUrl(current.url(), current.id())) {
       throw new DuplicateSubmissionException("duplicate_url_submission");
     }
     Instant now = Instant.now();
+    Instant effectiveCreatedAt = current.createdAt() != null ? current.createdAt() : now;
     String contentId = current.contentId() != null ? current.contentId() : "submission-" + current.id();
     String contentFile = current.contentFile();
     if (contentFile == null || contentFile.isBlank()) {
-      contentFile = writeApprovedContentFile(current, contentId);
+      contentFile = writeApprovedContentFile(current, contentId, effectiveCreatedAt, normalizedUrl);
     } else {
-      ensureApprovedFileExists(current, contentId, contentFile);
+      contentFile =
+          ensureApprovedFileExists(current, contentId, contentFile, effectiveCreatedAt, normalizedUrl);
     }
 
     CommunitySubmission updated =
@@ -178,11 +187,11 @@ public class CommunitySubmissionService {
             current.userId(),
             current.userName(),
             current.title(),
-            current.url(),
+            normalizedUrl,
             current.summary(),
             current.source(),
             current.tags(),
-            current.createdAt(),
+            effectiveCreatedAt,
             CommunitySubmissionStatus.APPROVED,
             now,
             sanitizeText(moderator, 320),
@@ -247,6 +256,7 @@ public class CommunitySubmissionService {
     long count =
         submissions.values().stream()
             .filter(item -> userId.equals(item.userId()))
+            .filter(item -> item.createdAt() != null)
             .filter(item -> !item.createdAt().isBefore(startOfDay) && !item.createdAt().isAfter(now))
             .count();
     return count >= dailyLimit;
@@ -326,23 +336,36 @@ public class CommunitySubmissionService {
     return source.subList(offset, end);
   }
 
-  private String writeApprovedContentFile(CommunitySubmission submission, String contentId) {
+  private String writeApprovedContentFile(
+      CommunitySubmission submission, String contentId, Instant effectiveCreatedAt, String normalizedUrl) {
     try {
       Path dir = resolveContentDir();
       Files.createDirectories(dir);
-      String slug = slugify(submission.title());
-      String date = FILE_DATE.format(submission.createdAt().atZone(ZoneOffset.UTC).toLocalDate());
+      String title = sanitizeText(submission.title(), maxTitleLength);
+      if (title == null) {
+        title = "Community submission " + shortId(submission.id());
+      }
+      String summary = sanitizeText(submission.summary(), maxSummaryLength);
+      if (summary == null) {
+        summary = "Submitted by community member.";
+      }
+      String source = sanitizeText(submission.source(), 80);
+      if (source == null) {
+        source = "Community member";
+      }
+      String slug = slugify(title);
+      String date = FILE_DATE.format(effectiveCreatedAt.atZone(ZoneOffset.UTC).toLocalDate());
       String fileName = date + "-" + slug + "-" + shortId(submission.id()) + ".yml";
       Path file = dir.resolve(fileName);
       Path tmp = Files.createTempFile(dir, "submission-", ".tmp");
       try {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("id", contentId);
-        payload.put("title", submission.title());
-        payload.put("url", submission.url());
-        payload.put("summary", submission.summary());
-        payload.put("source", submission.source());
-        payload.put("created_at", submission.createdAt().toString());
+        payload.put("title", title);
+        payload.put("url", normalizedUrl);
+        payload.put("summary", summary);
+        payload.put("source", source);
+        payload.put("created_at", effectiveCreatedAt.toString());
         if (submission.tags() != null && !submission.tags().isEmpty()) {
           payload.put("tags", submission.tags());
         }
@@ -351,7 +374,7 @@ public class CommunitySubmissionService {
           payload.put("author", author);
         }
         yamlMapper.writeValue(tmp.toFile(), payload);
-        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        moveWithFallback(tmp, file);
       } finally {
         Files.deleteIfExists(tmp);
       }
@@ -361,17 +384,29 @@ public class CommunitySubmissionService {
     }
   }
 
-  private void ensureApprovedFileExists(
-      CommunitySubmission submission, String contentId, String existingFileName) {
+  private String ensureApprovedFileExists(
+      CommunitySubmission submission,
+      String contentId,
+      String existingFileName,
+      Instant effectiveCreatedAt,
+      String normalizedUrl) {
     Path file = resolveContentDir().resolve(existingFileName);
     if (Files.exists(file)) {
-      return;
+      return existingFileName;
     }
     LOG.warnf(
         "Approved submission file was missing id=%s file=%s; regenerating",
         submission.id(),
         existingFileName);
-    writeApprovedContentFile(submission, contentId);
+    return writeApprovedContentFile(submission, contentId, effectiveCreatedAt, normalizedUrl);
+  }
+
+  private static void moveWithFallback(Path source, Path target) throws Exception {
+    try {
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    } catch (AtomicMoveNotSupportedException e) {
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+    }
   }
 
   private Path resolveContentDir() {
@@ -385,6 +420,9 @@ public class CommunitySubmissionService {
   }
 
   private static String slugify(String text) {
+    if (text == null || text.isBlank()) {
+      return "community-item";
+    }
     String normalized =
         text.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
     if (normalized.isEmpty()) {

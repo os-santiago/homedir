@@ -235,6 +235,9 @@
       if (response.status === 409) {
         throw new Error("La URL ya existe en el feed curado.");
       }
+      if (response.status === 503 || errorCode === "approve_storage_unavailable") {
+        throw new Error("No fue posible publicar el contenido en este momento. Reintenta en unos minutos.");
+      }
       throw new Error(errorCode || "No se pudo procesar la moderación.");
     }
   }
