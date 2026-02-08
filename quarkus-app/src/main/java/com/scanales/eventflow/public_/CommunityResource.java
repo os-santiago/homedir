@@ -1,6 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -33,7 +34,20 @@ public class CommunityResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance view(@QueryParam("view") String viewParam) {
+    return render(viewParam, null);
+  }
+
+  @GET
+  @Path("/moderation")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance moderation() {
+    return render("new", "moderation");
+  }
+
+  private TemplateInstance render(String viewParam, String forcedSubmenu) {
     boolean authenticated = isAuthenticated();
+    boolean isAdmin = AdminUtils.isAdmin(identity);
     String initialView = normalizeView(viewParam);
     var summary = boardService.summary();
     TemplateInstance template =
@@ -45,8 +59,13 @@ public class CommunityResource {
             summary.discordUsers());
     return template
         .data("activePage", "comunidad")
-        .data("activeCommunitySubmenu", "new".equals(initialView) ? "feed" : "picks")
+        .data(
+            "activeCommunitySubmenu",
+            forcedSubmenu != null && !forcedSubmenu.isBlank()
+                ? forcedSubmenu
+                : ("new".equals(initialView) ? "feed" : "picks"))
         .data("userAuthenticated", authenticated)
+        .data("isAdmin", isAdmin)
         .data("userName", currentUserName().orElse(null))
         .data("userInitial", initialFrom(currentUserName().orElse(null)));
   }
