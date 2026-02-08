@@ -65,7 +65,11 @@
 
   {#include fragments/login-modal.html/}
   <script src="/js/homedir.js?v={app:version()}"></script>
-  <script>window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };</script>
+  <script>
+    window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };
+    window.userAuthenticated = window.__EF_AUTH__.isAuth.app.userAuthenticated;
+    var userAuthenticated = window.userAuthenticated;
+  </script>
   <script src="/js/app.js?v={app:version()}" defer></script>
   <script src="/js/notifications-adapter.js?v={app:version()}" defer></script>
   <script src="/js/notifications.js?v={app:version()}" defer></script>
