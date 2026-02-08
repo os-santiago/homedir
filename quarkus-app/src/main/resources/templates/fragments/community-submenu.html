@@ -1,4 +1,5 @@
 {@ String activeCommunitySubmenu = "main"}
+{@ boolean isAdmin = false}
 <nav class="community-submenu" aria-label="Community submenu">
   <a href="/comunidad" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'main'}community-submenu-link-active{/if}">
     Community Main
@@ -12,4 +13,9 @@
   <a href="/comunidad/board" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'board'}community-submenu-link-active{/if}">
     Community Board
   </a>
+  {#if isAdmin}
+  <a href="/comunidad/moderation" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'moderation'}community-submenu-link-active{/if}">
+    Moderation
+  </a>
+  {/if}
 </nav>

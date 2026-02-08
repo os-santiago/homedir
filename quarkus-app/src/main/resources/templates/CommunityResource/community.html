@@ -1,3 +1,5 @@
+{@ boolean isAdmin = false}
+{@ String activeCommunitySubmenu = "main"}
 {#include layout/main activePage="comunidad"}
 {#title}Comunidad Curada · Homedir{/title}
 {#body}
@@ -62,7 +64,7 @@
       </div>
     </div>
 
-    <div class="section-card events-full-width community-submissions-card" id="community-submissions-root" data-authenticated="{isAuthenticated}">
+    <div class="section-card events-full-width community-submissions-card" id="community-submissions-root" data-authenticated="{isAuthenticated}" data-admin="{isAdmin}" data-active-submenu="{activeCommunitySubmenu}">
       <div class="section-header">
         <p class="section-subtitle">Community · Feed</p>
         <h2 class="page-title">Proponer contenido</h2>
@@ -103,6 +105,16 @@
         </div>
         <div id="community-submissions-list" class="community-submissions-list"></div>
       </div>
+      {#if isAdmin}
+      <div class="community-moderation-wrap" id="community-moderation-panel">
+        <h3>Moderation queue</h3>
+        <p class="section-subtitle">Revisa propuestas pendientes y publícalas en el feed oficial.</p>
+        <div id="community-moderation-empty" class="community-empty hidden">
+          <p>No hay propuestas pendientes de moderación.</p>
+        </div>
+        <div id="community-moderation-list" class="community-submissions-list"></div>
+      </div>
+      {/if}
       {#else}
       <div class="community-empty">
         <p>Inicia sesión para proponer contenido al Community Feed.</p>
@@ -328,6 +340,32 @@
   .community-submissions-list {
     display: grid;
     gap: 0.65rem;
+  }
+
+  .community-moderation-wrap {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 1rem;
+  }
+
+  .community-moderation-actions {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin-top: 0.2rem;
+  }
+
+  .community-moderation-note {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    color: inherit;
+    font: inherit;
+    padding: 0.45rem 0.55rem;
+    min-height: 58px;
   }
 
   .community-submission-item {

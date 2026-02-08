@@ -5,6 +5,8 @@
   }
 
   const authenticated = String(root.dataset.authenticated || "false") === "true";
+  const isAdmin = String(root.dataset.admin || "false") === "true";
+  const activeSubmenu = String(root.dataset.activeSubmenu || "");
   if (!authenticated) {
     return;
   }
@@ -14,6 +16,9 @@
   const listEl = document.getElementById("community-submissions-list");
   const emptyEl = document.getElementById("community-submissions-empty");
   const feedbackEl = document.getElementById("community-submission-feedback");
+  const moderationListEl = document.getElementById("community-moderation-list");
+  const moderationEmptyEl = document.getElementById("community-moderation-empty");
+  const moderationPanel = document.getElementById("community-moderation-panel");
 
   if (!form || !submitBtn || !listEl || !emptyEl || !feedbackEl) {
     return;
@@ -82,6 +87,98 @@
     });
   }
 
+  function renderModerationList(items) {
+    if (!isAdmin || !moderationListEl || !moderationEmptyEl) {
+      return;
+    }
+    moderationListEl.textContent = "";
+    if (!Array.isArray(items) || items.length === 0) {
+      moderationEmptyEl.classList.remove("hidden");
+      return;
+    }
+    moderationEmptyEl.classList.add("hidden");
+    items.forEach((item) => {
+      const card = document.createElement("article");
+      card.className = "community-submission-item";
+
+      const title = document.createElement("h4");
+      title.className = "community-submission-title";
+      title.textContent = escapeText(item.title);
+      card.appendChild(title);
+
+      const meta = document.createElement("p");
+      meta.className = "community-submission-meta";
+      meta.textContent = `${escapeText(item.source || "Community member")} · ${formatDate(item.created_at)}`;
+      card.appendChild(meta);
+
+      const summary = document.createElement("p");
+      summary.className = "community-submission-meta";
+      summary.textContent = escapeText(item.summary);
+      card.appendChild(summary);
+
+      const link = document.createElement("a");
+      link.href = item.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Abrir fuente";
+      card.appendChild(link);
+
+      const note = document.createElement("textarea");
+      note.className = "community-moderation-note";
+      note.placeholder = "Nota opcional de moderación";
+      card.appendChild(note);
+
+      const actions = document.createElement("div");
+      actions.className = "community-moderation-actions";
+      const approveBtn = document.createElement("button");
+      approveBtn.type = "button";
+      approveBtn.className = "btn-primary";
+      approveBtn.textContent = "Approve";
+      approveBtn.dataset.action = "approve";
+      approveBtn.dataset.id = item.id;
+
+      const rejectBtn = document.createElement("button");
+      rejectBtn.type = "button";
+      rejectBtn.className = "btn-primary";
+      rejectBtn.textContent = "Reject";
+      rejectBtn.dataset.action = "reject";
+      rejectBtn.dataset.id = item.id;
+
+      actions.appendChild(approveBtn);
+      actions.appendChild(rejectBtn);
+      card.appendChild(actions);
+
+      actions.addEventListener("click", async (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLButtonElement)) {
+          return;
+        }
+        const action = target.dataset.action;
+        const submissionId = target.dataset.id;
+        if (!action || !submissionId) {
+          return;
+        }
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        try {
+          await moderateSubmission(submissionId, action, note.value.trim());
+          await Promise.all([loadMine(), loadPending()]);
+          showFeedback(
+            action === "approve"
+              ? "Propuesta aprobada y publicada."
+              : "Propuesta rechazada.");
+        } catch (error) {
+          showFeedback(error instanceof Error ? error.message : "No se pudo moderar la propuesta.");
+        } finally {
+          approveBtn.disabled = false;
+          rejectBtn.disabled = false;
+        }
+      });
+
+      moderationListEl.appendChild(card);
+    });
+  }
+
   async function loadMine() {
     try {
       const response = await fetch("/api/community/submissions/mine?limit=20&offset=0", {
@@ -95,6 +192,47 @@
     } catch (error) {
       showFeedback("No se pudo cargar tus propuestas.");
       renderList([]);
+    }
+  }
+
+  async function loadPending() {
+    if (!isAdmin) {
+      return;
+    }
+    try {
+      const response = await fetch("/api/community/submissions/pending?limit=50&offset=0", {
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      renderModerationList(Array.isArray(data.items) ? data.items : []);
+    } catch (error) {
+      showFeedback("No se pudo cargar la cola de moderación.");
+      renderModerationList([]);
+    }
+  }
+
+  async function moderateSubmission(id, action, note) {
+    const response = await fetch(`/api/community/submissions/${encodeURIComponent(id)}/${action}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({ note: note || null })
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      const errorCode = String(data.error || "");
+      if (response.status === 403) {
+        throw new Error("Solo admins pueden moderar propuestas.");
+      }
+      if (response.status === 404) {
+        throw new Error("La propuesta ya no existe.");
+      }
+      throw new Error(errorCode || "No se pudo procesar la moderación.");
     }
   }
 
@@ -148,7 +286,7 @@
       }
       form.reset();
       showFeedback("Propuesta enviada. Quedó pendiente de revisión.");
-      await loadMine();
+      await Promise.all([loadMine(), loadPending()]);
     } catch (error) {
       showFeedback(error instanceof Error ? error.message : "No se pudo enviar la propuesta.");
     } finally {
@@ -156,5 +294,9 @@
     }
   });
 
-  loadMine();
+  Promise.all([loadMine(), loadPending()]).then(() => {
+    if (isAdmin && activeSubmenu === "moderation" && moderationPanel) {
+      moderationPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
 })();
