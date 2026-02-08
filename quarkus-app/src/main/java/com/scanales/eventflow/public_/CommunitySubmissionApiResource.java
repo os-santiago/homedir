@@ -103,10 +103,16 @@ public class CommunitySubmissionApiResource {
       CommunitySubmission submission =
           submissionService.approve(id, currentUserId().orElse("admin"), request != null ? request.note() : null);
       return Response.ok(new SubmissionResponse(toView(submission))).build();
+    } catch (CommunitySubmissionService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
     } catch (CommunitySubmissionService.DuplicateSubmissionException e) {
       return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
     } catch (CommunitySubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    } catch (IllegalStateException e) {
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "approve_storage_unavailable"))
+          .build();
     }
   }
 
