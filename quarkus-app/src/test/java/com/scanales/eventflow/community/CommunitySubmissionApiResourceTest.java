@@ -212,6 +212,14 @@ public class CommunitySubmissionApiResourceTest {
             .extract()
             .path("item.content_id");
 
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/submissions/pending?limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items", hasSize(0));
+
     assertTrue(waitForContent(contentId, Duration.ofSeconds(5)));
   }
 
