@@ -2102,6 +2102,33 @@ footer {
   max-width: 940px;
 }
 
+.home-welcome-en {
+  margin: 0;
+  max-width: 980px;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.1vw, 1.7rem);
+  letter-spacing: 0.8px;
+  line-height: 1.35;
+  text-transform: none;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
+}
+
+.home-welcome-es {
+  margin: 0;
+  max-width: 960px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  opacity: 0.96;
+}
+
+.home-highlights-intro {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  opacity: 0.88;
+  letter-spacing: 0.3px;
+}
+
 .home-top-metrics {
   display: grid;
   width: 100%;
