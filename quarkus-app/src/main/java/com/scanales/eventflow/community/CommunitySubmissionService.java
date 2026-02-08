@@ -257,16 +257,19 @@ public class CommunitySubmissionService {
   }
 
   private boolean hasDuplicateUrl(String normalizedUrl, String excludeSubmissionId) {
-    if (normalizedUrl == null || normalizedUrl.isBlank()) {
+    String canonical = CommunityUrlNormalizer.normalize(normalizedUrl);
+    if (canonical == null || canonical.isBlank()) {
       return false;
     }
-    if (contentService.containsUrl(normalizedUrl)) {
+    if (contentService.containsUrl(canonical)) {
       return true;
     }
     return submissions.values().stream()
         .filter(item -> excludeSubmissionId == null || !excludeSubmissionId.equals(item.id()))
         .filter(item -> item.status() != CommunitySubmissionStatus.REJECTED)
-        .anyMatch(item -> normalizedUrl.equals(item.url()));
+        .map(CommunitySubmission::url)
+        .map(CommunityUrlNormalizer::normalize)
+        .anyMatch(canonical::equals);
   }
 
   private static String sanitizeUserId(String raw) {
