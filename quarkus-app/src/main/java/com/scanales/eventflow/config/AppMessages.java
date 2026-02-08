@@ -679,7 +679,7 @@ public interface AppMessages {
     @Message("HomeDir: tu comunidad para construir, aprender y compartir.")
     String home_welcome_es();
 
-    @Message("Highlights")
+    @Message("Community Highlights")
     String home_highlights_intro();
 
     @Message("updates available")
