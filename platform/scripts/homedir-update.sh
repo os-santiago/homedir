@@ -39,6 +39,27 @@ log() {
   echo "$(date -Iseconds): $*" >> "$LOGFILE"
 }
 
+prepare_community_storage() {
+  local base="${HOMEDIR_DATA_DIR%/}/community"
+  local content_dir="${base}/content"
+  local submissions_dir="${base}/submissions"
+
+  mkdir -p "$content_dir" "$submissions_dir"
+
+  # Runtime user inside container runs with gid 0 (root group). Keep dirs group-writable
+  # so moderation approval can publish curated YAML files reliably across deploys.
+  chgrp -R 0 "$base" >/dev/null 2>&1 || true
+  chmod -R g+rwX "$content_dir" "$submissions_dir" >/dev/null 2>&1 || true
+  find "$base" -maxdepth 1 -type d -exec chmod 2775 {} + >/dev/null 2>&1 || true
+  chmod 2775 "$content_dir" "$submissions_dir" >/dev/null 2>&1 || true
+
+  if [[ -f "${submissions_dir}/pending.json" ]]; then
+    chmod g+rw "${submissions_dir}/pending.json" >/dev/null 2>&1 || true
+  fi
+
+  log "community storage prepared content_dir=${content_dir} submissions_dir=${submissions_dir}"
+}
+
 if ! mkdir "$LOCKDIR" 2>/dev/null; then
   log "another update is already running; skipping tag=${TAG}"
   exit 0
@@ -67,6 +88,7 @@ start_container() {
 
 log "starting update for tag=${TAG}"
 log "runtime data dir configured as ${HOMEDIR_DATA_DIR} (volume=${DATA_VOLUME})"
+prepare_community_storage
 
 prev_image=""
 current_digest=""

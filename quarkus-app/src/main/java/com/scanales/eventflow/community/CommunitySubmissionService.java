@@ -261,8 +261,12 @@ public class CommunitySubmissionService {
   }
 
   private void persistSync() {
-    persistenceService.saveCommunitySubmissionsSync(new LinkedHashMap<>(submissions));
-    lastKnownSubmissionsMtime = persistenceService.communitySubmissionsLastModifiedMillis();
+    try {
+      persistenceService.saveCommunitySubmissionsSync(new LinkedHashMap<>(submissions));
+      lastKnownSubmissionsMtime = persistenceService.communitySubmissionsLastModifiedMillis();
+    } catch (IllegalStateException e) {
+      throw new IllegalStateException("failed_to_persist_submission_state", e);
+    }
   }
 
   private void refreshFromDisk(boolean force) {
@@ -376,6 +380,9 @@ public class CommunitySubmissionService {
     try {
       Path dir = resolveContentDir();
       Files.createDirectories(dir);
+      if (!Files.isWritable(dir)) {
+        throw new IllegalStateException("community_content_dir_not_writable:" + dir.toAbsolutePath());
+      }
       String title = sanitizeText(submission.title(), maxTitleLength);
       if (title == null) {
         title = "Community submission " + shortId(submission.id());
@@ -414,8 +421,16 @@ public class CommunitySubmissionService {
         Files.deleteIfExists(tmp);
       }
       return fileName;
+    } catch (IllegalStateException e) {
+      throw e;
     } catch (Exception e) {
-      throw new IllegalStateException("failed_to_write_approved_content", e);
+      String path = "unknown";
+      try {
+        path = resolveContentDir().toAbsolutePath().toString();
+      } catch (Exception ignored) {
+      }
+      LOG.errorf(e, "Failed to write approved community content for submission=%s dir=%s", submission.id(), path);
+      throw new IllegalStateException("failed_to_write_approved_content:" + path, e);
     }
   }
 
