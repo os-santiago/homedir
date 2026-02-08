@@ -5,13 +5,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 public class CommunityContentParser {
@@ -100,26 +98,7 @@ public class CommunityContentParser {
   }
 
   private static String sanitizeUrl(String raw) {
-    if (raw == null || raw.isBlank()) {
-      return null;
-    }
-    try {
-      URI uri = URI.create(raw.trim());
-      String scheme = uri.getScheme();
-      if (scheme == null) {
-        return null;
-      }
-      String normalizedScheme = scheme.toLowerCase(Locale.ROOT);
-      if (!normalizedScheme.equals("http") && !normalizedScheme.equals("https")) {
-        return null;
-      }
-      if (uri.getHost() == null || uri.getHost().isBlank()) {
-        return null;
-      }
-      return uri.normalize().toString();
-    } catch (Exception e) {
-      return null;
-    }
+    return CommunityUrlNormalizer.normalize(raw);
   }
 
   private static List<String> sanitizeTags(List<String> rawTags) {

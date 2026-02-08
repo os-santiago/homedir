@@ -91,6 +91,7 @@ Featured window:
 Submission notes:
 - Proposals are persisted asynchronously in `${homedir.data.dir}/community/submissions/pending.json`.
 - Daily guardrail per user: `community.submissions.daily-limit` (default `5`).
+- URL validation is canonicalized (`http/https`, strips tracking params like `utm_*`) to avoid duplicate proposals for the same resource.
 - On approve, Homedir generates one YAML item in the curated content directory so the existing feed/ranking/votes pipeline remains unchanged.
 - Admins can moderate pending proposals from `/comunidad/moderation` (approve/reject UI backed by the API endpoints above).
 

@@ -232,6 +232,9 @@
       if (response.status === 404) {
         throw new Error("La propuesta ya no existe.");
       }
+      if (response.status === 409) {
+        throw new Error("La URL ya existe en el feed curado.");
+      }
       throw new Error(errorCode || "No se pudo procesar la moderación.");
     }
   }
