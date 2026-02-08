@@ -79,7 +79,7 @@
     listEl.textContent = "";
     state.items.forEach((item) => {
       const card = document.createElement("article");
-      card.className = "section-card";
+      card.className = "community-item-card";
       card.dataset.itemId = item.id;
 
       const header = document.createElement("div");
@@ -265,4 +265,3 @@
 
   load(true);
 })();
-

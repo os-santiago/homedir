@@ -22,9 +22,9 @@
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
 
         <div id="community-skeleton" class="community-skeleton hidden" aria-hidden="true">
-          <div class="section-card community-skeleton-card"></div>
-          <div class="section-card community-skeleton-card"></div>
-          <div class="section-card community-skeleton-card"></div>
+          <div class="community-skeleton-card"></div>
+          <div class="community-skeleton-card"></div>
+          <div class="community-skeleton-card"></div>
         </div>
 
         <div id="community-empty" class="community-empty hidden">
@@ -95,8 +95,13 @@
 
   .community-skeleton-card {
     min-height: 110px;
+    border: 3px solid rgba(255, 255, 255, 0.7);
+    border-bottom: 6px solid rgba(0, 0, 0, 0.7);
+    border-right: 5px solid rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.45);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
     opacity: 0.6;
-    animation: pulse 1.2s ease-in-out infinite;
+    animation: none;
   }
 
   .community-list {
@@ -105,27 +110,24 @@
   }
 
   /* Match Home card behavior and disable retro glow sweep on Social cards */
-  .community-list .section-card {
+  .community-item-card {
     background: rgba(0, 0, 0, 0.45);
     border: 3px solid rgba(255, 255, 255, 0.7);
     border-bottom: 6px solid rgba(0, 0, 0, 0.7);
     border-right: 5px solid rgba(0, 0, 0, 0.6);
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
-    transition: border-color 0.08s linear, background-color 0.08s linear;
+    transition: none;
     animation: none;
     cursor: default;
     transform: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    overflow: visible;
+    padding: 1rem;
   }
 
-  .community-list .section-card::before {
-    content: none;
-  }
-
-  .community-list .section-card:hover {
-    transform: none;
-    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
-    border-color: rgba(255, 255, 255, 0.85);
-    background: rgba(0, 0, 0, 0.55);
+  .community-item-card:hover {
+    background: rgba(0, 0, 0, 0.45);
   }
 
   .community-item-header {
@@ -221,7 +223,7 @@
       animation: none;
     }
 
-    .community-list .section-card,
+    .community-item-card,
     .community-vote-btn {
       transition: none;
     }
