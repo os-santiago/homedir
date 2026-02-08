@@ -23,6 +23,7 @@ CONTAINER="${CONTAINER_NAME:-homedir}"
 HOST_PORT="${HOST_PORT:-8080}"
 CONTAINER_PORT="${CONTAINER_PORT:-8080}"
 DATA_VOLUME="${DATA_VOLUME:-/work/data:/work/data:Z}"
+LOCKFILE="${LOCKFILE:-/var/lock/homedir-update.lock}"
 container_data_dir="$(echo "$DATA_VOLUME" | awk -F: '{print $2}')"
 if [[ -z "$container_data_dir" ]]; then
   container_data_dir="/work/data"
@@ -37,6 +38,12 @@ JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS#"${JAVA_TOOL_OPTIONS%%[![:space:]]*}"}"
 log() {
   echo "$(date -Iseconds): $*" >> "$LOGFILE"
 }
+
+exec 9>"$LOCKFILE"
+if ! flock -n 9; then
+  log "another update is already running; skipping tag=${TAG}"
+  exit 0
+fi
 
 start_container() {
   local image="$1"
@@ -59,9 +66,15 @@ log "starting update for tag=${TAG}"
 log "runtime data dir configured as ${HOMEDIR_DATA_DIR} (volume=${DATA_VOLUME})"
 
 prev_image=""
+current_digest=""
 if podman container exists "$CONTAINER" >/dev/null 2>&1; then
   prev_image=$(podman inspect -f '{{.Config.Image}}' "$CONTAINER" 2>/dev/null || true)
   log "previous container image=${prev_image}"
+  current_image_id=$(podman inspect -f '{{.Image}}' "$CONTAINER" 2>/dev/null || true)
+  if [[ -n "${current_image_id:-}" ]]; then
+    current_digest=$(podman image inspect "$current_image_id" --format '{{.Digest}}' 2>/dev/null || true)
+    [[ -n "${current_digest:-}" ]] && log "current container digest=${current_digest}"
+  fi
 fi
 
 if ! podman pull "$IMAGE" >>"$LOGFILE" 2>&1; then
@@ -71,6 +84,11 @@ fi
 
 new_digest=$(podman image inspect "$IMAGE" --format '{{.Digest}}')
 log "pulled ${IMAGE} digest=${new_digest}"
+
+if [[ -n "${current_digest:-}" && -n "${new_digest:-}" && "${current_digest}" == "${new_digest}" ]]; then
+  log "current digest already matches ${new_digest}; skipping restart"
+  exit 0
+fi
 
 if podman container exists "$CONTAINER" >/dev/null 2>&1; then
   log "removing existing container ${CONTAINER}"
