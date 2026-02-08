@@ -105,4 +105,9 @@ public class CommunityBoardResourceTest {
         .statusCode(303)
         .header("Location", containsString("/community/member/github-users/board-user"));
   }
+
+  @Test
+  void unknownMemberSharePageReturnsNotFound() {
+    given().when().get("/community/member/github-users/does-not-exist").then().statusCode(404);
+  }
 }

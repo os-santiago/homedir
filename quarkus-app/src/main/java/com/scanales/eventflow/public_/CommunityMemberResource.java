@@ -9,11 +9,11 @@ import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -42,11 +42,17 @@ public class CommunityMemberResource {
   @Path("/{group}/{id}")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance profile(@PathParam("group") String groupPath, @PathParam("id") String id) {
-    CommunityBoardGroup group =
-        CommunityBoardGroup.fromPath(groupPath).orElseThrow(() -> new NotFoundException("group_not_found"));
-    CommunityBoardMemberView member =
-        boardService.findMember(group, id).orElseThrow(() -> new NotFoundException("member_not_found"));
+  public Response profile(@PathParam("group") String groupPath, @PathParam("id") String id) {
+    Optional<CommunityBoardGroup> groupOpt = CommunityBoardGroup.fromPath(groupPath);
+    if (groupOpt.isEmpty()) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    CommunityBoardGroup group = groupOpt.get();
+    Optional<CommunityBoardMemberView> memberOpt = boardService.findMember(group, id);
+    if (memberOpt.isEmpty()) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    CommunityBoardMemberView member = memberOpt.get();
     TemplateInstance template =
         Templates.profile(
             isAuthenticated(),
@@ -58,7 +64,7 @@ public class CommunityMemberResource {
             member.memberSince(),
             profileLinkFor(group, member),
             "/comunidad/board/" + group.path());
-    return withLayoutData(template);
+    return Response.ok(withLayoutData(template)).build();
   }
 
   private String profileLinkFor(CommunityBoardGroup group, CommunityBoardMemberView member) {
