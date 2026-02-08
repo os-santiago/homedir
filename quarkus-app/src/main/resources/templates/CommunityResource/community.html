@@ -1,7 +1,6 @@
 {#include layout/main activePage="comunidad"}
 {#title}Comunidad Curada · Homedir{/title}
 {#body}
-<main id="main-content" class="homedir-main" role="main">
   <header class="page-header events-page-header">
     <div class="section-header">
       <p class="section-subtitle">Comunidad · Curación colaborativa</p>
@@ -40,7 +39,6 @@
       </div>
     </div>
   </section>
-</main>
 
 <style>
   /* Community page runs in low-motion mode to prevent scroll flicker and repaint spikes. */
@@ -117,8 +115,6 @@
     animation: none;
     cursor: default;
     transform: none;
-    content-visibility: auto;
-    contain-intrinsic-size: 180px;
   }
 
   .community-list .section-card::before {
