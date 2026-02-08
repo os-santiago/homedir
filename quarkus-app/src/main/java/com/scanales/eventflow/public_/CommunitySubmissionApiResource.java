@@ -103,6 +103,8 @@ public class CommunitySubmissionApiResource {
       CommunitySubmission submission =
           submissionService.approve(id, currentUserId().orElse("admin"), request != null ? request.note() : null);
       return Response.ok(new SubmissionResponse(toView(submission))).build();
+    } catch (CommunitySubmissionService.DuplicateSubmissionException e) {
+      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
     } catch (CommunitySubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     }
