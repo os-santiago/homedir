@@ -8,12 +8,12 @@
     </div>
     <p class="section-subtitle">{groupDescription}</p>
   </header>
+  {#include fragments/community-submenu.html /}
 
   <section class="page-grid">
     <div class="section-card events-full-width board-detail-shell">
       <div class="board-detail-head">
         <p class="section-subtitle">{total} members</p>
-        <a class="btn-primary" href="/comunidad/board">Back to board</a>
       </div>
 
       <form class="search-form board-search-form" method="get" action="/comunidad/board/{groupPath}">
@@ -78,7 +78,7 @@
 
     .board-detail-head {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       gap: 1rem;
       margin-bottom: 1rem;

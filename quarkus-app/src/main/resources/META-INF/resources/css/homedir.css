@@ -2370,6 +2370,22 @@ footer {
   letter-spacing: 0.85px;
 }
 
+.community-submenu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.25rem 0 0.9rem;
+}
+
+.community-submenu-link {
+  text-decoration: none;
+}
+
+.community-submenu-link-active {
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25) inset;
+}
+
 @media (max-width: 1120px) {
   .homedir-main-home {
     max-width: 1200px;
