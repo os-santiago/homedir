@@ -4,8 +4,10 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.scanales.eventflow.service.PersistenceService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -23,6 +25,7 @@ public class CommunitySubmissionApiResourceTest {
 
   @Inject CommunitySubmissionService submissionService;
   @Inject CommunityContentService contentService;
+  @Inject PersistenceService persistenceService;
 
   @BeforeEach
   void setup() throws Exception {
@@ -219,6 +222,10 @@ public class CommunitySubmissionApiResourceTest {
         .then()
         .statusCode(200)
         .body("items", hasSize(0));
+
+    CommunitySubmission persisted = persistenceService.loadCommunitySubmissions().get(created.id());
+    assertNotNull(persisted);
+    assertTrue(persisted.status() == CommunitySubmissionStatus.APPROVED);
 
     assertTrue(waitForContent(contentId, Duration.ofSeconds(5)));
   }

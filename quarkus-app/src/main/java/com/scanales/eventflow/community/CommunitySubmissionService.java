@@ -61,183 +61,218 @@ public class CommunitySubmissionService {
   private final ObjectMapper yamlMapper =
       new ObjectMapper(new YAMLFactory()).registerModule(new JavaTimeModule());
   private final ConcurrentHashMap<String, CommunitySubmission> submissions = new ConcurrentHashMap<>();
+  private final Object submissionsLock = new Object();
+  private volatile long lastKnownSubmissionsMtime = Long.MIN_VALUE;
 
   @PostConstruct
   void init() {
-    submissions.clear();
-    submissions.putAll(persistenceService.loadCommunitySubmissions());
+    synchronized (submissionsLock) {
+      refreshFromDisk(true);
+    }
   }
 
   public CommunitySubmission create(String userId, String userName, CreateRequest request) {
-    String normalizedUserId = sanitizeUserId(userId);
-    if (normalizedUserId == null) {
-      throw new ValidationException("user_id_required");
-    }
-    if (request == null) {
-      throw new ValidationException("request_required");
-    }
-    String title = sanitizeText(request.title(), maxTitleLength);
-    if (title == null) {
-      throw new ValidationException("invalid_title");
-    }
-    String summary = sanitizeText(request.summary(), maxSummaryLength);
-    if (summary == null) {
-      throw new ValidationException("invalid_summary");
-    }
-    String url = sanitizeUrl(request.url());
-    if (url == null) {
-      throw new ValidationException("invalid_url");
-    }
-    String source = sanitizeText(request.source(), 80);
-    if (source == null) {
-      source = "Community member";
-    }
-    List<String> tags = sanitizeTags(request.tags(), maxTags);
-    Instant now = Instant.now();
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedUserId = sanitizeUserId(userId);
+      if (normalizedUserId == null) {
+        throw new ValidationException("user_id_required");
+      }
+      if (request == null) {
+        throw new ValidationException("request_required");
+      }
+      String title = sanitizeText(request.title(), maxTitleLength);
+      if (title == null) {
+        throw new ValidationException("invalid_title");
+      }
+      String summary = sanitizeText(request.summary(), maxSummaryLength);
+      if (summary == null) {
+        throw new ValidationException("invalid_summary");
+      }
+      String url = sanitizeUrl(request.url());
+      if (url == null) {
+        throw new ValidationException("invalid_url");
+      }
+      String source = sanitizeText(request.source(), 80);
+      if (source == null) {
+        source = "Community member";
+      }
+      List<String> tags = sanitizeTags(request.tags(), maxTags);
+      Instant now = Instant.now();
 
-    if (isRateLimited(normalizedUserId, now)) {
-      throw new RateLimitExceededException("daily_submission_limit_reached");
-    }
-    if (hasDuplicateUrl(url)) {
-      throw new DuplicateSubmissionException("duplicate_url_submission");
-    }
+      if (isRateLimited(normalizedUserId, now)) {
+        throw new RateLimitExceededException("daily_submission_limit_reached");
+      }
+      if (hasDuplicateUrl(url)) {
+        throw new DuplicateSubmissionException("duplicate_url_submission");
+      }
 
-    String id = UUID.randomUUID().toString();
-    CommunitySubmission submission =
-        new CommunitySubmission(
-            id,
-            normalizedUserId,
-            sanitizeText(userName, 120),
-            title,
-            url,
-            summary,
-            source,
-            tags,
-            now,
-            CommunitySubmissionStatus.PENDING,
-            null,
-            null,
-            null,
-            null,
-            null);
-    submissions.put(id, submission);
-    persistAsync();
-    return submission;
+      String id = UUID.randomUUID().toString();
+      CommunitySubmission submission =
+          new CommunitySubmission(
+              id,
+              normalizedUserId,
+              sanitizeText(userName, 120),
+              title,
+              url,
+              summary,
+              source,
+              tags,
+              now,
+              CommunitySubmissionStatus.PENDING,
+              null,
+              null,
+              null,
+              null,
+              null);
+      submissions.put(id, submission);
+      persistSync();
+      return submission;
+    }
   }
 
   public List<CommunitySubmission> listMine(String userId, int limit, int offset) {
-    String normalizedUserId = sanitizeUserId(userId);
-    if (normalizedUserId == null) {
-      return List.of();
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedUserId = sanitizeUserId(userId);
+      if (normalizedUserId == null) {
+        return List.of();
+      }
+      Comparator<Instant> createdAtComparator = Comparator.nullsLast(Comparator.reverseOrder());
+      return paginate(
+          submissions.values().stream()
+              .filter(item -> normalizedUserId.equals(item.userId()))
+              .sorted(Comparator.comparing(CommunitySubmission::createdAt, createdAtComparator))
+              .toList(),
+          limit,
+          offset);
     }
-    Comparator<Instant> createdAtComparator = Comparator.nullsLast(Comparator.reverseOrder());
-    return paginate(
-        submissions.values().stream()
-            .filter(item -> normalizedUserId.equals(item.userId()))
-            .sorted(Comparator.comparing(CommunitySubmission::createdAt, createdAtComparator))
-            .toList(),
-        limit,
-        offset);
   }
 
   public List<CommunitySubmission> listPending(int limit, int offset) {
-    Comparator<Instant> createdAtComparator = Comparator.nullsLast(Comparator.reverseOrder());
-    return paginate(
-        submissions.values().stream()
-            .filter(item -> item.status() == CommunitySubmissionStatus.PENDING)
-            .sorted(Comparator.comparing(CommunitySubmission::createdAt, createdAtComparator))
-            .toList(),
-        limit,
-        offset);
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      Comparator<Instant> createdAtComparator = Comparator.nullsLast(Comparator.reverseOrder());
+      return paginate(
+          submissions.values().stream()
+              .filter(item -> item.status() == CommunitySubmissionStatus.PENDING)
+              .sorted(Comparator.comparing(CommunitySubmission::createdAt, createdAtComparator))
+              .toList(),
+          limit,
+          offset);
+    }
   }
 
   public Optional<CommunitySubmission> findById(String id) {
-    if (id == null || id.isBlank()) {
-      return Optional.empty();
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      if (id == null || id.isBlank()) {
+        return Optional.empty();
+      }
+      return Optional.ofNullable(submissions.get(id));
     }
-    return Optional.ofNullable(submissions.get(id));
   }
 
   public CommunitySubmission approve(String id, String moderator, String note) {
-    CommunitySubmission current = findOrThrow(id);
-    if (current.status() == CommunitySubmissionStatus.APPROVED) {
-      return current;
-    }
-    String normalizedUrl = sanitizeUrl(current.url());
-    if (normalizedUrl == null) {
-      throw new ValidationException("invalid_submission_data");
-    }
-    if (hasDuplicateUrl(current.url(), current.id())) {
-      throw new DuplicateSubmissionException("duplicate_url_submission");
-    }
-    Instant now = Instant.now();
-    Instant effectiveCreatedAt = current.createdAt() != null ? current.createdAt() : now;
-    String contentId = current.contentId() != null ? current.contentId() : "submission-" + current.id();
-    String contentFile = current.contentFile();
-    if (contentFile == null || contentFile.isBlank()) {
-      contentFile = writeApprovedContentFile(current, contentId, effectiveCreatedAt, normalizedUrl);
-    } else {
-      contentFile =
-          ensureApprovedFileExists(current, contentId, contentFile, effectiveCreatedAt, normalizedUrl);
-    }
+    CommunitySubmission updated;
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      CommunitySubmission current = findOrThrow(id);
+      if (current.status() == CommunitySubmissionStatus.APPROVED) {
+        return current;
+      }
+      String normalizedUrl = sanitizeUrl(current.url());
+      if (normalizedUrl == null) {
+        throw new ValidationException("invalid_submission_data");
+      }
+      if (hasDuplicateUrl(current.url(), current.id())) {
+        throw new DuplicateSubmissionException("duplicate_url_submission");
+      }
+      Instant now = Instant.now();
+      Instant effectiveCreatedAt = current.createdAt() != null ? current.createdAt() : now;
+      String contentId = current.contentId() != null ? current.contentId() : "submission-" + current.id();
+      String contentFile = current.contentFile();
+      if (contentFile == null || contentFile.isBlank()) {
+        contentFile = writeApprovedContentFile(current, contentId, effectiveCreatedAt, normalizedUrl);
+      } else {
+        contentFile =
+            ensureApprovedFileExists(current, contentId, contentFile, effectiveCreatedAt, normalizedUrl);
+      }
 
-    CommunitySubmission updated =
-        new CommunitySubmission(
-            current.id(),
-            current.userId(),
-            current.userName(),
-            current.title(),
-            normalizedUrl,
-            current.summary(),
-            current.source(),
-            current.tags(),
-            effectiveCreatedAt,
-            CommunitySubmissionStatus.APPROVED,
-            now,
-            sanitizeText(moderator, 320),
-            sanitizeText(note, 300),
-            contentId,
-            contentFile);
-    submissions.put(updated.id(), updated);
-    persistAsync();
+      updated =
+          new CommunitySubmission(
+              current.id(),
+              current.userId(),
+              current.userName(),
+              current.title(),
+              normalizedUrl,
+              current.summary(),
+              current.source(),
+              current.tags(),
+              effectiveCreatedAt,
+              CommunitySubmissionStatus.APPROVED,
+              now,
+              sanitizeText(moderator, 320),
+              sanitizeText(note, 300),
+              contentId,
+              contentFile);
+      submissions.put(updated.id(), updated);
+      persistSync();
+    }
     contentService.forceRefreshAsync("submission-approved");
     return updated;
   }
 
   public CommunitySubmission reject(String id, String moderator, String note) {
-    CommunitySubmission current = findOrThrow(id);
-    if (current.status() == CommunitySubmissionStatus.REJECTED) {
-      return current;
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      CommunitySubmission current = findOrThrow(id);
+      if (current.status() == CommunitySubmissionStatus.REJECTED) {
+        return current;
+      }
+      CommunitySubmission updated =
+          new CommunitySubmission(
+              current.id(),
+              current.userId(),
+              current.userName(),
+              current.title(),
+              current.url(),
+              current.summary(),
+              current.source(),
+              current.tags(),
+              current.createdAt(),
+              CommunitySubmissionStatus.REJECTED,
+              Instant.now(),
+              sanitizeText(moderator, 320),
+              sanitizeText(note, 300),
+              current.contentId(),
+              current.contentFile());
+      submissions.put(updated.id(), updated);
+      persistSync();
+      return updated;
     }
-    CommunitySubmission updated =
-        new CommunitySubmission(
-            current.id(),
-            current.userId(),
-            current.userName(),
-            current.title(),
-            current.url(),
-            current.summary(),
-            current.source(),
-            current.tags(),
-            current.createdAt(),
-            CommunitySubmissionStatus.REJECTED,
-            Instant.now(),
-            sanitizeText(moderator, 320),
-            sanitizeText(note, 300),
-            current.contentId(),
-            current.contentFile());
-    submissions.put(updated.id(), updated);
-    persistAsync();
-    return updated;
   }
 
   public void clearAllForTests() {
-    submissions.clear();
-    persistAsync();
+    synchronized (submissionsLock) {
+      submissions.clear();
+      persistSync();
+    }
   }
 
-  private void persistAsync() {
-    persistenceService.saveCommunitySubmissions(new LinkedHashMap<>(submissions));
+  private void persistSync() {
+    persistenceService.saveCommunitySubmissionsSync(new LinkedHashMap<>(submissions));
+    lastKnownSubmissionsMtime = persistenceService.communitySubmissionsLastModifiedMillis();
+  }
+
+  private void refreshFromDisk(boolean force) {
+    long diskMtime = persistenceService.communitySubmissionsLastModifiedMillis();
+    if (!force && diskMtime == lastKnownSubmissionsMtime) {
+      return;
+    }
+    submissions.clear();
+    submissions.putAll(persistenceService.loadCommunitySubmissions());
+    lastKnownSubmissionsMtime = diskMtime;
   }
 
   private CommunitySubmission findOrThrow(String id) {

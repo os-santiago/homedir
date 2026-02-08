@@ -55,6 +55,10 @@ public class CommunitySubmissionApiResource {
       return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
     } catch (CommunitySubmissionService.RateLimitExceededException e) {
       return Response.status(429).entity(Map.of("error", e.getMessage())).build();
+    } catch (IllegalStateException e) {
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "submission_storage_unavailable"))
+          .build();
     }
   }
 
@@ -130,6 +134,10 @@ public class CommunitySubmissionApiResource {
       return Response.ok(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    } catch (IllegalStateException e) {
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "reject_storage_unavailable"))
+          .build();
     }
   }
 
