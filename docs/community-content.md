@@ -8,6 +8,9 @@ This module powers `/comunidad` with curated content loaded from files and commu
 - Views:
   - `featured`: ranked by votes + optional time decay.
   - `new`: sorted by `created_at` descending.
+- Community Board:
+  - `/comunidad/board` summary (HomeDir users, GitHub users, Discord users).
+  - `/comunidad/board/{group}` detail list with search and profile-link copy.
 
 ## Content Directory
 - Production target: `${homedir.data.dir}/community/content`
@@ -15,6 +18,8 @@ This module powers `/comunidad` with curated content loaded from files and commu
 - Legacy path: `/var/lib/homedir/community/content` (supported if linked or configured)
 - Config env var: `COMMUNITY_CONTENT_DIR`
 - App default (when env not set): `${homedir.data.dir}/community/content`
+- Optional Community Board Discord source:
+  - `community.board.discord.file` (YAML/JSON, default `${homedir.data.dir}/community/board/discord-users.yml`)
 
 ## File Schema
 - One file per item (`.yml` or `.yaml`).
@@ -45,6 +50,9 @@ Invalid/incomplete files are skipped and logged.
   - `load_duration_ms`
   - `files_loaded`
   - `files_invalid`
+- Community Board Discord users cache:
+  - `community.board.cache-ttl` (default `PT1H`)
+  - If refresh fails, last in-memory snapshot is kept.
 
 ## Voting
 - Endpoint: `PUT /api/community/content/{id}/vote`
@@ -71,6 +79,11 @@ Featured window:
 - `GET /api/community/content?view=new|featured&limit=&offset=`
 - `GET /api/community/content/{id}`
 - `PUT /api/community/content/{id}/vote`
+
+## Community Board Data Sources
+- `HomeDir users`: internal `UserProfile` store (Google-auth users with local profile).
+- `GitHub users`: union of linked GitHub accounts in `UserProfile` + synced community members.
+- `Discord users`: optional file (`members` array) loaded from configured path and cached.
 
 Each item includes counts and current user vote:
 - `vote_counts.recommended`
