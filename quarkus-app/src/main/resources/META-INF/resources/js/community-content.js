@@ -7,6 +7,10 @@
   const authenticated = String(root.dataset.authenticated || "false") === "true";
   const pageSize = Number.parseInt(root.dataset.pageSize || "10", 10) || 10;
   const initialView = String(root.dataset.initialView || "featured") === "new" ? "new" : "featured";
+  const initialFilter = (() => {
+    const raw = String(root.dataset.initialFilter || "all").toLowerCase();
+    return raw === "internet" || raw === "members" ? raw : "all";
+  })();
 
   const listEl = document.getElementById("community-list");
   const skeletonEl = document.getElementById("community-skeleton");
@@ -14,9 +18,11 @@
   const loadMoreBtn = document.getElementById("community-load-more");
   const feedbackEl = document.getElementById("community-feedback");
   const tabButtons = Array.from(document.querySelectorAll(".community-tab"));
+  const filterButtons = Array.from(document.querySelectorAll(".community-filter"));
 
   const state = {
     view: initialView,
+    filter: initialFilter,
     items: [],
     offset: 0,
     total: 0,
@@ -50,6 +56,12 @@
     const hasMore = state.items.length < state.total;
     loadMoreBtn.classList.toggle("hidden", !hasMore || state.loading);
     loadMoreBtn.disabled = state.loading;
+  }
+
+  function updateFilterState() {
+    filterButtons.forEach((btn) => {
+      btn.classList.toggle("community-filter-active", btn.dataset.filter === state.filter);
+    });
   }
 
   function formatDate(raw) {
@@ -169,7 +181,7 @@
 
     try {
       const response = await fetch(
-        `/api/community/content?view=${encodeURIComponent(state.view)}&limit=${encodeURIComponent(pageSize)}&offset=${encodeURIComponent(state.offset)}`,
+        `/api/community/content?view=${encodeURIComponent(state.view)}&filter=${encodeURIComponent(state.filter)}&limit=${encodeURIComponent(pageSize)}&offset=${encodeURIComponent(state.offset)}`,
         { headers: { Accept: "application/json" } }
       );
       if (!response.ok) {
@@ -255,6 +267,22 @@
 
   tabButtons.forEach((candidate) => {
     candidate.classList.toggle("active", candidate.dataset.view === state.view);
+  });
+  updateFilterState();
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const nextFilter = String(btn.dataset.filter || "").toLowerCase();
+      if (!nextFilter || nextFilter === state.filter) {
+        return;
+      }
+      if (nextFilter !== "all" && nextFilter !== "internet" && nextFilter !== "members") {
+        return;
+      }
+      state.filter = nextFilter;
+      updateFilterState();
+      load(true);
+    });
   });
 
   listEl.addEventListener("click", (event) => {

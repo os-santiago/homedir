@@ -33,8 +33,10 @@ public class CommunityResource {
   @GET
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance view(@QueryParam("view") String viewParam) {
-    return render(viewParam, null);
+  public TemplateInstance view(
+      @QueryParam("view") String viewParam,
+      @QueryParam("filter") String filterParam) {
+    return render(viewParam, filterParam, null);
   }
 
   @GET
@@ -42,13 +44,14 @@ public class CommunityResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance moderation() {
-    return render("new", "moderation");
+    return render("featured", "all", "moderation");
   }
 
-  private TemplateInstance render(String viewParam, String forcedSubmenu) {
+  private TemplateInstance render(String viewParam, String filterParam, String forcedSubmenu) {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
     String initialView = normalizeView(viewParam);
+    String initialFilter = normalizeFilter(filterParam);
     var summary = boardService.summary();
     TemplateInstance template =
         Templates.community(
@@ -61,9 +64,8 @@ public class CommunityResource {
         .data("activePage", "comunidad")
         .data(
             "activeCommunitySubmenu",
-            forcedSubmenu != null && !forcedSubmenu.isBlank()
-                ? forcedSubmenu
-                : ("new".equals(initialView) ? "feed" : "picks"))
+            forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "picks")
+        .data("initialFilter", initialFilter)
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
         .data("userName", currentUserName().orElse(null))
@@ -74,7 +76,7 @@ public class CommunityResource {
   @Path("/feed")
   @PermitAll
   public Response feed() {
-    return Response.seeOther(URI.create("/comunidad?view=new")).build();
+    return Response.seeOther(URI.create("/comunidad?view=featured&filter=members")).build();
   }
 
   @GET
@@ -82,6 +84,17 @@ public class CommunityResource {
   @PermitAll
   public Response picks() {
     return Response.seeOther(URI.create("/comunidad?view=featured")).build();
+  }
+
+  private String normalizeFilter(String filterParam) {
+    if (filterParam == null || filterParam.isBlank()) {
+      return "all";
+    }
+    String normalized = filterParam.trim().toLowerCase();
+    if ("all".equals(normalized) || "internet".equals(normalized) || "members".equals(normalized)) {
+      return normalized;
+    }
+    return "all";
   }
 
   private String normalizeView(String viewParam) {

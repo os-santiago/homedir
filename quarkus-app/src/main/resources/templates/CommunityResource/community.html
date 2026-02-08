@@ -1,5 +1,6 @@
 {@ boolean isAdmin = false}
 {@ String activeCommunitySubmenu = "main"}
+{@ String initialFilter = "all"}
 {#include layout/main activePage="comunidad"}
 {#title}Comunidad Curada · Homedir{/title}
 {#body}
@@ -16,8 +17,20 @@
 
   <section class="page-grid">
     <div class="section-card events-full-width community-shell-card">
-      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}">
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}">
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
+
+        <div class="community-filter-row" role="group" aria-label="Community source filter">
+          <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="all">
+            All
+          </button>
+          <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="internet">
+            Internet
+          </button>
+          <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="members">
+            Members
+          </button>
+        </div>
 
         <div id="community-skeleton" class="community-skeleton hidden" aria-hidden="true">
           <div class="community-skeleton-card"></div>
@@ -160,6 +173,23 @@
     display: grid;
     gap: 1rem;
     margin-bottom: 1rem;
+  }
+
+  .community-filter-row {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+  }
+
+  .community-filter-btn {
+    min-width: 92px;
+    margin-top: 0;
+  }
+
+  .community-filter-btn.community-filter-active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.16);
   }
 
   .community-skeleton.hidden {
