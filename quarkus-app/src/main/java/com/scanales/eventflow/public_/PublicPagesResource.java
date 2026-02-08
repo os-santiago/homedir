@@ -87,7 +87,7 @@ public class PublicPagesResource {
   @GET
   @Path("/community")
   public Response community() {
-    return Response.seeOther(URI.create("/community/feed")).build();
+    return Response.seeOther(URI.create("/comunidad")).build();
   }
 
   @GET
