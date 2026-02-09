@@ -612,7 +612,9 @@
 
   .community-origin-pill,
   .community-score-pill,
-  .community-read-pill {
+  .community-read-pill,
+  .community-rank-pill,
+  .community-fresh-pill {
     border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: 999px;
     padding: 0.16rem 0.5rem;
@@ -629,6 +631,16 @@
   .community-origin-pill.internet {
     border-color: rgba(120, 185, 255, 0.65);
     background: rgba(120, 185, 255, 0.14);
+  }
+
+  .community-rank-pill {
+    border-color: rgba(255, 215, 0, 0.65);
+    background: rgba(255, 215, 0, 0.14);
+  }
+
+  .community-fresh-pill {
+    border-color: rgba(120, 255, 160, 0.68);
+    background: rgba(120, 255, 160, 0.16);
   }
 
   .community-item-title {
@@ -656,9 +668,33 @@
     margin: 0 0 0.62rem;
     line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .community-item-summary.clamped {
+    -webkit-line-clamp: 1;
+  }
+
+  .community-item-summary.expanded {
+    display: block;
+    overflow: visible;
+  }
+
+  .community-summary-toggle {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    padding: 0.14rem 0.48rem;
+    font-size: 0.72rem;
+    margin: -0.28rem 0 0.62rem;
+    width: fit-content;
+    cursor: pointer;
+  }
+
+  .community-summary-toggle:hover {
+    border-color: rgba(255, 215, 0, 0.72);
   }
 
   .community-topic-hint {
