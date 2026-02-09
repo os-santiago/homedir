@@ -17,6 +17,7 @@
   const emptyEl = document.getElementById("community-empty");
   const loadMoreBtn = document.getElementById("community-load-more");
   const feedbackEl = document.getElementById("community-feedback");
+  const totalMetricEl = document.getElementById("community-content-total");
   const hotSectionEl = document.getElementById("community-hot");
   const hotListEl = document.getElementById("community-hot-list");
   const interestSectionEl = document.getElementById("community-interest");
@@ -255,6 +256,9 @@
   function renderItems() {
     listEl.textContent = "";
     renderInterestCards(state.items);
+    if (totalMetricEl) {
+      totalMetricEl.textContent = String(Number(state.total || state.items.length || 0));
+    }
 
     const items = visibleItems();
     renderHotItems(items);
