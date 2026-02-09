@@ -18,6 +18,9 @@
   const loadMoreBtn = document.getElementById("community-load-more");
   const feedbackEl = document.getElementById("community-feedback");
   const totalMetricEl = document.getElementById("community-content-total");
+  const activeFiltersEl = document.getElementById("community-active-filters");
+  const activeFilterChipsEl = document.getElementById("community-active-filter-chips");
+  const clearFiltersBtn = document.getElementById("community-clear-filters");
   const hotSectionEl = document.getElementById("community-hot");
   const hotListEl = document.getElementById("community-hot-list");
   const interestSectionEl = document.getElementById("community-interest");
@@ -335,6 +338,39 @@
     });
   }
 
+  function renderActiveFilters() {
+    if (!activeFiltersEl || !activeFilterChipsEl) {
+      return;
+    }
+    activeFilterChipsEl.textContent = "";
+
+    const chips = [];
+    if (state.filter === "internet") {
+      chips.push("Source: Internet");
+    } else if (state.filter === "members") {
+      chips.push("Source: Members");
+    }
+    if (state.topic && state.topic !== "all") {
+      chips.push(`Topic: ${state.topic}`);
+    }
+    if (state.tag) {
+      chips.push(`Tag: #${state.tag}`);
+    }
+
+    if (chips.length === 0) {
+      activeFiltersEl.classList.add("hidden");
+      return;
+    }
+
+    activeFiltersEl.classList.remove("hidden");
+    chips.forEach((label) => {
+      const chip = document.createElement("span");
+      chip.className = "community-active-filter-chip";
+      chip.textContent = label;
+      activeFilterChipsEl.appendChild(chip);
+    });
+  }
+
   function createVoteButton(item, voteKey, label, count) {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -356,6 +392,7 @@
     listEl.textContent = "";
     renderInterestCards(state.items);
     renderTagRadar(state.items);
+    renderActiveFilters();
     if (totalMetricEl) {
       totalMetricEl.textContent = String(Number(state.total || state.items.length || 0));
     }
@@ -621,6 +658,26 @@
     renderItems();
   }
 
+  function clearAllFilters() {
+    const shouldReload = state.filter !== "all";
+    const changed = shouldReload || state.topic !== "all" || Boolean(state.tag);
+    if (!changed) {
+      return;
+    }
+    state.filter = "all";
+    state.topic = "all";
+    state.tag = "";
+    sessionStorage.setItem("community.topic", "all");
+    sessionStorage.removeItem("community.tag");
+    updateFilterState();
+    updateTopicState();
+    if (shouldReload) {
+      load(true);
+    } else {
+      renderItems();
+    }
+  }
+
   function toggleSummary(itemId) {
     const key = String(itemId || "");
     if (!key) return;
@@ -685,6 +742,12 @@
       const chip = target.closest(".community-radar-chip");
       if (!chip) return;
       setTag(chip.dataset.tag || "");
+    });
+  }
+
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", () => {
+      clearAllFilters();
     });
   }
 
