@@ -1,6 +1,9 @@
 {@ boolean isAdmin = false}
 {@ String activeCommunitySubmenu = "main"}
 {@ String initialFilter = "all"}
+{@ int homedirUsers = 0}
+{@ int githubUsers = 0}
+{@ int discordUsers = 0}
 {#include layout/main activePage="comunidad"}
 {#title}Comunidad Curada · Homedir{/title}
 {#body}
@@ -20,6 +23,25 @@
     <div class="section-card events-full-width community-shell-card">
       <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}">
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
+
+        <section class="community-pulse" aria-label="Community pulse">
+          <a href="/comunidad/board/homedir-users" class="community-pulse-card">
+            <span class="community-pulse-label">HomeDir users</span>
+            <strong class="community-pulse-value">{homedirUsers}</strong>
+          </a>
+          <a href="/comunidad/board/github-users" class="community-pulse-card">
+            <span class="community-pulse-label">GitHub users</span>
+            <strong class="community-pulse-value">{githubUsers}</strong>
+          </a>
+          <a href="/comunidad/board/discord-users" class="community-pulse-card">
+            <span class="community-pulse-label">Discord users</span>
+            <strong class="community-pulse-value">{discordUsers}</strong>
+          </a>
+          <div class="community-pulse-card community-pulse-card-neutral">
+            <span class="community-pulse-label">Curated picks</span>
+            <strong id="community-content-total" class="community-pulse-value">0</strong>
+          </div>
+        </section>
 
         <div class="community-view-row" role="tablist" aria-label="Community view">
           <button type="button" class="btn-primary community-view-btn community-tab" data-view="featured">
@@ -197,6 +219,46 @@
     display: grid;
     gap: 1rem;
     margin-bottom: 1rem;
+  }
+
+  .community-pulse {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .community-pulse-card {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.26);
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.55rem 0.65rem;
+    text-decoration: none;
+    color: inherit;
+    min-height: 58px;
+    align-content: center;
+  }
+
+  .community-pulse-card:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+
+  .community-pulse-card-neutral:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .community-pulse-label {
+    font-size: 0.72rem;
+    opacity: 0.84;
+    letter-spacing: 0.3px;
+  }
+
+  .community-pulse-value {
+    font-size: 1.1rem;
+    line-height: 1.15;
+    letter-spacing: 0.4px;
   }
 
   .community-filter-row {
