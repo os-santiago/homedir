@@ -50,6 +50,14 @@
           <button type="button" class="community-topic-btn" data-topic="platform">Platform</button>
         </div>
 
+        <section id="community-interest" class="community-interest hidden" aria-live="polite">
+          <div class="community-interest-header">
+            <h3>Intereses rapidos</h3>
+            <p>Selecciona un tema y ve contenido relevante al instante</p>
+          </div>
+          <div id="community-interest-list" class="community-interest-list"></div>
+        </section>
+
         <section id="community-hot" class="community-hot hidden" aria-live="polite">
           <div class="community-hot-header">
             <h3>Hot now</h3>
@@ -258,6 +266,84 @@
     background: rgba(0, 0, 0, 0.25);
     padding: 0.75rem;
     margin-bottom: 0.95rem;
+  }
+
+  .community-interest {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.75rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .community-interest.hidden {
+    display: none;
+  }
+
+  .community-interest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .community-interest-header h3 {
+    margin: 0;
+    font-size: 0.92rem;
+    letter-spacing: 0.45px;
+  }
+
+  .community-interest-header p {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.76rem;
+  }
+
+  .community-interest-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.55rem;
+  }
+
+  .community-interest-card {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.24);
+    padding: 0.58rem 0.62rem;
+    display: grid;
+    gap: 0.2rem;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .community-interest-card:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+
+  .community-interest-card.active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.12);
+  }
+
+  .community-interest-title {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .community-interest-title .material-symbols-outlined {
+    font-size: 0.95rem;
+  }
+
+  .community-interest-meta {
+    margin: 0;
+    font-size: 0.72rem;
+    opacity: 0.84;
   }
 
   .community-hot.hidden {
