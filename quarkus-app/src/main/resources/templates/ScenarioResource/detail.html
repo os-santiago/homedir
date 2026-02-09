@@ -1,61 +1,92 @@
-{#include layout/base}
+{#include layout/main activePage="eventos"}
 {#title}
-{#if scenario}
-{scenario.name}
+{#if scenario && event}
+{scenario.name} - {event.title} - Homedir
+{#else if scenario}
+{scenario.name} - Homedir
 {#else}
-Escenario
+Escenario no encontrado - Homedir
 {/if}
 {/title}
-{#breadcrumbs}
+{#body}
 {#if scenario}
-<a href="/">Inicio</a><span class="sep">/</span><a href="/event/{event.id}">{event.title}</a><span
-  class="sep">/</span><span>Escenario: {scenario.name}</span>
-{/if}
-{/breadcrumbs}
-{#main}
-{#if scenario}
-<section class="scenario-detail">
-  <h1 class="page-title">{scenario.name}</h1>
-  {#if scenario.location}<p class="scenario-location"><strong>Ubicación:</strong> {scenario.location}</p>{/if}
-  {#if scenario.features}<p>{scenario.features}</p>{/if}
-  {#if !talks.isEmpty()}
-  <ul class="talk-list">
-    {#for t in talks}
-    <li class="card talk-card">
-      <h3 class="talk-title">{t.name}</h3>
-      {#if !t.break && !t.speakers.isEmpty()}
-      <div class="speaker-avatars">
-        {#for s in t.speakers}
-        <a href="/speaker/{s.id}" title="{s.name}">
-          {#if app:validUrl(s.photoUrl)}
-          <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
-          {#else}
-          <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
-          {/if}
-        </a>
-        {/for}
-      </div>
-      {/if}
-      <div class="chips">
-        <span class="chip">Día {t.day}</span>
-        {#if event}<span class="chip">{event.getScenarioName(t.location)}</span>{/if}
-      </div>
-      <p class="talk-time">{t.startTimeStr} ({t.durationMinutes} min)</p>
-      {#if !t.break && event}<a href="/event/{event.id}/talk/{t.id}" class="btn btn-secondary">Ver charla</a>{/if}
-    </li>
-    {/for}
-  </ul>
-  {#else}
-  <p>No hay charlas para este escenario.</p>
-  {/if}
-  {#if event}
-  <div class="action-group">
-    <a href="/event/{event.id}" class="btn">Volver al evento</a>
+<header class="page-header">
+  <div class="section-header">
+    {#if event}
+    <p class="section-subtitle">
+      <a href="/event/{event.id}" class="hd-link">← Volver a {event.title}</a>
+    </p>
+    {/if}
+    <h1 class="public-title">{scenario.name}</h1>
   </div>
+
+  {#if scenario.location}
+  <p class="section-subtitle">
+    <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
+    {scenario.location}
+  </p>
   {/if}
+
+  {#if scenario.features}
+  <p class="section-subtitle">{scenario.features}</p>
+  {/if}
+</header>
+
+<section class="page-grid">
+  <article class="section-card" style="grid-column: 1 / -1;">
+    <div class="section-header" style="margin-bottom: 1rem;">
+      <h2>Charlas en este escenario</h2>
+      <span class="badge">{talks.size} sesión{#if talks.size != 1}es{/if}</span>
+    </div>
+
+    {#if talks.isEmpty()}
+    <p class="event-description">No hay charlas publicadas para este escenario todavía.</p>
+    {#else}
+    <ul class="talk-list">
+      {#for t in talks}
+      <li class="card talk-card">
+        <h3 class="talk-title">{t.name}</h3>
+
+        {#if !t.break && !t.speakers.isEmpty()}
+        <div class="speaker-avatars">
+          {#for s in t.speakers}
+          <a href="/speaker/{s.id}" title="{s.name}" style="text-decoration: none;">
+            {#if app:validUrl(s.photoUrl)}
+            <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
+            {#else}
+            <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
+            {/if}
+          </a>
+          {/for}
+        </div>
+        {/if}
+
+        <div class="chips">
+          <span class="chip">Día {t.day}</span>
+          {#if t.startTimeStr}<span class="chip">{t.startTimeStr}</span>{/if}
+          {#if t.durationMinutes > 0}<span class="chip">{t.durationMinutes} min</span>{/if}
+        </div>
+
+        {#if !t.break && event}
+        <a href="/event/{event.id}/talk/{t.id}" class="btn-primary" style="margin-top: 0.8rem; display: inline-flex;">
+          Ver charla
+        </a>
+        {/if}
+      </li>
+      {/for}
+    </ul>
+    {/if}
+  </article>
 </section>
 {#else}
-<p>Escenario no encontrado.</p>
+<div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 45vh;">
+  <div class="section-card" style="text-align: center;">
+    <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">podium</span>
+    <h2>Escenario no encontrado</h2>
+    <p>No pudimos encontrar el escenario solicitado.</p>
+    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">Volver a Eventos</a>
+  </div>
+</div>
 {/if}
-{/main}
+{/body}
 {/include}
