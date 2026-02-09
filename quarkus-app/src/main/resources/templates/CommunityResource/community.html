@@ -43,40 +43,44 @@
           </div>
         </section>
 
-        <div class="community-view-row" role="tablist" aria-label="Community view">
-          <button type="button" class="btn-primary community-view-btn community-tab" data-view="featured">
-            Destacado
-          </button>
-          <button type="button" class="btn-primary community-view-btn community-tab" data-view="new">
-            Nuevo
-          </button>
-        </div>
+        <div class="community-controls-panel">
+          <div class="community-controls-top">
+            <div class="community-view-row" role="tablist" aria-label="Community view">
+              <button type="button" class="btn-primary community-view-btn community-tab" data-view="featured">
+                Destacado
+              </button>
+              <button type="button" class="btn-primary community-view-btn community-tab" data-view="new">
+                Nuevo
+              </button>
+            </div>
 
-        <div class="community-filter-row" role="group" aria-label="Community source filter">
-          <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="all">
-            All
-          </button>
-          <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="internet">
-            Internet
-          </button>
-          <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="members">
-            Members
-          </button>
-        </div>
+            <div class="community-filter-row" role="group" aria-label="Community source filter">
+              <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="all">
+                All
+              </button>
+              <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="internet">
+                Internet
+              </button>
+              <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="members">
+                Members
+              </button>
+            </div>
+          </div>
 
-        <div class="community-topic-row" role="group" aria-label="Community topic filter">
-          <button type="button" class="community-topic-btn community-topic-active" data-topic="all">Todo</button>
-          <button type="button" class="community-topic-btn" data-topic="ai">AI</button>
-          <button type="button" class="community-topic-btn" data-topic="opensource">Open Source</button>
-          <button type="button" class="community-topic-btn" data-topic="devops">DevOps</button>
-          <button type="button" class="community-topic-btn" data-topic="platform">Platform</button>
-        </div>
+          <div class="community-topic-row" role="group" aria-label="Community topic filter">
+            <button type="button" class="community-topic-btn community-topic-active" data-topic="all">Todo</button>
+            <button type="button" class="community-topic-btn" data-topic="ai">AI</button>
+            <button type="button" class="community-topic-btn" data-topic="opensource">Open Source</button>
+            <button type="button" class="community-topic-btn" data-topic="devops">DevOps</button>
+            <button type="button" class="community-topic-btn" data-topic="platform">Platform</button>
+          </div>
 
-        <div id="community-active-filters" class="community-active-filters hidden" aria-live="polite">
-          <div id="community-active-filter-chips" class="community-active-filter-chips"></div>
-          <button id="community-clear-filters" type="button" class="community-clear-filters-btn">
-            Limpiar filtros
-          </button>
+          <div id="community-active-filters" class="community-active-filters hidden" aria-live="polite">
+            <div id="community-active-filter-chips" class="community-active-filter-chips"></div>
+            <button id="community-clear-filters" type="button" class="community-clear-filters-btn">
+              Limpiar filtros
+            </button>
+          </div>
         </div>
 
         <section id="community-interest" class="community-interest hidden" aria-live="polite">
@@ -240,7 +244,22 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 0.6rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .community-controls-panel {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .community-controls-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.45rem;
+    margin-bottom: 0.45rem;
   }
 
   .community-pulse-card {
@@ -278,26 +297,34 @@
 
   .community-filter-row {
     display: flex;
-    gap: 0.55rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.65rem;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+    margin-bottom: 0;
   }
 
   .community-filter-btn {
-    min-width: 92px;
+    min-width: 0;
+    padding: 0.28rem 0.45rem;
+    font-size: 0.74rem;
+    line-height: 1.15;
     margin-top: 0;
+    flex: 1 1 auto;
   }
 
   .community-view-row {
     display: flex;
-    gap: 0.55rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.65rem;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+    margin-bottom: 0;
   }
 
   .community-view-btn {
-    min-width: 130px;
+    min-width: 0;
+    padding: 0.28rem 0.45rem;
+    font-size: 0.74rem;
+    line-height: 1.15;
     margin-top: 0;
+    flex: 1 1 auto;
   }
 
   .community-view-btn.active {
@@ -312,18 +339,18 @@
 
   .community-topic-row {
     display: flex;
-    gap: 0.45rem;
+    gap: 0.32rem;
     flex-wrap: wrap;
-    margin-bottom: 1rem;
+    margin-bottom: 0.4rem;
   }
 
   .community-active-filters {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    margin: -0.4rem 0 0.75rem;
+    margin: 0;
   }
 
   .community-active-filters.hidden {
@@ -333,15 +360,15 @@
   .community-active-filter-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.32rem;
   }
 
   .community-active-filter-chip {
     border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: 999px;
     background: rgba(0, 0, 0, 0.2);
-    padding: 0.18rem 0.5rem;
-    font-size: 0.72rem;
+    padding: 0.14rem 0.44rem;
+    font-size: 0.7rem;
     opacity: 0.9;
   }
 
@@ -350,8 +377,8 @@
     border-radius: 999px;
     background: transparent;
     color: inherit;
-    padding: 0.2rem 0.55rem;
-    font-size: 0.72rem;
+    padding: 0.16rem 0.48rem;
+    font-size: 0.7rem;
     cursor: pointer;
   }
 
@@ -364,8 +391,8 @@
     background: rgba(0, 0, 0, 0.25);
     color: inherit;
     border-radius: 999px;
-    padding: 0.3rem 0.62rem;
-    font-size: 0.76rem;
+    padding: 0.22rem 0.5rem;
+    font-size: 0.72rem;
     cursor: pointer;
     transition: border-color 0.08s linear, background-color 0.08s linear;
   }
@@ -377,6 +404,18 @@
   .community-topic-btn.community-topic-active {
     border-color: rgba(120, 255, 160, 0.9);
     background: rgba(120, 255, 160, 0.16);
+  }
+
+  @media (max-width: 920px) {
+    .community-controls-top {
+      grid-template-columns: 1fr;
+      gap: 0.36rem;
+    }
+
+    .community-filter-row,
+    .community-view-row {
+      flex-wrap: wrap;
+    }
   }
 
   .community-hot {
