@@ -22,6 +22,8 @@
   const hotListEl = document.getElementById("community-hot-list");
   const interestSectionEl = document.getElementById("community-interest");
   const interestListEl = document.getElementById("community-interest-list");
+  const radarSectionEl = document.getElementById("community-radar");
+  const radarListEl = document.getElementById("community-radar-list");
 
   const tabButtons = Array.from(document.querySelectorAll(".community-tab"));
   const filterButtons = Array.from(document.querySelectorAll(".community-filter"));
@@ -31,6 +33,7 @@
     view: initialView,
     filter: initialFilter,
     topic: sessionStorage.getItem("community.topic") || "all",
+    tag: sessionStorage.getItem("community.tag") || "",
     items: [],
     offset: 0,
     total: 0,
@@ -57,8 +60,8 @@
 
   function updateEmptyState(visibleCount) {
     const empty = !state.loading && visibleCount === 0;
-    if (empty && state.items.length > 0 && state.topic !== "all") {
-      emptyEl.textContent = "Sin coincidencias para este tema. Prueba otro filtro.";
+    if (empty && state.items.length > 0 && (state.topic !== "all" || state.tag)) {
+      emptyEl.textContent = "Sin coincidencias con tus filtros. Prueba otra combinacion.";
     } else {
       emptyEl.textContent = "No hay contenido curado disponible por ahora.";
     }
@@ -137,11 +140,28 @@
     return Math.max(1, Math.round(words / 180));
   }
 
+  function normalizeTag(rawTag) {
+    return String(rawTag || "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function itemHasTag(item, tag) {
+    if (!tag) return true;
+    const tags = Array.isArray(item.tags) ? item.tags : [];
+    return tags.some((entry) => normalizeTag(entry) === tag);
+  }
+
   function visibleItems() {
-    if (state.topic === "all") {
-      return state.items;
-    }
-    return state.items.filter((item) => inferTopic(item) === state.topic);
+    return state.items.filter((item) => {
+      if (state.topic !== "all" && inferTopic(item) !== state.topic) {
+        return false;
+      }
+      if (state.tag && !itemHasTag(item, state.tag)) {
+        return false;
+      }
+      return true;
+    });
   }
 
   function topicCatalog() {
@@ -194,6 +214,76 @@
       btn.appendChild(title);
       btn.appendChild(meta);
       interestListEl.appendChild(btn);
+    });
+  }
+
+  function renderTagRadar(items) {
+    if (!radarSectionEl || !radarListEl) {
+      return;
+    }
+    radarListEl.textContent = "";
+    if (!Array.isArray(items) || items.length === 0) {
+      radarSectionEl.classList.add("hidden");
+      return;
+    }
+
+    const filteredByTopic =
+      state.topic === "all" ? items : items.filter((item) => inferTopic(item) === state.topic);
+    const counter = new Map();
+    filteredByTopic.forEach((item) => {
+      const tags = Array.isArray(item.tags) ? item.tags : [];
+      tags.forEach((tagValue) => {
+        const key = normalizeTag(tagValue);
+        if (!key) return;
+        const entry = counter.get(key) || { label: String(tagValue).trim(), count: 0 };
+        entry.count += 1;
+        counter.set(key, entry);
+      });
+    });
+
+    const topTags = Array.from(counter.entries())
+      .sort((a, b) => {
+        if (b[1].count !== a[1].count) return b[1].count - a[1].count;
+        return a[0].localeCompare(b[0]);
+      })
+      .slice(0, 10);
+
+    if (topTags.length === 0) {
+      radarSectionEl.classList.add("hidden");
+      return;
+    }
+
+    radarSectionEl.classList.remove("hidden");
+
+    const allBtn = document.createElement("button");
+    allBtn.type = "button";
+    allBtn.className = "community-radar-chip";
+    if (!state.tag) {
+      allBtn.classList.add("active");
+    }
+    allBtn.dataset.tag = "";
+    allBtn.textContent = "All tags";
+    radarListEl.appendChild(allBtn);
+
+    topTags.forEach(([key, data]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "community-radar-chip";
+      if (state.tag === key) {
+        chip.classList.add("active");
+      }
+      chip.dataset.tag = key;
+
+      const label = document.createElement("span");
+      label.textContent = `#${data.label}`;
+
+      const count = document.createElement("span");
+      count.className = "community-radar-count";
+      count.textContent = String(data.count);
+
+      chip.appendChild(label);
+      chip.appendChild(count);
+      radarListEl.appendChild(chip);
     });
   }
 
@@ -256,6 +346,7 @@
   function renderItems() {
     listEl.textContent = "";
     renderInterestCards(state.items);
+    renderTagRadar(state.items);
     if (totalMetricEl) {
       totalMetricEl.textContent = String(Number(state.total || state.items.length || 0));
     }
@@ -328,8 +419,14 @@
         const tagsWrap = document.createElement("div");
         tagsWrap.className = "community-tags";
         item.tags.forEach((tag) => {
-          const tagEl = document.createElement("span");
-          tagEl.className = "community-tag";
+          const normalizedTag = normalizeTag(tag);
+          const tagEl = document.createElement("button");
+          tagEl.type = "button";
+          tagEl.className = "community-tag community-tag-btn";
+          if (normalizedTag && state.tag === normalizedTag) {
+            tagEl.classList.add("active");
+          }
+          tagEl.dataset.tag = normalizedTag;
           tagEl.textContent = escapeText(tag);
           tagsWrap.appendChild(tagEl);
         });
@@ -459,6 +556,20 @@
     renderItems();
   }
 
+  function setTag(nextTag) {
+    const normalizedTag = normalizeTag(nextTag);
+    if (normalizedTag === state.tag) {
+      return;
+    }
+    state.tag = normalizedTag;
+    if (state.tag) {
+      sessionStorage.setItem("community.tag", state.tag);
+    } else {
+      sessionStorage.removeItem("community.tag");
+    }
+    renderItems();
+  }
+
   tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const nextView = btn.dataset.view;
@@ -505,9 +616,24 @@
     });
   }
 
+  if (radarListEl) {
+    radarListEl.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const chip = target.closest(".community-radar-chip");
+      if (!chip) return;
+      setTag(chip.dataset.tag || "");
+    });
+  }
+
   listEl.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+    const tagBtn = target.closest(".community-tag-btn");
+    if (tagBtn) {
+      setTag(tagBtn.dataset.tag || "");
+      return;
+    }
     const voteBtn = target.closest(".community-vote-btn");
     if (!voteBtn) return;
     const itemId = voteBtn.dataset.itemId;
