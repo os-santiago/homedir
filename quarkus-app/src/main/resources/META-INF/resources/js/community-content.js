@@ -534,6 +534,13 @@
       }
       state.total = Number(data.total || state.items.length);
       state.offset = state.items.length;
+      if (reset && state.items.length > 0 && visibleItems().length === 0 && (state.tag || state.topic !== "all")) {
+        state.topic = "all";
+        state.tag = "";
+        sessionStorage.setItem("community.topic", "all");
+        sessionStorage.removeItem("community.tag");
+        updateTopicState();
+      }
       renderItems();
     } catch (error) {
       showFeedback("No se pudo cargar el contenido de comunidad.");
@@ -541,6 +548,7 @@
     } finally {
       state.loading = false;
       showSkeleton(false);
+      updateEmptyState(visibleItems().length);
       updateLoadMoreState();
     }
   }
