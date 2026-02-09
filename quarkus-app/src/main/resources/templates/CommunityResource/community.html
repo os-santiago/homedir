@@ -6,11 +6,11 @@
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header">
-      <p class="section-subtitle">Comunidad · Curación colaborativa</p>
+      <p class="section-subtitle">Community · Curación colaborativa</p>
       <h1>Contenido recomendado por la comunidad</h1>
     </div>
     <p class="section-subtitle">
-      Descubre recursos curados, vota en 3 estados y sigue lo más relevante de la semana.
+      Encuentra rápido lo que te interesa: destacado, nuevo y filtrado por temas.
     </p>
   </header>
   {#include fragments/community-submenu.html /}
@@ -20,6 +20,15 @@
     <div class="section-card events-full-width community-shell-card">
       <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}">
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
+
+        <div class="community-view-row" role="tablist" aria-label="Community view">
+          <button type="button" class="btn-primary community-view-btn community-tab" data-view="featured">
+            Destacado
+          </button>
+          <button type="button" class="btn-primary community-view-btn community-tab" data-view="new">
+            Nuevo
+          </button>
+        </div>
 
         <div class="community-filter-row" role="group" aria-label="Community source filter">
           <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="all">
@@ -32,6 +41,22 @@
             Members
           </button>
         </div>
+
+        <div class="community-topic-row" role="group" aria-label="Community topic filter">
+          <button type="button" class="community-topic-btn community-topic-active" data-topic="all">Todo</button>
+          <button type="button" class="community-topic-btn" data-topic="ai">AI</button>
+          <button type="button" class="community-topic-btn" data-topic="opensource">Open Source</button>
+          <button type="button" class="community-topic-btn" data-topic="devops">DevOps</button>
+          <button type="button" class="community-topic-btn" data-topic="platform">Platform</button>
+        </div>
+
+        <section id="community-hot" class="community-hot hidden" aria-live="polite">
+          <div class="community-hot-header">
+            <h3>Hot now</h3>
+            <p>Lo más votado esta semana</p>
+          </div>
+          <div id="community-hot-list" class="community-hot-list"></div>
+        </section>
 
         <div id="community-skeleton" class="community-skeleton hidden" aria-hidden="true">
           <div class="community-skeleton-card"></div>
@@ -170,7 +195,7 @@
     display: flex;
     gap: 0.55rem;
     flex-wrap: wrap;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0.65rem;
   }
 
   .community-filter-btn {
@@ -178,9 +203,118 @@
     margin-top: 0;
   }
 
+  .community-view-row {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.65rem;
+  }
+
+  .community-view-btn {
+    min-width: 130px;
+    margin-top: 0;
+  }
+
+  .community-view-btn.active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.16);
+  }
+
   .community-filter-btn.community-filter-active {
     border-color: rgba(120, 255, 160, 0.9);
     background: rgba(120, 255, 160, 0.16);
+  }
+
+  .community-topic-row {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .community-topic-btn {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.25);
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.3rem 0.62rem;
+    font-size: 0.76rem;
+    cursor: pointer;
+    transition: border-color 0.08s linear, background-color 0.08s linear;
+  }
+
+  .community-topic-btn:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .community-topic-btn.community-topic-active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.16);
+  }
+
+  .community-hot {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.75rem;
+    margin-bottom: 0.95rem;
+  }
+
+  .community-hot.hidden {
+    display: none;
+  }
+
+  .community-hot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .community-hot-header h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+  }
+
+  .community-hot-header p {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.78rem;
+  }
+
+  .community-hot-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .community-hot-item {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.24);
+    padding: 0.62rem;
+    text-decoration: none;
+    color: inherit;
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .community-hot-item:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+
+  .community-hot-item-title {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+
+  .community-hot-meta {
+    margin: 0;
+    opacity: 0.85;
+    font-size: 0.73rem;
   }
 
   .community-skeleton.hidden {
@@ -236,24 +370,107 @@
     justify-content: space-between;
     gap: 1rem;
     align-items: start;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.42rem;
+  }
+
+  .community-item-main {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .community-item-eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+
+  .community-origin-pill,
+  .community-score-pill,
+  .community-read-pill {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    padding: 0.16rem 0.5rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.3px;
+    opacity: 0.95;
+  }
+
+  .community-origin-pill.members {
+    border-color: rgba(120, 255, 160, 0.65);
+    background: rgba(120, 255, 160, 0.14);
+  }
+
+  .community-origin-pill.internet {
+    border-color: rgba(120, 185, 255, 0.65);
+    background: rgba(120, 185, 255, 0.14);
   }
 
   .community-item-title {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.02rem;
     line-height: 1.3;
   }
 
+  .community-item-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .community-item-title a:hover {
+    color: #ffd700;
+  }
+
   .community-item-meta {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     opacity: 0.8;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.5rem;
   }
 
   .community-item-summary {
-    margin: 0 0 0.8rem;
+    margin: 0 0 0.62rem;
     line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .community-topic-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    opacity: 0.84;
+    margin-bottom: 0.5rem;
+  }
+
+  .community-topic-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .community-topic-dot.ai {
+    background: #8b6dff;
+  }
+
+  .community-topic-dot.opensource {
+    background: #58ca7b;
+  }
+
+  .community-topic-dot.devops {
+    background: #ffb54b;
+  }
+
+  .community-topic-dot.platform {
+    background: #67b6ff;
+  }
+
+  .community-topic-dot.general {
+    background: #bbbbbb;
   }
 
   .community-tags {
