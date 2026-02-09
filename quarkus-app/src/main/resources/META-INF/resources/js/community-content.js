@@ -19,6 +19,8 @@
   const feedbackEl = document.getElementById("community-feedback");
   const hotSectionEl = document.getElementById("community-hot");
   const hotListEl = document.getElementById("community-hot-list");
+  const interestSectionEl = document.getElementById("community-interest");
+  const interestListEl = document.getElementById("community-interest-list");
 
   const tabButtons = Array.from(document.querySelectorAll(".community-tab"));
   const filterButtons = Array.from(document.querySelectorAll(".community-filter"));
@@ -27,7 +29,7 @@
   const state = {
     view: initialView,
     filter: initialFilter,
-    topic: "all",
+    topic: sessionStorage.getItem("community.topic") || "all",
     items: [],
     offset: 0,
     total: 0,
@@ -141,6 +143,59 @@
     return state.items.filter((item) => inferTopic(item) === state.topic);
   }
 
+  function topicCatalog() {
+    return [
+      { key: "ai", label: "AI", icon: "smart_toy" },
+      { key: "opensource", label: "Open Source", icon: "code" },
+      { key: "devops", label: "DevOps", icon: "hub" },
+      { key: "platform", label: "Platform", icon: "layers" }
+    ];
+  }
+
+  function renderInterestCards(items) {
+    if (!interestSectionEl || !interestListEl) {
+      return;
+    }
+    interestListEl.textContent = "";
+
+    if (!Array.isArray(items) || items.length === 0) {
+      interestSectionEl.classList.add("hidden");
+      return;
+    }
+
+    const counts = { ai: 0, opensource: 0, devops: 0, platform: 0 };
+    items.forEach((item) => {
+      const topic = inferTopic(item);
+      if (counts[topic] != null) {
+        counts[topic] += 1;
+      }
+    });
+
+    interestSectionEl.classList.remove("hidden");
+
+    topicCatalog().forEach((entry) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "community-interest-card";
+      if (state.topic === entry.key) {
+        btn.classList.add("active");
+      }
+      btn.dataset.topic = entry.key;
+
+      const title = document.createElement("h4");
+      title.className = "community-interest-title";
+      title.innerHTML = `<span class=\"material-symbols-outlined\">${entry.icon}</span>${entry.label}`;
+
+      const meta = document.createElement("p");
+      meta.className = "community-interest-meta";
+      meta.textContent = `${counts[entry.key] || 0} items`;
+
+      btn.appendChild(title);
+      btn.appendChild(meta);
+      interestListEl.appendChild(btn);
+    });
+  }
+
   function renderHotItems(items) {
     if (!hotSectionEl || !hotListEl) {
       return;
@@ -199,6 +254,7 @@
 
   function renderItems() {
     listEl.textContent = "";
+    renderInterestCards(state.items);
 
     const items = visibleItems();
     renderHotItems(items);
@@ -389,6 +445,16 @@
 
   loadMoreBtn.addEventListener("click", () => load(false));
 
+  function setTopic(nextTopic) {
+    if (!nextTopic || nextTopic === state.topic) {
+      return;
+    }
+    state.topic = nextTopic;
+    sessionStorage.setItem("community.topic", state.topic);
+    updateTopicState();
+    renderItems();
+  }
+
   tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const nextView = btn.dataset.view;
@@ -419,14 +485,21 @@
   topicButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const nextTopic = String(btn.dataset.topic || "all").toLowerCase();
-      if (!nextTopic || nextTopic === state.topic) {
-        return;
-      }
-      state.topic = nextTopic;
-      updateTopicState();
-      renderItems();
+      setTopic(nextTopic);
     });
   });
+
+  if (interestListEl) {
+    interestListEl.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const card = target.closest(".community-interest-card");
+      if (!card) return;
+      const nextTopic = String(card.dataset.topic || "").toLowerCase();
+      if (!nextTopic) return;
+      setTopic(nextTopic);
+    });
+  }
 
   listEl.addEventListener("click", (event) => {
     const target = event.target;
