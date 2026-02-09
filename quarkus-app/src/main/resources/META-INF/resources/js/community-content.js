@@ -34,6 +34,7 @@
     filter: initialFilter,
     topic: sessionStorage.getItem("community.topic") || "all",
     tag: sessionStorage.getItem("community.tag") || "",
+    expandedSummaries: new Set(),
     items: [],
     offset: 0,
     total: 0,
@@ -102,6 +103,14 @@
 
   function scoreOf(item) {
     return Number(item && item.score ? item.score : 0);
+  }
+
+  function isRecentItem(rawDate) {
+    if (!rawDate) return false;
+    const parsed = new Date(rawDate);
+    if (Number.isNaN(parsed.getTime())) return false;
+    const days = (Date.now() - parsed.getTime()) / 86400000;
+    return days >= 0 && days <= 7;
   }
 
   function inferTopic(item) {
@@ -354,7 +363,7 @@
     const items = visibleItems();
     renderHotItems(items);
 
-    items.forEach((item) => {
+    items.forEach((item, index) => {
       const card = document.createElement("article");
       card.className = "community-item-card";
       card.dataset.itemId = item.id;
@@ -383,6 +392,18 @@
       eyebrow.appendChild(origin);
       eyebrow.appendChild(score);
       eyebrow.appendChild(read);
+      if (state.view === "featured" && index < 3) {
+        const rank = document.createElement("span");
+        rank.className = "community-rank-pill";
+        rank.textContent = `Top ${index + 1}`;
+        eyebrow.appendChild(rank);
+      }
+      if (isRecentItem(item.created_at)) {
+        const fresh = document.createElement("span");
+        fresh.className = "community-fresh-pill";
+        fresh.textContent = "Nuevo";
+        eyebrow.appendChild(fresh);
+      }
       main.appendChild(eyebrow);
 
       const title = document.createElement("h3");
@@ -410,10 +431,31 @@
       topicHint.innerHTML = `<span class="community-topic-dot ${topic}"></span>${topic.toUpperCase()}`;
       card.appendChild(topicHint);
 
-      const summary = document.createElement("p");
-      summary.className = "community-item-summary";
-      summary.textContent = escapeText(item.summary);
-      card.appendChild(summary);
+      const summaryText = escapeText(item.summary);
+      if (summaryText) {
+        const summary = document.createElement("p");
+        summary.className = "community-item-summary";
+        summary.textContent = summaryText;
+        const expandableSummary = summaryText.length > 140;
+        const expanded = state.expandedSummaries.has(String(item.id));
+        if (expandableSummary && !expanded) {
+          summary.classList.add("clamped");
+        }
+        if (expanded) {
+          summary.classList.add("expanded");
+        }
+        card.appendChild(summary);
+
+        if (expandableSummary) {
+          const toggle = document.createElement("button");
+          toggle.type = "button";
+          toggle.className = "community-summary-toggle";
+          toggle.dataset.itemId = String(item.id);
+          toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+          toggle.textContent = expanded ? "Ver menos" : "Ver resumen";
+          card.appendChild(toggle);
+        }
+      }
 
       if (Array.isArray(item.tags) && item.tags.length > 0) {
         const tagsWrap = document.createElement("div");
@@ -471,6 +513,7 @@
       state.offset = 0;
       state.total = 0;
       state.items = [];
+      state.expandedSummaries = new Set();
       renderItems();
     }
 
@@ -570,6 +613,17 @@
     renderItems();
   }
 
+  function toggleSummary(itemId) {
+    const key = String(itemId || "");
+    if (!key) return;
+    if (state.expandedSummaries.has(key)) {
+      state.expandedSummaries.delete(key);
+    } else {
+      state.expandedSummaries.add(key);
+    }
+    renderItems();
+  }
+
   tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const nextView = btn.dataset.view;
@@ -629,6 +683,11 @@
   listEl.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+    const summaryToggle = target.closest(".community-summary-toggle");
+    if (summaryToggle) {
+      toggleSummary(summaryToggle.dataset.itemId || "");
+      return;
+    }
     const tagBtn = target.closest(".community-tag-btn");
     if (tagBtn) {
       setTag(tagBtn.dataset.tag || "");
