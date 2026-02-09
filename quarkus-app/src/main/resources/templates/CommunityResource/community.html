@@ -80,6 +80,14 @@
           <div id="community-interest-list" class="community-interest-list"></div>
         </section>
 
+        <section id="community-radar" class="community-radar hidden" aria-live="polite">
+          <div class="community-radar-header">
+            <h3>Radar de tags</h3>
+            <p>Filtra por etiquetas populares de esta vista</p>
+          </div>
+          <div id="community-radar-list" class="community-radar-list"></div>
+        </section>
+
         <section id="community-hot" class="community-hot hidden" aria-live="polite">
           <div class="community-hot-header">
             <h3>Hot now</h3>
@@ -408,6 +416,74 @@
     opacity: 0.84;
   }
 
+  .community-radar {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.75rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .community-radar.hidden {
+    display: none;
+  }
+
+  .community-radar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .community-radar-header h3 {
+    margin: 0;
+    font-size: 0.92rem;
+    letter-spacing: 0.45px;
+  }
+
+  .community-radar-header p {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.76rem;
+  }
+
+  .community-radar-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+  }
+
+  .community-radar-chip {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.24);
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.26rem 0.52rem;
+    font-size: 0.74rem;
+    cursor: pointer;
+  }
+
+  .community-radar-chip:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+
+  .community-radar-chip.active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.12);
+  }
+
+  .community-radar-count {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 0.04rem 0.34rem;
+    font-size: 0.68rem;
+    opacity: 0.9;
+  }
+
   .community-hot.hidden {
     display: none;
   }
@@ -633,6 +709,21 @@
     padding: 0.2rem 0.6rem;
     border-radius: 999px;
     font-size: 0.75rem;
+  }
+
+  .community-tag-btn {
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .community-tag-btn:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+
+  .community-tag-btn.active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.14);
   }
 
   .community-votes {
