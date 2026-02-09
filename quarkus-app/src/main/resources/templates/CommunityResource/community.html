@@ -72,6 +72,13 @@
           <button type="button" class="community-topic-btn" data-topic="platform">Platform</button>
         </div>
 
+        <div id="community-active-filters" class="community-active-filters hidden" aria-live="polite">
+          <div id="community-active-filter-chips" class="community-active-filter-chips"></div>
+          <button id="community-clear-filters" type="button" class="community-clear-filters-btn">
+            Limpiar filtros
+          </button>
+        </div>
+
         <section id="community-interest" class="community-interest hidden" aria-live="polite">
           <div class="community-interest-header">
             <h3>Intereses rapidos</h3>
@@ -308,6 +315,48 @@
     gap: 0.45rem;
     flex-wrap: wrap;
     margin-bottom: 1rem;
+  }
+
+  .community-active-filters {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin: -0.4rem 0 0.75rem;
+  }
+
+  .community-active-filters.hidden {
+    display: none;
+  }
+
+  .community-active-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .community-active-filter-chip {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.18rem 0.5rem;
+    font-size: 0.72rem;
+    opacity: 0.9;
+  }
+
+  .community-clear-filters-btn {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+
+  .community-clear-filters-btn:hover {
+    border-color: rgba(255, 215, 0, 0.72);
   }
 
   .community-topic-btn {
