@@ -1,6 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -23,6 +24,7 @@ public class CommunityResource {
 
   @Inject SecurityIdentity identity;
   @Inject CommunityBoardService boardService;
+  @Inject UsageMetricsService metrics;
 
   @CheckedTemplate
   static class Templates {
@@ -35,31 +37,45 @@ public class CommunityResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance view(
       @QueryParam("view") String viewParam,
-      @QueryParam("filter") String filterParam) {
-    return render(viewParam, filterParam, null);
+      @QueryParam("filter") String filterParam,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    return render(viewParam, filterParam, null, headers, context);
   }
 
   @GET
   @Path("/moderation")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance moderation() {
-    return render("featured", "all", "moderation");
+  public TemplateInstance moderation(
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    return render("featured", "all", "moderation", headers, context);
   }
 
   @GET
   @Path("/propose")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance propose() {
-    return render("featured", "all", "propose");
+  public TemplateInstance propose(
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    return render("featured", "all", "propose", headers, context);
   }
 
-  private TemplateInstance render(String viewParam, String filterParam, String forcedSubmenu) {
+  private TemplateInstance render(
+      String viewParam,
+      String filterParam,
+      String forcedSubmenu,
+      jakarta.ws.rs.core.HttpHeaders headers,
+      io.vertx.ext.web.RoutingContext context) {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
     String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
+    String activeSubmenu =
+        forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "picks";
+    metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
     var summary = boardService.summary();
     TemplateInstance template =
         Templates.community(
@@ -70,9 +86,7 @@ public class CommunityResource {
             summary.discordUsers());
     return template
         .data("activePage", "comunidad")
-        .data(
-            "activeCommunitySubmenu",
-            forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "picks")
+        .data("activeCommunitySubmenu", activeSubmenu)
         .data("initialFilter", initialFilter)
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)

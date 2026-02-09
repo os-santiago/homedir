@@ -17,12 +17,17 @@
   const emptyEl = document.getElementById("community-empty");
   const loadMoreBtn = document.getElementById("community-load-more");
   const feedbackEl = document.getElementById("community-feedback");
+  const hotSectionEl = document.getElementById("community-hot");
+  const hotListEl = document.getElementById("community-hot-list");
+
   const tabButtons = Array.from(document.querySelectorAll(".community-tab"));
   const filterButtons = Array.from(document.querySelectorAll(".community-filter"));
+  const topicButtons = Array.from(document.querySelectorAll(".community-topic-btn"));
 
   const state = {
     view: initialView,
     filter: initialFilter,
+    topic: "all",
     items: [],
     offset: 0,
     total: 0,
@@ -47,8 +52,13 @@
     skeletonEl.classList.toggle("hidden", !show);
   }
 
-  function updateEmptyState() {
-    const empty = !state.loading && state.items.length === 0;
+  function updateEmptyState(visibleCount) {
+    const empty = !state.loading && visibleCount === 0;
+    if (empty && state.items.length > 0 && state.topic !== "all") {
+      emptyEl.textContent = "Sin coincidencias para este tema. Prueba otro filtro.";
+    } else {
+      emptyEl.textContent = "No hay contenido curado disponible por ahora.";
+    }
     emptyEl.classList.toggle("hidden", !empty);
   }
 
@@ -58,9 +68,22 @@
     loadMoreBtn.disabled = state.loading;
   }
 
+  function updateViewState() {
+    tabButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.view === state.view);
+      btn.setAttribute("aria-selected", btn.dataset.view === state.view ? "true" : "false");
+    });
+  }
+
   function updateFilterState() {
     filterButtons.forEach((btn) => {
       btn.classList.toggle("community-filter-active", btn.dataset.filter === state.filter);
+    });
+  }
+
+  function updateTopicState() {
+    topicButtons.forEach((btn) => {
+      btn.classList.toggle("community-topic-active", btn.dataset.topic === state.topic);
     });
   }
 
@@ -69,6 +92,92 @@
     const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return "";
     return parsed.toLocaleDateString("es-CL", { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  function scoreOf(item) {
+    return Number(item && item.score ? item.score : 0);
+  }
+
+  function inferTopic(item) {
+    const fields = [
+      ...(Array.isArray(item.tags) ? item.tags : []),
+      item.title,
+      item.summary,
+      item.source
+    ];
+    const text = fields
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (/(\bai\b|\bml\b|llm|agent|copilot|inteligencia artificial|machine learning)/.test(text)) {
+      return "ai";
+    }
+    if (/(open source|opensource|oss|github|gitlab|apache foundation|linux foundation)/.test(text)) {
+      return "opensource";
+    }
+    if (/(devops|kubernetes|k8s|ci\/cd|sre|observability|terraform|helm|argo)/.test(text)) {
+      return "devops";
+    }
+    if (/(platform engineering|platform|developer platform|idp|internal developer)/.test(text)) {
+      return "platform";
+    }
+    return "general";
+  }
+
+  function readMinutes(item) {
+    const text = `${escapeText(item.title)} ${escapeText(item.summary)}`.trim();
+    if (!text) {
+      return 1;
+    }
+    const words = text.split(/\s+/).length;
+    return Math.max(1, Math.round(words / 180));
+  }
+
+  function visibleItems() {
+    if (state.topic === "all") {
+      return state.items;
+    }
+    return state.items.filter((item) => inferTopic(item) === state.topic);
+  }
+
+  function renderHotItems(items) {
+    if (!hotSectionEl || !hotListEl) {
+      return;
+    }
+    hotListEl.textContent = "";
+
+    const hotItems = items
+      .slice()
+      .sort((a, b) => scoreOf(b) - scoreOf(a))
+      .slice(0, 3);
+
+    if (hotItems.length === 0) {
+      hotSectionEl.classList.add("hidden");
+      return;
+    }
+
+    hotSectionEl.classList.remove("hidden");
+
+    hotItems.forEach((item) => {
+      const link = document.createElement("a");
+      link.className = "community-hot-item";
+      link.href = item.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+
+      const title = document.createElement("h4");
+      title.className = "community-hot-item-title";
+      title.textContent = escapeText(item.title);
+
+      const meta = document.createElement("p");
+      meta.className = "community-hot-meta";
+      meta.textContent = `${escapeText(item.source)} · Score ${scoreOf(item).toFixed(2)}`;
+
+      link.appendChild(title);
+      link.appendChild(meta);
+      hotListEl.appendChild(link);
+    });
   }
 
   function createVoteButton(item, voteKey, label, count) {
@@ -90,7 +199,11 @@
 
   function renderItems() {
     listEl.textContent = "";
-    state.items.forEach((item) => {
+
+    const items = visibleItems();
+    renderHotItems(items);
+
+    items.forEach((item) => {
       const card = document.createElement("article");
       card.className = "community-item-card";
       card.dataset.itemId = item.id;
@@ -98,7 +211,29 @@
       const header = document.createElement("div");
       header.className = "community-item-header";
 
-      const titleWrap = document.createElement("div");
+      const main = document.createElement("div");
+      main.className = "community-item-main";
+
+      const eyebrow = document.createElement("div");
+      eyebrow.className = "community-item-eyebrow";
+
+      const origin = document.createElement("span");
+      origin.className = `community-origin-pill ${item.origin || "internet"}`;
+      origin.textContent = item.origin === "members" ? "Members" : "Internet";
+
+      const score = document.createElement("span");
+      score.className = "community-score-pill";
+      score.textContent = `Score ${scoreOf(item).toFixed(2)}`;
+
+      const read = document.createElement("span");
+      read.className = "community-read-pill";
+      read.textContent = `${readMinutes(item)} min`;
+
+      eyebrow.appendChild(origin);
+      eyebrow.appendChild(score);
+      eyebrow.appendChild(read);
+      main.appendChild(eyebrow);
+
       const title = document.createElement("h3");
       title.className = "community-item-title";
       const link = document.createElement("a");
@@ -107,12 +242,9 @@
       link.rel = "noopener noreferrer";
       link.textContent = escapeText(item.title);
       title.appendChild(link);
-      titleWrap.appendChild(title);
+      main.appendChild(title);
 
-      const score = document.createElement("small");
-      score.textContent = `Score ${Number(item.score || 0).toFixed(2)}`;
-      titleWrap.appendChild(score);
-      header.appendChild(titleWrap);
+      header.appendChild(main);
       card.appendChild(header);
 
       const meta = document.createElement("p");
@@ -120,6 +252,12 @@
       const created = formatDate(item.created_at);
       meta.textContent = `${escapeText(item.source)}${created ? ` · ${created}` : ""}`;
       card.appendChild(meta);
+
+      const topic = inferTopic(item);
+      const topicHint = document.createElement("span");
+      topicHint.className = "community-topic-hint";
+      topicHint.innerHTML = `<span class="community-topic-dot ${topic}"></span>${topic.toUpperCase()}`;
+      card.appendChild(topicHint);
 
       const summary = document.createElement("p");
       summary.className = "community-item-summary";
@@ -143,13 +281,13 @@
       const counts = item.vote_counts || {};
       votesWrap.appendChild(createVoteButton(item, "recommended", "Recomendado", Number(counts.recommended || 0)));
       votesWrap.appendChild(createVoteButton(item, "must_see", "Imperdible", Number(counts.must_see || 0)));
-      votesWrap.appendChild(createVoteButton(item, "not_for_me", "No es para mí", Number(counts.not_for_me || 0)));
+      votesWrap.appendChild(createVoteButton(item, "not_for_me", "No es para mi", Number(counts.not_for_me || 0)));
       card.appendChild(votesWrap);
 
       listEl.appendChild(card);
     });
 
-    updateEmptyState();
+    updateEmptyState(items.length);
     updateLoadMoreState();
   }
 
@@ -199,7 +337,7 @@
       renderItems();
     } catch (error) {
       showFeedback("No se pudo cargar el contenido de comunidad.");
-      updateEmptyState();
+      updateEmptyState(0);
     } finally {
       state.loading = false;
       showSkeleton(false);
@@ -245,7 +383,7 @@
         state.items[idx] = snapshot;
       }
       renderItems();
-      showFeedback("No se pudo registrar tu voto. Inténtalo nuevamente.");
+      showFeedback("No se pudo registrar tu voto. Intentalo nuevamente.");
     }
   }
 
@@ -258,17 +396,10 @@
         return;
       }
       state.view = nextView;
-      tabButtons.forEach((candidate) => {
-        candidate.classList.toggle("active", candidate.dataset.view === state.view);
-      });
+      updateViewState();
       load(true);
     });
   });
-
-  tabButtons.forEach((candidate) => {
-    candidate.classList.toggle("active", candidate.dataset.view === state.view);
-  });
-  updateFilterState();
 
   filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -285,6 +416,18 @@
     });
   });
 
+  topicButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const nextTopic = String(btn.dataset.topic || "all").toLowerCase();
+      if (!nextTopic || nextTopic === state.topic) {
+        return;
+      }
+      state.topic = nextTopic;
+      updateTopicState();
+      renderItems();
+    });
+  });
+
   listEl.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
@@ -296,5 +439,8 @@
     sendVote(itemId, vote);
   });
 
+  updateViewState();
+  updateFilterState();
+  updateTopicState();
   load(true);
 })();
