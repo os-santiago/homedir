@@ -44,6 +44,32 @@
     loading: false
   };
 
+  const i18n = {
+    emptyFiltered: root.dataset.i18nEmptyFiltered || "No matches for current filters. Try a different combination.",
+    emptyGeneric: root.dataset.i18nEmptyGeneric || "No curated content is available right now.",
+    itemsUnit: root.dataset.i18nItemsUnit || "items",
+    scorePrefix: root.dataset.i18nScorePrefix || "Score",
+    voteLoginRequired: root.dataset.i18nVoteLoginRequired || "Sign in to vote",
+    voteRecommended: root.dataset.i18nVoteRecommended || "Recommended",
+    voteMustSee: root.dataset.i18nVoteMustSee || "Must see",
+    voteNotForMe: root.dataset.i18nVoteNotForMe || "Not for me",
+    loadError: root.dataset.i18nLoadError || "Could not load community content.",
+    voteError: root.dataset.i18nVoteError || "Could not register your vote. Please try again.",
+    allTags: root.dataset.i18nAllTags || "All tags",
+    filterSourceInternet: root.dataset.i18nFilterSourceInternet || "Source: Internet",
+    filterSourceMembers: root.dataset.i18nFilterSourceMembers || "Source: Members",
+    filterTopicPrefix: root.dataset.i18nFilterTopicPrefix || "Topic",
+    filterTagPrefix: root.dataset.i18nFilterTagPrefix || "Tag",
+    originInternet: root.dataset.i18nOriginInternet || "Internet",
+    originMembers: root.dataset.i18nOriginMembers || "Members",
+    readUnit: root.dataset.i18nReadUnit || "min",
+    badgeNew: root.dataset.i18nBadgeNew || "New",
+    topPrefix: root.dataset.i18nTopPrefix || "Top",
+    summaryShow: root.dataset.i18nSummaryShow || "Show summary",
+    summaryHide: root.dataset.i18nSummaryHide || "Show less"
+  };
+  const uiLocale = document.documentElement.lang || navigator.language || undefined;
+
   function escapeText(value) {
     return value == null ? "" : String(value);
   }
@@ -65,9 +91,9 @@
   function updateEmptyState(visibleCount) {
     const empty = !state.loading && visibleCount === 0;
     if (empty && state.items.length > 0 && (state.topic !== "all" || state.tag)) {
-      emptyEl.textContent = "Sin coincidencias con tus filtros. Prueba otra combinacion.";
+      emptyEl.textContent = i18n.emptyFiltered;
     } else {
-      emptyEl.textContent = "No hay contenido curado disponible por ahora.";
+      emptyEl.textContent = i18n.emptyGeneric;
     }
     emptyEl.classList.toggle("hidden", !empty);
   }
@@ -101,7 +127,7 @@
     if (!raw) return "";
     const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return "";
-    return parsed.toLocaleDateString("es-CL", { year: "numeric", month: "short", day: "numeric" });
+    return parsed.toLocaleDateString(uiLocale, { year: "numeric", month: "short", day: "numeric" });
   }
 
   function scoreOf(item) {
@@ -221,7 +247,7 @@
 
       const meta = document.createElement("p");
       meta.className = "community-interest-meta";
-      meta.textContent = `${counts[entry.key] || 0} items`;
+      meta.textContent = `${counts[entry.key] || 0} ${i18n.itemsUnit}`;
 
       btn.appendChild(title);
       btn.appendChild(meta);
@@ -274,7 +300,7 @@
       allBtn.classList.add("active");
     }
     allBtn.dataset.tag = "";
-    allBtn.textContent = "All tags";
+    allBtn.textContent = i18n.allTags;
     radarListEl.appendChild(allBtn);
 
     topTags.forEach(([key, data]) => {
@@ -330,7 +356,7 @@
 
       const meta = document.createElement("p");
       meta.className = "community-hot-meta";
-      meta.textContent = `${escapeText(item.source)} · Score ${scoreOf(item).toFixed(2)}`;
+      meta.textContent = `${escapeText(item.source)} · ${i18n.scorePrefix} ${scoreOf(item).toFixed(2)}`;
 
       link.appendChild(title);
       link.appendChild(meta);
@@ -346,15 +372,15 @@
 
     const chips = [];
     if (state.filter === "internet") {
-      chips.push("Source: Internet");
+      chips.push(i18n.filterSourceInternet);
     } else if (state.filter === "members") {
-      chips.push("Source: Members");
+      chips.push(i18n.filterSourceMembers);
     }
     if (state.topic && state.topic !== "all") {
-      chips.push(`Topic: ${state.topic}`);
+      chips.push(`${i18n.filterTopicPrefix}: ${state.topic}`);
     }
     if (state.tag) {
-      chips.push(`Tag: #${state.tag}`);
+      chips.push(`${i18n.filterTagPrefix}: #${state.tag}`);
     }
 
     if (chips.length === 0) {
@@ -380,7 +406,7 @@
     }
     if (!authenticated) {
       btn.disabled = true;
-      btn.title = "Inicia sesión para votar";
+      btn.title = i18n.voteLoginRequired;
     }
     btn.dataset.itemId = item.id;
     btn.dataset.vote = voteKey;
@@ -416,15 +442,15 @@
 
       const origin = document.createElement("span");
       origin.className = `community-origin-pill ${item.origin || "internet"}`;
-      origin.textContent = item.origin === "members" ? "Members" : "Internet";
+      origin.textContent = item.origin === "members" ? i18n.originMembers : i18n.originInternet;
 
       const score = document.createElement("span");
       score.className = "community-score-pill";
-      score.textContent = `Score ${scoreOf(item).toFixed(2)}`;
+      score.textContent = `${i18n.scorePrefix} ${scoreOf(item).toFixed(2)}`;
 
       const read = document.createElement("span");
       read.className = "community-read-pill";
-      read.textContent = `${readMinutes(item)} min`;
+      read.textContent = `${readMinutes(item)} ${i18n.readUnit}`;
 
       eyebrow.appendChild(origin);
       eyebrow.appendChild(score);
@@ -432,13 +458,13 @@
       if (state.view === "featured" && index < 3) {
         const rank = document.createElement("span");
         rank.className = "community-rank-pill";
-        rank.textContent = `Top ${index + 1}`;
+        rank.textContent = `${i18n.topPrefix} ${index + 1}`;
         eyebrow.appendChild(rank);
       }
       if (isRecentItem(item.created_at)) {
         const fresh = document.createElement("span");
         fresh.className = "community-fresh-pill";
-        fresh.textContent = "Nuevo";
+        fresh.textContent = i18n.badgeNew;
         eyebrow.appendChild(fresh);
       }
       main.appendChild(eyebrow);
@@ -489,7 +515,7 @@
           toggle.className = "community-summary-toggle";
           toggle.dataset.itemId = String(item.id);
           toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-          toggle.textContent = expanded ? "Ver menos" : "Ver resumen";
+          toggle.textContent = expanded ? i18n.summaryHide : i18n.summaryShow;
           card.appendChild(toggle);
         }
       }
@@ -515,9 +541,9 @@
       const votesWrap = document.createElement("div");
       votesWrap.className = "community-votes";
       const counts = item.vote_counts || {};
-      votesWrap.appendChild(createVoteButton(item, "recommended", "Recomendado", Number(counts.recommended || 0)));
-      votesWrap.appendChild(createVoteButton(item, "must_see", "Imperdible", Number(counts.must_see || 0)));
-      votesWrap.appendChild(createVoteButton(item, "not_for_me", "No es para mi", Number(counts.not_for_me || 0)));
+      votesWrap.appendChild(createVoteButton(item, "recommended", i18n.voteRecommended, Number(counts.recommended || 0)));
+      votesWrap.appendChild(createVoteButton(item, "must_see", i18n.voteMustSee, Number(counts.must_see || 0)));
+      votesWrap.appendChild(createVoteButton(item, "not_for_me", i18n.voteNotForMe, Number(counts.not_for_me || 0)));
       card.appendChild(votesWrap);
 
       listEl.appendChild(card);
@@ -580,7 +606,7 @@
       }
       renderItems();
     } catch (error) {
-      showFeedback("No se pudo cargar el contenido de comunidad.");
+      showFeedback(i18n.loadError);
       updateEmptyState(0);
     } finally {
       state.loading = false;
@@ -628,7 +654,7 @@
         state.items[idx] = snapshot;
       }
       renderItems();
-      showFeedback("No se pudo registrar tu voto. Intentalo nuevamente.");
+      showFeedback(i18n.voteError);
     }
   }
 

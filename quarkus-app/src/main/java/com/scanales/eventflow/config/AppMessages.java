@@ -446,6 +446,306 @@ public interface AppMessages {
     @Message("Top Contributors")
     String community_top_contributors();
 
+    @Message("Community Curated · Homedir")
+    String community_page_title();
+
+    @Message("Community · Collaborative curation")
+    String community_page_eyebrow();
+
+    @Message("Community-recommended content")
+    String community_page_heading();
+
+    @Message("Find what matters faster: featured picks, fresh content, and topic filters.")
+    String community_page_intro();
+
+    @Message("HomeDir users")
+    String community_pulse_homedir_users();
+
+    @Message("GitHub users")
+    String community_pulse_github_users();
+
+    @Message("Discord users")
+    String community_pulse_discord_users();
+
+    @Message("Curated picks")
+    String community_pulse_curated_picks();
+
+    @Message("Featured")
+    String community_view_featured();
+
+    @Message("New")
+    String community_view_new();
+
+    @Message("All")
+    String community_filter_all();
+
+    @Message("Internet")
+    String community_filter_internet();
+
+    @Message("Members")
+    String community_filter_members();
+
+    @Message("All")
+    String community_topic_all();
+
+    @Message("Clear filters")
+    String community_clear_filters();
+
+    @Message("Quick interests")
+    String community_interest_title();
+
+    @Message("Pick a topic and jump to relevant content instantly.")
+    String community_interest_desc();
+
+    @Message("Tag radar")
+    String community_radar_title();
+
+    @Message("Filter by popular tags in the current view.")
+    String community_radar_desc();
+
+    @Message("Hot now")
+    String community_hot_title();
+
+    @Message("Top voted this week")
+    String community_hot_desc();
+
+    @Message("No curated content is available right now.")
+    String community_empty_no_content();
+
+    @Message("Load more")
+    String community_load_more();
+
+    @Message("Community · Feed")
+    String community_propose_eyebrow();
+
+    @Message("Propose content")
+    String community_propose_title();
+
+    @Message("Share a relevant resource and the team will review it before publishing.")
+    String community_propose_intro();
+
+    @Message("Title")
+    String community_form_title();
+
+    @Message("Ex: Kubernetes 1.35 updates for platform teams")
+    String community_form_title_placeholder();
+
+    @Message("URL")
+    String community_form_url();
+
+    @Message("https://...")
+    String community_form_url_placeholder();
+
+    @Message("Summary")
+    String community_form_summary();
+
+    @Message("1-3 lines with the most relevant context")
+    String community_form_summary_placeholder();
+
+    @Message("Source (optional)")
+    String community_form_source();
+
+    @Message("Ex: CNCF Blog")
+    String community_form_source_placeholder();
+
+    @Message("Tags (optional, comma-separated)")
+    String community_form_tags();
+
+    @Message("ai, opensource, platform engineering")
+    String community_form_tags_placeholder();
+
+    @Message("Send proposal")
+    String community_form_submit();
+
+    @Message("My proposals")
+    String community_my_submissions_title();
+
+    @Message("You have not sent any proposals yet.")
+    String community_my_submissions_empty();
+
+    @Message("Sign in to propose content to the Community Feed.")
+    String community_login_to_propose();
+
+    @Message("Sign in")
+    String community_login();
+
+    @Message("Community · Moderation")
+    String community_moderation_eyebrow();
+
+    @Message("Moderation queue")
+    String community_moderation_title();
+
+    @Message("Review pending proposals and publish them to the official feed.")
+    String community_moderation_intro();
+
+    @Message("No proposals pending moderation.")
+    String community_moderation_empty();
+
+    @Message("Only admins can moderate proposals.")
+    String community_moderation_admin_only();
+
+    @Message("Community Picks")
+    String community_submenu_picks();
+
+    @Message("Propose Content")
+    String community_submenu_propose();
+
+    @Message("Community Board")
+    String community_submenu_board();
+
+    @Message("Moderation")
+    String community_submenu_moderation();
+
+    @Message("No matches for current filters. Try a different combination.")
+    String community_js_empty_filtered();
+
+    @Message("No curated content is available right now.")
+    String community_js_empty_generic();
+
+    @Message("items")
+    String community_js_items_unit();
+
+    @Message("Score")
+    String community_js_score_prefix();
+
+    @Message("{count} items")
+    String community_js_items_count(int count);
+
+    @Message("Score {score}")
+    String community_js_score_label(String score);
+
+    @Message("Sign in to vote")
+    String community_js_vote_login_required();
+
+    @Message("Recommended")
+    String community_js_vote_recommended();
+
+    @Message("Must see")
+    String community_js_vote_must_see();
+
+    @Message("Not for me")
+    String community_js_vote_not_for_me();
+
+    @Message("Could not load community content.")
+    String community_js_load_error();
+
+    @Message("Could not register your vote. Please try again.")
+    String community_js_vote_error();
+
+    @Message("All tags")
+    String community_js_all_tags();
+
+    @Message("Source: Internet")
+    String community_js_filter_source_internet();
+
+    @Message("Source: Members")
+    String community_js_filter_source_members();
+
+    @Message("Topic")
+    String community_js_filter_topic_prefix();
+
+    @Message("Tag")
+    String community_js_filter_tag_prefix();
+
+    @Message("Internet")
+    String community_js_origin_internet();
+
+    @Message("Members")
+    String community_js_origin_members();
+
+    @Message("min")
+    String community_js_read_unit();
+
+    @Message("Topic: {topic}")
+    String community_js_filter_topic(String topic);
+
+    @Message("Tag: #{tag}")
+    String community_js_filter_tag(String tag);
+
+    @Message("New")
+    String community_js_badge_new();
+
+    @Message("Top {rank}")
+    String community_js_top_rank(int rank);
+
+    @Message("Top")
+    String community_js_top_prefix();
+
+    @Message("Show summary")
+    String community_js_summary_show();
+
+    @Message("Show less")
+    String community_js_summary_hide();
+
+    @Message("Pending")
+    String community_submissions_status_pending();
+
+    @Message("Approved")
+    String community_submissions_status_approved();
+
+    @Message("Rejected")
+    String community_submissions_status_rejected();
+
+    @Message("Community member")
+    String community_submissions_source_fallback();
+
+    @Message("Open source")
+    String community_submissions_open_source();
+
+    @Message("Optional moderation note")
+    String community_submissions_note_placeholder();
+
+    @Message("Approve")
+    String community_submissions_approve();
+
+    @Message("Reject")
+    String community_submissions_reject();
+
+    @Message("Proposal approved and published.")
+    String community_submissions_feedback_approved();
+
+    @Message("Proposal rejected.")
+    String community_submissions_feedback_rejected();
+
+    @Message("Could not moderate this proposal.")
+    String community_submissions_error_moderate();
+
+    @Message("Could not load your submissions.")
+    String community_submissions_error_load_mine();
+
+    @Message("Could not load moderation queue.")
+    String community_submissions_error_load_moderation();
+
+    @Message("Only admins can moderate proposals.")
+    String community_submissions_error_admin_only();
+
+    @Message("The proposal no longer exists.")
+    String community_submissions_error_not_found();
+
+    @Message("This URL already exists in the curated feed.")
+    String community_submissions_error_conflict();
+
+    @Message("Could not publish content right now. Please try again in a few minutes.")
+    String community_submissions_error_unavailable();
+
+    @Message("Could not process moderation.")
+    String community_submissions_error_generic_moderation();
+
+    @Message("You reached the daily proposal limit.")
+    String community_submissions_error_daily_limit();
+
+    @Message("A proposal already exists for that URL.")
+    String community_submissions_error_duplicate_url();
+
+    @Message("Invalid data")
+    String community_submissions_error_invalid_data_prefix();
+
+    @Message("Could not send your proposal.")
+    String community_submissions_error_submit();
+
+    @Message("Proposal sent. It is now pending review.")
+    String community_submissions_feedback_submitted();
+
     @Message("No members found in directory.")
     String directory_empty();
 

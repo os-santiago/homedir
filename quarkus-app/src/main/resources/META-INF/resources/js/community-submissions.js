@@ -23,6 +23,32 @@
   if (!feedbackEl) {
     return;
   }
+  const i18n = {
+    statusPending: root.dataset.i18nStatusPending || "Pending",
+    statusApproved: root.dataset.i18nStatusApproved || "Approved",
+    statusRejected: root.dataset.i18nStatusRejected || "Rejected",
+    sourceFallback: root.dataset.i18nSourceFallback || "Community member",
+    openSource: root.dataset.i18nOpenSource || "Open source",
+    notePlaceholder: root.dataset.i18nNotePlaceholder || "Optional moderation note",
+    approve: root.dataset.i18nApprove || "Approve",
+    reject: root.dataset.i18nReject || "Reject",
+    feedbackApproved: root.dataset.i18nFeedbackApproved || "Proposal approved and published.",
+    feedbackRejected: root.dataset.i18nFeedbackRejected || "Proposal rejected.",
+    errorModerate: root.dataset.i18nErrorModerate || "Could not moderate this proposal.",
+    errorLoadMine: root.dataset.i18nErrorLoadMine || "Could not load your submissions.",
+    errorLoadModeration: root.dataset.i18nErrorLoadModeration || "Could not load moderation queue.",
+    errorAdminOnly: root.dataset.i18nErrorAdminOnly || "Only admins can moderate proposals.",
+    errorNotFound: root.dataset.i18nErrorNotFound || "The proposal no longer exists.",
+    errorConflict: root.dataset.i18nErrorConflict || "This URL already exists in the curated feed.",
+    errorUnavailable: root.dataset.i18nErrorUnavailable || "Could not publish content right now. Please try again in a few minutes.",
+    errorGenericModeration: root.dataset.i18nErrorGenericModeration || "Could not process moderation.",
+    errorDailyLimit: root.dataset.i18nErrorDailyLimit || "You reached the daily proposal limit.",
+    errorDuplicateUrl: root.dataset.i18nErrorDuplicateUrl || "A proposal already exists for that URL.",
+    errorInvalidDataPrefix: root.dataset.i18nErrorInvalidDataPrefix || "Invalid data",
+    errorSubmit: root.dataset.i18nErrorSubmit || "Could not send your proposal.",
+    feedbackSubmitted: root.dataset.i18nFeedbackSubmitted || "Proposal sent. It is now pending review."
+  };
+  const uiLocale = document.documentElement.lang || navigator.language || undefined;
 
   function showFeedback(message) {
     if (!feedbackEl) {
@@ -47,11 +73,11 @@
   function statusLabel(status) {
     switch (status) {
       case "approved":
-        return "Aprobada";
+        return i18n.statusApproved;
       case "rejected":
-        return "Rechazada";
+        return i18n.statusRejected;
       default:
-        return "Pendiente";
+        return i18n.statusPending;
     }
   }
 
@@ -59,7 +85,7 @@
     if (!raw) return "";
     const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return "";
-    return parsed.toLocaleDateString("es-CL", { year: "numeric", month: "short", day: "numeric" });
+    return parsed.toLocaleDateString(uiLocale, { year: "numeric", month: "short", day: "numeric" });
   }
 
   function renderList(items) {
@@ -83,7 +109,7 @@
 
       const meta = document.createElement("p");
       meta.className = "community-submission-meta";
-      meta.textContent = `${escapeText(item.source || "Community member")} · ${formatDate(item.created_at)}`;
+      meta.textContent = `${escapeText(item.source || i18n.sourceFallback)} · ${formatDate(item.created_at)}`;
       card.appendChild(meta);
 
       const status = document.createElement("span");
@@ -124,7 +150,7 @@
 
       const meta = document.createElement("p");
       meta.className = "community-submission-meta";
-      meta.textContent = `${escapeText(item.source || "Community member")} · ${formatDate(item.created_at)}`;
+      meta.textContent = `${escapeText(item.source || i18n.sourceFallback)} · ${formatDate(item.created_at)}`;
       card.appendChild(meta);
 
       const summary = document.createElement("p");
@@ -136,12 +162,12 @@
       link.href = item.url;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
-      link.textContent = "Abrir fuente";
+      link.textContent = i18n.openSource;
       card.appendChild(link);
 
       const note = document.createElement("textarea");
       note.className = "community-moderation-note";
-      note.placeholder = "Nota opcional de moderación";
+      note.placeholder = i18n.notePlaceholder;
       card.appendChild(note);
 
       const actions = document.createElement("div");
@@ -149,14 +175,14 @@
       const approveBtn = document.createElement("button");
       approveBtn.type = "button";
       approveBtn.className = "btn-primary";
-      approveBtn.textContent = "Approve";
+      approveBtn.textContent = i18n.approve;
       approveBtn.dataset.action = "approve";
       approveBtn.dataset.id = item.id;
 
       const rejectBtn = document.createElement("button");
       rejectBtn.type = "button";
       rejectBtn.className = "btn-primary";
-      rejectBtn.textContent = "Reject";
+      rejectBtn.textContent = i18n.reject;
       rejectBtn.dataset.action = "reject";
       rejectBtn.dataset.id = item.id;
 
@@ -186,10 +212,11 @@
           await Promise.all([loadMine(), loadPending()]);
           showFeedback(
             action === "approve"
-              ? "Propuesta aprobada y publicada."
-              : "Propuesta rechazada.");
+              ? i18n.feedbackApproved
+              : i18n.feedbackRejected
+          );
         } catch (error) {
-          showFeedback(error instanceof Error ? error.message : "No se pudo moderar la propuesta.");
+          showFeedback(error instanceof Error ? error.message : i18n.errorModerate);
         } finally {
           approveBtn.disabled = false;
           rejectBtn.disabled = false;
@@ -214,7 +241,7 @@
       const data = await response.json();
       renderList(Array.isArray(data.items) ? data.items : []);
     } catch (error) {
-      showFeedback("No se pudo cargar tus propuestas.");
+      showFeedback(i18n.errorLoadMine);
       renderList([]);
     }
   }
@@ -233,7 +260,7 @@
       const data = await response.json();
       renderModerationList(Array.isArray(data.items) ? data.items : []);
     } catch (error) {
-      showFeedback("No se pudo cargar la cola de moderación.");
+      showFeedback(i18n.errorLoadModeration);
       renderModerationList([]);
     }
   }
@@ -252,19 +279,19 @@
       const errorCode = String(data.error || "");
       const detail = String(data.detail || "");
       if (response.status === 403) {
-        throw new Error("Solo admins pueden moderar propuestas.");
+        throw new Error(i18n.errorAdminOnly);
       }
       if (response.status === 404) {
-        throw new Error("La propuesta ya no existe.");
+        throw new Error(i18n.errorNotFound);
       }
       if (response.status === 409) {
-        throw new Error("La URL ya existe en el feed curado.");
+        throw new Error(i18n.errorConflict);
       }
       if (response.status === 503 || errorCode === "approve_storage_unavailable") {
         const suffix = detail ? ` (${detail})` : "";
-        throw new Error(`No fue posible publicar el contenido en este momento. Reintenta en unos minutos.${suffix}`);
+        throw new Error(`${i18n.errorUnavailable}${suffix}`);
       }
-      throw new Error(errorCode || "No se pudo procesar la moderación.");
+      throw new Error(errorCode || i18n.errorGenericModeration);
     }
   }
 
@@ -307,21 +334,21 @@
           const data = await response.json().catch(() => ({}));
           const errorCode = String(data.error || "");
           if (response.status === 429) {
-            throw new Error("Llegaste al límite diario de propuestas.");
+            throw new Error(i18n.errorDailyLimit);
           }
           if (response.status === 409) {
-            throw new Error("Ya existe una propuesta para esa URL.");
+            throw new Error(i18n.errorDuplicateUrl);
           }
           if (response.status === 400 && errorCode) {
-            throw new Error(`Datos inválidos: ${errorCode}`);
+            throw new Error(`${i18n.errorInvalidDataPrefix}: ${errorCode}`);
           }
-          throw new Error("No se pudo enviar la propuesta.");
+          throw new Error(i18n.errorSubmit);
         }
         form.reset();
-        showFeedback("Propuesta enviada. Quedó pendiente de revisión.");
+        showFeedback(i18n.feedbackSubmitted);
         await Promise.all([loadMine(), loadPending()]);
       } catch (error) {
-        showFeedback(error instanceof Error ? error.message : "No se pudo enviar la propuesta.");
+        showFeedback(error instanceof Error ? error.message : i18n.errorSubmit);
       } finally {
         submitBtn.disabled = false;
       }

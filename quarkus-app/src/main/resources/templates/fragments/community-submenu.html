@@ -2,17 +2,17 @@
 {@ boolean isAdmin = false}
 <nav class="community-submenu" aria-label="Community submenu">
   <a href="/comunidad/picks" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'picks'}community-submenu-link-active{/if}">
-    Community Picks
+    {i18n.community_submenu_picks}
   </a>
   <a href="/comunidad/propose" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'propose'}community-submenu-link-active{/if}">
-    Propose Content
+    {i18n.community_submenu_propose}
   </a>
   <a href="/comunidad/board" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'board'}community-submenu-link-active{/if}">
-    Community Board
+    {i18n.community_submenu_board}
   </a>
   {#if isAdmin}
   <a href="/comunidad/moderation" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'moderation'}community-submenu-link-active{/if}">
-    Moderation
+    {i18n.community_submenu_moderation}
   </a>
   {/if}
 </nav>
