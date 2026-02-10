@@ -1,82 +1,366 @@
 {#include layout/main activePage="eventos"}
-{#title}Eventos - Homedir{/title}
+{#title}{i18n.events_title}{/title}
 {#body}
 
 
 <header class="page-header events-page-header">
   <div class="section-header">
-    <p class="section-subtitle">Agenda · Homedir</p>
-    <h1>Eventos y charlas</h1>
+    <p class="section-subtitle">{i18n.events_subtitle}</p>
+    <h1>{i18n.events_hero_title}</h1>
   </div>
-  <p class="section-subtitle">Consulta la programación completa, los pasados destacados y los enlaces directos de
-    cada
-    edición.</p>
+  <p class="section-subtitle">{i18n.events_hero_desc}</p>
 
   <div class="main-sections events-stats-container">
     <div class="section-card">
-      <p class="eyebrow">Pasados</p>
-      <h2>{stats.past}</h2>
-      <p>Referencias</p>
-    </div>
-    <div class="section-card">
-      <p class="eyebrow">Hoy</p>
-      <h2>{today}</h2>
-      <p>Zona horaria local</p>
-    </div>
-    <div class="section-card">
-      <p class="eyebrow">Próximos</p>
+      <p class="eyebrow">{i18n.events_card_upcoming}</p>
       <h2>{stats.upcoming}</h2>
-      <p>En agenda</p>
+      <p>{i18n.events_card_upcoming_desc}</p>
+    </div>
+    <div class="section-card">
+      <p class="eyebrow">{i18n.events_card_today}</p>
+      <h2>{today}</h2>
+      <p>{i18n.events_card_today_desc}</p>
+    </div>
+    <div class="section-card">
+      <p class="eyebrow">{i18n.events_card_past}</p>
+      <h2>{stats.past}</h2>
+      <p>{i18n.events_card_past_desc}</p>
     </div>
   </div>
 </header>
 
 <section class="page-grid">
   <div class="section-header events-full-width">
-    <p class="section-subtitle">Próximos eventos</p>
-    <h2 class="page-title">En curso o por iniciar</h2>
+    <p class="section-subtitle">{i18n.events_section_upcoming_subtitle}</p>
+    <h2 class="page-title">{i18n.events_section_upcoming_title}</h2>
   </div>
 
   {#if upcoming.isEmpty()}
   <div class="section-card events-full-width">
-    <p>No hay eventos próximos por ahora.</p>
+    <p>{i18n.events_empty_upcoming}</p>
   </div>
   {#else}
-  {#for event in upcoming}
-  <div class="section-card">
-    <p class="eyebrow">{event.date}</p>
-    <h3>{event.title}</h3>
-    <p>{event.description}</p>
-    <div class="event-card-actions">
-      <a href="/event/{event.id}" class="btn-primary event-btn-small">Ver detalles</a>
-    </div>
+  <div class="events-upcoming-strip events-full-width">
+    {#for event in upcoming}
+    <a href="/event/{event.id}" class="section-card event-highlight-card">
+      <div class="event-highlight-media">
+        {#if app:validUrl(event.logoUrl)}
+        <img src="{event.logoUrl}" alt="{event.title}" class="event-highlight-logo">
+        {#else}
+        <div class="event-highlight-fallback">
+          <span class="material-symbols-outlined">event</span>
+        </div>
+        {/if}
+      </div>
+
+      <div class="event-highlight-content">
+        <div class="event-highlight-head">
+          <span class="event-type-badge">{event.typeLabel}</span>
+          <span class="event-date-chip">{event.formattedDate ?: i18n.events_meta_date_tba}</span>
+        </div>
+
+        <h3>{event.title}</h3>
+        <p class="event-highlight-summary">{event.descriptionSummary ?: event.description}</p>
+
+        <div class="event-highlight-meta">
+          <span><span class="material-symbols-outlined">mic</span>{i18n.events_metric_talks(event.agenda.size)}</span>
+          <span><span class="material-symbols-outlined">stadium</span>{i18n.events_metric_scenarios(event.scenarios.size)}</span>
+        </div>
+      </div>
+
+      <div class="event-countdown-panel">
+        <p class="event-countdown-label">{i18n.events_countdown_title}</p>
+        <strong class="event-countdown-value {#if event.ongoing}is-live{/if}">
+          {#if event.ongoing}LIVE{#else}D-{event.daysUntil}{/if}
+        </strong>
+        <p class="event-countdown-caption">
+          {#if event.ongoing}
+          {i18n.events_countdown_live}
+          {#else if event.daysUntil == 0}
+          {i18n.events_countdown_today}
+          {#else if event.daysUntil == 1}
+          {i18n.events_countdown_tomorrow}
+          {#else}
+          {i18n.events_countdown_days(event.daysUntil)}
+          {/if}
+        </p>
+        <span class="btn-primary event-highlight-open">{i18n.btn_view_details}</span>
+      </div>
+    </a>
+    {/for}
   </div>
-  {/for}
   {/if}
 </section>
 
 <section class="page-grid">
   <div class="section-header events-full-width events-section-margin">
-    <p class="section-subtitle">Historial</p>
-    <h2 class="page-title">Eventos pasados</h2>
+    <p class="section-subtitle">{i18n.events_section_past_subtitle}</p>
+    <h2 class="page-title">{i18n.events_section_past_title}</h2>
   </div>
 
   {#if past.isEmpty()}
   <div class="section-card events-full-width">
-    <p>Aún no hay registros pasados.</p>
+    <p>{i18n.events_empty_past}</p>
   </div>
   {#else}
-  {#for event in past}
-  <div class="section-card">
-    <p class="eyebrow">{event.date}</p>
-    <h3>{event.title}</h3>
-    <p>{event.description}</p>
-    <div class="event-card-actions">
-      <a href="/event/{event.id}" class="btn-primary event-btn-archive">Ver archivo</a>
-    </div>
+  <div class="events-past-strip events-full-width">
+    {#for event in past}
+    <a href="/event/{event.id}" class="section-card event-past-card">
+      <div class="event-past-media">
+        {#if app:validUrl(event.logoUrl)}
+        <img src="{event.logoUrl}" alt="{event.title}" class="event-past-logo">
+        {#else}
+        <span class="material-symbols-outlined">history</span>
+        {/if}
+      </div>
+      <div class="event-past-info">
+        <h3>{event.title}</h3>
+        <p>{event.formattedDate ?: i18n.events_meta_date_tba}</p>
+      </div>
+      <span class="event-past-open">{i18n.btn_view_details}</span>
+    </a>
+    {/for}
   </div>
-  {/for}
   {/if}
 </section>
+
+<style>
+  .events-upcoming-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    gap: 1rem;
+  }
+
+  .event-highlight-card {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr) 160px;
+    gap: 0.9rem;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    min-height: 172px;
+    transition: border-color 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .event-highlight-card:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.62);
+  }
+
+  .event-highlight-media {
+    width: 92px;
+    height: 92px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  .event-highlight-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .event-highlight-fallback {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .event-highlight-fallback .material-symbols-outlined {
+    font-size: 32px;
+  }
+
+  .event-highlight-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.3rem;
+  }
+
+  .event-type-badge,
+  .event-date-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    font-size: 0.68rem;
+    line-height: 1.1;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .event-type-badge {
+    border-color: rgba(120, 185, 255, 0.65);
+    background: rgba(120, 185, 255, 0.14);
+  }
+
+  .event-highlight-content h3 {
+    margin: 0 0 0.28rem;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+
+  .event-highlight-summary {
+    margin: 0;
+    font-size: 0.83rem;
+    opacity: 0.82;
+    line-height: 1.38;
+  }
+
+  .event-highlight-meta {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin-top: 0.62rem;
+  }
+
+  .event-highlight-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.72rem;
+    opacity: 0.88;
+  }
+
+  .event-highlight-meta .material-symbols-outlined {
+    font-size: 15px;
+  }
+
+  .event-countdown-panel {
+    border-left: 1px solid rgba(255, 255, 255, 0.18);
+    padding-left: 0.75rem;
+    min-height: 120px;
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 0.15rem;
+  }
+
+  .event-countdown-label {
+    margin: 0;
+    opacity: 0.74;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .event-countdown-value {
+    font-size: 1.35rem;
+    line-height: 1;
+    color: #ffd76a;
+  }
+
+  .event-countdown-value.is-live {
+    color: #72ff9f;
+  }
+
+  .event-countdown-caption {
+    margin: 0;
+    opacity: 0.85;
+    font-size: 0.74rem;
+  }
+
+  .event-highlight-open {
+    margin-top: 0.4rem;
+    font-size: 0.74rem;
+    padding: 0.28rem 0.54rem;
+  }
+
+  .events-past-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .event-past-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.65rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .event-past-card:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+
+  .event-past-media {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.24);
+  }
+
+  .event-past-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .event-past-info h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .event-past-info p {
+    margin: 0.16rem 0 0;
+    font-size: 0.76rem;
+    opacity: 0.76;
+  }
+
+  .event-past-open {
+    font-size: 0.74rem;
+    opacity: 0.78;
+  }
+
+  @media (max-width: 1080px) {
+    .events-upcoming-strip {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .event-highlight-card {
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 0.65rem;
+    }
+
+    .event-highlight-media {
+      width: 74px;
+      height: 74px;
+    }
+
+    .event-countdown-panel {
+      grid-column: 1 / -1;
+      width: 100%;
+      border-left: 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding-left: 0;
+      padding-top: 0.6rem;
+      min-height: auto;
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .event-countdown-value {
+      font-size: 1.12rem;
+    }
+  }
+</style>
 {/body}
 {/include}
