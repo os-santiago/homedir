@@ -1,4 +1,26 @@
-# EventFlow 2.2.3
+# HomeDir 3.304.13
+
+**Summary**
+- Community UI now uses locale-aware copy in browser-facing flows for Picks, Propose Content, and Moderation.
+- Community JS now consumes i18n messages from server-rendered data attributes instead of hardcoded strings.
+- Client-side date rendering in Community follows browser/document locale.
+- Header layering fix: `alpha-banner` no longer overlays profile popup interactions.
+
+**Community Highlights**
+- Localized labels and feedback for voting, filtering, summaries, moderation statuses, and submission actions.
+- Localized submenu labels for Community navigation.
+- Community moderation page expectation aligned in tests to default English i18n output.
+- No visual redesign: look and feel remains consistent with current site identity.
+
+**Validation**
+- Community test suite executed:
+- `CommunityContentApiResourceTest`
+- `CommunityModerationPageTest`
+- `CommunitySubmissionApiResourceTest`
+- `CommunityBoardResourceTest`
+- Result: `19 tests, 0 failures`.
+
+## EventFlow 2.2.3
 
 **Resumen**
 - Canonicaliza el `redirect_uri` de GitHub para que siempre apunte a `/auth/post-login` y mueve la lógica a `GithubLinkService`, evitando diferencias entre entornos y el callback registrado.
