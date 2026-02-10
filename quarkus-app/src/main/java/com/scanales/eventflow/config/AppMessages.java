@@ -184,6 +184,30 @@ public interface AppMessages {
     @Message("No past records yet.")
     String events_empty_past();
 
+    @Message("Date TBD")
+    String events_meta_date_tba();
+
+    @Message("{count} talks")
+    String events_metric_talks(int count);
+
+    @Message("{count} scenarios")
+    String events_metric_scenarios(int count);
+
+    @Message("Countdown")
+    String events_countdown_title();
+
+    @Message("Live now")
+    String events_countdown_live();
+
+    @Message("Starts today")
+    String events_countdown_today();
+
+    @Message("Starts tomorrow")
+    String events_countdown_tomorrow();
+
+    @Message("Starts in {days} days")
+    String events_countdown_days(long days);
+
     // --- Projects Page ---
     @Message("Projects · HomeDir")
     String projects_title();
