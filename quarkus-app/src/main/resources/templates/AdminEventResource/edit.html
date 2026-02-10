@@ -81,23 +81,33 @@ Nuevo Evento · Homedir
         </div>
         <div class="form-group">
           <label for="logoUrl" class="form-label">Logo URL</label>
-          <input id="logoUrl" name="logoUrl" type="url" value="{event.logoUrl}" class="form-input">
+          <input id="logoUrl" name="logoUrl" type="text" value="{event.logoUrl}" class="form-input"
+            placeholder="https://...">
+          <p class="form-hint">Opcional</p>
         </div>
         <div class="form-group">
           <label for="mapUrl" class="form-label">Mapa URL</label>
-          <input id="mapUrl" name="mapUrl" type="url" value="{event.mapUrl}" class="form-input">
+          <input id="mapUrl" name="mapUrl" type="text" value="{event.mapUrl}" class="form-input"
+            placeholder="https://...">
+          <p class="form-hint">Opcional</p>
         </div>
         <div class="form-group">
           <label for="website" class="form-label">Sitio Web</label>
-          <input id="website" name="website" type="url" value="{event.website}" class="form-input">
+          <input id="website" name="website" type="text" value="{event.website}" class="form-input"
+            placeholder="https://...">
+          <p class="form-hint">Opcional</p>
         </div>
         <div class="form-group">
           <label for="contactEmail" class="form-label">Correo de contacto</label>
-          <input id="contactEmail" name="contactEmail" type="email" value="{event.contactEmail}" class="form-input">
+          <input id="contactEmail" name="contactEmail" type="text" value="{event.contactEmail}" class="form-input"
+            placeholder="nombre@dominio.com">
+          <p class="form-hint">Opcional</p>
         </div>
         <div class="form-group">
           <label for="ticketsUrl" class="form-label">Link de entradas</label>
-          <input id="ticketsUrl" name="ticketsUrl" type="url" value="{event.ticketsUrl}" class="form-input">
+          <input id="ticketsUrl" name="ticketsUrl" type="text" value="{event.ticketsUrl}" class="form-input"
+            placeholder="https://...">
+          <p class="form-hint">Opcional</p>
         </div>
       </div>
       <div class="form-group">
@@ -113,15 +123,21 @@ Nuevo Evento · Homedir
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
           <div class="form-group">
             <label for="twitter" class="form-label">Twitter/X</label>
-            <input id="twitter" name="twitter" type="url" value="{event.twitter}" class="form-input">
+            <input id="twitter" name="twitter" type="text" value="{event.twitter}" class="form-input"
+              placeholder="https://x.com/...">
+            <p class="form-hint">Opcional</p>
           </div>
           <div class="form-group">
             <label for="linkedin" class="form-label">LinkedIn</label>
-            <input id="linkedin" name="linkedin" type="url" value="{event.linkedin}" class="form-input">
+            <input id="linkedin" name="linkedin" type="text" value="{event.linkedin}" class="form-input"
+              placeholder="https://linkedin.com/...">
+            <p class="form-hint">Opcional</p>
           </div>
           <div class="form-group">
             <label for="instagram" class="form-label">Instagram</label>
-            <input id="instagram" name="instagram" type="url" value="{event.instagram}" class="form-input">
+            <input id="instagram" name="instagram" type="text" value="{event.instagram}" class="form-input"
+              placeholder="https://instagram.com/...">
+            <p class="form-hint">Opcional</p>
           </div>
         </div>
       </fieldset>

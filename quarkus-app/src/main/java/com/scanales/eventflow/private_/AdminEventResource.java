@@ -563,21 +563,21 @@ public class AdminEventResource {
     if (event.getType() == null)
       event.setType(EventType.OTHER);
     if (event.getMapUrl() == null)
-      event.setMapUrl("VACIO");
+      event.setMapUrl(null);
     if (event.getLogoUrl() == null)
-      event.setLogoUrl("VACIO");
+      event.setLogoUrl(null);
     if (event.getContactEmail() == null)
-      event.setContactEmail("VACIO");
+      event.setContactEmail(null);
     if (event.getWebsite() == null)
-      event.setWebsite("VACIO");
+      event.setWebsite(null);
     if (event.getTwitter() == null)
-      event.setTwitter("VACIO");
+      event.setTwitter(null);
     if (event.getLinkedin() == null)
-      event.setLinkedin("VACIO");
+      event.setLinkedin(null);
     if (event.getInstagram() == null)
-      event.setInstagram("VACIO");
+      event.setInstagram(null);
     if (event.getTicketsUrl() == null)
-      event.setTicketsUrl("VACIO");
+      event.setTicketsUrl(null);
     if (event.getTimezone() == null)
       event.setTimezone("UTC");
     if (event.getCreator() == null)
