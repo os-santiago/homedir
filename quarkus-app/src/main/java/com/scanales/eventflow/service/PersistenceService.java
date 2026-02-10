@@ -10,6 +10,7 @@ import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.SystemError;
 import com.scanales.eventflow.community.CommunitySubmission;
+import com.scanales.eventflow.cfp.CfpSubmission;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -68,6 +69,7 @@ public class PersistenceService {
   private Path profilesFile;
   private Path systemErrorsFile;
   private Path communitySubmissionsFile;
+  private Path cfpSubmissionsFile;
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
 
@@ -97,6 +99,7 @@ public class PersistenceService {
     profilesFile = dataDir.resolve("user-profiles.json");
     systemErrorsFile = dataDir.resolve("system-errors.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
+    cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
 
     try {
       Files.createDirectories(dataDir);
@@ -239,6 +242,34 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(communitySubmissionsFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Persists CFP submissions asynchronously. */
+  public void saveCfpSubmissions(Map<String, CfpSubmission> submissions) {
+    scheduleWrite(cfpSubmissionsFile, submissions);
+  }
+
+  /** Persists CFP submissions synchronously. */
+  public void saveCfpSubmissionsSync(Map<String, CfpSubmission> submissions) {
+    writeSync(cfpSubmissionsFile, submissions);
+  }
+
+  /** Loads CFP submissions from disk or returns an empty map if none. */
+  public Map<String, CfpSubmission> loadCfpSubmissions() {
+    return read(cfpSubmissionsFile, new TypeReference<Map<String, CfpSubmission>>() {
+    });
+  }
+
+  /** Last modified timestamp for CFP submissions file, or -1 when unavailable. */
+  public long cfpSubmissionsLastModifiedMillis() {
+    try {
+      if (!Files.exists(cfpSubmissionsFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(cfpSubmissionsFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }
