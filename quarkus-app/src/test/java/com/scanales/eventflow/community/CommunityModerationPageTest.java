@@ -18,7 +18,7 @@ public class CommunityModerationPageTest {
         .then()
         .statusCode(200)
         .body(containsString("Moderation queue"))
-        .body(containsString("Solo administradores pueden moderar propuestas."));
+        .body(containsString("Only admins can moderate proposals."));
   }
 
   @Test
