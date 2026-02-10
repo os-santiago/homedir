@@ -6,7 +6,7 @@ on:
       version:
         description: 'Version to release'
         required: true
-        default: '3.304.13'
+        default: '3.330.1'
 
 jobs:
   build-test:
