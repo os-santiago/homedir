@@ -7,7 +7,7 @@
     <version>${revision}</version>
 
     <properties>
-        <revision>3.304.13</revision>
+        <revision>3.330.1</revision>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.26.4</quarkus.platform.version>

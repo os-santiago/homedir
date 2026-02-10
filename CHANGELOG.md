@@ -1,10 +1,10 @@
 # Changelog
 
-## [3.304.13] - 2026-02-10
+## [3.330.1] - 2026-02-10
 ### Changed
 - Community section now resolves UI text from i18n keys in Picks, Propose Content, and Moderation flows.
 - Community client-side date formatting now follows browser/document locale.
-- `full_release_cycle` default version updated to `3.304.13`.
+- `full_release_cycle` default version updated to `3.330.1`.
 
 ### Fixed
 - Removed `z-index` from `.alpha-banner` to prevent overlap with the user profile popup.

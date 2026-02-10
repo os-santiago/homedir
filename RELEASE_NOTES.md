@@ -1,4 +1,4 @@
-# HomeDir 3.304.13
+# HomeDir 3.330.1
 
 **Summary**
 - Community UI now uses locale-aware copy in browser-facing flows for Picks, Propose Content, and Moderation.
