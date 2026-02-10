@@ -193,6 +193,24 @@ public interface AppMessages {
     @Message("{count} scenarios")
     String events_metric_scenarios(int count);
 
+    @Message("Single-day")
+    String events_feature_single_day();
+
+    @Message("{days} days")
+    String events_feature_multiday(int days);
+
+    @Message("Tickets available")
+    String events_feature_tickets();
+
+    @Message("Location published")
+    String events_feature_location();
+
+    @Message("Official website")
+    String events_feature_website();
+
+    @Message("Social channels")
+    String events_feature_social();
+
     @Message("Countdown")
     String events_countdown_title();
 
