@@ -24,6 +24,9 @@ Nuevo Evento · Homedir
       </div>
       <div class="action-group">
         <a href="/private/admin/events" class="btn btn-secondary">Volver a eventos</a>
+        {#if event.id}
+        <a href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">Moderar CFP</a>
+        {/if}
       </div>
     </div>
   </div>
@@ -38,6 +41,7 @@ Nuevo Evento · Homedir
     <a href="#talks" class="btn btn-ghost">Charlas</a>
     <a href="#breaks" class="btn btn-ghost">Breaks</a>
     <a href="#agenda" class="btn btn-ghost">Agenda</a>
+    <a href="/private/admin/events/{event.id}/cfp" class="btn btn-ghost">CFP</a>
     {/if}
   </div>
 
