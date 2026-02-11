@@ -226,6 +226,111 @@ public interface AppMessages {
     @Message("Starts in {days} days")
     String events_countdown_days(long days);
 
+    @Message("Call for Papers")
+    String events_cfp_open_cta();
+
+    @Message("Call for Papers · {eventTitle}")
+    String events_cfp_page_title(String eventTitle);
+
+    @Message("Event not found · CFP")
+    String events_cfp_not_found_title();
+
+    @Message("Back to event")
+    String events_cfp_back_to_event();
+
+    @Message("Events · Community Speakers")
+    String events_cfp_eyebrow();
+
+    @Message("Submit your talk proposal")
+    String events_cfp_heading();
+
+    @Message("Share your talk idea for {eventTitle}. The organizing team will review it for the agenda.")
+    String events_cfp_intro(String eventTitle);
+
+    @Message("Proposal form")
+    String events_cfp_submit_title();
+
+    @Message("Keep it concise and practical. You can submit more than one proposal.")
+    String events_cfp_submit_desc();
+
+    @Message("Talk title")
+    String events_cfp_form_title();
+
+    @Message("Short summary")
+    String events_cfp_form_summary();
+
+    @Message("Abstract")
+    String events_cfp_form_abstract();
+
+    @Message("Level")
+    String events_cfp_form_level();
+
+    @Message("Format")
+    String events_cfp_form_format();
+
+    @Message("Duration (minutes)")
+    String events_cfp_form_duration();
+
+    @Message("Language")
+    String events_cfp_form_language();
+
+    @Message("Tags (optional, comma separated)")
+    String events_cfp_form_tags();
+
+    @Message("Reference links (optional, comma separated)")
+    String events_cfp_form_links();
+
+    @Message("Send proposal")
+    String events_cfp_form_submit();
+
+    @Message("Login to submit a proposal for this event.")
+    String events_cfp_login_required();
+
+    @Message("Login")
+    String events_cfp_login_btn();
+
+    @Message("My proposals")
+    String events_cfp_my_submissions_title();
+
+    @Message("Refresh")
+    String events_cfp_refresh();
+
+    @Message("Loading your proposals...")
+    String events_cfp_loading();
+
+    @Message("Login to view your proposals.")
+    String events_cfp_login_to_view();
+
+    @Message("You have not submitted proposals yet.")
+    String events_cfp_empty_mine();
+
+    @Message("Could not load your proposals right now.")
+    String events_cfp_error_load();
+
+    @Message("Could not submit your proposal. Please try again.")
+    String events_cfp_error_submit();
+
+    @Message("Proposal submitted. It is now pending review.")
+    String events_cfp_success_submit();
+
+    @Message("Pending")
+    String events_cfp_status_pending();
+
+    @Message("Under review")
+    String events_cfp_status_under_review();
+
+    @Message("Accepted")
+    String events_cfp_status_accepted();
+
+    @Message("Rejected")
+    String events_cfp_status_rejected();
+
+    @Message("Withdrawn")
+    String events_cfp_status_withdrawn();
+
+    @Message("We could not find this event.")
+    String events_cfp_not_found_desc();
+
     // --- Projects Page ---
     @Message("Projects · HomeDir")
     String projects_title();

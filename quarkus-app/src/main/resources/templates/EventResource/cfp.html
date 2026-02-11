@@ -1,0 +1,327 @@
+{#include layout/main activePage="eventos"}
+{@java.lang.Boolean userAuthenticated}
+{#title}
+{#if event}
+{i18n.events_cfp_page_title(event.title)}
+{#else}
+{i18n.events_cfp_not_found_title}
+{/if}
+{/title}
+
+{#body}
+{#if event}
+<header class="page-header">
+  <div class="section-header">
+    <p class="section-subtitle">
+      <a href="/event/{event.id}" class="hd-link">← {i18n.events_cfp_back_to_event}</a>
+    </p>
+    <p class="section-subtitle">{i18n.events_cfp_eyebrow}</p>
+    <h1 class="public-title">{i18n.events_cfp_heading}</h1>
+  </div>
+  <p class="section-subtitle">{i18n.events_cfp_intro(event.title)}</p>
+</header>
+
+<section class="page-grid">
+  <article class="section-card" style="grid-column: 1 / -1;">
+    <h2 style="margin-top: 0;">{i18n.events_cfp_submit_title}</h2>
+    <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n.events_cfp_submit_desc}</p>
+
+    {#if userAuthenticated}
+    <form id="cfpForm">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="cfpTitle">{i18n.events_cfp_form_title}</label>
+          <input id="cfpTitle" name="title" class="form-input" maxlength="160" required>
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="cfpSummary">{i18n.events_cfp_form_summary}</label>
+          <textarea id="cfpSummary" name="summary" class="form-textarea" rows="2" maxlength="360"></textarea>
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="cfpAbstract">{i18n.events_cfp_form_abstract}</label>
+          <textarea id="cfpAbstract" name="abstractText" class="form-textarea" rows="6" maxlength="5000" required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cfpLevel">{i18n.events_cfp_form_level}</label>
+          <input id="cfpLevel" name="level" class="form-input" maxlength="40" placeholder="beginner, intermediate, advanced">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cfpFormat">{i18n.events_cfp_form_format}</label>
+          <input id="cfpFormat" name="format" class="form-input" maxlength="40" placeholder="talk, workshop, panel">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cfpDuration">{i18n.events_cfp_form_duration}</label>
+          <input id="cfpDuration" name="durationMin" type="number" min="5" max="240" class="form-input" placeholder="30">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cfpLanguage">{i18n.events_cfp_form_language}</label>
+          <input id="cfpLanguage" name="language" class="form-input" maxlength="12" placeholder="en, es">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="cfpTags">{i18n.events_cfp_form_tags}</label>
+          <input id="cfpTags" name="tags" class="form-input" placeholder="devops, platform, ai">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="cfpLinks">{i18n.events_cfp_form_links}</label>
+          <input id="cfpLinks" name="links" class="form-input" placeholder="https://example.org/slides, https://github.com/...">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button id="cfpSubmitBtn" type="submit" class="btn btn-primary">{i18n.events_cfp_form_submit}</button>
+      </div>
+    </form>
+    <p id="cfpFeedback" class="form-hint" hidden></p>
+    {#else}
+    <p class="section-subtitle">{i18n.events_cfp_login_required}</p>
+    <a href="/private/profile" class="btn-primary">{i18n.events_cfp_login_btn}</a>
+    {/if}
+  </article>
+
+  <article class="section-card" style="grid-column: 1 / -1;">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+      <h2 style="margin: 0;">{i18n.events_cfp_my_submissions_title}</h2>
+      {#if userAuthenticated}
+      <button id="cfpReloadBtn" type="button" class="btn login-btn-nav">{i18n.events_cfp_refresh}</button>
+      {/if}
+    </div>
+    <div id="cfpMineList" class="cfp-submission-list" style="margin-top: 0.9rem;">
+      {#if userAuthenticated}
+      <p class="form-hint">{i18n.events_cfp_loading}</p>
+      {#else}
+      <p class="form-hint">{i18n.events_cfp_login_to_view}</p>
+      {/if}
+    </div>
+  </article>
+</section>
+
+<style>
+  .cfp-submission-item {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 0.7rem;
+  }
+
+  .cfp-submission-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cfp-status-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .cfp-status-pending {
+    border-color: rgba(255, 215, 0, 0.7);
+    background: rgba(255, 215, 0, 0.14);
+  }
+
+  .cfp-status-under_review {
+    border-color: rgba(120, 185, 255, 0.7);
+    background: rgba(120, 185, 255, 0.14);
+  }
+
+  .cfp-status-accepted {
+    border-color: rgba(114, 255, 159, 0.7);
+    background: rgba(114, 255, 159, 0.14);
+  }
+
+  .cfp-status-rejected,
+  .cfp-status-withdrawn {
+    border-color: rgba(255, 126, 126, 0.75);
+    background: rgba(255, 126, 126, 0.14);
+  }
+
+  .cfp-meta-line {
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    opacity: 0.8;
+  }
+</style>
+
+<script>
+  (() => {
+    const isAuth = !!window.userAuthenticated;
+    if (!isAuth) {
+      return;
+    }
+    const eventId = "{event.id}";
+    const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
+    const mineEndpoint = endpoint + "/mine?limit=20&offset=0";
+    const form = document.getElementById("cfpForm");
+    const submitBtn = document.getElementById("cfpSubmitBtn");
+    const reloadBtn = document.getElementById("cfpReloadBtn");
+    const feedback = document.getElementById("cfpFeedback");
+    const mineList = document.getElementById("cfpMineList");
+
+    const labels = {
+      pending: "{i18n.events_cfp_status_pending}",
+      under_review: "{i18n.events_cfp_status_under_review}",
+      accepted: "{i18n.events_cfp_status_accepted}",
+      rejected: "{i18n.events_cfp_status_rejected}",
+      withdrawn: "{i18n.events_cfp_status_withdrawn}"
+    };
+
+    function parseCsvInput(value) {
+      if (!value) return [];
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+    }
+
+    function showFeedback(message, isError) {
+      if (!feedback) return;
+      feedback.hidden = false;
+      feedback.textContent = message;
+      feedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString();
+    }
+
+    function statusLabel(status) {
+      return labels[status] || status || "";
+    }
+
+    function renderMine(items) {
+      mineList.innerHTML = "";
+      if (!items || items.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "form-hint";
+        empty.textContent = "{i18n.events_cfp_empty_mine}";
+        mineList.appendChild(empty);
+        return;
+      }
+
+      items.forEach((item) => {
+        const article = document.createElement("article");
+        article.className = "cfp-submission-item";
+
+        const head = document.createElement("div");
+        head.className = "cfp-submission-head";
+        const title = document.createElement("h3");
+        title.style.margin = "0";
+        title.textContent = item.title || "";
+        head.appendChild(title);
+
+        const badge = document.createElement("span");
+        const status = item.status || "pending";
+        badge.className = "cfp-status-badge cfp-status-" + status;
+        badge.textContent = statusLabel(status);
+        head.appendChild(badge);
+        article.appendChild(head);
+
+        if (item.summary) {
+          const summary = document.createElement("p");
+          summary.className = "cfp-meta-line";
+          summary.textContent = item.summary;
+          article.appendChild(summary);
+        }
+
+        const meta = document.createElement("p");
+        meta.className = "cfp-meta-line";
+        meta.textContent =
+          formatDate(item.created_at) +
+          (item.level ? " · " + item.level : "") +
+          (item.format ? " · " + item.format : "");
+        article.appendChild(meta);
+
+        mineList.appendChild(article);
+      });
+    }
+
+    async function loadMine() {
+      if (!mineList) return;
+      try {
+        mineList.innerHTML = "<p class=\"form-hint\">{i18n.events_cfp_loading}</p>";
+        const response = await fetch(mineEndpoint, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          throw new Error("status_" + response.status);
+        }
+        const payload = await response.json();
+        renderMine(payload.items || []);
+      } catch (error) {
+        mineList.innerHTML = "<p class=\"form-hint\">{i18n.events_cfp_error_load}</p>";
+      }
+    }
+
+    async function submitProposal(event) {
+      event.preventDefault();
+      if (!form) return;
+      submitBtn.disabled = true;
+      const formData = new FormData(form);
+      const durationRaw = formData.get("durationMin");
+      const duration = durationRaw ? Number.parseInt(String(durationRaw), 10) : null;
+      const payload = {
+        title: String(formData.get("title") || ""),
+        summary: String(formData.get("summary") || ""),
+        abstract_text: String(formData.get("abstractText") || ""),
+        level: String(formData.get("level") || ""),
+        format: String(formData.get("format") || ""),
+        duration_min: Number.isFinite(duration) ? duration : null,
+        language: String(formData.get("language") || ""),
+        tags: parseCsvInput(String(formData.get("tags") || "")),
+        links: parseCsvInput(String(formData.get("links") || ""))
+      };
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          let message = "{i18n.events_cfp_error_submit}";
+          try {
+            const errPayload = await response.json();
+            if (errPayload && errPayload.error) {
+              message = message + " (" + errPayload.error + ")";
+            }
+          } catch (e) {
+          }
+          showFeedback(message, true);
+          return;
+        }
+        form.reset();
+        showFeedback("{i18n.events_cfp_success_submit}", false);
+        await loadMine();
+      } catch (error) {
+        showFeedback("{i18n.events_cfp_error_submit}", true);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+
+    form?.addEventListener("submit", submitProposal);
+    reloadBtn?.addEventListener("click", loadMine);
+    loadMine();
+  })();
+</script>
+{#else}
+<div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 45vh;">
+  <article class="section-card" style="text-align: center;">
+    <span class="material-symbols-outlined" style="font-size: 3.2rem; opacity: 0.55;">event_busy</span>
+    <h2>{i18n.events_cfp_not_found_title}</h2>
+    <p>{i18n.events_cfp_not_found_desc}</p>
+    <a href="/eventos" class="btn-primary">{i18n.nav_events}</a>
+  </article>
+</div>
+{/if}
+{/body}
+{/include}
