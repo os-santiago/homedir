@@ -3,8 +3,10 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
+import com.scanales.eventflow.service.UserSessionService;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -19,11 +21,17 @@ public class EventResource {
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance detail(Event event);
+
+    static native TemplateInstance cfp(Event event);
   }
 
   @Inject EventService eventService;
 
   @Inject UsageMetricsService metrics;
+
+  @Inject SecurityIdentity identity;
+
+  @Inject UserSessionService sessionService;
 
   @GET
   @Path("{id}")
@@ -38,9 +46,41 @@ public class EventResource {
     metrics.recordPageView("/event", sessionId, ua);
     metrics.recordEventView(id, sessionId, ua);
     Event event = eventService.getEvent(id);
-    if (event == null) {
-      return Templates.detail(null);
+    return withLayoutData(Templates.detail(event), "eventos");
+  }
+
+  @GET
+  @Path("{id}/cfp")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance cfp(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/event/cfp", headers, context);
+    Event event = eventService.getEvent(id);
+    return withLayoutData(Templates.cfp(event), "eventos");
+  }
+
+  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+    boolean authenticated = identity != null && !identity.isAnonymous();
+    String userName = authenticated ? identity.getPrincipal().getName() : null;
+    return templateInstance
+        .data("activePage", activePage)
+        .data("userAuthenticated", authenticated)
+        .data("userName", userName)
+        .data("userSession", sessionService.getCurrentSession())
+        .data("userInitial", initialFrom(userName));
+  }
+
+  private String initialFrom(String name) {
+    if (name == null) {
+      return null;
     }
-    return Templates.detail(event);
+    String trimmed = name.trim();
+    if (trimmed.isEmpty()) {
+      return null;
+    }
+    return trimmed.substring(0, 1).toUpperCase();
   }
 }

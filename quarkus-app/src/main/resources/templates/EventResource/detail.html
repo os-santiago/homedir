@@ -53,6 +53,12 @@ Evento no encontrado - Homedir
                     {#if event.description}
                     <p class="event-description" style="font-size: 1.1rem; margin-bottom: 1.5rem;">{event.description}</p>
                     {/if}
+
+                    <div class="event-links" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                        <a href="/event/{event.id}/cfp" class="btn login-btn-nav">
+                            <span class="material-symbols-outlined">rate_review</span> {i18n.events_cfp_open_cta}
+                        </a>
+                    </div>
                     
                     {#if app:validUrl(event.website) || app:validUrl(event.twitter) || app:validUrl(event.linkedin) || app:validUrl(event.instagram) || app:validEmail(event.contactEmail) || app:validUrl(event.ticketsUrl)}
                     <div class="event-links" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
