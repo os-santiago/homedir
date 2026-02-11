@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
+import com.scanales.eventflow.model.Speaker;
+import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -29,6 +32,7 @@ import java.util.Optional;
 public class CfpSubmissionApiResource {
 
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject SpeakerService speakerService;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -149,6 +153,51 @@ public class CfpSubmissionApiResource {
     }
   }
 
+  @POST
+  @Path("/{id}/promote")
+  @Authenticated
+  public Response promoteAcceptedSubmission(
+      @PathParam("eventId") String eventId, @PathParam("id") String id) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+    if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+    }
+    CfpSubmission submission = existing.get();
+    if (submission.status() != CfpSubmissionStatus.ACCEPTED) {
+      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", "submission_not_accepted")).build();
+    }
+
+    String speakerId = buildSpeakerId(submission);
+    String talkId = buildTalkId(submission);
+    String speakerName = buildSpeakerName(submission);
+
+    Speaker speaker = speakerService.getSpeaker(speakerId);
+    boolean createdSpeaker = false;
+    if (speaker == null) {
+      speaker = new Speaker(speakerId, speakerName);
+      speaker.setBio("CFP proposer for event " + submission.eventId());
+      createdSpeaker = true;
+    }
+    speaker.setName(speakerName);
+    speakerService.saveSpeaker(speaker);
+
+    Talk talk = speakerService.getTalk(speakerId, talkId);
+    boolean createdTalk = false;
+    if (talk == null) {
+      talk = new Talk(talkId, submission.title());
+      createdTalk = true;
+    }
+    talk.setName(submission.title());
+    talk.setDescription(buildTalkDescription(submission));
+    talk.setDurationMinutes(submission.durationMin() != null ? submission.durationMin() : 30);
+    speakerService.saveTalk(speakerId, talk);
+
+    return Response.ok(new PromoteResponse(speakerId, talkId, createdSpeaker, createdTalk)).build();
+  }
+
   private SubmissionView toView(CfpSubmission submission) {
     return new SubmissionView(
         submission.id(),
@@ -216,6 +265,63 @@ public class CfpSubmissionApiResource {
     return Math.min(rawLimit, 100);
   }
 
+  private static String buildSpeakerId(CfpSubmission submission) {
+    return "cfp-speaker-" + sanitizeIdToken(submission.id(), 32);
+  }
+
+  private static String buildTalkId(CfpSubmission submission) {
+    return sanitizeIdToken(submission.eventId(), 18) + "-cfp-" + sanitizeIdToken(submission.id(), 24);
+  }
+
+  private static String buildSpeakerName(CfpSubmission submission) {
+    String name = sanitizeDisplayText(submission.proposerName());
+    if (name != null) {
+      return name;
+    }
+    String fallback = sanitizeDisplayText(submission.proposerUserId());
+    return fallback != null ? fallback : "CFP Speaker";
+  }
+
+  private static String buildTalkDescription(CfpSubmission submission) {
+    StringBuilder description = new StringBuilder();
+    if (submission.summary() != null && !submission.summary().isBlank()) {
+      description.append(submission.summary().trim());
+    }
+    if (submission.abstractText() != null && !submission.abstractText().isBlank()) {
+      if (!description.isEmpty()) {
+        description.append("\n\n");
+      }
+      description.append(submission.abstractText().trim());
+    }
+    if (description.isEmpty()) {
+      description.append("Promoted from CFP submission ").append(submission.id());
+    }
+    return description.toString();
+  }
+
+  private static String sanitizeIdToken(String raw, int maxLength) {
+    if (raw == null) {
+      return "item";
+    }
+    String value = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
+    value = value.replaceAll("^-+", "").replaceAll("-+$", "");
+    if (value.isBlank()) {
+      value = "item";
+    }
+    if (value.length() > maxLength) {
+      value = value.substring(0, maxLength).replaceAll("-+$", "");
+    }
+    return value.isBlank() ? "item" : value;
+  }
+
+  private static String sanitizeDisplayText(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String value = raw.trim().replaceAll("\\s+", " ");
+    return value.isBlank() ? null : value;
+  }
+
   public record CreateSubmissionRequest(
       String title,
       String summary,
@@ -228,6 +334,12 @@ public class CfpSubmissionApiResource {
       List<String> links) {}
 
   public record UpdateStatusRequest(String status, String note) {}
+
+  public record PromoteResponse(
+      @JsonProperty("speaker_id") String speakerId,
+      @JsonProperty("talk_id") String talkId,
+      @JsonProperty("created_speaker") boolean createdSpeaker,
+      @JsonProperty("created_talk") boolean createdTalk) {}
 
   public record SubmissionResponse(SubmissionView item) {}
 
