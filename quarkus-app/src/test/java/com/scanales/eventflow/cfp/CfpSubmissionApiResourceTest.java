@@ -3,9 +3,11 @@ package com.scanales.eventflow.cfp;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.SpeakerService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -20,10 +22,12 @@ public class CfpSubmissionApiResourceTest {
 
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject EventService eventService;
+  @Inject SpeakerService speakerService;
 
   @BeforeEach
   void setup() {
     cfpSubmissionService.clearAllForTests();
+    speakerService.reset();
     eventService.reset();
     eventService.saveEvent(new Event(EVENT_ID, "CFP API Event", "desc"));
   }
@@ -137,6 +141,13 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(403)
         .body("error", equalTo("admin_required"));
+
+    given()
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/promote")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
   }
 
   @Test
@@ -185,6 +196,80 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(200)
         .body("item.status", equalTo("accepted"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanPromoteAcceptedSubmissionToCatalog() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member Name",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Kubernetes Day-2 Lessons",
+                "Practical lessons",
+                "Deep dive abstract",
+                "intermediate",
+                "talk",
+                35,
+                "en",
+                List.of("kubernetes"),
+                List.of()));
+
+    cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "ok");
+
+    String speakerId =
+        given()
+            .when()
+            .post("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/promote")
+            .then()
+            .statusCode(200)
+            .body("created_speaker", equalTo(true))
+            .body("created_talk", equalTo(true))
+            .extract()
+            .path("speaker_id");
+
+    String talkId =
+        given()
+            .when()
+            .post("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/promote")
+            .then()
+            .statusCode(200)
+            .body("created_speaker", equalTo(false))
+            .body("created_talk", equalTo(false))
+            .extract()
+            .path("talk_id");
+
+    assertNotNull(speakerService.getSpeaker(speakerId));
+    assertNotNull(speakerService.getTalk(speakerId, talkId));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void promoteRequiresAcceptedStatus() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Async persistence deep dive",
+                "Summary",
+                "Long abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                List.of(),
+                List.of()));
+
+    given()
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/promote")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("submission_not_accepted"));
   }
 
   @Test
