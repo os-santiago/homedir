@@ -1,0 +1,304 @@
+{#include layout/main}
+{#title}
+Moderacion CFP · {event.title}
+{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <p class="section-subtitle" style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">CFP</p>
+        <h1 class="page-title">Moderacion CFP</h1>
+        <p class="section-subtitle">Evento: {event.title}</p>
+      </div>
+      <div class="action-group">
+        <a href="/event/{event.id}/cfp" class="btn btn-secondary">Ver pagina publica CFP</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">Volver a editar evento</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">Cola de propuestas</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">Revisa propuestas y actualiza su estado para preparar agenda.</p>
+      </div>
+      <button id="reloadCfpBtn" type="button" class="btn btn-secondary">Actualizar</button>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="pending">Pendiente</button>
+      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="under_review">En revision</button>
+      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="accepted">Aceptadas</button>
+      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="rejected">Rechazadas</button>
+    </div>
+  </div>
+
+  <div id="cfpQueueList"></div>
+</div>
+
+<style>
+  .cfp-filter-btn.is-active {
+    border-color: rgba(255, 215, 0, 0.7);
+    background: rgba(255, 215, 0, 0.12);
+  }
+
+  .cfp-admin-card {
+    margin-bottom: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .cfp-admin-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .cfp-admin-meta {
+    font-size: 0.82rem;
+    opacity: 0.8;
+    margin-top: 0.3rem;
+  }
+
+  .cfp-admin-summary {
+    margin-top: 0.55rem;
+  }
+
+  .cfp-admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    align-items: center;
+  }
+
+  .cfp-admin-note {
+    width: 100%;
+    margin-top: 0.55rem;
+  }
+
+  .cfp-status-chip {
+    display: inline-flex;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.15rem 0.55rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .cfp-status-chip--pending {
+    border-color: rgba(255, 215, 0, 0.7);
+    background: rgba(255, 215, 0, 0.14);
+  }
+
+  .cfp-status-chip--under_review {
+    border-color: rgba(120, 185, 255, 0.7);
+    background: rgba(120, 185, 255, 0.14);
+  }
+
+  .cfp-status-chip--accepted {
+    border-color: rgba(114, 255, 159, 0.7);
+    background: rgba(114, 255, 159, 0.14);
+  }
+
+  .cfp-status-chip--rejected {
+    border-color: rgba(255, 126, 126, 0.75);
+    background: rgba(255, 126, 126, 0.14);
+  }
+</style>
+
+<script>
+  (() => {
+    const eventId = "{event.id}";
+    const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
+    const listEl = document.getElementById("cfpQueueList");
+    const reloadBtn = document.getElementById("reloadCfpBtn");
+    const filterButtons = Array.from(document.querySelectorAll(".cfp-filter-btn"));
+    let activeStatus = "pending";
+
+    const statusLabel = {
+      pending: "Pendiente",
+      under_review: "En revision",
+      accepted: "Aceptada",
+      rejected: "Rechazada",
+      withdrawn: "Retirada"
+    };
+
+    function setActiveFilter(status) {
+      activeStatus = status;
+      filterButtons.forEach((button) => {
+        if (button.dataset.status === status) {
+          button.classList.add("is-active");
+        } else {
+          button.classList.remove("is-active");
+        }
+      });
+    }
+
+    function fmtDate(value) {
+      if (!value) return "";
+      const dt = new Date(value);
+      if (Number.isNaN(dt.getTime())) return "";
+      return dt.toLocaleString();
+    }
+
+    function row(text) {
+      const p = document.createElement("p");
+      p.className = "cfp-admin-meta";
+      p.textContent = text;
+      return p;
+    }
+
+    function renderEmpty(message) {
+      listEl.innerHTML = "";
+      const card = document.createElement("article");
+      card.className = "card";
+      const p = document.createElement("p");
+      p.className = "form-hint";
+      p.textContent = message;
+      card.appendChild(p);
+      listEl.appendChild(card);
+    }
+
+    async function updateStatus(submissionId, nextStatus, noteField) {
+      const note = noteField ? String(noteField.value || "").trim() : "";
+      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/status", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify({ status: nextStatus, note: note })
+      });
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const payload = await response.json();
+          if (payload && payload.error) {
+            detail = " (" + payload.error + ")";
+          }
+        } catch (e) {
+        }
+        throw new Error("No fue posible actualizar estado" + detail);
+      }
+    }
+
+    function buildSubmissionCard(item) {
+      const article = document.createElement("article");
+      article.className = "cfp-admin-card";
+
+      const top = document.createElement("div");
+      top.style.display = "flex";
+      top.style.justifyContent = "space-between";
+      top.style.alignItems = "center";
+      top.style.gap = "0.6rem";
+      top.style.flexWrap = "wrap";
+
+      const title = document.createElement("h3");
+      title.textContent = item.title || "(Sin titulo)";
+      top.appendChild(title);
+
+      const chip = document.createElement("span");
+      const currentStatus = item.status || "pending";
+      chip.className = "cfp-status-chip cfp-status-chip--" + currentStatus;
+      chip.textContent = statusLabel[currentStatus] || currentStatus;
+      top.appendChild(chip);
+      article.appendChild(top);
+
+      article.appendChild(
+          row("Propuesto por: " + (item.proposer_name || item.proposer_user_id || "N/A") + " · " + fmtDate(item.created_at)));
+
+      if (item.summary) {
+        const summary = document.createElement("p");
+        summary.className = "cfp-admin-summary";
+        summary.textContent = item.summary;
+        article.appendChild(summary);
+      }
+
+      if (item.abstract_text) {
+        const abstractText = document.createElement("p");
+        abstractText.className = "cfp-admin-summary";
+        abstractText.textContent = item.abstract_text;
+        article.appendChild(abstractText);
+      }
+
+      const note = document.createElement("input");
+      note.type = "text";
+      note.className = "form-input cfp-admin-note";
+      note.placeholder = "Nota de moderacion (opcional)";
+      article.appendChild(note);
+
+      const actions = document.createElement("div");
+      actions.className = "cfp-admin-actions";
+
+      function actionButton(label, targetStatus, variant) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = variant;
+        btn.textContent = label;
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          try {
+            await updateStatus(item.id, targetStatus, note);
+            await loadList();
+          } catch (error) {
+            window.alert(error.message || "Error actualizando estado");
+          } finally {
+            btn.disabled = false;
+          }
+        });
+        actions.appendChild(btn);
+      }
+
+      actionButton("En revision", "under_review", "btn btn-secondary");
+      actionButton("Aceptar", "accepted", "btn btn-primary");
+      actionButton("Rechazar", "rejected", "btn btn-danger");
+
+      article.appendChild(actions);
+      return article;
+    }
+
+    async function loadList() {
+      renderEmpty("Cargando propuestas...");
+      try {
+        const response = await fetch(
+            baseEndpoint + "?status=" + encodeURIComponent(activeStatus) + "&limit=50&offset=0",
+            { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          throw new Error("Error de carga");
+        }
+        const payload = await response.json();
+        const items = (payload && payload.items) ? payload.items : [];
+        if (!items.length) {
+          renderEmpty("No hay propuestas en este estado.");
+          return;
+        }
+        listEl.innerHTML = "";
+        items.forEach((item) => {
+          listEl.appendChild(buildSubmissionCard(item));
+        });
+      } catch (error) {
+        renderEmpty("No fue posible cargar propuestas en este momento.");
+      }
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const status = button.dataset.status || "pending";
+        setActiveFilter(status);
+        loadList();
+      });
+    });
+
+    reloadBtn?.addEventListener("click", loadList);
+    setActiveFilter(activeStatus);
+    loadList();
+  })();
+</script>
+{/body}
+{/include}
