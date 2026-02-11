@@ -188,6 +188,25 @@ Moderacion CFP · {event.title}
       }
     }
 
+    async function promoteSubmission(submissionId) {
+      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/promote", {
+        method: "POST",
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const payload = await response.json();
+          if (payload && payload.error) {
+            detail = " (" + payload.error + ")";
+          }
+        } catch (e) {
+        }
+        throw new Error("No fue posible promover propuesta" + detail);
+      }
+      return response.json();
+    }
+
     function buildSubmissionCard(item) {
       const article = document.createElement("article");
       article.className = "cfp-admin-card";
@@ -212,6 +231,14 @@ Moderacion CFP · {event.title}
 
       article.appendChild(
           row("Propuesto por: " + (item.proposer_name || item.proposer_user_id || "N/A") + " · " + fmtDate(item.created_at)));
+
+      if (item.level || item.format || item.duration_min) {
+        const chips = [];
+        if (item.level) chips.push(item.level);
+        if (item.format) chips.push(item.format);
+        if (item.duration_min) chips.push(item.duration_min + " min");
+        article.appendChild(row(chips.join(" · ")));
+      }
 
       if (item.summary) {
         const summary = document.createElement("p");
@@ -255,9 +282,31 @@ Moderacion CFP · {event.title}
         actions.appendChild(btn);
       }
 
+      function promoteButton() {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-secondary";
+        btn.textContent = "Promover a catalogo";
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          try {
+            const payload = await promoteSubmission(item.id);
+            window.alert("Catalogado: " + payload.speaker_id + " / " + payload.talk_id);
+          } catch (error) {
+            window.alert(error.message || "Error promoviendo propuesta");
+          } finally {
+            btn.disabled = false;
+          }
+        });
+        actions.appendChild(btn);
+      }
+
       actionButton("En revision", "under_review", "btn btn-secondary");
       actionButton("Aceptar", "accepted", "btn btn-primary");
       actionButton("Rechazar", "rejected", "btn btn-danger");
+      if (currentStatus === "accepted") {
+        promoteButton();
+      }
 
       article.appendChild(actions);
       return article;
