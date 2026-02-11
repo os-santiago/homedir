@@ -11,6 +11,13 @@ import jakarta.ws.rs.core.Response;
 public class HealthResource {
 
   @GET
+  @PermitAll
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response health() {
+    return Response.ok("ok").build();
+  }
+
+  @GET
   @Path("/ready")
   @PermitAll
   @Produces(MediaType.TEXT_PLAIN)
