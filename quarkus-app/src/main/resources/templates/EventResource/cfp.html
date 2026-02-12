@@ -56,13 +56,13 @@
           <select id="cfpFormat" name="format" class="form-select" required>
             <option value="">{i18n.events_cfp_form_select_placeholder}</option>
             {#for option in cfpCatalog.formats}
-            <option value="{option.value}">{option.label}</option>
+            <option value="{option.value}" data-duration="{cfpDurationByFormat.get(option.value)}">{option.label}</option>
             {/for}
           </select>
         </div>
         <div class="form-group">
           <label class="form-label" for="cfpDuration">{i18n.events_cfp_form_duration}</label>
-          <select id="cfpDuration" name="durationMin" class="form-select" required>
+          <select id="cfpDuration" name="durationMin" class="form-select" required disabled>
             <option value="">{i18n.events_cfp_form_select_placeholder}</option>
             {#for option in cfpCatalog.durations}
             <option value="{option.value}">{option.label}</option>
@@ -89,7 +89,7 @@
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
           <label class="form-label" for="cfpLinks">{i18n.events_cfp_form_links}</label>
-          <input id="cfpLinks" name="links" class="form-input" placeholder="https://example.org/slides, https://github.com/...">
+          <input id="cfpLinks" name="links" class="form-input" placeholder="https://sessionize.com/your-session, https://github.com/...">
         </div>
       </div>
       <div class="form-actions">
@@ -190,6 +190,9 @@
     const reloadBtn = document.getElementById("cfpReloadBtn");
     const feedback = document.getElementById("cfpFeedback");
     const mineList = document.getElementById("cfpMineList");
+    const formatSelect = document.getElementById("cfpFormat");
+    const durationSelect = document.getElementById("cfpDuration");
+    const languageSelect = document.getElementById("cfpLanguage");
 
     const labels = {
       pending: "{i18n.events_cfp_status_pending}",
@@ -224,6 +227,32 @@
     const formatLabels = buildOptionMap("cfpFormat");
     const languageLabels = buildOptionMap("cfpLanguage");
     const trackLabels = buildOptionMap("cfpTrack");
+    const durationByFormat = {};
+    if (formatSelect) {
+      Array.from(formatSelect.options || []).forEach((option) => {
+        const key = String(option.value || "").trim();
+        const raw = String(option.dataset?.duration || "").trim();
+        const parsed = Number.parseInt(raw, 10);
+        if (key && Number.isFinite(parsed)) {
+          durationByFormat[key] = parsed;
+        }
+      });
+    }
+
+    function syncDurationFromFormat() {
+      if (!durationSelect) {
+        return;
+      }
+      const formatValue = formatSelect ? String(formatSelect.value || "") : "";
+      const mappedDuration = durationByFormat[formatValue];
+      if (!mappedDuration) {
+        durationSelect.value = "";
+        durationSelect.disabled = true;
+        return;
+      }
+      durationSelect.value = String(mappedDuration);
+      durationSelect.disabled = true;
+    }
 
     function parseCsvInput(value) {
       if (!value) return [];
@@ -324,8 +353,8 @@
       if (!form) return;
       submitBtn.disabled = true;
       const formData = new FormData(form);
-      const durationRaw = formData.get("durationMin");
-      const duration = durationRaw ? Number.parseInt(String(durationRaw), 10) : null;
+      const duration = durationSelect ? Number.parseInt(String(durationSelect.value || ""), 10) : Number.NaN;
+      const languageValue = languageSelect ? String(languageSelect.value || "").trim() : String(formData.get("language") || "").trim();
       const payload = {
         title: String(formData.get("title") || ""),
         summary: String(formData.get("summary") || ""),
@@ -333,7 +362,7 @@
         level: String(formData.get("level") || ""),
         format: String(formData.get("format") || ""),
         duration_min: Number.isFinite(duration) ? duration : null,
-        language: String(formData.get("language") || ""),
+        language: languageValue,
         track: String(formData.get("track") || ""),
         links: parseCsvInput(String(formData.get("links") || ""))
       };
@@ -357,6 +386,7 @@
           return;
         }
         form.reset();
+        syncDurationFromFormat();
         showFeedback("{i18n.events_cfp_success_submit}", false);
         await loadMine();
       } catch (error) {
@@ -367,7 +397,9 @@
     }
 
     form?.addEventListener("submit", submitProposal);
+    formatSelect?.addEventListener("change", syncDurationFromFormat);
     reloadBtn?.addEventListener("click", loadMine);
+    syncDurationFromFormat();
     loadMine();
   })();
 </script>

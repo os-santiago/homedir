@@ -63,7 +63,7 @@ public class CfpSubmissionApiResourceTest {
               "abstract_text":"Detailed abstract for platform stories.",
               "level":"intermediate",
               "format":"talk",
-              "duration_min":45,
+              "duration_min":30,
               "language":"en",
               "track":"platform-engineering-idp",
               "links":["https://example.org/talk"]
@@ -90,6 +90,55 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "member@example.com")
+  void createAcceptsLanguageLabel() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Language label support",
+              "summary":"Summary",
+              "abstract_text":"Abstract",
+              "level":"beginner",
+              "format":"talk",
+              "duration_min":30,
+              "language":"English",
+              "track":"platform-engineering-idp"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(201)
+        .body("item.language", equalTo("en"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void createRejectsDurationThatDoesNotMatchFormat() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Mismatched duration",
+              "summary":"Summary",
+              "abstract_text":"Abstract",
+              "level":"beginner",
+              "format":"workshop",
+              "duration_min":60,
+              "language":"en",
+              "track":"platform-engineering-idp"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(400)
+        .body("error", equalTo("invalid_duration"));
+  }
+  @Test
+  @TestSecurity(user = "member@example.com")
   void createRejectsInvalidControlledValues() {
     given()
         .contentType("application/json")
@@ -101,7 +150,7 @@ public class CfpSubmissionApiResourceTest {
               "abstract_text":"Abstract",
               "level":"any-random-level",
               "format":"talk",
-              "duration_min":45,
+              "duration_min":30,
               "language":"en",
               "track":"platform-engineering-idp"
             }
@@ -197,7 +246,7 @@ public class CfpSubmissionApiResourceTest {
                 "Long abstract",
                 "advanced",
                 "talk",
-                45,
+                30,
                 "en",
                 "ai-agents-copilots",
                 List.of("ai", "platform"),
@@ -246,7 +295,7 @@ public class CfpSubmissionApiResourceTest {
                 "Deep dive abstract",
                 "intermediate",
                 "talk",
-                45,
+                30,
                 "en",
                 "cloud-native-security",
                 List.of("kubernetes"),

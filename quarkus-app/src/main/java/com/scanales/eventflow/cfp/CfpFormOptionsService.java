@@ -3,9 +3,11 @@ package com.scanales.eventflow.cfp;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -19,7 +21,7 @@ public class CfpFormOptionsService {
   @ConfigProperty(name = "cfp.form.formats", defaultValue = "talk|Talk,lightning-talk|Lightning Talk,workshop|Workshop,panel|Panel")
   String formatsRaw;
 
-  @ConfigProperty(name = "cfp.form.durations", defaultValue = "15|15 min,30|30 min,45|45 min,60|60 min")
+  @ConfigProperty(name = "cfp.form.durations", defaultValue = "15|15 min,30|30 min,60|60 min,90|90 min")
   String durationsRaw;
 
   @ConfigProperty(name = "cfp.form.languages", defaultValue = "en|English,es|Spanish")
@@ -28,15 +30,24 @@ public class CfpFormOptionsService {
   @ConfigProperty(name = "cfp.form.tracks", defaultValue = "ai-agents-copilots|AI Agents & Copilots in Production,platform-engineering-idp|Platform Engineering & Internal Developer Platforms,cloud-native-security|Cloud Native Security & Supply Chain,developer-experience-innersource|Developer Experience & InnerSource,data-ai-platforms-llmops|Data/AI Platforms & LLMOps")
   String tracksRaw;
 
+  @ConfigProperty(name = "cfp.form.duration-by-format", defaultValue = "talk=30,workshop=90,panel=60,lightning-talk=15")
+  String durationByFormatRaw;
+
   private volatile CfpFormCatalog catalog;
+  private volatile Map<String, Integer> durationByFormat;
 
   @PostConstruct
   void init() {
     catalog = buildCatalog();
+    durationByFormat = buildDurationByFormat();
   }
 
   public CfpFormCatalog catalog() {
     return catalog;
+  }
+
+  public Map<String, Integer> durationByFormat() {
+    return durationByFormat;
   }
 
   public Optional<String> normalizeLevel(String raw) {
@@ -48,7 +59,23 @@ public class CfpFormOptionsService {
   }
 
   public Optional<String> normalizeLanguage(String raw) {
-    return normalizeValue(raw, catalog.languages(), true);
+    Optional<String> direct = normalizeValue(raw, catalog.languages(), true);
+    if (direct.isPresent()) {
+      return direct;
+    }
+    String normalized = raw == null ? null : raw.trim().toLowerCase(Locale.ROOT);
+    if (normalized == null || normalized.isBlank()) {
+      return Optional.empty();
+    }
+    int hyphen = normalized.indexOf('-');
+    if (hyphen > 0) {
+      return normalizeValue(normalized.substring(0, hyphen), catalog.languages(), true);
+    }
+    int underscore = normalized.indexOf('_');
+    if (underscore > 0) {
+      return normalizeValue(normalized.substring(0, underscore), catalog.languages(), true);
+    }
+    return Optional.empty();
   }
 
   public Optional<String> normalizeTrack(String raw) {
@@ -64,6 +91,14 @@ public class CfpFormOptionsService {
     return allowed ? Optional.of(raw) : Optional.empty();
   }
 
+  public Optional<Integer> expectedDurationForFormat(String formatValue) {
+    if (formatValue == null || formatValue.isBlank()) {
+      return Optional.empty();
+    }
+    Integer mapped = durationByFormat.get(formatValue.toLowerCase(Locale.ROOT));
+    return mapped == null ? Optional.empty() : Optional.of(mapped);
+  }
+
   private static Optional<String> normalizeValue(String raw, List<CfpFormOption> options, boolean lowercase) {
     if (raw == null) {
       return Optional.empty();
@@ -77,6 +112,9 @@ public class CfpFormOptionsService {
     }
     for (CfpFormOption option : options) {
       if (option.value().equalsIgnoreCase(normalized)) {
+        return Optional.of(option.value());
+      }
+      if (option.label().equalsIgnoreCase(normalized)) {
         return Optional.of(option.value());
       }
     }
@@ -112,6 +150,17 @@ public class CfpFormOptionsService {
         List.copyOf(durations),
         List.copyOf(languages),
         List.copyOf(tracks));
+  }
+
+  private Map<String, Integer> buildDurationByFormat() {
+    Map<String, Integer> mapping = parseDurationByFormat(durationByFormatRaw, 8);
+    if (mapping.isEmpty()) {
+      mapping.put("talk", 30);
+      mapping.put("workshop", 90);
+      mapping.put("panel", 60);
+      mapping.put("lightning-talk", 15);
+    }
+    return Map.copyOf(mapping);
   }
 
   private static List<CfpFormOption> parseOptions(String raw, boolean lowercaseValue, int maxItems) {
@@ -166,6 +215,42 @@ public class CfpFormOptionsService {
       }
     }
     return valid;
+  }
+
+  private static Map<String, Integer> parseDurationByFormat(String raw, int maxItems) {
+    Map<String, Integer> result = new LinkedHashMap<>();
+    if (raw == null || raw.isBlank()) {
+      return result;
+    }
+    String[] entries = raw.split(",");
+    for (String entry : entries) {
+      if (entry == null) {
+        continue;
+      }
+      String trimmed = entry.trim();
+      if (trimmed.isBlank()) {
+        continue;
+      }
+      int separator = trimmed.indexOf('=');
+      if (separator <= 0 || separator >= trimmed.length() - 1) {
+        continue;
+      }
+      String format = sanitizeValue(trimmed.substring(0, separator).trim(), true);
+      if (format == null) {
+        continue;
+      }
+      try {
+        int duration = Integer.parseInt(trimmed.substring(separator + 1).trim());
+        if (duration >= 5 && duration <= 240) {
+          result.putIfAbsent(format, duration);
+        }
+      } catch (NumberFormatException ignored) {
+      }
+      if (result.size() >= maxItems) {
+        break;
+      }
+    }
+    return result;
   }
 
   private static String sanitizeValue(String raw, boolean lowercase) {
