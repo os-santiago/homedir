@@ -44,7 +44,7 @@ public class CfpSubmissionServiceTest {
                 "The talk shares implementation patterns, anti-patterns and rollout steps.",
                 "intermediate",
                 "talk",
-                45,
+                30,
                 "en",
                 "platform-engineering-idp",
                 java.util.List.of("platform", "devops"),
@@ -106,6 +106,27 @@ public class CfpSubmissionServiceTest {
   }
 
   @Test
+  void createFailsWhenDurationDoesNotMatchFormat() {
+    assertThrows(
+        CfpSubmissionService.ValidationException.class,
+        () ->
+            cfpSubmissionService.create(
+                "member@example.com",
+                "Member",
+                new CfpSubmissionService.CreateRequest(
+                    EVENT_ID,
+                    "Talk",
+                    "Summary",
+                    "Abstract",
+                    "intermediate",
+                    "workshop",
+                    60,
+                    "en",
+                    "platform-engineering-idp",
+                    java.util.List.of(),
+                    java.util.List.of())));
+  }
+  @Test
   void statusTransitionUpdatesSubmission() {
     CfpSubmission created =
         cfpSubmissionService.create(
@@ -118,7 +139,7 @@ public class CfpSubmissionServiceTest {
                 "Long abstract for SRE topic.",
                 "advanced",
                 "workshop",
-                60,
+                90,
                 "en",
                 "cloud-native-security",
                 java.util.List.of("sre"),
