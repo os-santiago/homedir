@@ -442,5 +442,90 @@ public class CfpSubmissionServiceTest {
                         java.util.List.of())));
 
     assertEquals("proposal_limit_reached", exception.getMessage());
-  }}
+  }
+
+  @Test
+  void adminCanRateSubmissionAndComputeWeightedScore() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Observable Platform Engineering",
+                "Summary",
+                "Abstract",
+                "advanced",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    CfpSubmission rated =
+        cfpSubmissionService.updateRating(EVENT_ID, created.id(), 5, 4, 5, "admin@example.org");
+
+    assertEquals(5, rated.ratingTechnicalDetail());
+    assertEquals(4, rated.ratingNarrative());
+    assertEquals(5, rated.ratingContentImpact());
+    assertEquals(4.7d, CfpSubmissionService.calculateWeightedScore(rated));
+
+    CfpSubmission persisted = persistenceService.loadCfpSubmissions().get(created.id());
+    assertNotNull(persisted);
+    assertEquals(4.7d, CfpSubmissionService.calculateWeightedScore(persisted));
+  }
+
+  @Test
+  void listByEventCanSortByWeightedScore() {
+    CfpSubmission low =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Low score talk",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    CfpSubmission high =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "High score talk",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    cfpSubmissionService.updateRating(EVENT_ID, low.id(), 1, 1, 1, "admin@example.org");
+    cfpSubmissionService.updateRating(EVENT_ID, high.id(), 5, 5, 4, "admin@example.org");
+
+    var ordered =
+        cfpSubmissionService.listByEvent(
+            EVENT_ID,
+            Optional.empty(),
+            CfpSubmissionService.SortOrder.SCORE_DESC,
+            20,
+            0);
+
+    assertEquals(2, ordered.size());
+    assertEquals(high.id(), ordered.get(0).id());
+    assertEquals(low.id(), ordered.get(1).id());
+  }
+}
 

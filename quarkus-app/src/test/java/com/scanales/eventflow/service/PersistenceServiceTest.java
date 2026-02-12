@@ -144,6 +144,9 @@ public class PersistenceServiceTest {
         now,
         null,
         null,
+        null,
+        null,
+        null,
         null);
   }
 
@@ -158,3 +161,4 @@ public class PersistenceServiceTest {
     return false;
   }
 }
+

@@ -24,5 +24,9 @@ public record CfpSubmission(
     @JsonProperty("updated_at") Instant updatedAt,
     @JsonProperty("moderated_at") Instant moderatedAt,
     @JsonProperty("moderated_by") String moderatedBy,
-    @JsonProperty("moderation_note") String moderationNote) {
+    @JsonProperty("moderation_note") String moderationNote,
+    @JsonProperty("rating_technical_detail") Integer ratingTechnicalDetail,
+    @JsonProperty("rating_narrative") Integer ratingNarrative,
+    @JsonProperty("rating_content_impact") Integer ratingContentImpact) {
 }
+
