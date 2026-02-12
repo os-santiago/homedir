@@ -199,7 +199,9 @@
     border-radius: 50%;
     border: 3px solid rgba(255, 255, 255, 0.15);
     border-top-color: rgba(255, 213, 79, 0.85);
-    animation: cfpSpin 0.8s linear infinite;
+    border-right-color: rgba(255, 213, 79, 0.25);
+    box-shadow: 0 0 18px rgba(255, 213, 79, 0.22);
+    animation: cfpSpin 0.75s linear infinite, cfpPulse 1.2s ease-in-out infinite;
   }
 
   .cfp-submitting-title {
@@ -219,9 +221,15 @@
     to { transform: rotate(360deg); }
   }
 
+  @keyframes cfpPulse {
+    0%, 100% { opacity: 0.65; filter: saturate(1); }
+    50% { opacity: 1; filter: saturate(1.25); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .cfp-submitting-spinner {
-      animation: none;
+      /* Keep a subtle indicator even in reduced-motion environments. */
+      animation: cfpSpin 2.4s linear infinite;
     }
   }
 
