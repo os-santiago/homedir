@@ -10,6 +10,7 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
+import java.util.Map;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -24,7 +25,7 @@ public class EventResource {
   static class Templates {
     static native TemplateInstance detail(Event event);
 
-    static native TemplateInstance cfp(Event event, CfpFormCatalog cfpCatalog);
+    static native TemplateInstance cfp(Event event, CfpFormCatalog cfpCatalog, Map<String, Integer> cfpDurationByFormat);
   }
 
   @Inject EventService eventService;
@@ -63,7 +64,7 @@ public class EventResource {
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/cfp", headers, context);
     Event event = eventService.getEvent(id);
-    return withLayoutData(Templates.cfp(event, cfpFormOptionsService.catalog()), "eventos");
+    return withLayoutData(Templates.cfp(event, cfpFormOptionsService.catalog(), cfpFormOptionsService.durationByFormat()), "eventos");
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {

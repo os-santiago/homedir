@@ -81,10 +81,20 @@ public class CfpSubmissionService {
           cfpFormOptionsService
               .normalizeLanguage(request.language())
               .orElseThrow(() -> new ValidationException("invalid_language"));
-      Integer durationMin =
-          cfpFormOptionsService
-              .normalizeDuration(request.durationMin())
-              .orElseThrow(() -> new ValidationException("invalid_duration"));
+      Integer durationMin;
+      Optional<Integer> expectedDuration = cfpFormOptionsService.expectedDurationForFormat(format);
+      if (expectedDuration.isPresent()) {
+        Integer selectedDuration = request.durationMin();
+        if (selectedDuration != null && !expectedDuration.get().equals(selectedDuration)) {
+          throw new ValidationException("invalid_duration");
+        }
+        durationMin = expectedDuration.get();
+      } else {
+        durationMin =
+            cfpFormOptionsService
+                .normalizeDuration(request.durationMin())
+                .orElseThrow(() -> new ValidationException("invalid_duration"));
+      }
       String track =
           cfpFormOptionsService
               .normalizeTrack(request.track())
