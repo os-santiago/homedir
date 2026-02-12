@@ -2,6 +2,7 @@
 {@java.lang.Boolean userAuthenticated}
 {@java.lang.String userName}
 {@com.scanales.eventflow.cfp.CfpFormCatalog cfpCatalog}
+{@java.lang.Boolean cfpTestingModeEnabled}
 {#title}
 {#if event}
 {i18n.events_cfp_page_title(event.title)}
@@ -32,6 +33,16 @@
   <article id="cfpSectionNew" class="section-card" style="grid-column: 1 / -1;">
     <h2 style="margin-top: 0;">{i18n.events_cfp_submit_title}</h2>
     <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n.events_cfp_submit_desc}</p>
+
+    {#if cfpTestingModeEnabled}
+    <div class="cfp-testing-banner" role="note" aria-label="{i18n.events_cfp_testing_aria}">
+      <span class="cfp-testing-badge">{i18n.events_cfp_testing_badge}</span>
+      <div>
+        <p class="cfp-testing-title">{i18n.events_cfp_testing_title}</p>
+        <p class="cfp-testing-desc">{i18n.events_cfp_testing_desc}</p>
+      </div>
+    </div>
+    {/if}
 
     {#if userAuthenticated}
     <form id="cfpForm" data-user-scope="{userName}">
@@ -236,6 +247,43 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+  }
+
+  .cfp-testing-banner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.75rem;
+    margin: 0 0 1rem 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 213, 79, 0.45);
+    background: rgba(255, 213, 79, 0.08);
+  }
+
+  .cfp-testing-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid rgba(255, 213, 79, 0.7);
+    background: rgba(255, 213, 79, 0.14);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    height: fit-content;
+    margin-top: 0.1rem;
+  }
+
+  .cfp-testing-title {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .cfp-testing-desc {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
   }
 </style>
 

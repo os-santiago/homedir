@@ -25,6 +25,23 @@ Moderacion CFP · {event.title}
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
+        <h2 class="card-title" style="margin: 0;">{i18n.events_cfp_admin_testing_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n.events_cfp_admin_testing_desc}</p>
+      </div>
+      <div class="action-group" style="gap: 0.5rem;">
+        <label class="form-hint" style="display: inline-flex; align-items: center; gap: 0.45rem; margin: 0;">
+          <input id="cfpTestingToggle" type="checkbox" style="transform: translateY(1px);">
+          <span>{i18n.events_cfp_admin_testing_toggle_label}</span>
+        </label>
+        <button id="cfpTestingSaveBtn" type="button" class="btn btn-secondary">{i18n.events_cfp_admin_testing_save}</button>
+      </div>
+    </div>
+    <p id="cfpTestingFeedback" class="form-hint" style="margin-top: 0.6rem;" hidden></p>
+  </div>
+
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
         <h2 class="card-title" style="margin: 0;">Cola de propuestas</h2>
         <p class="form-hint" style="margin-top: 0.35rem;">Evalua propuestas con rating tecnico y prioriza con score ponderado.</p>
       </div>
@@ -178,9 +195,13 @@ Moderacion CFP · {event.title}
   (() => {
     const eventId = "{event.id}";
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
+    const configEndpoint = baseEndpoint + "/config";
     const listEl = document.getElementById("cfpQueueList");
     const reloadBtn = document.getElementById("reloadCfpBtn");
     const exportBtn = document.getElementById("exportCsvBtn");
+    const testingToggle = document.getElementById("cfpTestingToggle");
+    const testingSaveBtn = document.getElementById("cfpTestingSaveBtn");
+    const testingFeedback = document.getElementById("cfpTestingFeedback");
     const filterButtons = Array.from(document.querySelectorAll(".cfp-filter-btn"));
     const sortButtons = Array.from(document.querySelectorAll(".cfp-sort-btn"));
     let activeStatus = "pending";
@@ -520,6 +541,45 @@ Moderacion CFP · {event.title}
       }
     }
 
+    function showTestingFeedback(message, isError) {
+      if (!testingFeedback) return;
+      testingFeedback.hidden = false;
+      testingFeedback.textContent = message;
+      testingFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+    }
+
+    async function loadTestingConfig() {
+      if (!testingToggle) return;
+      try {
+        const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
+        if (!response.ok) return;
+        const payload = await response.json();
+        testingToggle.checked = !!payload.testing_mode_enabled;
+      } catch (e) {
+      }
+    }
+
+    async function saveTestingConfig() {
+      if (!testingToggle || !testingSaveBtn) return;
+      testingSaveBtn.disabled = true;
+      try {
+        const response = await fetch(configEndpoint, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ testing_mode_enabled: !!testingToggle.checked })
+        });
+        if (!response.ok) {
+          showTestingFeedback("{i18n.events_cfp_admin_testing_error}", true);
+          return;
+        }
+        showTestingFeedback("{i18n.events_cfp_admin_testing_saved}", false);
+      } catch (e) {
+        showTestingFeedback("{i18n.events_cfp_admin_testing_error}", true);
+      } finally {
+        testingSaveBtn.disabled = false;
+      }
+    }
+
     filterButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const status = button.dataset.status || "pending";
@@ -537,8 +597,10 @@ Moderacion CFP · {event.title}
     });
 
     reloadBtn?.addEventListener("click", loadList);
+    testingSaveBtn?.addEventListener("click", saveTestingConfig);
     setActiveFilter(activeStatus);
     setActiveSort(activeSort);
+    loadTestingConfig();
     loadList();
   })();
 </script>
