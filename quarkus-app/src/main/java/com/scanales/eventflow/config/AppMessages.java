@@ -337,6 +337,39 @@ public interface AppMessages {
     @Message("We could not find this event.")
     String events_cfp_not_found_desc();
 
+    @Message("Auto-fill last proposal")
+    String events_cfp_autofill_last();
+
+    @Message("No saved proposal found.")
+    String events_cfp_restore_empty();
+
+    @Message("Last proposal restored.")
+    String events_cfp_restore_success();
+
+    @Message("Limit")
+    String events_cfp_quota_prefix();
+
+    @Message("available slots")
+    String events_cfp_quota_remaining();
+
+    @Message("You reached the maximum proposals for this event.")
+    String events_cfp_error_limit_reached();
+
+    @Message("You already submitted a proposal with the same title.")
+    String events_cfp_error_duplicate_title();
+
+    @Message("Delete")
+    String events_cfp_delete();
+
+    @Message("Are you sure you want to delete this proposal?")
+    String events_cfp_confirm_delete();
+
+    @Message("Proposal deleted.")
+    String events_cfp_success_delete();
+
+    @Message("Could not delete the proposal.")
+    String events_cfp_error_delete();
+
     // --- Projects Page ---
     @Message("Projects · HomeDir")
     String projects_title();
@@ -1217,3 +1250,4 @@ public interface AppMessages {
     String home_btn_view_repo();
 
 }
+

@@ -12,6 +12,7 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -23,9 +24,12 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Path("/api/events/{eventId}/cfp/submissions")
 @Produces(MediaType.APPLICATION_JSON)
@@ -39,15 +43,16 @@ public class CfpSubmissionApiResource {
   @Authenticated
   @Consumes(MediaType.APPLICATION_JSON)
   public Response create(@PathParam("eventId") String eventId, CreateSubmissionRequest request) {
-    Optional<String> userId = currentUserId();
-    if (userId.isEmpty()) {
+    Set<String> userIds = currentUserIds();
+    if (userIds.isEmpty()) {
       return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
     }
+    String primaryUserId = userIds.iterator().next();
     try {
       CfpSubmission submission =
           cfpSubmissionService.create(
-              userId.get(),
-              currentUserName().orElse(userId.get()),
+              primaryUserId,
+              currentUserName().orElse(primaryUserId),
               new CfpSubmissionService.CreateRequest(
                   eventId,
                   request != null ? request.title() : null,
@@ -62,7 +67,11 @@ public class CfpSubmissionApiResource {
                   request != null ? request.links() : null));
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CfpSubmissionService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      Response.Status status =
+          ("proposal_limit_reached".equals(e.getMessage()) || "duplicate_title".equals(e.getMessage()))
+              ? Response.Status.CONFLICT
+              : Response.Status.BAD_REQUEST;
+      return Response.status(status).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
@@ -79,15 +88,43 @@ public class CfpSubmissionApiResource {
       @PathParam("eventId") String eventId,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
-    Optional<String> userId = currentUserId();
-    if (userId.isEmpty()) {
+    Set<String> userIds = currentUserIds();
+    if (userIds.isEmpty()) {
       return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
     }
     int limit = normalizeLimit(limitParam);
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
     List<SubmissionView> items =
-        cfpSubmissionService.listMine(eventId, userId.get(), limit, offset).stream().map(this::toView).toList();
+        cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream().map(this::toView).toList();
     return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
+  }
+
+  @DELETE
+  @Path("/{id}")
+  @Authenticated
+  public Response deleteMine(@PathParam("eventId") String eventId, @PathParam("id") String id) {
+    Set<String> userIds = currentUserIds();
+    if (userIds.isEmpty()) {
+      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+    }
+    Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+    if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+    }
+    boolean admin = AdminUtils.isAdmin(identity);
+    if (!admin && !userIds.contains(existing.get().proposerUserId())) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "owner_required")).build();
+    }
+    try {
+      CfpSubmission deleted = cfpSubmissionService.delete(eventId, id);
+      return Response.ok(new SubmissionResponse(toView(deleted))).build();
+    } catch (CfpSubmissionService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    } catch (IllegalStateException e) {
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
+          .build();
+    }
   }
 
   @GET
@@ -224,22 +261,30 @@ public class CfpSubmissionApiResource {
   }
 
   private Optional<String> currentUserId() {
-    if (identity == null || identity.isAnonymous()) {
+    Set<String> userIds = currentUserIds();
+    if (userIds.isEmpty()) {
       return Optional.empty();
     }
-    String email = AdminUtils.getClaim(identity, "email");
-    if (email != null && !email.isBlank()) {
-      return Optional.of(email.toLowerCase(Locale.ROOT));
+    return Optional.of(userIds.iterator().next());
+  }
+
+  private Set<String> currentUserIds() {
+    if (identity == null || identity.isAnonymous()) {
+      return Set.of();
     }
+    LinkedHashSet<String> ids = new LinkedHashSet<>();
     String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
-    if (principal != null && !principal.isBlank()) {
-      return Optional.of(principal.toLowerCase(Locale.ROOT));
+    addNormalizedUserId(ids, principal);
+    addNormalizedUserId(ids, AdminUtils.getClaim(identity, "email"));
+    addNormalizedUserId(ids, AdminUtils.getClaim(identity, "sub"));
+    return ids.isEmpty() ? Set.of() : Collections.unmodifiableSet(ids);
+  }
+
+  private static void addNormalizedUserId(Set<String> target, String raw) {
+    if (raw == null || raw.isBlank()) {
+      return;
     }
-    String sub = AdminUtils.getClaim(identity, "sub");
-    if (sub != null && !sub.isBlank()) {
-      return Optional.of(sub);
-    }
-    return Optional.empty();
+    target.add(raw.trim().toLowerCase(Locale.ROOT));
   }
 
   private Optional<String> currentUserName() {

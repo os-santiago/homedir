@@ -1,5 +1,6 @@
 {#include layout/main activePage="eventos"}
 {@java.lang.Boolean userAuthenticated}
+{@java.lang.String userName}
 {@com.scanales.eventflow.cfp.CfpFormCatalog cfpCatalog}
 {#title}
 {#if event}
@@ -28,7 +29,7 @@
     <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n.events_cfp_submit_desc}</p>
 
     {#if userAuthenticated}
-    <form id="cfpForm">
+    <form id="cfpForm" data-user-scope="{userName}">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
         <div class="form-group" style="grid-column: 1 / -1;">
           <label class="form-label" for="cfpTitle">{i18n.events_cfp_form_title}</label>
@@ -94,7 +95,9 @@
       </div>
       <div class="form-actions">
         <button id="cfpSubmitBtn" type="submit" class="btn btn-primary">{i18n.events_cfp_form_submit}</button>
+        <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n.events_cfp_autofill_last}</button>
       </div>
+      <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
     </form>
     <p id="cfpFeedback" class="form-hint" hidden></p>
     {#else}
@@ -174,25 +177,48 @@
     font-size: 0.82rem;
     opacity: 0.8;
   }
+
+  .cfp-quota-hint {
+    margin-top: 0.3rem;
+  }
+
+  .cfp-submission-actions {
+    margin-top: 0.7rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
 </style>
 
 <script>
   (() => {
-    const isAuth = !!window.userAuthenticated;
+    const isAuth = {#if userAuthenticated}true{#else}false{/if};
     if (!isAuth) {
       return;
     }
+
     const eventId = "{event.id}";
+    const form = document.getElementById("cfpForm");
+    const userScopeRaw = form ? String(form.dataset.userScope || "") : "";
+    const userScope = String(userScopeRaw || "").trim().toLowerCase();
+    const storageScope = userScope || "authenticated";
+    const draftStorageKey = "homedir.cfp.draft." + eventId + "." + storageScope;
+    const lastStorageKey = "homedir.cfp.last." + eventId + "." + storageScope;
+
     const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const mineEndpoint = endpoint + "/mine?limit=20&offset=0";
-    const form = document.getElementById("cfpForm");
     const submitBtn = document.getElementById("cfpSubmitBtn");
+    const autofillBtn = document.getElementById("cfpAutofillBtn");
     const reloadBtn = document.getElementById("cfpReloadBtn");
     const feedback = document.getElementById("cfpFeedback");
+    const quotaHint = document.getElementById("cfpQuotaHint");
     const mineList = document.getElementById("cfpMineList");
     const formatSelect = document.getElementById("cfpFormat");
     const durationSelect = document.getElementById("cfpDuration");
     const languageSelect = document.getElementById("cfpLanguage");
+
+    const proposalLimit = 2;
+    let mineItems = [];
 
     const labels = {
       pending: "{i18n.events_cfp_status_pending}",
@@ -200,6 +226,11 @@
       accepted: "{i18n.events_cfp_status_accepted}",
       rejected: "{i18n.events_cfp_status_rejected}",
       withdrawn: "{i18n.events_cfp_status_withdrawn}"
+    };
+
+    const errorLabels = {
+      duplicate_title: "{i18n.events_cfp_error_duplicate_title}",
+      proposal_limit_reached: "{i18n.events_cfp_error_limit_reached}"
     };
 
     function buildOptionMap(selectId) {
@@ -227,6 +258,7 @@
     const formatLabels = buildOptionMap("cfpFormat");
     const languageLabels = buildOptionMap("cfpLanguage");
     const trackLabels = buildOptionMap("cfpTrack");
+
     const durationByFormat = {};
     if (formatSelect) {
       Array.from(formatSelect.options || []).forEach((option) => {
@@ -269,6 +301,114 @@
       feedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
     }
 
+    function safeStorageGet(key) {
+      try {
+        return window.localStorage ? window.localStorage.getItem(key) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function safeStorageSet(key, value) {
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem(key, value);
+        }
+      } catch (error) {
+      }
+    }
+
+    function safeStorageRemove(key) {
+      try {
+        if (window.localStorage) {
+          window.localStorage.removeItem(key);
+        }
+      } catch (error) {
+      }
+    }
+
+    function formSnapshot() {
+      if (!form) {
+        return null;
+      }
+      const formData = new FormData(form);
+      const duration = durationSelect ? Number.parseInt(String(durationSelect.value || ""), 10) : Number.NaN;
+      const payload = {
+        title: String(formData.get("title") || "").trim(),
+        summary: String(formData.get("summary") || "").trim(),
+        abstract_text: String(formData.get("abstractText") || "").trim(),
+        level: String(formData.get("level") || "").trim(),
+        format: String(formData.get("format") || "").trim(),
+        duration_min: Number.isFinite(duration) ? duration : null,
+        language: languageSelect ? String(languageSelect.value || "").trim() : String(formData.get("language") || "").trim(),
+        track: String(formData.get("track") || "").trim(),
+        links: parseCsvInput(String(formData.get("links") || ""))
+      };
+      return payload;
+    }
+
+    function saveDraftFromForm() {
+      const snapshot = formSnapshot();
+      if (!snapshot) {
+        return;
+      }
+      safeStorageSet(draftStorageKey, JSON.stringify(snapshot));
+    }
+
+    function saveLastProposal(snapshot) {
+      if (!snapshot) {
+        return;
+      }
+      safeStorageSet(lastStorageKey, JSON.stringify(snapshot));
+    }
+
+    function applySnapshot(snapshot) {
+      if (!snapshot || !form) {
+        return false;
+      }
+      const setValue = (id, value) => {
+        const field = document.getElementById(id);
+        if (!field) {
+          return;
+        }
+        field.value = value == null ? "" : String(value);
+      };
+
+      setValue("cfpTitle", snapshot.title || "");
+      setValue("cfpSummary", snapshot.summary || "");
+      setValue("cfpAbstract", snapshot.abstract_text || "");
+      setValue("cfpLevel", snapshot.level || "");
+      setValue("cfpFormat", snapshot.format || "");
+      syncDurationFromFormat();
+      setValue("cfpLanguage", snapshot.language || "");
+      setValue("cfpTrack", snapshot.track || "");
+      setValue("cfpLinks", Array.isArray(snapshot.links) ? snapshot.links.join(", ") : "");
+      return true;
+    }
+
+    function restoreLastProposal() {
+      const raw = safeStorageGet(lastStorageKey) || safeStorageGet(draftStorageKey);
+      if (!raw) {
+        showFeedback("{i18n.events_cfp_restore_empty}", true);
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!applySnapshot(parsed)) {
+          showFeedback("{i18n.events_cfp_restore_empty}", true);
+          return;
+        }
+        saveDraftFromForm();
+        showFeedback("{i18n.events_cfp_restore_success}", false);
+      } catch (error) {
+        showFeedback("{i18n.events_cfp_restore_empty}", true);
+      }
+    }
+
+    function clearDraft() {
+      safeStorageRemove(draftStorageKey);
+    }
+
     function formatDate(value) {
       if (!value) return "";
       const date = new Date(value);
@@ -280,17 +420,53 @@
       return labels[status] || status || "";
     }
 
+    function updateQuotaHint() {
+      const remaining = Math.max(0, proposalLimit - (mineItems ? mineItems.length : 0));
+      if (quotaHint) {
+        quotaHint.textContent =
+          "{i18n.events_cfp_quota_prefix} " + proposalLimit + " · {i18n.events_cfp_quota_remaining} " + remaining + ".";
+      }
+      if (submitBtn) {
+        submitBtn.disabled = remaining <= 0;
+      }
+    }
+
+    async function deleteSubmission(id) {
+      if (!id) {
+        return;
+      }
+      if (!window.confirm("{i18n.events_cfp_confirm_delete}")) {
+        return;
+      }
+      try {
+        const response = await fetch(endpoint + "/" + encodeURIComponent(id), {
+          method: "DELETE",
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+          showFeedback("{i18n.events_cfp_error_delete}", true);
+          return;
+        }
+        showFeedback("{i18n.events_cfp_success_delete}", false);
+        await loadMine();
+      } catch (error) {
+        showFeedback("{i18n.events_cfp_error_delete}", true);
+      }
+    }
+
     function renderMine(items) {
+      mineItems = Array.isArray(items) ? items : [];
       mineList.innerHTML = "";
-      if (!items || items.length === 0) {
+      if (mineItems.length === 0) {
         const empty = document.createElement("p");
         empty.className = "form-hint";
         empty.textContent = "{i18n.events_cfp_empty_mine}";
         mineList.appendChild(empty);
+        updateQuotaHint();
         return;
       }
 
-      items.forEach((item) => {
+      mineItems.forEach((item) => {
         const article = document.createElement("article");
         article.className = "cfp-submission-item";
 
@@ -329,14 +505,25 @@
         meta.textContent = metaParts.join(" · ");
         article.appendChild(meta);
 
+        const actions = document.createElement("div");
+        actions.className = "cfp-submission-actions";
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn login-btn-nav";
+        deleteBtn.textContent = "{i18n.events_cfp_delete}";
+        deleteBtn.addEventListener("click", () => deleteSubmission(item.id));
+        actions.appendChild(deleteBtn);
+        article.appendChild(actions);
+
         mineList.appendChild(article);
       });
+      updateQuotaHint();
     }
 
     async function loadMine() {
       if (!mineList) return;
       try {
-        mineList.innerHTML = "<p class=\"form-hint\">{i18n.events_cfp_loading}</p>";
+        mineList.innerHTML = '<p class="form-hint">{i18n.events_cfp_loading}</p>';
         const response = await fetch(mineEndpoint, { headers: { Accept: "application/json" } });
         if (!response.ok) {
           throw new Error("status_" + response.status);
@@ -344,28 +531,27 @@
         const payload = await response.json();
         renderMine(payload.items || []);
       } catch (error) {
-        mineList.innerHTML = "<p class=\"form-hint\">{i18n.events_cfp_error_load}</p>";
+        mineList.innerHTML = '<p class="form-hint">{i18n.events_cfp_error_load}</p>';
+        mineItems = [];
+        updateQuotaHint();
       }
     }
 
     async function submitProposal(event) {
       event.preventDefault();
       if (!form) return;
-      submitBtn.disabled = true;
-      const formData = new FormData(form);
-      const duration = durationSelect ? Number.parseInt(String(durationSelect.value || ""), 10) : Number.NaN;
-      const languageValue = languageSelect ? String(languageSelect.value || "").trim() : String(formData.get("language") || "").trim();
-      const payload = {
-        title: String(formData.get("title") || ""),
-        summary: String(formData.get("summary") || ""),
-        abstract_text: String(formData.get("abstractText") || ""),
-        level: String(formData.get("level") || ""),
-        format: String(formData.get("format") || ""),
-        duration_min: Number.isFinite(duration) ? duration : null,
-        language: languageValue,
-        track: String(formData.get("track") || ""),
-        links: parseCsvInput(String(formData.get("links") || ""))
-      };
+      if (mineItems.length >= proposalLimit) {
+        showFeedback("{i18n.events_cfp_error_limit_reached}", true);
+        updateQuotaHint();
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+      const payload = formSnapshot();
+      saveDraftFromForm();
+      saveLastProposal(payload);
 
       try {
         const response = await fetch(endpoint, {
@@ -378,7 +564,7 @@
           try {
             const errPayload = await response.json();
             if (errPayload && errPayload.error) {
-              message = message + " (" + errPayload.error + ")";
+              message = errorLabels[errPayload.error] || (message + " (" + errPayload.error + ")");
             }
           } catch (e) {
           }
@@ -387,20 +573,45 @@
         }
         form.reset();
         syncDurationFromFormat();
+        clearDraft();
         showFeedback("{i18n.events_cfp_success_submit}", false);
         await loadMine();
       } catch (error) {
         showFeedback("{i18n.events_cfp_error_submit}", true);
       } finally {
-        submitBtn.disabled = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+        updateQuotaHint();
       }
     }
 
+    form?.querySelectorAll("input, textarea, select").forEach((element) => {
+      element.addEventListener("input", saveDraftFromForm);
+      element.addEventListener("change", saveDraftFromForm);
+    });
+
     form?.addEventListener("submit", submitProposal);
-    formatSelect?.addEventListener("change", syncDurationFromFormat);
+    formatSelect?.addEventListener("change", () => {
+      syncDurationFromFormat();
+      saveDraftFromForm();
+    });
+    autofillBtn?.addEventListener("click", restoreLastProposal);
     reloadBtn?.addEventListener("click", loadMine);
+    window.addEventListener("beforeunload", saveDraftFromForm);
+
     syncDurationFromFormat();
-    loadMine();
+    updateQuotaHint();
+    loadMine().then(() => {
+      const draftRaw = safeStorageGet(draftStorageKey);
+      if (draftRaw) {
+        try {
+          const draft = JSON.parse(draftRaw);
+          applySnapshot(draft);
+        } catch (error) {
+        }
+      }
+    });
   })();
 </script>
 {#else}
@@ -415,3 +626,4 @@
 {/if}
 {/body}
 {/include}
+

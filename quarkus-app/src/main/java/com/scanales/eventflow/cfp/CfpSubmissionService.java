@@ -5,6 +5,7 @@ import com.scanales.eventflow.service.PersistenceService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,10 +23,14 @@ import java.util.regex.Pattern;
 @ApplicationScoped
 public class CfpSubmissionService {
   private static final Pattern CONTROL = Pattern.compile("[\\p{Cntrl}&&[^\n\t]]");
+  private static final int DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT = 2;
 
   @Inject PersistenceService persistenceService;
   @Inject EventService eventService;
   @Inject CfpFormOptionsService cfpFormOptionsService;
+
+  @ConfigProperty(name = "cfp.submissions.max-per-user-per-event", defaultValue = "2")
+  int maxSubmissionsPerUserPerEvent;
 
   private final ConcurrentHashMap<String, CfpSubmission> submissions = new ConcurrentHashMap<>();
   private final Object submissionsLock = new Object();
@@ -68,6 +73,7 @@ public class CfpSubmissionService {
       if (summary == null) {
         summary = summarize(abstractText, 220);
       }
+      String normalizedTitle = normalizeTitleForComparison(title);
 
       String level =
           cfpFormOptionsService
@@ -108,6 +114,7 @@ public class CfpSubmissionService {
         tags = normalizedTags;
       }
 
+      validateUserProposalConstraints(eventId, proposerId, normalizedTitle);
       List<String> links = sanitizeLinks(request.links(), 5);
       Instant now = Instant.now();
 
@@ -162,18 +169,33 @@ public class CfpSubmissionService {
   }
 
   public List<CfpSubmission> listMine(String eventId, String userId, int requestedLimit, int requestedOffset) {
+    if (userId == null) {
+      return List.of();
+    }
+    return listMine(eventId, Set.of(userId), requestedLimit, requestedOffset);
+  }
+
+  public List<CfpSubmission> listMine(
+      String eventId, Set<String> userIds, int requestedLimit, int requestedOffset) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
-      String normalizedUserId = sanitizeUserId(userId);
-      if (normalizedEventId == null || normalizedUserId == null) {
+      if (normalizedEventId == null || userIds == null || userIds.isEmpty()) {
+        return List.of();
+      }
+      Set<String> normalizedUserIds =
+          userIds.stream()
+              .map(CfpSubmissionService::sanitizeUserId)
+              .filter(item -> item != null)
+              .collect(java.util.stream.Collectors.toSet());
+      if (normalizedUserIds.isEmpty()) {
         return List.of();
       }
       Comparator<Instant> createdComparator = Comparator.nullsLast(Comparator.reverseOrder());
       List<CfpSubmission> filtered =
           submissions.values().stream()
               .filter(item -> normalizedEventId.equals(item.eventId()))
-              .filter(item -> normalizedUserId.equals(item.proposerUserId()))
+              .filter(item -> normalizedUserIds.contains(item.proposerUserId()))
               .sorted(Comparator.comparing(CfpSubmission::createdAt, createdComparator))
               .toList();
       return paginate(filtered, requestedLimit, requestedOffset);
@@ -233,6 +255,24 @@ public class CfpSubmissionService {
     }
   }
 
+  public CfpSubmission delete(String eventId, String id) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      String normalizedId = sanitizeId(id);
+      if (normalizedEventId == null || normalizedId == null) {
+        throw new NotFoundException("submission_not_found");
+      }
+      CfpSubmission existing = submissions.get(normalizedId);
+      if (existing == null || !normalizedEventId.equals(existing.eventId())) {
+        throw new NotFoundException("submission_not_found");
+      }
+      submissions.remove(normalizedId);
+      persistSync();
+      return existing;
+    }
+  }
+
   public void clearAllForTests() {
     synchronized (submissionsLock) {
       submissions.clear();
@@ -289,6 +329,44 @@ public class CfpSubmissionService {
       case REJECTED -> target == CfpSubmissionStatus.UNDER_REVIEW;
       case WITHDRAWN -> target == CfpSubmissionStatus.UNDER_REVIEW;
     };
+  }
+
+  private void validateUserProposalConstraints(
+      String eventId, String proposerId, String normalizedTitle) {
+    int existingCount = 0;
+    for (CfpSubmission item : submissions.values()) {
+      if (!eventId.equals(item.eventId())) {
+        continue;
+      }
+      if (!proposerId.equals(item.proposerUserId())) {
+        continue;
+      }
+      existingCount++;
+      if (normalizedTitle != null) {
+        String existingTitle = normalizeTitleForComparison(item.title());
+        if (existingTitle != null && existingTitle.equals(normalizedTitle)) {
+          throw new ValidationException("duplicate_title");
+        }
+      }
+    }
+    if (existingCount >= maxSubmissionsPerUserPerEvent()) {
+      throw new ValidationException("proposal_limit_reached");
+    }
+  }
+
+  private int maxSubmissionsPerUserPerEvent() {
+    if (maxSubmissionsPerUserPerEvent <= 0) {
+      return DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
+    }
+    return Math.min(maxSubmissionsPerUserPerEvent, 10);
+  }
+
+  private static String normalizeTitleForComparison(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String value = raw.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
+    return value.isBlank() ? null : value;
   }
 
   private static String sanitizeId(String raw) {
