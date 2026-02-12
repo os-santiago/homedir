@@ -35,7 +35,7 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 ## Iteration roadmap
 
 - PR1: durable CFP local snapshots + automatic recovery from corruption. (implemented)
-- PR2: portable CFP export/import bundle and recursive admin backup/restore checks.
+- PR2: portable CFP export/import bundle and recursive admin backup/restore checks. (implemented)
 - PR3: automated scheduled offsite backup (object storage) + restore drill checklist.
 
 ## Restore validation checklist

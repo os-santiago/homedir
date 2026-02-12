@@ -286,6 +286,12 @@ public class CfpSubmissionService {
     }
   }
 
+  public void reloadFromDisk() {
+    synchronized (submissionsLock) {
+      refreshFromDisk(true);
+    }
+  }
+
   public int currentMaxSubmissionsPerUserPerEvent() {
     return runtimeMaxSubmissionsPerUserPerEvent;
   }
@@ -538,6 +544,4 @@ public class CfpSubmissionService {
     }
   }
 }
-
-
 

@@ -1,5 +1,7 @@
 package com.scanales.eventflow.private_;
 
+import com.scanales.eventflow.cfp.CfpSubmissionService;
+import com.scanales.eventflow.service.BackupArchiveService;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.PersistenceService;
 import com.scanales.eventflow.service.SpeakerService;
@@ -19,7 +21,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -27,9 +28,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -42,17 +40,17 @@ public class AdminBackupResource {
     static native TemplateInstance index(String message);
   }
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
-  @Inject
-  EventService eventService;
+  @Inject EventService eventService;
 
-  @Inject
-  SpeakerService speakerService;
+  @Inject SpeakerService speakerService;
 
-  @Inject
-  PersistenceService persistence;
+  @Inject PersistenceService persistence;
+
+  @Inject CfpSubmissionService cfpSubmissionService;
+
+  @Inject BackupArchiveService backupArchiveService;
 
   @ConfigProperty(name = "quarkus.application.version")
   String appVersion;
@@ -94,30 +92,12 @@ public class AdminBackupResource {
             .type(MediaType.TEXT_PLAIN + ";charset=UTF-8")
             .build();
       }
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-        try (var stream = Files.list(dataDir)) {
-          stream
-              .filter(Files::isRegularFile)
-              .forEach(
-                  p -> {
-                    try (InputStream in = Files.newInputStream(p)) {
-                      zos.putNextEntry(new ZipEntry(p.getFileName().toString()));
-                      in.transferTo(zos);
-                      zos.closeEntry();
-                    } catch (Exception e) {
-                      LOG.error("Failed to add file to backup", e);
-                    }
-                  });
-        }
-      }
-      byte[] data = baos.toByteArray();
+
+      byte[] data = backupArchiveService.createArchive(dataDir, appVersion);
       String ts = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
       String filename = String.format("backup_%s_v%s.zip", ts, appVersion);
       LOG.infov("Generated backup {0}", filename);
-      return Response.ok(data)
-          .header("Content-Disposition", "attachment; filename=" + filename)
-          .build();
+      return Response.ok(data).header("Content-Disposition", "attachment; filename=" + filename).build();
     } catch (Exception e) {
       LOG.error("Failed to generate backup", e);
       return Response.serverError()
@@ -138,25 +118,18 @@ public class AdminBackupResource {
     }
     if (file == null || file.size() == 0) {
       LOG.warn("No file uploaded for restore");
-      return Response.seeOther(
-          UriBuilder.fromPath(redirect)
-              .queryParam("msg", "\u274c Archivo inv\u00e1lido.")
-              .build())
+      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo inválido.").build())
           .build();
     }
     String fileName = file.fileName();
     if (fileName == null || !fileName.endsWith(".zip")) {
       LOG.warnf("Invalid backup type: %s", fileName);
-      return Response.seeOther(
-          UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
+      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
           .build();
     }
     if (!isCompatibleVersion(fileName)) {
       LOG.warnf("Incompatible backup version: %s (app=%s)", fileName, appVersion);
-      return Response.seeOther(
-          UriBuilder.fromPath(redirect)
-              .queryParam("msg", "\u274c Versi\u00f3n incompatible.")
-              .build())
+      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Versión incompatible.").build())
           .build();
     }
     java.nio.file.Path dataDir = resolveDataDir();
@@ -166,32 +139,25 @@ public class AdminBackupResource {
       long size = file.size();
       if (free < size) {
         LOG.warn("Not enough disk space for restore");
-        return Response.seeOther(
-            UriBuilder.fromPath(redirect)
-                .queryParam("msg", "\u274c Espacio insuficiente.")
-                .build())
+        return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Espacio insuficiente.").build())
             .build();
       }
-      try (InputStream in = Files.newInputStream(file.filePath());
-          ZipInputStream zis = new ZipInputStream(in)) {
-        ZipEntry entry;
-        while ((entry = zis.getNextEntry()) != null) {
-          java.nio.file.Path target = dataDir.resolve(entry.getName());
-          Files.copy(zis, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-          zis.closeEntry();
-        }
+
+      int restoredFiles;
+      try (InputStream in = Files.newInputStream(file.filePath())) {
+        restoredFiles = backupArchiveService.restoreArchive(in, dataDir);
       }
+
       persistence.flush();
       eventService.reload();
       speakerService.reload();
-      LOG.infof("Backup restored from %s", fileName);
-      return Response.seeOther(
-          UriBuilder.fromPath(redirect).queryParam("msg", "\u2705 Backup restaurado.").build())
+      cfpSubmissionService.reloadFromDisk();
+      LOG.infof("Backup restored from %s (files=%d)", fileName, restoredFiles);
+      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u2705 Backup restaurado.").build())
           .build();
     } catch (Exception e) {
       LOG.error("Failed to restore backup", e);
-      return Response.seeOther(
-          UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Error al restaurar.").build())
+      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Error al restaurar.").build())
           .build();
     }
   }
@@ -222,3 +188,4 @@ public class AdminBackupResource {
     return Paths.get(resolved);
   }
 }
+
