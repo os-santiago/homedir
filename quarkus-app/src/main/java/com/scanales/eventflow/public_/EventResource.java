@@ -1,5 +1,7 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.cfp.CfpFormCatalog;
+import com.scanales.eventflow.cfp.CfpFormOptionsService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
@@ -22,7 +24,7 @@ public class EventResource {
   static class Templates {
     static native TemplateInstance detail(Event event);
 
-    static native TemplateInstance cfp(Event event);
+    static native TemplateInstance cfp(Event event, CfpFormCatalog cfpCatalog);
   }
 
   @Inject EventService eventService;
@@ -32,6 +34,8 @@ public class EventResource {
   @Inject SecurityIdentity identity;
 
   @Inject UserSessionService sessionService;
+
+  @Inject CfpFormOptionsService cfpFormOptionsService;
 
   @GET
   @Path("{id}")
@@ -59,7 +63,7 @@ public class EventResource {
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/cfp", headers, context);
     Event event = eventService.getEvent(id);
-    return withLayoutData(Templates.cfp(event), "eventos");
+    return withLayoutData(Templates.cfp(event, cfpFormOptionsService.catalog()), "eventos");
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {

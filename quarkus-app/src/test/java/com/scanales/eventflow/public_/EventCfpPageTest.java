@@ -37,7 +37,12 @@ public class EventCfpPageTest {
         .statusCode(200)
         .body(containsString("id=\"cfpForm\""))
         .body(containsString("/api/events/"))
-        .body(containsString("/cfp/submissions"));
+        .body(containsString("/cfp/submissions"))
+        .body(containsString("id=\"cfpLevel\""))
+        .body(containsString("id=\"cfpFormat\""))
+        .body(containsString("id=\"cfpDuration\""))
+        .body(containsString("id=\"cfpLanguage\""))
+        .body(containsString("id=\"cfpTrack\""));
   }
 
   @Test

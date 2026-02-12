@@ -16,6 +16,7 @@ public record CfpSubmission(
     String format,
     @JsonProperty("duration_min") Integer durationMin,
     String language,
+    String track,
     List<String> tags,
     List<String> links,
     CfpSubmissionStatus status,
