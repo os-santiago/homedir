@@ -1,6 +1,7 @@
 package com.scanales.eventflow.cfp;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -575,6 +576,111 @@ public class CfpSubmissionApiResourceTest {
         .body("backup_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0));
   }
 
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void nonAdminCannotUpdateRating() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Rating guard",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    given()
+        .contentType("application/json")
+        .body("{\"technical_detail\":4,\"narrative\":4,\"content_impact\":4}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/rating")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanRateSortAndExportCsv() {
+    CfpSubmission low =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Low score submission",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    CfpSubmission high =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "High score submission",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    given()
+        .contentType("application/json")
+        .body("{\"technical_detail\":1,\"narrative\":1,\"content_impact\":1}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + low.id() + "/rating")
+        .then()
+        .statusCode(200)
+        .body("item.rating_weighted", equalTo(1.0f));
+
+    given()
+        .contentType("application/json")
+        .body("{\"technical_detail\":5,\"narrative\":5,\"content_impact\":4}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + high.id() + "/rating")
+        .then()
+        .statusCode(200)
+        .body("item.rating_weighted", equalTo(4.7f));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=score&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items", hasSize(2))
+        .body("items[0].id", equalTo(high.id()))
+        .body("items[1].id", equalTo(low.id()));
+
+    given()
+        .accept("text/csv")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/export.csv?status=all&sort=score")
+        .then()
+        .statusCode(200)
+        .contentType(containsString("text/csv"))
+        .body(containsString("rating_weighted"))
+        .body(containsString("High score submission"));
+  }
   @Test
   @TestSecurity(user = "member@example.com")
   void configEndpointExposesCurrentLimit() {

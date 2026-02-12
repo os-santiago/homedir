@@ -35,7 +35,8 @@ public class AdminEventCfpPageTest {
         .statusCode(200)
         .body(containsString("Moderacion CFP"))
         .body(containsString("/api/events/"))
-        .body(containsString("/cfp/submissions"));
+        .body(containsString("/cfp/submissions"))
+        .body(containsString("Panel admin"));
   }
 
   @Test
@@ -52,3 +53,4 @@ public class AdminEventCfpPageTest {
     given().when().get("/private/admin/events/missing-cfp-event/cfp").then().statusCode(404);
   }
 }
+

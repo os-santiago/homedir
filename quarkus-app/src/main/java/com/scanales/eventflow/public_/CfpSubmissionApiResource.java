@@ -198,25 +198,56 @@ public class CfpSubmissionApiResource {
   public Response listForModeration(
       @PathParam("eventId") String eventId,
       @QueryParam("status") String status,
+      @QueryParam("sort") String sort,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
-    Optional<CfpSubmissionStatus> statusFilter;
-    if (status == null || status.isBlank()) {
-      statusFilter = Optional.of(CfpSubmissionStatus.PENDING);
-    } else {
-      statusFilter = CfpSubmissionStatus.fromApi(status);
-      if (statusFilter.isEmpty()) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
-      }
+    Optional<CfpSubmissionStatus> statusFilter = parseStatusFilter(status);
+    if (statusFilter == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+    }
+    CfpSubmissionService.SortOrder sortOrder = parseSortOrder(sort);
+    if (sortOrder == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_sort")).build();
     }
     int limit = normalizeLimit(limitParam);
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
     List<SubmissionView> items =
-        cfpSubmissionService.listByEvent(eventId, statusFilter, limit, offset).stream().map(this::toView).toList();
+        cfpSubmissionService.listByEvent(eventId, statusFilter, sortOrder, limit, offset).stream()
+            .map(this::toView)
+            .toList();
     return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
+  }
+
+  @GET
+  @Path("/export.csv")
+  @Authenticated
+  @Produces("text/csv")
+  public Response exportModerationCsv(
+      @PathParam("eventId") String eventId,
+      @QueryParam("status") String status,
+      @QueryParam("sort") String sort) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    Optional<CfpSubmissionStatus> statusFilter = parseStatusFilter(status);
+    if (statusFilter == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+    }
+    CfpSubmissionService.SortOrder sortOrder = parseSortOrder(sort);
+    if (sortOrder == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_sort")).build();
+    }
+
+    List<CfpSubmission> items = cfpSubmissionService.listByEventAll(eventId, statusFilter, sortOrder);
+    String csv = buildCsv(items);
+    String filename = "cfp-" + sanitizeIdToken(eventId, 30) + "-report.csv";
+    return Response.ok(csv)
+        .type("text/csv; charset=utf-8")
+        .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+        .build();
   }
 
   @PUT
@@ -257,6 +288,40 @@ public class CfpSubmissionApiResource {
     }
   }
 
+  @PUT
+  @Path("/{id}/rating")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateRating(
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      UpdateRatingRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    if (request == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "rating_required")).build();
+    }
+    try {
+      CfpSubmission updated =
+          cfpSubmissionService.updateRating(
+              eventId,
+              id,
+              request.technicalDetail(),
+              request.narrative(),
+              request.contentImpact(),
+              currentUserId().orElse("admin"));
+      return Response.ok(new SubmissionResponse(toView(updated))).build();
+    } catch (CfpSubmissionService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    } catch (CfpSubmissionService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    } catch (IllegalStateException e) {
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
+          .build();
+    }
+  }
   @POST
   @Path("/{id}/promote")
   @Authenticated
@@ -323,7 +388,11 @@ public class CfpSubmissionApiResource {
         submission.updatedAt(),
         submission.moderatedAt(),
         submission.moderatedBy(),
-        submission.moderationNote());
+        submission.moderationNote(),
+        submission.ratingTechnicalDetail(),
+        submission.ratingNarrative(),
+        submission.ratingContentImpact(),
+        CfpSubmissionService.calculateWeightedScore(submission));
   }
 
   private Optional<String> currentUserId() {
@@ -364,6 +433,69 @@ public class CfpSubmissionApiResource {
     return currentUserId();
   }
 
+  private static Optional<CfpSubmissionStatus> parseStatusFilter(String status) {
+    if (status == null || status.isBlank()) {
+      return Optional.of(CfpSubmissionStatus.PENDING);
+    }
+    if ("all".equalsIgnoreCase(status.trim())) {
+      return Optional.empty();
+    }
+    Optional<CfpSubmissionStatus> parsed = CfpSubmissionStatus.fromApi(status);
+    return parsed.isPresent() ? parsed : null;
+  }
+
+  private static CfpSubmissionService.SortOrder parseSortOrder(String sort) {
+    if (sort == null || sort.isBlank() || "created".equalsIgnoreCase(sort) || "recent".equalsIgnoreCase(sort)) {
+      return CfpSubmissionService.SortOrder.CREATED_DESC;
+    }
+    if ("score".equalsIgnoreCase(sort) || "weighted".equalsIgnoreCase(sort)) {
+      return CfpSubmissionService.SortOrder.SCORE_DESC;
+    }
+    return null;
+  }
+
+  private static String buildCsv(List<CfpSubmission> items) {
+    StringBuilder csv = new StringBuilder();
+    csv.append(
+            "id,event_id,title,status,proposer_user_id,proposer_name,created_at,level,format,duration_min,language,track,"
+                + "rating_technical_detail,rating_narrative,rating_content_impact,rating_weighted,moderation_note,links")
+        .append('\n');
+
+    for (CfpSubmission item : items) {
+      Double weighted = CfpSubmissionService.calculateWeightedScore(item);
+      csv.append(csvValue(item.id())).append(',')
+          .append(csvValue(item.eventId())).append(',')
+          .append(csvValue(item.title())).append(',')
+          .append(csvValue(item.status() != null ? item.status().apiValue() : null)).append(',')
+          .append(csvValue(item.proposerUserId())).append(',')
+          .append(csvValue(item.proposerName())).append(',')
+          .append(csvValue(item.createdAt() != null ? item.createdAt().toString() : null)).append(',')
+          .append(csvValue(item.level())).append(',')
+          .append(csvValue(item.format())).append(',')
+          .append(csvValue(item.durationMin())).append(',')
+          .append(csvValue(item.language())).append(',')
+          .append(csvValue(item.track())).append(',')
+          .append(csvValue(item.ratingTechnicalDetail())).append(',')
+          .append(csvValue(item.ratingNarrative())).append(',')
+          .append(csvValue(item.ratingContentImpact())).append(',')
+          .append(csvValue(weighted)).append(',')
+          .append(csvValue(item.moderationNote())).append(',')
+          .append(csvValue(item.links() == null ? null : String.join(" | ", item.links())))
+          .append('\n');
+    }
+    return csv.toString();
+  }
+
+  private static String csvValue(Object value) {
+    if (value == null) {
+      return "";
+    }
+    String raw = String.valueOf(value).replace("\r", " ").replace("\n", " ").trim();
+    if (raw.contains(",") || raw.contains("\"") || raw.contains(";")) {
+      return '"' + raw.replace("\"", "\"\"") + '"';
+    }
+    return raw;
+  }
   private static String storageDetail(IllegalStateException e) {
     if (e == null || e.getMessage() == null || e.getMessage().isBlank()) {
       return "unknown";
@@ -455,6 +587,11 @@ public class CfpSubmissionApiResource {
 
   public record UpdateStatusRequest(String status, String note) {}
 
+  public record UpdateRatingRequest(
+      @JsonProperty("technical_detail") Integer technicalDetail,
+      Integer narrative,
+      @JsonProperty("content_impact") Integer contentImpact) {}
+
   public record PromoteResponse(
       @JsonProperty("speaker_id") String speakerId,
       @JsonProperty("talk_id") String talkId,
@@ -503,6 +640,10 @@ public class CfpSubmissionApiResource {
       @JsonProperty("updated_at") Instant updatedAt,
       @JsonProperty("moderated_at") Instant moderatedAt,
       @JsonProperty("moderated_by") String moderatedBy,
-      @JsonProperty("moderation_note") String moderationNote) {}
+      @JsonProperty("moderation_note") String moderationNote,
+      @JsonProperty("rating_technical_detail") Integer ratingTechnicalDetail,
+      @JsonProperty("rating_narrative") Integer ratingNarrative,
+      @JsonProperty("rating_content_impact") Integer ratingContentImpact,
+      @JsonProperty("rating_weighted") Double ratingWeighted) {}
 }
 

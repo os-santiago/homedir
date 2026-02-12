@@ -26,6 +26,16 @@ public class CfpSubmissionService {
   public static final int MIN_SUBMISSIONS_PER_USER_PER_EVENT = 1;
   public static final int MAX_SUBMISSIONS_PER_USER_PER_EVENT = 10;
   private static final int DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT = 2;
+  private static final int MIN_RATING = 0;
+  private static final int MAX_RATING = 5;
+  private static final double WEIGHT_TECHNICAL_DETAIL = 0.4d;
+  private static final double WEIGHT_NARRATIVE = 0.3d;
+  private static final double WEIGHT_CONTENT_IMPACT = 0.3d;
+
+  public enum SortOrder {
+    CREATED_DESC,
+    SCORE_DESC
+  }
 
   @Inject PersistenceService persistenceService;
   @Inject EventService eventService;
@@ -143,6 +153,9 @@ public class CfpSubmissionService {
               now,
               null,
               null,
+              null,
+              null,
+              null,
               null);
       submissions.put(submission.id(), submission);
       persistSync();
@@ -155,20 +168,31 @@ public class CfpSubmissionService {
       Optional<CfpSubmissionStatus> statusFilter,
       int requestedLimit,
       int requestedOffset) {
+    return listByEvent(eventId, statusFilter, SortOrder.CREATED_DESC, requestedLimit, requestedOffset);
+  }
+
+  public List<CfpSubmission> listByEvent(
+      String eventId,
+      Optional<CfpSubmissionStatus> statusFilter,
+      SortOrder sortOrder,
+      int requestedLimit,
+      int requestedOffset) {
+    return paginate(listByEventAll(eventId, statusFilter, sortOrder), requestedLimit, requestedOffset);
+  }
+
+  public List<CfpSubmission> listByEventAll(
+      String eventId, Optional<CfpSubmissionStatus> statusFilter, SortOrder sortOrder) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
       if (normalizedEventId == null) {
         return List.of();
       }
-      Comparator<Instant> createdComparator = Comparator.nullsLast(Comparator.reverseOrder());
-      List<CfpSubmission> filtered =
-          submissions.values().stream()
-              .filter(item -> normalizedEventId.equals(item.eventId()))
-              .filter(item -> statusFilter.isEmpty() || item.status() == statusFilter.get())
-              .sorted(Comparator.comparing(CfpSubmission::createdAt, createdComparator))
-              .toList();
-      return paginate(filtered, requestedLimit, requestedOffset);
+      return submissions.values().stream()
+          .filter(item -> normalizedEventId.equals(item.eventId()))
+          .filter(item -> statusFilter.isEmpty() || item.status() == statusFilter.get())
+          .sorted(sortComparator(sortOrder))
+          .toList();
     }
   }
 
@@ -252,13 +276,69 @@ public class CfpSubmissionService {
               now,
               now,
               sanitizeText(moderator, 200),
-              sanitizeText(note, 500));
+              sanitizeText(note, 500),
+              current.ratingTechnicalDetail(),
+              current.ratingNarrative(),
+              current.ratingContentImpact());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
     }
   }
 
+  public CfpSubmission updateRating(
+      String eventId,
+      String id,
+      Integer technicalDetail,
+      Integer narrative,
+      Integer contentImpact,
+      String moderator) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        throw new NotFoundException("submission_not_found");
+      }
+      CfpSubmission current = findOrThrow(id);
+      if (!normalizedEventId.equals(current.eventId())) {
+        throw new NotFoundException("submission_not_found");
+      }
+
+      int normalizedTechnical = normalizeRating(technicalDetail, "invalid_rating_technical_detail");
+      int normalizedNarrative = normalizeRating(narrative, "invalid_rating_narrative");
+      int normalizedImpact = normalizeRating(contentImpact, "invalid_rating_content_impact");
+
+      Instant now = Instant.now();
+      CfpSubmission updated =
+          new CfpSubmission(
+              current.id(),
+              current.eventId(),
+              current.proposerUserId(),
+              current.proposerName(),
+              current.title(),
+              current.summary(),
+              current.abstractText(),
+              current.level(),
+              current.format(),
+              current.durationMin(),
+              current.language(),
+              current.track(),
+              current.tags(),
+              current.links(),
+              current.status(),
+              current.createdAt(),
+              now,
+              current.moderatedAt(),
+              sanitizeText(moderator, 200),
+              current.moderationNote(),
+              normalizedTechnical,
+              normalizedNarrative,
+              normalizedImpact);
+      submissions.put(updated.id(), updated);
+      persistSync();
+      return updated;
+    }
+  }
   public CfpSubmission delete(String eventId, String id) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
@@ -354,6 +434,45 @@ public class CfpSubmissionService {
     };
   }
 
+  private static Comparator<CfpSubmission> sortComparator(SortOrder sortOrder) {
+    Comparator<Instant> createdComparator = Comparator.nullsLast(Comparator.reverseOrder());
+    Comparator<CfpSubmission> byCreated = Comparator.comparing(CfpSubmission::createdAt, createdComparator);
+    if (sortOrder == SortOrder.SCORE_DESC) {
+      return Comparator.comparingDouble(CfpSubmissionService::scoreForOrdering).reversed().thenComparing(byCreated);
+    }
+    return byCreated;
+  }
+
+  private static double scoreForOrdering(CfpSubmission submission) {
+    Double score = calculateWeightedScore(submission);
+    return score != null ? score : -1d;
+  }
+
+  public static Double calculateWeightedScore(CfpSubmission submission) {
+    if (submission == null) {
+      return null;
+    }
+    return calculateWeightedScore(
+        submission.ratingTechnicalDetail(), submission.ratingNarrative(), submission.ratingContentImpact());
+  }
+
+  public static Double calculateWeightedScore(Integer technicalDetail, Integer narrative, Integer contentImpact) {
+    if (technicalDetail == null || narrative == null || contentImpact == null) {
+      return null;
+    }
+    double score =
+        (technicalDetail * WEIGHT_TECHNICAL_DETAIL)
+            + (narrative * WEIGHT_NARRATIVE)
+            + (contentImpact * WEIGHT_CONTENT_IMPACT);
+    return Math.round(score * 100.0d) / 100.0d;
+  }
+
+  private static int normalizeRating(Integer value, String errorCode) {
+    if (value == null || value < MIN_RATING || value > MAX_RATING) {
+      throw new ValidationException(errorCode);
+    }
+    return value;
+  }
   private void validateUserProposalConstraints(
       String eventId, String proposerId, String normalizedTitle) {
     int existingCount = 0;

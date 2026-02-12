@@ -11,9 +11,11 @@ Moderacion CFP · {event.title}
         <h1 class="page-title">Moderacion CFP</h1>
         <p class="section-subtitle">Evento: {event.title}</p>
       </div>
-      <div class="action-group">
-        <a href="/event/{event.id}/cfp" class="btn btn-secondary">Ver pagina publica CFP</a>
-        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">Volver a editar evento</a>
+      <div class="action-group admin-nav-strip">
+        <a href="/private/admin" class="btn btn-secondary">Panel admin</a>
+        <a href="/private/admin/events" class="btn btn-secondary">Eventos</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">Editar evento</a>
+        <a href="/event/{event.id}/cfp" class="btn btn-secondary">CFP publico</a>
       </div>
     </div>
   </div>
@@ -24,15 +26,27 @@ Moderacion CFP · {event.title}
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
         <h2 class="card-title" style="margin: 0;">Cola de propuestas</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">Revisa propuestas y actualiza su estado para preparar agenda.</p>
+        <p class="form-hint" style="margin-top: 0.35rem;">Evalua propuestas con rating tecnico y prioriza con score ponderado.</p>
       </div>
-      <button id="reloadCfpBtn" type="button" class="btn btn-secondary">Actualizar</button>
+      <div class="action-group" style="gap: 0.5rem;">
+        <button id="reloadCfpBtn" type="button" class="btn btn-secondary">Actualizar</button>
+        <a id="exportCsvBtn" href="#" class="btn btn-secondary">Exportar CSV</a>
+      </div>
     </div>
-    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
-      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="pending">Pendiente</button>
-      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="under_review">En revision</button>
-      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="accepted">Aceptadas</button>
-      <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="rejected">Rechazadas</button>
+    <div class="cfp-toolbar-grid">
+      <div class="cfp-toolbar-row">
+        <span class="form-hint">Estado:</span>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="all">Todos</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="pending">Pendiente</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="under_review">En revision</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="accepted">Aceptadas</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="rejected">Rechazadas</button>
+      </div>
+      <div class="cfp-toolbar-row">
+        <span class="form-hint">Orden:</span>
+        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="created">Mas recientes</button>
+        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="score">Mayor score</button>
+      </div>
     </div>
   </div>
 
@@ -40,7 +54,25 @@ Moderacion CFP · {event.title}
 </div>
 
 <style>
-  .cfp-filter-btn.is-active {
+  .admin-nav-strip {
+    gap: 0.45rem;
+  }
+
+  .cfp-toolbar-grid {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .cfp-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .cfp-filter-btn.is-active,
+  .cfp-sort-btn.is-active {
     border-color: rgba(255, 215, 0, 0.7);
     background: rgba(255, 215, 0, 0.12);
   }
@@ -91,6 +123,12 @@ Moderacion CFP · {event.title}
     letter-spacing: 0.04em;
   }
 
+  .cfp-score-chip {
+    border-color: rgba(120, 185, 255, 0.7);
+    background: rgba(120, 185, 255, 0.14);
+    margin-left: 0.35rem;
+  }
+
   .cfp-status-chip--pending {
     border-color: rgba(255, 215, 0, 0.7);
     background: rgba(255, 215, 0, 0.14);
@@ -110,6 +148,30 @@ Moderacion CFP · {event.title}
     border-color: rgba(255, 126, 126, 0.75);
     background: rgba(255, 126, 126, 0.14);
   }
+
+  .cfp-rating-grid {
+    margin-top: 0.7rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .cfp-rating-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .cfp-rating-item label {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .cfp-rating-item select {
+    width: 100%;
+  }
 </style>
 
 <script>
@@ -118,8 +180,11 @@ Moderacion CFP · {event.title}
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const listEl = document.getElementById("cfpQueueList");
     const reloadBtn = document.getElementById("reloadCfpBtn");
+    const exportBtn = document.getElementById("exportCsvBtn");
     const filterButtons = Array.from(document.querySelectorAll(".cfp-filter-btn"));
+    const sortButtons = Array.from(document.querySelectorAll(".cfp-sort-btn"));
     let activeStatus = "pending";
+    let activeSort = "created";
 
     const statusLabel = {
       pending: "Pendiente",
@@ -132,12 +197,25 @@ Moderacion CFP · {event.title}
     function setActiveFilter(status) {
       activeStatus = status;
       filterButtons.forEach((button) => {
-        if (button.dataset.status === status) {
-          button.classList.add("is-active");
-        } else {
-          button.classList.remove("is-active");
-        }
+        button.classList.toggle("is-active", button.dataset.status === status);
       });
+      refreshExportUrl();
+    }
+
+    function setActiveSort(sort) {
+      activeSort = sort;
+      sortButtons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.sort === sort);
+      });
+      refreshExportUrl();
+    }
+
+    function refreshExportUrl() {
+      if (!exportBtn) return;
+      const params = new URLSearchParams();
+      if (activeStatus) params.set("status", activeStatus);
+      if (activeSort) params.set("sort", activeSort);
+      exportBtn.href = baseEndpoint + "/export.csv?" + params.toString();
     }
 
     function fmtDate(value) {
@@ -188,6 +266,29 @@ Moderacion CFP · {event.title}
       }
     }
 
+    async function updateRating(submissionId, rating) {
+      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/rating", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify(rating)
+      });
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const payload = await response.json();
+          if (payload && payload.error) {
+            detail = " (" + payload.error + ")";
+          }
+        } catch (e) {
+        }
+        throw new Error("No fue posible guardar rating" + detail);
+      }
+      return response.json();
+    }
+
     async function promoteSubmission(submissionId) {
       const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/promote", {
         method: "POST",
@@ -207,6 +308,40 @@ Moderacion CFP · {event.title}
       return response.json();
     }
 
+    function buildRatingSelect(id, label, value) {
+      const wrap = document.createElement("div");
+      wrap.className = "cfp-rating-item";
+
+      const lbl = document.createElement("label");
+      lbl.setAttribute("for", id);
+      lbl.textContent = label;
+      wrap.appendChild(lbl);
+
+      const select = document.createElement("select");
+      select.className = "form-select";
+      select.id = id;
+      select.name = id;
+      for (let i = 0; i <= 5; i += 1) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = String(i);
+        if (Number(value) === i) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      }
+      wrap.appendChild(select);
+
+      return { wrap, select };
+    }
+
+    function scoreLabel(item) {
+      if (typeof item.rating_weighted === "number") {
+        return "Score: " + item.rating_weighted.toFixed(2);
+      }
+      return "Score: n/a";
+    }
+
     function buildSubmissionCard(item) {
       const article = document.createElement("article");
       article.className = "cfp-admin-card";
@@ -222,11 +357,22 @@ Moderacion CFP · {event.title}
       title.textContent = item.title || "(Sin titulo)";
       top.appendChild(title);
 
-      const chip = document.createElement("span");
+      const chipWrap = document.createElement("div");
+      chipWrap.style.display = "flex";
+      chipWrap.style.alignItems = "center";
+      chipWrap.style.gap = "0.3rem";
+
       const currentStatus = item.status || "pending";
+      const chip = document.createElement("span");
       chip.className = "cfp-status-chip cfp-status-chip--" + currentStatus;
       chip.textContent = statusLabel[currentStatus] || currentStatus;
-      top.appendChild(chip);
+      chipWrap.appendChild(chip);
+
+      const scoreChip = document.createElement("span");
+      scoreChip.className = "cfp-status-chip cfp-score-chip";
+      scoreChip.textContent = scoreLabel(item);
+      chipWrap.appendChild(scoreChip);
+      top.appendChild(chipWrap);
       article.appendChild(top);
 
       article.appendChild(
@@ -254,10 +400,22 @@ Moderacion CFP · {event.title}
         article.appendChild(abstractText);
       }
 
+      const ratings = document.createElement("div");
+      ratings.className = "cfp-rating-grid";
+      const technical = buildRatingSelect("rating-tech-" + item.id, "Detalle tecnico", item.rating_technical_detail ?? 0);
+      const narrative = buildRatingSelect("rating-narrative-" + item.id, "Narrativa", item.rating_narrative ?? 0);
+      const impact = buildRatingSelect("rating-impact-" + item.id, "Impacto", item.rating_content_impact ?? 0);
+      ratings.appendChild(technical.wrap);
+      ratings.appendChild(narrative.wrap);
+      ratings.appendChild(impact.wrap);
+      article.appendChild(ratings);
+
       const note = document.createElement("input");
       note.type = "text";
       note.className = "form-input cfp-admin-note";
       note.placeholder = "Nota de moderacion (opcional)";
+      note.id = "moderation-note-" + item.id;
+      note.name = note.id;
       article.appendChild(note);
 
       const actions = document.createElement("div");
@@ -282,30 +440,50 @@ Moderacion CFP · {event.title}
         actions.appendChild(btn);
       }
 
-      function promoteButton() {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn btn-secondary";
-        btn.textContent = "Promover a catalogo";
-        btn.addEventListener("click", async () => {
-          btn.disabled = true;
+      const saveRatingBtn = document.createElement("button");
+      saveRatingBtn.type = "button";
+      saveRatingBtn.className = "btn btn-secondary";
+      saveRatingBtn.textContent = "Guardar rating";
+      saveRatingBtn.addEventListener("click", async () => {
+        saveRatingBtn.disabled = true;
+        try {
+          const payload = await updateRating(item.id, {
+            technical_detail: Number(technical.select.value),
+            narrative: Number(narrative.select.value),
+            content_impact: Number(impact.select.value)
+          });
+          if (payload && payload.item) {
+            item.rating_weighted = payload.item.rating_weighted;
+            scoreChip.textContent = scoreLabel(payload.item);
+          }
+        } catch (error) {
+          window.alert(error.message || "Error guardando rating");
+        } finally {
+          saveRatingBtn.disabled = false;
+        }
+      });
+      actions.appendChild(saveRatingBtn);
+
+      actionButton("En revision", "under_review", "btn btn-secondary");
+      actionButton("Aceptar", "accepted", "btn btn-primary");
+      actionButton("Rechazar", "rejected", "btn btn-danger");
+      if (currentStatus === "accepted") {
+        const promoteBtn = document.createElement("button");
+        promoteBtn.type = "button";
+        promoteBtn.className = "btn btn-secondary";
+        promoteBtn.textContent = "Promover a catalogo";
+        promoteBtn.addEventListener("click", async () => {
+          promoteBtn.disabled = true;
           try {
             const payload = await promoteSubmission(item.id);
             window.alert("Catalogado: " + payload.speaker_id + " / " + payload.talk_id);
           } catch (error) {
             window.alert(error.message || "Error promoviendo propuesta");
           } finally {
-            btn.disabled = false;
+            promoteBtn.disabled = false;
           }
         });
-        actions.appendChild(btn);
-      }
-
-      actionButton("En revision", "under_review", "btn btn-secondary");
-      actionButton("Aceptar", "accepted", "btn btn-primary");
-      actionButton("Rechazar", "rejected", "btn btn-danger");
-      if (currentStatus === "accepted") {
-        promoteButton();
+        actions.appendChild(promoteBtn);
       }
 
       article.appendChild(actions);
@@ -315,9 +493,15 @@ Moderacion CFP · {event.title}
     async function loadList() {
       renderEmpty("Cargando propuestas...");
       try {
-        const response = await fetch(
-            baseEndpoint + "?status=" + encodeURIComponent(activeStatus) + "&limit=50&offset=0",
-            { headers: { Accept: "application/json" } });
+        const params = new URLSearchParams({
+          status: activeStatus,
+          sort: activeSort,
+          limit: "100",
+          offset: "0"
+        });
+        const response = await fetch(baseEndpoint + "?" + params.toString(), {
+          headers: { Accept: "application/json" }
+        });
         if (!response.ok) {
           throw new Error("Error de carga");
         }
@@ -344,10 +528,20 @@ Moderacion CFP · {event.title}
       });
     });
 
+    sortButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const sort = button.dataset.sort || "created";
+        setActiveSort(sort);
+        loadList();
+      });
+    });
+
     reloadBtn?.addEventListener("click", loadList);
     setActiveFilter(activeStatus);
+    setActiveSort(activeSort);
     loadList();
   })();
 </script>
 {/body}
 {/include}
+
