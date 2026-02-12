@@ -45,7 +45,7 @@
     {/if}
 
     {#if userAuthenticated}
-    <form id="cfpForm" data-user-scope="{userName}" onsubmit="return false;">
+    <form id="cfpForm" data-user-scope="{userName}">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
         <div class="form-group" style="grid-column: 1 / -1;">
           <label class="form-label" for="cfpTitle">{i18n.events_cfp_form_title}</label>
@@ -110,7 +110,7 @@
         </div>
       </div>
       <div class="form-actions">
-        <button id="cfpSubmitBtn" type="submit" class="btn btn-primary">{i18n.events_cfp_form_submit}</button>
+        <button id="cfpSubmitBtn" type="button" class="btn btn-primary">{i18n.events_cfp_form_submit}</button>
         <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n.events_cfp_autofill_last}</button>
       </div>
       <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
@@ -772,8 +772,26 @@
     }
 
     async function submitProposal(event) {
-      event.preventDefault();
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      if (event && typeof event.stopPropagation === "function") {
+        event.stopPropagation();
+      }
+      if (event && typeof event.stopImmediatePropagation === "function") {
+        event.stopImmediatePropagation();
+      }
+
       if (!form) return;
+
+      // Ensure we keep control on-page (no native submit navigation) and keep HTML validations.
+      if (typeof form.checkValidity === "function" && !form.checkValidity()) {
+        if (typeof form.reportValidity === "function") {
+          form.reportValidity();
+        }
+        return;
+      }
+
       if (mineItems.length >= proposalLimit) {
         showFeedback("{i18n.events_cfp_error_limit_reached}", true);
         updateQuotaHint();
@@ -781,6 +799,7 @@
       }
 
       setSubmitting(true);
+      // Yield one frame to ensure the overlay renders before the network request.
       await new Promise((resolve) => window.requestAnimationFrame(resolve));
 
       const payload = formSnapshot();
@@ -824,7 +843,9 @@
       element.addEventListener("change", saveDraftFromForm);
     });
 
-    form?.addEventListener("submit", submitProposal);
+    // Use capture so we can always prevent a native submit navigation (e.g. Enter key).
+    form?.addEventListener("submit", submitProposal, { capture: true });
+    submitBtn?.addEventListener("click", submitProposal);
     formatSelect?.addEventListener("change", () => {
       syncDurationFromFormat();
       saveDraftFromForm();
