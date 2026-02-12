@@ -1,15 +1,19 @@
 package com.scanales.eventflow.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scanales.eventflow.cfp.CfpSubmission;
+import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Event;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.AfterEach;
@@ -18,8 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 public class PersistenceServiceTest {
 
-  @TempDir
-  Path tempDir;
+  @TempDir Path tempDir;
 
   private PersistenceService service;
 
@@ -63,6 +66,50 @@ public class PersistenceServiceTest {
     assertEquals("New title", persisted.get("event-1").getTitle());
   }
 
+  @Test
+  void cfpSyncSaveCreatesBackupSnapshot() {
+    service = newService();
+
+    service.saveCfpSubmissionsSync(Map.of("cfp-1", cfp("cfp-1", "Reliable CFP pipelines")));
+
+    Path backupsDir = tempDir.resolve("backups").resolve("cfp");
+    assertTrue(Files.exists(backupsDir));
+    try (var stream = Files.list(backupsDir)) {
+      long count = stream.filter(Files::isRegularFile).count();
+      assertTrue(count >= 1);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  void cfpLoadRecoversFromBackupWhenPrimaryIsCorrupted() throws Exception {
+    service = newService();
+
+    CfpSubmission first = cfp("cfp-1", "Resilient CFP storage");
+    service.saveCfpSubmissionsSync(Map.of(first.id(), first));
+
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    assertTrue(Files.exists(primary));
+    Files.writeString(primary, "{corrupted-json", java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+
+    Map<String, CfpSubmission> recovered = service.loadCfpSubmissions();
+    assertEquals(1, recovered.size());
+    assertNotNull(recovered.get(first.id()));
+
+    try (var stream = Files.list(tempDir)) {
+      boolean hasCorruptCopy =
+          stream.anyMatch(
+              p ->
+                  p.getFileName() != null
+                      && p.getFileName().toString().startsWith("cfp-submissions.corrupt-"));
+      assertTrue(hasCorruptCopy);
+    }
+
+    String current = Files.readString(primary);
+    assertFalse(current.contains("corrupted-json"));
+  }
+
   private PersistenceService newService() {
     System.setProperty("homedir.data.dir", tempDir.toString());
     PersistenceService ps = new PersistenceService();
@@ -73,6 +120,31 @@ public class PersistenceServiceTest {
 
   private Event event(String id, String title) {
     return new Event(id, title, "description");
+  }
+
+  private CfpSubmission cfp(String id, String title) {
+    Instant now = Instant.parse("2026-02-12T00:00:00Z");
+    return new CfpSubmission(
+        id,
+        "event-1",
+        "member@example.com",
+        "Member",
+        title,
+        "Summary",
+        "Abstract",
+        "intermediate",
+        "talk",
+        30,
+        "en",
+        "platform-engineering-idp",
+        java.util.List.of("platform"),
+        java.util.List.of("https://example.org/talk"),
+        CfpSubmissionStatus.PENDING,
+        now,
+        now,
+        null,
+        null,
+        null);
   }
 
   private boolean waitUntil(BooleanSupplier condition, Duration timeout) throws InterruptedException {
