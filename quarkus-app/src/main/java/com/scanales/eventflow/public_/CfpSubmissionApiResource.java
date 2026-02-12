@@ -98,7 +98,49 @@ public class CfpSubmissionApiResource {
         cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream().map(this::toView).toList();
     return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
   }
+  @GET
+  @Path("/config")
+  public Response submissionConfig(@PathParam("eventId") String eventId) {
+    int limit = cfpSubmissionService.currentMaxSubmissionsPerUserPerEvent();
+    return Response.ok(
+            new SubmissionLimitConfigResponse(
+                limit,
+                CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
+                CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
+                AdminUtils.isAdmin(identity)))
+        .build();
+  }
 
+  @PUT
+  @Path("/config")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateSubmissionConfig(
+      @PathParam("eventId") String eventId, SubmissionLimitConfigUpdateRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    Integer requestedLimit = request != null ? request.maxPerUser() : null;
+    if (requestedLimit == null
+        || requestedLimit < CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT
+        || requestedLimit > CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(
+              Map.of(
+                  "error", "invalid_limit",
+                  "min", CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
+                  "max", CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT))
+          .build();
+    }
+    int updated = cfpSubmissionService.updateMaxSubmissionsPerUserPerEvent(requestedLimit);
+    return Response.ok(
+            new SubmissionLimitConfigResponse(
+                updated,
+                CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
+                CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
+                true))
+        .build();
+  }
   @DELETE
   @Path("/{id}")
   @Authenticated
@@ -398,6 +440,14 @@ public class CfpSubmissionApiResource {
   public record SubmissionResponse(SubmissionView item) {}
 
   public record SubmissionListResponse(int limit, int offset, List<SubmissionView> items) {}
+  public record SubmissionLimitConfigUpdateRequest(
+      @JsonProperty("max_per_user") Integer maxPerUser) {}
+
+  public record SubmissionLimitConfigResponse(
+      @JsonProperty("max_per_user") int maxPerUser,
+      @JsonProperty("min_allowed") int minAllowed,
+      @JsonProperty("max_allowed") int maxAllowed,
+      boolean admin) {}
 
   public record SubmissionView(
       String id,
@@ -421,3 +471,5 @@ public class CfpSubmissionApiResource {
       @JsonProperty("moderated_by") String moderatedBy,
       @JsonProperty("moderation_note") String moderationNote) {}
 }
+
+

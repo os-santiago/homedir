@@ -24,7 +24,12 @@
 </header>
 
 <section class="page-grid">
-  <article class="section-card" style="grid-column: 1 / -1;">
+  <div class="cfp-view-switch" style="grid-column: 1 / -1;">
+    <button id="cfpShowNewBtn" type="button" class="btn login-btn-nav cfp-view-btn is-active">{i18n.events_cfp_tab_new_proposal}</button>
+    <button id="cfpShowMineBtn" type="button" class="btn login-btn-nav cfp-view-btn">{i18n.events_cfp_tab_my_proposals}</button>
+  </div>
+
+  <article id="cfpSectionNew" class="section-card" style="grid-column: 1 / -1;">
     <h2 style="margin-top: 0;">{i18n.events_cfp_submit_title}</h2>
     <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n.events_cfp_submit_desc}</p>
 
@@ -106,12 +111,23 @@
     {/if}
   </article>
 
-  <article class="section-card" style="grid-column: 1 / -1;">
+  <article id="cfpSectionMine" class="section-card cfp-section-hidden" style="grid-column: 1 / -1;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
-      <h2 style="margin: 0;">{i18n.events_cfp_my_submissions_title}</h2>
+      <div>
+        <h2 style="margin: 0;">{i18n.events_cfp_my_submissions_title}</h2>
+        {#if userAuthenticated}
+        <p id="cfpCountLabel" class="form-hint cfp-count-label">0/2 {i18n.events_cfp_proposals_unit}</p>
+        {/if}
+      </div>
       {#if userAuthenticated}
       <button id="cfpReloadBtn" type="button" class="btn login-btn-nav">{i18n.events_cfp_refresh}</button>
       {/if}
+    </div>
+    <div class="cfp-status-guide">
+      <p><span class="cfp-status-badge cfp-status-pending">{i18n.events_cfp_status_pending}</span> {i18n.events_cfp_status_desc_pending}</p>
+      <p><span class="cfp-status-badge cfp-status-under_review">{i18n.events_cfp_status_under_review}</span> {i18n.events_cfp_status_desc_under_review}</p>
+      <p><span class="cfp-status-badge cfp-status-accepted">{i18n.events_cfp_status_accepted}</span> {i18n.events_cfp_status_desc_accepted}</p>
+      <p><span class="cfp-status-badge cfp-status-rejected">{i18n.events_cfp_status_rejected}</span> {i18n.events_cfp_status_desc_rejected}</p>
     </div>
     <div id="cfpMineList" class="cfp-submission-list" style="margin-top: 0.9rem;">
       {#if userAuthenticated}
@@ -124,6 +140,39 @@
 </section>
 
 <style>
+  .cfp-view-switch {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .cfp-view-btn.is-active {
+    border-color: rgba(255, 213, 79, 0.7);
+    background: rgba(255, 213, 79, 0.16);
+  }
+
+  .cfp-section-hidden {
+    display: none;
+  }
+
+  .cfp-count-label {
+    margin: 0.35rem 0 0;
+  }
+
+  .cfp-status-guide {
+    margin-top: 0.9rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .cfp-status-guide p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    opacity: 0.92;
+  }
   .cfp-submission-item {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-sm);
@@ -193,6 +242,23 @@
 <script>
   (() => {
     const isAuth = {#if userAuthenticated}true{#else}false{/if};
+    const sectionNew = document.getElementById("cfpSectionNew");
+    const sectionMine = document.getElementById("cfpSectionMine");
+    const showNewBtn = document.getElementById("cfpShowNewBtn");
+    const showMineBtn = document.getElementById("cfpShowMineBtn");
+
+    function setActiveSection(view) {
+      const mineVisible = view === "mine";
+      sectionNew?.classList.toggle("cfp-section-hidden", mineVisible);
+      sectionMine?.classList.toggle("cfp-section-hidden", !mineVisible);
+      showNewBtn?.classList.toggle("is-active", !mineVisible);
+      showMineBtn?.classList.toggle("is-active", mineVisible);
+    }
+
+    showNewBtn?.addEventListener("click", () => setActiveSection("new"));
+    showMineBtn?.addEventListener("click", () => setActiveSection("mine"));
+    setActiveSection(window.location.hash === "#my-proposals" ? "mine" : "new");
+
     if (!isAuth) {
       return;
     }
@@ -207,17 +273,19 @@
 
     const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const mineEndpoint = endpoint + "/mine?limit=20&offset=0";
+    const configEndpoint = endpoint + "/config";
     const submitBtn = document.getElementById("cfpSubmitBtn");
     const autofillBtn = document.getElementById("cfpAutofillBtn");
     const reloadBtn = document.getElementById("cfpReloadBtn");
     const feedback = document.getElementById("cfpFeedback");
     const quotaHint = document.getElementById("cfpQuotaHint");
+    const countLabel = document.getElementById("cfpCountLabel");
     const mineList = document.getElementById("cfpMineList");
     const formatSelect = document.getElementById("cfpFormat");
     const durationSelect = document.getElementById("cfpDuration");
     const languageSelect = document.getElementById("cfpLanguage");
 
-    const proposalLimit = 2;
+    let proposalLimit = 2;
     let mineItems = [];
 
     const labels = {
@@ -421,13 +489,32 @@
     }
 
     function updateQuotaHint() {
-      const remaining = Math.max(0, proposalLimit - (mineItems ? mineItems.length : 0));
+      const submitted = mineItems ? mineItems.length : 0;
+      const remaining = Math.max(0, proposalLimit - submitted);
+      if (countLabel) {
+        countLabel.textContent = submitted + "/" + proposalLimit + " {i18n.events_cfp_proposals_unit}";
+      }
       if (quotaHint) {
         quotaHint.textContent =
           "{i18n.events_cfp_quota_prefix} " + proposalLimit + " · {i18n.events_cfp_quota_remaining} " + remaining + ".";
       }
       if (submitBtn) {
         submitBtn.disabled = remaining <= 0;
+      }
+    }
+
+    async function loadConfig() {
+      try {
+        const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          return;
+        }
+        const payload = await response.json();
+        const configured = Number.parseInt(String(payload.max_per_user || ""), 10);
+        if (Number.isFinite(configured) && configured > 0) {
+          proposalLimit = configured;
+        }
+      } catch (error) {
       }
     }
 
@@ -575,6 +662,7 @@
         syncDurationFromFormat();
         clearDraft();
         showFeedback("{i18n.events_cfp_success_submit}", false);
+        setActiveSection("mine");
         await loadMine();
       } catch (error) {
         showFeedback("{i18n.events_cfp_error_submit}", true);
@@ -598,19 +686,22 @@
     });
     autofillBtn?.addEventListener("click", restoreLastProposal);
     reloadBtn?.addEventListener("click", loadMine);
+    showMineBtn?.addEventListener("click", loadMine);
     window.addEventListener("beforeunload", saveDraftFromForm);
 
     syncDurationFromFormat();
-    updateQuotaHint();
-    loadMine().then(() => {
-      const draftRaw = safeStorageGet(draftStorageKey);
-      if (draftRaw) {
-        try {
-          const draft = JSON.parse(draftRaw);
-          applySnapshot(draft);
-        } catch (error) {
+    loadConfig().finally(() => {
+      updateQuotaHint();
+      loadMine().then(() => {
+        const draftRaw = safeStorageGet(draftStorageKey);
+        if (draftRaw) {
+          try {
+            const draft = JSON.parse(draftRaw);
+            applySnapshot(draft);
+          } catch (error) {
+          }
         }
-      }
+      });
     });
   })();
 </script>

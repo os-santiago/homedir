@@ -369,4 +369,78 @@ public class CfpSubmissionServiceTest {
 
     assertNotNull(replacement.id());
   }
-}
+
+  @Test
+  void adminCanUpdateRuntimeLimitAndAllowThirdSubmission() {
+    assertEquals(2, cfpSubmissionService.currentMaxSubmissionsPerUserPerEvent());
+    assertEquals(3, cfpSubmissionService.updateMaxSubmissionsPerUserPerEvent(3));
+
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk A",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk B",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk C",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.create(
+                    "member@example.com",
+                    "Member",
+                    new CfpSubmissionService.CreateRequest(
+                        EVENT_ID,
+                        "Talk D",
+                        "Summary",
+                        "Abstract",
+                        "intermediate",
+                        "talk",
+                        30,
+                        "en",
+                        "platform-engineering-idp",
+                        java.util.List.of(),
+                        java.util.List.of())));
+
+    assertEquals("proposal_limit_reached", exception.getMessage());
+  }}
+
