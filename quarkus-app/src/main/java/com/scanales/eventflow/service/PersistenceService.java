@@ -10,6 +10,7 @@ import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.SystemError;
 import com.scanales.eventflow.community.CommunitySubmission;
+import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -72,6 +73,7 @@ public class PersistenceService {
   private Path systemErrorsFile;
   private Path communitySubmissionsFile;
   private Path cfpSubmissionsFile;
+  private Path cfpConfigFile;
   private Path cfpBackupsDir;
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
@@ -117,6 +119,7 @@ public class PersistenceService {
     systemErrorsFile = dataDir.resolve("system-errors.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
+    cfpConfigFile = dataDir.resolve("cfp-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
 
     try {
@@ -288,6 +291,36 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(cfpSubmissionsFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Loads CFP config from disk if present. */
+  public java.util.Optional<CfpConfig> loadCfpConfig() {
+    if (cfpConfigFile == null || !Files.exists(cfpConfigFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(mapper.readValue(cfpConfigFile.toFile(), CfpConfig.class));
+    } catch (IOException e) {
+      LOG.error("Failed to read " + cfpConfigFile.toAbsolutePath(), e);
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Persists CFP config synchronously. */
+  public void saveCfpConfigSync(CfpConfig config) {
+    writeSync(cfpConfigFile, config);
+  }
+
+  /** Last modified timestamp for CFP config file, or -1 when unavailable. */
+  public long cfpConfigLastModifiedMillis() {
+    try {
+      if (cfpConfigFile == null || !Files.exists(cfpConfigFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(cfpConfigFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }

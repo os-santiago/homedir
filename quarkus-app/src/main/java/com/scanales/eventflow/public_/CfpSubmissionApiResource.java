@@ -2,6 +2,8 @@ package com.scanales.eventflow.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.cfp.CfpSubmission;
+import com.scanales.eventflow.cfp.CfpConfig;
+import com.scanales.eventflow.cfp.CfpConfigService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Speaker;
@@ -37,6 +39,7 @@ import java.util.Set;
 public class CfpSubmissionApiResource {
 
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject CfpConfigService cfpConfigService;
   @Inject PersistenceService persistenceService;
   @Inject SpeakerService speakerService;
   @Inject SecurityIdentity identity;
@@ -103,13 +106,15 @@ public class CfpSubmissionApiResource {
   @GET
   @Path("/config")
   public Response submissionConfig(@PathParam("eventId") String eventId) {
-    int limit = cfpSubmissionService.currentMaxSubmissionsPerUserPerEvent();
+    CfpConfig config = cfpConfigService.current();
+    int limit = config.maxSubmissionsPerUserPerEvent();
     return Response.ok(
             new SubmissionLimitConfigResponse(
                 limit,
                 CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
                 CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
-                AdminUtils.isAdmin(identity)))
+                AdminUtils.isAdmin(identity),
+                config.testingModeEnabled()))
         .build();
   }
 
@@ -145,9 +150,13 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
     Integer requestedLimit = request != null ? request.maxPerUser() : null;
-    if (requestedLimit == null
-        || requestedLimit < CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT
-        || requestedLimit > CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT) {
+    Boolean requestedTesting = request != null ? request.testingModeEnabled() : null;
+    if (requestedLimit == null && requestedTesting == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_config")).build();
+    }
+    if (requestedLimit != null
+        && (requestedLimit < CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT
+            || requestedLimit > CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT)) {
       return Response.status(Response.Status.BAD_REQUEST)
           .entity(
               Map.of(
@@ -156,13 +165,14 @@ public class CfpSubmissionApiResource {
                   "max", CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT))
           .build();
     }
-    int updated = cfpSubmissionService.updateMaxSubmissionsPerUserPerEvent(requestedLimit);
+    CfpConfig updated = cfpConfigService.update(requestedLimit, requestedTesting);
     return Response.ok(
             new SubmissionLimitConfigResponse(
-                updated,
+                updated.maxSubmissionsPerUserPerEvent(),
                 CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
                 CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
-                true))
+                true,
+                updated.testingModeEnabled()))
         .build();
   }
   @DELETE
@@ -602,7 +612,8 @@ public class CfpSubmissionApiResource {
 
   public record SubmissionListResponse(int limit, int offset, List<SubmissionView> items) {}
   public record SubmissionLimitConfigUpdateRequest(
-      @JsonProperty("max_per_user") Integer maxPerUser) {}
+      @JsonProperty("max_per_user") Integer maxPerUser,
+      @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled) {}
 
   public record StorageHealthResponse(
       @JsonProperty("primary_path") String primaryPath,
@@ -618,7 +629,8 @@ public class CfpSubmissionApiResource {
       @JsonProperty("max_per_user") int maxPerUser,
       @JsonProperty("min_allowed") int minAllowed,
       @JsonProperty("max_allowed") int maxAllowed,
-      boolean admin) {}
+      boolean admin,
+      @JsonProperty("testing_mode_enabled") boolean testingModeEnabled) {}
 
   public record SubmissionView(
       String id,

@@ -391,6 +391,36 @@ public interface AppMessages {
     @Message("Not selected for this edition.")
     String events_cfp_status_desc_rejected();
 
+    @Message("Testing")
+    String events_cfp_testing_badge();
+
+    @Message("Testing mode")
+    String events_cfp_testing_title();
+
+    @Message("This CFP flow is currently in testing mode. Submissions are considered test data and are not part of a formal process for this event.")
+    String events_cfp_testing_desc();
+
+    @Message("CFP testing notice")
+    String events_cfp_testing_aria();
+
+    @Message("CFP: testing mode")
+    String events_cfp_admin_testing_title();
+
+    @Message("Toggle a public warning on the CFP submission form so attendees know this is a test flow.")
+    String events_cfp_admin_testing_desc();
+
+    @Message("Show testing notice")
+    String events_cfp_admin_testing_toggle_label();
+
+    @Message("Save")
+    String events_cfp_admin_testing_save();
+
+    @Message("Saved.")
+    String events_cfp_admin_testing_saved();
+
+    @Message("Could not update testing mode right now.")
+    String events_cfp_admin_testing_error();
+
     // --- Projects Page ---
     @Message("Projects · HomeDir")
     String projects_title();
