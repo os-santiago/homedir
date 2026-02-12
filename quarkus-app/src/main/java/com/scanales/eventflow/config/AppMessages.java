@@ -370,6 +370,27 @@ public interface AppMessages {
     @Message("Could not delete the proposal.")
     String events_cfp_error_delete();
 
+    @Message("New Proposal")
+    String events_cfp_tab_new_proposal();
+
+    @Message("My Proposals")
+    String events_cfp_tab_my_proposals();
+
+    @Message("proposals")
+    String events_cfp_proposals_unit();
+
+    @Message("Submitted and waiting for moderator review.")
+    String events_cfp_status_desc_pending();
+
+    @Message("The event team is currently reviewing your proposal.")
+    String events_cfp_status_desc_under_review();
+
+    @Message("Selected for the event agenda.")
+    String events_cfp_status_desc_accepted();
+
+    @Message("Not selected for this edition.")
+    String events_cfp_status_desc_rejected();
+
     // --- Projects Page ---
     @Message("Projects · HomeDir")
     String projects_title();
@@ -1250,4 +1271,6 @@ public interface AppMessages {
     String home_btn_view_repo();
 
 }
+
+
 

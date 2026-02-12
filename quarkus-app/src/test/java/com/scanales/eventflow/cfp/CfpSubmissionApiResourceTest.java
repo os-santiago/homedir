@@ -548,4 +548,74 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(403)
         .body("error", equalTo("owner_required"));
   }
-}
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void configEndpointExposesCurrentLimit() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/config")
+        .then()
+        .statusCode(200)
+        .body("max_per_user", equalTo(2))
+        .body("min_allowed", equalTo(1))
+        .body("max_allowed", equalTo(10));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void nonAdminCannotUpdateLimitConfig() {
+    given()
+        .contentType("application/json")
+        .body("{\"max_per_user\":3}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/config")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanUpdateLimitConfig() {
+    given()
+        .contentType("application/json")
+        .body("{\"max_per_user\":3}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/config")
+        .then()
+        .statusCode(200)
+        .body("max_per_user", equalTo(3));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/config")
+        .then()
+        .statusCode(200)
+        .body("max_per_user", equalTo(3));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminLimitConfigRejectsOutOfRangeValues() {
+    given()
+        .contentType("application/json")
+        .body("{\"max_per_user\":0}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/config")
+        .then()
+        .statusCode(400)
+        .body("error", equalTo("invalid_limit"));
+
+    given()
+        .contentType("application/json")
+        .body("{\"max_per_user\":11}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/config")
+        .then()
+        .statusCode(400)
+        .body("error", equalTo("invalid_limit"));
+  }}
+

@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 @ApplicationScoped
 public class CfpSubmissionService {
   private static final Pattern CONTROL = Pattern.compile("[\\p{Cntrl}&&[^\n\t]]");
+  public static final int MIN_SUBMISSIONS_PER_USER_PER_EVENT = 1;
+  public static final int MAX_SUBMISSIONS_PER_USER_PER_EVENT = 10;
   private static final int DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT = 2;
 
   @Inject PersistenceService persistenceService;
@@ -30,14 +32,16 @@ public class CfpSubmissionService {
   @Inject CfpFormOptionsService cfpFormOptionsService;
 
   @ConfigProperty(name = "cfp.submissions.max-per-user-per-event", defaultValue = "2")
-  int maxSubmissionsPerUserPerEvent;
+  int configuredMaxSubmissionsPerUserPerEvent;
 
+  private volatile int runtimeMaxSubmissionsPerUserPerEvent = DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
   private final ConcurrentHashMap<String, CfpSubmission> submissions = new ConcurrentHashMap<>();
   private final Object submissionsLock = new Object();
   private volatile long lastKnownMtime = Long.MIN_VALUE;
 
   @PostConstruct
   void init() {
+    runtimeMaxSubmissionsPerUserPerEvent = normalizeMaxSubmissionsPerUser(configuredMaxSubmissionsPerUserPerEvent);
     synchronized (submissionsLock) {
       refreshFromDisk(true);
     }
@@ -276,7 +280,20 @@ public class CfpSubmissionService {
   public void clearAllForTests() {
     synchronized (submissionsLock) {
       submissions.clear();
+      runtimeMaxSubmissionsPerUserPerEvent =
+          normalizeMaxSubmissionsPerUser(configuredMaxSubmissionsPerUserPerEvent);
       persistSync();
+    }
+  }
+
+  public int currentMaxSubmissionsPerUserPerEvent() {
+    return runtimeMaxSubmissionsPerUserPerEvent;
+  }
+
+  public int updateMaxSubmissionsPerUserPerEvent(int requestedLimit) {
+    synchronized (submissionsLock) {
+      runtimeMaxSubmissionsPerUserPerEvent = normalizeMaxSubmissionsPerUser(requestedLimit);
+      return runtimeMaxSubmissionsPerUserPerEvent;
     }
   }
 
@@ -355,10 +372,17 @@ public class CfpSubmissionService {
   }
 
   private int maxSubmissionsPerUserPerEvent() {
-    if (maxSubmissionsPerUserPerEvent <= 0) {
+    return runtimeMaxSubmissionsPerUserPerEvent;
+  }
+
+  private static int normalizeMaxSubmissionsPerUser(int rawValue) {
+    if (rawValue <= 0) {
       return DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
     }
-    return Math.min(maxSubmissionsPerUserPerEvent, 10);
+    if (rawValue < MIN_SUBMISSIONS_PER_USER_PER_EVENT) {
+      return MIN_SUBMISSIONS_PER_USER_PER_EVENT;
+    }
+    return Math.min(rawValue, MAX_SUBMISSIONS_PER_USER_PER_EVENT);
   }
 
   private static String normalizeTitleForComparison(String raw) {
@@ -514,3 +538,6 @@ public class CfpSubmissionService {
     }
   }
 }
+
+
+
