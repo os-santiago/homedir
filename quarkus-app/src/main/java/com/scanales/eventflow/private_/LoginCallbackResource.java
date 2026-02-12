@@ -1,9 +1,10 @@
 package com.scanales.eventflow.private_;
 
+import com.scanales.eventflow.security.RedirectSanitizer;
 import com.scanales.eventflow.service.UserProfileService;
+import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -15,18 +16,14 @@ import java.net.URI;
 @Path("/private/login-callback")
 public class LoginCallbackResource {
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
-  @Inject
-  UserProfileService userProfileService;
+  @Inject UserProfileService userProfileService;
 
   @GET
   @Authenticated
   public Response callback(@QueryParam("redirect") String redirect) {
-    if (redirect == null || redirect.isBlank()) {
-      redirect = "/";
-    }
+    String safeRedirect = RedirectSanitizer.sanitizeInternalRedirect(redirect, "/");
 
     // --- Viral Feature: Instant Onboarding XP ---
     // If the user is new (or has 0 XP), give them their first win immediately.
@@ -50,7 +47,8 @@ public class LoginCallbackResource {
         var profileOpt = userProfileService.find(userId);
         if (profileOpt.isPresent()) {
           var profile = profileOpt.get();
-          if (profile.getCurrentXp() == 0 && (profile.getHistory() == null || profile.getHistory().isEmpty())) {
+          if (profile.getCurrentXp() == 0
+              && (profile.getHistory() == null || profile.getHistory().isEmpty())) {
             userProfileService.addXp(userId, 100, "Joined the Resistance");
           }
         } else {
@@ -73,7 +71,7 @@ public class LoginCallbackResource {
     }
     // ---------------------------------------------
 
-    return Response.seeOther(URI.create(redirect)).build();
+    return Response.seeOther(URI.create(safeRedirect)).build();
   }
 
   private String currentUserId() {

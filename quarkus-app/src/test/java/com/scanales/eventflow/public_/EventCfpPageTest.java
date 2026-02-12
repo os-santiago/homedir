@@ -56,7 +56,8 @@ public class EventCfpPageTest {
         .then()
         .statusCode(200)
         .body(not(containsString("id=\"cfpForm\"")))
-        .body(containsString("Login to submit a proposal for this event."));
+        .body(containsString("Login to submit a proposal for this event."))
+        .body(containsString("/private/login-callback?redirect=/event/" + EVENT_ID + "/cfp"));
   }
 
   @Test
