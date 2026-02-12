@@ -22,6 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -70,8 +72,12 @@ public class PersistenceService {
   private Path systemErrorsFile;
   private Path communitySubmissionsFile;
   private Path cfpSubmissionsFile;
+  private Path cfpBackupsDir;
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
+  private static final String CFP_BACKUP_PREFIX = "cfp-submissions-";
+  private static final String CFP_BACKUP_SUFFIX = ".json";
+  private static final DateTimeFormatter CFP_BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
   private volatile boolean lowDiskSpace;
   private static final long MIN_FREE_BYTES = 50L * 1024 * 1024; // 50 MB
@@ -79,6 +85,17 @@ public class PersistenceService {
   private static final long INITIAL_RETRY_BACKOFF_MS = 250L;
   private static final long FLUSH_TIMEOUT_MS = 15000L;
   private final AtomicInteger scheduledRetries = new AtomicInteger();
+
+  @ConfigProperty(name = "cfp.persistence.backups.enabled", defaultValue = "true")
+  boolean cfpBackupsEnabled = true;
+
+  @ConfigProperty(name = "cfp.persistence.backups.max-files", defaultValue = "120")
+  int cfpBackupsMaxFiles = 120;
+
+  @ConfigProperty(name = "cfp.persistence.backups.min-interval-ms", defaultValue = "300000")
+  long cfpBackupsMinIntervalMs = 300_000L;
+
+  private final AtomicLong lastCfpBackupAtMillis = new AtomicLong(0L);
 
   @PostConstruct
   void init() {
@@ -100,9 +117,11 @@ public class PersistenceService {
     systemErrorsFile = dataDir.resolve("system-errors.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
+    cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
 
     try {
       Files.createDirectories(dataDir);
+      Files.createDirectories(cfpBackupsDir);
       LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
       try (var stream = Files.list(dataDir)) {
         if (stream.findAny().isPresent()) {
@@ -254,13 +273,12 @@ public class PersistenceService {
 
   /** Persists CFP submissions synchronously. */
   public void saveCfpSubmissionsSync(Map<String, CfpSubmission> submissions) {
-    writeSync(cfpSubmissionsFile, submissions);
+    writeSync(cfpSubmissionsFile, submissions == null ? Map.of() : Map.copyOf(submissions));
   }
 
   /** Loads CFP submissions from disk or returns an empty map if none. */
   public Map<String, CfpSubmission> loadCfpSubmissions() {
-    return read(cfpSubmissionsFile, new TypeReference<Map<String, CfpSubmission>>() {
-    });
+    return readCfpSubmissionsWithRecovery();
   }
 
   /** Last modified timestamp for CFP submissions file, or -1 when unavailable. */
@@ -448,6 +466,7 @@ public class PersistenceService {
       try {
         mapper.writeValue(tmp.toFile(), data);
         moveWithFallback(tmp, file);
+        maybeBackupCfpSubmissions(file);
         LOG.infof("Persisted %s at %s (v%d)", file.getFileName(), java.time.Instant.now(), version);
         writesOk.incrementAndGet();
         lastError = null;
@@ -496,6 +515,7 @@ public class PersistenceService {
       try {
         mapper.writeValue(tmp.toFile(), data);
         moveWithFallback(tmp, file);
+        maybeBackupCfpSubmissions(file);
         LOG.infof("Persisted %s at %s (sync)", file.getFileName(), java.time.Instant.now());
         writesOk.incrementAndGet();
         lastError = null;
@@ -556,6 +576,126 @@ public class PersistenceService {
     public void run() {
       task.run();
     }
+  }
+
+  private Map<String, CfpSubmission> readCfpSubmissionsWithRecovery() {
+    TypeReference<Map<String, CfpSubmission>> type = new TypeReference<Map<String, CfpSubmission>>() {
+    };
+    if (!Files.exists(cfpSubmissionsFile)) {
+      Map<String, CfpSubmission> recovered = recoverCfpFromBackups(type, "primary_missing");
+      if (recovered != null) {
+        return recovered;
+      }
+      LOG.infof("No persistence file %s found - starting empty", cfpSubmissionsFile.toAbsolutePath());
+      return new ConcurrentHashMap<>();
+    }
+    try {
+      Map<String, CfpSubmission> data = mapper.readValue(cfpSubmissionsFile.toFile(), type);
+      LOG.infof("Loaded %d entries from %s", data.size(), cfpSubmissionsFile.toAbsolutePath());
+      return new ConcurrentHashMap<>(data);
+    } catch (IOException e) {
+      LOG.error("Failed to read " + cfpSubmissionsFile.toAbsolutePath(), e);
+      quarantineCorruptedCfpPrimary();
+      Map<String, CfpSubmission> recovered = recoverCfpFromBackups(type, "primary_corrupted");
+      if (recovered != null) {
+        return recovered;
+      }
+      return new ConcurrentHashMap<>();
+    }
+  }
+
+  private Map<String, CfpSubmission> recoverCfpFromBackups(
+      TypeReference<Map<String, CfpSubmission>> type, String reason) {
+    if (!Files.exists(cfpBackupsDir)) {
+      return null;
+    }
+    try (var stream = Files.list(cfpBackupsDir)) {
+      var candidates =
+          stream
+              .filter(Files::isRegularFile)
+              .filter(this::isCfpBackupFile)
+              .sorted((a, b) -> b.getFileName().toString().compareTo(a.getFileName().toString()))
+              .toList();
+      for (Path candidate : candidates) {
+        try {
+          Map<String, CfpSubmission> data = mapper.readValue(candidate.toFile(), type);
+          LOG.warnf(
+              "Recovered CFP submissions from backup %s (%d items, reason=%s)",
+              candidate.toAbsolutePath(),
+              data.size(),
+              reason);
+          writeSync(cfpSubmissionsFile, data);
+          return new ConcurrentHashMap<>(data);
+        } catch (Exception ignored) {
+          // keep trying with older snapshots
+        }
+      }
+      LOG.infof("No valid CFP backup snapshot found in %s", cfpBackupsDir.toAbsolutePath());
+    } catch (IOException e) {
+      LOG.error("Failed to inspect CFP backup snapshots", e);
+    }
+    return null;
+  }
+
+  private void maybeBackupCfpSubmissions(Path file) {
+    if (!cfpBackupsEnabled || !file.equals(cfpSubmissionsFile) || !Files.exists(cfpSubmissionsFile)) {
+      return;
+    }
+    long now = System.currentTimeMillis();
+    long previous = lastCfpBackupAtMillis.get();
+    if (previous > 0 && (now - previous) < Math.max(0L, cfpBackupsMinIntervalMs)) {
+      return;
+    }
+    if (!lastCfpBackupAtMillis.compareAndSet(previous, now)) {
+      return;
+    }
+    try {
+      Files.createDirectories(cfpBackupsDir);
+      String stamp = LocalDateTime.now().format(CFP_BACKUP_TIME);
+      Path snapshot = cfpBackupsDir.resolve(CFP_BACKUP_PREFIX + stamp + CFP_BACKUP_SUFFIX);
+      Files.copy(cfpSubmissionsFile, snapshot, StandardCopyOption.REPLACE_EXISTING);
+      pruneOldCfpBackups();
+      LOG.infof("Persisted CFP backup snapshot %s", snapshot.getFileName());
+    } catch (IOException e) {
+      LOG.warn("Failed to persist CFP backup snapshot", e);
+      lastCfpBackupAtMillis.compareAndSet(now, previous);
+    }
+  }
+
+  private void pruneOldCfpBackups() {
+    int keep = Math.max(1, cfpBackupsMaxFiles);
+    try (var stream = Files.list(cfpBackupsDir)) {
+      var files =
+          stream
+              .filter(Files::isRegularFile)
+              .filter(this::isCfpBackupFile)
+              .sorted((a, b) -> b.getFileName().toString().compareTo(a.getFileName().toString()))
+              .toList();
+      for (int i = keep; i < files.size(); i++) {
+        Files.deleteIfExists(files.get(i));
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to prune CFP backup snapshots", e);
+    }
+  }
+
+  private void quarantineCorruptedCfpPrimary() {
+    if (!Files.exists(cfpSubmissionsFile)) {
+      return;
+    }
+    String stamp = LocalDateTime.now().format(CFP_BACKUP_TIME);
+    Path quarantined = cfpSubmissionsFile.resolveSibling("cfp-submissions.corrupt-" + stamp + ".json");
+    try {
+      Files.move(cfpSubmissionsFile, quarantined, StandardCopyOption.REPLACE_EXISTING);
+      LOG.warnf("Moved corrupted CFP submissions file to %s", quarantined.toAbsolutePath());
+    } catch (IOException e) {
+      LOG.warn("Failed to quarantine corrupted CFP submissions file", e);
+    }
+  }
+
+  private boolean isCfpBackupFile(Path file) {
+    String name = file.getFileName() == null ? "" : file.getFileName().toString();
+    return name.startsWith(CFP_BACKUP_PREFIX) && name.endsWith(CFP_BACKUP_SUFFIX);
   }
 
   private <T> Map<String, T> read(Path file, TypeReference<Map<String, T>> type) {
@@ -624,3 +764,5 @@ public class PersistenceService {
     return dataDir.resolve(SCHEDULE_FILE_PREFIX + year + SCHEDULE_FILE_SUFFIX);
   }
 }
+
+
