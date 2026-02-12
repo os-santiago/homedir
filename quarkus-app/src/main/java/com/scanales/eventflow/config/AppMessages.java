@@ -379,16 +379,16 @@ public interface AppMessages {
     @Message("proposals")
     String events_cfp_proposals_unit();
 
-    @Message("Awaiting moderator review.")
+    @Message("Submitted and waiting for moderator review.")
     String events_cfp_status_desc_pending();
 
-    @Message("Your proposal is being evaluated by the event team.")
+    @Message("The event team is currently reviewing your proposal.")
     String events_cfp_status_desc_under_review();
 
-    @Message("Great news: this proposal was selected for the agenda.")
+    @Message("Selected for the event agenda.")
     String events_cfp_status_desc_accepted();
 
-    @Message("This proposal was not selected for this edition.")
+    @Message("Not selected for this edition.")
     String events_cfp_status_desc_rejected();
 
     // --- Projects Page ---
@@ -1271,5 +1271,6 @@ public interface AppMessages {
     String home_btn_view_repo();
 
 }
+
 
 
