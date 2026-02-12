@@ -179,6 +179,11 @@
     backdrop-filter: blur(6px);
   }
 
+  /* Ensure HTML `hidden` works even if we define display:flex above. */
+  .cfp-submitting-overlay[hidden] {
+    display: none;
+  }
+
   .cfp-submitting-modal {
     width: min(520px, 100%);
     display: grid;
