@@ -418,22 +418,16 @@
         document.body.style.overflow = bodyOverflowBeforeSubmit;
         bodyOverflowBeforeSubmit = null;
       }
-
-      const controls = form ? Array.from(form.querySelectorAll("input, textarea, select, button")) : [];
-      controls.forEach((control) => {
-        if (value) {
-          control.dataset.cfpWasDisabled = control.disabled ? "1" : "0";
-          control.disabled = true;
-        } else {
-          const wasDisabled = control.dataset.cfpWasDisabled === "1";
-          delete control.dataset.cfpWasDisabled;
-          control.disabled = wasDisabled;
-        }
-      });
+      // Do not disable form controls here: disabled fields are excluded from FormData(),
+      // which caused submissions to be sent without `title` and fail with invalid_title.
+      if (submitBtn && value) {
+        submitBtn.disabled = true;
+      }
     }
 
     let proposalLimit = 2;
     let mineItems = [];
+    let submitInFlight = false;
 
     const labels = {
       pending: "{i18n.events_cfp_status_pending}",
@@ -798,13 +792,18 @@
         return;
       }
 
-      setSubmitting(true);
-      // Yield one frame to ensure the overlay renders before the network request.
-      await new Promise((resolve) => window.requestAnimationFrame(resolve));
-
       const payload = formSnapshot();
       saveDraftFromForm();
       saveLastProposal(payload);
+
+      if (submitInFlight) {
+        return;
+      }
+      submitInFlight = true;
+
+      setSubmitting(true);
+      // Yield one frame to ensure the overlay renders before the network request.
+      await new Promise((resolve) => window.requestAnimationFrame(resolve));
 
       try {
         const response = await fetch(endpoint, {
@@ -833,6 +832,7 @@
       } catch (error) {
         showFeedback("{i18n.events_cfp_error_submit}", true);
       } finally {
+        submitInFlight = false;
         setSubmitting(false);
         updateQuotaHint();
       }
