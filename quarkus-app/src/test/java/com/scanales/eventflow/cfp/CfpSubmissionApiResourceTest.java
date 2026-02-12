@@ -386,4 +386,166 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(400)
         .body("error", equalTo("invalid_status"));
   }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void createRejectsThirdProposalWithConflict() {
+    for (int i = 1; i <= 2; i++) {
+      given()
+          .contentType("application/json")
+          .body(
+              """
+              {
+                "title":"Talk %d",
+                "summary":"Summary",
+                "abstract_text":"Abstract",
+                "level":"intermediate",
+                "format":"talk",
+                "duration_min":30,
+                "language":"en",
+                "track":"platform-engineering-idp"
+              }
+              """.formatted(i))
+          .when()
+          .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+          .then()
+          .statusCode(201);
+    }
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Talk 3",
+              "summary":"Summary",
+              "abstract_text":"Abstract",
+              "level":"intermediate",
+              "format":"talk",
+              "duration_min":30,
+              "language":"en",
+              "track":"platform-engineering-idp"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("proposal_limit_reached"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void createRejectsDuplicateTitleWithConflict() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Reliable Platform Delivery",
+              "summary":"Summary",
+              "abstract_text":"Abstract",
+              "level":"intermediate",
+              "format":"talk",
+              "duration_min":30,
+              "language":"en",
+              "track":"platform-engineering-idp"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(201);
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"  reliable   platform delivery ",
+              "summary":"Summary",
+              "abstract_text":"Abstract",
+              "level":"intermediate",
+              "format":"talk",
+              "duration_min":30,
+              "language":"en",
+              "track":"platform-engineering-idp"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("duplicate_title"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void ownerCanDeleteOwnSubmission() {
+    String submissionId =
+        given()
+            .contentType("application/json")
+            .body(
+                """
+                {
+                  "title":"Delete me",
+                  "summary":"Summary",
+                  "abstract_text":"Abstract",
+                  "level":"intermediate",
+                  "format":"talk",
+                  "duration_min":30,
+                  "language":"en",
+                  "track":"platform-engineering-idp"
+                }
+                """)
+            .when()
+            .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("item.id");
+
+    given()
+        .when()
+        .delete("/api/events/" + EVENT_ID + "/cfp/submissions/" + submissionId)
+        .then()
+        .statusCode(200)
+        .body("item.id", equalTo(submissionId));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/mine?limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items", hasSize(0));
+  }
+
+  @Test
+  @TestSecurity(user = "other-member@example.com")
+  void nonOwnerCannotDeleteSubmission() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Protected talk",
+                "Summary",
+                "Long abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    given()
+        .when()
+        .delete("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id())
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("owner_required"));
+  }
 }

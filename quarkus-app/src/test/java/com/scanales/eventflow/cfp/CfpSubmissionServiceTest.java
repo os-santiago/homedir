@@ -216,4 +216,157 @@ public class CfpSubmissionServiceTest {
     assertEquals(1, inReview.size());
     assertEquals(created.id(), inReview.get(0).id());
   }
+
+  @Test
+  void createRejectsThirdProposalForSameUserAndEvent() {
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk A",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk B",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.create(
+                    "member@example.com",
+                    "Member",
+                    new CfpSubmissionService.CreateRequest(
+                        EVENT_ID,
+                        "Talk C",
+                        "Summary",
+                        "Abstract",
+                        "intermediate",
+                        "talk",
+                        30,
+                        "en",
+                        "platform-engineering-idp",
+                        java.util.List.of(),
+                        java.util.List.of())));
+
+    assertEquals("proposal_limit_reached", exception.getMessage());
+  }
+
+  @Test
+  void createRejectsDuplicateTitleForSameUserAndEvent() {
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Platform Engineering Patterns",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.create(
+                    "member@example.com",
+                    "Member",
+                    new CfpSubmissionService.CreateRequest(
+                        EVENT_ID,
+                        "  platform   engineering patterns ",
+                        "Summary",
+                        "Abstract",
+                        "intermediate",
+                        "talk",
+                        30,
+                        "en",
+                        "platform-engineering-idp",
+                        java.util.List.of(),
+                        java.util.List.of())));
+
+    assertEquals("duplicate_title", exception.getMessage());
+  }
+
+  @Test
+  void deleteRemovesSubmissionAndFreesSlot() {
+    CfpSubmission first =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Talk A",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk B",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+
+    cfpSubmissionService.delete(EVENT_ID, first.id());
+
+    CfpSubmission replacement =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Talk C",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    assertNotNull(replacement.id());
+  }
 }
