@@ -45,7 +45,7 @@
     {/if}
 
     {#if userAuthenticated}
-    <form id="cfpForm" data-user-scope="{userName}">
+    <form id="cfpForm" data-user-scope="{userName}" onsubmit="return false;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
         <div class="form-group" style="grid-column: 1 / -1;">
           <label class="form-label" for="cfpTitle">{i18n.events_cfp_form_title}</label>
@@ -780,10 +780,12 @@
         return;
       }
 
+      setSubmitting(true);
+      await new Promise((resolve) => window.requestAnimationFrame(resolve));
+
       const payload = formSnapshot();
       saveDraftFromForm();
       saveLastProposal(payload);
-      setSubmitting(true);
 
       try {
         const response = await fetch(endpoint, {
