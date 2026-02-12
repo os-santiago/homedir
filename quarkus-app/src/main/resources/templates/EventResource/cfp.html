@@ -150,11 +150,74 @@
   </article>
 </section>
 
+<div id="cfpSubmittingOverlay" class="cfp-submitting-overlay" hidden>
+  <div class="section-card cfp-submitting-modal" role="status" aria-live="polite">
+    <span class="cfp-submitting-spinner" aria-hidden="true"></span>
+    <div>
+      <p class="cfp-submitting-title">{i18n.events_cfp_submitting_title}</p>
+      <p class="cfp-submitting-desc">{i18n.events_cfp_submitting_desc}</p>
+    </div>
+  </div>
+</div>
+
 <style>
   .cfp-view-switch {
     display: flex;
     gap: 0.6rem;
     flex-wrap: wrap;
+  }
+
+  .cfp-submitting-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(6px);
+  }
+
+  .cfp-submitting-modal {
+    width: min(520px, 100%);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: center;
+    margin: 0;
+  }
+
+  .cfp-submitting-spinner {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 213, 79, 0.85);
+    animation: cfpSpin 0.8s linear infinite;
+  }
+
+  .cfp-submitting-title {
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .cfp-submitting-desc {
+    margin: 0.25rem 0 0;
+    opacity: 0.9;
+    font-size: 0.92rem;
+  }
+
+  @keyframes cfpSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cfp-submitting-spinner {
+      animation: none;
+    }
   }
 
   .cfp-view-btn.is-active {
@@ -332,6 +395,37 @@
     const formatSelect = document.getElementById("cfpFormat");
     const durationSelect = document.getElementById("cfpDuration");
     const languageSelect = document.getElementById("cfpLanguage");
+    const submittingOverlay = document.getElementById("cfpSubmittingOverlay");
+
+    let bodyOverflowBeforeSubmit = null;
+
+    function setSubmitting(isSubmitting) {
+      if (!submittingOverlay) {
+        return;
+      }
+      const value = Boolean(isSubmitting);
+      submittingOverlay.hidden = !value;
+
+      if (value) {
+        bodyOverflowBeforeSubmit = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+      } else if (bodyOverflowBeforeSubmit !== null) {
+        document.body.style.overflow = bodyOverflowBeforeSubmit;
+        bodyOverflowBeforeSubmit = null;
+      }
+
+      const controls = form ? Array.from(form.querySelectorAll("input, textarea, select, button")) : [];
+      controls.forEach((control) => {
+        if (value) {
+          control.dataset.cfpWasDisabled = control.disabled ? "1" : "0";
+          control.disabled = true;
+        } else {
+          const wasDisabled = control.dataset.cfpWasDisabled === "1";
+          delete control.dataset.cfpWasDisabled;
+          control.disabled = wasDisabled;
+        }
+      });
+    }
 
     let proposalLimit = 2;
     let mineItems = [];
@@ -681,12 +775,10 @@
         return;
       }
 
-      if (submitBtn) {
-        submitBtn.disabled = true;
-      }
       const payload = formSnapshot();
       saveDraftFromForm();
       saveLastProposal(payload);
+      setSubmitting(true);
 
       try {
         const response = await fetch(endpoint, {
@@ -715,9 +807,7 @@
       } catch (error) {
         showFeedback("{i18n.events_cfp_error_submit}", true);
       } finally {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-        }
+        setSubmitting(false);
         updateQuotaHint();
       }
     }
@@ -765,4 +855,3 @@
 {/if}
 {/body}
 {/include}
-

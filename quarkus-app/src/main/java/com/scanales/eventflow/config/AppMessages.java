@@ -316,6 +316,12 @@ public interface AppMessages {
     @Message("Could not submit your proposal. Please try again.")
     String events_cfp_error_submit();
 
+    @Message("Submitting...")
+    String events_cfp_submitting_title();
+
+    @Message("Please wait, we are sending your proposal.")
+    String events_cfp_submitting_desc();
+
     @Message("Proposal submitted. It is now pending review.")
     String events_cfp_success_submit();
 
@@ -1301,6 +1307,5 @@ public interface AppMessages {
     String home_btn_view_repo();
 
 }
-
 
 
