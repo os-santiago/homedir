@@ -581,6 +581,11 @@ footer {
   will-change: background-color, box-shadow, border-color;
 }
 
+/* Decorative overlay from theme must never block form controls inside cards. */
+.section-card::before {
+  pointer-events: none;
+}
+
 .section-card:hover {
   transform: none;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 215, 0, 0.18);
