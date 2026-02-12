@@ -6,6 +6,7 @@ import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.service.PersistenceService;
 import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
@@ -36,6 +37,7 @@ import java.util.Set;
 public class CfpSubmissionApiResource {
 
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject PersistenceService persistenceService;
   @Inject SpeakerService speakerService;
   @Inject SecurityIdentity identity;
 
@@ -108,6 +110,28 @@ public class CfpSubmissionApiResource {
                 CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
                 CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
                 AdminUtils.isAdmin(identity)))
+        .build();
+  }
+
+  @GET
+  @Path("/storage")
+  @Authenticated
+  public Response storage() {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    PersistenceService.CfpStorageInfo info = persistenceService.cfpStorageInfo();
+    return Response.ok(
+            new StorageHealthResponse(
+                info.primaryPath(),
+                info.backupsPath(),
+                info.primaryExists(),
+                info.primarySizeBytes(),
+                info.primaryLastModifiedMillis(),
+                info.backupCount(),
+                info.latestBackupName(),
+                info.latestBackupSizeBytes(),
+                info.latestBackupLastModifiedMillis()))
         .build();
   }
 
@@ -443,6 +467,16 @@ public class CfpSubmissionApiResource {
   public record SubmissionLimitConfigUpdateRequest(
       @JsonProperty("max_per_user") Integer maxPerUser) {}
 
+  public record StorageHealthResponse(
+      @JsonProperty("primary_path") String primaryPath,
+      @JsonProperty("backups_path") String backupsPath,
+      @JsonProperty("primary_exists") boolean primaryExists,
+      @JsonProperty("primary_size_bytes") long primarySizeBytes,
+      @JsonProperty("primary_last_modified_ms") long primaryLastModifiedMillis,
+      @JsonProperty("backup_count") int backupCount,
+      @JsonProperty("latest_backup_name") String latestBackupName,
+      @JsonProperty("latest_backup_size_bytes") long latestBackupSizeBytes,
+      @JsonProperty("latest_backup_last_modified_ms") long latestBackupLastModifiedMillis) {}
   public record SubmissionLimitConfigResponse(
       @JsonProperty("max_per_user") int maxPerUser,
       @JsonProperty("min_allowed") int minAllowed,
@@ -471,5 +505,4 @@ public class CfpSubmissionApiResource {
       @JsonProperty("moderated_by") String moderatedBy,
       @JsonProperty("moderation_note") String moderationNote) {}
 }
-
 

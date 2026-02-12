@@ -551,6 +551,32 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "member@example.com")
+  void nonAdminCannotReadStorageStatus() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/storage")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanReadStorageStatus() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/storage")
+        .then()
+        .statusCode(200)
+        .body("primary_path", org.hamcrest.Matchers.notNullValue())
+        .body("backups_path", org.hamcrest.Matchers.notNullValue())
+        .body("backup_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
   void configEndpointExposesCurrentLimit() {
     given()
         .accept("application/json")
@@ -617,5 +643,6 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(400)
         .body("error", equalTo("invalid_limit"));
-  }}
+  }
+}
 

@@ -293,6 +293,49 @@ public class PersistenceService {
     }
   }
 
+  /** Returns operational storage metadata for CFP persistence and backups. */
+  public CfpStorageInfo cfpStorageInfo() {
+    boolean primaryExists = Files.exists(cfpSubmissionsFile);
+    long primarySizeBytes = fileSize(cfpSubmissionsFile);
+    long primaryLastModifiedMillis = cfpSubmissionsLastModifiedMillis();
+
+    int backupCount = 0;
+    String latestBackupName = null;
+    long latestBackupSizeBytes = -1L;
+    long latestBackupLastModifiedMillis = -1L;
+
+    if (Files.exists(cfpBackupsDir)) {
+      try (var stream = Files.list(cfpBackupsDir)) {
+        var backups =
+            stream
+                .filter(Files::isRegularFile)
+                .filter(this::isCfpBackupFile)
+                .sorted((a, b) -> b.getFileName().toString().compareTo(a.getFileName().toString()))
+                .toList();
+        backupCount = backups.size();
+        if (!backups.isEmpty()) {
+          Path latest = backups.getFirst();
+          latestBackupName = latest.getFileName() == null ? null : latest.getFileName().toString();
+          latestBackupSizeBytes = fileSize(latest);
+          latestBackupLastModifiedMillis = fileLastModifiedMillis(latest);
+        }
+      } catch (IOException e) {
+        LOG.warn("Failed to inspect CFP backup directory", e);
+      }
+    }
+
+    return new CfpStorageInfo(
+        cfpSubmissionsFile.toAbsolutePath().toString(),
+        cfpBackupsDir.toAbsolutePath().toString(),
+        primaryExists,
+        primarySizeBytes,
+        primaryLastModifiedMillis,
+        backupCount,
+        latestBackupName,
+        latestBackupSizeBytes,
+        latestBackupLastModifiedMillis);
+  }
+
   /**
    * Loads user schedules for the given year from disk or returns an empty map if
    * none.
@@ -375,6 +418,17 @@ public class PersistenceService {
     return ((double) (total - free) / (double) total);
   }
 
+  public record CfpStorageInfo(
+      String primaryPath,
+      String backupsPath,
+      boolean primaryExists,
+      long primarySizeBytes,
+      long primaryLastModifiedMillis,
+      int backupCount,
+      String latestBackupName,
+      long latestBackupSizeBytes,
+      long latestBackupLastModifiedMillis) {
+  }
   public record QueueStats(
       int depth,
       int max,
@@ -698,6 +752,28 @@ public class PersistenceService {
     return name.startsWith(CFP_BACKUP_PREFIX) && name.endsWith(CFP_BACKUP_SUFFIX);
   }
 
+  private long fileSize(Path file) {
+    try {
+      if (!Files.exists(file)) {
+        return -1L;
+      }
+      return Files.size(file);
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  private long fileLastModifiedMillis(Path file) {
+    try {
+      if (!Files.exists(file)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(file).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
   private <T> Map<String, T> read(Path file, TypeReference<Map<String, T>> type) {
     if (!Files.exists(file)) {
       LOG.infof("No persistence file %s found - starting empty", file.toAbsolutePath());
@@ -764,5 +840,4 @@ public class PersistenceService {
     return dataDir.resolve(SCHEDULE_FILE_PREFIX + year + SCHEDULE_FILE_SUFFIX);
   }
 }
-
 
