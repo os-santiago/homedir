@@ -57,6 +57,7 @@ public class CfpSubmissionApiResource {
                   request != null ? request.format() : null,
                   request != null ? request.durationMin() : null,
                   request != null ? request.language() : null,
+                  request != null ? request.track() : null,
                   request != null ? request.tags() : null,
                   request != null ? request.links() : null));
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
@@ -211,6 +212,7 @@ public class CfpSubmissionApiResource {
         submission.format(),
         submission.durationMin(),
         submission.language(),
+        submission.track(),
         submission.tags(),
         submission.links(),
         submission.status().apiValue(),
@@ -287,6 +289,12 @@ public class CfpSubmissionApiResource {
     if (submission.summary() != null && !submission.summary().isBlank()) {
       description.append(submission.summary().trim());
     }
+    if (submission.track() != null && !submission.track().isBlank()) {
+      if (!description.isEmpty()) {
+        description.append("\n\n");
+      }
+      description.append("Track: ").append(submission.track());
+    }
     if (submission.abstractText() != null && !submission.abstractText().isBlank()) {
       if (!description.isEmpty()) {
         description.append("\n\n");
@@ -330,6 +338,7 @@ public class CfpSubmissionApiResource {
       String format,
       @JsonProperty("duration_min") Integer durationMin,
       String language,
+      String track,
       List<String> tags,
       List<String> links) {}
 
@@ -357,6 +366,7 @@ public class CfpSubmissionApiResource {
       String format,
       @JsonProperty("duration_min") Integer durationMin,
       String language,
+      String track,
       List<String> tags,
       List<String> links,
       String status,

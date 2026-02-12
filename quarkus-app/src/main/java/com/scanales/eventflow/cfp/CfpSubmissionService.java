@@ -25,6 +25,7 @@ public class CfpSubmissionService {
 
   @Inject PersistenceService persistenceService;
   @Inject EventService eventService;
+  @Inject CfpFormOptionsService cfpFormOptionsService;
 
   private final ConcurrentHashMap<String, CfpSubmission> submissions = new ConcurrentHashMap<>();
   private final Object submissionsLock = new Object();
@@ -68,11 +69,35 @@ public class CfpSubmissionService {
         summary = summarize(abstractText, 220);
       }
 
-      String level = sanitizeText(request.level(), 40);
-      String format = sanitizeText(request.format(), 40);
-      String language = sanitizeLanguage(request.language());
-      Integer durationMin = sanitizeDuration(request.durationMin());
+      String level =
+          cfpFormOptionsService
+              .normalizeLevel(request.level())
+              .orElseThrow(() -> new ValidationException("invalid_level"));
+      String format =
+          cfpFormOptionsService
+              .normalizeFormat(request.format())
+              .orElseThrow(() -> new ValidationException("invalid_format"));
+      String language =
+          cfpFormOptionsService
+              .normalizeLanguage(request.language())
+              .orElseThrow(() -> new ValidationException("invalid_language"));
+      Integer durationMin =
+          cfpFormOptionsService
+              .normalizeDuration(request.durationMin())
+              .orElseThrow(() -> new ValidationException("invalid_duration"));
+      String track =
+          cfpFormOptionsService
+              .normalizeTrack(request.track())
+              .orElseThrow(() -> new ValidationException("invalid_track"));
+
       List<String> tags = sanitizeTags(request.tags(), 10, 30);
+      if (!tags.contains(track)) {
+        List<String> normalizedTags = new ArrayList<>();
+        normalizedTags.add(track);
+        normalizedTags.addAll(tags.stream().filter(item -> !item.equals(track)).toList());
+        tags = normalizedTags;
+      }
+
       List<String> links = sanitizeLinks(request.links(), 5);
       Instant now = Instant.now();
 
@@ -89,6 +114,7 @@ public class CfpSubmissionService {
               format,
               durationMin,
               language,
+              track,
               tags,
               links,
               CfpSubmissionStatus.PENDING,
@@ -182,6 +208,7 @@ public class CfpSubmissionService {
               current.format(),
               current.durationMin(),
               current.language(),
+              current.track(),
               current.tags(),
               current.links(),
               newStatus,
@@ -284,28 +311,6 @@ public class CfpSubmissionService {
     return cleaned.isEmpty() ? null : cleaned;
   }
 
-  private static String sanitizeLanguage(String raw) {
-    String language = sanitizeText(raw, 12);
-    if (language == null) {
-      return null;
-    }
-    String normalized = language.toLowerCase(Locale.ROOT);
-    if (normalized.length() > 8) {
-      normalized = normalized.substring(0, 8);
-    }
-    return normalized;
-  }
-
-  private static Integer sanitizeDuration(Integer raw) {
-    if (raw == null) {
-      return null;
-    }
-    if (raw < 5 || raw > 240) {
-      return null;
-    }
-    return raw;
-  }
-
   private static List<String> sanitizeTags(List<String> rawTags, int maxTags, int maxLength) {
     if (rawTags == null || rawTags.isEmpty() || maxTags <= 0) {
       return List.of();
@@ -398,6 +403,7 @@ public class CfpSubmissionService {
       String format,
       Integer durationMin,
       String language,
+      String track,
       List<String> tags,
       List<String> links) {
   }

@@ -44,18 +44,21 @@ public class CfpSubmissionServiceTest {
                 "The talk shares implementation patterns, anti-patterns and rollout steps.",
                 "intermediate",
                 "talk",
-                40,
+                45,
                 "en",
+                "platform-engineering-idp",
                 java.util.List.of("platform", "devops"),
                 java.util.List.of("https://example.org/slides")));
 
     assertNotNull(created.id());
     assertEquals(CfpSubmissionStatus.PENDING, created.status());
+    assertEquals("platform-engineering-idp", created.track());
 
     CfpSubmission persisted = persistenceService.loadCfpSubmissions().get(created.id());
     assertNotNull(persisted);
     assertEquals(EVENT_ID, persisted.eventId());
     assertEquals("member@example.com", persisted.proposerUserId());
+    assertEquals("platform-engineering-idp", persisted.track());
   }
 
   @Test
@@ -75,8 +78,31 @@ public class CfpSubmissionServiceTest {
                     "talk",
                     30,
                     "en",
+                    "platform-engineering-idp",
                     java.util.List.of("java"),
                     java.util.List.of("https://example.org"))));
+  }
+
+  @Test
+  void createFailsWhenTrackIsInvalid() {
+    assertThrows(
+        CfpSubmissionService.ValidationException.class,
+        () ->
+            cfpSubmissionService.create(
+                "member@example.com",
+                "Member",
+                new CfpSubmissionService.CreateRequest(
+                    EVENT_ID,
+                    "Talk",
+                    "Summary",
+                    "Abstract",
+                    "beginner",
+                    "talk",
+                    30,
+                    "en",
+                    "non-existent-track",
+                    java.util.List.of(),
+                    java.util.List.of())));
   }
 
   @Test
@@ -94,6 +120,7 @@ public class CfpSubmissionServiceTest {
                 "workshop",
                 60,
                 "en",
+                "cloud-native-security",
                 java.util.List.of("sre"),
                 java.util.List.of()));
 
@@ -126,6 +153,7 @@ public class CfpSubmissionServiceTest {
                 "talk",
                 30,
                 "en",
+                "cloud-native-security",
                 java.util.List.of("kubernetes"),
                 java.util.List.of()));
     cfpSubmissionService.updateStatus(
@@ -153,6 +181,7 @@ public class CfpSubmissionServiceTest {
                 "talk",
                 30,
                 "en",
+                "developer-experience-innersource",
                 java.util.List.of("java"),
                 java.util.List.of()));
     cfpSubmissionService.updateStatus(

@@ -63,9 +63,9 @@ public class CfpSubmissionApiResourceTest {
               "abstract_text":"Detailed abstract for platform stories.",
               "level":"intermediate",
               "format":"talk",
-              "duration_min":40,
+              "duration_min":45,
               "language":"en",
-              "tags":["platform","opensource"],
+              "track":"platform-engineering-idp",
               "links":["https://example.org/talk"]
             }
             """)
@@ -74,7 +74,8 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(201)
         .body("item.status", equalTo("pending"))
-        .body("item.event_id", equalTo(EVENT_ID));
+        .body("item.event_id", equalTo(EVENT_ID))
+        .body("item.track", equalTo("platform-engineering-idp"));
 
     given()
         .accept("application/json")
@@ -83,7 +84,33 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(200)
         .body("items", hasSize(1))
-        .body("items[0].title", equalTo("Cloud Native Platform Stories"));
+        .body("items[0].title", equalTo("Cloud Native Platform Stories"))
+        .body("items[0].track", equalTo("platform-engineering-idp"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void createRejectsInvalidControlledValues() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Invalid controlled values",
+              "summary":"Summary",
+              "abstract_text":"Abstract",
+              "level":"any-random-level",
+              "format":"talk",
+              "duration_min":45,
+              "language":"en",
+              "track":"platform-engineering-idp"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(400)
+        .body("error", equalTo("invalid_level"));
   }
 
   @Test
@@ -96,7 +123,12 @@ public class CfpSubmissionApiResourceTest {
             {
               "title":"Talk",
               "summary":"Summary",
-              "abstract_text":"Abstract"
+              "abstract_text":"Abstract",
+              "level":"beginner",
+              "format":"talk",
+              "duration_min":30,
+              "language":"en",
+              "track":"platform-engineering-idp"
             }
             """)
         .when()
@@ -122,6 +154,7 @@ public class CfpSubmissionApiResourceTest {
                 "talk",
                 30,
                 "en",
+                "platform-engineering-idp",
                 List.of("devops"),
                 List.of()));
 
@@ -166,6 +199,7 @@ public class CfpSubmissionApiResourceTest {
                 "talk",
                 45,
                 "en",
+                "ai-agents-copilots",
                 List.of("ai", "platform"),
                 List.of("https://example.org/session")));
 
@@ -212,8 +246,9 @@ public class CfpSubmissionApiResourceTest {
                 "Deep dive abstract",
                 "intermediate",
                 "talk",
-                35,
+                45,
                 "en",
+                "cloud-native-security",
                 List.of("kubernetes"),
                 List.of()));
 
@@ -261,6 +296,7 @@ public class CfpSubmissionApiResourceTest {
                 "talk",
                 30,
                 "en",
+                "developer-experience-innersource",
                 List.of(),
                 List.of()));
 
@@ -288,6 +324,7 @@ public class CfpSubmissionApiResourceTest {
                 "talk",
                 30,
                 "en",
+                "data-ai-platforms-llmops",
                 List.of(),
                 List.of()));
 

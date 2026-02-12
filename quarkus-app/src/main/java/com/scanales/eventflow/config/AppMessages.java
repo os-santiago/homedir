@@ -274,6 +274,12 @@ public interface AppMessages {
     @Message("Language")
     String events_cfp_form_language();
 
+    @Message("Track")
+    String events_cfp_form_track();
+
+    @Message("Select an option")
+    String events_cfp_form_select_placeholder();
+
     @Message("Tags (optional, comma separated)")
     String events_cfp_form_tags();
 

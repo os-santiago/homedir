@@ -1,5 +1,6 @@
 {#include layout/main activePage="eventos"}
 {@java.lang.Boolean userAuthenticated}
+{@com.scanales.eventflow.cfp.CfpFormCatalog cfpCatalog}
 {#title}
 {#if event}
 {i18n.events_cfp_page_title(event.title)}
@@ -43,23 +44,48 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="cfpLevel">{i18n.events_cfp_form_level}</label>
-          <input id="cfpLevel" name="level" class="form-input" maxlength="40" placeholder="beginner, intermediate, advanced">
+          <select id="cfpLevel" name="level" class="form-select" required>
+            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            {#for option in cfpCatalog.levels}
+            <option value="{option.value}">{option.label}</option>
+            {/for}
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label" for="cfpFormat">{i18n.events_cfp_form_format}</label>
-          <input id="cfpFormat" name="format" class="form-input" maxlength="40" placeholder="talk, workshop, panel">
+          <select id="cfpFormat" name="format" class="form-select" required>
+            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            {#for option in cfpCatalog.formats}
+            <option value="{option.value}">{option.label}</option>
+            {/for}
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label" for="cfpDuration">{i18n.events_cfp_form_duration}</label>
-          <input id="cfpDuration" name="durationMin" type="number" min="5" max="240" class="form-input" placeholder="30">
+          <select id="cfpDuration" name="durationMin" class="form-select" required>
+            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            {#for option in cfpCatalog.durations}
+            <option value="{option.value}">{option.label}</option>
+            {/for}
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label" for="cfpLanguage">{i18n.events_cfp_form_language}</label>
-          <input id="cfpLanguage" name="language" class="form-input" maxlength="12" placeholder="en, es">
+          <select id="cfpLanguage" name="language" class="form-select" required>
+            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            {#for option in cfpCatalog.languages}
+            <option value="{option.value}">{option.label}</option>
+            {/for}
+          </select>
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="cfpTags">{i18n.events_cfp_form_tags}</label>
-          <input id="cfpTags" name="tags" class="form-input" placeholder="devops, platform, ai">
+          <label class="form-label" for="cfpTrack">{i18n.events_cfp_form_track}</label>
+          <select id="cfpTrack" name="track" class="form-select" required>
+            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            {#for option in cfpCatalog.tracks}
+            <option value="{option.value}">{option.label}</option>
+            {/for}
+          </select>
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
           <label class="form-label" for="cfpLinks">{i18n.events_cfp_form_links}</label>
@@ -173,6 +199,32 @@
       withdrawn: "{i18n.events_cfp_status_withdrawn}"
     };
 
+    function buildOptionMap(selectId) {
+      const map = new Map();
+      const select = document.getElementById(selectId);
+      if (!select) {
+        return map;
+      }
+      Array.from(select.options || []).forEach((option) => {
+        if (option.value) {
+          map.set(option.value, option.textContent ? option.textContent.trim() : option.value);
+        }
+      });
+      return map;
+    }
+
+    function resolveLabel(map, value) {
+      if (!value) {
+        return "";
+      }
+      return map.get(value) || value;
+    }
+
+    const levelLabels = buildOptionMap("cfpLevel");
+    const formatLabels = buildOptionMap("cfpFormat");
+    const languageLabels = buildOptionMap("cfpLanguage");
+    const trackLabels = buildOptionMap("cfpTrack");
+
     function parseCsvInput(value) {
       if (!value) return [];
       return value
@@ -234,12 +286,18 @@
           article.appendChild(summary);
         }
 
+        const metaParts = [];
+        const created = formatDate(item.created_at);
+        if (created) metaParts.push(created);
+        if (item.level) metaParts.push(resolveLabel(levelLabels, item.level));
+        if (item.format) metaParts.push(resolveLabel(formatLabels, item.format));
+        if (item.duration_min) metaParts.push(item.duration_min + " min");
+        if (item.language) metaParts.push(resolveLabel(languageLabels, item.language));
+        if (item.track) metaParts.push(resolveLabel(trackLabels, item.track));
+
         const meta = document.createElement("p");
         meta.className = "cfp-meta-line";
-        meta.textContent =
-          formatDate(item.created_at) +
-          (item.level ? " · " + item.level : "") +
-          (item.format ? " · " + item.format : "");
+        meta.textContent = metaParts.join(" · ");
         article.appendChild(meta);
 
         mineList.appendChild(article);
@@ -276,7 +334,7 @@
         format: String(formData.get("format") || ""),
         duration_min: Number.isFinite(duration) ? duration : null,
         language: String(formData.get("language") || ""),
-        tags: parseCsvInput(String(formData.get("tags") || "")),
+        track: String(formData.get("track") || ""),
         links: parseCsvInput(String(formData.get("links") || ""))
       };
 
