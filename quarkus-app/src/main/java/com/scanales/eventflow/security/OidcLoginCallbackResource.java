@@ -21,7 +21,7 @@ public class OidcLoginCallbackResource {
   @GET
   @Authenticated
   public Response handle(@QueryParam("redirect") String redirect) {
-    String target = (redirect == null || redirect.isBlank()) ? DEFAULT_REDIRECT : redirect;
+    String target = RedirectSanitizer.sanitizeInternalRedirect(redirect, DEFAULT_REDIRECT);
     return Response.seeOther(URI.create(target)).build();
   }
 }
