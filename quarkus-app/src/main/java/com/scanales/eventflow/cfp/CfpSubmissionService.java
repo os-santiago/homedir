@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -247,10 +248,29 @@ public class CfpSubmissionService {
       if (!isTransitionAllowed(current.status(), newStatus)) {
         throw new InvalidTransitionException("invalid_status_transition");
       }
-      if (current.status() == newStatus) {
+
+      // Allow updating moderation metadata (note/by) even when the status stays the same.
+      // This avoids "notes don't persist" UX when an admin wants to add/edit a note
+      // after setting the status, or without changing it.
+      String normalizedModerator = sanitizeText(moderator, 200);
+      String normalizedNote = sanitizeText(note, 500);
+      // Treat empty/blank note as "no change" to avoid accidental wipeouts.
+      if (normalizedNote == null) {
+        normalizedNote = current.moderationNote();
+      }
+
+      boolean statusChanged = current.status() != newStatus;
+      boolean moderatorChanged = !Objects.equals(normalizedModerator, current.moderatedBy());
+      boolean noteChanged = !Objects.equals(normalizedNote, current.moderationNote());
+      if (!statusChanged && !moderatorChanged && !noteChanged) {
         return current;
       }
+
       Instant now = Instant.now();
+      Instant moderatedAt = current.moderatedAt();
+      if (moderatedAt == null || statusChanged || moderatorChanged || noteChanged) {
+        moderatedAt = now;
+      }
       CfpSubmission updated =
           new CfpSubmission(
               current.id(),
@@ -270,9 +290,9 @@ public class CfpSubmissionService {
               newStatus,
               current.createdAt(),
               now,
-              now,
-              sanitizeText(moderator, 200),
-              sanitizeText(note, 500),
+              moderatedAt,
+              normalizedModerator,
+              normalizedNote,
               current.ratingTechnicalDetail(),
               current.ratingNarrative(),
               current.ratingContentImpact());
@@ -647,4 +667,3 @@ public class CfpSubmissionService {
     }
   }
 }
-
