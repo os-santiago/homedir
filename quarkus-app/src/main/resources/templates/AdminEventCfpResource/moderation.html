@@ -437,6 +437,8 @@ Moderacion CFP · {event.title}
       note.placeholder = "Nota de moderacion (opcional)";
       note.id = "moderation-note-" + item.id;
       note.name = note.id;
+      // Ensure persisted moderation notes are visible after refresh/reload.
+      note.value = item.moderation_note || "";
       article.appendChild(note);
 
       const actions = document.createElement("div");
@@ -606,4 +608,3 @@ Moderacion CFP · {event.title}
 </script>
 {/body}
 {/include}
-

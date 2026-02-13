@@ -160,6 +160,40 @@ public class CfpSubmissionServiceTest {
   }
 
   @Test
+  void updateStatusPersistsModerationNoteEvenWhenStatusIsUnchanged() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "ADev baseline",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    CfpSubmission first =
+        cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+    CfpSubmission updated =
+        cfpSubmissionService.updateStatus(
+            created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "needs more details");
+    CfpSubmission noChange =
+        cfpSubmissionService.updateStatus(
+            created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "   ");
+
+    assertEquals(CfpSubmissionStatus.UNDER_REVIEW, first.status());
+    assertEquals(CfpSubmissionStatus.UNDER_REVIEW, updated.status());
+    assertEquals("needs more details", updated.moderationNote());
+    assertEquals("needs more details", noChange.moderationNote());
+  }
+
+  @Test
   void invalidTransitionIsRejected() {
     CfpSubmission created =
         cfpSubmissionService.create(
