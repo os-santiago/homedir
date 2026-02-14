@@ -104,6 +104,12 @@
             <th>Descartados por capacidad</th>
             <td>{writes.droppedDueCapacity}</td>
           </tr>
+          {#if writes.lastWriteAtMillis > 0}
+          <tr>
+            <th>Última escritura</th>
+            <td>{writes.lastWriteFile} · {writes.lastWriteBytes} bytes · {writes.lastWriteDurationMs} ms · t={writes.lastWriteAtMillis}</td>
+          </tr>
+          {/if}
           {#if writes.lastError}
           <tr>
             <th>Último error</th>
