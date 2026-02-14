@@ -18,11 +18,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.ByteBuffer;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -57,11 +60,26 @@ public class PersistenceService {
   @ConfigProperty(name = "persist.queue.max", defaultValue = "10000")
   int queueMax = 10000;
 
+  // Durability / validation knobs. Defaults are conservative for sync writes,
+  // while async fsync is opt-in to avoid surprising latency until we add write coalescing.
+  @ConfigProperty(name = "persist.verify-json.enabled", defaultValue = "true")
+  boolean verifyJsonEnabled = true;
+
+  @ConfigProperty(name = "persist.fsync.sync.enabled", defaultValue = "true")
+  boolean fsyncSyncEnabled = true;
+
+  @ConfigProperty(name = "persist.fsync.async.enabled", defaultValue = "false")
+  boolean fsyncAsyncEnabled = false;
+
   private final AtomicLong writesOk = new AtomicLong();
   private final AtomicLong writesFail = new AtomicLong();
   private final AtomicLong writesRetries = new AtomicLong();
   private final AtomicLong queueDropped = new AtomicLong();
   private volatile String lastError;
+  private volatile String lastWriteFile;
+  private final AtomicLong lastWriteAtMillis = new AtomicLong();
+  private final AtomicLong lastWriteDurationMs = new AtomicLong();
+  private final AtomicLong lastWriteBytes = new AtomicLong();
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath = "data";
@@ -470,7 +488,11 @@ public class PersistenceService {
       long writesFail,
       long writesRetries,
       long droppedDueCapacity,
-      String lastError) {
+      String lastError,
+      String lastWriteFile,
+      long lastWriteAtMillis,
+      long lastWriteDurationMs,
+      long lastWriteBytes) {
   }
 
   public QueueStats getQueueStats() {
@@ -487,7 +509,11 @@ public class PersistenceService {
         writesFail.get(),
         writesRetries.get(),
         queueDropped.get(),
-        lastError);
+        lastError,
+        lastWriteFile,
+        lastWriteAtMillis.get(),
+        lastWriteDurationMs.get(),
+        lastWriteBytes.get());
   }
 
   // Version tracking for files to prevent stale overwrites and coalesce writes
@@ -549,12 +575,22 @@ public class PersistenceService {
       if (parent != null) {
         Files.createDirectories(parent);
       }
-      Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
+      Path tmpDir = parent != null ? parent : dataDir;
+      Path tmp = Files.createTempFile(tmpDir, file.getFileName().toString(), ".tmp");
+      long start = System.nanoTime();
       try {
-        mapper.writeValue(tmp.toFile(), data);
+        long bytes = writeJsonToTemp(tmp, data, fsyncAsyncEnabled);
         moveWithFallback(tmp, file);
         maybeBackupCfpSubmissions(file);
-        LOG.infof("Persisted %s at %s (v%d)", file.getFileName(), java.time.Instant.now(), version);
+        long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+        recordWriteSuccess(file, bytes, durationMs);
+        LOG.infof(
+            "Persisted %s at %s (v%d, bytes=%d, durationMs=%d)",
+            file.getFileName(),
+            java.time.Instant.now(),
+            version,
+            bytes,
+            durationMs);
         writesOk.incrementAndGet();
         lastError = null;
       } finally {
@@ -598,12 +634,21 @@ public class PersistenceService {
       if (parent != null) {
         Files.createDirectories(parent);
       }
-      Path tmp = Files.createTempFile(dataDir, file.getFileName().toString(), ".tmp");
+      Path tmpDir = parent != null ? parent : dataDir;
+      Path tmp = Files.createTempFile(tmpDir, file.getFileName().toString(), ".tmp");
+      long start = System.nanoTime();
       try {
-        mapper.writeValue(tmp.toFile(), data);
+        long bytes = writeJsonToTemp(tmp, data, fsyncSyncEnabled);
         moveWithFallback(tmp, file);
         maybeBackupCfpSubmissions(file);
-        LOG.infof("Persisted %s at %s (sync)", file.getFileName(), java.time.Instant.now());
+        long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+        recordWriteSuccess(file, bytes, durationMs);
+        LOG.infof(
+            "Persisted %s at %s (sync, bytes=%d, durationMs=%d)",
+            file.getFileName(),
+            java.time.Instant.now(),
+            bytes,
+            durationMs);
         writesOk.incrementAndGet();
         lastError = null;
       } finally {
@@ -648,6 +693,29 @@ public class PersistenceService {
     } catch (AtomicMoveNotSupportedException e) {
       Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
     }
+  }
+
+  private long writeJsonToTemp(Path tmp, Object data, boolean fsync) throws IOException {
+    byte[] payload = mapper.writeValueAsBytes(data);
+    if (verifyJsonEnabled) {
+      // Ensures we never persist invalid JSON even if the filesystem write succeeds.
+      mapper.readTree(payload);
+    }
+    try (FileChannel channel =
+        FileChannel.open(tmp, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+      channel.write(ByteBuffer.wrap(payload));
+      if (fsync) {
+        channel.force(true);
+      }
+    }
+    return payload.length;
+  }
+
+  private void recordWriteSuccess(Path file, long bytes, long durationMs) {
+    lastWriteFile = file.getFileName() == null ? file.toString() : file.getFileName().toString();
+    lastWriteAtMillis.set(System.currentTimeMillis());
+    lastWriteDurationMs.set(Math.max(0L, durationMs));
+    lastWriteBytes.set(bytes);
   }
 
   private static class QueueItem implements Runnable {
@@ -873,4 +941,3 @@ public class PersistenceService {
     return dataDir.resolve(SCHEDULE_FILE_PREFIX + year + SCHEDULE_FILE_SUFFIX);
   }
 }
-
