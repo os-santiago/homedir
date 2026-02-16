@@ -101,6 +101,10 @@
             <td>OK: {writes.writesOk} · Fallos: {writes.writesFail} · Reintentos: {writes.writesRetries}</td>
           </tr>
           <tr>
+            <th>Coalescing</th>
+            <td>Coalescidas: {writes.writesCoalesced} · Bypass: {writes.writesCoalesceBypassed}</td>
+          </tr>
+          <tr>
             <th>Descartados por capacidad</th>
             <td>{writes.droppedDueCapacity}</td>
           </tr>

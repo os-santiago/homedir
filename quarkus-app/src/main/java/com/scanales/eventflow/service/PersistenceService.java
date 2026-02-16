@@ -60,6 +60,12 @@ public class PersistenceService {
   @ConfigProperty(name = "persist.queue.max", defaultValue = "10000")
   int queueMax = 10000;
 
+  @ConfigProperty(name = "persist.coalesce.window-ms", defaultValue = "350")
+  long writeCoalesceWindowMs = 350L;
+
+  @ConfigProperty(name = "persist.coalesce.max-pending-files", defaultValue = "4096")
+  int writeCoalesceMaxPendingFiles = 4096;
+
   // Durability / validation knobs. Defaults are conservative for sync writes,
   // while async fsync is opt-in to avoid surprising latency until we add write coalescing.
   @ConfigProperty(name = "persist.verify-json.enabled", defaultValue = "true")
@@ -74,6 +80,8 @@ public class PersistenceService {
   private final AtomicLong writesOk = new AtomicLong();
   private final AtomicLong writesFail = new AtomicLong();
   private final AtomicLong writesRetries = new AtomicLong();
+  private final AtomicLong writesCoalesced = new AtomicLong();
+  private final AtomicLong writesCoalesceBypassed = new AtomicLong();
   private final AtomicLong queueDropped = new AtomicLong();
   private volatile String lastError;
   private volatile String lastWriteFile;
@@ -487,6 +495,8 @@ public class PersistenceService {
       long writesOk,
       long writesFail,
       long writesRetries,
+      long writesCoalesced,
+      long writesCoalesceBypassed,
       long droppedDueCapacity,
       String lastError,
       String lastWriteFile,
@@ -508,6 +518,8 @@ public class PersistenceService {
         writesOk.get(),
         writesFail.get(),
         writesRetries.get(),
+        writesCoalesced.get(),
+        writesCoalesceBypassed.get(),
         queueDropped.get(),
         lastError,
         lastWriteFile,
@@ -518,11 +530,42 @@ public class PersistenceService {
 
   // Version tracking for files to prevent stale overwrites and coalesce writes
   private final ConcurrentHashMap<Path, AtomicLong> fileVersions = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Path, PendingWrite> pendingWrites = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Path, ScheduledFuture<?>> debounceFutures = new ConcurrentHashMap<>();
 
   private void scheduleWrite(Path file, Object data) {
     AtomicLong versionCounter = fileVersions.computeIfAbsent(file, k -> new AtomicLong(0));
     long version = versionCounter.incrementAndGet();
-    scheduleWriteAttempt(file, data, version, 1, INITIAL_RETRY_BACKOFF_MS);
+    PendingWrite pending = new PendingWrite(data, version);
+    PendingWrite previous = pendingWrites.put(file, pending);
+    if (previous != null) {
+      writesCoalesced.incrementAndGet();
+    }
+
+    if (writeCoalesceWindowMs <= 0L) {
+      pendingWrites.remove(file, pending);
+      cancelDebounceFuture(file);
+      scheduleWriteAttempt(file, data, version, 1, INITIAL_RETRY_BACKOFF_MS);
+      return;
+    }
+
+    if (writeCoalesceMaxPendingFiles > 0
+        && pendingWrites.size() > writeCoalesceMaxPendingFiles
+        && previous == null) {
+      // Backpressure: do not let pending debounced state grow unbounded by file key.
+      writesCoalesceBypassed.incrementAndGet();
+      pendingWrites.remove(file, pending);
+      cancelDebounceFuture(file);
+      scheduleWriteAttempt(file, data, version, 1, INITIAL_RETRY_BACKOFF_MS);
+      return;
+    }
+
+    ScheduledFuture<?> future =
+        retryScheduler.schedule(() -> dispatchDebouncedWrite(file, version), writeCoalesceWindowMs, TimeUnit.MILLISECONDS);
+    ScheduledFuture<?> previousFuture = debounceFutures.put(file, future);
+    if (previousFuture != null && !previousFuture.isDone()) {
+      previousFuture.cancel(false);
+    }
   }
 
   private void scheduleWriteAttempt(
@@ -687,6 +730,46 @@ public class PersistenceService {
     }
   }
 
+  private void dispatchDebouncedWrite(Path file, long version) {
+    PendingWrite pending = pendingWrites.get(file);
+    if (pending == null || pending.version != version) {
+      return;
+    }
+    if (!pendingWrites.remove(file, pending)) {
+      return;
+    }
+    ScheduledFuture<?> current = debounceFutures.get(file);
+    if (current != null && (current.isDone() || current.isCancelled())) {
+      debounceFutures.remove(file, current);
+    }
+    scheduleWriteAttempt(file, pending.data, pending.version, 1, INITIAL_RETRY_BACKOFF_MS);
+  }
+
+  private void cancelDebounceFuture(Path file) {
+    ScheduledFuture<?> previousFuture = debounceFutures.remove(file);
+    if (previousFuture != null && !previousFuture.isDone()) {
+      previousFuture.cancel(false);
+    }
+  }
+
+  private void flushDebouncedWritesNow() {
+    if (pendingWrites.isEmpty()) {
+      return;
+    }
+    for (Map.Entry<Path, PendingWrite> entry : pendingWrites.entrySet()) {
+      Path file = entry.getKey();
+      PendingWrite pending = entry.getValue();
+      if (pending == null) {
+        continue;
+      }
+      if (!pendingWrites.remove(file, pending)) {
+        continue;
+      }
+      cancelDebounceFuture(file);
+      scheduleWriteAttempt(file, pending.data, pending.version, 1, INITIAL_RETRY_BACKOFF_MS);
+    }
+  }
+
   private static void moveWithFallback(Path source, Path target) throws IOException {
     try {
       Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
@@ -730,6 +813,16 @@ public class PersistenceService {
     @Override
     public void run() {
       task.run();
+    }
+  }
+
+  private static final class PendingWrite {
+    final Object data;
+    final long version;
+
+    private PendingWrite(Object data, long version) {
+      this.data = data;
+      this.version = version;
     }
   }
 
@@ -901,6 +994,7 @@ public class PersistenceService {
     if (executor == null || retryScheduler == null) {
       return;
     }
+    flushDebouncedWritesNow();
     long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(FLUSH_TIMEOUT_MS);
     while (System.nanoTime() < deadlineNanos) {
       if (executor.isShutdown()) {
@@ -919,7 +1013,7 @@ public class PersistenceService {
         // keep trying until deadline
       }
 
-      if (queue.isEmpty() && executor.getActiveCount() == 0 && scheduledRetries.get() == 0) {
+      if (pendingWrites.isEmpty() && queue.isEmpty() && executor.getActiveCount() == 0 && scheduledRetries.get() == 0) {
         return;
       }
 
@@ -931,7 +1025,8 @@ public class PersistenceService {
       }
     }
     LOG.warnf(
-        "persistence_flush_timeout depth=%d active=%d pendingRetries=%d",
+        "persistence_flush_timeout pendingWrites=%d depth=%d active=%d pendingRetries=%d",
+        pendingWrites.size(),
         queue.size(),
         executor.getActiveCount(),
         scheduledRetries.get());
