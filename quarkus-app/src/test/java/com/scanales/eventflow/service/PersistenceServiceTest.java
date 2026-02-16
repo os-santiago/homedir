@@ -67,6 +67,34 @@ public class PersistenceServiceTest {
   }
 
   @Test
+  void flushDrainsDebouncedPendingWrites() {
+    service = newService();
+    service.writeCoalesceWindowMs = 5_000L;
+
+    service.saveEvents(Map.of("event-1", event("event-1", "Debounced title")));
+    service.flush();
+
+    Map<String, Event> persisted = service.loadEvents();
+    assertEquals("Debounced title", persisted.get("event-1").getTitle());
+  }
+
+  @Test
+  void rapidWritesAreCoalescedPerFile() {
+    service = newService();
+    service.writeCoalesceWindowMs = 400L;
+
+    for (int i = 0; i < 10; i++) {
+      service.saveEvents(Map.of("event-1", event("event-1", "Title " + i)));
+    }
+    service.flush();
+
+    Map<String, Event> persisted = service.loadEvents();
+    assertEquals("Title 9", persisted.get("event-1").getTitle());
+    assertTrue(service.getQueueStats().writesCoalesced() >= 9);
+    assertEquals(1, service.getQueueStats().writesOk());
+  }
+
+  @Test
   void cfpSyncSaveCreatesBackupSnapshot() {
     service = newService();
 
