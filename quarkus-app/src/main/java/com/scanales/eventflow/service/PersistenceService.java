@@ -101,10 +101,13 @@ public class PersistenceService {
   private Path cfpSubmissionsFile;
   private Path cfpConfigFile;
   private Path cfpBackupsDir;
+  private Path cfpWalFile;
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
   private static final String SCHEDULE_FILE_SUFFIX = ".json";
   private static final String CFP_BACKUP_PREFIX = "cfp-submissions-";
   private static final String CFP_BACKUP_SUFFIX = ".json";
+  private static final String CFP_WAL_FILE_NAME = "cfp-submissions.wal";
+  private static final int CFP_WAL_RECORD_HEADER_BYTES = Integer.BYTES;
   private static final DateTimeFormatter CFP_BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
   private volatile boolean lowDiskSpace;
@@ -123,7 +126,19 @@ public class PersistenceService {
   @ConfigProperty(name = "cfp.persistence.backups.min-interval-ms", defaultValue = "300000")
   long cfpBackupsMinIntervalMs = 300_000L;
 
+  @ConfigProperty(name = "cfp.persistence.wal.enabled", defaultValue = "true")
+  boolean cfpWalEnabled = true;
+
+  @ConfigProperty(name = "cfp.persistence.wal.fsync.enabled", defaultValue = "true")
+  boolean cfpWalFsyncEnabled = true;
+
+  @ConfigProperty(name = "cfp.persistence.wal.max-bytes", defaultValue = "10485760")
+  long cfpWalMaxBytes = 10L * 1024L * 1024L;
+
   private final AtomicLong lastCfpBackupAtMillis = new AtomicLong(0L);
+  private final AtomicLong cfpWalAppends = new AtomicLong();
+  private final AtomicLong cfpWalCompactions = new AtomicLong();
+  private final AtomicLong cfpWalRecoveries = new AtomicLong();
 
   @PostConstruct
   void init() {
@@ -147,6 +162,7 @@ public class PersistenceService {
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
     cfpConfigFile = dataDir.resolve("cfp-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
+    cfpWalFile = dataDir.resolve(CFP_WAL_FILE_NAME);
 
     try {
       Files.createDirectories(dataDir);
@@ -623,6 +639,7 @@ public class PersistenceService {
       long start = System.nanoTime();
       try {
         long bytes = writeJsonToTemp(tmp, data, fsyncAsyncEnabled);
+        appendCfpWalIfNeeded(file, data);
         moveWithFallback(tmp, file);
         maybeBackupCfpSubmissions(file);
         long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
@@ -682,6 +699,7 @@ public class PersistenceService {
       long start = System.nanoTime();
       try {
         long bytes = writeJsonToTemp(tmp, data, fsyncSyncEnabled);
+        appendCfpWalIfNeeded(file, data);
         moveWithFallback(tmp, file);
         maybeBackupCfpSubmissions(file);
         long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
@@ -794,6 +812,102 @@ public class PersistenceService {
     return payload.length;
   }
 
+  private void appendCfpWalIfNeeded(Path file, Object data) throws IOException {
+    if (!cfpWalEnabled || !file.equals(cfpSubmissionsFile)) {
+      return;
+    }
+    Map<String, CfpSubmission> snapshot = normalizeCfpSnapshot(data);
+    if (snapshot == null) {
+      return;
+    }
+    appendCfpWalSnapshot(snapshot);
+  }
+
+  private Map<String, CfpSubmission> normalizeCfpSnapshot(Object data) {
+    if (!(data instanceof Map<?, ?> raw)) {
+      return null;
+    }
+    java.util.LinkedHashMap<String, CfpSubmission> normalized = new java.util.LinkedHashMap<>();
+    for (Map.Entry<?, ?> entry : raw.entrySet()) {
+      if (!(entry.getKey() instanceof String key) || !(entry.getValue() instanceof CfpSubmission submission)) {
+        return null;
+      }
+      normalized.put(key, submission);
+    }
+    return normalized;
+  }
+
+  private void appendCfpWalSnapshot(Map<String, CfpSubmission> snapshot) throws IOException {
+    Path parent = cfpWalFile.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
+    byte[] payload = mapper.writeValueAsBytes(snapshot);
+    if (verifyJsonEnabled) {
+      mapper.readTree(payload);
+    }
+    try (FileChannel channel =
+        FileChannel.open(cfpWalFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+      writeFully(channel, intToBytes(payload.length));
+      writeFully(channel, ByteBuffer.wrap(payload));
+      if (cfpWalFsyncEnabled) {
+        channel.force(true);
+      }
+    }
+    cfpWalAppends.incrementAndGet();
+    maybeCompactCfpWal(snapshot);
+  }
+
+  private void maybeCompactCfpWal(Map<String, CfpSubmission> latestSnapshot) throws IOException {
+    long maxBytes = Math.max(1024L, cfpWalMaxBytes);
+    long size = fileSize(cfpWalFile);
+    if (size <= 0L || size <= maxBytes) {
+      return;
+    }
+    compactCfpWalToSnapshot(latestSnapshot);
+  }
+
+  private void compactCfpWalToSnapshot(Map<String, CfpSubmission> snapshot) throws IOException {
+    Path parent = cfpWalFile.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
+    Path tmp = Files.createTempFile(parent != null ? parent : dataDir, CFP_WAL_FILE_NAME, ".tmp");
+    byte[] payload = mapper.writeValueAsBytes(snapshot);
+    try {
+      try (FileChannel channel =
+          FileChannel.open(tmp, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        writeFully(channel, intToBytes(payload.length));
+        writeFully(channel, ByteBuffer.wrap(payload));
+        if (cfpWalFsyncEnabled) {
+          channel.force(true);
+        }
+      }
+      moveWithFallback(tmp, cfpWalFile);
+      cfpWalCompactions.incrementAndGet();
+      LOG.infof("Compacted CFP WAL to latest snapshot (%d bytes)", payload.length);
+    } finally {
+      try {
+        Files.deleteIfExists(tmp);
+      } catch (IOException ignore) {
+        // ignore cleanup errors
+      }
+    }
+  }
+
+  private static void writeFully(FileChannel channel, ByteBuffer buffer) throws IOException {
+    while (buffer.hasRemaining()) {
+      channel.write(buffer);
+    }
+  }
+
+  private static ByteBuffer intToBytes(int value) {
+    ByteBuffer header = ByteBuffer.allocate(CFP_WAL_RECORD_HEADER_BYTES);
+    header.putInt(value);
+    header.flip();
+    return header;
+  }
+
   private void recordWriteSuccess(Path file, long bytes, long durationMs) {
     lastWriteFile = file.getFileName() == null ? file.toString() : file.getFileName().toString();
     lastWriteAtMillis.set(System.currentTimeMillis());
@@ -830,6 +944,10 @@ public class PersistenceService {
     TypeReference<Map<String, CfpSubmission>> type = new TypeReference<Map<String, CfpSubmission>>() {
     };
     if (!Files.exists(cfpSubmissionsFile)) {
+      Map<String, CfpSubmission> walRecovered = recoverCfpFromWal(type, "primary_missing");
+      if (walRecovered != null) {
+        return walRecovered;
+      }
       Map<String, CfpSubmission> recovered = recoverCfpFromBackups(type, "primary_missing");
       if (recovered != null) {
         return recovered;
@@ -844,6 +962,10 @@ public class PersistenceService {
     } catch (IOException e) {
       LOG.error("Failed to read " + cfpSubmissionsFile.toAbsolutePath(), e);
       quarantineCorruptedCfpPrimary();
+      Map<String, CfpSubmission> walRecovered = recoverCfpFromWal(type, "primary_corrupted");
+      if (walRecovered != null) {
+        return walRecovered;
+      }
       Map<String, CfpSubmission> recovered = recoverCfpFromBackups(type, "primary_corrupted");
       if (recovered != null) {
         return recovered;
@@ -883,6 +1005,59 @@ public class PersistenceService {
       LOG.error("Failed to inspect CFP backup snapshots", e);
     }
     return null;
+  }
+
+  private Map<String, CfpSubmission> recoverCfpFromWal(
+      TypeReference<Map<String, CfpSubmission>> type, String reason) {
+    if (!cfpWalEnabled || cfpWalFile == null || !Files.exists(cfpWalFile)) {
+      return null;
+    }
+    try {
+      byte[] walBytes = Files.readAllBytes(cfpWalFile);
+      if (walBytes.length < CFP_WAL_RECORD_HEADER_BYTES) {
+        return null;
+      }
+      ByteBuffer buffer = ByteBuffer.wrap(walBytes);
+      Map<String, CfpSubmission> latest = null;
+      int records = 0;
+      int valid = 0;
+      while (buffer.remaining() >= CFP_WAL_RECORD_HEADER_BYTES) {
+        int length = buffer.getInt();
+        records += 1;
+        if (length <= 0 || length > buffer.remaining()) {
+          // likely tail truncation due abrupt stop; keep latest valid frame
+          break;
+        }
+        byte[] payload = new byte[length];
+        buffer.get(payload);
+        try {
+          Map<String, CfpSubmission> parsed = mapper.readValue(payload, type);
+          if (parsed != null) {
+            latest = parsed;
+            valid += 1;
+          }
+        } catch (Exception ignored) {
+          // ignore a bad frame and keep scanning for a later valid one
+        }
+      }
+      if (latest == null) {
+        return null;
+      }
+      LOG.warnf(
+          "Recovered CFP submissions from WAL %s (%d items, reason=%s, records=%d, valid=%d)",
+          cfpWalFile.toAbsolutePath(),
+          latest.size(),
+          reason,
+          records,
+          valid);
+      cfpWalRecoveries.incrementAndGet();
+      compactCfpWalToSnapshot(latest);
+      writeSync(cfpSubmissionsFile, latest);
+      return new ConcurrentHashMap<>(latest);
+    } catch (IOException e) {
+      LOG.warn("Failed to recover CFP submissions from WAL", e);
+      return null;
+    }
   }
 
   private void maybeBackupCfpSubmissions(Path file) {

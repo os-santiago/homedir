@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Event;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -138,6 +139,52 @@ public class PersistenceServiceTest {
     assertFalse(current.contains("corrupted-json"));
   }
 
+  @Test
+  void cfpSyncSaveWritesWalFrame() throws Exception {
+    service = newService();
+    service.cfpBackupsEnabled = false;
+
+    service.saveCfpSubmissionsSync(Map.of("cfp-1", cfp("cfp-1", "WAL baseline")));
+
+    Path wal = tempDir.resolve("cfp-submissions.wal");
+    assertTrue(Files.exists(wal));
+    assertTrue(Files.size(wal) > 0);
+    assertEquals(1, walFrameCount(wal));
+  }
+
+  @Test
+  void cfpLoadRecoversFromWalWhenPrimaryIsMissing() throws Exception {
+    service = newService();
+    service.cfpBackupsEnabled = false;
+
+    CfpSubmission first = cfp("cfp-1", "Recover from WAL");
+    service.saveCfpSubmissionsSync(Map.of(first.id(), first));
+
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    assertTrue(Files.exists(primary));
+    Files.delete(primary);
+
+    Map<String, CfpSubmission> recovered = service.loadCfpSubmissions();
+    assertEquals(1, recovered.size());
+    assertNotNull(recovered.get(first.id()));
+    assertTrue(Files.exists(primary));
+  }
+
+  @Test
+  void cfpWalCompactsToSingleFrameWhenExceedingMaxBytes() throws Exception {
+    service = newService();
+    service.cfpBackupsEnabled = false;
+    service.cfpWalMaxBytes = 128L;
+
+    for (int i = 0; i < 5; i++) {
+      service.saveCfpSubmissionsSync(Map.of("cfp-1", cfp("cfp-1", "Compaction " + i)));
+    }
+
+    Path wal = tempDir.resolve("cfp-submissions.wal");
+    assertTrue(Files.exists(wal));
+    assertEquals(1, walFrameCount(wal));
+  }
+
   private PersistenceService newService() {
     System.setProperty("homedir.data.dir", tempDir.toString());
     PersistenceService ps = new PersistenceService();
@@ -188,5 +235,22 @@ public class PersistenceServiceTest {
     }
     return false;
   }
-}
 
+  private int walFrameCount(Path walPath) throws Exception {
+    byte[] data = Files.readAllBytes(walPath);
+    if (data.length < Integer.BYTES) {
+      return 0;
+    }
+    ByteBuffer buffer = ByteBuffer.wrap(data);
+    int frames = 0;
+    while (buffer.remaining() >= Integer.BYTES) {
+      int length = buffer.getInt();
+      if (length <= 0 || length > buffer.remaining()) {
+        break;
+      }
+      buffer.position(buffer.position() + length);
+      frames += 1;
+    }
+    return frames;
+  }
+}
