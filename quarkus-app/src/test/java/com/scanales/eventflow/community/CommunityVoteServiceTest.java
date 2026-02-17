@@ -1,6 +1,7 @@
 package com.scanales.eventflow.community;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -34,5 +35,21 @@ public class CommunityVoteServiceTest {
     assertEquals(0L, aggregate.notForMe());
     assertEquals(CommunityVoteType.MUST_SEE, aggregate.myVote());
   }
-}
 
+  @Test
+  void anonymousAggregatesReflectLatestVotesAfterUpsert() {
+    String contentId = "item-cache-1";
+
+    voteService.upsertVote("a@example.com", contentId, CommunityVoteType.RECOMMENDED);
+    CommunityVoteAggregate first = voteService.getAggregates(List.of(contentId), null).get(contentId);
+    assertNotNull(first);
+    assertEquals(1L, first.recommended());
+    assertEquals(0L, first.mustSee());
+
+    voteService.upsertVote("b@example.com", contentId, CommunityVoteType.MUST_SEE);
+    CommunityVoteAggregate second = voteService.getAggregates(List.of(contentId), null).get(contentId);
+    assertNotNull(second);
+    assertEquals(1L, second.recommended());
+    assertEquals(1L, second.mustSee());
+  }
+}

@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -20,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -36,7 +38,12 @@ public class CommunityVoteService {
   @ConfigProperty(name = "community.votes.daily-limit", defaultValue = "100")
   int dailyLimit;
 
+  @ConfigProperty(name = "community.votes.aggregate-cache-ttl", defaultValue = "PT10S")
+  Duration aggregateCacheTtl;
+
   private String jdbcUrl;
+  private final AtomicReference<AggregateCacheSnapshot> aggregateCache =
+      new AtomicReference<>(AggregateCacheSnapshot.empty());
 
   @PostConstruct
   void init() {
@@ -84,6 +91,7 @@ public class CommunityVoteService {
           }
         }
         conn.commit();
+        invalidateAggregateCache();
       } catch (RateLimitExceededException e) {
         conn.rollback();
         throw e;
@@ -108,50 +116,11 @@ public class CommunityVoteService {
     if (builders.isEmpty()) {
       return Map.of();
     }
-    try (Connection conn = connection()) {
-      String inClause = inClause(builders.size());
-      try (PreparedStatement ps =
-          conn.prepareStatement(
-              "SELECT content_id, vote, COUNT(*) AS total "
-                  + "FROM content_vote WHERE content_id IN ("
-                  + inClause
-                  + ") GROUP BY content_id, vote")) {
-        bindIds(ps, builders.keySet());
-        try (ResultSet rs = ps.executeQuery()) {
-          while (rs.next()) {
-            String contentId = rs.getString("content_id");
-            String vote = rs.getString("vote");
-            long total = rs.getLong("total");
-            AggregateBuilder builder = builders.get(contentId);
-            if (builder != null) {
-              builder.addCount(vote, total);
-            }
-          }
-        }
-      }
+    try {
+      Map<String, CommunityVoteAggregate> out = cachedCountsForIds(builders.keySet());
       if (userId != null && !userId.isBlank()) {
-        try (PreparedStatement ps =
-            conn.prepareStatement(
-                "SELECT content_id, vote FROM content_vote WHERE user_id = ? AND content_id IN ("
-                    + inClause(builders.size())
-                    + ")")) {
-          ps.setString(1, userId);
-          bindIds(ps, builders.keySet(), 2);
-          try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-              String contentId = rs.getString("content_id");
-              String rawVote = rs.getString("vote");
-              AggregateBuilder builder = builders.get(contentId);
-              if (builder != null) {
-                CommunityVoteType.fromApi(rawVote.toLowerCase(Locale.ROOT))
-                    .ifPresent(builder::setMyVote);
-              }
-            }
-          }
-        }
+        attachMyVotes(out, userId);
       }
-      Map<String, CommunityVoteAggregate> out = new HashMap<>();
-      builders.forEach((id, b) -> out.put(id, b.toAggregate()));
       return out;
     } catch (Exception e) {
       LOG.error("Unable to read vote aggregates", e);
@@ -165,9 +134,96 @@ public class CommunityVoteService {
     try (Connection conn = connection();
         PreparedStatement ps = conn.prepareStatement("DELETE FROM content_vote")) {
       ps.executeUpdate();
+      invalidateAggregateCache();
     } catch (SQLException e) {
       throw new IllegalStateException("Unable to clear votes", e);
     }
+  }
+
+  private Map<String, CommunityVoteAggregate> cachedCountsForIds(Collection<String> contentIds)
+      throws SQLException {
+    AggregateCacheSnapshot snapshot = aggregateCache.get();
+    Instant now = Instant.now();
+    if (snapshot.loadedAt() == null || now.isAfter(snapshot.loadedAt().plus(aggregateCacheTtl))) {
+      snapshot = refreshAggregateCache(now);
+    }
+    Map<String, CommunityVoteAggregate> out = new HashMap<>();
+    for (String id : contentIds) {
+      AggregateCounts counts = snapshot.countsById().get(id);
+      if (counts == null) {
+        out.put(id, CommunityVoteAggregate.empty());
+      } else {
+        out.put(
+            id,
+            new CommunityVoteAggregate(
+                counts.recommended(),
+                counts.mustSee(),
+                counts.notForMe(),
+                null));
+      }
+    }
+    return out;
+  }
+
+  private AggregateCacheSnapshot refreshAggregateCache(Instant loadedAt) throws SQLException {
+    Map<String, AggregateBuilder> builders = new HashMap<>();
+    try (Connection conn = connection();
+        PreparedStatement ps =
+            conn.prepareStatement(
+                "SELECT content_id, vote, COUNT(*) AS total "
+                    + "FROM content_vote GROUP BY content_id, vote");
+        ResultSet rs = ps.executeQuery()) {
+      while (rs.next()) {
+        String contentId = rs.getString("content_id");
+        AggregateBuilder builder = builders.computeIfAbsent(contentId, key -> new AggregateBuilder());
+        builder.addCount(rs.getString("vote"), rs.getLong("total"));
+      }
+    }
+    Map<String, AggregateCounts> counts = new HashMap<>();
+    builders.forEach(
+        (id, builder) ->
+            counts.put(id, new AggregateCounts(builder.recommended, builder.mustSee, builder.notForMe)));
+    AggregateCacheSnapshot refreshed = new AggregateCacheSnapshot(Map.copyOf(counts), loadedAt);
+    aggregateCache.set(refreshed);
+    return refreshed;
+  }
+
+  private void attachMyVotes(Map<String, CommunityVoteAggregate> aggregates, String userId)
+      throws SQLException {
+    if (aggregates.isEmpty()) {
+      return;
+    }
+    try (Connection conn = connection();
+        PreparedStatement ps =
+            conn.prepareStatement(
+                "SELECT content_id, vote FROM content_vote WHERE user_id = ? AND content_id IN ("
+                    + inClause(aggregates.size())
+                    + ")")) {
+      ps.setString(1, userId);
+      bindIds(ps, aggregates.keySet(), 2);
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          String contentId = rs.getString("content_id");
+          String rawVote = rs.getString("vote");
+          CommunityVoteType parsed = CommunityVoteType.fromApi(rawVote.toLowerCase(Locale.ROOT)).orElse(null);
+          if (parsed == null) {
+            continue;
+          }
+          CommunityVoteAggregate base = aggregates.getOrDefault(contentId, CommunityVoteAggregate.empty());
+          aggregates.put(
+              contentId,
+              new CommunityVoteAggregate(
+                  base.recommended(),
+                  base.mustSee(),
+                  base.notForMe(),
+                  parsed));
+        }
+      }
+    }
+  }
+
+  private void invalidateAggregateCache() {
+    aggregateCache.set(AggregateCacheSnapshot.empty());
   }
 
   private Path resolveDbPath() {
@@ -272,7 +328,6 @@ public class CommunityVoteService {
     long recommended;
     long mustSee;
     long notForMe;
-    CommunityVoteType myVote;
 
     void addCount(String rawVote, long total) {
       if (rawVote == null) {
@@ -287,12 +342,14 @@ public class CommunityVoteService {
       }
     }
 
-    void setMyVote(CommunityVoteType voteType) {
-      myVote = voteType;
-    }
+  }
 
-    CommunityVoteAggregate toAggregate() {
-      return new CommunityVoteAggregate(recommended, mustSee, notForMe, myVote);
+  private record AggregateCounts(long recommended, long mustSee, long notForMe) {
+  }
+
+  private record AggregateCacheSnapshot(Map<String, AggregateCounts> countsById, Instant loadedAt) {
+    static AggregateCacheSnapshot empty() {
+      return new AggregateCacheSnapshot(Map.of(), null);
     }
   }
 
