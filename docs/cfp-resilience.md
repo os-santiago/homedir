@@ -41,6 +41,11 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
   - backup validation counters (`backup_valid_count`, `backup_invalid_count`, `backup_missing_checksum_count`, `latest_backup_valid`)
   - WAL status and counters (`wal_enabled`, `wal_size_bytes`, `wal_appends`, `wal_compactions`, `wal_recoveries`)
   - checksum status and counters (`checksum_enabled`, `checksum_required`, `checksum_mismatches`, `checksum_hydrations`)
+- `POST /api/events/{eventId}/cfp/submissions/storage/repair?dry_run=true|false` (admin-only):
+  - scans primary + backup snapshots
+  - repairs checksum-missing snapshots
+  - quarantines corrupted backups (`*.corrupt-<timestamp>.json`)
+  - supports dry-run mode for safe audits before mutating files
 
 ## Configuration
 
@@ -65,6 +70,7 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 - PR5: checksum-based CFP integrity guard + auto-hydration and recovery fallback. (implemented)
 - PR6: admin storage telemetry expanded with WAL/checksum counters for live operational verification. (implemented)
 - PR7: storage telemetry now validates primary/backups and reports backup integrity counters. (implemented)
+- PR8: admin storage repair endpoint with dry-run/execute modes for checksum hydration + corrupted backup quarantine. (implemented)
 
 ## Restore validation checklist
 
