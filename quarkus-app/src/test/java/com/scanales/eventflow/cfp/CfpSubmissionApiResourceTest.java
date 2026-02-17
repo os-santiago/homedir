@@ -563,6 +563,18 @@ public class CfpSubmissionApiResourceTest {
   }
 
   @Test
+  @TestSecurity(user = "member@example.com")
+  void nonAdminCannotRunStorageRepair() {
+    given()
+        .accept("application/json")
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions/storage/repair?dry_run=true")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
+  }
+
+  @Test
   @TestSecurity(user = "admin@example.org")
   void adminCanReadStorageStatus() {
     given()
@@ -585,6 +597,23 @@ public class CfpSubmissionApiResourceTest {
         .body("checksum_required", org.hamcrest.Matchers.notNullValue())
         .body("checksum_mismatches", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
         .body("checksum_hydrations", org.hamcrest.Matchers.greaterThanOrEqualTo(0));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanRunStorageRepairDryRun() {
+    given()
+        .accept("application/json")
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions/storage/repair?dry_run=true")
+        .then()
+        .statusCode(200)
+        .body("dry_run", equalTo(true))
+        .body("backups_scanned", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("backups_valid", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("backups_needing_repair", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("backups_quarantine_candidates", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("errors", org.hamcrest.Matchers.greaterThanOrEqualTo(0));
   }
 
   @Test

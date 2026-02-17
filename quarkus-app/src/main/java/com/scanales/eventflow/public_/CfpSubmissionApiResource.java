@@ -158,6 +158,37 @@ public class CfpSubmissionApiResource {
         .build();
   }
 
+  @POST
+  @Path("/storage/repair")
+  @Authenticated
+  public Response repairStorage(
+      @PathParam("eventId") String eventId,
+      @QueryParam("dry_run") Boolean dryRunSnake,
+      @QueryParam("dryRun") Boolean dryRunCamel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    boolean dryRun = dryRunSnake != null ? dryRunSnake : (dryRunCamel != null ? dryRunCamel : true);
+    PersistenceService.CfpStorageRepairReport report = persistenceService.repairCfpStorage(dryRun);
+    return Response.ok(
+            new StorageRepairResponse(
+                report.dryRun(),
+                report.primaryExists(),
+                report.primaryValid(),
+                report.primaryMissingChecksum(),
+                report.primaryRepaired(),
+                report.primaryQuarantined(),
+                report.backupsScanned(),
+                report.backupsValid(),
+                report.backupsNeedingRepair(),
+                report.backupsRepaired(),
+                report.backupsQuarantineCandidates(),
+                report.backupsQuarantined(),
+                report.errors(),
+                report.errorDetails()))
+        .build();
+  }
+
   @PUT
   @Path("/config")
   @Authenticated
@@ -661,6 +692,23 @@ public class CfpSubmissionApiResource {
       @JsonProperty("checksum_required") boolean checksumRequired,
       @JsonProperty("checksum_mismatches") long checksumMismatches,
       @JsonProperty("checksum_hydrations") long checksumHydrations) {}
+
+  public record StorageRepairResponse(
+      @JsonProperty("dry_run") boolean dryRun,
+      @JsonProperty("primary_exists") boolean primaryExists,
+      @JsonProperty("primary_valid") boolean primaryValid,
+      @JsonProperty("primary_missing_checksum") boolean primaryMissingChecksum,
+      @JsonProperty("primary_repaired") boolean primaryRepaired,
+      @JsonProperty("primary_quarantined") boolean primaryQuarantined,
+      @JsonProperty("backups_scanned") int backupsScanned,
+      @JsonProperty("backups_valid") int backupsValid,
+      @JsonProperty("backups_needing_repair") int backupsNeedingRepair,
+      @JsonProperty("backups_repaired") int backupsRepaired,
+      @JsonProperty("backups_quarantine_candidates") int backupsQuarantineCandidates,
+      @JsonProperty("backups_quarantined") int backupsQuarantined,
+      int errors,
+      @JsonProperty("error_details") List<String> errorDetails) {}
+
   public record SubmissionLimitConfigResponse(
       @JsonProperty("max_per_user") int maxPerUser,
       @JsonProperty("min_allowed") int minAllowed,

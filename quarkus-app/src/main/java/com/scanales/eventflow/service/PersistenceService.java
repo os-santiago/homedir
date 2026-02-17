@@ -33,7 +33,9 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -488,6 +490,112 @@ public class PersistenceService {
         cfpChecksumHydrations.get());
   }
 
+  /** Performs a manual CFP storage repair operation (admin-driven). */
+  public CfpStorageRepairReport repairCfpStorage(boolean dryRun) {
+    boolean primaryExists = Files.exists(cfpSubmissionsFile);
+    boolean primaryValid = false;
+    boolean primaryMissingChecksum = false;
+    boolean primaryRepaired = false;
+    boolean primaryQuarantined = false;
+
+    int backupsScanned = 0;
+    int backupsValid = 0;
+    int backupsNeedingRepair = 0;
+    int backupsRepaired = 0;
+    int backupsQuarantineCandidates = 0;
+    int backupsQuarantined = 0;
+    int errors = 0;
+    List<String> errorDetails = new ArrayList<>();
+
+    if (primaryExists) {
+      try {
+        CfpSnapshotRead snapshot = parseCfpSnapshot(cfpSubmissionsFile, false);
+        primaryValid = true;
+        primaryMissingChecksum = snapshot.missingChecksum();
+        if (primaryMissingChecksum && !dryRun) {
+          writeSync(cfpSubmissionsFile, snapshot.submissions());
+          primaryRepaired = true;
+        }
+      } catch (Exception e) {
+        if (!dryRun) {
+          try {
+            quarantineCorruptedCfpPrimary();
+            primaryQuarantined = true;
+            Map<String, CfpSubmission> recovered = recoverCfpFromWal("manual_repair_primary_invalid");
+            if (recovered == null) {
+              recovered = recoverCfpFromBackups("manual_repair_primary_invalid");
+            }
+            if (recovered != null) {
+              primaryRepaired = true;
+              primaryValid = true;
+            } else {
+              errors += 1;
+              errorDetails.add("primary_recovery_failed");
+            }
+          } catch (Exception recoverError) {
+            errors += 1;
+            errorDetails.add("primary_repair_failed:" + recoverError.getMessage());
+          }
+        }
+      }
+    }
+
+    if (Files.exists(cfpBackupsDir)) {
+      try (var stream = Files.list(cfpBackupsDir)) {
+        var backups =
+            stream
+                .filter(Files::isRegularFile)
+                .filter(this::isCfpBackupFile)
+                .sorted((a, b) -> b.getFileName().toString().compareTo(a.getFileName().toString()))
+                .toList();
+        for (Path backup : backups) {
+          backupsScanned += 1;
+          try {
+            CfpSnapshotRead snapshot = parseCfpSnapshot(backup, false);
+            backupsValid += 1;
+            if (snapshot.missingChecksum()) {
+              backupsNeedingRepair += 1;
+              if (!dryRun) {
+                rewriteCfpBackupSnapshot(backup, snapshot.submissions());
+                backupsRepaired += 1;
+              }
+            }
+          } catch (Exception e) {
+            backupsQuarantineCandidates += 1;
+            if (!dryRun) {
+              try {
+                quarantineCorruptedCfpBackup(backup);
+                backupsQuarantined += 1;
+              } catch (Exception quarantineError) {
+                errors += 1;
+                errorDetails.add("backup_quarantine_failed:" + backup.getFileName());
+              }
+            }
+          }
+        }
+      } catch (IOException e) {
+        errors += 1;
+        errorDetails.add("backup_scan_failed");
+      }
+    }
+
+    return new CfpStorageRepairReport(
+        dryRun,
+        primaryExists,
+        primaryValid,
+        primaryMissingChecksum,
+        primaryRepaired,
+        primaryQuarantined,
+        backupsScanned,
+        backupsValid,
+        backupsNeedingRepair,
+        backupsRepaired,
+        backupsQuarantineCandidates,
+        backupsQuarantined,
+        errors,
+        errorDetails);
+  }
+
   /**
    * Loads user schedules for the given year from disk or returns an empty map if
    * none.
@@ -598,6 +706,27 @@ public class PersistenceService {
       boolean checksumRequired,
       long checksumMismatches,
       long checksumHydrations) {
+  }
+
+  public record CfpStorageRepairReport(
+      boolean dryRun,
+      boolean primaryExists,
+      boolean primaryValid,
+      boolean primaryMissingChecksum,
+      boolean primaryRepaired,
+      boolean primaryQuarantined,
+      int backupsScanned,
+      int backupsValid,
+      int backupsNeedingRepair,
+      int backupsRepaired,
+      int backupsQuarantineCandidates,
+      int backupsQuarantined,
+      int errors,
+      List<String> errorDetails) {
+
+    public CfpStorageRepairReport {
+      errorDetails = errorDetails == null ? List.of() : List.copyOf(errorDetails);
+    }
   }
 
   private record CfpSubmissionsEnvelope(
@@ -1399,6 +1528,41 @@ public class PersistenceService {
     } catch (IOException e) {
       LOG.warn("Failed to quarantine corrupted CFP submissions file", e);
     }
+  }
+
+  private void rewriteCfpBackupSnapshot(Path backup, Map<String, CfpSubmission> submissions) throws IOException {
+    Path parent = backup.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
+    Path tmpDir = parent != null ? parent : dataDir;
+    Path tmp = Files.createTempFile(tmpDir, backup.getFileName().toString(), ".repair.tmp");
+    try {
+      Map<String, CfpSubmission> normalized = submissions == null ? Map.of() : submissions;
+      long bytes = writeJsonToTemp(tmp, cfpEnvelope(normalized), fsyncSyncEnabled);
+      moveWithFallback(tmp, backup);
+      LOG.infof("Repaired CFP backup snapshot %s (bytes=%d)", backup.getFileName(), bytes);
+    } finally {
+      try {
+        Files.deleteIfExists(tmp);
+      } catch (IOException ignore) {
+        // ignore cleanup errors
+      }
+    }
+  }
+
+  private void quarantineCorruptedCfpBackup(Path backup) throws IOException {
+    if (!Files.exists(backup)) {
+      return;
+    }
+    String name = backup.getFileName() == null ? "cfp-backup.json" : backup.getFileName().toString();
+    String baseName = name.endsWith(CFP_BACKUP_SUFFIX)
+        ? name.substring(0, name.length() - CFP_BACKUP_SUFFIX.length())
+        : name;
+    String stamp = LocalDateTime.now().format(CFP_BACKUP_TIME);
+    Path quarantined = backup.resolveSibling(baseName + ".corrupt-" + stamp + CFP_BACKUP_SUFFIX);
+    moveWithFallback(backup, quarantined);
+    LOG.warnf("Moved corrupted CFP backup snapshot %s to %s", backup.toAbsolutePath(), quarantined.toAbsolutePath());
   }
 
   private boolean isCfpBackupFile(Path file) {

@@ -138,6 +138,55 @@ public class PersistenceServiceTest {
   }
 
   @Test
+  void repairCfpStorageRepairsMissingChecksumBackupsAndQuarantinesInvalidOnes() throws Exception {
+    service = newService();
+
+    CfpSubmission submission = cfp("cfp-1", "Repair telemetry");
+    service.saveCfpSubmissionsSync(Map.of(submission.id(), submission));
+
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    Path backupsDir = tempDir.resolve("backups").resolve("cfp");
+
+    var missingChecksumRoot = cfpJsonMapper().readTree(primary.toFile());
+    ((com.fasterxml.jackson.databind.node.ObjectNode) missingChecksumRoot).remove("checksum_sha256");
+    Path missingChecksumBackup = backupsDir.resolve("cfp-submissions-99999999-999998-001.json");
+    cfpJsonMapper().writeValue(missingChecksumBackup.toFile(), missingChecksumRoot);
+
+    Path invalidBackup = backupsDir.resolve("cfp-submissions-99999999-999999-002.json");
+    Files.writeString(invalidBackup, "{corrupted-backup");
+
+    long checksumMismatchesBefore = service.cfpStorageInfo().checksumMismatches();
+
+    PersistenceService.CfpStorageRepairReport dryRun = service.repairCfpStorage(true);
+    assertTrue(dryRun.backupsScanned() >= 3);
+    assertTrue(dryRun.backupsNeedingRepair() >= 1);
+    assertEquals(0, dryRun.backupsRepaired());
+    assertTrue(dryRun.backupsQuarantineCandidates() >= 1);
+    assertEquals(0, dryRun.backupsQuarantined());
+    assertTrue(Files.exists(invalidBackup));
+
+    PersistenceService.CfpStorageRepairReport repaired = service.repairCfpStorage(false);
+    assertTrue(repaired.backupsRepaired() >= 1);
+    assertTrue(repaired.backupsQuarantined() >= 1);
+    assertEquals(0, repaired.errors());
+
+    var hydratedBackup = cfpJsonMapper().readTree(missingChecksumBackup.toFile());
+    assertEquals(64, hydratedBackup.path("checksum_sha256").asText().length());
+
+    assertFalse(Files.exists(invalidBackup));
+    try (var stream = Files.list(backupsDir)) {
+      boolean quarantined =
+          stream.anyMatch(
+              p ->
+                  p.getFileName() != null
+                      && p.getFileName().toString().startsWith("cfp-submissions-99999999-999999-002.corrupt-"));
+      assertTrue(quarantined);
+    }
+
+    assertEquals(checksumMismatchesBefore, service.cfpStorageInfo().checksumMismatches());
+  }
+
+  @Test
   void cfpSyncSavePersistsVersionedEnvelope() throws Exception {
     service = newService();
 
