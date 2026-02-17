@@ -36,6 +36,7 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
   private static final Set<String> AUTH_PATHS = Set.of("/login", "/auth", "/j_security_check");
   private static final Set<String> LOGOUT_PATHS = Set.of("/logout");
+  private static final String COMMUNITY_CONTENT_API_PREFIX = "/api/community/content";
   private static final Set<String> SKIP_PATHS = Set.of("/", "/health", "/metrics");
   private static final Pattern STATIC_PATTERN = Pattern.compile("^/(css|js|images|static|img)/.*");
   private static final Pattern WS_PATTERN = Pattern.compile("^/ws/.*");
@@ -69,6 +70,10 @@ public class RateLimitingFilter implements ContainerRequestFilter {
   @Inject
   @ConfigProperty(name = "rate.limit.api.limit", defaultValue = "120")
   int apiLimit;
+
+  @Inject
+  @ConfigProperty(name = "rate.limit.api.community-content.limit", defaultValue = "600")
+  int communityContentApiLimit;
 
   private final Map<String, Counter> counters = new ConcurrentHashMap<>();
 
@@ -140,6 +145,9 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     if (AUTH_PATHS.contains(path)) {
       return new Bucket("auth", authLimit, windowSeconds);
     }
+    if (path.startsWith(COMMUNITY_CONTENT_API_PREFIX)) {
+      return new Bucket("api-community-content", communityContentApiLimit, windowSeconds);
+    }
     if (path.startsWith("/api") || path.startsWith("/private") || path.startsWith("/public")) {
       return new Bucket("api", apiLimit, windowSeconds);
     }
@@ -150,6 +158,10 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     String xff = ctx.getHeaderString("X-Forwarded-For");
     if (xff != null && !xff.isBlank()) {
       return xff.split(",")[0].trim();
+    }
+    String cfConnectingIp = ctx.getHeaderString("CF-Connecting-IP");
+    if (cfConnectingIp != null && !cfConnectingIp.isBlank()) {
+      return cfConnectingIp.trim();
     }
     String realIp = ctx.getHeaderString("X-Real-IP");
     if (realIp != null && !realIp.isBlank()) {
