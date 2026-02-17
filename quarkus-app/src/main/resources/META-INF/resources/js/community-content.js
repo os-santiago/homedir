@@ -31,6 +31,8 @@
   const tabButtons = Array.from(document.querySelectorAll(".community-tab"));
   const filterButtons = Array.from(document.querySelectorAll(".community-filter"));
   const topicButtons = Array.from(document.querySelectorAll(".community-topic-btn"));
+  const cacheTtlMs = Math.max(5000, Number.parseInt(root.dataset.cacheTtlMs || "60000", 10) || 60000);
+  const responseCache = new Map();
 
   const state = {
     view: initialView,
@@ -41,7 +43,8 @@
     items: [],
     offset: 0,
     total: 0,
-    loading: false
+    loading: false,
+    requestToken: 0
   };
 
   const i18n = {
@@ -102,6 +105,30 @@
     const hasMore = state.items.length < state.total;
     loadMoreBtn.classList.toggle("hidden", !hasMore || state.loading);
     loadMoreBtn.disabled = state.loading;
+  }
+
+  function cacheKey(view, filter, offset) {
+    return `${view}|${filter}|${pageSize}|${offset}`;
+  }
+
+  function readCache(key) {
+    const entry = responseCache.get(key);
+    if (!entry) {
+      return null;
+    }
+    if (Date.now() - entry.ts > cacheTtlMs) {
+      responseCache.delete(key);
+      return null;
+    }
+    return entry.payload;
+  }
+
+  function writeCache(key, payload) {
+    responseCache.set(key, { ts: Date.now(), payload });
+  }
+
+  function invalidateContentCache() {
+    responseCache.clear();
   }
 
   function updateViewState() {
@@ -414,6 +441,48 @@
     return btn;
   }
 
+  function findCardByItemId(itemId) {
+    const cards = listEl.querySelectorAll(".community-item-card");
+    for (const card of cards) {
+      if (card.dataset.itemId === String(itemId)) {
+        return card;
+      }
+    }
+    return null;
+  }
+
+  function updateVoteButtonsForItem(itemId) {
+    const item = state.items.find((entry) => String(entry.id) === String(itemId));
+    if (!item) {
+      return;
+    }
+    const card = findCardByItemId(itemId);
+    if (!card) {
+      return;
+    }
+    const counts = item.vote_counts || {};
+    const labels = {
+      recommended: i18n.voteRecommended,
+      must_see: i18n.voteMustSee,
+      not_for_me: i18n.voteNotForMe
+    };
+    card.querySelectorAll(".community-vote-btn").forEach((btn) => {
+      const key = btn.dataset.vote;
+      if (!key || !labels[key]) {
+        return;
+      }
+      btn.classList.toggle("active", item.my_vote === key);
+      if (!authenticated) {
+        btn.disabled = true;
+        btn.title = i18n.voteLoginRequired;
+      } else {
+        btn.disabled = false;
+        btn.removeAttribute("title");
+      }
+      btn.textContent = `${labels[key]} (${Number(counts[key] || 0)})`;
+    });
+  }
+
   function renderItems() {
     listEl.textContent = "";
     renderInterestCards(state.items);
@@ -553,6 +622,26 @@
     updateLoadMoreState();
   }
 
+  function applyResponse(data, reset) {
+    const received = Array.isArray(data && data.items) ? data.items : [];
+    if (reset) {
+      state.items = received;
+      state.offset = received.length;
+    } else {
+      state.items = state.items.concat(received);
+      state.offset = state.items.length;
+    }
+    state.total = Number((data && data.total) || state.items.length);
+    if (reset && state.items.length > 0 && visibleItems().length === 0 && (state.tag || state.topic !== "all")) {
+      state.topic = "all";
+      state.tag = "";
+      sessionStorage.setItem("community.topic", "all");
+      sessionStorage.removeItem("community.tag");
+      updateTopicState();
+    }
+    renderItems();
+  }
+
   function applyVoteLocally(item, vote) {
     const counts = item.vote_counts || { recommended: 0, must_see: 0, not_for_me: 0 };
     const previous = item.my_vote;
@@ -567,49 +656,51 @@
   }
 
   async function load(reset) {
-    if (state.loading) return;
+    if (state.loading && !reset) return;
+    const requestToken = ++state.requestToken;
     state.loading = true;
     hideFeedback();
-    showSkeleton(state.items.length === 0);
+    const requestOffset = reset ? 0 : state.offset;
+    const key = cacheKey(state.view, state.filter, requestOffset);
+    showSkeleton(state.items.length === 0 && requestOffset === 0);
     updateLoadMoreState();
-    if (reset) {
-      state.offset = 0;
-      state.total = 0;
-      state.items = [];
-      state.expandedSummaries = new Set();
-      renderItems();
+
+    if (reset && requestOffset === 0) {
+      const cached = readCache(key);
+      if (cached) {
+        applyResponse(cached, true);
+        state.loading = false;
+        showSkeleton(false);
+        updateEmptyState(visibleItems().length);
+        updateLoadMoreState();
+        return;
+      }
     }
 
     try {
       const response = await fetch(
-        `/api/community/content?view=${encodeURIComponent(state.view)}&filter=${encodeURIComponent(state.filter)}&limit=${encodeURIComponent(pageSize)}&offset=${encodeURIComponent(state.offset)}`,
+        `/api/community/content?view=${encodeURIComponent(state.view)}&filter=${encodeURIComponent(state.filter)}&limit=${encodeURIComponent(pageSize)}&offset=${encodeURIComponent(requestOffset)}`,
         { headers: { Accept: "application/json" } }
       );
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       const data = await response.json();
-      const received = Array.isArray(data.items) ? data.items : [];
-      if (reset) {
-        state.items = received;
-      } else {
-        state.items = state.items.concat(received);
+      if (requestToken !== state.requestToken) {
+        return;
       }
-      state.total = Number(data.total || state.items.length);
-      state.offset = state.items.length;
-      if (reset && state.items.length > 0 && visibleItems().length === 0 && (state.tag || state.topic !== "all")) {
-        state.topic = "all";
-        state.tag = "";
-        sessionStorage.setItem("community.topic", "all");
-        sessionStorage.removeItem("community.tag");
-        updateTopicState();
-      }
-      renderItems();
+      writeCache(key, data);
+      applyResponse(data, reset);
     } catch (error) {
+      if (requestToken !== state.requestToken) {
+        return;
+      }
       showFeedback(i18n.loadError);
       updateEmptyState(0);
     } finally {
-      state.loading = false;
+      if (requestToken === state.requestToken) {
+        state.loading = false;
+      }
       showSkeleton(false);
       updateEmptyState(visibleItems().length);
       updateLoadMoreState();
@@ -621,12 +712,18 @@
       window.location.href = "/private/profile";
       return;
     }
-    const item = state.items.find((entry) => entry.id === itemId);
+    const item = state.items.find((entry) => String(entry.id) === String(itemId));
     if (!item) return;
 
-    const snapshot = JSON.parse(JSON.stringify(item));
+    const snapshot = {
+      my_vote: item.my_vote || null,
+      vote_counts: Object.assign(
+        { recommended: 0, must_see: 0, not_for_me: 0 },
+        item.vote_counts || {}
+      )
+    };
     applyVoteLocally(item, vote);
-    renderItems();
+    updateVoteButtonsForItem(itemId);
 
     try {
       const response = await fetch(`/api/community/content/${encodeURIComponent(itemId)}/vote`, {
@@ -642,18 +739,20 @@
       }
       const data = await response.json();
       if (data && data.item) {
-        const idx = state.items.findIndex((entry) => entry.id === itemId);
+        const idx = state.items.findIndex((entry) => String(entry.id) === String(itemId));
         if (idx >= 0) {
           state.items[idx] = data.item;
         }
       }
-      renderItems();
+      invalidateContentCache();
+      updateVoteButtonsForItem(itemId);
     } catch (error) {
-      const idx = state.items.findIndex((entry) => entry.id === itemId);
+      const idx = state.items.findIndex((entry) => String(entry.id) === String(itemId));
       if (idx >= 0) {
-        state.items[idx] = snapshot;
+        state.items[idx].my_vote = snapshot.my_vote;
+        state.items[idx].vote_counts = snapshot.vote_counts;
       }
-      renderItems();
+      updateVoteButtonsForItem(itemId);
       showFeedback(i18n.voteError);
     }
   }
