@@ -196,6 +196,7 @@ public class PersistenceServiceTest {
 
     var migrated = cfpJsonMapper().readTree(primary.toFile());
     assertEquals(64, migrated.path("checksum_sha256").asText().length());
+    assertEquals(1, service.cfpStorageInfo().checksumHydrations());
   }
 
   @Test
@@ -270,6 +271,7 @@ public class PersistenceServiceTest {
     Map<String, CfpSubmission> recovered = service.loadCfpSubmissions();
     assertEquals(1, recovered.size());
     assertEquals("Checksum mismatch recovery", recovered.get(submission.id()).title());
+    assertEquals(1, service.cfpStorageInfo().checksumMismatches());
   }
 
   @Test

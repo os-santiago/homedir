@@ -33,6 +33,13 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
   - Legacy payloads are auto-migrated to the versioned envelope on successful load.
   - Envelope payloads missing checksum are auto-hydrated on successful load.
 
+## Operational observability
+
+- `GET /api/events/{eventId}/cfp/submissions/storage` (admin-only) includes:
+  - primary/backups paths and sizes
+  - WAL status and counters (`wal_enabled`, `wal_size_bytes`, `wal_appends`, `wal_compactions`, `wal_recoveries`)
+  - checksum status and counters (`checksum_enabled`, `checksum_required`, `checksum_mismatches`, `checksum_hydrations`)
+
 ## Configuration
 
 - `cfp.persistence.backups.enabled=true`
@@ -54,6 +61,7 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 - PR3: CFP storage observability endpoint for admin verification + restore drill checklist. (implemented)
 - PR4: CFP persistence schema versioning + automatic legacy migration across primary/WAL/backups. (implemented)
 - PR5: checksum-based CFP integrity guard + auto-hydration and recovery fallback. (implemented)
+- PR6: admin storage telemetry expanded with WAL/checksum counters for live operational verification. (implemented)
 
 ## Restore validation checklist
 

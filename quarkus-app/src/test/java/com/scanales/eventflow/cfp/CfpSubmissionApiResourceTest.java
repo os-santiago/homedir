@@ -573,7 +573,13 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(200)
         .body("primary_path", org.hamcrest.Matchers.notNullValue())
         .body("backups_path", org.hamcrest.Matchers.notNullValue())
-        .body("backup_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0));
+        .body("backup_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("wal_enabled", org.hamcrest.Matchers.notNullValue())
+        .body("wal_path", org.hamcrest.Matchers.notNullValue())
+        .body("checksum_enabled", org.hamcrest.Matchers.notNullValue())
+        .body("checksum_required", org.hamcrest.Matchers.notNullValue())
+        .body("checksum_mismatches", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("checksum_hydrations", org.hamcrest.Matchers.greaterThanOrEqualTo(0));
   }
 
   @Test

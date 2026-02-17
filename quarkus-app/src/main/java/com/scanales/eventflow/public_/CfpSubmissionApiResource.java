@@ -136,7 +136,18 @@ public class CfpSubmissionApiResource {
                 info.backupCount(),
                 info.latestBackupName(),
                 info.latestBackupSizeBytes(),
-                info.latestBackupLastModifiedMillis()))
+                info.latestBackupLastModifiedMillis(),
+                info.walEnabled(),
+                info.walPath(),
+                info.walSizeBytes(),
+                info.walLastModifiedMillis(),
+                info.walAppends(),
+                info.walCompactions(),
+                info.walRecoveries(),
+                info.checksumEnabled(),
+                info.checksumRequired(),
+                info.checksumMismatches(),
+                info.checksumHydrations()))
         .build();
   }
 
@@ -624,7 +635,18 @@ public class CfpSubmissionApiResource {
       @JsonProperty("backup_count") int backupCount,
       @JsonProperty("latest_backup_name") String latestBackupName,
       @JsonProperty("latest_backup_size_bytes") long latestBackupSizeBytes,
-      @JsonProperty("latest_backup_last_modified_ms") long latestBackupLastModifiedMillis) {}
+      @JsonProperty("latest_backup_last_modified_ms") long latestBackupLastModifiedMillis,
+      @JsonProperty("wal_enabled") boolean walEnabled,
+      @JsonProperty("wal_path") String walPath,
+      @JsonProperty("wal_size_bytes") long walSizeBytes,
+      @JsonProperty("wal_last_modified_ms") long walLastModifiedMillis,
+      @JsonProperty("wal_appends") long walAppends,
+      @JsonProperty("wal_compactions") long walCompactions,
+      @JsonProperty("wal_recoveries") long walRecoveries,
+      @JsonProperty("checksum_enabled") boolean checksumEnabled,
+      @JsonProperty("checksum_required") boolean checksumRequired,
+      @JsonProperty("checksum_mismatches") long checksumMismatches,
+      @JsonProperty("checksum_hydrations") long checksumHydrations) {}
   public record SubmissionLimitConfigResponse(
       @JsonProperty("max_per_user") int maxPerUser,
       @JsonProperty("min_allowed") int minAllowed,
@@ -658,4 +680,3 @@ public class CfpSubmissionApiResource {
       @JsonProperty("rating_content_impact") Integer ratingContentImpact,
       @JsonProperty("rating_weighted") Double ratingWeighted) {}
 }
-
