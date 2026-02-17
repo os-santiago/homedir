@@ -122,11 +122,72 @@ Con el estado actual, el despliegue soporta holgadamente el tráfico observado h
 - Se optimizó `GET /api/community/content` para concurrencia:
   - `view=new`: calcula agregados de votos solo para la página solicitada.
   - `view=featured`: calcula agregados solo para candidatos de ventana destacada (7 días por default).
+- Se agregó cache corto para agregados de votos:
+  - `community.votes.aggregate-cache-ttl` (default `PT10S`), para reducir consultas repetitivas en tráfico de lectura.
 - Se agregó telemetría de rate limiting en admin metrics:
-  - `GET /private/admin/metrics/persistence` ahora incluye `rateLimit` (totales + buckets).
-- Se agregaron límites runtime configurables en deploy script:
+  - `GET /private/admin/metrics/persistence` incluye estado/config/totales por bucket.
+- Se habilitó hardening runtime en deploy script:
   - `CONTAINER_MEMORY_LIMIT` (default `2g`)
   - `CONTAINER_CPU_LIMIT` (default `3`)
   - `CONTAINER_PIDS_LIMIT` (default `2048`)
 - Se agregó herramienta reproducible de carga:
   - `tools/load-test/community_capacity_probe.py`
+
+## Validación adicional (solo este equipo -> VPS)
+
+Fecha de ejecución: `2026-02-17` (UTC).
+
+Restricción validada: por ahora las pruebas de carga salen desde un único cliente hacia el VPS.
+
+### 1) Prueba pública desde Internet (`homedir.opensourcesantiago.io`)
+
+- `users=20`, `duration=45s`:
+  - error rate `0.00%`
+  - `/api/community/content?view=featured&limit=10`: p95 `1553.6ms`
+- `users=40`, `duration=45s`:
+  - error rate `6.10%`
+  - `/api/community/content?view=featured&limit=10`: `429=138`
+- `users=80`, `duration=45s`:
+  - error rate `20.98%`
+  - `/api/community/content?view=featured&limit=10`: `429=1199`
+
+Conclusión de esta ruta:
+- Desde un solo origen público se activa rate limiting por IP en Community API, por lo que no representa bien un patrón multiusuario real.
+
+### 2) Prueba desde este equipo, ejecutada dentro del VPS por SSH (`root@72.60.141.165`)
+
+Target: `http://127.0.0.1:8080` (sin Cloudflare), usando el mismo probe.
+
+- `users=80`, `duration=45s`, probe normal:
+  - error rate `26.90%`
+  - `/api/community/content?view=featured&limit=10`: `429=2365`, `-1(timeout)=28`
+- `users=80`, `duration=45s`, IP emulada por request (XFF/CF-Connecting-IP random):
+  - error rate `2.23%`
+  - `/api/community/content?view=featured&limit=10`: p95 `8008.2ms`, `-1(timeout)=71`, sin `429`
+- `users=120`, `duration=45s`, IP emulada por request:
+  - error rate `12.01%`
+  - `/api/community/content?view=featured&limit=10`: p95 `8011.7ms`, `-1(timeout)=374`
+
+### 3) Recursos durante prueba en VPS
+
+Durante la ronda más exigente (`users=120`, IP emulada):
+- CPU contenedor observada por `podman stats`: ~`47%` a `53%` (sobre límite de `3 CPU` configurado).
+- Memoria contenedor: pico observado ~`1.40GB` / `2.147GB`.
+- Estado host (`top`) al terminar: CPU global ociosa (sin saturación de nodo).
+
+Conclusión:
+- El cuello de botella actual es el endpoint `/api/community/content?view=featured` bajo concurrencia alta.
+- No se observó saturación de máquina/host en esta ventana.
+
+### Proyección revisada para objetivo `400 usuarios por hora`
+
+`400 usuarios/hora` equivale a ~`6.67 usuarios/min`, muy por debajo de las rondas de estrés ejecutadas.
+
+Con base en los resultados:
+- Capacidad para carga esperada actual: **suficiente** con margen.
+- Riesgo principal en picos: latencia/timeouts de `community featured` (no CPU/mem del host).
+
+Acciones recomendadas para siguiente iteración:
+1. Materializar cache de agregados/votos (TTL corto) para reducir costo por request en `featured`.
+2. Añadir cache de respuesta para `featured` (5-15s) invalidada por nuevos votos.
+3. Separar completamente el ranking de `featured` en un snapshot periódico (ej. cada 30-60s), servido desde memoria.
