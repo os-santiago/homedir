@@ -398,11 +398,27 @@ public class PersistenceService {
     long primaryLastModifiedMillis = cfpSubmissionsLastModifiedMillis();
     long walSizeBytes = fileSize(cfpWalFile);
     long walLastModifiedMillis = fileLastModifiedMillis(cfpWalFile);
+    boolean primaryValid = false;
+    boolean primaryMissingChecksum = false;
+    String primaryValidationError = null;
+    if (primaryExists) {
+      try {
+        CfpSnapshotRead primarySnapshot = parseCfpSnapshot(cfpSubmissionsFile, false);
+        primaryValid = true;
+        primaryMissingChecksum = primarySnapshot.missingChecksum();
+      } catch (Exception e) {
+        primaryValidationError = e.getMessage();
+      }
+    }
 
     int backupCount = 0;
     String latestBackupName = null;
     long latestBackupSizeBytes = -1L;
     long latestBackupLastModifiedMillis = -1L;
+    int backupValidCount = 0;
+    int backupInvalidCount = 0;
+    int backupMissingChecksumCount = 0;
+    Boolean latestBackupValid = null;
 
     if (Files.exists(cfpBackupsDir)) {
       try (var stream = Files.list(cfpBackupsDir)) {
@@ -419,6 +435,24 @@ public class PersistenceService {
           latestBackupSizeBytes = fileSize(latest);
           latestBackupLastModifiedMillis = fileLastModifiedMillis(latest);
         }
+        for (int i = 0; i < backups.size(); i++) {
+          Path backup = backups.get(i);
+          try {
+            CfpSnapshotRead snapshot = parseCfpSnapshot(backup, false);
+            backupValidCount += 1;
+            if (snapshot.missingChecksum()) {
+              backupMissingChecksumCount += 1;
+            }
+            if (i == 0) {
+              latestBackupValid = true;
+            }
+          } catch (Exception ignored) {
+            backupInvalidCount += 1;
+            if (i == 0) {
+              latestBackupValid = false;
+            }
+          }
+        }
       } catch (IOException e) {
         LOG.warn("Failed to inspect CFP backup directory", e);
       }
@@ -434,6 +468,13 @@ public class PersistenceService {
         latestBackupName,
         latestBackupSizeBytes,
         latestBackupLastModifiedMillis,
+        primaryValid,
+        primaryMissingChecksum,
+        primaryValidationError,
+        backupValidCount,
+        backupInvalidCount,
+        backupMissingChecksumCount,
+        latestBackupValid,
         cfpWalEnabled,
         cfpWalFile.toAbsolutePath().toString(),
         walSizeBytes,
@@ -539,6 +580,13 @@ public class PersistenceService {
       String latestBackupName,
       long latestBackupSizeBytes,
       long latestBackupLastModifiedMillis,
+      boolean primaryValid,
+      boolean primaryMissingChecksum,
+      String primaryValidationError,
+      int backupValidCount,
+      int backupInvalidCount,
+      int backupMissingChecksumCount,
+      Boolean latestBackupValid,
       boolean walEnabled,
       String walPath,
       long walSizeBytes,
@@ -1079,14 +1127,24 @@ public class PersistenceService {
   }
 
   private CfpSnapshotRead parseCfpSnapshot(Path path) throws IOException {
-    return parseCfpSnapshot(mapper.readTree(path.toFile()), path.toAbsolutePath().toString());
+    return parseCfpSnapshot(path, true);
+  }
+
+  private CfpSnapshotRead parseCfpSnapshot(Path path, boolean trackIntegrityCounters) throws IOException {
+    return parseCfpSnapshot(mapper.readTree(path.toFile()), path.toAbsolutePath().toString(), trackIntegrityCounters);
   }
 
   private CfpSnapshotRead parseCfpSnapshot(byte[] payload, String source) throws IOException {
-    return parseCfpSnapshot(mapper.readTree(payload), source);
+    return parseCfpSnapshot(payload, source, true);
   }
 
-  private CfpSnapshotRead parseCfpSnapshot(JsonNode root, String source) throws IOException {
+  private CfpSnapshotRead parseCfpSnapshot(byte[] payload, String source, boolean trackIntegrityCounters)
+      throws IOException {
+    return parseCfpSnapshot(mapper.readTree(payload), source, trackIntegrityCounters);
+  }
+
+  private CfpSnapshotRead parseCfpSnapshot(JsonNode root, String source, boolean trackIntegrityCounters)
+      throws IOException {
     if (root == null || root.isNull() || !root.isObject()) {
       throw new IOException("invalid_cfp_snapshot_shape: " + source);
     }
@@ -1110,7 +1168,9 @@ public class PersistenceService {
       if (!missingChecksum && cfpChecksumEnabled) {
         String expected = computeCfpChecksum(submissions == null ? Map.of() : submissions);
         if (!expected.equalsIgnoreCase(checksum)) {
-          cfpChecksumMismatches.incrementAndGet();
+          if (trackIntegrityCounters) {
+            cfpChecksumMismatches.incrementAndGet();
+          }
           throw new IOException("invalid_cfp_checksum: " + source);
         }
       }

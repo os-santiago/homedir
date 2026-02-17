@@ -37,6 +37,8 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 
 - `GET /api/events/{eventId}/cfp/submissions/storage` (admin-only) includes:
   - primary/backups paths and sizes
+  - primary validation flags (`primary_valid`, `primary_missing_checksum`, `primary_validation_error`)
+  - backup validation counters (`backup_valid_count`, `backup_invalid_count`, `backup_missing_checksum_count`, `latest_backup_valid`)
   - WAL status and counters (`wal_enabled`, `wal_size_bytes`, `wal_appends`, `wal_compactions`, `wal_recoveries`)
   - checksum status and counters (`checksum_enabled`, `checksum_required`, `checksum_mismatches`, `checksum_hydrations`)
 
@@ -62,6 +64,7 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 - PR4: CFP persistence schema versioning + automatic legacy migration across primary/WAL/backups. (implemented)
 - PR5: checksum-based CFP integrity guard + auto-hydration and recovery fallback. (implemented)
 - PR6: admin storage telemetry expanded with WAL/checksum counters for live operational verification. (implemented)
+- PR7: storage telemetry now validates primary/backups and reports backup integrity counters. (implemented)
 
 ## Restore validation checklist
 
@@ -70,4 +73,3 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 3. Start app.
 4. Verify `/api/events/{eventId}/cfp/submissions/mine` returns existing submissions.
 5. Verify admin CFP moderation queue reads historical entries.
-
