@@ -160,6 +160,8 @@ public class PersistenceService {
   private final AtomicLong cfpWalAppends = new AtomicLong();
   private final AtomicLong cfpWalCompactions = new AtomicLong();
   private final AtomicLong cfpWalRecoveries = new AtomicLong();
+  private final AtomicLong cfpChecksumMismatches = new AtomicLong();
+  private final AtomicLong cfpChecksumHydrations = new AtomicLong();
 
   @PostConstruct
   void init() {
@@ -394,6 +396,8 @@ public class PersistenceService {
     boolean primaryExists = Files.exists(cfpSubmissionsFile);
     long primarySizeBytes = fileSize(cfpSubmissionsFile);
     long primaryLastModifiedMillis = cfpSubmissionsLastModifiedMillis();
+    long walSizeBytes = fileSize(cfpWalFile);
+    long walLastModifiedMillis = fileLastModifiedMillis(cfpWalFile);
 
     int backupCount = 0;
     String latestBackupName = null;
@@ -429,7 +433,18 @@ public class PersistenceService {
         backupCount,
         latestBackupName,
         latestBackupSizeBytes,
-        latestBackupLastModifiedMillis);
+        latestBackupLastModifiedMillis,
+        cfpWalEnabled,
+        cfpWalFile.toAbsolutePath().toString(),
+        walSizeBytes,
+        walLastModifiedMillis,
+        cfpWalAppends.get(),
+        cfpWalCompactions.get(),
+        cfpWalRecoveries.get(),
+        cfpChecksumEnabled,
+        cfpChecksumRequired,
+        cfpChecksumMismatches.get(),
+        cfpChecksumHydrations.get());
   }
 
   /**
@@ -523,7 +538,18 @@ public class PersistenceService {
       int backupCount,
       String latestBackupName,
       long latestBackupSizeBytes,
-      long latestBackupLastModifiedMillis) {
+      long latestBackupLastModifiedMillis,
+      boolean walEnabled,
+      String walPath,
+      long walSizeBytes,
+      long walLastModifiedMillis,
+      long walAppends,
+      long walCompactions,
+      long walRecoveries,
+      boolean checksumEnabled,
+      boolean checksumRequired,
+      long checksumMismatches,
+      long checksumHydrations) {
   }
 
   private record CfpSubmissionsEnvelope(
@@ -1084,6 +1110,7 @@ public class PersistenceService {
       if (!missingChecksum && cfpChecksumEnabled) {
         String expected = computeCfpChecksum(submissions == null ? Map.of() : submissions);
         if (!expected.equalsIgnoreCase(checksum)) {
+          cfpChecksumMismatches.incrementAndGet();
           throw new IOException("invalid_cfp_checksum: " + source);
         }
       }
@@ -1152,6 +1179,9 @@ public class PersistenceService {
     }
     try {
       writeSync(cfpSubmissionsFile, snapshot.submissions());
+      if (snapshot.missingChecksum()) {
+        cfpChecksumHydrations.incrementAndGet();
+      }
       LOG.infof(
           "Migrated CFP snapshot to schema v%d (%s%s%s)",
           CFP_SUBMISSIONS_SCHEMA_VERSION,
