@@ -35,7 +35,7 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
           default_bump: patch
           custom_release_rules: feat:minor,fix:patch,chore:patch,refactor:patch,perf:patch
           release_branches: main
