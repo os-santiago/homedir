@@ -115,6 +115,29 @@ public class PersistenceServiceTest {
   }
 
   @Test
+  void cfpStorageInfoReportsBackupValidationStatsWithoutIncrementingMismatchCounter() throws Exception {
+    service = newService();
+
+    CfpSubmission submission = cfp("cfp-1", "Backup telemetry");
+    service.saveCfpSubmissionsSync(Map.of(submission.id(), submission));
+
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    var root = cfpJsonMapper().readTree(primary.toFile());
+    ((com.fasterxml.jackson.databind.node.ObjectNode) root).put("checksum_sha256", "bad-backup-checksum");
+    Path backupsDir = tempDir.resolve("backups").resolve("cfp");
+    Path invalidNewestBackup = backupsDir.resolve("cfp-submissions-99999999-999999-999.json");
+    cfpJsonMapper().writeValue(invalidNewestBackup.toFile(), root);
+
+    PersistenceService.CfpStorageInfo info = service.cfpStorageInfo();
+    assertTrue(info.backupCount() >= 2);
+    assertTrue(info.backupValidCount() >= 1);
+    assertTrue(info.backupInvalidCount() >= 1);
+    assertEquals(0, info.checksumMismatches());
+    assertEquals("cfp-submissions-99999999-999999-999.json", info.latestBackupName());
+    assertEquals(Boolean.FALSE, info.latestBackupValid());
+  }
+
+  @Test
   void cfpSyncSavePersistsVersionedEnvelope() throws Exception {
     service = newService();
 

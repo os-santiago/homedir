@@ -574,6 +574,11 @@ public class CfpSubmissionApiResourceTest {
         .body("primary_path", org.hamcrest.Matchers.notNullValue())
         .body("backups_path", org.hamcrest.Matchers.notNullValue())
         .body("backup_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("primary_valid", org.hamcrest.Matchers.notNullValue())
+        .body("primary_missing_checksum", org.hamcrest.Matchers.notNullValue())
+        .body("backup_valid_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("backup_invalid_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
+        .body("backup_missing_checksum_count", org.hamcrest.Matchers.greaterThanOrEqualTo(0))
         .body("wal_enabled", org.hamcrest.Matchers.notNullValue())
         .body("wal_path", org.hamcrest.Matchers.notNullValue())
         .body("checksum_enabled", org.hamcrest.Matchers.notNullValue())
@@ -757,4 +762,3 @@ public class CfpSubmissionApiResourceTest {
         .body("error", equalTo("invalid_limit"));
   }
 }
-
