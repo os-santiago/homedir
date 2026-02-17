@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import os
+import re
 import subprocess
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -13,6 +14,11 @@ STATUS_CMD = os.environ.get(
     "podman ps --filter name=homedir --format '{{.Image}} {{.Status}}'",
 )
 LOG_LINES = int(os.environ.get("WEBHOOK_LOG_LINES", "80"))
+# access is controlled at the network level for now (firewall/ip allowlist)
+# in the future it would be nice to add a shared secret token here, something like
+# WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "") and then check it in do_POST
+# against a X-Webhook-Token header sent by quay — just return 403 if it doesn't match
+# cheers from ñuñork city
 
 
 def log_line(msg: str) -> None:
@@ -91,6 +97,12 @@ class Handler(BaseHTTPRequestHandler):
             tag = extract_tag(payload)
         except Exception as exc:  # noqa: BLE001
             err = str(exc)
+
+        # validate tag to avoid passing unsafe values to the shell — rewrite later
+        if tag and not re.fullmatch(r'[\w.\-]+', tag):
+            log_line(f"rejected unsafe tag value: {tag}")
+            tag = None
+
         safe_body = body.decode(errors="replace")
         log_line(
             f"received webhook from {self.client_address[0]} tag={tag} bytes={len(body)} error={err} body={safe_body}"
