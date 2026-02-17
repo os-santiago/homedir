@@ -19,7 +19,7 @@
   <section class="page-grid">
     {#if activeCommunitySubmenu == 'picks'}
     <div class="section-card events-full-width community-shell-card">
-      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}"
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}"
         data-i18n-empty-filtered="{i18n.community_js_empty_filtered}"
         data-i18n-empty-generic="{i18n.community_js_empty_generic}"
         data-i18n-items-unit="{i18n.community_js_items_unit}"
@@ -286,6 +286,7 @@
   .community-shell-card:hover {
     transform: none;
     animation: none;
+    will-change: auto;
     cursor: default;
     background: rgba(0, 0, 0, 0.45);
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
@@ -733,6 +734,7 @@
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
     transition: none;
     animation: none;
+    will-change: auto;
     cursor: default;
     transform: none;
     backdrop-filter: none;
@@ -748,6 +750,8 @@
 
   .community-item-card:hover,
   .community-list .section-card:hover {
+    transform: none;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
     background: rgba(0, 0, 0, 0.45);
   }
 
