@@ -20,17 +20,20 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -116,6 +119,7 @@ public class PersistenceService {
   private static final String CFP_SUBMISSIONS_FIELD = "submissions";
   private static final String CFP_SCHEMA_FIELD = "schema_version";
   private static final String CFP_SCHEMA_FIELD_ALT = "schemaVersion";
+  private static final String CFP_CHECKSUM_FIELD = "checksum_sha256";
   private static final TypeReference<Map<String, CfpSubmission>> CFP_SUBMISSIONS_TYPE =
       new TypeReference<Map<String, CfpSubmission>>() {
       };
@@ -145,6 +149,12 @@ public class PersistenceService {
 
   @ConfigProperty(name = "cfp.persistence.wal.max-bytes", defaultValue = "10485760")
   long cfpWalMaxBytes = 10L * 1024L * 1024L;
+
+  @ConfigProperty(name = "cfp.persistence.checksum.enabled", defaultValue = "true")
+  boolean cfpChecksumEnabled = true;
+
+  @ConfigProperty(name = "cfp.persistence.checksum.required", defaultValue = "false")
+  boolean cfpChecksumRequired = false;
 
   private final AtomicLong lastCfpBackupAtMillis = new AtomicLong(0L);
   private final AtomicLong cfpWalAppends = new AtomicLong();
@@ -520,10 +530,15 @@ public class PersistenceService {
       @JsonProperty(CFP_SCHEMA_FIELD) int schemaVersion,
       @JsonProperty("kind") String kind,
       @JsonProperty("updated_at") String updatedAt,
+      @JsonProperty(CFP_CHECKSUM_FIELD) String checksumSha256,
       @JsonProperty(CFP_SUBMISSIONS_FIELD) Map<String, CfpSubmission> submissions) {
   }
 
-  private record CfpSnapshotRead(Map<String, CfpSubmission> submissions, int schemaVersion, boolean legacy) {
+  private record CfpSnapshotRead(
+      Map<String, CfpSubmission> submissions,
+      int schemaVersion,
+      boolean legacy,
+      boolean missingChecksum) {
   }
 
   public record QueueStats(
@@ -848,11 +863,23 @@ public class PersistenceService {
   }
 
   private CfpSubmissionsEnvelope cfpEnvelope(Map<String, CfpSubmission> snapshot) {
+    String checksum = cfpChecksumEnabled ? computeCfpChecksum(snapshot) : null;
     return new CfpSubmissionsEnvelope(
         CFP_SUBMISSIONS_SCHEMA_VERSION,
         CFP_SUBMISSIONS_KIND,
         Instant.now().toString(),
+        checksum,
         new java.util.LinkedHashMap<>(snapshot));
+  }
+
+  private String computeCfpChecksum(Map<String, CfpSubmission> submissions) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] payload = mapper.writeValueAsBytes(new java.util.TreeMap<>(submissions));
+      return HexFormat.of().formatHex(digest.digest(payload));
+    } catch (NoSuchAlgorithmException | IOException e) {
+      throw new IllegalStateException("failed_cfp_checksum", e);
+    }
   }
 
   private void appendCfpWalIfNeeded(Path file, Object data) throws IOException {
@@ -1001,13 +1028,14 @@ public class PersistenceService {
     }
     try {
       CfpSnapshotRead snapshot = parseCfpSnapshot(cfpSubmissionsFile);
-      maybeMigrateLegacyCfpSnapshot(snapshot, "primary");
+      maybeMigrateCfpSnapshot(snapshot, "primary");
       LOG.infof(
-          "Loaded %d entries from %s (schema=%d%s)",
+          "Loaded %d entries from %s (schema=%d%s%s)",
           snapshot.submissions().size(),
           cfpSubmissionsFile.toAbsolutePath(),
           snapshot.schemaVersion(),
-          snapshot.legacy() ? ", legacy" : "");
+          snapshot.legacy() ? ", legacy" : "",
+          snapshot.missingChecksum() ? ", checksum_missing" : "");
       return new ConcurrentHashMap<>(snapshot.submissions());
     } catch (IOException e) {
       LOG.error("Failed to read " + cfpSubmissionsFile.toAbsolutePath(), e);
@@ -1048,10 +1076,22 @@ public class PersistenceService {
         throw new IOException("invalid_cfp_submissions_payload: " + source, e);
       }
       int schemaVersion = parseSchemaVersion(root);
+      String checksum = readChecksum(root);
+      boolean missingChecksum = checksum == null || checksum.isBlank();
+      if (missingChecksum && cfpChecksumRequired) {
+        throw new IOException("missing_cfp_checksum: " + source);
+      }
+      if (!missingChecksum && cfpChecksumEnabled) {
+        String expected = computeCfpChecksum(submissions == null ? Map.of() : submissions);
+        if (!expected.equalsIgnoreCase(checksum)) {
+          throw new IOException("invalid_cfp_checksum: " + source);
+        }
+      }
       return new CfpSnapshotRead(
           submissions == null ? Map.of() : new java.util.LinkedHashMap<>(submissions),
           schemaVersion,
-          false);
+          false,
+          missingChecksum);
     }
 
     Map<String, CfpSubmission> legacy;
@@ -1063,7 +1103,8 @@ public class PersistenceService {
     return new CfpSnapshotRead(
         legacy == null ? Map.of() : new java.util.LinkedHashMap<>(legacy),
         0,
-        true);
+        true,
+        false);
   }
 
   private int parseSchemaVersion(JsonNode root) {
@@ -1094,17 +1135,33 @@ public class PersistenceService {
     return -1;
   }
 
-  private void maybeMigrateLegacyCfpSnapshot(CfpSnapshotRead snapshot, String source) {
-    if (!snapshot.legacy()) {
+  private String readChecksum(JsonNode root) {
+    JsonNode checksumNode = root.get(CFP_CHECKSUM_FIELD);
+    if (checksumNode == null || checksumNode.isNull()) {
+      return null;
+    }
+    if (!checksumNode.isTextual()) {
+      return null;
+    }
+    return checksumNode.asText();
+  }
+
+  private void maybeMigrateCfpSnapshot(CfpSnapshotRead snapshot, String source) {
+    if (!snapshot.legacy() && !snapshot.missingChecksum()) {
       return;
     }
     try {
       writeSync(cfpSubmissionsFile, snapshot.submissions());
-      LOG.infof("Migrated legacy CFP snapshot to schema v%d (%s)", CFP_SUBMISSIONS_SCHEMA_VERSION, source);
+      LOG.infof(
+          "Migrated CFP snapshot to schema v%d (%s%s%s)",
+          CFP_SUBMISSIONS_SCHEMA_VERSION,
+          source,
+          snapshot.legacy() ? ", legacy" : "",
+          snapshot.missingChecksum() ? ", checksum_hydrated" : "");
     } catch (RuntimeException e) {
       LOG.warnf(
           e,
-          "Failed to migrate legacy CFP snapshot from %s; continuing with in-memory data",
+          "Failed to migrate CFP snapshot from %s; continuing with in-memory data",
           source);
     }
   }
