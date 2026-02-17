@@ -1,7 +1,9 @@
 package com.scanales.eventflow.service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -26,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -108,6 +111,14 @@ public class PersistenceService {
   private static final String CFP_BACKUP_SUFFIX = ".json";
   private static final String CFP_WAL_FILE_NAME = "cfp-submissions.wal";
   private static final int CFP_WAL_RECORD_HEADER_BYTES = Integer.BYTES;
+  private static final int CFP_SUBMISSIONS_SCHEMA_VERSION = 1;
+  private static final String CFP_SUBMISSIONS_KIND = "cfp_submissions";
+  private static final String CFP_SUBMISSIONS_FIELD = "submissions";
+  private static final String CFP_SCHEMA_FIELD = "schema_version";
+  private static final String CFP_SCHEMA_FIELD_ALT = "schemaVersion";
+  private static final TypeReference<Map<String, CfpSubmission>> CFP_SUBMISSIONS_TYPE =
+      new TypeReference<Map<String, CfpSubmission>>() {
+      };
   private static final DateTimeFormatter CFP_BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
   private volatile boolean lowDiskSpace;
@@ -504,6 +515,17 @@ public class PersistenceService {
       long latestBackupSizeBytes,
       long latestBackupLastModifiedMillis) {
   }
+
+  private record CfpSubmissionsEnvelope(
+      @JsonProperty(CFP_SCHEMA_FIELD) int schemaVersion,
+      @JsonProperty("kind") String kind,
+      @JsonProperty("updated_at") String updatedAt,
+      @JsonProperty(CFP_SUBMISSIONS_FIELD) Map<String, CfpSubmission> submissions) {
+  }
+
+  private record CfpSnapshotRead(Map<String, CfpSubmission> submissions, int schemaVersion, boolean legacy) {
+  }
+
   public record QueueStats(
       int depth,
       int max,
@@ -636,10 +658,11 @@ public class PersistenceService {
       }
       Path tmpDir = parent != null ? parent : dataDir;
       Path tmp = Files.createTempFile(tmpDir, file.getFileName().toString(), ".tmp");
+      Object persistedData = preparePersistedData(file, data);
       long start = System.nanoTime();
       try {
-        long bytes = writeJsonToTemp(tmp, data, fsyncAsyncEnabled);
-        appendCfpWalIfNeeded(file, data);
+        long bytes = writeJsonToTemp(tmp, persistedData, fsyncAsyncEnabled);
+        appendCfpWalIfNeeded(file, persistedData);
         moveWithFallback(tmp, file);
         maybeBackupCfpSubmissions(file);
         long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
@@ -696,10 +719,11 @@ public class PersistenceService {
       }
       Path tmpDir = parent != null ? parent : dataDir;
       Path tmp = Files.createTempFile(tmpDir, file.getFileName().toString(), ".tmp");
+      Object persistedData = preparePersistedData(file, data);
       long start = System.nanoTime();
       try {
-        long bytes = writeJsonToTemp(tmp, data, fsyncSyncEnabled);
-        appendCfpWalIfNeeded(file, data);
+        long bytes = writeJsonToTemp(tmp, persistedData, fsyncSyncEnabled);
+        appendCfpWalIfNeeded(file, persistedData);
         moveWithFallback(tmp, file);
         maybeBackupCfpSubmissions(file);
         long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
@@ -812,6 +836,25 @@ public class PersistenceService {
     return payload.length;
   }
 
+  private Object preparePersistedData(Path file, Object data) {
+    if (!file.equals(cfpSubmissionsFile)) {
+      return data;
+    }
+    Map<String, CfpSubmission> snapshot = normalizeCfpSnapshot(data);
+    if (snapshot == null) {
+      return data;
+    }
+    return cfpEnvelope(snapshot);
+  }
+
+  private CfpSubmissionsEnvelope cfpEnvelope(Map<String, CfpSubmission> snapshot) {
+    return new CfpSubmissionsEnvelope(
+        CFP_SUBMISSIONS_SCHEMA_VERSION,
+        CFP_SUBMISSIONS_KIND,
+        Instant.now().toString(),
+        new java.util.LinkedHashMap<>(snapshot));
+  }
+
   private void appendCfpWalIfNeeded(Path file, Object data) throws IOException {
     if (!cfpWalEnabled || !file.equals(cfpSubmissionsFile)) {
       return;
@@ -824,6 +867,9 @@ public class PersistenceService {
   }
 
   private Map<String, CfpSubmission> normalizeCfpSnapshot(Object data) {
+    if (data instanceof CfpSubmissionsEnvelope envelope) {
+      return normalizeCfpSnapshot(envelope.submissions());
+    }
     if (!(data instanceof Map<?, ?> raw)) {
       return null;
     }
@@ -842,7 +888,7 @@ public class PersistenceService {
     if (parent != null) {
       Files.createDirectories(parent);
     }
-    byte[] payload = mapper.writeValueAsBytes(snapshot);
+    byte[] payload = mapper.writeValueAsBytes(cfpEnvelope(snapshot));
     if (verifyJsonEnabled) {
       mapper.readTree(payload);
     }
@@ -873,7 +919,7 @@ public class PersistenceService {
       Files.createDirectories(parent);
     }
     Path tmp = Files.createTempFile(parent != null ? parent : dataDir, CFP_WAL_FILE_NAME, ".tmp");
-    byte[] payload = mapper.writeValueAsBytes(snapshot);
+    byte[] payload = mapper.writeValueAsBytes(cfpEnvelope(snapshot));
     try {
       try (FileChannel channel =
           FileChannel.open(tmp, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -941,14 +987,12 @@ public class PersistenceService {
   }
 
   private Map<String, CfpSubmission> readCfpSubmissionsWithRecovery() {
-    TypeReference<Map<String, CfpSubmission>> type = new TypeReference<Map<String, CfpSubmission>>() {
-    };
     if (!Files.exists(cfpSubmissionsFile)) {
-      Map<String, CfpSubmission> walRecovered = recoverCfpFromWal(type, "primary_missing");
+      Map<String, CfpSubmission> walRecovered = recoverCfpFromWal("primary_missing");
       if (walRecovered != null) {
         return walRecovered;
       }
-      Map<String, CfpSubmission> recovered = recoverCfpFromBackups(type, "primary_missing");
+      Map<String, CfpSubmission> recovered = recoverCfpFromBackups("primary_missing");
       if (recovered != null) {
         return recovered;
       }
@@ -956,17 +1000,23 @@ public class PersistenceService {
       return new ConcurrentHashMap<>();
     }
     try {
-      Map<String, CfpSubmission> data = mapper.readValue(cfpSubmissionsFile.toFile(), type);
-      LOG.infof("Loaded %d entries from %s", data.size(), cfpSubmissionsFile.toAbsolutePath());
-      return new ConcurrentHashMap<>(data);
+      CfpSnapshotRead snapshot = parseCfpSnapshot(cfpSubmissionsFile);
+      maybeMigrateLegacyCfpSnapshot(snapshot, "primary");
+      LOG.infof(
+          "Loaded %d entries from %s (schema=%d%s)",
+          snapshot.submissions().size(),
+          cfpSubmissionsFile.toAbsolutePath(),
+          snapshot.schemaVersion(),
+          snapshot.legacy() ? ", legacy" : "");
+      return new ConcurrentHashMap<>(snapshot.submissions());
     } catch (IOException e) {
       LOG.error("Failed to read " + cfpSubmissionsFile.toAbsolutePath(), e);
       quarantineCorruptedCfpPrimary();
-      Map<String, CfpSubmission> walRecovered = recoverCfpFromWal(type, "primary_corrupted");
+      Map<String, CfpSubmission> walRecovered = recoverCfpFromWal("primary_corrupted");
       if (walRecovered != null) {
         return walRecovered;
       }
-      Map<String, CfpSubmission> recovered = recoverCfpFromBackups(type, "primary_corrupted");
+      Map<String, CfpSubmission> recovered = recoverCfpFromBackups("primary_corrupted");
       if (recovered != null) {
         return recovered;
       }
@@ -974,8 +1024,92 @@ public class PersistenceService {
     }
   }
 
-  private Map<String, CfpSubmission> recoverCfpFromBackups(
-      TypeReference<Map<String, CfpSubmission>> type, String reason) {
+  private CfpSnapshotRead parseCfpSnapshot(Path path) throws IOException {
+    return parseCfpSnapshot(mapper.readTree(path.toFile()), path.toAbsolutePath().toString());
+  }
+
+  private CfpSnapshotRead parseCfpSnapshot(byte[] payload, String source) throws IOException {
+    return parseCfpSnapshot(mapper.readTree(payload), source);
+  }
+
+  private CfpSnapshotRead parseCfpSnapshot(JsonNode root, String source) throws IOException {
+    if (root == null || root.isNull() || !root.isObject()) {
+      throw new IOException("invalid_cfp_snapshot_shape: " + source);
+    }
+    JsonNode submissionsNode = root.get(CFP_SUBMISSIONS_FIELD);
+    if (submissionsNode != null) {
+      if (!submissionsNode.isObject()) {
+        throw new IOException("invalid_cfp_submissions_node: " + source);
+      }
+      Map<String, CfpSubmission> submissions;
+      try {
+        submissions = mapper.convertValue(submissionsNode, CFP_SUBMISSIONS_TYPE);
+      } catch (IllegalArgumentException e) {
+        throw new IOException("invalid_cfp_submissions_payload: " + source, e);
+      }
+      int schemaVersion = parseSchemaVersion(root);
+      return new CfpSnapshotRead(
+          submissions == null ? Map.of() : new java.util.LinkedHashMap<>(submissions),
+          schemaVersion,
+          false);
+    }
+
+    Map<String, CfpSubmission> legacy;
+    try {
+      legacy = mapper.convertValue(root, CFP_SUBMISSIONS_TYPE);
+    } catch (IllegalArgumentException e) {
+      throw new IOException("invalid_legacy_cfp_snapshot: " + source, e);
+    }
+    return new CfpSnapshotRead(
+        legacy == null ? Map.of() : new java.util.LinkedHashMap<>(legacy),
+        0,
+        true);
+  }
+
+  private int parseSchemaVersion(JsonNode root) {
+    JsonNode field = root.get(CFP_SCHEMA_FIELD);
+    int parsed = parseSchemaVersionValue(field);
+    if (parsed > 0) {
+      return parsed;
+    }
+    JsonNode alt = root.get(CFP_SCHEMA_FIELD_ALT);
+    parsed = parseSchemaVersionValue(alt);
+    return parsed > 0 ? parsed : CFP_SUBMISSIONS_SCHEMA_VERSION;
+  }
+
+  private int parseSchemaVersionValue(JsonNode node) {
+    if (node == null || node.isNull()) {
+      return -1;
+    }
+    if (node.isInt() || node.isLong()) {
+      return node.asInt(-1);
+    }
+    if (node.isTextual()) {
+      try {
+        return Integer.parseInt(node.asText());
+      } catch (NumberFormatException ignored) {
+        return -1;
+      }
+    }
+    return -1;
+  }
+
+  private void maybeMigrateLegacyCfpSnapshot(CfpSnapshotRead snapshot, String source) {
+    if (!snapshot.legacy()) {
+      return;
+    }
+    try {
+      writeSync(cfpSubmissionsFile, snapshot.submissions());
+      LOG.infof("Migrated legacy CFP snapshot to schema v%d (%s)", CFP_SUBMISSIONS_SCHEMA_VERSION, source);
+    } catch (RuntimeException e) {
+      LOG.warnf(
+          e,
+          "Failed to migrate legacy CFP snapshot from %s; continuing with in-memory data",
+          source);
+    }
+  }
+
+  private Map<String, CfpSubmission> recoverCfpFromBackups(String reason) {
     if (!Files.exists(cfpBackupsDir)) {
       return null;
     }
@@ -988,12 +1122,15 @@ public class PersistenceService {
               .toList();
       for (Path candidate : candidates) {
         try {
-          Map<String, CfpSubmission> data = mapper.readValue(candidate.toFile(), type);
+          CfpSnapshotRead snapshot = parseCfpSnapshot(candidate);
+          Map<String, CfpSubmission> data = snapshot.submissions();
           LOG.warnf(
-              "Recovered CFP submissions from backup %s (%d items, reason=%s)",
+              "Recovered CFP submissions from backup %s (%d items, reason=%s, schema=%d%s)",
               candidate.toAbsolutePath(),
               data.size(),
-              reason);
+              reason,
+              snapshot.schemaVersion(),
+              snapshot.legacy() ? ", legacy" : "");
           writeSync(cfpSubmissionsFile, data);
           return new ConcurrentHashMap<>(data);
         } catch (Exception ignored) {
@@ -1007,8 +1144,7 @@ public class PersistenceService {
     return null;
   }
 
-  private Map<String, CfpSubmission> recoverCfpFromWal(
-      TypeReference<Map<String, CfpSubmission>> type, String reason) {
+  private Map<String, CfpSubmission> recoverCfpFromWal(String reason) {
     if (!cfpWalEnabled || cfpWalFile == null || !Files.exists(cfpWalFile)) {
       return null;
     }
@@ -1031,7 +1167,9 @@ public class PersistenceService {
         byte[] payload = new byte[length];
         buffer.get(payload);
         try {
-          Map<String, CfpSubmission> parsed = mapper.readValue(payload, type);
+          CfpSnapshotRead parsedSnapshot =
+              parseCfpSnapshot(payload, cfpWalFile.toAbsolutePath() + "#frame-" + records);
+          Map<String, CfpSubmission> parsed = parsedSnapshot.submissions();
           if (parsed != null) {
             latest = parsed;
             valid += 1;

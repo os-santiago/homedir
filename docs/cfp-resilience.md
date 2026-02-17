@@ -20,6 +20,17 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
   3. Quarantine corrupted primary as `cfp-submissions.corrupt-<timestamp>.json`.
   4. Rebuild primary from recovered snapshot.
 
+## CFP schema compatibility baseline
+
+- Current persisted schema uses an envelope:
+  - `schema_version`
+  - `kind`
+  - `updated_at`
+  - `submissions` (map by id)
+- Backward compatibility is preserved:
+  - Legacy map-only payloads are still readable from primary, backups, and WAL frames.
+  - Legacy payloads are auto-migrated to the versioned envelope on successful load.
+
 ## Configuration
 
 - `cfp.persistence.backups.enabled=true`
@@ -37,6 +48,7 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 - PR1: durable CFP local snapshots + automatic recovery from corruption. (implemented)
 - PR2: portable CFP export/import bundle and recursive admin backup/restore checks. (implemented)
 - PR3: CFP storage observability endpoint for admin verification + restore drill checklist. (implemented)
+- PR4: CFP persistence schema versioning + automatic legacy migration across primary/WAL/backups. (implemented)
 
 ## Restore validation checklist
 
