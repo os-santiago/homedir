@@ -1,6 +1,7 @@
 package com.scanales.eventflow.security;
 
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -14,6 +15,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -28,6 +30,7 @@ import org.jboss.logging.Logger;
  * via config.
  */
 @Provider
+@ApplicationScoped
 @PreMatching
 @Priority(Priorities.AUTHENTICATION - 100)
 public class RateLimitingFilter implements ContainerRequestFilter {
@@ -76,6 +79,10 @@ public class RateLimitingFilter implements ContainerRequestFilter {
   int communityContentApiLimit;
 
   private final Map<String, Counter> counters = new ConcurrentHashMap<>();
+  private final AtomicLong totalChecked = new AtomicLong();
+  private final AtomicLong totalThrottled = new AtomicLong();
+  private final Map<String, AtomicLong> checkedByBucket = new ConcurrentHashMap<>();
+  private final Map<String, AtomicLong> throttledByBucket = new ConcurrentHashMap<>();
 
   @Override
   public void filter(ContainerRequestContext ctx) {
@@ -94,6 +101,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     if (bucket == null) {
       return;
     }
+    totalChecked.incrementAndGet();
+    checkedByBucket.computeIfAbsent(bucket.name, key -> new AtomicLong()).incrementAndGet();
 
     String clientKey = extractClientKey(ctx);
     long now = System.currentTimeMillis();
@@ -108,6 +117,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
         });
 
     if (now - c.windowStartMs < bucket.windowMs && c.count > bucket.limit) {
+      totalThrottled.incrementAndGet();
+      throttledByBucket.computeIfAbsent(bucket.name, key -> new AtomicLong()).incrementAndGet();
       LOG.warnf(
           "Rate limit exceeded bucket=%s client=%s path=%s count=%d limit=%d windowSeconds=%d",
           bucket.name, clientKey, path, c.count, bucket.limit, bucket.windowSeconds);
@@ -118,6 +129,20 @@ public class RateLimitingFilter implements ContainerRequestFilter {
               .header("Retry-After", bucket.windowSeconds)
               .build());
     }
+  }
+
+  public RateLimitStats stats() {
+    return new RateLimitStats(
+        enabled,
+        windowSeconds,
+        authLimit,
+        logoutLimit,
+        apiLimit,
+        communityContentApiLimit,
+        totalChecked.get(),
+        totalThrottled.get(),
+        snapshot(checkedByBucket),
+        snapshot(throttledByBucket));
   }
 
   private boolean shouldSkip(String path, ContainerRequestContext ctx) {
@@ -186,5 +211,27 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     String key(String client) {
       return name + "|" + client;
     }
+  }
+
+  private static Map<String, Long> snapshot(Map<String, AtomicLong> source) {
+    if (source.isEmpty()) {
+      return Map.of();
+    }
+    Map<String, Long> out = new ConcurrentHashMap<>();
+    source.forEach((key, value) -> out.put(key, value.get()));
+    return Map.copyOf(out);
+  }
+
+  public record RateLimitStats(
+      boolean enabled,
+      int windowSeconds,
+      int authLimit,
+      int logoutLimit,
+      int apiLimit,
+      int communityContentApiLimit,
+      long totalChecked,
+      long totalThrottled,
+      Map<String, Long> checkedByBucket,
+      Map<String, Long> throttledByBucket) {
   }
 }

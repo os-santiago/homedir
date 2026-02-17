@@ -119,3 +119,14 @@ Con el estado actual, el despliegue soporta holgadamente el tráfico observado h
   - Nueva propiedad: `rate.limit.api.community-content.limit` (default `600 req/min`).
 - Se mejoró la identificación de cliente detrás de proxy/CDN:
   - Nuevo fallback a `CF-Connecting-IP` cuando `X-Forwarded-For` no está presente.
+- Se optimizó `GET /api/community/content` para concurrencia:
+  - `view=new`: calcula agregados de votos solo para la página solicitada.
+  - `view=featured`: calcula agregados solo para candidatos de ventana destacada (7 días por default).
+- Se agregó telemetría de rate limiting en admin metrics:
+  - `GET /private/admin/metrics/persistence` ahora incluye `rateLimit` (totales + buckets).
+- Se agregaron límites runtime configurables en deploy script:
+  - `CONTAINER_MEMORY_LIMIT` (default `2g`)
+  - `CONTAINER_CPU_LIMIT` (default `3`)
+  - `CONTAINER_PIDS_LIMIT` (default `2048`)
+- Se agregó herramienta reproducible de carga:
+  - `tools/load-test/community_capacity_probe.py`

@@ -26,3 +26,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - Nginx returns the maintenance page when the backend is down, avoiding default 502/Cloudflare responses.
 - Persistence path must be consistent across deploys: set `HOMEDIR_DATA_DIR` and keep `JAVA_TOOL_OPTIONS=-Dhomedir.data.dir=<same-path>` in `/etc/homedir.env`.
 - The default volume mapping (`/work/data:/work/data:Z`) and data-dir env vars must point to the same in-container path.
+- For concurrency hardening, set explicit container limits in `/etc/homedir.env`:
+  - `CONTAINER_MEMORY_LIMIT` (recommended `2g`)
+  - `CONTAINER_CPU_LIMIT` (recommended `3`)
+  - `CONTAINER_PIDS_LIMIT` (recommended `2048`)
