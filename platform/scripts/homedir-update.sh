@@ -24,6 +24,9 @@ HOST_PORT="${HOST_PORT:-8080}"
 CONTAINER_PORT="${CONTAINER_PORT:-8080}"
 DATA_VOLUME="${DATA_VOLUME:-/work/data:/work/data:Z}"
 LOCKDIR="${LOCKDIR:-/var/lock/homedir-update.lock.d}"
+CONTAINER_MEMORY_LIMIT="${CONTAINER_MEMORY_LIMIT:-2g}"
+CONTAINER_CPU_LIMIT="${CONTAINER_CPU_LIMIT:-3}"
+CONTAINER_PIDS_LIMIT="${CONTAINER_PIDS_LIMIT:-2048}"
 container_data_dir="$(echo "$DATA_VOLUME" | awk -F: '{print $2}')"
 if [[ -z "$container_data_dir" ]]; then
   container_data_dir="/work/data"
@@ -76,10 +79,15 @@ start_container() {
 
   env_args=()
   [[ -f "$ENV_FILE" ]] && env_args+=(--env-file "$ENV_FILE")
+  resource_args=()
+  [[ -n "${CONTAINER_MEMORY_LIMIT:-}" ]] && resource_args+=(--memory "${CONTAINER_MEMORY_LIMIT}")
+  [[ -n "${CONTAINER_CPU_LIMIT:-}" ]] && resource_args+=(--cpus "${CONTAINER_CPU_LIMIT}")
+  [[ -n "${CONTAINER_PIDS_LIMIT:-}" ]] && resource_args+=(--pids-limit "${CONTAINER_PIDS_LIMIT}")
 
   podman run -d --name "$CONTAINER" --restart=always \
     -p "${HOST_PORT}:${CONTAINER_PORT}" \
     "${env_args[@]}" \
+    "${resource_args[@]}" \
     -e "HOMEDIR_DATA_DIR=${HOMEDIR_DATA_DIR}" \
     -e "JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}" \
     -v "$DATA_VOLUME" \
@@ -88,6 +96,7 @@ start_container() {
 
 log "starting update for tag=${TAG}"
 log "runtime data dir configured as ${HOMEDIR_DATA_DIR} (volume=${DATA_VOLUME})"
+log "runtime limits memory=${CONTAINER_MEMORY_LIMIT:-none} cpus=${CONTAINER_CPU_LIMIT:-none} pids=${CONTAINER_PIDS_LIMIT:-none}"
 prepare_community_storage
 
 prev_image=""

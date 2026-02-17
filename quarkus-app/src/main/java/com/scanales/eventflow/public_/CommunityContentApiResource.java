@@ -62,18 +62,33 @@ public class CommunityContentApiResource {
 
     List<CommunityContentItem> all = applyFilter(contentService.allItems(), filter);
     String userId = currentUserId().orElse(null);
-    Map<String, CommunityVoteAggregate> aggregates = aggregatesFor(all, userId);
-
-    List<RankedItem> ordered =
-        switch (view) {
-          case "featured" -> rankFeatured(all, aggregates);
-          case "new" -> rankNew(all, aggregates);
-          default -> rankFeatured(all, aggregates);
-        };
-
-    List<RankedItem> page = paginate(ordered, limit, offset);
-    List<ContentItemResponse> items =
-        page.stream().map(item -> toResponse(item.item(), item.aggregate(), item.score())).toList();
+    List<ContentItemResponse> items;
+    int total;
+    if ("new".equals(view)) {
+      List<CommunityContentItem> ordered = all;
+      total = ordered.size();
+      List<CommunityContentItem> pageItems = paginateItems(ordered, limit, offset);
+      Map<String, CommunityVoteAggregate> pageAggregates = aggregatesForItems(pageItems, userId);
+      Instant now = Instant.now();
+      items =
+          pageItems.stream()
+              .map(
+                  item -> {
+                    CommunityVoteAggregate aggregate =
+                        pageAggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
+                    double score =
+                        CommunityScoreCalculator.score(aggregate, item.createdAt(), now, decayEnabled);
+                    return toResponse(item, aggregate, score);
+                  })
+              .toList();
+    } else {
+      List<CommunityContentItem> candidates = featuredCandidates(all);
+      Map<String, CommunityVoteAggregate> aggregates = aggregatesForItems(candidates, userId);
+      List<RankedItem> ordered = rankFeatured(candidates, aggregates);
+      total = ordered.size();
+      List<RankedItem> page = paginate(ordered, limit, offset);
+      items = page.stream().map(item -> toResponse(item.item(), item.aggregate(), item.score())).toList();
+    }
 
     CommunityContentMetrics metrics = contentService.metrics();
     CacheMeta cacheMeta =
@@ -84,7 +99,7 @@ public class CommunityContentApiResource {
             metrics.filesLoaded(),
             metrics.filesInvalid());
 
-    return Response.ok(new ContentListResponse(view, filter.apiValue, limit, offset, ordered.size(), items, cacheMeta)).build();
+    return Response.ok(new ContentListResponse(view, filter.apiValue, limit, offset, total, items, cacheMeta)).build();
   }
 
   @GET
@@ -182,48 +197,37 @@ public class CommunityContentApiResource {
         .toList();
   }
 
-  private Map<String, CommunityVoteAggregate> aggregatesFor(
-      List<CommunityContentItem> all, String userId) {
-    List<String> ids = all.stream().map(CommunityContentItem::id).toList();
+  private Map<String, CommunityVoteAggregate> aggregatesForItems(
+      List<CommunityContentItem> items, String userId) {
+    List<String> ids = items.stream().map(CommunityContentItem::id).toList();
     return voteService.getAggregates(ids, userId);
   }
 
-  private List<RankedItem> rankNew(
-      List<CommunityContentItem> all, Map<String, CommunityVoteAggregate> aggregates) {
-    List<RankedItem> ranked = new ArrayList<>(all.size());
-    Instant now = Instant.now();
+  private List<CommunityContentItem> featuredCandidates(List<CommunityContentItem> all) {
+    Instant cutoff = Instant.now().minus(Duration.ofDays(Math.max(1, featuredWindowDays)));
+    List<CommunityContentItem> candidates = new ArrayList<>();
     for (CommunityContentItem item : all) {
-      CommunityVoteAggregate aggregate =
-          aggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
-      double score = CommunityScoreCalculator.score(aggregate, item.createdAt(), now, decayEnabled);
-      ranked.add(new RankedItem(item, aggregate, score));
+      if (!item.createdAt().isBefore(cutoff)) {
+        candidates.add(item);
+      }
     }
-    ranked.sort(Comparator.comparing((RankedItem r) -> r.item().createdAt()).reversed());
-    return ranked;
+    return candidates.isEmpty() ? all : candidates;
   }
 
   private List<RankedItem> rankFeatured(
       List<CommunityContentItem> all, Map<String, CommunityVoteAggregate> aggregates) {
     Instant now = Instant.now();
-    Instant cutoff = now.minus(Duration.ofDays(Math.max(1, featuredWindowDays)));
     List<RankedItem> ranked = new ArrayList<>();
     for (CommunityContentItem item : all) {
-      if (item.createdAt().isBefore(cutoff)) {
-        continue;
-      }
       CommunityVoteAggregate aggregate =
           aggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
       double score = CommunityScoreCalculator.score(aggregate, item.createdAt(), now, decayEnabled);
       ranked.add(new RankedItem(item, aggregate, score));
     }
-    if (ranked.isEmpty()) {
-      ranked = rankNew(all, aggregates);
-    } else {
-      ranked.sort(
-          Comparator.comparingDouble((RankedItem r) -> r.score())
-              .reversed()
-              .thenComparing(r -> r.item().createdAt(), Comparator.reverseOrder()));
-    }
+    ranked.sort(
+        Comparator.comparingDouble((RankedItem r) -> r.score())
+            .reversed()
+            .thenComparing(r -> r.item().createdAt(), Comparator.reverseOrder()));
     return ranked;
   }
 
@@ -233,6 +237,14 @@ public class CommunityContentApiResource {
     }
     int end = Math.min(ranked.size(), offset + limit);
     return ranked.subList(offset, end);
+  }
+
+  private List<CommunityContentItem> paginateItems(List<CommunityContentItem> items, int limit, int offset) {
+    if (offset >= items.size()) {
+      return List.of();
+    }
+    int end = Math.min(items.size(), offset + limit);
+    return items.subList(offset, end);
   }
 
   private ContentItemResponse toResponse(

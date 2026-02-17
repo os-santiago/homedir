@@ -4,6 +4,7 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Scenario;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.security.RateLimitingFilter;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.service.UsageMetricsService;
@@ -165,6 +166,9 @@ public class AdminMetricsResource {
   @Inject
   com.scanales.eventflow.service.PersistenceService persistenceService;
 
+  @Inject
+  RateLimitingFilter rateLimitingFilter;
+
   @GET
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
@@ -258,6 +262,7 @@ public class AdminMetricsResource {
     stats.put("queue", persistenceService.getQueueStats());
     stats.put("diskUsagePct", persistenceService.getDiskUsage());
     stats.put("lowDiskSpace", persistenceService.isLowDiskSpace());
+    stats.put("rateLimit", rateLimitingFilter.stats());
     return Response.ok(stats).build();
   }
 

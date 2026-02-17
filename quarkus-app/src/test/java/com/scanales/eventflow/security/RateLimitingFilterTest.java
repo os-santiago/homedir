@@ -1,6 +1,7 @@
 package com.scanales.eventflow.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -100,6 +101,26 @@ class RateLimitingFilterTest {
 
     verify(ctxA, never()).abortWith(any());
     verify(ctxB, never()).abortWith(any());
+  }
+
+  @Test
+  void exposesStatsForCheckedAndThrottledBuckets() {
+    ContainerRequestContext ctx = mock(ContainerRequestContext.class);
+    UriInfo uri = mock(UriInfo.class);
+    when(uri.getPath()).thenReturn("api/community/content");
+    when(ctx.getUriInfo()).thenReturn(uri);
+    when(ctx.getHeaderString("X-Forwarded-For")).thenReturn("5.5.5.5");
+
+    filter.filter(ctx);
+    filter.filter(ctx);
+    filter.filter(ctx);
+    filter.filter(ctx); // throttled
+
+    RateLimitingFilter.RateLimitStats stats = filter.stats();
+    assertEquals(4, stats.totalChecked());
+    assertEquals(1, stats.totalThrottled());
+    assertTrue(stats.checkedByBucket().getOrDefault("api-community-content", 0L) >= 4L);
+    assertTrue(stats.throttledByBucket().getOrDefault("api-community-content", 0L) >= 1L);
   }
 
   private void setField(String name, Object value) throws Exception {
