@@ -7,12 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Event;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -112,6 +115,39 @@ public class PersistenceServiceTest {
   }
 
   @Test
+  void cfpSyncSavePersistsVersionedEnvelope() throws Exception {
+    service = newService();
+
+    CfpSubmission submission = cfp("cfp-1", "Versioned CFP payload");
+    service.saveCfpSubmissionsSync(Map.of(submission.id(), submission));
+
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    var root = cfpJsonMapper().readTree(primary.toFile());
+    assertEquals(1, root.path("schema_version").asInt());
+    assertTrue(root.path("submissions").isObject());
+    assertTrue(root.path("submissions").has(submission.id()));
+    assertFalse(root.has(submission.id()));
+  }
+
+  @Test
+  void cfpLoadMigratesLegacyPrimaryMapToVersionedEnvelope() throws Exception {
+    service = newService();
+
+    CfpSubmission submission = cfp("cfp-1", "Legacy migration");
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    cfpJsonMapper().writeValue(primary.toFile(), Map.of(submission.id(), submission));
+
+    Map<String, CfpSubmission> loaded = service.loadCfpSubmissions();
+    assertEquals(1, loaded.size());
+    assertNotNull(loaded.get(submission.id()));
+
+    var migrated = cfpJsonMapper().readTree(primary.toFile());
+    assertEquals(1, migrated.path("schema_version").asInt());
+    assertTrue(migrated.path("submissions").has(submission.id()));
+    assertFalse(migrated.has(submission.id()));
+  }
+
+  @Test
   void cfpLoadRecoversFromBackupWhenPrimaryIsCorrupted() throws Exception {
     service = newService();
 
@@ -171,6 +207,31 @@ public class PersistenceServiceTest {
   }
 
   @Test
+  void cfpLoadRecoversFromLegacyWalFrameAndMigratesPrimary() throws Exception {
+    service = newService();
+    service.cfpBackupsEnabled = false;
+
+    CfpSubmission submission = cfp("cfp-1", "Legacy WAL migration");
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    Files.deleteIfExists(primary);
+
+    byte[] payload = cfpJsonMapper().writeValueAsBytes(Map.of(submission.id(), submission));
+    Path wal = tempDir.resolve("cfp-submissions.wal");
+    ByteBuffer frame = ByteBuffer.allocate(Integer.BYTES + payload.length);
+    frame.putInt(payload.length);
+    frame.put(payload);
+    Files.write(wal, frame.array(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+
+    Map<String, CfpSubmission> recovered = service.loadCfpSubmissions();
+    assertEquals(1, recovered.size());
+    assertNotNull(recovered.get(submission.id()));
+
+    var migrated = cfpJsonMapper().readTree(primary.toFile());
+    assertEquals(1, migrated.path("schema_version").asInt());
+    assertTrue(migrated.path("submissions").has(submission.id()));
+  }
+
+  @Test
   void cfpWalCompactsToSingleFrameWhenExceedingMaxBytes() throws Exception {
     service = newService();
     service.cfpBackupsEnabled = false;
@@ -195,6 +256,12 @@ public class PersistenceServiceTest {
 
   private Event event(String id, String title) {
     return new Event(id, title, "description");
+  }
+
+  private ObjectMapper cfpJsonMapper() {
+    return new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
   }
 
   private CfpSubmission cfp(String id, String title) {
