@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentMetrics;
 import com.scanales.eventflow.community.CommunityContentService;
+import com.scanales.eventflow.community.CommunityFeaturedSnapshotService;
 import com.scanales.eventflow.community.CommunityScoreCalculator;
 import com.scanales.eventflow.community.CommunityVoteAggregate;
 import com.scanales.eventflow.community.CommunityVoteService;
@@ -21,11 +22,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -41,10 +38,8 @@ public class CommunityContentApiResource {
 
   @Inject CommunityContentService contentService;
   @Inject CommunityVoteService voteService;
+  @Inject CommunityFeaturedSnapshotService featuredSnapshotService;
   @Inject SecurityIdentity identity;
-
-  @ConfigProperty(name = "community.content.featured.window-days", defaultValue = "7")
-  int featuredWindowDays;
 
   @ConfigProperty(name = "community.content.ranking.decay-enabled", defaultValue = "true")
   boolean decayEnabled;
@@ -60,15 +55,16 @@ public class CommunityContentApiResource {
     int limit = normalizeLimit(limitParam);
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
 
-    List<CommunityContentItem> all = applyFilter(contentService.allItems(), filter);
     String userId = currentUserId().orElse(null);
     List<ContentItemResponse> items;
     int total;
     if ("new".equals(view)) {
+      List<CommunityContentItem> all = applyFilter(contentService.allItems(), filter);
       List<CommunityContentItem> ordered = all;
       total = ordered.size();
       List<CommunityContentItem> pageItems = paginateItems(ordered, limit, offset);
-      Map<String, CommunityVoteAggregate> pageAggregates = aggregatesForItems(pageItems, userId);
+      List<String> pageIds = pageItems.stream().map(CommunityContentItem::id).toList();
+      Map<String, CommunityVoteAggregate> pageAggregates = voteService.getAggregates(pageIds, userId);
       Instant now = Instant.now();
       items =
           pageItems.stream()
@@ -82,12 +78,37 @@ public class CommunityContentApiResource {
                   })
               .toList();
     } else {
-      List<CommunityContentItem> candidates = featuredCandidates(all);
-      Map<String, CommunityVoteAggregate> aggregates = aggregatesForItems(candidates, userId);
-      List<RankedItem> ordered = rankFeatured(candidates, aggregates);
-      total = ordered.size();
-      List<RankedItem> page = paginate(ordered, limit, offset);
-      items = page.stream().map(item -> toResponse(item.item(), item.aggregate(), item.score())).toList();
+      CommunityFeaturedSnapshotService.FeaturedPage featuredPage =
+          featuredSnapshotService.page(filter.apiValue, limit, offset);
+      List<CommunityFeaturedSnapshotService.FeaturedItem> page = featuredPage.items();
+      total = featuredPage.total();
+      if (userId == null || userId.isBlank() || page.isEmpty()) {
+        items =
+            page.stream()
+                .map(item -> toResponse(item.item(), item.aggregate(), item.score()))
+                .toList();
+      } else {
+        List<String> pageIds =
+            page.stream().map(item -> item.item().id()).toList();
+        Map<String, CommunityVoteAggregate> userAggregates =
+            voteService.getAggregates(pageIds, userId);
+        items =
+            page.stream()
+                .map(
+                    item -> {
+                      CommunityVoteType myVote =
+                          userAggregates.getOrDefault(item.item().id(), CommunityVoteAggregate.empty()).myVote();
+                      CommunityVoteAggregate base = item.aggregate();
+                      CommunityVoteAggregate aggregate =
+                          new CommunityVoteAggregate(
+                              base.recommended(),
+                              base.mustSee(),
+                              base.notForMe(),
+                              myVote);
+                      return toResponse(item.item(), aggregate, item.score());
+                    })
+                .toList();
+      }
     }
 
     CommunityContentMetrics metrics = contentService.metrics();
@@ -139,6 +160,7 @@ public class CommunityContentApiResource {
     }
     try {
       voteService.upsertVote(userId.get(), id, parsedVote.get());
+      featuredSnapshotService.onVotesUpdated();
     } catch (CommunityVoteService.RateLimitExceededException e) {
       return Response.status(429).entity(Map.of("error", "daily_vote_limit_reached")).build();
     } catch (Exception e) {
@@ -195,48 +217,6 @@ public class CommunityContentApiResource {
               : origin == ContentOrigin.INTERNET;
         })
         .toList();
-  }
-
-  private Map<String, CommunityVoteAggregate> aggregatesForItems(
-      List<CommunityContentItem> items, String userId) {
-    List<String> ids = items.stream().map(CommunityContentItem::id).toList();
-    return voteService.getAggregates(ids, userId);
-  }
-
-  private List<CommunityContentItem> featuredCandidates(List<CommunityContentItem> all) {
-    Instant cutoff = Instant.now().minus(Duration.ofDays(Math.max(1, featuredWindowDays)));
-    List<CommunityContentItem> candidates = new ArrayList<>();
-    for (CommunityContentItem item : all) {
-      if (!item.createdAt().isBefore(cutoff)) {
-        candidates.add(item);
-      }
-    }
-    return candidates.isEmpty() ? all : candidates;
-  }
-
-  private List<RankedItem> rankFeatured(
-      List<CommunityContentItem> all, Map<String, CommunityVoteAggregate> aggregates) {
-    Instant now = Instant.now();
-    List<RankedItem> ranked = new ArrayList<>();
-    for (CommunityContentItem item : all) {
-      CommunityVoteAggregate aggregate =
-          aggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
-      double score = CommunityScoreCalculator.score(aggregate, item.createdAt(), now, decayEnabled);
-      ranked.add(new RankedItem(item, aggregate, score));
-    }
-    ranked.sort(
-        Comparator.comparingDouble((RankedItem r) -> r.score())
-            .reversed()
-            .thenComparing(r -> r.item().createdAt(), Comparator.reverseOrder()));
-    return ranked;
-  }
-
-  private List<RankedItem> paginate(List<RankedItem> ranked, int limit, int offset) {
-    if (offset >= ranked.size()) {
-      return List.of();
-    }
-    int end = Math.min(ranked.size(), offset + limit);
-    return ranked.subList(offset, end);
   }
 
   private List<CommunityContentItem> paginateItems(List<CommunityContentItem> items, int limit, int offset) {
@@ -297,9 +277,6 @@ public class CommunityContentApiResource {
       return Optional.of(sub);
     }
     return Optional.empty();
-  }
-
-  private record RankedItem(CommunityContentItem item, CommunityVoteAggregate aggregate, double score) {
   }
 
   public record VoteRequest(String vote) {

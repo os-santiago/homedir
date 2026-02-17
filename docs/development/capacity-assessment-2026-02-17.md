@@ -191,3 +191,22 @@ Acciones recomendadas para siguiente iteración:
 1. Materializar cache de agregados/votos (TTL corto) para reducir costo por request en `featured`.
 2. Añadir cache de respuesta para `featured` (5-15s) invalidada por nuevos votos.
 3. Separar completamente el ranking de `featured` en un snapshot periódico (ej. cada 30-60s), servido desde memoria.
+
+## Iteración aplicada (featured snapshot + response cache)
+
+Implementación posterior en backend:
+
+- `CommunityFeaturedSnapshotService`:
+  - snapshot de ranking `featured` en memoria por filtro (`all/internet/members`);
+  - refresh programado cada `30s` (`community.content.featured.snapshot-refresh-every`);
+  - control de antigüedad para refresh on-demand (`community.content.featured.snapshot-max-age=PT45S`).
+- Cache de respuesta para páginas de `featured`:
+  - TTL corto `PT10S` (`community.content.featured.response-cache-ttl`);
+  - sirve páginas desde memoria para reducir trabajo repetido de ranking.
+- Invalidación por voto:
+  - al votar (`PUT /api/community/content/{id}/vote`) se limpia cache de respuesta y se gatilla refresh async del snapshot.
+
+Resultado esperado:
+- menos recalculo por request en `/api/community/content?view=featured`;
+- mejor estabilidad de latencia en picos de lectura;
+- consistencia rápida tras cambios de votos.

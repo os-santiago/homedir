@@ -18,6 +18,7 @@ public class CommunityContentApiResourceTest {
 
   @Inject CommunityContentService contentService;
   @Inject CommunityVoteService voteService;
+  @Inject CommunityFeaturedSnapshotService featuredSnapshotService;
 
   @BeforeEach
   void setup() throws Exception {
@@ -69,6 +70,7 @@ public class CommunityContentApiResourceTest {
         tags: ["community"]
         """);
     contentService.refreshNowForTests();
+    featuredSnapshotService.refreshNowForTests();
   }
 
   @Test
@@ -146,5 +148,35 @@ public class CommunityContentApiResourceTest {
         .body("item.vote_counts.recommended", equalTo(0))
         .body("item.vote_counts.must_see", equalTo(1))
         .body("item.my_vote", equalTo("must_see"));
+  }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  void featuredListRefreshesImmediatelyAfterVote() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/content?view=featured&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items.find { it.id == 'java-item-1' }.vote_counts.recommended", equalTo(0));
+
+    given()
+        .contentType("application/json")
+        .body("{\"vote\":\"recommended\"}")
+        .when()
+        .put("/api/community/content/java-item-1/vote")
+        .then()
+        .statusCode(200)
+        .body("item.vote_counts.recommended", equalTo(1));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/content?view=featured&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items.find { it.id == 'java-item-1' }.vote_counts.recommended", equalTo(1))
+        .body("items.find { it.id == 'java-item-1' }.my_vote", equalTo("recommended"));
   }
 }
