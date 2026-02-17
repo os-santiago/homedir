@@ -126,6 +126,7 @@ public class PersistenceServiceTest {
     assertEquals(1, root.path("schema_version").asInt());
     assertTrue(root.path("submissions").isObject());
     assertTrue(root.path("submissions").has(submission.id()));
+    assertEquals(64, root.path("checksum_sha256").asText().length());
     assertFalse(root.has(submission.id()));
   }
 
@@ -173,6 +174,28 @@ public class PersistenceServiceTest {
 
     String current = Files.readString(primary);
     assertFalse(current.contains("corrupted-json"));
+  }
+
+  @Test
+  void cfpLoadHydratesChecksumWhenVersionedSnapshotIsMissingChecksum() throws Exception {
+    service = newService();
+
+    CfpSubmission submission = cfp("cfp-1", "Checksum hydrate");
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    var envelope =
+        Map.of(
+            "schema_version", 1,
+            "kind", "cfp_submissions",
+            "updated_at", "2026-02-17T00:00:00Z",
+            "submissions", Map.of(submission.id(), submission));
+    cfpJsonMapper().writeValue(primary.toFile(), envelope);
+
+    Map<String, CfpSubmission> loaded = service.loadCfpSubmissions();
+    assertEquals(1, loaded.size());
+    assertNotNull(loaded.get(submission.id()));
+
+    var migrated = cfpJsonMapper().readTree(primary.toFile());
+    assertEquals(64, migrated.path("checksum_sha256").asText().length());
   }
 
   @Test
@@ -229,6 +252,24 @@ public class PersistenceServiceTest {
     var migrated = cfpJsonMapper().readTree(primary.toFile());
     assertEquals(1, migrated.path("schema_version").asInt());
     assertTrue(migrated.path("submissions").has(submission.id()));
+  }
+
+  @Test
+  void cfpLoadRecoversFromWalWhenPrimaryChecksumIsInvalid() throws Exception {
+    service = newService();
+    service.cfpBackupsEnabled = false;
+
+    CfpSubmission submission = cfp("cfp-1", "Checksum mismatch recovery");
+    service.saveCfpSubmissionsSync(Map.of(submission.id(), submission));
+
+    Path primary = tempDir.resolve("cfp-submissions.json");
+    var root = cfpJsonMapper().readTree(primary.toFile());
+    ((com.fasterxml.jackson.databind.node.ObjectNode) root).put("checksum_sha256", "broken-checksum");
+    cfpJsonMapper().writeValue(primary.toFile(), root);
+
+    Map<String, CfpSubmission> recovered = service.loadCfpSubmissions();
+    assertEquals(1, recovered.size());
+    assertEquals("Checksum mismatch recovery", recovered.get(submission.id()).title());
   }
 
   @Test

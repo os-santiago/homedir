@@ -26,16 +26,20 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
   - `schema_version`
   - `kind`
   - `updated_at`
+  - `checksum_sha256` (integrity guard)
   - `submissions` (map by id)
 - Backward compatibility is preserved:
   - Legacy map-only payloads are still readable from primary, backups, and WAL frames.
   - Legacy payloads are auto-migrated to the versioned envelope on successful load.
+  - Envelope payloads missing checksum are auto-hydrated on successful load.
 
 ## Configuration
 
 - `cfp.persistence.backups.enabled=true`
 - `cfp.persistence.backups.max-files=120`
 - `cfp.persistence.backups.min-interval-ms=300000`
+- `cfp.persistence.checksum.enabled=true`
+- `cfp.persistence.checksum.required=false` (can be switched to `true` after legacy fleet migration)
 
 ## Required ops baseline
 
@@ -49,6 +53,7 @@ This document defines the no-data-loss strategy for CFP submissions in Homedir.
 - PR2: portable CFP export/import bundle and recursive admin backup/restore checks. (implemented)
 - PR3: CFP storage observability endpoint for admin verification + restore drill checklist. (implemented)
 - PR4: CFP persistence schema versioning + automatic legacy migration across primary/WAL/backups. (implemented)
+- PR5: checksum-based CFP integrity guard + auto-hydration and recovery fallback. (implemented)
 
 ## Restore validation checklist
 
