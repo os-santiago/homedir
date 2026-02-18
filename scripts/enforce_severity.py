@@ -26,7 +26,8 @@ def iter_results(sarif):
     for run in sarif.get("runs", []):
         for result in run.get("results", []):
             rule = result.get("ruleId")
-            loc = result.get("locations", [{}])[0]
+            locations = result.get("locations")
+            loc = locations[0] if locations else {}
             phys = loc.get("physicalLocation", {})
             file = phys.get("artifactLocation", {}).get("uri")
             line = phys.get("region", {}).get("startLine")
