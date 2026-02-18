@@ -21,6 +21,14 @@ This module powers `/comunidad` with curated content loaded from files and commu
 - App default (when env not set): `${homedir.data.dir}/community/content`
 - Optional Community Board Discord source:
   - `community.board.discord.file` (YAML/JSON, default `${homedir.data.dir}/community/board/discord-users.yml`)
+  - Optional Discord API integration for board counters:
+    - `community.board.discord.integration.enabled` (default `false`)
+    - `community.board.discord.guild-id` (Discord server/guild id)
+    - `community.board.discord.bot-token` (optional, from secret env var)
+    - `community.board.discord.cache-ttl` (default `PT1H`)
+    - `community.board.discord.retry-interval` (default `PT5M`)
+    - `community.board.discord.refresh-interval` (default `30m`)
+    - `community.board.discord.request-timeout` (default `PT5S`)
 
 ## File Schema
 - One file per item (`.yml` or `.yaml`).
@@ -54,6 +62,10 @@ Invalid/incomplete files are skipped and logged.
 - Community Board Discord users cache:
   - `community.board.cache-ttl` (default `PT1H`)
   - If refresh fails, last in-memory snapshot is kept.
+  - Discord API counters cache:
+    - Data is refreshed asynchronously and never blocks requests.
+    - Source fallback order: `bot_api` -> `preview_api` -> `widget_api` -> file snapshot.
+    - If Discord API fails, board keeps last successful in-memory snapshot.
 
 ## Voting
 - Endpoint: `PUT /api/community/content/{id}/vote`
@@ -100,6 +112,16 @@ Submission notes:
 - `HomeDir users`: internal `UserProfile` store (Google-auth users with local profile).
 - `GitHub users`: union of linked GitHub accounts in `UserProfile` + synced community members.
 - `Discord users`: optional file (`members` array) loaded from configured path and cached.
+  - Discord card now also shows:
+    - listed profiles count (`discord-users.yml`),
+    - online now (if provided by Discord API),
+    - data source and last successful sync timestamp.
+
+### Discord Integration Security Notes
+- Recommended: keep `COMMUNITY_BOARD_DISCORD_BOT_TOKEN` only as an environment secret in the VPS.
+- Never commit tokens to git or write them to `.properties`.
+- The app does not log token values.
+- If no token is provided, integration still works in public mode using preview/widget endpoints when available.
 
 Each item includes counts and current user vote:
 - `vote_counts.recommended`

@@ -33,6 +33,16 @@
           <p class="section-subtitle">{i18n.community_board_group_discord}</p>
           <h2>{discordUsers}</h2>
           <p>{i18n.community_board_group_discord_desc}</p>
+          <div class="board-discord-meta">
+            <p>{i18n.community_board_discord_listed(discordListedUsers)}</p>
+            {#if discordOnlineUsers != null}
+              <p>{i18n.community_board_discord_online_now(discordOnlineUsers)}</p>
+            {/if}
+            <p>{i18n.community_board_discord_source(discordSourceLabel)}</p>
+            {#if discordLastSyncLabel}
+              <p>{i18n.community_board_discord_last_sync(discordLastSyncLabel)}</p>
+            {/if}
+          </div>
           <a class="btn-primary" href="/comunidad/board/discord-users">{i18n.community_board_view_members}</a>
         </article>
       </div>
@@ -70,6 +80,13 @@
 
     .board-summary-card p {
       margin: 0;
+    }
+
+    .board-discord-meta {
+      display: grid;
+      gap: 0.2rem;
+      font-size: 0.88rem;
+      opacity: 0.9;
     }
 
     @media (max-width: 980px) {

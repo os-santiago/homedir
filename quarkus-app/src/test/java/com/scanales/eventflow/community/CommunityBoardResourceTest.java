@@ -56,7 +56,8 @@ public class CommunityBoardResourceTest {
         .body(containsString("Community Board"))
         .body(containsString("HomeDir users"))
         .body(containsString("GitHub users"))
-        .body(containsString("Discord users"));
+        .body(containsString("Discord users"))
+        .body(containsString("Listed profiles: 1"));
   }
 
   @Test

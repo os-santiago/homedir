@@ -40,6 +40,7 @@ public class CommunityBoardService {
 
   @Inject UserProfileService userProfileService;
   @Inject CommunityService communityService;
+  @Inject DiscordGuildStatsService discordGuildStatsService;
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
@@ -55,8 +56,18 @@ public class CommunityBoardService {
   private final AtomicReference<DiscordCache> discordCache = new AtomicReference<>(DiscordCache.empty());
 
   public CommunityBoardSummary summary() {
+    List<CommunityBoardMemberView> discordMembers = discordMembers();
+    int discordListedUsers = discordMembers.size();
+    DiscordGuildStatsService.DiscordGuildSnapshot discordSnapshot = discordGuildStatsService.snapshot();
+    int discordUsers = discordSnapshot.resolveMemberCount(discordListedUsers);
     return new CommunityBoardSummary(
-        homedirMembers().size(), githubMembers().size(), discordMembers().size());
+        homedirMembers().size(),
+        githubMembers().size(),
+        discordUsers,
+        discordListedUsers,
+        discordSnapshot.onlineCount(),
+        resolveDiscordSourceCode(discordSnapshot, discordListedUsers),
+        discordSnapshot.loadedAt());
   }
 
   public BoardSlice list(CommunityBoardGroup group, String query, int limit, int offset) {
@@ -409,6 +420,25 @@ public class CommunityBoardService {
     } catch (Exception e) {
       return Integer.toHexString(value.hashCode());
     }
+  }
+
+  private static String resolveDiscordSourceCode(
+      DiscordGuildStatsService.DiscordGuildSnapshot snapshot, int listedUsers) {
+    String source = trimToNull(snapshot.sourceCode());
+    if (source != null
+        && snapshot.loadedAt() != null
+        && !"unavailable".equals(source)
+        && !"misconfigured".equals(source)
+        && !"disabled".equals(source)) {
+      return source;
+    }
+    if (listedUsers > 0) {
+      return "file";
+    }
+    if (source != null) {
+      return source;
+    }
+    return "unavailable";
   }
 
   public record BoardSlice(
