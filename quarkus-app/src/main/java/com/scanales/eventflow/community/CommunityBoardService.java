@@ -193,10 +193,19 @@ public class CommunityBoardService {
     Instant modifiedAt = fileLastModified(file).orElse(null);
     try {
       List<CommunityBoardMemberView> loaded = parseDiscordFile(file);
+      if (loaded.isEmpty()) {
+        loaded = fallbackDiscordMembers();
+      }
       DiscordCache next = new DiscordCache(List.copyOf(loaded), now, modifiedAt);
       discordCache.set(next);
       return next.members();
     } catch (Exception e) {
+      List<CommunityBoardMemberView> fallback = fallbackDiscordMembers();
+      if (!fallback.isEmpty()) {
+        DiscordCache next = new DiscordCache(List.copyOf(fallback), now, modifiedAt);
+        discordCache.set(next);
+        return next.members();
+      }
       if (!current.members().isEmpty()) {
         LOG.warnf("Unable to refresh discord users file %s, keeping previous cache", file);
         return current.members();
@@ -236,6 +245,30 @@ public class CommunityBoardService {
     }
     out.sort(memberComparator());
     return out;
+  }
+
+  private List<CommunityBoardMemberView> fallbackDiscordMembers() {
+    DiscordGuildStatsService.DiscordGuildSnapshot snapshot = discordGuildStatsService.snapshot();
+    List<DiscordGuildStatsService.DiscordMemberSample> samples = snapshot.memberSamples();
+    if (samples == null || samples.isEmpty()) {
+      return List.of();
+    }
+    Map<String, CommunityBoardMemberView> byId = new LinkedHashMap<>();
+    for (DiscordGuildStatsService.DiscordMemberSample sample : samples) {
+      String id = normalizeId(sample.id());
+      if (id == null) {
+        continue;
+      }
+      String displayName = firstNonBlank(sample.displayName(), sample.handle(), id);
+      String handle = firstNonBlank(sample.handle(), displayName);
+      String link = memberSharePath(CommunityBoardGroup.DISCORD_USERS, id);
+      CommunityBoardMemberView member =
+          new CommunityBoardMemberView(id, displayName, handle, sample.avatarUrl(), null, link, link);
+      byId.putIfAbsent(id, member);
+    }
+    List<CommunityBoardMemberView> out = new ArrayList<>(byId.values());
+    out.sort(memberComparator());
+    return List.copyOf(out);
   }
 
   private Path resolveDiscordFile() {

@@ -15,6 +15,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -148,6 +151,7 @@ public class DiscordGuildStatsService {
               result.memberCount(),
               result.onlineCount(),
               result.sourceCode(),
+              result.memberSamples(),
               attemptedAt,
               attemptedAt,
               true));
@@ -223,10 +227,11 @@ public class DiscordGuildStatsService {
       JsonNode root = objectMapper.readTree(response.body());
       Integer memberCount = firstInt(root, "approximate_member_count", "member_count");
       Integer onlineCount = firstInt(root, "approximate_presence_count", "presence_count");
-      if (memberCount == null && onlineCount == null) {
+      List<DiscordMemberSample> memberSamples = parseMemberSamples(root);
+      if (memberCount == null && onlineCount == null && memberSamples.isEmpty()) {
         return Optional.empty();
       }
-      return Optional.of(new DiscordFetchResult(memberCount, onlineCount, sourceCode));
+      return Optional.of(new DiscordFetchResult(memberCount, onlineCount, sourceCode, memberSamples));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warnv("Discord {0} request interrupted", sourceCode);
@@ -264,6 +269,35 @@ public class DiscordGuildStatsService {
     return null;
   }
 
+  static List<DiscordMemberSample> parseMemberSamples(JsonNode root) {
+    if (root == null) {
+      return List.of();
+    }
+    JsonNode membersNode = root.path("members");
+    if (!membersNode.isArray()) {
+      return List.of();
+    }
+    List<DiscordMemberSample> out = new ArrayList<>();
+    for (JsonNode memberNode : membersNode) {
+      String id = trimToNull(memberNode.path("id").asText(null));
+      String username = trimToNull(memberNode.path("username").asText(null));
+      String globalName = trimToNull(memberNode.path("global_name").asText(null));
+      String displayName = firstNonBlank(globalName, username, id);
+      String discriminator = trimToNull(memberNode.path("discriminator").asText(null));
+      String handle = username;
+      if (handle != null && discriminator != null && !"0".equals(discriminator)) {
+        handle = handle + "#" + discriminator;
+      }
+      String avatarUrl = trimToNull(memberNode.path("avatar_url").asText(null));
+      String normalizedId = normalizeMemberId(id, username);
+      if (normalizedId == null || displayName == null) {
+        continue;
+      }
+      out.add(new DiscordMemberSample(normalizedId, displayName, firstNonBlank(handle, displayName), avatarUrl));
+    }
+    return List.copyOf(out);
+  }
+
   private Duration effectiveCacheTtl() {
     if (cacheTtl == null || cacheTtl.isNegative() || cacheTtl.isZero()) {
       return DEFAULT_CACHE_TTL;
@@ -289,6 +323,31 @@ public class DiscordGuildStatsService {
     return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
 
+  private static String normalizeMemberId(String id, String username) {
+    String byId = trimToNull(id);
+    if (byId != null) {
+      return byId;
+    }
+    String byUsername = trimToNull(username);
+    if (byUsername == null) {
+      return null;
+    }
+    return byUsername.toLowerCase(Locale.ROOT);
+  }
+
+  private static String firstNonBlank(String... values) {
+    if (values == null) {
+      return null;
+    }
+    for (String value : values) {
+      String normalized = trimToNull(value);
+      if (normalized != null) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
   private static String trimToNull(String value) {
     if (value == null) {
       return null;
@@ -297,7 +356,10 @@ public class DiscordGuildStatsService {
     return trimmed.isEmpty() ? null : trimmed;
   }
 
-  private record DiscordFetchResult(Integer memberCount, Integer onlineCount, String sourceCode) {}
+  private record DiscordFetchResult(
+      Integer memberCount, Integer onlineCount, String sourceCode, List<DiscordMemberSample> memberSamples) {}
+
+  public record DiscordMemberSample(String id, String displayName, String handle, String avatarUrl) {}
 
   public record DiscordGuildSnapshot(
       boolean integrationEnabled,
@@ -305,20 +367,21 @@ public class DiscordGuildStatsService {
       Integer memberCount,
       Integer onlineCount,
       String sourceCode,
+      List<DiscordMemberSample> memberSamples,
       Instant loadedAt,
       Instant lastAttemptAt,
       boolean lastAttemptSucceeded) {
 
     static DiscordGuildSnapshot disabled(Instant attempt) {
-      return new DiscordGuildSnapshot(false, false, null, null, "disabled", null, attempt, false);
+      return new DiscordGuildSnapshot(false, false, null, null, "disabled", List.of(), null, attempt, false);
     }
 
     static DiscordGuildSnapshot misconfigured(Instant attempt) {
-      return new DiscordGuildSnapshot(true, false, null, null, "misconfigured", null, attempt, false);
+      return new DiscordGuildSnapshot(true, false, null, null, "misconfigured", List.of(), null, attempt, false);
     }
 
     static DiscordGuildSnapshot unavailable(Instant attempt) {
-      return new DiscordGuildSnapshot(true, true, null, null, "unavailable", null, attempt, false);
+      return new DiscordGuildSnapshot(true, true, null, null, "unavailable", List.of(), null, attempt, false);
     }
 
     DiscordGuildSnapshot withFailedAttempt(Instant attempt) {
@@ -328,6 +391,7 @@ public class DiscordGuildStatsService {
           memberCount,
           onlineCount,
           sourceCode,
+          memberSamples,
           loadedAt,
           attempt,
           false);
