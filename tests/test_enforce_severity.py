@@ -71,3 +71,27 @@ def test_iter_results_handles_empty_locations():
     assert file is None
     assert line is None
     assert result["message"]["text"] == "example"
+
+
+def test_iter_results_handles_missing_locations_key():
+    """iter_results should handle SARIF results that omit locations entirely."""
+    sarif = {
+        "runs": [
+            {
+                "results": [
+                    {
+                        "ruleId": "example.missing.locations",
+                        "message": {"text": "missing locations"},
+                    }
+                ]
+            }
+        ]
+    }
+
+    rows = list(iter_results(sarif))
+    assert len(rows) == 1
+    rule, file, line, result = rows[0]
+    assert rule == "example.missing.locations"
+    assert file is None
+    assert line is None
+    assert result["message"]["text"] == "missing locations"
