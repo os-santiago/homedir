@@ -27,22 +27,13 @@ import org.jboss.logging.Logger;
 @Path("/comunidad/board")
 public class CommunityBoardResource {
   private static final Logger LOG = Logger.getLogger(CommunityBoardResource.class);
+  private static final int PAGE_SIZE = 10;
   private static final DateTimeFormatter BOARD_SYNC_TIME_FMT =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'").withZone(ZoneOffset.UTC);
 
   @Inject SecurityIdentity identity;
   @Inject CommunityBoardService boardService;
   @Inject AppMessages messages;
-
-  @org.eclipse.microprofile.config.inject.ConfigProperty(
-      name = "community.board.default-page-size",
-      defaultValue = "10")
-  int defaultPageSize;
-
-  @org.eclipse.microprofile.config.inject.ConfigProperty(
-      name = "community.board.max-page-size",
-      defaultValue = "100")
-  int maxPageSize;
 
   @CheckedTemplate
   static class Templates {
@@ -152,11 +143,8 @@ public class CommunityBoardResource {
         .data("userInitial", initialFrom(name));
   }
 
-  private int normalizeLimit(Integer limitParam) {
-    if (limitParam == null || limitParam <= 0) {
-      return Math.max(1, defaultPageSize);
-    }
-    return Math.min(limitParam, Math.max(10, maxPageSize));
+  private int normalizeLimit(Integer ignoredLimitParam) {
+    return PAGE_SIZE;
   }
 
   private String normalizeHighlightedMember(String member) {
