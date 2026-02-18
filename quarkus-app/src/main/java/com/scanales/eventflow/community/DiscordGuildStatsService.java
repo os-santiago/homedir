@@ -190,7 +190,7 @@ public class DiscordGuildStatsService {
               "Bot " + token,
               "bot_api");
       if (botResult.isPresent()) {
-        return botResult;
+        return Optional.of(enrichWithWidgetMembers(guildId, botResult.get()));
       }
     }
 
@@ -200,13 +200,28 @@ public class DiscordGuildStatsService {
             null,
             "preview_api");
     if (previewResult.isPresent()) {
-      return previewResult;
+      return Optional.of(enrichWithWidgetMembers(guildId, previewResult.get()));
     }
 
     return fetchJson(
         "https://discord.com/api/guilds/" + url(guildId) + "/widget.json",
         null,
         "widget_api");
+  }
+
+  private DiscordFetchResult enrichWithWidgetMembers(String guildId, DiscordFetchResult current) {
+    if (!current.memberSamples().isEmpty() || "widget_api".equals(current.sourceCode())) {
+      return current;
+    }
+    Optional<DiscordFetchResult> widgetResult =
+        fetchJson(
+            "https://discord.com/api/guilds/" + url(guildId) + "/widget.json",
+            null,
+            "widget_api_members");
+    if (widgetResult.isEmpty() || widgetResult.get().memberSamples().isEmpty()) {
+      return current;
+    }
+    return current.withMemberSamples(widgetResult.get().memberSamples());
   }
 
   private Optional<DiscordFetchResult> fetchJson(String url, String authorization, String sourceCode) {
@@ -357,7 +372,14 @@ public class DiscordGuildStatsService {
   }
 
   private record DiscordFetchResult(
-      Integer memberCount, Integer onlineCount, String sourceCode, List<DiscordMemberSample> memberSamples) {}
+      Integer memberCount, Integer onlineCount, String sourceCode, List<DiscordMemberSample> memberSamples) {
+    DiscordFetchResult withMemberSamples(List<DiscordMemberSample> samples) {
+      if (samples == null || samples.isEmpty()) {
+        return this;
+      }
+      return new DiscordFetchResult(memberCount, onlineCount, sourceCode, List.copyOf(samples));
+    }
+  }
 
   public record DiscordMemberSample(String id, String displayName, String handle, String avatarUrl) {}
 
