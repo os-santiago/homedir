@@ -63,6 +63,7 @@ const SELECTORS = {
 // Funciones de ayuda para seleccionar elementos utilizando los selectores centralizados.
 const $ = (key) => document.querySelector(SELECTORS[key]);
 const $$ = (key) => document.querySelectorAll(SELECTORS[key]);
+const isUltraLiteMode = () => document.body && document.body.classList.contains('ultra-lite-mode');
 
 function adjustLayout() {
     const toggle = $('menuToggle');
@@ -204,6 +205,9 @@ function setupViewFullAgenda() {
 }
 
 function bannerParallax() {
+    if (isUltraLiteMode()) {
+        return;
+    }
     const banner = $('banner');
     if (banner) {
         banner.style.backgroundPositionX = (window.scrollY * 0.3) + 'px';
@@ -311,7 +315,9 @@ function onDomContentLoaded() {
     setupAgendaToggle();
     setupViewFullAgenda();
     adjustLayout();
-    bannerParallax();
+    if (!isUltraLiteMode()) {
+        bannerParallax();
+    }
     handleForms();
     highlightNav();
     handleNotificationsFromUrl();
@@ -336,14 +342,16 @@ function initListeners() {
     resizeHandler = adjustLayout;
     window.addEventListener('resize', resizeHandler);
 
-    scrollHandler = bannerParallax;
-    window.addEventListener('scroll', scrollHandler);
+    if (!isUltraLiteMode()) {
+        scrollHandler = bannerParallax;
+        window.addEventListener('scroll', scrollHandler);
 
-    beforeUnloadHandler = () => showLoading('la página', false);
-    window.addEventListener('beforeunload', beforeUnloadHandler);
+        beforeUnloadHandler = () => showLoading('la página', false);
+        window.addEventListener('beforeunload', beforeUnloadHandler);
 
-    unloadHandler = () => removeListeners();
-    window.addEventListener('unload', unloadHandler);
+        unloadHandler = () => removeListeners();
+        window.addEventListener('unload', unloadHandler);
+    }
 }
 
 function removeListeners() {

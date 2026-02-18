@@ -118,15 +118,25 @@
   </section>
 
   <style>
-    body.ultra-lite-mode *,
-    body.ultra-lite-mode *::before,
-    body.ultra-lite-mode *::after {
+    body.ultra-lite-mode .board-detail-shell,
+    body.ultra-lite-mode .board-detail-shell *,
+    body.ultra-lite-mode .board-detail-shell *::before,
+    body.ultra-lite-mode .board-detail-shell *::after {
       animation: none !important;
       transition: none !important;
       transform: none !important;
-      scroll-behavior: auto !important;
+      will-change: auto !important;
     }
 
+    body.ultra-lite-mode .board-detail-shell,
+    body.ultra-lite-mode .board-members-grid,
+    body.ultra-lite-mode .board-member-card,
+    body.ultra-lite-mode .board-member-main,
+    body.ultra-lite-mode .board-member-text,
+    body.ultra-lite-mode .board-member-actions {
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
     .floating-shapes {
       display: none;
     }
