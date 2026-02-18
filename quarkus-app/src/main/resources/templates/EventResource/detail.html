@@ -3,7 +3,7 @@
 {#if event}
 {event.title} - Homedir
 {#else}
-Evento no encontrado - Homedir
+{i18n.events_detail_not_found_page_title}
 {/if}
 {/title}
 
@@ -12,8 +12,8 @@ Evento no encontrado - Homedir
 <header class="page-header">
   <div class="section-header">
     <p class="section-subtitle">
-        <a href="/eventos" class="hd-link">← Volver a Eventos</a>
-        {#if event.isOngoing()} · <span class="badge info">En curso</span>{/if}
+        <a href="/eventos" class="hd-link">← {i18n.events_detail_back_to_events}</a>
+        {#if event.isOngoing()} · <span class="badge info">{i18n.events_detail_badge_ongoing}</span>{/if}
     </p>
     <h1 class="public-title">{event.title}</h1>
   </div>
@@ -21,14 +21,14 @@ Evento no encontrado - Homedir
   {#if event.formattedDate}
   <p class="section-subtitle">
     <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">calendar_month</span>
-    {event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} hrs{#if event.timezone} ({event.timezone}){/if}
+    {event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} {i18n.events_detail_hours_suffix}{#if event.timezone} ({event.timezone}){/if}
   </p>
   {/if}
   
   {#if app:validUrl(event.mapUrl)}
   <p class="section-subtitle">
       <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
-      <a href="{event.mapUrl}" target="_blank" rel="noopener" class="hd-link">Ver mapa del lugar</a>
+      <a href="{event.mapUrl}" target="_blank" rel="noopener" class="hd-link">{i18n.events_detail_view_map}</a>
   </p>
   {/if}
 </header>
@@ -40,14 +40,18 @@ Evento no encontrado - Homedir
             <div style="display: flex; gap: 2rem; flex-wrap: wrap; align-items: start;">
                 {#if app:validUrl(event.logoUrl)}
                 <div style="flex: 0 0 150px;">
-                    <img src="{event.logoUrl}" alt="Logo de {event.title}" style="width: 100%; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2);">
+                    <img src="{event.logoUrl}" alt="{i18n.events_detail_logo_alt(event.title)}" style="width: 100%; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2);">
                 </div>
                 {/if}
                 
                 <div style="flex: 1; min-width: 300px;">
                     <div class="event-tags" style="margin-bottom: 1rem;">
                         <span class="badge event-type {event.typeCss}">{event.typeLabel}</span>
-                        <span class="badge">Duración: {event.days} día{#if event.days > 1}s{/if}</span>
+                        {#if event.days > 1}
+                        <span class="badge">{i18n.events_detail_duration_days(event.days)}</span>
+                        {#else}
+                        <span class="badge">{i18n.events_detail_duration_day(event.days)}</span>
+                        {/if}
                     </div>
                 
                     {#if event.description}
@@ -64,13 +68,13 @@ Evento no encontrado - Homedir
                     <div class="event-links" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         {#if app:validUrl(event.ticketsUrl)}
                         <a href="{event.ticketsUrl}" target="_blank" rel="noopener" class="btn-primary">
-                            <span class="material-symbols-outlined">confirmation_number</span> Entradas
+                            <span class="material-symbols-outlined">confirmation_number</span> {i18n.events_detail_tickets}
                         </a>
                         {/if}
                         
                         {#if app:validUrl(event.website)}
                         <a href="{event.website}" target="_blank" rel="noopener" class="btn login-btn-nav">
-                            <span class="material-symbols-outlined">language</span> Web
+                            <span class="material-symbols-outlined">language</span> {i18n.events_detail_web}
                         </a>
                         {/if}
                         
@@ -96,7 +100,7 @@ Evento no encontrado - Homedir
     {#if !event.scenarios.isEmpty()}
     <div style="grid-column: 1 / -1; margin-top: 2rem;">
         <div class="section-header">
-            <h2>Escenarios</h2>
+            <h2>{i18n.events_detail_scenarios_title}</h2>
         </div>
         <div class="main-sections" style="padding: 0; margin-top: 1rem; justify-content: start;">
             {#for s in event.scenarios}
@@ -106,7 +110,7 @@ Evento no encontrado - Homedir
                 </div>
                 <h3>{s.name}</h3>
                 {#if s.location}<p style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 1rem;">{s.location}</p>{/if}
-                <a href="/event/{event.id}/scenario/{s.id}" class="hd-link">Ver charlas →</a>
+                <a href="/event/{event.id}/scenario/{s.id}" class="hd-link">{i18n.events_detail_view_talks} →</a>
             </article>
             {/for}
         </div>
@@ -117,17 +121,17 @@ Evento no encontrado - Homedir
     {#if !event.agenda.isEmpty()}
     <div id="agenda" style="grid-column: 1 / -1; margin-top: 3rem;">
         <div class="section-header" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2>Agenda</h2>
+            <h2>{i18n.events_detail_agenda_title}</h2>
             <div class="view-toggle">
-                <button id="agendaSeqBtn" data-agenda-seq-btn class="btn login-btn-nav active" type="button">Secuencial</button>
-                <button id="agendaGridBtn" data-agenda-grid-btn class="btn login-btn-nav" type="button" style="opacity: 0.7;">Por Escenario</button>
+                <button id="agendaSeqBtn" data-agenda-seq-btn class="btn login-btn-nav active" type="button">{i18n.events_detail_agenda_sequential}</button>
+                <button id="agendaGridBtn" data-agenda-grid-btn class="btn login-btn-nav" type="button" style="opacity: 0.7;">{i18n.events_detail_agenda_by_scenario}</button>
             </div>
         </div>
 
         {#for d in event.dayList}
         <div class="section-card" style="margin-bottom: 2rem;">
             <h3 style="margin-bottom: 1.5rem; color: var(--color-accent); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                Día {d}
+                {i18n.events_detail_day_label(d)}
             </h3>
             
             <!-- Sequential View -->
@@ -135,10 +139,10 @@ Evento no encontrado - Homedir
                 <table class="hd-table agenda-table">
                     <thead>
                         <tr>
-                            <th>Horario</th>
-                            <th>Actividad</th>
-                            <th>Ponentes</th>
-                            <th>Escenario</th>
+                            <th>{i18n.events_detail_table_time}</th>
+                            <th>{i18n.events_detail_table_activity}</th>
+                            <th>{i18n.events_detail_table_speakers}</th>
+                            <th>{i18n.events_detail_table_scenario}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -189,7 +193,7 @@ Evento no encontrado - Homedir
                     <table class="hd-table agenda-grid-table">
                         <thead>
                             <tr>
-                                <th>Horario</th>
+                                <th>{i18n.events_detail_table_time}</th>
                                 {#for sc in event.scenarios}
                                 <th>{sc.name}</th>
                                 {/for}
@@ -237,9 +241,9 @@ Evento no encontrado - Homedir
 <div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
     <div class="section-card" style="text-align: center;">
         <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">event_busy</span>
-        <h2>Evento no encontrado</h2>
-        <p>Lo sentimos, no pudimos encontrar el evento que buscas.</p>
-        <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">Explorar otros eventos</a>
+        <h2>{i18n.events_detail_not_found_title}</h2>
+        <p>{i18n.events_detail_not_found_desc}</p>
+        <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">{i18n.events_detail_not_found_cta}</a>
     </div>
 </div>
 {/if}

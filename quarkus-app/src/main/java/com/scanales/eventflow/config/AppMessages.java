@@ -1029,6 +1029,9 @@ public interface AppMessages {
     @Message("Moderation")
     String community_submenu_moderation();
 
+    @Message("Community submenu")
+    String community_submenu_aria_label();
+
     @Message("No matches for current filters. Try a different combination.")
     String community_js_empty_filtered();
 
@@ -1247,6 +1250,78 @@ public interface AppMessages {
 
     @Message("Notifications")
     String nav_notifications();
+
+    @Message("Notifications Center")
+    String notifications_center_title();
+
+    @Message("Here you can see global alerts about updates in available event schedules. Mark as read or remove notifications you no longer need.")
+    String notifications_center_subtitle();
+
+    @Message("All")
+    String notifications_center_filter_all();
+
+    @Message("Unread")
+    String notifications_center_filter_unread();
+
+    @Message("Select all")
+    String notifications_center_action_select_all();
+
+    @Message("Mark all as read")
+    String notifications_center_action_mark_all_read();
+
+    @Message("Delete selected")
+    String notifications_center_action_delete_selected();
+
+    @Message("Delete all")
+    String notifications_center_action_delete_all();
+
+    @Message("No notifications for now.")
+    String notifications_center_empty();
+
+    @Message("Delete all?")
+    String notifications_center_confirm_title();
+
+    @Message("Are you sure you want to delete all received notifications?")
+    String notifications_center_confirm_desc();
+
+    @Message("Confirm")
+    String notifications_center_confirm_btn();
+
+    @Message("Cancel")
+    String notifications_center_cancel_btn();
+
+    @Message("Mark as read")
+    String notifications_center_js_toggle_mark_read();
+
+    @Message("Mark as unread")
+    String notifications_center_js_toggle_mark_unread();
+
+    @Message("View talk")
+    String notifications_center_js_link_view_talk();
+
+    @Message("Open")
+    String notifications_center_js_link_open();
+
+    @Message("Notification")
+    String notifications_center_js_default_title();
+
+    @Message("Event")
+    String notifications_center_js_category_event();
+
+    @Message("Talk")
+    String notifications_center_js_category_talk();
+
+    @Message("Break")
+    String notifications_center_js_category_break();
+
+    @Message("Announcement")
+    String notifications_center_js_category_announcement();
+
+    @Message("Select all")
+    String notifications_center_js_select_all();
+
+    @Message("Deselect all")
+    String notifications_center_js_deselect_all();
 
     @Message("Signed in as")
     String nav_signed_in_as();
@@ -1496,5 +1571,287 @@ public interface AppMessages {
     @Message("View repository")
     String home_btn_view_repo();
 
-}
+    // --- Site I18n Hardcoded Migration ---
+    @Message("HomeDir · OSSantiago Community Platform")
+    String footer_platform_line();
 
+    @Message("Built with Quarkus · Qute · Open Source")
+    String footer_built_with_line();
+
+    @Message("About / Version")
+    String footer_about_version();
+
+    @Message("Close login")
+    String login_modal_close_aria();
+
+    @Message("Welcome to HomeDir")
+    String login_modal_title();
+
+    @Message("Login to manage your profile and data")
+    String login_modal_subtitle();
+
+    @Message("Continue with Google")
+    String login_modal_google();
+
+    @Message("Continue with GitHub")
+    String login_modal_github();
+
+    @Message("Skip to main content")
+    String layout_skip_main_content();
+
+    @Message("Breadcrumbs")
+    String layout_breadcrumbs_aria();
+
+    @Message("Avatar")
+    String header_avatar_alt();
+
+    @Message("LV")
+    String header_level_short();
+
+    @Message("LVL {level}")
+    String header_level_label(Object level);
+
+    @Message("{current} / {total} XP")
+    String header_xp_progress(int current, int total);
+
+    @Message("GitHub: @{login}")
+    String header_github_connected(String login);
+
+    @Message("Happening now")
+    String now_box_title();
+
+    @Message("Latest, live, and next by event.")
+    String now_box_subtitle();
+
+    @Message("View full agenda")
+    String now_box_view_full_agenda();
+
+    @Message("Finished")
+    String now_box_status_finished();
+
+    @Message("Live")
+    String now_box_status_live();
+
+    @Message("Next")
+    String now_box_status_next();
+
+    @Message("HomeDir - Community Platform")
+    String layout_default_title();
+
+    @Message("HomeDir - Community Platform")
+    String layout_default_og_title();
+
+    @Message("Join the Open Source Santiago community platform. Level up your skills, join quests, and showcase your profile.")
+    String layout_default_og_description();
+
+    @Message("HomeDir")
+    String layout_default_twitter_title();
+
+    @Message("Join the Open Source Santiago community platform.")
+    String layout_default_twitter_description();
+
+    @Message("Event not found - Homedir")
+    String events_detail_not_found_page_title();
+
+    @Message("Back to Events")
+    String events_detail_back_to_events();
+
+    @Message("Live")
+    String events_detail_badge_ongoing();
+
+    @Message("hrs")
+    String events_detail_hours_suffix();
+
+    @Message("View venue map")
+    String events_detail_view_map();
+
+    @Message("Logo of {title}")
+    String events_detail_logo_alt(String title);
+
+    @Message("Duration: {days} day")
+    String events_detail_duration_day(int days);
+
+    @Message("Duration: {days} days")
+    String events_detail_duration_days(int days);
+
+    @Message("Tickets")
+    String events_detail_tickets();
+
+    @Message("Website")
+    String events_detail_web();
+
+    @Message("Scenarios")
+    String events_detail_scenarios_title();
+
+    @Message("View talks")
+    String events_detail_view_talks();
+
+    @Message("Agenda")
+    String events_detail_agenda_title();
+
+    @Message("Sequential")
+    String events_detail_agenda_sequential();
+
+    @Message("By Scenario")
+    String events_detail_agenda_by_scenario();
+
+    @Message("Day {day}")
+    String events_detail_day_label(int day);
+
+    @Message("Time")
+    String events_detail_table_time();
+
+    @Message("Activity")
+    String events_detail_table_activity();
+
+    @Message("Speakers")
+    String events_detail_table_speakers();
+
+    @Message("Scenario")
+    String events_detail_table_scenario();
+
+    @Message("Event not found")
+    String events_detail_not_found_title();
+
+    @Message("Sorry, we could not find the event you are looking for.")
+    String events_detail_not_found_desc();
+
+    @Message("Explore other events")
+    String events_detail_not_found_cta();
+
+    @Message("Talk")
+    String talk_title_default();
+
+    @Message("Home")
+    String talk_breadcrumb_home();
+
+    @Message("Talk: {talkName}")
+    String talk_breadcrumb_label(String talkName);
+
+    @Message("Day {day}")
+    String talk_chip_day(int day);
+
+    @Message("Talk in preparation. It will be available soon.")
+    String talk_preparing_message();
+
+    @Message("Speaker")
+    String talk_label_speaker();
+
+    @Message("Co-Speaker")
+    String talk_label_co_speaker();
+
+    @Message("Schedule")
+    String talk_label_schedule();
+
+    @Message("TBD")
+    String talk_tbd();
+
+    @Message("Location")
+    String talk_label_location();
+
+    @Message("Duration")
+    String talk_label_duration();
+
+    @Message("{minutes} min")
+    String talk_duration_minutes(int minutes);
+
+    @Message("View in my profile")
+    String talk_btn_view_profile();
+
+    @Message("Add to my talks")
+    String talk_btn_add_to_profile();
+
+    @Message("Added to my profile")
+    String talk_js_added();
+
+    @Message("This talk was already in your profile.")
+    String talk_js_exists();
+
+    @Message("You must log in to add this talk.")
+    String talk_js_login_required();
+
+    @Message("An error occurred while registering this talk.")
+    String talk_js_error();
+
+    @Message("Schedules")
+    String talk_schedule_slots();
+
+    @Message("Day {day} - {startTime} ({durationMinutes} min)")
+    String talk_occurrence_line(int day, String startTime, int durationMinutes);
+
+    @Message("Location TBD")
+    String talk_location_tbd();
+
+    @Message("Back to scenario")
+    String talk_back_to_scenario();
+
+    @Message("Back to event")
+    String talk_back_to_event();
+
+    @Message("Talk not found.")
+    String talk_not_found();
+
+    @Message("Community Board · Homedir")
+    String community_board_page_title();
+
+    @Message("Community · Board")
+    String community_board_subtitle();
+
+    @Message("Community Board")
+    String community_board_heading();
+
+    @Message("Who participates, where they collaborate from, and how they share their community presence.")
+    String community_board_intro();
+
+    @Message("HomeDir users")
+    String community_board_group_homedir();
+
+    @Message("People who signed in with Google and created a Homedir account.")
+    String community_board_group_homedir_desc();
+
+    @Message("GitHub users")
+    String community_board_group_github();
+
+    @Message("Contributors with a linked GitHub account in the OSSantiago ecosystem.")
+    String community_board_group_github_desc();
+
+    @Message("Discord users")
+    String community_board_group_discord();
+
+    @Message("People who joined our official OSSantiago Discord server.")
+    String community_board_group_discord_desc();
+
+    @Message("View members")
+    String community_board_view_members();
+
+    @Message("{count} members")
+    String community_board_members_count(int count);
+
+    @Message("Search by name, handle or email")
+    String community_board_search_placeholder();
+
+    @Message("Search member")
+    String community_board_search_aria();
+
+    @Message("Search")
+    String community_board_search();
+
+    @Message("No members found with current filter.")
+    String community_board_no_members();
+
+    @Message("Member since {date}")
+    String community_board_member_since(String date);
+
+    @Message("Open")
+    String community_board_open();
+
+    @Message("Copy profile link")
+    String community_board_copy_profile_link();
+
+    @Message("Link copied")
+    String community_board_link_copied();
+
+    @Message("Copy failed")
+    String community_board_copy_failed();
+
+}

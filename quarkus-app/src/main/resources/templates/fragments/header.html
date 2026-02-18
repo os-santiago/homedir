@@ -30,7 +30,7 @@
       <div class="user-menu-toggle">
         <a href="/private/profile" class="user-profile-link user-profile-link-styled">
           {#if userSession.avatarUrl}
-          <img src="{userSession.avatarUrl}" alt="Avatar" class="avatar-circle header-avatar-circle">
+          <img src="{userSession.avatarUrl}" alt="{i18n.header_avatar_alt}" class="avatar-circle header-avatar-circle">
           {#else}
           <div class="avatar-circle header-avatar-fallback">
             {#if userSession.displayName}
@@ -55,7 +55,7 @@
             {userSession.displayName ?: userName}
           </span>
           <span class="nes-badge is-splited header-level-badge">
-            <span class="is-dark">LV</span>
+            <span class="is-dark">{i18n.header_level_short}</span>
             <span class="is-warning">{userSession.level}</span>
           </span>
         </a>
@@ -70,8 +70,8 @@
           <strong>{userSession.email ?: userName}</strong>
           <div class="header-xp-stats">
             <div class="header-xp-values">
-              <span>LVL {userSession.level}</span>
-              <span>{userSession.currentXp} / {userSession.nextLevelXp} XP</span>
+              <span>{i18n.header_level_label(userSession.level)}</span>
+              <span>{i18n.header_xp_progress(userSession.currentXp, userSession.nextLevelXp)}</span>
             </div>
             <div class="xp-bar-container header-xp-bar-bg">
               <div class="xp-bar-fill header-xp-bar-fill"
@@ -97,7 +97,7 @@
         </a>
         {#else}
         <div class="dropdown-item header-dropdown-item-github">
-          <span class="header-github-login">GitHub: @{userSession.githubLogin}</span>
+          <span class="header-github-login">{i18n.header_github_connected(userSession.githubLogin)}</span>
         </div>
         {/if}
 

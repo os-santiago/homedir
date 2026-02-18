@@ -36,7 +36,7 @@ public class EventResourceMapLinkTest {
         .get("/event/" + EVENT_WITH_MAP)
         .then()
         .statusCode(200)
-        .body(containsString("Ver mapa"))
+        .body(containsString("View venue map"))
         .body(containsString("https://example.com/map"));
   }
 
@@ -50,6 +50,6 @@ public class EventResourceMapLinkTest {
         .get("/event/" + EVENT_WITHOUT_MAP)
         .then()
         .statusCode(200)
-        .body(not(containsString("Ver mapa")));
+        .body(not(containsString("View venue map")));
   }
 }
