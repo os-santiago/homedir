@@ -118,11 +118,31 @@
   </section>
 
   <style>
+    .floating-shapes {
+      display: none;
+    }
+
     .board-detail-shell,
     .board-detail-shell:hover {
       transform: none;
       animation: none;
       cursor: default;
+    }
+
+    .board-detail-shell::before,
+    .board-detail-shell:hover::before {
+      content: none;
+    }
+
+    .board-detail-shell .btn-primary,
+    .board-detail-shell .btn-primary:hover,
+    .board-detail-shell .btn-primary:active,
+    .board-detail-shell .board-member-card,
+    .board-detail-shell .board-member-card:hover {
+      transform: none !important;
+      animation: none !important;
+      transition: none !important;
+      will-change: auto !important;
     }
 
     .board-detail-head {
@@ -161,6 +181,7 @@
       border-radius: 10px;
       padding: 0.85rem;
       background: rgba(0, 0, 0, 0.35);
+      box-shadow: none;
       display: flex;
       justify-content: space-between;
       align-items: center;
