@@ -1821,6 +1821,39 @@ public interface AppMessages {
     @Message("People who joined our official OSSantiago Discord server.")
     String community_board_group_discord_desc();
 
+    @Message("Listed profiles: {count}")
+    String community_board_discord_listed(int count);
+
+    @Message("Online now: {count}")
+    String community_board_discord_online_now(int count);
+
+    @Message("Data source: {source}")
+    String community_board_discord_source(String source);
+
+    @Message("Last sync: {timestamp}")
+    String community_board_discord_last_sync(String timestamp);
+
+    @Message("Discord API (bot token)")
+    String community_board_discord_source_bot_api();
+
+    @Message("Discord API (guild preview)")
+    String community_board_discord_source_preview_api();
+
+    @Message("Discord API (server widget)")
+    String community_board_discord_source_widget_api();
+
+    @Message("Community board file")
+    String community_board_discord_source_file();
+
+    @Message("Unavailable")
+    String community_board_discord_source_unavailable();
+
+    @Message("Missing configuration")
+    String community_board_discord_source_misconfigured();
+
+    @Message("Integration disabled")
+    String community_board_discord_source_disabled();
+
     @Message("View members")
     String community_board_view_members();
 

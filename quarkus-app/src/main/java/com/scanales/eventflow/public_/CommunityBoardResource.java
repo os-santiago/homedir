@@ -3,6 +3,7 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.community.CommunityBoardGroup;
 import com.scanales.eventflow.community.CommunityBoardMemberView;
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.config.AppMessages;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -15,6 +16,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import org.jboss.logging.Logger;
@@ -22,14 +25,24 @@ import org.jboss.logging.Logger;
 @Path("/comunidad/board")
 public class CommunityBoardResource {
   private static final Logger LOG = Logger.getLogger(CommunityBoardResource.class);
+  private static final DateTimeFormatter BOARD_SYNC_TIME_FMT =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'").withZone(ZoneOffset.UTC);
 
   @Inject SecurityIdentity identity;
   @Inject CommunityBoardService boardService;
+  @Inject AppMessages messages;
 
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance board(
-        boolean isAuthenticated, int homedirUsers, int githubUsers, int discordUsers);
+        boolean isAuthenticated,
+        int homedirUsers,
+        int githubUsers,
+        int discordUsers,
+        int discordListedUsers,
+        Integer discordOnlineUsers,
+        String discordSourceLabel,
+        String discordLastSyncLabel);
 
     static native TemplateInstance detail(
         boolean isAuthenticated,
@@ -54,7 +67,11 @@ public class CommunityBoardResource {
             isAuthenticated(),
             summary.homedirUsers(),
             summary.githubUsers(),
-            summary.discordUsers());
+            summary.discordUsers(),
+            summary.discordListedUsers(),
+            summary.discordOnlineUsers(),
+            discordSourceLabel(summary.discordDataSource()),
+            formatSyncTime(summary.discordLastSyncAt()));
     return withLayoutData(template, "board");
   }
 
@@ -160,5 +177,27 @@ public class CommunityBoardResource {
       return null;
     }
     return trimmed.substring(0, 1).toUpperCase();
+  }
+
+  private String discordSourceLabel(String sourceCode) {
+    if (sourceCode == null || sourceCode.isBlank()) {
+      return messages.community_board_discord_source_unavailable();
+    }
+    return switch (sourceCode) {
+      case "bot_api" -> messages.community_board_discord_source_bot_api();
+      case "preview_api" -> messages.community_board_discord_source_preview_api();
+      case "widget_api" -> messages.community_board_discord_source_widget_api();
+      case "file" -> messages.community_board_discord_source_file();
+      case "misconfigured" -> messages.community_board_discord_source_misconfigured();
+      case "disabled" -> messages.community_board_discord_source_disabled();
+      default -> messages.community_board_discord_source_unavailable();
+    };
+  }
+
+  private String formatSyncTime(java.time.Instant instant) {
+    if (instant == null) {
+      return null;
+    }
+    return BOARD_SYNC_TIME_FMT.format(instant);
   }
 }
