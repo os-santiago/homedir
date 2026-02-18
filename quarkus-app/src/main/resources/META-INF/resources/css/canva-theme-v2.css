@@ -1,5 +1,0 @@
-/*
- * Legacy compatibility stylesheet.
- * Some clients can request this path from cached HTML versions.
- * Keep file present to avoid 500/404 noise during rollouts.
- */
