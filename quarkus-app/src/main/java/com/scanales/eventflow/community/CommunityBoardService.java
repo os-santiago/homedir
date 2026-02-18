@@ -65,6 +65,9 @@ public class CommunityBoardService {
   @ConfigProperty(name = "community.board.response-cache-ttl", defaultValue = "PT10S")
   Duration responseCacheTtl;
 
+  @ConfigProperty(name = "community.board.empty-snapshot-retry-interval", defaultValue = "PT12S")
+  Duration emptySnapshotRetryInterval;
+
   private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
   private final ObjectMapper jsonMapper = new ObjectMapper();
   private final AtomicReference<DiscordCache> discordCache = new AtomicReference<>(DiscordCache.empty());
@@ -174,9 +177,14 @@ public class CommunityBoardService {
 
   private void triggerRefreshAsync(boolean force, String reason) {
     BoardSnapshot current = snapshot.get();
+    boolean emptyRecoverWindow =
+        current.refreshedAt() != null
+            && current.totalMembers() == 0
+            && Instant.now().isAfter(current.refreshedAt().plus(effectiveEmptySnapshotRetryInterval()));
     boolean stale =
         current.refreshedAt() == null
-            || Instant.now().isAfter(current.refreshedAt().plus(effectiveSnapshotMaxAge()));
+            || Instant.now().isAfter(current.refreshedAt().plus(effectiveSnapshotMaxAge()))
+            || emptyRecoverWindow;
     if (!force && !stale) {
       return;
     }
@@ -452,6 +460,15 @@ public class CommunityBoardService {
     return responseCacheTtl;
   }
 
+  private Duration effectiveEmptySnapshotRetryInterval() {
+    if (emptySnapshotRetryInterval == null
+        || emptySnapshotRetryInterval.isNegative()
+        || emptySnapshotRetryInterval.isZero()) {
+      return Duration.ofSeconds(12);
+    }
+    return emptySnapshotRetryInterval;
+  }
+
   private static Comparator<CommunityBoardMemberView> memberComparator() {
     return Comparator.comparing(
             CommunityBoardMemberView::displayName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
@@ -623,6 +640,17 @@ public class CommunityBoardService {
       long durationMs) {
     static BoardSnapshot empty() {
       return new BoardSnapshot(Map.of(), null, 0L);
+    }
+
+    int totalMembers() {
+      if (membersByGroup == null || membersByGroup.isEmpty()) {
+        return 0;
+      }
+      int total = 0;
+      for (List<CommunityBoardMemberView> members : membersByGroup.values()) {
+        total += members == null ? 0 : members.size();
+      }
+      return total;
     }
   }
 
