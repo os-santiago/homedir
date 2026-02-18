@@ -485,6 +485,196 @@ public interface AppMessages {
     @Message("In Design")
     String badge_design();
 
+    // --- Project Dashboard (/proyectos) ---
+    @Message("Project · Homedir")
+    String project_dashboard_title();
+
+    @Message("Product delivery overview")
+    String project_dashboard_hero_title();
+
+    @Message("One place to track real status, active features, releases, and delivery signals for homedir.")
+    String project_dashboard_tagline();
+
+    @Message("Repository")
+    String project_dashboard_btn_repository();
+
+    @Message("Releases")
+    String project_dashboard_btn_releases();
+
+    @Message("Issues")
+    String project_dashboard_btn_issues();
+
+    @Message("Stars")
+    String project_dashboard_metric_stars();
+
+    @Message("Community interest signal")
+    String project_dashboard_metric_stars_note();
+
+    @Message("Forks")
+    String project_dashboard_metric_forks();
+
+    @Message("Active collaboration branches")
+    String project_dashboard_metric_forks_note();
+
+    @Message("Issues")
+    String project_dashboard_metric_issues();
+
+    @Message("Current open backlog")
+    String project_dashboard_metric_issues_note();
+
+    @Message("Contributors")
+    String project_dashboard_metric_contributors();
+
+    @Message("Contributions: {total}")
+    String project_dashboard_metric_contributions(int total);
+
+    @Message("Latest push")
+    String project_dashboard_metric_last_push();
+
+    @Message("Recent code activity")
+    String project_dashboard_metric_last_push_note();
+
+    @Message("Latest release")
+    String project_dashboard_metric_latest_release();
+
+    @Message("Progress")
+    String project_dashboard_progress_subtitle();
+
+    @Message("Implementation status")
+    String project_dashboard_progress_title();
+
+    @Message("LIVE")
+    String project_dashboard_status_live();
+
+    @Message("BETA")
+    String project_dashboard_status_beta();
+
+    @Message("NEXT")
+    String project_dashboard_status_next();
+
+    @Message("Snapshot updated {ago}")
+    String project_dashboard_snapshot_updated(String ago);
+
+    @Message("Releases")
+    String project_dashboard_releases_subtitle();
+
+    @Message("Recent history")
+    String project_dashboard_releases_title();
+
+    @Message("View all")
+    String project_dashboard_view_all();
+
+    @Message("No published releases at this moment.")
+    String project_dashboard_empty_releases();
+
+    @Message("Features")
+    String project_dashboard_features_subtitle();
+
+    @Message("Homedir feature map")
+    String project_dashboard_features_title();
+
+    @Message("Open")
+    String project_dashboard_open();
+
+    @Message("Team")
+    String project_dashboard_team_subtitle();
+
+    @Message("Top contributors")
+    String project_dashboard_team_title();
+
+    @Message("Contributor data is not available yet.")
+    String project_dashboard_empty_contributors();
+
+    @Message("contribs")
+    String project_dashboard_contribs_unit();
+
+    @Message("No published releases")
+    String project_dashboard_latest_release_none();
+
+    @Message("Release cadence")
+    String project_dashboard_highlight_release_title();
+
+    @Message("No recent releases")
+    String project_dashboard_highlight_release_none();
+
+    @Message("{count} recent releases")
+    String project_dashboard_highlight_release_count(int count);
+
+    @Message("{ago} since the latest publication")
+    String project_dashboard_highlight_release_note(String ago);
+
+    @Message("Backlog health")
+    String project_dashboard_highlight_backlog_title();
+
+    @Message("{count} open issues")
+    String project_dashboard_highlight_backlog_open_issues(int count);
+
+    @Message("Tracked in GitHub Issues")
+    String project_dashboard_highlight_backlog_note();
+
+    @Message("Code activity")
+    String project_dashboard_highlight_activity_title();
+
+    @Message("Latest push in the main repository")
+    String project_dashboard_highlight_activity_note();
+
+    @Message("Curated Community Feed")
+    String project_dashboard_feature_community_feed_title();
+
+    @Message("File-based ingest with ranking, 3-state votes, and weekly highlights.")
+    String project_dashboard_feature_community_feed_desc();
+
+    @Message("Events Persistence")
+    String project_dashboard_feature_events_persistence_title();
+
+    @Message("Events persist across restarts and new deployments.")
+    String project_dashboard_feature_events_persistence_desc();
+
+    @Message("One-page Home Highlights")
+    String project_dashboard_feature_home_highlights_title();
+
+    @Message("Compact home with Community, Events and Project in one quick view.")
+    String project_dashboard_feature_home_highlights_desc();
+
+    @Message("Global Notifications")
+    String project_dashboard_feature_global_notifications_title();
+
+    @Message("Real-time global notifications with WebSocket and a unified center.")
+    String project_dashboard_feature_global_notifications_desc();
+
+    @Message("Contributor Telemetry Cache")
+    String project_dashboard_feature_contributor_cache_title();
+
+    @Message("Contributor metrics cached to avoid per-request integrations.")
+    String project_dashboard_feature_contributor_cache_desc();
+
+    @Message("ADev Practitioner Playbook")
+    String project_dashboard_feature_adev_playbook_title();
+
+    @Message("Formalize the ADev baseline as operating guidance for upcoming cycles.")
+    String project_dashboard_feature_adev_playbook_desc();
+
+    @Message("n/a")
+    String project_dashboard_relative_na();
+
+    @Message("now")
+    String project_dashboard_relative_now();
+
+    @Message("{minutes}m ago")
+    String project_dashboard_relative_minutes(long minutes);
+
+    @Message("{hours}h ago")
+    String project_dashboard_relative_hours(long hours);
+
+    @Message("{days}d ago")
+    String project_dashboard_relative_days(long days);
+
+    @Message("{months}mo ago")
+    String project_dashboard_relative_months(long months);
+
+    @Message("{years}y ago")
+    String project_dashboard_relative_years(long years);
+
     @Message("You are browsing as a guest.")
     String home_guest_warning();
 
@@ -1307,5 +1497,4 @@ public interface AppMessages {
     String home_btn_view_repo();
 
 }
-
 

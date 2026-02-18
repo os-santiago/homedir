@@ -2,6 +2,7 @@ package com.scanales.eventflow.public_;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scanales.eventflow.config.AppMessages;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
 import com.scanales.eventflow.service.UsageMetricsService;
@@ -47,6 +48,7 @@ public class ProjectsResource {
   @Inject ObjectMapper mapper;
   @Inject Config config;
   @Inject GithubService githubService;
+  @Inject AppMessages messages;
 
   @Inject
   @ConfigProperty(name = "home.project.github.repo-owner", defaultValue = "os-santiago")
@@ -109,7 +111,7 @@ public class ProjectsResource {
 
     ProjectSnapshot snapshot = currentSnapshot();
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
-    ProjectDashboard dashboard = buildDashboard(snapshot, contributors);
+    ProjectDashboard dashboard = buildDashboard(snapshot, contributors, messages);
     TemplateInstance template = Templates.proyectos(dashboard);
     return withLayoutData(template, "proyectos");
   }
@@ -285,8 +287,8 @@ public class ProjectsResource {
   }
 
   private ProjectDashboard buildDashboard(
-      ProjectSnapshot snapshot, List<GithubContributor> contributors) {
-    List<ProjectFeature> features = defaultFeatures();
+      ProjectSnapshot snapshot, List<GithubContributor> contributors, AppMessages i18n) {
+    List<ProjectFeature> features = defaultFeatures(i18n);
     int liveFeatures = (int) features.stream().filter(feature -> "live".equals(feature.statusClass())).count();
     int betaFeatures = (int) features.stream().filter(feature -> "beta".equals(feature.statusClass())).count();
     int nextFeatures = (int) features.stream().filter(feature -> "next".equals(feature.statusClass())).count();
@@ -306,28 +308,30 @@ public class ProjectsResource {
                         release.tag(),
                         release.label(),
                         release.url(),
-                        relativeTime(release.publishedAt()),
+                        relativeTime(release.publishedAt(), i18n),
                         release.prerelease()))
             .toList();
 
-    String latestRelease = releaseCards.isEmpty() ? "No releases publicadas" : releaseCards.getFirst().label();
-    String latestReleaseAgo =
-        releaseCards.isEmpty() ? "n/d" : releaseCards.getFirst().publishedAgo();
+    String latestRelease =
+        releaseCards.isEmpty() ? i18n.project_dashboard_latest_release_none() : releaseCards.getFirst().label();
+    String latestReleaseAgo = releaseCards.isEmpty() ? i18n.project_dashboard_relative_na() : releaseCards.getFirst().publishedAgo();
 
     List<ProjectHighlight> highlights =
         List.of(
             new ProjectHighlight(
-                "Cadencia de releases",
-                releaseCards.isEmpty() ? "Sin releases recientes" : releaseCards.size() + " releases recientes",
-                latestReleaseAgo + " desde la última publicación"),
+                i18n.project_dashboard_highlight_release_title(),
+                releaseCards.isEmpty()
+                    ? i18n.project_dashboard_highlight_release_none()
+                    : i18n.project_dashboard_highlight_release_count(releaseCards.size()),
+                i18n.project_dashboard_highlight_release_note(latestReleaseAgo)),
             new ProjectHighlight(
-                "Salud del backlog",
-                snapshot.repository().openIssues() + " issues abiertas",
-                "Controlado desde GitHub Issues"),
+                i18n.project_dashboard_highlight_backlog_title(),
+                i18n.project_dashboard_highlight_backlog_open_issues(snapshot.repository().openIssues()),
+                i18n.project_dashboard_highlight_backlog_note()),
             new ProjectHighlight(
-                "Actividad de código",
-                relativeTime(snapshot.repository().lastPushAt()),
-                "Último push al repositorio principal"));
+                i18n.project_dashboard_highlight_activity_title(),
+                relativeTime(snapshot.repository().lastPushAt(), i18n),
+                i18n.project_dashboard_highlight_activity_note()));
 
     return new ProjectDashboard(
         snapshot.repository(),
@@ -339,50 +343,50 @@ public class ProjectsResource {
         totalContributions,
         latestRelease,
         latestReleaseAgo,
-        relativeTime(snapshot.repository().lastPushAt()),
-        relativeTime(snapshot.loadedAt()),
+        relativeTime(snapshot.repository().lastPushAt(), i18n),
+        relativeTime(snapshot.loadedAt(), i18n),
         releaseCards,
         features,
         topContributors,
         highlights);
   }
 
-  private List<ProjectFeature> defaultFeatures() {
+  private List<ProjectFeature> defaultFeatures(AppMessages i18n) {
     return List.of(
         new ProjectFeature(
-            "Curated Community Feed",
-            "Ingesta file-based con ranking, votos 3 estados y destacados semanales.",
-            "LIVE",
+            i18n.project_dashboard_feature_community_feed_title(),
+            i18n.project_dashboard_feature_community_feed_desc(),
+            i18n.project_dashboard_status_live(),
             "live",
             "/comunidad"),
         new ProjectFeature(
-            "Events Persistence",
-            "Persistencia de eventos para sobrevivir reinicios y nuevos despliegues.",
-            "LIVE",
+            i18n.project_dashboard_feature_events_persistence_title(),
+            i18n.project_dashboard_feature_events_persistence_desc(),
+            i18n.project_dashboard_status_live(),
             "live",
             "/eventos"),
         new ProjectFeature(
-            "One-page Home Highlights",
-            "Home compacto con Social, Events y Project en una vista rápida.",
-            "LIVE",
+            i18n.project_dashboard_feature_home_highlights_title(),
+            i18n.project_dashboard_feature_home_highlights_desc(),
+            i18n.project_dashboard_status_live(),
             "live",
             "/"),
         new ProjectFeature(
-            "Global Notifications",
-            "Notificaciones globales en tiempo real con WebSocket y centro unificado.",
-            "BETA",
+            i18n.project_dashboard_feature_global_notifications_title(),
+            i18n.project_dashboard_feature_global_notifications_desc(),
+            i18n.project_dashboard_status_beta(),
             "beta",
             "/notifications/center"),
         new ProjectFeature(
-            "Contributor Telemetry Cache",
-            "Métricas de contribuidores cacheadas para evitar consultas por request.",
-            "BETA",
+            i18n.project_dashboard_feature_contributor_cache_title(),
+            i18n.project_dashboard_feature_contributor_cache_desc(),
+            i18n.project_dashboard_status_beta(),
             "beta",
             "/proyectos"),
         new ProjectFeature(
-            "ADev Practitioner Playbook",
-            "Formalizar la línea base ADev como guía operativa para próximos ciclos.",
-            "NEXT",
+            i18n.project_dashboard_feature_adev_playbook_title(),
+            i18n.project_dashboard_feature_adev_playbook_desc(),
+            i18n.project_dashboard_status_next(),
             "next",
             "https://github.com/scanalesespinoza/adev"));
   }
@@ -398,31 +402,31 @@ public class ProjectsResource {
     }
   }
 
-  private String relativeTime(Instant date) {
+  private String relativeTime(Instant date, AppMessages i18n) {
     if (date == null) {
-      return "n/d";
+      return i18n.project_dashboard_relative_na();
     }
     long minutes = ChronoUnit.MINUTES.between(date, Instant.now());
     if (minutes < 1) {
-      return "ahora";
+      return i18n.project_dashboard_relative_now();
     }
     if (minutes < 60) {
-      return "hace " + minutes + "m";
+      return i18n.project_dashboard_relative_minutes(minutes);
     }
     long hours = minutes / 60;
     if (hours < 24) {
-      return "hace " + hours + "h";
+      return i18n.project_dashboard_relative_hours(hours);
     }
     long days = hours / 24;
     if (days < 30) {
-      return "hace " + days + "d";
+      return i18n.project_dashboard_relative_days(days);
     }
     long months = days / 30;
     if (months < 12) {
-      return "hace " + months + "mo";
+      return i18n.project_dashboard_relative_months(months);
     }
     long years = months / 12;
-    return "hace " + years + "a";
+    return i18n.project_dashboard_relative_years(years);
   }
 
   private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {

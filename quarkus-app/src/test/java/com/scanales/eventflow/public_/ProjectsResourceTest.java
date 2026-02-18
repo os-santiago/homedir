@@ -18,8 +18,8 @@ public class ProjectsResourceTest {
         .get("/proyectos")
         .then()
         .statusCode(200)
-        .body(containsString("Control de avance del producto"))
-        .body(containsString("Mapa funcional de Homedir"));
+        .body(containsString("Product delivery overview"))
+        .body(containsString("Homedir feature map"));
   }
 
   @Test
