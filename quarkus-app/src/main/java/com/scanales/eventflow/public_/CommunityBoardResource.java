@@ -129,7 +129,7 @@ public class CommunityBoardResource {
             nextPageUrl,
             normalizeHighlightedMember(highlightedMember),
             slice.items());
-    return withLayoutData(template, "board");
+    return withLayoutData(template, "board").data("ultraLiteMode", group == CommunityBoardGroup.DISCORD_USERS);
   }
 
   private TemplateInstance withLayoutData(TemplateInstance template, String activeCommunitySubmenu) {

@@ -118,6 +118,15 @@
   </section>
 
   <style>
+    body.ultra-lite-mode *,
+    body.ultra-lite-mode *::before,
+    body.ultra-lite-mode *::after {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+      scroll-behavior: auto !important;
+    }
+
     .floating-shapes {
       display: none;
     }

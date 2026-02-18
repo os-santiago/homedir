@@ -4,6 +4,7 @@
 {@ boolean noCharacterSheet = false}
 {@ String activePage = ""}
 {@ String mainClass = ""}
+{@ boolean ultraLiteMode = false}
 {@ boolean userAuthenticated = false}
 {@ String userName = ""}
 {@ String userInitial = ""}
@@ -44,8 +45,10 @@
   {#insert head}{/}
 </head>
 
-<body class="homedir-body">
+<body class="homedir-body{#if ultraLiteMode} ultra-lite-mode{/if}">
+  {#if !ultraLiteMode}
   {#include fragments/floating-shapes.html /}
+  {/if}
 
   <div class="app-container">
     {#if noNav != true}
@@ -64,16 +67,20 @@
   </div>
 
   {#include fragments/login-modal.html/}
+  {#if !ultraLiteMode}
   <script src="/js/homedir.js?v={app:version()}"></script>
+  {/if}
   <script>
     window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };
     window.userAuthenticated = window.__EF_AUTH__.isAuth.app.userAuthenticated;
     var userAuthenticated = window.userAuthenticated;
   </script>
+  {#if !ultraLiteMode}
   <script src="/js/app.js?v={app:version()}" defer></script>
   <script src="/js/notifications-adapter.js?v={app:version()}" defer></script>
   <script src="/js/notifications.js?v={app:version()}" defer></script>
   <script src="/js/global-notifications-ws.js?v={app:version()}" defer></script>
+  {/if}
 </body>
 
 </html>
