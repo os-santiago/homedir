@@ -44,6 +44,9 @@
     <div class="section-card events-full-width board-detail-shell">
       <div class="board-detail-head">
         <p class="section-subtitle">{i18n.community_board_members_count(total)}</p>
+        {#if total > 0}
+          <p class="section-subtitle">{i18n.community_board_pagination_status(pageStart, pageEnd, total)}</p>
+        {/if}
       </div>
 
       <form class="search-form board-search-form" method="get" action="/comunidad/board/{groupPath}">
@@ -96,6 +99,19 @@
               </div>
             </article>
           {/for}
+        {/if}
+      </div>
+
+      <div class="board-pagination">
+        {#if hasPreviousPage}
+          <a class="btn-primary" href="{previousPageUrl}">{i18n.community_board_prev}</a>
+        {#else}
+          <span class="btn-primary board-page-disabled">{i18n.community_board_prev}</span>
+        {/if}
+        {#if hasNextPage}
+          <a class="btn-primary" href="{nextPageUrl}">{i18n.community_board_next}</a>
+        {#else}
+          <span class="btn-primary board-page-disabled">{i18n.community_board_next}</span>
         {/if}
       </div>
     </div>
@@ -196,6 +212,20 @@
       gap: 0.6rem;
       align-items: center;
       flex-wrap: wrap;
+    }
+
+    .board-pagination {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .board-page-disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      user-select: none;
     }
 
     .board-copy-btn.is-done {

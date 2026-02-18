@@ -16,6 +16,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -31,6 +33,16 @@ public class CommunityBoardResource {
   @Inject SecurityIdentity identity;
   @Inject CommunityBoardService boardService;
   @Inject AppMessages messages;
+
+  @org.eclipse.microprofile.config.inject.ConfigProperty(
+      name = "community.board.default-page-size",
+      defaultValue = "10")
+  int defaultPageSize;
+
+  @org.eclipse.microprofile.config.inject.ConfigProperty(
+      name = "community.board.max-page-size",
+      defaultValue = "100")
+  int maxPageSize;
 
   @CheckedTemplate
   static class Templates {
@@ -53,6 +65,12 @@ public class CommunityBoardResource {
         int total,
         int limit,
         int offset,
+        int pageStart,
+        int pageEnd,
+        boolean hasPreviousPage,
+        boolean hasNextPage,
+        String previousPageUrl,
+        String nextPageUrl,
         String highlightedMember,
         List<CommunityBoardMemberView> members);
   }
@@ -91,6 +109,17 @@ public class CommunityBoardResource {
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
     CommunityBoardService.BoardSlice slice = boardService.list(group, query, limit, offset);
     String normalizedQuery = query == null ? "" : query.trim();
+    int shown = slice.items().size();
+    int pageStart = shown == 0 ? 0 : slice.offset() + 1;
+    int pageEnd = shown == 0 ? 0 : slice.offset() + shown;
+    boolean hasPreviousPage = slice.offset() > 0;
+    boolean hasNextPage = pageEnd < slice.total();
+    int previousOffset = Math.max(0, slice.offset() - slice.limit());
+    int nextOffset = slice.offset() + slice.limit();
+    String previousPageUrl =
+        hasPreviousPage ? detailUrl(group.path(), normalizedQuery, slice.limit(), previousOffset) : null;
+    String nextPageUrl =
+        hasNextPage ? detailUrl(group.path(), normalizedQuery, slice.limit(), nextOffset) : null;
     TemplateInstance template =
         Templates.detail(
             isAuthenticated(),
@@ -101,6 +130,12 @@ public class CommunityBoardResource {
             slice.total(),
             slice.limit(),
             slice.offset(),
+            pageStart,
+            pageEnd,
+            hasPreviousPage,
+            hasNextPage,
+            previousPageUrl,
+            nextPageUrl,
             normalizeHighlightedMember(highlightedMember),
             slice.items());
     return withLayoutData(template, "board");
@@ -119,9 +154,9 @@ public class CommunityBoardResource {
 
   private int normalizeLimit(Integer limitParam) {
     if (limitParam == null || limitParam <= 0) {
-      return 50;
+      return Math.max(1, defaultPageSize);
     }
-    return Math.min(limitParam, 100);
+    return Math.min(limitParam, Math.max(10, maxPageSize));
   }
 
   private String normalizeHighlightedMember(String member) {
@@ -130,6 +165,20 @@ public class CommunityBoardResource {
     }
     String normalized = member.trim().toLowerCase();
     return normalized;
+  }
+
+  private String detailUrl(String groupPath, String query, int limit, int offset) {
+    StringBuilder out =
+        new StringBuilder("/comunidad/board/")
+            .append(groupPath)
+            .append("?limit=")
+            .append(limit)
+            .append("&offset=")
+            .append(Math.max(0, offset));
+    if (query != null && !query.isBlank()) {
+      out.append("&q=").append(URLEncoder.encode(query, StandardCharsets.UTF_8));
+    }
+    return out.toString();
   }
 
   private String titleFor(CommunityBoardGroup group) {

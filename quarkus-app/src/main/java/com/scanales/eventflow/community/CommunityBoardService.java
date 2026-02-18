@@ -7,6 +7,9 @@ import com.scanales.eventflow.model.CommunityMember;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.CommunityService;
 import com.scanales.eventflow.service.UserProfileService;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.net.URLEncoder;
@@ -27,6 +30,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -51,18 +59,55 @@ public class CommunityBoardService {
   @ConfigProperty(name = "community.board.cache-ttl", defaultValue = "PT1H")
   Duration boardCacheTtl;
 
+  @ConfigProperty(name = "community.board.snapshot-max-age", defaultValue = "PT45S")
+  Duration snapshotMaxAge;
+
+  @ConfigProperty(name = "community.board.response-cache-ttl", defaultValue = "PT10S")
+  Duration responseCacheTtl;
+
   private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
   private final ObjectMapper jsonMapper = new ObjectMapper();
   private final AtomicReference<DiscordCache> discordCache = new AtomicReference<>(DiscordCache.empty());
+  private final AtomicReference<BoardSnapshot> snapshot = new AtomicReference<>(BoardSnapshot.empty());
+  private final Map<ResponseKey, ResponseCacheEntry> responseCache = new ConcurrentHashMap<>();
+  private final AtomicBoolean refreshInProgress = new AtomicBoolean(false);
+  private final ExecutorService refreshExecutor =
+      Executors.newSingleThreadExecutor(
+          new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable runnable) {
+              Thread thread = new Thread(runnable, "community-board-refresh");
+              thread.setDaemon(true);
+              return thread;
+            }
+          });
+
+  @PostConstruct
+  void init() {
+    refreshNow("startup");
+  }
+
+  @PreDestroy
+  void shutdown() {
+    refreshExecutor.shutdownNow();
+  }
+
+  @Scheduled(every = "{community.board.snapshot-refresh-every:30s}")
+  void scheduledRefresh() {
+    triggerRefreshAsync(true, "schedule");
+  }
 
   public CommunityBoardSummary summary() {
-    List<CommunityBoardMemberView> discordMembers = discordMembers();
+    maybeRefreshAsyncOnDemand();
+    BoardSnapshot current = snapshot.get();
+    List<CommunityBoardMemberView> discordMembers =
+        current.membersByGroup().getOrDefault(CommunityBoardGroup.DISCORD_USERS, List.of());
     int discordListedUsers = discordMembers.size();
     DiscordGuildStatsService.DiscordGuildSnapshot discordSnapshot = discordGuildStatsService.snapshot();
     int discordUsers = discordSnapshot.resolveMemberCount(discordListedUsers);
     return new CommunityBoardSummary(
-        homedirMembers().size(),
-        githubMembers().size(),
+        current.membersByGroup().getOrDefault(CommunityBoardGroup.HOMEDIR_USERS, List.of()).size(),
+        current.membersByGroup().getOrDefault(CommunityBoardGroup.GITHUB_USERS, List.of()).size(),
         discordUsers,
         discordListedUsers,
         discordSnapshot.onlineCount(),
@@ -71,28 +116,41 @@ public class CommunityBoardService {
   }
 
   public BoardSlice list(CommunityBoardGroup group, String query, int limit, int offset) {
+    maybeRefreshAsyncOnDemand();
+    String normalizedQuery = normalizeQuery(query);
     List<CommunityBoardMemberView> source = members(group);
-    List<CommunityBoardMemberView> filtered = filter(source, query);
     int normalizedLimit = normalizeLimit(limit);
     int normalizedOffset = Math.max(0, offset);
+    ResponseKey cacheKey = new ResponseKey(group, normalizedQuery, normalizedLimit, normalizedOffset);
+    ResponseCacheEntry cached = responseCache.get(cacheKey);
+    Instant now = Instant.now();
+    if (cached != null && now.isBefore(cached.cachedAt().plus(effectiveResponseCacheTtl()))) {
+      return cached.slice();
+    }
+    List<CommunityBoardMemberView> filtered = filter(source, normalizedQuery);
+    BoardSlice slice;
     if (normalizedOffset >= filtered.size()) {
-      return new BoardSlice(filtered.size(), normalizedLimit, normalizedOffset, List.of());
+      slice = new BoardSlice(filtered.size(), normalizedLimit, normalizedOffset, List.of());
+      responseCache.put(cacheKey, new ResponseCacheEntry(slice, now));
+      return slice;
     }
     int end = Math.min(filtered.size(), normalizedOffset + normalizedLimit);
-    return new BoardSlice(
+    slice =
+        new BoardSlice(
         filtered.size(), normalizedLimit, normalizedOffset, filtered.subList(normalizedOffset, end));
+    responseCache.put(cacheKey, new ResponseCacheEntry(slice, now));
+    return slice;
   }
 
   public List<CommunityBoardMemberView> members(CommunityBoardGroup group) {
-    return switch (group) {
-      case HOMEDIR_USERS -> homedirMembers();
-      case GITHUB_USERS -> githubMembers();
-      case DISCORD_USERS -> discordMembers();
-    };
+    return snapshot.get().membersByGroup().getOrDefault(group, List.of());
   }
 
   void resetDiscordCacheForTests() {
     discordCache.set(DiscordCache.empty());
+    snapshot.set(BoardSnapshot.empty());
+    responseCache.clear();
+    refreshNow("test-reset");
   }
 
   public Optional<CommunityBoardMemberView> findMember(CommunityBoardGroup group, String id) {
@@ -103,7 +161,67 @@ public class CommunityBoardService {
     return members(group).stream().filter(member -> normalizedId.equals(member.id())).findFirst();
   }
 
-  private List<CommunityBoardMemberView> homedirMembers() {
+  private void maybeRefreshAsyncOnDemand() {
+    BoardSnapshot current = snapshot.get();
+    if (current.refreshedAt() == null) {
+      triggerRefreshAsync(false, "empty-snapshot");
+      return;
+    }
+    if (Instant.now().isAfter(current.refreshedAt().plus(effectiveSnapshotMaxAge()))) {
+      triggerRefreshAsync(false, "stale-snapshot");
+    }
+  }
+
+  private void triggerRefreshAsync(boolean force, String reason) {
+    BoardSnapshot current = snapshot.get();
+    boolean stale =
+        current.refreshedAt() == null
+            || Instant.now().isAfter(current.refreshedAt().plus(effectiveSnapshotMaxAge()));
+    if (!force && !stale) {
+      return;
+    }
+    if (!refreshInProgress.compareAndSet(false, true)) {
+      return;
+    }
+    refreshExecutor.submit(
+        () -> {
+          try {
+            refreshNow(reason);
+          } finally {
+            refreshInProgress.set(false);
+          }
+        });
+  }
+
+  private void refreshNow(String reason) {
+    Instant started = Instant.now();
+    try {
+      List<CommunityBoardMemberView> homedirMembers = loadHomedirMembers();
+      List<CommunityBoardMemberView> githubMembers = loadGithubMembers();
+      List<CommunityBoardMemberView> discordMembers = loadDiscordMembers();
+
+      Map<CommunityBoardGroup, List<CommunityBoardMemberView>> byGroup =
+          Map.of(
+              CommunityBoardGroup.HOMEDIR_USERS, List.copyOf(homedirMembers),
+              CommunityBoardGroup.GITHUB_USERS, List.copyOf(githubMembers),
+              CommunityBoardGroup.DISCORD_USERS, List.copyOf(discordMembers));
+      long durationMs = Duration.between(started, Instant.now()).toMillis();
+      BoardSnapshot refreshed = new BoardSnapshot(Map.copyOf(byGroup), Instant.now(), durationMs);
+      snapshot.set(refreshed);
+      responseCache.clear();
+      LOG.infov(
+          "Community board snapshot refreshed reason={0} homedir={1} github={2} discord={3} durationMs={4}",
+          reason,
+          homedirMembers.size(),
+          githubMembers.size(),
+          discordMembers.size(),
+          durationMs);
+    } catch (Exception e) {
+      LOG.warnf("Community board snapshot refresh failed reason=%s message=%s", reason, e.getMessage());
+    }
+  }
+
+  private List<CommunityBoardMemberView> loadHomedirMembers() {
     Map<String, CommunityBoardMemberView> byId = new LinkedHashMap<>();
     for (UserProfile profile : userProfileService.allProfiles().values()) {
       String identitySeed = firstNonBlank(profile.getUserId(), profile.getEmail());
@@ -133,7 +251,7 @@ public class CommunityBoardService {
     return List.copyOf(out);
   }
 
-  private List<CommunityBoardMemberView> githubMembers() {
+  private List<CommunityBoardMemberView> loadGithubMembers() {
     Map<String, GithubMemberSeed> byLogin = new LinkedHashMap<>();
 
     for (UserProfile profile : userProfileService.allProfiles().values()) {
@@ -183,7 +301,7 @@ public class CommunityBoardService {
     return List.copyOf(out);
   }
 
-  private List<CommunityBoardMemberView> discordMembers() {
+  private List<CommunityBoardMemberView> loadDiscordMembers() {
     Instant now = Instant.now();
     DiscordCache current = discordCache.get();
     if (current.loadedAt() != null && now.isBefore(current.loadedAt().plus(boardCacheTtl))) {
@@ -293,13 +411,12 @@ public class CommunityBoardService {
     if (query == null || query.isBlank()) {
       return source;
     }
-    String normalized = query.trim().toLowerCase(Locale.ROOT);
     return source.stream()
         .filter(
             member ->
-                contains(member.displayName(), normalized)
-                    || contains(member.handle(), normalized)
-                    || contains(member.id(), normalized))
+                contains(member.displayName(), query)
+                    || contains(member.handle(), query)
+                    || contains(member.id(), query))
         .toList();
   }
 
@@ -312,6 +429,27 @@ public class CommunityBoardService {
       return 30;
     }
     return Math.min(value, MAX_LIMIT);
+  }
+
+  private static String normalizeQuery(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return null;
+    }
+    return raw.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private Duration effectiveSnapshotMaxAge() {
+    if (snapshotMaxAge == null || snapshotMaxAge.isNegative() || snapshotMaxAge.isZero()) {
+      return Duration.ofSeconds(45);
+    }
+    return snapshotMaxAge;
+  }
+
+  private Duration effectiveResponseCacheTtl() {
+    if (responseCacheTtl == null || responseCacheTtl.isNegative() || responseCacheTtl.isZero()) {
+      return Duration.ofSeconds(10);
+    }
+    return responseCacheTtl;
   }
 
   private static Comparator<CommunityBoardMemberView> memberComparator() {
@@ -478,6 +616,19 @@ public class CommunityBoardService {
       int total, int limit, int offset, List<CommunityBoardMemberView> items) {}
 
   private record GithubMemberSeed(String displayName, String avatarUrl, Instant memberSince) {}
+
+  private record BoardSnapshot(
+      Map<CommunityBoardGroup, List<CommunityBoardMemberView>> membersByGroup,
+      Instant refreshedAt,
+      long durationMs) {
+    static BoardSnapshot empty() {
+      return new BoardSnapshot(Map.of(), null, 0L);
+    }
+  }
+
+  private record ResponseKey(CommunityBoardGroup group, String query, int limit, int offset) {}
+
+  private record ResponseCacheEntry(BoardSlice slice, Instant cachedAt) {}
 
   private record DiscordCache(List<CommunityBoardMemberView> members, Instant loadedAt, Instant modifiedAt) {
     static DiscordCache empty() {
