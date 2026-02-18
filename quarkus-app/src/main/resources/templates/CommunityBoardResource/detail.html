@@ -71,7 +71,7 @@
             <article class="board-member-card {#if highlightedMember == member.id}is-highlighted{/if}">
               <div class="board-member-main">
                 {#if member.avatarUrl}
-                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{member.displayName}" loading="lazy" />
+                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{member.displayName}" loading="lazy" decoding="async" fetchpriority="low" width="44" height="44" />
                 {#else}
                   <div class="board-member-avatar board-member-avatar-fallback">
                     {member.displayName.substring(0,1)}
@@ -146,6 +146,7 @@
       transform: none;
       animation: none;
       cursor: default;
+      will-change: auto;
     }
 
     .board-detail-shell::before,
@@ -206,6 +207,9 @@
       align-items: center;
       gap: 0.9rem;
       flex-wrap: wrap;
+      transition: none;
+      animation: none;
+      transform: none;
     }
 
     .board-member-card.is-highlighted {

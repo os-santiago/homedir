@@ -137,6 +137,7 @@ public class CommunityBoardResource {
     String name = currentUserName().orElse(null);
     return template
         .data("activePage", "comunidad")
+        .data("mainClass", "community-ultra-lite")
         .data("activeCommunitySubmenu", activeCommunitySubmenu)
         .data("userAuthenticated", authenticated)
         .data("userName", name)

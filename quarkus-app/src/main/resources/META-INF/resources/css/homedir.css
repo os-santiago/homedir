@@ -2443,6 +2443,26 @@ footer {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25) inset;
 }
 
+/* Community ultra-lite mode for heavy lists (picks + board). */
+.homedir-main.community-ultra-lite .section-card,
+.homedir-main.community-ultra-lite .section-card:hover,
+.homedir-main.community-ultra-lite .btn-primary,
+.homedir-main.community-ultra-lite .btn-primary:hover,
+.homedir-main.community-ultra-lite .btn-primary:active,
+.homedir-main.community-ultra-lite .community-submenu-link,
+.homedir-main.community-ultra-lite .community-submenu-link:hover,
+.homedir-main.community-ultra-lite .community-submenu-link:active {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+.homedir-main.community-ultra-lite .section-card::before,
+.homedir-main.community-ultra-lite .section-card:hover::before {
+  content: none !important;
+}
+
 @media (max-width: 900px) {
   .community-submenu {
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));

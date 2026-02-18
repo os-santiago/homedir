@@ -86,6 +86,7 @@ public class CommunityResource {
             summary.discordUsers());
     return template
         .data("activePage", "comunidad")
+        .data("mainClass", "community-ultra-lite")
         .data("activeCommunitySubmenu", activeSubmenu)
         .data("initialFilter", initialFilter)
         .data("userAuthenticated", authenticated)
