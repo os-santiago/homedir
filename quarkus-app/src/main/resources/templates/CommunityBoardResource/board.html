@@ -1,13 +1,13 @@
 {#include layout/main activePage="comunidad"}
-{#title}Community Board · Homedir{/title}
+{#title}{i18n.community_board_page_title}{/title}
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header">
-      <p class="section-subtitle">Community · Board</p>
-      <h1>Community Board</h1>
+      <p class="section-subtitle">{i18n.community_board_subtitle}</p>
+      <h1>{i18n.community_board_heading}</h1>
     </div>
     <p class="section-subtitle">
-      Quienes participan, desde donde colaboran y como compartir su presencia en la comunidad.
+      {i18n.community_board_intro}
     </p>
   </header>
   {#include fragments/community-submenu.html /}
@@ -16,24 +16,24 @@
     <div class="section-card events-full-width board-shell">
       <div class="board-summary-grid">
         <article class="board-summary-card">
-          <p class="section-subtitle">HomeDir users</p>
+          <p class="section-subtitle">{i18n.community_board_group_homedir}</p>
           <h2>{homedirUsers}</h2>
-          <p>People who signed in with Google and created a Homedir account.</p>
-          <a class="btn-primary" href="/comunidad/board/homedir-users">View members</a>
+          <p>{i18n.community_board_group_homedir_desc}</p>
+          <a class="btn-primary" href="/comunidad/board/homedir-users">{i18n.community_board_view_members}</a>
         </article>
 
         <article class="board-summary-card">
-          <p class="section-subtitle">GitHub users</p>
+          <p class="section-subtitle">{i18n.community_board_group_github}</p>
           <h2>{githubUsers}</h2>
-          <p>Contributors with a linked GitHub account in the OSSantiago ecosystem.</p>
-          <a class="btn-primary" href="/comunidad/board/github-users">View members</a>
+          <p>{i18n.community_board_group_github_desc}</p>
+          <a class="btn-primary" href="/comunidad/board/github-users">{i18n.community_board_view_members}</a>
         </article>
 
         <article class="board-summary-card">
-          <p class="section-subtitle">Discord users</p>
+          <p class="section-subtitle">{i18n.community_board_group_discord}</p>
           <h2>{discordUsers}</h2>
-          <p>People who joined our official OSSantiago Discord server.</p>
-          <a class="btn-primary" href="/comunidad/board/discord-users">View members</a>
+          <p>{i18n.community_board_group_discord_desc}</p>
+          <a class="btn-primary" href="/comunidad/board/discord-users">{i18n.community_board_view_members}</a>
         </article>
       </div>
     </div>

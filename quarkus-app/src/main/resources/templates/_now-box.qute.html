@@ -1,8 +1,8 @@
 {#if nowBox?.events?? && !nowBox.events.isEmpty()}
 <div class="box now-box">
   <div class="box-header">
-    <h2>Ocurriendo ahora</h2>
-    <p class="muted">Lo más reciente, en curso y lo que viene por evento.</p>
+    <h2>{i18n.now_box_title}</h2>
+    <p class="muted">{i18n.now_box_subtitle}</p>
   </div>
 
   <div class="now-grid">
@@ -14,13 +14,13 @@
             {e.eventName} <span aria-hidden="true" class="chev">›</span>
           </a>
         </h3>
-        <a class="btn-ghost" href="{e.agendaUrl}">Ver agenda completa</a>
+        <a class="btn-ghost" href="{e.agendaUrl}">{i18n.now_box_view_full_agenda}</a>
       </header>
 
       <div class="now-rows">
         {#if e.last??}
           <div class="now-row now-last">
-            <span class="chip chip-last">Finalizada</span>
+            <span class="chip chip-last">{i18n.now_box_status_finished}</span>
             <a class="row-link" href="{e.last.detailUrl}">
               <strong>{e.last.title}</strong>
               <small>{e.last.start?datetime}–{e.last.end?datetime} {#if e.last.room??}• {e.last.room}{/if}</small>
@@ -30,7 +30,7 @@
 
         {#if e.current??}
           <div class="now-row now-current">
-            <span class="chip chip-current">En curso</span>
+            <span class="chip chip-current">{i18n.now_box_status_live}</span>
             <a class="row-link" href="{e.current.detailUrl}">
               <strong>{e.current.title}</strong>
               <small>{e.current.start?datetime}–{e.current.end?datetime} {#if e.current.room??}• {e.current.room}{/if}</small>
@@ -40,7 +40,7 @@
 
         {#if e.next??}
           <div class="now-row now-next">
-            <span class="chip chip-next">Próxima</span>
+            <span class="chip chip-next">{i18n.now_box_status_next}</span>
             <a class="row-link" href="{e.next.detailUrl}">
               <strong>{e.next.title}</strong>
               <small>{e.next.start?datetime}–{e.next.end?datetime} {#if e.next.room??}• {e.next.room}{/if}</small>

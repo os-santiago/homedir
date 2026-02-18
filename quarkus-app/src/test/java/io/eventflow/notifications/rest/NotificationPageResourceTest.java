@@ -16,7 +16,7 @@ public class NotificationPageResourceTest {
         .get("/notifications/center")
         .then()
         .statusCode(200)
-        .body(containsString("Notificaciones"))
-        .body(containsString("avisos globales"));
+        .body(containsString("Notifications Center"))
+        .body(containsString("global alerts"));
   }
 }

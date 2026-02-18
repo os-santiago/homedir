@@ -1,4 +1,23 @@
 (function () {
+  const root = document.querySelector('.notifications-center');
+  if (!root) {
+    return;
+  }
+
+  const i18n = {
+    toggleMarkRead: root.dataset.i18nToggleMarkRead || 'Mark as read',
+    toggleMarkUnread: root.dataset.i18nToggleMarkUnread || 'Mark as unread',
+    linkViewTalk: root.dataset.i18nLinkViewTalk || 'View talk',
+    linkOpen: root.dataset.i18nLinkOpen || 'Open',
+    defaultTitle: root.dataset.i18nDefaultTitle || 'Notification',
+    catEvent: root.dataset.i18nCatEvent || 'Event',
+    catTalk: root.dataset.i18nCatTalk || 'Talk',
+    catBreak: root.dataset.i18nCatBreak || 'Break',
+    catAnnouncement: root.dataset.i18nCatAnnouncement || 'Announcement',
+    selectAll: root.dataset.i18nSelectAll || 'Select all',
+    deselectAll: root.dataset.i18nDeselectAll || 'Deselect all'
+  };
+
   const LS_KEY = 'ef_global_notifs'; // array de notifs [{id, title, message, createdAt, readAt?, dismissedAt?, targetUrl?}]
   const UNREAD_KEY = 'ef_global_unread_count';
   const listEl  = document.getElementById('notif-list');
@@ -77,16 +96,16 @@
       if (n.id) div.id = n.id;
 
       const checked = selected.has(n.id) ? 'checked' : '';
-      const readLabel = n.readAt ? 'No leída' : 'Leída';
+      const readLabel = n.readAt ? i18n.toggleMarkUnread : i18n.toggleMarkRead;
       const chip = chipFor(n);
       const url = n.targetUrl || (n.talkId ? `/talks/${encodeURIComponent(n.talkId)}` : '/notifications/center');
-      const linkLabel = n.talkId ? 'Ver charla' : 'Revisar';
+      const linkLabel = n.talkId ? i18n.linkViewTalk : i18n.linkOpen;
 
       div.innerHTML = `
         <div class="row items-start gap-3">
           <input type="checkbox" class="sel js-select" data-id="${n.id}" ${checked}>
           <div class="grow">
-            <div class="title">${escapeHtml(n.title || 'Aviso')}</div>
+            <div class="title">${escapeHtml(n.title || i18n.defaultTitle)}</div>
             <div class="msg">${escapeHtml(n.message || '')}</div>
             <div class="meta text-xs">${fmt(n.createdAt)} ${chip}</div>
           </div>
@@ -103,7 +122,13 @@
 
   function chipFor(n) {
     const cat = (n.category || 'announcement').toLowerCase();
-    const label = cat === 'event' ? 'Evento' : cat === 'talk' ? 'Charla' : cat === 'break' ? 'Break' : 'Aviso';
+    const label = cat === 'event'
+      ? i18n.catEvent
+      : cat === 'talk'
+        ? i18n.catTalk
+        : cat === 'break'
+          ? i18n.catBreak
+          : i18n.catAnnouncement;
     return `<span class="chip chip-${cat}">${label}</span>`;
   }
 
@@ -125,7 +150,7 @@
     if (!selectAllBtn) return;
     const boxes = listEl.querySelectorAll('.js-select');
     const allChecked = boxes.length > 0 && Array.from(boxes).every(cb => cb.checked);
-    selectAllBtn.textContent = allChecked ? 'Deseleccionar todos' : 'Seleccionar todos';
+    selectAllBtn.textContent = allChecked ? i18n.deselectAll : i18n.selectAll;
   }
 
   // Delegación robusta (usa closest)

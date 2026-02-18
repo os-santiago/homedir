@@ -1,14 +1,24 @@
 {#include layout/main activePage="notifications"}
-{#title}Centro de Notificaciones{/title}
+{#title}{i18n.notifications_center_title}{/title}
 
 {#body}
-<section class="notifications-center">
+<section class="notifications-center"
+  data-i18n-toggle-mark-read="{i18n.notifications_center_js_toggle_mark_read}"
+  data-i18n-toggle-mark-unread="{i18n.notifications_center_js_toggle_mark_unread}"
+  data-i18n-link-view-talk="{i18n.notifications_center_js_link_view_talk}"
+  data-i18n-link-open="{i18n.notifications_center_js_link_open}"
+  data-i18n-default-title="{i18n.notifications_center_js_default_title}"
+  data-i18n-cat-event="{i18n.notifications_center_js_category_event}"
+  data-i18n-cat-talk="{i18n.notifications_center_js_category_talk}"
+  data-i18n-cat-break="{i18n.notifications_center_js_category_break}"
+  data-i18n-cat-announcement="{i18n.notifications_center_js_category_announcement}"
+  data-i18n-select-all="{i18n.notifications_center_js_select_all}"
+  data-i18n-deselect-all="{i18n.notifications_center_js_deselect_all}">
   <div class="page-header">
     <div class="section-header">
-      <h1 class="page-title">Centro de Notificaciones</h1>
+      <h1 class="page-title">{i18n.notifications_center_title}</h1>
       <p class="section-subtitle">
-        Aquí verás avisos globales sobre cambios en la agenda de eventos disponibles.
-        Marca como leídas o elimina las que no necesites.
+        {i18n.notifications_center_subtitle}
       </p>
     </div>
   </div>
@@ -18,35 +28,34 @@
       <div class="hd-tabs quest-tabs mb-6">
         <div class="quest-tabs-links" style="border: none !important;">
           <button class="hd-tab active btn-link-filter bg-transparent border-0 cursor-pointer text-base"
-            style="background: transparent; border: none !important; outline: none;" data-filter="all">Todas</button>
+            style="background: transparent; border: none !important; outline: none;" data-filter="all">{i18n.notifications_center_filter_all}</button>
           <span class="quest-tab-separator">|</span>
           <button class="hd-tab btn-link-filter bg-transparent border-0 cursor-pointer text-base"
-            style="background: transparent; border: none !important; outline: none;" data-filter="unread">No
-            leídas</button>
+            style="background: transparent; border: none !important; outline: none;" data-filter="unread">{i18n.notifications_center_filter_unread}</button>
         </div>
         <div class="actions-right ml-auto flex gap-2">
-          <button class="btn-primary btn-sm" id="selectAll">Seleccionar todos</button>
-          <button class="btn-primary btn-sm" id="markAllRead">Marcar leídas</button>
-          <button class="btn-primary btn-sm" id="deleteSelected">Eliminar selección</button>
-          <button class="btn-danger btn-sm" id="deleteAll">Borrar todo</button>
+          <button class="btn-primary btn-sm" id="selectAll">{i18n.notifications_center_action_select_all}</button>
+          <button class="btn-primary btn-sm" id="markAllRead">{i18n.notifications_center_action_mark_all_read}</button>
+          <button class="btn-primary btn-sm" id="deleteSelected">{i18n.notifications_center_action_delete_selected}</button>
+          <button class="btn-danger btn-sm" id="deleteAll">{i18n.notifications_center_action_delete_all}</button>
         </div>
       </div>
 
       <div id="notif-list" aria-live="polite" aria-atomic="false"></div>
       <div id="empty" class="hidden">
         <span class="material-symbols-outlined">notifications_off</span>
-        <p>Sin notificaciones por ahora.</p>
+        <p>{i18n.notifications_center_empty}</p>
       </div>
     </div>
   </div>
 
   <dialog id="confirmDeleteAll" class="section-body"
     style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 100;">
-    <h2 class="text-xl mb-4 font-bold">¿Eliminar todo?</h2>
-    <p class="mb-4">¿Estás seguro que deseas eliminar todas las notificaciones recibidas?</p>
+    <h2 class="text-xl mb-4 font-bold">{i18n.notifications_center_confirm_title}</h2>
+    <p class="mb-4">{i18n.notifications_center_confirm_desc}</p>
     <div class="actions flex gap-4 justify-end">
-      <button class="btn-danger" id="confirmDeleteAllBtn">Confirmar</button>
-      <button class="btn-primary" id="cancelDeleteAllBtn">Cancelar</button>
+      <button class="btn-danger" id="confirmDeleteAllBtn">{i18n.notifications_center_confirm_btn}</button>
+      <button class="btn-primary" id="cancelDeleteAllBtn">{i18n.notifications_center_cancel_btn}</button>
     </div>
   </dialog>
 

@@ -1,19 +1,49 @@
 {#include layout/main activePage="comunidad"}
-{#title}{groupTitle} · Community Board{/title}
+{#title}
+{#if groupPath == 'homedir-users'}
+{i18n.community_board_group_homedir} · {i18n.community_board_heading}
+{#else if groupPath == 'github-users'}
+{i18n.community_board_group_github} · {i18n.community_board_heading}
+{#else if groupPath == 'discord-users'}
+{i18n.community_board_group_discord} · {i18n.community_board_heading}
+{#else}
+{groupTitle} · {i18n.community_board_heading}
+{/if}
+{/title}
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header">
-      <p class="section-subtitle">Community · Board</p>
-      <h1>{groupTitle}</h1>
+      <p class="section-subtitle">{i18n.community_board_subtitle}</p>
+      <h1>
+        {#if groupPath == 'homedir-users'}
+        {i18n.community_board_group_homedir}
+        {#else if groupPath == 'github-users'}
+        {i18n.community_board_group_github}
+        {#else if groupPath == 'discord-users'}
+        {i18n.community_board_group_discord}
+        {#else}
+        {groupTitle}
+        {/if}
+      </h1>
     </div>
-    <p class="section-subtitle">{groupDescription}</p>
+    <p class="section-subtitle">
+      {#if groupPath == 'homedir-users'}
+      {i18n.community_board_group_homedir_desc}
+      {#else if groupPath == 'github-users'}
+      {i18n.community_board_group_github_desc}
+      {#else if groupPath == 'discord-users'}
+      {i18n.community_board_group_discord_desc}
+      {#else}
+      {groupDescription}
+      {/if}
+    </p>
   </header>
   {#include fragments/community-submenu.html /}
 
   <section class="page-grid">
     <div class="section-card events-full-width board-detail-shell">
       <div class="board-detail-head">
-        <p class="section-subtitle">{total} members</p>
+        <p class="section-subtitle">{i18n.community_board_members_count(total)}</p>
       </div>
 
       <form class="search-form board-search-form" method="get" action="/comunidad/board/{groupPath}">
@@ -21,17 +51,17 @@
           type="search"
           name="q"
           value="{searchQuery}"
-          placeholder="Search by name, handle or email"
-          aria-label="Search member"
+          placeholder="{i18n.community_board_search_placeholder}"
+          aria-label="{i18n.community_board_search_aria}"
           class="board-search-input" />
         <input type="hidden" name="limit" value="{limit}" />
-        <button type="submit" class="btn-primary">Search</button>
+        <button type="submit" class="btn-primary">{i18n.community_board_search}</button>
       </form>
 
       <div class="board-members-grid">
         {#if members.isEmpty}
           <article class="board-member-card">
-            <p>No members found with current filter.</p>
+            <p>{i18n.community_board_no_members}</p>
           </article>
         {#else}
           {#for member in members}
@@ -48,17 +78,20 @@
                   <h2>{member.displayName}</h2>
                   <p>{member.handle}</p>
                   {#if member.memberSince}
-                    <small>Member since {member.memberSince}</small>
+                    <small>{i18n.community_board_member_since(member.memberSince)}</small>
                   {/if}
                 </div>
               </div>
               <div class="board-member-actions">
-                <a class="btn-primary" href="{member.profileLink}">Open</a>
+                <a class="btn-primary" href="{member.profileLink}">{i18n.community_board_open}</a>
                 <button
                   type="button"
                   class="btn-primary board-copy-btn"
+                  data-default-label="{i18n.community_board_copy_profile_link}"
+                  data-success-label="{i18n.community_board_link_copied}"
+                  data-error-label="{i18n.community_board_copy_failed}"
                   data-share-link="{member.shareLink}">
-                  Copy profile link
+                  {i18n.community_board_copy_profile_link}
                 </button>
               </div>
             </article>
@@ -189,15 +222,15 @@
       try {
         await navigator.clipboard.writeText(fullLink);
         button.classList.add("is-done");
-        button.textContent = "Link copied";
+        button.textContent = button.getAttribute("data-success-label") || "OK";
         setTimeout(function () {
           button.classList.remove("is-done");
-          button.textContent = "Copy profile link";
+          button.textContent = button.getAttribute("data-default-label") || "Copy";
         }, 1200);
       } catch (err) {
-        button.textContent = "Copy failed";
+        button.textContent = button.getAttribute("data-error-label") || "Error";
         setTimeout(function () {
-          button.textContent = "Copy profile link";
+          button.textContent = button.getAttribute("data-default-label") || "Copy";
         }, 1200);
       }
     });
