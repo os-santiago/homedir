@@ -1860,6 +1860,9 @@ public interface AppMessages {
     @Message("{count} members")
     String community_board_members_count(int count);
 
+    @Message("Showing {from} to {to} of {total}")
+    String community_board_pagination_status(int from, int to, int total);
+
     @Message("Search by name, handle or email")
     String community_board_search_placeholder();
 
@@ -1868,6 +1871,12 @@ public interface AppMessages {
 
     @Message("Search")
     String community_board_search();
+
+    @Message("Previous")
+    String community_board_prev();
+
+    @Message("Next")
+    String community_board_next();
 
     @Message("No members found with current filter.")
     String community_board_no_members();

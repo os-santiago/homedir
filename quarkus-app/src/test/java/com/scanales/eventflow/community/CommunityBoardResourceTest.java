@@ -73,6 +73,30 @@ public class CommunityBoardResourceTest {
   }
 
   @Test
+  void boardDetailPagePaginatesInBlocksOfTen() throws Exception {
+    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    StringBuilder yaml = new StringBuilder("members:\n");
+    for (int i = 1; i <= 12; i++) {
+      yaml.append("  - id: discord-").append(String.format("%03d", i)).append('\n');
+      yaml.append("    display_name: Discord User ").append(i).append('\n');
+      yaml.append("    handle: discord_user_").append(i).append("#1001\n");
+      yaml.append("    joined_at: \"2026-01-10T00:00:00Z\"\n");
+    }
+    Files.writeString(discordFile, yaml.toString());
+    boardService.resetDiscordCacheForTests();
+
+    given()
+        .when()
+        .get("/comunidad/board/discord-users")
+        .then()
+        .statusCode(200)
+        .body(containsString("Showing 1 to 10 of 12"))
+        .body(containsString("limit=10"))
+        .body(containsString("offset=10"))
+        .body(containsString("Next"));
+  }
+
+  @Test
   void englishCommunityAliasRedirectsToLocalizedBoardPath() {
     given()
         .redirects()
