@@ -88,6 +88,17 @@ public class CommunityContentApiResourceTest {
   }
 
   @Test
+  void listIgnoresLargeLimitAndAlwaysReturnsTenPerPage() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/content?view=new&limit=50&offset=0")
+        .then()
+        .statusCode(200)
+        .body("limit", equalTo(10));
+  }
+
+  @Test
   void filterMembersReturnsOnlyMemberContent() {
     given()
         .accept("application/json")

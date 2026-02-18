@@ -34,7 +34,7 @@ import org.jboss.logging.Logger;
 @Produces(MediaType.APPLICATION_JSON)
 public class CommunityContentApiResource {
   private static final Logger LOG = Logger.getLogger(CommunityContentApiResource.class);
-  private static final int MAX_LIMIT = 100;
+  private static final int PAGE_SIZE = 10;
 
   @Inject CommunityContentService contentService;
   @Inject CommunityVoteService voteService;
@@ -187,11 +187,8 @@ public class CommunityContentApiResource {
     return "featured";
   }
 
-  private int normalizeLimit(Integer rawLimit) {
-    if (rawLimit == null || rawLimit <= 0) {
-      return 10;
-    }
-    return Math.min(rawLimit, MAX_LIMIT);
+  private int normalizeLimit(Integer ignoredRawLimit) {
+    return PAGE_SIZE;
   }
 
   private ContentFilter normalizeFilter(String rawFilter) {
