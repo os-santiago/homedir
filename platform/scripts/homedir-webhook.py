@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import os
+import re
 import subprocess
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -13,6 +14,8 @@ STATUS_CMD = os.environ.get(
     "podman ps --filter name=homedir --format '{{.Image}} {{.Status}}'",
 )
 LOG_LINES = int(os.environ.get("WEBHOOK_LOG_LINES", "80"))
+# Access control is currently handled at the network layer (firewall/IP allowlist).
+TAG_PATTERN = re.compile(r"[\w.\-]+")
 
 
 def log_line(msg: str) -> None:
@@ -91,6 +94,11 @@ class Handler(BaseHTTPRequestHandler):
             tag = extract_tag(payload)
         except Exception as exc:  # noqa: BLE001
             err = str(exc)
+
+        if tag and not TAG_PATTERN.fullmatch(tag):
+            log_line(f"rejected webhook tag with invalid format: {tag}")
+            tag = None
+
         safe_body = body.decode(errors="replace")
         log_line(
             f"received webhook from {self.client_address[0]} tag={tag} bytes={len(body)} error={err} body={safe_body}"
