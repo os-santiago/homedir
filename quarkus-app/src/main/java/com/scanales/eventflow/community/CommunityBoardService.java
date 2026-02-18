@@ -59,6 +59,9 @@ public class CommunityBoardService {
   @ConfigProperty(name = "community.board.cache-ttl", defaultValue = "PT1H")
   Duration boardCacheTtl;
 
+  @ConfigProperty(name = "community.board.discord-empty-cache-ttl", defaultValue = "PT15S")
+  Duration discordEmptyCacheTtl;
+
   @ConfigProperty(name = "community.board.snapshot-max-age", defaultValue = "PT45S")
   Duration snapshotMaxAge;
 
@@ -312,7 +315,8 @@ public class CommunityBoardService {
   private List<CommunityBoardMemberView> loadDiscordMembers() {
     Instant now = Instant.now();
     DiscordCache current = discordCache.get();
-    if (current.loadedAt() != null && now.isBefore(current.loadedAt().plus(boardCacheTtl))) {
+    Duration discordTtl = current.emptyResult() ? effectiveDiscordEmptyCacheTtl() : boardCacheTtl;
+    if (current.loadedAt() != null && now.isBefore(current.loadedAt().plus(discordTtl))) {
       return current.members();
     }
     Path file = resolveDiscordFile();
@@ -322,13 +326,13 @@ public class CommunityBoardService {
       if (loaded.isEmpty()) {
         loaded = fallbackDiscordMembers();
       }
-      DiscordCache next = new DiscordCache(List.copyOf(loaded), now, modifiedAt);
+      DiscordCache next = new DiscordCache(List.copyOf(loaded), now, modifiedAt, loaded.isEmpty());
       discordCache.set(next);
       return next.members();
     } catch (Exception e) {
       List<CommunityBoardMemberView> fallback = fallbackDiscordMembers();
       if (!fallback.isEmpty()) {
-        DiscordCache next = new DiscordCache(List.copyOf(fallback), now, modifiedAt);
+        DiscordCache next = new DiscordCache(List.copyOf(fallback), now, modifiedAt, false);
         discordCache.set(next);
         return next.members();
       }
@@ -337,7 +341,7 @@ public class CommunityBoardService {
         return current.members();
       }
       LOG.warnf("Unable to load discord users file %s: %s", file, e.getMessage());
-      DiscordCache empty = new DiscordCache(List.of(), now, modifiedAt);
+      DiscordCache empty = new DiscordCache(List.of(), now, modifiedAt, true);
       discordCache.set(empty);
       return empty.members();
     }
@@ -458,6 +462,13 @@ public class CommunityBoardService {
       return Duration.ofSeconds(10);
     }
     return responseCacheTtl;
+  }
+
+  private Duration effectiveDiscordEmptyCacheTtl() {
+    if (discordEmptyCacheTtl == null || discordEmptyCacheTtl.isNegative() || discordEmptyCacheTtl.isZero()) {
+      return Duration.ofSeconds(15);
+    }
+    return discordEmptyCacheTtl;
   }
 
   private Duration effectiveEmptySnapshotRetryInterval() {
@@ -658,9 +669,10 @@ public class CommunityBoardService {
 
   private record ResponseCacheEntry(BoardSlice slice, Instant cachedAt) {}
 
-  private record DiscordCache(List<CommunityBoardMemberView> members, Instant loadedAt, Instant modifiedAt) {
+  private record DiscordCache(
+      List<CommunityBoardMemberView> members, Instant loadedAt, Instant modifiedAt, boolean emptyResult) {
     static DiscordCache empty() {
-      return new DiscordCache(List.of(), null, null);
+      return new DiscordCache(List.of(), null, null, true);
     }
   }
 }
