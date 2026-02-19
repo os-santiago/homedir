@@ -2416,6 +2416,10 @@ footer {
 }
 
 .community-submenu-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
   text-decoration: none;
   min-width: 0;
   padding: 0.42rem 0.55rem;
@@ -2426,6 +2430,19 @@ footer {
   letter-spacing: 0.8px;
   line-height: 1.15;
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.32), inset 0 0 14px rgba(255, 255, 255, 0.08);
+}
+
+.community-submenu-icon {
+  font-size: 0.86rem;
+  opacity: 0.88;
+  flex: 0 0 auto;
+}
+
+.community-submenu-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .community-submenu-link:hover {
@@ -2439,8 +2456,23 @@ footer {
 }
 
 .community-submenu-link-active {
-  filter: brightness(1.08);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25) inset;
+  filter: brightness(1.12);
+  border-color: rgba(255, 215, 0, 0.86);
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.19), rgba(0, 0, 0, 0.22));
+  box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.32),
+    0 0 0 2px rgba(255, 215, 0, 0.34) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.community-submenu-link-active .community-submenu-icon {
+  color: #ffd700;
+  opacity: 1;
+}
+
+.community-submenu-link-active .community-submenu-label {
+  color: #fffdf1;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.32);
 }
 
 /* Community ultra-lite mode for heavy lists (picks + board). */
@@ -2583,6 +2615,10 @@ footer {
     padding: 0.38rem 0.5rem;
     font-size: 0.58rem;
     letter-spacing: 0.7px;
+  }
+
+  .community-submenu-icon {
+    font-size: 0.78rem;
   }
 }
 
