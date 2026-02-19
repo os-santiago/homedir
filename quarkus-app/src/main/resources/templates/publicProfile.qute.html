@@ -10,7 +10,11 @@
         <!-- Header Section -->
         <header class="wrapped-header">
             <div class="wrapped-avatar-container">
+                {#if avatarUrl}
                 <img src="{avatarUrl}" alt="{displayName}" class="wrapped-avatar">
+                {#else}
+                <div class="wrapped-avatar wrapped-avatar-fallback">{displayName.substring(0,1)}</div>
+                {/if}
                 <div class="wrapped-rank-badge">{questClass}</div>
             </div>
             <h1 class="wrapped-title">{displayName}</h1>
@@ -38,6 +42,42 @@
                 <span class="wrapped-stat-label">Quests Completed</span>
                 <span class="wrapped-stat-value purple">{questsCompleted}</span>
                 <p class="wrapped-subtext">Missions Accomplished</p>
+            </div>
+
+            <div class="wrapped-card wrapped-card-full">
+                <span class="wrapped-stat-label">{i18n.public_profile_accounts_title}</span>
+                <div class="wrapped-list-container">
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{i18n.public_profile_accounts_homedir}</span>
+                        <span class="wrapped-item-xp">{homedirId ?: username}</span>
+                    </div>
+                    {#if hasGithub}
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{i18n.public_profile_accounts_github}</span>
+                        {#if githubProfileUrl}
+                        <a href="{githubProfileUrl}" target="_blank" rel="noopener noreferrer"
+                            class="wrapped-item-xp">@{githubLogin}</a>
+                        {#else}
+                        <span class="wrapped-item-xp">@{githubLogin}</span>
+                        {/if}
+                    </div>
+                    {/if}
+                    {#if hasDiscord}
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{i18n.public_profile_accounts_discord}</span>
+                        {#if discordProfileUrl}
+                        <a href="{discordProfileUrl}" target="_blank" rel="noopener noreferrer" class="wrapped-item-xp">
+                            {discordHandle ?: i18n.public_profile_accounts_discord_open}
+                        </a>
+                        {#else}
+                        <span class="wrapped-item-xp">{discordHandle}</span>
+                        {/if}
+                    </div>
+                    {/if}
+                    {#if !hasLinkedAccounts}
+                    <p class="wrapped-empty-msg">{i18n.public_profile_accounts_empty}</p>
+                    {/if}
+                </div>
             </div>
 
             <!-- Card 3: Badges Collection -->

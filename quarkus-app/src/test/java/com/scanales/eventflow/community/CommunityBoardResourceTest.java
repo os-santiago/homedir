@@ -31,6 +31,7 @@ public class CommunityBoardResourceTest {
             "https://avatars.githubusercontent.com/u/12345",
             "12345",
             Instant.parse("2026-02-01T00:00:00Z")));
+    userProfileService.upsert("board.local@example.com", "Board Local", "board.local@example.com");
 
     Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.createDirectories(discordFile.getParent());
@@ -68,8 +69,18 @@ public class CommunityBoardResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("board-user"))
-        .body(containsString("/community/member/github-users/board-user"))
+        .body(containsString("/u/board-user"))
         .body(containsString("Copy profile link"));
+  }
+
+  @Test
+  void homedirMembersWithoutGithubUseUnifiedPublicProfilePath() {
+    given()
+        .when()
+        .get("/comunidad/board/homedir-users")
+        .then()
+        .statusCode(200)
+        .body(containsString("/u/hd-"));
   }
 
   @Test

@@ -91,6 +91,9 @@ public class CommunityMemberResource {
         && member.handle().length() > 1) {
       return "/u/" + member.handle().substring(1);
     }
+    if (group == CommunityBoardGroup.HOMEDIR_USERS && member.id() != null && member.id().startsWith("hd-")) {
+      return "/u/" + member.id();
+    }
     return "/comunidad/board/" + group.path() + "?member=" + member.id();
   }
 
@@ -103,7 +106,7 @@ public class CommunityMemberResource {
     if (homedirId == null) {
       return null;
     }
-    return "/community/member/homedir-users/" + urlEncode(homedirId);
+    return "/u/" + urlEncode(homedirId);
   }
 
   private String titleFor(CommunityBoardGroup group) {

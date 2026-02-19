@@ -256,7 +256,7 @@ public class CommunityBoardService {
           profile.getGithub() != null && profile.getGithub().linkedAt() != null
               ? DATE_FMT.format(profile.getGithub().linkedAt())
               : null;
-      String link = memberSharePath(CommunityBoardGroup.HOMEDIR_USERS, id);
+      String link = firstNonBlank(canonicalPublicProfilePath(githubLogin, id), memberSharePath(CommunityBoardGroup.HOMEDIR_USERS, id));
       CommunityBoardMemberView candidate =
           new CommunityBoardMemberView(id, displayName, handle, avatarUrl, since, link, link);
       byId.putIfAbsent(id, candidate);
@@ -301,7 +301,7 @@ public class CommunityBoardService {
     for (Map.Entry<String, GithubMemberSeed> entry : byLogin.entrySet()) {
       String login = entry.getKey();
       GithubMemberSeed seed = entry.getValue();
-      String link = memberSharePath(CommunityBoardGroup.GITHUB_USERS, login);
+      String link = firstNonBlank(canonicalPublicProfilePath(login, null), memberSharePath(CommunityBoardGroup.GITHUB_USERS, login));
       out.add(
           new CommunityBoardMemberView(
               login,
@@ -466,14 +466,8 @@ public class CommunityBoardService {
   }
 
   private String canonicalProfilePath(UserProfile profile, String normalizedGithubLogin) {
-    if (normalizedGithubLogin != null) {
-      return "/u/" + urlEncode(normalizedGithubLogin);
-    }
     String id = homedirMemberId(firstNonBlank(profile.getUserId(), profile.getEmail()), null);
-    if (id == null) {
-      return null;
-    }
-    return memberSharePath(CommunityBoardGroup.HOMEDIR_USERS, id);
+    return canonicalPublicProfilePath(normalizedGithubLogin, id);
   }
 
   private Path resolveDiscordFile() {
@@ -658,6 +652,18 @@ public class CommunityBoardService {
 
   private static String memberSharePath(CommunityBoardGroup group, String id) {
     return "/community/member/" + group.path() + "/" + urlEncode(id);
+  }
+
+  private static String canonicalPublicProfilePath(String githubLogin, String homedirId) {
+    String normalizedGithub = normalizeId(githubLogin);
+    if (normalizedGithub != null) {
+      return "/u/" + urlEncode(normalizedGithub);
+    }
+    String normalizedHomedir = normalizeId(homedirId);
+    if (normalizedHomedir != null) {
+      return "/u/" + urlEncode(normalizedHomedir);
+    }
+    return null;
   }
 
   private static String firstNonBlank(String... values) {
