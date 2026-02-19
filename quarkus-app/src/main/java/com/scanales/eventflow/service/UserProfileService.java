@@ -102,6 +102,32 @@ public class UserProfileService {
     return profile;
   }
 
+  public UserProfile linkDiscord(
+      String userId, String name, String email, UserProfile.DiscordAccount discordAccount) {
+    UserProfile profile = upsert(userId, name, email);
+    UserProfile.DiscordAccount updated = new UserProfile.DiscordAccount(
+        normalizeDiscordId(discordAccount.id()),
+        discordAccount.handle(),
+        discordAccount.profileUrl(),
+        discordAccount.avatarUrl(),
+        discordAccount.linkedAt() != null ? discordAccount.linkedAt() : Instant.now());
+    profile.setDiscord(updated);
+    persist();
+    return profile;
+  }
+
+  public UserProfile unlinkDiscord(String userId) {
+    if (userId == null) {
+      return null;
+    }
+    UserProfile profile = find(userId).orElse(null);
+    if (profile != null) {
+      profile.setDiscord(null);
+      persist();
+    }
+    return profile;
+  }
+
   public UserProfile updateLocale(String userId, String locale) {
     if (userId == null)
       return null;
@@ -122,6 +148,17 @@ public class UserProfileService {
         .findFirst();
   }
 
+  public Optional<UserProfile> findByDiscordId(String discordId) {
+    String normalized = normalizeDiscordId(discordId);
+    if (normalized == null) {
+      return Optional.empty();
+    }
+    return profiles.values().stream()
+        .filter(p -> p.getDiscord() != null)
+        .filter(p -> normalized.equals(normalizeDiscordId(p.getDiscord().id())))
+        .findFirst();
+  }
+
   private void persist() {
     try {
       persistence.saveUserProfiles(new HashMap<>(profiles));
@@ -132,5 +169,13 @@ public class UserProfileService {
 
   private String normalize(String id) {
     return id == null ? null : id.trim().toLowerCase();
+  }
+
+  private String normalizeDiscordId(String id) {
+    if (id == null) {
+      return null;
+    }
+    String normalized = id.trim().toLowerCase();
+    return normalized.isBlank() ? null : normalized;
   }
 }

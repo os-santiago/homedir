@@ -152,7 +152,11 @@ public class CommunityBoardService {
     return snapshot.get().membersByGroup().getOrDefault(group, List.of());
   }
 
-  void resetDiscordCacheForTests() {
+  public void requestRefresh(String reason) {
+    triggerRefreshAsync(true, reason == null ? "manual" : reason);
+  }
+
+  public void resetDiscordCacheForTests() {
     discordCache.set(DiscordCache.empty());
     snapshot.set(BoardSnapshot.empty());
     responseCache.clear();
@@ -313,6 +317,7 @@ public class CommunityBoardService {
   }
 
   private List<CommunityBoardMemberView> loadDiscordMembers() {
+    Map<String, LinkedProfileSeed> linkedProfiles = linkedProfilesByDiscordId();
     Instant now = Instant.now();
     DiscordCache current = discordCache.get();
     Duration discordTtl = current.emptyResult() ? effectiveDiscordEmptyCacheTtl() : boardCacheTtl;
@@ -322,15 +327,15 @@ public class CommunityBoardService {
     Path file = resolveDiscordFile();
     Instant modifiedAt = fileLastModified(file).orElse(null);
     try {
-      List<CommunityBoardMemberView> loaded = parseDiscordFile(file);
+      List<CommunityBoardMemberView> loaded = parseDiscordFile(file, linkedProfiles);
       if (loaded.isEmpty()) {
-        loaded = fallbackDiscordMembers();
+        loaded = fallbackDiscordMembers(linkedProfiles);
       }
       DiscordCache next = new DiscordCache(List.copyOf(loaded), now, modifiedAt, loaded.isEmpty());
       discordCache.set(next);
       return next.members();
     } catch (Exception e) {
-      List<CommunityBoardMemberView> fallback = fallbackDiscordMembers();
+      List<CommunityBoardMemberView> fallback = fallbackDiscordMembers(linkedProfiles);
       if (!fallback.isEmpty()) {
         DiscordCache next = new DiscordCache(List.copyOf(fallback), now, modifiedAt, false);
         discordCache.set(next);
@@ -347,7 +352,8 @@ public class CommunityBoardService {
     }
   }
 
-  private List<CommunityBoardMemberView> parseDiscordFile(Path file) throws Exception {
+  private List<CommunityBoardMemberView> parseDiscordFile(
+      Path file, Map<String, LinkedProfileSeed> linkedProfiles) throws Exception {
     if (!Files.exists(file) || !Files.isRegularFile(file)) {
       return List.of();
     }
@@ -366,18 +372,30 @@ public class CommunityBoardService {
       if (id == null) {
         continue;
       }
-      String displayName = firstNonBlank(text(node, "display_name", null), text(node, "name", null), id);
-      String handle = firstNonBlank(text(node, "handle", null), displayName);
-      String avatar = text(node, "avatar_url", null);
+      LinkedProfileSeed linked = linkedProfiles.get(id);
+      String displayName =
+          firstNonBlank(
+              linked != null ? linked.displayName() : null,
+              text(node, "display_name", null),
+              text(node, "name", null),
+              id);
+      String handle =
+          firstNonBlank(
+              text(node, "handle", null),
+              linked != null ? linked.discordHandle() : null,
+              displayName);
+      String avatar = firstNonBlank(linked != null ? linked.avatarUrl() : null, text(node, "avatar_url", null));
       String joined = normalizeDateLabel(text(node, "joined_at", null));
-      String link = memberSharePath(CommunityBoardGroup.DISCORD_USERS, id);
+      String link =
+          firstNonBlank(
+              linked != null ? linked.profileLink() : null, memberSharePath(CommunityBoardGroup.DISCORD_USERS, id));
       out.add(new CommunityBoardMemberView(id, displayName, handle, avatar, joined, link, link));
     }
     out.sort(memberComparator());
     return out;
   }
 
-  private List<CommunityBoardMemberView> fallbackDiscordMembers() {
+  private List<CommunityBoardMemberView> fallbackDiscordMembers(Map<String, LinkedProfileSeed> linkedProfiles) {
     DiscordGuildStatsService.DiscordGuildSnapshot snapshot = discordGuildStatsService.snapshot();
     List<DiscordGuildStatsService.DiscordMemberSample> samples = snapshot.memberSamples();
     if (samples == null || samples.isEmpty()) {
@@ -389,16 +407,73 @@ public class CommunityBoardService {
       if (id == null) {
         continue;
       }
-      String displayName = firstNonBlank(sample.displayName(), sample.handle(), id);
-      String handle = firstNonBlank(sample.handle(), displayName);
-      String link = memberSharePath(CommunityBoardGroup.DISCORD_USERS, id);
+      LinkedProfileSeed linked = linkedProfiles.get(id);
+      String displayName =
+          firstNonBlank(
+              linked != null ? linked.displayName() : null, sample.displayName(), sample.handle(), id);
+      String handle =
+          firstNonBlank(
+              sample.handle(),
+              linked != null ? linked.discordHandle() : null,
+              displayName);
+      String link =
+          firstNonBlank(
+              linked != null ? linked.profileLink() : null, memberSharePath(CommunityBoardGroup.DISCORD_USERS, id));
       CommunityBoardMemberView member =
-          new CommunityBoardMemberView(id, displayName, handle, sample.avatarUrl(), null, link, link);
+          new CommunityBoardMemberView(
+              id,
+              displayName,
+              handle,
+              firstNonBlank(linked != null ? linked.avatarUrl() : null, sample.avatarUrl()),
+              null,
+              link,
+              link);
       byId.putIfAbsent(id, member);
     }
     List<CommunityBoardMemberView> out = new ArrayList<>(byId.values());
     out.sort(memberComparator());
     return List.copyOf(out);
+  }
+
+  private Map<String, LinkedProfileSeed> linkedProfilesByDiscordId() {
+    Map<String, LinkedProfileSeed> byDiscordId = new LinkedHashMap<>();
+    for (UserProfile profile : userProfileService.allProfiles().values()) {
+      if (profile == null || profile.getDiscord() == null) {
+        continue;
+      }
+      String discordId = normalizeId(profile.getDiscord().id());
+      if (discordId == null) {
+        continue;
+      }
+      String githubLogin = profile.getGithub() != null ? normalizeId(profile.getGithub().login()) : null;
+      String displayName =
+          firstNonBlank(
+              profile.getName(),
+              usernameFromEmail(profile.getEmail()),
+              profile.getDiscord().handle(),
+              discordId);
+      String avatarUrl =
+          firstNonBlank(
+              profile.getGithub() != null ? trimToNull(profile.getGithub().avatarUrl()) : null,
+              trimToNull(profile.getDiscord().avatarUrl()));
+      String canonicalProfileLink = canonicalProfilePath(profile, githubLogin);
+      String discordHandle = trimToNull(profile.getDiscord().handle());
+      byDiscordId.putIfAbsent(
+          discordId,
+          new LinkedProfileSeed(displayName, avatarUrl, canonicalProfileLink, githubLogin, discordHandle));
+    }
+    return byDiscordId;
+  }
+
+  private String canonicalProfilePath(UserProfile profile, String normalizedGithubLogin) {
+    if (normalizedGithubLogin != null) {
+      return "/u/" + urlEncode(normalizedGithubLogin);
+    }
+    String id = homedirMemberId(firstNonBlank(profile.getUserId(), profile.getEmail()), null);
+    if (id == null) {
+      return null;
+    }
+    return memberSharePath(CommunityBoardGroup.HOMEDIR_USERS, id);
   }
 
   private Path resolveDiscordFile() {
@@ -644,6 +719,9 @@ public class CommunityBoardService {
       int total, int limit, int offset, List<CommunityBoardMemberView> items) {}
 
   private record GithubMemberSeed(String displayName, String avatarUrl, Instant memberSince) {}
+
+  private record LinkedProfileSeed(
+      String displayName, String avatarUrl, String profileLink, String githubLogin, String discordHandle) {}
 
   private record BoardSnapshot(
       Map<CommunityBoardGroup, List<CommunityBoardMemberView>> membersByGroup,

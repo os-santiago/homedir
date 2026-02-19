@@ -13,6 +13,7 @@ public class UserProfile {
   private String email;
   private String preferredLocale;
   private GithubAccount github;
+  private DiscordAccount discord;
 
   private QuestClass questClass;
   private int currentXp;
@@ -28,6 +29,7 @@ public class UserProfile {
       @JsonProperty("name") String name,
       @JsonProperty("email") String email,
       @JsonProperty("github") GithubAccount github,
+      @JsonProperty("discord") DiscordAccount discord,
       @JsonProperty("questClass") QuestClass questClass,
       @JsonProperty("currentXp") int currentXp,
       @JsonProperty("activeQuests") java.util.List<String> activeQuests,
@@ -37,6 +39,7 @@ public class UserProfile {
     this.email = email;
     this.preferredLocale = null;
     this.github = github;
+    this.discord = discord;
     this.questClass = questClass;
     this.currentXp = currentXp;
     this.activeQuests = activeQuests != null ? activeQuests : new java.util.ArrayList<>();
@@ -44,7 +47,7 @@ public class UserProfile {
   }
 
   public UserProfile(String userId, String name, String email, GithubAccount github) {
-    this(userId, name, email, github, null, 0, null, null);
+    this(userId, name, email, github, null, null, 0, null, null);
   }
 
   public String getPreferredLocale() {
@@ -95,6 +98,14 @@ public class UserProfile {
     this.github = github;
   }
 
+  public DiscordAccount getDiscord() {
+    return discord;
+  }
+
+  public void setDiscord(DiscordAccount discord) {
+    this.discord = discord;
+  }
+
   public int getCurrentXp() {
     return currentXp;
   }
@@ -130,6 +141,10 @@ public class UserProfile {
     return github != null && github.login != null && !github.login.isBlank();
   }
 
+  public boolean hasDiscord() {
+    return discord != null && discord.id != null && !discord.id.isBlank();
+  }
+
   public record GithubAccount(
       String login, String profileUrl, String avatarUrl, String id, Instant linkedAt) {
     @JsonCreator
@@ -143,6 +158,23 @@ public class UserProfile {
       this.profileUrl = profileUrl;
       this.avatarUrl = avatarUrl;
       this.id = id;
+      this.linkedAt = linkedAt;
+    }
+  }
+
+  public record DiscordAccount(
+      String id, String handle, String profileUrl, String avatarUrl, Instant linkedAt) {
+    @JsonCreator
+    public DiscordAccount(
+        @JsonProperty("id") String id,
+        @JsonProperty("handle") String handle,
+        @JsonProperty("profileUrl") String profileUrl,
+        @JsonProperty("avatarUrl") String avatarUrl,
+        @JsonProperty("linkedAt") Instant linkedAt) {
+      this.id = id;
+      this.handle = handle;
+      this.profileUrl = profileUrl;
+      this.avatarUrl = avatarUrl;
       this.linkedAt = linkedAt;
     }
   }

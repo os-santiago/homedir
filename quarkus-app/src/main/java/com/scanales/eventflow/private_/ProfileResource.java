@@ -2,11 +2,14 @@ package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
+import com.scanales.eventflow.community.CommunityBoardGroup;
+import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
+import com.scanales.eventflow.security.RedirectSanitizer;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -31,6 +34,10 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Optional;
 
 @Path("/private/profile")
@@ -50,8 +57,12 @@ public class ProfileResource {
         long attendedTalks,
         long ratedTalks,
         com.scanales.eventflow.model.UserProfile.GithubAccount github,
+        com.scanales.eventflow.model.UserProfile.DiscordAccount discord,
         boolean githubLinked,
+        boolean discordLinked,
+        boolean discordUnlinked,
         String githubError,
+        String discordError,
         boolean githubRequired,
         boolean userAuthenticated,
         String userName,
@@ -86,6 +97,8 @@ public class ProfileResource {
   @Inject
   UserProfileService userProfiles;
   @Inject
+  CommunityBoardService boardService;
+  @Inject
   UsageMetricsService metrics;
   @Inject
   SecurityIdentity identity;
@@ -99,7 +112,10 @@ public class ProfileResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance profile(
       @jakarta.ws.rs.QueryParam("githubLinked") boolean githubLinked,
+      @jakarta.ws.rs.QueryParam("discordLinked") boolean discordLinked,
+      @jakarta.ws.rs.QueryParam("discordUnlinked") boolean discordUnlinked,
       @jakarta.ws.rs.QueryParam("githubError") String githubError,
+      @jakarta.ws.rs.QueryParam("discordError") String discordError,
       @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub,
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
     String email = getEmail();
@@ -167,8 +183,12 @@ public class ProfileResource {
         summary.attended(),
         summary.rated(),
         userProfile.getGithub(),
+        userProfile.getDiscord(),
         githubLinked,
+        discordLinked,
+        discordUnlinked,
         githubError,
+        discordError,
         linkGithub,
         true,
         name,
@@ -348,6 +368,65 @@ public class ProfileResource {
         .build();
   }
 
+  @POST
+  @Path("link-discord")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response linkDiscord(
+      @jakarta.ws.rs.FormParam("discordId") String discordId,
+      @jakarta.ws.rs.FormParam("redirect") String redirect) {
+    String normalizedDiscordId = normalizeId(discordId);
+    String target = RedirectSanitizer.sanitizeInternalRedirect(redirect, "/private/profile");
+    if (normalizedDiscordId == null) {
+      return redirectWithStatus(target, "discordError", "invalid_member");
+    }
+
+    var memberOpt = boardService.findMember(CommunityBoardGroup.DISCORD_USERS, normalizedDiscordId);
+    if (memberOpt.isEmpty()) {
+      return redirectWithStatus(target, "discordError", "invalid_member");
+    }
+
+    String userId = getEmail();
+    var existingClaim = userProfiles.findByDiscordId(normalizedDiscordId);
+    if (existingClaim.isPresent()
+        && existingClaim.get().getUserId() != null
+        && !existingClaim.get().getUserId().equalsIgnoreCase(userId)) {
+      return redirectWithStatus(target, "discordError", "already_claimed");
+    }
+
+    String name = getClaim("name");
+    if (name == null || name.isBlank()) {
+      name = userId;
+    }
+    var member = memberOpt.get();
+    String profileUrl = "https://discord.com/users/" + URLEncoder.encode(normalizedDiscordId, StandardCharsets.UTF_8);
+    userProfiles.linkDiscord(
+        userId,
+        name,
+        userId,
+        new com.scanales.eventflow.model.UserProfile.DiscordAccount(
+            normalizedDiscordId, member.handle(), profileUrl, member.avatarUrl(), Instant.now()));
+    boardService.requestRefresh("discord-claim");
+    return redirectWithStatus(target, "discordLinked", "1");
+  }
+
+  @POST
+  @Path("unlink-discord")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response unlinkDiscord(@jakarta.ws.rs.FormParam("redirect") String redirect) {
+    String userId = getEmail();
+    String target = RedirectSanitizer.sanitizeInternalRedirect(redirect, "/private/profile");
+    userProfiles.unlinkDiscord(userId);
+    boardService.requestRefresh("discord-unlink");
+    return redirectWithStatus(target, "discordUnlinked", "1");
+  }
+
+  private Response redirectWithStatus(String target, String key, String value) {
+    String separator = target.contains("?") ? "&" : "?";
+    return Response.seeOther(URI.create(target + separator + key + "=" + value)).build();
+  }
+
   private boolean acceptsJson(HttpHeaders headers) {
     String accept = headers.getHeaderString(HttpHeaders.ACCEPT);
     return accept != null && accept.toLowerCase().contains(MediaType.APPLICATION_JSON);
@@ -370,6 +449,14 @@ public class ProfileResource {
       email = identity.getPrincipal().getName();
     }
     return email;
+  }
+
+  private String normalizeId(String value) {
+    if (value == null) {
+      return null;
+    }
+    String normalized = value.trim().toLowerCase();
+    return normalized.isBlank() ? null : normalized;
   }
 
   private java.util.List<EventGroup> getEventGroupsForUser(String email) {

@@ -27,6 +27,12 @@ public interface AppMessages {
     @Message("Link GitHub")
     String btn_link_github();
 
+    @Message("Claim Discord from Community Board")
+    String btn_claim_discord_from_board();
+
+    @Message("Unlink Discord")
+    String btn_unlink_discord();
+
     @Message("Quest Board")
     String btn_quest_board();
 
@@ -57,6 +63,18 @@ public interface AppMessages {
     @Message("Not linked yet.")
     String msg_no_github();
 
+    @Message("Not linked yet.")
+    String msg_no_discord();
+
+    @Message("Discord account linked successfully.")
+    String msg_discord_linked();
+
+    @Message("Discord account removed.")
+    String msg_discord_unlinked();
+
+    @Message("Could not link Discord ({error}). Please try again.")
+    String msg_discord_error(String error);
+
     @Message("(Linked)")
     String msg_linked();
 
@@ -77,6 +95,9 @@ public interface AppMessages {
 
     @Message("GitHub")
     String section_gitHub();
+
+    @Message("Discord")
+    String section_discord();
 
     @Message("Resume")
     String section_resume();
@@ -1886,6 +1907,9 @@ public interface AppMessages {
 
     @Message("Open")
     String community_board_open();
+
+    @Message("Claim")
+    String community_board_claim();
 
     @Message("Copy profile link")
     String community_board_copy_profile_link();
