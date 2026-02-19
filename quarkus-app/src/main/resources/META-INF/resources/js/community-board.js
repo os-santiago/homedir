@@ -30,9 +30,8 @@
     }
     currentMain.className = nextMain.className;
     currentMain.innerHTML = nextMain.innerHTML;
-    if (nextDocument.body && typeof nextDocument.body.className === "string") {
-      document.body.className = nextDocument.body.className;
-    }
+    // Keep runtime classes managed by global scripts (e.g. `loaded`).
+    // Replacing body.className here causes invisible page until hard refresh.
     if (nextDocument.title) {
       document.title = nextDocument.title;
     }
