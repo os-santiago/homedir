@@ -2,6 +2,7 @@ package com.scanales.eventflow.community;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.UserProfileService;
@@ -151,7 +152,7 @@ public class CommunityBoardResourceTest {
         .get("/community/member/github-users/board-user")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/u/board-user"));
+        .header("Location", startsWith("/u/board-user"));
   }
 
   @Test
@@ -163,7 +164,7 @@ public class CommunityBoardResourceTest {
         .get("/comunidad/member/github-users/board-user")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/community/member/github-users/board-user"));
+        .header("Location", startsWith("/community/member/github-users/board-user"));
   }
 
   @Test
@@ -192,7 +193,7 @@ public class CommunityBoardResourceTest {
         .get("/community/member/discord-users/discord-unclaimed-001")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/comunidad/board/discord-users?member=discord-unclaimed-001"));
+        .header("Location", startsWith("/comunidad/board/discord-users?member=discord-unclaimed-001"));
   }
 
   @Test
@@ -238,6 +239,6 @@ public class CommunityBoardResourceTest {
         .get("/community/member/discord-users/discord-001")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/u/board-user"));
+        .header("Location", startsWith("/u/board-user"));
   }
 }
