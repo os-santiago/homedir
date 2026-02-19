@@ -245,6 +245,31 @@ public class CommunityBoardResourceTest {
   }
 
   @Test
+  void discordBoardIncludesLinkedProfilesWhenSourceListIsUnavailable() throws Exception {
+    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Files.deleteIfExists(discordFile);
+    userProfileService.linkDiscord(
+        "board.user@example.com",
+        "Board User",
+        "board.user@example.com",
+        new UserProfile.DiscordAccount(
+            "444078348537430019",
+            "iarwain_ben_adar",
+            "https://discord.com/users/444078348537430019",
+            null,
+            Instant.parse("2026-02-19T00:00:00Z")));
+    boardService.resetDiscordCacheForTests();
+
+    given()
+        .when()
+        .get("/comunidad/board/discord-users")
+        .then()
+        .statusCode(200)
+        .body(containsString("iarwain_ben_adar"))
+        .body(containsString("/u/board-user"));
+  }
+
+  @Test
   void discordBoardSkipsRowsWithoutValidDiscordId() throws Exception {
     Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.writeString(
