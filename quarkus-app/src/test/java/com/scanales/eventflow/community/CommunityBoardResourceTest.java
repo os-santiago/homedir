@@ -40,7 +40,7 @@ public class CommunityBoardResourceTest {
         discordFile,
         """
         members:
-          - id: discord-001
+          - id: "111111111111111111"
             display_name: Discord User
             handle: discord_user#1001
             joined_at: "2026-01-10T00:00:00Z"
@@ -89,7 +89,8 @@ public class CommunityBoardResourceTest {
     Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     StringBuilder yaml = new StringBuilder("members:\n");
     for (int i = 1; i <= 12; i++) {
-      yaml.append("  - id: discord-").append(String.format("%03d", i)).append('\n');
+      long id = 111111111111111000L + i;
+      yaml.append("  - id: ").append(id).append('\n');
       yaml.append("    display_name: Discord User ").append(i).append('\n');
       yaml.append("    handle: discord_user_").append(i).append("#1001\n");
       yaml.append("    joined_at: \"2026-01-10T00:00:00Z\"\n");
@@ -113,7 +114,8 @@ public class CommunityBoardResourceTest {
     Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     StringBuilder yaml = new StringBuilder("members:\n");
     for (int i = 1; i <= 12; i++) {
-      yaml.append("  - id: discord-").append(String.format("%03d", i)).append('\n');
+      long id = 111111111111111000L + i;
+      yaml.append("  - id: ").append(id).append('\n');
       yaml.append("    display_name: Discord User ").append(i).append('\n');
       yaml.append("    handle: discord_user_").append(i).append("#1001\n");
       yaml.append("    joined_at: \"2026-01-10T00:00:00Z\"\n");
@@ -179,7 +181,7 @@ public class CommunityBoardResourceTest {
         discordFile,
         """
         members:
-          - id: discord-unclaimed-001
+          - id: "222222222222222222"
             display_name: Unclaimed Discord User
             handle: unclaimed#1001
             joined_at: "2026-01-10T00:00:00Z"
@@ -190,10 +192,10 @@ public class CommunityBoardResourceTest {
         .redirects()
         .follow(false)
         .when()
-        .get("/community/member/discord-users/discord-unclaimed-001")
+        .get("/community/member/discord-users/222222222222222222")
         .then()
         .statusCode(303)
-        .header("Location", startsWith("/comunidad/board/discord-users?member=discord-unclaimed-001"));
+        .header("Location", startsWith("/comunidad/board/discord-users?member=222222222222222222"));
   }
 
   @Test
@@ -203,9 +205,9 @@ public class CommunityBoardResourceTest {
         "Board User",
         "board.user@example.com",
         new UserProfile.DiscordAccount(
-            "discord-001",
+            "111111111111111111",
             "discord_user#1001",
-            "https://discord.com/users/discord-001",
+            "https://discord.com/users/111111111111111111",
             null,
             Instant.parse("2026-02-18T00:00:00Z")));
     boardService.resetDiscordCacheForTests();
@@ -225,9 +227,9 @@ public class CommunityBoardResourceTest {
         "Board User",
         "board.user@example.com",
         new UserProfile.DiscordAccount(
-            "discord-001",
+            "111111111111111111",
             "discord_user#1001",
-            "https://discord.com/users/discord-001",
+            "https://discord.com/users/111111111111111111",
             null,
             Instant.parse("2026-02-18T00:00:00Z")));
     boardService.resetDiscordCacheForTests();
@@ -236,9 +238,36 @@ public class CommunityBoardResourceTest {
         .redirects()
         .follow(false)
         .when()
-        .get("/community/member/discord-users/discord-001")
+        .get("/community/member/discord-users/111111111111111111")
         .then()
         .statusCode(303)
         .header("Location", startsWith("/u/board-user"));
+  }
+
+  @Test
+  void discordBoardSkipsRowsWithoutValidDiscordId() throws Exception {
+    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Files.writeString(
+        discordFile,
+        """
+        members:
+          - handle: alias-only#1001
+            display_name: Alias Only
+          - id: "not-a-valid-id"
+            display_name: Invalid Id
+          - id: "333333333333333333"
+            display_name: Valid Discord User
+            handle: valid_user#1001
+        """);
+    boardService.resetDiscordCacheForTests();
+
+    given()
+        .when()
+        .get("/comunidad/board/discord-users")
+        .then()
+        .statusCode(200)
+        .body(containsString("Valid Discord User"))
+        .body(org.hamcrest.Matchers.not(containsString("Alias Only")))
+        .body(org.hamcrest.Matchers.not(containsString("Invalid Id")));
   }
 }

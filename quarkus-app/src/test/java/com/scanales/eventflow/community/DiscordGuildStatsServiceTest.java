@@ -71,4 +71,23 @@ class DiscordGuildStatsServiceTest {
     var node = JSON.readTree("{\"approximate_member_count\":220}");
     assertTrue(DiscordGuildStatsService.parseMemberSamples(node).isEmpty());
   }
+
+  @Test
+  void parseMemberSamplesSkipsEntriesWithoutValidDiscordId() throws Exception {
+    var node =
+        JSON.readTree(
+            """
+            {
+              "members": [
+                { "username": "missing-id" },
+                { "id": "not-a-discord-id", "username": "alias-id" },
+                { "id": "456", "username": "valid-id" }
+              ]
+            }
+            """);
+    var members = DiscordGuildStatsService.parseMemberSamples(node);
+    assertEquals(1, members.size());
+    assertEquals("456", members.get(0).id());
+    assertEquals("valid-id", members.get(0).handle());
+  }
 }
