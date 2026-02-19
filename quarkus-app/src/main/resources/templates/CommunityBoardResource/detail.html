@@ -194,6 +194,8 @@
     .board-members-grid {
       display: grid;
       gap: 0.85rem;
+      content-visibility: auto;
+      contain-intrinsic-size: 760px;
     }
 
     .board-member-card {
@@ -210,6 +212,9 @@
       transition: none;
       animation: none;
       transform: none;
+      contain: layout paint style;
+      content-visibility: auto;
+      contain-intrinsic-size: 72px;
     }
 
     .board-member-card.is-highlighted {
@@ -276,38 +281,12 @@
       border-color: rgba(120, 255, 160, 0.9);
       background: rgba(120, 255, 160, 0.15);
     }
-  </style>
 
-  <script>
-    document.addEventListener("click", async function (event) {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
-      const button = target.closest(".board-copy-btn");
-      if (!button) {
-        return;
-      }
-      const rawLink = button.getAttribute("data-share-link");
-      if (!rawLink) {
-        return;
-      }
-      const fullLink = new URL(rawLink, window.location.origin).toString();
-      try {
-        await navigator.clipboard.writeText(fullLink);
-        button.classList.add("is-done");
-        button.textContent = button.getAttribute("data-success-label") || "OK";
-        setTimeout(function () {
-          button.classList.remove("is-done");
-          button.textContent = button.getAttribute("data-default-label") || "Copy";
-        }, 1200);
-      } catch (err) {
-        button.textContent = button.getAttribute("data-error-label") || "Error";
-        setTimeout(function () {
-          button.textContent = button.getAttribute("data-default-label") || "Copy";
-        }, 1200);
-      }
-    });
-  </script>
+    body.community-board-loading .board-detail-shell {
+      opacity: 0.78;
+      pointer-events: none;
+    }
+  </style>
+  <script src="/js/community-board.js?v={app:version()}"></script>
 {/body}
 {/include}
