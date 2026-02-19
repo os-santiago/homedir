@@ -145,12 +145,13 @@ public class CommunityBoardResourceTest {
   @Test
   void memberSharePageRenders() {
     given()
+        .redirects()
+        .follow(false)
         .when()
         .get("/community/member/github-users/board-user")
         .then()
-        .statusCode(200)
-        .body(containsString("Board User"))
-        .body(containsString("Open profile"));
+        .statusCode(303)
+        .header("Location", containsString("/u/board-user"));
   }
 
   @Test
@@ -168,6 +169,30 @@ public class CommunityBoardResourceTest {
   @Test
   void unknownMemberSharePageReturnsNotFound() {
     given().when().get("/community/member/github-users/does-not-exist").then().statusCode(404);
+  }
+
+  @Test
+  void unclaimedDiscordMemberRedirectsToBoardHighlight() throws Exception {
+    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Files.writeString(
+        discordFile,
+        """
+        members:
+          - id: discord-unclaimed-001
+            display_name: Unclaimed Discord User
+            handle: unclaimed#1001
+            joined_at: "2026-01-10T00:00:00Z"
+        """);
+    boardService.resetDiscordCacheForTests();
+
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/community/member/discord-users/discord-unclaimed-001")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/board/discord-users?member=discord-unclaimed-001"));
   }
 
   @Test
@@ -207,10 +232,12 @@ public class CommunityBoardResourceTest {
     boardService.resetDiscordCacheForTests();
 
     given()
+        .redirects()
+        .follow(false)
         .when()
         .get("/community/member/discord-users/discord-001")
         .then()
-        .statusCode(200)
-        .body(containsString("/u/board-user"));
+        .statusCode(303)
+        .header("Location", containsString("/u/board-user"));
   }
 }
