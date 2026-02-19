@@ -39,7 +39,7 @@
 
   {#if upcomingEvents.isEmpty()}
   <div class="section-card events-full-width">
-    <p>{i18n.events_empty_upcoming}</p>
+    <p class="hd-empty-callout">{i18n.events_empty_upcoming}</p>
   </div>
   {#else}
   <div class="events-grid events-full-width">
@@ -68,7 +68,7 @@
 
   {#if pastEvents.isEmpty()}
   <div class="section-card events-full-width">
-    <p>{i18n.events_empty_past}</p>
+    <p class="hd-empty-callout">{i18n.events_empty_past}</p>
   </div>
   {#else}
   <div class="events-list events-full-width">

@@ -2523,6 +2523,57 @@ footer {
   content: none !important;
 }
 
+.homedir-body.ultra-lite-mode .section-header {
+  position: relative;
+  padding-bottom: 0.18rem;
+}
+
+.homedir-body.ultra-lite-mode .section-header::after {
+  content: "";
+  display: block;
+  width: min(240px, 65%);
+  height: 1px;
+  margin-top: 0.38rem;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.5), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+  opacity: 0.78;
+}
+
+.homedir-body.ultra-lite-mode .community-empty,
+.homedir-body.ultra-lite-mode .errors-empty-state,
+.homedir-body.ultra-lite-mode .project-hd-empty,
+.homedir-body.ultra-lite-mode .hd-empty-state {
+  border: 1px dashed rgba(255, 255, 255, 0.34);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(0, 0, 0, 0.18));
+  padding: 0.58rem 0.72rem;
+}
+
+.homedir-body.ultra-lite-mode .hd-empty-callout {
+  border: 1px dashed rgba(255, 255, 255, 0.34);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(0, 0, 0, 0.18));
+  padding: 0.58rem 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.homedir-body.ultra-lite-mode .hd-empty-callout::before {
+  font-family: "Material Symbols Outlined";
+  content: "info";
+  font-size: 1.12rem;
+  line-height: 1;
+  opacity: 0.82;
+}
+
+.homedir-body.ultra-lite-mode .community-empty p,
+.homedir-body.ultra-lite-mode .errors-empty-state,
+.homedir-body.ultra-lite-mode .project-hd-empty,
+.homedir-body.ultra-lite-mode .hd-empty-state,
+.homedir-body.ultra-lite-mode .hd-empty-callout p {
+  margin: 0;
+}
+
 @media (max-width: 900px) {
   .community-submenu {
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
