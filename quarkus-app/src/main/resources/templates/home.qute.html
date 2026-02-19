@@ -8,17 +8,26 @@
   <p class="home-highlights-intro">{i18n.home_highlights_intro}</p>
   <div class="home-top-metrics">
     <a href="#home-social" class="home-top-metric">
-      <span class="home-chip">{i18n.home_pill_social}</span>
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">article</span>
+        <span class="home-chip">{i18n.home_pill_social}</span>
+      </span>
       <strong>{socialHighlightsCount}</strong>
       <small>{i18n.home_metric_updates}</small>
     </a>
     <a href="#home-events" class="home-top-metric">
-      <span class="home-chip">{i18n.home_pill_events}</span>
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
+        <span class="home-chip">{i18n.home_pill_events}</span>
+      </span>
       <strong>{upcomingCount}</strong>
       <small>{i18n.home_metric_upcoming}</small>
     </a>
     <a href="#home-project" class="home-top-metric">
-      <span class="home-chip">{i18n.home_pill_project}</span>
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">groups</span>
+        <span class="home-chip">{i18n.home_pill_project}</span>
+      </span>
       <strong>{projectContributorCount}</strong>
       <small>{i18n.home_metric_contributors}</small>
     </a>
@@ -28,8 +37,13 @@
 <section class="page-grid home-panorama-grid">
   <article class="section-card home-pane" id="home-social">
     <div class="home-pane-header">
-      <div>
+      <div class="home-pane-header-main">
+        <span class="home-pane-identity home-pane-identity-social" aria-hidden="true">
+          <span class="material-symbols-outlined">article</span>
+        </span>
+        <div>
         <h2 class="page-title">{i18n.home_social_highlights_title}</h2>
+        </div>
       </div>
       <a href="/comunidad" class="btn-primary">{i18n.home_btn_open_social}</a>
     </div>
@@ -56,8 +70,18 @@
 
   <article class="section-card home-pane" id="home-events">
     <div class="home-pane-header">
-      <div>
+      <div class="home-pane-header-main">
+        <span class="home-pane-identity home-pane-identity-events">
+          {#if !popularEvents.isEmpty() && app:validUrl(popularEvents[0].logoUrl)}
+          <img src="{popularEvents[0].logoUrl}" alt="{popularEvents[0].title}" loading="lazy"
+            class="home-pane-identity-avatar">
+          {#else}
+          <span class="material-symbols-outlined" aria-hidden="true">event</span>
+          {/if}
+        </span>
+        <div>
         <h2 class="page-title">{i18n.home_events_highlights_title}</h2>
+        </div>
       </div>
       <a href="/eventos" class="btn-primary">{i18n.home_btn_open_events}</a>
     </div>
@@ -69,13 +93,24 @@
     {#else}
     <div class="home-pane-list">
       {#for event in popularEvents}
-      <a href="/event/{event.id}" class="home-pane-item">
+      <a href="/event/{event.id}" class="home-pane-item home-event-item">
         <div class="home-card-top">
           <span class="home-chip">{i18n.home_pill_events}</span>
           <span class="home-source">{event.formattedDate ?: i18n.home_event_date_tba}</span>
         </div>
-        <h3 class="home-pane-title">{event.title}</h3>
-        <p class="home-pane-summary">{event.descriptionSummary ?: i18n.home_event_desc_default}</p>
+        <div class="home-event-content">
+          <span class="home-event-avatar-shell">
+            {#if app:validUrl(event.logoUrl)}
+            <img src="{event.logoUrl}" alt="{event.title}" loading="lazy" class="home-event-avatar">
+            {#else}
+            <span class="material-symbols-outlined home-event-avatar-fallback" aria-hidden="true">event</span>
+            {/if}
+          </span>
+          <div class="home-event-text">
+            <h3 class="home-pane-title">{event.title}</h3>
+            <p class="home-pane-summary">{event.descriptionSummary ?: i18n.home_event_desc_default}</p>
+          </div>
+        </div>
       </a>
       {/for}
     </div>
@@ -84,8 +119,13 @@
 
   <article class="section-card home-pane" id="home-project">
     <div class="home-pane-header">
-      <div>
+      <div class="home-pane-header-main">
+        <span class="home-pane-identity home-pane-identity-project" aria-hidden="true">
+          <span class="material-symbols-outlined">groups</span>
+        </span>
+        <div>
         <h2 class="page-title">{i18n.home_project_highlights_title}</h2>
+        </div>
       </div>
       <a href="/proyectos" class="btn-primary">{i18n.home_btn_open_project}</a>
     </div>
