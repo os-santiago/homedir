@@ -158,4 +158,48 @@ public class CommunityBoardResourceTest {
   void unknownMemberSharePageReturnsNotFound() {
     given().when().get("/community/member/github-users/does-not-exist").then().statusCode(404);
   }
+
+  @Test
+  void claimedDiscordMemberUsesCanonicalProfileLink() {
+    userProfileService.linkDiscord(
+        "board.user@example.com",
+        "Board User",
+        "board.user@example.com",
+        new UserProfile.DiscordAccount(
+            "discord-001",
+            "discord_user#1001",
+            "https://discord.com/users/discord-001",
+            null,
+            Instant.parse("2026-02-18T00:00:00Z")));
+    boardService.resetDiscordCacheForTests();
+
+    given()
+        .when()
+        .get("/comunidad/board/discord-users")
+        .then()
+        .statusCode(200)
+        .body(containsString("/u/board-user"));
+  }
+
+  @Test
+  void claimedDiscordMemberSharePageUsesCanonicalProfileLink() {
+    userProfileService.linkDiscord(
+        "board.user@example.com",
+        "Board User",
+        "board.user@example.com",
+        new UserProfile.DiscordAccount(
+            "discord-001",
+            "discord_user#1001",
+            "https://discord.com/users/discord-001",
+            null,
+            Instant.parse("2026-02-18T00:00:00Z")));
+    boardService.resetDiscordCacheForTests();
+
+    given()
+        .when()
+        .get("/community/member/discord-users/discord-001")
+        .then()
+        .statusCode(200)
+        .body(containsString("/u/board-user"));
+  }
 }

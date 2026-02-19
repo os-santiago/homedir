@@ -32,6 +32,15 @@
                 {#if githubError??}
                 <div class="hd-alert hd-alert-warning">{i18n.msg_github_error(githubError)}</div>
                 {/if}
+                {#if discordLinked}
+                <div class="hd-alert hd-alert-success">{i18n.msg_discord_linked}</div>
+                {/if}
+                {#if discordUnlinked}
+                <div class="hd-alert hd-alert-success">{i18n.msg_discord_unlinked}</div>
+                {/if}
+                {#if discordError??}
+                <div class="hd-alert hd-alert-warning">{i18n.msg_discord_error(discordError)}</div>
+                {/if}
                 {#if githubRequired && github == null}
                 <div class="hd-alert hd-alert-danger">{i18n.msg_github_required}</div>
                 {/if}
@@ -71,6 +80,37 @@
                         <a href="{github.profileUrl}" target="_blank" class="hd-link">{i18n.btn_view_profile}</a>
                     </div>
                 </div>
+                {/if}
+            </div>
+
+            <div class="hd-integration-card">
+                <div class="hd-integration-header">
+                    <h3>{i18n.section_discord}</h3>
+                    {#if discord != null}
+                    <span class="hd-badge hd-badge-success">{i18n.msg_linked}</span>
+                    {/if}
+                </div>
+                {#if discord == null}
+                <p>{i18n.msg_no_discord}</p>
+                <a href="/comunidad/board/discord-users" class="btn-primary">
+                    {i18n.btn_claim_discord_from_board}
+                </a>
+                {#else}
+                <div class="hd-github-user">
+                    {#if discord.avatarUrl}
+                    <img src="{discord.avatarUrl}" alt="Discord Avatar" class="hd-avatar">
+                    {/if}
+                    <div class="hd-github-info">
+                        <strong>{discord.handle ?: discord.id}</strong>
+                        {#if discord.profileUrl}
+                        <a href="{discord.profileUrl}" target="_blank" class="hd-link">{i18n.btn_view_profile}</a>
+                        {/if}
+                    </div>
+                </div>
+                <form action="/private/profile/unlink-discord" method="POST" class="hd-panel-actions">
+                    <input type="hidden" name="redirect" value="/private/profile">
+                    <button type="submit" class="hd-btn hd-btn-secondary">{i18n.btn_unlink_discord}</button>
+                </form>
                 {/if}
             </div>
         </section>

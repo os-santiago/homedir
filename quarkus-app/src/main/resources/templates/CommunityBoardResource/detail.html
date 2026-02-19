@@ -87,6 +87,13 @@
               </div>
               <div class="board-member-actions">
                 <a class="btn-primary" href="{member.profileLink}">{i18n.community_board_open}</a>
+                {#if groupPath == 'discord-users' && isAuthenticated}
+                <form method="post" action="/private/profile/link-discord" class="board-claim-form">
+                  <input type="hidden" name="discordId" value="{member.id}" />
+                  <input type="hidden" name="redirect" value="/comunidad/board/discord-users?member={member.id}" />
+                  <button type="submit" class="btn-primary">{i18n.community_board_claim}</button>
+                </form>
+                {/if}
                 <button
                   type="button"
                   class="btn-primary board-copy-btn"
@@ -261,6 +268,10 @@
       gap: 0.6rem;
       align-items: center;
       flex-wrap: wrap;
+    }
+
+    .board-claim-form {
+      margin: 0;
     }
 
     .board-pagination {
