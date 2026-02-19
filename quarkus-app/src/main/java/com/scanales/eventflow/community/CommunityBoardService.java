@@ -164,7 +164,8 @@ public class CommunityBoardService {
   }
 
   public Optional<CommunityBoardMemberView> findMember(CommunityBoardGroup group, String id) {
-    String normalizedId = normalizeId(id);
+    String normalizedId =
+        group == CommunityBoardGroup.DISCORD_USERS ? normalizeDiscordMemberId(id) : normalizeId(id);
     if (normalizedId == null) {
       return Optional.empty();
     }
@@ -366,10 +367,12 @@ public class CommunityBoardService {
     if (membersNode == null || !membersNode.isArray()) {
       return List.of();
     }
-    List<CommunityBoardMemberView> out = new ArrayList<>();
+    Map<String, CommunityBoardMemberView> byId = new LinkedHashMap<>();
+    int skippedInvalidId = 0;
     for (JsonNode node : membersNode) {
-      String id = normalizeId(text(node, "id", text(node, "handle", text(node, "display_name", null))));
+      String id = normalizeDiscordMemberId(text(node, "id", null));
       if (id == null) {
+        skippedInvalidId++;
         continue;
       }
       LinkedProfileSeed linked = linkedProfiles.get(id);
@@ -381,16 +384,23 @@ public class CommunityBoardService {
               id);
       String handle =
           firstNonBlank(
-              text(node, "handle", null),
-              linked != null ? linked.discordHandle() : null,
+              sanitizeDiscordHandle(text(node, "handle", null)),
+              sanitizeDiscordHandle(linked != null ? linked.discordHandle() : null),
               displayName);
       String avatar = firstNonBlank(linked != null ? linked.avatarUrl() : null, text(node, "avatar_url", null));
       String joined = normalizeDateLabel(text(node, "joined_at", null));
       String link =
           firstNonBlank(
               linked != null ? linked.profileLink() : null, memberSharePath(CommunityBoardGroup.DISCORD_USERS, id));
-      out.add(new CommunityBoardMemberView(id, displayName, handle, avatar, joined, link, link));
+      byId.putIfAbsent(id, new CommunityBoardMemberView(id, displayName, handle, avatar, joined, link, link));
     }
+    if (skippedInvalidId > 0) {
+      LOG.warnf(
+          "Skipped %d discord board entries without valid discord id from %s",
+          skippedInvalidId,
+          file);
+    }
+    List<CommunityBoardMemberView> out = new ArrayList<>(byId.values());
     out.sort(memberComparator());
     return out;
   }
@@ -403,7 +413,7 @@ public class CommunityBoardService {
     }
     Map<String, CommunityBoardMemberView> byId = new LinkedHashMap<>();
     for (DiscordGuildStatsService.DiscordMemberSample sample : samples) {
-      String id = normalizeId(sample.id());
+      String id = normalizeDiscordMemberId(sample.id());
       if (id == null) {
         continue;
       }
@@ -413,8 +423,8 @@ public class CommunityBoardService {
               linked != null ? linked.displayName() : null, sample.displayName(), sample.handle(), id);
       String handle =
           firstNonBlank(
-              sample.handle(),
-              linked != null ? linked.discordHandle() : null,
+              sanitizeDiscordHandle(sample.handle()),
+              sanitizeDiscordHandle(linked != null ? linked.discordHandle() : null),
               displayName);
       String link =
           firstNonBlank(
@@ -442,6 +452,7 @@ public class CommunityBoardService {
         continue;
       }
       String discordId = normalizeId(profile.getDiscord().id());
+      discordId = normalizeDiscordMemberId(discordId);
       if (discordId == null) {
         continue;
       }
@@ -636,6 +647,41 @@ public class CommunityBoardService {
   private static String normalizeId(String raw) {
     String value = trimToNull(raw);
     return value == null ? null : value.toLowerCase(Locale.ROOT);
+  }
+
+  private static String normalizeDiscordMemberId(String raw) {
+    String value = trimToNull(raw);
+    if (value == null || !isLikelyDiscordSnowflake(value)) {
+      return null;
+    }
+    return value.toLowerCase(Locale.ROOT);
+  }
+
+  private static boolean isLikelyDiscordSnowflake(String value) {
+    if (value == null || value.length() < 3 || value.length() > 32) {
+      return false;
+    }
+    for (int i = 0; i < value.length(); i++) {
+      if (!Character.isDigit(value.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static String sanitizeDiscordHandle(String raw) {
+    String value = trimToNull(raw);
+    if (value == null) {
+      return null;
+    }
+    int hash = value.indexOf('#');
+    if (hash > 0 && hash + 1 < value.length()) {
+      String discriminator = value.substring(hash + 1);
+      if ("0000".equals(discriminator) || "000".equals(discriminator)) {
+        return value.substring(0, hash);
+      }
+    }
+    return value;
   }
 
   private static String homedirMemberId(String identitySeed, String githubLogin) {

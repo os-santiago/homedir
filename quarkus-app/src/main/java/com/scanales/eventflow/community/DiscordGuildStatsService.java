@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -300,11 +299,15 @@ public class DiscordGuildStatsService {
       String displayName = firstNonBlank(globalName, username, id);
       String discriminator = trimToNull(memberNode.path("discriminator").asText(null));
       String handle = username;
-      if (handle != null && discriminator != null && !"0".equals(discriminator)) {
+      if (handle != null
+          && discriminator != null
+          && !"0".equals(discriminator)
+          && !"0000".equals(discriminator)
+          && discriminator.matches("\\d{4}")) {
         handle = handle + "#" + discriminator;
       }
       String avatarUrl = trimToNull(memberNode.path("avatar_url").asText(null));
-      String normalizedId = normalizeMemberId(id, username);
+      String normalizedId = normalizeMemberId(id);
       if (normalizedId == null || displayName == null) {
         continue;
       }
@@ -338,16 +341,27 @@ public class DiscordGuildStatsService {
     return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
 
-  private static String normalizeMemberId(String id, String username) {
+  private static String normalizeMemberId(String id) {
     String byId = trimToNull(id);
-    if (byId != null) {
-      return byId;
-    }
-    String byUsername = trimToNull(username);
-    if (byUsername == null) {
+    if (byId == null) {
       return null;
     }
-    return byUsername.toLowerCase(Locale.ROOT);
+    if (!isLikelyDiscordSnowflake(byId)) {
+      return null;
+    }
+    return byId;
+  }
+
+  private static boolean isLikelyDiscordSnowflake(String value) {
+    if (value == null || value.length() < 3 || value.length() > 32) {
+      return false;
+    }
+    for (int i = 0; i < value.length(); i++) {
+      if (!Character.isDigit(value.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static String firstNonBlank(String... values) {
