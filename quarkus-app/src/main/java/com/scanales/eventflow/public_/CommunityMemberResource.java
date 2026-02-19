@@ -10,7 +10,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -38,7 +37,7 @@ public class CommunityMemberResource {
     if (target == null || target.isBlank()) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    return Response.seeOther(URI.create(target)).build();
+    return redirectRelative(target);
   }
 
   private String profileLinkFor(CommunityBoardGroup group, CommunityBoardMemberView member) {
@@ -131,5 +130,9 @@ public class CommunityMemberResource {
     } catch (Exception e) {
       return Integer.toHexString(value.hashCode());
     }
+  }
+
+  private static Response redirectRelative(String path) {
+    return Response.status(Response.Status.SEE_OTHER).header("Location", path).build();
   }
 }
