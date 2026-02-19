@@ -2463,6 +2463,46 @@ footer {
   content: none !important;
 }
 
+/* Global ultra-lite mode:
+   keep visual identity but remove motion hotspots that caused flicker/jank. */
+.homedir-body.ultra-lite-mode .floating-shapes {
+  display: none !important;
+}
+
+.homedir-body.ultra-lite-mode .section-card,
+.homedir-body.ultra-lite-mode .section-card:hover,
+.homedir-body.ultra-lite-mode .btn-primary,
+.homedir-body.ultra-lite-mode .btn-primary:hover,
+.homedir-body.ultra-lite-mode .btn-primary:active,
+.homedir-body.ultra-lite-mode .hd-btn-primary,
+.homedir-body.ultra-lite-mode .hd-btn-primary:hover,
+.homedir-body.ultra-lite-mode .hd-btn-primary:active,
+.homedir-body.ultra-lite-mode .hd-btn-secondary,
+.homedir-body.ultra-lite-mode .hd-btn-secondary:hover,
+.homedir-body.ultra-lite-mode .hd-btn-secondary:active,
+.homedir-body.ultra-lite-mode .retro-nav-link,
+.homedir-body.ultra-lite-mode .retro-nav-link:hover,
+.homedir-body.ultra-lite-mode .retro-nav-link:active,
+.homedir-body.ultra-lite-mode .community-submenu-link,
+.homedir-body.ultra-lite-mode .community-submenu-link:hover,
+.homedir-body.ultra-lite-mode .community-submenu-link:active {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease, color 0.12s ease !important;
+}
+
+.homedir-body.ultra-lite-mode .section-card,
+.homedir-body.ultra-lite-mode .section-card:hover {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.homedir-body.ultra-lite-mode .section-card::before,
+.homedir-body.ultra-lite-mode .section-card:hover::before {
+  content: none !important;
+}
+
 @media (max-width: 900px) {
   .community-submenu {
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
