@@ -88,11 +88,7 @@
               <div class="board-member-actions">
                 <a class="btn-primary" href="{member.profileLink}">{i18n.community_board_open}</a>
                 {#if groupPath == 'discord-users' && isAuthenticated}
-                <form method="post" action="/private/profile/link-discord" class="board-claim-form">
-                  <input type="hidden" name="discordId" value="{member.id}" />
-                  <input type="hidden" name="redirect" value="/comunidad/board/discord-users?member={member.id}" />
-                  <button type="submit" class="btn-primary">{i18n.community_board_claim}</button>
-                </form>
+                <a class="btn-primary board-claim-form" href="/private/discord/start?redirect=/comunidad/board/discord-users?member={member.id}">{i18n.community_board_claim}</a>
                 {/if}
                 <button
                   type="button"

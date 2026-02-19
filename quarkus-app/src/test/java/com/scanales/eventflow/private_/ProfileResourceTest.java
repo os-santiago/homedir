@@ -191,7 +191,7 @@ public class ProfileResourceTest {
   }
 
   @Test
-  public void linkDiscordClaimsMemberAndPersistsInProfile() {
+  public void linkDiscordManualClaimIsRejectedAndRequiresOauth() {
     given()
         .redirects()
         .follow(false)
@@ -202,16 +202,16 @@ public class ProfileResourceTest {
         .post("/private/profile/link-discord")
         .then()
         .statusCode(303)
-        .header("Location", containsString("/private/profile?discordLinked=1"));
+        .header("Location", containsString("discordError=oauth_required"));
 
-    UserProfile profile = userProfiles.find(currentUserEmail()).orElseThrow();
-    assertNotNull(profile.getDiscord());
-    assertEquals("discord-claim-001", profile.getDiscord().id());
-    assertEquals("claimed_discord#1001", profile.getDiscord().handle());
+    UserProfile profile = userProfiles.find(currentUserEmail()).orElse(null);
+    if (profile != null) {
+      assertNull(profile.getDiscord());
+    }
   }
 
   @Test
-  public void linkDiscordRejectsAlreadyClaimedByAnotherUser() {
+  public void linkDiscordManualClaimDoesNotOverrideExistingClaims() {
     userProfiles.linkDiscord(
         "other.member@example.com",
         "Other Member",
@@ -233,7 +233,11 @@ public class ProfileResourceTest {
         .post("/private/profile/link-discord")
         .then()
         .statusCode(303)
-        .header("Location", containsString("discordError=already_claimed"));
+        .header("Location", containsString("discordError=oauth_required"));
+
+    UserProfile other = userProfiles.find("other.member@example.com").orElseThrow();
+    assertNotNull(other.getDiscord());
+    assertEquals("discord-claim-002", other.getDiscord().id());
   }
 
   @Test

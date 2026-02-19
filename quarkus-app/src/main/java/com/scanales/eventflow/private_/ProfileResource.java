@@ -35,9 +35,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Optional;
 
 @Path("/private/profile")
@@ -375,39 +372,10 @@ public class ProfileResource {
   public Response linkDiscord(
       @jakarta.ws.rs.FormParam("discordId") String discordId,
       @jakarta.ws.rs.FormParam("redirect") String redirect) {
-    String normalizedDiscordId = normalizeId(discordId);
     String target = RedirectSanitizer.sanitizeInternalRedirect(redirect, "/private/profile");
-    if (normalizedDiscordId == null) {
-      return redirectWithStatus(target, "discordError", "invalid_member");
-    }
-
-    var memberOpt = boardService.findMember(CommunityBoardGroup.DISCORD_USERS, normalizedDiscordId);
-    if (memberOpt.isEmpty()) {
-      return redirectWithStatus(target, "discordError", "invalid_member");
-    }
-
-    String userId = getEmail();
-    var existingClaim = userProfiles.findByDiscordId(normalizedDiscordId);
-    if (existingClaim.isPresent()
-        && existingClaim.get().getUserId() != null
-        && !existingClaim.get().getUserId().equalsIgnoreCase(userId)) {
-      return redirectWithStatus(target, "discordError", "already_claimed");
-    }
-
-    String name = getClaim("name");
-    if (name == null || name.isBlank()) {
-      name = userId;
-    }
-    var member = memberOpt.get();
-    String profileUrl = "https://discord.com/users/" + URLEncoder.encode(normalizedDiscordId, StandardCharsets.UTF_8);
-    userProfiles.linkDiscord(
-        userId,
-        name,
-        userId,
-        new com.scanales.eventflow.model.UserProfile.DiscordAccount(
-            normalizedDiscordId, member.handle(), profileUrl, member.avatarUrl(), Instant.now()));
-    boardService.requestRefresh("discord-claim");
-    return redirectWithStatus(target, "discordLinked", "1");
+    // Manual discordId claims are intentionally disabled.
+    // Secure claim flow must happen through Discord OAuth.
+    return redirectWithStatus(target, "discordError", "oauth_required");
   }
 
   @POST
@@ -449,14 +417,6 @@ public class ProfileResource {
       email = identity.getPrincipal().getName();
     }
     return email;
-  }
-
-  private String normalizeId(String value) {
-    if (value == null) {
-      return null;
-    }
-    String normalized = value.trim().toLowerCase();
-    return normalized.isBlank() ? null : normalized;
   }
 
   private java.util.List<EventGroup> getEventGroupsForUser(String email) {
