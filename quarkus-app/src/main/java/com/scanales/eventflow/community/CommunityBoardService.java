@@ -408,22 +408,48 @@ public class CommunityBoardService {
   private List<CommunityBoardMemberView> fallbackDiscordMembers(Map<String, LinkedProfileSeed> linkedProfiles) {
     DiscordGuildStatsService.DiscordGuildSnapshot snapshot = discordGuildStatsService.snapshot();
     List<DiscordGuildStatsService.DiscordMemberSample> samples = snapshot.memberSamples();
-    if (samples == null || samples.isEmpty()) {
-      return List.of();
-    }
     Map<String, CommunityBoardMemberView> byId = new LinkedHashMap<>();
-    for (DiscordGuildStatsService.DiscordMemberSample sample : samples) {
-      String id = normalizeDiscordMemberId(sample.id());
-      if (id == null) {
+    if (samples != null) {
+      for (DiscordGuildStatsService.DiscordMemberSample sample : samples) {
+        String id = normalizeDiscordMemberId(sample.id());
+        if (id == null) {
+          continue;
+        }
+        LinkedProfileSeed linked = linkedProfiles.get(id);
+        String displayName =
+            firstNonBlank(
+                linked != null ? linked.displayName() : null, sample.displayName(), sample.handle(), id);
+        String handle =
+            firstNonBlank(
+                sanitizeDiscordHandle(sample.handle()),
+                sanitizeDiscordHandle(linked != null ? linked.discordHandle() : null),
+                displayName);
+        String link =
+            firstNonBlank(
+                linked != null ? linked.profileLink() : null, memberSharePath(CommunityBoardGroup.DISCORD_USERS, id));
+        CommunityBoardMemberView member =
+            new CommunityBoardMemberView(
+                id,
+                displayName,
+                handle,
+                firstNonBlank(linked != null ? linked.avatarUrl() : null, sample.avatarUrl()),
+                null,
+                link,
+                link);
+        byId.putIfAbsent(id, member);
+      }
+    }
+
+    for (Map.Entry<String, LinkedProfileSeed> entry : linkedProfiles.entrySet()) {
+      String id = normalizeDiscordMemberId(entry.getKey());
+      if (id == null || byId.containsKey(id)) {
         continue;
       }
-      LinkedProfileSeed linked = linkedProfiles.get(id);
+      LinkedProfileSeed linked = entry.getValue();
       String displayName =
-          firstNonBlank(
-              linked != null ? linked.displayName() : null, sample.displayName(), sample.handle(), id);
+          firstNonBlank(linked != null ? linked.displayName() : null, id);
       String handle =
           firstNonBlank(
-              sanitizeDiscordHandle(sample.handle()),
               sanitizeDiscordHandle(linked != null ? linked.discordHandle() : null),
               displayName);
       String link =
@@ -434,7 +460,7 @@ public class CommunityBoardService {
               id,
               displayName,
               handle,
-              firstNonBlank(linked != null ? linked.avatarUrl() : null, sample.avatarUrl()),
+              linked != null ? linked.avatarUrl() : null,
               null,
               link,
               link);
