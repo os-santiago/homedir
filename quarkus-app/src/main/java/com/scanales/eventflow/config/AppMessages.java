@@ -1425,6 +1425,24 @@ public interface AppMessages {
     @Message("Public Profile CTA Button")
     String public_profile_cta_btn();
 
+    @Message("Connected accounts")
+    String public_profile_accounts_title();
+
+    @Message("HomeDir")
+    String public_profile_accounts_homedir();
+
+    @Message("GitHub")
+    String public_profile_accounts_github();
+
+    @Message("Discord")
+    String public_profile_accounts_discord();
+
+    @Message("Open profile")
+    String public_profile_accounts_discord_open();
+
+    @Message("No linked accounts yet.")
+    String public_profile_accounts_empty();
+
     @Message("Share Profile")
     String btn_share_profile();
 
