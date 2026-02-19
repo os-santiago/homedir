@@ -2469,6 +2469,23 @@ footer {
   display: none !important;
 }
 
+.homedir-body.ultra-lite-mode::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 540px at 8% -12%, rgba(255, 215, 0, 0.08), rgba(255, 215, 0, 0) 72%),
+    radial-gradient(980px 480px at 92% 112%, rgba(123, 215, 255, 0.08), rgba(123, 215, 255, 0) 72%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.homedir-body.ultra-lite-mode .app-container {
+  position: relative;
+  z-index: 2;
+}
+
 .homedir-body.ultra-lite-mode .section-card,
 .homedir-body.ultra-lite-mode .section-card:hover,
 .homedir-body.ultra-lite-mode .btn-primary,
@@ -2496,6 +2513,9 @@ footer {
 .homedir-body.ultra-lite-mode .section-card:hover {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 32%),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.018) 0 1px, rgba(255, 255, 255, 0) 1px 7px);
 }
 
 .homedir-body.ultra-lite-mode .section-card::before,
