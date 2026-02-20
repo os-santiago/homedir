@@ -1287,6 +1287,21 @@ public interface AppMessages {
     @Message("No inline preview available for this source.")
     String community_js_preview_unavailable();
 
+    @Message("Vote 3 picks to personalize your feed")
+    String community_js_cta_vote_title();
+
+    @Message("Start by voting on three picks.")
+    String community_js_cta_vote_start();
+
+    @Message("{0} of 3 votes completed.")
+    String community_js_cta_vote_progress();
+
+    @Message("Personalization signal is active.")
+    String community_js_cta_vote_ready();
+
+    @Message("You have not voted yet. Vote 3 picks to personalize your feed.")
+    String community_js_empty_no_votes();
+
     @Message("Pending")
     String community_submissions_status_pending();
 

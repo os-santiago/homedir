@@ -130,6 +130,26 @@ public class CommunityVoteService {
     }
   }
 
+  public long countVotesByUser(String userId) {
+    if (userId == null || userId.isBlank()) {
+      return 0L;
+    }
+    try (Connection conn = connection();
+        PreparedStatement ps =
+            conn.prepareStatement("SELECT COUNT(*) AS total FROM content_vote WHERE user_id = ?")) {
+      ps.setString(1, userId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getLong("total");
+        }
+      }
+      return 0L;
+    } catch (SQLException e) {
+      LOG.error("Unable to count votes by user", e);
+      return 0L;
+    }
+  }
+
   public void clearAllForTests() {
     try (Connection conn = connection();
         PreparedStatement ps = conn.prepareStatement("DELETE FROM content_vote")) {
