@@ -607,7 +607,8 @@
         return {
           kind: "iframe",
           src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(yt)}?rel=0`,
-          title: escapeText(item.title || "YouTube video")
+          title: escapeText(item.title || "YouTube video"),
+          provider: "youtube"
         };
       }
       const vimeo = vimeoId(sourceUrl);
@@ -615,7 +616,8 @@
         return {
           kind: "iframe",
           src: `https://player.vimeo.com/video/${encodeURIComponent(vimeo)}`,
-          title: escapeText(item.title || "Vimeo video")
+          title: escapeText(item.title || "Vimeo video"),
+          provider: "vimeo"
         };
       }
     }
@@ -625,7 +627,8 @@
         return {
           kind: "iframe",
           src: `https://open.spotify.com/embed/${spotify.type}/${spotify.id}`,
-          title: escapeText(item.title || "Spotify podcast")
+          title: escapeText(item.title || "Spotify podcast"),
+          provider: "spotify"
         };
       }
       if (isDirectAudio(sourceUrl)) {
@@ -664,6 +667,14 @@
 
     const frame = document.createElement("div");
     frame.className = "community-media-frame";
+    if (canPreview) {
+      frame.classList.add("community-media-frame-toggleable");
+      frame.dataset.itemId = String(item.id || "");
+      frame.setAttribute("role", "button");
+      frame.setAttribute("tabindex", "0");
+      frame.setAttribute("aria-label", isOpen ? i18n.previewHide : i18n.previewPlay);
+      frame.title = isOpen ? i18n.previewHide : i18n.previewPlay;
+    }
 
     const loadThumbnail = Boolean(thumbUrl) && !ultraLiteMode;
     if (loadThumbnail) {
@@ -714,7 +725,10 @@
       if (descriptor.kind === "iframe") {
         const iframe = document.createElement("iframe");
         iframe.loading = "lazy";
-        iframe.referrerPolicy = "no-referrer";
+        iframe.referrerPolicy =
+          descriptor.provider === "youtube"
+            ? "strict-origin-when-cross-origin"
+            : "no-referrer-when-downgrade";
         iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
         iframe.allowFullscreen = true;
         iframe.src = descriptor.src;
@@ -1207,6 +1221,11 @@
   listEl.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+    const mediaFrame = target.closest(".community-media-frame[data-item-id]");
+    if (mediaFrame) {
+      togglePreview(mediaFrame.dataset.itemId || "");
+      return;
+    }
     const previewToggle = target.closest(".community-preview-toggle");
     if (previewToggle) {
       togglePreview(previewToggle.dataset.itemId || "");
@@ -1228,6 +1247,16 @@
     const vote = voteBtn.dataset.vote;
     if (!itemId || !vote) return;
     sendVote(itemId, vote);
+  });
+
+  listEl.addEventListener("keydown", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const mediaFrame = target.closest(".community-media-frame[data-item-id]");
+    if (!mediaFrame) return;
+    event.preventDefault();
+    togglePreview(mediaFrame.dataset.itemId || "");
   });
 
   updateViewState();
