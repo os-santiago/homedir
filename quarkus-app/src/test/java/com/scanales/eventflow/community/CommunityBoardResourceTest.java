@@ -59,7 +59,10 @@ public class CommunityBoardResourceTest {
         .body(containsString("HomeDir users"))
         .body(containsString("GitHub users"))
         .body(containsString("Discord users"))
-        .body(containsString("Listed profiles: 1"));
+        .body(containsString("Guild members: 1"))
+        .body(containsString("Listed profiles: 1"))
+        .body(containsString("Linked profiles: "))
+        .body(containsString("Coverage: "));
   }
 
   @Test
@@ -294,5 +297,26 @@ public class CommunityBoardResourceTest {
         .body(containsString("Valid Discord User"))
         .body(org.hamcrest.Matchers.not(containsString("Alias Only")))
         .body(org.hamcrest.Matchers.not(containsString("Invalid Id")));
+  }
+
+  @Test
+  void discordBoardSearchMatchesUsernameFieldWhenHandleIsMissing() throws Exception {
+    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Files.writeString(
+        discordFile,
+        """
+        members:
+          - id: "555555555555555555"
+            display_name: Board Visible Name
+            username: hidden_user_name
+        """);
+    boardService.resetDiscordCacheForTests();
+
+    given()
+        .when()
+        .get("/comunidad/board/discord-users?q=hidden_user_name")
+        .then()
+        .statusCode(200)
+        .body(containsString("Board Visible Name"));
   }
 }

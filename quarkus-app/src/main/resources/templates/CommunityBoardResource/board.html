@@ -34,7 +34,10 @@
           <h2>{discordUsers}</h2>
           <p>{i18n.community_board_group_discord_desc}</p>
           <div class="board-discord-meta">
+            <p>{i18n.community_board_discord_guild_members(discordUsers)}</p>
             <p>{i18n.community_board_discord_listed(discordListedUsers)}</p>
+            <p>{i18n.community_board_discord_linked_profiles(discordLinkedProfiles)}</p>
+            <p>{i18n.community_board_discord_coverage(discordCoveragePercent)}</p>
             {#if discordOnlineUsers != null}
               <p>{i18n.community_board_discord_online_now(discordOnlineUsers)}</p>
             {/if}

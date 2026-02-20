@@ -43,6 +43,8 @@ public class CommunityBoardResource {
         int githubUsers,
         int discordUsers,
         int discordListedUsers,
+        int discordLinkedProfiles,
+        int discordCoveragePercent,
         Integer discordOnlineUsers,
         String discordSourceLabel,
         String discordLastSyncLabel);
@@ -78,6 +80,8 @@ public class CommunityBoardResource {
             summary.githubUsers(),
             summary.discordUsers(),
             summary.discordListedUsers(),
+            summary.discordLinkedProfiles(),
+            summary.discordCoveragePercent(),
             summary.discordOnlineUsers(),
             discordSourceLabel(summary.discordDataSource()),
             formatSyncTime(summary.discordLastSyncAt()));

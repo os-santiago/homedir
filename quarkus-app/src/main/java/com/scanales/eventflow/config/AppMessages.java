@@ -2013,8 +2013,17 @@ public interface AppMessages {
     @Message("People who joined our official OSSantiago Discord server.")
     String community_board_group_discord_desc();
 
+    @Message("Guild members: {count}")
+    String community_board_discord_guild_members(int count);
+
     @Message("Listed profiles: {count}")
     String community_board_discord_listed(int count);
+
+    @Message("Linked profiles: {count}")
+    String community_board_discord_linked_profiles(int count);
+
+    @Message("Coverage: {percent}%")
+    String community_board_discord_coverage(int percent);
 
     @Message("Online now: {count}")
     String community_board_discord_online_now(int count);
@@ -2055,7 +2064,7 @@ public interface AppMessages {
     @Message("Showing {from} to {to} of {total}")
     String community_board_pagination_status(int from, int to, int total);
 
-    @Message("Search by name, handle or email")
+    @Message("Search by name, username, handle or email")
     String community_board_search_placeholder();
 
     @Message("Search member")

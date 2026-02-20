@@ -111,11 +111,19 @@ public class CommunityBoardService {
     int discordListedUsers = discordMembers.size();
     DiscordGuildStatsService.DiscordGuildSnapshot discordSnapshot = discordGuildStatsService.snapshot();
     int discordUsers = discordSnapshot.resolveMemberCount(discordListedUsers);
+    int discordLinkedProfiles =
+        (int)
+            discordMembers.stream()
+                .filter(member -> member.profileLink() != null && member.profileLink().startsWith("/u/"))
+                .count();
+    int discordCoveragePercent = coveragePercent(discordLinkedProfiles, discordUsers);
     return new CommunityBoardSummary(
         current.membersByGroup().getOrDefault(CommunityBoardGroup.HOMEDIR_USERS, List.of()).size(),
         current.membersByGroup().getOrDefault(CommunityBoardGroup.GITHUB_USERS, List.of()).size(),
         discordUsers,
         discordListedUsers,
+        discordLinkedProfiles,
+        discordCoveragePercent,
         discordSnapshot.onlineCount(),
         resolveDiscordSourceCode(discordSnapshot, discordListedUsers),
         discordSnapshot.loadedAt());
@@ -376,15 +384,22 @@ public class CommunityBoardService {
         continue;
       }
       LinkedProfileSeed linked = linkedProfiles.get(id);
+      String username = trimToNull(text(node, "username", null));
+      String globalName = trimToNull(text(node, "global_name", null));
+      String derivedHandle = discordHandleFromUsername(username, text(node, "discriminator", null));
       String displayName =
           firstNonBlank(
               linked != null ? linked.displayName() : null,
               text(node, "display_name", null),
+              globalName,
               text(node, "name", null),
+              username,
               id);
       String handle =
           firstNonBlank(
               sanitizeDiscordHandle(text(node, "handle", null)),
+              sanitizeDiscordHandle(derivedHandle),
+              sanitizeDiscordHandle(username),
               sanitizeDiscordHandle(linked != null ? linked.discordHandle() : null),
               displayName);
       String avatar = firstNonBlank(linked != null ? linked.avatarUrl() : null, text(node, "avatar_url", null));
@@ -695,6 +710,13 @@ public class CommunityBoardService {
     return true;
   }
 
+  private static int coveragePercent(int linkedProfiles, int guildMembers) {
+    if (linkedProfiles <= 0 || guildMembers <= 0) {
+      return 0;
+    }
+    return (int) Math.round((linkedProfiles * 100.0d) / guildMembers);
+  }
+
   private static String sanitizeDiscordHandle(String raw) {
     String value = trimToNull(raw);
     if (value == null) {
@@ -708,6 +730,24 @@ public class CommunityBoardService {
       }
     }
     return value;
+  }
+
+  private static String discordHandleFromUsername(String username, String discriminatorRaw) {
+    String normalizedUser = trimToNull(username);
+    if (normalizedUser == null) {
+      return null;
+    }
+    String discriminator = trimToNull(discriminatorRaw);
+    if (discriminator == null
+        || "0".equals(discriminator)
+        || "000".equals(discriminator)
+        || "0000".equals(discriminator)) {
+      return normalizedUser;
+    }
+    if (!discriminator.matches("\\d{4}")) {
+      return normalizedUser;
+    }
+    return normalizedUser + "#" + discriminator;
   }
 
   private static String homedirMemberId(String identitySeed, String githubLogin) {
