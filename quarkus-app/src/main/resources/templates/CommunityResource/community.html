@@ -42,6 +42,10 @@
         data-i18n-badge-new="{i18n.community_js_badge_new}"
         data-i18n-top-prefix="{i18n.community_js_top_prefix}"
         data-i18n-filter-media-prefix="{i18n.community_js_filter_media_prefix}"
+        data-i18n-topic-ai="{i18n.community_topic_ai}"
+        data-i18n-topic-platform-engineering="{i18n.community_topic_platform_engineering}"
+        data-i18n-topic-cloud-native="{i18n.community_topic_cloud_native}"
+        data-i18n-topic-security="{i18n.community_topic_security}"
         data-i18n-media-video-story="{i18n.community_js_media_video_story}"
         data-i18n-media-podcast="{i18n.community_js_media_podcast}"
         data-i18n-media-article-blog="{i18n.community_js_media_article_blog}"
@@ -105,10 +109,10 @@
 
           <div class="community-topic-row" role="group" aria-label="Community topic filter">
             <button type="button" class="community-topic-btn community-topic-active" data-topic="all">{i18n.community_topic_all}</button>
-            <button type="button" class="community-topic-btn" data-topic="ai">AI</button>
-            <button type="button" class="community-topic-btn" data-topic="opensource">Open Source</button>
-            <button type="button" class="community-topic-btn" data-topic="devops">DevOps</button>
-            <button type="button" class="community-topic-btn" data-topic="platform">Platform</button>
+            <button type="button" class="community-topic-btn" data-topic="ai">{i18n.community_topic_ai}</button>
+            <button type="button" class="community-topic-btn" data-topic="platform_engineering">{i18n.community_topic_platform_engineering}</button>
+            <button type="button" class="community-topic-btn" data-topic="cloud_native">{i18n.community_topic_cloud_native}</button>
+            <button type="button" class="community-topic-btn" data-topic="security">{i18n.community_topic_security}</button>
           </div>
 
           <div id="community-active-filters" class="community-active-filters hidden" aria-live="polite">
@@ -1109,16 +1113,24 @@
     background: #8b6dff;
   }
 
+  .community-topic-dot.platform_engineering {
+    background: #58ca7b;
+  }
+
   .community-topic-dot.opensource {
     background: #58ca7b;
+  }
+
+  .community-topic-dot.cloud_native {
+    background: #ffb54b;
   }
 
   .community-topic-dot.devops {
     background: #ffb54b;
   }
 
-  .community-topic-dot.platform {
-    background: #67b6ff;
+  .community-topic-dot.security {
+    background: #ff7d8a;
   }
 
   .community-topic-dot.general {

@@ -44,7 +44,7 @@
     view: initialView,
     filter: initialFilter,
     media: initialMedia,
-    topic: sessionStorage.getItem("community.topic") || "all",
+    topic: "all",
     tag: sessionStorage.getItem("community.tag") || "",
     expandedSummaries: new Set(),
     openPreviews: new Set(),
@@ -74,6 +74,10 @@
     filterTagPrefix: root.dataset.i18nFilterTagPrefix || "Tag",
     originInternet: root.dataset.i18nOriginInternet || "Internet",
     originMembers: root.dataset.i18nOriginMembers || "Members",
+    topicAi: root.dataset.i18nTopicAi || "AI",
+    topicPlatformEngineering: root.dataset.i18nTopicPlatformEngineering || "Platform Engineering",
+    topicCloudNative: root.dataset.i18nTopicCloudNative || "Cloud Native",
+    topicSecurity: root.dataset.i18nTopicSecurity || "Security",
     mediaVideoStory: root.dataset.i18nMediaVideoStory || "Video Story",
     mediaPodcast: root.dataset.i18nMediaPodcast || "Podcast",
     mediaArticleBlog: root.dataset.i18nMediaArticleBlog || "Article/Blog",
@@ -88,6 +92,44 @@
     previewUnavailable: root.dataset.i18nPreviewUnavailable || "No inline preview available for this source."
   };
   const uiLocale = document.documentElement.lang || navigator.language || undefined;
+
+  function normalizeTopicKey(value) {
+    const raw = String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[-\s]/g, "_");
+    if (!raw || raw === "all") {
+      return "all";
+    }
+    if (raw === "general") {
+      return "general";
+    }
+    if (["ai", "ml", "genai", "llm", "llmops", "data_ai"].includes(raw)) {
+      return "ai";
+    }
+    if (
+      [
+        "platform_engineering",
+        "platform",
+        "developer_platform",
+        "idp",
+        "devex",
+        "opensource",
+        "open_source",
+        "developer_experience",
+        "inner_source"
+      ].includes(raw)
+    ) {
+      return "platform_engineering";
+    }
+    if (["cloud_native", "devops", "sre", "kubernetes", "k8s"].includes(raw)) {
+      return "cloud_native";
+    }
+    if (["security", "secops", "supply_chain", "security_supply_chain"].includes(raw)) {
+      return "security";
+    }
+    return "all";
+  }
 
   function escapeText(value) {
     return value == null ? "" : String(value);
@@ -203,17 +245,28 @@
       .join(" ")
       .toLowerCase();
 
-    if (/(\bai\b|\bml\b|llm|agent|copilot|inteligencia artificial|machine learning)/.test(text)) {
+    if (
+      /(security|secops|supply chain|zero trust|cve|vulnerability|sbom|slsa|threat|owasp|appsec|ransomware)/.test(
+        text
+      )
+    ) {
+      return "security";
+    }
+    if (/(\bai\b|\bml\b|llm|llmops|agent|copilot|genai|inteligencia artificial|machine learning)/.test(text)) {
       return "ai";
     }
-    if (/(open source|opensource|oss|github|gitlab|apache foundation|linux foundation)/.test(text)) {
-      return "opensource";
+    if (
+      /(platform engineering|platform team|platform teams|developer platform|internal developer platform|idp|devex|inner source|innersource)/.test(
+        text
+      )
+    ) {
+      return "platform_engineering";
     }
-    if (/(devops|kubernetes|k8s|ci\/cd|sre|observability|terraform|helm|argo)/.test(text)) {
-      return "devops";
+    if (/(cloud native|devops|kubernetes|k8s|ci\/cd|sre|observability|terraform|helm|argo|istio|prometheus)/.test(text)) {
+      return "cloud_native";
     }
-    if (/(platform engineering|platform|developer platform|idp|internal developer)/.test(text)) {
-      return "platform";
+    if (/(open source|opensource|oss|github|gitlab|apache foundation|linux foundation|developer workflow|engineering blog)/.test(text)) {
+      return "platform_engineering";
     }
     return "general";
   }
@@ -253,11 +306,28 @@
 
   function topicCatalog() {
     return [
-      { key: "ai", label: "AI", icon: "smart_toy" },
-      { key: "opensource", label: "Open Source", icon: "code" },
-      { key: "devops", label: "DevOps", icon: "hub" },
-      { key: "platform", label: "Platform", icon: "layers" }
+      { key: "ai", label: i18n.topicAi, icon: "smart_toy" },
+      { key: "platform_engineering", label: i18n.topicPlatformEngineering, icon: "layers" },
+      { key: "cloud_native", label: i18n.topicCloudNative, icon: "hub" },
+      { key: "security", label: i18n.topicSecurity, icon: "shield" }
     ];
+  }
+
+  function labelForTopic(topic) {
+    const normalized = normalizeTopicKey(topic);
+    if (normalized === "ai") {
+      return i18n.topicAi;
+    }
+    if (normalized === "platform_engineering") {
+      return i18n.topicPlatformEngineering;
+    }
+    if (normalized === "cloud_native") {
+      return i18n.topicCloudNative;
+    }
+    if (normalized === "security") {
+      return i18n.topicSecurity;
+    }
+    return "General";
   }
 
   function renderInterestCards(items) {
@@ -276,7 +346,7 @@
       return;
     }
 
-    const counts = { ai: 0, opensource: 0, devops: 0, platform: 0 };
+    const counts = { ai: 0, platform_engineering: 0, cloud_native: 0, security: 0 };
     items.forEach((item) => {
       const topic = inferTopic(item);
       if (counts[topic] != null) {
@@ -444,7 +514,7 @@
       chips.push(`${i18n.filterMediaPrefix}: ${labelForMedia(state.media)}`);
     }
     if (state.topic && state.topic !== "all") {
-      chips.push(`${i18n.filterTopicPrefix}: ${state.topic}`);
+      chips.push(`${i18n.filterTopicPrefix}: ${labelForTopic(state.topic)}`);
     }
     if (state.tag) {
       chips.push(`${i18n.filterTagPrefix}: #${state.tag}`);
@@ -866,7 +936,7 @@
       const topic = inferTopic(item);
       const topicHint = document.createElement("span");
       topicHint.className = "community-topic-hint";
-      topicHint.innerHTML = `<span class="community-topic-dot ${topic}"></span>${topic.toUpperCase()}`;
+      topicHint.innerHTML = `<span class="community-topic-dot ${topic}"></span>${escapeText(labelForTopic(topic))}`;
       const mediaHint = document.createElement("span");
       mediaHint.className = "community-media-hint";
       mediaHint.textContent = labelForMedia(item.media_type);
@@ -1073,10 +1143,11 @@
   loadMoreBtn.addEventListener("click", () => load(false));
 
   function setTopic(nextTopic) {
-    if (!nextTopic || nextTopic === state.topic) {
+    const normalizedTopic = normalizeTopicKey(nextTopic);
+    if (!normalizedTopic || normalizedTopic === state.topic) {
       return;
     }
-    state.topic = nextTopic;
+    state.topic = normalizedTopic;
     sessionStorage.setItem("community.topic", state.topic);
     updateTopicState();
     renderItems();
@@ -1262,6 +1333,7 @@
   updateViewState();
   updateFilterState();
   updateMediaState();
+  state.topic = normalizeTopicKey(sessionStorage.getItem("community.topic") || "all");
   updateTopicState();
   load(true);
 })();
