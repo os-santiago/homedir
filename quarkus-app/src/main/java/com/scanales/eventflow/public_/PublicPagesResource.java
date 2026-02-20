@@ -70,18 +70,15 @@ public class PublicPagesResource {
       LOG.debug("No contributors available for home page.");
     }
 
-    return withLayoutData(home
-        .data("pageTitle", "HomeDir - Comunidad Open Source")
-        .data("pageDescription",
-            "Únete a la comunidad de tecnología más activa de Santiago. Eventos, proyectos open source y crecimiento profesional gamificado.")
-        .data("topContributors", contributors)
-        .data("projectHighlights", projectHighlights)
-        .data("popularEvents", popularEvents)
-        .data("socialHighlights", socialHighlights)
-        .data("socialHighlightsCount", socialHighlightsCount)
-        .data("upcomingCount", upcomingCount)
-        .data("projectContributorCount", contributors.size())
-        .data("projectContributionTotal", contributionTotal),
+    return withLayoutData(
+        home.data("topContributors", contributors)
+            .data("projectHighlights", projectHighlights)
+            .data("popularEvents", popularEvents)
+            .data("socialHighlights", socialHighlights)
+            .data("socialHighlightsCount", socialHighlightsCount)
+            .data("upcomingCount", upcomingCount)
+            .data("projectContributorCount", contributors.size())
+            .data("projectContributionTotal", contributionTotal),
         "home");
   }
 
@@ -128,9 +125,6 @@ public class PublicPagesResource {
     List<Event> past = eventService.findPastEvents(10);
     return withLayoutData(
         events
-            .data("pageTitle", "Eventos - HomeDir")
-            .data("pageDescription",
-                "Participa en nuestros meetups, talleres y conferencias. Conecta con otros desarrolladores y aprende nuevas tecnologías.")
             .data("today", java.time.LocalDate.now())
             .data("upcomingEvents", upcoming)
             .data("pastEvents", past)
