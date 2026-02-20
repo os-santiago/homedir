@@ -825,7 +825,7 @@ public interface AppMessages {
     @Message("Auto release tagging and container publish to Quay")
     String project_dashboard_capability_delivery_bullet_1();
 
-    @Message("Webhook-driven VPS deployment with rollback path")
+    @Message("Automated VPS deployment with rollback path")
     String project_dashboard_capability_delivery_bullet_2();
 
     @Message("Observability signals for performance and stability iteration")
