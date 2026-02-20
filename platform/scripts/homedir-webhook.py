@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 PORT = int(os.environ.get("WEBHOOK_PORT", "9000"))
 LOGFILE = os.environ.get("WEBHOOK_LOGFILE", "/var/log/homedir-webhook.log")
 UPDATE_SCRIPT = os.environ.get("UPDATE_SCRIPT", "/usr/local/bin/homedir-update.sh")
+ALERT_SCRIPT = os.environ.get("ALERT_SCRIPT", "/usr/local/bin/homedir-discord-alert.sh")
 STATUS_CMD = os.environ.get(
     "STATUS_CMD",
     "podman ps --filter name=homedir --format '{{.Image}} {{.Status}}'",
@@ -36,6 +37,20 @@ def extract_tag(payload: dict) -> str | None:
         if t and t != "latest":
             return t
     return None
+
+
+def send_alert(severity: str, title: str, message: str, details: str = "") -> None:
+    if not ALERT_SCRIPT:
+        return
+    try:
+        subprocess.run(
+            [ALERT_SCRIPT, severity, title, message, details],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -97,6 +112,12 @@ class Handler(BaseHTTPRequestHandler):
 
         if tag and not TAG_PATTERN.fullmatch(tag):
             log_line(f"rejected webhook tag with invalid format: {tag}")
+            send_alert(
+                "WARN",
+                "Webhook payload rejected",
+                "Received an invalid tag format from webhook payload",
+                f"tag={tag}",
+            )
             tag = None
 
         safe_body = body.decode(errors="replace")
@@ -104,17 +125,33 @@ class Handler(BaseHTTPRequestHandler):
             f"received webhook from {self.client_address[0]} tag={tag} bytes={len(body)} error={err} body={safe_body}"
         )
         if tag:
+            env = os.environ.copy()
+            env["DEPLOY_TRIGGER"] = "webhook"
             result = subprocess.run(
                 [UPDATE_SCRIPT, tag],
                 check=False,
                 capture_output=True,
                 text=True,
+                env=env,
             )
             log_line(
                 f"update.sh tag={tag} exit={result.returncode} stdout={result.stdout.strip()} stderr={result.stderr.strip()}"
             )
+            if result.returncode != 0:
+                send_alert(
+                    "FAIL",
+                    "Webhook deploy execution failed",
+                    "homedir-update.sh exited with non-zero status",
+                    f"tag={tag} exit={result.returncode}",
+                )
         else:
             log_line("skipping update.sh because tag is missing")
+            send_alert(
+                "WARN",
+                "Webhook payload missing deploy tag",
+                "Webhook request did not include a valid tag",
+                f"remote={self.client_address[0]}",
+            )
         self.send_response(200)
         self.send_header("Content-Type", "text/plain")
         self.end_headers()

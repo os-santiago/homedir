@@ -6,6 +6,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-update.sh` – pulls a tagged image, restarts the container, and rolls back on failure.
 - `scripts/homedir-webhook.py` – listens for Quay webhooks and triggers `homedir-update.sh` with the tag from the payload (ignores `latest`-only webhooks). GET `/` on the same port returns `podman ps`-like status and the tail of the webhook log.
 - `scripts/homedir-auto-deploy.sh` – fallback poller that checks Quay tags and deploys the newest semver tag when webhook delivery is missing.
+- `scripts/homedir-discord-alert.sh` – sends deploy and webhook alerts to Discord with severity icons/colors (`WARN`, `FAIL`, `RECOVERY`).
 - `systemd/homedir-webhook.service` – runs the webhook listener.
 - `systemd/homedir-auto-deploy.service` / `systemd/homedir-auto-deploy.timer` – periodic fallback auto-deploy from Quay.
 - `systemd/homedir-update.service` / `systemd/homedir-update.timer` – optional manual/timer runner; keep disabled unless you set a tag.
@@ -17,6 +18,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 1) Install dependencies: `podman`, `python3`, `nginx`, `certbot` (or provide your own TLS certs).  
 2) Copy scripts to `/usr/local/bin/` and make them executable.  
 3) Create `/etc/homedir.env` from `platform/env.example` and fill all secrets.  
+   - To enable Discord alerts, set `ALERTS_DISCORD_WEBHOOK_URL` and keep `DISCORD_ALERTS_ENABLED=true`.
 4) Install systemd units from `platform/systemd/` into `/etc/systemd/system/`, run `systemctl daemon-reload`, then enable:
    - `homedir-webhook.service` (primary trigger)
    - `homedir-auto-deploy.timer` (fallback every 5 min)  
@@ -28,6 +30,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 ## Notes
 - The update script expects a specific tag; no `latest` is used.  
 - `homedir-update.sh` normalizes tags like `v3.361.0` to `3.361.0` to avoid pull failures.  
+- Discord alerts are non-blocking: if webhook delivery fails, deploy flow continues and logs the warning in `/var/log/homedir-alerts.log`.
 - Secrets must never land in git—always inject via `/etc/homedir.env` or your secret manager.  
 - Nginx returns the maintenance page when the backend is down, avoiding default 502/Cloudflare responses.
 - Persistence path must be consistent across deploys: set `HOMEDIR_DATA_DIR` and keep `JAVA_TOOL_OPTIONS=-Dhomedir.data.dir=<same-path>` in `/etc/homedir.env`.
