@@ -2451,7 +2451,7 @@
       position: absolute;
       top: 0;
       right: 0;
-      background: var(--primary-color);
+      background: var(--primary-color, var(--color-accent, #ffd700));
       color: white;
       padding: 0.2rem 0.8rem;
       border-bottom-left-radius: 8px;
@@ -3289,7 +3289,7 @@
     .hd-class-option.selected {
       opacity: 1;
       filter: none;
-      border-color: var(--primary-color) !important;
+      border-color: var(--primary-color, var(--color-accent, #ffd700)) !important;
       background: rgba(255, 255, 255, 0.1);
       transform: scale(1.02);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -3309,7 +3309,10 @@
     }
 
     .progress-bar-fill {
-      background: var(--primary-color);
+      background: linear-gradient(90deg,
+          var(--primary-color, var(--color-accent, #ffd700)),
+          #ffef99);
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.35);
       height: 100%;
       width: var(--xp-percent, 0%);
     }

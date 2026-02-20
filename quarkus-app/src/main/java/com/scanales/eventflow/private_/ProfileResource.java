@@ -37,7 +37,10 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.EnumMap;
+import java.util.Locale;
 import java.util.Optional;
 
 @Path("/private/profile")
@@ -71,6 +74,8 @@ public class ProfileResource {
         QuestClass dominantClass,
         java.util.List<ActivityClassMapping> activityClassMap,
         QuestProfile questProfile,
+        int questProgressPercent,
+        String publicProfileHandle,
         String currentLanguage,
         AppMessages i18n,
         String ogTitle,
@@ -169,6 +174,15 @@ public class ProfileResource {
     java.util.List<ClassProgress> classProgress = buildClassProgress(userProfile, questProfile.currentXp);
     QuestClass dominantClass = userProfile.getDominantQuestClass();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
+    int questProgressPercent = 0;
+    if (questProfile.nextLevelXp > 0) {
+      questProgressPercent =
+          (int) Math.round((questProfile.currentXp * 100.0d) / (double) questProfile.nextLevelXp);
+    }
+    questProgressPercent = Math.max(0, Math.min(100, questProgressPercent));
+    String publicProfileHandle = resolvePublicProfileHandle(
+        email,
+        userProfile.getGithub() != null ? userProfile.getGithub().login() : null);
 
     // Viral Feature: Social Tags
     String ogTitle = (name != null ? name : "Developer") + "'s Homedir";
@@ -205,6 +219,8 @@ public class ProfileResource {
         dominantClass,
         activityClassMap,
         questProfile,
+        questProgressPercent,
+        publicProfileHandle,
         finalLang,
         messages,
         ogTitle,
@@ -527,5 +543,40 @@ public class ProfileResource {
             messages.profile_activity_category_connect(),
             messages.profile_activity_examples_connect(),
             QuestClass.MAGE.getDisplayName()));
+  }
+
+  private String resolvePublicProfileHandle(String userId, String githubLogin) {
+    String github = normalizeId(githubLogin);
+    if (github != null) {
+      return github;
+    }
+    String seed = normalizeId(userId);
+    if (seed == null) {
+      return null;
+    }
+    return "hd-" + shortHash(seed, 16);
+  }
+
+  private static String normalizeId(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String normalized = raw.trim().toLowerCase(Locale.ROOT);
+    return normalized.isBlank() ? null : normalized;
+  }
+
+  private static String shortHash(String value, int maxLength) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hashed = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+      StringBuilder hex = new StringBuilder(hashed.length * 2);
+      for (byte b : hashed) {
+        hex.append(String.format("%02x", b));
+      }
+      int end = Math.min(hex.length(), Math.max(6, maxLength));
+      return hex.substring(0, end);
+    } catch (Exception e) {
+      return Integer.toHexString(value.hashCode());
+    }
   }
 }
