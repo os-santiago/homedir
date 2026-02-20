@@ -91,7 +91,17 @@ public class ProjectsResource {
 
   @PostConstruct
   void init() {
-    triggerRefreshAsync(true, "startup");
+    if (!refreshInProgress.compareAndSet(false, true)) {
+      return;
+    }
+    try {
+      refreshNow("startup");
+    } catch (Exception e) {
+      LOG.warn("Homedir project dashboard startup refresh failed; falling back to async refresh", e);
+      triggerRefreshAsync(true, "startup-fallback");
+    } finally {
+      refreshInProgress.set(false);
+    }
   }
 
   @PreDestroy
@@ -120,8 +130,19 @@ public class ProjectsResource {
   }
 
   private ProjectSnapshot currentSnapshot() {
+    ProjectSnapshot snapshot = snapshotCache.get();
+    if (isColdStartSnapshot(snapshot) && refreshInProgress.compareAndSet(false, true)) {
+      try {
+        refreshNow("on-demand-cold-start");
+      } catch (Exception e) {
+        LOG.warn("Homedir project dashboard cold-start refresh failed", e);
+      } finally {
+        refreshInProgress.set(false);
+      }
+      return snapshotCache.get();
+    }
     triggerRefreshAsync(false, "on-demand");
-    return snapshotCache.get();
+    return snapshot;
   }
 
   private void triggerRefreshAsync(boolean force, String reason) {
@@ -151,6 +172,17 @@ public class ProjectsResource {
       return true;
     }
     return now.isAfter(snapshot.lastAttemptAt().plus(effectiveRetryInterval()));
+  }
+
+  private boolean isColdStartSnapshot(ProjectSnapshot snapshot) {
+    if (snapshot == null) {
+      return true;
+    }
+    boolean noCoreData =
+        snapshot.releases().isEmpty()
+            && snapshot.repository().stars() == 0
+            && snapshot.repository().forks() == 0;
+    return snapshot.loadedAt() == null && noCoreData && !snapshot.activity().hasData();
   }
 
   private Duration effectiveCacheTtl() {
@@ -184,7 +216,7 @@ public class ProjectsResource {
     boolean coreDataReady = repository != null || !releases.isEmpty();
     boolean activityDataReady = resolvedActivity.hasData();
     boolean success = coreDataReady || activityDataReady;
-    Instant loadedAt = (success && activityDataReady) ? attemptedAt : previous.loadedAt();
+    Instant loadedAt = success ? attemptedAt : previous.loadedAt();
 
     ProjectSnapshot updated =
         new ProjectSnapshot(
