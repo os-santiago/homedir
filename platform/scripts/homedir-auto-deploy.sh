@@ -19,6 +19,7 @@ UPDATE_SCRIPT="${UPDATE_SCRIPT:-/usr/local/bin/homedir-update.sh}"
 AUTO_LOGFILE="${AUTO_DEPLOY_LOGFILE:-/var/log/homedir-auto-deploy.log}"
 AUTO_DEPLOY_TAG_LIMIT="${AUTO_DEPLOY_TAG_LIMIT:-100}"
 AUTO_DEPLOY_TIMEOUT_SECONDS="${AUTO_DEPLOY_TIMEOUT_SECONDS:-15}"
+CONTAINER_NAME="${CONTAINER_NAME:-homedir}"
 
 log() {
   echo "$(date -Iseconds): $*" >> "$AUTO_LOGFILE"
@@ -32,7 +33,7 @@ fi
 repo_namespace="${BASH_REMATCH[1]}"
 repo_name="${BASH_REMATCH[2]}"
 
-latest_tag="$(
+resolved_tag_info="$(
   python3 - "$repo_namespace" "$repo_name" "$AUTO_DEPLOY_TAG_LIMIT" "$AUTO_DEPLOY_TIMEOUT_SECONDS" <<'PY'
 import json
 import re
@@ -53,9 +54,11 @@ with urllib.request.urlopen(url, timeout=timeout) as resp:
 semver = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)$")
 best_key = None
 best_tag = ""
+best_digest = ""
 
 for tag in payload.get("tags", []):
-    name = (tag or {}).get("name", "").strip()
+    entry = tag or {}
+    name = entry.get("name", "").strip()
     if not name or name == "latest":
         continue
     match = semver.fullmatch(name)
@@ -65,10 +68,14 @@ for tag in payload.get("tags", []):
     if best_key is None or key > best_key:
         best_key = key
         best_tag = name[1:] if name.startswith("v") else name
+        best_digest = (entry.get("manifest_digest") or "").strip()
 
-print(best_tag, end="")
+print(f"{best_tag} {best_digest}".strip(), end="")
 PY
 )"
+
+latest_tag="$(awk '{print $1}' <<<"$resolved_tag_info")"
+latest_digest="$(awk '{print $2}' <<<"$resolved_tag_info")"
 
 if [[ -z "${latest_tag:-}" ]]; then
   log "no semver tag resolved for repo=${IMAGE_REPO}"
@@ -76,9 +83,20 @@ if [[ -z "${latest_tag:-}" ]]; then
 fi
 
 current_tag="$(
-  podman ps --filter "name=${CONTAINER_NAME:-homedir}" --format '{{.Image}}' \
+  podman ps --filter "name=${CONTAINER_NAME}" --format '{{.Image}}' \
     | sed -n '1s/.*://p'
 )"
+
+current_image_id="$(podman inspect -f '{{.Image}}' "${CONTAINER_NAME}" 2>/dev/null || true)"
+current_digest=""
+if [[ -n "${current_image_id:-}" ]]; then
+  current_digest="$(podman image inspect "$current_image_id" --format '{{.Digest}}' 2>/dev/null || true)"
+fi
+
+if [[ -n "${latest_digest:-}" && -n "${current_digest:-}" && "${latest_digest}" == "${current_digest}" ]]; then
+  log "up-to-date digest=${current_digest} current_tag=${current_tag:-none} latest_tag=${latest_tag}"
+  exit 0
+fi
 
 if [[ "${current_tag:-}" == "$latest_tag" ]]; then
   log "up-to-date current_tag=${current_tag}"

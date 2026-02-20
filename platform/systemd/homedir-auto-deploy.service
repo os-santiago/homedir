@@ -5,6 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+KillMode=process
 EnvironmentFile=-/etc/homedir.env
 ExecStart=/usr/local/bin/homedir-auto-deploy.sh
 StandardOutput=journal
