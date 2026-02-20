@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserProfileService;
@@ -266,6 +267,19 @@ public class ProfileResourceTest {
 
     UserProfile profile = userProfiles.find(currentUserEmail()).orElseThrow();
     assertNull(profile.getDiscord());
+  }
+
+  @Test
+  public void profileShowsClassMomentumAndNoManualClassForm() {
+    userProfiles.addXp(currentUserEmail(), 20, "Test scientist progress", QuestClass.SCIENTIST);
+
+    given()
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("Activity to class map"))
+        .body(not(containsString("/private/profile/update-class")));
   }
 
   private String currentUserEmail() {

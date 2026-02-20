@@ -3,6 +3,8 @@ package com.scanales.eventflow.public_;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.community.CommunitySubmission;
 import com.scanales.eventflow.community.CommunitySubmissionService;
+import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
@@ -31,6 +33,7 @@ public class CommunitySubmissionApiResource {
 
   @Inject CommunitySubmissionService submissionService;
   @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -53,6 +56,8 @@ public class CommunitySubmissionApiResource {
                   request != null ? request.source() : null,
                   request != null ? request.tags() : null));
       metrics.recordFunnelStep("community.submission.create");
+      metrics.recordFunnelStep("community_propose_submit");
+      gamificationService.award(userId.get(), GamificationActivity.COMMUNITY_SUBMISSION);
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -113,6 +118,13 @@ public class CommunitySubmissionApiResource {
       CommunitySubmission submission =
           submissionService.approve(id, currentUserId().orElse("admin"), request != null ? request.note() : null);
       metrics.recordFunnelStep("community.submission.approve");
+      metrics.recordFunnelStep("community_propose_approved");
+      if (submission != null && submission.userId() != null && !submission.userId().isBlank()) {
+        gamificationService.award(
+            submission.userId(),
+            GamificationActivity.COMMUNITY_SUBMISSION_APPROVED,
+            "approved:" + submission.id());
+      }
       return Response.ok(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();

@@ -1,9 +1,12 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
+import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -36,6 +39,9 @@ public class EventsDirectoryResource {
   SecurityIdentity identity;
 
   @Inject
+  GamificationService gamificationService;
+
+  @Inject
   com.scanales.eventflow.service.UserSessionService sessionService;
 
   @ConfigProperty(name = "homedir.ui.v2.enabled", defaultValue = "true")
@@ -59,6 +65,7 @@ public class EventsDirectoryResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/eventos", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, "listing"));
     var all = eventService.listEvents();
     LocalDate today = LocalDate.now();
     List<Event> upcoming = all.stream()
@@ -122,6 +129,21 @@ public class EventsDirectoryResource {
       return null;
     }
     return trimmed.substring(0, 1).toUpperCase();
+  }
+
+  private java.util.Optional<String> currentUserId() {
+    if (identity == null || identity.isAnonymous()) {
+      return java.util.Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return java.util.Optional.of(email.toLowerCase(Locale.ROOT));
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal != null && !principal.isBlank()) {
+      return java.util.Optional.of(principal.toLowerCase(Locale.ROOT));
+    }
+    return java.util.Optional.empty();
   }
 
   private List<String> topTracks(Event event) {

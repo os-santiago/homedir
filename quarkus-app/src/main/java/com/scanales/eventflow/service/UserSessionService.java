@@ -93,7 +93,7 @@ public class UserSessionService {
         java.util.List<String> activeQuests = java.util.Collections.emptyList();
 
         if (profile.isPresent()) {
-            questClass = profile.get().getQuestClass();
+            questClass = profile.get().getDominantQuestClass();
             if (profile.get().getActiveQuests() != null) {
                 activeQuests = profile.get().getActiveQuests();
             }

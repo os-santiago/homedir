@@ -3,7 +3,12 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.community.CommunityBoardGroup;
 import com.scanales.eventflow.community.CommunityBoardMemberView;
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.service.GamificationService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
+import com.scanales.eventflow.util.AdminUtils;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -19,11 +24,17 @@ import java.util.Optional;
 public class CommunityMemberResource {
   @Inject CommunityBoardService boardService;
   @Inject UserProfileService userProfileService;
+  @Inject UsageMetricsService metrics;
+  @Inject SecurityIdentity identity;
+  @Inject GamificationService gamificationService;
 
   @GET
   @Path("/{group}/{id}")
   @PermitAll
   public Response profileRedirect(@PathParam("group") String groupPath, @PathParam("id") String id) {
+    metrics.recordFunnelStep("board_profile_open");
+    currentUserId()
+        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.BOARD_PROFILE_OPEN, id));
     Optional<CommunityBoardGroup> groupOpt = CommunityBoardGroup.fromPath(groupPath);
     if (groupOpt.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND).build();
@@ -134,5 +145,20 @@ public class CommunityMemberResource {
 
   private static Response redirectRelative(String path) {
     return Response.status(Response.Status.SEE_OTHER).header("Location", path).build();
+  }
+
+  private Optional<String> currentUserId() {
+    if (identity == null || identity.isAnonymous()) {
+      return Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return Optional.of(email.toLowerCase());
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal != null && !principal.isBlank()) {
+      return Optional.of(principal.toLowerCase());
+    }
+    return Optional.empty();
   }
 }

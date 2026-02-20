@@ -2,9 +2,11 @@ package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.community.CommunityBoardGroup;
 import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.service.UserScheduleService;
@@ -35,6 +37,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.EnumMap;
 import java.util.Optional;
 
 @Path("/private/profile")
@@ -64,8 +67,9 @@ public class ProfileResource {
         boolean userAuthenticated,
         String userName,
         String userInitial,
-
-        java.util.List<ClassOption> classOptions,
+        java.util.List<ClassProgress> classProgress,
+        QuestClass dominantClass,
+        java.util.List<ActivityClassMapping> activityClassMap,
         QuestProfile questProfile,
         String currentLanguage,
         AppMessages i18n,
@@ -73,8 +77,20 @@ public class ProfileResource {
         String ogDescription);
   }
 
-  /** Display option for class selection. */
-  public record ClassOption(String value, String displayName, String emoji, String description, boolean checked) {
+  /** Display state for per-class progression. */
+  public record ClassProgress(
+      String value,
+      String displayName,
+      String emoji,
+      String description,
+      int xp,
+      int level,
+      int percentage,
+      boolean dominant) {
+  }
+
+  /** Activity category mapped to the class where XP is earned. */
+  public record ActivityClassMapping(String category, String examples, String className) {
   }
 
   /** Talks grouped by day within an event. */
@@ -101,6 +117,8 @@ public class ProfileResource {
   SecurityIdentity identity;
   @Inject
   QuestService questService;
+  @Inject
+  GamificationService gamificationService;
   @Inject
   AppMessages messages;
 
@@ -145,26 +163,18 @@ public class ProfileResource {
     var summary = userSchedule.getSummaryForUser(email);
     var userProfile = userProfiles.upsert(email, name, email);
 
-    com.scanales.eventflow.model.QuestClass currentQc = userProfile.getQuestClass();
-
-    java.util.List<ClassOption> classOptions = java.util.Arrays.stream(QuestClass.values())
-        .map(qc -> new ClassOption(
-            qc.name(),
-            qc.getDisplayName(),
-            qc.getEmoji(),
-            qc.getDescription(),
-            qc == currentQc))
-        .toList();
-
     // Fetch Gamification Profile
     QuestProfile questProfile = questService.getProfile(email);
+    java.util.List<ClassProgress> classProgress = buildClassProgress(userProfile, questProfile.currentXp);
+    QuestClass dominantClass = userProfile.getDominantQuestClass();
+    java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
 
     // Viral Feature: Social Tags
     String ogTitle = (name != null ? name : "Developer") + "'s Homedir";
-    String questClass = (userProfile != null && userProfile.getQuestClass() != null)
-        ? userProfile.getQuestClass().toString()
+    String questClass = (dominantClass != null)
+        ? dominantClass.getDisplayName()
         : "Novice";
-    int xp = (userProfile != null) ? userProfile.getCurrentXp() : 0;
+    int xp = questProfile.currentXp;
     String ogDescription = "Level " + (xp / 1000) + " " + questClass + ". Current XP: " + xp
         + ". Solving real engineering problems.";
 
@@ -190,7 +200,9 @@ public class ProfileResource {
         true,
         name,
         name.substring(0, 1).toUpperCase(),
-        classOptions,
+        classProgress,
+        dominantClass,
+        activityClassMap,
         questProfile,
         finalLang,
         messages,
@@ -236,7 +248,12 @@ public class ProfileResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response updateTalk(@PathParam("id") String id, @Valid UpdateRequest req) {
     String email = getEmail();
+    UserScheduleService.TalkDetails previous = userSchedule.getTalkDetailsForUser(email).get(id);
+    Integer previousRating = previous != null ? previous.rating : null;
     boolean ok = userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations, req.comment);
+    if (ok && req.rating != null && previousRating == null) {
+      gamificationService.award(email, GamificationActivity.SESSION_EVALUATION, id);
+    }
     String status = ok ? "updated" : "missing";
     return Response.ok(java.util.Map.of("status", status)).build();
   }
@@ -456,5 +473,58 @@ public class ProfileResource {
       groups.add(new EventGroup(event, dayGroups, speakers));
     }
     return groups;
+  }
+
+  private java.util.List<ClassProgress> buildClassProgress(
+      com.scanales.eventflow.model.UserProfile userProfile, int fallbackXp) {
+    EnumMap<QuestClass, Integer> xpMap = new EnumMap<>(QuestClass.class);
+    if (userProfile != null && userProfile.getClassXp() != null) {
+      xpMap.putAll(userProfile.getClassXp());
+    }
+    int total = xpMap.values().stream().mapToInt(v -> Math.max(0, v)).sum();
+    if (total <= 0 && userProfile != null && fallbackXp > 0) {
+      QuestClass legacyClass =
+          userProfile.getQuestClass() != null ? userProfile.getQuestClass() : QuestClass.ENGINEER;
+      xpMap.put(legacyClass, fallbackXp);
+      total = fallbackXp;
+    }
+    final int totalXp = total;
+    final QuestClass dominant = userProfile != null ? userProfile.getDominantQuestClass() : null;
+    return java.util.Arrays.stream(QuestClass.values())
+        .map(
+            qc -> {
+              int xp = Math.max(0, xpMap.getOrDefault(qc, 0));
+              int percentage = totalXp <= 0 ? 0 : (int) Math.round((xp * 100.0d) / totalXp);
+              return new ClassProgress(
+                  qc.name(),
+                  qc.getDisplayName(),
+                  qc.getEmoji(),
+                  qc.getDescription(),
+                  xp,
+                  questService.calculateLevel(xp),
+                  percentage,
+                  qc == dominant);
+            })
+        .toList();
+  }
+
+  private java.util.List<ActivityClassMapping> buildActivityClassMap() {
+    return java.util.List.of(
+        new ActivityClassMapping(
+            messages.profile_activity_category_curation(),
+            messages.profile_activity_examples_curation(),
+            QuestClass.SCIENTIST.getDisplayName()),
+        new ActivityClassMapping(
+            messages.profile_activity_category_events(),
+            messages.profile_activity_examples_events(),
+            QuestClass.WARRIOR.getDisplayName()),
+        new ActivityClassMapping(
+            messages.profile_activity_category_project(),
+            messages.profile_activity_examples_project(),
+            QuestClass.ENGINEER.getDisplayName()),
+        new ActivityClassMapping(
+            messages.profile_activity_category_connect(),
+            messages.profile_activity_examples_connect(),
+            QuestClass.MAGE.getDisplayName()));
   }
 }
