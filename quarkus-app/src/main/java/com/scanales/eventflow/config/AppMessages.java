@@ -232,6 +232,12 @@ public interface AppMessages {
     @Message("Social channels")
     String events_feature_social();
 
+    @Message("Top tracks")
+    String events_top_tracks_title();
+
+    @Message("Recommended sessions")
+    String events_recommended_sessions_title();
+
     @Message("Countdown")
     String events_countdown_title();
 

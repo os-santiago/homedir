@@ -1,6 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import io.quarkus.qute.CheckedTemplate;
@@ -15,9 +16,12 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 @Path("/eventos")
 public class EventsDirectoryResource {
@@ -40,7 +44,12 @@ public class EventsDirectoryResource {
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance eventos(
-        List<Event> upcoming, List<Event> past, LocalDate today, Map<String, String> stats);
+        List<Event> upcoming,
+        List<Event> past,
+        LocalDate today,
+        Map<String, String> stats,
+        Map<String, List<String>> topTracksByEvent,
+        Map<String, List<String>> recommendedSessionsByEvent);
   }
 
   @GET
@@ -76,7 +85,15 @@ public class EventsDirectoryResource {
     var stats = Map.of(
         "upcoming", Integer.toString(upcoming.size()),
         "past", Integer.toString(past.size()));
-    TemplateInstance template = Templates.eventos(upcoming, past, today, stats);
+    Map<String, List<String>> topTracksByEvent = new LinkedHashMap<>();
+    Map<String, List<String>> recommendedSessionsByEvent = new LinkedHashMap<>();
+    for (Event event : upcoming) {
+      topTracksByEvent.put(event.getId(), topTracks(event));
+      recommendedSessionsByEvent.put(event.getId(), recommendedSessions(event));
+    }
+    TemplateInstance template =
+        Templates.eventos(
+            upcoming, past, today, stats, Map.copyOf(topTracksByEvent), Map.copyOf(recommendedSessionsByEvent));
     if (uiV2Enabled) {
       return withLayoutData(template, "eventos");
     }
@@ -105,5 +122,76 @@ public class EventsDirectoryResource {
       return null;
     }
     return trimmed.substring(0, 1).toUpperCase();
+  }
+
+  private List<String> topTracks(Event event) {
+    List<Talk> talks = activeTalks(event);
+    if (talks.isEmpty()) {
+      return List.of();
+    }
+    Map<String, Integer> scoreByTrack = new LinkedHashMap<>();
+    for (Talk talk : talks) {
+      String track = inferTrack(talk);
+      scoreByTrack.merge(track, 1, Integer::sum);
+    }
+    return scoreByTrack.entrySet().stream()
+        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+        .map(Map.Entry::getKey)
+        .limit(3)
+        .toList();
+  }
+
+  private List<String> recommendedSessions(Event event) {
+    List<Talk> talks = activeTalks(event);
+    if (talks.isEmpty()) {
+      return List.of();
+    }
+    return talks.stream()
+        .sorted(
+            Comparator.comparingInt(Talk::getDay)
+                .thenComparing(Talk::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
+        .map(Talk::getName)
+        .filter(name -> name != null && !name.isBlank())
+        .limit(3)
+        .toList();
+  }
+
+  private List<Talk> activeTalks(Event event) {
+    if (event == null || event.getAgenda() == null || event.getAgenda().isEmpty()) {
+      return List.of();
+    }
+    List<Talk> talks = new ArrayList<>();
+    for (Talk talk : event.getAgenda()) {
+      if (talk == null || talk.isBreak()) {
+        continue;
+      }
+      talks.add(talk);
+    }
+    return talks;
+  }
+
+  private String inferTrack(Talk talk) {
+    if (talk == null) {
+      return "Delivery";
+    }
+    String text =
+        ((talk.getName() == null ? "" : talk.getName()) + " " + (talk.getDescription() == null ? "" : talk.getDescription()))
+            .toLowerCase(Locale.ROOT);
+    if (text.contains("platform") || text.contains("developer platform") || text.contains("devex")) {
+      return "Platform Engineering";
+    }
+    if (text.contains("security") || text.contains("devsecops") || text.contains("supply chain")) {
+      return "Security";
+    }
+    if (text.contains("sre") || text.contains("observability") || text.contains("incident")) {
+      return "SRE & Observability";
+    }
+    if (text.contains("kubernetes") || text.contains("cloud") || text.contains("cloud-native")) {
+      return "Cloud Native";
+    }
+    if (text.contains("ai") || text.contains("llm") || text.contains("agent")) {
+      return "AI for Engineering";
+    }
+    return "Delivery";
   }
 }
