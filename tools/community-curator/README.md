@@ -2,6 +2,10 @@
 
 This folder contains scripts to curate and deploy filesystem-based community content for `/comunidad`.
 
+## Related Docs
+- `docs/community-picks-playbook.md` (official process, criteria, schema, prompts).
+- `tools/community-curator/prompts/` (LLM prompt templates for assisted curation).
+
 ## Goal
 - Generate one YAML file per curated item.
 - Keep a local curation history to avoid duplicates in future runs.
@@ -60,6 +64,11 @@ curl "https://homedir.opensourcesantiago.io/api/community/content?view=new&limit
 - `generate_preview_mix.py`
   - creates a deterministic 10-item preview pack for production validation.
   - distribution: `video_story=3`, `podcast=3`, `article_blog=4`.
+
+## Prompt Templates (LLM-assisted)
+- `prompts/system-curator.md`
+- `prompts/user-curation-batch.md`
+- `prompts/user-normalize-item.md`
 
 ## Deploy Command Reference
 ```bash

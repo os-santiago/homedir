@@ -8,3 +8,4 @@ Select your language:
 ## Architecture
 
 - [Persistencia](es/architecture/README.md)
+- [Community Picks Playbook](community-picks-playbook.md)
