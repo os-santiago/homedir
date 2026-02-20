@@ -15,6 +15,7 @@
     const raw = String(root.dataset.initialMedia || "all").toLowerCase();
     return raw === "video_story" || raw === "podcast" || raw === "article_blog" ? raw : "all";
   })();
+  const ultraLiteMode = String(root.dataset.ultraLite || "false") === "true";
 
   const listEl = document.getElementById("community-list");
   const skeletonEl = document.getElementById("community-skeleton");
@@ -263,6 +264,11 @@
     if (!interestSectionEl || !interestListEl) {
       return;
     }
+    if (ultraLiteMode) {
+      interestSectionEl.classList.add("hidden");
+      interestListEl.textContent = "";
+      return;
+    }
     interestListEl.textContent = "";
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -305,6 +311,11 @@
 
   function renderTagRadar(items) {
     if (!radarSectionEl || !radarListEl) {
+      return;
+    }
+    if (ultraLiteMode) {
+      radarSectionEl.classList.add("hidden");
+      radarListEl.textContent = "";
       return;
     }
     radarListEl.textContent = "";
@@ -375,6 +386,11 @@
 
   function renderHotItems(items) {
     if (!hotSectionEl || !hotListEl) {
+      return;
+    }
+    if (ultraLiteMode) {
+      hotSectionEl.classList.add("hidden");
+      hotListEl.textContent = "";
       return;
     }
     hotListEl.textContent = "";
@@ -649,7 +665,8 @@
     const frame = document.createElement("div");
     frame.className = "community-media-frame";
 
-    if (thumbUrl) {
+    const loadThumbnail = Boolean(thumbUrl) && !ultraLiteMode;
+    if (loadThumbnail) {
       const image = document.createElement("img");
       image.className = "community-media-image";
       image.loading = "lazy";
@@ -1104,6 +1121,7 @@
     if (state.openPreviews.has(key)) {
       state.openPreviews.delete(key);
     } else {
+      state.openPreviews.clear();
       state.openPreviews.add(key);
     }
     renderItems();
