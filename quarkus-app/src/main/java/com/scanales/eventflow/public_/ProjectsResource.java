@@ -24,15 +24,20 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -45,6 +50,9 @@ public class ProjectsResource {
   private static final int[] ACTIVITY_WINDOWS_MONTHS = new int[] {3, 6, 12};
   private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(6);
   private static final Duration DEFAULT_RETRY_INTERVAL = Duration.ofMinutes(15);
+  private static final DateTimeFormatter ISO_INSTANT_UTC = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
+  private static final Pattern LAST_PAGE_LINK_PATTERN =
+      Pattern.compile("[?&]page=(\\d+)>;\\s*rel=\\\"last\\\"");
 
   @Inject UsageMetricsService metrics;
   @Inject SecurityIdentity identity;
@@ -330,15 +338,15 @@ public class ProjectsResource {
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() == 202) {
         LOG.infov("Homedir activity stats pending generation in GitHub cache");
-        return null;
+        return loadActivityFallbackFromCommitsApi();
       }
       if (response.statusCode() >= 400) {
         LOG.warnf("Homedir activity fetch failed status=%d body=%s", response.statusCode(), response.body());
-        return null;
+        return loadActivityFallbackFromCommitsApi();
       }
       JsonNode root = mapper.readTree(response.body());
       if (!root.isArray()) {
-        return null;
+        return loadActivityFallbackFromCommitsApi();
       }
 
       List<WeeklyActivity> weekly = new ArrayList<>();
@@ -369,7 +377,7 @@ public class ProjectsResource {
       }
 
       if (weekly.isEmpty() && totalCommits == 0L && totalAdditions == 0L && totalDeletions == 0L) {
-        return null;
+        return loadActivityFallbackFromCommitsApi();
       }
 
       Instant now = Instant.now();
@@ -393,6 +401,169 @@ public class ProjectsResource {
           yearlyMonthlyAverage);
     } catch (Exception e) {
       LOG.warn("Homedir activity fetch failed", e);
+      return loadActivityFallbackFromCommitsApi();
+    }
+  }
+
+  private ProjectActivity loadActivityFallbackFromCommitsApi() {
+    try {
+      Instant now = Instant.now();
+      long commitsTotal = countCommits(null);
+      long commits3 = countCommits(now.minus(90, ChronoUnit.DAYS));
+      long commits6 = countCommits(now.minus(180, ChronoUnit.DAYS));
+      long commits12 = countCommits(now.minus(365, ChronoUnit.DAYS));
+      CodeFrequencySummary codeSummary = loadCodeFrequencySummary(now);
+
+      if (commitsTotal <= 0L && commits12 <= 0L && (codeSummary == null || codeSummary.totalLinesChanged() <= 0L)) {
+        return null;
+      }
+
+      Map<Integer, WindowLines> linesByWindow =
+          codeSummary != null ? codeSummary.byMonths() : Map.of();
+      List<ProjectWindowActivity> windows = new ArrayList<>();
+      windows.add(windowWithFallback(3, commits3, linesByWindow.get(3)));
+      windows.add(windowWithFallback(6, commits6, linesByWindow.get(6)));
+      windows.add(windowWithFallback(12, commits12, linesByWindow.get(12)));
+
+      long additions = codeSummary != null ? codeSummary.totalAdditions() : 0L;
+      long deletions = codeSummary != null ? codeSummary.totalDeletions() : 0L;
+      long linesChanged = codeSummary != null ? codeSummary.totalLinesChanged() : 0L;
+      long netLines = codeSummary != null ? codeSummary.netLines() : 0L;
+      long yearlyMonthlyAverage = Math.max(0L, Math.round(commits12 / 12d));
+
+      LOG.infov(
+          "Homedir activity fallback used commitsTotal={0} commits12={1} linesChanged={2}",
+          commitsTotal,
+          commits12,
+          linesChanged);
+
+      return new ProjectActivity(
+          commitsTotal,
+          additions,
+          deletions,
+          linesChanged,
+          netLines,
+          List.copyOf(windows),
+          yearlyMonthlyAverage);
+    } catch (Exception e) {
+      LOG.warn("Homedir activity fallback fetch failed", e);
+      return null;
+    }
+  }
+
+  private ProjectWindowActivity windowWithFallback(int months, long commits, WindowLines lines) {
+    long linesChanged = lines != null ? lines.linesChanged() : 0L;
+    long netLines = lines != null ? lines.netLines() : 0L;
+    long avgCommitsPerMonth = Math.max(0L, Math.round(commits / (double) months));
+    return new ProjectWindowActivity(months, commits, linesChanged, Math.max(0L, netLines), avgCommitsPerMonth);
+  }
+
+  private long countCommits(Instant since) {
+    try {
+      StringBuilder url = new StringBuilder("https://api.github.com/repos/");
+      url.append(repoOwner).append("/").append(repoName).append("/commits?per_page=1");
+      if (since != null) {
+        url.append("&since=").append(ISO_INSTANT_UTC.format(since));
+      }
+      HttpRequest request = githubRequestBuilder(URI.create(url.toString())).GET().build();
+      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() >= 400) {
+        LOG.warnf("Homedir commit count fetch failed status=%d body=%s", response.statusCode(), response.body());
+        return 0L;
+      }
+      JsonNode root = mapper.readTree(response.body());
+      if (!root.isArray() || root.isEmpty()) {
+        return 0L;
+      }
+      String link = response.headers().firstValue("Link").orElse("");
+      Matcher matcher = LAST_PAGE_LINK_PATTERN.matcher(link);
+      if (matcher.find()) {
+        try {
+          return Long.parseLong(matcher.group(1));
+        } catch (NumberFormatException ignored) {
+          return 1L;
+        }
+      }
+      return root.size();
+    } catch (Exception e) {
+      LOG.warn("Homedir commit count fallback failed", e);
+      return 0L;
+    }
+  }
+
+  private CodeFrequencySummary loadCodeFrequencySummary(Instant now) {
+    try {
+      HttpRequest request =
+          githubRequestBuilder(
+                  URI.create(
+                      "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/code_frequency"))
+              .GET()
+              .build();
+      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() == 202) {
+        return null;
+      }
+      if (response.statusCode() >= 400) {
+        LOG.warnf(
+            "Homedir code frequency fetch failed status=%d body=%s", response.statusCode(), response.body());
+        return null;
+      }
+      JsonNode root = mapper.readTree(response.body());
+      if (!root.isArray()) {
+        return null;
+      }
+
+      long totalAdditions = 0L;
+      long totalDeletions = 0L;
+      long w3Add = 0L;
+      long w3Del = 0L;
+      long w6Add = 0L;
+      long w6Del = 0L;
+      long w12Add = 0L;
+      long w12Del = 0L;
+
+      Instant from3 = now.minus(90, ChronoUnit.DAYS);
+      Instant from6 = now.minus(180, ChronoUnit.DAYS);
+      Instant from12 = now.minus(365, ChronoUnit.DAYS);
+
+      for (JsonNode row : root) {
+        if (!row.isArray() || row.size() < 3) {
+          continue;
+        }
+        long epochWeek = row.get(0).asLong(0L);
+        if (epochWeek <= 0L) {
+          continue;
+        }
+        long additions = Math.max(0L, row.get(1).asLong(0L));
+        long deletions = Math.abs(row.get(2).asLong(0L));
+        Instant week = Instant.ofEpochSecond(epochWeek);
+
+        totalAdditions += additions;
+        totalDeletions += deletions;
+
+        if (!week.isBefore(from12)) {
+          w12Add += additions;
+          w12Del += deletions;
+        }
+        if (!week.isBefore(from6)) {
+          w6Add += additions;
+          w6Del += deletions;
+        }
+        if (!week.isBefore(from3)) {
+          w3Add += additions;
+          w3Del += deletions;
+        }
+      }
+
+      return new CodeFrequencySummary(
+          totalAdditions,
+          totalDeletions,
+          Map.of(
+              3, new WindowLines(w3Add + w3Del, Math.max(0L, w3Add - w3Del)),
+              6, new WindowLines(w6Add + w6Del, Math.max(0L, w6Add - w6Del)),
+              12, new WindowLines(w12Add + w12Del, Math.max(0L, w12Add - w12Del))));
+    } catch (Exception e) {
+      LOG.warn("Homedir code frequency fallback failed", e);
       return null;
     }
   }
@@ -743,6 +914,22 @@ public class ProjectsResource {
       long linesChanged,
       long netLines,
       long averageCommitsPerMonth) {
+  }
+
+  private record WindowLines(long linesChanged, long netLines) {
+  }
+
+  private record CodeFrequencySummary(
+      long totalAdditions,
+      long totalDeletions,
+      Map<Integer, WindowLines> byMonths) {
+    long totalLinesChanged() {
+      return totalAdditions + totalDeletions;
+    }
+
+    long netLines() {
+      return Math.max(0L, totalAdditions - totalDeletions);
+    }
   }
 
   private record WeeklyActivity(
