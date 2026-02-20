@@ -1827,19 +1827,19 @@ public interface AppMessages {
     @Message("Next")
     String now_box_status_next();
 
-    @Message("HomeDir - Community Platform")
+    @Message("HomeDir - OSSantiago Community Platform")
     String layout_default_title();
 
-    @Message("HomeDir - Community Platform")
+    @Message("HomeDir - OSSantiago Community Platform")
     String layout_default_og_title();
 
-    @Message("Join the Open Source Santiago community platform. Level up your skills, join quests, and showcase your profile.")
+    @Message("HomeDir: your community to build, learn, and share through events, projects, and curated content.")
     String layout_default_og_description();
 
     @Message("HomeDir")
     String layout_default_twitter_title();
 
-    @Message("Join the Open Source Santiago community platform.")
+    @Message("Build, learn, and share with the OSSantiago community.")
     String layout_default_twitter_description();
 
     @Message("Event not found - Homedir")
