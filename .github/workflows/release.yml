@@ -76,3 +76,63 @@ jobs:
             
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$TAG
+
+      - name: Start SSH agent
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY != '' && secrets.DEPLOY_SSH_PRIVATE_KEY || secrets.VPS_SSH_KEY }}
+
+      - name: Prepare SSH known_hosts
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_HOST || vars.VPS_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT != '' && vars.DEPLOY_SSH_PORT || vars.VPS_PORT }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          port="${DEPLOY_PORT:-22}"
+          if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$DEPLOY_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy to VPS via SSH
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_HOST || vars.VPS_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER != '' && vars.DEPLOY_SSH_USER || vars.VPS_USER }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT != '' && vars.DEPLOY_SSH_PORT || vars.VPS_PORT }}
+          RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
+          DEPLOY_COMMAND: ${{ vars.DEPLOY_SSH_COMMAND }}
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          cmd="${DEPLOY_COMMAND:-/usr/local/bin/homedir-update.sh}"
+          ssh -p "$port" "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
+
+      - name: Verify production healthcheck
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
+        env:
+          HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
+        run: |
+          set -euo pipefail
+          url="${HEALTHCHECK_URL:-https://homedir.opensourcesantiago.io/q/health}"
+          for attempt in $(seq 1 18); do
+            if curl -fsS "$url" >/dev/null; then
+              echo "healthcheck passed: $url"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "healthcheck failed: $url" >&2
+          exit 1
+
+      - name: Deploy fallback notice
+        if: ${{ !((vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '')) }}
+        run: |
+          echo "SSH deploy is not configured. Deployment will rely on homedir-auto-deploy.timer fallback on the VPS."

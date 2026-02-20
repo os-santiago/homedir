@@ -32,7 +32,7 @@
                 <span class="wrapped-stat-label">Total Experience</span>
                 <span class="wrapped-stat-value neon">{currentXp} XP</span>
                 <div class="wrapped-xp-channel">
-                    <div class="wrapped-xp-bar" style="width: {xpPercentage}%;"></div>
+                    <div class="wrapped-xp-bar js-wrapped-progress" data-progress="{xpPercentage}"></div>
                 </div>
                 <p class="wrapped-subtext">Top Contributor</p>
             </div>
@@ -48,7 +48,7 @@
                             <span>{cls.xp} XP</span>
                         </div>
                         <div class="wrapped-xp-channel wrapped-class-bar">
-                            <div class="wrapped-xp-bar" style="width: {cls.percent}%;"></div>
+                            <div class="wrapped-xp-bar js-wrapped-progress" data-progress="{cls.percent}"></div>
                         </div>
                         <p class="wrapped-subtext">{i18n.profile_class_xp_level(cls.xp, cls.level, cls.percent)}</p>
                     </div>
@@ -149,4 +149,16 @@
 
     </div>
 </div>
+<script>
+    (() => {
+        document.querySelectorAll('.js-wrapped-progress').forEach((bar) => {
+            const raw = Number.parseFloat(bar.dataset.progress || '0');
+            const progress = Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 0;
+            bar.style.width = progress + '%';
+            if (progress > 0 && progress < 2) {
+                bar.style.minWidth = '2px';
+            }
+        });
+    })();
+</script>
 {/body}

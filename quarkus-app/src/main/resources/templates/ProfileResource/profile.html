@@ -136,8 +136,8 @@
             <!-- Progress Bar -->
             <!-- Progress Bar -->
             <div class="progress-bar-container">
-                <div class="progress-bar-fill"
-                    style="--xp-percent: {(questProfile.currentXp / questProfile.nextLevelXp) * 100}%">
+                <div class="progress-bar-fill js-progress-fill"
+                    data-progress="{(questProfile.currentXp / questProfile.nextLevelXp) * 100}">
                 </div>
             </div>
 
@@ -218,7 +218,7 @@
                     <p class="class-desc">{cls.description}</p>
                     <p class="class-xp-meta">{i18n.profile_class_xp_level(cls.xp, cls.level, cls.percentage)}</p>
                     <div class="progress-bar-container class-progress-bar">
-                        <div class="progress-bar-fill" style="--xp-percent: {cls.percentage}%"></div>
+                        <div class="progress-bar-fill js-progress-fill" data-progress="{cls.percentage}"></div>
                     </div>
                 </article>
                 {/for}
@@ -406,6 +406,15 @@
         }
     }
     (function () {
+        document.querySelectorAll('.js-progress-fill').forEach((bar) => {
+            const raw = Number.parseFloat(bar.dataset.progress || '0');
+            const progress = Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 0;
+            bar.style.setProperty('--xp-percent', progress + '%');
+            if (progress > 0 && progress < 2) {
+                bar.style.minWidth = '2px';
+            }
+        });
+
         const updateTalk = async (id, data) => {
             try {
                 const res = await fetch('/private/profile/update/' + id, {

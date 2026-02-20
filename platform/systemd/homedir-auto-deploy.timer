@@ -2,8 +2,10 @@
 Description=Periodic fallback for HomeDir auto-deploy from Quay
 
 [Timer]
-OnBootSec=3min
-OnUnitActiveSec=5min
+OnBootSec=1min
+OnUnitActiveSec=1min
+AccuracySec=10s
+RandomizedDelaySec=15s
 Persistent=true
 
 [Install]
