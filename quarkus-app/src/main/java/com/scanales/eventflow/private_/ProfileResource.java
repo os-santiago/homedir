@@ -162,6 +162,7 @@ public class ProfileResource {
     var info = userSchedule.getTalkDetailsForUser(email);
     var summary = userSchedule.getSummaryForUser(email);
     var userProfile = userProfiles.upsert(email, name, email);
+    gamificationService.award(email, GamificationActivity.PROFILE_VIEW);
 
     // Fetch Gamification Profile
     QuestProfile questProfile = questService.getProfile(email);

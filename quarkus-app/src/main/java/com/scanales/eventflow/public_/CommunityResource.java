@@ -2,6 +2,8 @@ package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.community.CommunityContentMedia;
+import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
@@ -16,6 +18,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Locale;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -26,6 +29,7 @@ public class CommunityResource {
   @Inject SecurityIdentity identity;
   @Inject CommunityBoardService boardService;
   @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
 
   @CheckedTemplate
   static class Templates {
@@ -81,6 +85,15 @@ public class CommunityResource {
     String activeSubmenu =
         forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "picks";
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
+    currentUserId().ifPresent(
+        userId -> {
+          gamificationService.award(userId, GamificationActivity.COMMUNITY_MAIN_VIEW);
+          if ("picks".equals(activeSubmenu)) {
+            gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
+          } else if ("propose".equals(activeSubmenu) || "moderation".equals(activeSubmenu)) {
+            gamificationService.award(userId, GamificationActivity.COMMUNITY_PROPOSE_VIEW);
+          }
+        });
     var summary = boardService.summary();
     TemplateInstance template =
         Templates.community(
@@ -146,6 +159,21 @@ public class CommunityResource {
       name = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
     }
     return Optional.ofNullable(name);
+  }
+
+  private Optional<String> currentUserId() {
+    if (!isAuthenticated()) {
+      return Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return Optional.of(email.toLowerCase(Locale.ROOT));
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal == null || principal.isBlank()) {
+      return Optional.empty();
+    }
+    return Optional.of(principal.toLowerCase(Locale.ROOT));
   }
 
   private boolean isAuthenticated() {

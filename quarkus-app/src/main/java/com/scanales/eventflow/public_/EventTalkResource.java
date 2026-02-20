@@ -1,9 +1,12 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserScheduleService;
+import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -13,6 +16,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.Locale;
+import java.util.Optional;
 import org.jboss.logging.Logger;
 
 @Path("/event")
@@ -24,6 +29,7 @@ public class EventTalkResource {
   @Inject SecurityIdentity identity;
   @Inject UserScheduleService userSchedule;
   @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
 
   private String canonicalize(String rawId) {
     int talkIdx = rawId.indexOf("-talk-");
@@ -54,6 +60,11 @@ public class EventTalkResource {
         LOG.warnf("Talk %s not found", talkId);
         return Response.status(Response.Status.NOT_FOUND).build();
       }
+      currentUserId()
+          .ifPresent(
+              userId ->
+                  gamificationService.award(
+                      userId, GamificationActivity.TALK_VIEW, eventId + ":" + canonicalTalkId));
       var event = eventService.getEvent(eventId);
       var occurrences = eventService.findTalkOccurrences(eventId, canonicalTalkId);
       metrics.recordTalkView(canonicalTalkId, sessionId, ua);
@@ -78,5 +89,20 @@ public class EventTalkResource {
       LOG.errorf(e, "Error rendering talk %s", talkId);
       return Response.serverError().build();
     }
+  }
+
+  private Optional<String> currentUserId() {
+    if (identity == null || identity.isAnonymous()) {
+      return Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return Optional.of(email.toLowerCase(Locale.ROOT));
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal == null || principal.isBlank()) {
+      return Optional.empty();
+    }
+    return Optional.of(principal.toLowerCase(Locale.ROOT));
   }
 }
