@@ -46,6 +46,7 @@ public class CommunityContentApiResourceTest {
         summary: "Resumen de ejemplo para Quarkus."
         source: "example.org"
         created_at: "2026-02-07T10:00:00Z"
+        media_type: "article_blog"
         tags: ["java","quarkus"]
         """);
     Files.writeString(
@@ -57,6 +58,7 @@ public class CommunityContentApiResourceTest {
         summary: "Resumen devops."
         source: "example.org"
         created_at: "2026-02-06T10:00:00Z"
+        media_type: "podcast"
         """);
     Files.writeString(
         dir.resolve("20260205-member-item-3.yml"),
@@ -67,6 +69,7 @@ public class CommunityContentApiResourceTest {
         summary: "Resumen desde miembros."
         source: "Community member"
         created_at: "2026-02-05T10:00:00Z"
+        media_type: "video_story"
         tags: ["community"]
         """);
     contentService.refreshNowForTests();
@@ -83,6 +86,7 @@ public class CommunityContentApiResourceTest {
         .statusCode(200)
         .body("view", equalTo("new"))
         .body("filter", equalTo("all"))
+        .body("media", equalTo("all"))
         .body("total", greaterThanOrEqualTo(3))
         .body("items[0].id", equalTo("java-item-1"));
   }
@@ -123,6 +127,20 @@ public class CommunityContentApiResourceTest {
         .body("filter", equalTo("internet"))
         .body("total", equalTo(2))
         .body("items[0].origin", equalTo("internet"));
+  }
+
+  @Test
+  void mediaFilterReturnsOnlyVideoStory() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/content?view=new&media=video_story&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("media", equalTo("video_story"))
+        .body("total", equalTo(1))
+        .body("items[0].id", equalTo("submission-member-item-3"))
+        .body("items[0].media_type", equalTo("video_story"));
   }
 
   @Test

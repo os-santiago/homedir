@@ -72,6 +72,22 @@ TRUSTED_TRENDING_DOMAINS = {
     "arxiv.org",
 }
 
+MEDIA_VIDEO_HOST_HINTS = {
+    "youtube.com",
+    "youtu.be",
+    "vimeo.com",
+    "tiktok.com",
+    "x.com",
+    "twitter.com",
+}
+MEDIA_PODCAST_HOST_HINTS = {
+    "spotify.com",
+    "open.spotify.com",
+    "soundcloud.com",
+    "podcasts.apple.com",
+    "anchor.fm",
+}
+
 TOPIC_TERMS = {
     "ai": [
         "ai",
@@ -433,6 +449,29 @@ def score_candidate(candidate: Dict[str, Any], tag_bias: Dict[str, float]) -> Tu
     return total, tags
 
 
+def infer_media_type(candidate: Dict[str, Any], inferred_tags: List[str]) -> str:
+    url = normalize_url(candidate.get("url") or "") or ""
+    host = source_from_url(url)
+    text = " ".join(
+        [
+            candidate.get("title") or "",
+            candidate.get("summary") or "",
+            " ".join(candidate.get("tags_seed") or []),
+            " ".join(inferred_tags or []),
+        ]
+    ).lower()
+
+    if any(hint in host for hint in MEDIA_VIDEO_HOST_HINTS):
+        return "video_story"
+    if any(hint in host for hint in MEDIA_PODCAST_HOST_HINTS):
+        return "podcast"
+    if "video" in text or "livestream" in text or "shorts" in text:
+        return "video_story"
+    if "podcast" in text or "episode" in text or "audio" in text:
+        return "podcast"
+    return "article_blog"
+
+
 def build_item(candidate: Dict[str, Any], inferred_tags: List[str], created_at: dt.datetime) -> Dict[str, Any]:
     url = candidate["url"]
     item_id = hashlib.sha1(url.encode("utf-8")).hexdigest()[:12]
@@ -454,6 +493,7 @@ def build_item(candidate: Dict[str, Any], inferred_tags: List[str], created_at: 
     tags = tags[:6]
 
     published = parse_datetime(candidate.get("published_at") or "")
+    media_type = infer_media_type(candidate, inferred_tags)
 
     return {
         "id": item_id,
@@ -463,6 +503,7 @@ def build_item(candidate: Dict[str, Any], inferred_tags: List[str], created_at: 
         "source": candidate.get("source") or source_from_url(url),
         "published_at": to_iso(published) if published else None,
         "created_at": to_iso(created_at),
+        "media_type": media_type,
         "tags": tags,
         "author": None,
     }
@@ -479,6 +520,7 @@ def write_yaml_item(path: pathlib.Path, item: Dict[str, Any]) -> None:
     if item.get("published_at"):
         lines.append(f"published_at: {yaml_quote(item['published_at'])}")
     lines.append(f"created_at: {yaml_quote(item['created_at'])}")
+    lines.append(f"media_type: {yaml_quote(item['media_type'])}")
     tags = item.get("tags") or []
     if tags:
         lines.append("tags:")
@@ -607,6 +649,7 @@ def main() -> int:
                 "title": item["title"],
                 "url": item["url"],
                 "source": item["source"],
+                "media_type": item["media_type"],
                 "score": round(float(candidate["score"]), 3),
                 "tags": item["tags"],
                 "file": filename,

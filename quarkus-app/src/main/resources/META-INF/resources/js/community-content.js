@@ -11,6 +11,10 @@
     const raw = String(root.dataset.initialFilter || "all").toLowerCase();
     return raw === "internet" || raw === "members" ? raw : "all";
   })();
+  const initialMedia = (() => {
+    const raw = String(root.dataset.initialMedia || "all").toLowerCase();
+    return raw === "video_story" || raw === "podcast" || raw === "article_blog" ? raw : "all";
+  })();
 
   const listEl = document.getElementById("community-list");
   const skeletonEl = document.getElementById("community-skeleton");
@@ -30,6 +34,7 @@
 
   const tabButtons = Array.from(document.querySelectorAll(".community-tab"));
   const filterButtons = Array.from(document.querySelectorAll(".community-filter"));
+  const mediaButtons = Array.from(document.querySelectorAll(".community-media"));
   const topicButtons = Array.from(document.querySelectorAll(".community-topic-btn"));
   const cacheTtlMs = Math.max(5000, Number.parseInt(root.dataset.cacheTtlMs || "60000", 10) || 60000);
   const responseCache = new Map();
@@ -37,6 +42,7 @@
   const state = {
     view: initialView,
     filter: initialFilter,
+    media: initialMedia,
     topic: sessionStorage.getItem("community.topic") || "all",
     tag: sessionStorage.getItem("community.tag") || "",
     expandedSummaries: new Set(),
@@ -61,10 +67,14 @@
     allTags: root.dataset.i18nAllTags || "All tags",
     filterSourceInternet: root.dataset.i18nFilterSourceInternet || "Source: Internet",
     filterSourceMembers: root.dataset.i18nFilterSourceMembers || "Source: Members",
+    filterMediaPrefix: root.dataset.i18nFilterMediaPrefix || "Format",
     filterTopicPrefix: root.dataset.i18nFilterTopicPrefix || "Topic",
     filterTagPrefix: root.dataset.i18nFilterTagPrefix || "Tag",
     originInternet: root.dataset.i18nOriginInternet || "Internet",
     originMembers: root.dataset.i18nOriginMembers || "Members",
+    mediaVideoStory: root.dataset.i18nMediaVideoStory || "Video Story",
+    mediaPodcast: root.dataset.i18nMediaPodcast || "Podcast",
+    mediaArticleBlog: root.dataset.i18nMediaArticleBlog || "Article/Blog",
     readUnit: root.dataset.i18nReadUnit || "min",
     badgeNew: root.dataset.i18nBadgeNew || "New",
     topPrefix: root.dataset.i18nTopPrefix || "Top",
@@ -107,8 +117,8 @@
     loadMoreBtn.disabled = state.loading;
   }
 
-  function cacheKey(view, filter, offset) {
-    return `${view}|${filter}|${pageSize}|${offset}`;
+  function cacheKey(view, filter, media, offset) {
+    return `${view}|${filter}|${media}|${pageSize}|${offset}`;
   }
 
   function readCache(key) {
@@ -141,6 +151,12 @@
   function updateFilterState() {
     filterButtons.forEach((btn) => {
       btn.classList.toggle("community-filter-active", btn.dataset.filter === state.filter);
+    });
+  }
+
+  function updateMediaState() {
+    mediaButtons.forEach((btn) => {
+      btn.classList.toggle("community-media-active", btn.dataset.media === state.media);
     });
   }
 
@@ -403,6 +419,9 @@
     } else if (state.filter === "members") {
       chips.push(i18n.filterSourceMembers);
     }
+    if (state.media && state.media !== "all") {
+      chips.push(`${i18n.filterMediaPrefix}: ${labelForMedia(state.media)}`);
+    }
     if (state.topic && state.topic !== "all") {
       chips.push(`${i18n.filterTopicPrefix}: ${state.topic}`);
     }
@@ -439,6 +458,25 @@
     btn.dataset.vote = voteKey;
     btn.textContent = `${label} (${count})`;
     return btn;
+  }
+
+  function normalizedMediaType(value) {
+    const raw = String(value || "").toLowerCase().replace(/[-\s]/g, "_");
+    if (raw === "video_story" || raw === "podcast" || raw === "article_blog") {
+      return raw;
+    }
+    return "article_blog";
+  }
+
+  function labelForMedia(mediaType) {
+    const normalized = normalizedMediaType(mediaType);
+    if (normalized === "video_story") {
+      return i18n.mediaVideoStory;
+    }
+    if (normalized === "podcast") {
+      return i18n.mediaPodcast;
+    }
+    return i18n.mediaArticleBlog;
   }
 
   function findCardByItemId(itemId) {
@@ -561,6 +599,10 @@
       const topicHint = document.createElement("span");
       topicHint.className = "community-topic-hint";
       topicHint.innerHTML = `<span class="community-topic-dot ${topic}"></span>${topic.toUpperCase()}`;
+      const mediaHint = document.createElement("span");
+      mediaHint.className = "community-media-hint";
+      mediaHint.textContent = labelForMedia(item.media_type);
+      topicHint.appendChild(mediaHint);
       card.appendChild(topicHint);
 
       const summaryText = escapeText(item.summary);
@@ -661,7 +703,7 @@
     state.loading = true;
     hideFeedback();
     const requestOffset = reset ? 0 : state.offset;
-    const key = cacheKey(state.view, state.filter, requestOffset);
+    const key = cacheKey(state.view, state.filter, state.media, requestOffset);
     showSkeleton(state.items.length === 0 && requestOffset === 0);
     updateLoadMoreState();
 
@@ -679,7 +721,7 @@
 
     try {
       const response = await fetch(
-        `/api/community/content?view=${encodeURIComponent(state.view)}&filter=${encodeURIComponent(state.filter)}&limit=${encodeURIComponent(pageSize)}&offset=${encodeURIComponent(requestOffset)}`,
+        `/api/community/content?view=${encodeURIComponent(state.view)}&filter=${encodeURIComponent(state.filter)}&media=${encodeURIComponent(state.media)}&limit=${encodeURIComponent(pageSize)}&offset=${encodeURIComponent(requestOffset)}`,
         { headers: { Accept: "application/json" } }
       );
       if (!response.ok) {
@@ -784,17 +826,19 @@
   }
 
   function clearAllFilters() {
-    const shouldReload = state.filter !== "all";
+    const shouldReload = state.filter !== "all" || state.media !== "all";
     const changed = shouldReload || state.topic !== "all" || Boolean(state.tag);
     if (!changed) {
       return;
     }
     state.filter = "all";
+    state.media = "all";
     state.topic = "all";
     state.tag = "";
     sessionStorage.setItem("community.topic", "all");
     sessionStorage.removeItem("community.tag");
     updateFilterState();
+    updateMediaState();
     updateTopicState();
     if (shouldReload) {
       load(true);
@@ -837,6 +881,21 @@
       }
       state.filter = nextFilter;
       updateFilterState();
+      load(true);
+    });
+  });
+
+  mediaButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const nextMedia = String(btn.dataset.media || "all").toLowerCase();
+      if (nextMedia === state.media) {
+        return;
+      }
+      if (nextMedia !== "all" && nextMedia !== "video_story" && nextMedia !== "podcast" && nextMedia !== "article_blog") {
+        return;
+      }
+      state.media = nextMedia;
+      updateMediaState();
       load(true);
     });
   });
@@ -899,6 +958,7 @@
 
   updateViewState();
   updateFilterState();
+  updateMediaState();
   updateTopicState();
   load(true);
 })();

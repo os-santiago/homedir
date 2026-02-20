@@ -1,6 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.community.CommunityContentMedia;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
@@ -38,9 +39,10 @@ public class CommunityResource {
   public TemplateInstance view(
       @QueryParam("view") String viewParam,
       @QueryParam("filter") String filterParam,
+      @QueryParam("media") String mediaParam,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render(viewParam, filterParam, null, headers, context);
+    return render(viewParam, filterParam, mediaParam, null, headers, context);
   }
 
   @GET
@@ -50,7 +52,8 @@ public class CommunityResource {
   public TemplateInstance moderation(
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", "moderation", headers, context);
+    return render(
+        "featured", "all", CommunityContentMedia.ALL, "moderation", headers, context);
   }
 
   @GET
@@ -60,12 +63,13 @@ public class CommunityResource {
   public TemplateInstance propose(
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", "propose", headers, context);
+    return render("featured", "all", CommunityContentMedia.ALL, "propose", headers, context);
   }
 
   private TemplateInstance render(
       String viewParam,
       String filterParam,
+      String mediaParam,
       String forcedSubmenu,
       jakarta.ws.rs.core.HttpHeaders headers,
       io.vertx.ext.web.RoutingContext context) {
@@ -73,6 +77,7 @@ public class CommunityResource {
     boolean isAdmin = AdminUtils.isAdmin(identity);
     String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
+    String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
     String activeSubmenu =
         forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "picks";
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
@@ -89,6 +94,7 @@ public class CommunityResource {
         .data("mainClass", "community-ultra-lite")
         .data("activeCommunitySubmenu", activeSubmenu)
         .data("initialFilter", initialFilter)
+        .data("initialMedia", initialMedia)
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
         .data("userName", currentUserName().orElse(null))

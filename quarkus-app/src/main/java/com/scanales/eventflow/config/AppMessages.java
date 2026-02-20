@@ -939,6 +939,18 @@ public interface AppMessages {
     @Message("Members")
     String community_filter_members();
 
+    @Message("All formats")
+    String community_media_all();
+
+    @Message("Video Story")
+    String community_media_video_story();
+
+    @Message("Podcast")
+    String community_media_podcast();
+
+    @Message("Article/Blog")
+    String community_media_article_blog();
+
     @Message("All")
     String community_topic_all();
 
@@ -1098,6 +1110,9 @@ public interface AppMessages {
     @Message("Source: Members")
     String community_js_filter_source_members();
 
+    @Message("Format")
+    String community_js_filter_media_prefix();
+
     @Message("Topic")
     String community_js_filter_topic_prefix();
 
@@ -1109,6 +1124,15 @@ public interface AppMessages {
 
     @Message("Members")
     String community_js_origin_members();
+
+    @Message("Video Story")
+    String community_js_media_video_story();
+
+    @Message("Podcast")
+    String community_js_media_podcast();
+
+    @Message("Article/Blog")
+    String community_js_media_article_blog();
 
     @Message("min")
     String community_js_read_unit();
