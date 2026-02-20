@@ -5,6 +5,9 @@ This module powers `/comunidad` with curated content loaded from files and commu
 ## Overview
 - Content source: filesystem (not DB), generated externally by a curator CLI.
 - Votes: persisted in an embedded DB table (`content_vote`) with upsert semantics.
+- Visual cards:
+  - `video_story` / `podcast` support inline preview widgets (lazy-loaded, on click).
+  - `article_blog` supports cover images through optional `thumbnail_url`.
 - Views:
   - `featured`: ranked by votes + optional time decay.
   - `new`: sorted by `created_at` descending.
@@ -47,6 +50,7 @@ Optional fields:
 - `tags` (array)
 - `author`
 - `media_type` (`video_story|podcast|article_blog`, defaults to `article_blog`)
+- `thumbnail_url` (`http/https`, optional cover image used by Community cards)
 
 Invalid/incomplete files are skipped and logged.
 

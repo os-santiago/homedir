@@ -46,7 +46,11 @@
         data-i18n-media-podcast="{i18n.community_js_media_podcast}"
         data-i18n-media-article-blog="{i18n.community_js_media_article_blog}"
         data-i18n-summary-show="{i18n.community_js_summary_show}"
-        data-i18n-summary-hide="{i18n.community_js_summary_hide}">
+        data-i18n-summary-hide="{i18n.community_js_summary_hide}"
+        data-i18n-preview-play="{i18n.community_js_preview_play}"
+        data-i18n-preview-hide="{i18n.community_js_preview_hide}"
+        data-i18n-open-source="{i18n.community_js_open_source}"
+        data-i18n-preview-unavailable="{i18n.community_js_preview_unavailable}">
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
 
         <section class="community-pulse" aria-label="Community pulse">
@@ -960,6 +964,95 @@
     letter-spacing: 0.25px;
     margin-left: 0.35rem;
     opacity: 0.92;
+  }
+
+  .community-media-widget {
+    margin: 0 0 0.7rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .community-media-frame {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.24);
+    min-height: 120px;
+  }
+
+  .community-media-image {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .community-media-placeholder {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    opacity: 0.84;
+    letter-spacing: 0.22px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  }
+
+  .community-media-placeholder .material-symbols-outlined {
+    font-size: 1.1rem;
+  }
+
+  .community-media-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .community-preview-toggle,
+  .community-open-source-link {
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.74rem;
+    text-decoration: none;
+  }
+
+  .community-preview-toggle {
+    cursor: pointer;
+  }
+
+  .community-preview-toggle:hover,
+  .community-open-source-link:hover {
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+
+  .community-preview-unavailable {
+    font-size: 0.72rem;
+    opacity: 0.75;
+  }
+
+  .community-preview-panel {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.26);
+  }
+
+  .community-preview-panel iframe {
+    width: 100%;
+    min-height: 230px;
+    border: 0;
+    display: block;
+  }
+
+  .community-preview-panel audio {
+    width: 100%;
+    display: block;
+    padding: 0.4rem;
   }
 
   .community-topic-dot {

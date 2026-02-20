@@ -1158,6 +1158,18 @@ public interface AppMessages {
     @Message("Show less")
     String community_js_summary_hide();
 
+    @Message("Play preview")
+    String community_js_preview_play();
+
+    @Message("Hide preview")
+    String community_js_preview_hide();
+
+    @Message("Open source")
+    String community_js_open_source();
+
+    @Message("No inline preview available for this source.")
+    String community_js_preview_unavailable();
+
     @Message("Pending")
     String community_submissions_status_pending();
 

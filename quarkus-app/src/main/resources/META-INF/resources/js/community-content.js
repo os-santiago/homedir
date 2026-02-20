@@ -46,6 +46,7 @@
     topic: sessionStorage.getItem("community.topic") || "all",
     tag: sessionStorage.getItem("community.tag") || "",
     expandedSummaries: new Set(),
+    openPreviews: new Set(),
     items: [],
     offset: 0,
     total: 0,
@@ -79,7 +80,11 @@
     badgeNew: root.dataset.i18nBadgeNew || "New",
     topPrefix: root.dataset.i18nTopPrefix || "Top",
     summaryShow: root.dataset.i18nSummaryShow || "Show summary",
-    summaryHide: root.dataset.i18nSummaryHide || "Show less"
+    summaryHide: root.dataset.i18nSummaryHide || "Show less",
+    previewPlay: root.dataset.i18nPreviewPlay || "Play preview",
+    previewHide: root.dataset.i18nPreviewHide || "Hide preview",
+    openSource: root.dataset.i18nOpenSource || "Open source",
+    previewUnavailable: root.dataset.i18nPreviewUnavailable || "No inline preview available for this source."
   };
   const uiLocale = document.documentElement.lang || navigator.language || undefined;
 
@@ -479,6 +484,238 @@
     return i18n.mediaArticleBlog;
   }
 
+  function toSafeUrl(value) {
+    if (!value) {
+      return null;
+    }
+    try {
+      const parsed = new URL(String(value));
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return null;
+      }
+      return parsed.toString();
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function mediaIcon(mediaType) {
+    const normalized = normalizedMediaType(mediaType);
+    if (normalized === "video_story") {
+      return "play_circle";
+    }
+    if (normalized === "podcast") {
+      return "headphones";
+    }
+    return "article";
+  }
+
+  function youtubeId(url) {
+    const safe = toSafeUrl(url);
+    if (!safe) return null;
+    try {
+      const parsed = new URL(safe);
+      if (parsed.hostname.includes("youtu.be")) {
+        const id = parsed.pathname.replace("/", "").trim();
+        return id || null;
+      }
+      if (parsed.hostname.includes("youtube.com")) {
+        const v = parsed.searchParams.get("v");
+        if (v) return v;
+        const parts = parsed.pathname.split("/").filter(Boolean);
+        const embedIndex = parts.findIndex((entry) => entry === "embed" || entry === "shorts");
+        if (embedIndex >= 0 && parts[embedIndex + 1]) {
+          return parts[embedIndex + 1];
+        }
+      }
+    } catch (_error) {
+      return null;
+    }
+    return null;
+  }
+
+  function vimeoId(url) {
+    const safe = toSafeUrl(url);
+    if (!safe) return null;
+    try {
+      const parsed = new URL(safe);
+      if (!parsed.hostname.includes("vimeo.com")) {
+        return null;
+      }
+      const parts = parsed.pathname.split("/").filter(Boolean);
+      const last = parts[parts.length - 1] || "";
+      return /^\d+$/.test(last) ? last : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function spotifyParts(url) {
+    const safe = toSafeUrl(url);
+    if (!safe) return null;
+    try {
+      const parsed = new URL(safe);
+      if (!parsed.hostname.includes("spotify.com")) {
+        return null;
+      }
+      const parts = parsed.pathname.split("/").filter(Boolean);
+      if (parts.length < 2) {
+        return null;
+      }
+      const type = parts[0];
+      const id = parts[1];
+      if (!["episode", "show", "track"].includes(type) || !id) {
+        return null;
+      }
+      return { type, id };
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function isDirectAudio(url) {
+    const safe = toSafeUrl(url);
+    if (!safe) return false;
+    return /\.(mp3|m4a|ogg|wav)(\?.*)?$/i.test(safe);
+  }
+
+  function previewDescriptor(item) {
+    const mediaType = normalizedMediaType(item && item.media_type);
+    const sourceUrl = toSafeUrl(item && item.url);
+    if (!sourceUrl) {
+      return null;
+    }
+    if (mediaType === "video_story") {
+      const yt = youtubeId(sourceUrl);
+      if (yt) {
+        return {
+          kind: "iframe",
+          src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(yt)}?rel=0`,
+          title: escapeText(item.title || "YouTube video")
+        };
+      }
+      const vimeo = vimeoId(sourceUrl);
+      if (vimeo) {
+        return {
+          kind: "iframe",
+          src: `https://player.vimeo.com/video/${encodeURIComponent(vimeo)}`,
+          title: escapeText(item.title || "Vimeo video")
+        };
+      }
+    }
+    if (mediaType === "podcast") {
+      const spotify = spotifyParts(sourceUrl);
+      if (spotify) {
+        return {
+          kind: "iframe",
+          src: `https://open.spotify.com/embed/${spotify.type}/${spotify.id}`,
+          title: escapeText(item.title || "Spotify podcast")
+        };
+      }
+      if (isDirectAudio(sourceUrl)) {
+        return {
+          kind: "audio",
+          src: sourceUrl,
+          title: escapeText(item.title || "Audio preview")
+        };
+      }
+    }
+    return null;
+  }
+
+  function thumbnailUrlForItem(item) {
+    const explicit = toSafeUrl(item && item.thumbnail_url);
+    if (explicit) {
+      return explicit;
+    }
+    const sourceUrl = toSafeUrl(item && item.url);
+    const yt = sourceUrl ? youtubeId(sourceUrl) : null;
+    if (yt) {
+      return `https://i.ytimg.com/vi/${encodeURIComponent(yt)}/hqdefault.jpg`;
+    }
+    return null;
+  }
+
+  function createMediaWidget(item) {
+    const widget = document.createElement("section");
+    widget.className = "community-media-widget";
+
+    const mediaType = normalizedMediaType(item && item.media_type);
+    const thumbUrl = thumbnailUrlForItem(item);
+    const descriptor = previewDescriptor(item);
+    const canPreview = Boolean(descriptor);
+    const isOpen = state.openPreviews.has(String(item.id || ""));
+
+    const frame = document.createElement("div");
+    frame.className = "community-media-frame";
+
+    if (thumbUrl) {
+      const image = document.createElement("img");
+      image.className = "community-media-image";
+      image.loading = "lazy";
+      image.decoding = "async";
+      image.referrerPolicy = "no-referrer";
+      image.src = thumbUrl;
+      image.alt = `${labelForMedia(mediaType)} preview`;
+      frame.appendChild(image);
+    } else {
+      const placeholder = document.createElement("div");
+      placeholder.className = "community-media-placeholder";
+      placeholder.innerHTML = `<span class="material-symbols-outlined">${mediaIcon(mediaType)}</span><span>${labelForMedia(mediaType)}</span>`;
+      frame.appendChild(placeholder);
+    }
+    widget.appendChild(frame);
+
+    const actions = document.createElement("div");
+    actions.className = "community-media-actions";
+    if (canPreview) {
+      const playBtn = document.createElement("button");
+      playBtn.type = "button";
+      playBtn.className = "community-preview-toggle";
+      playBtn.dataset.itemId = String(item.id || "");
+      playBtn.textContent = isOpen ? i18n.previewHide : i18n.previewPlay;
+      actions.appendChild(playBtn);
+    } else if (mediaType === "video_story" || mediaType === "podcast") {
+      const unavailable = document.createElement("span");
+      unavailable.className = "community-preview-unavailable";
+      unavailable.textContent = i18n.previewUnavailable;
+      actions.appendChild(unavailable);
+    }
+
+    const openSource = document.createElement("a");
+    openSource.className = "community-open-source-link";
+    openSource.href = toSafeUrl(item && item.url) || "#";
+    openSource.target = "_blank";
+    openSource.rel = "noopener noreferrer";
+    openSource.textContent = i18n.openSource;
+    actions.appendChild(openSource);
+    widget.appendChild(actions);
+
+    if (isOpen && descriptor) {
+      const preview = document.createElement("div");
+      preview.className = "community-preview-panel";
+      if (descriptor.kind === "iframe") {
+        const iframe = document.createElement("iframe");
+        iframe.loading = "lazy";
+        iframe.referrerPolicy = "no-referrer";
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+        iframe.allowFullscreen = true;
+        iframe.src = descriptor.src;
+        iframe.title = descriptor.title || "Embedded preview";
+        preview.appendChild(iframe);
+      } else if (descriptor.kind === "audio") {
+        const audio = document.createElement("audio");
+        audio.controls = true;
+        audio.preload = "none";
+        audio.src = descriptor.src;
+        preview.appendChild(audio);
+      }
+      widget.appendChild(preview);
+    }
+
+    return widget;
+  }
+
   function findCardByItemId(itemId) {
     const cards = listEl.querySelectorAll(".community-item-card");
     for (const card of cards) {
@@ -605,6 +842,8 @@
       topicHint.appendChild(mediaHint);
       card.appendChild(topicHint);
 
+      card.appendChild(createMediaWidget(item));
+
       const summaryText = escapeText(item.summary);
       if (summaryText) {
         const summary = document.createElement("p");
@@ -669,6 +908,7 @@
     if (reset) {
       state.items = received;
       state.offset = received.length;
+      state.openPreviews.clear();
     } else {
       state.items = state.items.concat(received);
       state.offset = state.items.length;
@@ -858,6 +1098,17 @@
     renderItems();
   }
 
+  function togglePreview(itemId) {
+    const key = String(itemId || "");
+    if (!key) return;
+    if (state.openPreviews.has(key)) {
+      state.openPreviews.delete(key);
+    } else {
+      state.openPreviews.add(key);
+    }
+    renderItems();
+  }
+
   tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const nextView = btn.dataset.view;
@@ -938,6 +1189,11 @@
   listEl.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+    const previewToggle = target.closest(".community-preview-toggle");
+    if (previewToggle) {
+      togglePreview(previewToggle.dataset.itemId || "");
+      return;
+    }
     const summaryToggle = target.closest(".community-summary-toggle");
     if (summaryToggle) {
       toggleSummary(summaryToggle.dataset.itemId || "");
