@@ -1,14 +1,18 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.model.CommunityMember;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.QuestProfile;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.CommunityService;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.QuestService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
+import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.Template;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -18,6 +22,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -40,6 +45,12 @@ public class PublicProfileResource {
     @Inject
     UsageMetricsService metrics;
 
+    @Inject
+    GamificationService gamificationService;
+
+    @Inject
+    SecurityIdentity identity;
+
     @GET
     @Path("/{username}")
     @Produces(MediaType.TEXT_HTML)
@@ -55,10 +66,15 @@ public class PublicProfileResource {
         }
         ResolvedPublicProfile resolved = resolvedOpt.get();
         metrics.recordFunnelStep("profile.public.open");
+        currentUserId()
+            .ifPresent(
+                viewer -> gamificationService.award(
+                    viewer, GamificationActivity.PUBLIC_PROFILE_VIEW, resolved.canonicalUsername()));
 
         QuestProfile questProfile = questService.getProfile(resolved.userId());
         UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
         QuestClass dominantClass = profile != null ? profile.getDominantQuestClass() : null;
+        List<PublicClassProgress> classProgress = buildClassProgress(profile, questProfile.currentXp);
 
         String questClassEmoji = dominantClass != null ? dominantClass.getEmoji() : "🌱";
         String questClassLabel = dominantClass != null ? dominantClass.getDisplayName() : "Novice";
@@ -83,6 +99,7 @@ public class PublicProfileResource {
             .data("xpPercentage", xpPercentage)
             .data("questClass", questClassLabel)
             .data("questClassEmoji", questClassEmoji)
+            .data("classProgress", classProgress)
             .data("questsCompleted", questsCompleted)
             .data("badges", badges)
             .data("history",
@@ -100,6 +117,34 @@ public class PublicProfileResource {
             .data("ogImage", "https://og.scanales.com/api/og?title=" + resolved.canonicalUsername() + "&subtitle=Level "
                 + questProfile.level))
             .build();
+    }
+
+    private List<PublicClassProgress> buildClassProgress(UserProfile profile, int fallbackXp) {
+        EnumMap<QuestClass, Integer> xpMap = new EnumMap<>(QuestClass.class);
+        if (profile != null && profile.getClassXp() != null) {
+            xpMap.putAll(profile.getClassXp());
+        }
+        int total = xpMap.values().stream().mapToInt(v -> Math.max(0, v)).sum();
+        if (total <= 0 && profile != null && fallbackXp > 0) {
+            QuestClass legacyClass =
+                profile.getDominantQuestClass() != null ? profile.getDominantQuestClass() : QuestClass.ENGINEER;
+            xpMap.put(legacyClass, fallbackXp);
+            total = fallbackXp;
+        }
+        final int totalXp = total;
+        return java.util.Arrays.stream(QuestClass.values())
+            .map(
+                qc -> {
+                    int xp = Math.max(0, xpMap.getOrDefault(qc, 0));
+                    int percent = totalXp <= 0 ? 0 : (int) Math.round((xp * 100.0d) / totalXp);
+                    return new PublicClassProgress(
+                        qc.getDisplayName(),
+                        qc.getEmoji(),
+                        xp,
+                        questService.calculateLevel(xp),
+                        percent);
+                })
+            .toList();
     }
 
     private Optional<ResolvedPublicProfile> resolveProfile(String requestedUsername) {
@@ -241,6 +286,24 @@ public class PublicProfileResource {
         } catch (Exception e) {
             return Integer.toHexString(value.hashCode());
         }
+    }
+
+    private Optional<String> currentUserId() {
+        if (identity == null || identity.isAnonymous()) {
+            return Optional.empty();
+        }
+        String email = AdminUtils.getClaim(identity, "email");
+        if (email != null && !email.isBlank()) {
+            return Optional.of(email.toLowerCase(Locale.ROOT));
+        }
+        String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+        if (principal == null || principal.isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.of(principal.toLowerCase(Locale.ROOT));
+    }
+
+    private record PublicClassProgress(String className, String emoji, int xp, int level, int percent) {
     }
 
     private record ResolvedPublicProfile(

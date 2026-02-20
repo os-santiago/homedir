@@ -3,10 +3,13 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
 import com.scanales.eventflow.service.UserSessionService;
+import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -20,6 +23,7 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import org.jboss.logging.Logger;
 
 @Path("/")
@@ -49,8 +53,12 @@ public class PublicPagesResource {
   @Inject
   CommunityContentService communityContentService;
 
+  @Inject
+  GamificationService gamificationService;
+
   @GET
   public TemplateInstance home() {
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
     int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
@@ -121,6 +129,7 @@ public class PublicPagesResource {
   @GET
   @Path("/events")
   public TemplateInstance events() {
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW));
     List<Event> upcoming = eventService.findUpcomingEvents(10);
     List<Event> past = eventService.findPastEvents(10);
     return withLayoutData(
@@ -154,5 +163,20 @@ public class PublicPagesResource {
       return null;
     }
     return trimmed.substring(0, 1).toUpperCase();
+  }
+
+  private java.util.Optional<String> currentUserId() {
+    if (identity == null || identity.isAnonymous()) {
+      return java.util.Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return java.util.Optional.of(email.toLowerCase(Locale.ROOT));
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal != null && !principal.isBlank()) {
+      return java.util.Optional.of(principal.toLowerCase(Locale.ROOT));
+    }
+    return java.util.Optional.empty();
   }
 }

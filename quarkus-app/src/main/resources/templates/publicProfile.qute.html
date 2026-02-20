@@ -37,6 +37,25 @@
                 <p class="wrapped-subtext">Top Contributor</p>
             </div>
 
+            <div class="wrapped-card wrapped-card-full">
+                <span class="wrapped-stat-label">{i18n.public_profile_class_progress_title}</span>
+                <p class="wrapped-subtext">{i18n.profile_dominant_class(questClass)}</p>
+                <div class="wrapped-class-grid">
+                    {#for cls in classProgress}
+                    <div class="wrapped-class-item">
+                        <div class="wrapped-class-header">
+                            <span>{cls.emoji} {cls.className}</span>
+                            <span>{cls.xp} XP</span>
+                        </div>
+                        <div class="wrapped-xp-channel wrapped-class-bar">
+                            <div class="wrapped-xp-bar" style="width: {cls.percent}%;"></div>
+                        </div>
+                        <p class="wrapped-subtext">{i18n.profile_class_xp_level(cls.xp, cls.level, cls.percent)}</p>
+                    </div>
+                    {/for}
+                </div>
+            </div>
+
             <!-- Card 2: Quests Completed -->
             <div class="wrapped-card">
                 <span class="wrapped-stat-label">Quests Completed</span>

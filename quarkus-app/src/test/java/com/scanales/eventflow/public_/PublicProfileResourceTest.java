@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.service.UserProfileService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -40,6 +41,10 @@ public class PublicProfileResourceTest {
             "https://discord.com/users/discord-public-1",
             "https://cdn.discordapp.com/avatars/discord-public-1.png",
             Instant.parse("2026-02-10T00:00:00Z")));
+    userProfileService.addXp(
+        "public.user@example.com", 50, "Community vote", QuestClass.SCIENTIST);
+    userProfileService.addXp(
+        "public.user@example.com", 20, "Project exploration", QuestClass.ENGINEER);
 
     userProfileService.upsert("homedir.user@example.com", "Homedir User", "homedir.user@example.com");
     userProfileService.linkDiscord(
@@ -64,7 +69,9 @@ public class PublicProfileResourceTest {
         .body(containsString("Public User"))
         .body(containsString("@public-user"))
         .body(containsString("public_user#1001"))
-        .body(containsString("Connected accounts"));
+        .body(containsString("Connected accounts"))
+        .body(containsString("Class progression"))
+        .body(containsString("Scientist"));
   }
 
   @Test
@@ -104,4 +111,3 @@ public class PublicProfileResourceTest {
     }
   }
 }
-

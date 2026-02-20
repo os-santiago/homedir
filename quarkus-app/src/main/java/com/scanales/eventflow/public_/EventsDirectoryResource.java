@@ -65,7 +65,8 @@ public class EventsDirectoryResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/eventos", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, "listing"));
+    currentUserId()
+        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW));
     var all = eventService.listEvents();
     LocalDate today = LocalDate.now();
     List<Event> upcoming = all.stream()

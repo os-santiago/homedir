@@ -4,6 +4,9 @@ import com.scanales.eventflow.community.CommunityBoardGroup;
 import com.scanales.eventflow.community.CommunityBoardMemberView;
 import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.config.AppMessages;
+import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.service.GamificationService;
+import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -21,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -34,6 +38,7 @@ public class CommunityBoardResource {
   @Inject SecurityIdentity identity;
   @Inject CommunityBoardService boardService;
   @Inject AppMessages messages;
+  @Inject GamificationService gamificationService;
 
   @CheckedTemplate
   static class Templates {
@@ -72,6 +77,8 @@ public class CommunityBoardResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance board() {
+    currentUserId()
+        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
     var summary = boardService.summary();
     TemplateInstance template =
         Templates.board(
@@ -100,6 +107,11 @@ public class CommunityBoardResource {
       @QueryParam("member") String highlightedMember) {
     CommunityBoardGroup group =
         CommunityBoardGroup.fromPath(groupPath).orElseThrow(() -> new NotFoundException("group_not_found"));
+    currentUserId()
+        .ifPresent(
+            userId ->
+                gamificationService.award(
+                    userId, GamificationActivity.COMMUNITY_BOARD_MEMBERS_VIEW, group.path()));
     int limit = normalizeLimit(limitParam);
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
     CommunityBoardService.BoardSlice slice = boardService.list(group, query, limit, offset);
@@ -199,6 +211,21 @@ public class CommunityBoardResource {
       name = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
     }
     return Optional.ofNullable(name);
+  }
+
+  private Optional<String> currentUserId() {
+    if (!isAuthenticated()) {
+      return Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return Optional.of(email.toLowerCase(Locale.ROOT));
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal == null || principal.isBlank()) {
+      return Optional.empty();
+    }
+    return Optional.of(principal.toLowerCase(Locale.ROOT));
   }
 
   private boolean isAuthenticated() {

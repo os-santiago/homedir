@@ -1662,6 +1662,9 @@ public interface AppMessages {
     @Message("No linked accounts yet.")
     String public_profile_accounts_empty();
 
+    @Message("Class progression")
+    String public_profile_class_progress_title();
+
     @Message("Share Profile")
     String btn_share_profile();
 

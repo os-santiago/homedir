@@ -12,7 +12,6 @@ import jakarta.inject.Inject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,11 +23,16 @@ public class QuestService {
 
     private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-    // Mock Data Paths
-    private static final String GAMIFICATION_PATH = "/mock-data/gamification.yaml";
-
-    // Cache for levels
-    private List<LevelConfig> levelConfigs;
+    /**
+     * Progression curve goals:
+     * - L1 -> L1000 ~ 100k XP (~5 years with ~55 XP/day average).
+     * - Technical cap remains 9999.
+     */
+    static final int MAX_LEVEL = 9999;
+    static final int TARGET_LEVEL = 1000;
+    static final int TARGET_LEVEL_XP = 100_000;
+    static final double BASE_XP_PER_LEVEL = 100.0d;
+    static final double CURVE_A = computeCurveA();
 
     @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quests.github.repo-owner", defaultValue = "os-santiago")
     String repoOwner;
@@ -38,28 +42,15 @@ public class QuestService {
 
     @Inject
     public QuestService() {
-        loadGamificationConfig();
+        Log.infof(
+                "Gamification progression loaded with dynamic curve (maxLevel=%d, targetLevel=%d, targetXp=%d).",
+                MAX_LEVEL,
+                TARGET_LEVEL,
+                TARGET_LEVEL_XP);
     }
 
     @Inject
     UserProfileService userProfileService;
-
-    private void loadGamificationConfig() {
-        try (InputStream is = getClass().getResourceAsStream(GAMIFICATION_PATH)) {
-            if (is != null) {
-                String yaml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                GamificationConfig config = yamlMapper.readValue(yaml, GamificationConfig.class);
-                this.levelConfigs = config.levels;
-                Log.info("Loaded gamification config with " + levelConfigs.size() + " levels.");
-            } else {
-                Log.error("Gamification config not found at " + GAMIFICATION_PATH);
-                this.levelConfigs = Collections.emptyList();
-            }
-        } catch (IOException e) {
-            Log.error("Failed to load gamification config", e);
-            this.levelConfigs = Collections.emptyList();
-        }
-    }
 
     public QuestProfile getProfile(String username) {
         int currentXp = 0;
@@ -81,7 +72,7 @@ public class QuestService {
         }
 
         int currentLevel = calculateLevel(currentXp);
-        int nextLevelXp = getXpForLevel(currentLevel + 1);
+        int nextLevelXp = currentLevel >= MAX_LEVEL ? getXpForLevel(MAX_LEVEL) : getXpForLevel(currentLevel + 1);
 
         // Reverse history to show newest first
         Collections.reverse(history);
@@ -90,23 +81,30 @@ public class QuestService {
     }
 
     public int calculateLevel(int xp) {
-        int level = 1;
-        for (LevelConfig config : levelConfigs) {
-            if (xp >= config.xpRequired) {
-                level = config.level;
+        if (xp <= 0) {
+            return 1;
+        }
+        int low = 1;
+        int high = MAX_LEVEL;
+        while (low < high) {
+            int mid = (low + high + 1) >>> 1;
+            if (xp >= xpForLevel(mid)) {
+                low = mid;
             } else {
-                break;
+                high = mid - 1;
             }
         }
-        return level;
+        return low;
     }
 
     public int getXpForLevel(int level) {
-        return levelConfigs.stream()
-                .filter(l -> l.level == level)
-                .map(l -> l.xpRequired)
-                .findFirst()
-                .orElse(99999); // Default high if max level reached
+        if (level <= 1) {
+            return 0;
+        }
+        if (level > MAX_LEVEL) {
+            return xpForLevel(MAX_LEVEL) + 1000;
+        }
+        return xpForLevel(level);
     }
 
     public List<Quest> getQuestBoard() {
@@ -176,14 +174,21 @@ public class QuestService {
         public List<Quest> quests;
     }
 
-    // Helper Classes for Serialization
-    private static class GamificationConfig {
-        public List<LevelConfig> levels;
+    static int xpForLevel(int level) {
+        int normalized = Math.max(1, Math.min(level, MAX_LEVEL)) - 1;
+        double value = (BASE_XP_PER_LEVEL * normalized) + (CURVE_A * normalized * normalized);
+        return (int) Math.round(Math.max(0d, value));
     }
 
-    private static class LevelConfig {
-        public int level;
-        public int xpRequired;
+    private static double computeCurveA() {
+        int n = TARGET_LEVEL - 1;
+        if (n <= 0) {
+            return 0d;
+        }
+        double numerator = TARGET_LEVEL_XP - (BASE_XP_PER_LEVEL * n);
+        double denominator = (double) n * n;
+        double value = numerator / denominator;
+        return Math.max(0d, value);
     }
 
     public void startQuest(String userId, String questId, String githubToken) {
