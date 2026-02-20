@@ -70,16 +70,18 @@ public class CommunityFeaturedSnapshotService {
     triggerRefreshAsync(true, "schedule");
   }
 
-  public FeaturedPage page(String filter, int limit, int offset) {
+  public FeaturedPage page(String filter, String mediaFilter, int limit, int offset) {
     maybeRefreshAsyncOnDemand();
     Snapshot current = snapshot.get();
     String normalizedFilter = normalizeFilter(filter);
-    List<FeaturedItem> ranked = current.rankedByFilter().getOrDefault(normalizedFilter, List.of());
+    String normalizedMediaFilter = normalizeMediaFilter(mediaFilter);
+    String snapshotKey = snapshotKey(normalizedFilter, normalizedMediaFilter);
+    List<FeaturedItem> ranked = current.rankedByFilter().getOrDefault(snapshotKey, List.of());
     int total = ranked.size();
     if (offset >= total) {
       return new FeaturedPage(List.of(), total);
     }
-    ResponseKey key = new ResponseKey(normalizedFilter, limit, offset);
+    ResponseKey key = new ResponseKey(normalizedFilter, normalizedMediaFilter, limit, offset);
     ResponseEntry cached = responseCache.get(key);
     Instant now = Instant.now();
     if (cached != null && now.isBefore(cached.cachedAt().plus(responseCacheTtl))) {
@@ -152,9 +154,9 @@ public class CommunityFeaturedSnapshotService {
             now);
 
     Map<String, List<FeaturedItem>> byFilter = new HashMap<>();
-    byFilter.put("all", List.copyOf(allRanked));
-    byFilter.put("internet", List.copyOf(internetRanked));
-    byFilter.put("members", List.copyOf(membersRanked));
+    addSnapshotEntries(byFilter, "all", allRanked);
+    addSnapshotEntries(byFilter, "internet", internetRanked);
+    addSnapshotEntries(byFilter, "members", membersRanked);
 
     Snapshot refreshed =
         new Snapshot(
@@ -213,6 +215,44 @@ public class CommunityFeaturedSnapshotService {
     };
   }
 
+  private String normalizeMediaFilter(String raw) {
+    return CommunityContentMedia.normalizeFilter(raw);
+  }
+
+  private void addSnapshotEntries(
+      Map<String, List<FeaturedItem>> target, String sourceFilter, List<FeaturedItem> sourceRanked) {
+    List<FeaturedItem> copy = List.copyOf(sourceRanked);
+    target.put(snapshotKey(sourceFilter, CommunityContentMedia.ALL), copy);
+    target.put(
+        snapshotKey(sourceFilter, CommunityContentMedia.VIDEO_STORY),
+        copy.stream()
+            .filter(
+                item ->
+                    CommunityContentMedia.matchesFilter(
+                        item.item().mediaType(), CommunityContentMedia.VIDEO_STORY))
+            .toList());
+    target.put(
+        snapshotKey(sourceFilter, CommunityContentMedia.PODCAST),
+        copy.stream()
+            .filter(
+                item ->
+                    CommunityContentMedia.matchesFilter(
+                        item.item().mediaType(), CommunityContentMedia.PODCAST))
+            .toList());
+    target.put(
+        snapshotKey(sourceFilter, CommunityContentMedia.ARTICLE_BLOG),
+        copy.stream()
+            .filter(
+                item ->
+                    CommunityContentMedia.matchesFilter(
+                        item.item().mediaType(), CommunityContentMedia.ARTICLE_BLOG))
+            .toList());
+  }
+
+  private String snapshotKey(String filter, String mediaFilter) {
+    return normalizeFilter(filter) + "|" + normalizeMediaFilter(mediaFilter);
+  }
+
   private ContentOrigin detectOrigin(CommunityContentItem item) {
     if (item == null) {
       return ContentOrigin.INTERNET;
@@ -237,7 +277,7 @@ public class CommunityFeaturedSnapshotService {
     }
   }
 
-  private record ResponseKey(String filter, int limit, int offset) {
+  private record ResponseKey(String filter, String mediaFilter, int limit, int offset) {
   }
 
   private record ResponseEntry(List<FeaturedItem> items, int total, Instant cachedAt) {

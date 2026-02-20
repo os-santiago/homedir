@@ -2,6 +2,7 @@ package com.scanales.eventflow.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.community.CommunityContentItem;
+import com.scanales.eventflow.community.CommunityContentMedia;
 import com.scanales.eventflow.community.CommunityContentMetrics;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.community.CommunityFeaturedSnapshotService;
@@ -48,10 +49,12 @@ public class CommunityContentApiResource {
   public Response list(
       @QueryParam("view") String viewParam,
       @QueryParam("filter") String filterParam,
+      @QueryParam("media") String mediaParam,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
     String view = normalizeView(viewParam);
     ContentFilter filter = normalizeFilter(filterParam);
+    String mediaFilter = normalizeMediaFilter(mediaParam);
     int limit = normalizeLimit(limitParam);
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
 
@@ -59,7 +62,8 @@ public class CommunityContentApiResource {
     List<ContentItemResponse> items;
     int total;
     if ("new".equals(view)) {
-      List<CommunityContentItem> all = applyFilter(contentService.allItems(), filter);
+      List<CommunityContentItem> all =
+          applyMediaFilter(applyFilter(contentService.allItems(), filter), mediaFilter);
       List<CommunityContentItem> ordered = all;
       total = ordered.size();
       List<CommunityContentItem> pageItems = paginateItems(ordered, limit, offset);
@@ -79,7 +83,7 @@ public class CommunityContentApiResource {
               .toList();
     } else {
       CommunityFeaturedSnapshotService.FeaturedPage featuredPage =
-          featuredSnapshotService.page(filter.apiValue, limit, offset);
+          featuredSnapshotService.page(filter.apiValue, mediaFilter, limit, offset);
       List<CommunityFeaturedSnapshotService.FeaturedItem> page = featuredPage.items();
       total = featuredPage.total();
       if (userId == null || userId.isBlank() || page.isEmpty()) {
@@ -120,7 +124,10 @@ public class CommunityContentApiResource {
             metrics.filesLoaded(),
             metrics.filesInvalid());
 
-    return Response.ok(new ContentListResponse(view, filter.apiValue, limit, offset, total, items, cacheMeta)).build();
+    return Response.ok(
+            new ContentListResponse(
+                view, filter.apiValue, mediaFilter, limit, offset, total, items, cacheMeta))
+        .build();
   }
 
   @GET
@@ -216,6 +223,13 @@ public class CommunityContentApiResource {
         .toList();
   }
 
+  private List<CommunityContentItem> applyMediaFilter(
+      List<CommunityContentItem> items, String mediaFilter) {
+    return items.stream()
+        .filter(item -> CommunityContentMedia.matchesFilter(item.mediaType(), mediaFilter))
+        .toList();
+  }
+
   private List<CommunityContentItem> paginateItems(List<CommunityContentItem> items, int limit, int offset) {
     if (offset >= items.size()) {
       return List.of();
@@ -240,6 +254,7 @@ public class CommunityContentApiResource {
         item.publishedAt(),
         item.tags(),
         item.author(),
+        CommunityContentMedia.normalizeItemType(item.mediaType()),
         counts,
         myVote,
         score);
@@ -255,6 +270,10 @@ public class CommunityContentApiResource {
       return ContentOrigin.MEMBERS;
     }
     return ContentOrigin.INTERNET;
+  }
+
+  private String normalizeMediaFilter(String raw) {
+    return CommunityContentMedia.normalizeFilter(raw);
   }
 
   private Optional<String> currentUserId() {
@@ -288,6 +307,7 @@ public class CommunityContentApiResource {
   public record ContentListResponse(
       String view,
       String filter,
+      String media,
       int limit,
       int offset,
       int total,
@@ -314,6 +334,7 @@ public class CommunityContentApiResource {
       @JsonProperty("published_at") Instant publishedAt,
       List<String> tags,
       String author,
+      @JsonProperty("media_type") String mediaType,
       @JsonProperty("vote_counts") VoteCounts voteCounts,
       @JsonProperty("my_vote") String myVote,
       double score) {

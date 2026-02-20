@@ -46,6 +46,7 @@ Optional fields:
 - `published_at` (ISO-8601)
 - `tags` (array)
 - `author`
+- `media_type` (`video_story|podcast|article_blog`, defaults to `article_blog`)
 
 Invalid/incomplete files are skipped and logged.
 
@@ -91,6 +92,7 @@ Featured window:
 ## API
 - `GET /api/community/content?view=new|featured&limit=&offset=`
   - Optional filter: `filter=all|internet|members`
+  - Optional media filter: `media=all|video_story|podcast|article_blog`
 - `GET /api/community/content/{id}`
 - `PUT /api/community/content/{id}/vote`
 

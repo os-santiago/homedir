@@ -1,5 +1,6 @@
 package com.scanales.eventflow.community;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +55,7 @@ public class CommunityContentParser {
       return ParseOutcome.invalid("invalid_created_at");
     }
     Instant publishedAt = parseInstant(raw.publishedAt());
+    String mediaType = CommunityContentMedia.normalizeItemType(raw.mediaType());
     List<String> tags = sanitizeTags(raw.tags());
     String author = sanitizeText(raw.author());
     return ParseOutcome.valid(
@@ -66,7 +68,8 @@ public class CommunityContentParser {
             createdAt,
             publishedAt,
             tags,
-            author));
+            author,
+            mediaType));
   }
 
   private static ObjectMapper baseMapper(ObjectMapper mapper) {
@@ -141,6 +144,8 @@ public class CommunityContentParser {
       @JsonProperty("published_at") String publishedAt,
       @JsonProperty("created_at") String createdAt,
       List<String> tags,
-      String author) {
+      String author,
+      @JsonProperty("media_type")
+      @JsonAlias({"mediaType", "media", "type", "content_type", "contentType"}) String mediaType) {
   }
 }

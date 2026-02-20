@@ -49,13 +49,17 @@ curl "https://homedir.opensourcesantiago.io/api/community/content?view=new&limit
 - `curate_from_web.py`
   - fetches candidates from curated RSS/Atom sources and Hacker News trending queries.
   - scores by topic relevance (`ai`, `open-source`, `developers`, `platform-engineering`, `trending-tech`), recency, source trust, and historical tag bias.
-  - outputs Homedir-compatible YAML files (`<YYYYMMDD>-<slug>-<id>.yml`) and `manifest.json`.
+  - outputs Homedir-compatible YAML files (`<YYYYMMDD>-<slug>-<id>.yml`) including `media_type` and `manifest.json`.
 - `deploy.sh`
   - syncs generated files to VPS path.
   - default is incremental sync (no delete).
   - pass `--delete` to mirror local directory exactly.
 - `generate_stub.py`
   - fallback utility that builds placeholder YAML from explicit URLs.
+  - supports `--media auto|video_story|podcast|article_blog`.
+- `generate_preview_mix.py`
+  - creates a deterministic 10-item preview pack for production validation.
+  - distribution: `video_story=3`, `podcast=3`, `article_blog=4`.
 
 ## Deploy Command Reference
 ```bash
@@ -64,4 +68,8 @@ bash tools/community-curator/deploy.sh <host> <user> <local_dir> [remote_dir]
 
 # mirror local directory exactly (destructive)
 bash tools/community-curator/deploy.sh --delete <host> <user> <local_dir> [remote_dir]
+
+# generate 10-item preview mix
+python3 tools/community-curator/generate_preview_mix.py \
+  --output-dir ./tools/community-curator/out/preview-$(date +%Y%m%d-%H%M%S)
 ```

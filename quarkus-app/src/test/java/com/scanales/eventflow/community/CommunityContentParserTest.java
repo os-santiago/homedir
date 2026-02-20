@@ -24,6 +24,7 @@ public class CommunityContentParserTest {
         source: "example.org"
         created_at: "2026-02-07T12:00:00Z"
         published_at: "2026-02-06T11:00:00Z"
+        media_type: "video_story"
         tags:
           - java
           - quarkus
@@ -38,6 +39,7 @@ public class CommunityContentParserTest {
     assertEquals("item-1", parsed.item().id());
     assertEquals("Article One", parsed.item().title());
     assertEquals("https://example.org/article", parsed.item().url());
+    assertEquals("video_story", parsed.item().mediaType());
     assertEquals(2, parsed.item().tags().size());
   }
 
@@ -59,5 +61,26 @@ public class CommunityContentParserTest {
     assertFalse(parsed.isValid());
     assertNotNull(parsed.error());
   }
-}
 
+  @Test
+  void defaultsMediaTypeToArticleBlogWhenMissing() throws Exception {
+    Path file = Files.createTempFile("community-media-default", ".yml");
+    Files.writeString(
+        file,
+        """
+        id: item-4
+        title: "Default media"
+        url: "https://example.org/default-media"
+        summary: "Media defaults to article blog."
+        source: "example.org"
+        created_at: "2026-02-07T12:00:00Z"
+        """);
+
+    CommunityContentParser parser = new CommunityContentParser();
+    var parsed = parser.parse(file);
+
+    assertTrue(parsed.isValid());
+    assertNotNull(parsed.item());
+    assertEquals("article_blog", parsed.item().mediaType());
+  }
+}

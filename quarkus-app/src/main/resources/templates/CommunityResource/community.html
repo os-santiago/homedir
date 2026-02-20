@@ -1,6 +1,7 @@
 {@ boolean isAdmin = false}
 {@ String activeCommunitySubmenu = "main"}
 {@ String initialFilter = "all"}
+{@ String initialMedia = "all"}
 {@ int homedirUsers = 0}
 {@ int githubUsers = 0}
 {@ int discordUsers = 0}
@@ -19,7 +20,7 @@
   <section class="page-grid">
     {#if activeCommunitySubmenu == 'picks'}
     <div class="section-card events-full-width community-shell-card">
-      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}"
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}" data-initial-media="{initialMedia ?: 'all'}"
         data-i18n-empty-filtered="{i18n.community_js_empty_filtered}"
         data-i18n-empty-generic="{i18n.community_js_empty_generic}"
         data-i18n-items-unit="{i18n.community_js_items_unit}"
@@ -40,6 +41,10 @@
         data-i18n-read-unit="{i18n.community_js_read_unit}"
         data-i18n-badge-new="{i18n.community_js_badge_new}"
         data-i18n-top-prefix="{i18n.community_js_top_prefix}"
+        data-i18n-filter-media-prefix="{i18n.community_js_filter_media_prefix}"
+        data-i18n-media-video-story="{i18n.community_js_media_video_story}"
+        data-i18n-media-podcast="{i18n.community_js_media_podcast}"
+        data-i18n-media-article-blog="{i18n.community_js_media_article_blog}"
         data-i18n-summary-show="{i18n.community_js_summary_show}"
         data-i18n-summary-hide="{i18n.community_js_summary_hide}">
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
@@ -85,6 +90,13 @@
                 {i18n.community_filter_members}
               </button>
             </div>
+          </div>
+
+          <div class="community-media-row" role="group" aria-label="Community media filter">
+            <button type="button" class="community-media-btn community-media-active community-media" data-media="all">{i18n.community_media_all}</button>
+            <button type="button" class="community-media-btn community-media" data-media="video_story">{i18n.community_media_video_story}</button>
+            <button type="button" class="community-media-btn community-media" data-media="podcast">{i18n.community_media_podcast}</button>
+            <button type="button" class="community-media-btn community-media" data-media="article_blog">{i18n.community_media_article_blog}</button>
           </div>
 
           <div class="community-topic-row" role="group" aria-label="Community topic filter">
@@ -451,6 +463,33 @@
     background: rgba(120, 255, 160, 0.16);
   }
 
+  .community-media-row {
+    display: flex;
+    gap: 0.32rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+  }
+
+  .community-media-btn {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.25);
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.22rem 0.5rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: border-color 0.08s linear, background-color 0.08s linear;
+  }
+
+  .community-media-btn:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .community-media-btn.community-media-active {
+    border-color: rgba(120, 255, 160, 0.9);
+    background: rgba(120, 255, 160, 0.16);
+  }
+
   .community-topic-row {
     display: flex;
     gap: 0.32rem;
@@ -527,7 +566,8 @@
     }
 
     .community-filter-row,
-    .community-view-row {
+    .community-view-row,
+    .community-media-row {
       flex-wrap: wrap;
     }
   }
@@ -909,6 +949,17 @@
     font-size: 0.72rem;
     opacity: 0.84;
     margin-bottom: 0.5rem;
+  }
+
+  .community-media-hint {
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.24);
+    padding: 0.14rem 0.42rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.25px;
+    margin-left: 0.35rem;
+    opacity: 0.92;
   }
 
   .community-topic-dot {
