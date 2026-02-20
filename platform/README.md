@@ -5,7 +5,9 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 ## Contents
 - `scripts/homedir-update.sh` – pulls a tagged image, restarts the container, and rolls back on failure.
 - `scripts/homedir-webhook.py` – listens for Quay webhooks and triggers `homedir-update.sh` with the tag from the payload (ignores `latest`-only webhooks). GET `/` on the same port returns `podman ps`-like status and the tail of the webhook log.
+- `scripts/homedir-auto-deploy.sh` – fallback poller that checks Quay tags and deploys the newest semver tag when webhook delivery is missing.
 - `systemd/homedir-webhook.service` – runs the webhook listener.
+- `systemd/homedir-auto-deploy.service` / `systemd/homedir-auto-deploy.timer` – periodic fallback auto-deploy from Quay.
 - `systemd/homedir-update.service` / `systemd/homedir-update.timer` – optional manual/timer runner; keep disabled unless you set a tag.
 - `nginx/homedir.conf`, `nginx/int.conf` – HTTPS reverse proxies with a maintenance page for 502/503/504.
 - `assets/maintenance.html` – friendly maintenance page served by nginx.
@@ -15,13 +17,17 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 1) Install dependencies: `podman`, `python3`, `nginx`, `certbot` (or provide your own TLS certs).  
 2) Copy scripts to `/usr/local/bin/` and make them executable.  
 3) Create `/etc/homedir.env` from `platform/env.example` and fill all secrets.  
-4) Install systemd units from `platform/systemd/` into `/etc/systemd/system/`, run `systemctl daemon-reload`, then enable only `homedir-webhook.service` (`systemctl enable --now homedir-webhook.service`). Leave the timer disabled unless you explicitly set a tag.  
+4) Install systemd units from `platform/systemd/` into `/etc/systemd/system/`, run `systemctl daemon-reload`, then enable:
+   - `homedir-webhook.service` (primary trigger)
+   - `homedir-auto-deploy.timer` (fallback every 5 min)  
 5) Place nginx configs into `/etc/nginx/sites-available/`, symlink to `sites-enabled`, and reload nginx.  
 6) Verify the webhook: send a POST to `http(s)://int.opensourcesantiago.io/` with a JSON body containing `updated_tags`/`docker_tags` and check `/var/log/homedir-webhook.log` plus `podman ps`.  
-7) Deployments happen only via webhook; `homedir-update.sh` logs to `/var/log/homedir-update.log` and performs rollback using the previous container image if a run fails.
+7) Validate fallback poller with `systemctl start homedir-auto-deploy.service` and inspect `/var/log/homedir-auto-deploy.log`.
+8) `homedir-update.sh` logs to `/var/log/homedir-update.log` and performs rollback using the previous container image if a run fails.
 
 ## Notes
 - The update script expects a specific tag; no `latest` is used.  
+- `homedir-update.sh` normalizes tags like `v3.361.0` to `3.361.0` to avoid pull failures.  
 - Secrets must never land in git—always inject via `/etc/homedir.env` or your secret manager.  
 - Nginx returns the maintenance page when the backend is down, avoiding default 502/Cloudflare responses.
 - Persistence path must be consistent across deploys: set `HOMEDIR_DATA_DIR` and keep `JAVA_TOOL_OPTIONS=-Dhomedir.data.dir=<same-path>` in `/etc/homedir.env`.

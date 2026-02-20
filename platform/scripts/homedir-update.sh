@@ -15,6 +15,10 @@ if [[ -z "$TAG" ]]; then
   echo "usage: homedir-update.sh <tag> (or set DEPLOY_TAG in env)" >&2
   exit 1
 fi
+RAW_TAG="$TAG"
+if [[ "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+  TAG="${TAG#v}"
+fi
 
 REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
 IMAGE="${REPO}:${TAG}"
@@ -95,6 +99,9 @@ start_container() {
 }
 
 log "starting update for tag=${TAG}"
+if [[ "$RAW_TAG" != "$TAG" ]]; then
+  log "normalized incoming tag raw=${RAW_TAG} normalized=${TAG}"
+fi
 log "runtime data dir configured as ${HOMEDIR_DATA_DIR} (volume=${DATA_VOLUME})"
 log "runtime limits memory=${CONTAINER_MEMORY_LIMIT:-none} cpus=${CONTAINER_CPU_LIMIT:-none} pids=${CONTAINER_PIDS_LIMIT:-none}"
 prepare_community_storage

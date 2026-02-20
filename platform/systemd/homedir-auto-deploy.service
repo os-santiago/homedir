@@ -1,0 +1,12 @@
+[Unit]
+Description=Auto-deploy latest HomeDir image tag from Quay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/homedir.env
+ExecStart=/usr/local/bin/homedir-auto-deploy.sh
+StandardOutput=journal
+StandardError=journal
+User=root

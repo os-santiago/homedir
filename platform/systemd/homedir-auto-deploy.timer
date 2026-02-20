@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodic fallback for HomeDir auto-deploy from Quay
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
