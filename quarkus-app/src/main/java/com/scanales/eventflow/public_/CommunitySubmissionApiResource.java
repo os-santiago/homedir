@@ -3,6 +3,7 @@ package com.scanales.eventflow.public_;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.community.CommunitySubmission;
 import com.scanales.eventflow.community.CommunitySubmissionService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -29,6 +30,7 @@ public class CommunitySubmissionApiResource {
   private static final Logger LOG = Logger.getLogger(CommunitySubmissionApiResource.class);
 
   @Inject CommunitySubmissionService submissionService;
+  @Inject UsageMetricsService metrics;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -50,6 +52,7 @@ public class CommunitySubmissionApiResource {
                   request != null ? request.summary() : null,
                   request != null ? request.source() : null,
                   request != null ? request.tags() : null));
+      metrics.recordFunnelStep("community.submission.create");
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -109,6 +112,7 @@ public class CommunitySubmissionApiResource {
     try {
       CommunitySubmission submission =
           submissionService.approve(id, currentUserId().orElse("admin"), request != null ? request.note() : null);
+      metrics.recordFunnelStep("community.submission.approve");
       return Response.ok(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -135,6 +139,7 @@ public class CommunitySubmissionApiResource {
     try {
       CommunitySubmission submission =
           submissionService.reject(id, currentUserId().orElse("admin"), request != null ? request.note() : null);
+      metrics.recordFunnelStep("community.submission.reject");
       return Response.ok(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();

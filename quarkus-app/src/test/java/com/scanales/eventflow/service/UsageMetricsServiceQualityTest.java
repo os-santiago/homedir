@@ -43,4 +43,19 @@ public class UsageMetricsServiceQualityTest {
     Assertions.assertNull(snap.get("talk_register:t9"));
     Assertions.assertTrue(metrics.getRegistrants("t9").isEmpty());
   }
+
+  @Test
+  public void funnelStepsAreTrackedAndInvalidOnesDiscarded() {
+    metrics.recordFunnelStep("community.vote");
+    metrics.recordFunnelStep("CFP.SUBMISSION.CREATE");
+    metrics.recordFunnelStep(" ");
+
+    Map<String, Long> snap = metrics.snapshot();
+    Assertions.assertEquals(1L, snap.getOrDefault("funnel:community.vote", 0L));
+    Assertions.assertEquals(1L, snap.getOrDefault("funnel:cfp.submission.create", 0L));
+    Assertions.assertNull(snap.get("funnel: "));
+
+    Map<String, Long> discards = metrics.getDiscarded();
+    Assertions.assertEquals(1L, discards.getOrDefault("funnel_invalid", 0L));
+  }
 }

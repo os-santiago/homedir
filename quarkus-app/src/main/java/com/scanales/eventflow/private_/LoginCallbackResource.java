@@ -1,6 +1,7 @@
 package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.security.RedirectSanitizer;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.security.Authenticated;
@@ -19,11 +20,13 @@ public class LoginCallbackResource {
   @Inject SecurityIdentity identity;
 
   @Inject UserProfileService userProfileService;
+  @Inject UsageMetricsService metrics;
 
   @GET
   @Authenticated
   public Response callback(@QueryParam("redirect") String redirect) {
     String safeRedirect = RedirectSanitizer.sanitizeInternalRedirect(redirect, "/");
+    metrics.recordFunnelStep("auth.login.callback");
 
     // --- Viral Feature: Instant Onboarding XP ---
     // If the user is new (or has 0 XP), give them their first win immediately.
