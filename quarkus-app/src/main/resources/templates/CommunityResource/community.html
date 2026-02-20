@@ -20,7 +20,7 @@
   <section class="page-grid">
     {#if activeCommunitySubmenu == 'picks'}
     <div class="section-card events-full-width community-shell-card">
-      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}" data-initial-media="{initialMedia ?: 'all'}"
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-ultra-lite="true" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}" data-initial-media="{initialMedia ?: 'all'}"
         data-i18n-empty-filtered="{i18n.community_js_empty_filtered}"
         data-i18n-empty-generic="{i18n.community_js_empty_generic}"
         data-i18n-items-unit="{i18n.community_js_items_unit}"
@@ -296,6 +296,40 @@
   /* Community page runs in low-motion mode to prevent scroll flicker and repaint spikes. */
   .floating-shapes {
     display: none;
+  }
+
+  /* Hard ultra-lite: prevent repaint loops and hover jitter inside picks content. */
+  #community-content-root,
+  #community-content-root *,
+  #community-content-root *::before,
+  #community-content-root *::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    will-change: auto !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    text-shadow: none !important;
+  }
+
+  #community-content-root .community-item-card:hover,
+  #community-content-root .community-pulse-card:hover,
+  #community-content-root .community-hot-item:hover,
+  #community-content-root .community-media-btn:hover,
+  #community-content-root .community-topic-btn:hover,
+  #community-content-root .community-preview-toggle:hover,
+  #community-content-root .community-open-source-link:hover,
+  #community-content-root .community-summary-toggle:hover,
+  #community-content-root .community-tag-btn:hover {
+    transform: none !important;
+  }
+
+  #community-content-root .community-item-title,
+  #community-content-root .community-item-meta,
+  #community-content-root .community-item-summary,
+  #community-content-root .community-topic-hint {
+    opacity: 1 !important;
   }
 
   .community-shell-card,
