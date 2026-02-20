@@ -2,6 +2,9 @@
 
 This module powers `/comunidad` with curated content loaded from files and community voting.
 
+Operational curation guide:
+- `docs/community-picks-playbook.md`
+
 ## Overview
 - Content source: filesystem (not DB), generated externally by a curator CLI.
 - Votes: persisted in an embedded DB table (`content_vote`) with upsert semantics.
