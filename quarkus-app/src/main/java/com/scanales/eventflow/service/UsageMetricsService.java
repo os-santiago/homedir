@@ -421,6 +421,20 @@ public class UsageMetricsService {
     increment("cta:" + name + ":" + today);
   }
 
+  /** Records a product funnel step that can be reported in admin metrics. */
+  public void recordFunnelStep(String step) {
+    if (step == null || step.isBlank()) {
+      incrementDiscard("funnel_invalid");
+      return;
+    }
+    String normalized = sanitizeFunnelStep(step);
+    if (normalized == null) {
+      incrementDiscard("funnel_invalid");
+      return;
+    }
+    increment("funnel:" + normalized);
+  }
+
   /** Records a refresh attempt for the admin metrics dashboard. */
   public void recordRefresh(boolean ok, long durationMs) {
     increment("refresh.count");
@@ -484,6 +498,28 @@ public class UsageMetricsService {
 
   private void incrementDiscard(String reason) {
     discardedByReason.computeIfAbsent(reason, r -> new LongAdder()).increment();
+  }
+
+  private static String sanitizeFunnelStep(String step) {
+    String normalized = step.trim().toLowerCase();
+    if (normalized.isEmpty()) {
+      return null;
+    }
+    StringBuilder safe = new StringBuilder(normalized.length());
+    for (int i = 0; i < normalized.length(); i++) {
+      char c = normalized.charAt(i);
+      if ((c >= 'a' && c <= 'z')
+          || (c >= '0' && c <= '9')
+          || c == '.'
+          || c == '-'
+          || c == '_') {
+        safe.append(c);
+      }
+    }
+    if (safe.length() == 0 || safe.length() > 80) {
+      return null;
+    }
+    return safe.toString();
   }
 
   private boolean isBurst(String sessionId) {

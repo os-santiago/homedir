@@ -10,6 +10,7 @@ import com.scanales.eventflow.community.CommunityScoreCalculator;
 import com.scanales.eventflow.community.CommunityVoteAggregate;
 import com.scanales.eventflow.community.CommunityVoteService;
 import com.scanales.eventflow.community.CommunityVoteType;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -40,6 +41,7 @@ public class CommunityContentApiResource {
   @Inject CommunityContentService contentService;
   @Inject CommunityVoteService voteService;
   @Inject CommunityFeaturedSnapshotService featuredSnapshotService;
+  @Inject UsageMetricsService metrics;
   @Inject SecurityIdentity identity;
 
   @ConfigProperty(name = "community.content.ranking.decay-enabled", defaultValue = "true")
@@ -168,6 +170,8 @@ public class CommunityContentApiResource {
     try {
       voteService.upsertVote(userId.get(), id, parsedVote.get());
       featuredSnapshotService.onVotesUpdated();
+      metrics.recordFunnelStep("community.vote");
+      metrics.recordFunnelStep("community.vote." + parsedVote.get().apiValue());
     } catch (CommunityVoteService.RateLimitExceededException e) {
       return Response.status(429).entity(Map.of("error", "daily_vote_limit_reached")).build();
     } catch (Exception e) {

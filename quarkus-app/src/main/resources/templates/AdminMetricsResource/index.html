@@ -70,6 +70,30 @@
     </div>
 
     <div class="card">
+      <h2 class="card-title">Funnel de producto</h2>
+      {#if data.funnelRows.isEmpty}
+      <p class="text-muted">Sin datos.</p>
+      {#else}
+      <table class="table" style="font-size: 0.9rem;">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Paso</th>
+            <th style="text-align: right;">Conteo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#for row in data.funnelRows}
+          <tr>
+            <td>{row.label}</td>
+            <td style="text-align: right;">{row.count}</td>
+          </tr>
+          {/for}
+        </tbody>
+      </table>
+      {/if}
+    </div>
+
+    <div class="card">
       <h2 class="card-title">Top Charlas</h2>
       {#if data.topTalks.isEmpty}
       <p class="text-muted">Sin datos.</p>

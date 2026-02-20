@@ -5,6 +5,7 @@ import com.scanales.eventflow.model.QuestProfile;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.CommunityService;
 import com.scanales.eventflow.service.QuestService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
 import io.quarkus.qute.Template;
 import jakarta.inject.Inject;
@@ -35,6 +36,9 @@ public class PublicProfileResource {
     @Inject
     UserProfileService userProfileService;
 
+    @Inject
+    UsageMetricsService metrics;
+
     @GET
     @Path("/{username}")
     @Produces(MediaType.TEXT_HTML)
@@ -49,6 +53,7 @@ public class PublicProfileResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         ResolvedPublicProfile resolved = resolvedOpt.get();
+        metrics.recordFunnelStep("profile.public.open");
 
         QuestProfile questProfile = questService.getProfile(resolved.userId());
 

@@ -10,6 +10,7 @@ import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.PersistenceService;
 import com.scanales.eventflow.service.SpeakerService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -42,6 +43,7 @@ public class CfpSubmissionApiResource {
   @Inject CfpConfigService cfpConfigService;
   @Inject PersistenceService persistenceService;
   @Inject SpeakerService speakerService;
+  @Inject UsageMetricsService metrics;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -70,6 +72,7 @@ public class CfpSubmissionApiResource {
                   request != null ? request.track() : null,
                   request != null ? request.tags() : null,
                   request != null ? request.links() : null));
+      metrics.recordFunnelStep("cfp.submission.create");
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status status =
@@ -333,6 +336,8 @@ public class CfpSubmissionApiResource {
       CfpSubmission updated =
           cfpSubmissionService.updateStatus(
               id, status.get(), currentUserId().orElse("admin"), request != null ? request.note() : null);
+      metrics.recordFunnelStep("cfp.submission.status");
+      metrics.recordFunnelStep("cfp.submission.status." + status.get().apiValue());
       return Response.ok(new SubmissionResponse(toView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();

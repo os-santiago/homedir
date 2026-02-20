@@ -50,6 +50,9 @@ public class AdminMetricsResource {
   public record DataHealth(String state, String css, String tooltip) {
   }
 
+  public record FunnelRow(String id, String label, long count) {
+  }
+
   @RegisterForReflection
   public record StatusPayload(String state, String css, String tooltip, String last, long hash) {
   }
@@ -82,6 +85,7 @@ public class AdminMetricsResource {
       String lastUpdateRel,
       long lastUpdateMillis,
       Map<String, Long> discards,
+      List<FunnelRow> funnelRows,
       UsageMetricsService.Config config,
       List<ConversionRow> topTalks,
       List<ConversionRow> topSpeakers,
@@ -216,6 +220,7 @@ public class AdminMetricsResource {
         data.lastUpdateRel(),
         data.lastUpdateMillis(),
         data.discards(),
+        data.funnelRows(),
         data.config(),
         talks,
         speakers,
@@ -658,6 +663,7 @@ public class AdminMetricsResource {
       }
     }
     long stageVisits = stageMap.values().stream().mapToLong(Long::longValue).sum();
+    List<FunnelRow> funnelRows = buildFunnelRows(snap);
 
     CtaData ctaData = buildCtaData(snap, start);
 
@@ -713,6 +719,7 @@ public class AdminMetricsResource {
         lastRel,
         last,
         summary.discarded(),
+        funnelRows,
         metrics.getConfig(),
         topTalks,
         topSpeakers,
@@ -744,6 +751,48 @@ public class AdminMetricsResource {
         ctaData,
         null,
         eventRows);
+  }
+
+  private static List<FunnelRow> buildFunnelRows(Map<String, Long> snap) {
+    List<FunnelRow> rows = new ArrayList<>();
+    rows.add(new FunnelRow("auth.login.callback", "Login callbacks", snap.getOrDefault("funnel:auth.login.callback", 0L)));
+    rows.add(new FunnelRow("community.vote", "Community votes", snap.getOrDefault("funnel:community.vote", 0L)));
+    rows.add(
+        new FunnelRow(
+            "community.submission.create",
+            "Community submissions",
+            snap.getOrDefault("funnel:community.submission.create", 0L)));
+    rows.add(
+        new FunnelRow(
+            "community.submission.approve",
+            "Community approvals",
+            snap.getOrDefault("funnel:community.submission.approve", 0L)));
+    rows.add(
+        new FunnelRow(
+            "community.submission.reject",
+            "Community rejects",
+            snap.getOrDefault("funnel:community.submission.reject", 0L)));
+    rows.add(
+        new FunnelRow(
+            "cfp.submission.create",
+            "CFP submissions",
+            snap.getOrDefault("funnel:cfp.submission.create", 0L)));
+    rows.add(
+        new FunnelRow(
+            "cfp.submission.status.accepted",
+            "CFP accepted",
+            snap.getOrDefault("funnel:cfp.submission.status.accepted", 0L)));
+    rows.add(
+        new FunnelRow(
+            "cfp.submission.status.rejected",
+            "CFP rejected",
+            snap.getOrDefault("funnel:cfp.submission.status.rejected", 0L)));
+    rows.add(
+        new FunnelRow(
+            "profile.public.open",
+            "Public profile opens",
+            snap.getOrDefault("funnel:profile.public.open", 0L)));
+    return rows;
   }
 
   private String formatAge(long lastMillis) {
