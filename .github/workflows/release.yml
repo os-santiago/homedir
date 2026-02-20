@@ -78,16 +78,16 @@ jobs:
           docker push $IMAGE_NAME:$TAG
 
       - name: Start SSH agent
-        if: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_USER != '' && secrets.DEPLOY_SSH_PRIVATE_KEY != '' }}
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY != '' && secrets.DEPLOY_SSH_PRIVATE_KEY || secrets.VPS_SSH_KEY }}
 
       - name: Prepare SSH known_hosts
-        if: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_USER != '' && secrets.DEPLOY_SSH_PRIVATE_KEY != '' }}
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
         env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST }}
-          DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_HOST || vars.VPS_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT != '' && vars.DEPLOY_SSH_PORT || vars.VPS_PORT }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
@@ -102,11 +102,11 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
 
       - name: Deploy to VPS via SSH
-        if: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_USER != '' && secrets.DEPLOY_SSH_PRIVATE_KEY != '' }}
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
         env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST }}
-          DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER }}
-          DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_HOST || vars.VPS_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER != '' && vars.DEPLOY_SSH_USER || vars.VPS_USER }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT != '' && vars.DEPLOY_SSH_PORT || vars.VPS_PORT }}
           RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
           DEPLOY_COMMAND: ${{ vars.DEPLOY_SSH_COMMAND }}
         run: |
@@ -116,7 +116,7 @@ jobs:
           ssh -p "$port" "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
 
       - name: Verify production healthcheck
-        if: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_USER != '' && secrets.DEPLOY_SSH_PRIVATE_KEY != '' }}
+        if: ${{ (vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '') }}
         env:
           HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
         run: |
@@ -133,6 +133,6 @@ jobs:
           exit 1
 
       - name: Deploy fallback notice
-        if: ${{ !(vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_USER != '' && secrets.DEPLOY_SSH_PRIVATE_KEY != '') }}
+        if: ${{ !((vars.DEPLOY_SSH_HOST != '' || vars.VPS_HOST != '') && (vars.DEPLOY_SSH_USER != '' || vars.VPS_USER != '') && (secrets.DEPLOY_SSH_PRIVATE_KEY != '' || secrets.VPS_SSH_KEY != '')) }}
         run: |
           echo "SSH deploy is not configured. Deployment will rely on homedir-auto-deploy.timer fallback on the VPS."
