@@ -38,6 +38,21 @@
     <p class="project-hd-metric-note">{i18n.project_dashboard_metric_contributions(dashboard.totalContributions)}</p>
   </article>
   <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_commits}</p>
+    <h2 class="project-hd-metric-value">{dashboard.totalCommits}</h2>
+    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_commits_note}</p>
+  </article>
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_lines}</p>
+    <h2 class="project-hd-metric-value">{dashboard.netLines}</h2>
+    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_lines_note}</p>
+  </article>
+  <article class="section-card project-hd-metric">
+    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_yearly_avg}</p>
+    <h2 class="project-hd-metric-value">{dashboard.yearlyAverageCommitsPerMonth}</h2>
+    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_yearly_avg_note}</p>
+  </article>
+  <article class="section-card project-hd-metric">
     <p class="project-hd-metric-label">{i18n.project_dashboard_metric_last_push}</p>
     <h2 class="project-hd-metric-value project-hd-metric-small">{dashboard.lastPushAgo}</h2>
     <p class="project-hd-metric-note">{i18n.project_dashboard_metric_last_push_note}</p>
@@ -66,6 +81,7 @@
       <span class="project-hd-status beta">{i18n.project_dashboard_status_beta} {dashboard.betaFeatures}</span>
       <span class="project-hd-status next">{i18n.project_dashboard_status_next} {dashboard.nextFeatures}</span>
     </div>
+    <p class="project-hd-roadmap-updated">{i18n.project_dashboard_roadmap_updated(dashboard.roadmapUpdatedAgo)}</p>
     <div class="project-hd-highlights">
       {#for h in dashboard.highlights}
       <div class="project-hd-highlight-item">
@@ -109,6 +125,24 @@
   </article>
 </section>
 
+<section class="page-grid project-hd-velocity-grid">
+  <div class="section-header project-hd-full">
+    <p class="section-subtitle">{i18n.project_dashboard_velocity_subtitle}</p>
+    <h2 class="page-title">{i18n.project_dashboard_velocity_title}</h2>
+  </div>
+  {#for v in dashboard.velocityWindows}
+  <article class="section-card project-hd-velocity-card">
+    <p class="project-hd-metric-label">{i18n.project_dashboard_velocity_period(v.months)}</p>
+    <h3>{v.commits}</h3>
+    <div class="project-hd-velocity-kpis">
+      <span>{i18n.project_dashboard_velocity_commits(v.commits)}</span>
+      <span>{i18n.project_dashboard_velocity_lines(v.linesChanged)}</span>
+      <span>{i18n.project_dashboard_velocity_monthly_avg(v.averageCommitsPerMonth)}</span>
+    </div>
+  </article>
+  {/for}
+</section>
+
 <section class="page-grid project-hd-features-grid">
   <div class="section-header project-hd-full">
     <p class="section-subtitle">{i18n.project_dashboard_features_subtitle}</p>
@@ -122,6 +156,27 @@
     </div>
     <p>{f.description}</p>
     <a href="{f.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n.project_dashboard_open}</a>
+  </article>
+  {/for}
+</section>
+
+<section class="page-grid project-hd-capabilities-grid">
+  <div class="section-header project-hd-full">
+    <p class="section-subtitle">{i18n.project_dashboard_capabilities_subtitle}</p>
+    <h2 class="page-title">{i18n.project_dashboard_capabilities_title}</h2>
+  </div>
+  {#for capability in dashboard.capabilities}
+  <article class="section-card project-hd-capability-card">
+    <div class="project-hd-feature-head">
+      <h3>{capability.title}</h3>
+    </div>
+    <p>{capability.description}</p>
+    <ul class="project-hd-capability-list">
+      {#for bullet in capability.bullets}
+      <li>{bullet}</li>
+      {/for}
+    </ul>
+    <a href="{capability.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n.project_dashboard_open}</a>
   </article>
   {/for}
 </section>
@@ -166,7 +221,7 @@
   }
 
   .project-hd-metrics-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 0.8rem;
     margin-bottom: 1.1rem;
   }
@@ -287,6 +342,12 @@
     gap: 0.6rem;
   }
 
+  .project-hd-roadmap-updated {
+    margin: 0 0 0.6rem;
+    font-size: 0.74rem;
+    opacity: 0.88;
+  }
+
   .project-hd-highlight-item {
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(0, 0, 0, 0.3);
@@ -363,6 +424,31 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.8rem;
     margin-bottom: 1.1rem;
+  }
+
+  .project-hd-velocity-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .project-hd-velocity-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .project-hd-velocity-card h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.2;
+  }
+
+  .project-hd-velocity-kpis {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.76rem;
+    opacity: 0.92;
   }
 
   .project-hd-full {
@@ -456,17 +542,39 @@
     opacity: 0.9;
   }
 
-  @media (max-width: 1200px) {
-    .project-hd-metrics-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+  .project-hd-capabilities-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.1rem;
+  }
 
+  .project-hd-capability-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .project-hd-capability-list {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    opacity: 0.92;
+  }
+
+  @media (max-width: 1200px) {
     .project-hd-panorama-grid {
       grid-template-columns: 1fr;
     }
 
+    .project-hd-velocity-grid,
     .project-hd-features-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .project-hd-capabilities-grid {
+      grid-template-columns: 1fr;
     }
 
     .project-hd-contributors-grid {
@@ -476,6 +584,7 @@
 
   @media (max-width: 760px) {
     .project-hd-metrics-grid,
+    .project-hd-velocity-grid,
     .project-hd-features-grid {
       grid-template-columns: 1fr;
     }

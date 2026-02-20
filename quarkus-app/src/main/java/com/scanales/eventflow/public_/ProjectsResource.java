@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -40,6 +41,8 @@ import org.jboss.logging.Logger;
 public class ProjectsResource {
   private static final Logger LOG = Logger.getLogger(ProjectsResource.class);
   private static final int MAX_RELEASES = 8;
+  private static final int MAX_TOP_CONTRIBUTORS = 8;
+  private static final int[] ACTIVITY_WINDOWS_MONTHS = new int[] {3, 6, 12};
   private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(6);
   private static final Duration DEFAULT_RETRY_INTERVAL = Duration.ofMinutes(15);
 
@@ -168,6 +171,7 @@ public class ProjectsResource {
     Instant startedAt = Instant.now();
     ProjectRepository repository = loadRepository();
     List<ProjectReleaseRaw> releases = loadReleases();
+    ProjectActivity activity = loadActivity();
     long durationMs = Duration.between(startedAt, Instant.now()).toMillis();
 
     ProjectSnapshot previous = snapshotCache.get();
@@ -176,19 +180,29 @@ public class ProjectsResource {
     ProjectRepository resolvedRepository = repository != null ? repository : previous.repository();
     List<ProjectReleaseRaw> resolvedReleases =
         !releases.isEmpty() ? List.copyOf(releases) : previous.releases();
-    boolean success = repository != null || !releases.isEmpty();
-    Instant loadedAt = success ? attemptedAt : previous.loadedAt();
+    ProjectActivity resolvedActivity = activity != null && activity.hasData() ? activity : previous.activity();
+    boolean coreDataReady = repository != null || !releases.isEmpty();
+    boolean activityDataReady = resolvedActivity.hasData();
+    boolean success = coreDataReady || activityDataReady;
+    Instant loadedAt = (success && activityDataReady) ? attemptedAt : previous.loadedAt();
 
     ProjectSnapshot updated =
         new ProjectSnapshot(
-            resolvedRepository, resolvedReleases, loadedAt, attemptedAt, durationMs, success);
+            resolvedRepository,
+            resolvedReleases,
+            resolvedActivity,
+            loadedAt,
+            attemptedAt,
+            durationMs,
+            success);
     snapshotCache.set(updated);
 
     if (success) {
       LOG.infov(
-          "Homedir project dashboard cache refreshed reason={0} releases={1} durationMs={2}",
+          "Homedir project dashboard cache refreshed reason={0} releases={1} activityReady={2} durationMs={3}",
           reason,
           resolvedReleases.size(),
+          activityDataReady,
           durationMs);
     } else {
       LOG.warnv(
@@ -273,6 +287,101 @@ public class ProjectsResource {
     }
   }
 
+  private ProjectActivity loadActivity() {
+    try {
+      HttpRequest request =
+          githubRequestBuilder(
+                  URI.create(
+                      "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/contributors"))
+              .GET()
+              .build();
+      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() == 202) {
+        LOG.infov("Homedir activity stats pending generation in GitHub cache");
+        return null;
+      }
+      if (response.statusCode() >= 400) {
+        LOG.warnf("Homedir activity fetch failed status=%d body=%s", response.statusCode(), response.body());
+        return null;
+      }
+      JsonNode root = mapper.readTree(response.body());
+      if (!root.isArray()) {
+        return null;
+      }
+
+      List<WeeklyActivity> weekly = new ArrayList<>();
+      long totalCommits = 0L;
+      long totalAdditions = 0L;
+      long totalDeletions = 0L;
+
+      for (JsonNode contributor : root) {
+        JsonNode weeks = contributor.path("weeks");
+        if (!weeks.isArray()) {
+          continue;
+        }
+        for (JsonNode week : weeks) {
+          long epochWeek = week.path("w").asLong(0L);
+          if (epochWeek <= 0L) {
+            continue;
+          }
+          long commits = Math.max(0L, week.path("c").asLong(0L));
+          long additions = Math.max(0L, week.path("a").asLong(0L));
+          long deletions = Math.abs(week.path("d").asLong(0L));
+          totalCommits += commits;
+          totalAdditions += additions;
+          totalDeletions += deletions;
+          weekly.add(
+              new WeeklyActivity(
+                  Instant.ofEpochSecond(epochWeek), commits, additions, deletions, additions + deletions));
+        }
+      }
+
+      if (weekly.isEmpty() && totalCommits == 0L && totalAdditions == 0L && totalDeletions == 0L) {
+        return null;
+      }
+
+      Instant now = Instant.now();
+      List<ProjectWindowActivity> windows =
+          List.of(
+              summarizeWindow(weekly, 3, now),
+              summarizeWindow(weekly, 6, now),
+              summarizeWindow(weekly, 12, now));
+      ProjectWindowActivity window12 = windows.get(2);
+      long yearlyMonthlyAverage = window12.averageCommitsPerMonth();
+      long linesChanged = totalAdditions + totalDeletions;
+      long netLines = Math.max(0L, totalAdditions - totalDeletions);
+
+      return new ProjectActivity(
+          totalCommits,
+          totalAdditions,
+          totalDeletions,
+          linesChanged,
+          netLines,
+          windows,
+          yearlyMonthlyAverage);
+    } catch (Exception e) {
+      LOG.warn("Homedir activity fetch failed", e);
+      return null;
+    }
+  }
+
+  private ProjectWindowActivity summarizeWindow(List<WeeklyActivity> weekly, int months, Instant now) {
+    Instant from = now.minus(months * 30L, ChronoUnit.DAYS);
+    long commits = 0L;
+    long linesChanged = 0L;
+    long netLines = 0L;
+    for (WeeklyActivity point : weekly) {
+      if (point.weekStart().isBefore(from)) {
+        continue;
+      }
+      commits += point.commits();
+      linesChanged += point.linesChanged();
+      netLines += point.additions() - point.deletions();
+    }
+    long avgCommitsPerMonth = Math.max(0L, Math.round(commits / (double) months));
+    return new ProjectWindowActivity(months, commits, linesChanged, Math.max(0L, netLines), avgCommitsPerMonth);
+  }
+
   private HttpRequest.Builder githubRequestBuilder(URI uri) {
     HttpRequest.Builder builder =
         HttpRequest.newBuilder(uri)
@@ -289,6 +398,7 @@ public class ProjectsResource {
   private ProjectDashboard buildDashboard(
       ProjectSnapshot snapshot, List<GithubContributor> contributors, AppMessages i18n) {
     List<ProjectFeature> features = defaultFeatures(i18n);
+    List<ProjectCapability> capabilities = defaultCapabilities(i18n);
     int liveFeatures = (int) features.stream().filter(feature -> "live".equals(feature.statusClass())).count();
     int betaFeatures = (int) features.stream().filter(feature -> "beta".equals(feature.statusClass())).count();
     int nextFeatures = (int) features.stream().filter(feature -> "next".equals(feature.statusClass())).count();
@@ -297,7 +407,7 @@ public class ProjectsResource {
     int maxProgress = Math.max(1, features.size() * 100);
     int progressPercent = Math.min(100, (int) Math.round((weightedProgress * 100d) / maxProgress));
 
-    List<GithubContributor> topContributors = contributors.stream().limit(8).toList();
+    List<GithubContributor> topContributors = contributors.stream().limit(MAX_TOP_CONTRIBUTORS).toList();
     int totalContributions = contributors.stream().mapToInt(GithubContributor::contributions).sum();
 
     List<ProjectRelease> releaseCards =
@@ -314,7 +424,13 @@ public class ProjectsResource {
 
     String latestRelease =
         releaseCards.isEmpty() ? i18n.project_dashboard_latest_release_none() : releaseCards.getFirst().label();
-    String latestReleaseAgo = releaseCards.isEmpty() ? i18n.project_dashboard_relative_na() : releaseCards.getFirst().publishedAgo();
+    String latestReleaseAgo =
+        releaseCards.isEmpty() ? i18n.project_dashboard_relative_na() : releaseCards.getFirst().publishedAgo();
+    Instant latestReleaseAt =
+        snapshot.releases().isEmpty() ? null : snapshot.releases().getFirst().publishedAt();
+    Instant roadmapSignalAt = latestOf(snapshot.repository().lastPushAt(), latestReleaseAt);
+    ProjectActivity activity = snapshot.activity();
+    List<ProjectWindowActivity> velocityWindows = activity.windowSummaries();
 
     List<ProjectHighlight> highlights =
         List.of(
@@ -341,12 +457,18 @@ public class ProjectsResource {
         nextFeatures,
         contributors.size(),
         totalContributions,
+        formatCompact(activity.totalCommits()),
+        formatCompact(activity.netLines()),
+        activity.yearlyAverageCommitsPerMonth(),
         latestRelease,
         latestReleaseAgo,
         relativeTime(snapshot.repository().lastPushAt(), i18n),
+        relativeTime(roadmapSignalAt, i18n),
         relativeTime(snapshot.loadedAt(), i18n),
         releaseCards,
         features,
+        capabilities,
+        velocityWindows,
         topContributors,
         highlights);
   }
@@ -360,23 +482,23 @@ public class ProjectsResource {
             "live",
             "/comunidad"),
         new ProjectFeature(
-            i18n.project_dashboard_feature_events_persistence_title(),
-            i18n.project_dashboard_feature_events_persistence_desc(),
-            i18n.project_dashboard_status_live(),
-            "live",
-            "/eventos"),
-        new ProjectFeature(
             i18n.project_dashboard_feature_home_highlights_title(),
             i18n.project_dashboard_feature_home_highlights_desc(),
             i18n.project_dashboard_status_live(),
             "live",
             "/"),
         new ProjectFeature(
+            i18n.project_dashboard_feature_events_persistence_title(),
+            i18n.project_dashboard_feature_events_persistence_desc(),
+            i18n.project_dashboard_status_live(),
+            "live",
+            "/eventos"),
+        new ProjectFeature(
             i18n.project_dashboard_feature_global_notifications_title(),
             i18n.project_dashboard_feature_global_notifications_desc(),
-            i18n.project_dashboard_status_beta(),
-            "beta",
-            "/notifications/center"),
+            i18n.project_dashboard_status_live(),
+            "live",
+            "/notifications"),
         new ProjectFeature(
             i18n.project_dashboard_feature_contributor_cache_title(),
             i18n.project_dashboard_feature_contributor_cache_desc(),
@@ -389,6 +511,62 @@ public class ProjectsResource {
             i18n.project_dashboard_status_next(),
             "next",
             "https://github.com/scanalesespinoza/adev"));
+  }
+
+  private List<ProjectCapability> defaultCapabilities(AppMessages i18n) {
+    return List.of(
+        new ProjectCapability(
+            i18n.project_dashboard_capability_platform_title(),
+            i18n.project_dashboard_capability_platform_desc(),
+            List.of(
+                i18n.project_dashboard_capability_platform_bullet_1(),
+                i18n.project_dashboard_capability_platform_bullet_2(),
+                i18n.project_dashboard_capability_platform_bullet_3()),
+            "/eventos"),
+        new ProjectCapability(
+            i18n.project_dashboard_capability_community_title(),
+            i18n.project_dashboard_capability_community_desc(),
+            List.of(
+                i18n.project_dashboard_capability_community_bullet_1(),
+                i18n.project_dashboard_capability_community_bullet_2(),
+                i18n.project_dashboard_capability_community_bullet_3()),
+            "/comunidad"),
+        new ProjectCapability(
+            i18n.project_dashboard_capability_reliability_title(),
+            i18n.project_dashboard_capability_reliability_desc(),
+            List.of(
+                i18n.project_dashboard_capability_reliability_bullet_1(),
+                i18n.project_dashboard_capability_reliability_bullet_2(),
+                i18n.project_dashboard_capability_reliability_bullet_3()),
+            "/proyectos"),
+        new ProjectCapability(
+            i18n.project_dashboard_capability_delivery_title(),
+            i18n.project_dashboard_capability_delivery_desc(),
+            List.of(
+                i18n.project_dashboard_capability_delivery_bullet_1(),
+                i18n.project_dashboard_capability_delivery_bullet_2(),
+                i18n.project_dashboard_capability_delivery_bullet_3()),
+            "https://github.com/os-santiago/homedir/releases"));
+  }
+
+  private Instant latestOf(Instant left, Instant right) {
+    if (left == null) {
+      return right;
+    }
+    if (right == null) {
+      return left;
+    }
+    return left.isAfter(right) ? left : right;
+  }
+
+  private String formatCompact(long value) {
+    if (value >= 1_000_000L) {
+      return String.format(Locale.US, "%.1fM", value / 1_000_000d);
+    }
+    if (value >= 1_000L) {
+      return String.format(Locale.US, "%.1fk", value / 1_000d);
+    }
+    return Long.toString(value);
   }
 
   private Instant parseInstant(String raw) {
@@ -458,12 +636,18 @@ public class ProjectsResource {
       int nextFeatures,
       int contributorCount,
       int totalContributions,
+      String totalCommits,
+      String netLines,
+      long yearlyAverageCommitsPerMonth,
       String latestRelease,
       String latestReleaseAgo,
       String lastPushAgo,
+      String roadmapUpdatedAgo,
       String snapshotAgo,
       List<ProjectRelease> releases,
       List<ProjectFeature> features,
+      List<ProjectCapability> capabilities,
+      List<ProjectWindowActivity> velocityWindows,
       List<GithubContributor> topContributors,
       List<ProjectHighlight> highlights) {
   }
@@ -514,6 +698,55 @@ public class ProjectsResource {
       String href) {
   }
 
+  public record ProjectCapability(
+      String title,
+      String description,
+      List<String> bullets,
+      String href) {
+  }
+
+  public record ProjectWindowActivity(
+      int months,
+      long commits,
+      long linesChanged,
+      long netLines,
+      long averageCommitsPerMonth) {
+  }
+
+  private record WeeklyActivity(
+      Instant weekStart,
+      long commits,
+      long additions,
+      long deletions,
+      long linesChanged) {
+  }
+
+  private record ProjectActivity(
+      long totalCommits,
+      long totalAdditions,
+      long totalDeletions,
+      long totalLinesChanged,
+      long netLines,
+      List<ProjectWindowActivity> windowSummaries,
+      long yearlyAverageCommitsPerMonth) {
+
+    boolean hasData() {
+      return totalCommits > 0L || totalLinesChanged > 0L;
+    }
+
+    static ProjectActivity empty() {
+      return new ProjectActivity(0L, 0L, 0L, 0L, 0L, defaultWindows(), 0L);
+    }
+
+    private static List<ProjectWindowActivity> defaultWindows() {
+      List<ProjectWindowActivity> empty = new ArrayList<>();
+      for (int months : ACTIVITY_WINDOWS_MONTHS) {
+        empty.add(new ProjectWindowActivity(months, 0L, 0L, 0L, 0L));
+      }
+      return List.copyOf(empty);
+    }
+  }
+
   public record ProjectHighlight(
       String title,
       String value,
@@ -523,12 +756,13 @@ public class ProjectsResource {
   private record ProjectSnapshot(
       ProjectRepository repository,
       List<ProjectReleaseRaw> releases,
+      ProjectActivity activity,
       Instant loadedAt,
       Instant lastAttemptAt,
       long loadDurationMs,
       boolean lastAttemptSucceeded) {
     static ProjectSnapshot empty() {
-      return new ProjectSnapshot(ProjectRepository.empty(), List.of(), null, null, 0L, false);
+      return new ProjectSnapshot(ProjectRepository.empty(), List.of(), ProjectActivity.empty(), null, null, 0L, false);
     }
   }
 }

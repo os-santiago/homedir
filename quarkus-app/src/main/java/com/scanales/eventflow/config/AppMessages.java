@@ -558,6 +558,24 @@ public interface AppMessages {
     @Message("Latest release")
     String project_dashboard_metric_latest_release();
 
+    @Message("Commits")
+    String project_dashboard_metric_commits();
+
+    @Message("Total commits in repository history")
+    String project_dashboard_metric_commits_note();
+
+    @Message("Lines")
+    String project_dashboard_metric_lines();
+
+    @Message("Approximate net lines in default branch history")
+    String project_dashboard_metric_lines_note();
+
+    @Message("Avg monthly activity (12m)")
+    String project_dashboard_metric_yearly_avg();
+
+    @Message("Average commits per month over the last 12 months")
+    String project_dashboard_metric_yearly_avg_note();
+
     @Message("Progress")
     String project_dashboard_progress_subtitle();
 
@@ -575,6 +593,9 @@ public interface AppMessages {
 
     @Message("Snapshot updated {ago}")
     String project_dashboard_snapshot_updated(String ago);
+
+    @Message("Roadmap updated {ago}")
+    String project_dashboard_roadmap_updated(String ago);
 
     @Message("Releases")
     String project_dashboard_releases_subtitle();
@@ -674,6 +695,90 @@ public interface AppMessages {
 
     @Message("Formalize the ADev baseline as operating guidance for upcoming cycles.")
     String project_dashboard_feature_adev_playbook_desc();
+
+    @Message("Activity windows")
+    String project_dashboard_velocity_subtitle();
+
+    @Message("Delivery velocity")
+    String project_dashboard_velocity_title();
+
+    @Message("Last {months} months")
+    String project_dashboard_velocity_period(int months);
+
+    @Message("{commits} commits")
+    String project_dashboard_velocity_commits(long commits);
+
+    @Message("{lines} lines changed")
+    String project_dashboard_velocity_lines(long lines);
+
+    @Message("{avg} commits/month avg")
+    String project_dashboard_velocity_monthly_avg(long avg);
+
+    @Message("Technical capabilities")
+    String project_dashboard_capabilities_subtitle();
+
+    @Message("Homedir modules")
+    String project_dashboard_capabilities_title();
+
+    @Message("Community Intelligence")
+    String project_dashboard_capability_community_title();
+
+    @Message("Curated content workflows for discovery, curation, and moderation.")
+    String project_dashboard_capability_community_desc();
+
+    @Message("File-based ingest with resilient parser and cache")
+    String project_dashboard_capability_community_bullet_1();
+
+    @Message("Three-state voting and featured ranking pipeline")
+    String project_dashboard_capability_community_bullet_2();
+
+    @Message("Member submissions with moderation queue")
+    String project_dashboard_capability_community_bullet_3();
+
+    @Message("Event Platform")
+    String project_dashboard_capability_platform_title();
+
+    @Message("Complete event lifecycle from listing to CFP workflows.")
+    String project_dashboard_capability_platform_desc();
+
+    @Message("Event catalog, detail pages and scenario agenda")
+    String project_dashboard_capability_platform_bullet_1();
+
+    @Message("Call for Papers forms with validation and quota rules")
+    String project_dashboard_capability_platform_bullet_2();
+
+    @Message("Admin moderation with weighted scoring and CSV export")
+    String project_dashboard_capability_platform_bullet_3();
+
+    @Message("Reliability & Persistence")
+    String project_dashboard_capability_reliability_title();
+
+    @Message("Asynchronous persistence hardened for restart-safe operations.")
+    String project_dashboard_capability_reliability_desc();
+
+    @Message("Atomic writes, schema versioning, and recovery snapshots")
+    String project_dashboard_capability_reliability_bullet_1();
+
+    @Message("Periodic backups with rotation for durable storage")
+    String project_dashboard_capability_reliability_bullet_2();
+
+    @Message("Cached GitHub/Discord integrations to protect backend limits")
+    String project_dashboard_capability_reliability_bullet_3();
+
+    @Message("Delivery & Operations")
+    String project_dashboard_capability_delivery_title();
+
+    @Message("Production pipeline focused on continuous release confidence.")
+    String project_dashboard_capability_delivery_desc();
+
+    @Message("Auto release tagging and container publish to Quay")
+    String project_dashboard_capability_delivery_bullet_1();
+
+    @Message("Webhook-driven VPS deployment with rollback path")
+    String project_dashboard_capability_delivery_bullet_2();
+
+    @Message("Observability signals for performance and stability iteration")
+    String project_dashboard_capability_delivery_bullet_3();
 
     @Message("n/a")
     String project_dashboard_relative_na();
