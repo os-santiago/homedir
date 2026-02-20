@@ -1,6 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.model.CommunityMember;
+import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.QuestProfile;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.CommunityService;
@@ -56,8 +57,11 @@ public class PublicProfileResource {
         metrics.recordFunnelStep("profile.public.open");
 
         QuestProfile questProfile = questService.getProfile(resolved.userId());
+        UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
+        QuestClass dominantClass = profile != null ? profile.getDominantQuestClass() : null;
 
-        String questClassEmoji = "🌱";
+        String questClassEmoji = dominantClass != null ? dominantClass.getEmoji() : "🌱";
+        String questClassLabel = dominantClass != null ? dominantClass.getDisplayName() : "Novice";
         int questsCompleted = questProfile.history != null ? questProfile.history.size() : 0;
         long xpPercentage = 0;
         if (questProfile.nextLevelXp > 0) {
@@ -77,7 +81,7 @@ public class PublicProfileResource {
             .data("currentXp", questProfile.currentXp)
             .data("nextLevelXp", questProfile.nextLevelXp)
             .data("xpPercentage", xpPercentage)
-            .data("questClass", "Novice")
+            .data("questClass", questClassLabel)
             .data("questClassEmoji", questClassEmoji)
             .data("questsCompleted", questsCompleted)
             .data("badges", badges)

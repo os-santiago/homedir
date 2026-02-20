@@ -3,9 +3,12 @@ package com.scanales.eventflow.public_;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.config.AppMessages;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
+import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.scheduler.Scheduled;
@@ -55,6 +58,7 @@ public class ProjectsResource {
       Pattern.compile("[?&]page=(\\d+)>;\\s*rel=\\\"last\\\"");
 
   @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
   @Inject SecurityIdentity identity;
   @Inject ObjectMapper mapper;
   @Inject Config config;
@@ -129,12 +133,28 @@ public class ProjectsResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/proyectos", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.PROJECT_VIEW));
 
     ProjectSnapshot snapshot = currentSnapshot();
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     ProjectDashboard dashboard = buildDashboard(snapshot, contributors, messages);
     TemplateInstance template = Templates.proyectos(dashboard);
     return withLayoutData(template, "proyectos");
+  }
+
+  private java.util.Optional<String> currentUserId() {
+    if (identity == null || identity.isAnonymous()) {
+      return java.util.Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return java.util.Optional.of(email.toLowerCase(Locale.ROOT));
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal != null && !principal.isBlank()) {
+      return java.util.Optional.of(principal.toLowerCase(Locale.ROOT));
+    }
+    return java.util.Optional.empty();
   }
 
   private ProjectSnapshot currentSnapshot() {

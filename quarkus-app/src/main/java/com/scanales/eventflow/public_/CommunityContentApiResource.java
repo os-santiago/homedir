@@ -10,6 +10,8 @@ import com.scanales.eventflow.community.CommunityScoreCalculator;
 import com.scanales.eventflow.community.CommunityVoteAggregate;
 import com.scanales.eventflow.community.CommunityVoteService;
 import com.scanales.eventflow.community.CommunityVoteType;
+import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.Authenticated;
@@ -42,6 +44,7 @@ public class CommunityContentApiResource {
   @Inject CommunityVoteService voteService;
   @Inject CommunityFeaturedSnapshotService featuredSnapshotService;
   @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
   @Inject SecurityIdentity identity;
 
   @ConfigProperty(name = "community.content.ranking.decay-enabled", defaultValue = "true")
@@ -61,6 +64,9 @@ public class CommunityContentApiResource {
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
 
     String userId = currentUserId().orElse(null);
+    if (userId != null && !userId.isBlank()) {
+      gamificationService.award(userId, GamificationActivity.COMMUNITY_REVIEW, view + ":" + filter.apiValue);
+    }
     long userVoteCount = userId == null || userId.isBlank() ? 0L : voteService.countVotesByUser(userId);
     List<ContentItemResponse> items;
     int total;
@@ -180,7 +186,9 @@ public class CommunityContentApiResource {
       voteService.upsertVote(userId.get(), id, parsedVote.get());
       featuredSnapshotService.onVotesUpdated();
       metrics.recordFunnelStep("community.vote");
+      metrics.recordFunnelStep("community_vote");
       metrics.recordFunnelStep("community.vote." + parsedVote.get().apiValue());
+      gamificationService.award(userId.get(), GamificationActivity.COMMUNITY_VOTE);
     } catch (CommunityVoteService.RateLimitExceededException e) {
       return Response.status(429).entity(Map.of("error", "daily_vote_limit_reached")).build();
     } catch (Exception e) {

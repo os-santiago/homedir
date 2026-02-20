@@ -75,11 +75,18 @@ public class UserProfileService {
   }
 
   public UserProfile addXp(String userId, int amount, String reason) {
+    return addXp(userId, amount, reason, null);
+  }
+
+  public UserProfile addXp(String userId, int amount, String reason, QuestClass questClass) {
     if (userId == null)
       return null;
-    UserProfile profile = find(userId).orElse(null);
-    if (profile != null) {
-      profile.setCurrentXp(profile.getCurrentXp() + amount);
+    UserProfile profile = find(userId).orElseGet(() -> upsert(userId, userId, userId));
+    if (profile != null && amount != 0) {
+      profile.setCurrentXp(Math.max(0, profile.getCurrentXp() + amount));
+      if (amount > 0 && questClass != null) {
+        profile.addClassXp(questClass, amount);
+      }
       profile.addHistoryItem(
           new UserProfile.QuestHistoryItem(reason, amount, java.time.LocalDate.now().toString()));
       persist();

@@ -199,39 +199,59 @@
                     <p class="hd-page-intro">{i18n.identity_intro}</p>
                 </div>
             </div>
+            {#if dominantClass}
+            <p class="hd-page-intro">{i18n.profile_dominant_class(dominantClass.displayName)}</p>
+            {/if}
+            <div class="hd-grid-classes hd-grid-classes-layout">
+                {#for cls in classProgress}
+                <article class="hd-card hd-class-option {#if cls.dominant}selected{/if}">
+                    <div class="class-emoji">
+                        {#switch cls.value}
+                        {#case 'ENGINEER'}<span class="material-symbols-outlined">engineering</span>{/case}
+                        {#case 'SCIENTIST'}<span class="material-symbols-outlined">science</span>{/case}
+                        {#case 'WARRIOR'}<span class="material-symbols-outlined">security</span>{/case}
+                        {#case 'MAGE'}<span class="material-symbols-outlined">auto_fix_high</span>{/case}
+                        {#else}{cls.emoji}{/else}
+                        {/switch}
+                    </div>
+                    <h3 class="class-title">{cls.displayName}</h3>
+                    <p class="class-desc">{cls.description}</p>
+                    <p class="class-xp-meta">{i18n.profile_class_xp_level(cls.xp, cls.level, cls.percentage)}</p>
+                    <div class="progress-bar-container class-progress-bar">
+                        <div class="progress-bar-fill" style="--xp-percent: {cls.percentage}%"></div>
+                    </div>
+                </article>
+                {/for}
+            </div>
 
-            <form action="/private/profile/update-class" method="POST" class="profile-class-form">
-                <div class="hd-grid-classes hd-grid-classes-layout">
-                    {#for opt in classOptions}
-                    <label class="hd-card hd-class-option {#if opt.checked}selected{/if} hd-card-option-label">
-                        <input type="radio" name="questClass" value="{opt.value}" class="hd-radio-input" {#if
-                            opt.checked}checked{/if}>
-                        <div class="class-emoji">
-                            {#switch opt.value}
-                            {#case 'ENGINEER'}<span class="material-symbols-outlined">engineering</span>{/case}
-                            {#case 'SCIENTIST'}<span class="material-symbols-outlined">science</span>{/case}
-                            {#case 'WARRIOR'}<span class="material-symbols-outlined">security</span>{/case}
-                            {#case 'MAGE'}<span class="material-symbols-outlined">auto_fix_high</span>{/case}
-                            {#else}{opt.emoji}{/else}
-                            {/switch}
-                        </div>
-                        <h3 class="class-title">{opt.displayName}</h3>
-                        <p class="class-desc">{opt.description}</p>
-                    </label>
-                    {/for}
+            <div class="hd-dashboard-header class-map-header">
+                <div>
+                    <h3 class="hd-section-subtitle">{i18n.profile_activity_map_title}</h3>
+                    <p class="hd-page-intro">{i18n.profile_activity_map_intro}</p>
                 </div>
-                <div class="form-actions-centered">
-                    <button type="submit" class="hd-btn hd-btn-primary">{i18n.btn_save_class}</button>
+            </div>
+            <div class="hd-grid-details activity-class-map">
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n.profile_activity_col_activity}</span>
                 </div>
-            </form>
-            <script>
-                document.addEventListener('change', function (e) {
-                    if (e.target.name === 'questClass' && e.target.classList.contains('hd-radio-input')) {
-                        document.querySelectorAll('.hd-class-option').forEach(el => el.classList.remove('selected'));
-                        e.target.closest('.hd-class-option').classList.add('selected');
-                    }
-                });
-            </script>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n.profile_activity_col_examples}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n.profile_activity_col_class}</span>
+                </div>
+                {#for row in activityClassMap}
+                <div class="hd-detail-item">
+                    <span class="hd-detail-value">{row.category}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-value">{row.examples}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-value">{row.className}</span>
+                </div>
+                {/for}
+            </div>
         </section>
 
         <section class="hd-panel centered">
@@ -339,6 +359,34 @@
         <!-- TODO: ajustar colores/espaciados exactos según maqueta Canva -->
     </div>
 </section>
+
+<style>
+    .class-xp-meta {
+        margin: 0.5rem 0 0.4rem;
+        font-size: 0.82rem;
+        opacity: 0.88;
+    }
+
+    .class-progress-bar {
+        margin-top: 0.25rem;
+    }
+
+    .class-map-header {
+        margin-top: 1.1rem;
+    }
+
+    .activity-class-map {
+        display: grid;
+        grid-template-columns: 1.1fr 1.8fr 0.9fr;
+        gap: 0.45rem;
+    }
+
+    @media (max-width: 900px) {
+        .activity-class-map {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
 <script>
     function shareProfile(handle) {

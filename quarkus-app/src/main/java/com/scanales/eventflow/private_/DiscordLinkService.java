@@ -2,8 +2,10 @@ package com.scanales.eventflow.private_;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.security.RedirectSanitizer;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -31,6 +33,7 @@ public class DiscordLinkService {
   private static final String DISCORD_USER_GUILDS_URL = "https://discord.com/api/users/@me/guilds";
 
   @Inject UserProfileService profiles;
+  @Inject GamificationService gamificationService;
   @Inject com.scanales.eventflow.community.CommunityBoardService boardService;
   @Inject ObjectMapper objectMapper;
 
@@ -153,6 +156,7 @@ public class DiscordLinkService {
           email,
           new UserProfile.DiscordAccount(
               user.id(), user.handle(), "https://discord.com/users/" + url(user.id()), user.avatarUrl(), Instant.now()));
+      gamificationService.award(userId, GamificationActivity.DISCORD_LINKED);
       boardService.requestRefresh("discord-oauth-claim");
       return redirectWithParams(target, "discordLinked", "1");
     } catch (Exception e) {

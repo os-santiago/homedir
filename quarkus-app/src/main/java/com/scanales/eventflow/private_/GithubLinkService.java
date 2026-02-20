@@ -1,6 +1,8 @@
 package com.scanales.eventflow.private_;
 
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.AdminUtils;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -24,6 +26,8 @@ public class GithubLinkService {
 
   @Inject
   UserProfileService profiles;
+  @Inject
+  GamificationService gamificationService;
 
   @Inject
   com.scanales.eventflow.service.GithubService githubService;
@@ -109,6 +113,7 @@ public class GithubLinkService {
           name,
           email,
           new UserProfile.GithubAccount(login, htmlUrl, avatarUrl, ghId, Instant.now()));
+      gamificationService.award(userId, GamificationActivity.GITHUB_LINKED);
 
       String target = redirectCookie != null ? redirectCookie.getValue() : "/private/profile";
       String sep = target.contains("?") ? "&" : "?";

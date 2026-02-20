@@ -123,6 +123,51 @@ public interface AppMessages {
     @Message("Experience: {current} XP / {total} XP")
     String resume_exp(int current, int total);
 
+    @Message("Most active class: {className}")
+    String profile_dominant_class(String className);
+
+    @Message("{xp} XP · Level {level} · {percent}% of your profile momentum")
+    String profile_class_xp_level(int xp, int level, int percent);
+
+    @Message("Activity to class map")
+    String profile_activity_map_title();
+
+    @Message("Your actions distribute XP across classes. Focus where you want to grow.")
+    String profile_activity_map_intro();
+
+    @Message("Activity")
+    String profile_activity_col_activity();
+
+    @Message("Examples")
+    String profile_activity_col_examples();
+
+    @Message("Class")
+    String profile_activity_col_class();
+
+    @Message("Community curation")
+    String profile_activity_category_curation();
+
+    @Message("Vote picks, propose content, curate signal")
+    String profile_activity_examples_curation();
+
+    @Message("Events and CFP")
+    String profile_activity_category_events();
+
+    @Message("Open agendas, submit CFP, evaluate sessions")
+    String profile_activity_examples_events();
+
+    @Message("Project contribution")
+    String profile_activity_category_project();
+
+    @Message("Browse project insights, delivery and commits")
+    String profile_activity_examples_project();
+
+    @Message("Connection and consistency")
+    String profile_activity_category_connect();
+
+    @Message("Daily check-in, link GitHub, link Discord")
+    String profile_activity_examples_connect();
+
     @Message("{count} active initiatives and open collaborations.")
     String community_initiatives(int count);
 

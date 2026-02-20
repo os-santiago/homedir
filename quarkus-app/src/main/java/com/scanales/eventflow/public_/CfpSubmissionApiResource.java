@@ -6,8 +6,10 @@ import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpConfigService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
+import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.PersistenceService;
 import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.service.UsageMetricsService;
@@ -44,6 +46,7 @@ public class CfpSubmissionApiResource {
   @Inject PersistenceService persistenceService;
   @Inject SpeakerService speakerService;
   @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -73,6 +76,8 @@ public class CfpSubmissionApiResource {
                   request != null ? request.tags() : null,
                   request != null ? request.links() : null));
       metrics.recordFunnelStep("cfp.submission.create");
+      metrics.recordFunnelStep("cfp_submit");
+      gamificationService.award(primaryUserId, GamificationActivity.CFP_SUBMIT, eventId);
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status status =
@@ -338,6 +343,10 @@ public class CfpSubmissionApiResource {
               id, status.get(), currentUserId().orElse("admin"), request != null ? request.note() : null);
       metrics.recordFunnelStep("cfp.submission.status");
       metrics.recordFunnelStep("cfp.submission.status." + status.get().apiValue());
+      if (status.get() == CfpSubmissionStatus.ACCEPTED) {
+        metrics.recordFunnelStep("cfp_approved");
+        gamificationService.award(updated.proposerUserId(), GamificationActivity.CFP_ACCEPTED, updated.id());
+      }
       return Response.ok(new SubmissionResponse(toView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
