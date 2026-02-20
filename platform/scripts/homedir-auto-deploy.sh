@@ -16,6 +16,7 @@ fi
 
 IMAGE_REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
 UPDATE_SCRIPT="${UPDATE_SCRIPT:-/usr/local/bin/homedir-update.sh}"
+ALERT_SCRIPT="${ALERT_SCRIPT:-/usr/local/bin/homedir-discord-alert.sh}"
 AUTO_LOGFILE="${AUTO_DEPLOY_LOGFILE:-/var/log/homedir-auto-deploy.log}"
 AUTO_DEPLOY_TAG_LIMIT="${AUTO_DEPLOY_TAG_LIMIT:-100}"
 AUTO_DEPLOY_TIMEOUT_SECONDS="${AUTO_DEPLOY_TIMEOUT_SECONDS:-15}"
@@ -25,8 +26,22 @@ log() {
   echo "$(date -Iseconds): $*" >> "$AUTO_LOGFILE"
 }
 
+notify_alert() {
+  local severity="$1"
+  local title="$2"
+  local message="$3"
+  local details="${4:-}"
+  if [[ -x "$ALERT_SCRIPT" ]]; then
+    "$ALERT_SCRIPT" "$severity" "$title" "$message" "$details" >/dev/null 2>&1 || true
+  fi
+}
+
 if [[ ! "$IMAGE_REPO" =~ ^quay\.io/([^/]+)/([^/:]+)$ ]]; then
   log "invalid IMAGE_REPO format: ${IMAGE_REPO}"
+  notify_alert "FAIL" \
+    "Auto-deploy configuration error" \
+    "Invalid IMAGE_REPO format" \
+    "IMAGE_REPO=${IMAGE_REPO}"
   exit 1
 fi
 
@@ -79,6 +94,10 @@ latest_digest="$(awk '{print $2}' <<<"$resolved_tag_info")"
 
 if [[ -z "${latest_tag:-}" ]]; then
   log "no semver tag resolved for repo=${IMAGE_REPO}"
+  notify_alert "WARN" \
+    "Auto-deploy warning" \
+    "No semver tag resolved from registry" \
+    "repo=${IMAGE_REPO}"
   exit 1
 fi
 
@@ -104,10 +123,22 @@ if [[ "${current_tag:-}" == "$latest_tag" ]]; then
 fi
 
 log "detected new tag current_tag=${current_tag:-none} latest_tag=${latest_tag}"
-if "$UPDATE_SCRIPT" "$latest_tag"; then
+notify_alert "WARN" \
+  "Auto-deploy triggered fallback" \
+  "New image tag detected by polling fallback" \
+  "current=${current_tag:-none} latest=${latest_tag}"
+if DEPLOY_TRIGGER=auto-deploy "$UPDATE_SCRIPT" "$latest_tag"; then
   log "auto-deploy success tag=${latest_tag}"
+  notify_alert "RECOVERY" \
+    "Auto-deploy completed" \
+    "Fallback deploy applied successfully" \
+    "tag=${latest_tag}"
   exit 0
 fi
 
 log "auto-deploy failed tag=${latest_tag}"
+notify_alert "FAIL" \
+  "Auto-deploy failed" \
+  "Fallback deploy could not be applied" \
+  "tag=${latest_tag}"
 exit 1

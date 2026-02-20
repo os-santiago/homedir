@@ -24,6 +24,8 @@ REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
 IMAGE="${REPO}:${TAG}"
 LOGFILE="${LOGFILE:-/var/log/homedir-update.log}"
 CONTAINER="${CONTAINER_NAME:-homedir}"
+DEPLOY_TRIGGER="${DEPLOY_TRIGGER:-manual}"
+ALERT_SCRIPT="${ALERT_SCRIPT:-/usr/local/bin/homedir-discord-alert.sh}"
 HOST_PORT="${HOST_PORT:-8080}"
 CONTAINER_PORT="${CONTAINER_PORT:-8080}"
 DATA_VOLUME="${DATA_VOLUME:-/work/data:/work/data:Z}"
@@ -44,6 +46,16 @@ JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS#"${JAVA_TOOL_OPTIONS%%[![:space:]]*}"}"
 
 log() {
   echo "$(date -Iseconds): $*" >> "$LOGFILE"
+}
+
+notify_alert() {
+  local severity="$1"
+  local title="$2"
+  local message="$3"
+  local details="${4:-}"
+  if [[ -x "$ALERT_SCRIPT" ]]; then
+    "$ALERT_SCRIPT" "$severity" "$title" "$message" "$details" >/dev/null 2>&1 || true
+  fi
 }
 
 prepare_community_storage() {
@@ -69,6 +81,10 @@ prepare_community_storage() {
 
 if ! mkdir "$LOCKDIR" 2>/dev/null; then
   log "another update is already running; skipping tag=${TAG}"
+  notify_alert "WARN" \
+    "HomeDir update skipped (${DEPLOY_TRIGGER})" \
+    "Another update is already running" \
+    "tag=${TAG}"
   exit 0
 fi
 cleanup_lock() {
@@ -120,6 +136,10 @@ fi
 
 if ! podman pull "$IMAGE" >>"$LOGFILE" 2>&1; then
   log "failed to pull ${IMAGE}"
+  notify_alert "FAIL" \
+    "HomeDir deploy failed (${DEPLOY_TRIGGER})" \
+    "Image pull failed for ${IMAGE}" \
+    "tag=${TAG}"
   exit 1
 fi
 
@@ -128,6 +148,10 @@ log "pulled ${IMAGE} digest=${new_digest}"
 
 if [[ -n "${current_digest:-}" && -n "${new_digest:-}" && "${current_digest}" == "${new_digest}" ]]; then
   log "current digest already matches ${new_digest}; skipping restart"
+  notify_alert "WARN" \
+    "HomeDir deploy skipped (${DEPLOY_TRIGGER})" \
+    "Current container already matches target digest" \
+    "tag=${TAG} digest=${new_digest}"
   exit 0
 fi
 
@@ -138,19 +162,35 @@ fi
 
 if start_container "$IMAGE"; then
   log "deployed ${IMAGE} (digest ${new_digest})"
+  notify_alert "RECOVERY" \
+    "HomeDir deployed (${DEPLOY_TRIGGER})" \
+    "Service running with ${IMAGE}" \
+    "tag=${TAG} digest=${new_digest}"
   exit 0
 fi
 
 log "deploy failed for ${IMAGE}"
+notify_alert "FAIL" \
+  "HomeDir deploy failed (${DEPLOY_TRIGGER})" \
+  "Container restart failed for ${IMAGE}" \
+  "tag=${TAG}"
 
 if [[ -n "$prev_image" ]]; then
   log "attempting rollback to ${prev_image}"
   podman rm -f "$CONTAINER" >>"$LOGFILE" 2>&1 || true
   if start_container "$prev_image"; then
     log "rollback succeeded using ${prev_image}"
+    notify_alert "RECOVERY" \
+      "HomeDir rollback succeeded (${DEPLOY_TRIGGER})" \
+      "Recovered service using previous image" \
+      "previous=${prev_image}"
     exit 0
   else
     log "rollback failed for ${prev_image}"
+    notify_alert "FAIL" \
+      "HomeDir rollback failed (${DEPLOY_TRIGGER})" \
+      "Rollback container could not start" \
+      "previous=${prev_image}"
   fi
 fi
 
