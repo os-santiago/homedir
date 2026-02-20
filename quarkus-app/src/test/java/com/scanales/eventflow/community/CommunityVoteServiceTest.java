@@ -52,4 +52,15 @@ public class CommunityVoteServiceTest {
     assertEquals(1L, second.recommended());
     assertEquals(1L, second.mustSee());
   }
+
+  @Test
+  void countsVotesByUserAcrossDistinctContent() {
+    String userId = "counter@example.com";
+
+    voteService.upsertVote(userId, "item-1", CommunityVoteType.RECOMMENDED);
+    voteService.upsertVote(userId, "item-2", CommunityVoteType.MUST_SEE);
+    voteService.upsertVote(userId, "item-2", CommunityVoteType.NOT_FOR_ME);
+
+    assertEquals(2L, voteService.countVotesByUser(userId));
+  }
 }

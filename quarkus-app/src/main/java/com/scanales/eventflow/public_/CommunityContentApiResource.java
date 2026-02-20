@@ -61,6 +61,7 @@ public class CommunityContentApiResource {
     int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
 
     String userId = currentUserId().orElse(null);
+    long userVoteCount = userId == null || userId.isBlank() ? 0L : voteService.countVotesByUser(userId);
     List<ContentItemResponse> items;
     int total;
     if ("new".equals(view)) {
@@ -128,7 +129,15 @@ public class CommunityContentApiResource {
 
     return Response.ok(
             new ContentListResponse(
-                view, filter.apiValue, mediaFilter, limit, offset, total, items, cacheMeta))
+                view,
+                filter.apiValue,
+                mediaFilter,
+                limit,
+                offset,
+                total,
+                userVoteCount,
+                items,
+                cacheMeta))
         .build();
   }
 
@@ -316,6 +325,7 @@ public class CommunityContentApiResource {
       int limit,
       int offset,
       int total,
+      @JsonProperty("user_vote_count") long userVoteCount,
       List<ContentItemResponse> items,
       CacheMeta cache) {
   }

@@ -210,4 +210,32 @@ public class CommunityContentApiResourceTest {
         .body("items.find { it.id == 'java-item-1' }.vote_counts.recommended", equalTo(1))
         .body("items.find { it.id == 'java-item-1' }.my_vote", equalTo("recommended"));
   }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  void listIncludesUserVoteCount() {
+    given()
+        .contentType("application/json")
+        .body("{\"vote\":\"recommended\"}")
+        .when()
+        .put("/api/community/content/java-item-1/vote")
+        .then()
+        .statusCode(200);
+
+    given()
+        .contentType("application/json")
+        .body("{\"vote\":\"must_see\"}")
+        .when()
+        .put("/api/community/content/devops-item-2/vote")
+        .then()
+        .statusCode(200);
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/community/content?view=featured&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("user_vote_count", equalTo(2));
+  }
 }

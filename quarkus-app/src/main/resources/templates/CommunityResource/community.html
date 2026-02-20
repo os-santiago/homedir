@@ -54,8 +54,26 @@
         data-i18n-preview-play="{i18n.community_js_preview_play}"
         data-i18n-preview-hide="{i18n.community_js_preview_hide}"
         data-i18n-open-source="{i18n.community_js_open_source}"
-        data-i18n-preview-unavailable="{i18n.community_js_preview_unavailable}">
+        data-i18n-preview-unavailable="{i18n.community_js_preview_unavailable}"
+        data-i18n-cta-vote-title="{i18n.community_js_cta_vote_title}"
+        data-i18n-cta-vote-start="{i18n.community_js_cta_vote_start}"
+        data-i18n-cta-vote-progress="{i18n.community_js_cta_vote_progress}"
+        data-i18n-cta-vote-ready="{i18n.community_js_cta_vote_ready}"
+        data-i18n-empty-no-votes="{i18n.community_js_empty_no_votes}">
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
+
+        {#if isAuthenticated}
+        <section id="community-activation" class="community-activation" aria-live="polite">
+          <div class="community-activation-copy">
+            <strong id="community-activation-title">{i18n.community_js_cta_vote_title}</strong>
+            <p id="community-activation-status">{i18n.community_js_cta_vote_start}</p>
+          </div>
+          <span id="community-activation-progress" class="community-activation-progress">0/3</span>
+        </section>
+        <section id="community-personal-empty" class="community-personal-empty" aria-live="polite">
+          <p>{i18n.community_js_empty_no_votes}</p>
+        </section>
+        {/if}
 
         <section class="community-pulse" aria-label="Community pulse">
           <a href="/comunidad/board/homedir-users" class="community-pulse-card">
@@ -1170,6 +1188,60 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+  }
+
+  .community-activation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    margin: 0 0 0.9rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid rgba(120, 255, 160, 0.4);
+    border-radius: 10px;
+    background: rgba(120, 255, 160, 0.08);
+  }
+
+  .community-activation-copy {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .community-activation-copy strong {
+    font-size: 0.88rem;
+    letter-spacing: 0.15px;
+  }
+
+  .community-activation-copy p {
+    margin: 0;
+    font-size: 0.76rem;
+    opacity: 0.88;
+  }
+
+  .community-activation-progress {
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 999px;
+    padding: 0.18rem 0.55rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .community-personal-empty {
+    margin: 0 0 0.9rem;
+    padding: 0.55rem 0.8rem;
+    border: 1px dashed rgba(255, 255, 255, 0.26);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.15);
+    font-size: 0.76rem;
+    opacity: 0.9;
+  }
+
+  .community-personal-empty p {
+    margin: 0;
+  }
+
+  .community-personal-empty.hidden {
+    display: none;
   }
 
   .community-vote-btn {

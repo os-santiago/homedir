@@ -22,6 +22,10 @@
   const emptyEl = document.getElementById("community-empty");
   const loadMoreBtn = document.getElementById("community-load-more");
   const feedbackEl = document.getElementById("community-feedback");
+  const activationEl = document.getElementById("community-activation");
+  const activationStatusEl = document.getElementById("community-activation-status");
+  const activationProgressEl = document.getElementById("community-activation-progress");
+  const personalEmptyEl = document.getElementById("community-personal-empty");
   const totalMetricEl = document.getElementById("community-content-total");
   const activeFiltersEl = document.getElementById("community-active-filters");
   const activeFilterChipsEl = document.getElementById("community-active-filter-chips");
@@ -51,6 +55,7 @@
     items: [],
     offset: 0,
     total: 0,
+    userVoteCount: 0,
     loading: false,
     requestToken: 0
   };
@@ -89,7 +94,12 @@
     previewPlay: root.dataset.i18nPreviewPlay || "Play preview",
     previewHide: root.dataset.i18nPreviewHide || "Hide preview",
     openSource: root.dataset.i18nOpenSource || "Open source",
-    previewUnavailable: root.dataset.i18nPreviewUnavailable || "No inline preview available for this source."
+    previewUnavailable: root.dataset.i18nPreviewUnavailable || "No inline preview available for this source.",
+    ctaVoteTitle: root.dataset.i18nCtaVoteTitle || "Vote 3 picks to personalize your feed",
+    ctaVoteStart: root.dataset.i18nCtaVoteStart || "Start by voting on three picks.",
+    ctaVoteProgress: root.dataset.i18nCtaVoteProgress || "{0} of 3 votes completed.",
+    ctaVoteReady: root.dataset.i18nCtaVoteReady || "Personalization signal is active.",
+    emptyNoVotes: root.dataset.i18nEmptyNoVotes || "You have not voted yet. Vote 3 picks to personalize your feed."
   };
   const uiLocale = document.documentElement.lang || navigator.language || undefined;
 
@@ -135,6 +145,10 @@
     return value == null ? "" : String(value);
   }
 
+  function formatTemplate(template, value) {
+    return String(template || "").replace("{0}", String(value));
+  }
+
   function showFeedback(message) {
     feedbackEl.textContent = message;
     feedbackEl.classList.remove("hidden");
@@ -151,12 +165,38 @@
 
   function updateEmptyState(visibleCount) {
     const empty = !state.loading && visibleCount === 0;
-    if (empty && state.items.length > 0 && (state.topic !== "all" || state.tag)) {
+    if (empty && authenticated && state.userVoteCount === 0) {
+      emptyEl.textContent = i18n.emptyNoVotes;
+    } else if (empty && state.items.length > 0 && (state.topic !== "all" || state.tag)) {
       emptyEl.textContent = i18n.emptyFiltered;
     } else {
       emptyEl.textContent = i18n.emptyGeneric;
     }
     emptyEl.classList.toggle("hidden", !empty);
+  }
+
+  function updateActivationState() {
+    if (!authenticated || !activationEl) {
+      return;
+    }
+    const votes = Math.max(0, Number(state.userVoteCount || 0));
+    const capped = Math.min(3, votes);
+    const isReady = votes >= 3;
+    if (activationStatusEl) {
+      if (isReady) {
+        activationStatusEl.textContent = i18n.ctaVoteReady;
+      } else if (votes <= 0) {
+        activationStatusEl.textContent = i18n.ctaVoteStart;
+      } else {
+        activationStatusEl.textContent = formatTemplate(i18n.ctaVoteProgress, votes);
+      }
+    }
+    if (activationProgressEl) {
+      activationProgressEl.textContent = `${capped}/3`;
+    }
+    if (personalEmptyEl) {
+      personalEmptyEl.classList.toggle("hidden", isReady || votes > 0);
+    }
   }
 
   function updateLoadMoreState() {
@@ -1006,6 +1046,7 @@
 
   function applyResponse(data, reset) {
     const received = Array.isArray(data && data.items) ? data.items : [];
+    state.userVoteCount = Number((data && data.user_vote_count) || 0);
     if (reset) {
       state.items = received;
       state.offset = received.length;
@@ -1023,6 +1064,7 @@
       updateTopicState();
     }
     renderItems();
+    updateActivationState();
   }
 
   function applyVoteLocally(item, vote) {
@@ -1100,6 +1142,7 @@
 
     const snapshot = {
       my_vote: item.my_vote || null,
+      userVoteCount: Number(state.userVoteCount || 0),
       vote_counts: Object.assign(
         { recommended: 0, must_see: 0, not_for_me: 0 },
         item.vote_counts || {}
@@ -1127,15 +1170,21 @@
           state.items[idx] = data.item;
         }
       }
+      if (!snapshot.my_vote) {
+        state.userVoteCount = Number(state.userVoteCount || 0) + 1;
+      }
       invalidateContentCache();
       updateVoteButtonsForItem(itemId);
+      updateActivationState();
     } catch (error) {
       const idx = state.items.findIndex((entry) => String(entry.id) === String(itemId));
       if (idx >= 0) {
         state.items[idx].my_vote = snapshot.my_vote;
         state.items[idx].vote_counts = snapshot.vote_counts;
       }
+      state.userVoteCount = snapshot.userVoteCount;
       updateVoteButtonsForItem(itemId);
+      updateActivationState();
       showFeedback(i18n.voteError);
     }
   }
@@ -1335,5 +1384,6 @@
   updateMediaState();
   state.topic = normalizeTopicKey(sessionStorage.getItem("community.topic") || "all");
   updateTopicState();
+  updateActivationState();
   load(true);
 })();
