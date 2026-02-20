@@ -1665,6 +1665,15 @@ public interface AppMessages {
     @Message("Class progression")
     String public_profile_class_progress_title();
 
+    @Message("Activities completed")
+    String public_profile_activity_count_title();
+
+    @Message("Signals captured")
+    String public_profile_activity_count_subtitle();
+
+    @Message("No badges earned yet. Keep contributing to unlock more.")
+    String public_profile_badges_empty();
+
     @Message("Share Profile")
     String btn_share_profile();
 
