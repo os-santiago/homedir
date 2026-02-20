@@ -954,6 +954,18 @@ public interface AppMessages {
     @Message("All")
     String community_topic_all();
 
+    @Message("AI")
+    String community_topic_ai();
+
+    @Message("Platform Engineering")
+    String community_topic_platform_engineering();
+
+    @Message("Cloud Native")
+    String community_topic_cloud_native();
+
+    @Message("Security")
+    String community_topic_security();
+
     @Message("Clear filters")
     String community_clear_filters();
 
@@ -1017,7 +1029,7 @@ public interface AppMessages {
     @Message("Tags (optional, comma-separated)")
     String community_form_tags();
 
-    @Message("ai, opensource, platform engineering")
+    @Message("ai, platform-engineering, cloud-native, security")
     String community_form_tags_placeholder();
 
     @Message("Send proposal")

@@ -3,7 +3,7 @@
 
 This script:
 - Fetches candidates from curated RSS/Atom feeds and Hacker News search API.
-- Scores relevance for ADev themes (AI, OSS, developers, platform engineering, trends).
+- Scores relevance for ADev themes (AI engineering, platform engineering, cloud native, security, developer experience).
 - Reads existing published content + vote aggregates from Homedir API to bias future picks.
 - Deduplicates with local history and current remote content.
 - Emits one YAML item per selected link using Homedir content schema.
@@ -89,45 +89,65 @@ MEDIA_PODCAST_HOST_HINTS = {
 }
 
 TOPIC_TERMS = {
-    "ai": [
+    "ai-engineering": [
         "ai",
         "artificial intelligence",
         "llm",
+        "llmops",
         "agent",
         "model",
         "inference",
         "genai",
         "machine learning",
     ],
-    "open-source": [
-        "open source",
-        "oss",
-        "repository",
-        "github",
-        "license",
-        "maintainer",
-        "community",
+    "platform-engineering": [
+        "platform engineering",
+        "platform team",
+        "developer platform",
+        "internal developer platform",
+        "idp",
+        "golden path",
+        "backstage",
     ],
-    "developers": [
+    "cloud-native": [
+        "cloud native",
+        "kubernetes",
+        "k8s",
+        "devops",
+        "sre",
+        "ci/cd",
+        "observability",
+        "terraform",
+        "helm",
+        "argo",
+    ],
+    "security": [
+        "security",
+        "secops",
+        "appsec",
+        "supply chain",
+        "zero trust",
+        "sbom",
+        "slsa",
+        "cve",
+        "vulnerability",
+    ],
+    "developer-experience": [
         "developer",
         "developers",
+        "developer experience",
+        "devex",
         "programming",
         "coding",
         "sdk",
         "api",
         "framework",
         "tooling",
-    ],
-    "platform-engineering": [
-        "platform engineering",
-        "platform",
-        "kubernetes",
-        "devops",
-        "sre",
-        "cloud native",
-        "infrastructure",
-        "ci/cd",
-        "observability",
+        "open source",
+        "oss",
+        "github",
+        "gitlab",
+        "maintainer",
     ],
     "trending-tech": [
         "release",
@@ -138,6 +158,14 @@ TOPIC_TERMS = {
         "roadmap",
         "new",
     ],
+}
+
+TAG_BIAS_ALIASES = {
+    "ai-engineering": ["ai", "llmops", "genai"],
+    "platform-engineering": ["platform-engineering", "platform", "open-source", "developers"],
+    "cloud-native": ["cloud-native", "devops", "kubernetes", "sre"],
+    "security": ["security", "security-supply-chain", "appsec"],
+    "developer-experience": ["developer-experience", "developers", "open-source"],
 }
 
 HTML_TAG_RE = re.compile(r"<[^>]+>")
@@ -447,7 +475,11 @@ def score_candidate(candidate: Dict[str, Any], tag_bias: Dict[str, float]) -> Tu
     source_bonus = TRUSTED_SOURCE_BONUS.get(candidate.get("source") or "", 0.0)
     hn_bonus = min(1.0, float(candidate.get("hn_points") or 0.0) / 100.0)
 
-    matched_bias_values = [tag_bias.get(t, 0.0) for t in tags]
+    matched_bias_values: List[float] = []
+    for tag in tags:
+        aliases = [tag] + TAG_BIAS_ALIASES.get(tag, [])
+        alias_scores = [tag_bias.get(alias, 0.0) for alias in aliases]
+        matched_bias_values.append(max(alias_scores) if alias_scores else 0.0)
     eval_bonus = (sum(matched_bias_values) / len(matched_bias_values)) if matched_bias_values else 0.0
 
     total = base + recency_bonus + source_bonus + hn_bonus + eval_bonus
@@ -510,7 +542,7 @@ def build_item(candidate: Dict[str, Any], inferred_tags: List[str], created_at: 
     if len(summary) > 320:
         summary = summary[:317].rstrip() + "..."
     if not summary:
-        summary = "Curated technology content relevant for developers and platform teams."
+        summary = "Curated technology content relevant for modern software teams."
 
     tags = []
     for tag in inferred_tags + ["technology", "community-curated"]:

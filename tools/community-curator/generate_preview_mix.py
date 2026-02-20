@@ -32,7 +32,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Community-selected security video about practical IoT attack and defense basics.",
         "source": "youtube.com",
         "media_type": "video_story",
-        "tags": ["security", "iot", "developers"],
+        "tags": ["security", "iot", "developer-experience"],
     },
     {
         "title": "Kubernetes intro spotlight",
@@ -40,7 +40,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Short video primer for Kubernetes concepts used by platform teams.",
         "source": "youtube.com",
         "media_type": "video_story",
-        "tags": ["kubernetes", "platform-engineering", "devops"],
+        "tags": ["kubernetes", "platform-engineering", "cloud-native"],
     },
     {
         "title": "Cloud-native operations visual guide",
@@ -48,7 +48,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Video content focused on operational practices for modern cloud-native environments.",
         "source": "vimeo.com",
         "media_type": "video_story",
-        "tags": ["cloud", "platform-engineering", "ai"],
+        "tags": ["cloud-native", "platform-engineering", "ai-engineering"],
     },
     {
         "title": "The Changelog: selling SDKs in the era of many Claudes",
@@ -56,7 +56,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Podcast episode about SDK strategy, AI-native developer experience, and platform decisions.",
         "source": "changelog.com",
         "media_type": "podcast",
-        "tags": ["podcast", "developers", "ai"],
+        "tags": ["podcast", "developer-experience", "ai-engineering"],
     },
     {
         "title": "Changelog News: all the claw things",
@@ -64,7 +64,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Weekly engineering and open-source updates in audio format for busy teams.",
         "source": "changelog.com",
         "media_type": "podcast",
-        "tags": ["podcast", "open-source", "trending-tech"],
+        "tags": ["podcast", "developer-experience", "trending-tech"],
     },
     {
         "title": "Changelog Friends: han shot first",
@@ -72,7 +72,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Audio conversation on engineering culture, tooling, and long-term software maintenance.",
         "source": "changelog.com",
         "media_type": "podcast",
-        "tags": ["podcast", "developers", "culture"],
+        "tags": ["podcast", "developer-experience", "culture"],
     },
     {
         "title": "Kubernetes Blog",
@@ -80,7 +80,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Official Kubernetes release notes, architecture changes, and ecosystem guidance for operators.",
         "source": "kubernetes.io",
         "media_type": "article_blog",
-        "tags": ["kubernetes", "devops", "platform-engineering"],
+        "tags": ["kubernetes", "cloud-native", "platform-engineering"],
     },
     {
         "title": "GitHub Engineering and product blog",
@@ -88,7 +88,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Articles about developer workflows, platform capabilities, and open-source ecosystem updates.",
         "source": "github.blog",
         "media_type": "article_blog",
-        "tags": ["open-source", "developers", "platform"],
+        "tags": ["open-source", "developer-experience", "platform-engineering"],
     },
     {
         "title": "CNCF Blog",
@@ -96,7 +96,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Cloud-native project updates and community practices from maintainers and platform teams.",
         "source": "cncf.io",
         "media_type": "article_blog",
-        "tags": ["cloud-native", "open-source", "devops"],
+        "tags": ["cloud-native", "platform-engineering", "open-source"],
     },
     {
         "title": "OpenAI News",
@@ -104,7 +104,7 @@ PREVIEW_ITEMS: List[Dict[str, object]] = [
         "summary": "Official announcements on model releases, platform features, and applied AI developments.",
         "source": "openai.com",
         "media_type": "article_blog",
-        "tags": ["ai", "trending-tech", "platform"],
+        "tags": ["ai-engineering", "trending-tech", "platform-engineering"],
     },
 ]
 
