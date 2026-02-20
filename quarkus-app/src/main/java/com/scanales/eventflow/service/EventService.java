@@ -17,6 +17,8 @@ import org.jboss.logging.Logger;
 /** Simple in-memory store for events. */
 @ApplicationScoped
 public class EventService {
+  private static final String DEVOPSDAYS_2026_ID = "devopsdays-santiago-2026";
+  private static final String DEVOPSDAYS_MAIN_STAGE = "main-stage";
 
   /**
    * Global cache of events shared by all sessions. Using a static map ensures the
@@ -37,7 +39,15 @@ public class EventService {
   @PostConstruct
   void init() {
     events.putAll(persistence.loadEvents());
-    events.values().forEach(this::ensureDefaults);
+    boolean seeded = false;
+    for (Event event : events.values()) {
+      ensureDefaults(event);
+      seeded = ensureDevOpsDaysDraftAgenda(event) || seeded;
+    }
+    if (seeded) {
+      persistence.saveEvents(new ConcurrentHashMap<>(events));
+      LOG.infov("Applied draft agenda seed for event {0}", DEVOPSDAYS_2026_ID);
+    }
     LOG.infof("Loaded %d events into memory", events.size());
   }
 
@@ -50,6 +60,8 @@ public class EventService {
   }
 
   public void saveEvent(Event event) {
+    ensureDefaults(event);
+    ensureDevOpsDaysDraftAgenda(event);
     events.put(event.getId(), event);
     persistence.saveEvents(new ConcurrentHashMap<>(events));
   }
@@ -285,13 +297,112 @@ public class EventService {
   public void reload() {
     events.clear();
     events.putAll(persistence.loadEvents());
-    events.values().forEach(this::ensureDefaults);
+    boolean seeded = false;
+    for (Event event : events.values()) {
+      ensureDefaults(event);
+      seeded = ensureDevOpsDaysDraftAgenda(event) || seeded;
+    }
+    if (seeded) {
+      persistence.saveEvents(new ConcurrentHashMap<>(events));
+    }
   }
 
   private void ensureDefaults(Event event) {
     if (event.getType() == null) {
       event.setType(EventType.OTHER);
     }
+  }
+
+  private boolean ensureDevOpsDaysDraftAgenda(Event event) {
+    if (event == null || event.getId() == null || !DEVOPSDAYS_2026_ID.equalsIgnoreCase(event.getId())) {
+      return false;
+    }
+    if (event.getAgenda() != null && !event.getAgenda().isEmpty()) {
+      return false;
+    }
+    if (event.getScenarios() == null) {
+      event.setScenarios(new ArrayList<>());
+    }
+    String scenarioId =
+        event.getScenarios().stream()
+            .map(Scenario::getId)
+            .filter(id -> id != null && !id.isBlank())
+            .findFirst()
+            .orElse(null);
+    if (scenarioId == null) {
+      Scenario mainStage = new Scenario(DEVOPSDAYS_MAIN_STAGE, "Main Stage");
+      mainStage.setFeatures("Draft agenda seed");
+      event.getScenarios().add(mainStage);
+      scenarioId = DEVOPSDAYS_MAIN_STAGE;
+    }
+    List<Talk> seededTalks = new ArrayList<>();
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-keynote-platform-velocity",
+            "Platform Engineering in the Age of AI Agents",
+            "How platform teams are evolving delivery, reliability and developer experience in 2026.",
+            scenarioId,
+            1,
+            "09:30",
+            30));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-devsecops-pipelines",
+            "DevSecOps by Default: Secure Pipelines at Scale",
+            "Practical controls to shift security left without slowing product delivery.",
+            scenarioId,
+            1,
+            "10:15",
+            30));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-kubernetes-sre",
+            "Kubernetes SRE Playbook for High-Traffic Systems",
+            "Incident patterns, SLOs and production hardening for cloud-native teams.",
+            scenarioId,
+            1,
+            "11:15",
+            30));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-idp-workshop",
+            "Building an Internal Developer Platform that Teams Actually Use",
+            "A field guide to rollout strategy, golden paths and adoption metrics.",
+            scenarioId,
+            1,
+            "14:00",
+            45));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-observability-aiops",
+            "AIOps + Observability: From Alert Noise to Actionable Signals",
+            "Using telemetry and automation to reduce MTTR and pager fatigue.",
+            scenarioId,
+            1,
+            "15:15",
+            30));
+    event.setAgenda(seededTalks);
+    if (event.getDays() <= 0) {
+      event.setDays(1);
+    }
+    return true;
+  }
+
+  private Talk buildSeedTalk(
+      String id,
+      String name,
+      String description,
+      String scenarioId,
+      int day,
+      String startTime,
+      int durationMinutes) {
+    Talk talk = new Talk(id, name);
+    talk.setDescription(description);
+    talk.setLocation(scenarioId);
+    talk.setDay(day);
+    talk.setStartTimeStr(startTime);
+    talk.setDurationMinutes(durationMinutes);
+    return talk;
   }
 
   public List<Event> findUpcomingEvents(int limit) {

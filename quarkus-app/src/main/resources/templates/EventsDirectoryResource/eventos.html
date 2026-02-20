@@ -101,6 +101,28 @@
           </span>
           {/if}
         </div>
+
+        {#if topTracksByEvent.get(event.id) && !topTracksByEvent.get(event.id).isEmpty}
+        <div class="event-highlight-extra">
+          <p class="event-extra-title">{i18n.events_top_tracks_title}</p>
+          <div class="event-track-row">
+            {#for track in topTracksByEvent.get(event.id)}
+            <span class="event-fit-chip event-track-chip">{track}</span>
+            {/for}
+          </div>
+        </div>
+        {/if}
+
+        {#if recommendedSessionsByEvent.get(event.id) && !recommendedSessionsByEvent.get(event.id).isEmpty}
+        <div class="event-highlight-extra">
+          <p class="event-extra-title">{i18n.events_recommended_sessions_title}</p>
+          <ul class="event-session-list">
+            {#for session in recommendedSessionsByEvent.get(event.id)}
+            <li>{session}</li>
+            {/for}
+          </ul>
+        </div>
+        {/if}
       </div>
 
       <div class="event-countdown-panel">
@@ -293,6 +315,40 @@
 
   .event-fit-chip .material-symbols-outlined {
     font-size: 14px;
+  }
+
+  .event-highlight-extra {
+    margin-top: 0.5rem;
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .event-extra-title {
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .event-track-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .event-track-chip {
+    border-color: rgba(120, 185, 255, 0.45);
+    background: rgba(120, 185, 255, 0.12);
+  }
+
+  .event-session-list {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+    opacity: 0.9;
   }
 
   .event-countdown-panel {
