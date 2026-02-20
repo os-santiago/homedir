@@ -55,6 +55,7 @@ public class CommunityContentParser {
       return ParseOutcome.invalid("invalid_created_at");
     }
     Instant publishedAt = parseInstant(raw.publishedAt());
+    String thumbnailUrl = sanitizeOptionalUrl(raw.thumbnailUrl());
     String mediaType = CommunityContentMedia.normalizeItemType(raw.mediaType());
     List<String> tags = sanitizeTags(raw.tags());
     String author = sanitizeText(raw.author());
@@ -65,6 +66,7 @@ public class CommunityContentParser {
             url,
             summary,
             source,
+            thumbnailUrl,
             createdAt,
             publishedAt,
             tags,
@@ -102,6 +104,13 @@ public class CommunityContentParser {
 
   private static String sanitizeUrl(String raw) {
     return CommunityUrlNormalizer.normalize(raw);
+  }
+
+  private static String sanitizeOptionalUrl(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return null;
+    }
+    return sanitizeUrl(raw);
   }
 
   private static List<String> sanitizeTags(List<String> rawTags) {
@@ -143,6 +152,8 @@ public class CommunityContentParser {
       String source,
       @JsonProperty("published_at") String publishedAt,
       @JsonProperty("created_at") String createdAt,
+      @JsonProperty("thumbnail_url")
+      @JsonAlias({"thumbnailUrl", "image_url", "imageUrl", "cover_url", "coverUrl"}) String thumbnailUrl,
       List<String> tags,
       String author,
       @JsonProperty("media_type")

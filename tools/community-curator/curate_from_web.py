@@ -146,6 +146,10 @@ META_DESC_RE = re.compile(
     r"<meta[^>]+(?:name|property)=[\"'](?:description|og:description)[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>",
     re.IGNORECASE,
 )
+META_IMAGE_RE = re.compile(
+    r"<meta[^>]+(?:name|property)=[\"'](?:og:image|twitter:image)[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>",
+    re.IGNORECASE,
+)
 
 
 def now_utc() -> dt.datetime:
@@ -351,15 +355,16 @@ def infer_topic_hits(text: str) -> Dict[str, float]:
     return scores
 
 
-def fetch_meta_description(url: str) -> str:
+def fetch_meta_preview(url: str) -> Tuple[str, str]:
     try:
         content = fetch_bytes(url, timeout=8)[:220000].decode("utf-8", errors="replace")
     except Exception:
-        return ""
-    match = META_DESC_RE.search(content)
-    if not match:
-        return ""
-    return strip_html(match.group(1))
+        return "", ""
+    match_desc = META_DESC_RE.search(content)
+    description = strip_html(match_desc.group(1)) if match_desc else ""
+    match_image = META_IMAGE_RE.search(content)
+    image_raw = normalize_url(html.unescape(match_image.group(1))) if match_image else None
+    return description, (image_raw or "")
 
 
 def slugify(text: str) -> str:
@@ -472,14 +477,36 @@ def infer_media_type(candidate: Dict[str, Any], inferred_tags: List[str]) -> str
     return "article_blog"
 
 
+def youtube_thumbnail(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    host = parsed.netloc.lower()
+    if "youtu.be" in host:
+        video_id = parsed.path.strip("/")
+        if video_id:
+            return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+    if "youtube.com" in host:
+        query = urllib.parse.parse_qs(parsed.query)
+        video_id = (query.get("v") or [None])[0]
+        if video_id:
+            return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+    return ""
+
+
 def build_item(candidate: Dict[str, Any], inferred_tags: List[str], created_at: dt.datetime) -> Dict[str, Any]:
     url = candidate["url"]
     item_id = hashlib.sha1(url.encode("utf-8")).hexdigest()[:12]
+    media_type = infer_media_type(candidate, inferred_tags)
     summary = strip_html(candidate.get("summary") or "")
-    if len(summary) < 60:
-        meta_desc = fetch_meta_description(url)
+    thumbnail_url = normalize_url(candidate.get("thumbnail_url") or "") or ""
+    if len(summary) < 60 or not thumbnail_url:
+        meta_desc, meta_image = fetch_meta_preview(url)
         if len(meta_desc) >= 40:
-            summary = meta_desc
+            if len(summary) < 60:
+                summary = meta_desc
+        if not thumbnail_url and meta_image:
+            thumbnail_url = meta_image
+    if not thumbnail_url and media_type == "video_story":
+        thumbnail_url = youtube_thumbnail(url)
     if len(summary) > 320:
         summary = summary[:317].rstrip() + "..."
     if not summary:
@@ -493,8 +520,6 @@ def build_item(candidate: Dict[str, Any], inferred_tags: List[str], created_at: 
     tags = tags[:6]
 
     published = parse_datetime(candidate.get("published_at") or "")
-    media_type = infer_media_type(candidate, inferred_tags)
-
     return {
         "id": item_id,
         "title": strip_html(candidate.get("title") or "Untitled content"),
@@ -504,6 +529,7 @@ def build_item(candidate: Dict[str, Any], inferred_tags: List[str], created_at: 
         "published_at": to_iso(published) if published else None,
         "created_at": to_iso(created_at),
         "media_type": media_type,
+        "thumbnail_url": thumbnail_url or None,
         "tags": tags,
         "author": None,
     }
@@ -521,6 +547,8 @@ def write_yaml_item(path: pathlib.Path, item: Dict[str, Any]) -> None:
         lines.append(f"published_at: {yaml_quote(item['published_at'])}")
     lines.append(f"created_at: {yaml_quote(item['created_at'])}")
     lines.append(f"media_type: {yaml_quote(item['media_type'])}")
+    if item.get("thumbnail_url"):
+        lines.append(f"thumbnail_url: {yaml_quote(item['thumbnail_url'])}")
     tags = item.get("tags") or []
     if tags:
         lines.append("tags:")
@@ -650,6 +678,7 @@ def main() -> int:
                 "url": item["url"],
                 "source": item["source"],
                 "media_type": item["media_type"],
+                "thumbnail_url": item.get("thumbnail_url"),
                 "score": round(float(candidate["score"]), 3),
                 "tags": item["tags"],
                 "file": filename,

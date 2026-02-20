@@ -49,7 +49,7 @@ curl "https://homedir.opensourcesantiago.io/api/community/content?view=new&limit
 - `curate_from_web.py`
   - fetches candidates from curated RSS/Atom sources and Hacker News trending queries.
   - scores by topic relevance (`ai`, `open-source`, `developers`, `platform-engineering`, `trending-tech`), recency, source trust, and historical tag bias.
-  - outputs Homedir-compatible YAML files (`<YYYYMMDD>-<slug>-<id>.yml`) including `media_type` and `manifest.json`.
+  - outputs Homedir-compatible YAML files (`<YYYYMMDD>-<slug>-<id>.yml`) including `media_type`, optional `thumbnail_url`, and `manifest.json`.
 - `deploy.sh`
   - syncs generated files to VPS path.
   - default is incremental sync (no delete).

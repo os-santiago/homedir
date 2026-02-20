@@ -9,6 +9,7 @@ public record CommunityContentItem(
     String url,
     String summary,
     String source,
+    String thumbnailUrl,
     Instant createdAt,
     Instant publishedAt,
     List<String> tags,

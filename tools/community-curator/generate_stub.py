@@ -30,6 +30,22 @@ def infer_media(url: str) -> str:
     return "article_blog"
 
 
+def infer_thumbnail(url: str, media_type: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    host = (parsed.netloc or "").lower()
+    if media_type == "video_story":
+        if "youtu.be" in host:
+            video_id = parsed.path.strip("/")
+            if video_id:
+                return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+        if "youtube.com" in host:
+            query = urllib.parse.parse_qs(parsed.query)
+            video_id = (query.get("v") or [None])[0]
+            if video_id:
+                return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+    return ""
+
+
 def build_item(url: str, forced_media=None) -> dict:
     parsed = urllib.parse.urlparse(url)
     host = parsed.netloc or "unknown-source"
@@ -37,6 +53,7 @@ def build_item(url: str, forced_media=None) -> dict:
     digest = hashlib.sha1(url.encode("utf-8")).hexdigest()[:10]
     now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     media_type = normalize_media(forced_media) if forced_media else infer_media(url)
+    thumbnail_url = infer_thumbnail(url, media_type)
     return {
         "id": digest,
         "title": f"Curated content from {host}",
@@ -45,6 +62,7 @@ def build_item(url: str, forced_media=None) -> dict:
         "source": host,
         "created_at": now,
         "media_type": media_type,
+        "thumbnail_url": thumbnail_url,
         "tags": [path_slug],
     }
 
@@ -53,6 +71,8 @@ def to_yaml(item: dict) -> str:
     lines = []
     for key in ("id", "title", "url", "summary", "source", "created_at", "media_type"):
         lines.append(f'{key}: "{item[key]}"')
+    if item.get("thumbnail_url"):
+        lines.append(f'thumbnail_url: "{item["thumbnail_url"]}"')
     tags = item.get("tags") or []
     if tags:
         lines.append("tags:")

@@ -22,6 +22,7 @@ public class CommunityContentParserTest {
         url: "https://example.org/article"
         summary: "Short summary"
         source: "example.org"
+        thumbnail_url: "https://cdn.example.org/cover.png"
         created_at: "2026-02-07T12:00:00Z"
         published_at: "2026-02-06T11:00:00Z"
         media_type: "video_story"
@@ -39,6 +40,7 @@ public class CommunityContentParserTest {
     assertEquals("item-1", parsed.item().id());
     assertEquals("Article One", parsed.item().title());
     assertEquals("https://example.org/article", parsed.item().url());
+    assertEquals("https://cdn.example.org/cover.png", parsed.item().thumbnailUrl());
     assertEquals("video_story", parsed.item().mediaType());
     assertEquals(2, parsed.item().tags().size());
   }

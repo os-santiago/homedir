@@ -45,6 +45,7 @@ public class CommunityContentApiResourceTest {
         url: "https://example.org/java-quarkus"
         summary: "Resumen de ejemplo para Quarkus."
         source: "example.org"
+        thumbnail_url: "https://cdn.example.org/java-cover.png"
         created_at: "2026-02-07T10:00:00Z"
         media_type: "article_blog"
         tags: ["java","quarkus"]
@@ -88,7 +89,8 @@ public class CommunityContentApiResourceTest {
         .body("filter", equalTo("all"))
         .body("media", equalTo("all"))
         .body("total", greaterThanOrEqualTo(3))
-        .body("items[0].id", equalTo("java-item-1"));
+        .body("items[0].id", equalTo("java-item-1"))
+        .body("items[0].thumbnail_url", equalTo("https://cdn.example.org/java-cover.png"));
   }
 
   @Test

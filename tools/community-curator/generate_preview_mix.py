@@ -12,61 +12,67 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import html
 import json
 import pathlib
 import re
 import urllib.parse
+import urllib.request
 from typing import Dict, List
 
+META_IMAGE_RE = re.compile(
+    r"<meta[^>]+(?:name|property)=[\"'](?:og:image|twitter:image)[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>",
+    re.IGNORECASE,
+)
 
 PREVIEW_ITEMS: List[Dict[str, object]] = [
     {
-        "title": "KubeCon talks and highlights",
-        "url": "https://www.youtube.com/@KubeCon",
-        "summary": "Conference video highlights focused on Kubernetes, cloud-native operations, and platform engineering.",
+        "title": "DEF CON IoT hacking beginner session",
+        "url": "https://www.youtube.com/watch?v=YPcOwKtRuDQ",
+        "summary": "Community-selected security video about practical IoT attack and defense basics.",
         "source": "youtube.com",
         "media_type": "video_story",
-        "tags": ["kubernetes", "platform-engineering", "cloud-native"],
+        "tags": ["security", "iot", "developers"],
     },
     {
-        "title": "Fireship quick engineering stories",
-        "url": "https://www.youtube.com/@Fireship",
-        "summary": "Short technology explainers and trend recaps for developers working with modern tools.",
+        "title": "Kubernetes intro spotlight",
+        "url": "https://www.youtube.com/watch?v=X48VuDVv0do",
+        "summary": "Short video primer for Kubernetes concepts used by platform teams.",
         "source": "youtube.com",
         "media_type": "video_story",
-        "tags": ["developers", "trending-tech", "ai"],
+        "tags": ["kubernetes", "platform-engineering", "devops"],
     },
     {
-        "title": "Google Cloud Tech updates",
-        "url": "https://www.youtube.com/@GoogleCloudTech",
-        "summary": "Video stories about cloud platform features, AI infrastructure, and production architecture.",
-        "source": "youtube.com",
+        "title": "Cloud-native operations visual guide",
+        "url": "https://vimeo.com/76979871",
+        "summary": "Video content focused on operational practices for modern cloud-native environments.",
+        "source": "vimeo.com",
         "media_type": "video_story",
         "tags": ["cloud", "platform-engineering", "ai"],
     },
     {
-        "title": "The Changelog podcast",
-        "url": "https://changelog.com/podcast",
-        "summary": "Developer podcast with practical conversations on open-source, tooling, and software delivery.",
+        "title": "The Changelog: selling SDKs in the era of many Claudes",
+        "url": "https://cdn.changelog.com/uploads/podcast/677/the-changelog-677.mp3",
+        "summary": "Podcast episode about SDK strategy, AI-native developer experience, and platform decisions.",
         "source": "changelog.com",
         "media_type": "podcast",
-        "tags": ["podcast", "developers", "open-source"],
-    },
-    {
-        "title": "Data Engineering Podcast",
-        "url": "https://www.dataengineeringpodcast.com/",
-        "summary": "Audio interviews about data platforms, architecture decisions, and engineering practices.",
-        "source": "dataengineeringpodcast.com",
-        "media_type": "podcast",
-        "tags": ["podcast", "data", "platform-engineering"],
-    },
-    {
-        "title": "Software Engineering Daily",
-        "url": "https://softwareengineeringdaily.com/",
-        "summary": "Podcast episodes with technical deep dives on systems, AI adoption, and developer platforms.",
-        "source": "softwareengineeringdaily.com",
-        "media_type": "podcast",
         "tags": ["podcast", "developers", "ai"],
+    },
+    {
+        "title": "Changelog News: all the claw things",
+        "url": "https://cdn.changelog.com/uploads/news/181/changelog-news-181.mp3",
+        "summary": "Weekly engineering and open-source updates in audio format for busy teams.",
+        "source": "changelog.com",
+        "media_type": "podcast",
+        "tags": ["podcast", "open-source", "trending-tech"],
+    },
+    {
+        "title": "Changelog Friends: han shot first",
+        "url": "https://cdn.changelog.com/uploads/friends/128/changelog--friends-128.mp3",
+        "summary": "Audio conversation on engineering culture, tooling, and long-term software maintenance.",
+        "source": "changelog.com",
+        "media_type": "podcast",
+        "tags": ["podcast", "developers", "culture"],
     },
     {
         "title": "Kubernetes Blog",
@@ -126,9 +132,59 @@ def canonical_url(url: str) -> str:
     return urllib.parse.urlunparse(cleaned)
 
 
+def normalize_http_url(value: str) -> str:
+    try:
+        parsed = urllib.parse.urlparse(value)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return ""
+        return urllib.parse.urlunparse(parsed._replace(fragment=""))
+    except Exception:
+        return ""
+
+
+def youtube_thumbnail(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    host = (parsed.netloc or "").lower()
+    if "youtu.be" in host:
+        video_id = parsed.path.strip("/")
+        if video_id:
+            return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+    if "youtube.com" in host:
+        query = urllib.parse.parse_qs(parsed.query)
+        video_id = (query.get("v") or [None])[0]
+        if video_id:
+            return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+    return ""
+
+
+def fetch_og_image(url: str) -> str:
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "homedir-community-curator/1.0",
+                "Accept": "text/html,application/xhtml+xml",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=8) as response:
+            body = response.read(200000).decode("utf-8", errors="replace")
+    except Exception:
+        return ""
+    match = META_IMAGE_RE.search(body)
+    if not match:
+        return ""
+    return normalize_http_url(html.unescape(match.group(1)))
+
+
 def build_item(raw: Dict[str, object], created_at: dt.datetime) -> Dict[str, object]:
     url = canonical_url(str(raw["url"]))
     digest = hashlib.sha1(url.encode("utf-8")).hexdigest()[:12]
+    media_type = str(raw["media_type"])
+    thumbnail_url = normalize_http_url(str(raw.get("thumbnail_url") or ""))
+    if not thumbnail_url and media_type == "video_story":
+        thumbnail_url = youtube_thumbnail(url)
+    if not thumbnail_url:
+        thumbnail_url = fetch_og_image(url)
     return {
         "id": digest,
         "title": str(raw["title"]),
@@ -136,7 +192,8 @@ def build_item(raw: Dict[str, object], created_at: dt.datetime) -> Dict[str, obj
         "summary": str(raw["summary"]),
         "source": str(raw["source"]),
         "created_at": to_iso(created_at),
-        "media_type": str(raw["media_type"]),
+        "media_type": media_type,
+        "thumbnail_url": thumbnail_url or None,
         "tags": list(raw.get("tags") or []),
     }
 
@@ -151,6 +208,8 @@ def write_yaml(path: pathlib.Path, item: Dict[str, object]) -> None:
         f"created_at: {yaml_quote(str(item['created_at']))}",
         f"media_type: {yaml_quote(str(item['media_type']))}",
     ]
+    if item.get("thumbnail_url"):
+        lines.append(f"thumbnail_url: {yaml_quote(str(item['thumbnail_url']))}")
     tags = [str(tag) for tag in (item.get("tags") or [])]
     if tags:
         lines.append("tags:")
@@ -190,6 +249,7 @@ def main() -> int:
                 "title": item["title"],
                 "url": item["url"],
                 "media_type": media_type,
+                "thumbnail_url": item.get("thumbnail_url"),
                 "file": filename,
             }
         )
