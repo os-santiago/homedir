@@ -71,6 +71,7 @@ public class PublicProfileResourceTest {
         .body(containsString("public_user#1001"))
         .body(containsString("Connected accounts"))
         .body(containsString("Class progression"))
+        .body(containsString("Activities completed"))
         .body(containsString("Scientist"));
   }
 

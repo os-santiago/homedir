@@ -56,11 +56,11 @@
                 </div>
             </div>
 
-            <!-- Card 2: Quests Completed -->
+            <!-- Card 2: Activities Completed -->
             <div class="wrapped-card">
-                <span class="wrapped-stat-label">Quests Completed</span>
+                <span class="wrapped-stat-label">{i18n.public_profile_activity_count_title}</span>
                 <span class="wrapped-stat-value purple">{questsCompleted}</span>
-                <p class="wrapped-subtext">Missions Accomplished</p>
+                <p class="wrapped-subtext">{i18n.public_profile_activity_count_subtitle}</p>
             </div>
 
             <div class="wrapped-card wrapped-card-full">
@@ -107,7 +107,7 @@
                     <span class="wrapped-badge-pill"><span class="material-symbols-outlined"
                             style="font-size: 16px;">verified</span> {badge}</span>
                     {#else}
-                    <span class="wrapped-empty-msg">No badges earned yet. Join quests to unlock!</span>
+                    <span class="wrapped-empty-msg">{i18n.public_profile_badges_empty}</span>
                     {/for}
                 </div>
             </div>
