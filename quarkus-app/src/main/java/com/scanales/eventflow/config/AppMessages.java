@@ -207,6 +207,12 @@ public interface AppMessages {
     @Message("In stock")
     String economy_summary_stock_label();
 
+    @Message("Catalog")
+    String economy_btn_open_catalog();
+
+    @Message("View preview")
+    String economy_btn_view_catalog();
+
     @Message("Preview")
     String economy_btn_preview();
 
@@ -230,6 +236,27 @@ public interface AppMessages {
 
     @Message("Display an advanced contributor badge in your public profile.")
     String economy_preview_architect_badge();
+
+    @Message("Economy Catalog · Homedir")
+    String economy_catalog_page_title();
+
+    @Message("Economy catalog")
+    String economy_catalog_eyebrow();
+
+    @Message("Visual review of rewards before purchasing with HCoin.")
+    String economy_catalog_intro();
+
+    @Message("Back to profile economy")
+    String economy_btn_back_to_economy();
+
+    @Message("Visual mockup")
+    String economy_catalog_mockup_label();
+
+    @Message("Price")
+    String economy_catalog_price_label();
+
+    @Message("Status")
+    String economy_catalog_status_label();
 
     @Message("Level {level}")
     String resume_level(Object level);

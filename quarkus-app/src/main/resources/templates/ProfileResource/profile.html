@@ -264,6 +264,9 @@
                     <h2 class="hd-panel-title">{i18n.section_economy}</h2>
                     <p class="hd-page-intro">{i18n.economy_intro}</p>
                 </div>
+                <div class="hd-panel-actions">
+                    <a class="hd-btn hd-btn-secondary" href="/private/profile/catalog">{i18n.economy_btn_open_catalog}</a>
+                </div>
             </div>
 
             <div class="hd-card hd-economy-balance-card">
@@ -570,31 +573,6 @@
         margin-left: auto;
     }
 
-    .hd-economy-preview {
-        margin-top: 0.35rem;
-        padding: 0.5rem 0.55rem;
-        border: 1px dashed rgba(255, 255, 255, 0.18);
-        border-radius: 8px;
-        background: rgba(12, 18, 22, 0.55);
-        display: none;
-    }
-
-    .hd-economy-preview.show {
-        display: block;
-    }
-
-    .hd-economy-preview-title {
-        font-size: 0.78rem;
-        font-weight: 700;
-        margin: 0 0 0.2rem;
-    }
-
-    .hd-economy-preview p {
-        margin: 0;
-        font-size: 0.76rem;
-        opacity: 0.85;
-    }
-
     .hd-economy-partial-hint {
         margin-top: 0;
         margin-bottom: 0.35rem;
@@ -682,17 +660,9 @@
             requireLevelLabel: '{i18n.economy_require_level(0)}',
             requireTotalXpLabel: '{i18n.economy_require_total_xp(0)}',
             requireClassXpLabel: '{i18n.economy_require_class_xp(0, "Class")}',
-            preview: '{i18n.economy_btn_preview}',
-            hidePreview: '{i18n.economy_btn_hide_preview}',
+            viewCatalog: '{i18n.economy_btn_view_catalog}',
             availableNow: '{i18n.economy_status_available}',
             outOfStock: '{i18n.economy_status_out_of_stock}'
-        };
-
-        const economyPreviewByItem = {
-            'profile-glow': '{i18n.economy_preview_profile_glow}',
-            'community-spotlight': '{i18n.economy_preview_community_spotlight}',
-            'event-fast-pass': '{i18n.economy_preview_event_fast_pass}',
-            'architect-badge': '{i18n.economy_preview_architect_badge}'
         };
 
         const formatHcoin = (value) => {
@@ -856,24 +826,11 @@
                 }
                 const actions = document.createElement('div');
                 actions.className = 'hd-economy-actions';
-                const previewBtn = document.createElement('button');
-                previewBtn.className = 'hd-btn hd-btn-secondary';
-                previewBtn.type = 'button';
-                previewBtn.textContent = economyText.preview;
-                const previewBox = document.createElement('div');
-                previewBox.className = 'hd-economy-preview';
-                const previewTitle = document.createElement('p');
-                previewTitle.className = 'hd-economy-preview-title';
-                previewTitle.textContent = item.name || item.id || 'Item';
-                const previewText = document.createElement('p');
-                previewText.textContent = economyPreviewByItem[item.id] || item.description || '';
-                previewBox.appendChild(previewTitle);
-                previewBox.appendChild(previewText);
-                previewBtn.addEventListener('click', () => {
-                    const open = previewBox.classList.toggle('show');
-                    previewBtn.textContent = open ? economyText.hidePreview : economyText.preview;
-                });
-                actions.appendChild(previewBtn);
+                const previewLink = document.createElement('a');
+                previewLink.className = 'hd-btn hd-btn-secondary';
+                previewLink.href = '/private/profile/catalog#' + encodeURIComponent(item.id || '');
+                previewLink.textContent = economyText.viewCatalog;
+                actions.appendChild(previewLink);
                 const button = document.createElement('button');
                 button.className = 'hd-btn hd-btn-secondary economy-buy-btn';
                 button.dataset.itemId = item.id;
@@ -883,7 +840,6 @@
                 }
                 actions.appendChild(button);
                 card.appendChild(actions);
-                card.appendChild(previewBox);
                 economyStoreList.appendChild(card);
             });
             if (economySummaryLevel) economySummaryLevel.textContent = currentLevel.toLocaleString();
