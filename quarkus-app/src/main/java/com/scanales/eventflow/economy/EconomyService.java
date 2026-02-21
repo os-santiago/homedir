@@ -1,8 +1,12 @@
 package com.scanales.eventflow.economy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scanales.eventflow.model.QuestClass;
+import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.PersistenceService;
+import com.scanales.eventflow.service.QuestService;
 import com.scanales.eventflow.service.SystemErrorService;
+import com.scanales.eventflow.service.UserProfileService;
 import io.eventflow.notifications.global.GlobalNotification;
 import io.eventflow.notifications.global.GlobalNotificationService;
 import jakarta.annotation.PostConstruct;
@@ -12,11 +16,14 @@ import jakarta.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -60,10 +67,24 @@ public class EconomyService {
               300,
               true,
               1));
+  private static final CatalogPolicy FALLBACK_POLICY =
+      new CatalogPolicy("COMMON", 1, 0, null, 0, 50, 1, 15, 1, 3);
+  private static final Map<String, CatalogPolicy> CATALOG_POLICIES =
+      Map.of(
+          "profile-glow",
+          new CatalogPolicy("COMMON", 1, 0, null, 0, 30, 1, 10, 1, 3),
+          "event-fast-pass",
+          new CatalogPolicy("RARE", 3, 120, QuestClass.WARRIOR, 30, 25, 1, 8, 1, 4),
+          "community-spotlight",
+          new CatalogPolicy("EPIC", 5, 260, QuestClass.MAGE, 80, 20, 1, 6, 1, 5),
+          "architect-badge",
+          new CatalogPolicy("LEGENDARY", 8, 500, QuestClass.ENGINEER, 160, 15, 1, 5, 1, 6));
 
   @Inject PersistenceService persistenceService;
   @Inject SystemErrorService systemErrorService;
   @Inject ObjectMapper objectMapper;
+  @Inject UserProfileService userProfileService;
+  @Inject QuestService questService;
   @Inject Instance<GlobalNotificationService> globalNotificationService;
 
   @ConfigProperty(name = "economy.transactions.persisted-max", defaultValue = "20000")
@@ -96,6 +117,9 @@ public class EconomyService {
   @ConfigProperty(name = "economy.rewards.min-hcoin", defaultValue = "1")
   int minRewardHcoin;
 
+  @ConfigProperty(name = "economy.purchase.max-per-minute", defaultValue = "12")
+  int purchaseMaxPerMinute;
+
   private final Object stateLock = new Object();
   private final Map<String, EconomyWallet> wallets = new LinkedHashMap<>();
   private final Map<String, Map<String, EconomyInventoryItem>> inventoryByUser = new LinkedHashMap<>();
@@ -117,6 +141,52 @@ public class EconomyService {
 
   public List<EconomyCatalogItem> listCatalog() {
     return DEFAULT_CATALOG.stream().filter(EconomyCatalogItem::enabled).toList();
+  }
+
+  public List<CatalogOffer> listCatalogForUser(String userId) {
+    String normalizedUserId = normalizeUserId(userId);
+    if (normalizedUserId == null) {
+      throw new ValidationException("invalid_user_id");
+    }
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      UserProgress progress = loadUserProgress(normalizedUserId);
+      Map<String, EconomyInventoryItem> userInventory =
+          inventoryByUser.getOrDefault(normalizedUserId, Map.of());
+      List<CatalogOffer> offers = new ArrayList<>();
+      for (EconomyCatalogItem item : listCatalog()) {
+        CatalogPolicy policy = policyFor(item.id());
+        int quantityOwned = quantityOwned(userInventory, item.id());
+        int currentClassXp = classXpFor(progress, policy.requiredClass());
+        int effectiveMax = effectiveMaxPerUser(item, policy, progress);
+        AccessDecision access =
+            evaluateProgressAccess(
+                policy, progress.level(), progress.totalXp(), currentClassXp, quantityOwned, effectiveMax);
+        offers.add(
+            new CatalogOffer(
+                item.id(),
+                item.name(),
+                item.description(),
+                item.category(),
+                item.priceHcoin(),
+                item.enabled(),
+                item.maxPerUser(),
+                policy.tier(),
+                policy.minLevel(),
+                policy.minTotalXp(),
+                policy.requiredClass() != null ? policy.requiredClass().name() : null,
+                policy.minClassXp(),
+                progress.level(),
+                progress.totalXp(),
+                currentClassXp,
+                effectiveMax,
+                quantityOwned,
+                Math.max(0, effectiveMax - quantityOwned),
+                access.unlocked(),
+                access.reasonCode()));
+      }
+      return List.copyOf(offers);
+    }
   }
 
   public Optional<EconomyCatalogItem> findCatalogItem(String itemId) {
@@ -195,6 +265,7 @@ public class EconomyService {
 
     synchronized (stateLock) {
       refreshFromDisk(false);
+      enforcePurchaseBurstGuard(normalizedUserId);
       List<EconomyTransaction> history = loadFullTransactions();
       Map<String, EconomyWallet> walletCopy = new LinkedHashMap<>(wallets);
       Map<String, Map<String, EconomyInventoryItem>> inventoryCopy = deepCopyInventory(inventoryByUser);
@@ -209,7 +280,17 @@ public class EconomyService {
           inventoryCopy.computeIfAbsent(normalizedUserId, ignored -> new LinkedHashMap<>());
       EconomyInventoryItem existingItem = userInventory.get(catalogItem.id());
       int currentQty = existingItem == null ? 0 : Math.max(0, existingItem.quantity());
-      if (catalogItem.maxPerUser() > 0 && currentQty >= catalogItem.maxPerUser()) {
+      UserProgress progress = loadUserProgress(normalizedUserId);
+      CatalogPolicy policy = policyFor(catalogItem.id());
+      int currentClassXp = classXpFor(progress, policy.requiredClass());
+      int effectiveMax = effectiveMaxPerUser(catalogItem, policy, progress);
+      AccessDecision access =
+          evaluateProgressAccess(
+              policy, progress.level(), progress.totalXp(), currentClassXp, currentQty, effectiveMax);
+      if (!access.unlocked()) {
+        throw new ValidationException(access.reasonCode());
+      }
+      if (currentQty >= effectiveMax) {
         throw new ValidationException("item_limit_reached");
       }
       if (existingItem == null && userInventory.size() >= Math.max(1, userMaxInventoryItems)) {
@@ -415,6 +496,119 @@ public class EconomyService {
             .orElse(List.of()));
   }
 
+  private void enforcePurchaseBurstGuard(String userId) {
+    int maxBurst = Math.max(1, purchaseMaxPerMinute);
+    Instant since = Instant.now().minus(Duration.ofMinutes(1));
+    int purchasesInWindow = 0;
+    for (EconomyTransaction tx : recentTransactionCache) {
+      if (tx == null || tx.type() != EconomyTransactionType.PURCHASE) {
+        continue;
+      }
+      if (!userId.equals(tx.userId())) {
+        continue;
+      }
+      if (tx.createdAt() != null && tx.createdAt().isBefore(since)) {
+        continue;
+      }
+      purchasesInWindow++;
+      if (purchasesInWindow >= maxBurst) {
+        guardrail("purchase_rate_limit_reached", userId, "max purchases per minute reached");
+      }
+    }
+  }
+
+  private UserProgress loadUserProgress(String userId) {
+    UserProfile profile = userProfileService.find(userId).orElse(null);
+    int totalXp = profile != null ? Math.max(0, profile.getCurrentXp()) : 0;
+    int level = questService.calculateLevel(totalXp);
+    int achievements = countAchievements(profile);
+    Map<QuestClass, Integer> classXp = new EnumMap<>(QuestClass.class);
+    if (profile != null && profile.getClassXp() != null) {
+      for (Map.Entry<QuestClass, Integer> entry : profile.getClassXp().entrySet()) {
+        if (entry.getKey() == null || entry.getValue() == null) {
+          continue;
+        }
+        classXp.put(entry.getKey(), Math.max(0, entry.getValue()));
+      }
+    }
+    return new UserProgress(totalXp, level, achievements, classXp);
+  }
+
+  private static int countAchievements(UserProfile profile) {
+    if (profile == null || profile.getHistory() == null || profile.getHistory().isEmpty()) {
+      return 0;
+    }
+    Set<String> unique = new HashSet<>();
+    for (UserProfile.QuestHistoryItem item : profile.getHistory()) {
+      if (item == null || item.xp() <= 0 || item.title() == null) {
+        continue;
+      }
+      String title = item.title().trim().toLowerCase(Locale.ROOT);
+      if (!title.isBlank()) {
+        unique.add(title);
+      }
+    }
+    return unique.size();
+  }
+
+  private CatalogPolicy policyFor(String itemId) {
+    if (itemId == null) {
+      return FALLBACK_POLICY;
+    }
+    return CATALOG_POLICIES.getOrDefault(itemId, FALLBACK_POLICY);
+  }
+
+  private static int quantityOwned(Map<String, EconomyInventoryItem> userInventory, String itemId) {
+    EconomyInventoryItem entry = userInventory.get(itemId);
+    return entry == null ? 0 : Math.max(0, entry.quantity());
+  }
+
+  private static int classXpFor(UserProgress progress, QuestClass requiredClass) {
+    if (requiredClass == null || progress == null || progress.classXp() == null) {
+      return 0;
+    }
+    return Math.max(0, progress.classXp().getOrDefault(requiredClass, 0));
+  }
+
+  private static int effectiveMaxPerUser(
+      EconomyCatalogItem item, CatalogPolicy policy, UserProgress progress) {
+    int base = Math.max(1, item.maxPerUser());
+    int levelBonus = progressionBonus(progress.level() - policy.minLevel(), policy.levelStep(), policy.stockPerLevelStep());
+    int achievementBonus =
+        progressionBonus(progress.achievements(), policy.achievementStep(), policy.stockPerAchievementStep());
+    int bonus = Math.min(Math.max(0, policy.bonusCap()), Math.max(0, levelBonus + achievementBonus));
+    return base + bonus;
+  }
+
+  private static int progressionBonus(int value, int step, int incrementPerStep) {
+    if (value <= 0 || step <= 0 || incrementPerStep <= 0) {
+      return 0;
+    }
+    return (value / step) * incrementPerStep;
+  }
+
+  private static AccessDecision evaluateProgressAccess(
+      CatalogPolicy policy,
+      int currentLevel,
+      int currentTotalXp,
+      int currentClassXp,
+      int quantityOwned,
+      int effectiveMaxPerUser) {
+    if (currentLevel < policy.minLevel()) {
+      return new AccessDecision(false, "requires_level");
+    }
+    if (currentTotalXp < policy.minTotalXp()) {
+      return new AccessDecision(false, "requires_total_xp");
+    }
+    if (policy.requiredClass() != null && currentClassXp < policy.minClassXp()) {
+      return new AccessDecision(false, "requires_class_xp");
+    }
+    if (quantityOwned >= effectiveMaxPerUser) {
+      return new AccessDecision(false, "item_limit_reached");
+    }
+    return new AccessDecision(true, null);
+  }
+
   private EconomyStateSnapshot toSnapshot(
       Map<String, EconomyWallet> walletSnapshot,
       Map<String, Map<String, EconomyInventoryItem>> inventorySnapshot,
@@ -534,6 +728,29 @@ public class EconomyService {
     return value;
   }
 
+  public record CatalogOffer(
+      String id,
+      String name,
+      String description,
+      String category,
+      @com.fasterxml.jackson.annotation.JsonProperty("price_hcoin") int priceHcoin,
+      boolean enabled,
+      @com.fasterxml.jackson.annotation.JsonProperty("max_per_user") int maxPerUser,
+      String tier,
+      @com.fasterxml.jackson.annotation.JsonProperty("required_level") int requiredLevel,
+      @com.fasterxml.jackson.annotation.JsonProperty("required_total_xp") int requiredTotalXp,
+      @com.fasterxml.jackson.annotation.JsonProperty("required_class") String requiredClass,
+      @com.fasterxml.jackson.annotation.JsonProperty("required_class_xp") int requiredClassXp,
+      @com.fasterxml.jackson.annotation.JsonProperty("current_level") int currentLevel,
+      @com.fasterxml.jackson.annotation.JsonProperty("current_total_xp") int currentTotalXp,
+      @com.fasterxml.jackson.annotation.JsonProperty("current_class_xp") int currentClassXp,
+      @com.fasterxml.jackson.annotation.JsonProperty("effective_max_per_user") int effectiveMaxPerUser,
+      @com.fasterxml.jackson.annotation.JsonProperty("owned_quantity") int ownedQuantity,
+      @com.fasterxml.jackson.annotation.JsonProperty("remaining_stock") int remainingStock,
+      boolean unlocked,
+      @com.fasterxml.jackson.annotation.JsonProperty("lock_reason") String lockReason) {
+  }
+
   public record PurchaseResult(
       String itemId,
       String itemName,
@@ -586,5 +803,24 @@ public class EconomyService {
     public CapacityException(String message) {
       super(message);
     }
+  }
+
+  private record CatalogPolicy(
+      String tier,
+      int minLevel,
+      int minTotalXp,
+      QuestClass requiredClass,
+      int minClassXp,
+      int levelStep,
+      int stockPerLevelStep,
+      int achievementStep,
+      int stockPerAchievementStep,
+      int bonusCap) {
+  }
+
+  private record UserProgress(int totalXp, int level, int achievements, Map<QuestClass, Integer> classXp) {
+  }
+
+  private record AccessDecision(boolean unlocked, String reasonCode) {
   }
 }

@@ -34,8 +34,13 @@ public class EconomyApiResource {
   @GET
   @Path("/catalog")
   public Response catalog() {
+    Optional<String> userId = currentUserId();
+    if (userId.isPresent()) {
+      List<EconomyService.CatalogOffer> items = economyService.listCatalogForUser(userId.get());
+      return Response.ok(Map.of("items", items, "count", items.size(), "personalized", true)).build();
+    }
     List<EconomyCatalogItem> items = economyService.listCatalog();
-    return Response.ok(Map.of("items", items, "count", items.size())).build();
+    return Response.ok(Map.of("items", items, "count", items.size(), "personalized", false)).build();
   }
 
   @GET

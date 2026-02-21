@@ -51,6 +51,15 @@ public class EconomyApiResourceTest {
     economyService.rewardFromGamification("user@example.com", "seed", 1000, "seed");
 
     given()
+        .accept("application/json")
+        .when()
+        .get("/api/economy/catalog")
+        .then()
+        .statusCode(200)
+        .body("personalized", equalTo(true))
+        .body("items[0].effective_max_per_user", greaterThan(0));
+
+    given()
         .contentType("application/json")
         .body("{\"itemId\":\"profile-glow\"}")
         .when()
