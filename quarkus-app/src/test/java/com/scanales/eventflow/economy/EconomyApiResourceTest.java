@@ -93,4 +93,26 @@ public class EconomyApiResourceTest {
         .statusCode(200)
         .body("items", hasSize(greaterThan(0)));
   }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  void economyQueriesApplyLimitAndOffsetGuardrails() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/economy/inventory?limit=10000&offset=999999")
+        .then()
+        .statusCode(200)
+        .body("limit", equalTo(100))
+        .body("offset", equalTo(5000));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/economy/transactions?limit=-1&offset=-5")
+        .then()
+        .statusCode(200)
+        .body("limit", equalTo(20))
+        .body("offset", equalTo(0));
+  }
 }

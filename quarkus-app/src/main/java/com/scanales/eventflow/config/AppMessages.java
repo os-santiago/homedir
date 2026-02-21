@@ -1779,6 +1779,12 @@ public interface AppMessages {
     @Message("No history available.")
     String resume_no_history();
 
+    @Message("Load 10 older entries")
+    String resume_history_load_more();
+
+    @Message("Showing up to {limit} recent entries for safety.")
+    String resume_history_limit_notice(int limit);
+
     @Message("Search")
     String search_aria_label();
 

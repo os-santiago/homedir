@@ -1,5 +1,6 @@
 package com.scanales.eventflow.community;
 
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -25,6 +26,9 @@ import org.jboss.logging.Logger;
 @ApplicationScoped
 public class CommunityFeaturedSnapshotService {
   private static final Logger LOG = Logger.getLogger(CommunityFeaturedSnapshotService.class);
+  private static final int DEFAULT_LIMIT = PaginationGuardrails.DEFAULT_PAGE_LIMIT;
+  private static final int MAX_LIMIT = PaginationGuardrails.MAX_PAGE_LIMIT;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
 
   @Inject CommunityContentService contentService;
   @Inject CommunityVoteService voteService;
@@ -75,20 +79,23 @@ public class CommunityFeaturedSnapshotService {
     Snapshot current = snapshot.get();
     String normalizedFilter = normalizeFilter(filter);
     String normalizedMediaFilter = normalizeMediaFilter(mediaFilter);
+    int normalizedLimit = PaginationGuardrails.clampLimit(limit, DEFAULT_LIMIT, MAX_LIMIT);
+    int normalizedOffset = PaginationGuardrails.clampOffset(offset, MAX_OFFSET);
     String snapshotKey = snapshotKey(normalizedFilter, normalizedMediaFilter);
     List<FeaturedItem> ranked = current.rankedByFilter().getOrDefault(snapshotKey, List.of());
     int total = ranked.size();
-    if (offset >= total) {
+    if (normalizedOffset >= total) {
       return new FeaturedPage(List.of(), total);
     }
-    ResponseKey key = new ResponseKey(normalizedFilter, normalizedMediaFilter, limit, offset);
+    ResponseKey key =
+        new ResponseKey(normalizedFilter, normalizedMediaFilter, normalizedLimit, normalizedOffset);
     ResponseEntry cached = responseCache.get(key);
     Instant now = Instant.now();
     if (cached != null && now.isBefore(cached.cachedAt().plus(responseCacheTtl))) {
       return new FeaturedPage(cached.items(), cached.total());
     }
-    int end = Math.min(total, offset + limit);
-    List<FeaturedItem> page = List.copyOf(ranked.subList(offset, end));
+    int end = Math.min(total, normalizedOffset + normalizedLimit);
+    List<FeaturedItem> page = List.copyOf(ranked.subList(normalizedOffset, end));
     responseCache.put(key, new ResponseEntry(page, total, now));
     return new FeaturedPage(page, total);
   }

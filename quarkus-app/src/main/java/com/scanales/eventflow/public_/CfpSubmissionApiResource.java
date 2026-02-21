@@ -14,6 +14,7 @@ import com.scanales.eventflow.service.PersistenceService;
 import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -40,6 +41,9 @@ import java.util.Set;
 @Path("/api/events/{eventId}/cfp/submissions")
 @Produces(MediaType.APPLICATION_JSON)
 public class CfpSubmissionApiResource {
+  private static final int DEFAULT_LIMIT = PaginationGuardrails.DEFAULT_PAGE_LIMIT;
+  private static final int MAX_LIMIT = PaginationGuardrails.MAX_PAGE_LIMIT;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
 
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject CfpConfigService cfpConfigService;
@@ -106,7 +110,7 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
     }
     int limit = normalizeLimit(limitParam);
-    int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
+    int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
         cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream().map(this::toView).toList();
     return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
@@ -280,7 +284,7 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_sort")).build();
     }
     int limit = normalizeLimit(limitParam);
-    int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
+    int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
         cfpSubmissionService.listByEvent(eventId, statusFilter, sortOrder, limit, offset).stream()
             .map(this::toView)
@@ -577,10 +581,7 @@ public class CfpSubmissionApiResource {
   }
 
   private static int normalizeLimit(Integer rawLimit) {
-    if (rawLimit == null || rawLimit <= 0) {
-      return 20;
-    }
-    return Math.min(rawLimit, 100);
+    return PaginationGuardrails.clampLimit(rawLimit, DEFAULT_LIMIT, MAX_LIMIT);
   }
 
   private static String buildSpeakerId(CfpSubmission submission) {

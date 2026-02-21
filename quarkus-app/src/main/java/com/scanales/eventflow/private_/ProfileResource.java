@@ -11,6 +11,7 @@ import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserScheduleService.TalkDetails;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import com.scanales.eventflow.security.RedirectSanitizer;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.qute.CheckedTemplate;
@@ -45,6 +46,8 @@ import java.util.Optional;
 
 @Path("/private/profile")
 public class ProfileResource {
+  private static final int RESUME_HISTORY_STEP = PaginationGuardrails.DEFAULT_HISTORY_STEP;
+  private static final int RESUME_HISTORY_MAX_WINDOW = PaginationGuardrails.MAX_HISTORY_WINDOW;
 
   @CheckedTemplate(requireTypeSafeExpressions = false)
   static class Templates {
@@ -74,6 +77,10 @@ public class ProfileResource {
         QuestClass dominantClass,
         java.util.List<ActivityClassMapping> activityClassMap,
         QuestProfile questProfile,
+        int resumeHistoryLimit,
+        int resumeHistoryNextLimit,
+        boolean resumeHistoryHasMore,
+        boolean resumeHistoryAtLimit,
         int questProgressPercent,
         String publicProfileHandle,
         String currentLanguage,
@@ -142,6 +149,7 @@ public class ProfileResource {
       @jakarta.ws.rs.QueryParam("githubError") String githubError,
       @jakarta.ws.rs.QueryParam("discordError") String discordError,
       @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub,
+      @jakarta.ws.rs.QueryParam("historyLimit") Integer historyLimitParam,
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
     String email = getEmail();
     String name = getClaim("name");
@@ -164,7 +172,17 @@ public class ProfileResource {
     gamificationService.award(email, GamificationActivity.PROFILE_VIEW);
 
     // Fetch Gamification Profile
-    QuestProfile questProfile = questService.getProfile(email);
+    int resumeHistoryLimit =
+        PaginationGuardrails.clampWindowStep(
+            historyLimitParam, RESUME_HISTORY_STEP, RESUME_HISTORY_STEP, RESUME_HISTORY_MAX_WINDOW);
+    QuestProfile questProfile = questService.getProfile(email, resumeHistoryLimit);
+    int totalHistoryEntries = userProfile.getHistory() == null ? 0 : userProfile.getHistory().size();
+    boolean resumeHistoryHasMore = totalHistoryEntries > questProfile.history.size();
+    boolean resumeHistoryAtLimit =
+        resumeHistoryHasMore && resumeHistoryLimit >= RESUME_HISTORY_MAX_WINDOW;
+    int resumeHistoryNextLimit =
+        PaginationGuardrails.nextWindow(
+            resumeHistoryLimit, RESUME_HISTORY_STEP, RESUME_HISTORY_MAX_WINDOW);
     java.util.List<ClassProgress> classProgress = buildClassProgress(userProfile, questProfile.currentXp);
     QuestClass dominantClass = userProfile.getDominantQuestClass();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
@@ -213,6 +231,10 @@ public class ProfileResource {
         dominantClass,
         activityClassMap,
         questProfile,
+        resumeHistoryLimit,
+        resumeHistoryNextLimit,
+        resumeHistoryHasMore,
+        resumeHistoryAtLimit,
         questProgressPercent,
         publicProfileHandle,
         finalLang,

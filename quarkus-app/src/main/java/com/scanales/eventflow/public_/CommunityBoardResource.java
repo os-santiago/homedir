@@ -7,6 +7,7 @@ import com.scanales.eventflow.config.AppMessages;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -32,6 +33,7 @@ import org.jboss.logging.Logger;
 public class CommunityBoardResource {
   private static final Logger LOG = Logger.getLogger(CommunityBoardResource.class);
   private static final int PAGE_SIZE = 10;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
   private static final DateTimeFormatter BOARD_SYNC_TIME_FMT =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'").withZone(ZoneOffset.UTC);
 
@@ -113,7 +115,7 @@ public class CommunityBoardResource {
                 gamificationService.award(
                     userId, GamificationActivity.COMMUNITY_BOARD_MEMBERS_VIEW, group.path()));
     int limit = normalizeLimit(limitParam);
-    int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
+    int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     CommunityBoardService.BoardSlice slice = boardService.list(group, query, limit, offset);
     String normalizedQuery = query == null ? "" : query.trim();
     int shown = slice.items().size();

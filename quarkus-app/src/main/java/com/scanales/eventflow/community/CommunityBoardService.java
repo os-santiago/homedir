@@ -7,6 +7,7 @@ import com.scanales.eventflow.model.CommunityMember;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.CommunityService;
 import com.scanales.eventflow.service.UserProfileService;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -43,6 +44,7 @@ import org.jboss.logging.Logger;
 public class CommunityBoardService {
   private static final Logger LOG = Logger.getLogger(CommunityBoardService.class);
   private static final int MAX_LIMIT = 100;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
   private static final DateTimeFormatter DATE_FMT =
       DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC);
 
@@ -134,7 +136,7 @@ public class CommunityBoardService {
     String normalizedQuery = normalizeQuery(query);
     List<CommunityBoardMemberView> source = members(group);
     int normalizedLimit = normalizeLimit(limit);
-    int normalizedOffset = Math.max(0, offset);
+    int normalizedOffset = PaginationGuardrails.clampOffset(offset, MAX_OFFSET);
     ResponseKey cacheKey = new ResponseKey(group, normalizedQuery, normalizedLimit, normalizedOffset);
     ResponseCacheEntry cached = responseCache.get(cacheKey);
     Instant now = Instant.now();

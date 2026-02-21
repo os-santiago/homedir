@@ -163,6 +163,17 @@
                 </li>
                 {/for}
             </ul>
+            {#if resumeHistoryHasMore}
+            <div class="hd-panel-actions">
+                {#if resumeHistoryAtLimit}
+                <span class="hd-detail-label">{i18n.resume_history_limit_notice(resumeHistoryLimit)}</span>
+                {#else}
+                <a class="hd-btn hd-btn-secondary" href="/private/profile?historyLimit={resumeHistoryNextLimit}">
+                    {i18n.resume_history_load_more}
+                </a>
+                {/if}
+            </div>
+            {/if}
             {/if}
 
             <div class="profile-progress-tree-section">
