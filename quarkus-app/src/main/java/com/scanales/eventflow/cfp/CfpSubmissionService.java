@@ -2,6 +2,7 @@ package com.scanales.eventflow.cfp;
 
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.PersistenceService;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -626,8 +627,12 @@ public class CfpSubmissionService {
 
   private static List<CfpSubmission> paginate(
       List<CfpSubmission> source, int requestedLimit, int requestedOffset) {
-    int limit = requestedLimit <= 0 ? 20 : Math.min(requestedLimit, 100);
-    int offset = Math.max(0, requestedOffset);
+    int limit =
+        PaginationGuardrails.clampLimit(
+            requestedLimit,
+            PaginationGuardrails.DEFAULT_PAGE_LIMIT,
+            PaginationGuardrails.MAX_PAGE_LIMIT);
+    int offset = PaginationGuardrails.clampOffset(requestedOffset, PaginationGuardrails.MAX_OFFSET);
     if (offset >= source.size()) {
       return List.of();
     }

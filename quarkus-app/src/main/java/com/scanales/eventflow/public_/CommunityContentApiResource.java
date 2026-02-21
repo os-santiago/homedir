@@ -14,6 +14,7 @@ import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -39,6 +40,7 @@ import org.jboss.logging.Logger;
 public class CommunityContentApiResource {
   private static final Logger LOG = Logger.getLogger(CommunityContentApiResource.class);
   private static final int PAGE_SIZE = 10;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
 
   @Inject CommunityContentService contentService;
   @Inject CommunityVoteService voteService;
@@ -61,7 +63,7 @@ public class CommunityContentApiResource {
     ContentFilter filter = normalizeFilter(filterParam);
     String mediaFilter = normalizeMediaFilter(mediaParam);
     int limit = normalizeLimit(limitParam);
-    int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
+    int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
 
     String userId = currentUserId().orElse(null);
     if (userId != null && !userId.isBlank()) {

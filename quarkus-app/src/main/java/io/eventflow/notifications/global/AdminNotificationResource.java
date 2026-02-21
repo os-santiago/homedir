@@ -1,5 +1,6 @@
 package io.eventflow.notifications.global;
 
+import com.scanales.eventflow.util.PaginationGuardrails;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -13,6 +14,8 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 @RolesAllowed({"admin"})
 public class AdminNotificationResource {
+  private static final int DEFAULT_LIMIT = 50;
+  private static final int MAX_LIMIT = 200;
 
   @Inject GlobalNotificationService service;
 
@@ -36,7 +39,8 @@ public class AdminNotificationResource {
   @GET
   @Path("/latest")
   public Response latest(@QueryParam("limit") @DefaultValue("50") int limit) {
-    return Response.ok(service.latest(limit)).build();
+    int normalizedLimit = PaginationGuardrails.clampLimit(limit, DEFAULT_LIMIT, MAX_LIMIT);
+    return Response.ok(service.latest(normalizedLimit)).build();
   }
 
   @DELETE

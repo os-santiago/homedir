@@ -7,6 +7,7 @@ import com.scanales.eventflow.economy.EconomyTransaction;
 import com.scanales.eventflow.economy.EconomyWallet;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -26,6 +27,9 @@ import java.util.Optional;
 @Path("/api/economy")
 @Produces(MediaType.APPLICATION_JSON)
 public class EconomyApiResource {
+  private static final int DEFAULT_LIMIT = PaginationGuardrails.DEFAULT_PAGE_LIMIT;
+  private static final int MAX_LIMIT = PaginationGuardrails.MAX_PAGE_LIMIT;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
 
   @Inject EconomyService economyService;
   @Inject UsageMetricsService metrics;
@@ -70,8 +74,8 @@ public class EconomyApiResource {
       return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
     }
     try {
-      int limit = limitParam == null ? 20 : limitParam;
-      int offset = offsetParam == null ? 0 : offsetParam;
+      int limit = PaginationGuardrails.clampLimit(limitParam, DEFAULT_LIMIT, MAX_LIMIT);
+      int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
       List<EconomyInventoryItem> items = economyService.listInventory(userId.get(), limit, offset);
       return Response.ok(new InventoryResponse(limit, offset, items)).build();
     } catch (EconomyService.ValidationException e) {
@@ -90,8 +94,8 @@ public class EconomyApiResource {
       return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
     }
     try {
-      int limit = limitParam == null ? 20 : limitParam;
-      int offset = offsetParam == null ? 0 : offsetParam;
+      int limit = PaginationGuardrails.clampLimit(limitParam, DEFAULT_LIMIT, MAX_LIMIT);
+      int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
       EconomyService.TransactionPage page = economyService.listTransactions(userId.get(), limit, offset);
       return Response.ok(
           new TransactionsResponse(

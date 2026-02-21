@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scanales.eventflow.service.PersistenceService;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -366,8 +367,12 @@ public class CommunitySubmissionService {
 
   private static List<CommunitySubmission> paginate(
       List<CommunitySubmission> source, int requestedLimit, int requestedOffset) {
-    int limit = requestedLimit <= 0 ? 20 : Math.min(requestedLimit, 100);
-    int offset = Math.max(0, requestedOffset);
+    int limit =
+        PaginationGuardrails.clampLimit(
+            requestedLimit,
+            PaginationGuardrails.DEFAULT_PAGE_LIMIT,
+            PaginationGuardrails.MAX_PAGE_LIMIT);
+    int offset = PaginationGuardrails.clampOffset(requestedOffset, PaginationGuardrails.MAX_OFFSET);
     if (offset >= source.size()) {
       return List.of();
     }

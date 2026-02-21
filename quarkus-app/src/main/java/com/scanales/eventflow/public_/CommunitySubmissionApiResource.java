@@ -7,6 +7,7 @@ import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -30,6 +31,9 @@ import org.jboss.logging.Logger;
 @Produces(MediaType.APPLICATION_JSON)
 public class CommunitySubmissionApiResource {
   private static final Logger LOG = Logger.getLogger(CommunitySubmissionApiResource.class);
+  private static final int DEFAULT_LIMIT = PaginationGuardrails.DEFAULT_PAGE_LIMIT;
+  private static final int MAX_LIMIT = PaginationGuardrails.MAX_PAGE_LIMIT;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
 
   @Inject CommunitySubmissionService submissionService;
   @Inject UsageMetricsService metrics;
@@ -84,7 +88,7 @@ public class CommunitySubmissionApiResource {
       return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
     }
     int limit = normalizeLimit(limitParam);
-    int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
+    int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
         submissionService.listMine(userId.get(), limit, offset).stream().map(this::toView).toList();
     return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
@@ -100,7 +104,7 @@ public class CommunitySubmissionApiResource {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
     int limit = normalizeLimit(limitParam);
-    int offset = Math.max(0, offsetParam == null ? 0 : offsetParam);
+    int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
         submissionService.listPending(limit, offset).stream().map(this::toView).toList();
     return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
@@ -171,10 +175,7 @@ public class CommunitySubmissionApiResource {
   }
 
   private int normalizeLimit(Integer rawLimit) {
-    if (rawLimit == null || rawLimit <= 0) {
-      return 20;
-    }
-    return Math.min(rawLimit, 100);
+    return PaginationGuardrails.clampLimit(rawLimit, DEFAULT_LIMIT, MAX_LIMIT);
   }
 
   private Optional<String> currentUserId() {

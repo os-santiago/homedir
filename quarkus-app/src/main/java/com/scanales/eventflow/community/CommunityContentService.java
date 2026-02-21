@@ -1,5 +1,6 @@
 package com.scanales.eventflow.community;
 
+import com.scanales.eventflow.util.PaginationGuardrails;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -28,7 +29,8 @@ import org.jboss.logging.Logger;
 @ApplicationScoped
 public class CommunityContentService {
   private static final Logger LOG = Logger.getLogger(CommunityContentService.class);
-  private static final int MAX_LIMIT = 100;
+  private static final int MAX_LIMIT = PaginationGuardrails.MAX_PAGE_LIMIT;
+  private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
@@ -235,8 +237,10 @@ public class CommunityContentService {
 
   private static List<CommunityContentItem> paginate(
       List<CommunityContentItem> source, int requestedLimit, int requestedOffset) {
-    int limit = requestedLimit <= 0 ? 20 : Math.min(requestedLimit, MAX_LIMIT);
-    int offset = Math.max(0, requestedOffset);
+    int limit =
+        PaginationGuardrails.clampLimit(
+            requestedLimit, PaginationGuardrails.DEFAULT_PAGE_LIMIT, MAX_LIMIT);
+    int offset = PaginationGuardrails.clampOffset(requestedOffset, MAX_OFFSET);
     if (offset >= source.size()) {
       return List.of();
     }
