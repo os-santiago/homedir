@@ -12,6 +12,7 @@ import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.SystemError;
 import com.scanales.eventflow.community.CommunitySubmission;
+import com.scanales.eventflow.economy.EconomyStateSnapshot;
 import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import jakarta.annotation.PostConstruct;
@@ -105,6 +106,7 @@ public class PersistenceService {
   private Path speakersFile;
   private Path profilesFile;
   private Path systemErrorsFile;
+  private Path economyStateFile;
   private Path communitySubmissionsFile;
   private Path cfpSubmissionsFile;
   private Path cfpConfigFile;
@@ -183,6 +185,7 @@ public class PersistenceService {
     speakersFile = dataDir.resolve("speakers.json");
     profilesFile = dataDir.resolve("user-profiles.json");
     systemErrorsFile = dataDir.resolve("system-errors.json");
+    economyStateFile = dataDir.resolve("economy-state.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
     cfpConfigFile = dataDir.resolve("cfp-config.json");
@@ -306,6 +309,51 @@ public class PersistenceService {
   public Map<String, SystemError> loadSystemErrors() {
     return read(systemErrorsFile, new TypeReference<Map<String, SystemError>>() {
     });
+  }
+
+  /** Persists economy state asynchronously. */
+  public void saveEconomyState(EconomyStateSnapshot state) {
+    scheduleWrite(economyStateFile, state == null ? EconomyStateSnapshot.empty() : state);
+  }
+
+  /** Persists economy state synchronously. */
+  public void saveEconomyStateSync(EconomyStateSnapshot state) {
+    writeSync(economyStateFile, state == null ? EconomyStateSnapshot.empty() : state);
+  }
+
+  /** Loads economy state from disk if present. */
+  public java.util.Optional<EconomyStateSnapshot> loadEconomyState() {
+    if (economyStateFile == null || !Files.exists(economyStateFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(mapper.readValue(economyStateFile.toFile(), EconomyStateSnapshot.class));
+    } catch (IOException e) {
+      LOG.error("Failed to read " + economyStateFile.toAbsolutePath(), e);
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Last modified timestamp for economy state file, or -1 when unavailable. */
+  public long economyStateLastModifiedMillis() {
+    try {
+      if (economyStateFile == null || !Files.exists(economyStateFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(economyStateFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Size in bytes for economy state file, or -1 when unavailable. */
+  public long economyStateSizeBytes() {
+    return fileSize(economyStateFile);
+  }
+
+  /** Absolute path for economy state file. */
+  public String economyStatePath() {
+    return economyStateFile == null ? null : economyStateFile.toAbsolutePath().toString();
   }
 
   /** Persists community submissions asynchronously. */

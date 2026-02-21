@@ -2,15 +2,20 @@ package com.scanales.eventflow.service;
 
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.economy.EconomyService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
 import java.util.Locale;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class GamificationService {
 
+  private static final Logger LOG = Logger.getLogger(GamificationService.class);
+
   @Inject UserProfileService userProfiles;
+  @Inject EconomyService economyService;
 
   public boolean award(String userId, GamificationActivity activity) {
     return award(userId, activity, null);
@@ -44,6 +49,13 @@ public class GamificationService {
     }
 
     userProfiles.addXp(profile.getUserId(), activity.xp(), title, activity.questClass());
+    try {
+      economyService.rewardFromGamification(profile.getUserId(), activity.key(), activity.xp(), reference);
+    } catch (EconomyService.CapacityException e) {
+      LOG.warnf("gamification_reward_blocked user=%s code=%s", profile.getUserId(), e.getMessage());
+    } catch (Exception e) {
+      LOG.warnf(e, "gamification_reward_failed user=%s", profile.getUserId());
+    }
     return true;
   }
 
