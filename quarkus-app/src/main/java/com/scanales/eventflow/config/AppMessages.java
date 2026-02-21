@@ -864,6 +864,18 @@ public interface AppMessages {
     @Message("File-based ingest with ranking, 3-state votes, and weekly highlights.")
     String project_dashboard_feature_community_feed_desc();
 
+    @Message("Gamification: Levels & Classes")
+    String project_dashboard_feature_gamification_title();
+
+    @Message("Class momentum, XP progression, and level growth mapped to real user activity.")
+    String project_dashboard_feature_gamification_desc();
+
+    @Message("Rewards Catalog Preview")
+    String project_dashboard_feature_rewards_catalog_title();
+
+    @Message("Before/after visual catalog to evaluate profile and community rewards before purchase.")
+    String project_dashboard_feature_rewards_catalog_desc();
+
     @Message("Events Persistence")
     String project_dashboard_feature_events_persistence_title();
 

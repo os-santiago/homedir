@@ -19,7 +19,9 @@ public class ProjectsResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Product delivery overview"))
-        .body(containsString("Homedir feature map"));
+        .body(containsString("Homedir feature map"))
+        .body(containsString("Gamification: Levels"))
+        .body(containsString("Rewards Catalog Preview"));
   }
 
   @Test
