@@ -36,6 +36,13 @@ public enum GamificationActivity {
   EVENT_VIEW("event_view", 3, QuestClass.ENGINEER, true, false, "Event exploration"),
   PROJECT_VIEW("project_view", 3, QuestClass.ENGINEER, true, false, "Project exploration"),
   BOARD_PROFILE_OPEN("board_profile_open", 4, QuestClass.SCIENTIST, true, false, "Community board profile open"),
+  NOTIFICATIONS_CENTER_VIEW(
+      "notifications_center_view",
+      4,
+      QuestClass.WARRIOR,
+      true,
+      false,
+      "Notifications center monitoring"),
   TALK_VIEW("talk_view", 5, QuestClass.WARRIOR, true, false, "Talk exploration"),
   AGENDA_VIEW("agenda_view", 4, QuestClass.WARRIOR, true, false, "Agenda exploration"),
   CFP_SUBMIT("cfp_submit", 30, QuestClass.WARRIOR, false, false, "CFP submission"),

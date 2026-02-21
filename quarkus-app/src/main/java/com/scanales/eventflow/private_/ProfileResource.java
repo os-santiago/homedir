@@ -608,6 +608,10 @@ public class ProfileResource {
             messages.profile_activity_examples_curation(),
             QuestClass.SCIENTIST.getDisplayName()),
         new ActivityClassMapping(
+            messages.profile_activity_category_members(),
+            messages.profile_activity_examples_members(),
+            QuestClass.SCIENTIST.getDisplayName()),
+        new ActivityClassMapping(
             messages.profile_activity_category_events(),
             messages.profile_activity_examples_events(),
             QuestClass.WARRIOR.getDisplayName()),
@@ -615,6 +619,10 @@ public class ProfileResource {
             messages.profile_activity_category_project(),
             messages.profile_activity_examples_project(),
             QuestClass.ENGINEER.getDisplayName()),
+        new ActivityClassMapping(
+            messages.profile_activity_category_notifications(),
+            messages.profile_activity_examples_notifications(),
+            QuestClass.WARRIOR.getDisplayName()),
         new ActivityClassMapping(
             messages.profile_activity_category_connect(),
             messages.profile_activity_examples_connect(),
