@@ -705,6 +705,18 @@ public class ProjectsResource {
             "live",
             "/comunidad"),
         new ProjectFeature(
+            i18n.project_dashboard_feature_gamification_title(),
+            i18n.project_dashboard_feature_gamification_desc(),
+            i18n.project_dashboard_status_live(),
+            "live",
+            "/private/profile"),
+        new ProjectFeature(
+            i18n.project_dashboard_feature_rewards_catalog_title(),
+            i18n.project_dashboard_feature_rewards_catalog_desc(),
+            i18n.project_dashboard_status_live(),
+            "live",
+            "/private/profile/catalog"),
+        new ProjectFeature(
             i18n.project_dashboard_feature_home_highlights_title(),
             i18n.project_dashboard_feature_home_highlights_desc(),
             i18n.project_dashboard_status_live(),
