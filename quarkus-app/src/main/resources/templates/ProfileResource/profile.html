@@ -275,6 +275,24 @@
             <div class="hd-economy-grid">
                 <article class="hd-card hd-economy-card">
                     <h3 class="hd-section-subtitle">{i18n.economy_store_title}</h3>
+                    <div class="hd-economy-summary" id="economy-store-summary">
+                        <div class="hd-economy-summary-item">
+                            <span class="hd-economy-summary-label">{i18n.economy_balance_label}</span>
+                            <strong class="hd-economy-summary-value" id="economy-summary-balance">0 HCoin</strong>
+                        </div>
+                        <div class="hd-economy-summary-item">
+                            <span class="hd-economy-summary-label">{i18n.economy_summary_level_label}</span>
+                            <strong class="hd-economy-summary-value" id="economy-summary-level">0</strong>
+                        </div>
+                        <div class="hd-economy-summary-item">
+                            <span class="hd-economy-summary-label">{i18n.economy_summary_reachable_label}</span>
+                            <strong class="hd-economy-summary-value" id="economy-summary-reachable">0</strong>
+                        </div>
+                        <div class="hd-economy-summary-item">
+                            <span class="hd-economy-summary-label">{i18n.economy_summary_stock_label}</span>
+                            <strong class="hd-economy-summary-value" id="economy-summary-stock">0</strong>
+                        </div>
+                    </div>
                     <div id="economy-store-list" class="hd-economy-list"></div>
                 </article>
 
@@ -447,6 +465,34 @@
         padding: 0.95rem;
     }
 
+    .hd-economy-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.45rem;
+        margin: 0.15rem 0 0.5rem;
+    }
+
+    .hd-economy-summary-item {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        background: rgba(12, 18, 22, 0.35);
+        padding: 0.45rem 0.5rem;
+        display: grid;
+        gap: 0.15rem;
+    }
+
+    .hd-economy-summary-label {
+        font-size: 0.68rem;
+        opacity: 0.78;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .hd-economy-summary-value {
+        font-size: 0.92rem;
+        line-height: 1.2;
+    }
+
     .hd-economy-list {
         display: grid;
         gap: 0.55rem;
@@ -481,9 +527,72 @@
         opacity: 0.85;
     }
 
+    .hd-economy-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-top: 0.2rem;
+    }
+
+    .hd-economy-chip {
+        font-size: 0.7rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        padding: 0.11rem 0.45rem;
+        background: rgba(15, 25, 30, 0.45);
+        white-space: nowrap;
+    }
+
+    .hd-economy-chip-status {
+        border-color: rgba(88, 214, 141, 0.55);
+        color: #58d68d;
+    }
+
+    .hd-economy-chip-status.locked {
+        border-color: rgba(255, 195, 113, 0.55);
+        color: #ffc371;
+    }
+
+    .hd-economy-chip-status.empty {
+        border-color: rgba(241, 148, 138, 0.55);
+        color: #f1948a;
+    }
+
     .hd-economy-meta {
         font-size: 0.76rem;
         opacity: 0.72;
+    }
+
+    .hd-economy-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-left: auto;
+    }
+
+    .hd-economy-preview {
+        margin-top: 0.35rem;
+        padding: 0.5rem 0.55rem;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        background: rgba(12, 18, 22, 0.55);
+        display: none;
+    }
+
+    .hd-economy-preview.show {
+        display: block;
+    }
+
+    .hd-economy-preview-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin: 0 0 0.2rem;
+    }
+
+    .hd-economy-preview p {
+        margin: 0;
+        font-size: 0.76rem;
+        opacity: 0.85;
     }
 
     .hd-economy-partial-hint {
@@ -499,6 +608,10 @@
 
         .hd-economy-grid {
             grid-template-columns: 1fr;
+        }
+
+        .hd-economy-summary {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 </style>
@@ -533,6 +646,10 @@
         const economyPanel = document.querySelector('[data-economy-panel]');
         const economyBalanceValue = document.getElementById('economy-balance-value');
         const economyBalanceMeta = document.getElementById('economy-balance-meta');
+        const economySummaryBalance = document.getElementById('economy-summary-balance');
+        const economySummaryLevel = document.getElementById('economy-summary-level');
+        const economySummaryReachable = document.getElementById('economy-summary-reachable');
+        const economySummaryStock = document.getElementById('economy-summary-stock');
         const economyStoreList = document.getElementById('economy-store-list');
         const economyInventoryList = document.getElementById('economy-inventory-list');
         const economyTransactionsList = document.getElementById('economy-transactions-list');
@@ -564,7 +681,18 @@
             stockLeftLabel: '{i18n.economy_stock_left(0)}',
             requireLevelLabel: '{i18n.economy_require_level(0)}',
             requireTotalXpLabel: '{i18n.economy_require_total_xp(0)}',
-            requireClassXpLabel: '{i18n.economy_require_class_xp(0, "Class")}'
+            requireClassXpLabel: '{i18n.economy_require_class_xp(0, "Class")}',
+            preview: '{i18n.economy_btn_preview}',
+            hidePreview: '{i18n.economy_btn_hide_preview}',
+            availableNow: '{i18n.economy_status_available}',
+            outOfStock: '{i18n.economy_status_out_of_stock}'
+        };
+
+        const economyPreviewByItem = {
+            'profile-glow': '{i18n.economy_preview_profile_glow}',
+            'community-spotlight': '{i18n.economy_preview_community_spotlight}',
+            'event-fast-pass': '{i18n.economy_preview_event_fast_pass}',
+            'architect-badge': '{i18n.economy_preview_architect_badge}'
         };
 
         const formatHcoin = (value) => {
@@ -610,6 +738,9 @@
                 : 0;
             economyBalanceValue.textContent = formatHcoin(balance);
             economyBalanceMeta.textContent = '{i18n.economy_balance_amount(0)}'.replace('0', balance.toLocaleString());
+            if (economySummaryBalance) {
+                economySummaryBalance.textContent = formatHcoin(balance);
+            }
         };
 
         const buildEconomyItem = (title, description, metaText) => {
@@ -646,54 +777,124 @@
                 empty.className = 'hd-page-intro';
                 empty.textContent = economyText.loading;
                 economyStoreList.appendChild(empty);
+                if (economySummaryLevel) economySummaryLevel.textContent = '0';
+                if (economySummaryReachable) economySummaryReachable.textContent = '0';
+                if (economySummaryStock) economySummaryStock.textContent = '0';
                 return;
             }
+            const toInt = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
+            const formatStockLeft = (value) =>
+                economyText.stockLeftLabel.replace('0', Math.max(0, toInt(value)).toLocaleString());
+            const createChip = (text, extraClass) => {
+                const chip = document.createElement('span');
+                chip.className = 'hd-economy-chip' + (extraClass ? (' ' + extraClass) : '');
+                chip.textContent = text;
+                return chip;
+            };
+            const lockReasonText = (item) => {
+                const lockReason = item.lock_reason || '';
+                if (lockReason === 'requires_level') {
+                    const requiredLevel = toInt(item.required_level);
+                    return economyText.requireLevelLabel.replace('0', requiredLevel.toLocaleString());
+                }
+                if (lockReason === 'requires_total_xp') {
+                    const requiredXp = toInt(item.required_total_xp);
+                    return economyText.requireTotalXpLabel.replace('0', requiredXp.toLocaleString());
+                }
+                if (lockReason === 'requires_class_xp') {
+                    const requiredClassXp = toInt(item.required_class_xp);
+                    const requiredClass = item.required_class || 'Class';
+                    return economyText.requireClassXpLabel
+                        .replace('0', requiredClassXp.toLocaleString())
+                        .replace('Class', requiredClass);
+                }
+                return economyText.lockedLabel;
+            };
+            let currentLevel = 0;
+            let reachableCount = 0;
+            let inStockCount = 0;
             economyState.catalog.forEach((item) => {
                 const unlocked = item.unlocked !== false;
-                const remainingStock = Number(item.remaining_stock || 0);
+                const remainingStock = toInt(item.remaining_stock);
                 const tier = item.tier ? String(item.tier).toUpperCase() : '';
-                let availabilityMeta = (item.category || 'general') + ' · ' + formatHcoin(item.price_hcoin || 0);
-                if (tier) {
-                    availabilityMeta = tier + ' · ' + availabilityMeta;
+                const currentItemLevel = toInt(item.current_level);
+                const requiredLevel = toInt(item.required_level);
+                const priceHcoin = toInt(item.price_hcoin);
+                const noStock = unlocked && Number.isFinite(remainingStock) && remainingStock <= 0;
+                const cannotAfford = priceHcoin > balance;
+                currentLevel = Math.max(currentLevel, currentItemLevel);
+                if (unlocked && !noStock) {
+                    inStockCount++;
                 }
-                const lockReason = item.lock_reason || '';
-                if (!unlocked) {
-                    let lockDetail = economyText.lockedLabel;
-                    if (lockReason === 'requires_level') {
-                        const requiredLevel = Number(item.required_level || 0);
-                        lockDetail = economyText.requireLevelLabel.replace('0', requiredLevel.toLocaleString());
-                    } else if (lockReason === 'requires_total_xp') {
-                        const requiredXp = Number(item.required_total_xp || 0);
-                        lockDetail = economyText.requireTotalXpLabel.replace('0', requiredXp.toLocaleString());
-                    } else if (lockReason === 'requires_class_xp') {
-                        const requiredClassXp = Number(item.required_class_xp || 0);
-                        const requiredClass = item.required_class || 'Class';
-                        lockDetail = economyText.requireClassXpLabel
-                            .replace('0', requiredClassXp.toLocaleString())
-                            .replace('Class', requiredClass);
-                    }
-                    availabilityMeta = lockDetail;
-                } else if (Number.isFinite(remainingStock)) {
-                    availabilityMeta =
-                        availabilityMeta + ' · ' + economyText.stockLeftLabel.replace('0', Math.max(0, remainingStock).toLocaleString());
+                if (unlocked && !noStock && !cannotAfford) {
+                    reachableCount++;
                 }
                 const card = buildEconomyItem(
                     item.name || item.id,
                     item.description || '',
-                    availabilityMeta
+                    ''
                 );
+                const main = card.querySelector('.hd-economy-item-main');
+                if (main) {
+                    const chips = document.createElement('div');
+                    chips.className = 'hd-economy-chips';
+                    if (tier) {
+                        chips.appendChild(createChip(tier));
+                    }
+                    chips.appendChild(createChip(formatHcoin(priceHcoin)));
+                    chips.appendChild(createChip('L' + currentItemLevel + '/' + requiredLevel));
+                    chips.appendChild(createChip(formatStockLeft(remainingStock)));
+                    if (!unlocked) {
+                        chips.appendChild(createChip(economyText.lockedLabel, 'hd-economy-chip-status locked'));
+                        chips.appendChild(createChip(lockReasonText(item)));
+                    } else if (noStock) {
+                        chips.appendChild(createChip(economyText.outOfStock, 'hd-economy-chip-status empty'));
+                    } else {
+                        chips.appendChild(createChip(economyText.availableNow, 'hd-economy-chip-status'));
+                    }
+                    main.appendChild(chips);
+                }
+                const actions = document.createElement('div');
+                actions.className = 'hd-economy-actions';
+                const previewBtn = document.createElement('button');
+                previewBtn.className = 'hd-btn hd-btn-secondary';
+                previewBtn.type = 'button';
+                previewBtn.textContent = economyText.preview;
+                const previewBox = document.createElement('div');
+                previewBox.className = 'hd-economy-preview';
+                const previewTitle = document.createElement('p');
+                previewTitle.className = 'hd-economy-preview-title';
+                previewTitle.textContent = item.name || item.id || 'Item';
+                const previewText = document.createElement('p');
+                previewText.textContent = economyPreviewByItem[item.id] || item.description || '';
+                previewBox.appendChild(previewTitle);
+                previewBox.appendChild(previewText);
+                previewBtn.addEventListener('click', () => {
+                    const open = previewBox.classList.toggle('show');
+                    previewBtn.textContent = open ? economyText.hidePreview : economyText.preview;
+                });
+                actions.appendChild(previewBtn);
                 const button = document.createElement('button');
                 button.className = 'hd-btn hd-btn-secondary economy-buy-btn';
                 button.dataset.itemId = item.id;
                 button.textContent = economyText.buy;
-                const cannotAfford = Number(item.price_hcoin || 0) > balance;
-                const noStock = unlocked && Number.isFinite(remainingStock) && remainingStock <= 0;
                 if (cannotAfford || !unlocked || noStock) {
                     button.disabled = true;
                 }
-                card.appendChild(button);
+                actions.appendChild(button);
+                card.appendChild(actions);
+                card.appendChild(previewBox);
                 economyStoreList.appendChild(card);
             });
+            if (economySummaryLevel) economySummaryLevel.textContent = currentLevel.toLocaleString();
+            if (economySummaryReachable) {
+                economySummaryReachable.textContent =
+                    reachableCount.toLocaleString() + '/' + economyState.catalog.length.toLocaleString();
+            }
+            if (economySummaryStock) {
+                economySummaryStock.textContent =
+                    inStockCount.toLocaleString() + '/' + economyState.catalog.length.toLocaleString();
+            }
         };
 
         const renderInventory = () => {
@@ -752,6 +953,7 @@
             const payload = await economyFetchJson('/api/economy/wallet');
             economyState.wallet = payload.wallet || { balance_hcoin: 0 };
             setEconomyBalance(economyState.wallet);
+            renderStore();
         };
 
         const loadCatalog = async () => {

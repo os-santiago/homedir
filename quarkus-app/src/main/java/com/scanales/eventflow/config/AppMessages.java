@@ -198,6 +198,39 @@ public interface AppMessages {
     @Message("Requires {xp} XP in {questClass}")
     String economy_require_class_xp(int xp, String questClass);
 
+    @Message("Level")
+    String economy_summary_level_label();
+
+    @Message("Within reach")
+    String economy_summary_reachable_label();
+
+    @Message("In stock")
+    String economy_summary_stock_label();
+
+    @Message("Preview")
+    String economy_btn_preview();
+
+    @Message("Hide preview")
+    String economy_btn_hide_preview();
+
+    @Message("Available now")
+    String economy_status_available();
+
+    @Message("Out of stock")
+    String economy_status_out_of_stock();
+
+    @Message("Your public profile gets a highlighted glow frame.")
+    String economy_preview_profile_glow();
+
+    @Message("Highlight one approved contribution in Community Picks.")
+    String economy_preview_community_spotlight();
+
+    @Message("Show priority badge in events and CFP participation views.")
+    String economy_preview_event_fast_pass();
+
+    @Message("Display an advanced contributor badge in your public profile.")
+    String economy_preview_architect_badge();
+
     @Message("Level {level}")
     String resume_level(Object level);
 
