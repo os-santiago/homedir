@@ -39,4 +39,20 @@ public class GamificationServiceTest {
     assertEquals(25, profile.getCurrentXp());
     assertEquals(25, profile.getClassXp(QuestClass.ENGINEER));
   }
+
+  @Test
+  void warriorEventsExplorationAwardsOnlyOncePerDay() {
+    String userId = "events.warrior@example.com";
+
+    assertTrue(
+        gamificationService.award(
+            userId, GamificationActivity.WARRIOR_EVENTS_EXPLORATION, "events"));
+    assertFalse(
+        gamificationService.award(
+            userId, GamificationActivity.WARRIOR_EVENTS_EXPLORATION, "events"));
+
+    var profile = userProfileService.find(userId).orElseThrow();
+    assertEquals(4, profile.getCurrentXp());
+    assertEquals(4, profile.getClassXp(QuestClass.WARRIOR));
+  }
 }

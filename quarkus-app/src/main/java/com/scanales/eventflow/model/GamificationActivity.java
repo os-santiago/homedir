@@ -25,6 +25,13 @@ public enum GamificationActivity {
       false,
       false,
       "Community proposal approved"),
+  WARRIOR_EVENTS_EXPLORATION(
+      "warrior_events_exploration",
+      4,
+      QuestClass.WARRIOR,
+      true,
+      false,
+      "Events exploration mission"),
   EVENT_DIRECTORY_VIEW("event_directory_view", 4, QuestClass.ENGINEER, true, false, "Events directory exploration"),
   EVENT_VIEW("event_view", 3, QuestClass.ENGINEER, true, false, "Event exploration"),
   PROJECT_VIEW("project_view", 3, QuestClass.ENGINEER, true, false, "Project exploration"),
