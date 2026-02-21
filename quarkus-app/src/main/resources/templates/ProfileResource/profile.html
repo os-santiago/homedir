@@ -257,6 +257,47 @@
             </div>
         </section>
 
+        <section class="hd-panel centered" id="economy-panel" data-economy-panel>
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">{i18n.section_economy}</p>
+                    <h2 class="hd-panel-title">{i18n.section_economy}</h2>
+                    <p class="hd-page-intro">{i18n.economy_intro}</p>
+                </div>
+            </div>
+
+            <div class="hd-card hd-economy-balance-card">
+                <span class="hd-detail-label">{i18n.economy_balance_label}</span>
+                <strong class="hd-economy-balance-value" id="economy-balance-value">0 HCoin</strong>
+                <span class="hd-detail-value" id="economy-balance-meta">{i18n.economy_loading}</span>
+            </div>
+
+            <div class="hd-economy-grid">
+                <article class="hd-card hd-economy-card">
+                    <h3 class="hd-section-subtitle">{i18n.economy_store_title}</h3>
+                    <div id="economy-store-list" class="hd-economy-list"></div>
+                </article>
+
+                <article class="hd-card hd-economy-card">
+                    <h3 class="hd-section-subtitle">{i18n.economy_inventory_title}</h3>
+                    <div id="economy-inventory-list" class="hd-economy-list"></div>
+                </article>
+            </div>
+
+            <article class="hd-card hd-economy-card">
+                <h3 class="hd-section-subtitle">{i18n.economy_transactions_title}</h3>
+                <p class="hd-page-intro hd-economy-partial-hint" id="economy-transactions-hint" hidden>
+                    {i18n.economy_tx_partial_hint}
+                </p>
+                <div id="economy-transactions-list" class="hd-economy-list"></div>
+                <div class="hd-panel-actions">
+                    <button class="hd-btn hd-btn-secondary" id="economy-load-more-btn" hidden>
+                        {i18n.economy_btn_load_more}
+                    </button>
+                </div>
+            </article>
+        </section>
+
         <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
@@ -384,8 +425,79 @@
         gap: 0.45rem;
     }
 
+    .hd-economy-balance-card {
+        display: grid;
+        gap: 0.35rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .hd-economy-balance-value {
+        font-size: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .hd-economy-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem;
+        margin-bottom: 0.7rem;
+    }
+
+    .hd-economy-card {
+        padding: 0.95rem;
+    }
+
+    .hd-economy-list {
+        display: grid;
+        gap: 0.55rem;
+        margin-top: 0.35rem;
+    }
+
+    .hd-economy-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.65rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 0.6rem 0.7rem;
+        background: rgba(12, 18, 22, 0.45);
+    }
+
+    .hd-economy-item-main {
+        min-width: 0;
+        display: grid;
+        gap: 0.2rem;
+    }
+
+    .hd-economy-item-main strong {
+        font-size: 0.95rem;
+        line-height: 1.2;
+    }
+
+    .hd-economy-item-main p {
+        margin: 0;
+        font-size: 0.82rem;
+        opacity: 0.85;
+    }
+
+    .hd-economy-meta {
+        font-size: 0.76rem;
+        opacity: 0.72;
+    }
+
+    .hd-economy-partial-hint {
+        margin-top: 0;
+        margin-bottom: 0.35rem;
+        opacity: 0.8;
+    }
+
     @media (max-width: 900px) {
         .activity-class-map {
+            grid-template-columns: 1fr;
+        }
+
+        .hd-economy-grid {
             grid-template-columns: 1fr;
         }
     }
@@ -417,6 +529,306 @@
                 bar.style.minWidth = '2px';
             }
         });
+
+        const economyPanel = document.querySelector('[data-economy-panel]');
+        const economyBalanceValue = document.getElementById('economy-balance-value');
+        const economyBalanceMeta = document.getElementById('economy-balance-meta');
+        const economyStoreList = document.getElementById('economy-store-list');
+        const economyInventoryList = document.getElementById('economy-inventory-list');
+        const economyTransactionsList = document.getElementById('economy-transactions-list');
+        const economyTransactionsHint = document.getElementById('economy-transactions-hint');
+        const economyLoadMoreBtn = document.getElementById('economy-load-more-btn');
+
+        const ECONOMY_TX_PAGE_SIZE = 10;
+        const economyState = {
+            wallet: null,
+            catalog: [],
+            inventory: [],
+            transactions: [],
+            txOffset: 0,
+            loadingTransactions: false,
+            hasMoreTransactions: false
+        };
+
+        const economyText = {
+            buy: '{i18n.economy_btn_buy}',
+            buying: '{i18n.economy_btn_buying}',
+            loading: '{i18n.economy_loading}',
+            errorLoading: '{i18n.economy_error_loading}',
+            purchaseSuccess: '{i18n.economy_purchase_success_simple}',
+            purchaseError: '{i18n.economy_purchase_error_simple}',
+            emptyInventory: '{i18n.economy_empty_inventory}',
+            emptyTransactions: '{i18n.economy_empty_transactions}',
+            inventoryOwnedLabel: '{i18n.economy_inventory_owned(0)}'
+        };
+
+        const formatHcoin = (value) => {
+            const amount = Number.isFinite(Number(value)) ? Number(value) : 0;
+            return amount.toLocaleString() + ' HCoin';
+        };
+
+        const extractErrorCode = async (response) => {
+            try {
+                const body = await response.json();
+                if (body && typeof body.error === 'string' && body.error) {
+                    return body.error;
+                }
+                if (body && typeof body.detail === 'string' && body.detail) {
+                    return body.detail;
+                }
+            } catch (_) {
+                // ignore non-json payloads
+            }
+            return 'unknown';
+        };
+
+        const economyFetchJson = async (url, options = {}) => {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    Accept: 'application/json',
+                    ...(options.headers || {})
+                }
+            });
+            if (!response.ok) {
+                const code = await extractErrorCode(response);
+                const error = new Error(code);
+                error.code = code;
+                throw error;
+            }
+            return response.json();
+        };
+
+        const setEconomyBalance = (wallet) => {
+            const balance = wallet && Number.isFinite(Number(wallet.balance_hcoin))
+                ? Number(wallet.balance_hcoin)
+                : 0;
+            economyBalanceValue.textContent = formatHcoin(balance);
+            economyBalanceMeta.textContent = '{i18n.economy_balance_amount(0)}'.replace('0', balance.toLocaleString());
+        };
+
+        const buildEconomyItem = (title, description, metaText) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'hd-economy-item';
+            const main = document.createElement('div');
+            main.className = 'hd-economy-item-main';
+            const strong = document.createElement('strong');
+            strong.textContent = title;
+            main.appendChild(strong);
+            if (description) {
+                const desc = document.createElement('p');
+                desc.textContent = description;
+                main.appendChild(desc);
+            }
+            if (metaText) {
+                const meta = document.createElement('span');
+                meta.className = 'hd-economy-meta';
+                meta.textContent = metaText;
+                main.appendChild(meta);
+            }
+            wrapper.appendChild(main);
+            return wrapper;
+        };
+
+        const renderStore = () => {
+            if (!economyStoreList) return;
+            economyStoreList.replaceChildren();
+            const balance = economyState.wallet && Number.isFinite(Number(economyState.wallet.balance_hcoin))
+                ? Number(economyState.wallet.balance_hcoin)
+                : 0;
+            if (!Array.isArray(economyState.catalog) || economyState.catalog.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'hd-page-intro';
+                empty.textContent = economyText.loading;
+                economyStoreList.appendChild(empty);
+                return;
+            }
+            economyState.catalog.forEach((item) => {
+                const card = buildEconomyItem(
+                    item.name || item.id,
+                    item.description || '',
+                    (item.category || 'general') + ' · ' + formatHcoin(item.price_hcoin || 0)
+                );
+                const button = document.createElement('button');
+                button.className = 'hd-btn hd-btn-secondary economy-buy-btn';
+                button.dataset.itemId = item.id;
+                button.textContent = economyText.buy;
+                const cannotAfford = Number(item.price_hcoin || 0) > balance;
+                if (cannotAfford) {
+                    button.disabled = true;
+                }
+                card.appendChild(button);
+                economyStoreList.appendChild(card);
+            });
+        };
+
+        const renderInventory = () => {
+            if (!economyInventoryList) return;
+            economyInventoryList.replaceChildren();
+            if (!Array.isArray(economyState.inventory) || economyState.inventory.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'hd-page-intro';
+                empty.textContent = economyText.emptyInventory;
+                economyInventoryList.appendChild(empty);
+                return;
+            }
+            economyState.inventory.forEach((item) => {
+                const qty = Number(item.quantity || 0);
+                const meta = economyText.inventoryOwnedLabel.replace('0', qty.toLocaleString());
+                const entry = buildEconomyItem(
+                    item.name || item.item_id || 'Item',
+                    item.category || '',
+                    meta
+                );
+                economyInventoryList.appendChild(entry);
+            });
+        };
+
+        const renderTransactions = () => {
+            if (!economyTransactionsList) return;
+            economyTransactionsList.replaceChildren();
+            if (!Array.isArray(economyState.transactions) || economyState.transactions.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'hd-page-intro';
+                empty.textContent = economyText.emptyTransactions;
+                economyTransactionsList.appendChild(empty);
+                return;
+            }
+            economyState.transactions.forEach((tx) => {
+                const amount = Number(tx.amount_hcoin || 0);
+                const signedAmount = amount > 0 ? '+' + formatHcoin(amount) : formatHcoin(amount);
+                const date = tx.created_at ? new Date(tx.created_at) : null;
+                const metaDate = date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : '';
+                const entry = buildEconomyItem(
+                    tx.description || tx.type || 'Transaction',
+                    tx.item_id || '',
+                    signedAmount + ' · ' + metaDate
+                );
+                economyTransactionsList.appendChild(entry);
+            });
+        };
+
+        const updateEconomyLoadMoreButton = () => {
+            if (!economyLoadMoreBtn) return;
+            economyLoadMoreBtn.hidden = !economyState.hasMoreTransactions || economyState.loadingTransactions;
+            economyLoadMoreBtn.disabled = economyState.loadingTransactions;
+        };
+
+        const loadWallet = async () => {
+            const payload = await economyFetchJson('/api/economy/wallet');
+            economyState.wallet = payload.wallet || { balance_hcoin: 0 };
+            setEconomyBalance(economyState.wallet);
+        };
+
+        const loadCatalog = async () => {
+            const payload = await economyFetchJson('/api/economy/catalog');
+            economyState.catalog = Array.isArray(payload.items) ? payload.items : [];
+            renderStore();
+        };
+
+        const loadInventory = async () => {
+            const payload = await economyFetchJson('/api/economy/inventory?limit=20&offset=0');
+            economyState.inventory = Array.isArray(payload.items) ? payload.items : [];
+            renderInventory();
+        };
+
+        const loadTransactions = async (reset = false) => {
+            if (economyState.loadingTransactions) return;
+            economyState.loadingTransactions = true;
+            updateEconomyLoadMoreButton();
+            try {
+                const offset = reset ? 0 : economyState.txOffset;
+                const payload =
+                    await economyFetchJson('/api/economy/transactions?limit=' + ECONOMY_TX_PAGE_SIZE + '&offset=' + offset);
+                const items = Array.isArray(payload.items) ? payload.items : [];
+                if (reset) {
+                    economyState.transactions = items;
+                } else {
+                    economyState.transactions = economyState.transactions.concat(items);
+                }
+                economyState.txOffset = offset + items.length;
+                const hasTotal = Number.isFinite(Number(payload.total));
+                const total = hasTotal ? Number(payload.total) : economyState.transactions.length;
+                economyState.hasMoreTransactions =
+                    items.length === ECONOMY_TX_PAGE_SIZE || payload.partial === true || economyState.txOffset < total;
+                if (items.length === 0) {
+                    economyState.hasMoreTransactions = false;
+                }
+                if (economyTransactionsHint) {
+                    economyTransactionsHint.hidden = payload.partial !== true;
+                }
+                renderTransactions();
+            } finally {
+                economyState.loadingTransactions = false;
+                updateEconomyLoadMoreButton();
+            }
+        };
+
+        const refreshEconomy = async () => {
+            if (!economyPanel) return;
+            try {
+                if (economyBalanceMeta) {
+                    economyBalanceMeta.textContent = economyText.loading;
+                }
+                await Promise.all([loadWallet(), loadCatalog(), loadInventory()]);
+                await loadTransactions(true);
+            } catch (_) {
+                if (economyBalanceMeta) {
+                    economyBalanceMeta.textContent = economyText.errorLoading;
+                }
+                const renderError = (container) => {
+                    if (!container) return;
+                    container.replaceChildren();
+                    const node = document.createElement('p');
+                    node.className = 'hd-page-intro';
+                    node.textContent = economyText.errorLoading;
+                    container.appendChild(node);
+                };
+                renderError(economyStoreList);
+                renderError(economyInventoryList);
+                renderError(economyTransactionsList);
+                showNotification('error', economyText.errorLoading);
+            }
+        };
+
+        if (economyLoadMoreBtn) {
+            economyLoadMoreBtn.addEventListener('click', async () => {
+                await loadTransactions(false);
+            });
+        }
+
+        if (economyStoreList) {
+            economyStoreList.addEventListener('click', async (event) => {
+                const button = event.target.closest('.economy-buy-btn');
+                if (!button) return;
+                const itemId = button.dataset.itemId;
+                if (!itemId) return;
+                const originalText = button.textContent;
+                button.disabled = true;
+                button.textContent = economyText.buying;
+                try {
+                    await economyFetchJson('/api/economy/purchase', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ itemId })
+                    });
+                    await Promise.all([loadWallet(), loadInventory()]);
+                    await loadTransactions(true);
+                    renderStore();
+                    showNotification('success', economyText.purchaseSuccess + ' (' + itemId + ')');
+                } catch (error) {
+                    const code = (error && error.code) ? error.code : 'unknown';
+                    showNotification('error', economyText.purchaseError + ' (' + code + ')');
+                } finally {
+                    button.textContent = originalText;
+                    renderStore();
+                }
+            });
+        }
+
+        if (economyPanel) {
+            refreshEconomy();
+        }
 
         const updateTalk = async (id, data) => {
             try {

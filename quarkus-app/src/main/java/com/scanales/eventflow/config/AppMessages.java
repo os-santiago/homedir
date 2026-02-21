@@ -117,6 +117,72 @@ public interface AppMessages {
     @Message("Settings")
     String section_settings();
 
+    @Message("Economy")
+    String section_economy();
+
+    @Message("Use your HCoin rewards to unlock profile and community upgrades.")
+    String economy_intro();
+
+    @Message("Balance")
+    String economy_balance_label();
+
+    @Message("{amount} HCoin available")
+    String economy_balance_amount(int amount);
+
+    @Message("Store")
+    String economy_store_title();
+
+    @Message("Inventory")
+    String economy_inventory_title();
+
+    @Message("Transactions")
+    String economy_transactions_title();
+
+    @Message("Buy")
+    String economy_btn_buy();
+
+    @Message("Buying...")
+    String economy_btn_buying();
+
+    @Message("Load more")
+    String economy_btn_load_more();
+
+    @Message("You do not have items yet.")
+    String economy_empty_inventory();
+
+    @Message("No transactions yet.")
+    String economy_empty_transactions();
+
+    @Message("Loading economy data...")
+    String economy_loading();
+
+    @Message("Could not load economy data right now.")
+    String economy_error_loading();
+
+    @Message("Purchase completed: {itemName}")
+    String economy_purchase_success(String itemName);
+
+    @Message("Purchase completed.")
+    String economy_purchase_success_simple();
+
+    @Message("Could not complete purchase ({code}).")
+    String economy_purchase_error(String code);
+
+    @Message("Could not complete purchase.")
+    String economy_purchase_error_simple();
+
+    @Message("Owned: {qty}")
+    String economy_inventory_owned(int qty);
+
+    @Message("+{amount} HCoin")
+    String economy_tx_reward(long amount);
+
+    @Message("{amount} HCoin")
+    String economy_tx_purchase(long amount);
+
+    @Message("Showing recent entries from cache. Load more to fetch full history.")
+    String economy_tx_partial_hint();
+
     @Message("Level {level}")
     String resume_level(Object level);
 
