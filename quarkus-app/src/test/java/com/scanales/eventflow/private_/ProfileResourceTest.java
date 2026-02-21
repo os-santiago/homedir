@@ -279,6 +279,7 @@ public class ProfileResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Activity to class map"))
+        .body(containsString("Notifications monitoring"))
         .body(containsString("/private/profile/catalog#"))
         .body(not(containsString("/private/profile/update-class")));
   }

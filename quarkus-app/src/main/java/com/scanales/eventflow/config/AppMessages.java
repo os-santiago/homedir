@@ -300,6 +300,12 @@ public interface AppMessages {
     @Message("Vote picks, propose content, curate signal")
     String profile_activity_examples_curation();
 
+    @Message("Community members and profiles")
+    String profile_activity_category_members();
+
+    @Message("Open Community Board, browse members, open public profiles")
+    String profile_activity_examples_members();
+
     @Message("Events and CFP")
     String profile_activity_category_events();
 
@@ -317,6 +323,12 @@ public interface AppMessages {
 
     @Message("Daily check-in, link GitHub, link Discord")
     String profile_activity_examples_connect();
+
+    @Message("Notifications monitoring")
+    String profile_activity_category_notifications();
+
+    @Message("Open notifications center and review live alerts")
+    String profile_activity_examples_notifications();
 
     @Message("{count} active initiatives and open collaborations.")
     String community_initiatives(int count);
