@@ -152,9 +152,9 @@
             {#if questProfile.history.isEmpty()}
             <p>{i18n.resume_no_history}</p>
             {#else}
-            <ul class="hd-list">
+            <ul class="hd-list hd-list-log" role="list">
                 {#for item in questProfile.history}
-                <li class="hd-list-item">
+                <li class="hd-list-item hd-log-entry">
                     <div class="hd-list-content">
                         <strong>{item.title}</strong>
                         <span class="hd-list-meta">{item.date}</span>
