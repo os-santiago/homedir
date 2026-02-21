@@ -80,4 +80,22 @@ public class EconomyServiceTest {
         () -> economyService.rewardFromGamification(userId, "limit_blocked", 10, "seed_blocked"));
     assertTrue(awarded > 0);
   }
+
+  @Test
+  void progressionGatesHighTierCatalogAndUnlocksAfterAdvancing() {
+    String userId = "progression@example.com";
+    economyService.rewardFromGamification(userId, "bootstrap", 3000, "seed");
+
+    List<EconomyService.CatalogOffer> initial = economyService.listCatalogForUser(userId);
+    EconomyService.CatalogOffer architect =
+        initial.stream().filter(item -> "architect-badge".equals(item.id())).findFirst().orElseThrow();
+
+    assertFalse(architect.unlocked());
+    assertTrue(
+        "requires_level".equals(architect.lockReason())
+            || "requires_total_xp".equals(architect.lockReason())
+            || "requires_class_xp".equals(architect.lockReason()));
+
+    assertThrows(EconomyService.ValidationException.class, () -> economyService.purchase(userId, "architect-badge"));
+  }
 }
