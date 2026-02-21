@@ -29,8 +29,19 @@
             <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
             <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
           </div>
-          <div class="hd-catalog-mockup hd-catalog-mockup-glow">
-            <div class="hd-catalog-avatar">HD</div>
+          <div class="hd-catalog-compare">
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_before_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-glow before">
+                <div class="hd-catalog-avatar">HD</div>
+              </div>
+            </div>
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_after_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-glow after">
+                <div class="hd-catalog-avatar">HD</div>
+              </div>
+            </div>
           </div>
         </article>
 
@@ -46,10 +57,22 @@
             <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
             <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
           </div>
-          <div class="hd-catalog-mockup hd-catalog-mockup-spotlight">
-            <span class="hd-catalog-pill">SPOTLIGHT</span>
-            <div class="hd-catalog-line"></div>
-            <div class="hd-catalog-line short"></div>
+          <div class="hd-catalog-compare">
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_before_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-spotlight before">
+                <div class="hd-catalog-line"></div>
+                <div class="hd-catalog-line short"></div>
+              </div>
+            </div>
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_after_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-spotlight after">
+                <span class="hd-catalog-pill">SPOTLIGHT</span>
+                <div class="hd-catalog-line"></div>
+                <div class="hd-catalog-line short"></div>
+              </div>
+            </div>
           </div>
         </article>
 
@@ -65,10 +88,22 @@
             <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
             <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
           </div>
-          <div class="hd-catalog-mockup hd-catalog-mockup-fastpass">
-            <span class="hd-catalog-pill fast">FAST PASS</span>
-            <div class="hd-catalog-line"></div>
-            <div class="hd-catalog-line short"></div>
+          <div class="hd-catalog-compare">
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_before_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-fastpass before">
+                <div class="hd-catalog-line"></div>
+                <div class="hd-catalog-line short"></div>
+              </div>
+            </div>
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_after_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-fastpass after">
+                <span class="hd-catalog-pill fast">FAST PASS</span>
+                <div class="hd-catalog-line"></div>
+                <div class="hd-catalog-line short"></div>
+              </div>
+            </div>
           </div>
         </article>
 
@@ -84,9 +119,21 @@
             <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
             <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
           </div>
-          <div class="hd-catalog-mockup hd-catalog-mockup-badge">
-            <span class="hd-catalog-badge-icon">A</span>
-            <span class="hd-catalog-badge-text">ARCHITECT</span>
+          <div class="hd-catalog-compare">
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_before_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-badge before">
+                <span class="hd-catalog-badge-icon">-</span>
+                <span class="hd-catalog-badge-text">STANDARD</span>
+              </div>
+            </div>
+            <div class="hd-catalog-compare-pane">
+              <p class="hd-catalog-compare-label">{i18n.economy_catalog_after_label}</p>
+              <div class="hd-catalog-mockup hd-catalog-mockup-badge after">
+                <span class="hd-catalog-badge-icon">A</span>
+                <span class="hd-catalog-badge-text">ARCHITECT</span>
+              </div>
+            </div>
           </div>
         </article>
       </div>
@@ -133,6 +180,25 @@
     margin-bottom: 0.6rem;
   }
 
+  .hd-catalog-compare {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .hd-catalog-compare-pane {
+    display: grid;
+    gap: 0.28rem;
+  }
+
+  .hd-catalog-compare-label {
+    margin: 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
   .hd-catalog-mockup {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
@@ -143,6 +209,16 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+  }
+
+  .hd-catalog-mockup.before {
+    border-style: dashed;
+    opacity: 0.76;
+  }
+
+  .hd-catalog-mockup.after {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(12, 22, 30, 0.52);
   }
 
   .hd-catalog-avatar {
@@ -158,7 +234,7 @@
     color: #d7f9ea;
   }
 
-  .hd-catalog-mockup-glow .hd-catalog-avatar {
+  .hd-catalog-mockup-glow.after .hd-catalog-avatar {
     box-shadow: 0 0 0 3px rgba(88, 214, 141, 0.25), 0 0 26px rgba(88, 214, 141, 0.4);
   }
 
@@ -207,8 +283,23 @@
     opacity: 0.9;
   }
 
+  .hd-catalog-mockup-badge.before .hd-catalog-badge-icon {
+    border-style: dashed;
+    opacity: 0.75;
+  }
+
+  .hd-catalog-mockup-badge.before .hd-catalog-badge-text {
+    opacity: 0.65;
+  }
+
   @media (max-width: 900px) {
     .hd-catalog-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hd-catalog-compare {
       grid-template-columns: 1fr;
     }
   }

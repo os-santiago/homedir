@@ -294,6 +294,8 @@ public class ProfileResourceTest {
         .body(containsString("id=\"community-spotlight\""))
         .body(containsString("id=\"event-fast-pass\""))
         .body(containsString("id=\"architect-badge\""))
+        .body(containsString("hd-catalog-compare"))
+        .body(containsString("hd-catalog-compare-label"))
         .body(containsString("/private/profile#economy-panel"));
   }
 

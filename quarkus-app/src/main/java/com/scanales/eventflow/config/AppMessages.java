@@ -252,6 +252,12 @@ public interface AppMessages {
     @Message("Visual mockup")
     String economy_catalog_mockup_label();
 
+    @Message("Before")
+    String economy_catalog_before_label();
+
+    @Message("After")
+    String economy_catalog_after_label();
+
     @Message("Price")
     String economy_catalog_price_label();
 
