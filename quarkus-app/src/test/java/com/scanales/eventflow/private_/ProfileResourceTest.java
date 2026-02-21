@@ -299,6 +299,29 @@ public class ProfileResourceTest {
         .body(containsString("/private/profile#economy-panel"));
   }
 
+  @Test
+  public void profileHistoryLoadsInBatchesOfTenWithSafeWindowCap() {
+    String userId = currentUserEmail();
+    for (int i = 1; i <= 130; i++) {
+      userProfiles.addXp(userId, 1, "History item " + i);
+    }
+
+    given()
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("Load 10 older entries"))
+        .body(containsString("historyLimit=20"));
+
+    given()
+        .when()
+        .get("/private/profile?historyLimit=200")
+        .then()
+        .statusCode(200)
+        .body(containsString("Showing up to 100 recent entries for safety."));
+  }
+
   private String currentUserEmail() {
     Object emailAttr = securityIdentity.getAttribute("email");
     if (emailAttr != null && !emailAttr.toString().isBlank()) {

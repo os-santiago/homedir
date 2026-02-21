@@ -53,6 +53,10 @@ public class QuestService {
     UserProfileService userProfileService;
 
     public QuestProfile getProfile(String username) {
+        return getProfile(username, null);
+    }
+
+    public QuestProfile getProfile(String username, Integer historyLimit) {
         int currentXp = 0;
         List<QuestProfile.QuestHistoryItem> history = new ArrayList<>();
 
@@ -60,8 +64,15 @@ public class QuestService {
             UserProfile profile = userProfileService.find(username).orElse(null);
             if (profile != null) {
                 currentXp = profile.getCurrentXp();
-                if (profile.getHistory() != null) {
-                    for (UserProfile.QuestHistoryItem item : profile.getHistory()) {
+                List<UserProfile.QuestHistoryItem> storedHistory = profile.getHistory();
+                if (storedHistory != null && !storedHistory.isEmpty()) {
+                    int size = storedHistory.size();
+                    int from = 0;
+                    if (historyLimit != null && historyLimit > 0) {
+                        from = Math.max(0, size - historyLimit);
+                    }
+                    for (int i = size - 1; i >= from; i--) {
+                        UserProfile.QuestHistoryItem item = storedHistory.get(i);
                         history.add(new QuestProfile.QuestHistoryItem(item.title(), item.xp(), item.date()));
                     }
                 }
@@ -73,9 +84,6 @@ public class QuestService {
 
         int currentLevel = calculateLevel(currentXp);
         int nextLevelXp = currentLevel >= MAX_LEVEL ? getXpForLevel(MAX_LEVEL) : getXpForLevel(currentLevel + 1);
-
-        // Reverse history to show newest first
-        Collections.reverse(history);
 
         return new QuestProfile(username, currentLevel, currentXp, nextLevelXp, history);
     }

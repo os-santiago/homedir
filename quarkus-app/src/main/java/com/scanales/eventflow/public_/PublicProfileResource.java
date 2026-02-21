@@ -71,7 +71,7 @@ public class PublicProfileResource {
                 viewer -> gamificationService.award(
                     viewer, GamificationActivity.PUBLIC_PROFILE_VIEW, resolved.canonicalUsername()));
 
-        QuestProfile questProfile = questService.getProfile(resolved.userId());
+        QuestProfile questProfile = questService.getProfile(resolved.userId(), 5);
         UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
         QuestClass dominantClass = profile != null ? profile.getDominantQuestClass() : null;
         List<PublicClassProgress> classProgress = buildClassProgress(profile, questProfile.currentXp);
@@ -102,8 +102,7 @@ public class PublicProfileResource {
             .data("classProgress", classProgress)
             .data("questsCompleted", questsCompleted)
             .data("badges", badges)
-            .data("history",
-                questProfile.history != null ? questProfile.history.stream().limit(5).toList() : List.of())
+            .data("history", questProfile.history != null ? questProfile.history : List.of())
             .data("githubLogin", resolved.githubLogin())
             .data("githubProfileUrl", resolved.githubProfileUrl())
             .data("discordHandle", resolved.discordHandle())
