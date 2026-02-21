@@ -559,7 +559,12 @@
             purchaseError: '{i18n.economy_purchase_error_simple}',
             emptyInventory: '{i18n.economy_empty_inventory}',
             emptyTransactions: '{i18n.economy_empty_transactions}',
-            inventoryOwnedLabel: '{i18n.economy_inventory_owned(0)}'
+            inventoryOwnedLabel: '{i18n.economy_inventory_owned(0)}',
+            lockedLabel: '{i18n.economy_locked_label}',
+            stockLeftLabel: '{i18n.economy_stock_left(0)}',
+            requireLevelLabel: '{i18n.economy_require_level(0)}',
+            requireTotalXpLabel: '{i18n.economy_require_total_xp(0)}',
+            requireClassXpLabel: '{i18n.economy_require_class_xp(0, "Class")}'
         };
 
         const formatHcoin = (value) => {
@@ -644,17 +649,46 @@
                 return;
             }
             economyState.catalog.forEach((item) => {
+                const unlocked = item.unlocked !== false;
+                const remainingStock = Number(item.remaining_stock || 0);
+                const tier = item.tier ? String(item.tier).toUpperCase() : '';
+                let availabilityMeta = (item.category || 'general') + ' · ' + formatHcoin(item.price_hcoin || 0);
+                if (tier) {
+                    availabilityMeta = tier + ' · ' + availabilityMeta;
+                }
+                const lockReason = item.lock_reason || '';
+                if (!unlocked) {
+                    let lockDetail = economyText.lockedLabel;
+                    if (lockReason === 'requires_level') {
+                        const requiredLevel = Number(item.required_level || 0);
+                        lockDetail = economyText.requireLevelLabel.replace('0', requiredLevel.toLocaleString());
+                    } else if (lockReason === 'requires_total_xp') {
+                        const requiredXp = Number(item.required_total_xp || 0);
+                        lockDetail = economyText.requireTotalXpLabel.replace('0', requiredXp.toLocaleString());
+                    } else if (lockReason === 'requires_class_xp') {
+                        const requiredClassXp = Number(item.required_class_xp || 0);
+                        const requiredClass = item.required_class || 'Class';
+                        lockDetail = economyText.requireClassXpLabel
+                            .replace('0', requiredClassXp.toLocaleString())
+                            .replace('Class', requiredClass);
+                    }
+                    availabilityMeta = lockDetail;
+                } else if (Number.isFinite(remainingStock)) {
+                    availabilityMeta =
+                        availabilityMeta + ' · ' + economyText.stockLeftLabel.replace('0', Math.max(0, remainingStock).toLocaleString());
+                }
                 const card = buildEconomyItem(
                     item.name || item.id,
                     item.description || '',
-                    (item.category || 'general') + ' · ' + formatHcoin(item.price_hcoin || 0)
+                    availabilityMeta
                 );
                 const button = document.createElement('button');
                 button.className = 'hd-btn hd-btn-secondary economy-buy-btn';
                 button.dataset.itemId = item.id;
                 button.textContent = economyText.buy;
                 const cannotAfford = Number(item.price_hcoin || 0) > balance;
-                if (cannotAfford) {
+                const noStock = unlocked && Number.isFinite(remainingStock) && remainingStock <= 0;
+                if (cannotAfford || !unlocked || noStock) {
                     button.disabled = true;
                 }
                 card.appendChild(button);

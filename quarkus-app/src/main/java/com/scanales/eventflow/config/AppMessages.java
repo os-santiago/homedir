@@ -183,6 +183,21 @@ public interface AppMessages {
     @Message("Showing recent entries from cache. Load more to fetch full history.")
     String economy_tx_partial_hint();
 
+    @Message("Locked")
+    String economy_locked_label();
+
+    @Message("Stock left: {qty}")
+    String economy_stock_left(int qty);
+
+    @Message("Requires level {level}")
+    String economy_require_level(int level);
+
+    @Message("Requires {xp} total XP")
+    String economy_require_total_xp(int xp);
+
+    @Message("Requires {xp} XP in {questClass}")
+    String economy_require_class_xp(int xp, String questClass);
+
     @Message("Level {level}")
     String resume_level(Object level);
 
