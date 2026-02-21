@@ -213,8 +213,8 @@
                     <p class="hd-page-intro">{i18n.identity_intro}</p>
                 </div>
             </div>
-            {#if dominantClass}
-            <p class="hd-page-intro">{i18n.profile_dominant_class(dominantClass.displayName)}</p>
+            {#if dominantClassMessage??}
+            <p class="hd-page-intro">{dominantClassMessage}</p>
             {/if}
             <div class="hd-grid-classes hd-grid-classes-layout">
                 {#for cls in classProgress}

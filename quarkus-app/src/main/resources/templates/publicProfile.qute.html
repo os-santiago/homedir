@@ -39,7 +39,9 @@
 
             <div class="wrapped-card wrapped-card-full">
                 <span class="wrapped-stat-label">{i18n.public_profile_class_progress_title}</span>
-                <p class="wrapped-subtext">{i18n.profile_dominant_class(questClass)}</p>
+                <p class="wrapped-subtext">
+                    {#if dominantClassMessage??}{dominantClassMessage}{#else}{i18n.profile_dominant_class(questClass)}{/if}
+                </p>
                 <div class="wrapped-class-grid">
                     {#for cls in classProgress}
                     <div class="wrapped-class-item">

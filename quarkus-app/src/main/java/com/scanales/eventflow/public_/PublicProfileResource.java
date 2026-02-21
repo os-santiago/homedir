@@ -5,6 +5,7 @@ import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.QuestProfile;
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.config.AppMessages;
 import com.scanales.eventflow.service.CommunityService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.QuestService;
@@ -29,6 +30,8 @@ import java.util.Optional;
 
 @Path("/u")
 public class PublicProfileResource {
+    private static final int DOMINANT_HYBRID_MARGIN_XP = 5;
+    private static final int DOMINANT_HYBRID_MARGIN_PERCENT = 12;
 
     @Inject
     Template publicProfile;
@@ -50,6 +53,9 @@ public class PublicProfileResource {
 
     @Inject
     SecurityIdentity identity;
+
+    @Inject
+    AppMessages messages;
 
     @GET
     @Path("/{username}")
@@ -73,8 +79,10 @@ public class PublicProfileResource {
 
         QuestProfile questProfile = questService.getProfile(resolved.userId(), 5);
         UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
-        QuestClass dominantClass = profile != null ? profile.getDominantQuestClass() : null;
         List<PublicClassProgress> classProgress = buildClassProgress(profile, questProfile.currentXp);
+        DominantClassSummary dominantClassSummary = resolveDominantClassSummary(classProgress);
+        QuestClass dominantClass = dominantClassSummary.questClass();
+        String dominantClassMessage = dominantClassSummary.message();
 
         String questClassEmoji = dominantClass != null ? dominantClass.getEmoji() : "🌱";
         String questClassLabel = dominantClass != null ? dominantClass.getDisplayName() : "Novice";
@@ -99,6 +107,7 @@ public class PublicProfileResource {
             .data("xpPercentage", xpPercentage)
             .data("questClass", questClassLabel)
             .data("questClassEmoji", questClassEmoji)
+            .data("dominantClassMessage", dominantClassMessage)
             .data("classProgress", classProgress)
             .data("questsCompleted", questsCompleted)
             .data("badges", badges)
@@ -137,6 +146,7 @@ public class PublicProfileResource {
                     int xp = Math.max(0, xpMap.getOrDefault(qc, 0));
                     int percent = totalXp <= 0 ? 0 : (int) Math.round((xp * 100.0d) / totalXp);
                     return new PublicClassProgress(
+                        qc.name(),
                         qc.getDisplayName(),
                         qc.getEmoji(),
                         xp,
@@ -144,6 +154,39 @@ public class PublicProfileResource {
                         percent);
                 })
             .toList();
+    }
+
+    private DominantClassSummary resolveDominantClassSummary(List<PublicClassProgress> classProgress) {
+        if (classProgress == null || classProgress.isEmpty()) {
+            return new DominantClassSummary(null, null);
+        }
+        List<PublicClassProgress> sorted =
+            classProgress.stream()
+                .sorted(
+                    java.util.Comparator.comparingInt(PublicClassProgress::xp)
+                        .reversed()
+                        .thenComparing(PublicClassProgress::value))
+                .toList();
+        PublicClassProgress primary = sorted.get(0);
+        if (primary.xp() <= 0) {
+            return new DominantClassSummary(null, null);
+        }
+        QuestClass primaryClass = QuestClass.fromValue(primary.value());
+        if (sorted.size() > 1) {
+            PublicClassProgress secondary = sorted.get(1);
+            if (secondary.xp() > 0) {
+                int diffXp = Math.max(0, primary.xp() - secondary.xp());
+                int diffPercent = primary.xp() <= 0 ? 100 : (int) Math.round((diffXp * 100.0d) / primary.xp());
+                boolean hybrid =
+                    diffXp <= DOMINANT_HYBRID_MARGIN_XP || diffPercent <= DOMINANT_HYBRID_MARGIN_PERCENT;
+                if (hybrid) {
+                    return new DominantClassSummary(
+                        primaryClass,
+                        messages.profile_dominant_class_hybrid(primary.className(), secondary.className()));
+                }
+            }
+        }
+        return new DominantClassSummary(primaryClass, messages.profile_dominant_class(primary.className()));
     }
 
     private Optional<ResolvedPublicProfile> resolveProfile(String requestedUsername) {
@@ -302,7 +345,11 @@ public class PublicProfileResource {
         return Optional.of(principal.toLowerCase(Locale.ROOT));
     }
 
-    private record PublicClassProgress(String className, String emoji, int xp, int level, int percent) {
+    private record PublicClassProgress(
+        String value, String className, String emoji, int xp, int level, int percent) {
+    }
+
+    private record DominantClassSummary(QuestClass questClass, String message) {
     }
 
     private record ResolvedPublicProfile(

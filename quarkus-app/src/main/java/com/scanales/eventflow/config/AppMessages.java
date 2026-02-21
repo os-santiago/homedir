@@ -273,6 +273,9 @@ public interface AppMessages {
     @Message("Most active class: {className}")
     String profile_dominant_class(String className);
 
+    @Message("Most active profile: Hybrid ({primaryClass} + {secondaryClass})")
+    String profile_dominant_class_hybrid(String primaryClass, String secondaryClass);
+
     @Message("{xp} XP · Level {level} · {percent}% of your profile momentum")
     String profile_class_xp_level(int xp, int level, int percent);
 

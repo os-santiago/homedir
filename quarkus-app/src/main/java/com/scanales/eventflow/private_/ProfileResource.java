@@ -48,6 +48,8 @@ import java.util.Optional;
 public class ProfileResource {
   private static final int RESUME_HISTORY_STEP = PaginationGuardrails.DEFAULT_HISTORY_STEP;
   private static final int RESUME_HISTORY_MAX_WINDOW = PaginationGuardrails.MAX_HISTORY_WINDOW;
+  private static final int DOMINANT_HYBRID_MARGIN_XP = 5;
+  private static final int DOMINANT_HYBRID_MARGIN_PERCENT = 12;
 
   @CheckedTemplate(requireTypeSafeExpressions = false)
   static class Templates {
@@ -75,6 +77,7 @@ public class ProfileResource {
         String userInitial,
         java.util.List<ClassProgress> classProgress,
         QuestClass dominantClass,
+        String dominantClassMessage,
         java.util.List<ActivityClassMapping> activityClassMap,
         QuestProfile questProfile,
         int resumeHistoryLimit,
@@ -108,6 +111,9 @@ public class ProfileResource {
 
   /** Activity category mapped to the class where XP is earned. */
   public record ActivityClassMapping(String category, String examples, String className) {
+  }
+
+  private record DominantClassSummary(QuestClass questClass, String message) {
   }
 
   /** Talks grouped by day within an event. */
@@ -184,7 +190,9 @@ public class ProfileResource {
         PaginationGuardrails.nextWindow(
             resumeHistoryLimit, RESUME_HISTORY_STEP, RESUME_HISTORY_MAX_WINDOW);
     java.util.List<ClassProgress> classProgress = buildClassProgress(userProfile, questProfile.currentXp);
-    QuestClass dominantClass = userProfile.getDominantQuestClass();
+    DominantClassSummary dominantClassSummary = resolveDominantClassSummary(classProgress);
+    QuestClass dominantClass = dominantClassSummary.questClass();
+    String dominantClassMessage = dominantClassSummary.message();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
     int questProgressPercent = 0;
     if (questProfile.nextLevelXp > 0) {
@@ -229,6 +237,7 @@ public class ProfileResource {
         name.substring(0, 1).toUpperCase(),
         classProgress,
         dominantClass,
+        dominantClassMessage,
         activityClassMap,
         questProfile,
         resumeHistoryLimit,
@@ -558,6 +567,38 @@ public class ProfileResource {
                   qc == dominant);
             })
         .toList();
+  }
+
+  private DominantClassSummary resolveDominantClassSummary(java.util.List<ClassProgress> classProgress) {
+    if (classProgress == null || classProgress.isEmpty()) {
+      return new DominantClassSummary(null, null);
+    }
+    java.util.List<ClassProgress> sorted = classProgress.stream()
+        .sorted(
+            java.util.Comparator.comparingInt(ClassProgress::xp)
+                .reversed()
+                .thenComparing(ClassProgress::value))
+        .toList();
+    ClassProgress primary = sorted.get(0);
+    if (primary.xp() <= 0) {
+      return new DominantClassSummary(null, null);
+    }
+    QuestClass primaryClass = QuestClass.fromValue(primary.value());
+    if (sorted.size() > 1) {
+      ClassProgress secondary = sorted.get(1);
+      if (secondary.xp() > 0) {
+        int diffXp = Math.max(0, primary.xp() - secondary.xp());
+        int diffPercent = primary.xp() <= 0 ? 100 : (int) Math.round((diffXp * 100.0d) / primary.xp());
+        boolean hybrid =
+            diffXp <= DOMINANT_HYBRID_MARGIN_XP || diffPercent <= DOMINANT_HYBRID_MARGIN_PERCENT;
+        if (hybrid) {
+          return new DominantClassSummary(
+              primaryClass,
+              messages.profile_dominant_class_hybrid(primary.displayName(), secondary.displayName()));
+        }
+      }
+    }
+    return new DominantClassSummary(primaryClass, messages.profile_dominant_class(primary.displayName()));
   }
 
   private java.util.List<ActivityClassMapping> buildActivityClassMap() {

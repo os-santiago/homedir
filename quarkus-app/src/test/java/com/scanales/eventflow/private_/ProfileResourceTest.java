@@ -322,6 +322,27 @@ public class ProfileResourceTest {
         .body(containsString("Showing up to 100 recent entries for safety."));
   }
 
+  @Test
+  public void profileShowsHybridClassWhenTopMomentumIsClose() {
+    String userId = currentUserEmail();
+    UserProfile profile = userProfiles.upsert(userId, userId, userId);
+    java.util.EnumMap<QuestClass, Integer> classXp = new java.util.EnumMap<>(QuestClass.class);
+    classXp.put(QuestClass.SCIENTIST, 15);
+    classXp.put(QuestClass.MAGE, 14);
+    classXp.put(QuestClass.ENGINEER, 5);
+    classXp.put(QuestClass.WARRIOR, 0);
+    profile.setClassXp(classXp);
+    profile.setCurrentXp(34);
+    userProfiles.update(profile);
+
+    given()
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("Most active profile: Hybrid (Scientist + Mage)"));
+  }
+
   private String currentUserEmail() {
     Object emailAttr = securityIdentity.getAttribute("email");
     if (emailAttr != null && !emailAttr.toString().isBlank()) {
