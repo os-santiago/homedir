@@ -80,6 +80,11 @@ public class ProfileResource {
         AppMessages i18n,
         String ogTitle,
         String ogDescription);
+
+    static native TemplateInstance catalog(
+        String name,
+        String currentLanguage,
+        AppMessages i18n);
   }
 
   /** Display state for per-class progression. */
@@ -150,18 +155,7 @@ public class ProfileResource {
       sub = email;
     }
 
-    // Locale Resolution
-    String lang = "en";
-    if (localeCookie != null && !localeCookie.isBlank()) {
-      lang = localeCookie;
-    } else {
-      // Fallback to profile preference if available
-      java.util.Optional<com.scanales.eventflow.model.UserProfile> p = userProfiles.find(email);
-      if (p.isPresent() && p.get().getPreferredLocale() != null) {
-        lang = p.get().getPreferredLocale();
-      }
-    }
-    final String finalLang = lang;
+    final String finalLang = resolveLanguage(localeCookie, email);
 
     var groups = getEventGroupsForUser(email);
     var info = userSchedule.getTalkDetailsForUser(email);
@@ -225,6 +219,25 @@ public class ProfileResource {
         messages,
         ogTitle,
         ogDescription)
+        .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
+  }
+
+  @GET
+  @Path("catalog")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance catalog(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+    String email = getEmail();
+    String name = getClaim("name");
+    if (name == null || name.isBlank()) {
+      name = email;
+    }
+    String finalLang = resolveLanguage(localeCookie, email);
+    String initial = name.isBlank() ? "U" : name.substring(0, 1).toUpperCase(Locale.ROOT);
+    return Templates.catalog(name, finalLang, messages)
+        .data("userAuthenticated", true)
+        .data("userName", name)
+        .data("userInitial", initial)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
@@ -555,6 +568,19 @@ public class ProfileResource {
       return null;
     }
     return "hd-" + shortHash(seed, 16);
+  }
+
+  private String resolveLanguage(String localeCookie, String userId) {
+    String lang = "en";
+    if (localeCookie != null && !localeCookie.isBlank()) {
+      lang = localeCookie;
+    } else {
+      java.util.Optional<com.scanales.eventflow.model.UserProfile> p = userProfiles.find(userId);
+      if (p.isPresent() && p.get().getPreferredLocale() != null) {
+        lang = p.get().getPreferredLocale();
+      }
+    }
+    return "es".equalsIgnoreCase(lang) ? "es" : "en";
   }
 
   private static String normalizeId(String raw) {

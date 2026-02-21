@@ -279,7 +279,22 @@ public class ProfileResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Activity to class map"))
+        .body(containsString("/private/profile/catalog#"))
         .body(not(containsString("/private/profile/update-class")));
+  }
+
+  @Test
+  public void economyCatalogPageLoadsWithPreviewAnchors() {
+    given()
+        .when()
+        .get("/private/profile/catalog")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"profile-glow\""))
+        .body(containsString("id=\"community-spotlight\""))
+        .body(containsString("id=\"event-fast-pass\""))
+        .body(containsString("id=\"architect-badge\""))
+        .body(containsString("/private/profile#economy-panel"));
   }
 
   private String currentUserEmail() {

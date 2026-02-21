@@ -1,0 +1,291 @@
+{#include layout/main activePage="profile"}
+{#title}{i18n.economy_catalog_page_title}{/title}
+
+{#body}
+<section class="hd-section hd-section-dashboard">
+  <div class="hd-page">
+    <div class="hd-dashboard-header">
+      <div>
+        <p class="hd-eyebrow">{i18n.economy_catalog_eyebrow}</p>
+        <h1 class="hd-page-title">{name}</h1>
+        <p class="hd-page-intro">{i18n.economy_catalog_intro}</p>
+      </div>
+      <div class="hd-panel-actions">
+        <a class="hd-btn hd-btn-secondary" href="/private/profile#economy-panel">{i18n.economy_btn_back_to_economy}</a>
+      </div>
+    </div>
+
+    <section class="hd-panel centered hd-catalog-panel">
+      <div class="hd-catalog-grid">
+        <article class="hd-card hd-catalog-item" id="profile-glow" data-item-id="profile-glow">
+          <div class="hd-catalog-item-head">
+            <h2 class="hd-section-subtitle">Profile Glow</h2>
+            <span class="hd-badge">{i18n.economy_catalog_mockup_label}</span>
+          </div>
+          <p class="hd-page-intro hd-catalog-desc">{i18n.economy_preview_profile_glow}</p>
+          <div class="hd-catalog-meta">
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_price_label}:</strong>&nbsp;<span data-field="price">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_level_label}:</strong>&nbsp;<span data-field="level">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
+          </div>
+          <div class="hd-catalog-mockup hd-catalog-mockup-glow">
+            <div class="hd-catalog-avatar">HD</div>
+          </div>
+        </article>
+
+        <article class="hd-card hd-catalog-item" id="community-spotlight" data-item-id="community-spotlight">
+          <div class="hd-catalog-item-head">
+            <h2 class="hd-section-subtitle">Community Spotlight</h2>
+            <span class="hd-badge">{i18n.economy_catalog_mockup_label}</span>
+          </div>
+          <p class="hd-page-intro hd-catalog-desc">{i18n.economy_preview_community_spotlight}</p>
+          <div class="hd-catalog-meta">
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_price_label}:</strong>&nbsp;<span data-field="price">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_level_label}:</strong>&nbsp;<span data-field="level">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
+          </div>
+          <div class="hd-catalog-mockup hd-catalog-mockup-spotlight">
+            <span class="hd-catalog-pill">SPOTLIGHT</span>
+            <div class="hd-catalog-line"></div>
+            <div class="hd-catalog-line short"></div>
+          </div>
+        </article>
+
+        <article class="hd-card hd-catalog-item" id="event-fast-pass" data-item-id="event-fast-pass">
+          <div class="hd-catalog-item-head">
+            <h2 class="hd-section-subtitle">Event Fast Pass</h2>
+            <span class="hd-badge">{i18n.economy_catalog_mockup_label}</span>
+          </div>
+          <p class="hd-page-intro hd-catalog-desc">{i18n.economy_preview_event_fast_pass}</p>
+          <div class="hd-catalog-meta">
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_price_label}:</strong>&nbsp;<span data-field="price">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_level_label}:</strong>&nbsp;<span data-field="level">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
+          </div>
+          <div class="hd-catalog-mockup hd-catalog-mockup-fastpass">
+            <span class="hd-catalog-pill fast">FAST PASS</span>
+            <div class="hd-catalog-line"></div>
+            <div class="hd-catalog-line short"></div>
+          </div>
+        </article>
+
+        <article class="hd-card hd-catalog-item" id="architect-badge" data-item-id="architect-badge">
+          <div class="hd-catalog-item-head">
+            <h2 class="hd-section-subtitle">Architect Badge</h2>
+            <span class="hd-badge">{i18n.economy_catalog_mockup_label}</span>
+          </div>
+          <p class="hd-page-intro hd-catalog-desc">{i18n.economy_preview_architect_badge}</p>
+          <div class="hd-catalog-meta">
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_price_label}:</strong>&nbsp;<span data-field="price">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_level_label}:</strong>&nbsp;<span data-field="level">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_summary_stock_label}:</strong>&nbsp;<span data-field="stock">-</span></span>
+            <span class="hd-economy-chip"><strong>{i18n.economy_catalog_status_label}:</strong>&nbsp;<span data-field="status">-</span></span>
+          </div>
+          <div class="hd-catalog-mockup hd-catalog-mockup-badge">
+            <span class="hd-catalog-badge-icon">A</span>
+            <span class="hd-catalog-badge-text">ARCHITECT</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+</section>
+
+<style>
+  .hd-catalog-panel {
+    padding: 1rem;
+  }
+
+  .hd-catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .hd-catalog-item {
+    scroll-margin-top: 120px;
+    border-width: 1px;
+  }
+
+  .hd-catalog-item.target {
+    border-color: rgba(24, 188, 156, 0.68);
+    box-shadow: 0 0 0 1px rgba(24, 188, 156, 0.4), 0 8px 24px rgba(24, 188, 156, 0.12);
+  }
+
+  .hd-catalog-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+  }
+
+  .hd-catalog-desc {
+    margin: 0.2rem 0 0.45rem;
+  }
+
+  .hd-catalog-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .hd-catalog-mockup {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(10, 18, 24, 0.4);
+    min-height: 86px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .hd-catalog-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    background: radial-gradient(circle at 30% 30%, rgba(60, 210, 140, 0.24), rgba(19, 27, 36, 0.95));
+    color: #d7f9ea;
+  }
+
+  .hd-catalog-mockup-glow .hd-catalog-avatar {
+    box-shadow: 0 0 0 3px rgba(88, 214, 141, 0.25), 0 0 26px rgba(88, 214, 141, 0.4);
+  }
+
+  .hd-catalog-pill {
+    font-size: 0.68rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid rgba(52, 152, 219, 0.6);
+    color: #7ec8ff;
+    font-weight: 700;
+  }
+
+  .hd-catalog-pill.fast {
+    border-color: rgba(241, 196, 15, 0.6);
+    color: #ffe08a;
+  }
+
+  .hd-catalog-line {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    width: 46%;
+  }
+
+  .hd-catalog-line.short {
+    width: 24%;
+    opacity: 0.7;
+  }
+
+  .hd-catalog-badge-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #f1f2f6;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .hd-catalog-badge-text {
+    letter-spacing: 0.06em;
+    font-size: 0.74rem;
+    opacity: 0.9;
+  }
+
+  @media (max-width: 900px) {
+    .hd-catalog-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const cards = Array.from(document.querySelectorAll('.hd-catalog-item[data-item-id]'));
+    if (!cards.length) return;
+
+    const statusText = {
+      locked: '{i18n.economy_locked_label}',
+      available: '{i18n.economy_status_available}',
+      out: '{i18n.economy_status_out_of_stock}'
+    };
+
+    const formatHcoin = (value) => {
+      const amount = Number.isFinite(Number(value)) ? Number(value) : 0;
+      return amount.toLocaleString() + ' HCoin';
+    };
+
+    const toInt = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
+
+    const applyStatus = (card, offer) => {
+      const fields = {
+        price: card.querySelector('[data-field="price"]'),
+        level: card.querySelector('[data-field="level"]'),
+        stock: card.querySelector('[data-field="stock"]'),
+        status: card.querySelector('[data-field="status"]')
+      };
+      if (!fields.price || !fields.level || !fields.stock || !fields.status) return;
+      if (!offer) {
+        fields.price.textContent = '-';
+        fields.level.textContent = '-';
+        fields.stock.textContent = '-';
+        fields.status.textContent = '-';
+        return;
+      }
+
+      const unlocked = offer.unlocked !== false;
+      const remaining = toInt(offer.remaining_stock);
+      const noStock = unlocked && remaining <= 0;
+      fields.price.textContent = formatHcoin(offer.price_hcoin);
+      fields.level.textContent = 'L' + toInt(offer.current_level) + '/' + toInt(offer.required_level);
+      fields.stock.textContent = Math.max(0, remaining).toLocaleString();
+      fields.status.textContent = !unlocked
+        ? statusText.locked
+        : (noStock ? statusText.out : statusText.available);
+    };
+
+    const applyHashTarget = () => {
+      cards.forEach((card) => card.classList.remove('target'));
+      const raw = window.location.hash ? window.location.hash.slice(1) : '';
+      if (!raw) return;
+      const hash = decodeURIComponent(raw);
+      const target = document.getElementById(hash);
+      if (target && target.classList.contains('hd-catalog-item')) {
+        target.classList.add('target');
+      }
+    };
+
+    fetch('/api/economy/catalog', { headers: { Accept: 'application/json' } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        const offers = Array.isArray(payload && payload.catalog) ? payload.catalog : [];
+        const byId = new Map(offers.map((offer) => [String(offer.id || ''), offer]));
+        cards.forEach((card) => {
+          const id = card.getAttribute('data-item-id') || '';
+          applyStatus(card, byId.get(id));
+        });
+      })
+      .catch(() => {
+        cards.forEach((card) => applyStatus(card, null));
+      })
+      .finally(() => applyHashTarget());
+
+    window.addEventListener('hashchange', applyHashTarget, { passive: true });
+  })();
+</script>
+{/body}
