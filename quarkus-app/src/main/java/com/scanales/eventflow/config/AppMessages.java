@@ -303,7 +303,7 @@ public interface AppMessages {
     @Message("Events and CFP")
     String profile_activity_category_events();
 
-    @Message("Open agendas, submit CFP, evaluate sessions")
+    @Message("Explore events, open agendas, submit CFP, evaluate sessions")
     String profile_activity_examples_events();
 
     @Message("Project contribution")

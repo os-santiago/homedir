@@ -57,7 +57,13 @@ public class EventResource {
     String sessionId = context.session() != null ? context.session().id() : null;
     metrics.recordPageView("/event", sessionId, ua);
     metrics.recordEventView(id, sessionId, ua);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, id));
+    currentUserId()
+        .ifPresent(
+            userId -> {
+              gamificationService.award(userId, GamificationActivity.EVENT_VIEW, id);
+              gamificationService.award(
+                  userId, GamificationActivity.WARRIOR_EVENTS_EXPLORATION, "events");
+            });
     Event event = eventService.getEvent(id);
     return withLayoutData(Templates.detail(event), "eventos");
   }
