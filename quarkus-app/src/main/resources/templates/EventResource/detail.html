@@ -120,6 +120,17 @@
     <!-- Agenda Section -->
     {#if !event.agenda.isEmpty()}
     <div id="agenda" style="grid-column: 1 / -1; margin-top: 3rem;">
+        {#if agendaProposalNoticeEnabled}
+        <div class="section-card" role="note" aria-label="{i18n.events_agenda_proposed_aria}" style="margin-bottom: 1rem; border: 1px dashed rgba(255, 215, 0, 0.6); background: rgba(255, 215, 0, 0.08);">
+            <div style="display: flex; align-items: start; gap: 0.8rem; flex-wrap: wrap;">
+                <span class="badge info">{i18n.events_agenda_proposed_badge}</span>
+                <div style="min-width: 260px; flex: 1;">
+                    <p style="margin: 0; font-weight: 700;">{i18n.events_agenda_proposed_title}</p>
+                    <p class="section-subtitle" style="margin: 0.25rem 0 0 0;">{i18n.events_agenda_proposed_desc}</p>
+                </div>
+            </div>
+        </div>
+        {/if}
         <div class="section-header" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h2>{i18n.events_detail_agenda_title}</h2>
             <div class="view-toggle">

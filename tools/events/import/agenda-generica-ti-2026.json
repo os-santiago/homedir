@@ -1,0 +1,207 @@
+{
+  "id": "agenda-generica-ti-2026",
+  "title": "Agenda Generica TI 2026",
+  "description": "Agenda temporal basada en categorias de tendencia de mercado TI 2026. Sera reemplazada por charlas definitivas via CFP.",
+  "type": "CONFERENCE",
+  "date": "2026-10-15",
+  "days": 2,
+  "startTime": "09:00",
+  "endTime": "16:30",
+  "timezone": "America/Santiago",
+  "location": "Santiago, Chile",
+  "scenarios": [
+    {
+      "id": "main-stage",
+      "name": "Main Stage",
+      "features": "Agenda categories draft"
+    }
+  ],
+  "agenda": [
+    {
+      "id": "gen-2026-day1-ai-native-engineering-copilots",
+      "name": "Category: AI-native Engineering & Copilots",
+      "description": "Developer copilots, autonomous coding workflows and guardrailed AI delivery.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "09:00",
+      "durationMinutes": 45
+    },
+    {
+      "id": "gen-2026-day1-platform-engineering-idp",
+      "name": "Category: Platform Engineering & Internal Developer Platforms",
+      "description": "Golden paths, self-service infrastructure and platform product practices.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "09:50",
+      "durationMinutes": 40
+    },
+    {
+      "id": "gen-2026-day1-coffee-break",
+      "name": "Coffee Break",
+      "description": "Networking and transition block.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "10:30",
+      "durationMinutes": 15,
+      "break": true
+    },
+    {
+      "id": "gen-2026-day1-security-supply-chain",
+      "name": "Category: Cloud Native Security & Software Supply Chain",
+      "description": "Runtime security, SBOM, supply-chain controls and policy automation.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "10:45",
+      "durationMinutes": 45
+    },
+    {
+      "id": "gen-2026-day1-finops-greenops",
+      "name": "Category: FinOps, GreenOps & Cost Optimization",
+      "description": "Cloud cost, sustainability and performance under AI workloads.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "11:40",
+      "durationMinutes": 40
+    },
+    {
+      "id": "gen-2026-day1-lunch-break",
+      "name": "Lunch Break",
+      "description": "Lunch and hallway conversations.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "12:20",
+      "durationMinutes": 90,
+      "break": true
+    },
+    {
+      "id": "gen-2026-day1-sre-observability-aiops",
+      "name": "Category: SRE, Observability & AIOps",
+      "description": "Resilience engineering, incident response and AI-assisted operations.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "13:50",
+      "durationMinutes": 45
+    },
+    {
+      "id": "gen-2026-day1-data-ai-platforms-llmops",
+      "name": "Category: Data/AI Platforms, MLOps & LLMOps",
+      "description": "Operating data and model platforms with reliability and governance.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "14:40",
+      "durationMinutes": 40
+    },
+    {
+      "id": "gen-2026-day1-networking-break",
+      "name": "Networking Break",
+      "description": "Community networking slot.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "15:20",
+      "durationMinutes": 15,
+      "break": true
+    },
+    {
+      "id": "gen-2026-day1-devex-innersource-flow",
+      "name": "Category: Developer Experience, InnerSource & Flow Metrics",
+      "description": "Productivity and delivery outcomes through DevEx and collaborative engineering.",
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "15:45",
+      "durationMinutes": 45
+    },
+    {
+      "id": "gen-2026-day2-kubernetes-runtime-multi-cluster",
+      "name": "Category: Kubernetes Runtime Evolution & Multi-cluster Operations",
+      "description": "Runtime innovation and workload portability for large-scale clusters.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "09:00",
+      "durationMinutes": 45
+    },
+    {
+      "id": "gen-2026-day2-edge-iot-realtime",
+      "name": "Category: Edge, IoT & Real-time Platforms",
+      "description": "Distributed compute patterns for low-latency systems.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "09:50",
+      "durationMinutes": 40
+    },
+    {
+      "id": "gen-2026-day2-coffee-break",
+      "name": "Coffee Break",
+      "description": "Networking and transition block.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "10:30",
+      "durationMinutes": 15,
+      "break": true
+    },
+    {
+      "id": "gen-2026-day2-zero-trust-identity-secrets",
+      "name": "Category: Zero Trust Identity, Access & Secrets",
+      "description": "Identity-first controls for apps, workloads and platform operators.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "10:45",
+      "durationMinutes": 45
+    },
+    {
+      "id": "gen-2026-day2-automation-orchestration-gitops",
+      "name": "Category: Automation, Orchestration & GitOps at Scale",
+      "description": "Automation strategies for release pipelines and fleet operations.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "11:40",
+      "durationMinutes": 40
+    },
+    {
+      "id": "gen-2026-day2-lunch-break",
+      "name": "Lunch Break",
+      "description": "Lunch and hallway conversations.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "12:20",
+      "durationMinutes": 90,
+      "break": true
+    },
+    {
+      "id": "gen-2026-day2-ai-governance-safety",
+      "name": "Category: AI Governance, Safety & Responsible Adoption",
+      "description": "Controls for responsible AI adoption in enterprise and open communities.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "13:50",
+      "durationMinutes": 45
+    },
+    {
+      "id": "gen-2026-day2-apis-event-driven-architecture",
+      "name": "Category: Modern APIs, Integration & Event-driven Architecture",
+      "description": "Composable architectures for platform products and ecosystem interoperability.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "14:40",
+      "durationMinutes": 40
+    },
+    {
+      "id": "gen-2026-day2-networking-break",
+      "name": "Networking Break",
+      "description": "Community networking slot.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "15:20",
+      "durationMinutes": 15,
+      "break": true
+    },
+    {
+      "id": "gen-2026-day2-tech-leadership-product-delivery",
+      "name": "Category: Technical Leadership, Team Topologies & Product Delivery",
+      "description": "Scaling engineering organizations with clear ownership and execution discipline.",
+      "location": "main-stage",
+      "day": 2,
+      "startTime": "15:45",
+      "durationMinutes": 45
+    }
+  ]
+}

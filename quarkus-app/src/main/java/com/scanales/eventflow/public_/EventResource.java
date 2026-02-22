@@ -1,5 +1,6 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.agenda.AgendaProposalConfigService;
 import com.scanales.eventflow.cfp.CfpFormCatalog;
 import com.scanales.eventflow.cfp.CfpConfigService;
 import com.scanales.eventflow.cfp.CfpFormOptionsService;
@@ -27,7 +28,7 @@ public class EventResource {
 
   @CheckedTemplate
   static class Templates {
-    static native TemplateInstance detail(Event event);
+    static native TemplateInstance detail(Event event, boolean agendaProposalNoticeEnabled);
 
     static native TemplateInstance cfp(Event event, CfpFormCatalog cfpCatalog, Map<String, Integer> cfpDurationByFormat);
   }
@@ -43,6 +44,7 @@ public class EventResource {
   @Inject CfpFormOptionsService cfpFormOptionsService;
 
   @Inject CfpConfigService cfpConfigService;
+  @Inject AgendaProposalConfigService agendaProposalConfigService;
   @Inject GamificationService gamificationService;
 
   @GET
@@ -65,7 +67,12 @@ public class EventResource {
                   userId, GamificationActivity.WARRIOR_EVENTS_EXPLORATION, "events");
             });
     Event event = eventService.getEvent(id);
-    return withLayoutData(Templates.detail(event), "eventos");
+    return withLayoutData(
+        Templates.detail(
+            event,
+            agendaProposalConfigService != null
+                && agendaProposalConfigService.isProposalNoticeEnabled()),
+        "eventos");
   }
 
   @GET

@@ -14,6 +14,7 @@ import com.scanales.eventflow.model.SystemError;
 import com.scanales.eventflow.community.CommunitySubmission;
 import com.scanales.eventflow.community.CommunityLightningStateSnapshot;
 import com.scanales.eventflow.economy.EconomyStateSnapshot;
+import com.scanales.eventflow.agenda.AgendaProposalConfig;
 import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import jakarta.annotation.PostConstruct;
@@ -112,6 +113,7 @@ public class PersistenceService {
   private Path communityLightningStateFile;
   private Path cfpSubmissionsFile;
   private Path cfpConfigFile;
+  private Path agendaProposalConfigFile;
   private Path cfpBackupsDir;
   private Path cfpWalFile;
   private static final String SCHEDULE_FILE_PREFIX = "user-schedule-";
@@ -192,6 +194,7 @@ public class PersistenceService {
     communityLightningStateFile = dataDir.resolve("community").resolve("lightning").resolve("state.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
     cfpConfigFile = dataDir.resolve("cfp-config.json");
+    agendaProposalConfigFile = dataDir.resolve("event-agenda-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
     cfpWalFile = dataDir.resolve(CFP_WAL_FILE_NAME);
 
@@ -472,6 +475,37 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(cfpConfigFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Loads event agenda proposal config from disk if present. */
+  public java.util.Optional<AgendaProposalConfig> loadAgendaProposalConfig() {
+    if (agendaProposalConfigFile == null || !Files.exists(agendaProposalConfigFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(
+          mapper.readValue(agendaProposalConfigFile.toFile(), AgendaProposalConfig.class));
+    } catch (IOException e) {
+      LOG.error("Failed to read " + agendaProposalConfigFile.toAbsolutePath(), e);
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Persists event agenda proposal config synchronously. */
+  public void saveAgendaProposalConfigSync(AgendaProposalConfig config) {
+    writeSync(agendaProposalConfigFile, config);
+  }
+
+  /** Last modified timestamp for agenda proposal config file, or -1 when unavailable. */
+  public long agendaProposalConfigLastModifiedMillis() {
+    try {
+      if (agendaProposalConfigFile == null || !Files.exists(agendaProposalConfigFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(agendaProposalConfigFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }

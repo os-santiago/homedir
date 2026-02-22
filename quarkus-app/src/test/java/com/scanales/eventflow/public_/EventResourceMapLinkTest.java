@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
+import com.scanales.eventflow.agenda.AgendaProposalConfigService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.EventService;
@@ -11,16 +12,23 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.LocalTime;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 public class EventResourceMapLinkTest {
 
   @Inject EventService eventService;
+  @Inject AgendaProposalConfigService agendaProposalConfigService;
 
   private static final String EVENT_WITH_MAP = "map1";
   private static final String EVENT_WITHOUT_MAP = "map2";
   private static final String EVENT_WITH_TALK = "map3";
+
+  @BeforeEach
+  public void setup() {
+    agendaProposalConfigService.resetForTests();
+  }
 
   @AfterEach
   public void cleanup() {
@@ -73,5 +81,25 @@ public class EventResourceMapLinkTest {
         .then()
         .statusCode(200)
         .body(containsString("/talk/talk-canonical-1"));
+  }
+
+  @Test
+  public void eventAgendaShowsProposedNoticeWhenEnabled() {
+    Event event = new Event("map4", "Event with agenda notice", "desc");
+    Talk talk = new Talk("talk-proposed-notice", "Category: Sample");
+    talk.setLocation("main-stage");
+    talk.setStartTime(LocalTime.of(9, 0));
+    talk.setDurationMinutes(30);
+    event.getAgenda().add(talk);
+    eventService.saveEvent(event);
+
+    given()
+        .when()
+        .get("/event/map4")
+        .then()
+        .statusCode(200)
+        .body(containsString("Proposed agenda categories"));
+
+    eventService.deleteEvent("map4");
   }
 }
