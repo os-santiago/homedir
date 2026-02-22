@@ -110,7 +110,8 @@ public class ProfileResource {
   }
 
   /** Activity category mapped to the class where XP is earned. */
-  public record ActivityClassMapping(String category, String examples, String className) {
+  public record ActivityClassMapping(
+      String category, String examples, String className, String actionPath) {
   }
 
   private record DominantClassSummary(QuestClass questClass, String message) {
@@ -606,27 +607,33 @@ public class ProfileResource {
         new ActivityClassMapping(
             messages.profile_activity_category_curation(),
             messages.profile_activity_examples_curation(),
-            QuestClass.SCIENTIST.getDisplayName()),
+            QuestClass.SCIENTIST.getDisplayName(),
+            "/comunidad?view=featured"),
         new ActivityClassMapping(
             messages.profile_activity_category_members(),
             messages.profile_activity_examples_members(),
-            QuestClass.SCIENTIST.getDisplayName()),
+            QuestClass.SCIENTIST.getDisplayName(),
+            "/comunidad/board"),
         new ActivityClassMapping(
             messages.profile_activity_category_events(),
             messages.profile_activity_examples_events(),
-            QuestClass.WARRIOR.getDisplayName()),
+            QuestClass.WARRIOR.getDisplayName(),
+            "/eventos"),
         new ActivityClassMapping(
             messages.profile_activity_category_project(),
             messages.profile_activity_examples_project(),
-            QuestClass.ENGINEER.getDisplayName()),
+            QuestClass.ENGINEER.getDisplayName(),
+            "/proyectos"),
         new ActivityClassMapping(
             messages.profile_activity_category_notifications(),
             messages.profile_activity_examples_notifications(),
-            QuestClass.WARRIOR.getDisplayName()),
+            QuestClass.WARRIOR.getDisplayName(),
+            "/notifications/center"),
         new ActivityClassMapping(
             messages.profile_activity_category_connect(),
             messages.profile_activity_examples_connect(),
-            QuestClass.MAGE.getDisplayName()));
+            QuestClass.MAGE.getDisplayName(),
+            "/private/profile"));
   }
 
   private String resolvePublicProfileHandle(String userId, String githubLogin) {

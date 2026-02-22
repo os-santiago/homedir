@@ -733,7 +733,7 @@ public class ProjectsResource {
             i18n.project_dashboard_feature_global_notifications_desc(),
             i18n.project_dashboard_status_live(),
             "live",
-            "/notifications"),
+            "/notifications/center"),
         new ProjectFeature(
             i18n.project_dashboard_feature_contributor_cache_title(),
             i18n.project_dashboard_feature_contributor_cache_desc(),

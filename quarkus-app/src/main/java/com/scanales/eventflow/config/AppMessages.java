@@ -294,6 +294,12 @@ public interface AppMessages {
     @Message("Class")
     String profile_activity_col_class();
 
+    @Message("Action")
+    String profile_activity_col_action();
+
+    @Message("Open")
+    String profile_activity_action_open();
+
     @Message("Community curation")
     String profile_activity_category_curation();
 
