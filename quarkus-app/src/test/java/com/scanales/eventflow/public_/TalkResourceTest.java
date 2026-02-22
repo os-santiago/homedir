@@ -22,6 +22,7 @@ public class TalkResourceTest {
 
   private static final String EVENT_ID = "e1";
   private static final String TALK_ID = "s1-talk-1";
+  private static final String HYBRID_TALK_ID = "dod-2026-kubernetes-sre";
 
   @BeforeEach
   public void setup() {
@@ -31,6 +32,12 @@ public class TalkResourceTest {
     talk.setStartTime(LocalTime.of(10, 0));
     talk.setDurationMinutes(60);
     event.getAgenda().add(talk);
+
+    Talk hybridTalk = new Talk(HYBRID_TALK_ID, "Charla con id moderno");
+    hybridTalk.setSpeakers(List.of(new Speaker("s2", "Speaker Two")));
+    hybridTalk.setStartTime(LocalTime.of(11, 30));
+    hybridTalk.setDurationMinutes(45);
+    event.getAgenda().add(hybridTalk);
     eventService.saveEvent(event);
   }
 
@@ -57,5 +64,15 @@ public class TalkResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Charla de prueba"));
+  }
+
+  @Test
+  public void modernHyphenatedTalkIdResolvesWithoutLegacyMarker() {
+    given()
+        .when()
+        .get("/talk/" + HYBRID_TALK_ID)
+        .then()
+        .statusCode(200)
+        .body(containsString("Charla con id moderno"));
   }
 }

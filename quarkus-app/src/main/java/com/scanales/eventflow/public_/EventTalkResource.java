@@ -31,7 +31,7 @@ public class EventTalkResource {
   @Inject UsageMetricsService metrics;
   @Inject GamificationService gamificationService;
 
-  private String canonicalize(String rawId) {
+  private String legacyCanonicalize(String rawId) {
     int talkIdx = rawId.indexOf("-talk-");
     if (talkIdx >= 0) {
       int next = rawId.indexOf('-', talkIdx + 6);
@@ -54,20 +54,28 @@ public class EventTalkResource {
     String sessionId = context.session() != null ? context.session().id() : null;
     metrics.recordPageView("/event/" + eventId + "/talk", sessionId, ua);
     try {
-      String canonicalTalkId = canonicalize(talkId);
+      String canonicalTalkId = talkId;
       Talk talk = eventService.findTalk(eventId, canonicalTalkId);
+      if (talk == null) {
+        String legacyTalkId = legacyCanonicalize(talkId);
+        if (!legacyTalkId.equals(talkId)) {
+          canonicalTalkId = legacyTalkId;
+          talk = eventService.findTalk(eventId, canonicalTalkId);
+        }
+      }
       if (talk == null) {
         LOG.warnf("Talk %s not found", talkId);
         return Response.status(Response.Status.NOT_FOUND).build();
       }
+      final String resolvedTalkId = canonicalTalkId;
       currentUserId()
           .ifPresent(
               userId ->
                   gamificationService.award(
-                      userId, GamificationActivity.TALK_VIEW, eventId + ":" + canonicalTalkId));
+                      userId, GamificationActivity.TALK_VIEW, eventId + ":" + resolvedTalkId));
       var event = eventService.getEvent(eventId);
-      var occurrences = eventService.findTalkOccurrences(eventId, canonicalTalkId);
-      metrics.recordTalkView(canonicalTalkId, sessionId, ua);
+      var occurrences = eventService.findTalkOccurrences(eventId, resolvedTalkId);
+      metrics.recordTalkView(resolvedTalkId, sessionId, ua);
       if (talk.getLocation() != null) {
         metrics.recordStageVisit(
             talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
@@ -80,7 +88,7 @@ public class EventTalkResource {
           email = principal != null ? principal.getName() : null;
         }
         if (email != null) {
-          inSchedule = userSchedule.getTalksForUser(email).contains(canonicalTalkId);
+          inSchedule = userSchedule.getTalksForUser(email).contains(resolvedTalkId);
         }
       }
       return Response.ok(TalkResource.Templates.detail(talk, event, occurrences, inSchedule))
