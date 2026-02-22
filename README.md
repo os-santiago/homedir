@@ -89,17 +89,16 @@ docker push quay.io/<your-namespace>/homedir:<tag>
 ```
 
 ## Documentation
-Please select your language to view the documentation:
+Canonical documentation language: **English**.
+Spanish documentation is maintained as a mirror (full translation or stub).
 
-Por favor selecciona tu idioma para ver la documentación:
-
-## [English Documentation](docs/en/README.md)
-
-## [Documentación en Español](docs/es/README.md)
+- [English Documentation](docs/en/README.md)
+- [Documentación en Español](docs/es/README.md)
+- [Documentation Language Policy](docs/en/development/documentation-language-policy.md)
 
 Platform deployment notes:
 - [platform/README.md](platform/README.md)
-- [Production-Safe Delivery Playbook](docs/development/production-safe-delivery-playbook.md)
+- [Production-Safe Delivery Playbook](docs/en/development/production-safe-delivery-playbook.md)
 
 ---
 *Homedir: Where code finds its home.*

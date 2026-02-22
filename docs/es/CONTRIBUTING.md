@@ -141,7 +141,7 @@ La UI de Homedir está construida con:
 - Usa siempre el layout principal: `{#extends layout/main}` o `{#include layout/main}`.
 - Usa clases `hd-*` existentes siempre que sea posible.
 - No agregues estilos inline; extiende `homedir.css`.
-- Si se necesitan nuevos componentes, documéntalos en `docs/ui/architecture.md`.
+- Si se necesitan nuevos componentes, documéntalos en `docs/es/ui/architecture.md` (y agrega stub EN si aplica).
 
 ### Alineación con Mockup
 - Textos, colores y espaciados deben alinearse con el mockup oficial de Homedir.
