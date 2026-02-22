@@ -54,6 +54,8 @@ public class ProjectsResource {
   private static final int[] ACTIVITY_WINDOWS_MONTHS = new int[] {3, 6, 12};
   private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(6);
   private static final Duration DEFAULT_RETRY_INTERVAL = Duration.ofMinutes(15);
+  private static final int STATS_RETRY_ATTEMPTS = 3;
+  private static final Duration STATS_RETRY_DELAY = Duration.ofSeconds(2);
   private static final DateTimeFormatter ISO_INSTANT_UTC = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
   private static final Pattern LAST_PAGE_LINK_PATTERN =
       Pattern.compile("[?&]page=(\\d+)>;\\s*rel=\\\"last\\\"");
@@ -195,6 +197,12 @@ public class ProjectsResource {
   }
 
   private boolean shouldRefresh(ProjectSnapshot snapshot, Instant now) {
+    if (hasPendingLineMetrics(snapshot.activity())) {
+      if (snapshot.lastAttemptAt() == null) {
+        return true;
+      }
+      return now.isAfter(snapshot.lastAttemptAt().plus(effectiveRetryInterval()));
+    }
     if (snapshot.loadedAt() != null && now.isBefore(snapshot.loadedAt().plus(effectiveCacheTtl()))) {
       return false;
     }
@@ -215,6 +223,13 @@ public class ProjectsResource {
     return snapshot.loadedAt() == null && noCoreData && !snapshot.activity().hasData();
   }
 
+  private boolean hasPendingLineMetrics(ProjectActivity activity) {
+    if (activity == null) {
+      return false;
+    }
+    return activity.totalCommits() > 0L && activity.totalLinesChanged() <= 0L;
+  }
+
   private Duration effectiveCacheTtl() {
     if (cacheTtl == null || cacheTtl.isNegative() || cacheTtl.isZero()) {
       return DEFAULT_CACHE_TTL;
@@ -231,12 +246,13 @@ public class ProjectsResource {
 
   private void refreshNow(String reason) {
     Instant startedAt = Instant.now();
+    ProjectSnapshot previous = snapshotCache.get();
     ProjectRepository repository = loadRepository();
     List<ProjectReleaseRaw> releases = loadReleases();
-    ProjectActivity activity = loadActivity();
+    ProjectActivity activity = loadActivity(previous.activity());
+    activity = preservePreviousLineMetrics(activity, previous.activity());
     long durationMs = Duration.between(startedAt, Instant.now()).toMillis();
 
-    ProjectSnapshot previous = snapshotCache.get();
     Instant attemptedAt = Instant.now();
 
     ProjectRepository resolvedRepository = repository != null ? repository : previous.repository();
@@ -349,26 +365,24 @@ public class ProjectsResource {
     }
   }
 
-  private ProjectActivity loadActivity() {
+  private ProjectActivity loadActivity(ProjectActivity previousActivity) {
     try {
-      HttpRequest request =
-          githubRequestBuilder(
-                  URI.create(
-                      "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/contributors"))
-              .GET()
-              .build();
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          sendGithubStatsRequestWithRetry(
+              URI.create(
+                  "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/contributors"),
+              "contributors");
       if (response.statusCode() == 202) {
         LOG.infov("Homedir activity stats pending generation in GitHub cache");
-        return loadActivityFallbackFromCommitsApi();
+        return loadActivityFallbackFromCommitsApi(previousActivity);
       }
       if (response.statusCode() >= 400) {
         LOG.warnf("Homedir activity fetch failed status=%d body=%s", response.statusCode(), response.body());
-        return loadActivityFallbackFromCommitsApi();
+        return loadActivityFallbackFromCommitsApi(previousActivity);
       }
       JsonNode root = mapper.readTree(response.body());
       if (!root.isArray()) {
-        return loadActivityFallbackFromCommitsApi();
+        return loadActivityFallbackFromCommitsApi(previousActivity);
       }
 
       List<WeeklyActivity> weekly = new ArrayList<>();
@@ -399,7 +413,7 @@ public class ProjectsResource {
       }
 
       if (weekly.isEmpty() && totalCommits == 0L && totalAdditions == 0L && totalDeletions == 0L) {
-        return loadActivityFallbackFromCommitsApi();
+        return loadActivityFallbackFromCommitsApi(previousActivity);
       }
 
       Instant now = Instant.now();
@@ -423,11 +437,11 @@ public class ProjectsResource {
           yearlyMonthlyAverage);
     } catch (Exception e) {
       LOG.warn("Homedir activity fetch failed", e);
-      return loadActivityFallbackFromCommitsApi();
+      return loadActivityFallbackFromCommitsApi(previousActivity);
     }
   }
 
-  private ProjectActivity loadActivityFallbackFromCommitsApi() {
+  private ProjectActivity loadActivityFallbackFromCommitsApi(ProjectActivity previousActivity) {
     try {
       Instant now = Instant.now();
       long commitsTotal = countCommits(null);
@@ -451,6 +465,12 @@ public class ProjectsResource {
       long deletions = codeSummary != null ? codeSummary.totalDeletions() : 0L;
       long linesChanged = codeSummary != null ? codeSummary.totalLinesChanged() : 0L;
       long netLines = codeSummary != null ? codeSummary.netLines() : 0L;
+      if (codeSummary == null && previousActivity != null && previousActivity.totalLinesChanged() > 0L) {
+        additions = previousActivity.totalAdditions();
+        deletions = previousActivity.totalDeletions();
+        linesChanged = previousActivity.totalLinesChanged();
+        netLines = previousActivity.netLines();
+      }
       long yearlyMonthlyAverage = Math.max(0L, Math.round(commits12 / 12d));
 
       LOG.infov(
@@ -471,6 +491,54 @@ public class ProjectsResource {
       LOG.warn("Homedir activity fallback fetch failed", e);
       return null;
     }
+  }
+
+  private ProjectActivity preservePreviousLineMetrics(ProjectActivity current, ProjectActivity previous) {
+    if (current == null || previous == null) {
+      return current;
+    }
+    if (current.totalLinesChanged() > 0L || previous.totalLinesChanged() <= 0L) {
+      return current;
+    }
+    List<ProjectWindowActivity> mergedWindows =
+        mergeWindowLineMetrics(current.windowSummaries(), previous.windowSummaries());
+    return new ProjectActivity(
+        current.totalCommits(),
+        previous.totalAdditions(),
+        previous.totalDeletions(),
+        previous.totalLinesChanged(),
+        previous.netLines(),
+        mergedWindows,
+        current.yearlyAverageCommitsPerMonth());
+  }
+
+  private List<ProjectWindowActivity> mergeWindowLineMetrics(
+      List<ProjectWindowActivity> current, List<ProjectWindowActivity> previous) {
+    if (current == null || current.isEmpty() || previous == null || previous.isEmpty()) {
+      return current;
+    }
+    Map<Integer, ProjectWindowActivity> previousByMonths =
+        previous.stream().collect(java.util.stream.Collectors.toMap(ProjectWindowActivity::months, w -> w, (a, b) -> a));
+    List<ProjectWindowActivity> merged = new ArrayList<>(current.size());
+    for (ProjectWindowActivity window : current) {
+      if (window.linesChanged() > 0L) {
+        merged.add(window);
+        continue;
+      }
+      ProjectWindowActivity previousWindow = previousByMonths.get(window.months());
+      if (previousWindow == null || previousWindow.linesChanged() <= 0L) {
+        merged.add(window);
+        continue;
+      }
+      merged.add(
+          new ProjectWindowActivity(
+              window.months(),
+              window.commits(),
+              previousWindow.linesChanged(),
+              previousWindow.netLines(),
+              window.averageCommitsPerMonth()));
+    }
+    return List.copyOf(merged);
   }
 
   private ProjectWindowActivity windowWithFallback(int months, long commits, WindowLines lines) {
@@ -515,13 +583,11 @@ public class ProjectsResource {
 
   private CodeFrequencySummary loadCodeFrequencySummary(Instant now) {
     try {
-      HttpRequest request =
-          githubRequestBuilder(
-                  URI.create(
-                      "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/code_frequency"))
-              .GET()
-              .build();
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          sendGithubStatsRequestWithRetry(
+              URI.create(
+                  "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/code_frequency"),
+              "code_frequency");
       if (response.statusCode() == 202) {
         return null;
       }
@@ -588,6 +654,32 @@ public class ProjectsResource {
       LOG.warn("Homedir code frequency fallback failed", e);
       return null;
     }
+  }
+
+  private HttpResponse<String> sendGithubStatsRequestWithRetry(URI uri, String metricName) throws Exception {
+    HttpRequest request = githubRequestBuilder(uri).GET().build();
+    HttpResponse<String> response = null;
+    for (int attempt = 1; attempt <= STATS_RETRY_ATTEMPTS; attempt++) {
+      response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() != 202) {
+        return response;
+      }
+      if (attempt < STATS_RETRY_ATTEMPTS) {
+        LOG.infov(
+            "GitHub stats pending metric={0} attempt={1}/{2}; retrying in {3}ms",
+            metricName,
+            attempt,
+            STATS_RETRY_ATTEMPTS,
+            STATS_RETRY_DELAY.toMillis());
+        try {
+          Thread.sleep(STATS_RETRY_DELAY.toMillis());
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          break;
+        }
+      }
+    }
+    return response;
   }
 
   private ProjectWindowActivity summarizeWindow(List<WeeklyActivity> weekly, int months, Instant now) {
