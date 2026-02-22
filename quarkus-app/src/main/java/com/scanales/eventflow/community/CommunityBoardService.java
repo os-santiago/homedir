@@ -14,6 +14,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.net.URLEncoder;
+import java.text.Normalizer;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -546,17 +547,43 @@ public class CommunityBoardService {
     if (query == null || query.isBlank()) {
       return source;
     }
+    String normalizedSearch = foldForSearch(query);
     return source.stream()
         .filter(
             member ->
-                contains(member.displayName(), query)
-                    || contains(member.handle(), query)
-                    || contains(member.id(), query))
+                contains(member.displayName(), query, normalizedSearch)
+                    || contains(member.handle(), query, normalizedSearch)
+                    || contains(member.id(), query, normalizedSearch))
         .toList();
   }
 
-  private static boolean contains(String value, String query) {
-    return value != null && value.toLowerCase(Locale.ROOT).contains(query);
+  private static boolean contains(String value, String query, String normalizedSearch) {
+    if (value == null) {
+      return false;
+    }
+    String lowered = value.toLowerCase(Locale.ROOT);
+    if (lowered.contains(query)) {
+      return true;
+    }
+    if (normalizedSearch == null || normalizedSearch.isBlank()) {
+      return false;
+    }
+    return foldForSearch(lowered).contains(normalizedSearch);
+  }
+
+  private static String foldForSearch(String value) {
+    if (value == null || value.isBlank()) {
+      return "";
+    }
+    String normalized = Normalizer.normalize(value, Normalizer.Form.NFD);
+    StringBuilder out = new StringBuilder(normalized.length());
+    for (int i = 0; i < normalized.length(); i++) {
+      char c = normalized.charAt(i);
+      if (Character.isLetterOrDigit(c)) {
+        out.append(Character.toLowerCase(c));
+      }
+    }
+    return out.toString();
   }
 
   private static int normalizeLimit(int value) {

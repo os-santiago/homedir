@@ -48,6 +48,14 @@
           <p class="section-subtitle">{i18n.community_board_pagination_status(pageStart, pageEnd, total)}</p>
         {/if}
       </div>
+      {#if groupPath == 'discord-users'}
+        <div class="board-detail-metrics" aria-label="Discord coverage metrics">
+          <span class="board-detail-metric">{i18n.community_board_discord_guild_members(discordGuildMembers)}</span>
+          <span class="board-detail-metric">{i18n.community_board_discord_listed(discordListedUsers)}</span>
+          <span class="board-detail-metric">{i18n.community_board_discord_linked_profiles(discordLinkedProfiles)}</span>
+          <span class="board-detail-metric">{i18n.community_board_discord_coverage(discordCoveragePercent)}</span>
+        </div>
+      {/if}
 
       <form class="search-form board-search-form" method="get" action="/comunidad/board/{groupPath}">
         <input
@@ -182,6 +190,22 @@
       gap: 0.75rem;
       margin-bottom: 1rem;
       flex-wrap: wrap;
+    }
+
+    .board-detail-metrics {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin: 0 0 1rem 0;
+    }
+
+    .board-detail-metric {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 999px;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.78rem;
+      opacity: 0.92;
+      background: rgba(0, 0, 0, 0.28);
     }
 
     .board-search-input {
