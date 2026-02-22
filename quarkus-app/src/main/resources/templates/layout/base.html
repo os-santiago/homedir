@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es">
+{@ String resolvedLocaleCode = "en"}
+<html lang="{resolvedLocaleCode}">
 
 <head>
     <meta charset="UTF-8">
@@ -9,22 +10,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/css/retro-theme.css">
-    <link rel="stylesheet" href="/css/homedir.css">
-    <link rel="stylesheet" href="/css/notifications.css">
+    <link rel="stylesheet" href="/styles.css?v={app:version()}">
+    <link rel="stylesheet" href="/css/retro-theme.css?v={app:version()}">
+    <link rel="stylesheet" href="/css/homedir.css?v={app:version()}">
+    <link rel="stylesheet" href="/css/notifications.css?v={app:version()}">
     <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
     <script>window.__EF_NOTIFICATIONS_MODE__ = 'global';</script>
-    <script src="/js/notifications-adapter.js" defer></script>
-    <script src="/js/app.js" defer></script>
-    <script src="/js/notifications.js" defer></script>
-    <script src="/js/global-notifications-ws.js" defer></script>
+    <script src="/js/notifications-adapter.js?v={app:version()}" defer></script>
+    <script src="/js/app.js?v={app:version()}" defer></script>
+    <script src="/js/notifications.js?v={app:version()}" defer></script>
+    <script src="/js/global-notifications-ws.js?v={app:version()}" defer></script>
 </head>
 
 <body>
     <script>
-        window.__EF_AUTH__ = { isAuth: { app: isAuthenticated() } };
-        if (window.__EF_AUTH__.isAuth) { document.documentElement.classList.add('auth'); }
+        window.__EF_AUTH__ = {
+            isAuth: { app: { userAuthenticated: {#if app:isAuthenticated()}true{#else}false{/if} } }
+        };
+        window.userAuthenticated = window.__EF_AUTH__.isAuth.app.userAuthenticated;
+        if (window.userAuthenticated) { document.documentElement.classList.add('auth'); }
     </script>
     {#include fragments/floating-shapes.html/}
     <div class="app-container">
@@ -49,7 +53,7 @@
 
         {#include fragments/footer.html/}
     </div>
-    <script src="/js/retro-theme.js" defer></script>
+    <script src="/js/retro-theme.js?v={app:version()}" defer></script>
 
     {#include fragments/login-modal.html/}
     {#include fragments/toasts.qute.html/}
