@@ -26,7 +26,27 @@ public class EventService {
           "dod-2026-devsecops-pipelines",
           "dod-2026-kubernetes-sre",
           "dod-2026-idp-workshop",
-          "dod-2026-observability-aiops");
+          "dod-2026-observability-aiops",
+          "dod-2026-day1-ai-native-engineering-copilots",
+          "dod-2026-day1-platform-engineering-idp",
+          "dod-2026-day1-coffee-break",
+          "dod-2026-day1-security-supply-chain",
+          "dod-2026-day1-finops-greenops",
+          "dod-2026-day1-lunch-break",
+          "dod-2026-day1-sre-observability-aiops",
+          "dod-2026-day1-data-ai-platforms-llmops",
+          "dod-2026-day1-networking-break",
+          "dod-2026-day1-devex-innersource-flow",
+          "dod-2026-day2-kubernetes-runtime-multi-cluster",
+          "dod-2026-day2-edge-iot-realtime",
+          "dod-2026-day2-coffee-break",
+          "dod-2026-day2-zero-trust-identity-secrets",
+          "dod-2026-day2-automation-orchestration-gitops",
+          "dod-2026-day2-lunch-break",
+          "dod-2026-day2-ai-governance-safety",
+          "dod-2026-day2-apis-event-driven-architecture",
+          "dod-2026-day2-networking-break",
+          "dod-2026-day2-tech-leadership-product-delivery");
 
   /**
    * Global cache of events shared by all sessions. Using a static map ensures the
@@ -350,23 +370,53 @@ public class EventService {
     List<Talk> seededTalks = new ArrayList<>();
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-day1-ai-native-engineering-copilots",
-            "Category: AI-native Engineering & Copilots",
-            "Trend focus for 2026: developer copilots, autonomous coding workflows and guardrailed AI delivery.",
+            "dod-2026-day1-welcome",
+            "Welcome",
+            "Opening and logistics for day 1.",
             scenarioId,
             1,
             "09:00",
-            45,
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-keynote",
+            "Keynote: 2026 Technology Outlook",
+            "Market outlook for technology, open source and AI adoption in 2026.",
+            scenarioId,
+            1,
+            "09:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-ai-native-engineering-copilots",
+            "Category: AI-native Engineering & Copilots",
+            "Developer copilots, autonomous coding workflows and guardrailed AI delivery.",
+            scenarioId,
+            1,
+            "10:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
             "dod-2026-day1-platform-engineering-idp",
             "Category: Platform Engineering & Internal Developer Platforms",
-            "Golden paths, self-service infrastructure and platform product practices for modern teams.",
+            "Golden paths, self-service infrastructure and platform product practices.",
             scenarioId,
             1,
-            "09:50",
-            40,
+            "10:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-security-supply-chain",
+            "Category: Cloud Native Security & Software Supply Chain",
+            "Runtime security, SBOM, supply-chain controls and policy automation.",
+            scenarioId,
+            1,
+            "11:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
@@ -375,38 +425,8 @@ public class EventService {
             "Networking and transition block.",
             scenarioId,
             1,
-            "10:30",
-            15,
-            true));
-    seededTalks.add(
-        buildSeedTalk(
-            "dod-2026-day1-security-supply-chain",
-            "Category: Cloud Native Security & Software Supply Chain",
-            "Runtime security, SBOM, supply-chain controls and policy automation in cloud-native environments.",
-            scenarioId,
-            1,
-            "10:45",
-            45,
-            false));
-    seededTalks.add(
-        buildSeedTalk(
-            "dod-2026-day1-finops-greenops",
-            "Category: FinOps, GreenOps & Cost Optimization",
-            "Balancing cloud cost, sustainability and performance under growing AI workloads.",
-            scenarioId,
-            1,
-            "11:40",
-            40,
-            false));
-    seededTalks.add(
-        buildSeedTalk(
-            "dod-2026-day1-lunch-break",
-            "Lunch Break",
-            "Lunch and hallway conversations.",
-            scenarioId,
-            1,
-            "12:20",
-            90,
+            "11:30",
+            30,
             true));
     seededTalks.add(
         buildSeedTalk(
@@ -415,8 +435,8 @@ public class EventService {
             "Resilience engineering, incident response, telemetry strategy and AI-assisted operations.",
             scenarioId,
             1,
-            "13:50",
-            45,
+            "12:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
@@ -425,8 +445,38 @@ public class EventService {
             "Operating data and model platforms with reliability, governance and production safety.",
             scenarioId,
             1,
-            "14:40",
-            40,
+            "12:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-lunch-break",
+            "Lunch Break",
+            "Lunch and hallway conversations.",
+            scenarioId,
+            1,
+            "13:00",
+            30,
+            true));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-finops-greenops",
+            "Category: FinOps, GreenOps & Cost Optimization",
+            "Balancing cloud cost, sustainability and performance for modern workloads.",
+            scenarioId,
+            1,
+            "13:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-devex-innersource-flow",
+            "Category: Developer Experience, InnerSource & Flow Metrics",
+            "Improving team productivity and delivery outcomes through DevEx practices.",
+            scenarioId,
+            1,
+            "14:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
@@ -435,18 +485,58 @@ public class EventService {
             "Community networking slot.",
             scenarioId,
             1,
-            "15:20",
-            15,
+            "14:30",
+            30,
             true));
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-day1-devex-innersource-flow",
-            "Category: Developer Experience, InnerSource & Flow Metrics",
-            "Improving team productivity and delivery outcomes through DevEx and collaborative engineering.",
+            "dod-2026-day1-automation-gitops",
+            "Category: Automation, Orchestration & GitOps at Scale",
+            "Reliable automation strategies for release pipelines and fleet operations.",
             scenarioId,
             1,
-            "15:45",
-            45,
+            "15:00",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-apis-event-driven",
+            "Category: Modern APIs, Integration & Event-driven Architecture",
+            "Composable architectures for platform products and ecosystem interoperability.",
+            scenarioId,
+            1,
+            "15:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-tech-leadership",
+            "Category: Technical Leadership, Team Topologies & Product Delivery",
+            "Scaling engineering organizations with clear ownership and execution discipline.",
+            scenarioId,
+            1,
+            "16:00",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-welcome",
+            "Welcome",
+            "Opening and logistics for day 2.",
+            scenarioId,
+            2,
+            "09:00",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-keynote",
+            "Keynote: Platform + AI in Production",
+            "Lessons learned moving AI-powered platforms into production at scale.",
+            scenarioId,
+            2,
+            "09:30",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
@@ -455,18 +545,28 @@ public class EventService {
             "Runtime innovation, workload portability and operations patterns for large-scale clusters.",
             scenarioId,
             2,
-            "09:00",
-            45,
+            "10:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
             "dod-2026-day2-edge-iot-realtime",
             "Category: Edge, IoT & Real-time Platforms",
-            "Distributed compute patterns for low-latency systems and connected-device ecosystems.",
+            "Distributed compute patterns for low-latency systems and connected ecosystems.",
             scenarioId,
             2,
-            "09:50",
-            40,
+            "10:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-zero-trust-identity-secrets",
+            "Category: Zero Trust Identity, Access & Secrets",
+            "Identity-first security controls for apps, workloads and platform operators.",
+            scenarioId,
+            2,
+            "11:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
@@ -475,38 +575,8 @@ public class EventService {
             "Networking and transition block.",
             scenarioId,
             2,
-            "10:30",
-            15,
-            true));
-    seededTalks.add(
-        buildSeedTalk(
-            "dod-2026-day2-zero-trust-identity-secrets",
-            "Category: Zero Trust Identity, Access & Secrets",
-            "Identity-first security controls for apps, workloads and platform operators.",
-            scenarioId,
-            2,
-            "10:45",
-            45,
-            false));
-    seededTalks.add(
-        buildSeedTalk(
-            "dod-2026-day2-automation-orchestration-gitops",
-            "Category: Automation, Orchestration & GitOps at Scale",
-            "Reliable automation strategies for release pipelines and fleet operations.",
-            scenarioId,
-            2,
-            "11:40",
-            40,
-            false));
-    seededTalks.add(
-        buildSeedTalk(
-            "dod-2026-day2-lunch-break",
-            "Lunch Break",
-            "Lunch and hallway conversations.",
-            scenarioId,
-            2,
-            "12:20",
-            90,
+            "11:30",
+            30,
             true));
     seededTalks.add(
         buildSeedTalk(
@@ -515,18 +585,48 @@ public class EventService {
             "Practical controls for responsible AI adoption in enterprise and open communities.",
             scenarioId,
             2,
-            "13:50",
-            45,
+            "12:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-day2-apis-event-driven-architecture",
-            "Category: Modern APIs, Integration & Event-driven Architecture",
-            "Composable architectures for platform products and ecosystem interoperability.",
+            "dod-2026-day2-open-source-community-engineering",
+            "Category: Open Source Program Offices & Community Engineering",
+            "Scaling open source contribution models, governance and ecosystem collaboration.",
             scenarioId,
             2,
-            "14:40",
-            40,
+            "12:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-lunch-break",
+            "Lunch Break",
+            "Lunch and hallway conversations.",
+            scenarioId,
+            2,
+            "13:00",
+            30,
+            true));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-reliability-chaos",
+            "Category: Reliability Engineering, Resilience & Chaos",
+            "Designing and validating resilient systems under real production pressure.",
+            scenarioId,
+            2,
+            "13:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-data-platform-observability",
+            "Category: Data Platform Reliability & Observability",
+            "Operational patterns for trustworthy data products and pipelines.",
+            scenarioId,
+            2,
+            "14:00",
+            30,
             false));
     seededTalks.add(
         buildSeedTalk(
@@ -535,18 +635,38 @@ public class EventService {
             "Community networking slot.",
             scenarioId,
             2,
-            "15:20",
-            15,
+            "14:30",
+            30,
             true));
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-day2-tech-leadership-product-delivery",
-            "Category: Technical Leadership, Team Topologies & Product Delivery",
-            "Scaling engineering organizations with clear ownership, metrics and execution discipline.",
+            "dod-2026-day2-product-analytics-experimentation",
+            "Category: Product Analytics, Experimentation & Delivery Signals",
+            "Using delivery metrics and experimentation loops to accelerate outcomes.",
             scenarioId,
             2,
-            "15:45",
-            45,
+            "15:00",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-cloud-performance-governance",
+            "Category: Cloud Performance, Cost Governance & Capacity Planning",
+            "Balancing performance, cost and capacity for sustained platform growth.",
+            scenarioId,
+            2,
+            "15:30",
+            30,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-architecture-decisions",
+            "Category: Architecture Reviews & Technical Decision Records",
+            "Lightweight decision governance to keep teams aligned and scalable.",
+            scenarioId,
+            2,
+            "16:00",
+            30,
             false));
     event.setAgenda(seededTalks);
     if (event.getDays() < 2) {

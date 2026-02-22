@@ -43,6 +43,31 @@ public class EventServiceSeedTest {
     assertTrue(
         stored.getAgenda().stream()
             .anyMatch(t -> t.getName() != null && t.getName().startsWith("Category:")));
+    assertTrue(
+        stored.getAgenda().stream()
+            .anyMatch(t -> t.getDay() == 1 && "Welcome".equalsIgnoreCase(t.getName())));
+    assertTrue(
+        stored.getAgenda().stream()
+            .anyMatch(
+                t ->
+                    t.getDay() == 1
+                        && t.getName() != null
+                        && t.getName().toLowerCase().contains("keynote")));
+    assertTrue(
+        stored.getAgenda().stream()
+            .anyMatch(t -> t.getDay() == 2 && "Welcome".equalsIgnoreCase(t.getName())));
+    assertTrue(
+        stored.getAgenda().stream()
+            .anyMatch(
+                t ->
+                    t.getDay() == 2
+                        && t.getName() != null
+                        && t.getName().toLowerCase().contains("keynote")));
+
+    assertTrue(
+        stored.getAgenda().stream()
+            .allMatch(t -> t.getDurationMinutes() == 30),
+        "All main stage sessions should be 30 minutes");
 
     LocalTime day1LastEnd =
         stored.getAgenda().stream()
