@@ -65,6 +65,28 @@ const $ = (key) => document.querySelector(SELECTORS[key]);
 const $$ = (key) => document.querySelectorAll(SELECTORS[key]);
 const isUltraLiteMode = () => document.body && document.body.classList.contains('ultra-lite-mode');
 
+function currentRelativeUrl() {
+    const path = window.location.pathname || '/';
+    const query = window.location.search || '';
+    const hash = window.location.hash || '';
+    return `${path}${query}${hash}`;
+}
+
+function buildLoginCallbackUrl(redirectTarget) {
+    const fallback = '/';
+    const rawTarget = typeof redirectTarget === 'string' ? redirectTarget.trim() : '';
+    const target = rawTarget || currentRelativeUrl() || fallback;
+    return `/private/login-callback?redirect=${encodeURIComponent(target)}`;
+}
+
+function setupLoginReturnLinks() {
+    const links = document.querySelectorAll('a[data-login-return-current="true"]');
+    links.forEach((link) => {
+        const preferred = (link.getAttribute('data-login-redirect') || '').trim();
+        link.setAttribute('href', buildLoginCallbackUrl(preferred || currentRelativeUrl()));
+    });
+}
+
 function adjustLayout() {
     const toggle = $('menuToggle');
     const links = $('primaryNav');
@@ -309,6 +331,7 @@ function restoreScroll() {
 }
 
 function onDomContentLoaded() {
+    setupLoginReturnLinks();
     setupMenu();
     setupUserMenu();
     setupUserMenuActiveState();
@@ -378,6 +401,7 @@ function removeListeners() {
 }
 
 if (typeof window !== 'undefined') {
+    window.buildLoginCallbackUrl = buildLoginCallbackUrl;
     window.initListeners = initListeners;
     window.removeListeners = removeListeners;
     initListeners();

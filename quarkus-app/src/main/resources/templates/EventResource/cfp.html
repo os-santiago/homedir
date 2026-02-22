@@ -118,7 +118,7 @@
     <p id="cfpFeedback" class="form-hint" hidden></p>
     {#else}
     <p class="section-subtitle">{i18n:events_cfp_login_required}</p>
-    <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary">{i18n:events_cfp_login_btn}</a>
+    <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary" data-login-return-current="true">{i18n:events_cfp_login_btn}</a>
     {/if}
   </article>
 

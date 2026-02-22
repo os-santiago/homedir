@@ -20,6 +20,7 @@ public class PublicExperienceSmokeTest {
   void homePageAvoidsKnownRuntimeRegressionPatterns() {
     String html = fetchHtmlWithBudget("/", HOME_HTML_BUDGET_BYTES);
     assertTrue(html.contains("window.userAuthenticated"));
+    assertTrue(html.contains("data-login-return-current=\"true\""));
     assertFalse(html.contains("canva-theme-v2.css"));
     assertFalse(html.contains("/js/retro-theme.js"));
   }
@@ -28,6 +29,7 @@ public class PublicExperienceSmokeTest {
   void communityPageAvoidsKnownRuntimeRegressionPatterns() {
     String html = fetchHtmlWithBudget("/comunidad", COMMUNITY_HTML_BUDGET_BYTES);
     assertTrue(html.contains("window.userAuthenticated"));
+    assertTrue(html.contains("data-login-return-current=\"true\""));
     assertFalse(html.contains("canva-theme-v2.css"));
     assertFalse(html.contains("/js/retro-theme.js"));
   }
