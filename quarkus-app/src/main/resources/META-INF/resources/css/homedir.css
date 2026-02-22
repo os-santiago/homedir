@@ -2383,6 +2383,19 @@ footer {
   opacity: 0.93;
 }
 
+.home-lightning-modified {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid rgba(255, 214, 102, 0.65);
+  background: rgba(255, 199, 80, 0.14);
+  color: #ffe7a6;
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.08rem 0.34rem;
+}
+
 .home-lightning-thread-actions,
 .home-lightning-comment-actions {
   display: flex;

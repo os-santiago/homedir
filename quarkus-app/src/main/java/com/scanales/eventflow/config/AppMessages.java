@@ -2099,6 +2099,9 @@ public interface AppMessages {
     @Message("Load more")
     String home_lightning_btn_load_more();
 
+    @Message("Edit")
+    String home_lightning_btn_edit();
+
     @Message("No lightning threads yet.")
     String home_lightning_empty();
 
@@ -2122,6 +2125,27 @@ public interface AppMessages {
 
     @Message("Ping best answer")
     String home_lightning_ping_best();
+
+    @Message("Edit your statement (max 100 chars)")
+    String home_lightning_prompt_edit_thread();
+
+    @Message("Edit your reply (max 200 chars)")
+    String home_lightning_prompt_edit_comment();
+
+    @Message("Updated.")
+    String home_lightning_update_success();
+
+    @Message("Modified")
+    String home_lightning_modified();
+
+    @Message("Posted")
+    String home_lightning_label_posted();
+
+    @Message("Updated")
+    String home_lightning_label_updated();
+
+    @Message("Last reply")
+    String home_lightning_label_last_comment();
 
     @Message("Write your reply (max 200 chars)")
     String home_lightning_prompt_comment();

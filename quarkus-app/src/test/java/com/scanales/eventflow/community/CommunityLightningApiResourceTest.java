@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -133,5 +134,77 @@ public class CommunityLightningApiResourceTest {
         .then()
         .statusCode(429)
         .body("error", equalTo("user_comment_rate_limit"));
+  }
+
+  @Test
+  @TestSecurity(user = "editor@example.com")
+  void ownerCanEditThreadAndComment() {
+    String threadId =
+        given()
+            .contentType("application/json")
+            .body("{\"statement\":\"Docker or Podman?\"}")
+            .when()
+            .post("/api/community/lightning/threads")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("item.id");
+
+    given()
+        .contentType("application/json")
+        .body("{\"statement\":\"Docker and Podman together?\"}")
+        .when()
+        .put("/api/community/lightning/threads/" + threadId)
+        .then()
+        .statusCode(200)
+        .body("item.title", equalTo("Docker and Podman together?"))
+        .body("item.is_owner", equalTo(true))
+        .body("item.updated_at", notNullValue());
+
+    String commentId =
+        given()
+            .contentType("application/json")
+            .body("{\"body\":\"First concise reply.\"}")
+            .when()
+            .post("/api/community/lightning/threads/" + threadId + "/comments")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("comment.id");
+
+    given()
+        .contentType("application/json")
+        .body("{\"body\":\"Edited concise reply.\"}")
+        .when()
+        .put("/api/community/lightning/comments/" + commentId)
+        .then()
+        .statusCode(200)
+        .body("comment.body", equalTo("Edited concise reply."))
+        .body("comment.is_owner", equalTo(true))
+        .body("comment.updated_at", notNullValue())
+        .body("thread.last_comment_at", notNullValue());
+  }
+
+  @Test
+  @TestSecurity(user = "intruder@example.com")
+  void nonOwnerCannotEditThread() {
+    String threadId =
+        lightningService
+            .createThread(
+                "owner@example.com",
+                "Owner",
+                new CommunityLightningService.CreateThreadRequest(
+                    "sharp_statement", "Owner title", "Owner title"))
+            .item()
+            .id();
+
+    given()
+        .contentType("application/json")
+        .body("{\"statement\":\"Intruder edit\"}")
+        .when()
+        .put("/api/community/lightning/threads/" + threadId)
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("thread_edit_forbidden"));
   }
 }
