@@ -52,4 +52,23 @@ public class EventTalkResourceTest {
         .statusCode(200)
         .body(containsString("/event/e2/scenario/sc2"));
   }
+
+  @Test
+  public void modernHyphenatedTalkIdUsesEventContext() {
+    Event event = new Event("e1", "Evento Moderno", "desc");
+    event.setScenarios(List.of(new Scenario("sc-modern", "Sala Moderna")));
+    Talk talk = new Talk("dod-2026-kubernetes-sre", "Modern Talk");
+    talk.setLocation("sc-modern");
+    talk.setStartTime(LocalTime.of(9, 0));
+    talk.setDurationMinutes(30);
+    event.getAgenda().add(talk);
+    eventService.saveEvent(event);
+
+    given()
+        .when()
+        .get("/event/e1/talk/dod-2026-kubernetes-sre")
+        .then()
+        .statusCode(200)
+        .body(containsString("/event/e1/scenario/sc-modern"));
+  }
 }

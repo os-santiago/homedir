@@ -46,7 +46,7 @@ public class TalkResource {
 
   @Inject GamificationService gamificationService;
 
-  private String canonicalize(String rawId) {
+  private String legacyCanonicalize(String rawId) {
     int talkIdx = rawId.indexOf("-talk-");
     if (talkIdx >= 0) {
       int next = rawId.indexOf('-', talkIdx + 6);
@@ -68,19 +68,27 @@ public class TalkResource {
     String sessionId = context.session() != null ? context.session().id() : null;
     metrics.recordPageView("/talk", sessionId, ua);
     try {
-      String canonicalId = canonicalize(id);
+      String canonicalId = id;
       Talk talk = eventService.findTalk(canonicalId);
+      if (talk == null) {
+        String legacyId = legacyCanonicalize(id);
+        if (!legacyId.equals(id)) {
+          canonicalId = legacyId;
+          talk = eventService.findTalk(canonicalId);
+        }
+      }
       if (talk == null) {
         LOG.warnf("Talk %s not found", id);
         return Response.status(Response.Status.NOT_FOUND).build();
       }
+      final String resolvedTalkId = canonicalId;
       currentUserId()
           .ifPresent(
               userId ->
-                  gamificationService.award(userId, GamificationActivity.TALK_VIEW, canonicalId));
-      var event = eventService.findEventByTalk(canonicalId);
-      var occurrences = eventService.findTalkOccurrences(canonicalId);
-      metrics.recordTalkView(canonicalId, sessionId, ua);
+                  gamificationService.award(userId, GamificationActivity.TALK_VIEW, resolvedTalkId));
+      var event = eventService.findEventByTalk(resolvedTalkId);
+      var occurrences = eventService.findTalkOccurrences(resolvedTalkId);
+      metrics.recordTalkView(resolvedTalkId, sessionId, ua);
       if (talk.getLocation() != null) {
         metrics.recordStageVisit(
             talk.getLocation(), event != null ? event.getTimezone() : null, sessionId, ua);
@@ -104,7 +112,7 @@ public class TalkResource {
           email = principal != null ? principal.getName() : null;
         }
         if (email != null) {
-          inSchedule = userSchedule.getTalksForUser(email).contains(canonicalId);
+          inSchedule = userSchedule.getTalksForUser(email).contains(resolvedTalkId);
         }
       }
       return Response.ok(Templates.detail(talk, event, occurrences, inSchedule)).build();
