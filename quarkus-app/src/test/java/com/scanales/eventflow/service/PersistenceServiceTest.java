@@ -144,6 +144,8 @@ public class PersistenceServiceTest {
             new java.util.LinkedHashMap<>(),
             new java.util.LinkedHashMap<>(),
             new java.util.LinkedHashMap<>(),
+            new java.util.LinkedHashMap<>(),
+            new java.util.LinkedHashMap<>(),
             new java.util.LinkedHashMap<>());
 
     service.saveCommunityLightningStateSync(snapshot);

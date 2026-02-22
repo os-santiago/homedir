@@ -129,13 +129,8 @@
     return Number.isFinite(value) ? value : 0;
   }
 
-  function isModified(createdAt, updatedAt) {
-    const created = parseEpoch(createdAt);
-    const updated = parseEpoch(updatedAt);
-    if (!created || !updated) {
-      return false;
-    }
-    return Math.abs(updated - created) >= 1000;
+  function isModified(editedAt) {
+    return parseEpoch(editedAt) > 0;
   }
 
   function threadMeta(thread) {
@@ -144,8 +139,8 @@
     if (posted) {
       parts.push(`${i18n.datePosted}: ${posted}`);
     }
-    const modified = isModified(thread.created_at, thread.updated_at);
-    const updated = formatDate(thread.updated_at);
+    const modified = isModified(thread.edited_at);
+    const updated = formatDate(thread.edited_at);
     if (modified && updated) {
       parts.push(`${i18n.dateUpdated}: ${updated}`);
     }
@@ -169,9 +164,9 @@
 
   function commentMarkup(comment, isBest) {
     const cls = isBest ? "home-lightning-comment best" : "home-lightning-comment";
-    const modified = isModified(comment.created_at, comment.updated_at);
+    const modified = isModified(comment.edited_at);
     const posted = formatDate(comment.created_at);
-    const updated = formatDate(comment.updated_at);
+    const updated = formatDate(comment.edited_at);
     const dateLine = modified && updated
       ? `${i18n.datePosted}: ${posted} · ${i18n.dateUpdated}: ${updated}`
       : `${i18n.datePosted}: ${posted}`;

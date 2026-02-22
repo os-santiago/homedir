@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -68,7 +69,8 @@ public class CommunityLightningApiResourceTest {
         .statusCode(200)
         .body("items", hasSize(greaterThanOrEqualTo(1)))
         .body("items[0].id", equalTo(threadId))
-        .body("items[0].title", equalTo("Docker or Podman?"));
+        .body("items[0].title", equalTo("Docker or Podman?"))
+        .body("items[0].edited_at", nullValue());
   }
 
   @Test
@@ -159,7 +161,7 @@ public class CommunityLightningApiResourceTest {
         .statusCode(200)
         .body("item.title", equalTo("Docker and Podman together?"))
         .body("item.is_owner", equalTo(true))
-        .body("item.updated_at", notNullValue());
+        .body("item.edited_at", notNullValue());
 
     String commentId =
         given()
@@ -181,7 +183,7 @@ public class CommunityLightningApiResourceTest {
         .statusCode(200)
         .body("comment.body", equalTo("Edited concise reply."))
         .body("comment.is_owner", equalTo(true))
-        .body("comment.updated_at", notNullValue())
+        .body("comment.edited_at", notNullValue())
         .body("thread.last_comment_at", notNullValue());
   }
 
