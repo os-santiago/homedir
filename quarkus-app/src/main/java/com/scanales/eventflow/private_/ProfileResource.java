@@ -610,6 +610,11 @@ public class ProfileResource {
             QuestClass.SCIENTIST.getDisplayName(),
             "/comunidad?view=featured"),
         new ActivityClassMapping(
+            messages.profile_activity_category_lta(),
+            messages.profile_activity_examples_lta(),
+            messages.profile_activity_class_lta(),
+            "/comunidad/lta"),
+        new ActivityClassMapping(
             messages.profile_activity_category_members(),
             messages.profile_activity_examples_members(),
             QuestClass.SCIENTIST.getDisplayName(),

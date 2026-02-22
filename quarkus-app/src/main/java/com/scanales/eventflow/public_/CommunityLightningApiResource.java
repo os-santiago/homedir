@@ -83,7 +83,7 @@ public class CommunityLightningApiResource {
                   request != null ? request.effectiveStatement() : null));
       metrics.recordFunnelStep("community.lightning.thread.create");
       metrics.recordFunnelStep("community_lightning_post");
-      gamificationService.award(userId.get(), GamificationActivity.COMMUNITY_SUBMISSION);
+      gamificationService.award(userId.get(), GamificationActivity.LTA_THREAD_CREATE);
       ThreadItemResponse item = toThreadItem(result.item(), List.of());
       return Response.status(Response.Status.CREATED)
           .entity(
@@ -119,7 +119,7 @@ public class CommunityLightningApiResource {
               userId.get(), currentUserName().orElse(userId.get()), threadId, request != null ? request.body() : null);
       metrics.recordFunnelStep("community.lightning.comment.create");
       metrics.recordFunnelStep("community_lightning_comment");
-      gamificationService.award(userId.get(), GamificationActivity.COMMUNITY_REVIEW);
+      gamificationService.award(userId.get(), GamificationActivity.LTA_COMMENT_CREATE);
       return Response.ok(
               new CommentMutationResponse(
                   toThreadItem(result.thread(), lightningService.listCommentsForThreads(List.of(result.thread().id()), 3)
@@ -156,6 +156,9 @@ public class CommunityLightningApiResource {
       CommunityLightningService.LikeResult result =
           lightningService.setThreadLiked(userId.get(), threadId, liked);
       metrics.recordFunnelStep("community.lightning.thread.like");
+      if (liked) {
+        gamificationService.award(userId.get(), GamificationActivity.LTA_REACTION);
+      }
       return Response.ok(
               new LikeMutationResponse(
                   toThreadItem(result.thread(), List.of()),
@@ -183,6 +186,9 @@ public class CommunityLightningApiResource {
       CommunityLightningService.LikeResult result =
           lightningService.setCommentLiked(userId.get(), commentId, liked);
       metrics.recordFunnelStep("community.lightning.comment.like");
+      if (liked) {
+        gamificationService.award(userId.get(), GamificationActivity.LTA_REACTION);
+      }
       return Response.ok(
               new LikeMutationResponse(
                   result.thread() == null ? null : toThreadItem(result.thread(), List.of()),
