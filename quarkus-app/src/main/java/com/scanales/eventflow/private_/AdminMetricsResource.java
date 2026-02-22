@@ -758,46 +758,36 @@ public class AdminMetricsResource {
         eventRows);
   }
 
-  private static List<FunnelRow> buildFunnelRows(Map<String, Long> snap) {
+  static List<FunnelRow> buildFunnelRows(Map<String, Long> snap) {
     List<FunnelRow> rows = new ArrayList<>();
-    rows.add(new FunnelRow("auth.login.callback", "Login callbacks", snap.getOrDefault("funnel:auth.login.callback", 0L)));
-    rows.add(new FunnelRow("community.vote", "Community votes", snap.getOrDefault("funnel:community.vote", 0L)));
+    // Core product funnel with canonical keys and compatibility for legacy aliases.
+    rows.add(new FunnelRow("login_success", "Login success", resolveFunnelCount(snap, "login_success", "auth.login.callback")));
+    rows.add(new FunnelRow("community_vote", "Community vote", resolveFunnelCount(snap, "community_vote", "community.vote")));
     rows.add(
         new FunnelRow(
-            "community.submission.create",
-            "Community submissions",
-            snap.getOrDefault("funnel:community.submission.create", 0L)));
+            "community_propose_submit",
+            "Community propose submit",
+            resolveFunnelCount(snap, "community_propose_submit", "community.submission.create")));
+    rows.add(new FunnelRow("cfp_submit", "CFP submit", resolveFunnelCount(snap, "cfp_submit", "cfp.submission.create")));
     rows.add(
         new FunnelRow(
-            "community.submission.approve",
-            "Community approvals",
-            snap.getOrDefault("funnel:community.submission.approve", 0L)));
-    rows.add(
-        new FunnelRow(
-            "community.submission.reject",
-            "Community rejects",
-            snap.getOrDefault("funnel:community.submission.reject", 0L)));
-    rows.add(
-        new FunnelRow(
-            "cfp.submission.create",
-            "CFP submissions",
-            snap.getOrDefault("funnel:cfp.submission.create", 0L)));
-    rows.add(
-        new FunnelRow(
-            "cfp.submission.status.accepted",
-            "CFP accepted",
-            snap.getOrDefault("funnel:cfp.submission.status.accepted", 0L)));
-    rows.add(
-        new FunnelRow(
-            "cfp.submission.status.rejected",
-            "CFP rejected",
-            snap.getOrDefault("funnel:cfp.submission.status.rejected", 0L)));
-    rows.add(
-        new FunnelRow(
-            "profile.public.open",
-            "Public profile opens",
-            snap.getOrDefault("funnel:profile.public.open", 0L)));
+            "cfp_approved",
+            "CFP approved",
+            resolveFunnelCount(snap, "cfp_approved", "cfp.submission.status.accepted")));
+    rows.add(new FunnelRow("board_profile_open", "Board profile open", resolveFunnelCount(snap, "board_profile_open")));
     return rows;
+  }
+
+  private static long resolveFunnelCount(Map<String, Long> snap, String canonical, String... legacyAliases) {
+    long canonicalCount = snap.getOrDefault("funnel:" + canonical, 0L);
+    if (canonicalCount > 0 || legacyAliases.length == 0) {
+      return canonicalCount;
+    }
+    long fallbackCount = 0L;
+    for (String alias : legacyAliases) {
+      fallbackCount += snap.getOrDefault("funnel:" + alias, 0L);
+    }
+    return fallbackCount;
   }
 
   private String formatAge(long lastMillis) {
