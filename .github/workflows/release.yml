@@ -32,6 +32,7 @@ jobs:
       HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
       DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY != '' && secrets.DEPLOY_SSH_PRIVATE_KEY || secrets.VPS_SSH_KEY }}
       DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+      DEPLOY_SSH_STRICT_HOST_KEY_CHECKING: ${{ vars.DEPLOY_SSH_STRICT_HOST_KEY_CHECKING }}
 
     steps:
       - name: Checkout code
@@ -108,10 +109,19 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          if [ "${strict}" = "no" ]; then
+            echo "Strict host key checking disabled; skipping known_hosts bootstrap."
+            exit 0
+          fi
           if [ -n "${DEPLOY_SSH_KNOWN_HOSTS:-}" ]; then
             printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
           else
-            ssh-keyscan -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+            if ssh-keyscan -T 5 -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
+              echo "known_hosts populated from ssh-keyscan."
+            else
+              echo "::warning::ssh-keyscan failed for ${DEPLOY_HOST}:${port}. Continuing with StrictHostKeyChecking=${strict}."
+            fi
           fi
           chmod 644 ~/.ssh/known_hosts
 
@@ -123,7 +133,17 @@ jobs:
           set -euo pipefail
           port="${DEPLOY_PORT:-22}"
           cmd="${DEPLOY_COMMAND:-/usr/local/bin/homedir-update.sh}"
-          ssh -p "$port" "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          if [ "${strict}" = "no" ]; then
+            ssh -p "$port" \
+              -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
+          else
+            ssh -p "$port" \
+              -o StrictHostKeyChecking="${strict}" \
+              "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
+          fi
 
       - name: Verify production healthcheck
         if: ${{ steps.deploy_config.outputs.enabled == 'true' }}
