@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jboss.logging.Logger;
 
@@ -19,6 +20,13 @@ import org.jboss.logging.Logger;
 public class EventService {
   private static final String DEVOPSDAYS_2026_ID = "devopsdays-santiago-2026";
   private static final String DEVOPSDAYS_MAIN_STAGE = "main-stage";
+  private static final Set<String> LEGACY_DEVOPSDAYS_SEED_IDS =
+      Set.of(
+          "dod-2026-keynote-platform-velocity",
+          "dod-2026-devsecops-pipelines",
+          "dod-2026-kubernetes-sre",
+          "dod-2026-idp-workshop",
+          "dod-2026-observability-aiops");
 
   /**
    * Global cache of events shared by all sessions. Using a static map ensures the
@@ -317,7 +325,11 @@ public class EventService {
     if (event == null || event.getId() == null || !DEVOPSDAYS_2026_ID.equalsIgnoreCase(event.getId())) {
       return false;
     }
-    if (event.getAgenda() != null && !event.getAgenda().isEmpty()) {
+    boolean shouldSeed = event.getAgenda() == null || event.getAgenda().isEmpty();
+    if (!shouldSeed && isLegacyDevOpsDaysSeedAgenda(event.getAgenda())) {
+      shouldSeed = true;
+    }
+    if (!shouldSeed) {
       return false;
     }
     if (event.getScenarios() == null) {
@@ -338,54 +350,218 @@ public class EventService {
     List<Talk> seededTalks = new ArrayList<>();
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-keynote-platform-velocity",
-            "Platform Engineering in the Age of AI Agents",
-            "How platform teams are evolving delivery, reliability and developer experience in 2026.",
+            "dod-2026-day1-ai-native-engineering-copilots",
+            "Category: AI-native Engineering & Copilots",
+            "Trend focus for 2026: developer copilots, autonomous coding workflows and guardrailed AI delivery.",
             scenarioId,
             1,
-            "09:30",
-            30));
+            "09:00",
+            45,
+            false));
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-devsecops-pipelines",
-            "DevSecOps by Default: Secure Pipelines at Scale",
-            "Practical controls to shift security left without slowing product delivery.",
+            "dod-2026-day1-platform-engineering-idp",
+            "Category: Platform Engineering & Internal Developer Platforms",
+            "Golden paths, self-service infrastructure and platform product practices for modern teams.",
             scenarioId,
             1,
-            "10:15",
-            30));
+            "09:50",
+            40,
+            false));
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-kubernetes-sre",
-            "Kubernetes SRE Playbook for High-Traffic Systems",
-            "Incident patterns, SLOs and production hardening for cloud-native teams.",
+            "dod-2026-day1-coffee-break",
+            "Coffee Break",
+            "Networking and transition block.",
             scenarioId,
             1,
-            "11:15",
-            30));
+            "10:30",
+            15,
+            true));
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-idp-workshop",
-            "Building an Internal Developer Platform that Teams Actually Use",
-            "A field guide to rollout strategy, golden paths and adoption metrics.",
+            "dod-2026-day1-security-supply-chain",
+            "Category: Cloud Native Security & Software Supply Chain",
+            "Runtime security, SBOM, supply-chain controls and policy automation in cloud-native environments.",
             scenarioId,
             1,
-            "14:00",
-            45));
+            "10:45",
+            45,
+            false));
     seededTalks.add(
         buildSeedTalk(
-            "dod-2026-observability-aiops",
-            "AIOps + Observability: From Alert Noise to Actionable Signals",
-            "Using telemetry and automation to reduce MTTR and pager fatigue.",
+            "dod-2026-day1-finops-greenops",
+            "Category: FinOps, GreenOps & Cost Optimization",
+            "Balancing cloud cost, sustainability and performance under growing AI workloads.",
             scenarioId,
             1,
-            "15:15",
-            30));
+            "11:40",
+            40,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-lunch-break",
+            "Lunch Break",
+            "Lunch and hallway conversations.",
+            scenarioId,
+            1,
+            "12:20",
+            90,
+            true));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-sre-observability-aiops",
+            "Category: SRE, Observability & AIOps",
+            "Resilience engineering, incident response, telemetry strategy and AI-assisted operations.",
+            scenarioId,
+            1,
+            "13:50",
+            45,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-data-ai-platforms-llmops",
+            "Category: Data/AI Platforms, MLOps & LLMOps",
+            "Operating data and model platforms with reliability, governance and production safety.",
+            scenarioId,
+            1,
+            "14:40",
+            40,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-networking-break",
+            "Networking Break",
+            "Community networking slot.",
+            scenarioId,
+            1,
+            "15:20",
+            15,
+            true));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day1-devex-innersource-flow",
+            "Category: Developer Experience, InnerSource & Flow Metrics",
+            "Improving team productivity and delivery outcomes through DevEx and collaborative engineering.",
+            scenarioId,
+            1,
+            "15:45",
+            45,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-kubernetes-runtime-multi-cluster",
+            "Category: Kubernetes Runtime Evolution & Multi-cluster Operations",
+            "Runtime innovation, workload portability and operations patterns for large-scale clusters.",
+            scenarioId,
+            2,
+            "09:00",
+            45,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-edge-iot-realtime",
+            "Category: Edge, IoT & Real-time Platforms",
+            "Distributed compute patterns for low-latency systems and connected-device ecosystems.",
+            scenarioId,
+            2,
+            "09:50",
+            40,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-coffee-break",
+            "Coffee Break",
+            "Networking and transition block.",
+            scenarioId,
+            2,
+            "10:30",
+            15,
+            true));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-zero-trust-identity-secrets",
+            "Category: Zero Trust Identity, Access & Secrets",
+            "Identity-first security controls for apps, workloads and platform operators.",
+            scenarioId,
+            2,
+            "10:45",
+            45,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-automation-orchestration-gitops",
+            "Category: Automation, Orchestration & GitOps at Scale",
+            "Reliable automation strategies for release pipelines and fleet operations.",
+            scenarioId,
+            2,
+            "11:40",
+            40,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-lunch-break",
+            "Lunch Break",
+            "Lunch and hallway conversations.",
+            scenarioId,
+            2,
+            "12:20",
+            90,
+            true));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-ai-governance-safety",
+            "Category: AI Governance, Safety & Responsible Adoption",
+            "Practical controls for responsible AI adoption in enterprise and open communities.",
+            scenarioId,
+            2,
+            "13:50",
+            45,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-apis-event-driven-architecture",
+            "Category: Modern APIs, Integration & Event-driven Architecture",
+            "Composable architectures for platform products and ecosystem interoperability.",
+            scenarioId,
+            2,
+            "14:40",
+            40,
+            false));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-networking-break",
+            "Networking Break",
+            "Community networking slot.",
+            scenarioId,
+            2,
+            "15:20",
+            15,
+            true));
+    seededTalks.add(
+        buildSeedTalk(
+            "dod-2026-day2-tech-leadership-product-delivery",
+            "Category: Technical Leadership, Team Topologies & Product Delivery",
+            "Scaling engineering organizations with clear ownership, metrics and execution discipline.",
+            scenarioId,
+            2,
+            "15:45",
+            45,
+            false));
     event.setAgenda(seededTalks);
-    if (event.getDays() <= 0) {
-      event.setDays(1);
+    if (event.getDays() < 2) {
+      event.setDays(2);
     }
     return true;
+  }
+
+  private boolean isLegacyDevOpsDaysSeedAgenda(List<Talk> agenda) {
+    if (agenda == null || agenda.isEmpty()) {
+      return false;
+    }
+    return agenda.stream()
+        .map(Talk::getId)
+        .allMatch(id -> id != null && LEGACY_DEVOPSDAYS_SEED_IDS.contains(id));
   }
 
   private Talk buildSeedTalk(
@@ -395,13 +571,15 @@ public class EventService {
       String scenarioId,
       int day,
       String startTime,
-      int durationMinutes) {
+      int durationMinutes,
+      boolean breakSlot) {
     Talk talk = new Talk(id, name);
     talk.setDescription(description);
     talk.setLocation(scenarioId);
     talk.setDay(day);
     talk.setStartTimeStr(startTime);
     talk.setDurationMinutes(durationMinutes);
+    talk.setBreak(breakSlot);
     return talk;
   }
 

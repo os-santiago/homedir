@@ -676,6 +676,24 @@ public interface AppMessages {
     @Message("Could not update testing mode right now.")
     String events_cfp_admin_testing_error();
 
+    @Message("Agenda: proposed mode")
+    String events_agenda_admin_proposed_title();
+
+    @Message("Toggle a public warning on event agendas so attendees know this schedule is still a category-based proposal.")
+    String events_agenda_admin_proposed_desc();
+
+    @Message("Show proposed agenda notice")
+    String events_agenda_admin_proposed_toggle_label();
+
+    @Message("Save")
+    String events_agenda_admin_proposed_save();
+
+    @Message("Saved.")
+    String events_agenda_admin_proposed_saved();
+
+    @Message("Could not update agenda proposal mode right now.")
+    String events_agenda_admin_proposed_error();
+
     // --- Projects Page ---
     @Message("Projects · HomeDir")
     String projects_title();
@@ -2312,6 +2330,18 @@ public interface AppMessages {
 
     @Message("Agenda")
     String events_detail_agenda_title();
+
+    @Message("Proposed")
+    String events_agenda_proposed_badge();
+
+    @Message("Proposed agenda categories")
+    String events_agenda_proposed_title();
+
+    @Message("This is a temporary agenda proposal based on 2026 market categories. Final talks and activities will be updated after the CFP selection process.")
+    String events_agenda_proposed_desc();
+
+    @Message("Agenda proposal notice")
+    String events_agenda_proposed_aria();
 
     @Message("Sequential")
     String events_detail_agenda_sequential();
