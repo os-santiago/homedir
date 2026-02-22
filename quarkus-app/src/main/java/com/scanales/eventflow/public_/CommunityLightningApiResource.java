@@ -51,6 +51,10 @@ public class CommunityLightningApiResource {
     Map<String, List<CommunityLightningComment>> commentsByThread =
         lightningService.listCommentsForThreads(ids, commentsLimit);
     Map<String, Instant> lastCommentAt = lightningService.lastCommentAtByThread(ids);
+    Map<String, Instant> editedAtByThread = lightningService.editedAtByThread(ids);
+    List<String> commentIds =
+        commentsByThread.values().stream().flatMap(List::stream).map(CommunityLightningComment::id).toList();
+    Map<String, Instant> editedAtByComment = lightningService.editedAtByComment(commentIds);
     String viewerUserId = currentUserId().orElse(null);
     List<ThreadItemResponse> items =
         page.items().stream()
@@ -60,7 +64,9 @@ public class CommunityLightningApiResource {
                         item,
                         commentsByThread.get(item.id()),
                         viewerUserId,
-                        lastCommentAt.get(item.id())))
+                        lastCommentAt.get(item.id()),
+                        editedAtByThread.get(item.id()),
+                        editedAtByComment))
             .toList();
     return Response.ok(
             new ThreadListResponse(
@@ -94,7 +100,8 @@ public class CommunityLightningApiResource {
       metrics.recordFunnelStep("community.lightning.thread.create");
       metrics.recordFunnelStep("community_lightning_post");
       gamificationService.award(userId.get(), GamificationActivity.LTA_THREAD_CREATE);
-      ThreadItemResponse item = toThreadItem(result.item(), List.of(), userId.get(), null);
+      ThreadItemResponse item =
+          toThreadItem(result.item(), List.of(), userId.get(), null, null, Map.of());
       return Response.status(Response.Status.CREATED)
           .entity(
               new ThreadMutationResponse(
@@ -132,9 +139,18 @@ public class CommunityLightningApiResource {
               .getOrDefault(thread.id(), List.of());
       Instant lastCommentAt =
           lightningService.lastCommentAtByThread(List.of(thread.id())).get(thread.id());
+      Instant editedAt =
+          lightningService.editedAtByThread(List.of(thread.id())).get(thread.id());
+      List<String> commentIds = comments.stream().map(CommunityLightningComment::id).toList();
+      Map<String, Instant> editedAtByComment = lightningService.editedAtByComment(commentIds);
       return Response.ok(
               new ThreadMutationResponse(
-                  toThreadItem(thread, comments, userId.get(), lastCommentAt), false, 0, null, null))
+                  toThreadItem(
+                      thread, comments, userId.get(), lastCommentAt, editedAt, editedAtByComment),
+                  false,
+                  0,
+                  null,
+                  null))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -166,18 +182,29 @@ public class CommunityLightningApiResource {
       metrics.recordFunnelStep("community.lightning.comment.create");
       metrics.recordFunnelStep("community_lightning_comment");
       gamificationService.award(userId.get(), GamificationActivity.LTA_COMMENT_CREATE);
+      List<CommunityLightningComment> comments =
+          lightningService
+              .listCommentsForThreads(List.of(result.thread().id()), 3)
+              .getOrDefault(result.thread().id(), List.of());
+      Map<String, Instant> editedAtByComment =
+          lightningService.editedAtByComment(comments.stream().map(CommunityLightningComment::id).toList());
       return Response.ok(
               new CommentMutationResponse(
                   toThreadItem(
                       result.thread(),
-                      lightningService
-                          .listCommentsForThreads(List.of(result.thread().id()), 3)
-                          .getOrDefault(result.thread().id(), List.of()),
+                      comments,
                       userId.get(),
                       lightningService
                           .lastCommentAtByThread(List.of(result.thread().id()))
-                          .get(result.thread().id())),
-                  toCommentItem(result.comment(), userId.get())))
+                          .get(result.thread().id()),
+                      lightningService
+                          .editedAtByThread(List.of(result.thread().id()))
+                          .get(result.thread().id()),
+                      editedAtByComment),
+                  toCommentItem(
+                      result.comment(),
+                      userId.get(),
+                      editedAtByComment.get(result.comment().id()))))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -213,10 +240,20 @@ public class CommunityLightningApiResource {
               .getOrDefault(result.thread().id(), List.of());
       Instant lastCommentAt =
           lightningService.lastCommentAtByThread(List.of(result.thread().id())).get(result.thread().id());
+      Instant editedAt =
+          lightningService.editedAtByThread(List.of(result.thread().id())).get(result.thread().id());
+      List<String> commentIds = comments.stream().map(CommunityLightningComment::id).toList();
+      Map<String, Instant> editedAtByComment = lightningService.editedAtByComment(commentIds);
       return Response.ok(
               new CommentMutationResponse(
-                  toThreadItem(result.thread(), comments, userId.get(), lastCommentAt),
-                  toCommentItem(result.comment(), userId.get())))
+                  toThreadItem(
+                      result.thread(),
+                      comments,
+                      userId.get(),
+                      lastCommentAt,
+                      editedAt,
+                      editedAtByComment),
+                  toCommentItem(result.comment(), userId.get(), editedAtByComment.get(result.comment().id()))))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -251,7 +288,7 @@ public class CommunityLightningApiResource {
       }
       return Response.ok(
               new LikeMutationResponse(
-                  toThreadItem(result.thread(), List.of(), userId.get(), null),
+                  toThreadItem(result.thread(), List.of(), userId.get(), null, null, Map.of()),
                   null,
                   liked))
           .build();
@@ -283,8 +320,15 @@ public class CommunityLightningApiResource {
               new LikeMutationResponse(
                   result.thread() == null
                       ? null
-                      : toThreadItem(result.thread(), List.of(), userId.get(), null),
-                  result.comment() == null ? null : toCommentItem(result.comment(), userId.get()),
+                      : toThreadItem(result.thread(), List.of(), userId.get(), null, null, Map.of()),
+                  result.comment() == null
+                      ? null
+                      : toCommentItem(
+                          result.comment(),
+                          userId.get(),
+                          lightningService
+                              .editedAtByComment(List.of(result.comment().id()))
+                              .get(result.comment().id())),
                   liked))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
@@ -350,9 +394,20 @@ public class CommunityLightningApiResource {
       CommunityLightningThread item,
       List<CommunityLightningComment> comments,
       String viewerUserId,
-      Instant lastCommentAt) {
+      Instant lastCommentAt,
+      Instant editedAt,
+      Map<String, Instant> editedAtByComment) {
     List<CommentItemResponse> commentItems =
-        comments == null ? List.of() : comments.stream().map(comment -> toCommentItem(comment, viewerUserId)).toList();
+        comments == null
+            ? List.of()
+            : comments.stream()
+                .map(
+                    comment ->
+                        toCommentItem(
+                            comment,
+                            viewerUserId,
+                            editedAtByComment == null ? null : editedAtByComment.get(comment.id())))
+                .toList();
     CommentItemResponse best =
         commentItems.stream()
             .filter(comment -> item.bestCommentId() != null && item.bestCommentId().equals(comment.id()))
@@ -366,6 +421,7 @@ public class CommunityLightningApiResource {
         item.userName(),
         item.createdAt(),
         item.updatedAt(),
+        editedAt,
         item.publishedAt(),
         lastCommentAt,
         viewerUserId != null && viewerUserId.equalsIgnoreCase(item.userId()),
@@ -377,7 +433,8 @@ public class CommunityLightningApiResource {
         commentItems);
   }
 
-  private CommentItemResponse toCommentItem(CommunityLightningComment comment, String viewerUserId) {
+  private CommentItemResponse toCommentItem(
+      CommunityLightningComment comment, String viewerUserId, Instant editedAt) {
     return new CommentItemResponse(
         comment.id(),
         comment.threadId(),
@@ -385,6 +442,7 @@ public class CommunityLightningApiResource {
         comment.userName(),
         comment.createdAt(),
         comment.updatedAt(),
+        editedAt,
         viewerUserId != null && viewerUserId.equalsIgnoreCase(comment.userId()),
         comment.likes(),
         comment.reports());
@@ -488,6 +546,7 @@ public class CommunityLightningApiResource {
       @JsonProperty("user_name") String userName,
       @JsonProperty("created_at") Instant createdAt,
       @JsonProperty("updated_at") Instant updatedAt,
+      @JsonProperty("edited_at") Instant editedAt,
       @JsonProperty("published_at") Instant publishedAt,
       @JsonProperty("last_comment_at") Instant lastCommentAt,
       @JsonProperty("is_owner") boolean isOwner,
@@ -505,6 +564,7 @@ public class CommunityLightningApiResource {
       @JsonProperty("user_name") String userName,
       @JsonProperty("created_at") Instant createdAt,
       @JsonProperty("updated_at") Instant updatedAt,
+      @JsonProperty("edited_at") Instant editedAt,
       @JsonProperty("is_owner") boolean isOwner,
       int likes,
       int reports) {}
