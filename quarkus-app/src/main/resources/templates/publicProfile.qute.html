@@ -38,9 +38,9 @@
             </div>
 
             <div class="wrapped-card wrapped-card-full">
-                <span class="wrapped-stat-label">{i18n.public_profile_class_progress_title}</span>
+                <span class="wrapped-stat-label">{i18n:public_profile_class_progress_title}</span>
                 <p class="wrapped-subtext">
-                    {#if dominantClassMessage??}{dominantClassMessage}{#else}{i18n.profile_dominant_class(questClass)}{/if}
+                    {#if dominantClassMessage??}{dominantClassMessage}{#else}{i18n:profile_dominant_class(questClass)}{/if}
                 </p>
                 <div class="wrapped-class-grid">
                     {#for cls in classProgress}
@@ -52,7 +52,7 @@
                         <div class="wrapped-xp-channel wrapped-class-bar">
                             <div class="wrapped-xp-bar js-wrapped-progress" data-progress="{cls.percent}"></div>
                         </div>
-                        <p class="wrapped-subtext">{i18n.profile_class_xp_level(cls.xp, cls.level, cls.percent)}</p>
+                        <p class="wrapped-subtext">{i18n:profile_class_xp_level(cls.xp, cls.level, cls.percent)}</p>
                     </div>
                     {/for}
                 </div>
@@ -60,21 +60,21 @@
 
             <!-- Card 2: Activities Completed -->
             <div class="wrapped-card">
-                <span class="wrapped-stat-label">{i18n.public_profile_activity_count_title}</span>
+                <span class="wrapped-stat-label">{i18n:public_profile_activity_count_title}</span>
                 <span class="wrapped-stat-value purple">{questsCompleted}</span>
-                <p class="wrapped-subtext">{i18n.public_profile_activity_count_subtitle}</p>
+                <p class="wrapped-subtext">{i18n:public_profile_activity_count_subtitle}</p>
             </div>
 
             <div class="wrapped-card wrapped-card-full">
-                <span class="wrapped-stat-label">{i18n.public_profile_accounts_title}</span>
+                <span class="wrapped-stat-label">{i18n:public_profile_accounts_title}</span>
                 <div class="wrapped-list-container">
                     <div class="wrapped-list-item">
-                        <span class="wrapped-item-title">{i18n.public_profile_accounts_homedir}</span>
+                        <span class="wrapped-item-title">{i18n:public_profile_accounts_homedir}</span>
                         <span class="wrapped-item-xp">{homedirId ?: username}</span>
                     </div>
                     {#if hasGithub}
                     <div class="wrapped-list-item">
-                        <span class="wrapped-item-title">{i18n.public_profile_accounts_github}</span>
+                        <span class="wrapped-item-title">{i18n:public_profile_accounts_github}</span>
                         {#if githubProfileUrl}
                         <a href="{githubProfileUrl}" target="_blank" rel="noopener noreferrer"
                             class="wrapped-item-xp">@{githubLogin}</a>
@@ -85,7 +85,7 @@
                     {/if}
                     {#if hasDiscord}
                     <div class="wrapped-list-item">
-                        <span class="wrapped-item-title">{i18n.public_profile_accounts_discord}</span>
+                        <span class="wrapped-item-title">{i18n:public_profile_accounts_discord}</span>
                         {#if discordProfileUrl}
                         <a href="{discordProfileUrl}" target="_blank" rel="noopener noreferrer" class="wrapped-item-xp">
                             {discordHandle ?: i18n.public_profile_accounts_discord_open}
@@ -96,7 +96,7 @@
                     </div>
                     {/if}
                     {#if !hasLinkedAccounts}
-                    <p class="wrapped-empty-msg">{i18n.public_profile_accounts_empty}</p>
+                    <p class="wrapped-empty-msg">{i18n:public_profile_accounts_empty}</p>
                     {/if}
                 </div>
             </div>
@@ -109,7 +109,7 @@
                     <span class="wrapped-badge-pill"><span class="material-symbols-outlined"
                             style="font-size: 16px;">verified</span> {badge}</span>
                     {#else}
-                    <span class="wrapped-empty-msg">{i18n.public_profile_badges_empty}</span>
+                    <span class="wrapped-empty-msg">{i18n:public_profile_badges_empty}</span>
                     {/for}
                 </div>
             </div>
@@ -142,10 +142,10 @@
 
         <!-- Call to Action -->
         <div class="wrapped-cta">
-            <h2>{i18n.public_profile_cta_title}</h2>
-            <p>{i18n.public_profile_cta_desc}</p>
+            <h2>{i18n:public_profile_cta_title}</h2>
+            <p>{i18n:public_profile_cta_desc}</p>
             <a href="/private/profile" class="wrapped-btn-primary">
-                {i18n.public_profile_cta_btn}
+                {i18n:public_profile_cta_btn}
             </a>
         </div>
 

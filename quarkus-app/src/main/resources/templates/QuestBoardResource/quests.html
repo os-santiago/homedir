@@ -1,21 +1,21 @@
 {#include layout/main}
-{#title}{i18n.quest_board_title}{/title}
+{#title}{i18n:quest_board_title}{/title}
 {#body}
 <section class="hd-section">
     <div class="hd-page">
         <div class="hd-dashboard-header quest-dashboard-header">
-            <h1 class="hd-page-title">{i18n.quest_board_title}</h1>
+            <h1 class="hd-page-title">{i18n:quest_board_title}</h1>
 
         </div>
 
         <div class="hd-tabs quest-tabs">
             <div class="quest-tabs-links">
-                <a href="/quests" class="hd-tab {#if filter.or('all') == 'all'}active{/if}">{i18n.btn_all}</a>
+                <a href="/quests" class="hd-tab {#if filter.or('all') == 'all'}active{/if}">{i18n:btn_all}</a>
                 <span class="quest-tab-separator">|</span>
                 <a href="/quests?filter=mine"
-                    class="hd-tab {#if filter == 'mine'}active{/if}">{i18n.quest_filter_mine}</a>
+                    class="hd-tab {#if filter == 'mine'}active{/if}">{i18n:quest_filter_mine}</a>
             </div>
-            <span class="hd-badge quest-total-badge">{i18n.quest_total(quests.size)}</span>
+            <span class="hd-badge quest-total-badge">{i18n:quest_total(quests.size)}</span>
         </div>
 
         <div class="hd-grid-classes quest-grid">
@@ -24,13 +24,13 @@
                 <div class="quest-empty-icon">
                     <span class="material-symbols-outlined" style="font-size: 48px;">mark_email_unread</span>
                 </div>
-                <h3 class="hd-panel-title">{i18n.quest_empty_title}</h3>
-                <p class="quest-empty-desc">{i18n.quest_empty_desc}</p>
-                <div class="quest-empty-cta">{i18n.quest_empty_cta_text}</div>
+                <h3 class="hd-panel-title">{i18n:quest_empty_title}</h3>
+                <p class="quest-empty-desc">{i18n:quest_empty_desc}</p>
+                <div class="quest-empty-cta">{i18n:quest_empty_cta_text}</div>
                 <a href="https://github.com/os-santiago/homedir" target="_blank" class="hd-btn hd-btn-primary">
                     <img src="https://cdn.simpleicons.org/github/white" alt="" width="20" height="20"
                         style="margin-right: 8px;">
-                    {i18n.quest_empty_cta_btn}
+                    {i18n:quest_empty_cta_btn}
                 </a>
             </div>
             {#else}
@@ -41,14 +41,14 @@
                     <span class="hd-badge hd-badge-success quest-completed-badge">
                         <span class="material-symbols-outlined"
                             style="font-size: 16px; vertical-align: middle;">check_circle</span>
-                        {i18n.badge_completed}</span>
+                        {i18n:badge_completed}</span>
                 </div>
                 {/if}
 
                 <div class="quest-card-header">
                     <span
                         class="hd-badge {#if quest.difficulty == 'EASY'}quest-rank-badge-easy{#else if quest.difficulty == 'MEDIUM'}quest-rank-badge-medium{#else}quest-rank-badge-hard{/if}">
-                        {i18n.quest_rank(quest.difficulty)}
+                        {i18n:quest_rank(quest.difficulty)}
                     </span>
                     <span class="hd-badge quest-xp-badge">+{quest.xpReward} XP</span>
                 </div>
@@ -61,33 +61,33 @@
                 <div class="quest-actions">
                     {#if userSession.activeQuests.contains(quest.id)}
                     <a href="{quest.url}" target="_blank" class="hd-btn quest-action-btn">
-                        {i18n.btn_instructions} <span class="material-symbols-outlined"
+                        {i18n:btn_instructions} <span class="material-symbols-outlined"
                             style="font-size: 16px; vertical-align: middle;">open_in_new</span>
                     </a>
                     <form action="/quests/{quest.id}/complete" method="POST" class="quest-action-form">
                         <button type="submit" class="hd-btn hd-btn-primary quest-action-submit">
-                            {i18n.btn_claim}
+                            {i18n:btn_claim}
                         </button>
                     </form>
                     {#else if quest.status == 'OPEN'}
                     <a href="{quest.url}" target="_blank" class="hd-btn quest-action-btn">
-                        {i18n.btn_view_details}
+                        {i18n:btn_view_details}
                     </a>
                     <form action="/quests/{quest.id}/start" method="POST" class="quest-action-form">
                         <button type="submit" class="hd-btn hd-btn-primary quest-action-submit">
-                            {i18n.btn_start}
+                            {i18n:btn_start}
                         </button>
                     </form>
                     {#else}
                     <button disabled class="hd-btn quest-closed-btn">
-                        {i18n.btn_closed}
+                        {i18n:btn_closed}
                     </button>
                     {/if}
                 </div>
 
                 {#if userSession.activeQuests.contains(quest.id) && quest.status != 'CLOSED'}
                 <div class="quest-in-progress-badge">
-                    {i18n.badge_in_progress}
+                    {i18n:badge_in_progress}
                 </div>
                 {/if}
             </div>

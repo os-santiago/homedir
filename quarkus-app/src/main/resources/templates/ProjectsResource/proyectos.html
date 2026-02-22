@@ -1,64 +1,64 @@
 {#include layout/main activePage="proyectos"}
-{#title}{i18n.project_dashboard_title}{/title}
+{#title}{i18n:project_dashboard_title}{/title}
 {#body}
 <header class="page-header project-hd-hero">
   <div class="section-header">
-    <p class="section-subtitle">{i18n.project_dashboard_title}</p>
-    <h1>{i18n.project_dashboard_hero_title}</h1>
+    <p class="section-subtitle">{i18n:project_dashboard_title}</p>
+    <h1>{i18n:project_dashboard_hero_title}</h1>
   </div>
   <p class="section-subtitle project-hd-tagline">
-    {i18n.project_dashboard_tagline}
+    {i18n:project_dashboard_tagline}
   </p>
   <div class="project-hd-actions">
-    <a href="{dashboard.repository.htmlUrl}" target="_blank" rel="noopener" class="btn-primary">{i18n.project_dashboard_btn_repository}</a>
-    <a href="{dashboard.repository.htmlUrl}/releases" target="_blank" rel="noopener" class="btn-primary">{i18n.project_dashboard_btn_releases}</a>
-    <a href="{dashboard.repository.htmlUrl}/issues" target="_blank" rel="noopener" class="btn-primary">{i18n.project_dashboard_btn_issues}</a>
+    <a href="{dashboard.repository.htmlUrl}" target="_blank" rel="noopener" class="btn-primary">{i18n:project_dashboard_btn_repository}</a>
+    <a href="{dashboard.repository.htmlUrl}/releases" target="_blank" rel="noopener" class="btn-primary">{i18n:project_dashboard_btn_releases}</a>
+    <a href="{dashboard.repository.htmlUrl}/issues" target="_blank" rel="noopener" class="btn-primary">{i18n:project_dashboard_btn_issues}</a>
   </div>
 </header>
 
 <section class="page-grid project-hd-metrics-grid">
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_stars}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_stars}</p>
     <h2 class="project-hd-metric-value">{dashboard.repository.stars}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_stars_note}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_stars_note}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_forks}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_forks}</p>
     <h2 class="project-hd-metric-value">{dashboard.repository.forks}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_forks_note}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_forks_note}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_issues}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_issues}</p>
     <h2 class="project-hd-metric-value">{dashboard.repository.openIssues}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_issues_note}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_issues_note}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_contributors}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_contributors}</p>
     <h2 class="project-hd-metric-value">{dashboard.contributorCount}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_contributions(dashboard.totalContributions)}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_contributions(dashboard.totalContributions)}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_commits}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_commits}</p>
     <h2 class="project-hd-metric-value">{dashboard.totalCommits}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_commits_note}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_commits_note}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_lines}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_lines}</p>
     <h2 class="project-hd-metric-value">{dashboard.netLines}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_lines_note}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_lines_note}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_yearly_avg}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_yearly_avg}</p>
     <h2 class="project-hd-metric-value">{dashboard.yearlyAverageCommitsPerMonth}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_yearly_avg_note}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_yearly_avg_note}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_last_push}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_last_push}</p>
     <h2 class="project-hd-metric-value project-hd-metric-small">{dashboard.lastPushAgo}</h2>
-    <p class="project-hd-metric-note">{i18n.project_dashboard_metric_last_push_note}</p>
+    <p class="project-hd-metric-note">{i18n:project_dashboard_metric_last_push_note}</p>
   </article>
   <article class="section-card project-hd-metric">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_metric_latest_release}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_metric_latest_release}</p>
     <h2 class="project-hd-metric-value project-hd-metric-small">{dashboard.latestRelease}</h2>
     <p class="project-hd-metric-note">{dashboard.latestReleaseAgo}</p>
   </article>
@@ -68,8 +68,8 @@
   <article class="section-card project-hd-progress-card">
     <div class="project-hd-progress-head">
       <div>
-        <p class="section-subtitle">{i18n.project_dashboard_progress_subtitle}</p>
-        <h2 class="page-title">{i18n.project_dashboard_progress_title}</h2>
+        <p class="section-subtitle">{i18n:project_dashboard_progress_subtitle}</p>
+        <h2 class="page-title">{i18n:project_dashboard_progress_title}</h2>
       </div>
       <strong class="project-hd-progress-percent">{dashboard.progressPercent}%</strong>
     </div>
@@ -77,11 +77,11 @@
       <div class="project-hd-progress-fill" style="--progress:{dashboard.progressPercent}%"></div>
     </div>
     <div class="project-hd-status-row">
-      <span class="project-hd-status live">{i18n.project_dashboard_status_live} {dashboard.liveFeatures}</span>
-      <span class="project-hd-status beta">{i18n.project_dashboard_status_beta} {dashboard.betaFeatures}</span>
-      <span class="project-hd-status next">{i18n.project_dashboard_status_next} {dashboard.nextFeatures}</span>
+      <span class="project-hd-status live">{i18n:project_dashboard_status_live} {dashboard.liveFeatures}</span>
+      <span class="project-hd-status beta">{i18n:project_dashboard_status_beta} {dashboard.betaFeatures}</span>
+      <span class="project-hd-status next">{i18n:project_dashboard_status_next} {dashboard.nextFeatures}</span>
     </div>
-    <p class="project-hd-roadmap-updated">{i18n.project_dashboard_roadmap_updated(dashboard.roadmapUpdatedAgo)}</p>
+    <p class="project-hd-roadmap-updated">{i18n:project_dashboard_roadmap_updated(dashboard.roadmapUpdatedAgo)}</p>
     <div class="project-hd-highlights">
       {#for h in dashboard.highlights}
       <div class="project-hd-highlight-item">
@@ -91,19 +91,19 @@
       </div>
       {/for}
     </div>
-    <p class="project-hd-footnote">{i18n.project_dashboard_snapshot_updated(dashboard.snapshotAgo)}</p>
+    <p class="project-hd-footnote">{i18n:project_dashboard_snapshot_updated(dashboard.snapshotAgo)}</p>
   </article>
 
   <article class="section-card project-hd-release-card">
     <div class="project-hd-release-head">
       <div>
-        <p class="section-subtitle">{i18n.project_dashboard_releases_subtitle}</p>
-        <h2 class="page-title">{i18n.project_dashboard_releases_title}</h2>
+        <p class="section-subtitle">{i18n:project_dashboard_releases_subtitle}</p>
+        <h2 class="page-title">{i18n:project_dashboard_releases_title}</h2>
       </div>
-      <a href="{dashboard.repository.htmlUrl}/releases" target="_blank" rel="noopener" class="btn-primary">{i18n.project_dashboard_view_all}</a>
+      <a href="{dashboard.repository.htmlUrl}/releases" target="_blank" rel="noopener" class="btn-primary">{i18n:project_dashboard_view_all}</a>
     </div>
     {#if dashboard.releases.isEmpty()}
-    <p class="project-hd-empty">{i18n.project_dashboard_empty_releases}</p>
+    <p class="project-hd-empty">{i18n:project_dashboard_empty_releases}</p>
     {#else}
     <div class="project-hd-release-list">
       {#for r in dashboard.releases}
@@ -127,17 +127,17 @@
 
 <section class="page-grid project-hd-velocity-grid">
   <div class="section-header project-hd-full">
-    <p class="section-subtitle">{i18n.project_dashboard_velocity_subtitle}</p>
-    <h2 class="page-title">{i18n.project_dashboard_velocity_title}</h2>
+    <p class="section-subtitle">{i18n:project_dashboard_velocity_subtitle}</p>
+    <h2 class="page-title">{i18n:project_dashboard_velocity_title}</h2>
   </div>
   {#for v in dashboard.velocityWindows}
   <article class="section-card project-hd-velocity-card">
-    <p class="project-hd-metric-label">{i18n.project_dashboard_velocity_period(v.months)}</p>
+    <p class="project-hd-metric-label">{i18n:project_dashboard_velocity_period(v.months)}</p>
     <h3>{v.commits}</h3>
     <div class="project-hd-velocity-kpis">
-      <span>{i18n.project_dashboard_velocity_commits(v.commits)}</span>
-      <span>{i18n.project_dashboard_velocity_lines(v.linesChanged)}</span>
-      <span>{i18n.project_dashboard_velocity_monthly_avg(v.averageCommitsPerMonth)}</span>
+      <span>{i18n:project_dashboard_velocity_commits(v.commits)}</span>
+      <span>{i18n:project_dashboard_velocity_lines(v.linesChanged)}</span>
+      <span>{i18n:project_dashboard_velocity_monthly_avg(v.averageCommitsPerMonth)}</span>
     </div>
   </article>
   {/for}
@@ -145,8 +145,8 @@
 
 <section class="page-grid project-hd-features-grid">
   <div class="section-header project-hd-full">
-    <p class="section-subtitle">{i18n.project_dashboard_features_subtitle}</p>
-    <h2 class="page-title">{i18n.project_dashboard_features_title}</h2>
+    <p class="section-subtitle">{i18n:project_dashboard_features_subtitle}</p>
+    <h2 class="page-title">{i18n:project_dashboard_features_title}</h2>
   </div>
   {#for f in dashboard.features}
   <article class="section-card project-hd-feature-card">
@@ -155,15 +155,15 @@
       <span class="project-hd-status {f.statusClass}">{f.statusLabel}</span>
     </div>
     <p>{f.description}</p>
-    <a href="{f.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n.project_dashboard_open}</a>
+    <a href="{f.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n:project_dashboard_open}</a>
   </article>
   {/for}
 </section>
 
 <section class="page-grid project-hd-capabilities-grid">
   <div class="section-header project-hd-full">
-    <p class="section-subtitle">{i18n.project_dashboard_capabilities_subtitle}</p>
-    <h2 class="page-title">{i18n.project_dashboard_capabilities_title}</h2>
+    <p class="section-subtitle">{i18n:project_dashboard_capabilities_subtitle}</p>
+    <h2 class="page-title">{i18n:project_dashboard_capabilities_title}</h2>
   </div>
   {#for capability in dashboard.capabilities}
   <article class="section-card project-hd-capability-card">
@@ -176,26 +176,26 @@
       <li>{bullet}</li>
       {/for}
     </ul>
-    <a href="{capability.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n.project_dashboard_open}</a>
+    <a href="{capability.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n:project_dashboard_open}</a>
   </article>
   {/for}
 </section>
 
 <section class="page-grid">
   <div class="section-header project-hd-full">
-    <p class="section-subtitle">{i18n.project_dashboard_team_subtitle}</p>
-    <h2 class="page-title">{i18n.project_dashboard_team_title}</h2>
+    <p class="section-subtitle">{i18n:project_dashboard_team_subtitle}</p>
+    <h2 class="page-title">{i18n:project_dashboard_team_title}</h2>
   </div>
   <article class="section-card project-hd-contributors-card project-hd-full">
     {#if dashboard.topContributors.isEmpty()}
-    <p class="project-hd-empty">{i18n.project_dashboard_empty_contributors}</p>
+    <p class="project-hd-empty">{i18n:project_dashboard_empty_contributors}</p>
     {#else}
     <div class="project-hd-contributors-grid">
       {#for c in dashboard.topContributors}
       <a href="{c.htmlUrl}" target="_blank" rel="noopener" class="project-hd-contributor-item" title="{c.login}">
         <img src="{c.avatarUrl}" alt="{c.login}">
         <strong>{c.login}</strong>
-        <small>{c.contributions} {i18n.project_dashboard_contribs_unit}</small>
+        <small>{c.contributions} {i18n:project_dashboard_contribs_unit}</small>
       </a>
       {/for}
     </div>

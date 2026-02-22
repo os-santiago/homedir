@@ -1,43 +1,43 @@
 {#include layout/main activePage="eventos"}
-{#title}{i18n.events_title}{/title}
+{#title}{i18n:events_title}{/title}
 {#body}
 
 
 <header class="page-header events-page-header">
   <div class="section-header hd-section-heading">
-    <p class="section-subtitle">{i18n.events_subtitle}</p>
-    <h1>{i18n.events_hero_title}</h1>
+    <p class="section-subtitle">{i18n:events_subtitle}</p>
+    <h1>{i18n:events_hero_title}</h1>
   </div>
-  <p class="section-subtitle">{i18n.events_hero_desc}</p>
+  <p class="section-subtitle">{i18n:events_hero_desc}</p>
 
   <div class="main-sections events-stats-container">
     <div class="section-card">
-      <p class="eyebrow">{i18n.events_card_upcoming}</p>
+      <p class="eyebrow">{i18n:events_card_upcoming}</p>
       <h2>{stats.upcoming}</h2>
-      <p>{i18n.events_card_upcoming_desc}</p>
+      <p>{i18n:events_card_upcoming_desc}</p>
     </div>
     <div class="section-card">
-      <p class="eyebrow">{i18n.events_card_today}</p>
+      <p class="eyebrow">{i18n:events_card_today}</p>
       <h2>{today}</h2>
-      <p>{i18n.events_card_today_desc}</p>
+      <p>{i18n:events_card_today_desc}</p>
     </div>
     <div class="section-card">
-      <p class="eyebrow">{i18n.events_card_past}</p>
+      <p class="eyebrow">{i18n:events_card_past}</p>
       <h2>{stats.past}</h2>
-      <p>{i18n.events_card_past_desc}</p>
+      <p>{i18n:events_card_past_desc}</p>
     </div>
   </div>
 </header>
 
 <section class="page-grid">
   <div class="section-header events-full-width hd-section-heading">
-    <p class="section-subtitle">{i18n.events_section_upcoming_subtitle}</p>
-    <h2 class="page-title">{i18n.events_section_upcoming_title}</h2>
+    <p class="section-subtitle">{i18n:events_section_upcoming_subtitle}</p>
+    <h2 class="page-title">{i18n:events_section_upcoming_title}</h2>
   </div>
 
   {#if upcoming.isEmpty()}
   <div class="section-card events-full-width">
-    <p class="hd-empty-callout">{i18n.events_empty_upcoming}</p>
+    <p class="hd-empty-callout">{i18n:events_empty_upcoming}</p>
   </div>
   {#else}
   <div class="events-upcoming-strip events-full-width">
@@ -63,48 +63,48 @@
         <p class="event-highlight-summary">{event.descriptionSummary ?: event.description}</p>
 
         <div class="event-highlight-meta">
-          <span><span class="material-symbols-outlined">mic</span>{i18n.events_metric_talks(event.agenda.size)}</span>
-          <span><span class="material-symbols-outlined">stadium</span>{i18n.events_metric_scenarios(event.scenarios.size)}</span>
+          <span><span class="material-symbols-outlined">mic</span>{i18n:events_metric_talks(event.agenda.size)}</span>
+          <span><span class="material-symbols-outlined">stadium</span>{i18n:events_metric_scenarios(event.scenarios.size)}</span>
         </div>
 
         <div class="event-highlight-fit">
           <span class="event-fit-chip">
             <span class="material-symbols-outlined">calendar_month</span>
             {#if event.days > 1}
-            {i18n.events_feature_multiday(event.days)}
+            {i18n:events_feature_multiday(event.days)}
             {#else}
-            {i18n.events_feature_single_day}
+            {i18n:events_feature_single_day}
             {/if}
           </span>
           {#if app:validUrl(event.ticketsUrl)}
           <span class="event-fit-chip">
             <span class="material-symbols-outlined">confirmation_number</span>
-            {i18n.events_feature_tickets}
+            {i18n:events_feature_tickets}
           </span>
           {/if}
           {#if app:validUrl(event.mapUrl)}
           <span class="event-fit-chip">
             <span class="material-symbols-outlined">location_on</span>
-            {i18n.events_feature_location}
+            {i18n:events_feature_location}
           </span>
           {/if}
           {#if app:validUrl(event.website)}
           <span class="event-fit-chip">
             <span class="material-symbols-outlined">language</span>
-            {i18n.events_feature_website}
+            {i18n:events_feature_website}
           </span>
           {/if}
           {#if app:validUrl(event.twitter) || app:validUrl(event.linkedin) || app:validUrl(event.instagram)}
           <span class="event-fit-chip">
             <span class="material-symbols-outlined">groups</span>
-            {i18n.events_feature_social}
+            {i18n:events_feature_social}
           </span>
           {/if}
         </div>
 
         {#if topTracksByEvent.get(event.id) && !topTracksByEvent.get(event.id).isEmpty}
         <div class="event-highlight-extra">
-          <p class="event-extra-title">{i18n.events_top_tracks_title}</p>
+          <p class="event-extra-title">{i18n:events_top_tracks_title}</p>
           <div class="event-track-row">
             {#for track in topTracksByEvent.get(event.id)}
             <span class="event-fit-chip event-track-chip">{track}</span>
@@ -115,7 +115,7 @@
 
         {#if recommendedSessionsByEvent.get(event.id) && !recommendedSessionsByEvent.get(event.id).isEmpty}
         <div class="event-highlight-extra">
-          <p class="event-extra-title">{i18n.events_recommended_sessions_title}</p>
+          <p class="event-extra-title">{i18n:events_recommended_sessions_title}</p>
           <ul class="event-session-list">
             {#for session in recommendedSessionsByEvent.get(event.id)}
             <li>{session}</li>
@@ -126,22 +126,22 @@
       </div>
 
       <div class="event-countdown-panel">
-        <p class="event-countdown-label">{i18n.events_countdown_title}</p>
+        <p class="event-countdown-label">{i18n:events_countdown_title}</p>
         <strong class="event-countdown-value {#if event.ongoing}is-live{/if}">
           {#if event.ongoing}LIVE{#else}D-{event.daysUntil}{/if}
         </strong>
         <p class="event-countdown-caption">
           {#if event.ongoing}
-          {i18n.events_countdown_live}
+          {i18n:events_countdown_live}
           {#else if event.daysUntil == 0}
-          {i18n.events_countdown_today}
+          {i18n:events_countdown_today}
           {#else if event.daysUntil == 1}
-          {i18n.events_countdown_tomorrow}
+          {i18n:events_countdown_tomorrow}
           {#else}
-          {i18n.events_countdown_days(event.daysUntil)}
+          {i18n:events_countdown_days(event.daysUntil)}
           {/if}
         </p>
-        <span class="btn-primary event-highlight-open">{i18n.btn_view_details}</span>
+        <span class="btn-primary event-highlight-open">{i18n:btn_view_details}</span>
       </div>
     </a>
     {/for}
@@ -151,13 +151,13 @@
 
 <section class="page-grid">
   <div class="section-header events-full-width events-section-margin hd-section-heading">
-    <p class="section-subtitle">{i18n.events_section_past_subtitle}</p>
-    <h2 class="page-title">{i18n.events_section_past_title}</h2>
+    <p class="section-subtitle">{i18n:events_section_past_subtitle}</p>
+    <h2 class="page-title">{i18n:events_section_past_title}</h2>
   </div>
 
   {#if past.isEmpty()}
   <div class="section-card events-full-width">
-    <p class="hd-empty-callout">{i18n.events_empty_past}</p>
+    <p class="hd-empty-callout">{i18n:events_empty_past}</p>
   </div>
   {#else}
   <div class="events-past-strip events-full-width">
@@ -174,7 +174,7 @@
         <h3>{event.title}</h3>
         <p>{event.formattedDate ?: i18n.events_meta_date_tba}</p>
       </div>
-      <span class="event-past-open">{i18n.btn_view_details}</span>
+      <span class="event-past-open">{i18n:btn_view_details}</span>
     </a>
     {/for}
   </div>

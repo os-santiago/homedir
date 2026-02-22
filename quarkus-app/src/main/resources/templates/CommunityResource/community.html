@@ -6,14 +6,14 @@
 {@ int githubUsers = 0}
 {@ int discordUsers = 0}
 {#include layout/main activePage="comunidad"}
-{#title}{i18n.community_page_title}{/title}
+{#title}{i18n:community_page_title}{/title}
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header hd-section-heading">
-      <p class="section-subtitle">{i18n.community_page_eyebrow}</p>
-      <h1>{i18n.community_page_heading}</h1>
+      <p class="section-subtitle">{i18n:community_page_eyebrow}</p>
+      <h1>{i18n:community_page_heading}</h1>
     </div>
-    <p class="section-subtitle">{i18n.community_page_intro}</p>
+    <p class="section-subtitle">{i18n:community_page_intro}</p>
   </header>
   {#include fragments/community-submenu.html /}
 
@@ -21,53 +21,53 @@
     {#if activeCommunitySubmenu == 'lta'}
     <div class="section-card events-full-width community-shell-card">
       <div class="section-header community-section-header hd-section-heading">
-        <p class="section-subtitle">{i18n.community_page_eyebrow}</p>
-        <h2 class="page-title">{i18n.home_lightning_title_aka}</h2>
+        <p class="section-subtitle">{i18n:community_page_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_lightning_title_aka}</h2>
       </div>
-      <section id="community-lta" class="home-lightning-strip community-lta-shell" aria-label="{i18n.home_lightning_title}">
+      <section id="community-lta" class="home-lightning-strip community-lta-shell" aria-label="{i18n:home_lightning_title}">
         <div class="home-lightning-header">
-          <span class="home-chip">{i18n.home_lightning_badge}</span>
-          <h2>{i18n.home_lightning_title_aka}</h2>
-          <p>{i18n.home_lightning_intro}</p>
+          <span class="home-chip">{i18n:home_lightning_badge}</span>
+          <h2>{i18n:home_lightning_title_aka}</h2>
+          <p>{i18n:home_lightning_intro}</p>
         </div>
         <div id="community-lightning-root"
           data-authenticated="{isAuthenticated}"
-          data-i18n-login-required="{i18n.home_lightning_login_required}"
-          data-i18n-post-limit="{i18n.home_lightning_post_limit}"
-          data-i18n-post-submit="{i18n.home_lightning_btn_submit}"
-          data-i18n-post-submitting="{i18n.home_lightning_btn_submitting}"
-          data-i18n-comment="{i18n.home_lightning_btn_comment}"
-          data-i18n-like="{i18n.home_lightning_btn_like}"
-          data-i18n-report="{i18n.home_lightning_btn_report}"
-          data-i18n-load-more="{i18n.home_lightning_btn_load_more}"
-          data-i18n-empty="{i18n.home_lightning_empty}"
-          data-i18n-queued="{i18n.home_lightning_feedback_queued}"
-          data-i18n-published="{i18n.home_lightning_feedback_published}"
-          data-i18n-server-limit="{i18n.home_lightning_server_limit}"
-          data-i18n-report-success="{i18n.home_lightning_report_success}"
-          data-i18n-report-duplicate="{i18n.home_lightning_report_duplicate}"
-          data-i18n-best-answer="{i18n.home_lightning_best_answer}"
-          data-i18n-ping-best="{i18n.home_lightning_ping_best}"
-          data-i18n-comment-too-long="{i18n.home_lightning_comment_too_long}"
-          data-i18n-prompt-comment="{i18n.home_lightning_prompt_comment}"
-          data-i18n-prompt-reason="{i18n.home_lightning_prompt_reason}">
+          data-i18n-login-required="{i18n:home_lightning_login_required}"
+          data-i18n-post-limit="{i18n:home_lightning_post_limit}"
+          data-i18n-post-submit="{i18n:home_lightning_btn_submit}"
+          data-i18n-post-submitting="{i18n:home_lightning_btn_submitting}"
+          data-i18n-comment="{i18n:home_lightning_btn_comment}"
+          data-i18n-like="{i18n:home_lightning_btn_like}"
+          data-i18n-report="{i18n:home_lightning_btn_report}"
+          data-i18n-load-more="{i18n:home_lightning_btn_load_more}"
+          data-i18n-empty="{i18n:home_lightning_empty}"
+          data-i18n-queued="{i18n:home_lightning_feedback_queued}"
+          data-i18n-published="{i18n:home_lightning_feedback_published}"
+          data-i18n-server-limit="{i18n:home_lightning_server_limit}"
+          data-i18n-report-success="{i18n:home_lightning_report_success}"
+          data-i18n-report-duplicate="{i18n:home_lightning_report_duplicate}"
+          data-i18n-best-answer="{i18n:home_lightning_best_answer}"
+          data-i18n-ping-best="{i18n:home_lightning_ping_best}"
+          data-i18n-comment-too-long="{i18n:home_lightning_comment_too_long}"
+          data-i18n-prompt-comment="{i18n:home_lightning_prompt_comment}"
+          data-i18n-prompt-reason="{i18n:home_lightning_prompt_reason}">
           <form id="home-lightning-form" class="home-lightning-form {#if !isAuthenticated}hidden{/if}">
-            <input id="home-lightning-statement" type="text" maxlength="100" placeholder="{i18n.home_lightning_title_placeholder}" required>
+            <input id="home-lightning-statement" type="text" maxlength="100" placeholder="{i18n:home_lightning_title_placeholder}" required>
             <div class="home-lightning-form-actions">
-              <small>{i18n.home_lightning_post_limit}</small>
+              <small>{i18n:home_lightning_post_limit}</small>
               <span id="home-lightning-count" class="home-lightning-count">0/100</span>
-              <button id="home-lightning-submit" type="submit" class="btn-primary">{i18n.home_lightning_btn_submit}</button>
+              <button id="home-lightning-submit" type="submit" class="btn-primary">{i18n:home_lightning_btn_submit}</button>
             </div>
           </form>
           <div id="home-lightning-login" class="home-lightning-login {#if isAuthenticated}hidden{/if}">
-            <p>{i18n.home_lightning_login_required}</p>
-            <a href="/private/profile" class="btn-primary">{i18n.home_lightning_login_cta}</a>
+            <p>{i18n:home_lightning_login_required}</p>
+            <a href="/private/profile" class="btn-primary">{i18n:home_lightning_login_cta}</a>
           </div>
           <div id="home-lightning-feedback" class="home-lightning-feedback hidden" role="status"></div>
           <div id="home-lightning-list" class="home-lightning-list"></div>
-          <div id="home-lightning-empty" class="home-lightning-empty hidden">{i18n.home_lightning_empty}</div>
+          <div id="home-lightning-empty" class="home-lightning-empty hidden">{i18n:home_lightning_empty}</div>
           <div class="home-lightning-actions">
-            <button id="home-lightning-load-more" type="button" class="btn-primary hidden">{i18n.home_lightning_btn_load_more}</button>
+            <button id="home-lightning-load-more" type="button" class="btn-primary hidden">{i18n:home_lightning_btn_load_more}</button>
           </div>
         </div>
       </section>
@@ -76,79 +76,79 @@
     {#if activeCommunitySubmenu == 'picks'}
     <div class="section-card events-full-width community-shell-card">
       <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-ultra-lite="true" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}" data-initial-media="{initialMedia ?: 'all'}"
-        data-i18n-empty-filtered="{i18n.community_js_empty_filtered}"
-        data-i18n-empty-generic="{i18n.community_js_empty_generic}"
-        data-i18n-items-unit="{i18n.community_js_items_unit}"
-        data-i18n-score-prefix="{i18n.community_js_score_prefix}"
-        data-i18n-vote-login-required="{i18n.community_js_vote_login_required}"
-        data-i18n-vote-recommended="{i18n.community_js_vote_recommended}"
-        data-i18n-vote-must-see="{i18n.community_js_vote_must_see}"
-        data-i18n-vote-not-for-me="{i18n.community_js_vote_not_for_me}"
-        data-i18n-load-error="{i18n.community_js_load_error}"
-        data-i18n-vote-error="{i18n.community_js_vote_error}"
-        data-i18n-all-tags="{i18n.community_js_all_tags}"
-        data-i18n-filter-source-internet="{i18n.community_js_filter_source_internet}"
-        data-i18n-filter-source-members="{i18n.community_js_filter_source_members}"
-        data-i18n-filter-topic-prefix="{i18n.community_js_filter_topic_prefix}"
-        data-i18n-filter-tag-prefix="{i18n.community_js_filter_tag_prefix}"
-        data-i18n-origin-internet="{i18n.community_js_origin_internet}"
-        data-i18n-origin-members="{i18n.community_js_origin_members}"
-        data-i18n-read-unit="{i18n.community_js_read_unit}"
-        data-i18n-badge-new="{i18n.community_js_badge_new}"
-        data-i18n-top-prefix="{i18n.community_js_top_prefix}"
-        data-i18n-filter-media-prefix="{i18n.community_js_filter_media_prefix}"
-        data-i18n-topic-ai="{i18n.community_topic_ai}"
-        data-i18n-topic-platform-engineering="{i18n.community_topic_platform_engineering}"
-        data-i18n-topic-cloud-native="{i18n.community_topic_cloud_native}"
-        data-i18n-topic-security="{i18n.community_topic_security}"
-        data-i18n-media-video-story="{i18n.community_js_media_video_story}"
-        data-i18n-media-podcast="{i18n.community_js_media_podcast}"
-        data-i18n-media-article-blog="{i18n.community_js_media_article_blog}"
-        data-i18n-summary-show="{i18n.community_js_summary_show}"
-        data-i18n-summary-hide="{i18n.community_js_summary_hide}"
-        data-i18n-preview-play="{i18n.community_js_preview_play}"
-        data-i18n-preview-hide="{i18n.community_js_preview_hide}"
-        data-i18n-open-source="{i18n.community_js_open_source}"
-        data-i18n-preview-unavailable="{i18n.community_js_preview_unavailable}"
-        data-i18n-cta-vote-title="{i18n.community_js_cta_vote_title}"
-        data-i18n-cta-vote-start="{i18n.community_js_cta_vote_start}"
-        data-i18n-cta-vote-progress="{i18n.community_js_cta_vote_progress}"
-        data-i18n-cta-vote-ready="{i18n.community_js_cta_vote_ready}"
-        data-i18n-empty-no-votes="{i18n.community_js_empty_no_votes}">
+        data-i18n-empty-filtered="{i18n:community_js_empty_filtered}"
+        data-i18n-empty-generic="{i18n:community_js_empty_generic}"
+        data-i18n-items-unit="{i18n:community_js_items_unit}"
+        data-i18n-score-prefix="{i18n:community_js_score_prefix}"
+        data-i18n-vote-login-required="{i18n:community_js_vote_login_required}"
+        data-i18n-vote-recommended="{i18n:community_js_vote_recommended}"
+        data-i18n-vote-must-see="{i18n:community_js_vote_must_see}"
+        data-i18n-vote-not-for-me="{i18n:community_js_vote_not_for_me}"
+        data-i18n-load-error="{i18n:community_js_load_error}"
+        data-i18n-vote-error="{i18n:community_js_vote_error}"
+        data-i18n-all-tags="{i18n:community_js_all_tags}"
+        data-i18n-filter-source-internet="{i18n:community_js_filter_source_internet}"
+        data-i18n-filter-source-members="{i18n:community_js_filter_source_members}"
+        data-i18n-filter-topic-prefix="{i18n:community_js_filter_topic_prefix}"
+        data-i18n-filter-tag-prefix="{i18n:community_js_filter_tag_prefix}"
+        data-i18n-origin-internet="{i18n:community_js_origin_internet}"
+        data-i18n-origin-members="{i18n:community_js_origin_members}"
+        data-i18n-read-unit="{i18n:community_js_read_unit}"
+        data-i18n-badge-new="{i18n:community_js_badge_new}"
+        data-i18n-top-prefix="{i18n:community_js_top_prefix}"
+        data-i18n-filter-media-prefix="{i18n:community_js_filter_media_prefix}"
+        data-i18n-topic-ai="{i18n:community_topic_ai}"
+        data-i18n-topic-platform-engineering="{i18n:community_topic_platform_engineering}"
+        data-i18n-topic-cloud-native="{i18n:community_topic_cloud_native}"
+        data-i18n-topic-security="{i18n:community_topic_security}"
+        data-i18n-media-video-story="{i18n:community_js_media_video_story}"
+        data-i18n-media-podcast="{i18n:community_js_media_podcast}"
+        data-i18n-media-article-blog="{i18n:community_js_media_article_blog}"
+        data-i18n-summary-show="{i18n:community_js_summary_show}"
+        data-i18n-summary-hide="{i18n:community_js_summary_hide}"
+        data-i18n-preview-play="{i18n:community_js_preview_play}"
+        data-i18n-preview-hide="{i18n:community_js_preview_hide}"
+        data-i18n-open-source="{i18n:community_js_open_source}"
+        data-i18n-preview-unavailable="{i18n:community_js_preview_unavailable}"
+        data-i18n-cta-vote-title="{i18n:community_js_cta_vote_title}"
+        data-i18n-cta-vote-start="{i18n:community_js_cta_vote_start}"
+        data-i18n-cta-vote-progress="{i18n:community_js_cta_vote_progress}"
+        data-i18n-cta-vote-ready="{i18n:community_js_cta_vote_ready}"
+        data-i18n-empty-no-votes="{i18n:community_js_empty_no_votes}">
         <div class="section-header community-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n.community_page_eyebrow}</p>
-          <h2 class="page-title">{i18n.community_submenu_picks}</h2>
+          <p class="section-subtitle">{i18n:community_page_eyebrow}</p>
+          <h2 class="page-title">{i18n:community_submenu_picks}</h2>
         </div>
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
 
         {#if isAuthenticated}
         <section id="community-activation" class="community-activation" aria-live="polite">
           <div class="community-activation-copy">
-            <strong id="community-activation-title">{i18n.community_js_cta_vote_title}</strong>
-            <p id="community-activation-status">{i18n.community_js_cta_vote_start}</p>
+            <strong id="community-activation-title">{i18n:community_js_cta_vote_title}</strong>
+            <p id="community-activation-status">{i18n:community_js_cta_vote_start}</p>
           </div>
           <span id="community-activation-progress" class="community-activation-progress">0/3</span>
         </section>
         <section id="community-personal-empty" class="community-personal-empty" aria-live="polite">
-          <p>{i18n.community_js_empty_no_votes}</p>
+          <p>{i18n:community_js_empty_no_votes}</p>
         </section>
         {/if}
 
         <section class="community-pulse" aria-label="Community pulse">
           <a href="/comunidad/board/homedir-users" class="community-pulse-card">
-            <span class="community-pulse-label">{i18n.community_pulse_homedir_users}</span>
+            <span class="community-pulse-label">{i18n:community_pulse_homedir_users}</span>
             <strong class="community-pulse-value">{homedirUsers}</strong>
           </a>
           <a href="/comunidad/board/github-users" class="community-pulse-card">
-            <span class="community-pulse-label">{i18n.community_pulse_github_users}</span>
+            <span class="community-pulse-label">{i18n:community_pulse_github_users}</span>
             <strong class="community-pulse-value">{githubUsers}</strong>
           </a>
           <a href="/comunidad/board/discord-users" class="community-pulse-card">
-            <span class="community-pulse-label">{i18n.community_pulse_discord_users}</span>
+            <span class="community-pulse-label">{i18n:community_pulse_discord_users}</span>
             <strong class="community-pulse-value">{discordUsers}</strong>
           </a>
           <div class="community-pulse-card community-pulse-card-neutral">
-            <span class="community-pulse-label">{i18n.community_pulse_curated_picks}</span>
+            <span class="community-pulse-label">{i18n:community_pulse_curated_picks}</span>
             <strong id="community-content-total" class="community-pulse-value">0</strong>
           </div>
         </section>
@@ -157,69 +157,69 @@
           <div class="community-controls-top">
             <div class="community-view-row" role="tablist" aria-label="Community view">
               <button type="button" class="btn-primary community-view-btn community-tab" data-view="featured">
-                {i18n.community_view_featured}
+                {i18n:community_view_featured}
               </button>
               <button type="button" class="btn-primary community-view-btn community-tab" data-view="new">
-                {i18n.community_view_new}
+                {i18n:community_view_new}
               </button>
             </div>
 
             <div class="community-filter-row" role="group" aria-label="Community source filter">
               <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="all">
-                {i18n.community_filter_all}
+                {i18n:community_filter_all}
               </button>
               <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="internet">
-                {i18n.community_filter_internet}
+                {i18n:community_filter_internet}
               </button>
               <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="members">
-                {i18n.community_filter_members}
+                {i18n:community_filter_members}
               </button>
             </div>
           </div>
 
           <div class="community-media-row" role="group" aria-label="Community media filter">
-            <button type="button" class="community-media-btn community-media-active community-media" data-media="all">{i18n.community_media_all}</button>
-            <button type="button" class="community-media-btn community-media" data-media="video_story">{i18n.community_media_video_story}</button>
-            <button type="button" class="community-media-btn community-media" data-media="podcast">{i18n.community_media_podcast}</button>
-            <button type="button" class="community-media-btn community-media" data-media="article_blog">{i18n.community_media_article_blog}</button>
+            <button type="button" class="community-media-btn community-media-active community-media" data-media="all">{i18n:community_media_all}</button>
+            <button type="button" class="community-media-btn community-media" data-media="video_story">{i18n:community_media_video_story}</button>
+            <button type="button" class="community-media-btn community-media" data-media="podcast">{i18n:community_media_podcast}</button>
+            <button type="button" class="community-media-btn community-media" data-media="article_blog">{i18n:community_media_article_blog}</button>
           </div>
 
           <div class="community-topic-row" role="group" aria-label="Community topic filter">
-            <button type="button" class="community-topic-btn community-topic-active" data-topic="all">{i18n.community_topic_all}</button>
-            <button type="button" class="community-topic-btn" data-topic="ai">{i18n.community_topic_ai}</button>
-            <button type="button" class="community-topic-btn" data-topic="platform_engineering">{i18n.community_topic_platform_engineering}</button>
-            <button type="button" class="community-topic-btn" data-topic="cloud_native">{i18n.community_topic_cloud_native}</button>
-            <button type="button" class="community-topic-btn" data-topic="security">{i18n.community_topic_security}</button>
+            <button type="button" class="community-topic-btn community-topic-active" data-topic="all">{i18n:community_topic_all}</button>
+            <button type="button" class="community-topic-btn" data-topic="ai">{i18n:community_topic_ai}</button>
+            <button type="button" class="community-topic-btn" data-topic="platform_engineering">{i18n:community_topic_platform_engineering}</button>
+            <button type="button" class="community-topic-btn" data-topic="cloud_native">{i18n:community_topic_cloud_native}</button>
+            <button type="button" class="community-topic-btn" data-topic="security">{i18n:community_topic_security}</button>
           </div>
 
           <div id="community-active-filters" class="community-active-filters hidden" aria-live="polite">
             <div id="community-active-filter-chips" class="community-active-filter-chips"></div>
             <button id="community-clear-filters" type="button" class="community-clear-filters-btn">
-              {i18n.community_clear_filters}
+              {i18n:community_clear_filters}
             </button>
           </div>
         </div>
 
         <section id="community-interest" class="community-interest hidden" aria-live="polite">
           <div class="community-interest-header">
-            <h3>{i18n.community_interest_title}</h3>
-            <p>{i18n.community_interest_desc}</p>
+            <h3>{i18n:community_interest_title}</h3>
+            <p>{i18n:community_interest_desc}</p>
           </div>
           <div id="community-interest-list" class="community-interest-list"></div>
         </section>
 
         <section id="community-radar" class="community-radar hidden" aria-live="polite">
           <div class="community-radar-header">
-            <h3>{i18n.community_radar_title}</h3>
-            <p>{i18n.community_radar_desc}</p>
+            <h3>{i18n:community_radar_title}</h3>
+            <p>{i18n:community_radar_desc}</p>
           </div>
           <div id="community-radar-list" class="community-radar-list"></div>
         </section>
 
         <section id="community-hot" class="community-hot hidden" aria-live="polite">
           <div class="community-hot-header">
-            <h3>{i18n.community_hot_title}</h3>
-            <p>{i18n.community_hot_desc}</p>
+            <h3>{i18n:community_hot_title}</h3>
+            <p>{i18n:community_hot_desc}</p>
           </div>
           <div id="community-hot-list" class="community-hot-list"></div>
         </section>
@@ -231,13 +231,13 @@
         </div>
 
         <div id="community-empty" class="community-empty hidden">
-          <p>{i18n.community_empty_no_content}</p>
+          <p>{i18n:community_empty_no_content}</p>
         </div>
 
         <div id="community-list" class="community-list"></div>
 
         <div class="community-actions">
-          <button id="community-load-more" type="button" class="btn-primary hidden">{i18n.community_load_more}</button>
+          <button id="community-load-more" type="button" class="btn-primary hidden">{i18n:community_load_more}</button>
         </div>
       </div>
     </div>
@@ -249,73 +249,73 @@
       data-authenticated="{isAuthenticated}"
       data-admin="{isAdmin}"
       data-active-submenu="{activeCommunitySubmenu}"
-      data-i18n-status-pending="{i18n.community_submissions_status_pending}"
-      data-i18n-status-approved="{i18n.community_submissions_status_approved}"
-      data-i18n-status-rejected="{i18n.community_submissions_status_rejected}"
-      data-i18n-source-fallback="{i18n.community_submissions_source_fallback}"
-      data-i18n-open-source="{i18n.community_submissions_open_source}"
-      data-i18n-note-placeholder="{i18n.community_submissions_note_placeholder}"
-      data-i18n-approve="{i18n.community_submissions_approve}"
-      data-i18n-reject="{i18n.community_submissions_reject}"
-      data-i18n-feedback-approved="{i18n.community_submissions_feedback_approved}"
-      data-i18n-feedback-rejected="{i18n.community_submissions_feedback_rejected}"
-      data-i18n-error-moderate="{i18n.community_submissions_error_moderate}"
-      data-i18n-error-load-mine="{i18n.community_submissions_error_load_mine}"
-      data-i18n-error-load-moderation="{i18n.community_submissions_error_load_moderation}"
-      data-i18n-error-admin-only="{i18n.community_submissions_error_admin_only}"
-      data-i18n-error-not-found="{i18n.community_submissions_error_not_found}"
-      data-i18n-error-conflict="{i18n.community_submissions_error_conflict}"
-      data-i18n-error-unavailable="{i18n.community_submissions_error_unavailable}"
-      data-i18n-error-generic-moderation="{i18n.community_submissions_error_generic_moderation}"
-      data-i18n-error-daily-limit="{i18n.community_submissions_error_daily_limit}"
-      data-i18n-error-duplicate-url="{i18n.community_submissions_error_duplicate_url}"
-      data-i18n-error-invalid-data-prefix="{i18n.community_submissions_error_invalid_data_prefix}"
-      data-i18n-error-submit="{i18n.community_submissions_error_submit}"
-      data-i18n-feedback-submitted="{i18n.community_submissions_feedback_submitted}">
+      data-i18n-status-pending="{i18n:community_submissions_status_pending}"
+      data-i18n-status-approved="{i18n:community_submissions_status_approved}"
+      data-i18n-status-rejected="{i18n:community_submissions_status_rejected}"
+      data-i18n-source-fallback="{i18n:community_submissions_source_fallback}"
+      data-i18n-open-source="{i18n:community_submissions_open_source}"
+      data-i18n-note-placeholder="{i18n:community_submissions_note_placeholder}"
+      data-i18n-approve="{i18n:community_submissions_approve}"
+      data-i18n-reject="{i18n:community_submissions_reject}"
+      data-i18n-feedback-approved="{i18n:community_submissions_feedback_approved}"
+      data-i18n-feedback-rejected="{i18n:community_submissions_feedback_rejected}"
+      data-i18n-error-moderate="{i18n:community_submissions_error_moderate}"
+      data-i18n-error-load-mine="{i18n:community_submissions_error_load_mine}"
+      data-i18n-error-load-moderation="{i18n:community_submissions_error_load_moderation}"
+      data-i18n-error-admin-only="{i18n:community_submissions_error_admin_only}"
+      data-i18n-error-not-found="{i18n:community_submissions_error_not_found}"
+      data-i18n-error-conflict="{i18n:community_submissions_error_conflict}"
+      data-i18n-error-unavailable="{i18n:community_submissions_error_unavailable}"
+      data-i18n-error-generic-moderation="{i18n:community_submissions_error_generic_moderation}"
+      data-i18n-error-daily-limit="{i18n:community_submissions_error_daily_limit}"
+      data-i18n-error-duplicate-url="{i18n:community_submissions_error_duplicate_url}"
+      data-i18n-error-invalid-data-prefix="{i18n:community_submissions_error_invalid_data_prefix}"
+      data-i18n-error-submit="{i18n:community_submissions_error_submit}"
+      data-i18n-feedback-submitted="{i18n:community_submissions_feedback_submitted}">
       <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n.community_propose_eyebrow}</p>
-        <h2 class="page-title">{i18n.community_propose_title}</h2>
+        <p class="section-subtitle">{i18n:community_propose_eyebrow}</p>
+        <h2 class="page-title">{i18n:community_propose_title}</h2>
       </div>
-      <p class="section-subtitle">{i18n.community_propose_intro}</p>
+      <p class="section-subtitle">{i18n:community_propose_intro}</p>
       <div id="community-submission-feedback" class="community-feedback hidden" role="alert"></div>
 
       {#if isAuthenticated}
       <form id="community-submission-form" class="community-submission-form">
         <label class="community-field">
-          <span>{i18n.community_form_title}</span>
-          <input type="text" name="title" maxlength="140" required placeholder="{i18n.community_form_title_placeholder}" />
+          <span>{i18n:community_form_title}</span>
+          <input type="text" name="title" maxlength="140" required placeholder="{i18n:community_form_title_placeholder}" />
         </label>
         <label class="community-field">
-          <span>{i18n.community_form_url}</span>
-          <input type="url" name="url" maxlength="400" required placeholder="{i18n.community_form_url_placeholder}" />
+          <span>{i18n:community_form_url}</span>
+          <input type="url" name="url" maxlength="400" required placeholder="{i18n:community_form_url_placeholder}" />
         </label>
         <label class="community-field">
-          <span>{i18n.community_form_summary}</span>
-          <textarea name="summary" maxlength="360" rows="3" required placeholder="{i18n.community_form_summary_placeholder}"></textarea>
+          <span>{i18n:community_form_summary}</span>
+          <textarea name="summary" maxlength="360" rows="3" required placeholder="{i18n:community_form_summary_placeholder}"></textarea>
         </label>
         <label class="community-field">
-          <span>{i18n.community_form_source}</span>
-          <input type="text" name="source" maxlength="80" placeholder="{i18n.community_form_source_placeholder}" />
+          <span>{i18n:community_form_source}</span>
+          <input type="text" name="source" maxlength="80" placeholder="{i18n:community_form_source_placeholder}" />
         </label>
         <label class="community-field">
-          <span>{i18n.community_form_tags}</span>
-          <input type="text" name="tags" maxlength="180" placeholder="{i18n.community_form_tags_placeholder}" />
+          <span>{i18n:community_form_tags}</span>
+          <input type="text" name="tags" maxlength="180" placeholder="{i18n:community_form_tags_placeholder}" />
         </label>
         <div class="community-actions">
-          <button id="community-submit-btn" type="submit" class="btn-primary">{i18n.community_form_submit}</button>
+          <button id="community-submit-btn" type="submit" class="btn-primary">{i18n:community_form_submit}</button>
         </div>
       </form>
       <div class="community-submissions-list-wrap">
-        <h3>{i18n.community_my_submissions_title}</h3>
+        <h3>{i18n:community_my_submissions_title}</h3>
         <div id="community-submissions-empty" class="community-empty hidden">
-          <p>{i18n.community_my_submissions_empty}</p>
+          <p>{i18n:community_my_submissions_empty}</p>
         </div>
         <div id="community-submissions-list" class="community-submissions-list"></div>
       </div>
       {#else}
       <div class="community-empty">
-        <p>{i18n.community_login_to_propose}</p>
-        <a class="btn-primary" href="/private/profile">{i18n.community_login}</a>
+        <p>{i18n:community_login_to_propose}</p>
+        <a class="btn-primary" href="/private/profile">{i18n:community_login}</a>
       </div>
       {/if}
     </div>
@@ -327,46 +327,46 @@
       data-authenticated="{isAuthenticated}"
       data-admin="{isAdmin}"
       data-active-submenu="{activeCommunitySubmenu}"
-      data-i18n-status-pending="{i18n.community_submissions_status_pending}"
-      data-i18n-status-approved="{i18n.community_submissions_status_approved}"
-      data-i18n-status-rejected="{i18n.community_submissions_status_rejected}"
-      data-i18n-source-fallback="{i18n.community_submissions_source_fallback}"
-      data-i18n-open-source="{i18n.community_submissions_open_source}"
-      data-i18n-note-placeholder="{i18n.community_submissions_note_placeholder}"
-      data-i18n-approve="{i18n.community_submissions_approve}"
-      data-i18n-reject="{i18n.community_submissions_reject}"
-      data-i18n-feedback-approved="{i18n.community_submissions_feedback_approved}"
-      data-i18n-feedback-rejected="{i18n.community_submissions_feedback_rejected}"
-      data-i18n-error-moderate="{i18n.community_submissions_error_moderate}"
-      data-i18n-error-load-mine="{i18n.community_submissions_error_load_mine}"
-      data-i18n-error-load-moderation="{i18n.community_submissions_error_load_moderation}"
-      data-i18n-error-admin-only="{i18n.community_submissions_error_admin_only}"
-      data-i18n-error-not-found="{i18n.community_submissions_error_not_found}"
-      data-i18n-error-conflict="{i18n.community_submissions_error_conflict}"
-      data-i18n-error-unavailable="{i18n.community_submissions_error_unavailable}"
-      data-i18n-error-generic-moderation="{i18n.community_submissions_error_generic_moderation}"
-      data-i18n-error-daily-limit="{i18n.community_submissions_error_daily_limit}"
-      data-i18n-error-duplicate-url="{i18n.community_submissions_error_duplicate_url}"
-      data-i18n-error-invalid-data-prefix="{i18n.community_submissions_error_invalid_data_prefix}"
-      data-i18n-error-submit="{i18n.community_submissions_error_submit}"
-      data-i18n-feedback-submitted="{i18n.community_submissions_feedback_submitted}">
+      data-i18n-status-pending="{i18n:community_submissions_status_pending}"
+      data-i18n-status-approved="{i18n:community_submissions_status_approved}"
+      data-i18n-status-rejected="{i18n:community_submissions_status_rejected}"
+      data-i18n-source-fallback="{i18n:community_submissions_source_fallback}"
+      data-i18n-open-source="{i18n:community_submissions_open_source}"
+      data-i18n-note-placeholder="{i18n:community_submissions_note_placeholder}"
+      data-i18n-approve="{i18n:community_submissions_approve}"
+      data-i18n-reject="{i18n:community_submissions_reject}"
+      data-i18n-feedback-approved="{i18n:community_submissions_feedback_approved}"
+      data-i18n-feedback-rejected="{i18n:community_submissions_feedback_rejected}"
+      data-i18n-error-moderate="{i18n:community_submissions_error_moderate}"
+      data-i18n-error-load-mine="{i18n:community_submissions_error_load_mine}"
+      data-i18n-error-load-moderation="{i18n:community_submissions_error_load_moderation}"
+      data-i18n-error-admin-only="{i18n:community_submissions_error_admin_only}"
+      data-i18n-error-not-found="{i18n:community_submissions_error_not_found}"
+      data-i18n-error-conflict="{i18n:community_submissions_error_conflict}"
+      data-i18n-error-unavailable="{i18n:community_submissions_error_unavailable}"
+      data-i18n-error-generic-moderation="{i18n:community_submissions_error_generic_moderation}"
+      data-i18n-error-daily-limit="{i18n:community_submissions_error_daily_limit}"
+      data-i18n-error-duplicate-url="{i18n:community_submissions_error_duplicate_url}"
+      data-i18n-error-invalid-data-prefix="{i18n:community_submissions_error_invalid_data_prefix}"
+      data-i18n-error-submit="{i18n:community_submissions_error_submit}"
+      data-i18n-feedback-submitted="{i18n:community_submissions_feedback_submitted}">
       <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n.community_moderation_eyebrow}</p>
-        <h2 class="page-title">{i18n.community_moderation_title}</h2>
+        <p class="section-subtitle">{i18n:community_moderation_eyebrow}</p>
+        <h2 class="page-title">{i18n:community_moderation_title}</h2>
       </div>
-      <p class="section-subtitle">{i18n.community_moderation_intro}</p>
+      <p class="section-subtitle">{i18n:community_moderation_intro}</p>
       <div id="community-submission-feedback" class="community-feedback hidden" role="alert"></div>
       {#if isAdmin}
       <div class="community-moderation-wrap community-moderation-wrap--standalone" id="community-moderation-panel">
         <div id="community-moderation-empty" class="community-empty hidden">
-          <p>{i18n.community_moderation_empty}</p>
+          <p>{i18n:community_moderation_empty}</p>
         </div>
         <div id="community-moderation-list" class="community-submissions-list"></div>
       </div>
       {/if}
       {#if !isAdmin}
       <div class="community-empty">
-        <p>{i18n.community_moderation_admin_only}</p>
+        <p>{i18n:community_moderation_admin_only}</p>
       </div>
       {/if}
     </div>

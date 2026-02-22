@@ -1,5 +1,5 @@
 {#include layout/main activePage="profile"}
-{#title}{i18n.profile_title}{/title}
+{#title}{i18n:profile_title}{/title}
 
 {#head}
 <meta property="og:title" content="{ogTitle}" />
@@ -14,41 +14,41 @@
     <div class="hd-page">
         <div class="hd-dashboard-header">
             <div>
-                <p class="hd-eyebrow">{i18n.profile_eyebrow}</p>
+                <p class="hd-eyebrow">{i18n:profile_eyebrow}</p>
                 <h1 class="hd-page-title">{name}</h1>
-                <p class="hd-page-intro">{i18n.profile_intro}</p>
+                <p class="hd-page-intro">{i18n:profile_intro}</p>
             </div>
             <div class="hd-panel-actions">
-                <a class="hd-btn hd-btn-primary" href="/private/profile">{i18n.btn_refresh}</a>
-                <a class="hd-btn" href="/logout">{i18n.btn_logout}</a>
+                <a class="hd-btn hd-btn-primary" href="/private/profile">{i18n:btn_refresh}</a>
+                <a class="hd-btn" href="/logout">{i18n:btn_logout}</a>
             </div>
         </div>
 
         <div class="hd-panel centered">
             <div class="hd-panel-actions hd-panel-actions-margin">
                 {#if githubLinked}
-                <div class="hd-alert hd-alert-success">{i18n.msg_github_linked}</div>
+                <div class="hd-alert hd-alert-success">{i18n:msg_github_linked}</div>
                 {/if}
                 {#if githubError??}
-                <div class="hd-alert hd-alert-warning">{i18n.msg_github_error(githubError)}</div>
+                <div class="hd-alert hd-alert-warning">{i18n:msg_github_error(githubError)}</div>
                 {/if}
                 {#if discordLinked}
-                <div class="hd-alert hd-alert-success">{i18n.msg_discord_linked}</div>
+                <div class="hd-alert hd-alert-success">{i18n:msg_discord_linked}</div>
                 {/if}
                 {#if discordUnlinked}
-                <div class="hd-alert hd-alert-success">{i18n.msg_discord_unlinked}</div>
+                <div class="hd-alert hd-alert-success">{i18n:msg_discord_unlinked}</div>
                 {/if}
                 {#if discordError??}
-                <div class="hd-alert hd-alert-warning">{i18n.msg_discord_error(discordError)}</div>
+                <div class="hd-alert hd-alert-warning">{i18n:msg_discord_error(discordError)}</div>
                 {/if}
                 {#if githubRequired && github == null}
-                <div class="hd-alert hd-alert-danger">{i18n.msg_github_required}</div>
+                <div class="hd-alert hd-alert-danger">{i18n:msg_github_required}</div>
                 {/if}
             </div>
 
             <div class="hd-grid-details">
                 <div class="hd-detail-item">
-                    <span class="hd-detail-label">{i18n.label_email}</span>
+                    <span class="hd-detail-label">{i18n:label_email}</span>
                     <span class="hd-detail-value">{email}</span>
                 </div>
                 <!-- Add more user details here -->
@@ -60,24 +60,24 @@
 
             <div class="hd-integration-card">
                 <div class="hd-integration-header">
-                    <h3>{i18n.section_gitHub}</h3>
+                    <h3>{i18n:section_gitHub}</h3>
                     {#if githubLinked}
-                    <span class="hd-badge hd-badge-success">{i18n.msg_linked}</span>
+                    <span class="hd-badge hd-badge-success">{i18n:msg_linked}</span>
                     {/if}
                 </div>
                 {#if github == null}
-                <p>{i18n.msg_no_github}</p>
+                <p>{i18n:msg_no_github}</p>
                 <a href="/private/github/start?redirect=/private/profile" class="btn-primary btn-github-dark">
                     <img src="https://cdn.simpleicons.org/github/white" width="20" height="20" alt="GitHub"
                         class="icon-github" style="margin-right: 8px;">
-                    {i18n.btn_link_github}
+                    {i18n:btn_link_github}
                 </a>
                 {#else}
                 <div class="hd-github-user">
                     <img src="{github.avatarUrl}" alt="GitHub Avatar" class="hd-avatar">
                     <div class="hd-github-info">
                         <strong>{github.login}</strong>
-                        <a href="{github.profileUrl}" target="_blank" class="hd-link">{i18n.btn_view_profile}</a>
+                        <a href="{github.profileUrl}" target="_blank" class="hd-link">{i18n:btn_view_profile}</a>
                     </div>
                 </div>
                 {/if}
@@ -85,15 +85,15 @@
 
             <div class="hd-integration-card">
                 <div class="hd-integration-header">
-                    <h3>{i18n.section_discord}</h3>
+                    <h3>{i18n:section_discord}</h3>
                     {#if discord != null}
-                    <span class="hd-badge hd-badge-success">{i18n.msg_linked}</span>
+                    <span class="hd-badge hd-badge-success">{i18n:msg_linked}</span>
                     {/if}
                 </div>
                 {#if discord == null}
-                <p>{i18n.msg_no_discord}</p>
+                <p>{i18n:msg_no_discord}</p>
                 <a href="/private/discord/start?redirect=/private/profile" class="btn-primary">
-                    {i18n.btn_claim_discord_from_board}
+                    {i18n:btn_claim_discord_from_board}
                 </a>
                 {#else}
                 <div class="hd-github-user">
@@ -103,13 +103,13 @@
                     <div class="hd-github-info">
                         <strong>{discord.handle ?: discord.id}</strong>
                         {#if discord.profileUrl}
-                        <a href="{discord.profileUrl}" target="_blank" class="hd-link">{i18n.btn_view_profile}</a>
+                        <a href="{discord.profileUrl}" target="_blank" class="hd-link">{i18n:btn_view_profile}</a>
                         {/if}
                     </div>
                 </div>
                 <form action="/private/profile/unlink-discord" method="POST" class="hd-panel-actions">
                     <input type="hidden" name="redirect" value="/private/profile">
-                    <button type="submit" class="hd-btn hd-btn-secondary">{i18n.btn_unlink_discord}</button>
+                    <button type="submit" class="hd-btn hd-btn-secondary">{i18n:btn_unlink_discord}</button>
                 </form>
                 {/if}
             </div>
@@ -119,24 +119,24 @@
         <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{i18n.section_resume}</p>
-                    <h2 class="hd-panel-title">{i18n.resume_level(questProfile.level)}</h2>
-                    <p class="hd-page-intro">{i18n.resume_exp(questProfile.currentXp, questProfile.nextLevelXp)}</p>
+                    <p class="hd-eyebrow">{i18n:section_resume}</p>
+                    <h2 class="hd-panel-title">{i18n:resume_level(questProfile.level)}</h2>
+                    <p class="hd-page-intro">{i18n:resume_exp(questProfile.currentXp, questProfile.nextLevelXp)}</p>
                 </div>
                 {#if publicProfileHandle??}
                 <div class="hd-panel-actions">
                     <a class="hd-btn hd-btn-secondary" href="/u/{publicProfileHandle}" target="_blank"
                         rel="noopener noreferrer">
-                        <span class="material-symbols-outlined">open_in_new</span> {i18n.btn_view_profile}
+                        <span class="material-symbols-outlined">open_in_new</span> {i18n:btn_view_profile}
                     </a>
                     <button class="hd-btn hd-btn-secondary" onclick="shareProfile('{publicProfileHandle}')">
-                        <span class="material-symbols-outlined">share</span> {i18n.btn_share_profile}
+                        <span class="material-symbols-outlined">share</span> {i18n:btn_share_profile}
                     </button>
                 </div>
                 {/if}
             </div>
 
-            <h3 class="hd-section-subtitle">{i18n.section_progress}</h3>
+            <h3 class="hd-section-subtitle">{i18n:section_progress}</h3>
             <!-- Progress Bar -->
             <!-- Progress Bar -->
             <div class="progress-bar-container">
@@ -146,11 +146,11 @@
 
             <div class="hd-dashboard-header">
                 <div>
-                    <h2 class="hd-panel-title">{i18n.resume_history}</h2>
+                    <h2 class="hd-panel-title">{i18n:resume_history}</h2>
                 </div>
             </div>
             {#if questProfile.history.isEmpty()}
-            <p>{i18n.resume_no_history}</p>
+            <p>{i18n:resume_no_history}</p>
             {#else}
             <ul class="hd-list hd-list-log" role="list">
                 {#for item in questProfile.history}
@@ -166,10 +166,10 @@
             {#if resumeHistoryHasMore}
             <div class="hd-panel-actions">
                 {#if resumeHistoryAtLimit}
-                <span class="hd-detail-label">{i18n.resume_history_limit_notice(resumeHistoryLimit)}</span>
+                <span class="hd-detail-label">{i18n:resume_history_limit_notice(resumeHistoryLimit)}</span>
                 {#else}
                 <a class="hd-btn hd-btn-secondary" href="/private/profile?historyLimit={resumeHistoryNextLimit}">
-                    {i18n.resume_history_load_more}
+                    {i18n:resume_history_load_more}
                 </a>
                 {/if}
             </div>
@@ -177,28 +177,28 @@
             {/if}
 
             <div class="profile-progress-tree-section">
-                <h3 class="hd-section-subtitle">{i18n.progress_tree}</h3>
-                <p>{i18n.progress_intro}</p>
+                <h3 class="hd-section-subtitle">{i18n:progress_tree}</h3>
+                <p>{i18n:progress_intro}</p>
 
                 <div class="hd-skill-tree">
                     <div class="hd-skill-node {#if questProfile.level >= 1}unlocked{/if}">
                         <div class="hd-skill-icon"><span class="material-symbols-outlined">spa</span></div>
-                        <div class="hd-skill-label">{i18n.progress_novice}</div>
+                        <div class="hd-skill-label">{i18n:progress_novice}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 5}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 5}unlocked{/if}">
                         <div class="hd-skill-icon"><span class="material-symbols-outlined">build</span></div>
-                        <div class="hd-skill-label">{i18n.progress_contributor}</div>
+                        <div class="hd-skill-label">{i18n:progress_contributor}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 10}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 10}unlocked{/if}">
                         <div class="hd-skill-icon"><span class="material-symbols-outlined">school</span></div>
-                        <div class="hd-skill-label">{i18n.progress_mentor}</div>
+                        <div class="hd-skill-label">{i18n:progress_mentor}</div>
                     </div>
                     <div class="hd-skill-connector {#if questProfile.level >= 20}active{/if}"></div>
                     <div class="hd-skill-node {#if questProfile.level >= 20}unlocked{/if}">
                         <div class="hd-skill-icon"><span class="material-symbols-outlined">emoji_events</span></div>
-                        <div class="hd-skill-label">{i18n.progress_legend}</div>
+                        <div class="hd-skill-label">{i18n:progress_legend}</div>
                     </div>
                 </div>
             </div>
@@ -208,9 +208,9 @@
         <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{i18n.section_identity}</p>
-                    <h2 class="hd-panel-title">{i18n.identity_guild}</h2>
-                    <p class="hd-page-intro">{i18n.identity_intro}</p>
+                    <p class="hd-eyebrow">{i18n:section_identity}</p>
+                    <h2 class="hd-panel-title">{i18n:identity_guild}</h2>
+                    <p class="hd-page-intro">{i18n:identity_intro}</p>
                 </div>
             </div>
             {#if dominantClassMessage??}
@@ -230,7 +230,7 @@
                     </div>
                     <h3 class="class-title">{cls.displayName}</h3>
                     <p class="class-desc">{cls.description}</p>
-                    <p class="class-xp-meta">{i18n.profile_class_xp_level(cls.xp, cls.level, cls.percentage)}</p>
+                    <p class="class-xp-meta">{i18n:profile_class_xp_level(cls.xp, cls.level, cls.percentage)}</p>
                     <div class="progress-bar-container class-progress-bar">
                         <div class="progress-bar-fill js-progress-fill" data-progress="{cls.percentage}"></div>
                     </div>
@@ -240,22 +240,22 @@
 
             <div class="hd-dashboard-header class-map-header">
                 <div>
-                    <h3 class="hd-section-subtitle">{i18n.profile_activity_map_title}</h3>
-                    <p class="hd-page-intro">{i18n.profile_activity_map_intro}</p>
+                    <h3 class="hd-section-subtitle">{i18n:profile_activity_map_title}</h3>
+                    <p class="hd-page-intro">{i18n:profile_activity_map_intro}</p>
                 </div>
             </div>
             <div class="hd-grid-details activity-class-map">
                 <div class="hd-detail-item">
-                    <span class="hd-detail-label">{i18n.profile_activity_col_activity}</span>
+                    <span class="hd-detail-label">{i18n:profile_activity_col_activity}</span>
                 </div>
                 <div class="hd-detail-item">
-                    <span class="hd-detail-label">{i18n.profile_activity_col_examples}</span>
+                    <span class="hd-detail-label">{i18n:profile_activity_col_examples}</span>
                 </div>
                 <div class="hd-detail-item">
-                    <span class="hd-detail-label">{i18n.profile_activity_col_class}</span>
+                    <span class="hd-detail-label">{i18n:profile_activity_col_class}</span>
                 </div>
                 <div class="hd-detail-item">
-                    <span class="hd-detail-label">{i18n.profile_activity_col_action}</span>
+                    <span class="hd-detail-label">{i18n:profile_activity_col_action}</span>
                 </div>
                 {#for row in activityClassMap}
                 <div class="hd-detail-item">
@@ -268,7 +268,7 @@
                     <span class="hd-detail-value">{row.className}</span>
                 </div>
                 <div class="hd-detail-item">
-                    <a class="hd-link" href="{row.actionPath}">{i18n.profile_activity_action_open}</a>
+                    <a class="hd-link" href="{row.actionPath}">{i18n:profile_activity_action_open}</a>
                 </div>
                 {/for}
             </div>
@@ -277,39 +277,39 @@
         <section class="hd-panel centered" id="economy-panel" data-economy-panel>
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{i18n.section_economy}</p>
-                    <h2 class="hd-panel-title">{i18n.section_economy}</h2>
-                    <p class="hd-page-intro">{i18n.economy_intro}</p>
+                    <p class="hd-eyebrow">{i18n:section_economy}</p>
+                    <h2 class="hd-panel-title">{i18n:section_economy}</h2>
+                    <p class="hd-page-intro">{i18n:economy_intro}</p>
                 </div>
                 <div class="hd-panel-actions">
-                    <a class="hd-btn hd-btn-secondary" href="/private/profile/catalog">{i18n.economy_btn_open_catalog}</a>
+                    <a class="hd-btn hd-btn-secondary" href="/private/profile/catalog">{i18n:economy_btn_open_catalog}</a>
                 </div>
             </div>
 
             <div class="hd-card hd-economy-balance-card">
-                <span class="hd-detail-label">{i18n.economy_balance_label}</span>
+                <span class="hd-detail-label">{i18n:economy_balance_label}</span>
                 <strong class="hd-economy-balance-value" id="economy-balance-value">0 HCoin</strong>
-                <span class="hd-detail-value" id="economy-balance-meta">{i18n.economy_loading}</span>
+                <span class="hd-detail-value" id="economy-balance-meta">{i18n:economy_loading}</span>
             </div>
 
             <div class="hd-economy-grid">
                 <article class="hd-card hd-economy-card">
-                    <h3 class="hd-section-subtitle">{i18n.economy_store_title}</h3>
+                    <h3 class="hd-section-subtitle">{i18n:economy_store_title}</h3>
                     <div class="hd-economy-summary" id="economy-store-summary">
                         <div class="hd-economy-summary-item">
-                            <span class="hd-economy-summary-label">{i18n.economy_balance_label}</span>
+                            <span class="hd-economy-summary-label">{i18n:economy_balance_label}</span>
                             <strong class="hd-economy-summary-value" id="economy-summary-balance">0 HCoin</strong>
                         </div>
                         <div class="hd-economy-summary-item">
-                            <span class="hd-economy-summary-label">{i18n.economy_summary_level_label}</span>
+                            <span class="hd-economy-summary-label">{i18n:economy_summary_level_label}</span>
                             <strong class="hd-economy-summary-value" id="economy-summary-level">0</strong>
                         </div>
                         <div class="hd-economy-summary-item">
-                            <span class="hd-economy-summary-label">{i18n.economy_summary_reachable_label}</span>
+                            <span class="hd-economy-summary-label">{i18n:economy_summary_reachable_label}</span>
                             <strong class="hd-economy-summary-value" id="economy-summary-reachable">0</strong>
                         </div>
                         <div class="hd-economy-summary-item">
-                            <span class="hd-economy-summary-label">{i18n.economy_summary_stock_label}</span>
+                            <span class="hd-economy-summary-label">{i18n:economy_summary_stock_label}</span>
                             <strong class="hd-economy-summary-value" id="economy-summary-stock">0</strong>
                         </div>
                     </div>
@@ -317,20 +317,20 @@
                 </article>
 
                 <article class="hd-card hd-economy-card">
-                    <h3 class="hd-section-subtitle">{i18n.economy_inventory_title}</h3>
+                    <h3 class="hd-section-subtitle">{i18n:economy_inventory_title}</h3>
                     <div id="economy-inventory-list" class="hd-economy-list"></div>
                 </article>
             </div>
 
             <article class="hd-card hd-economy-card">
-                <h3 class="hd-section-subtitle">{i18n.economy_transactions_title}</h3>
+                <h3 class="hd-section-subtitle">{i18n:economy_transactions_title}</h3>
                 <p class="hd-page-intro hd-economy-partial-hint" id="economy-transactions-hint" hidden>
-                    {i18n.economy_tx_partial_hint}
+                    {i18n:economy_tx_partial_hint}
                 </p>
                 <div id="economy-transactions-list" class="hd-economy-list"></div>
                 <div class="hd-panel-actions">
                     <button class="hd-btn hd-btn-secondary" id="economy-load-more-btn" hidden>
-                        {i18n.economy_btn_load_more}
+                        {i18n:economy_btn_load_more}
                     </button>
                 </div>
             </article>
@@ -339,9 +339,9 @@
         <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{i18n.section_settings}</p>
-                    <h2 class="hd-panel-title">{i18n.settings_language}</h2>
-                    <p class="hd-page-intro">{i18n.settings_language_intro}</p>
+                    <p class="hd-eyebrow">{i18n:section_settings}</p>
+                    <h2 class="hd-panel-title">{i18n:settings_language}</h2>
+                    <p class="hd-page-intro">{i18n:settings_language_intro}</p>
                 </div>
             </div>
             <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
@@ -352,7 +352,7 @@
                     </select>
                 </div>
                 <div class="form-actions-centered">
-                    <button type="submit" class="hd-btn hd-btn-primary">{i18n.settings_save}</button>
+                    <button type="submit" class="hd-btn hd-btn-primary">{i18n:settings_save}</button>
                 </div>
             </form>
         </section>
@@ -362,31 +362,31 @@
         <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>
-                    <p class="hd-eyebrow">{i18n.section_agenda}</p>
-                    <h2 class="hd-panel-title">{i18n.section_agenda}</h2>
-                    <p class="hd-page-intro">{i18n.agenda_intro(totalTalks, attendedTalks, ratedTalks)}</p>
+                    <p class="hd-eyebrow">{i18n:section_agenda}</p>
+                    <h2 class="hd-panel-title">{i18n:section_agenda}</h2>
+                    <p class="hd-page-intro">{i18n:agenda_intro(totalTalks, attendedTalks, ratedTalks)}</p>
                 </div>
             </div>
 
             <div class="hd-tabs">
-                <button class="hd-tab active" data-filter="all">{i18n.btn_all}</button>
-                <button class="hd-tab" data-filter="attended">{i18n.btn_attended}</button>
-                <button class="hd-tab" data-filter="pending">{i18n.btn_pending}</button>
+                <button class="hd-tab active" data-filter="all">{i18n:btn_all}</button>
+                <button class="hd-tab" data-filter="attended">{i18n:btn_attended}</button>
+                <button class="hd-tab" data-filter="pending">{i18n:btn_pending}</button>
             </div>
 
             {#if groups.isEmpty()}
             <div class="hd-empty-state">
-                <p>{i18n.agenda_no_talks}</p>
-                <a href="/eventos" class="hd-btn">{i18n.btn_quest_board}</a>
+                <p>{i18n:agenda_no_talks}</p>
+                <a href="/eventos" class="hd-btn">{i18n:btn_quest_board}</a>
             </div>
             {#else}
             {#for group in groups}
             <div class="hd-event-group">
                 <h3 class="hd-event-title">{group.event.title}</h3>
-                <p class="hd-event-meta">{i18n.agenda_days_speakers(group.days.size, group.speakers.size)}</p>
+                <p class="hd-event-meta">{i18n:agenda_days_speakers(group.days.size, group.speakers.size)}</p>
 
                 {#for dayGroup in group.days}
-                <h4 class="hd-day-header">{i18n.agenda_day(dayGroup.day)}</h4>
+                <h4 class="hd-day-header">{i18n:agenda_day(dayGroup.day)}</h4>
                 <div class="hd-grid-schedule">
                     {#for talk in dayGroup.talks}
                     {#let details = info.get(talk.id)}
@@ -407,11 +407,11 @@
                                 {/for}
                             </div>
                             <select class="motivation-select hd-form-input" data-talk-id="{talk.id}">
-                                <option value="">{i18n.motivation_placeholder}</option>
-                                <option>{i18n.motivation_work}</option>
-                                <option>{i18n.motivation_learning}</option>
-                                <option>{i18n.motivation_speaker}</option>
-                                <option>{i18n.motivation_interesting}</option>
+                                <option value="">{i18n:motivation_placeholder}</option>
+                                <option>{i18n:motivation_work}</option>
+                                <option>{i18n:motivation_learning}</option>
+                                <option>{i18n:motivation_speaker}</option>
+                                <option>{i18n:motivation_interesting}</option>
                             </select>
                             <label class="attended-label" title="Asistí">
                                 <input type="checkbox" class="attended-checkbox" data-talk-id="{talk.id}" {#if
@@ -663,23 +663,23 @@
         };
 
         const economyText = {
-            buy: '{i18n.economy_btn_buy}',
-            buying: '{i18n.economy_btn_buying}',
-            loading: '{i18n.economy_loading}',
-            errorLoading: '{i18n.economy_error_loading}',
-            purchaseSuccess: '{i18n.economy_purchase_success_simple}',
-            purchaseError: '{i18n.economy_purchase_error_simple}',
-            emptyInventory: '{i18n.economy_empty_inventory}',
-            emptyTransactions: '{i18n.economy_empty_transactions}',
-            inventoryOwnedLabel: '{i18n.economy_inventory_owned(0)}',
-            lockedLabel: '{i18n.economy_locked_label}',
-            stockLeftLabel: '{i18n.economy_stock_left(0)}',
-            requireLevelLabel: '{i18n.economy_require_level(0)}',
-            requireTotalXpLabel: '{i18n.economy_require_total_xp(0)}',
-            requireClassXpLabel: '{i18n.economy_require_class_xp(0, "Class")}',
-            viewCatalog: '{i18n.economy_btn_view_catalog}',
-            availableNow: '{i18n.economy_status_available}',
-            outOfStock: '{i18n.economy_status_out_of_stock}'
+            buy: '{i18n:economy_btn_buy}',
+            buying: '{i18n:economy_btn_buying}',
+            loading: '{i18n:economy_loading}',
+            errorLoading: '{i18n:economy_error_loading}',
+            purchaseSuccess: '{i18n:economy_purchase_success_simple}',
+            purchaseError: '{i18n:economy_purchase_error_simple}',
+            emptyInventory: '{i18n:economy_empty_inventory}',
+            emptyTransactions: '{i18n:economy_empty_transactions}',
+            inventoryOwnedLabel: '{i18n:economy_inventory_owned(0)}',
+            lockedLabel: '{i18n:economy_locked_label}',
+            stockLeftLabel: '{i18n:economy_stock_left(0)}',
+            requireLevelLabel: '{i18n:economy_require_level(0)}',
+            requireTotalXpLabel: '{i18n:economy_require_total_xp(0)}',
+            requireClassXpLabel: '{i18n:economy_require_class_xp(0, "Class")}',
+            viewCatalog: '{i18n:economy_btn_view_catalog}',
+            availableNow: '{i18n:economy_status_available}',
+            outOfStock: '{i18n:economy_status_out_of_stock}'
         };
 
         const formatHcoin = (value) => {
@@ -724,7 +724,7 @@
                 ? Number(wallet.balance_hcoin)
                 : 0;
             economyBalanceValue.textContent = formatHcoin(balance);
-            economyBalanceMeta.textContent = '{i18n.economy_balance_amount(0)}'.replace('0', balance.toLocaleString());
+            economyBalanceMeta.textContent = '{i18n:economy_balance_amount(0)}'.replace('0', balance.toLocaleString());
             if (economySummaryBalance) {
                 economySummaryBalance.textContent = formatHcoin(balance);
             }
@@ -1047,10 +1047,10 @@
                     body: JSON.stringify(data)
                 });
                 if (!res.ok) {
-                    showNotification('error', '{i18n.msg_error_saving}');
+                    showNotification('error', '{i18n:msg_error_saving}');
                 }
             } catch (e) {
-                showNotification('error', '{i18n.msg_error_saving}');
+                showNotification('error', '{i18n:msg_error_saving}');
             }
         };
 
@@ -1066,7 +1066,7 @@
 
         document.querySelectorAll('.remove-talk').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (!confirm('{i18n.msg_confirm_delete}')) return;
+                if (!confirm('{i18n:msg_confirm_delete}')) return;
                 const id = btn.dataset.talkId;
                 btn.disabled = true;
                 try {
@@ -1079,10 +1079,10 @@
                         btn.closest('.talk-row').remove();
                         updateSummary();
                     } else {
-                        showNotification('error', '{i18n.msg_error_removing}');
+                        showNotification('error', '{i18n:msg_error_removing}');
                     }
                 } catch (e) {
-                    showNotification('error', '{i18n.msg_error_removing}');
+                    showNotification('error', '{i18n:msg_error_removing}');
                 }
             });
         });

@@ -1,13 +1,13 @@
 {#include layout/main activePage="comunidad"}
-{#title}{i18n.community_board_page_title}{/title}
+{#title}{i18n:community_board_page_title}{/title}
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header hd-section-heading">
-      <p class="section-subtitle">{i18n.community_board_subtitle}</p>
-      <h1>{i18n.community_board_heading}</h1>
+      <p class="section-subtitle">{i18n:community_board_subtitle}</p>
+      <h1>{i18n:community_board_heading}</h1>
     </div>
     <p class="section-subtitle">
-      {i18n.community_board_intro}
+      {i18n:community_board_intro}
     </p>
   </header>
   {#include fragments/community-submenu.html /}
@@ -16,37 +16,37 @@
     <div class="section-card events-full-width board-shell">
       <div class="board-summary-grid">
         <article class="board-summary-card">
-          <p class="section-subtitle">{i18n.community_board_group_homedir}</p>
+          <p class="section-subtitle">{i18n:community_board_group_homedir}</p>
           <h2>{homedirUsers}</h2>
-          <p>{i18n.community_board_group_homedir_desc}</p>
-          <a class="btn-primary" href="/comunidad/board/homedir-users">{i18n.community_board_view_members}</a>
+          <p>{i18n:community_board_group_homedir_desc}</p>
+          <a class="btn-primary" href="/comunidad/board/homedir-users">{i18n:community_board_view_members}</a>
         </article>
 
         <article class="board-summary-card">
-          <p class="section-subtitle">{i18n.community_board_group_github}</p>
+          <p class="section-subtitle">{i18n:community_board_group_github}</p>
           <h2>{githubUsers}</h2>
-          <p>{i18n.community_board_group_github_desc}</p>
-          <a class="btn-primary" href="/comunidad/board/github-users">{i18n.community_board_view_members}</a>
+          <p>{i18n:community_board_group_github_desc}</p>
+          <a class="btn-primary" href="/comunidad/board/github-users">{i18n:community_board_view_members}</a>
         </article>
 
         <article class="board-summary-card">
-          <p class="section-subtitle">{i18n.community_board_group_discord}</p>
+          <p class="section-subtitle">{i18n:community_board_group_discord}</p>
           <h2>{discordUsers}</h2>
-          <p>{i18n.community_board_group_discord_desc}</p>
+          <p>{i18n:community_board_group_discord_desc}</p>
           <div class="board-discord-meta">
-            <p>{i18n.community_board_discord_guild_members(discordUsers)}</p>
-            <p>{i18n.community_board_discord_listed(discordListedUsers)}</p>
-            <p>{i18n.community_board_discord_linked_profiles(discordLinkedProfiles)}</p>
-            <p>{i18n.community_board_discord_coverage(discordCoveragePercent)}</p>
+            <p>{i18n:community_board_discord_guild_members(discordUsers)}</p>
+            <p>{i18n:community_board_discord_listed(discordListedUsers)}</p>
+            <p>{i18n:community_board_discord_linked_profiles(discordLinkedProfiles)}</p>
+            <p>{i18n:community_board_discord_coverage(discordCoveragePercent)}</p>
             {#if discordOnlineUsers != null}
-              <p>{i18n.community_board_discord_online_now(discordOnlineUsers)}</p>
+              <p>{i18n:community_board_discord_online_now(discordOnlineUsers)}</p>
             {/if}
-            <p>{i18n.community_board_discord_source(discordSourceLabel)}</p>
+            <p>{i18n:community_board_discord_source(discordSourceLabel)}</p>
             {#if discordLastSyncLabel}
-              <p>{i18n.community_board_discord_last_sync(discordLastSyncLabel)}</p>
+              <p>{i18n:community_board_discord_last_sync(discordLastSyncLabel)}</p>
             {/if}
           </div>
-          <a class="btn-primary" href="/comunidad/board/discord-users">{i18n.community_board_view_members}</a>
+          <a class="btn-primary" href="/comunidad/board/discord-users">{i18n:community_board_view_members}</a>
         </article>
       </div>
     </div>

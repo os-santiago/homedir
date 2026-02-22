@@ -265,7 +265,7 @@ public interface AppMessages {
     String economy_catalog_status_label();
 
     @Message("Level {level}")
-    String resume_level(Object level);
+    String resume_level(int level);
 
     @Message("Experience: {current} XP / {total} XP")
     String resume_exp(int current, int total);
@@ -2251,7 +2251,7 @@ public interface AppMessages {
     String header_level_short();
 
     @Message("LVL {level}")
-    String header_level_label(Object level);
+    String header_level_label(int level);
 
     @Message("{current} / {total} XP")
     String header_xp_progress(int current, int total);

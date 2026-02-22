@@ -25,15 +25,15 @@ Moderacion CFP · {event.title}
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n.events_cfp_admin_testing_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n.events_cfp_admin_testing_desc}</p>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_testing_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_testing_desc}</p>
       </div>
       <div class="action-group" style="gap: 0.5rem;">
         <label class="form-hint" style="display: inline-flex; align-items: center; gap: 0.45rem; margin: 0;">
           <input id="cfpTestingToggle" type="checkbox" style="transform: translateY(1px);">
-          <span>{i18n.events_cfp_admin_testing_toggle_label}</span>
+          <span>{i18n:events_cfp_admin_testing_toggle_label}</span>
         </label>
-        <button id="cfpTestingSaveBtn" type="button" class="btn btn-secondary">{i18n.events_cfp_admin_testing_save}</button>
+        <button id="cfpTestingSaveBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_testing_save}</button>
       </div>
     </div>
     <p id="cfpTestingFeedback" class="form-hint" style="margin-top: 0.6rem;" hidden></p>
@@ -42,15 +42,15 @@ Moderacion CFP · {event.title}
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n.events_agenda_admin_proposed_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n.events_agenda_admin_proposed_desc}</p>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_agenda_admin_proposed_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_agenda_admin_proposed_desc}</p>
       </div>
       <div class="action-group" style="gap: 0.5rem;">
         <label class="form-hint" style="display: inline-flex; align-items: center; gap: 0.45rem; margin: 0;">
           <input id="agendaNoticeToggle" type="checkbox" style="transform: translateY(1px);">
-          <span>{i18n.events_agenda_admin_proposed_toggle_label}</span>
+          <span>{i18n:events_agenda_admin_proposed_toggle_label}</span>
         </label>
-        <button id="agendaNoticeSaveBtn" type="button" class="btn btn-secondary">{i18n.events_agenda_admin_proposed_save}</button>
+        <button id="agendaNoticeSaveBtn" type="button" class="btn btn-secondary">{i18n:events_agenda_admin_proposed_save}</button>
       </div>
     </div>
     <p id="agendaNoticeFeedback" class="form-hint" style="margin-top: 0.6rem;" hidden></p>
@@ -599,12 +599,12 @@ Moderacion CFP · {event.title}
           body: JSON.stringify({ testing_mode_enabled: !!testingToggle.checked })
         });
         if (!response.ok) {
-          showTestingFeedback("{i18n.events_cfp_admin_testing_error}", true);
+          showTestingFeedback("{i18n:events_cfp_admin_testing_error}", true);
           return;
         }
-        showTestingFeedback("{i18n.events_cfp_admin_testing_saved}", false);
+        showTestingFeedback("{i18n:events_cfp_admin_testing_saved}", false);
       } catch (e) {
-        showTestingFeedback("{i18n.events_cfp_admin_testing_error}", true);
+        showTestingFeedback("{i18n:events_cfp_admin_testing_error}", true);
       } finally {
         testingSaveBtn.disabled = false;
       }
@@ -631,12 +631,12 @@ Moderacion CFP · {event.title}
           body: JSON.stringify({ proposal_notice_enabled: !!agendaNoticeToggle.checked })
         });
         if (!response.ok) {
-          showAgendaNoticeFeedback("{i18n.events_agenda_admin_proposed_error}", true);
+          showAgendaNoticeFeedback("{i18n:events_agenda_admin_proposed_error}", true);
           return;
         }
-        showAgendaNoticeFeedback("{i18n.events_agenda_admin_proposed_saved}", false);
+        showAgendaNoticeFeedback("{i18n:events_agenda_admin_proposed_saved}", false);
       } catch (e) {
-        showAgendaNoticeFeedback("{i18n.events_agenda_admin_proposed_error}", true);
+        showAgendaNoticeFeedback("{i18n:events_agenda_admin_proposed_error}", true);
       } finally {
         agendaNoticeSaveBtn.disabled = false;
       }

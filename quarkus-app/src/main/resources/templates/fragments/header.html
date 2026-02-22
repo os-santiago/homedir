@@ -1,4 +1,4 @@
-<nav class="top-nav" aria-label="{i18n.header_aria_label}">
+<nav class="top-nav" aria-label="{i18n:header_aria_label}">
   <div class="logo">
     <a href="/" class="header-logo-link">
       <div class="logo-icon">
@@ -6,22 +6,22 @@
       </div>
       <div class="logo-text header-logo-text">
         <span id="navPlatformName" class="header-platform-name">HomeDir</span>
-        <span class="logo-subtitle header-logo-subtitle" id="navTagline">{i18n.platform_by} OpenSourceSantiago</span>
+        <span class="logo-subtitle header-logo-subtitle" id="navTagline">{i18n:platform_by} OpenSourceSantiago</span>
       </div>
     </a>
   </div>
 
   <div class="nav-actions">
-    <a href="/" class="nav-link {#if activePage == 'home'}nav-link-active{/if}">{i18n.nav_home}</a>
-    <a href="/comunidad" class="nav-link {#if activePage == 'comunidad'}nav-link-active{/if}">{i18n.nav_community}</a>
-    <a href="/eventos" class="nav-link {#if activePage == 'eventos'}nav-link-active{/if}">{i18n.nav_events}</a>
-    <a href="/proyectos" class="nav-link {#if activePage == 'proyectos'}nav-link-active{/if}">{i18n.nav_projects}</a>
+    <a href="/" class="nav-link {#if activePage == 'home'}nav-link-active{/if}">{i18n:nav_home}</a>
+    <a href="/comunidad" class="nav-link {#if activePage == 'comunidad'}nav-link-active{/if}">{i18n:nav_community}</a>
+    <a href="/eventos" class="nav-link {#if activePage == 'eventos'}nav-link-active{/if}">{i18n:nav_events}</a>
+    <a href="/proyectos" class="nav-link {#if activePage == 'proyectos'}nav-link-active{/if}">{i18n:nav_projects}</a>
 
     <a href="/notifications/center"
       class="nav-link notifications-bell {#if activePage == 'notifications'}nav-link-active{/if}"
-      aria-label="{i18n.nav_notifications}" data-nav-link>
+      aria-label="{i18n:nav_notifications}" data-nav-link>
       <span class="material-symbols-outlined">notifications</span>
-      <span class="sr-only">{i18n.nav_notifications}</span>
+      <span class="sr-only">{i18n:nav_notifications}</span>
       <span id="notif-badge" class="badge hidden">0</span>
     </a>
 
@@ -30,7 +30,7 @@
       <div class="user-menu-toggle">
         <a href="/private/profile" class="user-profile-link user-profile-link-styled">
           {#if userSession.avatarUrl}
-          <img src="{userSession.avatarUrl}" alt="{i18n.header_avatar_alt}" class="avatar-circle header-avatar-circle">
+          <img src="{userSession.avatarUrl}" alt="{i18n:header_avatar_alt}" class="avatar-circle header-avatar-circle">
           {#else}
           <div class="avatar-circle header-avatar-fallback">
             {#if userSession.displayName}
@@ -55,7 +55,7 @@
             {userSession.displayName ?: userName}
           </span>
           <span class="nes-badge is-splited header-level-badge">
-            <span class="is-dark">{i18n.header_level_short}</span>
+            <span class="is-dark">{i18n:header_level_short}</span>
             <span class="is-warning">{userSession.level}</span>
           </span>
         </a>
@@ -66,12 +66,12 @@
 
       <div class="dropdown-menu header-dropdown-menu">
         <div class="dropdown-header header-dropdown-header">
-          <small class="text-signed-in">{i18n.nav_signed_in_as}</small><br>
+          <small class="text-signed-in">{i18n:nav_signed_in_as}</small><br>
           <strong>{userSession.email ?: userName}</strong>
           <div class="header-xp-stats">
             <div class="header-xp-values">
-              <span>{i18n.header_level_label(userSession.level)}</span>
-              <span>{i18n.header_xp_progress(userSession.currentXp, userSession.nextLevelXp)}</span>
+              <span>{i18n:header_level_label(userSession.level)}</span>
+              <span>{i18n:header_xp_progress(userSession.currentXp, userSession.nextLevelXp)}</span>
             </div>
             <div class="xp-bar-container header-xp-bar-bg">
               <div class="xp-bar-fill header-xp-bar-fill"
@@ -82,46 +82,46 @@
         </div>
 
         <a href="/private/profile" class="dropdown-item header-dropdown-item">
-          <span class="material-symbols-outlined">person</span> {i18n.nav_my_profile}
+          <span class="material-symbols-outlined">person</span> {i18n:nav_my_profile}
         </a>
 
         {#if userSession.isAdmin}
         <a href="/private/admin" class="dropdown-item header-dropdown-item header-dropdown-item-admin">
-          <span class="material-symbols-outlined">settings</span> {i18n.nav_admin_panel}
+          <span class="material-symbols-outlined">settings</span> {i18n:nav_admin_panel}
         </a>
         {/if}
 
         {#if !userSession.githubLinked}
         <a href="/private/github/connect" class="dropdown-item header-dropdown-item header-dropdown-item-connect">
-          <span class="material-symbols-outlined">link</span> {i18n.nav_connect_github}
+          <span class="material-symbols-outlined">link</span> {i18n:nav_connect_github}
         </a>
         {#else}
         <div class="dropdown-item header-dropdown-item-github">
-          <span class="header-github-login">{i18n.header_github_connected(userSession.githubLogin)}</span>
+          <span class="header-github-login">{i18n:header_github_connected(userSession.githubLogin)}</span>
         </div>
         {/if}
 
         <div class="dropdown-divider header-dropdown-divider"></div>
 
         <a href="/logout" class="dropdown-item header-dropdown-item header-dropdown-item-admin">
-          <span class="material-symbols-outlined">logout</span> {i18n.nav_logout}
+          <span class="material-symbols-outlined">logout</span> {i18n:nav_logout}
         </a>
       </div>
     </div>
     {#else}
-    <a href="{#if isDev}/login.html{#else}/private/profile{/if}" class="login-btn-nav">{i18n.nav_login}</a>
+    <a href="{#if isDev}/login.html{#else}/private/profile{/if}" class="login-btn-nav">{i18n:nav_login}</a>
     {/if}
   </div>
 </nav>
 <div class="alpha-banner">
   <span class="alpha-badge">ALPHA v{appVersion}</span>
   · <a href="https://github.com/os-santiago/homedir" target="_blank"
-    class="link-white-underline">{i18n.header_alpha_repo}</a>
-  · <span class="text-opacity-80">{i18n.header_alpha_text}</span>
+    class="link-white-underline">{i18n:header_alpha_repo}</a>
+  · <span class="text-opacity-80">{i18n:header_alpha_text}</span>
 </div>
 {#if system.degraded}
 <div class="system-banner">
   <span class="material-symbols-outlined" style="vertical-align: middle;">warning</span> {system.message} -
-  {i18n.header_system_degraded}
+  {i18n:header_system_degraded}
 </div>
 {/if}

@@ -1,31 +1,31 @@
 {#include layout/main activePage="eventos"}
-{#title}{i18n.events_title}{/title}
+{#title}{i18n:events_title}{/title}
 {#body}
-<nav class="breadcrumbs"><span>{i18n.nav_home}</span> / <strong>{i18n.nav_events}</strong></nav>
+<nav class="breadcrumbs"><span>{i18n:nav_home}</span> / <strong>{i18n:nav_events}</strong></nav>
 
 
 <header class="page-header events-page-header">
   <div class="section-header hd-section-heading">
-    <p class="section-subtitle">{i18n.events_subtitle}</p>
-    <h1>{i18n.events_hero_title}</h1>
+    <p class="section-subtitle">{i18n:events_subtitle}</p>
+    <h1>{i18n:events_hero_title}</h1>
   </div>
-  <p class="section-subtitle">{i18n.events_hero_desc}</p>
+  <p class="section-subtitle">{i18n:events_hero_desc}</p>
 
   <div class="main-sections events-stats-container">
     <div class="section-card">
-      <p class="eyebrow">{i18n.events_card_upcoming}</p>
+      <p class="eyebrow">{i18n:events_card_upcoming}</p>
       <h2>{upcomingCount}</h2>
-      <p>{i18n.events_card_upcoming_desc}</p>
+      <p>{i18n:events_card_upcoming_desc}</p>
     </div>
     <div class="section-card">
-      <p class="eyebrow">{i18n.events_card_past}</p>
+      <p class="eyebrow">{i18n:events_card_past}</p>
       <h2>{pastCount}</h2>
-      <p>{i18n.events_card_past_desc}</p>
+      <p>{i18n:events_card_past_desc}</p>
     </div>
     <div class="section-card">
-      <p class="eyebrow">{i18n.events_card_today}</p>
+      <p class="eyebrow">{i18n:events_card_today}</p>
       <h2>{today}</h2>
-      <p>{i18n.events_card_today_desc}</p>
+      <p>{i18n:events_card_today_desc}</p>
     </div>
 
   </div>
@@ -33,13 +33,13 @@
 
 <section class="page-grid">
   <div class="section-header events-full-width hd-section-heading">
-    <p class="section-subtitle">{i18n.events_section_upcoming_subtitle}</p>
-    <h2 class="page-title">{i18n.events_section_upcoming_title}</h2>
+    <p class="section-subtitle">{i18n:events_section_upcoming_subtitle}</p>
+    <h2 class="page-title">{i18n:events_section_upcoming_title}</h2>
   </div>
 
   {#if upcomingEvents.isEmpty()}
   <div class="section-card events-full-width">
-    <p class="hd-empty-callout">{i18n.events_empty_upcoming}</p>
+    <p class="hd-empty-callout">{i18n:events_empty_upcoming}</p>
   </div>
   {#else}
   <div class="events-grid events-full-width">
@@ -62,13 +62,13 @@
 
 <section class="page-grid">
   <div class="section-header events-full-width events-section-margin hd-section-heading">
-    <p class="section-subtitle">{i18n.events_section_past_subtitle}</p>
-    <h2 class="page-title">{i18n.events_section_past_title}</h2>
+    <p class="section-subtitle">{i18n:events_section_past_subtitle}</p>
+    <h2 class="page-title">{i18n:events_section_past_title}</h2>
   </div>
 
   {#if pastEvents.isEmpty()}
   <div class="section-card events-full-width">
-    <p class="hd-empty-callout">{i18n.events_empty_past}</p>
+    <p class="hd-empty-callout">{i18n:events_empty_past}</p>
   </div>
   {#else}
   <div class="events-list events-full-width">

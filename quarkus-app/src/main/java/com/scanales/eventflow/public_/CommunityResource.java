@@ -6,6 +6,7 @@ import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -44,9 +45,10 @@ public class CommunityResource {
       @QueryParam("view") String viewParam,
       @QueryParam("filter") String filterParam,
       @QueryParam("media") String mediaParam,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render(viewParam, filterParam, mediaParam, null, headers, context);
+    return render(viewParam, filterParam, mediaParam, null, localeCookie, headers, context);
   }
 
   @GET
@@ -54,9 +56,10 @@ public class CommunityResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance lta(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", CommunityContentMedia.ALL, "lta", headers, context);
+    return render("featured", "all", CommunityContentMedia.ALL, "lta", localeCookie, headers, context);
   }
 
   @GET
@@ -64,10 +67,11 @@ public class CommunityResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance moderation(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     return render(
-        "featured", "all", CommunityContentMedia.ALL, "moderation", headers, context);
+        "featured", "all", CommunityContentMedia.ALL, "moderation", localeCookie, headers, context);
   }
 
   @GET
@@ -75,9 +79,10 @@ public class CommunityResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance propose(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", CommunityContentMedia.ALL, "propose", headers, context);
+    return render("featured", "all", CommunityContentMedia.ALL, "propose", localeCookie, headers, context);
   }
 
   private TemplateInstance render(
@@ -85,6 +90,7 @@ public class CommunityResource {
       String filterParam,
       String mediaParam,
       String forcedSubmenu,
+      String localeCookie,
       jakarta.ws.rs.core.HttpHeaders headers,
       io.vertx.ext.web.RoutingContext context) {
     boolean authenticated = isAuthenticated();
@@ -116,7 +122,7 @@ public class CommunityResource {
             summary.homedirUsers(),
             summary.githubUsers(),
             summary.discordUsers());
-    return template
+    return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
         .data("activeCommunitySubmenu", activeSubmenu)
@@ -140,9 +146,10 @@ public class CommunityResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance picks(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", CommunityContentMedia.ALL, "picks", headers, context);
+    return render("featured", "all", CommunityContentMedia.ALL, "picks", localeCookie, headers, context);
   }
 
   private String normalizeFilter(String filterParam) {

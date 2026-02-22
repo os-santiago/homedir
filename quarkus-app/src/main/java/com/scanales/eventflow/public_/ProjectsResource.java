@@ -9,6 +9,7 @@ import com.scanales.eventflow.service.GithubService.GithubContributor;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.scheduler.Scheduled;
@@ -130,6 +131,7 @@ public class ProjectsResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance proyectos(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/proyectos", headers, context);
@@ -139,7 +141,7 @@ public class ProjectsResource {
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     ProjectDashboard dashboard = buildDashboard(snapshot, contributors, messages);
     TemplateInstance template = Templates.proyectos(dashboard);
-    return withLayoutData(template, "proyectos");
+    return withLayoutData(template, "proyectos", localeCookie);
   }
 
   private java.util.Optional<String> currentUserId() {
@@ -842,10 +844,11 @@ public class ProjectsResource {
     return i18n.project_dashboard_relative_years(years);
   }
 
-  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+  private TemplateInstance withLayoutData(
+      TemplateInstance templateInstance, String activePage, String localeCookie) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : null;
-    return templateInstance
+    return TemplateLocaleUtil.apply(templateInstance, localeCookie)
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)

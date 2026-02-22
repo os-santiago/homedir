@@ -1,26 +1,26 @@
 {#include layout/main activePage="comunidad"}
 {#title}
 {#if groupPath == 'homedir-users'}
-{i18n.community_board_group_homedir} · {i18n.community_board_heading}
+{i18n:community_board_group_homedir} · {i18n:community_board_heading}
 {#else if groupPath == 'github-users'}
-{i18n.community_board_group_github} · {i18n.community_board_heading}
+{i18n:community_board_group_github} · {i18n:community_board_heading}
 {#else if groupPath == 'discord-users'}
-{i18n.community_board_group_discord} · {i18n.community_board_heading}
+{i18n:community_board_group_discord} · {i18n:community_board_heading}
 {#else}
-{groupTitle} · {i18n.community_board_heading}
+{groupTitle} · {i18n:community_board_heading}
 {/if}
 {/title}
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header hd-section-heading">
-      <p class="section-subtitle">{i18n.community_board_subtitle}</p>
+      <p class="section-subtitle">{i18n:community_board_subtitle}</p>
       <h1>
         {#if groupPath == 'homedir-users'}
-        {i18n.community_board_group_homedir}
+        {i18n:community_board_group_homedir}
         {#else if groupPath == 'github-users'}
-        {i18n.community_board_group_github}
+        {i18n:community_board_group_github}
         {#else if groupPath == 'discord-users'}
-        {i18n.community_board_group_discord}
+        {i18n:community_board_group_discord}
         {#else}
         {groupTitle}
         {/if}
@@ -28,11 +28,11 @@
     </div>
     <p class="section-subtitle">
       {#if groupPath == 'homedir-users'}
-      {i18n.community_board_group_homedir_desc}
+      {i18n:community_board_group_homedir_desc}
       {#else if groupPath == 'github-users'}
-      {i18n.community_board_group_github_desc}
+      {i18n:community_board_group_github_desc}
       {#else if groupPath == 'discord-users'}
-      {i18n.community_board_group_discord_desc}
+      {i18n:community_board_group_discord_desc}
       {#else}
       {groupDescription}
       {/if}
@@ -43,17 +43,17 @@
   <section class="page-grid">
     <div class="section-card events-full-width board-detail-shell">
       <div class="board-detail-head">
-        <p class="section-subtitle">{i18n.community_board_members_count(total)}</p>
+        <p class="section-subtitle">{i18n:community_board_members_count(total)}</p>
         {#if total > 0}
-          <p class="section-subtitle">{i18n.community_board_pagination_status(pageStart, pageEnd, total)}</p>
+          <p class="section-subtitle">{i18n:community_board_pagination_status(pageStart, pageEnd, total)}</p>
         {/if}
       </div>
       {#if groupPath == 'discord-users'}
         <div class="board-detail-metrics" aria-label="Discord coverage metrics">
-          <span class="board-detail-metric">{i18n.community_board_discord_guild_members(discordGuildMembers)}</span>
-          <span class="board-detail-metric">{i18n.community_board_discord_listed(discordListedUsers)}</span>
-          <span class="board-detail-metric">{i18n.community_board_discord_linked_profiles(discordLinkedProfiles)}</span>
-          <span class="board-detail-metric">{i18n.community_board_discord_coverage(discordCoveragePercent)}</span>
+          <span class="board-detail-metric">{i18n:community_board_discord_guild_members(discordGuildMembers)}</span>
+          <span class="board-detail-metric">{i18n:community_board_discord_listed(discordListedUsers)}</span>
+          <span class="board-detail-metric">{i18n:community_board_discord_linked_profiles(discordLinkedProfiles)}</span>
+          <span class="board-detail-metric">{i18n:community_board_discord_coverage(discordCoveragePercent)}</span>
         </div>
       {/if}
 
@@ -62,17 +62,17 @@
           type="search"
           name="q"
           value="{searchQuery}"
-          placeholder="{i18n.community_board_search_placeholder}"
-          aria-label="{i18n.community_board_search_aria}"
+          placeholder="{i18n:community_board_search_placeholder}"
+          aria-label="{i18n:community_board_search_aria}"
           class="board-search-input" />
         <input type="hidden" name="limit" value="{limit}" />
-        <button type="submit" class="btn-primary">{i18n.community_board_search}</button>
+        <button type="submit" class="btn-primary">{i18n:community_board_search}</button>
       </form>
 
       <div class="board-members-grid">
         {#if members.isEmpty}
           <article class="board-member-card">
-            <p>{i18n.community_board_no_members}</p>
+            <p>{i18n:community_board_no_members}</p>
           </article>
         {#else}
           {#for member in members}
@@ -89,23 +89,23 @@
                   <h2>{member.displayName}</h2>
                   <p>{member.handle}</p>
                   {#if member.memberSince}
-                    <small>{i18n.community_board_member_since(member.memberSince)}</small>
+                    <small>{i18n:community_board_member_since(member.memberSince)}</small>
                   {/if}
                 </div>
               </div>
               <div class="board-member-actions">
-                <a class="btn-primary" href="{member.profileLink}">{i18n.community_board_open}</a>
+                <a class="btn-primary" href="{member.profileLink}">{i18n:community_board_open}</a>
                 {#if groupPath == 'discord-users' && isAuthenticated}
-                <a class="btn-primary board-claim-form" href="/private/discord/start?redirect=/comunidad/board/discord-users?member={member.id}">{i18n.community_board_claim}</a>
+                <a class="btn-primary board-claim-form" href="/private/discord/start?redirect=/comunidad/board/discord-users?member={member.id}">{i18n:community_board_claim}</a>
                 {/if}
                 <button
                   type="button"
                   class="btn-primary board-copy-btn"
-                  data-default-label="{i18n.community_board_copy_profile_link}"
-                  data-success-label="{i18n.community_board_link_copied}"
-                  data-error-label="{i18n.community_board_copy_failed}"
+                  data-default-label="{i18n:community_board_copy_profile_link}"
+                  data-success-label="{i18n:community_board_link_copied}"
+                  data-error-label="{i18n:community_board_copy_failed}"
                   data-share-link="{member.shareLink}">
-                  {i18n.community_board_copy_profile_link}
+                  {i18n:community_board_copy_profile_link}
                 </button>
               </div>
             </article>
@@ -115,14 +115,14 @@
 
       <div class="board-pagination">
         {#if hasPreviousPage}
-          <a class="btn-primary" href="{previousPageUrl}">{i18n.community_board_prev}</a>
+          <a class="btn-primary" href="{previousPageUrl}">{i18n:community_board_prev}</a>
         {#else}
-          <span class="btn-primary board-page-disabled">{i18n.community_board_prev}</span>
+          <span class="btn-primary board-page-disabled">{i18n:community_board_prev}</span>
         {/if}
         {#if hasNextPage}
-          <a class="btn-primary" href="{nextPageUrl}">{i18n.community_board_next}</a>
+          <a class="btn-primary" href="{nextPageUrl}">{i18n:community_board_next}</a>
         {#else}
-          <span class="btn-primary board-page-disabled">{i18n.community_board_next}</span>
+          <span class="btn-primary board-page-disabled">{i18n:community_board_next}</span>
         {/if}
       </div>
     </div>

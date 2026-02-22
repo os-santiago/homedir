@@ -12,6 +12,7 @@ import com.scanales.eventflow.service.QuestService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.Template;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -60,7 +61,9 @@ public class PublicProfileResource {
     @GET
     @Path("/{username}")
     @Produces(MediaType.TEXT_HTML)
-    public Response getPublicProfile(@PathParam("username") String username) {
+    public Response getPublicProfile(
+        @PathParam("username") String username,
+        @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
         String requested = normalizeId(username);
         if (requested == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -96,34 +99,40 @@ public class PublicProfileResource {
         boolean hasGithub = resolved.githubLogin() != null;
         boolean hasDiscord = resolved.discordHandle() != null || resolved.discordProfileUrl() != null;
 
-        return Response.ok(publicProfile
-            .data("pageTitle", resolved.displayName() + " (@" + resolved.canonicalUsername() + ")")
-            .data("username", resolved.canonicalUsername())
-            .data("displayName", resolved.displayName())
-            .data("avatarUrl", resolved.avatarUrl())
-            .data("level", questProfile.level)
-            .data("currentXp", questProfile.currentXp)
-            .data("nextLevelXp", questProfile.nextLevelXp)
-            .data("xpPercentage", xpPercentage)
-            .data("questClass", questClassLabel)
-            .data("questClassEmoji", questClassEmoji)
-            .data("dominantClassMessage", dominantClassMessage)
-            .data("classProgress", classProgress)
-            .data("questsCompleted", questsCompleted)
-            .data("badges", badges)
-            .data("history", questProfile.history != null ? questProfile.history : List.of())
-            .data("githubLogin", resolved.githubLogin())
-            .data("githubProfileUrl", resolved.githubProfileUrl())
-            .data("discordHandle", resolved.discordHandle())
-            .data("discordProfileUrl", resolved.discordProfileUrl())
-            .data("homedirId", resolved.homedirId())
-            .data("hasGithub", hasGithub)
-            .data("hasDiscord", hasDiscord)
-            .data("hasLinkedAccounts", hasGithub || hasDiscord)
-            .data("ogTitle", resolved.displayName() + " - Homedir Profile")
-            .data("ogDescription", "Check out @" + resolved.canonicalUsername() + " and their community activity.")
-            .data("ogImage", "https://og.scanales.com/api/og?title=" + resolved.canonicalUsername() + "&subtitle=Level "
-                + questProfile.level))
+        return Response.ok(TemplateLocaleUtil.apply(
+            publicProfile
+                .data("pageTitle", resolved.displayName() + " (@" + resolved.canonicalUsername() + ")")
+                .data("username", resolved.canonicalUsername())
+                .data("displayName", resolved.displayName())
+                .data("avatarUrl", resolved.avatarUrl())
+                .data("level", questProfile.level)
+                .data("currentXp", questProfile.currentXp)
+                .data("nextLevelXp", questProfile.nextLevelXp)
+                .data("xpPercentage", xpPercentage)
+                .data("questClass", questClassLabel)
+                .data("questClassEmoji", questClassEmoji)
+                .data("dominantClassMessage", dominantClassMessage)
+                .data("classProgress", classProgress)
+                .data("questsCompleted", questsCompleted)
+                .data("badges", badges)
+                .data("history", questProfile.history != null ? questProfile.history : List.of())
+                .data("githubLogin", resolved.githubLogin())
+                .data("githubProfileUrl", resolved.githubProfileUrl())
+                .data("discordHandle", resolved.discordHandle())
+                .data("discordProfileUrl", resolved.discordProfileUrl())
+                .data("homedirId", resolved.homedirId())
+                .data("hasGithub", hasGithub)
+                .data("hasDiscord", hasDiscord)
+                .data("hasLinkedAccounts", hasGithub || hasDiscord)
+                .data("ogTitle", resolved.displayName() + " - Homedir Profile")
+                .data("ogDescription", "Check out @" + resolved.canonicalUsername() + " and their community activity.")
+                .data(
+                    "ogImage",
+                    "https://og.scanales.com/api/og?title="
+                        + resolved.canonicalUsername()
+                        + "&subtitle=Level "
+                        + questProfile.level),
+            localeCookie))
             .build();
     }
 

@@ -5,6 +5,7 @@ import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.SpeakerService;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.annotation.security.PermitAll;
@@ -34,7 +35,9 @@ public class SpeakerResource {
   @Path("{id}")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance detail(@PathParam("id") String id) {
+  public TemplateInstance detail(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
     Speaker sp = speakerService.getSpeaker(id);
     Map<String, List<Event>> talkEvents = new HashMap<>();
     if (sp != null && sp.getTalks() != null) {
@@ -45,6 +48,6 @@ public class SpeakerResource {
         }
       }
     }
-    return Templates.detail(sp, talkEvents);
+    return TemplateLocaleUtil.apply(Templates.detail(sp, talkEvents), localeCookie);
   }
 }
