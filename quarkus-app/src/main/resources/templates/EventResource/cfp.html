@@ -5,9 +5,9 @@
 {@java.lang.Boolean cfpTestingModeEnabled}
 {#title}
 {#if event}
-{i18n.events_cfp_page_title(event.title)}
+{i18n:events_cfp_page_title(event.title)}
 {#else}
-{i18n.events_cfp_not_found_title}
+{i18n:events_cfp_not_found_title}
 {/if}
 {/title}
 
@@ -16,30 +16,30 @@
 <header class="page-header">
   <div class="section-header">
     <p class="section-subtitle">
-      <a href="/event/{event.id}" class="hd-link">← {i18n.events_cfp_back_to_event}</a>
+      <a href="/event/{event.id}" class="hd-link">← {i18n:events_cfp_back_to_event}</a>
     </p>
-    <p class="section-subtitle">{i18n.events_cfp_eyebrow}</p>
-    <h1 class="public-title">{i18n.events_cfp_heading}</h1>
+    <p class="section-subtitle">{i18n:events_cfp_eyebrow}</p>
+    <h1 class="public-title">{i18n:events_cfp_heading}</h1>
   </div>
-  <p class="section-subtitle">{i18n.events_cfp_intro(event.title)}</p>
+  <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
 </header>
 
 <section class="page-grid">
   <div class="cfp-view-switch" style="grid-column: 1 / -1;">
-    <button id="cfpShowNewBtn" type="button" class="btn login-btn-nav cfp-view-btn is-active">{i18n.events_cfp_tab_new_proposal}</button>
-    <button id="cfpShowMineBtn" type="button" class="btn login-btn-nav cfp-view-btn">{i18n.events_cfp_tab_my_proposals}</button>
+    <button id="cfpShowNewBtn" type="button" class="btn login-btn-nav cfp-view-btn is-active">{i18n:events_cfp_tab_new_proposal}</button>
+    <button id="cfpShowMineBtn" type="button" class="btn login-btn-nav cfp-view-btn">{i18n:events_cfp_tab_my_proposals}</button>
   </div>
 
   <article id="cfpSectionNew" class="section-card" style="grid-column: 1 / -1;">
-    <h2 style="margin-top: 0;">{i18n.events_cfp_submit_title}</h2>
-    <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n.events_cfp_submit_desc}</p>
+    <h2 style="margin-top: 0;">{i18n:events_cfp_submit_title}</h2>
+    <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n:events_cfp_submit_desc}</p>
 
     {#if cfpTestingModeEnabled}
-    <div class="cfp-testing-banner" role="note" aria-label="{i18n.events_cfp_testing_aria}">
-      <span class="cfp-testing-badge">{i18n.events_cfp_testing_badge}</span>
+    <div class="cfp-testing-banner" role="note" aria-label="{i18n:events_cfp_testing_aria}">
+      <span class="cfp-testing-badge">{i18n:events_cfp_testing_badge}</span>
       <div>
-        <p class="cfp-testing-title">{i18n.events_cfp_testing_title}</p>
-        <p class="cfp-testing-desc">{i18n.events_cfp_testing_desc}</p>
+        <p class="cfp-testing-title">{i18n:events_cfp_testing_title}</p>
+        <p class="cfp-testing-desc">{i18n:events_cfp_testing_desc}</p>
       </div>
     </div>
     {/if}
@@ -48,103 +48,103 @@
     <form id="cfpForm" data-user-scope="{userName}">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="cfpTitle">{i18n.events_cfp_form_title}</label>
+          <label class="form-label" for="cfpTitle">{i18n:events_cfp_form_title}</label>
           <input id="cfpTitle" name="title" class="form-input" maxlength="160" required>
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="cfpSummary">{i18n.events_cfp_form_summary}</label>
+          <label class="form-label" for="cfpSummary">{i18n:events_cfp_form_summary}</label>
           <textarea id="cfpSummary" name="summary" class="form-textarea" rows="2" maxlength="360"></textarea>
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="cfpAbstract">{i18n.events_cfp_form_abstract}</label>
+          <label class="form-label" for="cfpAbstract">{i18n:events_cfp_form_abstract}</label>
           <textarea id="cfpAbstract" name="abstractText" class="form-textarea" rows="6" maxlength="5000" required></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label" for="cfpLevel">{i18n.events_cfp_form_level}</label>
+          <label class="form-label" for="cfpLevel">{i18n:events_cfp_form_level}</label>
           <select id="cfpLevel" name="level" class="form-select" required>
-            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            <option value="">{i18n:events_cfp_form_select_placeholder}</option>
             {#for option in cfpCatalog.levels}
             <option value="{option.value}">{option.label}</option>
             {/for}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="cfpFormat">{i18n.events_cfp_form_format}</label>
+          <label class="form-label" for="cfpFormat">{i18n:events_cfp_form_format}</label>
           <select id="cfpFormat" name="format" class="form-select" required>
-            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            <option value="">{i18n:events_cfp_form_select_placeholder}</option>
             {#for option in cfpCatalog.formats}
             <option value="{option.value}" data-duration="{cfpDurationByFormat.get(option.value)}">{option.label}</option>
             {/for}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="cfpDuration">{i18n.events_cfp_form_duration}</label>
+          <label class="form-label" for="cfpDuration">{i18n:events_cfp_form_duration}</label>
           <select id="cfpDuration" name="durationMin" class="form-select" required disabled>
-            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            <option value="">{i18n:events_cfp_form_select_placeholder}</option>
             {#for option in cfpCatalog.durations}
             <option value="{option.value}">{option.label}</option>
             {/for}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="cfpLanguage">{i18n.events_cfp_form_language}</label>
+          <label class="form-label" for="cfpLanguage">{i18n:events_cfp_form_language}</label>
           <select id="cfpLanguage" name="language" class="form-select" required>
-            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            <option value="">{i18n:events_cfp_form_select_placeholder}</option>
             {#for option in cfpCatalog.languages}
             <option value="{option.value}">{option.label}</option>
             {/for}
           </select>
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="cfpTrack">{i18n.events_cfp_form_track}</label>
+          <label class="form-label" for="cfpTrack">{i18n:events_cfp_form_track}</label>
           <select id="cfpTrack" name="track" class="form-select" required>
-            <option value="">{i18n.events_cfp_form_select_placeholder}</option>
+            <option value="">{i18n:events_cfp_form_select_placeholder}</option>
             {#for option in cfpCatalog.tracks}
             <option value="{option.value}">{option.label}</option>
             {/for}
           </select>
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="cfpLinks">{i18n.events_cfp_form_links}</label>
+          <label class="form-label" for="cfpLinks">{i18n:events_cfp_form_links}</label>
           <input id="cfpLinks" name="links" class="form-input" placeholder="https://sessionize.com/your-session, https://github.com/...">
         </div>
       </div>
       <div class="form-actions">
-        <button id="cfpSubmitBtn" type="button" class="btn btn-primary">{i18n.events_cfp_form_submit}</button>
-        <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n.events_cfp_autofill_last}</button>
+        <button id="cfpSubmitBtn" type="button" class="btn btn-primary">{i18n:events_cfp_form_submit}</button>
+        <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_autofill_last}</button>
       </div>
       <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
     </form>
     <p id="cfpFeedback" class="form-hint" hidden></p>
     {#else}
-    <p class="section-subtitle">{i18n.events_cfp_login_required}</p>
-    <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary">{i18n.events_cfp_login_btn}</a>
+    <p class="section-subtitle">{i18n:events_cfp_login_required}</p>
+    <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary">{i18n:events_cfp_login_btn}</a>
     {/if}
   </article>
 
   <article id="cfpSectionMine" class="section-card cfp-section-hidden" style="grid-column: 1 / -1;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
       <div>
-        <h2 style="margin: 0;">{i18n.events_cfp_my_submissions_title}</h2>
+        <h2 style="margin: 0;">{i18n:events_cfp_my_submissions_title}</h2>
         {#if userAuthenticated}
-        <p id="cfpCountLabel" class="form-hint cfp-count-label">0/2 {i18n.events_cfp_proposals_unit}</p>
+        <p id="cfpCountLabel" class="form-hint cfp-count-label">0/2 {i18n:events_cfp_proposals_unit}</p>
         {/if}
       </div>
       {#if userAuthenticated}
-      <button id="cfpReloadBtn" type="button" class="btn login-btn-nav">{i18n.events_cfp_refresh}</button>
+      <button id="cfpReloadBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_refresh}</button>
       {/if}
     </div>
     <div class="cfp-status-guide">
-      <p><span class="cfp-status-badge cfp-status-pending">{i18n.events_cfp_status_pending}</span> {i18n.events_cfp_status_desc_pending}</p>
-      <p><span class="cfp-status-badge cfp-status-under_review">{i18n.events_cfp_status_under_review}</span> {i18n.events_cfp_status_desc_under_review}</p>
-      <p><span class="cfp-status-badge cfp-status-accepted">{i18n.events_cfp_status_accepted}</span> {i18n.events_cfp_status_desc_accepted}</p>
-      <p><span class="cfp-status-badge cfp-status-rejected">{i18n.events_cfp_status_rejected}</span> {i18n.events_cfp_status_desc_rejected}</p>
+      <p><span class="cfp-status-badge cfp-status-pending">{i18n:events_cfp_status_pending}</span> {i18n:events_cfp_status_desc_pending}</p>
+      <p><span class="cfp-status-badge cfp-status-under_review">{i18n:events_cfp_status_under_review}</span> {i18n:events_cfp_status_desc_under_review}</p>
+      <p><span class="cfp-status-badge cfp-status-accepted">{i18n:events_cfp_status_accepted}</span> {i18n:events_cfp_status_desc_accepted}</p>
+      <p><span class="cfp-status-badge cfp-status-rejected">{i18n:events_cfp_status_rejected}</span> {i18n:events_cfp_status_desc_rejected}</p>
     </div>
     <div id="cfpMineList" class="cfp-submission-list" style="margin-top: 0.9rem;">
       {#if userAuthenticated}
-      <p class="form-hint">{i18n.events_cfp_loading}</p>
+      <p class="form-hint">{i18n:events_cfp_loading}</p>
       {#else}
-      <p class="form-hint">{i18n.events_cfp_login_to_view}</p>
+      <p class="form-hint">{i18n:events_cfp_login_to_view}</p>
       {/if}
     </div>
   </article>
@@ -154,8 +154,8 @@
   <div class="section-card cfp-submitting-modal" role="status" aria-live="polite">
     <span class="cfp-submitting-spinner" aria-hidden="true"></span>
     <div>
-      <p class="cfp-submitting-title">{i18n.events_cfp_submitting_title}</p>
-      <p class="cfp-submitting-desc">{i18n.events_cfp_submitting_desc}</p>
+      <p class="cfp-submitting-title">{i18n:events_cfp_submitting_title}</p>
+      <p class="cfp-submitting-desc">{i18n:events_cfp_submitting_desc}</p>
     </div>
   </div>
 </div>
@@ -438,16 +438,16 @@
     let submitInFlight = false;
 
     const labels = {
-      pending: "{i18n.events_cfp_status_pending}",
-      under_review: "{i18n.events_cfp_status_under_review}",
-      accepted: "{i18n.events_cfp_status_accepted}",
-      rejected: "{i18n.events_cfp_status_rejected}",
-      withdrawn: "{i18n.events_cfp_status_withdrawn}"
+      pending: "{i18n:events_cfp_status_pending}",
+      under_review: "{i18n:events_cfp_status_under_review}",
+      accepted: "{i18n:events_cfp_status_accepted}",
+      rejected: "{i18n:events_cfp_status_rejected}",
+      withdrawn: "{i18n:events_cfp_status_withdrawn}"
     };
 
     const errorLabels = {
-      duplicate_title: "{i18n.events_cfp_error_duplicate_title}",
-      proposal_limit_reached: "{i18n.events_cfp_error_limit_reached}"
+      duplicate_title: "{i18n:events_cfp_error_duplicate_title}",
+      proposal_limit_reached: "{i18n:events_cfp_error_limit_reached}"
     };
 
     function buildOptionMap(selectId) {
@@ -606,19 +606,19 @@
     function restoreLastProposal() {
       const raw = safeStorageGet(lastStorageKey) || safeStorageGet(draftStorageKey);
       if (!raw) {
-        showFeedback("{i18n.events_cfp_restore_empty}", true);
+        showFeedback("{i18n:events_cfp_restore_empty}", true);
         return;
       }
       try {
         const parsed = JSON.parse(raw);
         if (!applySnapshot(parsed)) {
-          showFeedback("{i18n.events_cfp_restore_empty}", true);
+          showFeedback("{i18n:events_cfp_restore_empty}", true);
           return;
         }
         saveDraftFromForm();
-        showFeedback("{i18n.events_cfp_restore_success}", false);
+        showFeedback("{i18n:events_cfp_restore_success}", false);
       } catch (error) {
-        showFeedback("{i18n.events_cfp_restore_empty}", true);
+        showFeedback("{i18n:events_cfp_restore_empty}", true);
       }
     }
 
@@ -641,11 +641,11 @@
       const submitted = mineItems ? mineItems.length : 0;
       const remaining = Math.max(0, proposalLimit - submitted);
       if (countLabel) {
-        countLabel.textContent = submitted + "/" + proposalLimit + " {i18n.events_cfp_proposals_unit}";
+        countLabel.textContent = submitted + "/" + proposalLimit + " {i18n:events_cfp_proposals_unit}";
       }
       if (quotaHint) {
         quotaHint.textContent =
-          "{i18n.events_cfp_quota_prefix} " + proposalLimit + " · {i18n.events_cfp_quota_remaining} " + remaining + ".";
+          "{i18n:events_cfp_quota_prefix} " + proposalLimit + " · {i18n:events_cfp_quota_remaining} " + remaining + ".";
       }
       if (submitBtn) {
         submitBtn.disabled = remaining <= 0;
@@ -671,7 +671,7 @@
       if (!id) {
         return;
       }
-      if (!window.confirm("{i18n.events_cfp_confirm_delete}")) {
+      if (!window.confirm("{i18n:events_cfp_confirm_delete}")) {
         return;
       }
       try {
@@ -680,13 +680,13 @@
           headers: { Accept: "application/json" }
         });
         if (!response.ok) {
-          showFeedback("{i18n.events_cfp_error_delete}", true);
+          showFeedback("{i18n:events_cfp_error_delete}", true);
           return;
         }
-        showFeedback("{i18n.events_cfp_success_delete}", false);
+        showFeedback("{i18n:events_cfp_success_delete}", false);
         await loadMine();
       } catch (error) {
-        showFeedback("{i18n.events_cfp_error_delete}", true);
+        showFeedback("{i18n:events_cfp_error_delete}", true);
       }
     }
 
@@ -696,7 +696,7 @@
       if (mineItems.length === 0) {
         const empty = document.createElement("p");
         empty.className = "form-hint";
-        empty.textContent = "{i18n.events_cfp_empty_mine}";
+        empty.textContent = "{i18n:events_cfp_empty_mine}";
         mineList.appendChild(empty);
         updateQuotaHint();
         return;
@@ -746,7 +746,7 @@
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
         deleteBtn.className = "btn login-btn-nav";
-        deleteBtn.textContent = "{i18n.events_cfp_delete}";
+        deleteBtn.textContent = "{i18n:events_cfp_delete}";
         deleteBtn.addEventListener("click", () => deleteSubmission(item.id));
         actions.appendChild(deleteBtn);
         article.appendChild(actions);
@@ -759,7 +759,7 @@
     async function loadMine() {
       if (!mineList) return;
       try {
-        mineList.innerHTML = '<p class="form-hint">{i18n.events_cfp_loading}</p>';
+        mineList.innerHTML = '<p class="form-hint">{i18n:events_cfp_loading}</p>';
         const response = await fetch(mineEndpoint, { headers: { Accept: "application/json" } });
         if (!response.ok) {
           throw new Error("status_" + response.status);
@@ -767,7 +767,7 @@
         const payload = await response.json();
         renderMine(payload.items || []);
       } catch (error) {
-        mineList.innerHTML = '<p class="form-hint">{i18n.events_cfp_error_load}</p>';
+        mineList.innerHTML = '<p class="form-hint">{i18n:events_cfp_error_load}</p>';
         mineItems = [];
         updateQuotaHint();
       }
@@ -795,7 +795,7 @@
       }
 
       if (mineItems.length >= proposalLimit) {
-        showFeedback("{i18n.events_cfp_error_limit_reached}", true);
+        showFeedback("{i18n:events_cfp_error_limit_reached}", true);
         updateQuotaHint();
         return;
       }
@@ -820,7 +820,7 @@
           body: JSON.stringify(payload)
         });
         if (!response.ok) {
-          let message = "{i18n.events_cfp_error_submit}";
+          let message = "{i18n:events_cfp_error_submit}";
           try {
             const errPayload = await response.json();
             if (errPayload && errPayload.error) {
@@ -834,11 +834,11 @@
         form.reset();
         syncDurationFromFormat();
         clearDraft();
-        showFeedback("{i18n.events_cfp_success_submit}", false);
+        showFeedback("{i18n:events_cfp_success_submit}", false);
         setActiveSection("mine");
         await loadMine();
       } catch (error) {
-        showFeedback("{i18n.events_cfp_error_submit}", true);
+        showFeedback("{i18n:events_cfp_error_submit}", true);
       } finally {
         submitInFlight = false;
         setSubmitting(false);
@@ -883,9 +883,9 @@
 <div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 45vh;">
   <article class="section-card" style="text-align: center;">
     <span class="material-symbols-outlined" style="font-size: 3.2rem; opacity: 0.55;">event_busy</span>
-    <h2>{i18n.events_cfp_not_found_title}</h2>
-    <p>{i18n.events_cfp_not_found_desc}</p>
-    <a href="/eventos" class="btn-primary">{i18n.nav_events}</a>
+    <h2>{i18n:events_cfp_not_found_title}</h2>
+    <p>{i18n:events_cfp_not_found_desc}</p>
+    <a href="/eventos" class="btn-primary">{i18n:nav_events}</a>
   </article>
 </div>
 {/if}

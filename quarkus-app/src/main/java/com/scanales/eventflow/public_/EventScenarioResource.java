@@ -5,6 +5,7 @@ import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
@@ -30,6 +31,7 @@ public class EventScenarioResource {
   public TemplateInstance detailWithEvent(
       @PathParam("eventId") String eventId,
       @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/" + eventId + "/scenario", headers, context);
@@ -52,7 +54,7 @@ public class EventScenarioResource {
                     .thenComparing(com.scanales.eventflow.model.Talk::getStartTime))
             .toList();
     metrics.recordStageVisit(id, event.getTimezone(), headers, context);
-    return ScenarioResource.Templates.detail(scenario, event, talks);
+    return TemplateLocaleUtil.apply(ScenarioResource.Templates.detail(scenario, event, talks), localeCookie);
   }
 
   private java.util.Optional<String> currentUserId() {

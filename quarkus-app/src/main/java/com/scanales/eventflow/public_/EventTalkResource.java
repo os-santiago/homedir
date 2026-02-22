@@ -7,6 +7,7 @@ import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -48,6 +49,7 @@ public class EventTalkResource {
   public Response detailWithEvent(
       @PathParam("eventId") String eventId,
       @PathParam("talkId") String talkId,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     String ua = headers.getHeaderString("User-Agent");
@@ -91,7 +93,9 @@ public class EventTalkResource {
           inSchedule = userSchedule.getTalksForUser(email).contains(resolvedTalkId);
         }
       }
-      return Response.ok(TalkResource.Templates.detail(talk, event, occurrences, inSchedule))
+      return Response.ok(
+              TemplateLocaleUtil.apply(
+                  TalkResource.Templates.detail(talk, event, occurrences, inSchedule), localeCookie))
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", talkId);

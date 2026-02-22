@@ -11,6 +11,7 @@ import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserSessionService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -53,6 +54,7 @@ public class EventResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance event(
       @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     String ua = headers.getHeaderString("User-Agent");
@@ -72,7 +74,8 @@ public class EventResource {
             event,
             agendaProposalConfigService != null
                 && agendaProposalConfigService.isProposalNoticeEnabled()),
-        "eventos");
+        "eventos",
+        localeCookie);
   }
 
   @GET
@@ -81,19 +84,25 @@ public class EventResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance cfp(
       @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/cfp", headers, context);
     currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id + ":cfp"));
     Event event = eventService.getEvent(id);
-    return withLayoutData(Templates.cfp(event, cfpFormOptionsService.catalog(), cfpFormOptionsService.durationByFormat()), "eventos")
+    return withLayoutData(
+            Templates.cfp(
+                event, cfpFormOptionsService.catalog(), cfpFormOptionsService.durationByFormat()),
+            "eventos",
+            localeCookie)
         .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
   }
 
-  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+  private TemplateInstance withLayoutData(
+      TemplateInstance templateInstance, String activePage, String localeCookie) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : null;
-    return templateInstance
+    return TemplateLocaleUtil.apply(templateInstance, localeCookie)
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)

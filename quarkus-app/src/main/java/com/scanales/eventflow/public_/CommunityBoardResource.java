@@ -8,6 +8,7 @@ import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.PaginationGuardrails;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -82,7 +83,7 @@ public class CommunityBoardResource {
   @GET
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance board() {
+  public TemplateInstance board(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
     currentUserId()
         .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
     var summary = boardService.summary();
@@ -98,7 +99,7 @@ public class CommunityBoardResource {
             summary.discordOnlineUsers(),
             discordSourceLabel(summary.discordDataSource()),
             formatSyncTime(summary.discordLastSyncAt()));
-    return withLayoutData(template, "board");
+    return withLayoutData(template, "board", localeCookie);
   }
 
   @GET
@@ -110,7 +111,8 @@ public class CommunityBoardResource {
       @QueryParam("q") String query,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam,
-      @QueryParam("member") String highlightedMember) {
+      @QueryParam("member") String highlightedMember,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
     CommunityBoardGroup group =
         CommunityBoardGroup.fromPath(groupPath).orElseThrow(() -> new NotFoundException("group_not_found"));
     currentUserId()
@@ -156,13 +158,15 @@ public class CommunityBoardResource {
             nextPageUrl,
             normalizeHighlightedMember(highlightedMember),
             slice.items());
-    return withLayoutData(template, "board").data("ultraLiteMode", group == CommunityBoardGroup.DISCORD_USERS);
+    return withLayoutData(template, "board", localeCookie)
+        .data("ultraLiteMode", group == CommunityBoardGroup.DISCORD_USERS);
   }
 
-  private TemplateInstance withLayoutData(TemplateInstance template, String activeCommunitySubmenu) {
+  private TemplateInstance withLayoutData(
+      TemplateInstance template, String activeCommunitySubmenu, String localeCookie) {
     boolean authenticated = isAuthenticated();
     String name = currentUserName().orElse(null);
-    return template
+    return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
         .data("activeCommunitySubmenu", activeCommunitySubmenu)

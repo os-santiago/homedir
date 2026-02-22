@@ -6,6 +6,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -42,6 +43,7 @@ public class ScenarioResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance detail(
       @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/scenario", headers, context);
@@ -49,12 +51,12 @@ public class ScenarioResource {
         .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id));
     Scenario s = eventService.findScenario(id);
     if (s == null) {
-      return Templates.detail(null, null, java.util.List.of());
+      return TemplateLocaleUtil.apply(Templates.detail(null, null, java.util.List.of()), localeCookie);
     }
     var event = eventService.findEventByScenario(id);
     var talks = eventService.findTalksForScenario(id);
     metrics.recordStageVisit(id, event != null ? event.getTimezone() : null, headers, context);
-    return Templates.detail(s, event, talks);
+    return TemplateLocaleUtil.apply(Templates.detail(s, event, talks), localeCookie);
   }
 
   private Optional<String> currentUserId() {

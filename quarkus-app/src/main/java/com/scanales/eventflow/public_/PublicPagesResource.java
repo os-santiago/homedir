@@ -10,6 +10,7 @@ import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
 import com.scanales.eventflow.service.UserSessionService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -57,7 +58,9 @@ public class PublicPagesResource {
   GamificationService gamificationService;
 
   @GET
-  public TemplateInstance home() {
+  public TemplateInstance home(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
     currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
@@ -87,7 +90,9 @@ public class PublicPagesResource {
             .data("upcomingCount", upcomingCount)
             .data("projectContributorCount", contributors.size())
             .data("projectContributionTotal", contributionTotal),
-        "home");
+        "home",
+        localeCookie,
+        headers);
   }
 
   @GET
@@ -128,7 +133,9 @@ public class PublicPagesResource {
 
   @GET
   @Path("/events")
-  public TemplateInstance events() {
+  public TemplateInstance events(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
     currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW));
     List<Event> upcoming = eventService.findUpcomingEvents(10);
     List<Event> past = eventService.findPastEvents(10);
@@ -139,14 +146,20 @@ public class PublicPagesResource {
             .data("pastEvents", past)
             .data("upcomingCount", upcoming.size())
             .data("pastCount", past.size()),
-        "eventos");
+        "eventos",
+        localeCookie,
+        headers);
   }
 
-  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+  private TemplateInstance withLayoutData(
+      TemplateInstance templateInstance,
+      String activePage,
+      String localeCookie,
+      jakarta.ws.rs.core.HttpHeaders headers) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : "";
     String userInitial = initialFrom(userName);
-    return templateInstance
+    return TemplateLocaleUtil.apply(templateInstance, localeCookie, headers)
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName != null ? userName : "")

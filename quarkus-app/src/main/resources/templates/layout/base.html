@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{#insert title}{i18n.layout_default_title}{/}</title>
+    <title>{#insert title}{i18n:layout_default_title}{/}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime&display=swap"
@@ -28,14 +28,14 @@
     </script>
     {#include fragments/floating-shapes.html/}
     <div class="app-container">
-        <a href="#main-content" class="skip-link">{i18n.layout_skip_main_content}</a>
+        <a href="#main-content" class="skip-link">{i18n:layout_skip_main_content}</a>
         {#include fragments/header
         activePage=""
         userAuthenticated=app:isAuthenticated()
         userName=app:userName()
         userInitial=app:userAvatar() /}
         <!-- Legacy Nav removed/replaced by header fragment -->
-        <nav class="breadcrumbs" aria-label="{i18n.layout_breadcrumbs_aria}">{#insert breadcrumbs}{/}</nav>
+        <nav class="breadcrumbs" aria-label="{i18n:layout_breadcrumbs_aria}">{#insert breadcrumbs}{/}</nav>
         <div id="notification" class="notification hidden" role="alert"></div>
         <div id="loading" class="loading hidden">
             <div class="spinner"></div>

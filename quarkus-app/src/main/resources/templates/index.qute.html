@@ -5,12 +5,12 @@
     <div>
       <h1 id="mainTitle">HomeDir</h1>
       <p class="tagline" id="mainTagline">
-        {i18n.platform_by} - {i18n.platform_tagline}
+        {i18n:platform_by} - {i18n:platform_tagline}
       </p>
     </div>
     <div class="meta">
-      <span>{i18n.meta_members(vm.community.totalMembers ?: 0)}</span>
-      <span>{i18n.meta_projects(vm.community.totalProjects ?: 0)}</span>
+      <span>{i18n:meta_members(vm.community.totalMembers ?: 0)}</span>
+      <span>{i18n:meta_projects(vm.community.totalProjects ?: 0)}</span>
       <span>{vm.character.loggedIn ? i18n.role_member : i18n.role_visitor}</span>
     </div>
   </header>
@@ -18,37 +18,37 @@
   <div class="main-sections">
     <article class="section-card" id="communityCard">
       <div>
-        <h2>{i18n.nav_community}</h2>
-        <p>{i18n.home_community_desc}</p>
-        <div class="activity-text">{i18n.home_community_activity}</div>
+        <h2>{i18n:nav_community}</h2>
+        <p>{i18n:home_community_desc}</p>
+        <div class="activity-text">{i18n:home_community_activity}</div>
       </div>
       <div class="actions">
-        <button class="btn primary">{i18n.home_btn_explore}</button>
-        <button class="btn">{i18n.home_btn_roster}</button>
+        <button class="btn primary">{i18n:home_btn_explore}</button>
+        <button class="btn">{i18n:home_btn_roster}</button>
       </div>
     </article>
 
     <article class="section-card" id="eventsCard">
       <div>
-        <h2>{i18n.nav_events}</h2>
-        <p>{i18n.home_events_desc}</p>
-        <div class="activity-text">{i18n.home_events_activity}</div>
+        <h2>{i18n:nav_events}</h2>
+        <p>{i18n:home_events_desc}</p>
+        <div class="activity-text">{i18n:home_events_activity}</div>
       </div>
       <div class="actions">
-        <button class="btn primary">{i18n.home_btn_attend}</button>
-        <button class="btn">{i18n.home_btn_schedule}</button>
+        <button class="btn primary">{i18n:home_btn_attend}</button>
+        <button class="btn">{i18n:home_btn_schedule}</button>
       </div>
     </article>
 
     <article class="section-card" id="projectsCard">
       <div>
-        <h2>{i18n.nav_projects}</h2>
-        <p>{i18n.home_projects_desc}</p>
-        <div class="activity-text">{i18n.home_projects_activity}</div>
+        <h2>{i18n:nav_projects}</h2>
+        <p>{i18n:home_projects_desc}</p>
+        <div class="activity-text">{i18n:home_projects_activity}</div>
       </div>
       <div class="actions">
-        <button class="btn primary">{i18n.home_btn_join}</button>
-        <button class="btn">{i18n.home_btn_propose}</button>
+        <button class="btn primary">{i18n:home_btn_join}</button>
+        <button class="btn">{i18n:home_btn_propose}</button>
       </div>
     </article>
   </div>
@@ -57,8 +57,8 @@
     <div class="village-container">
       <div class="community-header">
         <div class="meta">
-          <span>{i18n.home_village_title}</span>
-          <span>{i18n.home_village_desc}</span>
+          <span>{i18n:home_village_title}</span>
+          <span>{i18n:home_village_desc}</span>
         </div>
       </div>
       <div class="village-landscape">
@@ -66,20 +66,20 @@
       </div>
     </div>
     <aside class="community-stats">
-      <h3>{i18n.home_stats_title}</h3>
+      <h3>{i18n:home_stats_title}</h3>
       <div class="stat-grid">
         <div class="stat-item">
           <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px;">group</span></div>
           <div>
             <span class="stat-value">{vm.community.totalMembers ?: 0}</span>
-            <div class="stat-label">{i18n.home_stats_members}</div>
+            <div class="stat-label">{i18n:home_stats_members}</div>
           </div>
         </div>
         <div class="stat-item">
           <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px;">star</span></div>
           <div>
             <span class="stat-value">{vm.community.totalXp ?: 0}</span>
-            <div class="stat-label">{i18n.home_stats_xp}</div>
+            <div class="stat-label">{i18n:home_stats_xp}</div>
           </div>
         </div>
         <div class="stat-item">
@@ -87,7 +87,7 @@
           </div>
           <div>
             <span class="stat-value">{vm.community.totalQuests ?: 0}</span>
-            <div class="stat-label">{i18n.home_stats_quests}</div>
+            <div class="stat-label">{i18n:home_stats_quests}</div>
           </div>
         </div>
         <div class="stat-item">
@@ -95,7 +95,7 @@
           </div>
           <div>
             <span class="stat-value">{vm.community.totalProjects ?: 0}</span>
-            <div class="stat-label">{i18n.home_stats_projects}</div>
+            <div class="stat-label">{i18n:home_stats_projects}</div>
           </div>
         </div>
       </div>
@@ -105,14 +105,14 @@
   <div class="character-sheet">
     <div class="character-container">
       {#if !vm.character.loggedIn}
-      <div class="novice-warning">{i18n.home_guest_warning}</div>
+      <div class="novice-warning">{i18n:home_guest_warning}</div>
       {/if}
       <div class="character-header">
         <div>
           <h3 id="characterName">{vm.character.displayName.or(i18n.home_guest_name)}</h3>
           <span class="character-class">{vm.character.roleLabel.or(i18n.home_guest_role)}</span>
         </div>
-        <div class="character-level" id="characterLevel">{i18n.home_level(vm.character.level ?: 1)}</div>
+        <div class="character-level" id="characterLevel">{i18n:home_level(vm.character.level ?: 1)}</div>
       </div>
       <div class="character-main">
         <div class="character-vitals">
@@ -150,25 +150,25 @@
             <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 20px;">track_changes</span>
             </div>
             <div class="value">{vm.character.contributions ?: 0}</div>
-            <div class="label">{i18n.home_stat_contributions}</div>
+            <div class="label">{i18n:home_stat_contributions}</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 20px;">emoji_events</span>
             </div>
             <div class="value">{vm.character.quests ?: 0}</div>
-            <div class="label">{i18n.nav_quests}</div>
+            <div class="label">{i18n:nav_quests}</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon"><span class="material-symbols-outlined"
                 style="font-size: 20px;">calendar_month</span></div>
             <div class="value">{vm.character.events ?: 0}</div>
-            <div class="label">{i18n.nav_events}</div>
+            <div class="label">{i18n:nav_events}</div>
           </div>
           <div class="stat-box">
             <div class="stat-icon"><span class="material-symbols-outlined" style="font-size: 20px;">rocket_launch</span>
             </div>
             <div class="value">{vm.character.projects ?: 0}</div>
-            <div class="label">{i18n.nav_projects}</div>
+            <div class="label">{i18n:nav_projects}</div>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.annotation.security.PermitAll;
@@ -29,7 +30,7 @@ public class AboutResource {
 
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public TemplateInstance get() {
+    public TemplateInstance get(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
         String version = ConfigProvider.getConfig()
                 .getOptionalValue("quarkus.application.version", String.class)
                 .orElse("unknown");
@@ -59,6 +60,8 @@ public class AboutResource {
                 .orElse("missing");
         boolean githubConfigured = ghClientId != null && !ghClientId.isEmpty() && !"missing".equals(ghClientId);
 
-        return Templates.about(version, commitId, buildTime, environment, oidcConfigured, githubConfigured);
+        return TemplateLocaleUtil.apply(
+                Templates.about(version, commitId, buildTime, environment, oidcConfigured, githubConfigured),
+                localeCookie);
     }
 }

@@ -1,14 +1,14 @@
 {#include layout/base}
 {#title}
-{#if talk && talk.name}{talk.name}{#else}{i18n.talk_title_default}{/if}
+{#if talk && talk.name}{talk.name}{#else}{i18n:talk_title_default}{/if}
 {/title}
 {#breadcrumbs}
 {#if talk}
-<a href="/">{i18n.talk_breadcrumb_home}</a>
+<a href="/">{i18n:talk_breadcrumb_home}</a>
 {#if event}<span class="sep">/</span><a href="/event/{event.id}">{event.title}</a>{/if}
 {#if talk.location && event}<span class="sep">/</span><a
   href="/event/{event.id}/scenario/{talk.location}">{event.getScenarioName(talk.location)}</a>{/if}
-<span class="sep">/</span><span>{i18n.talk_breadcrumb_label(talk.name ?: talk.id)}</span>
+<span class="sep">/</span><span>{i18n:talk_breadcrumb_label(talk.name ?: talk.id)}</span>
 {/if}
 {/breadcrumbs}
 {#main}
@@ -16,11 +16,11 @@
 <section class="talk-detail">
   <h1 class="page-title talk-title">{talk.name ?: i18n.talk_title_default}</h1>
   <div class="chips">
-    <span class="chip">{i18n.talk_chip_day(talk.day)}</span>
+    <span class="chip">{i18n:talk_chip_day(talk.day)}</span>
     {#if talk.location && event}<span class="chip">{event.getScenarioName(talk.location)}</span>{/if}
   </div>
   {#if !talk.description || talk.speakers.isEmpty() || !talk.location || !talk.startTime || !event}
-  <p>{i18n.talk_preparing_message}</p>
+  <p>{i18n:talk_preparing_message}</p>
   {/if}
   {#if talk.description}<p class="talk-description">{talk.description}</p>{/if}
   {#if !talk.speakers.isEmpty()}
@@ -35,37 +35,37 @@
     </a>
     {/for}
   </div>
-  <p><strong>{i18n.talk_label_speaker}:</strong> <a href="/speaker/{talk.speakers[0].id}">{talk.speakers[0].name}</a></p>
+  <p><strong>{i18n:talk_label_speaker}:</strong> <a href="/speaker/{talk.speakers[0].id}">{talk.speakers[0].name}</a></p>
   {#if talk.speakers.size > 1}
-  <p><strong>{i18n.talk_label_co_speaker}:</strong> <a href="/speaker/{talk.speakers[1].id}">{talk.speakers[1].name}</a></p>
+  <p><strong>{i18n:talk_label_co_speaker}:</strong> <a href="/speaker/{talk.speakers[1].id}">{talk.speakers[1].name}</a></p>
   {/if}
   {/if}
-  <p><strong>{i18n.talk_label_schedule}:</strong> {#if talk.startTimeStr}{talk.startTimeStr}{#else}{i18n.talk_tbd}{/if}</p>
-  <p><strong>{i18n.talk_label_location}:</strong>
+  <p><strong>{i18n:talk_label_schedule}:</strong> {#if talk.startTimeStr}{talk.startTimeStr}{#else}{i18n:talk_tbd}{/if}</p>
+  <p><strong>{i18n:talk_label_location}:</strong>
     {#if talk.location}
     {#if event}{event.getScenarioName(talk.location)}{#else}{talk.location}{/if}
     {#else}
-    {i18n.talk_tbd}
+    {i18n:talk_tbd}
     {/if}
   </p>
-  {#if talk.durationMinutes > 0}<p><strong>{i18n.talk_label_duration}:</strong> {i18n.talk_duration_minutes(talk.durationMinutes)}</p>{/if}
+  {#if talk.durationMinutes > 0}<p><strong>{i18n:talk_label_duration}:</strong> {i18n:talk_duration_minutes(talk.durationMinutes)}</p>{/if}
   {#if app:isAuthenticated()}
   <p>
     <button id="addTalkBtn" class="btn">
-      {#if inSchedule}<span class="icon"><span class="material-symbols-outlined">check</span></span> {i18n.talk_btn_view_profile}
-      {#else}<span class="icon"><span class="material-symbols-outlined">add</span></span> {i18n.talk_btn_add_to_profile}{/if}
+      {#if inSchedule}<span class="icon"><span class="material-symbols-outlined">check</span></span> {i18n:talk_btn_view_profile}
+      {#else}<span class="icon"><span class="material-symbols-outlined">add</span></span> {i18n:talk_btn_add_to_profile}{/if}
     </button>
   </p>
   <script>
     (function () {
       const btn = document.getElementById('addTalkBtn');
       if (!btn) return;
-      const profileLabel = "{i18n.talk_btn_view_profile}";
+      const profileLabel = "{i18n:talk_btn_view_profile}";
       const messages = {
-        added: "{i18n.talk_js_added}",
-        exists: "{i18n.talk_js_exists}",
-        loginRequired: "{i18n.talk_js_login_required}",
-        genericError: "{i18n.talk_js_error}"
+        added: "{i18n:talk_js_added}",
+        exists: "{i18n:talk_js_exists}",
+        loginRequired: "{i18n:talk_js_login_required}",
+        genericError: "{i18n:talk_js_error}"
       };
       if ({ inSchedule }) {
         btn.classList.add('btn-secondary');
@@ -125,12 +125,12 @@
   {/if}
   {#if !occurrences.isEmpty()}
   <div class="card">
-    <h2 class="card-title"><span class="icon"><span class="material-symbols-outlined">schedule</span></span>{i18n.talk_schedule_slots}
+    <h2 class="card-title"><span class="icon"><span class="material-symbols-outlined">schedule</span></span>{i18n:talk_schedule_slots}
     </h2>
     <ul class="agenda-list">
       {#for t in occurrences}
       <li class="agenda-item">
-        <span class="icon"><span class="material-symbols-outlined">schedule</span></span>{i18n.talk_occurrence_line(t.day, t.startTimeStr, t.durationMinutes)}
+        <span class="icon"><span class="material-symbols-outlined">schedule</span></span>{i18n:talk_occurrence_line(t.day, t.startTimeStr, t.durationMinutes)}
         -
         {#if t.location}
         {#if event}
@@ -139,7 +139,7 @@
         <span>{t.location}</span>
         {/if}
         {#else}
-        <span>{i18n.talk_location_tbd}</span>
+        <span>{i18n:talk_location_tbd}</span>
         {/if}
       </li>
       {/for}
@@ -147,12 +147,12 @@
   </div>
   {/if}
   <div class="action-group">
-    {#if talk.location && event}<a href="/event/{event.id}/scenario/{talk.location}" class="btn btn-secondary">{i18n.talk_back_to_scenario}</a>{/if}
-    {#if event}<a href="/event/{event.id}" class="btn">{i18n.talk_back_to_event}</a>{/if}
+    {#if talk.location && event}<a href="/event/{event.id}/scenario/{talk.location}" class="btn btn-secondary">{i18n:talk_back_to_scenario}</a>{/if}
+    {#if event}<a href="/event/{event.id}" class="btn">{i18n:talk_back_to_event}</a>{/if}
   </div>
 </section>
 {#else}
-<p>{i18n.talk_not_found}</p>
+<p>{i18n:talk_not_found}</p>
 {/if}
 {/main}
 {/include}

@@ -1,6 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.service.UsageMetricsService;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.vertx.ext.web.RoutingContext;
@@ -34,24 +35,26 @@ public class MarketingPagesResource {
   @GET
   @Path("/docs")
   public TemplateInstance docs(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @Context HttpHeaders headers, @Context RoutingContext context) {
     metrics.recordPageView("/docs", headers, context);
     if (uiV2Enabled) {
-      return Templates.docs();
+      return TemplateLocaleUtil.apply(Templates.docs(), localeCookie);
     }
     // TODO: definir template de fallback si en el futuro se desea una versión mínima
-    return Templates.docs();
+    return TemplateLocaleUtil.apply(Templates.docs(), localeCookie);
   }
 
   @GET
   @Path("/contacto")
   public TemplateInstance contacto(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @Context HttpHeaders headers, @Context RoutingContext context) {
     metrics.recordPageView("/contacto", headers, context);
     if (uiV2Enabled) {
-      return Templates.contacto();
+      return TemplateLocaleUtil.apply(Templates.contacto(), localeCookie);
     }
     // TODO: definir template de fallback si en el futuro se desea una versión mínima
-    return Templates.contacto();
+    return TemplateLocaleUtil.apply(Templates.contacto(), localeCookie);
   }
 }

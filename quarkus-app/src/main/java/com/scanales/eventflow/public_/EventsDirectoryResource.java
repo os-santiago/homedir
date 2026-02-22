@@ -7,6 +7,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -62,6 +63,7 @@ public class EventsDirectoryResource {
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance eventos(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/eventos", headers, context);
@@ -108,17 +110,18 @@ public class EventsDirectoryResource {
         Templates.eventos(
             upcoming, past, today, stats, Map.copyOf(topTracksByEvent), Map.copyOf(recommendedSessionsByEvent));
     if (uiV2Enabled) {
-      return withLayoutData(template, "eventos");
+      return withLayoutData(template, "eventos", localeCookie);
     }
     // TODO: definir template de fallback si en el futuro se desea una versión
     // mínima
-    return withLayoutData(template, "eventos");
+    return withLayoutData(template, "eventos", localeCookie);
   }
 
-  private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+  private TemplateInstance withLayoutData(
+      TemplateInstance templateInstance, String activePage, String localeCookie) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : null;
-    return templateInstance
+    return TemplateLocaleUtil.apply(templateInstance, localeCookie)
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)

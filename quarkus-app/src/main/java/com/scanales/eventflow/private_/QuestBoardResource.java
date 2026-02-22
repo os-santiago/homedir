@@ -3,6 +3,7 @@ package com.scanales.eventflow.private_;
 import com.scanales.eventflow.model.Quest;
 import com.scanales.eventflow.model.UserSession;
 import com.scanales.eventflow.service.QuestService;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -37,7 +38,9 @@ public class QuestBoardResource {
 
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public TemplateInstance list(@jakarta.ws.rs.QueryParam("filter") String filter) {
+    public TemplateInstance list(
+            @jakarta.ws.rs.QueryParam("filter") String filter,
+            @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
         List<Quest> quests = questService.getQuestBoard();
 
         if ("mine".equalsIgnoreCase(filter)) {
@@ -65,7 +68,7 @@ public class QuestBoardResource {
         }
 
         UserSession session = userSessionService.getCurrentSession();
-        return withLayoutData(Templates.quests(quests, filter, session), "quests");
+        return withLayoutData(Templates.quests(quests, filter, session), "quests", localeCookie);
     }
 
     @jakarta.ws.rs.POST
@@ -148,10 +151,11 @@ public class QuestBoardResource {
         return identity.getPrincipal().getName();
     }
 
-    private TemplateInstance withLayoutData(TemplateInstance templateInstance, String activePage) {
+    private TemplateInstance withLayoutData(
+            TemplateInstance templateInstance, String activePage, String localeCookie) {
         boolean authenticated = identity != null && !identity.isAnonymous();
         String userName = authenticated ? identity.getPrincipal().getName() : null;
-        return templateInstance
+        return TemplateLocaleUtil.apply(templateInstance, localeCookie)
                 .data("activePage", activePage)
                 .data("userAuthenticated", authenticated)
                 .data("userName", userName)
