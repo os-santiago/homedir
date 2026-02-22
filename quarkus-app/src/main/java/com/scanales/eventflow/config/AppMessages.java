@@ -1401,6 +1401,9 @@ public interface AppMessages {
     @Message("Community Picks")
     String community_submenu_picks();
 
+    @Message("Lightning Threads Arena")
+    String community_submenu_lta();
+
     @Message("Propose Content")
     String community_submenu_propose();
 

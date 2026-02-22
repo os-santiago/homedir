@@ -2,8 +2,10 @@
 {#title}{i18n.nav_home}{/title}
 {#body}
 <header class="public-header home-highlight-hero">
-  <p class="eyebrow">{i18n.home_welcome_title}</p>
-  <h1 class="home-welcome-en">{i18n.home_welcome_en}</h1>
+  <div class="section-header hd-section-heading">
+    <p class="section-subtitle">{i18n.home_welcome_title}</p>
+    <h1 class="home-welcome-en">{i18n.home_welcome_en}</h1>
+  </div>
   <p class="home-welcome-es">{i18n.home_welcome_es}</p>
   <p class="home-highlights-intro">{i18n.home_highlights_intro}</p>
   <section class="home-new-hot" aria-label="{i18n.home_new_hot_title}">
@@ -93,8 +95,9 @@
         <span class="home-pane-identity home-pane-identity-social" aria-hidden="true">
           <span class="material-symbols-outlined">article</span>
         </span>
-        <div>
-        <h2 class="page-title">{i18n.home_social_highlights_title}</h2>
+        <div class="section-header home-pane-section-header hd-section-heading">
+          <p class="section-subtitle">{i18n.home_social_highlights_eyebrow}</p>
+          <h2 class="page-title">{i18n.home_social_highlights_title}</h2>
         </div>
       </div>
       <a href="/comunidad" class="btn-primary">{i18n.home_btn_open_social}</a>
@@ -131,8 +134,9 @@
           <span class="material-symbols-outlined" aria-hidden="true">event</span>
           {/if}
         </span>
-        <div>
-        <h2 class="page-title">{i18n.home_events_highlights_title}</h2>
+        <div class="section-header home-pane-section-header hd-section-heading">
+          <p class="section-subtitle">{i18n.home_events_highlights_eyebrow}</p>
+          <h2 class="page-title">{i18n.home_events_highlights_title}</h2>
         </div>
       </div>
       <a href="/eventos" class="btn-primary">{i18n.home_btn_open_events}</a>
@@ -175,8 +179,9 @@
         <span class="home-pane-identity home-pane-identity-project" aria-hidden="true">
           <span class="material-symbols-outlined">groups</span>
         </span>
-        <div>
-        <h2 class="page-title">{i18n.home_project_highlights_title}</h2>
+        <div class="section-header home-pane-section-header hd-section-heading">
+          <p class="section-subtitle">{i18n.home_project_highlights_eyebrow}</p>
+          <h2 class="page-title">{i18n.home_project_highlights_title}</h2>
         </div>
       </div>
       <a href="/proyectos" class="btn-primary">{i18n.home_btn_open_project}</a>

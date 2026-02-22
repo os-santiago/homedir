@@ -1,6 +1,10 @@
 {@ String activeCommunitySubmenu = "main"}
 {@ boolean isAdmin = false}
 <nav class="community-submenu" aria-label="{i18n.community_submenu_aria_label}">
+  <a href="/comunidad/lta" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'lta'}community-submenu-link-active{/if}">
+    <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">bolt</span>
+    <span class="community-submenu-label">{i18n.community_submenu_lta}</span>
+  </a>
   <a href="/comunidad/picks" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'picks'}community-submenu-link-active{/if}">
     <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">auto_awesome</span>
     <span class="community-submenu-label">{i18n.community_submenu_picks}</span>
