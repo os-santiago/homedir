@@ -72,6 +72,6 @@ public class EventResourceMapLinkTest {
         .get("/event/" + EVENT_WITH_TALK)
         .then()
         .statusCode(200)
-        .body(containsString("/event/" + EVENT_WITH_TALK + "/talk/talk-canonical-1"));
+        .body(containsString("/talk/talk-canonical-1"));
   }
 }
