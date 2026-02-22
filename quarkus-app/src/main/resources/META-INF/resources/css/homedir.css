@@ -2483,6 +2483,8 @@ footer {
 .home-new-hot-card img {
   width: 50%;
   max-width: 160px;
+  display: block;
+  margin: 0 auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.2);
