@@ -181,6 +181,32 @@ public class CommunityLightningService {
     }
   }
 
+  public Map<String, Instant> lastCommentAtByThread(List<String> threadIds) {
+    if (threadIds == null || threadIds.isEmpty()) {
+      return Map.of();
+    }
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      LinkedHashMap<String, Instant> out = new LinkedHashMap<>();
+      for (String threadId : threadIds) {
+        if (threadId == null || threadId.isBlank()) {
+          continue;
+        }
+        Instant last =
+            comments.values().stream()
+                .filter(comment -> threadId.equals(comment.threadId()))
+                .map(
+                    comment ->
+                        comment.updatedAt() != null ? comment.updatedAt() : comment.createdAt())
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+        out.put(threadId, last);
+      }
+      return out;
+    }
+  }
+
   public Optional<CommunityLightningThread> findThread(String threadId) {
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -314,6 +340,95 @@ public class CommunityLightningService {
       recomputeBestComment(thread.id(), now);
       persistSync();
       return new CommentResult(threads.get(thread.id()), comment);
+    }
+  }
+
+  public CommunityLightningThread editThread(String userId, String threadId, String statement) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      String normalizedUserId = sanitizeUserId(userId);
+      if (normalizedUserId == null) {
+        throw new ValidationException("user_id_required");
+      }
+      CommunityLightningThread thread = findThreadOrThrow(threadId);
+      if (!normalizedUserId.equals(thread.userId())) {
+        throw new ForbiddenException("thread_edit_forbidden");
+      }
+      String safeStatement = sanitizeText(statement, maxTitleLength);
+      if (safeStatement == null) {
+        throw new ValidationException("invalid_title");
+      }
+      Instant now = Instant.now();
+      CommunityLightningThread updated =
+          new CommunityLightningThread(
+              thread.id(),
+              thread.mode(),
+              safeStatement,
+              safeStatement,
+              thread.userId(),
+              thread.userName(),
+              thread.createdAt(),
+              now,
+              thread.publishedAt(),
+              thread.bestCommentId(),
+              thread.likes(),
+              thread.comments(),
+              thread.reports());
+      threads.put(thread.id(), updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CommentResult editComment(String userId, String commentId, String body) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      String normalizedUserId = sanitizeUserId(userId);
+      if (normalizedUserId == null) {
+        throw new ValidationException("user_id_required");
+      }
+      CommunityLightningComment comment = findCommentOrThrow(commentId);
+      if (!normalizedUserId.equals(comment.userId())) {
+        throw new ForbiddenException("comment_edit_forbidden");
+      }
+      String safeBody = sanitizeText(body, maxCommentLength);
+      if (safeBody == null) {
+        throw new ValidationException("invalid_comment");
+      }
+      Instant now = Instant.now();
+      CommunityLightningComment updatedComment =
+          new CommunityLightningComment(
+              comment.id(),
+              comment.threadId(),
+              safeBody,
+              comment.userId(),
+              comment.userName(),
+              comment.createdAt(),
+              now,
+              comment.likes(),
+              comment.reports());
+      comments.put(comment.id(), updatedComment);
+      CommunityLightningThread thread = threads.get(comment.threadId());
+      if (thread != null) {
+        threads.put(
+            thread.id(),
+            new CommunityLightningThread(
+                thread.id(),
+                thread.mode(),
+                thread.title(),
+                thread.body(),
+                thread.userId(),
+                thread.userName(),
+                thread.createdAt(),
+                now,
+                thread.publishedAt(),
+                thread.bestCommentId(),
+                thread.likes(),
+                thread.comments(),
+                thread.reports()));
+      }
+      persistSync();
+      return new CommentResult(threads.get(comment.threadId()), updatedComment);
     }
   }
 
@@ -1064,6 +1179,12 @@ public class CommunityLightningService {
 
   public static class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {
+      super(message);
+    }
+  }
+
+  public static class ForbiddenException extends RuntimeException {
+    public ForbiddenException(String message) {
       super(message);
     }
   }

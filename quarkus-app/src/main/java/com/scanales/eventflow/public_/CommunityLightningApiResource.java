@@ -50,8 +50,18 @@ public class CommunityLightningApiResource {
     List<String> ids = page.items().stream().map(CommunityLightningThread::id).toList();
     Map<String, List<CommunityLightningComment>> commentsByThread =
         lightningService.listCommentsForThreads(ids, commentsLimit);
+    Map<String, Instant> lastCommentAt = lightningService.lastCommentAtByThread(ids);
+    String viewerUserId = currentUserId().orElse(null);
     List<ThreadItemResponse> items =
-        page.items().stream().map(item -> toThreadItem(item, commentsByThread.get(item.id()))).toList();
+        page.items().stream()
+            .map(
+                item ->
+                    toThreadItem(
+                        item,
+                        commentsByThread.get(item.id()),
+                        viewerUserId,
+                        lastCommentAt.get(item.id())))
+            .toList();
     return Response.ok(
             new ThreadListResponse(
                 page.limit(),
@@ -84,7 +94,7 @@ public class CommunityLightningApiResource {
       metrics.recordFunnelStep("community.lightning.thread.create");
       metrics.recordFunnelStep("community_lightning_post");
       gamificationService.award(userId.get(), GamificationActivity.LTA_THREAD_CREATE);
-      ThreadItemResponse item = toThreadItem(result.item(), List.of());
+      ThreadItemResponse item = toThreadItem(result.item(), List.of(), userId.get(), null);
       return Response.status(Response.Status.CREATED)
           .entity(
               new ThreadMutationResponse(
@@ -98,6 +108,42 @@ public class CommunityLightningApiResource {
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "community_lightning_create_failed user=%s", userId.get());
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "lightning_storage_unavailable"))
+          .build();
+    }
+  }
+
+  @PUT
+  @Path("/threads/{id}")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response editThread(@PathParam("id") String threadId, EditThreadRequest request) {
+    Optional<String> userId = currentUserId();
+    if (userId.isEmpty()) {
+      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+    }
+    try {
+      String statement = request != null ? request.effectiveStatement() : null;
+      CommunityLightningThread thread = lightningService.editThread(userId.get(), threadId, statement);
+      List<CommunityLightningComment> comments =
+          lightningService
+              .listCommentsForThreads(List.of(thread.id()), 3)
+              .getOrDefault(thread.id(), List.of());
+      Instant lastCommentAt =
+          lightningService.lastCommentAtByThread(List.of(thread.id())).get(thread.id());
+      return Response.ok(
+              new ThreadMutationResponse(
+                  toThreadItem(thread, comments, userId.get(), lastCommentAt), false, 0, null, null))
+          .build();
+    } catch (CommunityLightningService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    } catch (CommunityLightningService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    } catch (CommunityLightningService.ForbiddenException e) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", e.getMessage())).build();
+    } catch (Exception e) {
+      LOG.errorf(e, "community_lightning_edit_thread_failed thread=%s", threadId);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "lightning_storage_unavailable"))
           .build();
@@ -122,9 +168,16 @@ public class CommunityLightningApiResource {
       gamificationService.award(userId.get(), GamificationActivity.LTA_COMMENT_CREATE);
       return Response.ok(
               new CommentMutationResponse(
-                  toThreadItem(result.thread(), lightningService.listCommentsForThreads(List.of(result.thread().id()), 3)
-                      .getOrDefault(result.thread().id(), List.of())),
-                  toCommentItem(result.comment())))
+                  toThreadItem(
+                      result.thread(),
+                      lightningService
+                          .listCommentsForThreads(List.of(result.thread().id()), 3)
+                          .getOrDefault(result.thread().id(), List.of()),
+                      userId.get(),
+                      lightningService
+                          .lastCommentAtByThread(List.of(result.thread().id()))
+                          .get(result.thread().id())),
+                  toCommentItem(result.comment(), userId.get())))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -136,6 +189,43 @@ public class CommunityLightningApiResource {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (Exception e) {
       LOG.errorf(e, "community_lightning_comment_failed thread=%s", threadId);
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "lightning_storage_unavailable"))
+          .build();
+    }
+  }
+
+  @PUT
+  @Path("/comments/{id}")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response editComment(@PathParam("id") String commentId, EditCommentRequest request) {
+    Optional<String> userId = currentUserId();
+    if (userId.isEmpty()) {
+      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+    }
+    try {
+      CommunityLightningService.CommentResult result =
+          lightningService.editComment(userId.get(), commentId, request != null ? request.body() : null);
+      List<CommunityLightningComment> comments =
+          lightningService
+              .listCommentsForThreads(List.of(result.thread().id()), 3)
+              .getOrDefault(result.thread().id(), List.of());
+      Instant lastCommentAt =
+          lightningService.lastCommentAtByThread(List.of(result.thread().id())).get(result.thread().id());
+      return Response.ok(
+              new CommentMutationResponse(
+                  toThreadItem(result.thread(), comments, userId.get(), lastCommentAt),
+                  toCommentItem(result.comment(), userId.get())))
+          .build();
+    } catch (CommunityLightningService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    } catch (CommunityLightningService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    } catch (CommunityLightningService.ForbiddenException e) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", e.getMessage())).build();
+    } catch (Exception e) {
+      LOG.errorf(e, "community_lightning_edit_comment_failed comment=%s", commentId);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "lightning_storage_unavailable"))
           .build();
@@ -161,7 +251,7 @@ public class CommunityLightningApiResource {
       }
       return Response.ok(
               new LikeMutationResponse(
-                  toThreadItem(result.thread(), List.of()),
+                  toThreadItem(result.thread(), List.of(), userId.get(), null),
                   null,
                   liked))
           .build();
@@ -191,8 +281,10 @@ public class CommunityLightningApiResource {
       }
       return Response.ok(
               new LikeMutationResponse(
-                  result.thread() == null ? null : toThreadItem(result.thread(), List.of()),
-                  result.comment() == null ? null : toCommentItem(result.comment()),
+                  result.thread() == null
+                      ? null
+                      : toThreadItem(result.thread(), List.of(), userId.get(), null),
+                  result.comment() == null ? null : toCommentItem(result.comment(), userId.get()),
                   liked))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
@@ -254,9 +346,13 @@ public class CommunityLightningApiResource {
     }
   }
 
-  private ThreadItemResponse toThreadItem(CommunityLightningThread item, List<CommunityLightningComment> comments) {
+  private ThreadItemResponse toThreadItem(
+      CommunityLightningThread item,
+      List<CommunityLightningComment> comments,
+      String viewerUserId,
+      Instant lastCommentAt) {
     List<CommentItemResponse> commentItems =
-        comments == null ? List.of() : comments.stream().map(this::toCommentItem).toList();
+        comments == null ? List.of() : comments.stream().map(comment -> toCommentItem(comment, viewerUserId)).toList();
     CommentItemResponse best =
         commentItems.stream()
             .filter(comment -> item.bestCommentId() != null && item.bestCommentId().equals(comment.id()))
@@ -269,7 +365,10 @@ public class CommunityLightningApiResource {
         item.body(),
         item.userName(),
         item.createdAt(),
+        item.updatedAt(),
         item.publishedAt(),
+        lastCommentAt,
+        viewerUserId != null && viewerUserId.equalsIgnoreCase(item.userId()),
         item.likes(),
         item.comments(),
         item.reports(),
@@ -278,13 +377,15 @@ public class CommunityLightningApiResource {
         commentItems);
   }
 
-  private CommentItemResponse toCommentItem(CommunityLightningComment comment) {
+  private CommentItemResponse toCommentItem(CommunityLightningComment comment, String viewerUserId) {
     return new CommentItemResponse(
         comment.id(),
         comment.threadId(),
         comment.body(),
         comment.userName(),
         comment.createdAt(),
+        comment.updatedAt(),
+        viewerUserId != null && viewerUserId.equalsIgnoreCase(comment.userId()),
         comment.likes(),
         comment.reports());
   }
@@ -338,7 +439,21 @@ public class CommunityLightningApiResource {
     }
   }
 
+  public record EditThreadRequest(String statement, String title, String body) {
+    public String effectiveStatement() {
+      if (statement != null && !statement.isBlank()) {
+        return statement;
+      }
+      if (title != null && !title.isBlank()) {
+        return title;
+      }
+      return body;
+    }
+  }
+
   public record CommentRequest(String body) {}
+
+  public record EditCommentRequest(String body) {}
 
   public record LikeRequest(Boolean liked) {}
 
@@ -372,7 +487,10 @@ public class CommunityLightningApiResource {
       String body,
       @JsonProperty("user_name") String userName,
       @JsonProperty("created_at") Instant createdAt,
+      @JsonProperty("updated_at") Instant updatedAt,
       @JsonProperty("published_at") Instant publishedAt,
+      @JsonProperty("last_comment_at") Instant lastCommentAt,
+      @JsonProperty("is_owner") boolean isOwner,
       int likes,
       int comments,
       int reports,
@@ -386,6 +504,8 @@ public class CommunityLightningApiResource {
       String body,
       @JsonProperty("user_name") String userName,
       @JsonProperty("created_at") Instant createdAt,
+      @JsonProperty("updated_at") Instant updatedAt,
+      @JsonProperty("is_owner") boolean isOwner,
       int likes,
       int reports) {}
 }

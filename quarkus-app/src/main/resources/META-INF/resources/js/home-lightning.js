@@ -28,6 +28,16 @@
     reportDuplicate: root.dataset.i18nReportDuplicate || "You already reported this item.",
     bestAnswer: root.dataset.i18nBestAnswer || "Best answer",
     pingBest: root.dataset.i18nPingBest || "Ping best answer",
+    edit: root.dataset.i18nEdit || "Edit",
+    modified: root.dataset.i18nModified || "Modified",
+    datePosted: root.dataset.i18nDatePosted || "Posted",
+    dateUpdated: root.dataset.i18nDateUpdated || "Updated",
+    dateLastComment: root.dataset.i18nDateLastComment || "Last reply",
+    promptEditThread:
+      root.dataset.i18nPromptEditThread || "Edit your statement (max 100 chars)",
+    promptEditComment:
+      root.dataset.i18nPromptEditComment || "Edit your reply (max 200 chars)",
+    updateSuccess: root.dataset.i18nUpdateSuccess || "Updated.",
     promptComment: root.dataset.i18nPromptComment || "Write your reply (max 200 chars)",
     promptReason: root.dataset.i18nPromptReason || "Reason for report",
     commentTooLong:
@@ -99,6 +109,56 @@
     });
   }
 
+  function encodeData(value) {
+    return encodeURIComponent(String(value == null ? "" : value));
+  }
+
+  function decodeData(value) {
+    try {
+      return decodeURIComponent(String(value == null ? "" : value));
+    } catch (error) {
+      return String(value == null ? "" : value);
+    }
+  }
+
+  function parseEpoch(raw) {
+    if (!raw) {
+      return 0;
+    }
+    const value = new Date(raw).getTime();
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function isModified(createdAt, updatedAt) {
+    const created = parseEpoch(createdAt);
+    const updated = parseEpoch(updatedAt);
+    if (!created || !updated) {
+      return false;
+    }
+    return Math.abs(updated - created) >= 1000;
+  }
+
+  function threadMeta(thread) {
+    const parts = [];
+    const posted = formatDate(thread.published_at || thread.created_at);
+    if (posted) {
+      parts.push(`${i18n.datePosted}: ${posted}`);
+    }
+    const modified = isModified(thread.created_at, thread.updated_at);
+    const updated = formatDate(thread.updated_at);
+    if (modified && updated) {
+      parts.push(`${i18n.dateUpdated}: ${updated}`);
+    }
+    const lastComment = formatDate(thread.last_comment_at);
+    if (lastComment) {
+      parts.push(`${i18n.dateLastComment}: ${lastComment}`);
+    }
+    return {
+      text: parts.join(" · "),
+      modified
+    };
+  }
+
   function updateCount() {
     if (!statementInput || !countEl) {
       return;
@@ -109,15 +169,23 @@
 
   function commentMarkup(comment, isBest) {
     const cls = isBest ? "home-lightning-comment best" : "home-lightning-comment";
+    const modified = isModified(comment.created_at, comment.updated_at);
+    const posted = formatDate(comment.created_at);
+    const updated = formatDate(comment.updated_at);
+    const dateLine = modified && updated
+      ? `${i18n.datePosted}: ${posted} · ${i18n.dateUpdated}: ${updated}`
+      : `${i18n.datePosted}: ${posted}`;
     return `
       <div class="${cls}" id="hl-comment-${escapeText(comment.id)}">
         <div class="home-lightning-comment-head">
           <strong>${escapeText(comment.user_name || "member")}</strong>
-          <span>${formatDate(comment.created_at)}</span>
+          <span>${escapeText(dateLine)}</span>
         </div>
+        ${modified ? `<span class="home-lightning-modified">${i18n.modified}</span>` : ""}
         <p>${escapeText(comment.body)}</p>
         <div class="home-lightning-comment-actions">
           <button type="button" class="home-lightning-mini-btn" data-action="like-comment" data-id="${escapeText(comment.id)}">${i18n.like} · ${Number(comment.likes || 0)}</button>
+          ${comment.is_owner ? `<button type="button" class="home-lightning-mini-btn" data-action="edit-comment" data-id="${escapeText(comment.id)}" data-text="${encodeData(comment.body)}">${i18n.edit}</button>` : ""}
           <button type="button" class="home-lightning-mini-btn" data-action="report-comment" data-id="${escapeText(comment.id)}">${i18n.report}</button>
         </div>
       </div>
@@ -131,6 +199,10 @@
     const body = String(thread.body || "").trim();
     const title = String(thread.title || "").trim();
     const showBody = body && body !== title;
+    const meta = threadMeta(thread);
+    const modifiedBadge = meta.modified
+      ? `<span class="home-lightning-modified">${i18n.modified}</span>`
+      : "";
     const bestBlock = thread.best_comment
       ? `<div class="home-lightning-best">
           <span>${i18n.bestAnswer}: ${escapeText(thread.best_comment.user_name || "member")}</span>
@@ -141,14 +213,16 @@
       <article class="home-lightning-item" data-thread-id="${escapeText(thread.id)}">
         <div class="home-lightning-item-head">
           <strong>${escapeText(thread.user_name || "member")}</strong>
-          <small>${formatDate(thread.published_at || thread.created_at)}</small>
+          <small>${escapeText(meta.text)}</small>
         </div>
+        ${modifiedBadge}
         <h3>${escapeText(title || body)}</h3>
         ${showBody ? `<p>${escapeText(body)}</p>` : ""}
         ${bestBlock}
         <div class="home-lightning-thread-actions">
           <button type="button" class="home-lightning-mini-btn" data-action="like-thread" data-id="${escapeText(thread.id)}">${i18n.like} · ${Number(thread.likes || 0)}</button>
           <button type="button" class="home-lightning-mini-btn" data-action="comment-thread" data-id="${escapeText(thread.id)}">${i18n.comment}</button>
+          ${thread.is_owner ? `<button type="button" class="home-lightning-mini-btn" data-action="edit-thread" data-id="${escapeText(thread.id)}" data-text="${encodeData(title || body)}">${i18n.edit}</button>` : ""}
           <button type="button" class="home-lightning-mini-btn" data-action="report-thread" data-id="${escapeText(thread.id)}">${i18n.report}</button>
         </div>
         <div class="home-lightning-comments">${commentsHtml}</div>
@@ -254,9 +328,9 @@
     }
   }
 
-  async function mutate(url, body, successMessage, duplicateMessage) {
+  async function mutate(url, body, successMessage, duplicateMessage, method) {
     const response = await fetch(url, {
-      method: "POST",
+      method: method || "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
       body: JSON.stringify(body || {})
@@ -303,6 +377,48 @@
           { body: trimmed },
           "",
           ""
+        );
+        await fetchThreads(true);
+        return;
+      }
+      if (action === "edit-thread") {
+        const currentText = decodeData(target.dataset.text || "");
+        const text = window.prompt(i18n.promptEditThread, currentText);
+        const trimmed = String(text || "").trim();
+        if (!trimmed) {
+          return;
+        }
+        if (trimmed.length > 100) {
+          showFeedback(i18n.postLimit, true);
+          return;
+        }
+        await mutate(
+          `/api/community/lightning/threads/${encodeURIComponent(id)}`,
+          { statement: trimmed },
+          i18n.updateSuccess,
+          "",
+          "PUT"
+        );
+        await fetchThreads(true);
+        return;
+      }
+      if (action === "edit-comment") {
+        const currentText = decodeData(target.dataset.text || "");
+        const text = window.prompt(i18n.promptEditComment, currentText);
+        const trimmed = String(text || "").trim();
+        if (!trimmed) {
+          return;
+        }
+        if (trimmed.length > 200) {
+          showFeedback(i18n.commentTooLong, true);
+          return;
+        }
+        await mutate(
+          `/api/community/lightning/comments/${encodeURIComponent(id)}`,
+          { body: trimmed },
+          i18n.updateSuccess,
+          "",
+          "PUT"
         );
         await fetchThreads(true);
         return;
