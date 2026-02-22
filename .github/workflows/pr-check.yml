@@ -6,6 +6,7 @@ on:
     paths:
       - 'quarkus-app/**'
       - '.github/workflows/pr-check.yml'
+      - '.github/workflows/release.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
