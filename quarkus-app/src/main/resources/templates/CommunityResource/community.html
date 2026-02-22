@@ -61,7 +61,7 @@
           </form>
           <div id="home-lightning-login" class="home-lightning-login {#if isAuthenticated}hidden{/if}">
             <p>{i18n:home_lightning_login_required}</p>
-            <a href="/private/profile" class="btn-primary">{i18n:home_lightning_login_cta}</a>
+            <a href="/private/login-callback?redirect=/comunidad/lta" class="btn-primary" data-login-return-current="true">{i18n:home_lightning_login_cta}</a>
           </div>
           <div id="home-lightning-feedback" class="home-lightning-feedback hidden" role="status"></div>
           <div id="home-lightning-list" class="home-lightning-list"></div>
@@ -315,7 +315,7 @@
       {#else}
       <div class="community-empty">
         <p>{i18n:community_login_to_propose}</p>
-        <a class="btn-primary" href="/private/profile">{i18n:community_login}</a>
+        <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/propose" data-login-return-current="true">{i18n:community_login}</a>
       </div>
       {/if}
     </div>

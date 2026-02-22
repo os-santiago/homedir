@@ -1134,7 +1134,12 @@
 
   async function sendVote(itemId, vote) {
     if (!authenticated) {
-      window.location.href = "/private/profile";
+      const redirectTarget = `${window.location.pathname || "/"}${window.location.search || ""}${window.location.hash || ""}`;
+      if (typeof window.buildLoginCallbackUrl === "function") {
+        window.location.href = window.buildLoginCallbackUrl(redirectTarget);
+      } else {
+        window.location.href = `/private/login-callback?redirect=${encodeURIComponent(redirectTarget)}`;
+      }
       return;
     }
     const item = state.items.find((entry) => String(entry.id) === String(itemId));

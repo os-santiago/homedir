@@ -109,7 +109,14 @@
       </div>
     </div>
     {#else}
-    <a href="{#if isDev}/login.html{#else}/private/profile{/if}" class="login-btn-nav">{i18n:nav_login}</a>
+    {#if isDev}
+    <a href="/login.html" class="login-btn-nav">{i18n:nav_login}</a>
+    {#else}
+    <a
+      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'proyectos'}/proyectos{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
+      class="login-btn-nav"
+      data-login-return-current="true">{i18n:nav_login}</a>
+    {/if}
     {/if}
   </div>
 </nav>
