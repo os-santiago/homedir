@@ -1,6 +1,10 @@
 package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.service.CommunityService;
+import com.scanales.eventflow.service.UserProfileService;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -16,19 +20,29 @@ import jakarta.ws.rs.core.MediaType;
 public class LandingStatsResource {
 
   @Inject CommunityService communityService;
+  @Inject UserProfileService userProfileService;
 
   @GET
   public LandingStats getStats() {
     LandingStats stats = new LandingStats();
+    Map<String, com.scanales.eventflow.model.UserProfile> profiles = userProfileService.allProfiles();
 
     stats.totalMembers = communityService.countMembers();
-
-    // NOTE: valores dummy por ahora.
-    // Cuando exista un servicio de dominio para miembros/proyectos/quests,
-    // reemplazar por consultas reales.
-    stats.totalXP = 1337L; // TODO: reemplazar por suma real de XP
-    stats.totalQuests = 7L; // TODO: reemplazar por quests reales completadas
-    stats.totalProjects = 3L; // TODO: reemplazar por proyectos activos reales
+    stats.totalXP = profiles.values().stream().mapToLong(p -> Math.max(0, p.getCurrentXp())).sum();
+    stats.totalQuests = profiles.values().stream()
+        .map(com.scanales.eventflow.model.UserProfile::getHistory)
+        .filter(Objects::nonNull)
+        .mapToLong(java.util.List::size)
+        .sum();
+    stats.totalProjects = profiles.values().stream()
+        .map(com.scanales.eventflow.model.UserProfile::getGithub)
+        .filter(Objects::nonNull)
+        .map(com.scanales.eventflow.model.UserProfile.GithubAccount::login)
+        .filter(Objects::nonNull)
+        .map(login -> login.trim().toLowerCase(Locale.ROOT))
+        .filter(login -> !login.isBlank())
+        .distinct()
+        .count();
 
     return stats;
   }
