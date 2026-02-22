@@ -19,6 +19,7 @@ public class HomeTimelineTest {
         .statusCode(200)
         .body(containsString("HomeDir"))
         .body(containsString("Welcome"))
+        .body(containsString("New / Hot"))
         .body(containsString("Highlights"))
         .body(containsString("Latest community content"))
         .body(containsString("Upcoming agenda"));
