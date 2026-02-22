@@ -1946,6 +1946,48 @@ public interface AppMessages {
     @Message("Community Highlights")
     String home_highlights_intro();
 
+    @Message("New / Hot")
+    String home_new_hot_badge();
+
+    @Message("What you can do right now")
+    String home_new_hot_title();
+
+    @Message("Curated content from the internet")
+    String home_new_hot_card_curated_title();
+
+    @Message("Discover hand-picked technology, open source, AI, and platform engineering signals.")
+    String home_new_hot_card_curated_desc();
+
+    @Message("Comic panel about curated community content")
+    String home_new_hot_card_curated_alt();
+
+    @Message("Hosted events in HomeDir")
+    String home_new_hot_card_events_title();
+
+    @Message("Track upcoming events, formats, and activity highlights from a single timeline.")
+    String home_new_hot_card_events_desc();
+
+    @Message("Comic panel about hosted events")
+    String home_new_hot_card_events_alt();
+
+    @Message("CFP + personalized agendas")
+    String home_new_hot_card_cfp_title();
+
+    @Message("Submit talks, follow moderation status, and build your own agenda flow.")
+    String home_new_hot_card_cfp_desc();
+
+    @Message("Comic panel about CFP and personalized agendas")
+    String home_new_hot_card_cfp_alt();
+
+    @Message("Connect accounts, level up, and earn HCoin")
+    String home_new_hot_card_level_title();
+
+    @Message("Link GitHub and Discord, grow class momentum, and use HCoin to improve your profile.")
+    String home_new_hot_card_level_desc();
+
+    @Message("Comic panel about leveling and HCoin rewards")
+    String home_new_hot_card_level_alt();
+
     @Message("updates available")
     String home_metric_updates();
 
