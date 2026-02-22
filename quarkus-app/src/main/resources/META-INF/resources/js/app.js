@@ -1,17 +1,36 @@
 (function () {
     const origFetch = window.fetch;
-    const isCriticalApi = (url) => typeof url === 'string' && url.startsWith('/api/private/');
+    const resolveRequestUrl = (input) => {
+        try {
+            if (typeof input === 'string') {
+                return new URL(input, window.location.origin);
+            }
+            if (input && typeof input.url === 'string') {
+                return new URL(input.url, window.location.origin);
+            }
+        } catch (error) {
+            return null;
+        }
+        return null;
+    };
+    const isSameOriginRequest = (url) => Boolean(url) && url.origin === window.location.origin;
+    const isCriticalApi = (url) =>
+        isSameOriginRequest(url) && String(url.pathname || '').startsWith('/api/private/');
+    const shouldAttachBearer = (url) => isCriticalApi(url);
     window.fetch = async function (input, init = {}) {
-        if (!init.credentials) { init.credentials = 'include'; }
+        const requestUrl = resolveRequestUrl(input);
+        if (isSameOriginRequest(requestUrl) && !init.credentials) {
+            init.credentials = 'include';
+        }
         init.headers = new Headers(init.headers || {});
-        if (!init.headers.has('Authorization')) {
+        if (shouldAttachBearer(requestUrl) && !init.headers.has('Authorization')) {
             const token = sessionStorage.getItem('token') || localStorage.getItem('token');
             if (token) { init.headers.set('Authorization', `Bearer ${token}`); }
         }
         const res = await origFetch(input, init);
-        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        const url = requestUrl ? requestUrl.pathname : (typeof input === 'string' ? input : (input && input.url) || '');
         if (res.status === 401) {
-            if (isCriticalApi(url) && res.headers.get('X-Session-Expired') === 'true') {
+            if (isCriticalApi(requestUrl) && res.headers.get('X-Session-Expired') === 'true') {
                 try { sessionStorage.clear(); localStorage.clear(); } catch (e) { }
                 if (location.pathname !== '/') { location.assign('/?session=expired'); }
             } else {
