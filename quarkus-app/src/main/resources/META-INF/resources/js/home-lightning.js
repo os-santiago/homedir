@@ -1,5 +1,7 @@
 (function () {
-  const root = document.getElementById("home-lightning-root");
+  const root =
+    document.getElementById("community-lightning-root") ||
+    document.getElementById("home-lightning-root");
   if (!root) {
     return;
   }
@@ -7,32 +9,35 @@
   const authenticated = String(root.dataset.authenticated || "false") === "true";
   const i18n = {
     loginRequired: root.dataset.i18nLoginRequired || "Sign in to participate.",
-    postLimit: root.dataset.i18nPostLimit || "1 post per hour. Server publishes 1 post per minute.",
+    postLimit:
+      root.dataset.i18nPostLimit ||
+      "1 post per hour per account. Replies are limited to 1 per minute.",
     postSubmit: root.dataset.i18nPostSubmit || "Post",
     postSubmitting: root.dataset.i18nPostSubmitting || "Posting...",
-    comment: root.dataset.i18nComment || "Comment",
+    comment: root.dataset.i18nComment || "Reply",
     like: root.dataset.i18nLike || "Like",
     report: root.dataset.i18nReport || "Report",
     loadMore: root.dataset.i18nLoadMore || "Load more",
-    empty: root.dataset.i18nEmpty || "No lightning threads yet.",
+    empty: root.dataset.i18nEmpty || "No sharp statements yet.",
     queued: root.dataset.i18nQueued || "Queued. It will be published in turn.",
     published: root.dataset.i18nPublished || "Published.",
-    serverLimit: root.dataset.i18nServerLimit || "Maximo de post por minuto del servidor superados, intenta mas tarde",
+    serverLimit:
+      root.dataset.i18nServerLimit ||
+      "Maximo de publicaciones por minuto del servidor superado, intenta mas tarde",
     reportSuccess: root.dataset.i18nReportSuccess || "Report sent to moderation.",
     reportDuplicate: root.dataset.i18nReportDuplicate || "You already reported this item.",
     bestAnswer: root.dataset.i18nBestAnswer || "Best answer",
     pingBest: root.dataset.i18nPingBest || "Ping best answer",
-    modeThread: root.dataset.i18nModeThread || "Lightning Threads",
-    modeDebate: root.dataset.i18nModeDebate || "Short Debate",
-    modeAsk: root.dataset.i18nModeAsk || "Ask Short & Sharp",
-    promptComment: root.dataset.i18nPromptComment || "Write your comment",
-    promptReason: root.dataset.i18nPromptReason || "Reason for report"
+    promptComment: root.dataset.i18nPromptComment || "Write your reply (max 200 chars)",
+    promptReason: root.dataset.i18nPromptReason || "Reason for report",
+    commentTooLong:
+      root.dataset.i18nCommentTooLong ||
+      "Replies must be 200 characters or less."
   };
 
-  const modeButtons = Array.from(root.querySelectorAll(".home-lightning-mode-btn"));
   const form = document.getElementById("home-lightning-form");
-  const titleInput = document.getElementById("home-lightning-title");
-  const bodyInput = document.getElementById("home-lightning-body");
+  const statementInput = document.getElementById("home-lightning-statement");
+  const countEl = document.getElementById("home-lightning-count");
   const submitBtn = document.getElementById("home-lightning-submit");
   const feedback = document.getElementById("home-lightning-feedback");
   const listEl = document.getElementById("home-lightning-list");
@@ -40,11 +45,13 @@
   const loadMoreBtn = document.getElementById("home-lightning-load-more");
 
   const state = {
-    mode: String(root.dataset.initialMode || "lightning_thread"),
     limit: 6,
     offset: 0,
     total: 0,
-    loading: false
+    loading: false,
+    highlightThreadId: new URLSearchParams(window.location.search).get("lta") || "",
+    highlightHandled: false,
+    highlightLoads: 0
   };
 
   function escapeText(value) {
@@ -92,14 +99,12 @@
     });
   }
 
-  function modeLabel(mode) {
-    if (mode === "short_debate") {
-      return i18n.modeDebate;
+  function updateCount() {
+    if (!statementInput || !countEl) {
+      return;
     }
-    if (mode === "ask_short_sharp") {
-      return i18n.modeAsk;
-    }
-    return i18n.modeThread;
+    const current = String(statementInput.value || "").length;
+    countEl.textContent = `${current}/100`;
   }
 
   function commentMarkup(comment, isBest) {
@@ -123,6 +128,9 @@
     const comments = Array.isArray(thread.top_comments) ? thread.top_comments : [];
     const bestId = thread.best_comment_id || "";
     const commentsHtml = comments.map((item) => commentMarkup(item, item.id === bestId)).join("");
+    const body = String(thread.body || "").trim();
+    const title = String(thread.title || "").trim();
+    const showBody = body && body !== title;
     const bestBlock = thread.best_comment
       ? `<div class="home-lightning-best">
           <span>${i18n.bestAnswer}: ${escapeText(thread.best_comment.user_name || "member")}</span>
@@ -132,11 +140,11 @@
     return `
       <article class="home-lightning-item" data-thread-id="${escapeText(thread.id)}">
         <div class="home-lightning-item-head">
-          <span class="home-chip">${modeLabel(thread.mode)}</span>
+          <strong>${escapeText(thread.user_name || "member")}</strong>
           <small>${formatDate(thread.published_at || thread.created_at)}</small>
         </div>
-        <h3>${escapeText(thread.title)}</h3>
-        <p>${escapeText(thread.body)}</p>
+        <h3>${escapeText(title || body)}</h3>
+        ${showBody ? `<p>${escapeText(body)}</p>` : ""}
         ${bestBlock}
         <div class="home-lightning-thread-actions">
           <button type="button" class="home-lightning-mini-btn" data-action="like-thread" data-id="${escapeText(thread.id)}">${i18n.like} · ${Number(thread.likes || 0)}</button>
@@ -158,9 +166,10 @@
       state.total = 0;
     }
     try {
-      const response = await fetch(`/api/community/lightning?limit=${state.limit}&offset=${state.offset}&comments_limit=3`, {
-        credentials: "same-origin"
-      });
+      const response = await fetch(
+        `/api/community/lightning?limit=${state.limit}&offset=${state.offset}&comments_limit=3`,
+        { credentials: "same-origin" }
+      );
       if (!response.ok) {
         throw new Error("load_failed");
       }
@@ -174,12 +183,35 @@
       state.offset += items.length;
       emptyEl.classList.toggle("hidden", state.offset > 0);
       const hasMore = state.offset < state.total;
-      loadMoreBtn.classList.toggle("hidden", !hasMore);
-      loadMoreBtn.textContent = i18n.loadMore;
+      if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle("hidden", !hasMore);
+        loadMoreBtn.textContent = i18n.loadMore;
+      }
+      window.setTimeout(tryHighlightThread, 0);
     } catch (error) {
       showFeedback(i18n.serverLimit, true);
     } finally {
       state.loading = false;
+    }
+  }
+
+  function tryHighlightThread() {
+    if (!state.highlightThreadId || state.highlightHandled) {
+      return;
+    }
+    const node = listEl.querySelector(`[data-thread-id="${state.highlightThreadId}"]`);
+    if (node) {
+      node.classList.add("home-lightning-item-focus");
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+      state.highlightHandled = true;
+      window.setTimeout(() => {
+        node.classList.remove("home-lightning-item-focus");
+      }, 2200);
+      return;
+    }
+    if (state.offset < state.total && state.highlightLoads < 4 && !state.loading) {
+      state.highlightLoads += 1;
+      fetchThreads(false);
     }
   }
 
@@ -189,9 +221,8 @@
       showFeedback(i18n.loginRequired, true);
       return;
     }
-    const title = String(titleInput.value || "").trim();
-    const body = String(bodyInput.value || "").trim();
-    if (!title || !body) {
+    const statement = String(statementInput?.value || "").trim();
+    if (!statement) {
       return;
     }
     submitBtn.disabled = true;
@@ -202,15 +233,17 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ mode: state.mode, title, body })
+        body: JSON.stringify({ statement })
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         const message = payload.message || payload.error || i18n.serverLimit;
         throw new Error(message);
       }
-      titleInput.value = "";
-      bodyInput.value = "";
+      if (statementInput) {
+        statementInput.value = "";
+      }
+      updateCount();
       showFeedback(payload.queued ? i18n.queued : i18n.published, false);
       await fetchThreads(true);
     } catch (error) {
@@ -257,10 +290,20 @@
     try {
       if (action === "comment-thread") {
         const text = window.prompt(i18n.promptComment);
-        if (!text || !text.trim()) {
+        const trimmed = String(text || "").trim();
+        if (!trimmed) {
           return;
         }
-        await mutate(`/api/community/lightning/threads/${encodeURIComponent(id)}/comments`, { body: text }, "", "");
+        if (trimmed.length > 200) {
+          showFeedback(i18n.commentTooLong, true);
+          return;
+        }
+        await mutate(
+          `/api/community/lightning/threads/${encodeURIComponent(id)}/comments`,
+          { body: trimmed },
+          "",
+          ""
+        );
         await fetchThreads(true);
         return;
       }
@@ -269,7 +312,12 @@
         if (!reason || !reason.trim()) {
           return;
         }
-        await mutate(`/api/community/lightning/threads/${encodeURIComponent(id)}/report`, { reason }, i18n.reportSuccess, i18n.reportDuplicate);
+        await mutate(
+          `/api/community/lightning/threads/${encodeURIComponent(id)}/report`,
+          { reason },
+          i18n.reportSuccess,
+          i18n.reportDuplicate
+        );
         await fetchThreads(true);
         return;
       }
@@ -278,7 +326,12 @@
         if (!reason || !reason.trim()) {
           return;
         }
-        await mutate(`/api/community/lightning/comments/${encodeURIComponent(id)}/report`, { reason }, i18n.reportSuccess, i18n.reportDuplicate);
+        await mutate(
+          `/api/community/lightning/comments/${encodeURIComponent(id)}/report`,
+          { reason },
+          i18n.reportSuccess,
+          i18n.reportDuplicate
+        );
         await fetchThreads(true);
         return;
       }
@@ -313,13 +366,9 @@
     }
   });
 
-  modeButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      state.mode = button.dataset.mode || "lightning_thread";
-      modeButtons.forEach((item) => item.classList.remove("active"));
-      button.classList.add("active");
-    });
-  });
+  if (statementInput) {
+    statementInput.addEventListener("input", updateCount);
+  }
 
   if (form) {
     form.addEventListener("submit", postThread);
@@ -329,10 +378,13 @@
     loadMoreBtn.addEventListener("click", () => {
       fetchThreads(false);
     });
+    loadMoreBtn.textContent = i18n.loadMore;
   }
 
-  loadMoreBtn.textContent = i18n.loadMore;
-  emptyEl.textContent = i18n.empty;
+  if (emptyEl) {
+    emptyEl.textContent = i18n.empty;
+  }
+  updateCount();
   showFeedback(i18n.postLimit, false);
   fetchThreads(true);
 })();

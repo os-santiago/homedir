@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Lightning Threads Arena</title>
+  <desc id="desc">Stylized card for Lightning Threads Arena quick debates.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="320" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101e3d"/>
+      <stop offset="1" stop-color="#242458"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" rx="14" fill="url(#bg)"/>
+  <rect x="16" y="16" width="288" height="148" rx="10" stroke="rgba(255,255,255,0.35)"/>
+  <g stroke="#FFD66B" stroke-width="3" stroke-linecap="round">
+    <path d="M62 58h72"/>
+    <path d="M62 76h58"/>
+    <path d="M62 94h84"/>
+  </g>
+  <path d="M214 52h56c7.732 0 14 6.268 14 14v28c0 7.732-6.268 14-14 14h-24l-18 16v-16h-14c-7.732 0-14-6.268-14-14V66c0-7.732 6.268-14 14-14z" fill="#FFC84A" fill-opacity="0.16" stroke="#FFC84A" stroke-width="2"/>
+  <circle cx="232" cy="80" r="3.5" fill="#FFD66B"/>
+  <circle cx="248" cy="80" r="3.5" fill="#FFD66B"/>
+  <circle cx="264" cy="80" r="3.5" fill="#FFD66B"/>
+  <text x="24" y="136" fill="#FFFFFF" font-size="18" font-family="Arial, sans-serif" font-weight="700">LIGHTNING THREADS ARENA</text>
+  <text x="24" y="156" fill="#D6D9FF" font-size="12" font-family="Arial, sans-serif">AKA LTA · sharp statements · fast answers</text>
+</svg>

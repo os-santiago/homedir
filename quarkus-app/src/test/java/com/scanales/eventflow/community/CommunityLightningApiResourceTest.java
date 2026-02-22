@@ -42,21 +42,22 @@ public class CommunityLightningApiResourceTest {
   @Test
   @TestSecurity(user = "user@example.com")
   void authenticatedUserCanCreateAndListPublishedThreads() {
-    given()
-        .contentType("application/json")
-        .body(
-            """
-            {
-              "mode":"short_debate",
-              "title":"Golden path",
-              "body":"Should teams default to platform templates?"
-            }
-            """)
-        .when()
-        .post("/api/community/lightning/threads")
-        .then()
-        .statusCode(201)
-        .body("item.mode", equalTo("short_debate"));
+    String threadId =
+        given()
+            .contentType("application/json")
+            .body(
+                """
+                {
+                  "statement":"Docker or Podman?"
+                }
+                """)
+            .when()
+            .post("/api/community/lightning/threads")
+            .then()
+            .statusCode(201)
+            .body("item.mode", equalTo("sharp_statement"))
+            .extract()
+            .path("item.id");
 
     given()
         .accept("application/json")
@@ -65,7 +66,8 @@ public class CommunityLightningApiResourceTest {
         .then()
         .statusCode(200)
         .body("items", hasSize(greaterThanOrEqualTo(1)))
-        .body("items[0].title", equalTo("Golden path"));
+        .body("items[0].id", equalTo(threadId))
+        .body("items[0].title", equalTo("Docker or Podman?"));
   }
 
   @Test
@@ -74,9 +76,7 @@ public class CommunityLightningApiResourceTest {
     String payload =
         """
         {
-          "mode":"lightning_thread",
-          "title":"Post %s",
-          "body":"Body for %s"
+          "statement":"Post %s"
         }
         """;
 
@@ -96,5 +96,42 @@ public class CommunityLightningApiResourceTest {
         .then()
         .statusCode(429)
         .body("error", equalTo("user_hourly_post_limit"));
+  }
+
+  @Test
+  @TestSecurity(user = "user@example.com")
+  void secondCommentWithinMinuteReturnsRateLimit() {
+    String threadId =
+        given()
+            .contentType("application/json")
+            .body(
+                """
+                {
+                  "statement":"Sharp test thread"
+                }
+                """)
+            .when()
+            .post("/api/community/lightning/threads")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("item.id");
+
+    given()
+        .contentType("application/json")
+        .body("{\"body\":\"First concise reply.\"}")
+        .when()
+        .post("/api/community/lightning/threads/" + threadId + "/comments")
+        .then()
+        .statusCode(200);
+
+    given()
+        .contentType("application/json")
+        .body("{\"body\":\"Second concise reply.\"}")
+        .when()
+        .post("/api/community/lightning/threads/" + threadId + "/comments")
+        .then()
+        .statusCode(429)
+        .body("error", equalTo("user_comment_rate_limit"));
   }
 }

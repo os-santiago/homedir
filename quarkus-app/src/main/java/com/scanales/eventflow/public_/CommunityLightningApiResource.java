@@ -78,9 +78,9 @@ public class CommunityLightningApiResource {
               userId.get(),
               currentUserName().orElse(userId.get()),
               new CommunityLightningService.CreateThreadRequest(
-                  request != null ? request.mode() : null,
-                  request != null ? request.title() : null,
-                  request != null ? request.body() : null));
+                  null,
+                  request != null ? request.effectiveStatement() : null,
+                  request != null ? request.effectiveStatement() : null));
       metrics.recordFunnelStep("community.lightning.thread.create");
       metrics.recordFunnelStep("community_lightning_post");
       gamificationService.award(userId.get(), GamificationActivity.COMMUNITY_SUBMISSION);
@@ -128,6 +128,10 @@ public class CommunityLightningApiResource {
           .build();
     } catch (CommunityLightningService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    } catch (CommunityLightningService.RateLimitExceededException e) {
+      return Response.status(429)
+          .entity(Map.of("error", e.getMessage(), "message", e.userMessage()))
+          .build();
     } catch (CommunityLightningService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (Exception e) {
@@ -316,7 +320,17 @@ public class CommunityLightningApiResource {
     return Math.min(value, max);
   }
 
-  public record CreateThreadRequest(String mode, String title, String body) {}
+  public record CreateThreadRequest(String statement, String title, String body) {
+    public String effectiveStatement() {
+      if (statement != null && !statement.isBlank()) {
+        return statement;
+      }
+      if (title != null && !title.isBlank()) {
+        return title;
+      }
+      return body;
+    }
+  }
 
   public record CommentRequest(String body) {}
 

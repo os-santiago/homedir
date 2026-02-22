@@ -13,28 +13,28 @@
     </div>
     <div class="home-new-hot-grid">
       <a href="/comunidad?view=featured" class="home-new-hot-card">
-        <img src="/img/home-new-hot-curated.svg" alt="{i18n.home_new_hot_card_curated_alt}" loading="lazy" width="320" height="180">
+        <img src="/img/home-new-hot-curated.svg" alt="{i18n.home_new_hot_card_curated_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n.home_new_hot_card_curated_title}</h3>
           <p>{i18n.home_new_hot_card_curated_desc}</p>
         </div>
       </a>
       <a href="/eventos" class="home-new-hot-card">
-        <img src="/img/home-new-hot-events.svg" alt="{i18n.home_new_hot_card_events_alt}" loading="lazy" width="320" height="180">
+        <img src="/img/home-new-hot-events.svg" alt="{i18n.home_new_hot_card_events_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n.home_new_hot_card_events_title}</h3>
           <p>{i18n.home_new_hot_card_events_desc}</p>
         </div>
       </a>
-      <a href="/eventos" class="home-new-hot-card">
-        <img src="/img/home-new-hot-cfp.svg" alt="{i18n.home_new_hot_card_cfp_alt}" loading="lazy" width="320" height="180">
+      <a href="/comunidad#community-lta" class="home-new-hot-card">
+        <img src="/img/home-new-hot-lta.svg" alt="{i18n.home_new_hot_card_lta_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
-          <h3>{i18n.home_new_hot_card_cfp_title}</h3>
-          <p>{i18n.home_new_hot_card_cfp_desc}</p>
+          <h3>{i18n.home_new_hot_card_lta_title}</h3>
+          <p>{i18n.home_new_hot_card_lta_desc}</p>
         </div>
       </a>
       <a href="/private/profile/catalog" class="home-new-hot-card">
-        <img src="/img/home-new-hot-level.svg" alt="{i18n.home_new_hot_card_level_alt}" loading="lazy" width="320" height="180">
+        <img src="/img/home-new-hot-level.svg" alt="{i18n.home_new_hot_card_level_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n.home_new_hot_card_level_title}</h3>
           <p>{i18n.home_new_hot_card_level_desc}</p>
@@ -42,59 +42,20 @@
       </a>
     </div>
   </section>
-  <section class="home-lightning-strip" aria-label="{i18n.home_lightning_title}">
-    <div class="home-lightning-header">
+  <section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad#community-lta"
+    data-i18n-title="{i18n.home_lta_preview_title}"
+    data-i18n-subtitle="{i18n.home_lta_preview_subtitle}"
+    data-i18n-empty="{i18n.home_lta_preview_empty}"
+    data-i18n-open="{i18n.home_lta_preview_open}"
+    data-i18n-load-error="{i18n.home_lta_preview_error}">
+    <div class="home-lta-preview-header">
       <span class="home-chip">{i18n.home_lightning_badge}</span>
-      <h2>{i18n.home_lightning_title}</h2>
-      <p>{i18n.home_lightning_intro}</p>
+      <h2>{i18n.home_lta_preview_title}</h2>
+      <p>{i18n.home_lta_preview_subtitle}</p>
     </div>
-    <div id="home-lightning-root"
-      data-authenticated="{userAuthenticated}"
-      data-initial-mode="lightning_thread"
-      data-i18n-login-required="{i18n.home_lightning_login_required}"
-      data-i18n-post-limit="{i18n.home_lightning_post_limit}"
-      data-i18n-post-submit="{i18n.home_lightning_btn_submit}"
-      data-i18n-post-submitting="{i18n.home_lightning_btn_submitting}"
-      data-i18n-comment="{i18n.home_lightning_btn_comment}"
-      data-i18n-like="{i18n.home_lightning_btn_like}"
-      data-i18n-report="{i18n.home_lightning_btn_report}"
-      data-i18n-load-more="{i18n.home_lightning_btn_load_more}"
-      data-i18n-empty="{i18n.home_lightning_empty}"
-      data-i18n-queued="{i18n.home_lightning_feedback_queued}"
-      data-i18n-published="{i18n.home_lightning_feedback_published}"
-      data-i18n-server-limit="{i18n.home_lightning_server_limit}"
-      data-i18n-report-success="{i18n.home_lightning_report_success}"
-      data-i18n-report-duplicate="{i18n.home_lightning_report_duplicate}"
-      data-i18n-best-answer="{i18n.home_lightning_best_answer}"
-      data-i18n-ping-best="{i18n.home_lightning_ping_best}"
-      data-i18n-mode-thread="{i18n.home_lightning_mode_thread}"
-      data-i18n-mode-debate="{i18n.home_lightning_mode_debate}"
-      data-i18n-mode-ask="{i18n.home_lightning_mode_ask}"
-      data-i18n-prompt-comment="{i18n.home_lightning_prompt_comment}"
-      data-i18n-prompt-reason="{i18n.home_lightning_prompt_reason}">
-      <div class="home-lightning-mode-row" role="tablist" aria-label="{i18n.home_lightning_mode_aria}">
-        <button type="button" class="home-lightning-mode-btn active" data-mode="lightning_thread">{i18n.home_lightning_mode_thread}</button>
-        <button type="button" class="home-lightning-mode-btn" data-mode="short_debate">{i18n.home_lightning_mode_debate}</button>
-        <button type="button" class="home-lightning-mode-btn" data-mode="ask_short_sharp">{i18n.home_lightning_mode_ask}</button>
-      </div>
-      <form id="home-lightning-form" class="home-lightning-form {#if !userAuthenticated}hidden{/if}">
-        <input id="home-lightning-title" type="text" maxlength="120" placeholder="{i18n.home_lightning_title_placeholder}" required>
-        <textarea id="home-lightning-body" rows="2" maxlength="320" placeholder="{i18n.home_lightning_body_placeholder}" required></textarea>
-        <div class="home-lightning-form-actions">
-          <small>{i18n.home_lightning_post_limit}</small>
-          <button id="home-lightning-submit" type="submit" class="btn-primary">{i18n.home_lightning_btn_submit}</button>
-        </div>
-      </form>
-      <div id="home-lightning-login" class="home-lightning-login {#if userAuthenticated}hidden{/if}">
-        <p>{i18n.home_lightning_login_required}</p>
-        <a href="/private/profile" class="btn-primary">{i18n.home_lightning_login_cta}</a>
-      </div>
-      <div id="home-lightning-feedback" class="home-lightning-feedback hidden" role="status"></div>
-      <div id="home-lightning-list" class="home-lightning-list"></div>
-      <div id="home-lightning-empty" class="home-lightning-empty hidden">{i18n.home_lightning_empty}</div>
-      <div class="home-lightning-actions">
-        <button id="home-lightning-load-more" type="button" class="btn-primary hidden">{i18n.home_lightning_btn_load_more}</button>
-      </div>
+    <div id="home-lta-preview-list" class="home-lta-preview-list" aria-live="polite"></div>
+    <div class="home-lta-preview-actions">
+      <a href="/comunidad#community-lta" class="btn-primary">{i18n.home_lta_preview_open}</a>
     </div>
   </section>
   <div class="home-top-metrics">
@@ -253,6 +214,6 @@
     </div>
   </article>
 </section>
-<script src="/js/home-lightning.js?v={app:version()}" defer></script>
+<script src="/js/home-lta-preview.js?v={app:version()}" defer></script>
 {/body}
 {/include}

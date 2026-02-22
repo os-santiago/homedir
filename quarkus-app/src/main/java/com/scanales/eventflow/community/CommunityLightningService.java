@@ -36,12 +36,8 @@ public class CommunityLightningService {
   private static final Logger LOG = Logger.getLogger(CommunityLightningService.class);
   private static final Pattern CONTROL = Pattern.compile("[\\p{Cntrl}&&[^\\n\\t]]");
   public static final String SERVER_LIMIT_MESSAGE =
-      "Maximo de post por minuto del servidor superados, intenta mas tarde";
-  private static final String MODE_LIGHTNING_THREAD = "lightning_thread";
-  private static final String MODE_SHORT_DEBATE = "short_debate";
-  private static final String MODE_ASK_SHORT_SHARP = "ask_short_sharp";
-  private static final List<String> ALLOWED_MODES =
-      List.of(MODE_LIGHTNING_THREAD, MODE_SHORT_DEBATE, MODE_ASK_SHORT_SHARP);
+      "Maximo de publicaciones por minuto del servidor superado, intenta mas tarde";
+  private static final String MODE_SHARP_STATEMENT = "sharp_statement";
 
   @Inject PersistenceService persistenceService;
   @Inject NotificationService notificationService;
@@ -56,6 +52,12 @@ public class CommunityLightningService {
 
   @ConfigProperty(name = "community.lightning.server-posts-per-minute", defaultValue = "30")
   int serverPostsPerMinute;
+
+  @ConfigProperty(name = "community.lightning.user-comment-window", defaultValue = "PT1M")
+  Duration userCommentWindow;
+
+  @ConfigProperty(name = "community.lightning.server-comments-per-minute", defaultValue = "60")
+  int serverCommentsPerMinute;
 
   @ConfigProperty(name = "community.lightning.queue.max-size", defaultValue = "500")
   int queueMaxSize;
@@ -72,13 +74,13 @@ public class CommunityLightningService {
   @ConfigProperty(name = "community.lightning.raid.cooldown", defaultValue = "PT5M")
   Duration raidCooldown;
 
-  @ConfigProperty(name = "community.lightning.max-title-length", defaultValue = "120")
+  @ConfigProperty(name = "community.lightning.max-title-length", defaultValue = "100")
   int maxTitleLength;
 
-  @ConfigProperty(name = "community.lightning.max-body-length", defaultValue = "320")
+  @ConfigProperty(name = "community.lightning.max-body-length", defaultValue = "100")
   int maxBodyLength;
 
-  @ConfigProperty(name = "community.lightning.max-comment-length", defaultValue = "240")
+  @ConfigProperty(name = "community.lightning.max-comment-length", defaultValue = "200")
   int maxCommentLength;
 
   private final Object stateLock = new Object();
@@ -90,6 +92,7 @@ public class CommunityLightningService {
   private final LinkedHashMap<String, String> reportIndexByUserTarget = new LinkedHashMap<>();
   private final ArrayDeque<QueuedThread> publishQueue = new ArrayDeque<>();
   private final ArrayDeque<AttemptEntry> postWindowAttempts = new ArrayDeque<>();
+  private final ArrayDeque<AttemptEntry> commentWindowAttempts = new ArrayDeque<>();
   private final ArrayDeque<AttemptEntry> raidWindowAttempts = new ArrayDeque<>();
   private final ScheduledExecutorService scheduler =
       Executors.newSingleThreadScheduledExecutor(
@@ -201,11 +204,14 @@ public class CommunityLightningService {
       }
       String safeTitle = sanitizeText(request != null ? request.title() : null, maxTitleLength);
       if (safeTitle == null) {
+        safeTitle = sanitizeText(request != null ? request.body() : null, maxTitleLength);
+      }
+      if (safeTitle == null) {
         throw new ValidationException("invalid_title");
       }
       String safeBody = sanitizeText(request != null ? request.body() : null, maxBodyLength);
       if (safeBody == null) {
-        throw new ValidationException("invalid_body");
+        safeBody = safeTitle;
       }
 
       Instant now = Instant.now();
@@ -269,6 +275,13 @@ public class CommunityLightningService {
       }
 
       Instant now = Instant.now();
+      if (isRaidCooldownActive(now)) {
+        throw new RateLimitExceededException("raid_cooldown", SERVER_LIMIT_MESSAGE);
+      }
+      enforceServerCommentLimit(now);
+      registerRaidAttempt(normalizedUserId, now);
+      enforceUserCommentWindow(normalizedUserId, now);
+
       String commentId = UUID.randomUUID().toString();
       CommunityLightningComment comment =
           new CommunityLightningComment(
@@ -471,6 +484,7 @@ public class CommunityLightningService {
       reportIndexByUserTarget.clear();
       publishQueue.clear();
       postWindowAttempts.clear();
+      commentWindowAttempts.clear();
       raidWindowAttempts.clear();
       nextPublishAt = Instant.EPOCH;
       raidCooldownUntil = Instant.EPOCH;
@@ -706,6 +720,18 @@ public class CommunityLightningService {
     postWindowAttempts.addLast(new AttemptEntry("server", now));
   }
 
+  private void enforceServerCommentLimit(Instant now) {
+    if (serverCommentsPerMinute <= 0) {
+      return;
+    }
+    Instant floor = now.minus(1, ChronoUnit.MINUTES);
+    trimAttempts(commentWindowAttempts, floor);
+    if (commentWindowAttempts.size() >= serverCommentsPerMinute) {
+      throw new RateLimitExceededException("server_comment_minute_limit_reached", SERVER_LIMIT_MESSAGE);
+    }
+    commentWindowAttempts.addLast(new AttemptEntry("server", now));
+  }
+
   private void registerRaidAttempt(String userId, Instant now) {
     Instant floor = now.minus(raidWindow != null ? raidWindow : Duration.ofSeconds(30));
     trimAttempts(raidWindowAttempts, floor);
@@ -767,6 +793,20 @@ public class CommunityLightningService {
             .isPresent();
     if (violated) {
       throw new RateLimitExceededException("user_hourly_post_limit", "You can post once per hour.");
+    }
+  }
+
+  private void enforceUserCommentWindow(String userId, Instant now) {
+    Duration window = userCommentWindow != null ? userCommentWindow : Duration.ofMinutes(1);
+    Instant floor = now.minus(window);
+    boolean violated =
+        comments.values().stream()
+            .filter(comment -> userId.equals(comment.userId()))
+            .filter(comment -> comment.createdAt() != null && !comment.createdAt().isBefore(floor))
+            .findAny()
+            .isPresent();
+    if (violated) {
+      throw new RateLimitExceededException("user_comment_rate_limit", "You can reply once per minute.");
     }
   }
 
@@ -946,11 +986,7 @@ public class CommunityLightningService {
   }
 
   private String sanitizeMode(String mode) {
-    if (mode == null || mode.isBlank()) {
-      return MODE_LIGHTNING_THREAD;
-    }
-    String normalized = mode.trim().toLowerCase(Locale.ROOT).replace('-', '_').replace(' ', '_');
-    return ALLOWED_MODES.contains(normalized) ? normalized : null;
+    return MODE_SHARP_STATEMENT;
   }
 
   private String sanitizeUserId(String userId) {
