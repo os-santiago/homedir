@@ -16,12 +16,7 @@ public final class TemplateLocaleUtil {
   private TemplateLocaleUtil() {}
 
   public static TemplateInstance apply(TemplateInstance templateInstance, String localeCode) {
-    String normalized = normalize(localeCode);
-    Locale locale = Locale.forLanguageTag(normalized);
-    return templateInstance
-        .setLocale(locale)
-        .data("resolvedLocaleCode", normalized)
-        .data("locale", locale);
+    return apply(templateInstance, localeCode, resolveCurrentHeaders());
   }
 
   public static TemplateInstance apply(
@@ -95,6 +90,14 @@ public final class TemplateLocaleUtil {
       return userProfiles.find(userId.toLowerCase(Locale.ROOT))
           .map(com.scanales.eventflow.model.UserProfile::getPreferredLocale)
           .orElse(null);
+    } catch (Exception ignored) {
+      return null;
+    }
+  }
+
+  private static HttpHeaders resolveCurrentHeaders() {
+    try {
+      return Arc.container().instance(HttpHeaders.class).get();
     } catch (Exception ignored) {
       return null;
     }
