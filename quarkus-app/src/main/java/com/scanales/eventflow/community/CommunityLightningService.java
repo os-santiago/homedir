@@ -88,6 +88,8 @@ public class CommunityLightningService {
   private final LinkedHashMap<String, CommunityLightningComment> comments = new LinkedHashMap<>();
   private final LinkedHashMap<String, String> threadLikesByUser = new LinkedHashMap<>();
   private final LinkedHashMap<String, String> commentLikesByUser = new LinkedHashMap<>();
+  private final LinkedHashMap<String, Instant> threadEditedAtById = new LinkedHashMap<>();
+  private final LinkedHashMap<String, Instant> commentEditedAtById = new LinkedHashMap<>();
   private final LinkedHashMap<String, CommunityLightningReport> reports = new LinkedHashMap<>();
   private final LinkedHashMap<String, String> reportIndexByUserTarget = new LinkedHashMap<>();
   private final ArrayDeque<QueuedThread> publishQueue = new ArrayDeque<>();
@@ -202,6 +204,40 @@ public class CommunityLightningService {
                 .max(Comparator.naturalOrder())
                 .orElse(null);
         out.put(threadId, last);
+      }
+      return out;
+    }
+  }
+
+  public Map<String, Instant> editedAtByThread(List<String> threadIds) {
+    if (threadIds == null || threadIds.isEmpty()) {
+      return Map.of();
+    }
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      LinkedHashMap<String, Instant> out = new LinkedHashMap<>();
+      for (String threadId : threadIds) {
+        if (threadId == null || threadId.isBlank()) {
+          continue;
+        }
+        out.put(threadId, threadEditedAtById.get(threadId));
+      }
+      return out;
+    }
+  }
+
+  public Map<String, Instant> editedAtByComment(List<String> commentIds) {
+    if (commentIds == null || commentIds.isEmpty()) {
+      return Map.of();
+    }
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      LinkedHashMap<String, Instant> out = new LinkedHashMap<>();
+      for (String commentId : commentIds) {
+        if (commentId == null || commentId.isBlank()) {
+          continue;
+        }
+        out.put(commentId, commentEditedAtById.get(commentId));
       }
       return out;
     }
@@ -375,6 +411,7 @@ public class CommunityLightningService {
               thread.comments(),
               thread.reports());
       threads.put(thread.id(), updated);
+      threadEditedAtById.put(thread.id(), now);
       persistSync();
       return updated;
     }
@@ -408,6 +445,7 @@ public class CommunityLightningService {
               comment.likes(),
               comment.reports());
       comments.put(comment.id(), updatedComment);
+      commentEditedAtById.put(comment.id(), now);
       CommunityLightningThread thread = threads.get(comment.threadId());
       if (thread != null) {
         threads.put(
@@ -595,6 +633,8 @@ public class CommunityLightningService {
       comments.clear();
       threadLikesByUser.clear();
       commentLikesByUser.clear();
+      threadEditedAtById.clear();
+      commentEditedAtById.clear();
       reports.clear();
       reportIndexByUserTarget.clear();
       publishQueue.clear();
@@ -1007,6 +1047,8 @@ public class CommunityLightningService {
     comments.clear();
     threadLikesByUser.clear();
     commentLikesByUser.clear();
+    threadEditedAtById.clear();
+    commentEditedAtById.clear();
     reports.clear();
     reportIndexByUserTarget.clear();
     if (snapshot.threads() != null) {
@@ -1020,6 +1062,12 @@ public class CommunityLightningService {
     }
     if (snapshot.commentLikesByUser() != null) {
       commentLikesByUser.putAll(snapshot.commentLikesByUser());
+    }
+    if (snapshot.threadEditedAtById() != null) {
+      threadEditedAtById.putAll(snapshot.threadEditedAtById());
+    }
+    if (snapshot.commentEditedAtById() != null) {
+      commentEditedAtById.putAll(snapshot.commentEditedAtById());
     }
     if (snapshot.reports() != null) {
       reports.putAll(snapshot.reports());
@@ -1057,6 +1105,8 @@ public class CommunityLightningService {
         new LinkedHashMap<>(comments),
         new LinkedHashMap<>(threadLikesByUser),
         new LinkedHashMap<>(commentLikesByUser),
+        new LinkedHashMap<>(threadEditedAtById),
+        new LinkedHashMap<>(commentEditedAtById),
         new LinkedHashMap<>(reports),
         new LinkedHashMap<>(reportIndexByUserTarget));
   }
