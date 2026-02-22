@@ -97,7 +97,11 @@ public class CommunityResource {
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
     currentUserId().ifPresent(
         userId -> {
-          gamificationService.award(userId, GamificationActivity.COMMUNITY_MAIN_VIEW);
+          if ("lta".equals(activeSubmenu)) {
+            gamificationService.award(userId, GamificationActivity.LTA_VIEW);
+          } else {
+            gamificationService.award(userId, GamificationActivity.COMMUNITY_MAIN_VIEW);
+          }
           if ("picks".equals(activeSubmenu)) {
             gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
           } else if ("propose".equals(activeSubmenu) || "moderation".equals(activeSubmenu)) {

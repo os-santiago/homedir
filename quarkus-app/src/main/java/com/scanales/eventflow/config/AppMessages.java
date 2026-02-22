@@ -306,6 +306,15 @@ public interface AppMessages {
     @Message("Vote picks, propose content, curate signal")
     String profile_activity_examples_curation();
 
+    @Message("Lightning Threads Arena")
+    String profile_activity_category_lta();
+
+    @Message("Post sharp statements, answer threads, and react to signal")
+    String profile_activity_examples_lta();
+
+    @Message("Engineer · Warrior · Mage")
+    String profile_activity_class_lta();
+
     @Message("Community members and profiles")
     String profile_activity_category_members();
 

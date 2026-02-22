@@ -11,6 +11,10 @@ public enum GamificationActivity {
   COMMUNITY_MAIN_VIEW("community_main_view", 4, QuestClass.SCIENTIST, true, false, "Community main review"),
   COMMUNITY_PICKS_VIEW("community_picks_view", 5, QuestClass.SCIENTIST, true, false, "Community picks review"),
   COMMUNITY_PROPOSE_VIEW("community_propose_view", 5, QuestClass.SCIENTIST, true, false, "Community propose review"),
+  LTA_VIEW("lta_view", 3, QuestClass.MAGE, true, false, "Lightning arena review"),
+  LTA_THREAD_CREATE("lta_thread_create", 10, QuestClass.ENGINEER, false, false, "Lightning thread published"),
+  LTA_COMMENT_CREATE("lta_comment_create", 8, QuestClass.WARRIOR, false, false, "Lightning answer posted"),
+  LTA_REACTION("lta_reaction", 2, QuestClass.MAGE, true, false, "Lightning reaction"),
   COMMUNITY_BOARD_VIEW("community_board_view", 4, QuestClass.SCIENTIST, true, false, "Community board review"),
   COMMUNITY_BOARD_MEMBERS_VIEW(
       "community_board_members_view", 5, QuestClass.SCIENTIST, true, false, "Community members review"),
