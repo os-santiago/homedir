@@ -6,5 +6,6 @@ public enum NotificationType {
   STARTED,
   ENDING_SOON,
   FINISHED,
+  SOCIAL,
   TEST
 }

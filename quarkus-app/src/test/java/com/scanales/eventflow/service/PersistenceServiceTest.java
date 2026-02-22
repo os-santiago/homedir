@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.scanales.eventflow.community.CommunityLightningStateSnapshot;
+import com.scanales.eventflow.community.CommunityLightningThread;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Event;
@@ -112,6 +114,45 @@ public class PersistenceServiceTest {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Test
+  void communityLightningStatePersistsAndLoads() {
+    service = newService();
+
+    Instant now = Instant.parse("2026-02-22T12:00:00Z");
+    CommunityLightningThread thread =
+        new CommunityLightningThread(
+            "thread-1",
+            "lightning_thread",
+            "Platform take",
+            "Keep it simple and practical.",
+            "member@example.com",
+            "Member",
+            now,
+            now,
+            now,
+            null,
+            2,
+            0,
+            0);
+    CommunityLightningStateSnapshot snapshot =
+        new CommunityLightningStateSnapshot(
+            CommunityLightningStateSnapshot.CURRENT_SCHEMA_VERSION,
+            new java.util.LinkedHashMap<>(Map.of(thread.id(), thread)),
+            new java.util.LinkedHashMap<>(),
+            new java.util.LinkedHashMap<>(),
+            new java.util.LinkedHashMap<>(),
+            new java.util.LinkedHashMap<>(),
+            new java.util.LinkedHashMap<>());
+
+    service.saveCommunityLightningStateSync(snapshot);
+
+    var loaded = service.loadCommunityLightningState();
+    assertTrue(loaded.isPresent());
+    assertEquals(1, loaded.get().threads().size());
+    assertEquals("thread-1", loaded.get().threads().get("thread-1").id());
+    assertTrue(service.communityLightningStateLastModifiedMillis() > 0);
   }
 
   @Test
