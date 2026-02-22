@@ -99,6 +99,7 @@ Por favor selecciona tu idioma para ver la documentación:
 
 Platform deployment notes:
 - [platform/README.md](platform/README.md)
+- [Production-Safe Delivery Playbook](docs/development/production-safe-delivery-playbook.md)
 
 ---
 *Homedir: Where code finds its home.*
