@@ -3,7 +3,7 @@
 This module powers `/comunidad` with curated content loaded from files and community voting.
 
 Operational curation guide:
-- `docs/community-picks-playbook.md`
+- `docs/en/community/community-picks-playbook.md`
 
 ## Overview
 - Content source: filesystem (not DB), generated externally by a curator CLI.

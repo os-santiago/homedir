@@ -1,9 +1,11 @@
-# AGENT NOTES
+# Agent Operational Notes (Historical)
 
-- gh cli session already authenticated for this repo.
-- SSH key for VPS is available/loaded for connections.
+This file captures operational notes observed during prior maintenance cycles.
+Treat entries as historical context, not guaranteed runtime facts.
+
+- Verify `gh` authentication before any PR automation.
+- Verify SSH credentials before VPS operations.
 - Keep updating this file with any new reminders.
-- This file is ignored locally and should not be committed.
 - Recommendations/next steps from user must be executed/implemented.
 - Every repo change must go up as a PR; track status through merge and fixes.
 - For gh runs waits: use 2-minute sleeps up to 15 minutes max.

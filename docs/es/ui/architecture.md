@@ -42,7 +42,7 @@ Los fragmentos se incluyen con `{#include fragments/nav /}` y `{#include fragmen
 ## 2. Estilos y design tokens
 
 - **CSS principal**: `quarkus-app/src/main/resources/META-INF/resources/css/homedir.css`.
-- **Variables CSS**: definidas en `:root` como `--hd-color-primary`, `--hd-color-secondary`, `--hd-color-bg`, `--hd-color-surface`, `--hd-color-text-primary`, `--hd-color-text-secondary`, `--hd-color-accent` (ver `docs/ui/design-tokens.md`).
+- **Variables CSS**: definidas en `:root` como `--hd-color-primary`, `--hd-color-secondary`, `--hd-color-bg`, `--hd-color-surface`, `--hd-color-text-primary`, `--hd-color-text-secondary`, `--hd-color-accent` (ver `docs/es/ui/design-tokens.md`).
 - **Clases y componentes `hd-*`**:
   - Layout y contenedores: `.hd-body`, `.hd-main`, `.hd-page`, `.hd-section`, `.hd-hero`, `.hd-section-title`.
   - Navegación y footer: `.hd-nav`, `.hd-nav-menu`, `.hd-nav-link`, `.hd-footer`.
@@ -50,7 +50,7 @@ Los fragmentos se incluyen con `{#include fragments/nav /}` y `{#include fragmen
   - Formularios: `.hd-form`, `.hd-form-field`, `.hd-form-label`, `.hd-form-input`, `.hd-form-actions`.
   - Tablas y listados: `.hd-table`, `.hd-table-row`, `.hd-table-cell`.
   - Variantes auxiliares: `.hd-btn`, `.hd-btn-primary`, `.hd-btn-secondary`, badges y pills específicas por sección.
-- **TODO**: los valores exactos de colores, tipografías y espaciados deben alinearse con la maqueta de Canva (ver `docs/ui/design-tokens.md`).
+- **TODO**: los valores exactos de colores, tipografías y espaciados deben alinearse con la maqueta de Canva (ver `docs/es/ui/design-tokens.md`).
 
 ## 3. Feature flag de UI
 
@@ -74,7 +74,7 @@ Aplica el mismo patrón a otras rutas públicas (`/eventos`, `/docs`, `/contacto
 ## 4. Convenciones para nuevas vistas
 
 - Extiende siempre `layout/main` y reutiliza los fragmentos de navegación y footer.
-- Usa clases `hd-*` existentes; si creas variantes nuevas, documenta el uso en `docs/ui/architecture.md` y en los estilos.
+- Usa clases `hd-*` existentes; si creas variantes nuevas, documenta el uso en `docs/es/ui/architecture.md` y en los estilos.
 - Mantén los textos en español hasta definir una estrategia de i18n.
 - Evita estilos inline: centraliza los cambios en `homedir.css` y respeta los tokens definidos.
 - Marca con `TODO` los textos o imágenes que deban alinearse con la maqueta de Canva antes de un release.

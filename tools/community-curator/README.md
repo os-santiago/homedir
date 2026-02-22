@@ -3,7 +3,7 @@
 This folder contains scripts to curate and deploy filesystem-based community content for `/comunidad`.
 
 ## Related Docs
-- `docs/community-picks-playbook.md` (official process, criteria, schema, prompts).
+- `docs/en/community/community-picks-playbook.md` (official process, criteria, schema, prompts).
 - `tools/community-curator/prompts/` (LLM prompt templates for assisted curation).
 
 ## Goal
