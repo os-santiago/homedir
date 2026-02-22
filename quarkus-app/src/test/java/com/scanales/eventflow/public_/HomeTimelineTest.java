@@ -57,4 +57,17 @@ public class HomeTimelineTest {
         .body(containsString("<html lang=\"es\">"))
         .body(containsString(">Inicio</a>"));
   }
+
+  @Test
+  public void eventsDirectoryRespectsAcceptLanguage() {
+    given()
+        .header("Accept-Language", "es")
+        .accept("text/html")
+        .when()
+        .get("/eventos")
+        .then()
+        .statusCode(200)
+        .body(containsString("<html lang=\"es\">"))
+        .body(containsString(">Inicio</a>"));
+  }
 }
