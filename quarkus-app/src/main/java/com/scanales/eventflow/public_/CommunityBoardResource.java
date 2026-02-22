@@ -61,6 +61,10 @@ public class CommunityBoardResource {
         String groupPath,
         String groupTitle,
         String groupDescription,
+        int discordGuildMembers,
+        int discordListedUsers,
+        int discordLinkedProfiles,
+        int discordCoveragePercent,
         String searchQuery,
         int total,
         int limit,
@@ -125,6 +129,7 @@ public class CommunityBoardResource {
     boolean hasNextPage = pageEnd < slice.total();
     int previousOffset = Math.max(0, slice.offset() - slice.limit());
     int nextOffset = slice.offset() + slice.limit();
+    var summary = boardService.summary();
     String previousPageUrl =
         hasPreviousPage ? detailUrl(group.path(), normalizedQuery, slice.limit(), previousOffset) : null;
     String nextPageUrl =
@@ -135,6 +140,10 @@ public class CommunityBoardResource {
             group.path(),
             titleFor(group),
             descriptionFor(group),
+            summary.discordUsers(),
+            summary.discordListedUsers(),
+            summary.discordLinkedProfiles(),
+            summary.discordCoveragePercent(),
             normalizedQuery,
             slice.total(),
             slice.limit(),

@@ -319,4 +319,14 @@ public class CommunityBoardResourceTest {
         .statusCode(200)
         .body(containsString("Board Visible Name"));
   }
+
+  @Test
+  void discordBoardSearchMatchesHandleEvenWhenQueryUsesDifferentSeparators() {
+    given()
+        .when()
+        .get("/comunidad/board/discord-users?q=discorduser1001")
+        .then()
+        .statusCode(200)
+        .body(containsString("Discord User"));
+  }
 }
