@@ -12,6 +12,7 @@ import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.SystemError;
 import com.scanales.eventflow.community.CommunitySubmission;
+import com.scanales.eventflow.community.CommunityLightningStateSnapshot;
 import com.scanales.eventflow.economy.EconomyStateSnapshot;
 import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpSubmission;
@@ -108,6 +109,7 @@ public class PersistenceService {
   private Path systemErrorsFile;
   private Path economyStateFile;
   private Path communitySubmissionsFile;
+  private Path communityLightningStateFile;
   private Path cfpSubmissionsFile;
   private Path cfpConfigFile;
   private Path cfpBackupsDir;
@@ -187,6 +189,7 @@ public class PersistenceService {
     systemErrorsFile = dataDir.resolve("system-errors.json");
     economyStateFile = dataDir.resolve("economy-state.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
+    communityLightningStateFile = dataDir.resolve("community").resolve("lightning").resolve("state.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
     cfpConfigFile = dataDir.resolve("cfp-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
@@ -382,6 +385,39 @@ public class PersistenceService {
     } catch (IOException e) {
       return -1L;
     }
+  }
+
+  /** Persists community lightning state asynchronously. */
+  public void saveCommunityLightningState(CommunityLightningStateSnapshot state) {
+    scheduleWrite(
+        communityLightningStateFile,
+        state == null ? CommunityLightningStateSnapshot.empty() : state);
+  }
+
+  /** Persists community lightning state synchronously. */
+  public void saveCommunityLightningStateSync(CommunityLightningStateSnapshot state) {
+    writeSync(
+        communityLightningStateFile,
+        state == null ? CommunityLightningStateSnapshot.empty() : state);
+  }
+
+  /** Loads community lightning state from disk if present. */
+  public java.util.Optional<CommunityLightningStateSnapshot> loadCommunityLightningState() {
+    if (communityLightningStateFile == null || !Files.exists(communityLightningStateFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(
+          mapper.readValue(communityLightningStateFile.toFile(), CommunityLightningStateSnapshot.class));
+    } catch (IOException e) {
+      LOG.error("Failed to read " + communityLightningStateFile.toAbsolutePath(), e);
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Last modified timestamp for community lightning state file, or -1 when unavailable. */
+  public long communityLightningStateLastModifiedMillis() {
+    return fileLastModifiedMillis(communityLightningStateFile);
   }
 
   /** Persists CFP submissions asynchronously. */
