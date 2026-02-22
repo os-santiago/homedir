@@ -1979,6 +1979,15 @@ public interface AppMessages {
     @Message("Comic panel about CFP and personalized agendas")
     String home_new_hot_card_cfp_alt();
 
+    @Message("Lightning Threads Arena (AKA LTA)")
+    String home_new_hot_card_lta_title();
+
+    @Message("Sharp statements and fast answers from the community.")
+    String home_new_hot_card_lta_desc();
+
+    @Message("Comic panel about Lightning Threads Arena")
+    String home_new_hot_card_lta_alt();
+
     @Message("Connect accounts, level up, and earn HCoin")
     String home_new_hot_card_level_title();
 
@@ -1994,8 +2003,26 @@ public interface AppMessages {
     @Message("Lightning Threads Arena")
     String home_lightning_title();
 
-    @Message("Lightning threads, short debates, and quick Q&A. Post once per hour, react, comment, and surface the best answer.")
+    @Message("Lightning Threads Arena (AKA LTA)")
+    String home_lightning_title_aka();
+
+    @Message("One sharp statement or question at a time. Keep it concise, react fast, and surface the best answer.")
     String home_lightning_intro();
+
+    @Message("LTA quick preview")
+    String home_lta_preview_title();
+
+    @Message("Top 3 sharp threads. Open one directly or go to Community for the full arena.")
+    String home_lta_preview_subtitle();
+
+    @Message("No LTA threads published yet.")
+    String home_lta_preview_empty();
+
+    @Message("Open LTA")
+    String home_lta_preview_open();
+
+    @Message("LTA preview is temporarily unavailable.")
+    String home_lta_preview_error();
 
     @Message("Community post modes")
     String home_lightning_mode_aria();
@@ -2009,7 +2036,7 @@ public interface AppMessages {
     @Message("Ask Short & Sharp")
     String home_lightning_mode_ask();
 
-    @Message("Write a sharp title")
+    @Message("Write your sharp statement or question (max 100 chars)")
     String home_lightning_title_placeholder();
 
     @Message("Drop your idea, question, or take in 1-3 short lines")
@@ -2021,7 +2048,7 @@ public interface AppMessages {
     @Message("Login to participate")
     String home_lightning_login_cta();
 
-    @Message("1 post per hour per account. Server publishes 1 post per minute.")
+    @Message("1 post per hour per account. Replies: 1 per minute per account. Keep it concise: 100 chars for posts, 200 for replies.")
     String home_lightning_post_limit();
 
     @Message("Post")
@@ -2051,7 +2078,7 @@ public interface AppMessages {
     @Message("Published.")
     String home_lightning_feedback_published();
 
-    @Message("Maximo de post por minuto del servidor superados, intenta mas tarde")
+    @Message("Maximo de publicaciones por minuto del servidor superado, intenta mas tarde")
     String home_lightning_server_limit();
 
     @Message("Report sent to moderation.")
@@ -2066,8 +2093,11 @@ public interface AppMessages {
     @Message("Ping best answer")
     String home_lightning_ping_best();
 
-    @Message("Write your comment")
+    @Message("Write your reply (max 200 chars)")
     String home_lightning_prompt_comment();
+
+    @Message("Replies must be 200 characters or less.")
+    String home_lightning_comment_too_long();
 
     @Message("Reason for report")
     String home_lightning_prompt_reason();

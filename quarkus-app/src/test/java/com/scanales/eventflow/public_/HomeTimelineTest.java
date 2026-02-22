@@ -21,7 +21,7 @@ public class HomeTimelineTest {
         .body(containsString("Welcome"))
         .body(containsString("New / Hot"))
         .body(containsString("Highlights"))
-        .body(containsString("Lightning Threads Arena"))
+        .body(containsString("LTA quick preview"))
         .body(containsString("Latest community content"))
         .body(containsString("Upcoming agenda"));
   }
@@ -38,7 +38,7 @@ public class HomeTimelineTest {
         .body(containsString("HomeDir"))
         .body(containsString("Welcome"))
         .body(containsString("HomeDir: tu comunidad para construir, aprender y compartir."))
-        .body(containsString("Lightning Threads Arena"))
+        .body(containsString("LTA quick preview"))
         .body(containsString("Latest community content"));
   }
 }
