@@ -2585,6 +2585,106 @@ footer {
 
 .community-lta-shell {
   margin-bottom: 0.7rem;
+  border-color: rgba(255, 255, 255, 0.26);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.2));
+}
+
+.community-lta-shell .home-lightning-header {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.48rem 0.55rem;
+}
+
+.community-lta-shell .home-lightning-header h2 {
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.community-lta-shell .home-lightning-header p {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  opacity: 0.88;
+}
+
+.community-lta-stage {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  align-items: start;
+  gap: 0.62rem;
+}
+
+.community-lta-compose {
+  display: grid;
+  gap: 0.48rem;
+}
+
+.community-lta-feed {
+  min-width: 0;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.community-lta-shell .home-lightning-form,
+.community-lta-shell .home-lightning-login,
+.community-lta-shell .home-lightning-feedback {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+}
+
+.community-lta-shell .home-lightning-form-actions {
+  margin-top: 0.05rem;
+}
+
+.community-lta-shell .home-lightning-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.community-lta-shell .home-lightning-item {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.2));
+  padding: 0.54rem;
+}
+
+.community-lta-shell .home-lightning-item-head {
+  align-items: flex-start;
+  gap: 0.26rem;
+}
+
+.community-lta-shell .home-lightning-item-head small {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 999px;
+  padding: 0.08rem 0.32rem;
+  font-size: 0.62rem;
+  line-height: 1.2;
+}
+
+.community-lta-shell .home-lightning-item h3 {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.community-lta-shell .home-lightning-thread-actions,
+.community-lta-shell .home-lightning-comment-actions {
+  gap: 0.32rem;
+}
+
+.community-lta-shell .home-lightning-mini-btn {
+  padding: 0.18rem 0.45rem;
+}
+
+.community-lta-shell .home-lightning-comments {
+  border-top: 1px dashed rgba(255, 255, 255, 0.16);
+  padding-top: 0.34rem;
+}
+
+.community-lta-shell .home-lightning-actions {
+  justify-content: center;
+  padding-top: 0.08rem;
 }
 
 .home-new-hot-copy {
@@ -3207,6 +3307,14 @@ footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .community-lta-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .community-lta-shell .home-lightning-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .home-lta-preview-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3243,6 +3351,10 @@ footer {
   }
 
   .home-lightning-list {
+    grid-template-columns: 1fr;
+  }
+
+  .community-lta-shell .home-lightning-list {
     grid-template-columns: 1fr;
   }
 
