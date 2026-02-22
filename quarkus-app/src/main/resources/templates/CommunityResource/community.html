@@ -9,7 +9,7 @@
 {#title}{i18n.community_page_title}{/title}
 {#body}
   <header class="page-header events-page-header">
-    <div class="section-header">
+    <div class="section-header hd-section-heading">
       <p class="section-subtitle">{i18n.community_page_eyebrow}</p>
       <h1>{i18n.community_page_heading}</h1>
     </div>
@@ -18,8 +18,12 @@
   {#include fragments/community-submenu.html /}
 
   <section class="page-grid">
-    {#if activeCommunitySubmenu == 'picks'}
+    {#if activeCommunitySubmenu == 'lta'}
     <div class="section-card events-full-width community-shell-card">
+      <div class="section-header community-section-header hd-section-heading">
+        <p class="section-subtitle">{i18n.community_page_eyebrow}</p>
+        <h2 class="page-title">{i18n.home_lightning_title_aka}</h2>
+      </div>
       <section id="community-lta" class="home-lightning-strip community-lta-shell" aria-label="{i18n.home_lightning_title}">
         <div class="home-lightning-header">
           <span class="home-chip">{i18n.home_lightning_badge}</span>
@@ -67,6 +71,10 @@
           </div>
         </div>
       </section>
+    </div>
+    {/if}
+    {#if activeCommunitySubmenu == 'picks'}
+    <div class="section-card events-full-width community-shell-card">
       <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-ultra-lite="true" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}" data-initial-media="{initialMedia ?: 'all'}"
         data-i18n-empty-filtered="{i18n.community_js_empty_filtered}"
         data-i18n-empty-generic="{i18n.community_js_empty_generic}"
@@ -107,6 +115,10 @@
         data-i18n-cta-vote-progress="{i18n.community_js_cta_vote_progress}"
         data-i18n-cta-vote-ready="{i18n.community_js_cta_vote_ready}"
         data-i18n-empty-no-votes="{i18n.community_js_empty_no_votes}">
+        <div class="section-header community-section-header hd-section-heading">
+          <p class="section-subtitle">{i18n.community_page_eyebrow}</p>
+          <h2 class="page-title">{i18n.community_submenu_picks}</h2>
+        </div>
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
 
         {#if isAuthenticated}
@@ -260,7 +272,7 @@
       data-i18n-error-invalid-data-prefix="{i18n.community_submissions_error_invalid_data_prefix}"
       data-i18n-error-submit="{i18n.community_submissions_error_submit}"
       data-i18n-feedback-submitted="{i18n.community_submissions_feedback_submitted}">
-      <div class="section-header">
+      <div class="section-header hd-section-heading">
         <p class="section-subtitle">{i18n.community_propose_eyebrow}</p>
         <h2 class="page-title">{i18n.community_propose_title}</h2>
       </div>
@@ -338,7 +350,7 @@
       data-i18n-error-invalid-data-prefix="{i18n.community_submissions_error_invalid_data_prefix}"
       data-i18n-error-submit="{i18n.community_submissions_error_submit}"
       data-i18n-feedback-submitted="{i18n.community_submissions_feedback_submitted}">
-      <div class="section-header">
+      <div class="section-header hd-section-heading">
         <p class="section-subtitle">{i18n.community_moderation_eyebrow}</p>
         <h2 class="page-title">{i18n.community_moderation_title}</h2>
       </div>
@@ -409,6 +421,17 @@
     cursor: default;
     background: rgba(0, 0, 0, 0.45);
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
+  }
+
+  .community-section-header {
+    margin-bottom: 0.7rem;
+    gap: 0.24rem;
+  }
+
+  .community-section-header .page-title {
+    margin: 0;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
   }
 
   .community-shell-card *,

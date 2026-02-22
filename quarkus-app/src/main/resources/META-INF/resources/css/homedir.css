@@ -500,6 +500,25 @@ footer {
   gap: 0.5rem;
 }
 
+.section-header.hd-section-heading {
+  padding-bottom: 0.2rem;
+}
+
+.section-header.hd-section-heading::after {
+  content: "";
+  display: block;
+  width: min(280px, 72%);
+  height: 1px;
+  margin-top: 0.28rem;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 215, 0, 0.55),
+    rgba(255, 255, 255, 0.32),
+    rgba(255, 255, 255, 0)
+  );
+  opacity: 0.85;
+}
+
 .section-header h1 {
   font-family: var(--font-display);
   font-size: 1.5rem;
@@ -2689,6 +2708,15 @@ footer {
 .home-pane-header .section-subtitle {
   font-size: 0.7rem;
   margin: 0;
+}
+
+.home-pane-section-header {
+  gap: 0.25rem;
+}
+
+.home-pane-section-header.hd-section-heading::after {
+  width: min(140px, 78%);
+  margin-top: 0.18rem;
 }
 
 .home-pane-header .page-title {

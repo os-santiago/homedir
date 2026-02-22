@@ -50,6 +50,16 @@ public class CommunityResource {
   }
 
   @GET
+  @Path("/lta")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance lta(
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    return render("featured", "all", CommunityContentMedia.ALL, "lta", headers, context);
+  }
+
+  @GET
   @Path("/moderation")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
@@ -83,7 +93,7 @@ public class CommunityResource {
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
     String activeSubmenu =
-        forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "picks";
+        forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "lta";
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
     currentUserId().ifPresent(
         userId -> {
@@ -124,8 +134,11 @@ public class CommunityResource {
   @GET
   @Path("/picks")
   @PermitAll
-  public Response picks() {
-    return Response.seeOther(URI.create("/comunidad?view=featured")).build();
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance picks(
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    return render("featured", "all", CommunityContentMedia.ALL, "picks", headers, context);
   }
 
   private String normalizeFilter(String filterParam) {
