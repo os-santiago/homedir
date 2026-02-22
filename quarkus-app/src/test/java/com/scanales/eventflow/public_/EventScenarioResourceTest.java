@@ -40,6 +40,7 @@ public class EventScenarioResourceTest {
         .get("/event/e1/scenario/sc1")
         .then()
         .statusCode(200)
-        .body(containsString("Sala A"));
+        .body(containsString("Sala A"))
+        .body(containsString("/talk/t1"));
   }
 }

@@ -21,7 +21,8 @@ public class ProjectsResourceTest {
         .body(containsString("Product delivery overview"))
         .body(containsString("Homedir feature map"))
         .body(containsString("Gamification: Levels"))
-        .body(containsString("Rewards Catalog Preview"));
+        .body(containsString("Rewards Catalog Preview"))
+        .body(containsString("/notifications/center"));
   }
 
   @Test

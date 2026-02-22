@@ -254,6 +254,9 @@
                 <div class="hd-detail-item">
                     <span class="hd-detail-label">{i18n.profile_activity_col_class}</span>
                 </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n.profile_activity_col_action}</span>
+                </div>
                 {#for row in activityClassMap}
                 <div class="hd-detail-item">
                     <span class="hd-detail-value">{row.category}</span>
@@ -263,6 +266,9 @@
                 </div>
                 <div class="hd-detail-item">
                     <span class="hd-detail-value">{row.className}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <a class="hd-link" href="{row.actionPath}">{i18n.profile_activity_action_open}</a>
                 </div>
                 {/for}
             </div>
@@ -453,7 +459,7 @@
 
     .activity-class-map {
         display: grid;
-        grid-template-columns: 1.1fr 1.8fr 0.9fr;
+        grid-template-columns: 1.05fr 1.7fr 0.8fr 0.45fr;
         gap: 0.45rem;
     }
 

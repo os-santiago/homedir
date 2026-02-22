@@ -160,7 +160,7 @@
                                 {#if t.break}
                                 <span>{t.name}</span>
                                 {#else}
-                                <a href="/event/{event.id}/talk/{t.id}">{t.name}</a>
+                                <a href="/talk/{t.id}">{t.name}</a>
                                 {/if}
                             </td>
                             <td class="agenda-speakers hd-table-cell">
@@ -211,7 +211,7 @@
                                         {#if t.break}
                                         {t.name}
                                         {#else}
-                                        <a href="/event/{event.id}/talk/{t.id}">{t.name}</a>
+                                        <a href="/talk/{t.id}">{t.name}</a>
                                         {#if !t.speakers.isEmpty()}
                                         <div class="agenda-slot-speakers">
                                             {#for s in t.speakers}
