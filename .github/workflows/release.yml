@@ -126,7 +126,10 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
 
       - name: Deploy to VPS via SSH
+        id: deploy_ssh
         if: ${{ steps.deploy_config.outputs.enabled == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 4
         env:
           RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
         run: |
@@ -147,10 +150,17 @@ jobs:
 
       - name: Verify production healthcheck
         if: ${{ steps.deploy_config.outputs.enabled == 'true' }}
+        env:
+          DEPLOY_SSH_OUTCOME: ${{ steps.deploy_ssh.outcome }}
         run: |
           set -euo pipefail
           url="${HEALTHCHECK_URL:-https://homedir.opensourcesantiago.io/q/health}"
-          for attempt in $(seq 1 18); do
+          attempts=18
+          if [ "${DEPLOY_SSH_OUTCOME:-success}" != "success" ]; then
+            attempts=36
+            echo "::warning::SSH deploy did not complete successfully; waiting longer for VPS fallback auto-deploy."
+          fi
+          for attempt in $(seq 1 "$attempts"); do
             if curl -fsS "$url" >/dev/null; then
               echo "healthcheck passed: $url"
               exit 0
@@ -160,7 +170,12 @@ jobs:
           echo "healthcheck failed: $url" >&2
           exit 1
 
-      - name: Deploy fallback notice
+      - name: Deploy fallback notice (SSH unavailable)
+        if: ${{ steps.deploy_config.outputs.enabled == 'true' && steps.deploy_ssh.outcome != 'success' }}
+        run: |
+          echo "::warning::SSH deploy failed from GitHub Actions. VPS fallback timer should reconcile deployment."
+
+      - name: Deploy fallback notice (SSH not configured)
         if: ${{ steps.deploy_config.outputs.enabled != 'true' }}
         run: |
           echo "SSH deploy is not configured. Deployment will rely on homedir-auto-deploy.timer fallback on the VPS."
