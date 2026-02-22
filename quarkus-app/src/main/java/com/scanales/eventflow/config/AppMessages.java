@@ -1988,6 +1988,90 @@ public interface AppMessages {
     @Message("Comic panel about leveling and HCoin rewards")
     String home_new_hot_card_level_alt();
 
+    @Message("New")
+    String home_lightning_badge();
+
+    @Message("Lightning Threads Arena")
+    String home_lightning_title();
+
+    @Message("Lightning threads, short debates, and quick Q&A. Post once per hour, react, comment, and surface the best answer.")
+    String home_lightning_intro();
+
+    @Message("Community post modes")
+    String home_lightning_mode_aria();
+
+    @Message("Lightning Threads")
+    String home_lightning_mode_thread();
+
+    @Message("Short Debates")
+    String home_lightning_mode_debate();
+
+    @Message("Ask Short & Sharp")
+    String home_lightning_mode_ask();
+
+    @Message("Write a sharp title")
+    String home_lightning_title_placeholder();
+
+    @Message("Drop your idea, question, or take in 1-3 short lines")
+    String home_lightning_body_placeholder();
+
+    @Message("Sign in to publish, comment, react, and report.")
+    String home_lightning_login_required();
+
+    @Message("Login to participate")
+    String home_lightning_login_cta();
+
+    @Message("1 post per hour per account. Server publishes 1 post per minute.")
+    String home_lightning_post_limit();
+
+    @Message("Post")
+    String home_lightning_btn_submit();
+
+    @Message("Posting...")
+    String home_lightning_btn_submitting();
+
+    @Message("Comment")
+    String home_lightning_btn_comment();
+
+    @Message("Like")
+    String home_lightning_btn_like();
+
+    @Message("Report")
+    String home_lightning_btn_report();
+
+    @Message("Load more")
+    String home_lightning_btn_load_more();
+
+    @Message("No lightning threads yet.")
+    String home_lightning_empty();
+
+    @Message("Queued. It will be published in turn.")
+    String home_lightning_feedback_queued();
+
+    @Message("Published.")
+    String home_lightning_feedback_published();
+
+    @Message("Maximo de post por minuto del servidor superados, intenta mas tarde")
+    String home_lightning_server_limit();
+
+    @Message("Report sent to moderation.")
+    String home_lightning_report_success();
+
+    @Message("You already reported this item.")
+    String home_lightning_report_duplicate();
+
+    @Message("Best answer")
+    String home_lightning_best_answer();
+
+    @Message("Ping best answer")
+    String home_lightning_ping_best();
+
+    @Message("Write your comment")
+    String home_lightning_prompt_comment();
+
+    @Message("Reason for report")
+    String home_lightning_prompt_reason();
+
     @Message("updates available")
     String home_metric_updates();
 
