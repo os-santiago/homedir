@@ -282,7 +282,8 @@
                     <p class="hd-page-intro">{i18n:economy_intro}</p>
                 </div>
                 <div class="hd-panel-actions">
-                    <a class="hd-btn hd-btn-secondary" href="/private/profile/catalog">{i18n:economy_btn_open_catalog}</a>
+                    <a class="hd-btn hd-btn-secondary"
+                        href="/private/profile/catalog">{i18n:economy_btn_open_catalog}</a>
                 </div>
             </div>
 
@@ -336,26 +337,7 @@
             </article>
         </section>
 
-        <section class="hd-panel centered">
-            <div class="hd-dashboard-header">
-                <div>
-                    <p class="hd-eyebrow">{i18n:section_settings}</p>
-                    <h2 class="hd-panel-title">{i18n:settings_language}</h2>
-                    <p class="hd-page-intro">{i18n:settings_language_intro}</p>
-                </div>
-            </div>
-            <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
-                <div class="form-group-margin form-actions-centered">
-                    <select name="locale" class="hd-form-input">
-                        <option value="en" {#if currentLanguage eq 'en' }selected{/if}>English</option>
-                        <option value="es" {#if currentLanguage eq 'es' }selected{/if}>Español</option>
-                    </select>
-                </div>
-                <div class="form-actions-centered">
-                    <button type="submit" class="hd-btn hd-btn-primary">{i18n:settings_save}</button>
-                </div>
-            </form>
-        </section>
+
 
 
 
