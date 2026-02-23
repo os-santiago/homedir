@@ -3,221 +3,249 @@
 {#body}
 <header class="public-header home-highlight-hero">
   <div class="section-header hd-section-heading">
-    <p class="section-subtitle">{i18n:home_welcome_title}</p>
     <h1 class="home-welcome-en">{i18n:home_welcome_en}</h1>
   </div>
   <p class="home-welcome-es">{i18n:home_welcome_es}</p>
-  <p class="home-highlights-intro">{i18n:home_highlights_intro}</p>
-  <section class="home-new-hot" aria-label="{i18n:home_new_hot_title}">
-    <div class="home-new-hot-header">
-      <span class="home-chip home-new-hot-badge">{i18n:home_new_hot_badge}</span>
-      <h2 class="home-new-hot-title">{i18n:home_new_hot_title}</h2>
-    </div>
-    <div class="home-new-hot-grid">
+</header>
+
+<p class="home-highlights-intro" style="text-align: center; padding: 2rem; max-width: 1000px; margin: 0 auto;">
+  {i18n:home_highlights_intro}</p>
+
+<section class="home-new-hot" aria-label="{i18n:home_new_hot_title}">
+  <div class="home-new-hot-header">
+    <span class="home-chip home-new-hot-badge">{i18n:home_new_hot_badge}</span>
+    <h2 class="home-new-hot-title">{i18n:home_new_hot_title}</h2>
+  </div>
+
+  <div class="home-new-hot-carousel-wrapper">
+    <div id="newHotCarousel" class="home-new-hot-grid">
       <a href="/comunidad?view=featured" class="home-new-hot-card">
-        <img src="/img/home-new-hot-curated.svg" alt="{i18n:home_new_hot_card_curated_alt}" loading="lazy" width="160" height="90">
+        <img src="/img/home-new-hot-curated.svg" alt="{i18n:home_new_hot_card_curated_alt}" loading="lazy" width="160"
+          height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_curated_title}</h3>
           <p>{i18n:home_new_hot_card_curated_desc}</p>
         </div>
       </a>
       <a href="/eventos" class="home-new-hot-card">
-        <img src="/img/home-new-hot-events.svg" alt="{i18n:home_new_hot_card_events_alt}" loading="lazy" width="160" height="90">
+        <img src="/img/home-new-hot-events.svg" alt="{i18n:home_new_hot_card_events_alt}" loading="lazy" width="160"
+          height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_events_title}</h3>
           <p>{i18n:home_new_hot_card_events_desc}</p>
         </div>
       </a>
       <a href="/comunidad#community-lta" class="home-new-hot-card">
-        <img src="/img/home-new-hot-lta.svg" alt="{i18n:home_new_hot_card_lta_alt}" loading="lazy" width="160" height="90">
+        <img src="/img/home-new-hot-lta.svg" alt="{i18n:home_new_hot_card_lta_alt}" loading="lazy" width="160"
+          height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_lta_title}</h3>
           <p>{i18n:home_new_hot_card_lta_desc}</p>
         </div>
       </a>
       <a href="/private/profile/catalog" class="home-new-hot-card">
-        <img src="/img/home-new-hot-level.svg" alt="{i18n:home_new_hot_card_level_alt}" loading="lazy" width="160" height="90">
+        <img src="/img/home-new-hot-level.svg" alt="{i18n:home_new_hot_card_level_alt}" loading="lazy" width="160"
+          height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_level_title}</h3>
           <p>{i18n:home_new_hot_card_level_desc}</p>
         </div>
       </a>
     </div>
-  </section>
-  <section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad#community-lta"
-    data-i18n-title="{i18n:home_lta_preview_title}"
-    data-i18n-subtitle="{i18n:home_lta_preview_subtitle}"
-    data-i18n-empty="{i18n:home_lta_preview_empty}"
-    data-i18n-open="{i18n:home_lta_preview_open}"
-    data-i18n-load-error="{i18n:home_lta_preview_error}">
-    <div class="home-lta-preview-header">
-      <span class="home-chip">{i18n:home_lightning_badge}</span>
-      <h2>{i18n:home_lta_preview_title}</h2>
-      <p>{i18n:home_lta_preview_subtitle}</p>
+
+    <div class="carousel-indicators" id="newHotIndicators">
+      <div class="indicator-dot active" data-slide="0"></div>
+      <div class="indicator-dot" data-slide="1"></div>
+      <div class="indicator-dot" data-slide="2"></div>
+      <div class="indicator-dot" data-slide="3"></div>
     </div>
-    <div id="home-lta-preview-list" class="home-lta-preview-list" aria-live="polite"></div>
-    <div class="home-lta-preview-actions">
-      <a href="/comunidad#community-lta" class="btn-primary">{i18n:home_lta_preview_open}</a>
-    </div>
-  </section>
-  <div class="home-top-metrics">
-    <a href="#home-social" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">article</span>
-        <span class="home-chip">{i18n:home_pill_social}</span>
-      </span>
-      <strong>{socialHighlightsCount}</strong>
-      <small>{i18n:home_metric_updates}</small>
-    </a>
-    <a href="#home-events" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
-        <span class="home-chip">{i18n:home_pill_events}</span>
-      </span>
-      <strong>{upcomingCount}</strong>
-      <small>{i18n:home_metric_upcoming}</small>
-    </a>
-    <a href="#home-project" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">groups</span>
-        <span class="home-chip">{i18n:home_pill_project}</span>
-      </span>
-      <strong>{projectContributorCount}</strong>
-      <small>{i18n:home_metric_contributors}</small>
-    </a>
   </div>
+</section>
+<script src="/js/carousel.js" defer></script>
+<section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad#community-lta"
+  data-i18n-title="{i18n:home_lta_preview_title}" data-i18n-subtitle="{i18n:home_lta_preview_subtitle}"
+  data-i18n-empty="{i18n:home_lta_preview_empty}" data-i18n-open="{i18n:home_lta_preview_open}"
+  data-i18n-load-error="{i18n:home_lta_preview_error}">
+  <div class="home-lta-preview-header">
+    <span class="home-chip">{i18n:home_lightning_badge}</span>
+    <h2>{i18n:home_lta_preview_title}</h2>
+    <p>{i18n:home_lta_preview_subtitle}</p>
+  </div>
+  <div id="home-lta-preview-list" class="home-lta-preview-list" aria-live="polite"></div>
+  <div class="home-lta-preview-actions">
+    <a href="/comunidad#community-lta" class="btn-primary">{i18n:home_lta_preview_open}</a>
+  </div>
+</section>
+<div class="home-top-metrics">
+  <a href="#home-social" class="home-top-metric">
+    <span class="home-top-metric-head">
+      <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">article</span>
+      <span class="home-chip">{i18n:home_pill_social}</span>
+    </span>
+    <strong>{socialHighlightsCount}</strong>
+    <small>{i18n:home_metric_updates}</small>
+  </a>
+  <a href="#home-events" class="home-top-metric">
+    <span class="home-top-metric-head">
+      <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
+      <span class="home-chip">{i18n:home_pill_events}</span>
+    </span>
+    <strong>{upcomingCount}</strong>
+    <small>{i18n:home_metric_upcoming}</small>
+  </a>
+  <a href="#home-project" class="home-top-metric">
+    <span class="home-top-metric-head">
+      <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">groups</span>
+      <span class="home-chip">{i18n:home_pill_project}</span>
+    </span>
+    <strong>{projectContributorCount}</strong>
+    <small>{i18n:home_metric_contributors}</small>
+  </a>
+</div>
 </header>
 
-<section class="page-grid home-panorama-grid">
-  <article class="section-card home-pane" id="home-social">
-    <div class="home-pane-header">
-      <div class="home-pane-header-main">
-        <span class="home-pane-identity home-pane-identity-social" aria-hidden="true">
-          <span class="material-symbols-outlined">article</span>
-        </span>
-        <div class="section-header home-pane-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:home_social_highlights_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_social_highlights_title}</h2>
-        </div>
-      </div>
-      <a href="/comunidad" class="btn-primary">{i18n:home_btn_open_social}</a>
-    </div>
-    {#if socialHighlights.isEmpty()}
-    <article class="home-highlight-empty">
-      <span class="material-symbols-outlined">rss_feed</span>
-      <p>{i18n:home_social_empty}</p>
-    </article>
-    {#else}
-    <div class="home-pane-list">
-      {#for item in socialHighlights}
-      <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="home-pane-item">
-        <div class="home-card-top">
-          <span class="home-chip">{i18n:home_pill_social}</span>
-          <span class="home-source">{item.source}</span>
-        </div>
-        <h3 class="home-pane-title">{item.title}</h3>
-        <p class="home-pane-summary">{item.summary}</p>
-      </a>
-      {/for}
-    </div>
-    {/if}
-  </article>
-
-  <article class="section-card home-pane" id="home-events">
-    <div class="home-pane-header">
-      <div class="home-pane-header-main">
-        <span class="home-pane-identity home-pane-identity-events">
-          {#if !popularEvents.isEmpty() && app:validUrl(popularEvents[0].logoUrl)}
-          <img src="{popularEvents[0].logoUrl}" alt="{popularEvents[0].title}" loading="lazy"
-            class="home-pane-identity-avatar">
-          {#else}
-          <span class="material-symbols-outlined" aria-hidden="true">event</span>
-          {/if}
-        </span>
-        <div class="section-header home-pane-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:home_events_highlights_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_events_highlights_title}</h2>
-        </div>
-      </div>
-      <a href="/eventos" class="btn-primary">{i18n:home_btn_open_events}</a>
-    </div>
-    {#if popularEvents.isEmpty()}
-    <article class="home-highlight-empty">
-      <span class="material-symbols-outlined">event_busy</span>
-      <p>{i18n:home_events_empty}</p>
-    </article>
-    {#else}
-    <div class="home-pane-list">
-      {#for event in popularEvents}
-      <a href="/event/{event.id}" class="home-pane-item home-event-item">
-        <div class="home-card-top">
-          <span class="home-chip">{i18n:home_pill_events}</span>
-          <span class="home-source">{event.formattedDate ?: i18n.home_event_date_tba}</span>
-        </div>
-        <div class="home-event-content">
-          <span class="home-event-avatar-shell">
-            {#if app:validUrl(event.logoUrl)}
-            <img src="{event.logoUrl}" alt="{event.title}" loading="lazy" class="home-event-avatar">
-            {#else}
-            <span class="material-symbols-outlined home-event-avatar-fallback" aria-hidden="true">event</span>
-            {/if}
-          </span>
-          <div class="home-event-text">
-            <h3 class="home-pane-title">{event.title}</h3>
-            <p class="home-pane-summary">{event.descriptionSummary ?: i18n.home_event_desc_default}</p>
+<section class="home-panorama-grid">
+  <div class="home-panorama-carousel-wrapper">
+    <div id="panoramaCarousel" class="home-panorama-track">
+      <article class="section-card home-pane" id="home-social">
+        <div class="home-pane-header">
+          <div class="home-pane-header-main">
+            <span class="home-pane-identity home-pane-identity-social" aria-hidden="true">
+              <span class="material-symbols-outlined">article</span>
+            </span>
+            <div class="section-header home-pane-section-header hd-section-heading">
+              <p class="section-subtitle">{i18n:home_social_highlights_eyebrow}</p>
+              <h2 class="page-title">{i18n:home_social_highlights_title}</h2>
+            </div>
           </div>
+          <a href="/comunidad" class="btn-primary">{i18n:home_btn_open_social}</a>
         </div>
-      </a>
-      {/for}
-    </div>
-    {/if}
-  </article>
-
-  <article class="section-card home-pane" id="home-project">
-    <div class="home-pane-header">
-      <div class="home-pane-header-main">
-        <span class="home-pane-identity home-pane-identity-project" aria-hidden="true">
-          <span class="material-symbols-outlined">groups</span>
-        </span>
-        <div class="section-header home-pane-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:home_project_highlights_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_project_highlights_title}</h2>
+        {#if socialHighlights.isEmpty()}
+        <article class="home-highlight-empty">
+          <span class="material-symbols-outlined">rss_feed</span>
+          <p>{i18n:home_social_empty}</p>
+        </article>
+        {#else}
+        <div class="home-pane-list">
+          {#for item in socialHighlights}
+          <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="home-pane-item">
+            <div class="home-card-top">
+              <span class="home-chip">{i18n:home_pill_social}</span>
+              <span class="home-source">{item.source}</span>
+            </div>
+            <h3 class="home-pane-title">{item.title}</h3>
+            <p class="home-pane-summary">{item.summary}</p>
+          </a>
+          {/for}
         </div>
-      </div>
-      <a href="/proyectos" class="btn-primary">{i18n:home_btn_open_project}</a>
+        {/if}
+      </article>
+
+      <article class="section-card home-pane" id="home-events">
+        <div class="home-pane-header">
+          <div class="home-pane-header-main">
+            <span class="home-pane-identity home-pane-identity-events">
+              {#if !popularEvents.isEmpty() && app:validUrl(popularEvents[0].logoUrl)}
+              <img src="{popularEvents[0].logoUrl}" alt="{popularEvents[0].title}" loading="lazy"
+                class="home-pane-identity-avatar">
+              {#else}
+              <span class="material-symbols-outlined" aria-hidden="true">event</span>
+              {/if}
+            </span>
+            <div class="section-header home-pane-section-header hd-section-heading">
+              <p class="section-subtitle">{i18n:home_events_highlights_eyebrow}</p>
+              <h2 class="page-title">{i18n:home_events_highlights_title}</h2>
+            </div>
+          </div>
+          <a href="/eventos" class="btn-primary">{i18n:home_btn_open_events}</a>
+        </div>
+        {#if popularEvents.isEmpty()}
+        <article class="home-highlight-empty">
+          <span class="material-symbols-outlined">event_busy</span>
+          <p>{i18n:home_events_empty}</p>
+        </article>
+        {#else}
+        <div class="home-pane-list">
+          {#for event in popularEvents}
+          <a href="/event/{event.id}" class="home-pane-item home-event-item">
+            <div class="home-card-top">
+              <span class="home-chip">{i18n:home_pill_events}</span>
+              <span class="home-source">{event.formattedDate ?: i18n.home_event_date_tba}</span>
+            </div>
+            <div class="home-event-content">
+              <span class="home-event-avatar-shell">
+                {#if app:validUrl(event.logoUrl)}
+                <img src="{event.logoUrl}" alt="{event.title}" loading="lazy" class="home-event-avatar">
+                {#else}
+                <span class="material-symbols-outlined home-event-avatar-fallback" aria-hidden="true">event</span>
+                {/if}
+              </span>
+              <div class="home-event-text">
+                <h3 class="home-pane-title">{event.title}</h3>
+                <p class="home-pane-summary">{event.descriptionSummary ?: i18n.home_event_desc_default}</p>
+              </div>
+            </div>
+          </a>
+          {/for}
+        </div>
+        {/if}
+      </article>
+
+      <article class="section-card home-pane" id="home-project">
+        <div class="home-pane-header">
+          <div class="home-pane-header-main">
+            <span class="home-pane-identity home-pane-identity-project" aria-hidden="true">
+              <span class="material-symbols-outlined">groups</span>
+            </span>
+            <div class="section-header home-pane-section-header hd-section-heading">
+              <p class="section-subtitle">{i18n:home_project_highlights_eyebrow}</p>
+              <h2 class="page-title">{i18n:home_project_highlights_title}</h2>
+            </div>
+          </div>
+          <a href="/proyectos" class="btn-primary">{i18n:home_btn_open_project}</a>
+        </div>
+
+        <div class="home-project-brief">
+          <p><span>{i18n:home_project_release_label}</span><strong>v{app:version()}</strong></p>
+          <p><span>{i18n:home_project_commit_label}</span><strong>{app:gitCommit()}</strong></p>
+          <p><span>{i18n:home_metric_contributors}</span><strong>{projectContributorCount}</strong></p>
+          <p><span>{i18n:home_project_total_contributions}</span><strong>{projectContributionTotal}</strong></p>
+        </div>
+
+        {#if projectHighlights.isEmpty()}
+        <p class="home-pane-summary">{i18n:home_project_no_data}</p>
+        {#else}
+        <div class="home-contributor-grid home-contributor-grid-compact">
+          {#for contributor in projectHighlights}
+          <a href="{contributor.htmlUrl}" target="_blank" rel="noopener noreferrer" class="home-contributor-card"
+            title="{contributor.login}">
+            <span class="home-contributor-avatar-shell">
+              <img src="{contributor.avatarUrl}" alt="{contributor.login}" loading="lazy"
+                class="home-contributor-avatar">
+            </span>
+            <span class="home-contributor-login">{contributor.login}</span>
+            <span class="home-contributor-meta">{contributor.contributions} {i18n:home_project_contribs_unit}</span>
+          </a>
+          {/for}
+        </div>
+        {/if}
+
+        <div class="home-project-actions-row">
+          <a href="/proyectos" class="btn-primary">{i18n:home_btn_explore_tracks}</a>
+          <a href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener noreferrer"
+            class="btn-primary">
+            {i18n:home_btn_view_repo}
+          </a>
+        </div>
+      </article>
     </div>
 
-    <div class="home-project-brief">
-      <p><span>{i18n:home_project_release_label}</span><strong>v{app:version()}</strong></p>
-      <p><span>{i18n:home_project_commit_label}</span><strong>{app:gitCommit()}</strong></p>
-      <p><span>{i18n:home_metric_contributors}</span><strong>{projectContributorCount}</strong></p>
-      <p><span>{i18n:home_project_total_contributions}</span><strong>{projectContributionTotal}</strong></p>
+    <div class="carousel-indicators" id="panoramaIndicators">
+      <div class="indicator-dot active" data-slide="0"></div>
+      <div class="indicator-dot" data-slide="1"></div>
+      <div class="indicator-dot" data-slide="2"></div>
     </div>
-
-    {#if projectHighlights.isEmpty()}
-    <p class="home-pane-summary">{i18n:home_project_no_data}</p>
-    {#else}
-    <div class="home-contributor-grid home-contributor-grid-compact">
-      {#for contributor in projectHighlights}
-      <a href="{contributor.htmlUrl}" target="_blank" rel="noopener noreferrer" class="home-contributor-card"
-        title="{contributor.login}">
-        <span class="home-contributor-avatar-shell">
-          <img src="{contributor.avatarUrl}" alt="{contributor.login}" loading="lazy" class="home-contributor-avatar">
-        </span>
-        <span class="home-contributor-login">{contributor.login}</span>
-        <span class="home-contributor-meta">{contributor.contributions} {i18n:home_project_contribs_unit}</span>
-      </a>
-      {/for}
-    </div>
-    {/if}
-
-    <div class="home-project-actions-row">
-      <a href="/proyectos" class="btn-primary">{i18n:home_btn_explore_tracks}</a>
-      <a href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener noreferrer" class="btn-primary">
-        {i18n:home_btn_view_repo}
-      </a>
-    </div>
-  </article>
+  </div>
 </section>
 <script src="/js/home-lta-preview.js?v={app:version()}" defer></script>
 {/body}
