@@ -582,6 +582,10 @@ footer {
   z-index: 3;
 }
 
+.events-stats-container {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 /* ===========================================
    CARDS / PANEL RETRO
    =========================================== */
@@ -3018,7 +3022,7 @@ footer {
   display: inline-flex;
   align-items: center;
   padding: 0.18rem 0.44rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: none;
   font-size: 0.56rem;
   letter-spacing: 0.7px;
   text-transform: uppercase;
