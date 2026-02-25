@@ -14,6 +14,18 @@
 
   <section class="page-grid">
     <div class="section-card events-full-width board-shell">
+      <section class="board-activation" aria-live="polite">
+        <div class="board-activation-copy">
+          <h2>{i18n:community_board_activation_title}</h2>
+          <p>{#if isAuthenticated}{i18n:community_board_activation_desc_member}{#else}{i18n:community_board_activation_desc_guest}{/if}</p>
+        </div>
+        {#if isAuthenticated}
+        <a class="btn-primary" href="/private/profile">{i18n:community_board_activation_cta_member}</a>
+        {#else}
+        <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/board" data-login-return-current="true">{i18n:community_board_activation_cta_guest}</a>
+        {/if}
+      </section>
+
       <div class="board-summary-grid">
         <article class="board-summary-card">
           <p class="section-subtitle">{i18n:community_board_group_homedir}</p>
@@ -64,6 +76,30 @@
       display: grid;
       gap: 1rem;
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .board-activation {
+      margin-bottom: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      background: rgba(0, 0, 0, 0.32);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.9rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .board-activation h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.05rem;
+    }
+
+    .board-activation p {
+      margin: 0;
+      opacity: 0.92;
+      font-size: 0.88rem;
     }
 
     .board-summary-card {
