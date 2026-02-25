@@ -40,6 +40,10 @@
   {#if upcomingEvents.isEmpty()}
   <div class="section-card events-full-width">
     <p class="hd-empty-callout">{i18n:events_empty_upcoming}</p>
+    <div class="home-project-actions-row">
+      <a href="#past-events" class="btn-primary">{i18n:events_empty_upcoming_cta_history}</a>
+      <a href="/comunidad" class="btn-primary">{i18n:events_empty_upcoming_cta_community}</a>
+    </div>
   </div>
   {#else}
   <div class="events-grid events-full-width">
@@ -61,7 +65,7 @@
 </section>
 
 <section class="page-grid">
-  <div class="section-header events-full-width events-section-margin hd-section-heading">
+  <div id="past-events" class="section-header events-full-width events-section-margin hd-section-heading">
     <p class="section-subtitle">{i18n:events_section_past_subtitle}</p>
     <h2 class="page-title">{i18n:events_section_past_title}</h2>
   </div>
@@ -69,6 +73,9 @@
   {#if pastEvents.isEmpty()}
   <div class="section-card events-full-width">
     <p class="hd-empty-callout">{i18n:events_empty_past}</p>
+    <div class="home-project-actions-row">
+      <a href="/comunidad/picks" class="btn-primary">{i18n:events_empty_past_cta_picks}</a>
+    </div>
   </div>
   {#else}
   <div class="events-list events-full-width">

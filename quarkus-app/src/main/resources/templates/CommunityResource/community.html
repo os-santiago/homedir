@@ -250,6 +250,10 @@
 
         <div id="community-empty" class="community-empty hidden">
           <p>{i18n:community_empty_no_content}</p>
+          <div class="community-empty-actions">
+            <a class="btn-primary" href="/comunidad/lta">{i18n:community_empty_cta_lta}</a>
+            <a class="btn-primary" href="/comunidad/propose">{i18n:community_empty_cta_propose}</a>
+          </div>
         </div>
 
         <div id="community-list" class="community-list"></div>
@@ -396,5 +400,4 @@
 <script src="/js/community-submissions.js?v={app:version()}" defer></script>
 {/body}
 {/include}
-
 

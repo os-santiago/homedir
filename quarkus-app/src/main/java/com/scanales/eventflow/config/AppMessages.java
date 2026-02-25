@@ -418,6 +418,12 @@ public interface AppMessages {
     @Message("No upcoming events for now.")
     String events_empty_upcoming();
 
+    @Message("Review past sessions")
+    String events_empty_upcoming_cta_history();
+
+    @Message("Open Community picks")
+    String events_empty_upcoming_cta_community();
+
     @Message("History")
     String events_section_past_subtitle();
 
@@ -426,6 +432,9 @@ public interface AppMessages {
 
     @Message("No past records yet.")
     String events_empty_past();
+
+    @Message("Explore Community picks")
+    String events_empty_past_cta_picks();
 
     @Message("Date TBD")
     String events_meta_date_tba();
@@ -1352,6 +1361,12 @@ public interface AppMessages {
 
     @Message("No curated content is available right now.")
     String community_empty_no_content();
+
+    @Message("Open Lightning Threads Arena")
+    String community_empty_cta_lta();
+
+    @Message("Propose content")
+    String community_empty_cta_propose();
 
     @Message("Load more")
     String community_load_more();
