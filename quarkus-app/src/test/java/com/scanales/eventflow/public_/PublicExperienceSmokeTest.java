@@ -15,6 +15,8 @@ public class PublicExperienceSmokeTest {
   private static final int HOME_HTML_BUDGET_BYTES = 120_000;
   private static final int COMMUNITY_HTML_BUDGET_BYTES = 240_000;
   private static final int COMMUNITY_BOARD_HTML_BUDGET_BYTES = 200_000;
+  private static final int EVENTS_HTML_BUDGET_BYTES = 160_000;
+  private static final int PROJECTS_HTML_BUDGET_BYTES = 220_000;
 
   @Test
   void homePageAvoidsKnownRuntimeRegressionPatterns() {
@@ -40,6 +42,22 @@ public class PublicExperienceSmokeTest {
         fetchHtmlWithBudget("/comunidad/board/discord-users", COMMUNITY_BOARD_HTML_BUDGET_BYTES);
     assertTrue(html.contains("window.userAuthenticated"));
     assertFalse(html.contains("canva-theme-v2.css"));
+  }
+
+  @Test
+  void eventsPageAvoidsKnownRuntimeRegressionPatterns() {
+    String html = fetchHtmlWithBudget("/eventos", EVENTS_HTML_BUDGET_BYTES);
+    assertTrue(html.contains("window.userAuthenticated"));
+    assertFalse(html.contains("canva-theme-v2.css"));
+    assertFalse(html.contains("/js/retro-theme.js"));
+  }
+
+  @Test
+  void projectsPageAvoidsKnownRuntimeRegressionPatterns() {
+    String html = fetchHtmlWithBudget("/proyectos", PROJECTS_HTML_BUDGET_BYTES);
+    assertTrue(html.contains("window.userAuthenticated"));
+    assertFalse(html.contains("canva-theme-v2.css"));
+    assertFalse(html.contains("/js/retro-theme.js"));
   }
 
   @Test
