@@ -34,6 +34,14 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(3L, byId.get("cfp_submit"));
     assertEquals(2L, byId.get("cfp_approved"));
     assertEquals(9L, byId.get("board_profile_open"));
+
+    Map<String, String> conversions = conversionById(snap);
+    assertEquals("100%", conversions.get("login_success"));
+    assertEquals("63.6%", conversions.get("community_vote"));
+    assertEquals("45.5%", conversions.get("community_propose_submit"));
+    assertEquals("27.3%", conversions.get("cfp_submit"));
+    assertEquals("18.2%", conversions.get("cfp_approved"));
+    assertEquals("81.8%", conversions.get("board_profile_open"));
   }
 
   @Test
@@ -55,6 +63,22 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(3L, byId.get("cfp_submit"));
     assertEquals(1L, byId.get("cfp_approved"));
     assertEquals(2L, byId.get("board_profile_open"));
+
+    Map<String, String> conversions = conversionById(snap);
+    assertEquals("100%", conversions.get("login_success"));
+    assertEquals("75.0%", conversions.get("community_vote"));
+    assertEquals("50.0%", conversions.get("community_propose_submit"));
+    assertEquals("37.5%", conversions.get("cfp_submit"));
+    assertEquals("12.5%", conversions.get("cfp_approved"));
+    assertEquals("25.0%", conversions.get("board_profile_open"));
+  }
+
+  @Test
+  void usesDashWhenNoLoginBaselineExists() {
+    Map<String, Long> snap = Map.of("funnel:community_vote", 3L);
+    Map<String, String> conversions = conversionById(snap);
+    assertEquals("—", conversions.get("community_vote"));
+    assertEquals("—", conversions.get("cfp_submit"));
   }
 
   private static Map<String, Long> rowsById(Map<String, Long> snap) {
@@ -63,6 +87,15 @@ class AdminMetricsFunnelRowsTest {
             Collectors.toMap(
                 AdminMetricsResource.FunnelRow::id,
                 AdminMetricsResource.FunnelRow::count,
+                (a, b) -> a));
+  }
+
+  private static Map<String, String> conversionById(Map<String, Long> snap) {
+    return AdminMetricsResource.buildFunnelRows(snap).stream()
+        .collect(
+            Collectors.toMap(
+                AdminMetricsResource.FunnelRow::id,
+                AdminMetricsResource.FunnelRow::conversion,
                 (a, b) -> a));
   }
 }
