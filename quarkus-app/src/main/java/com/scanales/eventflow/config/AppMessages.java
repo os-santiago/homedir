@@ -1964,17 +1964,47 @@ public interface AppMessages {
     @Message("One-page highlights to quickly discover what is new in the Community platform for OSS Santiago.")
     String home_hero_desc();
 
-    @Message("Welcome")
+    @Message("Contributor Hub")
     String home_welcome_title();
 
-    @Message("HomeDir: your community to build, learn, and share.")
+    @Message("HomeDir unifies Community Picks, Events, and Project delivery in one place.")
     String home_welcome_en();
 
-    @Message("HomeDir: tu comunidad para construir, aprender y compartir.")
+    @Message("HomeDir unifica contenido curado, eventos y actividad del proyecto en un solo hub.")
     String home_welcome_es();
 
-    @Message("Community Highlights")
+    @Message("See what changed today and choose your next contribution lane.")
     String home_highlights_intro();
+
+    @Message("Get started")
+    String home_login_value_eyebrow();
+
+    @Message("Turn login into visible impact")
+    String home_login_value_title();
+
+    @Message("Step 1 · HomeDir account")
+    String home_login_google_step();
+
+    @Message("Continue with Google")
+    String home_login_google_title();
+
+    @Message("Create your HomeDir account, keep preferences, and appear in HomeDir users.")
+    String home_login_google_desc();
+
+    @Message("Continue with Google")
+    String home_login_google_cta();
+
+    @Message("Step 2 · Contribution signal")
+    String home_login_github_step();
+
+    @Message("Link your GitHub after sign in")
+    String home_login_github_title();
+
+    @Message("Connect your OSS activity to enrich your public profile and Community Board presence.")
+    String home_login_github_desc();
+
+    @Message("Sign in and open profile setup")
+    String home_login_github_cta();
 
     @Message("New / Hot")
     String home_new_hot_badge();
