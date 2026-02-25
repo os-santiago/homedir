@@ -2705,6 +2705,54 @@ footer {
   opacity: 0.9;
 }
 
+.home-value-login {
+  margin: 0.4rem 0 0.2rem;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.home-value-login-header {
+  margin-bottom: 0.1rem;
+}
+
+.home-value-login-header .page-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.home-value-login-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.home-value-login-card {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.72rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.home-value-login-card h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.3;
+}
+
+.home-value-login-card p {
+  margin: 0;
+  font-size: 0.77rem;
+  line-height: 1.35;
+  opacity: 0.94;
+}
+
+.home-value-login-card .btn-primary {
+  justify-self: start;
+  margin-top: 0.08rem;
+}
+
 .home-top-metrics {
   display: grid;
   width: 100%;
@@ -3343,6 +3391,10 @@ footer {
   }
 
   .home-top-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .home-value-login-grid {
     grid-template-columns: 1fr;
   }
 
