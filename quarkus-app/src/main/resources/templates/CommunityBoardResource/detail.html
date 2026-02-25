@@ -55,6 +55,9 @@
           <span class="board-detail-metric">{i18n:community_board_discord_linked_profiles(discordLinkedProfiles)}</span>
           <span class="board-detail-metric">{i18n:community_board_discord_coverage(discordCoveragePercent)}</span>
         </div>
+        <div class="board-discord-tip">
+          {i18n:community_board_discord_link_tip}
+        </div>
       {/if}
 
       <form class="search-form board-search-form" method="get" action="/comunidad/board/{groupPath}">
@@ -206,6 +209,16 @@
       font-size: 0.78rem;
       opacity: 0.92;
       background: rgba(0, 0, 0, 0.28);
+    }
+
+    .board-discord-tip {
+      margin-bottom: 1rem;
+      border: 1px dashed rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      padding: 0.55rem 0.7rem;
+      font-size: 0.82rem;
+      opacity: 0.92;
+      background: rgba(0, 0, 0, 0.22);
     }
 
     .board-search-input {

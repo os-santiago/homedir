@@ -2529,6 +2529,21 @@ public interface AppMessages {
     @Message("People who joined our official OSSantiago Discord server.")
     String community_board_group_discord_desc();
 
+    @Message("Your profile can be visible here")
+    String community_board_activation_title();
+
+    @Message("Sign in to create your HomeDir account and join the Community Board.")
+    String community_board_activation_desc_guest();
+
+    @Message("Link your accounts to improve your visibility across HomeDir, GitHub, and Discord groups.")
+    String community_board_activation_desc_member();
+
+    @Message("Login and join")
+    String community_board_activation_cta_guest();
+
+    @Message("Open profile setup")
+    String community_board_activation_cta_member();
+
     @Message("Guild members: {count}")
     String community_board_discord_guild_members(int count);
 
@@ -2597,6 +2612,9 @@ public interface AppMessages {
 
     @Message("No members found with current filter.")
     String community_board_no_members();
+
+    @Message("Link your Discord account from your profile to be listed here.")
+    String community_board_discord_link_tip();
 
     @Message("Member since {date}")
     String community_board_member_since(String date);
