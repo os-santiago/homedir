@@ -1566,6 +1566,9 @@ public interface AppMessages {
     @Message("Vote 3 picks to personalize your feed")
     String community_js_cta_vote_title();
 
+    @Message("Sign in to vote and unlock a personalized feed.")
+    String community_vote_guest_desc();
+
     @Message("Start by voting on three picks.")
     String community_js_cta_vote_start();
 

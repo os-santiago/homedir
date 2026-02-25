@@ -150,6 +150,14 @@
         <section id="community-personal-empty" class="community-personal-empty" aria-live="polite">
           <p>{i18n:community_js_empty_no_votes}</p>
         </section>
+        {#else}
+        <section id="community-activation-guest" class="community-activation" aria-live="polite">
+          <div class="community-activation-copy">
+            <strong>{i18n:community_js_cta_vote_title}</strong>
+            <p>{i18n:community_vote_guest_desc}</p>
+          </div>
+          <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/picks" data-login-return-current="true">{i18n:community_login}</a>
+        </section>
         {/if}
 
         <section class="community-pulse" aria-label="Community pulse">
