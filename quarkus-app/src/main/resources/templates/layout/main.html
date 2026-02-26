@@ -47,7 +47,13 @@
   {#insert head}{/}
 </head>
 
-<body class="homedir-body ultra-lite-mode{#if ultraLiteMode} ultra-lite-mode{/if}">
+<body class="homedir-body ultra-lite-mode{#if ultraLiteMode} ultra-lite-mode{/if}"
+  data-i18n-app-load-error-prefix="{i18n:app_js_load_error_prefix}"
+  data-i18n-app-loading-content="{i18n:app_js_loading_content}"
+  data-i18n-app-loading-data="{i18n:app_js_loading_data}"
+  data-i18n-app-loading-page="{i18n:app_js_loading_page}"
+  data-i18n-app-session-expired="{i18n:app_js_session_expired}"
+  data-i18n-app-no-events="{i18n:app_js_no_events}">
   {#include fragments/floating-shapes.html /}
 
   <div class="app-container">

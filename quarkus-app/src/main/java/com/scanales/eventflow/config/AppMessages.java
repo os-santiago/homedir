@@ -2412,6 +2412,24 @@ public interface AppMessages {
     @Message("Build, learn, and share with the OSSantiago community.")
     String layout_default_twitter_description();
 
+    @Message("Could not load")
+    String app_js_load_error_prefix();
+
+    @Message("content")
+    String app_js_loading_content();
+
+    @Message("data")
+    String app_js_loading_data();
+
+    @Message("page")
+    String app_js_loading_page();
+
+    @Message("Session expired")
+    String app_js_session_expired();
+
+    @Message("No events available")
+    String app_js_no_events();
+
     @Message("Event not found - Homedir")
     String events_detail_not_found_page_title();
 

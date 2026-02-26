@@ -83,6 +83,25 @@ const SELECTORS = {
 const $ = (key) => document.querySelector(SELECTORS[key]);
 const $$ = (key) => document.querySelectorAll(SELECTORS[key]);
 const isUltraLiteMode = () => document.body && document.body.classList.contains('ultra-lite-mode');
+const APP_I18N = (() => {
+    const body = document.body;
+    const dataset = body && body.dataset ? body.dataset : {};
+    const read = (key, fallback) => {
+        const value = dataset[key];
+        if (typeof value === 'string' && value.trim()) {
+            return value;
+        }
+        return fallback;
+    };
+    return {
+        loadErrorPrefix: read('i18nAppLoadErrorPrefix', 'Could not load'),
+        loadingContent: read('i18nAppLoadingContent', 'content'),
+        loadingData: read('i18nAppLoadingData', 'data'),
+        loadingPage: read('i18nAppLoadingPage', 'page'),
+        sessionExpired: read('i18nAppSessionExpired', 'Session expired'),
+        noEvents: read('i18nAppNoEvents', 'No events available')
+    };
+})();
 
 function currentRelativeUrl() {
     const path = window.location.pathname || '/';
@@ -256,9 +275,9 @@ function bannerParallax() {
 }
 
 let loadingTimeout;
-let loadingTarget = 'el contenido';
+let loadingTarget = APP_I18N.loadingContent;
 
-function showLoading(target = 'el contenido', enableTimeout = true) {
+function showLoading(target = APP_I18N.loadingContent, enableTimeout = true) {
     loadingTarget = target;
     document.body.classList.remove('loaded');
     const loader = $('loading');
@@ -267,7 +286,7 @@ function showLoading(target = 'el contenido', enableTimeout = true) {
     if (enableTimeout) {
         loadingTimeout = setTimeout(() => {
             hideLoading();
-            showNotification('error', `No se pudo cargar ${loadingTarget}`);
+            showNotification('error', `${APP_I18N.loadErrorPrefix} ${loadingTarget}`);
         }, 5000);
     }
 }
@@ -303,7 +322,7 @@ function handleForms() {
             }
             sessionStorage.setItem('scrollPos', String(window.scrollY));
             sessionStorage.setItem('scrollPath', window.location.pathname);
-            showLoading('los datos');
+            showLoading(APP_I18N.loadingData);
             const btn = e.submitter || form.querySelector('button[type="submit"]');
             if (btn) {
                 setTimeout(() => btn.disabled = true, 0);
@@ -330,7 +349,7 @@ function handleNotificationsFromUrl() {
         showNotification('error', params.get('error'));
     }
     if (params.get('session') === 'expired') {
-        showNotification('error', 'Sesión expirada');
+        showNotification('error', APP_I18N.sessionExpired);
     }
     if (params.has('msg')) {
         const msg = params.get('msg');
@@ -367,7 +386,7 @@ function onDomContentLoaded() {
     hideLoading();
     if ($('noEvents')) {
         hideLoading();
-        showNotification('info', 'No hay eventos disponibles');
+        showNotification('info', APP_I18N.noEvents);
     }
 }
 
@@ -388,7 +407,7 @@ function initListeners() {
         scrollHandler = bannerParallax;
         window.addEventListener('scroll', scrollHandler);
 
-        beforeUnloadHandler = () => showLoading('la página', false);
+        beforeUnloadHandler = () => showLoading(APP_I18N.loadingPage, false);
         window.addEventListener('beforeunload', beforeUnloadHandler);
 
         unloadHandler = () => removeListeners();
