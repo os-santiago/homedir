@@ -18,12 +18,12 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("Welcome"))
+        .body(containsString("Contributor Hub"))
         .body(containsString("New / Hot"))
-        .body(containsString("Highlights"))
         .body(containsString("LTA quick preview"))
-        .body(containsString("Latest community content"))
-        .body(containsString("Upcoming agenda"));
+        .body(containsString("Community"))
+        .body(containsString("Events"))
+        .body(containsString("Project"));
   }
 
   @Test
@@ -38,10 +38,10 @@ public class HomeTimelineTest {
         .body(containsString("<html lang=\"es\">"))
         .body(containsString(">Inicio</a>"))
         .body(containsString("HomeDir"))
-        .body(containsString("Welcome"))
-        .body(containsString("HomeDir: tu comunidad para construir, aprender y compartir."))
+        .body(containsString("HomeDir unifica contenido curado, eventos y actividad del proyecto en un solo hub."))
         .body(containsString("Vista rápida de LTA"))
-        .body(containsString("Latest community content"));
+        .body(containsString("Community"))
+        .body(containsString("Events"));
   }
 
   @Test
