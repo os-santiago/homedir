@@ -2303,7 +2303,7 @@ public interface AppMessages {
     @Message("total contributions")
     String home_project_total_contributions();
 
-    @Message("Latest release")
+    @Message("Deployed runtime")
     String home_project_release_label();
 
     @Message("Latest commit")
