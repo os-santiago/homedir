@@ -40,7 +40,7 @@
       <h2 class="home-new-hot-title">{i18n:home_new_hot_title}</h2>
     </div>
     <div class="home-new-hot-grid">
-      <a href="/comunidad?view=featured" class="home-new-hot-card">
+      <a href="/comunidad/picks" class="home-new-hot-card">
         <img src="/img/home-new-hot-curated.svg" alt="{i18n:home_new_hot_card_curated_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_curated_title}</h3>
@@ -54,7 +54,7 @@
           <p>{i18n:home_new_hot_card_events_desc}</p>
         </div>
       </a>
-      <a href="/comunidad#community-lta" class="home-new-hot-card">
+      <a href="/comunidad/lta" class="home-new-hot-card">
         <img src="/img/home-new-hot-lta.svg" alt="{i18n:home_new_hot_card_lta_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_lta_title}</h3>
@@ -70,7 +70,7 @@
       </a>
     </div>
   </section>
-  <section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad#community-lta"
+  <section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad/lta"
     data-i18n-title="{i18n:home_lta_preview_title}"
     data-i18n-subtitle="{i18n:home_lta_preview_subtitle}"
     data-i18n-empty="{i18n:home_lta_preview_empty}"
@@ -83,7 +83,7 @@
     </div>
     <div id="home-lta-preview-list" class="home-lta-preview-list" aria-live="polite"></div>
     <div class="home-lta-preview-actions">
-      <a href="/comunidad#community-lta" class="btn-primary">{i18n:home_lta_preview_open}</a>
+      <a href="/comunidad/lta" class="btn-primary">{i18n:home_lta_preview_open}</a>
     </div>
   </section>
   <div class="home-top-metrics">
@@ -126,7 +126,7 @@
           <h2 class="page-title">{i18n:home_social_highlights_title}</h2>
         </div>
       </div>
-      <a href="/comunidad" class="btn-primary">{i18n:home_btn_open_social}</a>
+      <a href="/comunidad/picks" class="btn-primary">{i18n:home_btn_open_social}</a>
     </div>
     {#if socialHighlights.isEmpty()}
     <article class="home-highlight-empty">

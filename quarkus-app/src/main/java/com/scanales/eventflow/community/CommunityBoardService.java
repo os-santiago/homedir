@@ -260,7 +260,7 @@ public class CommunityBoardService {
       String displayName =
           firstNonBlank(
               normalizedDisplay(profile.getName()),
-              usernameFromEmail(profile.getEmail()),
+              normalizedDisplay(usernameFromEmail(profile.getEmail())),
               "Unnamed member");
       String handle =
           githubLogin != null
@@ -295,7 +295,7 @@ public class CommunityBoardService {
       String displayName =
           firstNonBlank(
               normalizedDisplay(profile.getName()),
-              usernameFromEmail(profile.getEmail()),
+              normalizedDisplay(usernameFromEmail(profile.getEmail())),
               login);
       String avatar = trimToNull(profile.getGithub().avatarUrl());
       Instant linkedAt = profile.getGithub().linkedAt();
@@ -394,7 +394,7 @@ public class CommunityBoardService {
       }
       LinkedProfileSeed linked = linkedProfiles.get(id);
       String username = trimToNull(text(node, "username", null));
-      String globalName = trimToNull(text(node, "global_name", null));
+      String globalName = normalizedDisplay(text(node, "global_name", null));
       String derivedHandle = discordHandleFromUsername(username, text(node, "discriminator", null));
       String displayName =
           firstNonBlank(
@@ -402,7 +402,7 @@ public class CommunityBoardService {
               normalizedDisplay(text(node, "display_name", null)),
               globalName,
               normalizedDisplay(text(node, "name", null)),
-              username,
+              normalizedDisplay(username),
               "Unnamed member",
               id);
       String handle =
@@ -515,7 +515,7 @@ public class CommunityBoardService {
       String displayName =
           firstNonBlank(
               normalizedDisplay(profile.getName()),
-              usernameFromEmail(profile.getEmail()),
+              normalizedDisplay(usernameFromEmail(profile.getEmail())),
               profile.getDiscord().handle(),
               "Unnamed member",
               discordId);
@@ -764,11 +764,7 @@ public class CommunityBoardService {
 
   private static String normalizedDisplay(String raw) {
     String value = trimToNull(raw);
-    if (value == null) {
-      return null;
-    }
-    String lowered = value.toLowerCase(Locale.ROOT);
-    if ("null".equals(lowered) || "undefined".equals(lowered) || "n/a".equals(lowered)) {
+    if (isPlaceholderLiteral(value)) {
       return null;
     }
     return value;
@@ -841,11 +837,23 @@ public class CommunityBoardService {
     }
     for (String value : values) {
       String normalized = trimToNull(value);
-      if (normalized != null) {
+      if (!isPlaceholderLiteral(normalized)) {
         return normalized;
       }
     }
     return null;
+  }
+
+  private static boolean isPlaceholderLiteral(String value) {
+    if (value == null) {
+      return true;
+    }
+    String lowered = value.trim().toLowerCase(Locale.ROOT);
+    return lowered.isEmpty()
+        || "null".equals(lowered)
+        || "undefined".equals(lowered)
+        || "n/a".equals(lowered)
+        || "na".equals(lowered);
   }
 
   private static String trimToNull(String value) {
