@@ -19,7 +19,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -74,29 +73,9 @@ public class EventsDirectoryResource {
               gamificationService.award(
                   userId, GamificationActivity.WARRIOR_EVENTS_EXPLORATION, "events");
             });
-    var all = eventService.listEvents();
     LocalDate today = LocalDate.now();
-    List<Event> upcoming = all.stream()
-        .filter(
-            e -> {
-              ZonedDateTime end = e.getEndDateTime();
-              return end == null || !end.toLocalDate().isBefore(today);
-            })
-        .sorted(
-            Comparator.comparing(
-                Event::getDate, Comparator.nullsLast(Comparator.naturalOrder())))
-        .toList();
-    List<Event> past = all.stream()
-        .filter(
-            e -> {
-              ZonedDateTime end = e.getEndDateTime();
-              return end != null && end.toLocalDate().isBefore(today);
-            })
-        .sorted(
-            Comparator.comparing(
-                Event::getEndDateTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                .reversed())
-        .toList();
+    List<Event> upcoming = eventService.listUpcomingEvents();
+    List<Event> past = eventService.listPastEvents();
     var stats = Map.of(
         "upcoming", Integer.toString(upcoming.size()),
         "past", Integer.toString(past.size()));

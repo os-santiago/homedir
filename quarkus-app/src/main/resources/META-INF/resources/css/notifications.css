@@ -122,6 +122,20 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
+.notifications-empty-hint {
+  max-width: 520px;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+}
+
+.notifications-empty-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+}
+
 .notifications-center .notif .title {
   font-weight: bold;
 }
