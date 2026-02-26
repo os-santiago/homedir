@@ -781,6 +781,26 @@ public class AdminMetricsResource {
             communityPropose,
             funnelConversion(communityPropose, loginSuccess)));
 
+    long ltaPost =
+        resolveFunnelCount(
+            snap, "community_lightning_post", "community.lightning.thread.create");
+    rows.add(
+        new FunnelRow(
+            "community_lightning_post",
+            "LTA thread post",
+            ltaPost,
+            funnelConversion(ltaPost, loginSuccess)));
+
+    long ltaComment =
+        resolveFunnelCount(
+            snap, "community_lightning_comment", "community.lightning.comment.create");
+    rows.add(
+        new FunnelRow(
+            "community_lightning_comment",
+            "LTA comment",
+            ltaComment,
+            funnelConversion(ltaComment, loginSuccess)));
+
     long cfpSubmit = resolveFunnelCount(snap, "cfp_submit", "cfp.submission.create");
     rows.add(new FunnelRow("cfp_submit", "CFP submit", cfpSubmit, funnelConversion(cfpSubmit, loginSuccess)));
 
