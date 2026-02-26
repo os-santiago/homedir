@@ -125,6 +125,7 @@ public class CommunityResource {
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
+        .data("noLoginModal", true)
         .data("activeCommunitySubmenu", activeSubmenu)
         .data("initialFilter", initialFilter)
         .data("initialMedia", initialMedia)

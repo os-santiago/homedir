@@ -2583,16 +2583,16 @@ public interface AppMessages {
     @Message("Last sync: {timestamp}")
     String community_board_discord_last_sync(String timestamp);
 
-    @Message("Discord API (bot token)")
+    @Message("Official OSSantiago Discord server")
     String community_board_discord_source_bot_api();
 
-    @Message("Discord API (guild preview)")
+    @Message("Official OSSantiago Discord server")
     String community_board_discord_source_preview_api();
 
-    @Message("Discord API (server widget)")
+    @Message("Official OSSantiago Discord server")
     String community_board_discord_source_widget_api();
 
-    @Message("Community board file")
+    @Message("Official OSSantiago Discord server")
     String community_board_discord_source_file();
 
     @Message("Unavailable")
@@ -2630,6 +2630,9 @@ public interface AppMessages {
 
     @Message("No members found with current filter.")
     String community_board_no_members();
+
+    @Message("No results for '{query}'. Try another name or handle.")
+    String community_board_no_results(String query);
 
     @Message("Link your Discord account from your profile to be listed here.")
     String community_board_discord_link_tip();
