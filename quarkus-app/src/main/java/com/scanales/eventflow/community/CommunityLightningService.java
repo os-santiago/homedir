@@ -83,6 +83,9 @@ public class CommunityLightningService {
   @ConfigProperty(name = "community.lightning.max-comment-length", defaultValue = "200")
   int maxCommentLength;
 
+  @ConfigProperty(name = "community.lightning.seed.enabled", defaultValue = "true")
+  boolean starterThreadsEnabled;
+
   private final Object stateLock = new Object();
   private final LinkedHashMap<String, CommunityLightningThread> threads = new LinkedHashMap<>();
   private final LinkedHashMap<String, CommunityLightningComment> comments = new LinkedHashMap<>();
@@ -112,6 +115,7 @@ public class CommunityLightningService {
   void init() {
     synchronized (stateLock) {
       refreshFromDisk(true);
+      ensureStarterThreadsIfEnabled();
       rebuildQueueFromSnapshot();
     }
     scheduler.scheduleWithFixedDelay(this::drainQueueSafe, 1L, 1L, TimeUnit.SECONDS);
@@ -1096,6 +1100,73 @@ public class CommunityLightningService {
     } else if (nextPublishAt == null || nextPublishAt.equals(Instant.EPOCH)) {
       nextPublishAt = Instant.now();
     }
+  }
+
+  private void ensureStarterThreadsIfEnabled() {
+    if (!starterThreadsEnabled) {
+      return;
+    }
+    if (!threads.isEmpty()) {
+      return;
+    }
+    Instant now = Instant.now();
+    CommunityLightningThread first =
+        new CommunityLightningThread(
+            "starter-lta-thread-1",
+            MODE_SHARP_STATEMENT,
+            "Docker or Podman in 2026?",
+            "Docker or Podman in 2026?",
+            "homedir-seed",
+            "HomeDir Team",
+            now.minus(Duration.ofHours(6)),
+            now.minus(Duration.ofHours(6)),
+            now.minus(Duration.ofHours(6)),
+            "starter-lta-comment-1",
+            4,
+            1,
+            0);
+    CommunityLightningComment firstComment =
+        new CommunityLightningComment(
+            "starter-lta-comment-1",
+            first.id(),
+            "Pick the tool that matches your workflow and automation stack. Consistency wins.",
+            "homedir-seed",
+            "HomeDir Team",
+            now.minus(Duration.ofHours(5)),
+            now.minus(Duration.ofHours(5)),
+            2,
+            0);
+    CommunityLightningThread second =
+        new CommunityLightningThread(
+            "starter-lta-thread-2",
+            MODE_SHARP_STATEMENT,
+            "Best first improvement for CI reliability?",
+            "Best first improvement for CI reliability?",
+            "homedir-seed",
+            "HomeDir Team",
+            now.minus(Duration.ofHours(4)),
+            now.minus(Duration.ofHours(4)),
+            now.minus(Duration.ofHours(4)),
+            "starter-lta-comment-2",
+            3,
+            1,
+            0);
+    CommunityLightningComment secondComment =
+        new CommunityLightningComment(
+            "starter-lta-comment-2",
+            second.id(),
+            "Start with fast smoke checks and deterministic build inputs before bigger pipeline changes.",
+            "homedir-seed",
+            "HomeDir Team",
+            now.minus(Duration.ofHours(3)),
+            now.minus(Duration.ofHours(3)),
+            1,
+            0);
+    threads.put(first.id(), first);
+    threads.put(second.id(), second);
+    comments.put(firstComment.id(), firstComment);
+    comments.put(secondComment.id(), secondComment);
+    persistSync();
   }
 
   private CommunityLightningStateSnapshot toSnapshot() {

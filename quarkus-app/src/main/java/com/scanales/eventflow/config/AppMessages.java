@@ -1800,6 +1800,18 @@ public interface AppMessages {
     @Message("Deselect all")
     String notifications_center_js_deselect_all();
 
+    @Message("What you will see here")
+    String notifications_center_js_sample_title();
+
+    @Message("New event or agenda update is published.")
+    String notifications_center_js_sample_event();
+
+    @Message("A community pick you follow receives traction.")
+    String notifications_center_js_sample_community();
+
+    @Message("Important project release and delivery updates.")
+    String notifications_center_js_sample_project();
+
     @Message("Signed in as")
     String nav_signed_in_as();
 
