@@ -21,28 +21,33 @@
     - Espejo: `docs/es/**` (traduccion o stub)
     - Gateway: `docs/README.md`
 17. Todo resultado debe seguirse hasta verificacion de despliegue en produccion.
+18. Para nuevas funciones, endpoints o APIs, aplicar rollout incremental obligatorio en 3 iteraciones:
+    - Iteracion 1: introducir recurso nuevo oculto/sin consumo productivo.
+    - Iteracion 2: integrar consumo progresivo del recurso nuevo.
+    - Iteracion 3: retirar versiones legadas/deprecadas una vez validado en produccion.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
 2. Crear rama corta con scope explicito (`feat/*`, `fix/*`, `hotfix/*`, `docs/*`, `chore/*`).
 3. Implementar solo el alcance acordado para la iteracion.
-4. Ejecutar validacion local rapida (build y pruebas criticas del cambio).
-5. Commit atomico.
-6. Push de rama.
-7. Crear PR con:
+4. Para nuevas funciones/endpoints/APIs, ejecutar secuencia incremental: oculto/sin uso -> integrado/consumido -> limpieza legado/deprecado.
+5. Ejecutar validacion local rapida (build y pruebas criticas del cambio).
+6. Commit atomico.
+7. Push de rama.
+8. Crear PR con:
    - Summary
    - Why
    - Scope (in/out)
    - Validation
    - Production verification plan
    - Rollback plan
-8. Activar auto-merge cuando los checks requeridos esten listos.
-9. Monitorear `PR Validation` y luego `Production Release` en GitHub Actions.
-10. Verificar en produccion:
+9. Activar auto-merge cuando los checks requeridos esten listos.
+10. Monitorear `PR Validation` y luego `Production Release` en GitHub Actions.
+11. Verificar en produccion:
     - HTTP 200 en `/`, `/comunidad`, `/eventos`, `/proyectos`
     - Comportamiento funcional del cambio
     - Sin errores criticos nuevos en consola de navegador
-11. Si falla produccion:
+12. Si falla produccion:
     - detener iteraciones nuevas
     - revertir o rollback a version estable
     - abrir PR correctivo con causa raiz y prevencion
