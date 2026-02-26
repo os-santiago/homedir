@@ -15,7 +15,11 @@
     catBreak: root.dataset.i18nCatBreak || 'Break',
     catAnnouncement: root.dataset.i18nCatAnnouncement || 'Announcement',
     selectAll: root.dataset.i18nSelectAll || 'Select all',
-    deselectAll: root.dataset.i18nDeselectAll || 'Deselect all'
+    deselectAll: root.dataset.i18nDeselectAll || 'Deselect all',
+    sampleTitle: root.dataset.i18nSampleTitle || 'What you will see here',
+    sampleEvent: root.dataset.i18nSampleEvent || 'New event or agenda update is published.',
+    sampleCommunity: root.dataset.i18nSampleCommunity || 'A community pick you follow receives traction.',
+    sampleProject: root.dataset.i18nSampleProject || 'Important project release and delivery updates.'
   };
 
   const LS_KEY = 'ef_global_notifs'; // array de notifs [{id, title, message, createdAt, readAt?, dismissedAt?, targetUrl?}]
@@ -83,6 +87,7 @@
     if (items.length === 0) {
       emptyEl.classList.remove('hidden');
       actionsRight?.classList.add('hidden');
+      renderSampleCards();
       updateSelectAllBtn();
       return;
     }
@@ -130,6 +135,19 @@
           ? i18n.catBreak
           : i18n.catAnnouncement;
     return `<span class="chip chip-${cat}">${label}</span>`;
+  }
+
+  function renderSampleCards() {
+    const sample = document.createElement('div');
+    sample.className = 'notifications-sample';
+    sample.innerHTML = `
+      <h3 class="notifications-sample-title">${escapeHtml(i18n.sampleTitle)}</h3>
+      <ul class="notifications-sample-list">
+        <li>${escapeHtml(i18n.sampleEvent)}</li>
+        <li>${escapeHtml(i18n.sampleCommunity)}</li>
+        <li>${escapeHtml(i18n.sampleProject)}</li>
+      </ul>`;
+    listEl.appendChild(sample);
   }
 
   // Escapes básicos
