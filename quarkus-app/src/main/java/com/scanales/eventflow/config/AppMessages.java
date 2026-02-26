@@ -2003,6 +2003,45 @@ public interface AppMessages {
     @Message("See what changed today and choose your next contribution lane.")
     String home_highlights_intro();
 
+    @Message("Since your last visit")
+    String home_today_eyebrow();
+
+    @Message("Your community today")
+    String home_today_title();
+
+    @Message("A quick pulse of what changed in the last 24 hours so you can jump into impact faster.")
+    String home_today_intro();
+
+    @Message("First visit today")
+    String home_today_since_first();
+
+    @Message("Last visit")
+    String home_today_since_last_prefix();
+
+    @Message("Fresh picks")
+    String home_today_card_picks_chip();
+
+    @Message("curated picks in the last 24h")
+    String home_today_card_picks_desc();
+
+    @Message("Member pulse")
+    String home_today_card_members_chip();
+
+    @Message("member-submitted picks in the last 24h")
+    String home_today_card_members_desc();
+
+    @Message("Events")
+    String home_today_card_events_chip();
+
+    @Message("upcoming events currently visible")
+    String home_today_card_events_desc();
+
+    @Message("Community Board")
+    String home_today_card_board_chip();
+
+    @Message("members listed in HomeDir users")
+    String home_today_card_board_desc();
+
     @Message("Get started")
     String home_login_value_eyebrow();
 

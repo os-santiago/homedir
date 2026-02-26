@@ -2,6 +2,7 @@ package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
+import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
@@ -22,6 +23,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -55,6 +58,9 @@ public class PublicPagesResource {
   CommunityContentService communityContentService;
 
   @Inject
+  CommunityBoardService communityBoardService;
+
+  @Inject
   GamificationService gamificationService;
 
   @GET
@@ -71,7 +77,19 @@ public class PublicPagesResource {
     int upcomingCount = upcomingEvents.size();
 
     List<CommunityContentItem> socialHighlights = communityContentService.listNew(3, 0);
+    List<CommunityContentItem> allCommunityItems = communityContentService.allItems();
     int socialHighlightsCount = communityContentService.metrics().cacheSize();
+    Instant todayCutoff = Instant.now().minus(Duration.ofHours(24));
+    long recentPicksCount =
+        allCommunityItems.stream()
+            .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
+            .count();
+    long recentMemberPicksCount =
+        allCommunityItems.stream()
+            .filter(this::isMemberOrigin)
+            .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
+            .count();
+    var boardSummary = communityBoardService.summary();
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -86,6 +104,9 @@ public class PublicPagesResource {
             .data("upcomingCount", upcomingCount)
             .data("projectContributorCount", contributors.size())
             .data("projectContributionTotal", contributionTotal)
+            .data("homeTodayFreshPicks", toIntSafely(recentPicksCount))
+            .data("homeTodayMemberPicks", toIntSafely(recentMemberPicksCount))
+            .data("homeTodayBoardUsers", boardSummary.homedirUsers())
             .data("noLoginModal", true),
         "home",
         localeCookie,
@@ -188,5 +209,18 @@ public class PublicPagesResource {
       return java.util.Optional.of(principal.toLowerCase(Locale.ROOT));
     }
     return java.util.Optional.empty();
+  }
+
+  private boolean isMemberOrigin(CommunityContentItem item) {
+    if (item == null) {
+      return false;
+    }
+    String id = item.id() == null ? "" : item.id().toLowerCase(Locale.ROOT);
+    String source = item.source() == null ? "" : item.source().trim().toLowerCase(Locale.ROOT);
+    return id.startsWith("submission-") || "community member".equals(source) || "member".equals(source);
+  }
+
+  private int toIntSafely(long value) {
+    return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.max(0, value);
   }
 }
