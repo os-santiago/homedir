@@ -2538,6 +2538,9 @@ public interface AppMessages {
     @Message("Who participates, where they collaborate from, and how they share their community presence.")
     String community_board_intro();
 
+    @Message("Find your profile in the list and copy your public profile link to share it.")
+    String community_board_share_hint();
+
     @Message("HomeDir users")
     String community_board_group_homedir();
 
