@@ -75,7 +75,11 @@
       <div class="board-members-grid">
         {#if members.isEmpty}
           <article class="board-member-card">
-            <p>{i18n:community_board_no_members}</p>
+            {#if hasSearchQuery}
+              <p>{i18n:community_board_no_results(searchQuery)}</p>
+            {#else}
+              <p>{i18n:community_board_no_members}</p>
+            {/if}
           </article>
         {#else}
           {#for member in members}
@@ -229,6 +233,11 @@
       border-radius: 8px;
       color: #fff;
       padding: 0.6rem 0.75rem;
+    }
+
+    .board-search-input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+      opacity: 1;
     }
 
     .board-members-grid {

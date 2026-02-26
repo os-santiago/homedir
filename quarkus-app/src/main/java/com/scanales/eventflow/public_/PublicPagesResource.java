@@ -89,7 +89,8 @@ public class PublicPagesResource {
             .data("socialHighlightsCount", socialHighlightsCount)
             .data("upcomingCount", upcomingCount)
             .data("projectContributorCount", contributors.size())
-            .data("projectContributionTotal", contributionTotal),
+            .data("projectContributionTotal", contributionTotal)
+            .data("noLoginModal", true),
         "home",
         localeCookie,
         headers);

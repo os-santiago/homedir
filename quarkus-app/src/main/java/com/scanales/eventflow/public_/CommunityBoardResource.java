@@ -77,6 +77,7 @@ public class CommunityBoardResource {
         String previousPageUrl,
         String nextPageUrl,
         String highlightedMember,
+        boolean hasSearchQuery,
         List<CommunityBoardMemberView> members);
   }
 
@@ -157,6 +158,7 @@ public class CommunityBoardResource {
             previousPageUrl,
             nextPageUrl,
             normalizeHighlightedMember(highlightedMember),
+            normalizedQuery != null && !normalizedQuery.isBlank(),
             slice.items());
     return withLayoutData(template, "board", localeCookie)
         .data("ultraLiteMode", group == CommunityBoardGroup.DISCORD_USERS);
@@ -169,6 +171,7 @@ public class CommunityBoardResource {
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
+        .data("noLoginModal", true)
         .data("activeCommunitySubmenu", activeCommunitySubmenu)
         .data("userAuthenticated", authenticated)
         .data("userName", name)

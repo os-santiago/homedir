@@ -2,6 +2,7 @@
 {@ boolean noNav = false}
 {@ boolean noFooter = false}
 {@ boolean noCharacterSheet = false}
+{@ boolean noLoginModal = false}
 {@ String activePage = ""}
 {@ String mainClass = ""}
 {@ boolean ultraLiteMode = false}
@@ -65,7 +66,9 @@
     {/if}
   </div>
 
+  {#if noLoginModal != true}
   {#include fragments/login-modal.html/}
+  {/if}
   <script src="/js/homedir.js?v={app:version()}"></script>
   <script>
     window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };
