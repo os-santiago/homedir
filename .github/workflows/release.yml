@@ -17,10 +17,15 @@ on:
           - minor
           - major
 
+concurrency:
+  group: production-release-main
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Tag & Deploy
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip release]') }}
     permissions:
       contents: write
       packages: write
@@ -51,8 +56,8 @@ jobs:
         working-directory: quarkus-app
         run: ./mvnw clean verify -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
-      - name: Calculate Next Version
-        id: tag_version
+      - name: Calculate Next Version (dry run)
+        id: version_calc
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ github.token }}
@@ -60,7 +65,43 @@ jobs:
           custom_release_rules: feat:minor,fix:patch,chore:patch,refactor:patch,perf:patch
           release_branches: main
           tag_prefix: v
-          dry_run: false
+          dry_run: true
+
+      - name: Sync pom.xml revision
+        id: sync_pom
+        env:
+          RELEASE_VERSION: ${{ steps.version_calc.outputs.new_version }}
+        run: |
+          set -euo pipefail
+          sed -i -E "s#<revision>[^<]+</revision>#<revision>${RELEASE_VERSION}</revision>#" quarkus-app/pom.xml
+          if git diff --quiet -- quarkus-app/pom.xml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "pom.xml already aligned with ${RELEASE_VERSION}"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quarkus-app/pom.xml
+          git commit -m "chore(release): sync pom revision to ${RELEASE_VERSION} [skip release]"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create release tag
+        id: tag_version
+        env:
+          RELEASE_VERSION: ${{ steps.version_calc.outputs.new_version }}
+        run: |
+          set -euo pipefail
+          TAG="v${RELEASE_VERSION}"
+          git fetch --tags --force
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag ${TAG} already exists"
+            exit 1
+          fi
+          git tag "$TAG"
+          git push origin "$TAG"
+          echo "new_version=${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "new_tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build with Maven
         working-directory: quarkus-app
@@ -85,6 +126,21 @@ jobs:
             
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$TAG
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.tag_version.outputs.new_version }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TITLE="Release ${TAG}"
+          NOTES="Automated production release for ${TAG}."
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+          else
+            gh release create "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+          fi
 
       - name: Resolve deploy configuration
         id: deploy_config
