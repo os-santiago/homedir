@@ -25,6 +25,7 @@
         <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/board" data-login-return-current="true">{i18n:community_board_activation_cta_guest}</a>
         {/if}
       </section>
+      <p class="board-share-hint">{i18n:community_board_share_hint}</p>
 
       <div class="board-summary-grid">
         <article class="board-summary-card">
@@ -76,6 +77,12 @@
       display: grid;
       gap: 1rem;
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .board-share-hint {
+      margin: 0 0 1rem;
+      opacity: 0.9;
+      font-size: 0.86rem;
     }
 
     .board-activation {

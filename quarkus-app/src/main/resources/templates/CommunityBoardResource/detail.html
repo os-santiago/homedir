@@ -71,6 +71,7 @@
         <input type="hidden" name="limit" value="{limit}" />
         <button type="submit" class="btn-primary">{i18n:community_board_search}</button>
       </form>
+      <p class="board-share-hint">{i18n:community_board_share_hint}</p>
 
       <div class="board-members-grid">
         {#if members.isEmpty}
@@ -197,6 +198,12 @@
       gap: 0.75rem;
       margin-bottom: 1rem;
       flex-wrap: wrap;
+    }
+
+    .board-share-hint {
+      margin: 0 0 1rem;
+      font-size: 0.84rem;
+      opacity: 0.9;
     }
 
     .board-detail-metrics {
