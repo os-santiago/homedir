@@ -8,6 +8,7 @@ import com.scanales.eventflow.model.TalkInfo;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -313,12 +314,7 @@ public class EventService {
   }
 
   public List<Event> findPastEvents(int limit) {
-    return events.values().stream()
-        .filter(e -> e.getDate() != null)
-        .filter(e -> e.getDate().isBefore(java.time.LocalDate.now()))
-        .sorted(java.util.Comparator.comparing(Event::getDate).reversed())
-        .limit(limit)
-        .toList();
+    return listPastEvents().stream().limit(limit).toList();
   }
 
   /** Reloads events from persistence replacing the current cache. */
@@ -704,11 +700,51 @@ public class EventService {
   }
 
   public List<Event> findUpcomingEvents(int limit) {
+    return listUpcomingEvents().stream().limit(limit).toList();
+  }
+
+  public List<Event> listUpcomingEvents() {
+    LocalDate today = LocalDate.now();
     return events.values().stream()
-        .filter(e -> e.getDate() != null)
-        .filter(e -> !e.getDate().isBefore(java.time.LocalDate.now()))
-        .sorted(java.util.Comparator.comparing(Event::getDate))
-        .limit(limit)
+        .filter(event -> isUpcoming(event, today))
+        .sorted(java.util.Comparator.comparing(EventService::startDate, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
+  }
+
+  public List<Event> listPastEvents() {
+    LocalDate today = LocalDate.now();
+    return events.values().stream()
+        .filter(event -> isPast(event, today))
+        .sorted(
+            java.util.Comparator.comparing(
+                    EventService::effectiveEndDate,
+                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                .reversed())
+        .toList();
+  }
+
+  private static boolean isUpcoming(Event event, LocalDate today) {
+    LocalDate endDate = effectiveEndDate(event);
+    return endDate != null && !endDate.isBefore(today);
+  }
+
+  private static boolean isPast(Event event, LocalDate today) {
+    LocalDate endDate = effectiveEndDate(event);
+    return endDate != null && endDate.isBefore(today);
+  }
+
+  private static LocalDate effectiveEndDate(Event event) {
+    if (event == null) {
+      return null;
+    }
+    var endDateTime = event.getEndDateTime();
+    if (endDateTime != null) {
+      return endDateTime.toLocalDate();
+    }
+    return event.getDate();
+  }
+
+  private static LocalDate startDate(Event event) {
+    return event != null ? event.getDate() : null;
   }
 }

@@ -1746,6 +1746,15 @@ public interface AppMessages {
     @Message("No notifications for now.")
     String notifications_center_empty();
 
+    @Message("You will see new events, schedule changes, and key project updates here.")
+    String notifications_center_empty_hint();
+
+    @Message("Explore Events")
+    String notifications_center_empty_cta_events();
+
+    @Message("Open Community Board")
+    String notifications_center_empty_cta_board();
+
     @Message("Delete all?")
     String notifications_center_confirm_title();
 
@@ -2150,7 +2159,7 @@ public interface AppMessages {
     @Message("Edit")
     String home_lightning_btn_edit();
 
-    @Message("No lightning threads yet.")
+    @Message("Be the first to launch a thread. Share a sharp idea or question in 100 characters.")
     String home_lightning_empty();
 
     @Message("Queued. It will be published in turn.")

@@ -66,13 +66,9 @@ public class PublicPagesResource {
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
     int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
 
-    List<Event> popularEvents = eventService.findUpcomingEvents(3);
-    int upcomingCount =
-        (int)
-            eventService.listEvents().stream()
-                .filter(event -> event.getDate() != null)
-                .filter(event -> !event.getDate().isBefore(LocalDate.now()))
-                .count();
+    List<Event> upcomingEvents = eventService.listUpcomingEvents();
+    List<Event> popularEvents = upcomingEvents.stream().limit(3).toList();
+    int upcomingCount = upcomingEvents.size();
 
     List<CommunityContentItem> socialHighlights = communityContentService.listNew(3, 0);
     int socialHighlightsCount = communityContentService.metrics().cacheSize();
@@ -138,11 +134,11 @@ public class PublicPagesResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
     currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW));
-    List<Event> upcoming = eventService.findUpcomingEvents(10);
-    List<Event> past = eventService.findPastEvents(10);
+    List<Event> upcoming = eventService.listUpcomingEvents().stream().limit(10).toList();
+    List<Event> past = eventService.listPastEvents().stream().limit(10).toList();
     return withLayoutData(
         events
-            .data("today", java.time.LocalDate.now())
+            .data("today", LocalDate.now())
             .data("upcomingEvents", upcoming)
             .data("pastEvents", past)
             .data("upcomingCount", upcoming.size())
