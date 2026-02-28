@@ -69,6 +69,8 @@ Automation:
 - GitHub Actions workflow `Pipeline Health` computes a rolling 14-day report every hour and on each completed PR/Release run.
 - Default mode is advisory (`warn` only).
 - Use manual dispatch with `enforce=true` when you want hard-fail behavior against thresholds.
+- GitHub Actions workflow `Security Advisory` runs dependency review on PRs and runs scheduled/manual CodeQL in advisory mode.
+- `Security Advisory` supports `workflow_dispatch` with `enforce=true` to convert advisory signals into hard-fail checks during controlled hardening windows.
 
 If failures increase after a gate change:
 

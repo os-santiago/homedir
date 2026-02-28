@@ -1,0 +1,101 @@
+name: Security Advisory
+
+on:
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: "40 3 * * *"
+  workflow_dispatch:
+    inputs:
+      enforce:
+        description: "Fail workflow when findings are detected"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  dependency-review:
+    name: Dependency Review (Advisory)
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      ENFORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.enforce || 'false' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run dependency review
+        id: dependency_review
+        uses: actions/dependency-review-action@v4
+        continue-on-error: true
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+
+      - name: Warn on dependency review findings
+        if: ${{ steps.dependency_review.outcome == 'failure' }}
+        run: |
+          echo "::warning::Dependency review reported high-severity findings. Advisory mode is active."
+
+      - name: Enforce dependency review findings
+        if: ${{ env.ENFORCE == 'true' && steps.dependency_review.outcome == 'failure' }}
+        run: |
+          echo "Dependency review findings detected while enforce=true." >&2
+          exit 1
+
+  codeql-advisory:
+    name: CodeQL Java (Advisory)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    env:
+      ENFORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.enforce || 'false' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        id: codeql_init
+        uses: github/codeql-action/init@v3
+        continue-on-error: true
+        with:
+          languages: java-kotlin
+          queries: security-extended,security-and-quality
+
+      - name: Set up JDK 21
+        if: ${{ steps.codeql_init.outcome == 'success' }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Autobuild
+        id: codeql_build
+        if: ${{ steps.codeql_init.outcome == 'success' }}
+        uses: github/codeql-action/autobuild@v3
+        continue-on-error: true
+
+      - name: Analyze
+        id: codeql_analyze
+        if: ${{ steps.codeql_init.outcome == 'success' }}
+        uses: github/codeql-action/analyze@v3
+        continue-on-error: true
+        with:
+          category: "/language:java-kotlin"
+
+      - name: Warn on CodeQL findings or scan failures
+        if: ${{ steps.codeql_init.outcome == 'failure' || steps.codeql_build.outcome == 'failure' || steps.codeql_analyze.outcome == 'failure' }}
+        run: |
+          echo "::warning::CodeQL advisory run reported scan issues or findings."
+
+      - name: Enforce CodeQL findings
+        if: ${{ env.ENFORCE == 'true' && (steps.codeql_init.outcome == 'failure' || steps.codeql_build.outcome == 'failure' || steps.codeql_analyze.outcome == 'failure') }}
+        run: |
+          echo "CodeQL findings or scan failures detected while enforce=true." >&2
+          exit 1
