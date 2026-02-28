@@ -3,10 +3,6 @@ name: PR Validation
 on:
   pull_request:
     branches: [ main ]
-    paths:
-      - 'quarkus-app/**'
-      - '.github/workflows/pr-check.yml'
-      - '.github/workflows/release.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
