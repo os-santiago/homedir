@@ -64,6 +64,12 @@ Track daily:
 - Mean time to recover from failed release.
 - Critical smoke failures by route.
 
+Automation:
+
+- GitHub Actions workflow `Pipeline Health` computes a rolling 14-day report every hour and on each completed PR/Release run.
+- Default mode is advisory (`warn` only).
+- Use manual dispatch with `enforce=true` when you want hard-fail behavior against thresholds.
+
 If failures increase after a gate change:
 
 1. Pause gate ratchet.
