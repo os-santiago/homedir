@@ -95,6 +95,7 @@ Spanish documentation is maintained as a mirror (full translation or stub).
 - [English Documentation](docs/en/README.md)
 - [Documentación en Español](docs/es/README.md)
 - [Documentation Language Policy](docs/en/development/documentation-language-policy.md)
+- [Release Stage Gates (Alpha -> Beta -> RC -> GA)](docs/en/development/release-stage-gates.md)
 
 Platform deployment notes:
 - [platform/README.md](platform/README.md)
