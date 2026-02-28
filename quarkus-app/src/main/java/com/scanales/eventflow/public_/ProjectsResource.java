@@ -831,14 +831,14 @@ public class ProjectsResource {
         new ProjectFeature(
             i18n.project_dashboard_feature_contributor_cache_title(),
             i18n.project_dashboard_feature_contributor_cache_desc(),
-            i18n.project_dashboard_status_beta(),
-            "beta",
+            i18n.project_dashboard_status_live(),
+            "live",
             "/proyectos"),
         new ProjectFeature(
             i18n.project_dashboard_feature_adev_playbook_title(),
             i18n.project_dashboard_feature_adev_playbook_desc(),
-            i18n.project_dashboard_status_next(),
-            "next",
+            i18n.project_dashboard_status_beta(),
+            "beta",
             "https://github.com/scanalesespinoza/adev"));
   }
 
