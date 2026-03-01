@@ -5,6 +5,7 @@
 {@ int homedirUsers = 0}
 {@ int githubUsers = 0}
 {@ int discordUsers = 0}
+{@ int discordOnlineUsers = 0}
 {#include layout/main activePage="comunidad"}
 {#title}{i18n:community_page_title}{/title}
 {#head}
@@ -171,6 +172,12 @@
             <span class="community-pulse-label">{i18n:community_pulse_discord_users}</span>
             <strong class="community-pulse-value">{discordUsers}</strong>
           </a>
+          <div class="community-pulse-card community-pulse-card-discord-preview">
+            <span class="community-pulse-label">{i18n:community_discord_preview_label}</span>
+            <strong class="community-pulse-value">{discordOnlineUsers}</strong>
+            <small class="community-pulse-meta">{i18n:community_discord_preview_online}</small>
+            <a href="/comunidad/board/discord-users" class="community-discord-preview-link">{i18n:community_discord_preview_cta}</a>
+          </div>
           <div class="community-pulse-card community-pulse-card-neutral">
             <span class="community-pulse-label">{i18n:community_pulse_curated_picks}</span>
             <strong id="community-content-total" class="community-pulse-value">0</strong>

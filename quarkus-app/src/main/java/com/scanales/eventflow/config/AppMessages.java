@@ -1308,6 +1308,15 @@ public interface AppMessages {
     @Message("Curated picks")
     String community_pulse_curated_picks();
 
+    @Message("Discord live")
+    String community_discord_preview_label();
+
+    @Message("online now")
+    String community_discord_preview_online();
+
+    @Message("Open Discord board")
+    String community_discord_preview_cta();
+
     @Message("Featured")
     String community_view_featured();
 
