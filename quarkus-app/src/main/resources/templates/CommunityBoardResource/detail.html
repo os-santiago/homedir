@@ -103,17 +103,18 @@
           </article>
         {#else}
           {#for member in members}
+            {#let memberName=(member.displayName ?: i18n:community_board_unnamed_member)}
             <article class="board-member-card {#if highlightedMember == member.id}is-highlighted{/if}">
               <div class="board-member-main">
                 {#if member.avatarUrl}
-                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{member.displayName}" loading="lazy" decoding="async" fetchpriority="low" width="44" height="44" />
+                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{memberName}" loading="lazy" decoding="async" fetchpriority="low" width="44" height="44" />
                 {#else}
                   <div class="board-member-avatar board-member-avatar-fallback">
-                    {member.displayName.substring(0,1)}
+                    {memberName.substring(0,1)}
                   </div>
                 {/if}
                 <div class="board-member-text">
-                  <h2>{member.displayName}</h2>
+                  <h2>{memberName}</h2>
                   <p>{member.handle}</p>
                   {#if member.memberSince}
                     <small>{i18n:community_board_member_since(member.memberSince)}</small>
@@ -136,6 +137,7 @@
                 </button>
               </div>
             </article>
+            {/let}
           {/for}
         {/if}
       </div>
