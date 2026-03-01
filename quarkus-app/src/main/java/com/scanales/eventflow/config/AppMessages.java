@@ -2991,6 +2991,9 @@ public interface AppMessages {
     @Message("No members found with current filter.")
     String community_board_no_members();
 
+    @Message("Unnamed member")
+    String community_board_unnamed_member();
+
     @Message("No results for '{query}'. Try another name or handle.")
     String community_board_no_results(String query);
 
