@@ -45,6 +45,16 @@
         data-i18n-last-prefix="{i18n:home_today_since_last_prefix}">{i18n:home_today_since_first}</span>
     </div>
     <p class="home-pane-summary">{i18n:home_today_intro}</p>
+    <p class="home-pane-summary">
+      {i18n:home_today_account_status_prefix}
+      <strong>{i18n:home_today_account_status_homedir}</strong>
+      ·
+      <strong>{#if homeAccountHasGithub}{i18n:home_today_account_status_github_linked}{#else}{i18n:home_today_account_status_github_missing}{/if}</strong>
+      ·
+      <strong>{#if homeAccountHasDiscord}{i18n:home_today_account_status_discord_linked}{#else}{i18n:home_today_account_status_discord_missing}{/if}</strong>
+      ·
+      <a href="/private/profile">{i18n:home_today_account_status_cta}</a>
+    </p>
     <div class="home-top-metrics home-today-metrics">
       <a href="/comunidad/picks" class="home-top-metric">
         <span class="home-top-metric-head">

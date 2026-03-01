@@ -2045,6 +2045,27 @@ public interface AppMessages {
     @Message("A quick pulse of what changed in the last 24 hours so you can jump into impact faster.")
     String home_today_intro();
 
+    @Message("Account status:")
+    String home_today_account_status_prefix();
+
+    @Message("HomeDir active")
+    String home_today_account_status_homedir();
+
+    @Message("GitHub linked")
+    String home_today_account_status_github_linked();
+
+    @Message("Link GitHub")
+    String home_today_account_status_github_missing();
+
+    @Message("Discord linked")
+    String home_today_account_status_discord_linked();
+
+    @Message("Link Discord")
+    String home_today_account_status_discord_missing();
+
+    @Message("Open profile setup")
+    String home_today_account_status_cta();
+
     @Message("First visit today")
     String home_today_since_first();
 
