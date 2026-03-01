@@ -12,161 +12,379 @@ body {
   overflow: hidden;
 }
 
+.beta-mode-topbar {
+  min-height: 34px;
+  padding: 0.18rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  background: rgba(0, 0, 0, 0.58);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.beta-mode-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(224, 234, 248, 0.92);
+}
+
+.beta-mode-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.beta-mode-link {
+  text-decoration: none;
+  color: rgba(226, 236, 248, 0.9);
+  border: 1px solid rgba(226, 236, 248, 0.45);
+  border-radius: 999px;
+  min-height: 22px;
+  padding: 0.08rem 0.52rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.beta-mode-link:hover {
+  border-color: rgba(255, 219, 130, 0.8);
+  background: rgba(255, 219, 130, 0.16);
+}
+
+.beta-mode-link-active {
+  color: #1f1f1f;
+  border-color: #ffd700;
+  background: #ffd700;
+}
+
 .beta-game-root {
   width: 100%;
-  height: 100dvh;
-  padding: 0.75rem;
-  box-sizing: border-box;
+  height: calc(100dvh - 34px);
   background:
-    radial-gradient(circle at 20% 0%, rgba(66, 104, 150, 0.28), transparent 45%),
-    radial-gradient(circle at 90% 100%, rgba(29, 73, 54, 0.26), transparent 48%),
+    radial-gradient(circle at 20% 0%, rgba(66, 104, 150, 0.26), transparent 44%),
+    radial-gradient(circle at 90% 100%, rgba(29, 73, 54, 0.24), transparent 48%),
     #050b14;
 }
 
-.beta-game-shell {
+.beta-map-stage {
+  position: relative;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(173, 206, 246, 0.28);
-  border-radius: 14px;
-  overflow: hidden;
-  background: rgba(7, 14, 24, 0.95);
-  display: grid;
-  grid-template-rows: auto 1fr;
-}
-
-.beta-game-bar {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.2fr) minmax(220px, 1fr) minmax(220px, 1fr);
-  gap: 0.8rem;
-  align-items: center;
-  padding: 0.65rem 0.9rem;
-  border-bottom: 1px solid rgba(173, 206, 246, 0.18);
-  background: rgba(14, 24, 39, 0.88);
-}
-
-.beta-game-title p {
-  margin: 0;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(194, 217, 245, 0.78);
-}
-
-.beta-game-title h1 {
-  margin: 0.18rem 0 0;
-  font-size: 1.05rem;
-  line-height: 1.2;
-}
-
-.beta-game-state {
-  display: flex;
-  justify-content: center;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-}
-
-.beta-game-state span {
-  font-size: 0.78rem;
-  border: 1px solid rgba(180, 208, 242, 0.2);
-  border-radius: 999px;
-  padding: 0.28rem 0.52rem;
-  background: rgba(9, 17, 28, 0.92);
-}
-
-.beta-visited-counter strong {
-  margin-left: 0.2rem;
-  color: #ffd27a;
-  font-weight: 700;
-}
-
-.beta-game-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  justify-content: flex-end;
-}
-
-.beta-chip {
-  font-size: 0.74rem;
-  border: 1px solid rgba(180, 208, 242, 0.26);
-  border-radius: 999px;
-  padding: 0.25rem 0.52rem;
-  background: rgba(9, 17, 28, 0.92);
-  text-decoration: none;
-  color: inherit;
-}
-
-.beta-chip-user {
-  border-color: rgba(123, 245, 178, 0.35);
-}
-
-.beta-link-chip:hover {
-  border-color: rgba(255, 216, 121, 0.6);
-}
-
-.beta-game-main {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
-  gap: 0.75rem;
-  padding: 0.75rem;
-}
-
-.beta-map-region,
-.beta-zone-region {
-  min-height: 0;
-  border: 1px solid rgba(173, 206, 246, 0.18);
-  border-radius: 12px;
-  background: rgba(8, 15, 25, 0.82);
-}
-
-.beta-map-region {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  overflow: hidden;
-}
-
-.beta-map-frame {
-  min-height: 0;
-  padding: 0.45rem;
 }
 
 .beta-map-canvas {
   width: 100%;
   height: 100%;
   display: block;
+  background: #061021;
+}
+
+.beta-hud-panel,
+.beta-zone-region,
+.beta-map-controls {
+  position: absolute;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(181, 209, 240, 0.26);
+  background: rgba(7, 16, 27, 0.82);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.38);
+}
+
+.beta-hud-player {
+  top: 0.8rem;
+  left: 0.8rem;
+  width: 300px;
+  min-height: 106px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 0.65rem;
+  padding: 0.62rem;
+}
+
+.beta-hud-avatar {
+  width: 58px;
+  height: 58px;
   border-radius: 10px;
-  border: 1px solid rgba(173, 206, 246, 0.16);
-  background: #07111f;
+  border: 1px solid rgba(181, 209, 240, 0.36);
+  background: rgba(16, 33, 52, 0.92);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.beta-hud-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.beta-hud-avatar span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.beta-hud-profile {
+  display: grid;
+  gap: 0.24rem;
+}
+
+.beta-hud-name,
+.beta-hud-class,
+.beta-hud-level,
+.beta-hud-xp-label {
+  margin: 0;
+}
+
+.beta-hud-name {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.beta-hud-class,
+.beta-hud-level,
+.beta-hud-xp-label {
+  font-size: 0.73rem;
+  color: rgba(224, 235, 248, 0.92);
+}
+
+.beta-hud-xp-bar {
+  margin-top: 0.1rem;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(16, 33, 52, 0.92);
+  border: 1px solid rgba(181, 209, 240, 0.2);
+  overflow: hidden;
+}
+
+.beta-hud-xp-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #7dd3fc 0%, #34d399 50%, #facc15 100%);
+}
+
+.beta-hud-state {
+  top: 0.8rem;
+  right: 0.8rem;
+  width: 320px;
+  border-radius: 12px;
+  padding: 0.58rem 0.66rem;
+}
+
+.beta-hud-state p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(224, 235, 248, 0.95);
+}
+
+.beta-hud-state p + p {
+  margin-top: 0.2rem;
+}
+
+.beta-visited-counter strong {
+  margin-left: 0.25rem;
+  color: #ffd27a;
+}
+
+.beta-zone-region {
+  right: 0.8rem;
+  bottom: 4.8rem;
+  width: min(420px, calc(100% - 1.6rem));
+  max-height: calc(100% - 12rem);
+  border-radius: 12px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+.beta-zone-header {
+  padding: 0.7rem 0.75rem 0.62rem;
+  border-bottom: 1px solid rgba(181, 209, 240, 0.14);
+}
+
+.beta-zone-eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(194, 217, 245, 0.78);
+}
+
+.beta-zone-header h2 {
+  margin: 0.2rem 0 0.24rem;
+  font-size: 0.98rem;
+}
+
+.beta-zone-header p {
+  margin: 0;
+  font-size: 0.74rem;
+  color: rgba(218, 231, 249, 0.9);
+}
+
+.beta-runtime-chip {
+  margin-top: 0.32rem !important;
+  border: 1px solid rgba(181, 209, 240, 0.22);
+  border-radius: 999px;
+  display: inline-flex;
+  padding: 0.16rem 0.48rem;
+  background: rgba(10, 20, 34, 0.92);
+}
+
+.beta-zone-panels {
+  min-height: 0;
+  overflow: auto;
+  padding: 0.6rem 0.68rem 0.76rem;
+}
+
+.beta-zone-panel {
+  display: grid;
+  gap: 0.56rem;
+}
+
+.beta-zone-copy,
+.beta-zone-empty {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(218, 231, 249, 0.92);
+}
+
+.beta-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.42rem;
+}
+
+.beta-stat-card,
+.beta-feed-card,
+.beta-event-card,
+.beta-contributor-card {
+  border: 1px solid rgba(173, 206, 246, 0.18);
+  border-radius: 9px;
+  background: rgba(14, 25, 39, 0.9);
+  padding: 0.48rem 0.54rem;
+}
+
+.beta-stat-card {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.beta-stat-card span {
+  font-size: 0.68rem;
+  color: rgba(191, 214, 243, 0.86);
+}
+
+.beta-stat-card strong {
+  font-size: 0.94rem;
+}
+
+.beta-card-stack,
+.beta-contributors {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.beta-feed-meta {
+  margin: 0;
+  font-size: 0.68rem;
+  color: rgba(191, 214, 243, 0.86);
+}
+
+.beta-feed-card h4,
+.beta-event-body h4,
+.beta-contributor-card h4 {
+  margin: 0.21rem 0 0.22rem;
+  font-size: 0.82rem;
+}
+
+.beta-feed-card p,
+.beta-event-body p,
+.beta-contributor-card p {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(212, 228, 248, 0.92);
+}
+
+.beta-feed-card a,
+.beta-event-body a,
+.beta-contributor-card a {
+  margin-top: 0.32rem;
+  display: inline-flex;
+  font-size: 0.7rem;
+  color: #8bd0ff;
+  text-decoration: none;
+}
+
+.beta-feed-card a:hover,
+.beta-event-body a:hover,
+.beta-contributor-card a:hover {
+  text-decoration: underline;
+}
+
+.beta-event-card,
+.beta-contributor-card {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 0.48rem;
+  align-items: start;
+}
+
+.beta-event-avatar,
+.beta-event-avatar img,
+.beta-contributor-card img,
+.beta-avatar-fallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.beta-event-avatar,
+.beta-avatar-fallback {
+  border: 1px solid rgba(173, 206, 246, 0.3);
+  background: rgba(18, 36, 55, 0.95);
+  color: rgba(220, 237, 255, 0.86);
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
 }
 
 .beta-map-controls {
-  border-top: 1px solid rgba(173, 206, 246, 0.14);
-  padding: 0.55rem 0.68rem 0.7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0.8rem;
+  width: min(760px, calc(100% - 1.6rem));
+  border-radius: 12px;
+  padding: 0.52rem 0.62rem;
   display: grid;
-  gap: 0.46rem;
+  gap: 0.42rem;
 }
 
 .beta-map-help {
   margin: 0;
-  font-size: 0.79rem;
+  font-size: 0.74rem;
   color: rgba(218, 231, 249, 0.9);
 }
 
 .beta-quick-travel {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.44rem;
+  gap: 0.42rem;
 }
 
-.beta-travel-btn {
-  border: 1px solid rgba(173, 206, 246, 0.22);
+.beta-travel-btn,
+.beta-reset-btn,
+.beta-login-btn {
+  border: 1px solid rgba(173, 206, 246, 0.28);
   border-radius: 8px;
   background: rgba(12, 20, 33, 0.95);
   color: inherit;
-  font-size: 0.76rem;
-  padding: 0.42rem 0.3rem;
+  font-size: 0.74rem;
+  padding: 0.4rem 0.34rem;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .beta-travel-btn.is-selected {
@@ -178,219 +396,93 @@ body {
   box-shadow: inset 0 0 0 1px rgba(121, 228, 156, 0.62);
 }
 
-.beta-reset-btn {
-  border: 1px solid rgba(173, 206, 246, 0.32);
-  border-radius: 8px;
-  background: rgba(12, 20, 33, 0.95);
-  color: inherit;
-  font-size: 0.76rem;
-  padding: 0.48rem 0.62rem;
-  cursor: pointer;
+.beta-travel-btn:disabled,
+.beta-reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.beta-zone-region {
+.beta-login-gate {
+  position: absolute;
+  inset: 0;
   display: grid;
-  grid-template-rows: auto 1fr;
-}
-
-.beta-zone-header {
-  padding: 0.75rem 0.8rem 0.65rem;
-  border-bottom: 1px solid rgba(173, 206, 246, 0.14);
-}
-
-.beta-zone-eyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(194, 217, 245, 0.78);
-}
-
-.beta-zone-header h2 {
-  margin: 0.24rem 0 0.34rem;
-  font-size: 1.05rem;
-}
-
-.beta-zone-header p {
-  margin: 0;
-  font-size: 0.81rem;
-  color: rgba(218, 231, 249, 0.9);
-}
-
-.beta-zone-panels {
-  min-height: 0;
-  overflow: auto;
-  padding: 0.65rem 0.72rem 0.8rem;
-}
-
-.beta-zone-panel {
-  display: grid;
-  gap: 0.62rem;
-}
-
-.beta-zone-panel-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.7rem;
-}
-
-.beta-zone-panel-header h3 {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.beta-panel-link,
-.beta-feed-card a,
-.beta-event-body a,
-.beta-contributor-card a {
-  font-size: 0.75rem;
-  color: #8bd0ff;
-  text-decoration: none;
-}
-
-.beta-panel-link:hover,
-.beta-feed-card a:hover,
-.beta-event-body a:hover,
-.beta-contributor-card a:hover {
-  text-decoration: underline;
-}
-
-.beta-zone-copy,
-.beta-zone-empty {
-  margin: 0;
-  font-size: 0.8rem;
-  color: rgba(218, 231, 249, 0.92);
-}
-
-.beta-stat-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.48rem;
-}
-
-.beta-stat-card {
-  border: 1px solid rgba(173, 206, 246, 0.2);
-  border-radius: 9px;
-  padding: 0.52rem 0.58rem;
-  background: rgba(14, 25, 39, 0.9);
-  display: grid;
-  gap: 0.2rem;
-}
-
-.beta-stat-card span {
-  font-size: 0.72rem;
-  color: rgba(191, 214, 243, 0.86);
-}
-
-.beta-stat-card strong {
-  font-size: 1.02rem;
-}
-
-.beta-card-stack {
-  display: grid;
-  gap: 0.48rem;
-}
-
-.beta-feed-card,
-.beta-event-card,
-.beta-contributor-card {
-  border: 1px solid rgba(173, 206, 246, 0.18);
-  border-radius: 9px;
-  background: rgba(14, 25, 39, 0.9);
-  padding: 0.54rem 0.58rem;
-}
-
-.beta-feed-meta {
-  margin: 0;
-  font-size: 0.7rem;
-  color: rgba(191, 214, 243, 0.86);
-}
-
-.beta-feed-card h4,
-.beta-event-body h4,
-.beta-contributor-card h4 {
-  margin: 0.25rem 0 0.3rem;
-  font-size: 0.84rem;
-}
-
-.beta-feed-card p,
-.beta-event-body p,
-.beta-contributor-card p {
-  margin: 0;
-  font-size: 0.74rem;
-  color: rgba(212, 228, 248, 0.92);
-}
-
-.beta-event-card,
-.beta-contributor-card {
-  display: grid;
-  grid-template-columns: 48px 1fr;
+  place-items: center;
+  align-content: center;
   gap: 0.5rem;
-  align-items: start;
+  text-align: center;
+  background: rgba(5, 11, 20, 0.78);
+  z-index: 8;
 }
 
-.beta-event-avatar,
-.beta-contributor-card img,
-.beta-avatar-fallback {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  object-fit: cover;
-  border: 1px solid rgba(173, 206, 246, 0.3);
-  background: rgba(18, 36, 55, 0.95);
+.beta-login-gate h2 {
+  margin: 0;
+  font-size: 1.04rem;
 }
 
-.beta-event-avatar {
-  display: grid;
-  place-items: center;
-  color: rgba(220, 237, 255, 0.86);
-  font-size: 0.75rem;
+.beta-login-gate p {
+  margin: 0;
+  max-width: 520px;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  color: rgba(224, 235, 248, 0.92);
 }
 
-.beta-event-avatar img {
-  width: 44px;
-  height: 44px;
-  object-fit: cover;
-  border-radius: 8px;
+.beta-login-btn {
+  min-width: 210px;
+  font-size: 0.82rem;
+  padding: 0.52rem 0.75rem;
 }
 
-.beta-avatar-fallback {
-  display: grid;
-  place-items: center;
-  font-weight: 700;
+.beta-login-btn:hover {
+  border-color: rgba(255, 219, 130, 0.72);
+  background: rgba(53, 43, 23, 0.94);
 }
 
-.beta-contributors {
-  display: grid;
-  gap: 0.45rem;
-}
-
-@media (max-width: 1160px) {
-  .beta-game-main {
-    grid-template-columns: 1fr;
-  }
-
-  .beta-map-region {
-    min-height: 52dvh;
+@media (max-width: 1080px) {
+  .beta-zone-region {
+    width: min(360px, calc(100% - 1.6rem));
   }
 }
 
 @media (max-width: 920px) {
-  .beta-game-root {
-    padding: 0.35rem;
+  .beta-mode-topbar {
+    justify-content: space-between;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
   }
 
-  .beta-game-bar {
-    grid-template-columns: 1fr;
-    justify-items: start;
+  .beta-hud-player {
+    width: calc(100% - 1.6rem);
+    grid-template-columns: 56px 1fr;
   }
 
-  .beta-game-actions {
-    justify-content: flex-start;
+  .beta-hud-state {
+    top: 7.8rem;
+    width: calc(100% - 1.6rem);
+  }
+
+  .beta-zone-region {
+    left: 0.8rem;
+    right: 0.8rem;
+    width: auto;
+    max-height: calc(100% - 18.2rem);
+  }
+
+  .beta-map-controls {
+    width: calc(100% - 1.6rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .beta-mode-label {
+    display: none;
   }
 
   .beta-quick-travel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .beta-zone-region {
+    max-height: calc(100% - 20rem);
   }
 }

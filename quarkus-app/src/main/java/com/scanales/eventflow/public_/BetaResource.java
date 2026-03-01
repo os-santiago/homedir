@@ -5,14 +5,17 @@ import com.scanales.eventflow.community.CommunityBoardSummary;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.QuestClass;
+import com.scanales.eventflow.model.UserSession;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
+import com.scanales.eventflow.service.QuestService;
 import com.scanales.eventflow.service.UsageMetricsService;
+import com.scanales.eventflow.service.UserSessionService;
 import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.security.identity.SecurityIdentity;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -27,19 +30,20 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Path("/beta")
 public class BetaResource {
 
-  @Inject SecurityIdentity identity;
   @Inject UsageMetricsService metrics;
   @Inject CommunityContentService communityContentService;
   @Inject CommunityBoardService communityBoardService;
   @Inject EventService eventService;
   @Inject GithubService githubService;
+  @Inject UserSessionService userSessionService;
+  @Inject QuestService questService;
 
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "dev")
   String runtimeVersion;
 
   @CheckedTemplate
   static class Templates {
-    static native TemplateInstance beta(boolean isAuthenticated, String userName, BetaWorldView world);
+    static native TemplateInstance beta(BetaWorldView world);
   }
 
   @GET
@@ -50,14 +54,12 @@ public class BetaResource {
       @jakarta.ws.rs.core.Context HttpHeaders headers,
       @jakarta.ws.rs.core.Context RoutingContext context) {
     metrics.recordPageView("/beta", headers, context);
-    boolean authenticated = identity != null && !identity.isAnonymous();
-    String userName =
-        authenticated && identity.getPrincipal() != null ? identity.getPrincipal().getName() : "";
-    BetaWorldView world = buildWorld();
-    return TemplateLocaleUtil.apply(Templates.beta(authenticated, userName, world), localeCookie, headers);
+    UserSession session = userSessionService.getCurrentSession();
+    BetaWorldView world = buildWorld(session);
+    return TemplateLocaleUtil.apply(Templates.beta(world), localeCookie, headers);
   }
 
-  private BetaWorldView buildWorld() {
+  private BetaWorldView buildWorld(UserSession session) {
     List<CommunityContentItem> picksSource = communityContentService.listNew(3, 0);
     List<WorldPick> guildPicks =
         picksSource.stream()
@@ -111,7 +113,51 @@ public class BetaResource {
         theaterEvents,
         cityhallContributors,
         boardSummary,
-        defaultText(runtimeVersion, "dev"));
+        defaultText(runtimeVersion, "dev"),
+        buildPlayer(session));
+  }
+
+  private PlayerProfile buildPlayer(UserSession session) {
+    boolean authenticated = session != null && session.loggedIn();
+    String displayName =
+        authenticated ? defaultText(session.displayName(), "Player") : "Guest Adventurer";
+    String avatarUrl = authenticated ? sanitizeAvatarUrl(session.avatarUrl()) : null;
+    int level = authenticated ? Math.max(1, session.level()) : 1;
+    int currentXp = authenticated ? Math.max(0, session.currentXp()) : 0;
+    int nextLevelXp = authenticated ? Math.max(currentXp + 1, session.nextLevelXp()) : 100;
+    int levelFloor = authenticated ? Math.max(0, questService.getXpForLevel(level)) : 0;
+    int segmentMax = Math.max(1, nextLevelXp - levelFloor);
+    int segmentCurrent = Math.max(0, Math.min(segmentMax, currentXp - levelFloor));
+    int progressPercent =
+        Math.max(0, Math.min(100, (int) Math.round((segmentCurrent * 100.0d) / segmentMax)));
+
+    QuestClass questClass = authenticated ? session.questClass() : null;
+    String classLabel = questClass != null ? questClass.getDisplayName() : "Adventurer";
+    String classEmoji = questClass != null ? questClass.getEmoji() : "✨";
+
+    return new PlayerProfile(
+        authenticated,
+        displayName,
+        avatarUrl,
+        initialFrom(displayName),
+        level,
+        currentXp,
+        nextLevelXp,
+        progressPercent,
+        classLabel,
+        classEmoji,
+        "/private/login-callback?redirect=/beta");
+  }
+
+  private String sanitizeAvatarUrl(String value) {
+    String candidate = value == null ? null : value.trim();
+    if (candidate == null || candidate.isBlank()) {
+      return null;
+    }
+    if (candidate.startsWith("https://") || candidate.startsWith("http://")) {
+      return candidate;
+    }
+    return null;
   }
 
   private WorldEvent toWorldEvent(Event event) {
@@ -159,7 +205,8 @@ public class BetaResource {
       List<WorldEvent> theaterEvents,
       List<WorldContributor> cityhallContributors,
       CommunityBoardSummary boardSummary,
-      String releaseVersion) {}
+      String releaseVersion,
+      PlayerProfile player) {}
 
   public record WorldPulse(
       int curatedItems,
@@ -188,4 +235,17 @@ public class BetaResource {
       String href,
       String avatarUrl,
       String initial) {}
+
+  public record PlayerProfile(
+      boolean authenticated,
+      String displayName,
+      String avatarUrl,
+      String avatarInitial,
+      int level,
+      int currentXp,
+      int nextLevelXp,
+      int progressPercent,
+      String classLabel,
+      String classEmoji,
+      String loginUrl) {}
 }

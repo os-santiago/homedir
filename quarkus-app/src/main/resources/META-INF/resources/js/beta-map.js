@@ -32,12 +32,18 @@
     return;
   }
 
+  const isAuthenticated = root.dataset.authenticated === "true";
+  const interactionLocked = !isAuthenticated || document.getElementById("beta-login-gate") !== null;
   const trackUrl = root.dataset.trackUrl || "/api/beta/interaction";
   const i18nSelectedPrefix = root.dataset.i18nSelectedPrefix || "Current district: {0}";
   const i18nSelectedNone = root.dataset.i18nSelectedNone || "Move to a district to open its in-game view.";
   const i18nVisitedPrefix = root.dataset.i18nVisitedPrefix || "Visited districts: {0}/4";
   const i18nVisitedCounter = root.dataset.i18nVisitedCounter || "Visited";
-  const storageKey = "homedir.beta.map.v3.visited";
+  const playerAvatarUrl = (root.dataset.playerAvatarUrl || "").trim();
+  const playerInitial = (root.dataset.playerInitial || "HD").slice(0, 2).toUpperCase();
+  const storageKey = isAuthenticated
+    ? "homedir.beta.map.v5.auth.visited"
+    : "homedir.beta.map.v5.guest.visited";
 
   const zoneDescriptions = new Map();
   zonePanels.forEach((panel) => {
@@ -47,10 +53,10 @@
   });
 
   const zoneMeta = {
-    inn: { roof: "#ffc06b", wall: "#9b5d3b", accent: "#ffd9a4", x: 4, y: 3 },
-    guild: { roof: "#6fc7ff", wall: "#2f6283", accent: "#bde9ff", x: 2, y: 7 },
-    theater: { roof: "#ff8f7a", wall: "#853b35", accent: "#ffc6bc", x: 9, y: 5 },
-    cityhall: { roof: "#95d58a", wall: "#376f40", accent: "#caf5c4", x: 7, y: 9 }
+    inn: { roof: "#ffc06b", wall: "#9b5d3b", accent: "#ffd9a4", x: 6, y: 4 },
+    guild: { roof: "#6fc7ff", wall: "#2f6283", accent: "#bde9ff", x: 3, y: 10 },
+    theater: { roof: "#ff8f7a", wall: "#853b35", accent: "#ffc6bc", x: 13, y: 7 },
+    cityhall: { roof: "#95d58a", wall: "#376f40", accent: "#caf5c4", x: 10, y: 13 }
   };
 
   const zones = travelButtons
@@ -72,20 +78,41 @@
     .filter(Boolean);
 
   const state = {
-    mapSize: 12,
+    mapSize: 16,
     tileW: 56,
     tileH: 28,
-    avatarX: 5,
-    avatarY: 6,
+    avatarX: 8,
+    avatarY: 8,
     selectedZoneId: "inn",
     visited: loadVisited()
   };
 
+  const avatarSprite = {
+    image: null,
+    ready: false
+  };
+  if (isAuthenticated && playerAvatarUrl) {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      avatarSprite.ready = true;
+      drawMap();
+    };
+    image.onerror = () => {
+      avatarSprite.ready = false;
+      drawMap();
+    };
+    image.src = playerAvatarUrl;
+    avatarSprite.image = image;
+  }
+
   const decorativeHouses = [
-    { x: 1, y: 2, roof: "#8ca4ce", wall: "#3f4d66" },
-    { x: 10, y: 2, roof: "#8ca4ce", wall: "#3f4d66" },
-    { x: 1, y: 10, roof: "#8ca4ce", wall: "#3f4d66" },
-    { x: 10, y: 10, roof: "#8ca4ce", wall: "#3f4d66" }
+    { x: 2, y: 3, roof: "#8ca4ce", wall: "#3f4d66" },
+    { x: 12, y: 2, roof: "#8ca4ce", wall: "#3f4d66" },
+    { x: 2, y: 13, roof: "#8ca4ce", wall: "#3f4d66" },
+    { x: 14, y: 12, roof: "#8ca4ce", wall: "#3f4d66" },
+    { x: 7, y: 2, roof: "#8ca4ce", wall: "#3f4d66" },
+    { x: 5, y: 14, roof: "#8ca4ce", wall: "#3f4d66" }
   ];
 
   function loadVisited() {
@@ -136,13 +163,13 @@
   }
 
   function updateMapScale() {
-    state.tileW = Math.max(34, Math.min(74, Math.floor(canvas.width / (state.mapSize + 4))));
-    state.tileH = Math.max(18, Math.floor(state.tileW / 2));
+    state.tileW = Math.max(28, Math.min(68, Math.floor(canvas.width / (state.mapSize + 5))));
+    state.tileH = Math.max(15, Math.floor(state.tileW / 2));
   }
 
   function isoToScreen(x, y) {
     const originX = canvas.width * 0.5;
-    const originY = canvas.height * 0.18;
+    const originY = canvas.height * 0.22;
     return {
       x: originX + (x - y) * (state.tileW / 2),
       y: originY + (x + y) * (state.tileH / 2)
@@ -167,14 +194,25 @@
     }
   }
 
+  function drawRoundedRectPath(x, y, width, height, radius) {
+    const r = Math.max(0, Math.min(radius, Math.min(width, height) / 2));
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+
   function drawRoad(fromX, fromY, toX, toY) {
-    const steps = 20;
+    const steps = 26;
     for (let step = 0; step <= steps; step += 1) {
       const t = step / steps;
       const x = fromX + (toX - fromX) * t;
       const y = fromY + (toY - fromY) * t;
       const p = isoToScreen(x, y);
-      drawDiamond(p.x, p.y + 1, "rgba(90, 105, 128, 0.7)", "rgba(168, 183, 206, 0.3)");
+      drawDiamond(p.x, p.y + 1, "rgba(98, 109, 126, 0.7)", "rgba(178, 195, 219, 0.25)");
     }
   }
 
@@ -184,18 +222,18 @@
     drawDiamond(p.x, p.y - 1, tone.wall, "rgba(255, 255, 255, 0.22)");
     drawDiamond(
       p.x,
-      p.y - state.tileH * 0.46,
+      p.y - state.tileH * 0.48,
       isSelected ? "rgba(255, 238, 169, 0.95)" : tone.roof,
       "rgba(255, 255, 255, 0.35)"
     );
     drawDiamond(
       p.x,
-      p.y + state.tileH * 0.66,
+      p.y + state.tileH * 0.68,
       isVisited ? "rgba(112, 227, 144, 0.84)" : "rgba(126, 197, 255, 0.7)",
       isSelected ? "#ffeaa7" : "rgba(208, 234, 255, 0.56)"
     );
-    ctx.fillStyle = "rgba(14, 26, 40, 0.82)";
-    ctx.fillRect(p.x - 56, p.y - 54, 112, 18);
+    ctx.fillStyle = "rgba(8, 19, 33, 0.88)";
+    ctx.fillRect(p.x - 64, p.y - 54, 128, 18);
     ctx.fillStyle = "#f3f8ff";
     ctx.font = "600 12px monospace";
     ctx.textAlign = "center";
@@ -208,21 +246,62 @@
       drawDiamond(p.x, p.y - 1, house.wall, "rgba(255,255,255,0.12)");
       drawDiamond(p.x, p.y - state.tileH * 0.44, house.roof, "rgba(255,255,255,0.2)");
     });
-    [[3, 5], [6, 5], [8, 8], [4, 9], [9, 7]].forEach(([x, y]) => {
+    [
+      [4, 6],
+      [7, 6],
+      [11, 10],
+      [6, 12],
+      [12, 8],
+      [9, 4]
+    ].forEach(([x, y]) => {
       const p = isoToScreen(x, y);
       ctx.fillStyle = "rgba(82, 61, 38, 0.9)";
       ctx.fillRect(p.x - 2, p.y - 7, 4, 8);
-      drawDiamond(
-        p.x,
-        p.y - 13,
-        "rgba(78, 174, 109, 0.86)",
-        "rgba(149, 227, 175, 0.45)"
-      );
+      drawDiamond(p.x, p.y - 13, "rgba(78, 174, 109, 0.86)", "rgba(149, 227, 175, 0.45)");
     });
   }
 
+  function drawAvatar() {
+    const avatar = isoToScreen(state.avatarX, state.avatarY);
+    const size = Math.max(18, Math.floor(state.tileW * 0.48));
+    const x = avatar.x - Math.floor(size / 2);
+    const y = avatar.y - Math.floor(state.tileH * 1.25);
+
+    drawDiamond(
+      avatar.x,
+      avatar.y + state.tileH * 0.08,
+      "rgba(255, 255, 255, 0.16)",
+      "rgba(255, 255, 255, 0.12)"
+    );
+
+    if (avatarSprite.ready && avatarSprite.image) {
+      ctx.save();
+      drawRoundedRectPath(x, y, size, size, 6);
+      ctx.clip();
+      ctx.drawImage(avatarSprite.image, x, y, size, size);
+      ctx.restore();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
+      ctx.lineWidth = 2;
+      drawRoundedRectPath(x, y, size, size, 6);
+      ctx.stroke();
+      return;
+    }
+
+    ctx.fillStyle = isAuthenticated ? "rgba(255, 165, 96, 0.95)" : "rgba(125, 143, 166, 0.95)";
+    drawRoundedRectPath(x, y, size, size, 6);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
+    ctx.lineWidth = 2;
+    drawRoundedRectPath(x, y, size, size, 6);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(17, 26, 42, 0.92)";
+    ctx.font = "700 11px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(playerInitial, avatar.x, y + Math.floor(size * 0.62));
+  }
+
   function drawMap() {
-    ctx.fillStyle = "#070f1b";
+    ctx.fillStyle = "#050f1c";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let y = 0; y < state.mapSize; y += 1) {
@@ -231,18 +310,19 @@
         drawDiamond(
           p.x,
           p.y,
-          (x + y) % 2 === 0 ? "rgba(37, 79, 51, 0.9)" : "rgba(32, 69, 45, 0.9)",
+          (x + y) % 2 === 0 ? "rgba(35, 78, 51, 0.93)" : "rgba(31, 67, 45, 0.93)",
           "rgba(130, 179, 146, 0.2)"
         );
       }
     }
 
-    drawRoad(5, 6, 4, 3);
-    drawRoad(5, 6, 2, 7);
-    drawRoad(5, 6, 9, 5);
-    drawRoad(5, 6, 7, 9);
-    const plaza = isoToScreen(5, 6);
+    drawRoad(8, 8, 6, 4);
+    drawRoad(8, 8, 3, 10);
+    drawRoad(8, 8, 13, 7);
+    drawRoad(8, 8, 10, 13);
+    const plaza = isoToScreen(8, 8);
     drawDiamond(plaza.x, plaza.y, "rgba(154, 172, 188, 0.72)", "rgba(245, 250, 255, 0.42)");
+
     drawDecor();
 
     zones.forEach((zone) => {
@@ -251,10 +331,7 @@
       drawBuilding(zone, isSelected, isVisited);
     });
 
-    const avatar = isoToScreen(state.avatarX, state.avatarY);
-    drawDiamond(avatar.x, avatar.y - 5, "rgba(255, 112, 114, 0.95)", "rgba(255, 202, 202, 0.95)");
-    ctx.fillStyle = "rgba(255, 247, 247, 0.92)";
-    ctx.fillRect(avatar.x - 3, avatar.y - 25, 6, 7);
+    drawAvatar();
   }
 
   function markVisited(zone, shouldTrack) {
@@ -303,12 +380,16 @@
     if (!zone) {
       return;
     }
+    const force = Boolean(options && options.force);
+    if (interactionLocked && !force) {
+      return;
+    }
     const shouldTrack = Boolean(options && options.track);
     const trackPreview = shouldTrack && state.selectedZoneId !== zone.id;
     state.selectedZoneId = zone.id;
     state.avatarX = zone.tileX;
     state.avatarY = zone.tileY;
-    markVisited(zone, true);
+    markVisited(zone, shouldTrack);
     if (trackPreview) {
       track("preview", zone.id);
     }
@@ -328,7 +409,7 @@
         nearest = zone;
       }
     });
-    const threshold = Math.max(28, state.tileW * 0.7);
+    const threshold = Math.max(26, state.tileW * 0.66);
     return nearestDistance <= threshold ? nearest : null;
   }
 
@@ -337,6 +418,9 @@
   }
 
   function moveAvatar(dx, dy) {
+    if (interactionLocked) {
+      return;
+    }
     const nextX = Math.max(0, Math.min(state.mapSize - 1, state.avatarX + dx));
     const nextY = Math.max(0, Math.min(state.mapSize - 1, state.avatarY + dy));
     if (nextX === state.avatarX && nextY === state.avatarY) {
@@ -353,10 +437,10 @@
   }
 
   function resizeCanvas() {
-    const frame = canvas.parentElement;
-    const rect = frame.getBoundingClientRect();
-    const width = Math.max(320, Math.floor(rect.width));
-    const height = Math.max(260, Math.floor(rect.height));
+    const stage = root.querySelector(".beta-map-stage");
+    const rect = stage ? stage.getBoundingClientRect() : canvas.getBoundingClientRect();
+    const width = Math.max(360, Math.floor(rect.width));
+    const height = Math.max(280, Math.floor(rect.height));
     canvas.width = width;
     canvas.height = height;
     updateMapScale();
@@ -365,6 +449,9 @@
 
   function bindEvents() {
     canvas.addEventListener("click", (event) => {
+      if (interactionLocked) {
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
       const x = (event.clientX - rect.left) * (canvas.width / rect.width);
       const y = (event.clientY - rect.top) * (canvas.height / rect.height);
@@ -375,6 +462,9 @@
     });
 
     travelButtons.forEach((button) => {
+      if (interactionLocked) {
+        button.disabled = true;
+      }
       button.addEventListener("click", () => {
         const zone = zones.find((item) => item.id === button.dataset.zoneJump);
         if (zone) {
@@ -422,7 +512,13 @@
       }
     });
 
+    if (interactionLocked) {
+      resetBtn.disabled = true;
+    }
     resetBtn.addEventListener("click", () => {
+      if (interactionLocked) {
+        return;
+      }
       state.visited.clear();
       saveVisited();
       updateUi();
@@ -437,9 +533,10 @@
 
   bindEvents();
   resizeCanvas();
+
   const initialZone = zones.find((zone) => zone.id === state.selectedZoneId) || zones[0];
   if (initialZone) {
-    selectZone(initialZone, { track: false });
+    selectZone(initialZone, { track: false, force: true });
   } else {
     updateUi();
   }
