@@ -1092,6 +1092,15 @@ public interface AppMessages {
     @Message("Beta")
     String nav_beta();
 
+    @Message("Mode")
+    String mode_switch_label();
+
+    @Message("Classic")
+    String mode_switch_classic();
+
+    @Message("RPG (Experimental)")
+    String mode_switch_rpg_experimental();
+
     @Message("Home")
     String nav_home();
 
@@ -2428,6 +2437,90 @@ public interface AppMessages {
 
     @Message("Select a zone first.")
     String beta_js_open_first();
+
+    @Message("Runtime")
+    String beta_world_release_label();
+
+    @Message("Classic site")
+    String beta_exit_classic();
+
+    @Message("District viewport")
+    String beta_zone_view_title();
+
+    @Message("Travel through Homedir Town to reveal each district and its live content.")
+    String beta_zone_intro();
+
+    @Message("Inn")
+    String beta_zone_inn();
+
+    @Message("Guild")
+    String beta_zone_guild();
+
+    @Message("Theater")
+    String beta_zone_theater();
+
+    @Message("City Hall")
+    String beta_zone_cityhall();
+
+    @Message("A quick pulse of what is happening now across Community, Events, and Project.")
+    String beta_zone_inn_desc();
+
+    @Message("Curated picks from the network and members, adapted into a lightweight in-game feed.")
+    String beta_zone_guild_desc();
+
+    @Message("Upcoming hosted events and countdown signals shown directly in the RPG world.")
+    String beta_zone_theater_desc();
+
+    @Message("Project delivery status, contributor signal, and connected community metrics.")
+    String beta_zone_cityhall_desc();
+
+    @Message("Curated items")
+    String beta_inn_stat_curated();
+
+    @Message("Upcoming events")
+    String beta_inn_stat_events();
+
+    @Message("HomeDir users")
+    String beta_inn_stat_members();
+
+    @Message("Total contributions")
+    String beta_inn_stat_contributions();
+
+    @Message("No curated picks yet. Add content to activate the Guild board.")
+    String beta_guild_empty();
+
+    @Message("No upcoming events yet. Publish events to activate Theater.")
+    String beta_theater_empty();
+
+    @Message("No contributors available right now.")
+    String beta_cityhall_empty();
+
+    @Message("Open source")
+    String beta_open_source();
+
+    @Message("Open classic Home")
+    String beta_open_classic_home();
+
+    @Message("Open classic Community")
+    String beta_open_classic_community();
+
+    @Message("Open classic Events")
+    String beta_open_classic_events();
+
+    @Message("Open classic Project")
+    String beta_open_classic_project();
+
+    @Message("Release")
+    String beta_cityhall_stat_release();
+
+    @Message("GitHub users")
+    String beta_cityhall_stat_github_users();
+
+    @Message("Discord users")
+    String beta_cityhall_stat_discord_users();
+
+    @Message("Tracked contributors")
+    String beta_cityhall_stat_contributors();
 
     @Message("Ready to contribute")
     String home_project_actions_chip();
