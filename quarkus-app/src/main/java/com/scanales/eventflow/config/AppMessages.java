@@ -2895,6 +2895,18 @@ public interface AppMessages {
     @Message("Open profile setup")
     String community_board_activation_cta_member();
 
+    @Message("View public profile")
+    String community_board_activation_cta_public();
+
+    @Message("Copy profile link")
+    String community_board_activation_cta_copy();
+
+    @Message("Find me here")
+    String community_board_activation_cta_find_me();
+
+    @Message("Complete your profile setup to enable a public profile link.")
+    String community_board_activation_no_public_profile();
+
     @Message("Guild members: {count}")
     String community_board_discord_guild_members(int count);
 
