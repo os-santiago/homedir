@@ -2375,6 +2375,9 @@ public interface AppMessages {
     @Message("Visited zones: {0}/4")
     String beta_zone_visit_prefix();
 
+    @Message("Visited")
+    String beta_zone_visit_counter_label();
+
     @Message("No zone selected yet.")
     String beta_zone_selected_none();
 
@@ -2383,6 +2386,27 @@ public interface AppMessages {
 
     @Message("Selected zone: {0}")
     String beta_zone_selected_prefix();
+
+    @Message("Visited")
+    String beta_zone_visited_badge();
+
+    @Message("Curated picks, LTA, and community moderation loops.")
+    String beta_zone_community_desc();
+
+    @Message("Upcoming activities, agenda previews, and CFP workflows.")
+    String beta_zone_events_desc();
+
+    @Message("Delivery metrics, releases, and technical capability map.")
+    String beta_zone_project_desc();
+
+    @Message("Identity, class progress, rewards, and account linking.")
+    String beta_zone_profile_desc();
+
+    @Message("Zone preview")
+    String beta_preview_title();
+
+    @Message("Select a location to preview the area before visiting.")
+    String beta_preview_default_desc();
 
     @Message("Sign in to map these interactions to your profile progression.")
     String beta_login_hint();
