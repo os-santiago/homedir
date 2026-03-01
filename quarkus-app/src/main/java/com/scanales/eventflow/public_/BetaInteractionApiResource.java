@@ -77,7 +77,7 @@ public class BetaInteractionApiResource {
       return null;
     }
     return switch (raw.trim().toLowerCase(Locale.ROOT)) {
-      case "open", "visit" -> raw.trim().toLowerCase(Locale.ROOT);
+      case "open", "visit", "preview" -> raw.trim().toLowerCase(Locale.ROOT);
       default -> null;
     };
   }
