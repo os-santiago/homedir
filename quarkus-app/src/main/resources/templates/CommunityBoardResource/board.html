@@ -20,7 +20,23 @@
           <p>{#if isAuthenticated}{i18n:community_board_activation_desc_member}{#else}{i18n:community_board_activation_desc_guest}{/if}</p>
         </div>
         {#if isAuthenticated}
-        <a class="btn-primary" href="/private/profile">{i18n:community_board_activation_cta_member}</a>
+        <div class="board-activation-actions">
+          <a class="btn-primary" href="/private/profile">{i18n:community_board_activation_cta_member}</a>
+          {#if publicProfilePath}
+          <a class="btn-primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
+          <button
+            type="button"
+            class="btn-primary board-copy-btn"
+            data-default-label="{i18n:community_board_activation_cta_copy}"
+            data-success-label="{i18n:community_board_link_copied}"
+            data-error-label="{i18n:community_board_copy_failed}"
+            data-share-link="{publicProfilePath}">
+            {i18n:community_board_activation_cta_copy}
+          </button>
+          {#else}
+          <p class="board-inline-note">{i18n:community_board_activation_no_public_profile}</p>
+          {/if}
+        </div>
         {#else}
         <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/board" data-login-return-current="true">{i18n:community_board_activation_cta_guest}</a>
         {/if}
@@ -32,14 +48,24 @@
           <p class="section-subtitle">{i18n:community_board_group_homedir}</p>
           <h2>{homedirUsers}</h2>
           <p>{i18n:community_board_group_homedir_desc}</p>
-          <a class="btn-primary" href="/comunidad/board/homedir-users">{i18n:community_board_view_members}</a>
+          <div class="board-card-actions">
+            <a class="btn-primary" href="/comunidad/board/homedir-users">{i18n:community_board_view_members}</a>
+            {#if isAuthenticated && myHomedirSearchUrl}
+            <a class="btn-primary" href="{myHomedirSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+            {/if}
+          </div>
         </article>
 
         <article class="board-summary-card">
           <p class="section-subtitle">{i18n:community_board_group_github}</p>
           <h2>{githubUsers}</h2>
           <p>{i18n:community_board_group_github_desc}</p>
-          <a class="btn-primary" href="/comunidad/board/github-users">{i18n:community_board_view_members}</a>
+          <div class="board-card-actions">
+            <a class="btn-primary" href="/comunidad/board/github-users">{i18n:community_board_view_members}</a>
+            {#if isAuthenticated && myGithubSearchUrl}
+            <a class="btn-primary" href="{myGithubSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+            {/if}
+          </div>
         </article>
 
         <article class="board-summary-card">
@@ -59,7 +85,12 @@
               <p>{i18n:community_board_discord_last_sync(discordLastSyncLabel)}</p>
             {/if}
           </div>
-          <a class="btn-primary" href="/comunidad/board/discord-users">{i18n:community_board_view_members}</a>
+          <div class="board-card-actions">
+            <a class="btn-primary" href="/comunidad/board/discord-users">{i18n:community_board_view_members}</a>
+            {#if isAuthenticated && myDiscordSearchUrl}
+            <a class="btn-primary" href="{myDiscordSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+            {/if}
+          </div>
         </article>
       </div>
     </div>
@@ -98,6 +129,19 @@
       flex-wrap: wrap;
     }
 
+    .board-activation-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .board-inline-note {
+      margin: 0;
+      font-size: 0.82rem;
+      opacity: 0.9;
+    }
+
     .board-activation h2 {
       margin: 0 0 0.25rem;
       font-size: 1.05rem;
@@ -126,6 +170,12 @@
 
     .board-summary-card p {
       margin: 0;
+    }
+
+    .board-card-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .board-discord-meta {

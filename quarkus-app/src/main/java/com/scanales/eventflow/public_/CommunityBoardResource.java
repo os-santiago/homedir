@@ -6,6 +6,7 @@ import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.config.AppMessages;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
+import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.PaginationGuardrails;
 import com.scanales.eventflow.util.TemplateLocaleUtil;
@@ -23,6 +24,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -42,6 +44,7 @@ public class CommunityBoardResource {
   @Inject CommunityBoardService boardService;
   @Inject AppMessages messages;
   @Inject GamificationService gamificationService;
+  @Inject UserProfileService userProfiles;
 
   @CheckedTemplate
   static class Templates {
@@ -55,7 +58,11 @@ public class CommunityBoardResource {
         int discordCoveragePercent,
         Integer discordOnlineUsers,
         String discordSourceLabel,
-        String discordLastSyncLabel);
+        String discordLastSyncLabel,
+        String publicProfilePath,
+        String myHomedirSearchUrl,
+        String myGithubSearchUrl,
+        String myDiscordSearchUrl);
 
     static native TemplateInstance detail(
         boolean isAuthenticated,
@@ -78,6 +85,8 @@ public class CommunityBoardResource {
         String nextPageUrl,
         String highlightedMember,
         boolean hasSearchQuery,
+        String publicProfilePath,
+        String myMemberSearchUrl,
         List<CommunityBoardMemberView> members);
   }
 
@@ -88,6 +97,7 @@ public class CommunityBoardResource {
     currentUserId()
         .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
     var summary = boardService.summary();
+    BoardIdentity boardIdentity = resolveBoardIdentity();
     TemplateInstance template =
         Templates.board(
             isAuthenticated(),
@@ -99,7 +109,11 @@ public class CommunityBoardResource {
             summary.discordCoveragePercent(),
             summary.discordOnlineUsers(),
             discordSourceLabel(summary.discordDataSource()),
-            formatSyncTime(summary.discordLastSyncAt()));
+            formatSyncTime(summary.discordLastSyncAt()),
+            boardIdentity.publicProfilePath(),
+            boardIdentity.homedirSearchUrl(),
+            boardIdentity.githubSearchUrl(),
+            boardIdentity.discordSearchUrl());
     return withLayoutData(template, "board", localeCookie);
   }
 
@@ -137,6 +151,7 @@ public class CommunityBoardResource {
         hasPreviousPage ? detailUrl(group.path(), normalizedQuery, slice.limit(), previousOffset) : null;
     String nextPageUrl =
         hasNextPage ? detailUrl(group.path(), normalizedQuery, slice.limit(), nextOffset) : null;
+    BoardIdentity boardIdentity = resolveBoardIdentity();
     TemplateInstance template =
         Templates.detail(
             isAuthenticated(),
@@ -159,6 +174,8 @@ public class CommunityBoardResource {
             nextPageUrl,
             normalizeHighlightedMember(highlightedMember),
             normalizedQuery != null && !normalizedQuery.isBlank(),
+            boardIdentity.publicProfilePath(),
+            boardIdentity.searchUrlFor(group),
             slice.items());
     return withLayoutData(template, "board", localeCookie)
         .data("ultraLiteMode", group == CommunityBoardGroup.DISCORD_USERS);
@@ -202,6 +219,105 @@ public class CommunityBoardResource {
       out.append("&q=").append(URLEncoder.encode(query, StandardCharsets.UTF_8));
     }
     return out.toString();
+  }
+
+  private String searchUrlForMember(CommunityBoardGroup group, String memberId) {
+    if (memberId == null || memberId.isBlank()) {
+      return null;
+    }
+    String groupPath = group.path();
+    return "/comunidad/board/"
+        + groupPath
+        + "?limit="
+        + PAGE_SIZE
+        + "&offset=0&q="
+        + URLEncoder.encode(memberId, StandardCharsets.UTF_8);
+  }
+
+  private BoardIdentity resolveBoardIdentity() {
+    if (!isAuthenticated()) {
+      return BoardIdentity.empty();
+    }
+    String email = currentUserId().orElse(null);
+    if (email == null || email.isBlank()) {
+      return BoardIdentity.empty();
+    }
+    var profile = userProfiles.find(email).orElse(null);
+    String githubLogin = null;
+    String discordId = null;
+    if (profile != null) {
+      githubLogin = normalizeId(profile.getGithub() != null ? profile.getGithub().login() : null);
+      discordId = normalizeDiscordId(profile.getDiscord() != null ? profile.getDiscord().id() : null);
+    }
+    String publicHandle = resolvePublicProfileHandle(email, githubLogin);
+    String publicProfilePath =
+        publicHandle == null ? null : "/u/" + URLEncoder.encode(publicHandle, StandardCharsets.UTF_8);
+    String homedirMemberId = resolveHomedirMemberId(email, githubLogin);
+    return new BoardIdentity(
+        publicProfilePath,
+        searchUrlForMember(CommunityBoardGroup.HOMEDIR_USERS, homedirMemberId),
+        searchUrlForMember(CommunityBoardGroup.GITHUB_USERS, githubLogin),
+        searchUrlForMember(CommunityBoardGroup.DISCORD_USERS, discordId));
+  }
+
+  private String resolvePublicProfileHandle(String userId, String githubLogin) {
+    String github = normalizeId(githubLogin);
+    if (github != null) {
+      return github;
+    }
+    String seed = normalizeId(userId);
+    if (seed == null) {
+      return null;
+    }
+    return "hd-" + shortHash(seed, 16);
+  }
+
+  private String resolveHomedirMemberId(String userId, String githubLogin) {
+    String github = normalizeId(githubLogin);
+    if (github != null) {
+      return "gh-" + github;
+    }
+    String seed = normalizeId(userId);
+    if (seed == null) {
+      return null;
+    }
+    return "hd-" + shortHash(seed, 16);
+  }
+
+  private String normalizeId(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String normalized = raw.trim().toLowerCase(Locale.ROOT);
+    return normalized.isBlank() ? null : normalized;
+  }
+
+  private String normalizeDiscordId(String raw) {
+    String normalized = normalizeId(raw);
+    if (normalized == null) {
+      return null;
+    }
+    for (int i = 0; i < normalized.length(); i++) {
+      if (!Character.isDigit(normalized.charAt(i))) {
+        return null;
+      }
+    }
+    return normalized;
+  }
+
+  private String shortHash(String value, int maxLength) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hashed = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+      StringBuilder hex = new StringBuilder(hashed.length * 2);
+      for (byte b : hashed) {
+        hex.append(String.format("%02x", b));
+      }
+      int end = Math.min(hex.length(), Math.max(6, maxLength));
+      return hex.substring(0, end);
+    } catch (Exception e) {
+      return Integer.toHexString(value.hashCode());
+    }
   }
 
   private String titleFor(CommunityBoardGroup group) {
@@ -286,5 +402,23 @@ public class CommunityBoardResource {
       return null;
     }
     return BOARD_SYNC_TIME_FMT.format(instant);
+  }
+
+  private record BoardIdentity(
+      String publicProfilePath,
+      String homedirSearchUrl,
+      String githubSearchUrl,
+      String discordSearchUrl) {
+    static BoardIdentity empty() {
+      return new BoardIdentity(null, null, null, null);
+    }
+
+    String searchUrlFor(CommunityBoardGroup group) {
+      return switch (group) {
+        case HOMEDIR_USERS -> homedirSearchUrl;
+        case GITHUB_USERS -> githubSearchUrl;
+        case DISCORD_USERS -> discordSearchUrl;
+      };
+    }
   }
 }
