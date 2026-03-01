@@ -16,6 +16,7 @@
     <a href="/comunidad" class="nav-link {#if activePage == 'comunidad'}nav-link-active{/if}">{i18n:nav_community}</a>
     <a href="/eventos" class="nav-link {#if activePage == 'eventos'}nav-link-active{/if}">{i18n:nav_events}</a>
     <a href="/proyectos" class="nav-link {#if activePage == 'proyectos'}nav-link-active{/if}">{i18n:nav_projects}</a>
+    <a href="/beta" class="nav-link {#if activePage == 'beta'}nav-link-active{/if}">{i18n:nav_beta}</a>
 
     <a href="/notifications/center"
       class="nav-link notifications-bell {#if activePage == 'notifications'}nav-link-active{/if}"
@@ -113,7 +114,7 @@
     <a href="/login.html" class="login-btn-nav">{i18n:nav_login}</a>
     {#else}
     <a
-      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'proyectos'}/proyectos{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
+      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'proyectos'}/proyectos{#else if activePage == 'beta'}/beta{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
       class="login-btn-nav"
       data-login-return-current="true">{i18n:nav_login}</a>
     {/if}

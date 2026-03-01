@@ -1089,6 +1089,9 @@ public interface AppMessages {
     @Message("Project")
     String nav_projects();
 
+    @Message("Beta")
+    String nav_beta();
+
     @Message("Home")
     String nav_home();
 
@@ -2329,6 +2332,78 @@ public interface AppMessages {
 
     @Message("No contributor data available at the moment.")
     String home_project_no_data();
+
+    @Message("Beta Lab · HomeDir")
+    String beta_title();
+
+    @Message("Beta · Isometric MVP")
+    String beta_subtitle();
+
+    @Message("Homedir Virtual Campus")
+    String beta_hero_title();
+
+    @Message("Explore a lightweight 2D isometric map and jump into Community, Events, Project, and Profile.")
+    String beta_hero_desc();
+
+    @Message("Experimental MVP. We are testing a low-overhead gamified navigation loop before scaling.")
+    String beta_mvp_notice();
+
+    @Message("Campus Map")
+    String beta_map_title();
+
+    @Message("Move with arrows/WASD, click a hotspot, and open the section directly.")
+    String beta_map_desc();
+
+    @Message("Community")
+    String beta_zone_community();
+
+    @Message("Events")
+    String beta_zone_events();
+
+    @Message("Project")
+    String beta_zone_project();
+
+    @Message("Profile")
+    String beta_zone_profile();
+
+    @Message("Open selected zone")
+    String beta_zone_open();
+
+    @Message("Visited zones: {count}/4")
+    String beta_zone_visit_state(int count);
+
+    @Message("Visited zones: {0}/4")
+    String beta_zone_visit_prefix();
+
+    @Message("No zone selected yet.")
+    String beta_zone_selected_none();
+
+    @Message("Selected zone: {zone}")
+    String beta_zone_selected_label(String zone);
+
+    @Message("Selected zone: {0}")
+    String beta_zone_selected_prefix();
+
+    @Message("Sign in to map these interactions to your profile progression.")
+    String beta_login_hint();
+
+    @Message("Sign in now")
+    String beta_login_cta();
+
+    @Message("Quick controls")
+    String beta_controls_title();
+
+    @Message("Reset local progress")
+    String beta_controls_reset();
+
+    @Message("Move with arrow keys or WASD")
+    String beta_controls_move();
+
+    @Message("Select zones by clicking hotspot cards or map markers")
+    String beta_controls_click();
+
+    @Message("Select a zone first.")
+    String beta_js_open_first();
 
     @Message("Ready to contribute")
     String home_project_actions_chip();

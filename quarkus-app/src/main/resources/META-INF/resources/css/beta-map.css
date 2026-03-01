@@ -1,0 +1,151 @@
+.beta-mvp-note {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+}
+
+.beta-mvp-note .material-symbols-outlined {
+  color: #ffce4a;
+}
+
+.beta-shell {
+  padding: 1rem;
+}
+
+.beta-shell-header {
+  margin-bottom: 0.75rem;
+}
+
+.beta-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.beta-canvas-stage {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: linear-gradient(180deg, rgba(8, 20, 34, 0.92), rgba(9, 15, 25, 0.98));
+}
+
+.beta-map-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: radial-gradient(circle at top, rgba(43, 73, 110, 0.28), rgba(5, 10, 18, 0.95));
+}
+
+.beta-hud {
+  margin-top: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.beta-hud p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(230, 238, 250, 0.88);
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(15, 24, 38, 0.64);
+}
+
+.beta-actions {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.85rem;
+  background: rgba(8, 15, 24, 0.72);
+}
+
+.beta-actions h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.beta-list {
+  margin-bottom: 0.8rem;
+}
+
+.beta-list li {
+  margin-bottom: 0.3rem;
+}
+
+.beta-zone-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.beta-zone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  padding: 0.55rem 0.65rem;
+  background: rgba(14, 24, 38, 0.62);
+  transition: border-color 120ms ease, transform 120ms ease, background 120ms ease;
+}
+
+.beta-zone-card strong {
+  font-size: 0.95rem;
+}
+
+.beta-zone-card span {
+  opacity: 0.82;
+  font-size: 0.75rem;
+}
+
+.beta-zone-card:hover,
+.beta-zone-card:focus-visible {
+  border-color: rgba(126, 226, 255, 0.68);
+  background: rgba(18, 31, 49, 0.9);
+  transform: translateY(-1px);
+}
+
+.beta-zone-card.is-selected {
+  border-color: rgba(255, 205, 95, 0.85);
+  background: rgba(41, 35, 18, 0.82);
+}
+
+.beta-zone-card.is-visited::after {
+  content: "visited";
+  align-self: flex-start;
+  margin-top: 0.1rem;
+  font-size: 0.66rem;
+  border-radius: 999px;
+  border: 1px solid rgba(109, 247, 174, 0.42);
+  background: rgba(33, 72, 46, 0.58);
+  color: rgba(213, 255, 229, 0.95);
+  padding: 0.1rem 0.35rem;
+}
+
+.beta-reset-btn {
+  margin-top: 0.8rem;
+  width: 100%;
+}
+
+.beta-login-callout {
+  margin-top: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 0.75rem;
+}
+
+.beta-login-callout p {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 920px) {
+  .beta-layout {
+    grid-template-columns: 1fr;
+  }
+}
