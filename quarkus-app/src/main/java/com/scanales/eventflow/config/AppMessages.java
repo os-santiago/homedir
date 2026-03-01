@@ -2438,6 +2438,27 @@ public interface AppMessages {
     @Message("Select a zone first.")
     String beta_js_open_first();
 
+    @Message("Login required to enter buildings")
+    String beta_js_hint_locked();
+
+    @Message("Click or step on a district to enter")
+    String beta_js_hint_enter();
+
+    @Message("Open section")
+    String beta_js_open_section();
+
+    @Message("Open")
+    String beta_js_open_card();
+
+    @Message("inside")
+    String beta_js_inside_suffix();
+
+    @Message("INTERIOR")
+    String beta_js_interior_suffix();
+
+    @Message("Back to town")
+    String beta_js_back_town();
+
     @Message("Runtime")
     String beta_world_release_label();
 

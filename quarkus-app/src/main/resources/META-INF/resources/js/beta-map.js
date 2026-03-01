@@ -9,20 +9,14 @@
   const visitedNode = document.getElementById("beta-visited-zones");
   const visitedCountNode = document.getElementById("beta-visited-count");
   const resetBtn = document.getElementById("beta-reset-progress");
-  const zoneTitle = document.getElementById("beta-zone-title");
-  const zoneDescription = document.getElementById("beta-zone-description");
-  const zonePanels = Array.from(root.querySelectorAll(".beta-zone-panel[data-zone-panel]"));
-  const travelButtons = Array.from(root.querySelectorAll(".beta-travel-btn[data-zone-jump]"));
+  const zoneModelsNode = document.getElementById("beta-zone-models");
   if (
     !canvas ||
     !selectedNode ||
     !visitedNode ||
     !visitedCountNode ||
     !resetBtn ||
-    !zoneTitle ||
-    !zoneDescription ||
-    zonePanels.length === 0 ||
-    travelButtons.length === 0
+    !zoneModelsNode
   ) {
     return;
   }
@@ -39,52 +33,53 @@
   const i18nSelectedNone = root.dataset.i18nSelectedNone || "Move to a district to open its in-game view.";
   const i18nVisitedPrefix = root.dataset.i18nVisitedPrefix || "Visited districts: {0}/4";
   const i18nVisitedCounter = root.dataset.i18nVisitedCounter || "Visited";
+  const i18nHintLocked = root.dataset.i18nHintLocked || "Login required to enter buildings";
+  const i18nHintEnter = root.dataset.i18nHintEnter || "Click or step on a district to enter";
+  const i18nOpenSection = root.dataset.i18nOpenSection || "Open section";
+  const i18nOpenCard = root.dataset.i18nOpenCard || "Open";
+  const i18nInsideSuffix = root.dataset.i18nInsideSuffix || "inside";
+  const i18nInteriorSuffix = root.dataset.i18nInteriorSuffix || "INTERIOR";
+  const i18nBackTown = root.dataset.i18nBackTown || "Back to town";
   const playerAvatarUrl = (root.dataset.playerAvatarUrl || "").trim();
   const playerInitial = (root.dataset.playerInitial || "HD").slice(0, 2).toUpperCase();
   const storageKey = isAuthenticated
-    ? "homedir.beta.map.v5.auth.visited"
-    : "homedir.beta.map.v5.guest.visited";
-
-  const zoneDescriptions = new Map();
-  zonePanels.forEach((panel) => {
-    const id = panel.dataset.zonePanel;
-    const descNode = panel.querySelector(".beta-zone-copy");
-    zoneDescriptions.set(id, descNode ? descNode.textContent.trim() : "");
-  });
+    ? "homedir.beta.map.v6.auth.visited"
+    : "homedir.beta.map.v6.guest.visited";
 
   const zoneMeta = {
-    inn: { roof: "#ffc06b", wall: "#9b5d3b", accent: "#ffd9a4", x: 6, y: 4 },
-    guild: { roof: "#6fc7ff", wall: "#2f6283", accent: "#bde9ff", x: 3, y: 10 },
-    theater: { roof: "#ff8f7a", wall: "#853b35", accent: "#ffc6bc", x: 13, y: 7 },
-    cityhall: { roof: "#95d58a", wall: "#376f40", accent: "#caf5c4", x: 10, y: 13 }
+    inn: { roof: "#ffc06b", wall: "#9b5d3b", accent: "#ffd9a4", x: 6, y: 4, interior: "#5b3b1d" },
+    guild: { roof: "#6fc7ff", wall: "#2f6283", accent: "#bde9ff", x: 3, y: 10, interior: "#1f3d57" },
+    theater: { roof: "#ff8f7a", wall: "#853b35", accent: "#ffc6bc", x: 13, y: 7, interior: "#5e2422" },
+    cityhall: { roof: "#95d58a", wall: "#376f40", accent: "#caf5c4", x: 10, y: 13, interior: "#1f4530" }
   };
 
-  const zones = travelButtons
-    .map((button) => {
-      const id = button.dataset.zoneJump;
-      const meta = zoneMeta[id];
-      if (!meta) {
-        return null;
-      }
-      return {
-        id,
-        label: button.textContent.trim(),
-        desc: zoneDescriptions.get(id) || "",
-        tileX: meta.x,
-        tileY: meta.y,
-        meta
-      };
-    })
-    .filter(Boolean);
+  const zoneModels = parseZoneModels(zoneModelsNode);
+  const zones = Object.keys(zoneMeta).map((id) => {
+    const model = zoneModels.get(id);
+    const meta = zoneMeta[id];
+    return {
+      id,
+      tileX: meta.x,
+      tileY: meta.y,
+      meta,
+      label: model ? model.label : id,
+      desc: model ? model.description : "",
+      link: model ? model.link : "/",
+      items: model ? model.items : []
+    };
+  });
 
   const state = {
+    scene: "town",
     mapSize: 16,
     tileW: 56,
     tileH: 28,
     avatarX: 8,
     avatarY: 8,
     selectedZoneId: "inn",
-    visited: loadVisited()
+    interiorZoneId: null,
+    visited: loadVisited(),
+    hotspots: []
   };
 
   const avatarSprite = {
@@ -96,11 +91,11 @@
     image.crossOrigin = "anonymous";
     image.onload = () => {
       avatarSprite.ready = true;
-      drawMap();
+      drawScene();
     };
     image.onerror = () => {
       avatarSprite.ready = false;
-      drawMap();
+      drawScene();
     };
     image.src = playerAvatarUrl;
     avatarSprite.image = image;
@@ -114,6 +109,32 @@
     { x: 7, y: 2, roof: "#8ca4ce", wall: "#3f4d66" },
     { x: 5, y: 14, roof: "#8ca4ce", wall: "#3f4d66" }
   ];
+
+  function parseZoneModels(container) {
+    const out = new Map();
+    const modelNodes = Array.from(container.querySelectorAll("[data-zone-model]"));
+    modelNodes.forEach((node) => {
+      const id = (node.dataset.zoneModel || "").trim().toLowerCase();
+      if (!id) {
+        return;
+      }
+      const items = Array.from(node.querySelectorAll("[data-item-kind]")).map((itemNode) => ({
+        kind: itemNode.dataset.itemKind || "entry",
+        title: itemNode.dataset.title || "",
+        summary: itemNode.dataset.summary || "",
+        meta: itemNode.dataset.meta || "",
+        value: itemNode.dataset.value || "",
+        link: itemNode.dataset.link || ""
+      }));
+      out.set(id, {
+        label: node.dataset.label || id,
+        description: node.dataset.description || "",
+        link: node.dataset.link || "/",
+        items
+      });
+    });
+    return out;
+  }
 
   function loadVisited() {
     try {
@@ -261,46 +282,106 @@
     });
   }
 
-  function drawAvatar() {
-    const avatar = isoToScreen(state.avatarX, state.avatarY);
-    const size = Math.max(18, Math.floor(state.tileW * 0.48));
-    const x = avatar.x - Math.floor(size / 2);
-    const y = avatar.y - Math.floor(state.tileH * 1.25);
-
-    drawDiamond(
-      avatar.x,
-      avatar.y + state.tileH * 0.08,
-      "rgba(255, 255, 255, 0.16)",
-      "rgba(255, 255, 255, 0.12)"
-    );
+  function drawAvatar(x, y, size) {
+    const fallbackSize = Math.max(20, Math.floor(state.tileW * 0.48));
+    const avatarSize = size || fallbackSize;
+    const px = x - Math.floor(avatarSize / 2);
+    const py = y - Math.floor(avatarSize / 2);
 
     if (avatarSprite.ready && avatarSprite.image) {
       ctx.save();
-      drawRoundedRectPath(x, y, size, size, 6);
+      drawRoundedRectPath(px, py, avatarSize, avatarSize, 6);
       ctx.clip();
-      ctx.drawImage(avatarSprite.image, x, y, size, size);
+      ctx.drawImage(avatarSprite.image, px, py, avatarSize, avatarSize);
       ctx.restore();
       ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
       ctx.lineWidth = 2;
-      drawRoundedRectPath(x, y, size, size, 6);
+      drawRoundedRectPath(px, py, avatarSize, avatarSize, 6);
       ctx.stroke();
       return;
     }
 
     ctx.fillStyle = isAuthenticated ? "rgba(255, 165, 96, 0.95)" : "rgba(125, 143, 166, 0.95)";
-    drawRoundedRectPath(x, y, size, size, 6);
+    drawRoundedRectPath(px, py, avatarSize, avatarSize, 6);
     ctx.fill();
     ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
     ctx.lineWidth = 2;
-    drawRoundedRectPath(x, y, size, size, 6);
+    drawRoundedRectPath(px, py, avatarSize, avatarSize, 6);
     ctx.stroke();
     ctx.fillStyle = "rgba(17, 26, 42, 0.92)";
     ctx.font = "700 11px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(playerInitial, avatar.x, y + Math.floor(size * 0.62));
+    ctx.fillText(playerInitial, x, py + Math.floor(avatarSize * 0.62));
   }
 
-  function drawMap() {
+  function withAlpha(hex, alpha) {
+    const value = (hex || "#2f4858").replace("#", "");
+    const normalized =
+      value.length === 3
+        ? value
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : value.padEnd(6, "0").slice(0, 6);
+    const r = parseInt(normalized.slice(0, 2), 16) || 0;
+    const g = parseInt(normalized.slice(2, 4), 16) || 0;
+    const b = parseInt(normalized.slice(4, 6), 16) || 0;
+    return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+  }
+
+  function drawPill(text, x, y, fill, stroke) {
+    ctx.font = "600 12px monospace";
+    const width = Math.ceil(ctx.measureText(text).width) + 22;
+    const height = 26;
+    ctx.fillStyle = fill;
+    drawRoundedRectPath(x, y, width, height, 8);
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1;
+    drawRoundedRectPath(x, y, width, height, 8);
+    ctx.stroke();
+    ctx.fillStyle = "#f3f8ff";
+    ctx.textAlign = "left";
+    ctx.fillText(text, x + 11, y + 17);
+    return { x, y, width, height };
+  }
+
+  function drawParagraph(text, x, y, maxWidth, lineHeight) {
+    const words = (text || "").split(/\s+/).filter(Boolean);
+    let line = "";
+    let row = 0;
+    words.forEach((word) => {
+      const test = line ? line + " " + word : word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        ctx.fillText(line, x, y + row * lineHeight);
+        line = word;
+        row += 1;
+      } else {
+        line = test;
+      }
+    });
+    if (line) {
+      ctx.fillText(line, x, y + row * lineHeight);
+      row += 1;
+    }
+    return row;
+  }
+
+  function crop(text, maxChars) {
+    if (!text) {
+      return "";
+    }
+    if (text.length <= maxChars) {
+      return text;
+    }
+    return text.slice(0, Math.max(0, maxChars - 1)).trim() + "…";
+  }
+
+  function pushHotspot(x, y, width, height, action, payload) {
+    state.hotspots.push({ x, y, width, height, action, payload });
+  }
+
+  function drawTownScene() {
     ctx.fillStyle = "#050f1c";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -331,7 +412,193 @@
       drawBuilding(zone, isSelected, isVisited);
     });
 
-    drawAvatar();
+    const avatarPoint = isoToScreen(state.avatarX, state.avatarY);
+    drawDiamond(
+      avatarPoint.x,
+      avatarPoint.y + state.tileH * 0.08,
+      "rgba(255, 255, 255, 0.16)",
+      "rgba(255, 255, 255, 0.12)"
+    );
+    drawAvatar(avatarPoint.x, avatarPoint.y - Math.floor(state.tileH * 0.75));
+
+    const hintRect = drawPill(
+      interactionLocked
+        ? i18nHintLocked
+        : i18nHintEnter,
+      18,
+      canvas.height - 44,
+      "rgba(8, 18, 31, 0.86)",
+      "rgba(170, 206, 245, 0.28)"
+    );
+    if (interactionLocked) {
+      pushHotspot(hintRect.x, hintRect.y, hintRect.width, hintRect.height, "noop", null);
+    }
+  }
+
+  function drawCard(item, cardX, cardY, cardW, cardH) {
+    ctx.fillStyle = "rgba(9, 18, 31, 0.92)";
+    drawRoundedRectPath(cardX, cardY, cardW, cardH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(178, 212, 246, 0.24)";
+    ctx.lineWidth = 1;
+    drawRoundedRectPath(cardX, cardY, cardW, cardH, 10);
+    ctx.stroke();
+
+    if (item.kind === "stat") {
+      ctx.fillStyle = "rgba(205, 223, 246, 0.84)";
+      ctx.font = "600 11px monospace";
+      ctx.textAlign = "left";
+      drawParagraph(crop(item.title, 30), cardX + 12, cardY + 20, cardW - 24, 13);
+      ctx.fillStyle = "#f8d27a";
+      ctx.font = "700 20px monospace";
+      ctx.fillText(crop(item.value, 12), cardX + 12, cardY + 48);
+      return;
+    }
+
+    if (item.kind === "empty") {
+      ctx.fillStyle = "rgba(205, 223, 246, 0.9)";
+      ctx.font = "600 12px monospace";
+      ctx.textAlign = "left";
+      drawParagraph(crop(item.title, 82), cardX + 12, cardY + 22, cardW - 24, 15);
+      return;
+    }
+
+    ctx.fillStyle = "#f3f8ff";
+    ctx.font = "700 12px monospace";
+    ctx.textAlign = "left";
+    const titleRows = drawParagraph(crop(item.title, 60), cardX + 12, cardY + 20, cardW - 24, 14);
+    ctx.fillStyle = "rgba(196, 216, 240, 0.84)";
+    ctx.font = "600 11px monospace";
+    const metaY = cardY + 20 + titleRows * 14 + 4;
+    drawParagraph(crop(item.meta, 70), cardX + 12, metaY, cardW - 24, 13);
+    ctx.fillStyle = "rgba(217, 231, 249, 0.92)";
+    drawParagraph(crop(item.summary, 110), cardX + 12, metaY + 16, cardW - 24, 13);
+
+    if (item.link) {
+      ctx.fillStyle = "#8bd0ff";
+      ctx.font = "700 11px monospace";
+      ctx.fillText(i18nOpenCard, cardX + 12, cardY + cardH - 10);
+      pushHotspot(cardX, cardY, cardW, cardH, "open-link", item.link);
+    }
+  }
+
+  function drawInteriorScene(zone) {
+    if (!zone) {
+      state.scene = "town";
+      state.interiorZoneId = null;
+      drawTownScene();
+      return;
+    }
+
+    const accent = zone.meta.accent || "#a7d7ff";
+    const interior = zone.meta.interior || "#243747";
+    const topGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    topGradient.addColorStop(0, withAlpha(accent, 0.22));
+    topGradient.addColorStop(1, withAlpha(interior, 0.9));
+    ctx.fillStyle = topGradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const floorRows = 8;
+    const floorCols = 11;
+    const floorTileW = Math.max(30, Math.floor(canvas.width / 18));
+    const floorTileH = Math.max(15, Math.floor(floorTileW / 2));
+    const originX = canvas.width * 0.5;
+    const originY = canvas.height * 0.58;
+    for (let y = 0; y < floorRows; y += 1) {
+      for (let x = 0; x < floorCols; x += 1) {
+        const px = originX + (x - y) * (floorTileW / 2);
+        const py = originY + (x + y) * (floorTileH / 2);
+        const isAlt = (x + y) % 2 === 0;
+        const fill = isAlt ? withAlpha(zone.meta.wall, 0.52) : withAlpha(zone.meta.wall, 0.42);
+        const stroke = withAlpha(zone.meta.accent, 0.22);
+        const hw = floorTileW / 2;
+        const hh = floorTileH / 2;
+        ctx.beginPath();
+        ctx.moveTo(px, py - hh);
+        ctx.lineTo(px + hw, py);
+        ctx.lineTo(px, py + hh);
+        ctx.lineTo(px - hw, py);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    drawPill(
+      zone.label.toUpperCase() + " " + i18nInteriorSuffix,
+      18,
+      18,
+      "rgba(8, 18, 31, 0.9)",
+      withAlpha(accent, 0.45)
+    );
+
+    const backButton = drawPill(
+      i18nBackTown,
+      18,
+      52,
+      "rgba(8, 18, 31, 0.9)",
+      withAlpha(accent, 0.45)
+    );
+    pushHotspot(backButton.x, backButton.y, backButton.width, backButton.height, "back-town", null);
+
+    const sectionButton = drawPill(
+      i18nOpenSection,
+      canvas.width - 150,
+      18,
+      "rgba(8, 18, 31, 0.9)",
+      withAlpha(accent, 0.45)
+    );
+    pushHotspot(sectionButton.x, sectionButton.y, sectionButton.width, sectionButton.height, "open-section", zone.link);
+
+    ctx.fillStyle = "rgba(230, 240, 252, 0.95)";
+    ctx.font = "600 12px monospace";
+    ctx.textAlign = "left";
+    drawParagraph(crop(zone.desc, 160), 20, 92, canvas.width - 40, 14);
+
+    const contentX = 20;
+    const contentY = 130;
+    const contentW = canvas.width - 40;
+    const contentH = canvas.height - 196;
+    ctx.fillStyle = "rgba(5, 12, 20, 0.52)";
+    drawRoundedRectPath(contentX, contentY, contentW, contentH, 12);
+    ctx.fill();
+    ctx.strokeStyle = withAlpha(accent, 0.3);
+    ctx.lineWidth = 1;
+    drawRoundedRectPath(contentX, contentY, contentW, contentH, 12);
+    ctx.stroke();
+
+    const items = zone.items && zone.items.length > 0 ? zone.items : [{ kind: "empty", title: "No content yet." }];
+    const maxCards = Math.min(6, items.length);
+    const cols = contentW >= 560 ? 2 : 1;
+    const gap = 10;
+    const cardW = cols === 2 ? Math.floor((contentW - gap * 3) / 2) : contentW - 20;
+    const cardH = 84;
+    for (let index = 0; index < maxCards; index += 1) {
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      const cardX = contentX + 10 + col * (cardW + gap);
+      const cardY = contentY + 10 + row * (cardH + gap);
+      if (cardY + cardH > contentY + contentH - 8) {
+        break;
+      }
+      drawCard(items[index], cardX, cardY, cardW, cardH);
+    }
+
+    const bob = Math.sin(Date.now() / 380) * 3;
+    drawAvatar(canvas.width - 42, canvas.height - 44 + bob, 34);
+  }
+
+  function drawScene() {
+    state.hotspots = [];
+    if (state.scene === "interior") {
+      const zone = zones.find((candidate) => candidate.id === state.interiorZoneId);
+      drawInteriorScene(zone);
+      return;
+    }
+    drawTownScene();
   }
 
   function markVisited(zone, shouldTrack) {
@@ -347,36 +614,21 @@
 
   function updateUi() {
     const selectedZone = zones.find((zone) => zone.id === state.selectedZoneId) || null;
-    selectedNode.textContent = selectedZone
-      ? replaceToken(i18nSelectedPrefix, selectedZone.label)
-      : i18nSelectedNone;
+    if (!selectedZone) {
+      selectedNode.textContent = i18nSelectedNone;
+    } else if (state.scene === "interior") {
+      selectedNode.textContent = replaceToken(i18nSelectedPrefix, selectedZone.label + " · " + i18nInsideSuffix);
+    } else {
+      selectedNode.textContent = replaceToken(i18nSelectedPrefix, selectedZone.label);
+    }
+
     visitedNode.textContent = replaceToken(i18nVisitedPrefix, state.visited.size);
     visitedCountNode.textContent = String(state.visited.size);
     visitedCountNode.setAttribute("aria-label", i18nVisitedCounter + ": " + state.visited.size);
-
-    if (selectedZone) {
-      zoneTitle.textContent = selectedZone.label;
-      zoneDescription.textContent = selectedZone.desc || "";
-    } else {
-      zoneTitle.textContent = i18nSelectedNone;
-      zoneDescription.textContent = "";
-    }
-
-    zonePanels.forEach((panel) => {
-      const active = selectedZone && panel.dataset.zonePanel === selectedZone.id;
-      panel.hidden = !active;
-    });
-
-    travelButtons.forEach((button) => {
-      const zoneId = button.dataset.zoneJump;
-      button.classList.toggle("is-selected", zoneId === state.selectedZoneId);
-      button.classList.toggle("is-visited", state.visited.has(zoneId));
-    });
-
-    drawMap();
+    drawScene();
   }
 
-  function selectZone(zone, options) {
+  function enterZone(zone, options) {
     if (!zone) {
       return;
     }
@@ -385,14 +637,21 @@
       return;
     }
     const shouldTrack = Boolean(options && options.track);
-    const trackPreview = shouldTrack && state.selectedZoneId !== zone.id;
     state.selectedZoneId = zone.id;
     state.avatarX = zone.tileX;
     state.avatarY = zone.tileY;
     markVisited(zone, shouldTrack);
-    if (trackPreview) {
-      track("preview", zone.id);
+    state.scene = "interior";
+    state.interiorZoneId = zone.id;
+    if (shouldTrack) {
+      track("open", zone.id);
     }
+    updateUi();
+  }
+
+  function exitToTown() {
+    state.scene = "town";
+    state.interiorZoneId = null;
     updateUi();
   }
 
@@ -418,7 +677,7 @@
   }
 
   function moveAvatar(dx, dy) {
-    if (interactionLocked) {
+    if (interactionLocked || state.scene !== "town") {
       return;
     }
     const nextX = Math.max(0, Math.min(state.mapSize - 1, state.avatarX + dx));
@@ -430,10 +689,43 @@
     state.avatarY = nextY;
     const standing = detectStandingZone();
     if (standing) {
-      selectZone(standing, { track: true });
+      enterZone(standing, { track: true });
       return;
     }
-    drawMap();
+    drawScene();
+  }
+
+  function findHotspot(x, y) {
+    for (let index = state.hotspots.length - 1; index >= 0; index -= 1) {
+      const item = state.hotspots[index];
+      if (
+        x >= item.x &&
+        x <= item.x + item.width &&
+        y >= item.y &&
+        y <= item.y + item.height
+      ) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  function handleHotspot(hit) {
+    if (!hit) {
+      return;
+    }
+    if (hit.action === "back-town") {
+      exitToTown();
+      return;
+    }
+    if (hit.action === "open-section" && hit.payload) {
+      window.location.href = hit.payload;
+      return;
+    }
+    if (hit.action === "open-link" && hit.payload) {
+      window.open(hit.payload, "_blank", "noopener,noreferrer");
+      return;
+    }
   }
 
   function resizeCanvas() {
@@ -444,33 +736,27 @@
     canvas.width = width;
     canvas.height = height;
     updateMapScale();
-    drawMap();
+    drawScene();
   }
 
   function bindEvents() {
     canvas.addEventListener("click", (event) => {
-      if (interactionLocked) {
-        return;
-      }
       const rect = canvas.getBoundingClientRect();
       const x = (event.clientX - rect.left) * (canvas.width / rect.width);
       const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+      if (state.scene === "interior") {
+        handleHotspot(findHotspot(x, y));
+        return;
+      }
+
+      if (interactionLocked) {
+        return;
+      }
       const zone = nearestZoneAt(x, y);
       if (zone) {
-        selectZone(zone, { track: true });
+        enterZone(zone, { track: true });
       }
-    });
-
-    travelButtons.forEach((button) => {
-      if (interactionLocked) {
-        button.disabled = true;
-      }
-      button.addEventListener("click", () => {
-        const zone = zones.find((item) => item.id === button.dataset.zoneJump);
-        if (zone) {
-          selectZone(zone, { track: true });
-        }
-      });
     });
 
     document.addEventListener("keydown", (event) => {
@@ -482,6 +768,22 @@
       ) {
         return;
       }
+
+      if (state.scene === "interior") {
+        if (event.key === "Escape" || event.key === "Backspace") {
+          event.preventDefault();
+          exitToTown();
+          return;
+        }
+        if (event.key === "Enter") {
+          const zone = zones.find((candidate) => candidate.id === state.interiorZoneId);
+          if (zone && zone.link) {
+            window.location.href = zone.link;
+          }
+          return;
+        }
+      }
+
       switch (event.key) {
         case "ArrowUp":
         case "w":
@@ -536,8 +838,7 @@
 
   const initialZone = zones.find((zone) => zone.id === state.selectedZoneId) || zones[0];
   if (initialZone) {
-    selectZone(initialZone, { track: false, force: true });
-  } else {
-    updateUi();
+    state.selectedZoneId = initialZone.id;
   }
+  updateUi();
 })();
