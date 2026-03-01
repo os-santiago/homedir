@@ -10,6 +10,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
+import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.service.UserSessionService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.TemplateLocaleUtil;
@@ -67,6 +68,9 @@ public class PublicPagesResource {
   @Inject
   GamificationService gamificationService;
 
+  @Inject
+  UserProfileService userProfileService;
+
   @GET
   public TemplateInstance home(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
@@ -94,6 +98,16 @@ public class PublicPagesResource {
             .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
             .count();
     int recentLtaThreads = communityLightningService.countPublishedSince(todayCutoff);
+    boolean homeAccountHasGithub =
+        currentUserId()
+            .flatMap(userProfileService::find)
+            .map(profile -> profile.getGithub() != null && profile.hasGithub())
+            .orElse(false);
+    boolean homeAccountHasDiscord =
+        currentUserId()
+            .flatMap(userProfileService::find)
+            .map(profile -> profile.getDiscord() != null && profile.hasDiscord())
+            .orElse(false);
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -111,6 +125,8 @@ public class PublicPagesResource {
             .data("homeTodayFreshPicks", toIntSafely(recentPicksCount))
             .data("homeTodayMemberPicks", toIntSafely(recentMemberPicksCount))
             .data("homeTodayLtaThreads", recentLtaThreads)
+            .data("homeAccountHasGithub", homeAccountHasGithub)
+            .data("homeAccountHasDiscord", homeAccountHasDiscord)
             .data("noLoginModal", true),
         "home",
         localeCookie,
