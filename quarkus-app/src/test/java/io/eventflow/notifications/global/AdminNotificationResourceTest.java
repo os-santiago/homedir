@@ -102,7 +102,11 @@ public class AdminNotificationResourceTest {
             .extract()
             .asString();
     JsonArray arr = Json.createReader(new StringReader(latestJson)).readArray();
-    boolean found = arr.stream().map(v -> ((JsonObject) v).getString("id")).anyMatch(id::equals);
+    boolean found =
+        arr.stream()
+            .map(v -> ((JsonObject) v).getString("id", null))
+            .filter(Objects::nonNull)
+            .anyMatch(id::equals);
     assertTrue(found);
     service.removeById(id);
   }
