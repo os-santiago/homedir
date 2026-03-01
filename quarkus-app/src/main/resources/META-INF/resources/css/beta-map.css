@@ -250,6 +250,10 @@ body {
   z-index: 10;
 }
 
+.beta-interaction-modal[hidden] {
+  display: none !important;
+}
+
 .beta-interaction-card {
   width: min(520px, calc(100% - 1.5rem));
   border-radius: 14px;
