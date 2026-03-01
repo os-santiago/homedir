@@ -1,8 +1,7 @@
-{@ boolean isAuthenticated = false}
-{@ String userName = ""}
+{@ String resolvedLocaleCode = "en"}
 {@ com.scanales.eventflow.public_.BetaResource$BetaWorldView world}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{resolvedLocaleCode}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,195 +9,200 @@
   <link rel="stylesheet" href="/css/beta-map.css?v={app:version()}" />
 </head>
 <body class="beta-rpg-page">
+  <header class="beta-mode-topbar" role="navigation" aria-label="{i18n:mode_switch_label}">
+    <span class="beta-mode-label">{i18n:mode_switch_label}</span>
+    <div class="beta-mode-actions">
+      <a href="/" class="beta-mode-link">{i18n:mode_switch_classic}</a>
+      <a href="/beta" class="beta-mode-link beta-mode-link-active">{i18n:mode_switch_rpg_experimental}</a>
+    </div>
+  </header>
+
   <main
     id="beta-game-root"
     class="beta-game-root"
     data-track-url="/api/beta/interaction"
+    data-authenticated="{world.player.authenticated}"
+    data-player-avatar-url="{world.player.avatarUrl ?: ''}"
+    data-player-initial="{world.player.avatarInitial}"
     data-i18n-open-first="{i18n:beta_js_open_first}"
     data-i18n-selected-prefix="{i18n:beta_zone_selected_prefix}"
     data-i18n-selected-none="{i18n:beta_zone_selected_none}"
     data-i18n-visited-prefix="{i18n:beta_zone_visit_prefix}"
     data-i18n-visited-counter="{i18n:beta_zone_visit_counter_label}">
-    <section class="beta-game-shell">
-      <header class="beta-game-bar">
-        <div class="beta-game-title">
-          <p>{i18n:beta_subtitle}</p>
-          <h1>{i18n:beta_hero_title}</h1>
-        </div>
-        <div class="beta-game-state">
-          <span id="beta-selected-zone">{i18n:beta_zone_selected_none}</span>
-          <span class="beta-visited-counter">
-            {i18n:beta_zone_visit_counter_label}
-            <strong id="beta-visited-count">0</strong>
-          </span>
-        </div>
-        <div class="beta-game-actions">
-          <span class="beta-chip">{i18n:beta_world_release_label}: {world.releaseVersion}</span>
-          {#if isAuthenticated}
-          <span class="beta-chip beta-chip-user">{userName}</span>
+
+    <section class="beta-map-stage">
+      <canvas id="beta-map-canvas" class="beta-map-canvas" aria-label="{i18n:beta_map_title}"></canvas>
+
+      <aside class="beta-hud-panel beta-hud-player">
+        <div class="beta-hud-avatar">
+          {#if world.player.avatarUrl}
+          <img src="{world.player.avatarUrl}" alt="{i18n:header_avatar_alt}" />
           {#else}
-          <a class="beta-chip beta-link-chip" href="/private/login-callback?redirect=/beta">{i18n:beta_login_cta}</a>
+          <span>{world.player.avatarInitial}</span>
           {/if}
-          <a class="beta-chip beta-link-chip" href="/">{i18n:beta_exit_classic}</a>
         </div>
-      </header>
-
-      <section class="beta-game-main">
-        <section class="beta-map-region">
-          <div class="beta-map-frame">
-            <canvas id="beta-map-canvas" class="beta-map-canvas" aria-label="{i18n:beta_map_title}"></canvas>
+        <div class="beta-hud-profile">
+          <p class="beta-hud-name">{world.player.displayName}</p>
+          <p class="beta-hud-class">{world.player.classEmoji} {world.player.classLabel}</p>
+          <p class="beta-hud-level">{i18n:header_level_label(world.player.level)}</p>
+          <p class="beta-hud-xp-label">{i18n:header_xp_progress(world.player.currentXp, world.player.nextLevelXp)}</p>
+          <div class="beta-hud-xp-bar">
+            <span style="width: {world.player.progressPercent}%;"></span>
           </div>
-          <div class="beta-map-controls">
-            <p class="beta-map-help">{i18n:beta_map_desc}</p>
-            <div class="beta-quick-travel">
-              <button type="button" class="beta-travel-btn" data-zone-jump="inn">{i18n:beta_zone_inn}</button>
-              <button type="button" class="beta-travel-btn" data-zone-jump="guild">{i18n:beta_zone_guild}</button>
-              <button type="button" class="beta-travel-btn" data-zone-jump="theater">{i18n:beta_zone_theater}</button>
-              <button type="button" class="beta-travel-btn" data-zone-jump="cityhall">{i18n:beta_zone_cityhall}</button>
+        </div>
+      </aside>
+
+      <aside class="beta-hud-panel beta-hud-state">
+        <p id="beta-selected-zone">{i18n:beta_zone_selected_none}</p>
+        <p id="beta-visited-zones">{i18n:beta_zone_visit_state(0)}</p>
+        <p class="beta-visited-counter">
+          {i18n:beta_zone_visit_counter_label}
+          <strong id="beta-visited-count">0</strong>
+        </p>
+      </aside>
+
+      <aside class="beta-zone-region">
+        <header class="beta-zone-header">
+          <p class="beta-zone-eyebrow">{i18n:beta_zone_view_title}</p>
+          <h2 id="beta-zone-title">{i18n:beta_zone_selected_none}</h2>
+          <p id="beta-zone-description">{i18n:beta_zone_intro}</p>
+          <p class="beta-runtime-chip">{i18n:beta_world_release_label}: {world.releaseVersion}</p>
+        </header>
+
+        <div class="beta-zone-panels">
+          <article class="beta-zone-panel" data-zone-panel="inn">
+            <p class="beta-zone-copy">{i18n:beta_zone_inn_desc}</p>
+            <div class="beta-stat-grid">
+              <article class="beta-stat-card">
+                <span>{i18n:beta_inn_stat_curated}</span>
+                <strong>{world.pulse.curatedItems}</strong>
+              </article>
+              <article class="beta-stat-card">
+                <span>{i18n:beta_inn_stat_events}</span>
+                <strong>{world.pulse.upcomingEvents}</strong>
+              </article>
+              <article class="beta-stat-card">
+                <span>{i18n:beta_inn_stat_members}</span>
+                <strong>{world.pulse.homedirUsers}</strong>
+              </article>
+              <article class="beta-stat-card">
+                <span>{i18n:beta_inn_stat_contributions}</span>
+                <strong>{world.pulse.totalContributions}</strong>
+              </article>
             </div>
-            <p id="beta-visited-zones" class="beta-map-help">{i18n:beta_zone_visit_state(0)}</p>
-            <button id="beta-reset-progress" class="beta-reset-btn" type="button">{i18n:beta_controls_reset}</button>
-          </div>
-        </section>
+          </article>
 
-        <aside class="beta-zone-region">
-          <header class="beta-zone-header">
-            <p class="beta-zone-eyebrow">{i18n:beta_zone_view_title}</p>
-            <h2 id="beta-zone-title">{i18n:beta_zone_selected_none}</h2>
-            <p id="beta-zone-description">{i18n:beta_zone_intro}</p>
-          </header>
+          <article class="beta-zone-panel" data-zone-panel="guild" hidden>
+            <p class="beta-zone-copy">{i18n:beta_zone_guild_desc}</p>
+            {#if world.guildPicks.isEmpty}
+            <p class="beta-zone-empty">{i18n:beta_guild_empty}</p>
+            {#else}
+            <div class="beta-card-stack">
+              {#for pick in world.guildPicks}
+              <article class="beta-feed-card">
+                <p class="beta-feed-meta">{pick.mediaType} · {pick.source}</p>
+                <h4>{pick.title}</h4>
+                <p>{pick.summary}</p>
+                <a href="{pick.href}" target="_blank" rel="noreferrer">{i18n:beta_open_source}</a>
+              </article>
+              {/for}
+            </div>
+            {/if}
+          </article>
 
-          <div class="beta-zone-panels">
-            <article class="beta-zone-panel" data-zone-panel="inn">
-              <div class="beta-zone-panel-header">
-                <h3>{i18n:beta_zone_inn}</h3>
-                <a class="beta-panel-link" href="/">{i18n:beta_open_classic_home}</a>
-              </div>
-              <p class="beta-zone-copy">{i18n:beta_zone_inn_desc}</p>
-              <div class="beta-stat-grid">
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_inn_stat_curated}</span>
-                  <strong>{world.pulse.curatedItems}</strong>
-                </article>
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_inn_stat_events}</span>
-                  <strong>{world.pulse.upcomingEvents}</strong>
-                </article>
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_inn_stat_members}</span>
-                  <strong>{world.pulse.homedirUsers}</strong>
-                </article>
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_inn_stat_contributions}</span>
-                  <strong>{world.pulse.totalContributions}</strong>
-                </article>
-              </div>
-            </article>
-
-            <article class="beta-zone-panel" data-zone-panel="guild" hidden>
-              <div class="beta-zone-panel-header">
-                <h3>{i18n:beta_zone_guild}</h3>
-                <a class="beta-panel-link" href="/comunidad">{i18n:beta_open_classic_community}</a>
-              </div>
-              <p class="beta-zone-copy">{i18n:beta_zone_guild_desc}</p>
-              {#if world.guildPicks.isEmpty}
-              <p class="beta-zone-empty">{i18n:beta_guild_empty}</p>
-              {#else}
-              <div class="beta-card-stack">
-                {#for pick in world.guildPicks}
-                <article class="beta-feed-card">
-                  <p class="beta-feed-meta">{pick.mediaType} · {pick.source}</p>
-                  <h4>{pick.title}</h4>
-                  <p>{pick.summary}</p>
-                  <a href="{pick.href}" target="_blank" rel="noreferrer">{i18n:beta_open_source}</a>
-                </article>
-                {/for}
-              </div>
-              {/if}
-            </article>
-
-            <article class="beta-zone-panel" data-zone-panel="theater" hidden>
-              <div class="beta-zone-panel-header">
-                <h3>{i18n:beta_zone_theater}</h3>
-                <a class="beta-panel-link" href="/eventos">{i18n:beta_open_classic_events}</a>
-              </div>
-              <p class="beta-zone-copy">{i18n:beta_zone_theater_desc}</p>
-              {#if world.theaterEvents.isEmpty}
-              <p class="beta-zone-empty">{i18n:beta_theater_empty}</p>
-              {#else}
-              <div class="beta-card-stack">
-                {#for event in world.theaterEvents}
-                <article class="beta-event-card">
-                  <div class="beta-event-avatar">
-                    {#if event.logoUrl}
-                    <img src="{event.logoUrl}" alt="{event.title}" />
-                    {#else}
-                    <span>EV</span>
-                    {/if}
-                  </div>
-                  <div class="beta-event-body">
-                    <h4>{event.title}</h4>
-                    <p>{event.dateLabel} · {event.countdownLabel}</p>
-                    <a href="{event.href}">{i18n:beta_open_source}</a>
-                  </div>
-                </article>
-                {/for}
-              </div>
-              {/if}
-            </article>
-
-            <article class="beta-zone-panel" data-zone-panel="cityhall" hidden>
-              <div class="beta-zone-panel-header">
-                <h3>{i18n:beta_zone_cityhall}</h3>
-                <a class="beta-panel-link" href="/proyectos">{i18n:beta_open_classic_project}</a>
-              </div>
-              <p class="beta-zone-copy">{i18n:beta_zone_cityhall_desc}</p>
-              <div class="beta-stat-grid">
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_cityhall_stat_release}</span>
-                  <strong>{world.releaseVersion}</strong>
-                </article>
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_cityhall_stat_github_users}</span>
-                  <strong>{world.boardSummary.githubUsers}</strong>
-                </article>
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_cityhall_stat_discord_users}</span>
-                  <strong>{world.boardSummary.discordUsers}</strong>
-                </article>
-                <article class="beta-stat-card">
-                  <span>{i18n:beta_cityhall_stat_contributors}</span>
-                  <strong>{world.pulse.trackedContributors}</strong>
-                </article>
-              </div>
-              {#if world.cityhallContributors.isEmpty}
-              <p class="beta-zone-empty">{i18n:beta_cityhall_empty}</p>
-              {#else}
-              <div class="beta-contributors">
-                {#for contributor in world.cityhallContributors}
-                <article class="beta-contributor-card">
-                  {#if contributor.avatarUrl}
-                  <img src="{contributor.avatarUrl}" alt="{contributor.login}" />
+          <article class="beta-zone-panel" data-zone-panel="theater" hidden>
+            <p class="beta-zone-copy">{i18n:beta_zone_theater_desc}</p>
+            {#if world.theaterEvents.isEmpty}
+            <p class="beta-zone-empty">{i18n:beta_theater_empty}</p>
+            {#else}
+            <div class="beta-card-stack">
+              {#for event in world.theaterEvents}
+              <article class="beta-event-card">
+                <div class="beta-event-avatar">
+                  {#if event.logoUrl}
+                  <img src="{event.logoUrl}" alt="{event.title}" />
                   {#else}
-                  <span class="beta-avatar-fallback">{contributor.initial}</span>
+                  <span>EV</span>
                   {/if}
-                  <div>
-                    <h4>{contributor.login}</h4>
-                    <p>{contributor.contributions} contribs</p>
-                    <a href="{contributor.href}" target="_blank" rel="noreferrer">{i18n:beta_open_source}</a>
-                  </div>
-                </article>
-                {/for}
-              </div>
-              {/if}
-            </article>
-          </div>
-        </aside>
-      </section>
+                </div>
+                <div class="beta-event-body">
+                  <h4>{event.title}</h4>
+                  <p>{event.dateLabel} · {event.countdownLabel}</p>
+                  <a href="{event.href}">{i18n:beta_open_source}</a>
+                </div>
+              </article>
+              {/for}
+            </div>
+            {/if}
+          </article>
+
+          <article class="beta-zone-panel" data-zone-panel="cityhall" hidden>
+            <p class="beta-zone-copy">{i18n:beta_zone_cityhall_desc}</p>
+            <div class="beta-stat-grid">
+              <article class="beta-stat-card">
+                <span>{i18n:beta_cityhall_stat_release}</span>
+                <strong>{world.releaseVersion}</strong>
+              </article>
+              <article class="beta-stat-card">
+                <span>{i18n:beta_cityhall_stat_github_users}</span>
+                <strong>{world.boardSummary.githubUsers}</strong>
+              </article>
+              <article class="beta-stat-card">
+                <span>{i18n:beta_cityhall_stat_discord_users}</span>
+                <strong>{world.boardSummary.discordUsers}</strong>
+              </article>
+              <article class="beta-stat-card">
+                <span>{i18n:beta_cityhall_stat_contributors}</span>
+                <strong>{world.pulse.trackedContributors}</strong>
+              </article>
+            </div>
+            {#if world.cityhallContributors.isEmpty}
+            <p class="beta-zone-empty">{i18n:beta_cityhall_empty}</p>
+            {#else}
+            <div class="beta-contributors">
+              {#for contributor in world.cityhallContributors}
+              <article class="beta-contributor-card">
+                {#if contributor.avatarUrl}
+                <img src="{contributor.avatarUrl}" alt="{contributor.login}" />
+                {#else}
+                <span class="beta-avatar-fallback">{contributor.initial}</span>
+                {/if}
+                <div>
+                  <h4>{contributor.login}</h4>
+                  <p>{contributor.contributions} contribs</p>
+                  <a href="{contributor.href}" target="_blank" rel="noreferrer">{i18n:beta_open_source}</a>
+                </div>
+              </article>
+              {/for}
+            </div>
+            {/if}
+          </article>
+        </div>
+      </aside>
+
+      <div class="beta-map-controls">
+        <p class="beta-map-help">{i18n:beta_map_desc}</p>
+        <div class="beta-quick-travel">
+          <button type="button" class="beta-travel-btn" data-zone-jump="inn">{i18n:beta_zone_inn}</button>
+          <button type="button" class="beta-travel-btn" data-zone-jump="guild">{i18n:beta_zone_guild}</button>
+          <button type="button" class="beta-travel-btn" data-zone-jump="theater">{i18n:beta_zone_theater}</button>
+          <button type="button" class="beta-travel-btn" data-zone-jump="cityhall">{i18n:beta_zone_cityhall}</button>
+        </div>
+        <button id="beta-reset-progress" class="beta-reset-btn" type="button">{i18n:beta_controls_reset}</button>
+      </div>
+
+      {#if !world.player.authenticated}
+      <div id="beta-login-gate" class="beta-login-gate">
+        <h2>{i18n:beta_login_cta}</h2>
+        <p>{i18n:beta_login_hint}</p>
+        <a href="{world.player.loginUrl}" class="beta-login-btn">{i18n:beta_login_cta}</a>
+      </div>
+      {/if}
     </section>
   </main>
+
   <script>
-    window.userAuthenticated = {#if isAuthenticated}true{#else}false{/if};
+    window.userAuthenticated = {#if world.player.authenticated}true{#else}false{/if};
   </script>
   <script src="/js/homedir.js?v={app:version()}" defer></script>
   <script src="/js/app.js?v={app:version()}" defer></script>
