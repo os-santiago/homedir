@@ -14,6 +14,8 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.Comparator;
@@ -38,6 +40,15 @@ public class CommunityLightningService {
   public static final String SERVER_LIMIT_MESSAGE =
       "Maximo de publicaciones por minuto del servidor superado, intenta mas tarde";
   private static final String MODE_SHARP_STATEMENT = "sharp_statement";
+  private static final List<String> DEFAULT_DAILY_PROMPTS =
+      List.of(
+          "Which engineering decision saved your team most time this week?",
+          "What is one dev tool you would remove from your stack and why?",
+          "What changed your mind recently in AI, cloud, or platform engineering?",
+          "If you had 1 hour to improve reliability, where would you start?",
+          "What should every newcomer learn first to contribute in open source?",
+          "What is overrated in DevRel and what actually works?",
+          "Which practice improved your security posture with minimal effort?");
 
   @Inject PersistenceService persistenceService;
   @Inject NotificationService notificationService;
@@ -86,6 +97,15 @@ public class CommunityLightningService {
   @ConfigProperty(name = "community.lightning.seed.enabled", defaultValue = "true")
   boolean starterThreadsEnabled;
 
+  @ConfigProperty(name = "community.lightning.daily-prompt.enabled", defaultValue = "true")
+  boolean dailyPromptEnabled;
+
+  @ConfigProperty(name = "community.lightning.daily-prompt.seed-user-id", defaultValue = "homedir-daily")
+  String dailyPromptUserId;
+
+  @ConfigProperty(name = "community.lightning.daily-prompt.seed-user-name", defaultValue = "HomeDir Daily")
+  String dailyPromptUserName;
+
   private final Object stateLock = new Object();
   private final LinkedHashMap<String, CommunityLightningThread> threads = new LinkedHashMap<>();
   private final LinkedHashMap<String, CommunityLightningComment> comments = new LinkedHashMap<>();
@@ -116,6 +136,7 @@ public class CommunityLightningService {
     synchronized (stateLock) {
       refreshFromDisk(true);
       ensureStarterThreadsIfEnabled();
+      ensureDailyPromptIfEnabled(Instant.now());
       rebuildQueueFromSnapshot();
     }
     scheduler.scheduleWithFixedDelay(this::drainQueueSafe, 1L, 1L, TimeUnit.SECONDS);
@@ -1006,6 +1027,7 @@ public class CommunityLightningService {
   private void drainQueue() {
     synchronized (stateLock) {
       refreshFromDisk(false);
+      ensureDailyPromptIfEnabled(Instant.now());
       if (publishQueue.isEmpty()) {
         return;
       }
@@ -1167,6 +1189,50 @@ public class CommunityLightningService {
     comments.put(firstComment.id(), firstComment);
     comments.put(secondComment.id(), secondComment);
     persistSync();
+  }
+
+  private void ensureDailyPromptIfEnabled(Instant now) {
+    if (!dailyPromptEnabled) {
+      return;
+    }
+    if (threads.isEmpty()) {
+      return;
+    }
+    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+    String promptId = "daily-lta-" + today;
+    if (threads.containsKey(promptId)) {
+      return;
+    }
+    String prompt = resolveDailyPrompt(today);
+    Instant publishAt = now != null ? now : Instant.now();
+    Instant createdAt = publishAt.minus(Duration.ofMinutes(1));
+    CommunityLightningThread dailyThread =
+        new CommunityLightningThread(
+            promptId,
+            MODE_SHARP_STATEMENT,
+            prompt,
+            prompt,
+            sanitizeUserId(dailyPromptUserId) != null ? sanitizeUserId(dailyPromptUserId) : "homedir-daily",
+            sanitizeUserName(dailyPromptUserName),
+            createdAt,
+            publishAt,
+            publishAt,
+            null,
+            0,
+            0,
+            0);
+    threads.put(dailyThread.id(), dailyThread);
+    persistSync();
+    LOG.infov("community_lightning_daily_prompt_created id={0}", promptId);
+  }
+
+  private String resolveDailyPrompt(LocalDate day) {
+    List<String> prompts = DEFAULT_DAILY_PROMPTS;
+    if (prompts.isEmpty()) {
+      return "What should we improve in HomeDir today?";
+    }
+    int index = Math.floorMod(day.getDayOfYear(), prompts.size());
+    return prompts.get(index);
   }
 
   private CommunityLightningStateSnapshot toSnapshot() {
