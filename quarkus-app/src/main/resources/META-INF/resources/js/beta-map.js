@@ -8,15 +8,31 @@
   const selectedNode = document.getElementById("beta-selected-zone");
   const visitedNode = document.getElementById("beta-visited-zones");
   const visitedCountNode = document.getElementById("beta-visited-count");
+  const inventoryCountNode = document.getElementById("beta-inventory-count");
+  const deliveriesCountNode = document.getElementById("beta-deliveries-count");
   const resetBtn = document.getElementById("beta-reset-progress");
   const zoneModelsNode = document.getElementById("beta-zone-models");
+  const modal = document.getElementById("beta-interaction-modal");
+  const modalClose = document.getElementById("beta-modal-close");
+  const modalTitle = document.getElementById("beta-modal-title");
+  const modalMeta = document.getElementById("beta-modal-meta");
+  const modalBody = document.getElementById("beta-modal-body");
+  const modalLink = document.getElementById("beta-modal-link");
   if (
     !canvas ||
     !selectedNode ||
     !visitedNode ||
     !visitedCountNode ||
+    !inventoryCountNode ||
+    !deliveriesCountNode ||
     !resetBtn ||
-    !zoneModelsNode
+    !zoneModelsNode ||
+    !modal ||
+    !modalClose ||
+    !modalTitle ||
+    !modalMeta ||
+    !modalBody ||
+    !modalLink
   ) {
     return;
   }
@@ -40,11 +56,27 @@
   const i18nInsideSuffix = root.dataset.i18nInsideSuffix || "inside";
   const i18nInteriorSuffix = root.dataset.i18nInteriorSuffix || "INTERIOR";
   const i18nBackTown = root.dataset.i18nBackTown || "Back to town";
+  const i18nInventoryLabel = root.dataset.i18nInventoryLabel || "Inventory";
+  const i18nDeliveriesLabel = root.dataset.i18nDeliveriesLabel || "Deliveries";
+  const i18nInteractHint = root.dataset.i18nInteractHint || "E/Enter to interact · Esc to exit";
+  const i18nActionRead = root.dataset.i18nActionRead || "Read";
+  const i18nActionLook = root.dataset.i18nActionLook || "Look";
+  const i18nActionTake = root.dataset.i18nActionTake || "Take";
+  const i18nActionCollect = root.dataset.i18nActionCollect || "Collect";
+  const i18nActionDeliver = root.dataset.i18nActionDeliver || "Deliver";
+  const i18nDeliverEmpty = root.dataset.i18nDeliverEmpty || "You have nothing to deliver yet.";
+  const i18nDeliverSuccess = root.dataset.i18nDeliverSuccess || "Delivery completed.";
+  const i18nCollectedAlready = root.dataset.i18nCollectedAlready || "Already collected in this room.";
+  const i18nCollectedSuccess = root.dataset.i18nCollectedSuccess || "Item collected.";
+  const i18nModalClose = root.dataset.i18nModalClose || "Close";
   const playerAvatarUrl = (root.dataset.playerAvatarUrl || "").trim();
   const playerInitial = (root.dataset.playerInitial || "HD").slice(0, 2).toUpperCase();
-  const storageKey = isAuthenticated
-    ? "homedir.beta.map.v6.auth.visited"
-    : "homedir.beta.map.v6.guest.visited";
+  const storageScope = isAuthenticated ? "auth" : "guest";
+  const visitedKey = "homedir.beta.map.v8." + storageScope + ".visited";
+  const inventoryKey = "homedir.beta.map.v8." + storageScope + ".inventory";
+  const deliveriesKey = "homedir.beta.map.v8." + storageScope + ".deliveries";
+  const collectedKey = "homedir.beta.map.v8." + storageScope + ".collected";
+  modalClose.setAttribute("aria-label", i18nModalClose);
 
   const zoneMeta = {
     inn: { roof: "#ffc06b", wall: "#9b5d3b", accent: "#ffd9a4", x: 6, y: 4, interior: "#5b3b1d" },
@@ -78,8 +110,13 @@
     avatarY: 8,
     selectedZoneId: "inn",
     interiorZoneId: null,
-    visited: loadVisited(),
-    hotspots: []
+    interiorLayout: null,
+    visited: loadSet(visitedKey),
+    inventoryCount: loadNumber(inventoryKey),
+    deliveriesCount: loadNumber(deliveriesKey),
+    collected: loadSet(collectedKey),
+    hotspots: [],
+    modalOpen: false
   };
 
   const avatarSprite = {
@@ -136,9 +173,9 @@
     return out;
   }
 
-  function loadVisited() {
+  function loadSet(key) {
     try {
-      const raw = window.localStorage.getItem(storageKey);
+      const raw = window.localStorage.getItem(key);
       if (!raw) {
         return new Set();
       }
@@ -152,9 +189,33 @@
     }
   }
 
-  function saveVisited() {
+  function saveSet(key, set) {
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(Array.from(state.visited)));
+      window.localStorage.setItem(key, JSON.stringify(Array.from(set)));
+    } catch (error) {
+      // ignore local storage limitations
+    }
+  }
+
+  function loadNumber(key) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) {
+        return 0;
+      }
+      const parsed = Number.parseInt(raw, 10);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return 0;
+      }
+      return parsed;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  function saveNumber(key, value) {
+    try {
+      window.localStorage.setItem(key, String(Math.max(0, value)));
     } catch (error) {
       // ignore local storage limitations
     }
@@ -181,6 +242,40 @@
       body,
       keepalive: true
     }).catch(() => {});
+  }
+
+  function showModal(payload) {
+    if (!payload) {
+      return;
+    }
+    modalTitle.textContent = payload.title || "";
+    modalMeta.textContent = payload.meta || "";
+    modalBody.textContent = payload.body || "";
+    if (payload.link) {
+      modalLink.href = payload.link;
+      modalLink.hidden = false;
+      modalLink.textContent = i18nOpenCard;
+    } else {
+      modalLink.hidden = true;
+      modalLink.removeAttribute("href");
+    }
+    modal.hidden = false;
+    state.modalOpen = true;
+  }
+
+  function hideModal() {
+    modal.hidden = true;
+    state.modalOpen = false;
+  }
+
+  function saveVisited() {
+    saveSet(visitedKey, state.visited);
+  }
+
+  function saveProgress() {
+    saveSet(collectedKey, state.collected);
+    saveNumber(inventoryKey, state.inventoryCount);
+    saveNumber(deliveriesKey, state.deliveriesCount);
   }
 
   function updateMapScale() {
@@ -482,50 +577,139 @@
     }
   }
 
+  function buildInteriorLayout(zone) {
+    const rows = 7;
+    const cols = 10;
+    const tiles = [];
+    tiles.push({
+      id: zone.id + ".exit",
+      type: "exit",
+      label: "EXIT",
+      verb: i18nBackTown,
+      x: 0,
+      y: rows - 1
+    });
+
+    const zoneItems = zone.items.filter((item) => item.kind === "entry" || item.kind === "stat");
+    const points = [[2, 2], [4, 2], [6, 2]];
+    zoneItems.slice(0, 3).forEach((item, index) => {
+      const point = points[index] || [2 + index, 2];
+      tiles.push({
+        id: zone.id + ".info." + index,
+        type: "content",
+        label: index % 2 === 0 ? "READ" : "LOOK",
+        verb: index % 2 === 0 ? i18nActionRead : i18nActionLook,
+        x: point[0],
+        y: point[1],
+        item
+      });
+    });
+
+    tiles.push({
+      id: zone.id + ".collect",
+      type: "collect",
+      label: "TAKE",
+      verb: i18nActionCollect,
+      x: cols - 2,
+      y: rows - 2
+    });
+    tiles.push({
+      id: zone.id + ".deliver",
+      type: "deliver",
+      label: "TURNIN",
+      verb: i18nActionDeliver,
+      x: Math.max(1, Math.floor(cols / 2)),
+      y: rows - 2
+    });
+
+    return {
+      rows,
+      cols,
+      avatarX: 1,
+      avatarY: rows - 1,
+      tiles
+    };
+  }
+
   function drawInteriorScene(zone) {
     if (!zone) {
       state.scene = "town";
       state.interiorZoneId = null;
+      state.interiorLayout = null;
       drawTownScene();
       return;
     }
 
+    if (!state.interiorLayout) {
+      state.interiorLayout = buildInteriorLayout(zone);
+    }
+    const layout = state.interiorLayout;
+
     const accent = zone.meta.accent || "#a7d7ff";
     const interior = zone.meta.interior || "#243747";
-    const topGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    topGradient.addColorStop(0, withAlpha(accent, 0.22));
-    topGradient.addColorStop(1, withAlpha(interior, 0.9));
-    ctx.fillStyle = topGradient;
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, withAlpha(accent, 0.22));
+    gradient.addColorStop(1, withAlpha(interior, 0.9));
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const floorRows = 8;
-    const floorCols = 11;
-    const floorTileW = Math.max(30, Math.floor(canvas.width / 18));
-    const floorTileH = Math.max(15, Math.floor(floorTileW / 2));
-    const originX = canvas.width * 0.5;
-    const originY = canvas.height * 0.58;
-    for (let y = 0; y < floorRows; y += 1) {
-      for (let x = 0; x < floorCols; x += 1) {
-        const px = originX + (x - y) * (floorTileW / 2);
-        const py = originY + (x + y) * (floorTileH / 2);
-        const isAlt = (x + y) % 2 === 0;
-        const fill = isAlt ? withAlpha(zone.meta.wall, 0.52) : withAlpha(zone.meta.wall, 0.42);
-        const stroke = withAlpha(zone.meta.accent, 0.22);
-        const hw = floorTileW / 2;
-        const hh = floorTileH / 2;
-        ctx.beginPath();
-        ctx.moveTo(px, py - hh);
-        ctx.lineTo(px + hw, py);
-        ctx.lineTo(px, py + hh);
-        ctx.lineTo(px - hw, py);
-        ctx.closePath();
-        ctx.fillStyle = fill;
-        ctx.fill();
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = 1;
-        ctx.stroke();
+    const gridX = 18;
+    const gridY = 132;
+    const panelW = Math.min(280, Math.max(230, Math.floor(canvas.width * 0.27)));
+    const gridW = Math.max(220, canvas.width - panelW - 54);
+    const gridH = Math.max(190, canvas.height - gridY - 34);
+    const cellSize = Math.max(24, Math.min(Math.floor(gridW / layout.cols), Math.floor(gridH / layout.rows)));
+    const usedW = cellSize * layout.cols;
+    const usedH = cellSize * layout.rows;
+    const originX = gridX + Math.floor((gridW - usedW) / 2);
+    const originY = gridY + Math.floor((gridH - usedH) / 2);
+
+    ctx.fillStyle = "rgba(5, 12, 20, 0.46)";
+    drawRoundedRectPath(gridX, gridY, gridW, gridH, 12);
+    ctx.fill();
+    ctx.strokeStyle = withAlpha(accent, 0.35);
+    ctx.lineWidth = 1;
+    drawRoundedRectPath(gridX, gridY, gridW, gridH, 12);
+    ctx.stroke();
+
+    for (let row = 0; row < layout.rows; row += 1) {
+      for (let col = 0; col < layout.cols; col += 1) {
+        const x = originX + col * cellSize;
+        const y = originY + row * cellSize;
+        const checker = (row + col) % 2 === 0;
+        ctx.fillStyle = checker ? withAlpha(zone.meta.wall, 0.35) : withAlpha(zone.meta.wall, 0.24);
+        ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+        ctx.strokeStyle = withAlpha(accent, 0.12);
+        ctx.strokeRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
       }
     }
+
+    layout.tiles.forEach((tile) => {
+      const x = originX + tile.x * cellSize;
+      const y = originY + tile.y * cellSize;
+      const collected = tile.type === "collect" && state.collected.has(tile.id);
+      const focused = layout.avatarX === tile.x && layout.avatarY === tile.y;
+      ctx.fillStyle = tile.type === "exit"
+        ? "rgba(236, 107, 99, 0.86)"
+        : tile.type === "deliver"
+        ? "rgba(117, 232, 178, 0.84)"
+        : collected
+        ? "rgba(126, 140, 160, 0.82)"
+        : "rgba(131, 183, 255, 0.86)";
+      ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+      ctx.strokeStyle = focused ? "#ffeaa7" : "rgba(245, 250, 255, 0.55)";
+      ctx.lineWidth = focused ? 2 : 1;
+      ctx.strokeRect(x + 2.5, y + 2.5, cellSize - 5, cellSize - 5);
+      ctx.fillStyle = "rgba(8, 16, 27, 0.95)";
+      ctx.font = "700 9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(crop(tile.label, 7), x + Math.floor(cellSize / 2), y + Math.floor(cellSize / 2) + 3);
+      pushHotspot(x, y, cellSize, cellSize, "interact-tile", tile.id);
+    });
+
+    const avatarX = originX + layout.avatarX * cellSize + Math.floor(cellSize / 2);
+    const avatarY = originY + layout.avatarY * cellSize + Math.floor(cellSize / 2);
+    drawAvatar(avatarX, avatarY, Math.max(18, Math.floor(cellSize * 0.72)));
 
     drawPill(
       zone.label.toUpperCase() + " " + i18nInteriorSuffix,
@@ -534,7 +718,6 @@
       "rgba(8, 18, 31, 0.9)",
       withAlpha(accent, 0.45)
     );
-
     const backButton = drawPill(
       i18nBackTown,
       18,
@@ -556,39 +739,42 @@
     ctx.fillStyle = "rgba(230, 240, 252, 0.95)";
     ctx.font = "600 12px monospace";
     ctx.textAlign = "left";
-    drawParagraph(crop(zone.desc, 160), 20, 92, canvas.width - 40, 14);
+    drawParagraph(crop(zone.desc, 180), 18, 92, canvas.width - 36, 14);
 
-    const contentX = 20;
-    const contentY = 130;
-    const contentW = canvas.width - 40;
-    const contentH = canvas.height - 196;
+    const panelX = gridX + gridW + 18;
+    const panelY = gridY;
+    const panelH = gridH;
     ctx.fillStyle = "rgba(5, 12, 20, 0.52)";
-    drawRoundedRectPath(contentX, contentY, contentW, contentH, 12);
+    drawRoundedRectPath(panelX, panelY, panelW, panelH, 12);
     ctx.fill();
-    ctx.strokeStyle = withAlpha(accent, 0.3);
+    ctx.strokeStyle = withAlpha(accent, 0.32);
     ctx.lineWidth = 1;
-    drawRoundedRectPath(contentX, contentY, contentW, contentH, 12);
+    drawRoundedRectPath(panelX, panelY, panelW, panelH, 12);
     ctx.stroke();
 
-    const items = zone.items && zone.items.length > 0 ? zone.items : [{ kind: "empty", title: "No content yet." }];
-    const maxCards = Math.min(6, items.length);
-    const cols = contentW >= 560 ? 2 : 1;
-    const gap = 10;
-    const cardW = cols === 2 ? Math.floor((contentW - gap * 3) / 2) : contentW - 20;
-    const cardH = 84;
-    for (let index = 0; index < maxCards; index += 1) {
-      const row = Math.floor(index / cols);
-      const col = index % cols;
-      const cardX = contentX + 10 + col * (cardW + gap);
-      const cardY = contentY + 10 + row * (cardH + gap);
-      if (cardY + cardH > contentY + contentH - 8) {
-        break;
-      }
-      drawCard(items[index], cardX, cardY, cardW, cardH);
+    ctx.fillStyle = "rgba(236, 245, 255, 0.95)";
+    ctx.font = "700 12px monospace";
+    ctx.fillText(i18nInteractHint, panelX + 12, panelY + 20);
+    ctx.font = "600 11px monospace";
+    ctx.fillStyle = "rgba(202, 222, 246, 0.9)";
+    ctx.fillText(i18nInventoryLabel + ": " + state.inventoryCount, panelX + 12, panelY + 40);
+    ctx.fillText(i18nDeliveriesLabel + ": " + state.deliveriesCount, panelX + 12, panelY + 56);
+
+    const currentTile = layout.tiles.find((tile) => tile.x === layout.avatarX && tile.y === layout.avatarY);
+    if (currentTile) {
+      ctx.fillStyle = "rgba(255, 228, 173, 0.95)";
+      ctx.fillText("Action: " + currentTile.verb, panelX + 12, panelY + 78);
     }
 
-    const bob = Math.sin(Date.now() / 380) * 3;
-    drawAvatar(canvas.width - 42, canvas.height - 44 + bob, 34);
+    let cardY = panelY + 102;
+    zone.items.slice(0, 3).forEach((item) => {
+      const cardH = 58;
+      if (cardY + cardH > panelY + panelH - 12) {
+        return;
+      }
+      drawCard(item, panelX + 10, cardY, panelW - 20, cardH);
+      cardY += cardH + 8;
+    });
   }
 
   function drawScene() {
@@ -599,6 +785,115 @@
       return;
     }
     drawTownScene();
+  }
+
+  function getCurrentInteriorLayout() {
+    if (state.scene !== "interior" || !state.interiorLayout) {
+      return null;
+    }
+    return state.interiorLayout;
+  }
+
+  function findInteriorTileById(tileId) {
+    const layout = getCurrentInteriorLayout();
+    if (!layout) {
+      return null;
+    }
+    return layout.tiles.find((tile) => tile.id === tileId) || null;
+  }
+
+  function findInteriorTileAtAvatar() {
+    const layout = getCurrentInteriorLayout();
+    if (!layout) {
+      return null;
+    }
+    return layout.tiles.find((tile) => tile.x === layout.avatarX && tile.y === layout.avatarY) || null;
+  }
+
+  function executeInteriorInteraction(tile) {
+    if (!tile || state.scene !== "interior") {
+      return;
+    }
+    const zone = zones.find((candidate) => candidate.id === state.interiorZoneId);
+    if (!zone) {
+      return;
+    }
+
+    if (tile.type === "exit") {
+      exitToTown();
+      return;
+    }
+
+    if (tile.type === "content") {
+      const item = tile.item || {};
+      showModal({
+        title: item.title || zone.label,
+        meta: item.meta || tile.verb || "",
+        body: item.summary || zone.desc,
+        link: item.link || ""
+      });
+      track("inspect", zone.id);
+      return;
+    }
+
+    if (tile.type === "collect") {
+      if (state.collected.has(tile.id)) {
+        showModal({
+          title: i18nActionTake,
+          meta: zone.label,
+          body: i18nCollectedAlready
+        });
+        return;
+      }
+      state.collected.add(tile.id);
+      state.inventoryCount += 1;
+      saveProgress();
+      showModal({
+        title: i18nActionCollect,
+        meta: zone.label,
+        body: i18nCollectedSuccess
+      });
+      track("collect", zone.id);
+      updateUi();
+      return;
+    }
+
+    if (tile.type === "deliver") {
+      if (state.inventoryCount <= 0) {
+        showModal({
+          title: i18nActionDeliver,
+          meta: zone.label,
+          body: i18nDeliverEmpty
+        });
+        return;
+      }
+      const delivered = state.inventoryCount;
+      state.deliveriesCount += delivered;
+      state.inventoryCount = 0;
+      saveProgress();
+      showModal({
+        title: i18nActionDeliver,
+        meta: zone.label,
+        body: i18nDeliverSuccess + " +" + delivered
+      });
+      track("deliver", zone.id);
+      updateUi();
+    }
+  }
+
+  function moveInteriorAvatar(dx, dy) {
+    const layout = getCurrentInteriorLayout();
+    if (!layout || state.modalOpen) {
+      return;
+    }
+    const nextX = Math.max(0, Math.min(layout.cols - 1, layout.avatarX + dx));
+    const nextY = Math.max(0, Math.min(layout.rows - 1, layout.avatarY + dy));
+    if (nextX === layout.avatarX && nextY === layout.avatarY) {
+      return;
+    }
+    layout.avatarX = nextX;
+    layout.avatarY = nextY;
+    drawScene();
   }
 
   function markVisited(zone, shouldTrack) {
@@ -625,6 +920,8 @@
     visitedNode.textContent = replaceToken(i18nVisitedPrefix, state.visited.size);
     visitedCountNode.textContent = String(state.visited.size);
     visitedCountNode.setAttribute("aria-label", i18nVisitedCounter + ": " + state.visited.size);
+    inventoryCountNode.textContent = String(state.inventoryCount);
+    deliveriesCountNode.textContent = String(state.deliveriesCount);
     drawScene();
   }
 
@@ -643,6 +940,8 @@
     markVisited(zone, shouldTrack);
     state.scene = "interior";
     state.interiorZoneId = zone.id;
+    state.interiorLayout = buildInteriorLayout(zone);
+    hideModal();
     if (shouldTrack) {
       track("open", zone.id);
     }
@@ -652,6 +951,8 @@
   function exitToTown() {
     state.scene = "town";
     state.interiorZoneId = null;
+    state.interiorLayout = null;
+    hideModal();
     updateUi();
   }
 
@@ -677,7 +978,7 @@
   }
 
   function moveAvatar(dx, dy) {
-    if (interactionLocked || state.scene !== "town") {
+    if (interactionLocked || state.scene !== "town" || state.modalOpen) {
       return;
     }
     const nextX = Math.max(0, Math.min(state.mapSize - 1, state.avatarX + dx));
@@ -726,6 +1027,15 @@
       window.open(hit.payload, "_blank", "noopener,noreferrer");
       return;
     }
+    if (hit.action === "interact-tile" && hit.payload) {
+      const tile = findInteriorTileById(hit.payload);
+      const layout = getCurrentInteriorLayout();
+      if (tile && layout) {
+        layout.avatarX = tile.x;
+        layout.avatarY = tile.y;
+        executeInteriorInteraction(tile);
+      }
+    }
   }
 
   function resizeCanvas() {
@@ -746,7 +1056,13 @@
       const y = (event.clientY - rect.top) * (canvas.height / rect.height);
 
       if (state.scene === "interior") {
-        handleHotspot(findHotspot(x, y));
+        const hit = findHotspot(x, y);
+        if (hit) {
+          handleHotspot(hit);
+        } else {
+          hideModal();
+        }
+        drawScene();
         return;
       }
 
@@ -770,17 +1086,51 @@
       }
 
       if (state.scene === "interior") {
+        if (state.modalOpen && (event.key === "Escape" || event.key === "Enter")) {
+          event.preventDefault();
+          hideModal();
+          drawScene();
+          return;
+        }
         if (event.key === "Escape" || event.key === "Backspace") {
           event.preventDefault();
           exitToTown();
           return;
         }
-        if (event.key === "Enter") {
-          const zone = zones.find((candidate) => candidate.id === state.interiorZoneId);
-          if (zone && zone.link) {
-            window.location.href = zone.link;
-          }
-          return;
+        switch (event.key) {
+          case "ArrowUp":
+          case "w":
+          case "W":
+            event.preventDefault();
+            moveInteriorAvatar(0, -1);
+            return;
+          case "ArrowDown":
+          case "s":
+          case "S":
+            event.preventDefault();
+            moveInteriorAvatar(0, 1);
+            return;
+          case "ArrowLeft":
+          case "a":
+          case "A":
+            event.preventDefault();
+            moveInteriorAvatar(-1, 0);
+            return;
+          case "ArrowRight":
+          case "d":
+          case "D":
+            event.preventDefault();
+            moveInteriorAvatar(1, 0);
+            return;
+          case "Enter":
+          case "e":
+          case "E":
+            event.preventDefault();
+            executeInteriorInteraction(findInteriorTileAtAvatar());
+            drawScene();
+            return;
+          default:
+            break;
         }
       }
 
@@ -822,8 +1172,25 @@
         return;
       }
       state.visited.clear();
+      state.collected.clear();
+      state.inventoryCount = 0;
+      state.deliveriesCount = 0;
       saveVisited();
-      updateUi();
+      saveProgress();
+      hideModal();
+      exitToTown();
+    });
+
+    modalClose.addEventListener("click", () => {
+      hideModal();
+      drawScene();
+    });
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        hideModal();
+        drawScene();
+      }
     });
 
     let resizeTimer = null;
