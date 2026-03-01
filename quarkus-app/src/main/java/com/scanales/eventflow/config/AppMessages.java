@@ -2069,6 +2069,12 @@ public interface AppMessages {
     @Message("upcoming events currently visible")
     String home_today_card_events_desc();
 
+    @Message("Lightning threads")
+    String home_today_card_lta_chip();
+
+    @Message("new LTA threads in the last 24h")
+    String home_today_card_lta_desc();
+
     @Message("Community Board")
     String home_today_card_board_chip();
 
