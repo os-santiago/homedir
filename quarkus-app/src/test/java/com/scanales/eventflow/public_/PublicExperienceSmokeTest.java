@@ -17,6 +17,7 @@ public class PublicExperienceSmokeTest {
   private static final int COMMUNITY_BOARD_HTML_BUDGET_BYTES = 200_000;
   private static final int EVENTS_HTML_BUDGET_BYTES = 160_000;
   private static final int PROJECTS_HTML_BUDGET_BYTES = 220_000;
+  private static final int BETA_HTML_BUDGET_BYTES = 200_000;
 
   @Test
   void homePageAvoidsKnownRuntimeRegressionPatterns() {
@@ -59,6 +60,15 @@ public class PublicExperienceSmokeTest {
   @Test
   void projectsPageAvoidsKnownRuntimeRegressionPatterns() {
     String html = fetchHtmlWithBudget("/proyectos", PROJECTS_HTML_BUDGET_BYTES);
+    assertTrue(html.contains("window.userAuthenticated"));
+    assertFalse(html.contains("canva-theme-v2.css"));
+    assertFalse(html.contains("/js/retro-theme.js"));
+    assertRuntimeBootstrapGuardrails(html);
+  }
+
+  @Test
+  void betaPageAvoidsKnownRuntimeRegressionPatterns() {
+    String html = fetchHtmlWithBudget("/beta", BETA_HTML_BUDGET_BYTES);
     assertTrue(html.contains("window.userAuthenticated"));
     assertFalse(html.contains("canva-theme-v2.css"));
     assertFalse(html.contains("/js/retro-theme.js"));

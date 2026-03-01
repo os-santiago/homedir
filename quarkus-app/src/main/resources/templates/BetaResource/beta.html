@@ -1,0 +1,88 @@
+{@ boolean isAuthenticated = false}
+{#include layout/main activePage="beta"}
+{#title}{i18n:beta_title}{/title}
+{#head}
+  <link rel="stylesheet" href="/css/beta-map.css?v={app:version()}" />
+{/head}
+{#body}
+<header class="page-header events-page-header">
+  <div class="section-header hd-section-heading">
+    <p class="section-subtitle">{i18n:beta_subtitle}</p>
+    <h1>{i18n:beta_hero_title}</h1>
+  </div>
+  <p class="section-subtitle">{i18n:beta_hero_desc}</p>
+</header>
+
+<section class="page-grid">
+  <div class="section-card events-full-width beta-mvp-note">
+    <span class="material-symbols-outlined">experiment</span>
+    <p>{i18n:beta_mvp_notice}</p>
+  </div>
+</section>
+
+<section id="beta-map-root"
+  class="page-grid"
+  data-track-url="/api/beta/interaction"
+  data-i18n-open-first="{i18n:beta_js_open_first}"
+  data-i18n-selected-prefix="{i18n:beta_zone_selected_prefix}"
+  data-i18n-selected-none="{i18n:beta_zone_selected_none}"
+  data-i18n-visited-prefix="{i18n:beta_zone_visit_prefix}"
+  data-i18n-open-button="{i18n:beta_zone_open}">
+  <div class="section-card events-full-width beta-shell">
+    <div class="section-header hd-section-heading beta-shell-header">
+      <h2 class="page-title">{i18n:beta_map_title}</h2>
+      <p class="section-subtitle">{i18n:beta_map_desc}</p>
+    </div>
+
+    <div class="beta-layout">
+      <div class="beta-canvas-stage">
+        <canvas id="beta-map-canvas" class="beta-map-canvas" width="960" height="560" aria-label="{i18n:beta_map_title}"></canvas>
+        <div class="beta-hud">
+          <p id="beta-selected-zone">{i18n:beta_zone_selected_none}</p>
+          <p id="beta-visited-zones">{i18n:beta_zone_visit_state(0)}</p>
+          <button id="beta-open-zone" type="button" class="btn-primary">{i18n:beta_zone_open}</button>
+        </div>
+      </div>
+
+      <aside class="beta-actions">
+        <h3>{i18n:beta_controls_title}</h3>
+        <ul class="hd-list beta-list">
+          <li>{i18n:beta_controls_move}</li>
+          <li>{i18n:beta_controls_click}</li>
+        </ul>
+
+        <div class="beta-zone-grid">
+          <a class="beta-zone-card" data-zone="community" data-tile-x="2" data-tile-y="2" href="/comunidad/picks">
+            <strong>{i18n:beta_zone_community}</strong>
+            <span>/comunidad/picks</span>
+          </a>
+          <a class="beta-zone-card" data-zone="events" data-tile-x="6" data-tile-y="2" href="/eventos">
+            <strong>{i18n:beta_zone_events}</strong>
+            <span>/eventos</span>
+          </a>
+          <a class="beta-zone-card" data-zone="project" data-tile-x="2" data-tile-y="6" href="/proyectos">
+            <strong>{i18n:beta_zone_project}</strong>
+            <span>/proyectos</span>
+          </a>
+          <a class="beta-zone-card" data-zone="profile" data-tile-x="6" data-tile-y="6" href="/private/profile">
+            <strong>{i18n:beta_zone_profile}</strong>
+            <span>/private/profile</span>
+          </a>
+        </div>
+
+        <button id="beta-reset-progress" class="btn-primary beta-reset-btn" type="button">{i18n:beta_controls_reset}</button>
+
+        {#if !isAuthenticated}
+        <div class="beta-login-callout">
+          <p>{i18n:beta_login_hint}</p>
+          <a href="/private/login-callback?redirect=/beta" class="btn-primary" data-login-return-current="true">{i18n:beta_login_cta}</a>
+        </div>
+        {/if}
+      </aside>
+    </div>
+  </div>
+</section>
+
+<script src="/js/beta-map.js?v={app:version()}" defer></script>
+{/body}
+{/include}
