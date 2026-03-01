@@ -107,79 +107,6 @@ footer {
   width: 100%;
 }
 
-.shape {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.4), rgba(255, 255, 255, 0));
-  opacity: 0.35;
-  filter: blur(2px);
-  animation: float 12s ease-in-out infinite;
-}
-
-.shape-1 {
-  width: 180px;
-  height: 180px;
-  top: 10%;
-  left: 6%;
-  background: radial-gradient(circle at 40% 40%, rgba(123, 215, 255, 0.45), rgba(255, 255, 255, 0));
-}
-
-.shape-2 {
-  width: 240px;
-  height: 240px;
-  bottom: 8%;
-  left: 12%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 139, 209, 0.35), rgba(255, 255, 255, 0));
-  animation-delay: 2s;
-}
-
-.shape-3 {
-  width: 200px;
-  height: 200px;
-  top: 14%;
-  right: 8%;
-  background: radial-gradient(circle at 60% 40%, rgba(202, 255, 191, 0.4), rgba(255, 255, 255, 0));
-  animation-delay: 4s;
-}
-
-.shape-4 {
-  width: 320px;
-  height: 320px;
-  bottom: 6%;
-  right: 12%;
-  background: radial-gradient(circle at 40% 40%, rgba(255, 215, 0, 0.22), rgba(255, 255, 255, 0));
-  animation-delay: 1s;
-}
-
-.shape-5 {
-  width: 120px;
-  height: 120px;
-  top: 40%;
-  left: 46%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
-  animation-delay: 3s;
-}
-
-.shape-6 {
-  width: 160px;
-  height: 160px;
-  top: 68%;
-  right: 32%;
-  background: radial-gradient(circle at 50% 50%, rgba(123, 215, 255, 0.28), rgba(255, 255, 255, 0));
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px) scale(1);
-  }
-
-  50% {
-    transform: translateY(-14px) scale(1.05);
-  }
-}
-
 /* Contenedor principal debajo del overlay */
 .page-container {
   position: relative;
@@ -2753,7 +2680,7 @@ footer {
 }
 
 .home-value-login-card .btn-primary {
-  justify-self: start;
+  justify-self: center;
   margin-top: 0.08rem;
 }
 

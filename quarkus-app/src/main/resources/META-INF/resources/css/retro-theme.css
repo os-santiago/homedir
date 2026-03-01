@@ -224,7 +224,7 @@
     .shape {
       position: absolute;
       opacity: 0;
-      animation: driftUp 20s infinite linear;
+      animation: driftUp 13s infinite linear;
     }
 
     .shape:nth-child(1) {
@@ -240,7 +240,7 @@
       height: 60px;
       top: 60%;
       left: 80%;
-      animation-delay: 5s;
+      animation-delay: -3s;
     }
 
     .shape:nth-child(3) {
@@ -248,7 +248,7 @@
       height: 100px;
       top: 40%;
       left: 5%;
-      animation-delay: 10s;
+      animation-delay: -6s;
     }
 
     .shape:nth-child(4) {
@@ -256,7 +256,7 @@
       height: 70px;
       top: 80%;
       left: 60%;
-      animation-delay: 15s;
+      animation-delay: -9s;
     }
 
     .shape:nth-child(5) {
@@ -264,7 +264,7 @@
       height: 90px;
       top: 25%;
       left: 85%;
-      animation-delay: 7s;
+      animation-delay: -5s;
     }
 
     .shape:nth-child(6) {
@@ -272,7 +272,7 @@
       height: 75px;
       top: 70%;
       left: 15%;
-      animation-delay: 12s;
+      animation-delay: -11s;
     }
 
     @keyframes driftUp {
