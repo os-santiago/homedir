@@ -55,6 +55,19 @@
       ·
       <a href="/private/profile">{i18n:home_today_account_status_cta}</a>
     </p>
+    <p class="home-pane-summary">
+      <strong>{i18n:home_starter_track_title}</strong>
+      ·
+      {i18n:home_starter_track_progress(homeStarterCompleted)}
+      ·
+      {#if homeAccountHasGithub}{i18n:home_starter_task_github_done}{#else}{i18n:home_starter_task_github_todo}{/if}
+      ·
+      {#if homeAccountHasDiscord}{i18n:home_starter_task_discord_done}{#else}{i18n:home_starter_task_discord_todo}{/if}
+      ·
+      {#if homeStarterHasVote}{i18n:home_starter_task_vote_done}{#else}{i18n:home_starter_task_vote_todo}{/if}
+      ·
+      <a href="/comunidad/picks">{i18n:home_starter_track_picks_cta}</a>
+    </p>
     <div class="home-top-metrics home-today-metrics">
       <a href="/comunidad/picks" class="home-top-metric">
         <span class="home-top-metric-head">

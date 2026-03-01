@@ -2066,6 +2066,33 @@ public interface AppMessages {
     @Message("Open profile setup")
     String home_today_account_status_cta();
 
+    @Message("Starter track")
+    String home_starter_track_title();
+
+    @Message("{completed}/3 completed")
+    String home_starter_track_progress(int completed);
+
+    @Message("GitHub linked")
+    String home_starter_task_github_done();
+
+    @Message("Link GitHub")
+    String home_starter_task_github_todo();
+
+    @Message("Discord linked")
+    String home_starter_task_discord_done();
+
+    @Message("Link Discord")
+    String home_starter_task_discord_todo();
+
+    @Message("First Community vote done")
+    String home_starter_task_vote_done();
+
+    @Message("Vote one Community Pick")
+    String home_starter_task_vote_todo();
+
+    @Message("Open Community Picks")
+    String home_starter_track_picks_cta();
+
     @Message("First visit today")
     String home_today_since_first();
 
