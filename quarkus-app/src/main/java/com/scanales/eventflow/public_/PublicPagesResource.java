@@ -4,6 +4,7 @@ import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.community.CommunityLightningService;
+import com.scanales.eventflow.community.CommunityVoteService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
@@ -66,6 +67,9 @@ public class PublicPagesResource {
   CommunityLightningService communityLightningService;
 
   @Inject
+  CommunityVoteService communityVoteService;
+
+  @Inject
   GamificationService gamificationService;
 
   @Inject
@@ -98,6 +102,9 @@ public class PublicPagesResource {
             .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
             .count();
     int recentLtaThreads = communityLightningService.countPublishedSince(todayCutoff);
+    long homeStarterVoteCount =
+        currentUserId().map(communityVoteService::countVotesByUser).orElse(0L);
+    boolean homeStarterHasVote = homeStarterVoteCount > 0L;
     boolean homeAccountHasGithub =
         currentUserId()
             .flatMap(userProfileService::find)
@@ -108,6 +115,8 @@ public class PublicPagesResource {
             .flatMap(userProfileService::find)
             .map(profile -> profile.getDiscord() != null && profile.hasDiscord())
             .orElse(false);
+    int homeStarterCompleted =
+        (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0) + (homeStarterHasVote ? 1 : 0);
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -127,6 +136,8 @@ public class PublicPagesResource {
             .data("homeTodayLtaThreads", recentLtaThreads)
             .data("homeAccountHasGithub", homeAccountHasGithub)
             .data("homeAccountHasDiscord", homeAccountHasDiscord)
+            .data("homeStarterHasVote", homeStarterHasVote)
+            .data("homeStarterCompleted", homeStarterCompleted)
             .data("noLoginModal", true),
         "home",
         localeCookie,
