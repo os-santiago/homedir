@@ -3,6 +3,7 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.community.CommunityLightningService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
@@ -61,6 +62,9 @@ public class PublicPagesResource {
   CommunityBoardService communityBoardService;
 
   @Inject
+  CommunityLightningService communityLightningService;
+
+  @Inject
   GamificationService gamificationService;
 
   @GET
@@ -89,7 +93,7 @@ public class PublicPagesResource {
             .filter(this::isMemberOrigin)
             .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
             .count();
-    var boardSummary = communityBoardService.summary();
+    int recentLtaThreads = communityLightningService.countPublishedSince(todayCutoff);
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -106,7 +110,7 @@ public class PublicPagesResource {
             .data("projectContributionTotal", contributionTotal)
             .data("homeTodayFreshPicks", toIntSafely(recentPicksCount))
             .data("homeTodayMemberPicks", toIntSafely(recentMemberPicksCount))
-            .data("homeTodayBoardUsers", boardSummary.homedirUsers())
+            .data("homeTodayLtaThreads", recentLtaThreads)
             .data("noLoginModal", true),
         "home",
         localeCookie,

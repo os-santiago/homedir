@@ -652,6 +652,18 @@ public class CommunityLightningService {
     }
   }
 
+  public int countPublishedSince(Instant cutoff) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      Instant floor = cutoff != null ? cutoff : Instant.EPOCH;
+      long count =
+          threads.values().stream()
+              .filter(thread -> thread.publishedAt() != null && !thread.publishedAt().isBefore(floor))
+              .count();
+      return count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count;
+    }
+  }
+
   public void clearAllForTests() {
     synchronized (stateLock) {
       threads.clear();
