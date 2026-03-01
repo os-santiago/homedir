@@ -2459,6 +2459,45 @@ public interface AppMessages {
     @Message("Back to town")
     String beta_js_back_town();
 
+    @Message("Inventory")
+    String beta_js_inventory_label();
+
+    @Message("Deliveries")
+    String beta_js_deliveries_label();
+
+    @Message("E/Enter to interact · Esc to exit")
+    String beta_js_interact_hint();
+
+    @Message("Read")
+    String beta_js_action_read();
+
+    @Message("Look")
+    String beta_js_action_look();
+
+    @Message("Take")
+    String beta_js_action_take();
+
+    @Message("Collect")
+    String beta_js_action_collect();
+
+    @Message("Deliver")
+    String beta_js_action_deliver();
+
+    @Message("You have nothing to deliver yet.")
+    String beta_js_deliver_empty();
+
+    @Message("Delivery completed.")
+    String beta_js_deliver_success();
+
+    @Message("Already collected in this room.")
+    String beta_js_collected_already();
+
+    @Message("Item collected.")
+    String beta_js_collected_success();
+
+    @Message("Close")
+    String beta_js_modal_close();
+
     @Message("Runtime")
     String beta_world_release_label();
 

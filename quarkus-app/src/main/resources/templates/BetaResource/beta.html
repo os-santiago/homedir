@@ -35,7 +35,20 @@
     data-i18n-open-card="{i18n:beta_js_open_card}"
     data-i18n-inside-suffix="{i18n:beta_js_inside_suffix}"
     data-i18n-interior-suffix="{i18n:beta_js_interior_suffix}"
-    data-i18n-back-town="{i18n:beta_js_back_town}">
+    data-i18n-back-town="{i18n:beta_js_back_town}"
+    data-i18n-inventory-label="{i18n:beta_js_inventory_label}"
+    data-i18n-deliveries-label="{i18n:beta_js_deliveries_label}"
+    data-i18n-interact-hint="{i18n:beta_js_interact_hint}"
+    data-i18n-action-read="{i18n:beta_js_action_read}"
+    data-i18n-action-look="{i18n:beta_js_action_look}"
+    data-i18n-action-take="{i18n:beta_js_action_take}"
+    data-i18n-action-collect="{i18n:beta_js_action_collect}"
+    data-i18n-action-deliver="{i18n:beta_js_action_deliver}"
+    data-i18n-deliver-empty="{i18n:beta_js_deliver_empty}"
+    data-i18n-deliver-success="{i18n:beta_js_deliver_success}"
+    data-i18n-collected-already="{i18n:beta_js_collected_already}"
+    data-i18n-collected-success="{i18n:beta_js_collected_success}"
+    data-i18n-modal-close="{i18n:beta_js_modal_close}">
 
     <section class="beta-map-stage">
       <canvas id="beta-map-canvas" class="beta-map-canvas" aria-label="{i18n:beta_map_title}"></canvas>
@@ -66,6 +79,8 @@
           {i18n:beta_zone_visit_counter_label}
           <strong id="beta-visited-count">0</strong>
         </p>
+        <p class="beta-state-line">{i18n:beta_js_inventory_label} <strong id="beta-inventory-count">0</strong></p>
+        <p class="beta-state-line">{i18n:beta_js_deliveries_label} <strong id="beta-deliveries-count">0</strong></p>
       </aside>
       <aside class="beta-hud-panel beta-hud-help">
         <p>{i18n:beta_map_desc}</p>
@@ -122,6 +137,21 @@
         <a href="{world.player.loginUrl}" class="beta-login-btn">{i18n:beta_login_cta}</a>
       </div>
       {/if}
+
+      <div id="beta-interaction-modal" class="beta-interaction-modal" hidden>
+        <article class="beta-interaction-card" role="dialog" aria-modal="true" aria-labelledby="beta-modal-title">
+          <button id="beta-modal-close" class="beta-modal-close" type="button"
+            aria-label="{i18n:beta_js_modal_close}">×</button>
+          <h3 id="beta-modal-title"></h3>
+          <p id="beta-modal-meta" class="beta-modal-meta"></p>
+          <p id="beta-modal-body" class="beta-modal-body"></p>
+          <div class="beta-modal-actions">
+            <a id="beta-modal-link" class="beta-login-btn" href="#" target="_blank" rel="noreferrer" hidden>
+              {i18n:beta_js_open_card}
+            </a>
+          </div>
+        </article>
+      </div>
     </section>
   </main>
 
