@@ -27,10 +27,14 @@ import org.jboss.logging.Logger;
 public class CommunityResource {
   private static final Logger LOG = Logger.getLogger(CommunityResource.class);
 
-  @Inject SecurityIdentity identity;
-  @Inject CommunityBoardService boardService;
-  @Inject UsageMetricsService metrics;
-  @Inject GamificationService gamificationService;
+  @Inject
+  SecurityIdentity identity;
+  @Inject
+  CommunityBoardService boardService;
+  @Inject
+  UsageMetricsService metrics;
+  @Inject
+  GamificationService gamificationService;
 
   @CheckedTemplate
   static class Templates {
@@ -98,10 +102,9 @@ public class CommunityResource {
     String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
-    String activeSubmenu =
-        forcedSubmenu != null && !forcedSubmenu.isBlank()
-            ? forcedSubmenu
-            : resolveDefaultSubmenu(viewParam, filterParam, mediaParam);
+    String activeSubmenu = forcedSubmenu != null && !forcedSubmenu.isBlank()
+        ? forcedSubmenu
+        : resolveDefaultSubmenu(viewParam, filterParam, mediaParam);
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
     currentUserId().ifPresent(
         userId -> {
@@ -117,13 +120,12 @@ public class CommunityResource {
           }
         });
     var summary = boardService.summary();
-    TemplateInstance template =
-        Templates.community(
-            authenticated,
-            initialView,
-            summary.homedirUsers(),
-            summary.githubUsers(),
-            summary.discordUsers());
+    TemplateInstance template = Templates.community(
+        authenticated,
+        initialView,
+        summary.homedirUsers(),
+        summary.githubUsers(),
+        summary.discordUsers());
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
