@@ -145,6 +145,62 @@ footer {
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
 }
 
+.mode-switch-bar {
+  position: relative;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 30px;
+  padding: 0.2rem 0.8rem;
+  background: rgba(0, 0, 0, 0.55);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.mode-switch-label {
+  font-family: var(--font-display);
+  font-size: 0.46rem;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  opacity: 0.86;
+}
+
+.mode-switch-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mode-switch-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0.08rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.46rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.mode-switch-link:hover {
+  color: #ffffff;
+  border-color: rgba(255, 215, 0, 0.75);
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.mode-switch-link-active {
+  color: #1f1f1f;
+  border-color: #ffd700;
+  background: #ffd700;
+}
+
 .hd-logo,
 .logo {
   display: flex;
@@ -767,6 +823,27 @@ footer {
    =========================================== */
 
 @media (max-width: 768px) {
+  .mode-switch-bar {
+    justify-content: space-between;
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  .mode-switch-label {
+    font-size: 0.42rem;
+    letter-spacing: 1px;
+  }
+
+  .mode-switch-actions {
+    gap: 0.3rem;
+  }
+
+  .mode-switch-link {
+    font-size: 0.42rem;
+    letter-spacing: 0.8px;
+    padding: 0.06rem 0.4rem;
+  }
+
   .top-nav {
     padding: 1rem 1.25rem;
     flex-wrap: wrap;

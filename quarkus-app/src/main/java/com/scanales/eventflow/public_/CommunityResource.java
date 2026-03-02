@@ -120,6 +120,7 @@ public class CommunityResource {
           }
         });
     var summary = boardService.summary();
+    int discordOnlineUsers = summary.discordOnlineUsers() != null ? summary.discordOnlineUsers() : 0;
     TemplateInstance template = Templates.community(
         authenticated,
         initialView,
@@ -135,6 +136,7 @@ public class CommunityResource {
         .data("initialMedia", initialMedia)
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
+        .data("discordOnlineUsers", discordOnlineUsers)
         .data("userName", currentUserName().orElse(null))
         .data("userInitial", initialFrom(currentUserName().orElse(null)));
   }

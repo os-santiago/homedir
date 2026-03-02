@@ -5,7 +5,7 @@
 {#else if scenario}
 {scenario.name} - Homedir
 {#else}
-Escenario no encontrado - Homedir
+{i18n:events_scenario_not_found_page_title}
 {/if}
 {/title}
 {#body}
@@ -14,7 +14,7 @@ Escenario no encontrado - Homedir
   <div class="section-header">
     {#if event}
     <p class="section-subtitle">
-      <a href="/event/{event.id}" class="hd-link">← Volver a {event.title}</a>
+      <a href="/event/{event.id}" class="hd-link">← {i18n:events_scenario_back_to_event(event.title)}</a>
     </p>
     {/if}
     <h1 class="public-title">{scenario.name}</h1>
@@ -35,12 +35,12 @@ Escenario no encontrado - Homedir
 <section class="page-grid">
   <article class="section-card" style="grid-column: 1 / -1;">
     <div class="section-header" style="margin-bottom: 1rem;">
-      <h2>Charlas en este escenario</h2>
-      <span class="badge">{talks.size} sesión{#if talks.size != 1}es{/if}</span>
+      <h2>{i18n:events_scenario_talks_title}</h2>
+      <span class="badge">{i18n:events_scenario_sessions_count(talks.size)}</span>
     </div>
 
     {#if talks.isEmpty()}
-    <p class="event-description">No hay charlas publicadas para este escenario todavía.</p>
+    <p class="event-description">{i18n:events_scenario_no_talks}</p>
     {#else}
     <ul class="talk-list">
       {#for t in talks}
@@ -69,7 +69,7 @@ Escenario no encontrado - Homedir
 
         {#if !t.break && event}
         <a href="/talk/{t.id}" class="btn-primary" style="margin-top: 0.8rem; display: inline-flex;">
-          Ver charla
+          {i18n:events_scenario_view_talk}
         </a>
         {/if}
       </li>
@@ -82,9 +82,9 @@ Escenario no encontrado - Homedir
 <div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 45vh;">
   <div class="section-card" style="text-align: center;">
     <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">podium</span>
-    <h2>Escenario no encontrado</h2>
-    <p>No pudimos encontrar el escenario solicitado.</p>
-    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">Volver a Eventos</a>
+    <h2>{i18n:events_scenario_not_found_heading}</h2>
+    <p>{i18n:events_scenario_not_found_desc}</p>
+    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">{i18n:events_scenario_back_to_events}</a>
   </div>
 </div>
 {/if}

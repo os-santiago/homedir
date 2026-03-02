@@ -1,109 +1,165 @@
-{@ boolean isAuthenticated = false}
-{#include layout/main activePage="beta"}
-{#title}{i18n:beta_title}{/title}
-{#head}
+{@ String resolvedLocaleCode = "en"}
+{@ com.scanales.eventflow.public_.BetaResource$BetaWorldView world}
+<!DOCTYPE html>
+<html lang="{resolvedLocaleCode}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{i18n:beta_title}</title>
   <link rel="stylesheet" href="/css/beta-map.css?v={app:version()}" />
-{/head}
-{#body}
-<header class="page-header events-page-header">
-  <div class="section-header hd-section-heading">
-    <p class="section-subtitle">{i18n:beta_subtitle}</p>
-    <h1>{i18n:beta_hero_title}</h1>
-  </div>
-  <p class="section-subtitle">{i18n:beta_hero_desc}</p>
-</header>
-
-<section class="page-grid">
-  <div class="section-card events-full-width beta-mvp-note">
-    <span class="material-symbols-outlined">experiment</span>
-    <p>{i18n:beta_mvp_notice}</p>
-  </div>
-</section>
-
-<section id="beta-map-root"
-  class="page-grid"
-  data-track-url="/api/beta/interaction"
-  data-i18n-open-first="{i18n:beta_js_open_first}"
-  data-i18n-selected-prefix="{i18n:beta_zone_selected_prefix}"
-  data-i18n-selected-none="{i18n:beta_zone_selected_none}"
-  data-i18n-visited-prefix="{i18n:beta_zone_visit_prefix}"
-  data-i18n-visited-counter="{i18n:beta_zone_visit_counter_label}"
-  data-i18n-open-button="{i18n:beta_zone_open}">
-  <div class="section-card events-full-width beta-shell">
-    <div class="section-header hd-section-heading beta-shell-header">
-      <h2 class="page-title">{i18n:beta_map_title}</h2>
-      <p class="section-subtitle">{i18n:beta_map_desc}</p>
+</head>
+<body class="beta-rpg-page">
+  <header class="beta-mode-topbar" role="navigation" aria-label="{i18n:mode_switch_label}">
+    <span class="beta-mode-label">{i18n:mode_switch_label}</span>
+    <div class="beta-mode-actions">
+      <a href="/" class="beta-mode-link">{i18n:mode_switch_classic}</a>
+      <a href="/beta" class="beta-mode-link beta-mode-link-active">{i18n:mode_switch_rpg_experimental}</a>
     </div>
+  </header>
 
-    <div class="beta-layout">
-      <div class="beta-canvas-stage">
-        <canvas id="beta-map-canvas" class="beta-map-canvas" width="960" height="560" aria-label="{i18n:beta_map_title}"></canvas>
-        <div class="beta-hud">
-          <p id="beta-selected-zone">{i18n:beta_zone_selected_none}</p>
-          <p id="beta-visited-zones">{i18n:beta_zone_visit_state(0)}</p>
-          <p class="beta-visited-counter">
-            <span>{i18n:beta_zone_visit_counter_label}</span>
-            <strong id="beta-visited-count">0</strong>
-          </p>
-          <button id="beta-open-zone" type="button" class="btn-primary">{i18n:beta_zone_open}</button>
+  <main
+    id="beta-game-root"
+    class="beta-game-root"
+    data-track-url="/api/beta/interaction"
+    data-authenticated="{world.player.authenticated}"
+    data-player-avatar-url="{world.player.avatarUrl ?: ''}"
+    data-player-initial="{world.player.avatarInitial}"
+    data-i18n-open-first="{i18n:beta_js_open_first}"
+    data-i18n-selected-prefix="{i18n:beta_zone_selected_prefix}"
+    data-i18n-selected-none="{i18n:beta_zone_selected_none}"
+    data-i18n-visited-prefix="{i18n:beta_zone_visit_prefix}"
+    data-i18n-visited-counter="{i18n:beta_zone_visit_counter_label}"
+    data-i18n-hint-locked="{i18n:beta_js_hint_locked}"
+    data-i18n-hint-enter="{i18n:beta_js_hint_enter}"
+    data-i18n-open-section="{i18n:beta_js_open_section}"
+    data-i18n-open-card="{i18n:beta_js_open_card}"
+    data-i18n-inside-suffix="{i18n:beta_js_inside_suffix}"
+    data-i18n-interior-suffix="{i18n:beta_js_interior_suffix}"
+    data-i18n-back-town="{i18n:beta_js_back_town}"
+    data-i18n-inventory-label="{i18n:beta_js_inventory_label}"
+    data-i18n-deliveries-label="{i18n:beta_js_deliveries_label}"
+    data-i18n-interact-hint="{i18n:beta_js_interact_hint}"
+    data-i18n-action-read="{i18n:beta_js_action_read}"
+    data-i18n-action-look="{i18n:beta_js_action_look}"
+    data-i18n-action-take="{i18n:beta_js_action_take}"
+    data-i18n-action-collect="{i18n:beta_js_action_collect}"
+    data-i18n-action-deliver="{i18n:beta_js_action_deliver}"
+    data-i18n-deliver-empty="{i18n:beta_js_deliver_empty}"
+    data-i18n-deliver-success="{i18n:beta_js_deliver_success}"
+    data-i18n-collected-already="{i18n:beta_js_collected_already}"
+    data-i18n-collected-success="{i18n:beta_js_collected_success}"
+    data-i18n-modal-close="{i18n:beta_js_modal_close}">
+
+    <section class="beta-map-stage">
+      <canvas id="beta-map-canvas" class="beta-map-canvas" aria-label="{i18n:beta_map_title}"></canvas>
+
+      <aside class="beta-hud-panel beta-hud-player">
+        <div class="beta-hud-avatar">
+          {#if world.player.avatarUrl}
+          <img src="{world.player.avatarUrl}" alt="{i18n:header_avatar_alt}" />
+          {#else}
+          <span>{world.player.avatarInitial}</span>
+          {/if}
         </div>
-      </div>
-
-      <aside class="beta-actions">
-        <h3>{i18n:beta_controls_title}</h3>
-        <ul class="hd-list beta-list">
-          <li>{i18n:beta_controls_move}</li>
-          <li>{i18n:beta_controls_click}</li>
-        </ul>
-
-        <div class="beta-zone-grid">
-          <a class="beta-zone-card" data-zone="community" data-tile-x="2" data-tile-y="2" data-zone-desc="{i18n:beta_zone_community_desc}" href="/comunidad/picks">
-            <strong>{i18n:beta_zone_community}</strong>
-            <span>/comunidad/picks</span>
-            <small class="beta-zone-desc">{i18n:beta_zone_community_desc}</small>
-            <span class="beta-visited-pill" hidden>{i18n:beta_zone_visited_badge}</span>
-          </a>
-          <a class="beta-zone-card" data-zone="events" data-tile-x="6" data-tile-y="2" data-zone-desc="{i18n:beta_zone_events_desc}" href="/eventos">
-            <strong>{i18n:beta_zone_events}</strong>
-            <span>/eventos</span>
-            <small class="beta-zone-desc">{i18n:beta_zone_events_desc}</small>
-            <span class="beta-visited-pill" hidden>{i18n:beta_zone_visited_badge}</span>
-          </a>
-          <a class="beta-zone-card" data-zone="project" data-tile-x="2" data-tile-y="6" data-zone-desc="{i18n:beta_zone_project_desc}" href="/proyectos">
-            <strong>{i18n:beta_zone_project}</strong>
-            <span>/proyectos</span>
-            <small class="beta-zone-desc">{i18n:beta_zone_project_desc}</small>
-            <span class="beta-visited-pill" hidden>{i18n:beta_zone_visited_badge}</span>
-          </a>
-          <a class="beta-zone-card" data-zone="profile" data-tile-x="6" data-tile-y="6" data-zone-desc="{i18n:beta_zone_profile_desc}" href="/private/profile">
-            <strong>{i18n:beta_zone_profile}</strong>
-            <span>/private/profile</span>
-            <small class="beta-zone-desc">{i18n:beta_zone_profile_desc}</small>
-            <span class="beta-visited-pill" hidden>{i18n:beta_zone_visited_badge}</span>
-          </a>
+        <div class="beta-hud-profile">
+          <p class="beta-hud-name">{world.player.displayName}</p>
+          <p class="beta-hud-class">{world.player.classEmoji} {world.player.classLabel}</p>
+          <p class="beta-hud-level">{i18n:header_level_label(world.player.level)}</p>
+          <p class="beta-hud-xp-label">{i18n:header_xp_progress(world.player.currentXp, world.player.nextLevelXp)}</p>
+          <div class="beta-hud-xp-bar">
+            <span style="width: {world.player.progressPercent}%;"></span>
+          </div>
         </div>
-
-        <section id="beta-zone-preview" class="beta-preview-card beta-preview-empty">
-          <p class="eyebrow">{i18n:beta_preview_title}</p>
-          <div id="beta-preview-art" class="beta-preview-art"></div>
-          <h4 id="beta-preview-name">{i18n:beta_zone_selected_none}</h4>
-          <p id="beta-preview-desc">{i18n:beta_preview_default_desc}</p>
-          <p id="beta-preview-target" class="beta-preview-target"></p>
-        </section>
-
-        <button id="beta-reset-progress" class="btn-primary beta-reset-btn" type="button">{i18n:beta_controls_reset}</button>
-
-        {#if !isAuthenticated}
-        <div class="beta-login-callout">
-          <p>{i18n:beta_login_hint}</p>
-          <a href="/private/login-callback?redirect=/beta" class="btn-primary" data-login-return-current="true">{i18n:beta_login_cta}</a>
-        </div>
-        {/if}
       </aside>
-    </div>
-  </div>
-</section>
 
-<script src="/js/beta-map.js?v={app:version()}" defer></script>
-{/body}
-{/include}
+      <aside class="beta-hud-panel beta-hud-state">
+        <p id="beta-selected-zone">{i18n:beta_zone_selected_none}</p>
+        <p id="beta-visited-zones">{i18n:beta_zone_visit_state(0)}</p>
+        <p class="beta-visited-counter">
+          {i18n:beta_zone_visit_counter_label}
+          <strong id="beta-visited-count">0</strong>
+        </p>
+        <p class="beta-state-line">{i18n:beta_js_inventory_label} <strong id="beta-inventory-count">0</strong></p>
+        <p class="beta-state-line">{i18n:beta_js_deliveries_label} <strong id="beta-deliveries-count">0</strong></p>
+      </aside>
+      <aside class="beta-hud-panel beta-hud-help">
+        <p>{i18n:beta_map_desc}</p>
+        <button id="beta-reset-progress" class="beta-reset-btn" type="button">{i18n:beta_controls_reset}</button>
+      </aside>
+
+      <section id="beta-zone-models" hidden>
+        <article data-zone-model="inn" data-label="{i18n:beta_zone_inn}" data-description="{i18n:beta_zone_inn_desc}" data-link="/">
+          <div data-item-kind="stat" data-title="{i18n:beta_inn_stat_curated}" data-value="{world.pulse.curatedItems}"></div>
+          <div data-item-kind="stat" data-title="{i18n:beta_inn_stat_events}" data-value="{world.pulse.upcomingEvents}"></div>
+          <div data-item-kind="stat" data-title="{i18n:beta_inn_stat_members}" data-value="{world.pulse.homedirUsers}"></div>
+          <div data-item-kind="stat" data-title="{i18n:beta_inn_stat_contributions}" data-value="{world.pulse.totalContributions}"></div>
+        </article>
+
+        <article data-zone-model="guild" data-label="{i18n:beta_zone_guild}" data-description="{i18n:beta_zone_guild_desc}" data-link="/comunidad">
+          {#if world.guildPicks.isEmpty}
+          <div data-item-kind="empty" data-title="{i18n:beta_guild_empty}"></div>
+          {#else}
+          {#for pick in world.guildPicks}
+          <div data-item-kind="entry" data-title="{pick.title}" data-summary="{pick.summary}" data-meta="{pick.mediaType} · {pick.source}" data-link="{pick.href}"></div>
+          {/for}
+          {/if}
+        </article>
+
+        <article data-zone-model="theater" data-label="{i18n:beta_zone_theater}" data-description="{i18n:beta_zone_theater_desc}" data-link="/eventos">
+          {#if world.theaterEvents.isEmpty}
+          <div data-item-kind="empty" data-title="{i18n:beta_theater_empty}"></div>
+          {#else}
+          {#for event in world.theaterEvents}
+          <div data-item-kind="entry" data-title="{event.title}" data-summary="{event.dateLabel} · {event.countdownLabel}" data-meta="{i18n:beta_zone_theater}" data-link="{event.href}"></div>
+          {/for}
+          {/if}
+        </article>
+
+        <article data-zone-model="cityhall" data-label="{i18n:beta_zone_cityhall}" data-description="{i18n:beta_zone_cityhall_desc}" data-link="/proyectos">
+          <div data-item-kind="stat" data-title="{i18n:beta_cityhall_stat_release}" data-value="{world.releaseVersion}"></div>
+          <div data-item-kind="stat" data-title="{i18n:beta_cityhall_stat_github_users}" data-value="{world.boardSummary.githubUsers}"></div>
+          <div data-item-kind="stat" data-title="{i18n:beta_cityhall_stat_discord_users}" data-value="{world.boardSummary.discordUsers}"></div>
+          <div data-item-kind="stat" data-title="{i18n:beta_cityhall_stat_contributors}" data-value="{world.pulse.trackedContributors}"></div>
+          {#if world.cityhallContributors.isEmpty}
+          <div data-item-kind="empty" data-title="{i18n:beta_cityhall_empty}"></div>
+          {#else}
+          {#for contributor in world.cityhallContributors}
+          <div data-item-kind="entry" data-title="{contributor.login}" data-summary="{contributor.contributions} contribs" data-meta="{i18n:beta_cityhall_stat_contributors}" data-link="{contributor.href}"></div>
+          {/for}
+          {/if}
+        </article>
+      </section>
+
+      {#if !world.player.authenticated}
+      <div id="beta-login-gate" class="beta-login-gate">
+        <h2>{i18n:beta_login_cta}</h2>
+        <p>{i18n:beta_login_hint}</p>
+        <a href="{world.player.loginUrl}" class="beta-login-btn">{i18n:beta_login_cta}</a>
+      </div>
+      {/if}
+
+      <div id="beta-interaction-modal" class="beta-interaction-modal" hidden>
+        <article class="beta-interaction-card" role="dialog" aria-modal="true" aria-labelledby="beta-modal-title">
+          <button id="beta-modal-close" class="beta-modal-close" type="button"
+            aria-label="{i18n:beta_js_modal_close}">×</button>
+          <h3 id="beta-modal-title"></h3>
+          <p id="beta-modal-meta" class="beta-modal-meta"></p>
+          <p id="beta-modal-body" class="beta-modal-body"></p>
+          <div class="beta-modal-actions">
+            <a id="beta-modal-link" class="beta-login-btn" href="#" target="_blank" rel="noreferrer" hidden>
+              {i18n:beta_js_open_card}
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.userAuthenticated = {#if world.player.authenticated}true{#else}false{/if};
+  </script>
+  <script src="/js/homedir.js?v={app:version()}" defer></script>
+  <script src="/js/app.js?v={app:version()}" defer></script>
+  <script src="/js/beta-map.js?v={app:version()}" defer></script>
+</body>
+</html>

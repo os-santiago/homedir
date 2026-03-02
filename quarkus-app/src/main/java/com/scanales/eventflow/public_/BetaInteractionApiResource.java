@@ -40,14 +40,14 @@ public class BetaInteractionApiResource {
 
     metrics.recordFunnelStep("beta." + event + "." + zone);
 
-    if ("open".equals(event)) {
+    if ("open".equals(event) || "visit".equals(event)) {
       currentUserId().ifPresent(
           userId -> {
             switch (zone) {
-              case "community" -> gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
-              case "events" -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW);
-              case "project" -> gamificationService.award(userId, GamificationActivity.PROJECT_VIEW);
-              case "profile" -> gamificationService.award(userId, GamificationActivity.PROFILE_VIEW);
+              case "inn" -> gamificationService.award(userId, GamificationActivity.HOME_VIEW);
+              case "guild" -> gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
+              case "theater" -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW);
+              case "cityhall" -> gamificationService.award(userId, GamificationActivity.PROJECT_VIEW);
               default -> {
               }
             }
@@ -87,7 +87,7 @@ public class BetaInteractionApiResource {
       return null;
     }
     return switch (raw.trim().toLowerCase(Locale.ROOT)) {
-      case "community", "events", "project", "profile" -> raw.trim().toLowerCase(Locale.ROOT);
+      case "inn", "guild", "theater", "cityhall" -> raw.trim().toLowerCase(Locale.ROOT);
       default -> null;
     };
   }

@@ -1,4 +1,4 @@
-{#include layout/main activePage="comunidad"}
+{#include layout/main activePage="comunidad" noLoginModal=true}
 {#title}
 {#if groupPath == 'homedir-users'}
 {i18n:community_board_group_homedir} · {i18n:community_board_heading}
@@ -48,6 +48,25 @@
           <p class="section-subtitle">{i18n:community_board_pagination_status(pageStart, pageEnd, total)}</p>
         {/if}
       </div>
+      {#if isAuthenticated}
+      <div class="board-self-actions">
+        {#if publicProfilePath}
+        <a class="btn-primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
+        <button
+          type="button"
+          class="btn-primary board-copy-btn"
+          data-default-label="{i18n:community_board_activation_cta_copy}"
+          data-success-label="{i18n:community_board_link_copied}"
+          data-error-label="{i18n:community_board_copy_failed}"
+          data-share-link="{publicProfilePath}">
+          {i18n:community_board_activation_cta_copy}
+        </button>
+        {/if}
+        {#if myMemberSearchUrl}
+        <a class="btn-primary" href="{myMemberSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+        {/if}
+      </div>
+      {/if}
       {#if groupPath == 'discord-users'}
         <div class="board-detail-metrics" aria-label="Discord coverage metrics">
           <span class="board-detail-metric">{i18n:community_board_discord_guild_members(discordGuildMembers)}</span>
@@ -84,17 +103,18 @@
           </article>
         {#else}
           {#for member in members}
+            {#let memberName=(member.displayName ?: i18n:community_board_unnamed_member)}
             <article class="board-member-card {#if highlightedMember == member.id}is-highlighted{/if}">
               <div class="board-member-main">
                 {#if member.avatarUrl}
-                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{member.displayName}" loading="lazy" decoding="async" fetchpriority="low" width="44" height="44" />
+                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{memberName}" loading="lazy" decoding="async" fetchpriority="low" width="44" height="44" />
                 {#else}
                   <div class="board-member-avatar board-member-avatar-fallback">
-                    {member.displayName.substring(0,1)}
+                    {memberName.substring(0,1)}
                   </div>
                 {/if}
                 <div class="board-member-text">
-                  <h2>{member.displayName}</h2>
+                  <h2>{memberName}</h2>
                   <p>{member.handle}</p>
                   {#if member.memberSince}
                     <small>{i18n:community_board_member_since(member.memberSince)}</small>
@@ -117,6 +137,7 @@
                 </button>
               </div>
             </article>
+            {/let}
           {/for}
         {/if}
       </div>
@@ -198,6 +219,13 @@
       gap: 0.75rem;
       margin-bottom: 1rem;
       flex-wrap: wrap;
+    }
+
+    .board-self-actions {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      margin: 0 0 0.9rem 0;
     }
 
     .board-share-hint {

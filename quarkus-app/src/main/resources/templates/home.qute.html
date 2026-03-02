@@ -1,4 +1,4 @@
-{#include layout/main activePage="home" mainClass="homedir-main-home"}
+{#include layout/main activePage="home" mainClass="homedir-main-home" noLoginModal=true}
 {#title}{i18n:nav_home}{/title}
 {#body}
 <header class="public-header home-highlight-hero">
@@ -45,6 +45,29 @@
         data-i18n-last-prefix="{i18n:home_today_since_last_prefix}">{i18n:home_today_since_first}</span>
     </div>
     <p class="home-pane-summary">{i18n:home_today_intro}</p>
+    <p class="home-pane-summary">
+      {i18n:home_today_account_status_prefix}
+      <strong>{i18n:home_today_account_status_homedir}</strong>
+      ·
+      <strong>{#if homeAccountHasGithub}{i18n:home_today_account_status_github_linked}{#else}{i18n:home_today_account_status_github_missing}{/if}</strong>
+      ·
+      <strong>{#if homeAccountHasDiscord}{i18n:home_today_account_status_discord_linked}{#else}{i18n:home_today_account_status_discord_missing}{/if}</strong>
+      ·
+      <a href="/private/profile">{i18n:home_today_account_status_cta}</a>
+    </p>
+    <p class="home-pane-summary">
+      <strong>{i18n:home_starter_track_title}</strong>
+      ·
+      {i18n:home_starter_track_progress(homeStarterCompleted)}
+      ·
+      {#if homeAccountHasGithub}{i18n:home_starter_task_github_done}{#else}{i18n:home_starter_task_github_todo}{/if}
+      ·
+      {#if homeAccountHasDiscord}{i18n:home_starter_task_discord_done}{#else}{i18n:home_starter_task_discord_todo}{/if}
+      ·
+      {#if homeStarterHasVote}{i18n:home_starter_task_vote_done}{#else}{i18n:home_starter_task_vote_todo}{/if}
+      ·
+      <a href="/comunidad/picks">{i18n:home_starter_track_picks_cta}</a>
+    </p>
     <div class="home-top-metrics home-today-metrics">
       <a href="/comunidad/picks" class="home-top-metric">
         <span class="home-top-metric-head">
@@ -70,13 +93,13 @@
         <strong>{upcomingCount}</strong>
         <small>{i18n:home_today_card_events_desc}</small>
       </a>
-      <a href="/comunidad/board/homedir-users" class="home-top-metric">
+      <a href="/comunidad/lta" class="home-top-metric">
         <span class="home-top-metric-head">
-          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">badge</span>
-          <span class="home-chip">{i18n:home_today_card_board_chip}</span>
+          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">bolt</span>
+          <span class="home-chip">{i18n:home_today_card_lta_chip}</span>
         </span>
-        <strong>{homeTodayBoardUsers}</strong>
-        <small>{i18n:home_today_card_board_desc}</small>
+        <strong>{homeTodayLtaThreads}</strong>
+        <small>{i18n:home_today_card_lta_desc}</small>
       </a>
     </div>
   </section>

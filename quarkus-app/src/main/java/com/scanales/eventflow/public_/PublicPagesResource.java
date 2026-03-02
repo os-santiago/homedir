@@ -3,12 +3,15 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.community.CommunityLightningService;
+import com.scanales.eventflow.community.CommunityVoteService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
+import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.service.UserSessionService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.TemplateLocaleUtil;
@@ -61,7 +64,16 @@ public class PublicPagesResource {
   CommunityBoardService communityBoardService;
 
   @Inject
+  CommunityLightningService communityLightningService;
+
+  @Inject
+  CommunityVoteService communityVoteService;
+
+  @Inject
   GamificationService gamificationService;
+
+  @Inject
+  UserProfileService userProfileService;
 
   @GET
   public TemplateInstance home(
@@ -89,7 +101,22 @@ public class PublicPagesResource {
             .filter(this::isMemberOrigin)
             .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
             .count();
-    var boardSummary = communityBoardService.summary();
+    int recentLtaThreads = communityLightningService.countPublishedSince(todayCutoff);
+    long homeStarterVoteCount =
+        currentUserId().map(communityVoteService::countVotesByUser).orElse(0L);
+    boolean homeStarterHasVote = homeStarterVoteCount > 0L;
+    boolean homeAccountHasGithub =
+        currentUserId()
+            .flatMap(userProfileService::find)
+            .map(profile -> profile.getGithub() != null && profile.hasGithub())
+            .orElse(false);
+    boolean homeAccountHasDiscord =
+        currentUserId()
+            .flatMap(userProfileService::find)
+            .map(profile -> profile.getDiscord() != null && profile.hasDiscord())
+            .orElse(false);
+    int homeStarterCompleted =
+        (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0) + (homeStarterHasVote ? 1 : 0);
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -106,7 +133,11 @@ public class PublicPagesResource {
             .data("projectContributionTotal", contributionTotal)
             .data("homeTodayFreshPicks", toIntSafely(recentPicksCount))
             .data("homeTodayMemberPicks", toIntSafely(recentMemberPicksCount))
-            .data("homeTodayBoardUsers", boardSummary.homedirUsers())
+            .data("homeTodayLtaThreads", recentLtaThreads)
+            .data("homeAccountHasGithub", homeAccountHasGithub)
+            .data("homeAccountHasDiscord", homeAccountHasDiscord)
+            .data("homeStarterHasVote", homeStarterHasVote)
+            .data("homeStarterCompleted", homeStarterCompleted)
             .data("noLoginModal", true),
         "home",
         localeCookie,
