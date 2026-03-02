@@ -2838,6 +2838,33 @@ public interface AppMessages {
     @Message("Explore other events")
     String events_detail_not_found_cta();
 
+    @Message("Scenario not found - Homedir")
+    String events_scenario_not_found_page_title();
+
+    @Message("Back to {eventTitle}")
+    String events_scenario_back_to_event(String eventTitle);
+
+    @Message("Talks in this scenario")
+    String events_scenario_talks_title();
+
+    @Message("{count} sessions")
+    String events_scenario_sessions_count(int count);
+
+    @Message("No talks have been published for this scenario yet.")
+    String events_scenario_no_talks();
+
+    @Message("View talk")
+    String events_scenario_view_talk();
+
+    @Message("Scenario not found")
+    String events_scenario_not_found_heading();
+
+    @Message("We could not find the requested scenario.")
+    String events_scenario_not_found_desc();
+
+    @Message("Back to Events")
+    String events_scenario_back_to_events();
+
     @Message("Talk")
     String talk_title_default();
 
@@ -3065,5 +3092,14 @@ public interface AppMessages {
 
     @Message("Copy failed")
     String community_board_copy_failed();
+
+    @Message("{displayName} · Community Member")
+    String community_member_profile_title(String displayName);
+
+    @Message("Community · Member")
+    String community_member_subtitle();
+
+    @Message("Back to board")
+    String community_member_back_to_board();
 
 }
