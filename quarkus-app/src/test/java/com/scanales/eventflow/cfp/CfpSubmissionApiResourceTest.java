@@ -22,12 +22,14 @@ public class CfpSubmissionApiResourceTest {
   private static final String EVENT_ID = "cfp-api-event-1";
 
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject CfpEventConfigService cfpEventConfigService;
   @Inject EventService eventService;
   @Inject SpeakerService speakerService;
 
   @BeforeEach
   void setup() {
     cfpSubmissionService.clearAllForTests();
+    cfpEventConfigService.resetForTests();
     speakerService.reset();
     eventService.reset();
     eventService.saveEvent(new Event(EVENT_ID, "CFP API Event", "desc"));
@@ -789,5 +791,102 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(400)
         .body("error", equalTo("invalid_limit"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void nonAdminCannotReadEventConfig() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/event-config")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanReadDefaultEventConfig() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/event-config")
+        .then()
+        .statusCode(200)
+        .body("event_id", equalTo(EVENT_ID))
+        .body("has_override", equalTo(false))
+        .body("effective.max_per_user", equalTo(2))
+        .body("effective.testing_mode_enabled", equalTo(true))
+        .body("effective.accepting_submissions", equalTo(true))
+        .body("effective.currently_open", equalTo(true));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanUpdateAndClearEventConfig() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "accepting_submissions": false,
+              "opens_at": "2030-01-01T09:00:00Z",
+              "closes_at": "2030-01-31T23:59:59Z",
+              "max_per_user": 4,
+              "testing_mode_enabled": false
+            }
+            """)
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/event-config")
+        .then()
+        .statusCode(200)
+        .body("event_id", equalTo(EVENT_ID))
+        .body("has_override", equalTo(true))
+        .body("override.accepting_submissions", equalTo(false))
+        .body("override.max_per_user", equalTo(4))
+        .body("override.testing_mode_enabled", equalTo(false))
+        .body("effective.max_per_user", equalTo(4))
+        .body("effective.testing_mode_enabled", equalTo(false))
+        .body("effective.currently_open", equalTo(false));
+
+    given()
+        .accept("application/json")
+        .when()
+        .delete("/api/events/" + EVENT_ID + "/cfp/submissions/event-config")
+        .then()
+        .statusCode(200)
+        .body("event_id", equalTo(EVENT_ID))
+        .body("cleared", equalTo(true))
+        .body("effective.max_per_user", equalTo(2))
+        .body("effective.testing_mode_enabled", equalTo(true));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/event-config")
+        .then()
+        .statusCode(200)
+        .body("has_override", equalTo(false))
+        .body("override", org.hamcrest.Matchers.nullValue());
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void eventConfigRejectsInvalidWindow() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "opens_at": "2030-02-01T00:00:00Z",
+              "closes_at": "2030-01-01T00:00:00Z"
+            }
+            """)
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/event-config")
+        .then()
+        .statusCode(400)
+        .body("error", equalTo("invalid_window"));
   }
 }
