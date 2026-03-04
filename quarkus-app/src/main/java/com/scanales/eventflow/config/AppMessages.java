@@ -802,6 +802,9 @@ public interface AppMessages {
     @Message("Most recent")
     String events_cfp_admin_sort_recent();
 
+    @Message("Recently updated")
+    String events_cfp_admin_sort_updated();
+
     @Message("Highest score")
     String events_cfp_admin_sort_score();
 

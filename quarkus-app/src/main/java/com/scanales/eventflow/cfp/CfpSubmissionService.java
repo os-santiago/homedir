@@ -38,6 +38,7 @@ public class CfpSubmissionService {
 
   public enum SortOrder {
     CREATED_DESC,
+    UPDATED_DESC,
     SCORE_DESC
   }
 
@@ -577,8 +578,13 @@ public class CfpSubmissionService {
   private static Comparator<CfpSubmission> sortComparator(SortOrder sortOrder) {
     Comparator<Instant> createdComparator = Comparator.nullsLast(Comparator.reverseOrder());
     Comparator<CfpSubmission> byCreated = Comparator.comparing(CfpSubmission::createdAt, createdComparator);
+    Comparator<Instant> updatedComparator = Comparator.nullsLast(Comparator.reverseOrder());
+    Comparator<CfpSubmission> byUpdated = Comparator.comparing(CfpSubmission::updatedAt, updatedComparator);
     if (sortOrder == SortOrder.SCORE_DESC) {
       return Comparator.comparingDouble(CfpSubmissionService::scoreForOrdering).reversed().thenComparing(byCreated);
+    }
+    if (sortOrder == SortOrder.UPDATED_DESC) {
+      return byUpdated.thenComparing(byCreated);
     }
     return byCreated;
   }

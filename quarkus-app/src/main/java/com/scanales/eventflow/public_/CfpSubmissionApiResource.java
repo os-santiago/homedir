@@ -672,6 +672,9 @@ public class CfpSubmissionApiResource {
     if (sort == null || sort.isBlank() || "created".equalsIgnoreCase(sort) || "recent".equalsIgnoreCase(sort)) {
       return CfpSubmissionService.SortOrder.CREATED_DESC;
     }
+    if ("updated".equalsIgnoreCase(sort) || "latest_update".equalsIgnoreCase(sort)) {
+      return CfpSubmissionService.SortOrder.UPDATED_DESC;
+    }
     if ("score".equalsIgnoreCase(sort) || "weighted".equalsIgnoreCase(sort)) {
       return CfpSubmissionService.SortOrder.SCORE_DESC;
     }

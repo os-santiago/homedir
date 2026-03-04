@@ -159,6 +159,56 @@ public class CfpSubmissionApiResourceTest {
   }
 
   @Test
+  @TestSecurity(user = "admin@example.org")
+  void moderationListSupportsUpdatedSort() {
+    CfpSubmission older =
+        cfpSubmissionService.create(
+            "member-1@example.com",
+            "Member 1",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Older submission",
+                "Summary",
+                "Abstract",
+                "beginner",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    CfpSubmission newer =
+        cfpSubmissionService.create(
+            "member-2@example.com",
+            "Member 2",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Newer submission",
+                "Summary",
+                "Abstract",
+                "beginner",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    cfpSubmissionService.updateStatus(
+        older.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=updated&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items", hasSize(2))
+        .body("items[0].id", equalTo(older.id()))
+        .body("items[1].id", equalTo(newer.id()));
+  }
+
+  @Test
   @TestSecurity(user = "member@example.com")
   void mineEndpointExposesPaginationMetadata() {
     cfpSubmissionService.create(
