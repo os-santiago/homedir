@@ -14,6 +14,7 @@ public class LoginCallbackRedirectTest {
   @Test
   public void privateLoginCallbackRedirectsToSafeInternalPath() {
     given()
+        .header("X-Forwarded-For", "198.51.100.20")
         .redirects()
         .follow(false)
         .when()
@@ -26,6 +27,7 @@ public class LoginCallbackRedirectTest {
   @Test
   public void privateLoginCallbackRejectsExternalRedirect() {
     given()
+        .header("X-Forwarded-For", "198.51.100.21")
         .redirects()
         .follow(false)
         .when()
@@ -38,6 +40,7 @@ public class LoginCallbackRedirectTest {
   @Test
   public void oidcLoginCallbackRedirectsToSafeInternalPath() {
     given()
+        .header("X-Forwarded-For", "198.51.100.22")
         .redirects()
         .follow(false)
         .when()
@@ -50,6 +53,7 @@ public class LoginCallbackRedirectTest {
   @Test
   public void oidcLoginCallbackFallsBackToProfileWhenRedirectIsInvalid() {
     given()
+        .header("X-Forwarded-For", "198.51.100.23")
         .redirects()
         .follow(false)
         .when()
