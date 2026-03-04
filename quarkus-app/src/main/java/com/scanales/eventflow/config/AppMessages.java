@@ -685,6 +685,90 @@ public interface AppMessages {
     @Message("Could not update testing mode right now.")
     String events_cfp_admin_testing_error();
 
+    @Message("CFP: event configuration")
+    String events_cfp_admin_event_config_title();
+
+    @Message("Control submission window, event-specific limits, and optional testing override for this event.")
+    String events_cfp_admin_event_config_desc();
+
+    @Message("Accept submissions")
+    String events_cfp_admin_event_config_accepting_label();
+
+    @Message("Opens at")
+    String events_cfp_admin_event_config_opens_label();
+
+    @Message("Closes at")
+    String events_cfp_admin_event_config_closes_label();
+
+    @Message("Max proposals per user (override)")
+    String events_cfp_admin_event_config_max_label();
+
+    @Message("Use global limit")
+    String events_cfp_admin_event_config_max_placeholder();
+
+    @Message("Testing mode override")
+    String events_cfp_admin_event_config_testing_override_label();
+
+    @Message("Inherit global setting")
+    String events_cfp_admin_event_config_testing_override_inherit();
+
+    @Message("Force enabled")
+    String events_cfp_admin_event_config_testing_override_on();
+
+    @Message("Force disabled")
+    String events_cfp_admin_event_config_testing_override_off();
+
+    @Message("Save override")
+    String events_cfp_admin_event_config_save();
+
+    @Message("Clear override")
+    String events_cfp_admin_event_config_clear();
+
+    @Message("Event override saved.")
+    String events_cfp_admin_event_config_saved();
+
+    @Message("Event override cleared.")
+    String events_cfp_admin_event_config_cleared();
+
+    @Message("Could not update event CFP configuration right now.")
+    String events_cfp_admin_event_config_error();
+
+    @Message("Open now")
+    String events_cfp_admin_event_config_summary_open();
+
+    @Message("Closed now")
+    String events_cfp_admin_event_config_summary_closed();
+
+    @Message("Max/user:")
+    String events_cfp_admin_event_config_summary_max();
+
+    @Message("Testing notice: ON")
+    String events_cfp_admin_event_config_summary_testing_on();
+
+    @Message("Testing notice: OFF")
+    String events_cfp_admin_event_config_summary_testing_off();
+
+    @Message("Event override: ON")
+    String events_cfp_admin_event_config_summary_override_on();
+
+    @Message("Event override: OFF")
+    String events_cfp_admin_event_config_summary_override_off();
+
+    @Message("CFP submissions are currently closed for this event.")
+    String events_cfp_closed_hint();
+
+    @Message("CFP submissions are currently closed.")
+    String events_cfp_error_closed();
+
+    @Message("Window")
+    String events_cfp_window_label();
+
+    @Message("Opens")
+    String events_cfp_window_open();
+
+    @Message("Closes")
+    String events_cfp_window_close();
+
     @Message("Agenda: proposed mode")
     String events_agenda_admin_proposed_title();
 

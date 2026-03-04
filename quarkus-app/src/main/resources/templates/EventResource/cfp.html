@@ -114,6 +114,7 @@
         <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_autofill_last}</button>
       </div>
       <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
+      <p id="cfpAvailabilityHint" class="form-hint cfp-quota-hint"></p>
     </form>
     <p id="cfpFeedback" class="form-hint" hidden></p>
     {#else}
@@ -403,6 +404,7 @@
     const reloadBtn = document.getElementById("cfpReloadBtn");
     const feedback = document.getElementById("cfpFeedback");
     const quotaHint = document.getElementById("cfpQuotaHint");
+    const availabilityHint = document.getElementById("cfpAvailabilityHint");
     const countLabel = document.getElementById("cfpCountLabel");
     const mineList = document.getElementById("cfpMineList");
     const formatSelect = document.getElementById("cfpFormat");
@@ -436,6 +438,7 @@
     let proposalLimit = 2;
     let mineItems = [];
     let submitInFlight = false;
+    let cfpCurrentlyOpen = true;
 
     const labels = {
       pending: "{i18n:events_cfp_status_pending}",
@@ -447,7 +450,8 @@
 
     const errorLabels = {
       duplicate_title: "{i18n:events_cfp_error_duplicate_title}",
-      proposal_limit_reached: "{i18n:events_cfp_error_limit_reached}"
+      proposal_limit_reached: "{i18n:events_cfp_error_limit_reached}",
+      submissions_closed: "{i18n:events_cfp_error_closed}"
     };
 
     function buildOptionMap(selectId) {
@@ -637,6 +641,35 @@
       return labels[status] || status || "";
     }
 
+    function updateAvailabilityHint(payload) {
+      if (!availabilityHint) {
+        return;
+      }
+      const currentlyOpen =
+        !payload || typeof payload.currently_open !== "boolean" ? true : !!payload.currently_open;
+      cfpCurrentlyOpen = currentlyOpen;
+      if (currentlyOpen) {
+        availabilityHint.textContent = "";
+        return;
+      }
+      const opens = formatDate(payload && payload.opens_at ? payload.opens_at : null);
+      const closes = formatDate(payload && payload.closes_at ? payload.closes_at : null);
+      let message = "{i18n:events_cfp_closed_hint}";
+      if (opens || closes) {
+        const windowParts = [];
+        if (opens) {
+          windowParts.push("{i18n:events_cfp_window_open}: " + opens);
+        }
+        if (closes) {
+          windowParts.push("{i18n:events_cfp_window_close}: " + closes);
+        }
+        if (windowParts.length > 0) {
+          message += " {i18n:events_cfp_window_label}: " + windowParts.join(" · ");
+        }
+      }
+      availabilityHint.textContent = message;
+    }
+
     function updateQuotaHint() {
       const submitted = mineItems ? mineItems.length : 0;
       const remaining = Math.max(0, proposalLimit - submitted);
@@ -648,22 +681,25 @@
           "{i18n:events_cfp_quota_prefix} " + proposalLimit + " · {i18n:events_cfp_quota_remaining} " + remaining + ".";
       }
       if (submitBtn) {
-        submitBtn.disabled = remaining <= 0;
+        submitBtn.disabled = !cfpCurrentlyOpen || remaining <= 0;
       }
     }
 
     async function loadConfig() {
+      let payload = null;
       try {
         const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
         if (!response.ok) {
           return;
         }
-        const payload = await response.json();
+        payload = await response.json();
         const configured = Number.parseInt(String(payload.max_per_user || ""), 10);
         if (Number.isFinite(configured) && configured > 0) {
           proposalLimit = configured;
         }
       } catch (error) {
+      } finally {
+        updateAvailabilityHint(payload);
       }
     }
 
@@ -791,6 +827,12 @@
         if (typeof form.reportValidity === "function") {
           form.reportValidity();
         }
+        return;
+      }
+
+      if (!cfpCurrentlyOpen) {
+        showFeedback("{i18n:events_cfp_error_closed}", true);
+        updateQuotaHint();
         return;
       }
 
