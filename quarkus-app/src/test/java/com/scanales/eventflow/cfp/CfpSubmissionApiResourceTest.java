@@ -1016,6 +1016,16 @@ public class CfpSubmissionApiResourceTest {
         .body("item.rating_weighted", equalTo(4.7f));
 
     given()
+        .contentType("application/json")
+        .body("{\"status\":\"accepted\",\"note\":\"approved by jury\"}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + high.id() + "/status")
+        .then()
+        .statusCode(200)
+        .body("item.status", equalTo("accepted"))
+        .body("item.moderated_by", equalTo("admin@example.org"));
+
+    given()
         .accept("application/json")
         .when()
         .get("/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=score&limit=10&offset=0")
@@ -1036,6 +1046,11 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(200)
         .contentType(containsString("text/csv"))
         .body(containsString("rating_weighted"))
+        .body(containsString("updated_at"))
+        .body(containsString("moderated_at"))
+        .body(containsString("moderated_by"))
+        .body(containsString("admin@example.org"))
+        .body(containsString("approved by jury"))
         .body(containsString("High score submission"));
   }
   @Test

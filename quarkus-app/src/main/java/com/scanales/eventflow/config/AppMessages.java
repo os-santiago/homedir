@@ -817,6 +817,18 @@ public interface AppMessages {
     @Message("Proposed by:")
     String events_cfp_admin_proposed_by();
 
+    @Message("Created:")
+    String events_cfp_admin_created_at();
+
+    @Message("Updated:")
+    String events_cfp_admin_updated_at();
+
+    @Message("Moderated:")
+    String events_cfp_admin_moderated_at();
+
+    @Message("by")
+    String events_cfp_admin_by();
+
     @Message("N/A")
     String events_cfp_admin_submission_not_available();
 
