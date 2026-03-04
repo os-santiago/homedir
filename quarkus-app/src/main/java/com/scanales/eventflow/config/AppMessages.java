@@ -847,6 +847,9 @@ public interface AppMessages {
     @Message("Another moderator already updated this proposal. Refresh the queue.")
     String events_cfp_admin_error_stale_submission();
 
+    @Message("Add a moderation note before rejecting this proposal.")
+    String events_cfp_admin_error_reject_note_required();
+
     @Message("Could not update status")
     String events_cfp_admin_error_update_status();
 
