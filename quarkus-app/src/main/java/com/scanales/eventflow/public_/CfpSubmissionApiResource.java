@@ -681,7 +681,8 @@ public class CfpSubmissionApiResource {
   private static String buildCsv(List<CfpSubmission> items) {
     StringBuilder csv = new StringBuilder();
     csv.append(
-            "id,event_id,title,status,proposer_user_id,proposer_name,created_at,level,format,duration_min,language,track,"
+            "id,event_id,title,status,proposer_user_id,proposer_name,created_at,updated_at,moderated_at,moderated_by,"
+                + "level,format,duration_min,language,track,"
                 + "rating_technical_detail,rating_narrative,rating_content_impact,rating_weighted,moderation_note,links")
         .append('\n');
 
@@ -694,6 +695,9 @@ public class CfpSubmissionApiResource {
           .append(csvValue(item.proposerUserId())).append(',')
           .append(csvValue(item.proposerName())).append(',')
           .append(csvValue(item.createdAt() != null ? item.createdAt().toString() : null)).append(',')
+          .append(csvValue(item.updatedAt() != null ? item.updatedAt().toString() : null)).append(',')
+          .append(csvValue(item.moderatedAt() != null ? item.moderatedAt().toString() : null)).append(',')
+          .append(csvValue(item.moderatedBy())).append(',')
           .append(csvValue(item.level())).append(',')
           .append(csvValue(item.format())).append(',')
           .append(csvValue(item.durationMin())).append(',')

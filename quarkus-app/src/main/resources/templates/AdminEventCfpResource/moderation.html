@@ -375,6 +375,10 @@
       scoreNotAvailable: "{i18n:events_cfp_admin_score_not_available}",
       untitled: "{i18n:events_cfp_admin_untitled}",
       proposedBy: "{i18n:events_cfp_admin_proposed_by}",
+      createdAt: "{i18n:events_cfp_admin_created_at}",
+      updatedAt: "{i18n:events_cfp_admin_updated_at}",
+      moderatedAt: "{i18n:events_cfp_admin_moderated_at}",
+      by: "{i18n:events_cfp_admin_by}",
       notAvailable: "{i18n:events_cfp_admin_not_available}",
       ratingTechnical: "{i18n:events_cfp_admin_rating_technical}",
       ratingNarrative: "{i18n:events_cfp_admin_rating_narrative}",
@@ -616,6 +620,26 @@
       return i18n.scoreNotAvailable;
     }
 
+    function submissionAuditLine(item) {
+      const proposer = item.proposer_name || item.proposer_user_id || i18n.submissionNotAvailable;
+      const parts = [
+        i18n.proposedBy + " " + proposer,
+        i18n.createdAt + " " + (fmtDate(item.created_at) || i18n.notAvailable),
+        i18n.updatedAt + " " + (fmtDate(item.updated_at) || i18n.notAvailable)
+      ];
+      if (item.moderated_at || item.moderated_by) {
+        parts.push(
+          i18n.moderatedAt
+            + " "
+            + (fmtDate(item.moderated_at) || i18n.notAvailable)
+            + " · "
+            + i18n.by
+            + " "
+            + (item.moderated_by || i18n.notAvailable));
+      }
+      return parts.join(" · ");
+    }
+
     function buildSubmissionCard(item) {
       const article = document.createElement("article");
       article.className = "cfp-admin-card";
@@ -649,8 +673,8 @@
       top.appendChild(chipWrap);
       article.appendChild(top);
 
-      article.appendChild(
-          row(i18n.proposedBy + " " + (item.proposer_name || item.proposer_user_id || i18n.submissionNotAvailable) + " · " + fmtDate(item.created_at)));
+      const auditLine = row(submissionAuditLine(item));
+      article.appendChild(auditLine);
 
       if (item.level || item.format || item.duration_min) {
         const chips = [];
@@ -735,7 +759,10 @@
           if (payload && payload.item) {
             item.rating_weighted = payload.item.rating_weighted;
             item.updated_at = payload.item.updated_at || item.updated_at;
+            item.moderated_at = payload.item.moderated_at || item.moderated_at;
+            item.moderated_by = payload.item.moderated_by || item.moderated_by;
             scoreChip.textContent = scoreLabel(payload.item);
+            auditLine.textContent = submissionAuditLine(item);
           }
           await loadStats();
         } catch (error) {
