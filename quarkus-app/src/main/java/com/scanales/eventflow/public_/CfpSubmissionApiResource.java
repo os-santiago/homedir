@@ -2,7 +2,6 @@ package com.scanales.eventflow.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.cfp.CfpSubmission;
-import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpConfigService;
 import com.scanales.eventflow.cfp.CfpEventConfig;
 import com.scanales.eventflow.cfp.CfpEventConfigService;
@@ -88,7 +87,9 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status status =
-          ("proposal_limit_reached".equals(e.getMessage()) || "duplicate_title".equals(e.getMessage()))
+          ("proposal_limit_reached".equals(e.getMessage())
+                  || "duplicate_title".equals(e.getMessage())
+                  || "submissions_closed".equals(e.getMessage()))
               ? Response.Status.CONFLICT
               : Response.Status.BAD_REQUEST;
       return Response.status(status).entity(Map.of("error", e.getMessage())).build();
@@ -121,16 +122,11 @@ public class CfpSubmissionApiResource {
   @GET
   @Path("/config")
   public Response submissionConfig(@PathParam("eventId") String eventId) {
-    CfpConfig config = cfpConfigService.current();
-    int limit = config.maxSubmissionsPerUserPerEvent();
-    return Response.ok(
-            new SubmissionLimitConfigResponse(
-                limit,
-                CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
-                CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
-                AdminUtils.isAdmin(identity),
-                config.testingModeEnabled()))
-        .build();
+    try {
+      return Response.ok(toSubmissionLimitConfigResponse(eventId, AdminUtils.isAdmin(identity))).build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
   }
 
   @GET
@@ -307,15 +303,12 @@ public class CfpSubmissionApiResource {
                   "max", CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT))
           .build();
     }
-    CfpConfig updated = cfpConfigService.update(requestedLimit, requestedTesting);
-    return Response.ok(
-            new SubmissionLimitConfigResponse(
-                updated.maxSubmissionsPerUserPerEvent(),
-                CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
-                CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
-                true,
-                updated.testingModeEnabled()))
-        .build();
+    cfpConfigService.update(requestedLimit, requestedTesting);
+    try {
+      return Response.ok(toSubmissionLimitConfigResponse(eventId, true)).build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
   }
   @DELETE
   @Path("/{id}")
@@ -546,6 +539,21 @@ public class CfpSubmissionApiResource {
         config.maxSubmissionsPerUserPerEvent(),
         config.testingModeEnabled(),
         config.currentlyOpen());
+  }
+
+  private SubmissionLimitConfigResponse toSubmissionLimitConfigResponse(String eventId, boolean admin) {
+    CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+    return new SubmissionLimitConfigResponse(
+        resolved.maxSubmissionsPerUserPerEvent(),
+        CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
+        CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
+        admin,
+        resolved.testingModeEnabled(),
+        resolved.acceptingSubmissions(),
+        resolved.opensAt(),
+        resolved.closesAt(),
+        resolved.currentlyOpen(),
+        resolved.hasOverride());
   }
 
   private SubmissionView toView(CfpSubmission submission) {
@@ -859,7 +867,12 @@ public class CfpSubmissionApiResource {
       @JsonProperty("min_allowed") int minAllowed,
       @JsonProperty("max_allowed") int maxAllowed,
       boolean admin,
-      @JsonProperty("testing_mode_enabled") boolean testingModeEnabled) {}
+      @JsonProperty("testing_mode_enabled") boolean testingModeEnabled,
+      @JsonProperty("accepting_submissions") boolean acceptingSubmissions,
+      @JsonProperty("opens_at") Instant opensAt,
+      @JsonProperty("closes_at") Instant closesAt,
+      @JsonProperty("currently_open") boolean currentlyOpen,
+      @JsonProperty("has_event_override") boolean hasEventOverride) {}
 
   public record SubmissionView(
       String id,
