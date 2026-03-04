@@ -148,6 +148,11 @@
       <p class="form-hint">{i18n:events_cfp_login_to_view}</p>
       {/if}
     </div>
+    <div class="cfp-pagination-controls">
+      <button id="cfpMinePrevBtn" type="button" class="btn login-btn-nav">{i18n:community_board_prev}</button>
+      <p id="cfpMinePagingLabel" class="form-hint cfp-pagination-label">0-0 / 0</p>
+      <button id="cfpMineNextBtn" type="button" class="btn login-btn-nav">{i18n:community_board_next}</button>
+    </div>
   </article>
 </section>
 
@@ -326,6 +331,20 @@
     flex-wrap: wrap;
   }
 
+  .cfp-pagination-controls {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .cfp-pagination-label {
+    margin: 0;
+    min-width: 108px;
+    text-align: center;
+  }
+
   .cfp-testing-banner {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -397,7 +416,7 @@
     const lastStorageKey = "homedir.cfp.last." + eventId + "." + storageScope;
 
     const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
-    const mineEndpoint = endpoint + "/mine?limit=20&offset=0";
+    const minePageLimit = 10;
     const configEndpoint = endpoint + "/config";
     const submitBtn = document.getElementById("cfpSubmitBtn");
     const autofillBtn = document.getElementById("cfpAutofillBtn");
@@ -407,6 +426,9 @@
     const availabilityHint = document.getElementById("cfpAvailabilityHint");
     const countLabel = document.getElementById("cfpCountLabel");
     const mineList = document.getElementById("cfpMineList");
+    const minePrevBtn = document.getElementById("cfpMinePrevBtn");
+    const mineNextBtn = document.getElementById("cfpMineNextBtn");
+    const minePagingLabel = document.getElementById("cfpMinePagingLabel");
     const formatSelect = document.getElementById("cfpFormat");
     const durationSelect = document.getElementById("cfpDuration");
     const languageSelect = document.getElementById("cfpLanguage");
@@ -437,6 +459,9 @@
 
     let proposalLimit = 2;
     let mineItems = [];
+    let mineTotal = 0;
+    let mineOffset = 0;
+    let mineHasMore = false;
     let submitInFlight = false;
     let cfpCurrentlyOpen = true;
 
@@ -671,7 +696,7 @@
     }
 
     function updateQuotaHint() {
-      const submitted = mineItems ? mineItems.length : 0;
+      const submitted = mineTotal;
       const remaining = Math.max(0, proposalLimit - submitted);
       if (countLabel) {
         countLabel.textContent = submitted + "/" + proposalLimit + " {i18n:events_cfp_proposals_unit}";
@@ -682,6 +707,20 @@
       }
       if (submitBtn) {
         submitBtn.disabled = !cfpCurrentlyOpen || remaining <= 0;
+      }
+    }
+
+    function updateMinePaginationMeta() {
+      const from = mineTotal === 0 ? 0 : (mineOffset + 1);
+      const to = mineTotal === 0 ? 0 : Math.min(mineTotal, mineOffset + mineItems.length);
+      if (minePagingLabel) {
+        minePagingLabel.textContent = from + "-" + to + " / " + mineTotal;
+      }
+      if (minePrevBtn) {
+        minePrevBtn.disabled = mineOffset <= 0;
+      }
+      if (mineNextBtn) {
+        mineNextBtn.disabled = !mineHasMore;
       }
     }
 
@@ -726,14 +765,23 @@
       }
     }
 
-    function renderMine(items) {
+    function renderMine(items, payload) {
       mineItems = Array.isArray(items) ? items : [];
+      const parsedTotal = payload && Number.isFinite(Number(payload.total)) ? Number(payload.total) : mineItems.length;
+      mineTotal = Math.max(0, parsedTotal);
+      mineHasMore = !!(payload && payload.has_more);
       mineList.innerHTML = "";
       if (mineItems.length === 0) {
+        if (mineOffset > 0 && mineTotal > 0) {
+          mineOffset = Math.max(0, mineOffset - minePageLimit);
+          loadMine();
+          return;
+        }
         const empty = document.createElement("p");
         empty.className = "form-hint";
         empty.textContent = "{i18n:events_cfp_empty_mine}";
         mineList.appendChild(empty);
+        updateMinePaginationMeta();
         updateQuotaHint();
         return;
       }
@@ -789,22 +837,35 @@
 
         mineList.appendChild(article);
       });
+      updateMinePaginationMeta();
       updateQuotaHint();
+    }
+
+    function mineEndpointForCurrentPage() {
+      const params = new URLSearchParams({
+        limit: String(minePageLimit),
+        offset: String(mineOffset)
+      });
+      return endpoint + "/mine?" + params.toString();
     }
 
     async function loadMine() {
       if (!mineList) return;
       try {
         mineList.innerHTML = '<p class="form-hint">{i18n:events_cfp_loading}</p>';
-        const response = await fetch(mineEndpoint, { headers: { Accept: "application/json" } });
+        const response = await fetch(mineEndpointForCurrentPage(), { headers: { Accept: "application/json" } });
         if (!response.ok) {
           throw new Error("status_" + response.status);
         }
         const payload = await response.json();
-        renderMine(payload.items || []);
+        mineHasMore = !!payload.has_more;
+        renderMine(payload.items || [], payload);
       } catch (error) {
         mineList.innerHTML = '<p class="form-hint">{i18n:events_cfp_error_load}</p>';
         mineItems = [];
+        mineTotal = 0;
+        mineHasMore = false;
+        updateMinePaginationMeta();
         updateQuotaHint();
       }
     }
@@ -878,6 +939,7 @@
         clearDraft();
         showFeedback("{i18n:events_cfp_success_submit}", false);
         setActiveSection("mine");
+        mineOffset = 0;
         await loadMine();
       } catch (error) {
         showFeedback("{i18n:events_cfp_error_submit}", true);
@@ -901,8 +963,28 @@
       saveDraftFromForm();
     });
     autofillBtn?.addEventListener("click", restoreLastProposal);
-    reloadBtn?.addEventListener("click", loadMine);
-    showMineBtn?.addEventListener("click", loadMine);
+    reloadBtn?.addEventListener("click", () => {
+      mineOffset = 0;
+      loadMine();
+    });
+    showMineBtn?.addEventListener("click", () => {
+      mineOffset = 0;
+      loadMine();
+    });
+    minePrevBtn?.addEventListener("click", () => {
+      if (mineOffset <= 0) {
+        return;
+      }
+      mineOffset = Math.max(0, mineOffset - minePageLimit);
+      loadMine().then(() => mineList?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    });
+    mineNextBtn?.addEventListener("click", () => {
+      if (!mineHasMore) {
+        return;
+      }
+      mineOffset = mineOffset + minePageLimit;
+      loadMine().then(() => mineList?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    });
     window.addEventListener("beforeunload", saveDraftFromForm);
 
     syncDurationFromFormat();
