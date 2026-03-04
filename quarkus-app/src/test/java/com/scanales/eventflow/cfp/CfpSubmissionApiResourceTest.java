@@ -484,6 +484,40 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "member@example.com")
+  void createRejectsWhenEventSubmissionsAreClosed() {
+    cfpEventConfigService.upsert(
+        EVENT_ID,
+        new CfpEventConfigService.UpdateRequest(
+            false,
+            null,
+            null,
+            null,
+            null));
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Talk during closed CFP",
+              "summary":"Summary",
+              "abstract_text":"Abstract",
+              "level":"intermediate",
+              "format":"talk",
+              "duration_min":30,
+              "language":"en",
+              "track":"platform-engineering-idp"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("submissions_closed"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
   void ownerCanDeleteOwnSubmission() {
     String submissionId =
         given()
@@ -734,7 +768,34 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(200)
         .body("max_per_user", equalTo(2))
         .body("min_allowed", equalTo(1))
-        .body("max_allowed", equalTo(10));
+        .body("max_allowed", equalTo(10))
+        .body("currently_open", equalTo(true))
+        .body("has_event_override", equalTo(false));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void configEndpointReflectsEventSpecificOverride() {
+    cfpEventConfigService.upsert(
+        EVENT_ID,
+        new CfpEventConfigService.UpdateRequest(
+            false,
+            null,
+            null,
+            4,
+            false));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/config")
+        .then()
+        .statusCode(200)
+        .body("max_per_user", equalTo(4))
+        .body("testing_mode_enabled", equalTo(false))
+        .body("accepting_submissions", equalTo(false))
+        .body("currently_open", equalTo(false))
+        .body("has_event_override", equalTo(true));
   }
 
   @Test
