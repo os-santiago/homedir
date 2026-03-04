@@ -342,6 +342,26 @@ public class CfpSubmissionApiResource {
   }
 
   @GET
+  @Path("/stats")
+  @Authenticated
+  public Response stats(@PathParam("eventId") String eventId) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    CfpSubmissionService.EventStats stats = cfpSubmissionService.statsByEvent(eventId);
+    return Response.ok(
+            new SubmissionStatsResponse(
+                stats.total(),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
+                stats.latestUpdatedAt()))
+        .build();
+  }
+
+  @GET
   @Authenticated
   public Response listForModeration(
       @PathParam("eventId") String eventId,
@@ -812,6 +832,15 @@ public class CfpSubmissionApiResource {
       @JsonProperty("has_more") boolean hasMore,
       @JsonProperty("next_offset") Integer nextOffset,
       List<SubmissionView> items) {}
+
+  public record SubmissionStatsResponse(
+      int total,
+      int pending,
+      @JsonProperty("under_review") int underReview,
+      int accepted,
+      int rejected,
+      int withdrawn,
+      @JsonProperty("latest_updated_at") Instant latestUpdatedAt) {}
   public record SubmissionLimitConfigUpdateRequest(
       @JsonProperty("max_per_user") Integer maxPerUser,
       @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled) {}

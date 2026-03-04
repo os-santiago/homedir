@@ -348,6 +348,14 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(403)
         .body("error", equalTo("admin_required"));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/stats")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
   }
 
   @Test
@@ -397,6 +405,81 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(200)
         .body("item.status", equalTo("accepted"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanReadModerationStats() {
+    CfpSubmission pending =
+        cfpSubmissionService.create(
+            "member-a@example.com",
+            "Member A",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stats pending api",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    CfpSubmission underReview =
+        cfpSubmissionService.create(
+            "member-b@example.com",
+            "Member B",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stats review api",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updateStatus(
+        underReview.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+
+    CfpSubmission accepted =
+        cfpSubmissionService.create(
+            "member-c@example.com",
+            "Member C",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stats accepted api",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updateStatus(
+        accepted.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "review");
+    cfpSubmissionService.updateStatus(
+        accepted.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "approved");
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/stats")
+        .then()
+        .statusCode(200)
+        .body("total", equalTo(3))
+        .body("pending", equalTo(1))
+        .body("under_review", equalTo(1))
+        .body("accepted", equalTo(1))
+        .body("rejected", equalTo(0))
+        .body("withdrawn", equalTo(0))
+        .body("latest_updated_at", org.hamcrest.Matchers.notNullValue());
   }
 
   @Test
