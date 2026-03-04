@@ -115,6 +115,15 @@ Moderacion CFP · {event.title}
         <a id="exportCsvBtn" href="#" class="btn btn-secondary">Exportar CSV</a>
       </div>
     </div>
+    <div id="cfpStatsSummary" class="cfp-stats-grid" aria-live="polite">
+      <div class="cfp-stats-item"><span>Total</span><strong id="cfpStatTotal">-</strong></div>
+      <div class="cfp-stats-item"><span>Pendiente</span><strong id="cfpStatPending">-</strong></div>
+      <div class="cfp-stats-item"><span>En revision</span><strong id="cfpStatUnderReview">-</strong></div>
+      <div class="cfp-stats-item"><span>Aceptadas</span><strong id="cfpStatAccepted">-</strong></div>
+      <div class="cfp-stats-item"><span>Rechazadas</span><strong id="cfpStatRejected">-</strong></div>
+      <div class="cfp-stats-item"><span>Retiradas</span><strong id="cfpStatWithdrawn">-</strong></div>
+    </div>
+    <p id="cfpStatsMeta" class="form-hint" style="margin: 0.5rem 0 0 0;">Ultima actualizacion: n/a</p>
     <div class="cfp-toolbar-grid">
       <div class="cfp-toolbar-row">
         <span class="form-hint">Estado:</span>
@@ -149,6 +158,35 @@ Moderacion CFP · {event.title}
     margin-top: 1rem;
     display: grid;
     gap: 0.65rem;
+  }
+
+  .cfp-stats-grid {
+    margin-top: 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .cfp-stats-item {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.5rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .cfp-stats-item span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.78;
+  }
+
+  .cfp-stats-item strong {
+    font-size: 1rem;
+    line-height: 1.1;
   }
 
   .cfp-event-config-grid {
@@ -320,6 +358,13 @@ Moderacion CFP · {event.title}
     const prevPageBtn = document.getElementById("cfpPrevPageBtn");
     const nextPageBtn = document.getElementById("cfpNextPageBtn");
     const pageInfo = document.getElementById("cfpPageInfo");
+    const statTotalEl = document.getElementById("cfpStatTotal");
+    const statPendingEl = document.getElementById("cfpStatPending");
+    const statUnderReviewEl = document.getElementById("cfpStatUnderReview");
+    const statAcceptedEl = document.getElementById("cfpStatAccepted");
+    const statRejectedEl = document.getElementById("cfpStatRejected");
+    const statWithdrawnEl = document.getElementById("cfpStatWithdrawn");
+    const statsMetaEl = document.getElementById("cfpStatsMeta");
     const pageSize = 20;
     let activeStatus = "pending";
     let activeSort = "created";
@@ -367,6 +412,40 @@ Moderacion CFP · {event.title}
       const dt = new Date(value);
       if (Number.isNaN(dt.getTime())) return "";
       return dt.toLocaleString();
+    }
+
+    function applyStats(payload) {
+      if (!statTotalEl) return;
+      statTotalEl.textContent = String(payload?.total ?? 0);
+      statPendingEl.textContent = String(payload?.pending ?? 0);
+      statUnderReviewEl.textContent = String(payload?.under_review ?? 0);
+      statAcceptedEl.textContent = String(payload?.accepted ?? 0);
+      statRejectedEl.textContent = String(payload?.rejected ?? 0);
+      statWithdrawnEl.textContent = String(payload?.withdrawn ?? 0);
+      if (statsMetaEl) {
+        const latest = payload?.latest_updated_at ? fmtDate(payload.latest_updated_at) : "";
+        statsMetaEl.textContent = latest
+          ? "Ultima actualizacion: " + latest
+          : "Ultima actualizacion: n/a";
+      }
+    }
+
+    async function loadStats() {
+      if (!statTotalEl) return;
+      try {
+        const response = await fetch(baseEndpoint + "/stats", {
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+          throw new Error("stats_unavailable");
+        }
+        const payload = await response.json();
+        applyStats(payload);
+      } catch (error) {
+        if (statsMetaEl) {
+          statsMetaEl.textContent = "Ultima actualizacion: n/a";
+        }
+      }
     }
 
     function row(text) {
@@ -625,6 +704,7 @@ Moderacion CFP · {event.title}
             item.updated_at = payload.item.updated_at || item.updated_at;
             scoreChip.textContent = scoreLabel(payload.item);
           }
+          await loadStats();
         } catch (error) {
           if ((error.message || "").includes("stale_submission")) {
             window.alert("Otro moderador ya actualizo esta propuesta. Recarga la cola.");
@@ -698,6 +778,7 @@ Moderacion CFP · {event.title}
           listEl.appendChild(buildSubmissionCard(item));
         });
         updateListPagination();
+        loadStats();
       } catch (error) {
         totalItems = 0;
         hasMoreItems = false;
