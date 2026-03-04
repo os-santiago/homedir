@@ -215,11 +215,7 @@ public class CfpSubmissionService {
       if (normalizedEventId == null || userIds == null || userIds.isEmpty()) {
         return List.of();
       }
-      Set<String> normalizedUserIds =
-          userIds.stream()
-              .map(CfpSubmissionService::sanitizeUserId)
-              .filter(item -> item != null)
-              .collect(java.util.stream.Collectors.toSet());
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
       if (normalizedUserIds.isEmpty()) {
         return List.of();
       }
@@ -231,6 +227,51 @@ public class CfpSubmissionService {
               .sorted(Comparator.comparing(CfpSubmission::createdAt, createdComparator))
               .toList();
       return paginate(filtered, requestedLimit, requestedOffset);
+    }
+  }
+
+  public int countByEvent(String eventId, Optional<CfpSubmissionStatus> statusFilter) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        return 0;
+      }
+      int count = 0;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedEventId.equals(item.eventId())) {
+          continue;
+        }
+        if (statusFilter.isPresent() && item.status() != statusFilter.get()) {
+          continue;
+        }
+        count++;
+      }
+      return count;
+    }
+  }
+
+  public int countMine(String eventId, Set<String> userIds) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null || userIds == null || userIds.isEmpty()) {
+        return 0;
+      }
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
+      if (normalizedUserIds.isEmpty()) {
+        return 0;
+      }
+      int count = 0;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedEventId.equals(item.eventId())) {
+          continue;
+        }
+        if (normalizedUserIds.contains(item.proposerUserId())) {
+          count++;
+        }
+      }
+      return count;
     }
   }
 
@@ -662,6 +703,13 @@ public class CfpSubmissionService {
     }
     int end = Math.min(source.size(), offset + limit);
     return source.subList(offset, end);
+  }
+
+  private static Set<String> normalizeUserIds(Set<String> userIds) {
+    return userIds.stream()
+        .map(CfpSubmissionService::sanitizeUserId)
+        .filter(item -> item != null)
+        .collect(java.util.stream.Collectors.toSet());
   }
 
   public record CreateRequest(

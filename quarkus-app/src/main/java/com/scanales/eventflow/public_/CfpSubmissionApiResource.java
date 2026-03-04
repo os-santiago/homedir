@@ -117,7 +117,10 @@ public class CfpSubmissionApiResource {
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
         cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream().map(this::toView).toList();
-    return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
+    int total = cfpSubmissionService.countMine(eventId, userIds);
+    boolean hasMore = offset + items.size() < total;
+    Integer nextOffset = hasMore ? offset + items.size() : null;
+    return Response.ok(new SubmissionListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
   }
   @GET
   @Path("/config")
@@ -363,7 +366,10 @@ public class CfpSubmissionApiResource {
         cfpSubmissionService.listByEvent(eventId, statusFilter, sortOrder, limit, offset).stream()
             .map(this::toView)
             .toList();
-    return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
+    int total = cfpSubmissionService.countByEvent(eventId, statusFilter);
+    boolean hasMore = offset + items.size() < total;
+    Integer nextOffset = hasMore ? offset + items.size() : null;
+    return Response.ok(new SubmissionListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
   }
 
   @GET
@@ -786,7 +792,13 @@ public class CfpSubmissionApiResource {
 
   public record SubmissionResponse(SubmissionView item) {}
 
-  public record SubmissionListResponse(int limit, int offset, List<SubmissionView> items) {}
+  public record SubmissionListResponse(
+      int limit,
+      int offset,
+      int total,
+      @JsonProperty("has_more") boolean hasMore,
+      @JsonProperty("next_offset") Integer nextOffset,
+      List<SubmissionView> items) {}
   public record SubmissionLimitConfigUpdateRequest(
       @JsonProperty("max_per_user") Integer maxPerUser,
       @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled) {}
