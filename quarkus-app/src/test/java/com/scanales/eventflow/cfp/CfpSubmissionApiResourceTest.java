@@ -86,9 +86,123 @@ public class CfpSubmissionApiResourceTest {
         .get("/api/events/" + EVENT_ID + "/cfp/submissions/mine?limit=10&offset=0")
         .then()
         .statusCode(200)
+        .body("total", equalTo(1))
+        .body("has_more", equalTo(false))
+        .body("next_offset", org.hamcrest.Matchers.nullValue())
         .body("items", hasSize(1))
         .body("items[0].title", equalTo("Cloud Native Platform Stories"))
         .body("items[0].track", equalTo("platform-engineering-idp"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void moderationListExposesPaginationMetadata() {
+    cfpSubmissionService.create(
+        "member-1@example.com",
+        "Member 1",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Submission one",
+            "Summary",
+            "Abstract",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            List.of(),
+            List.of()));
+    cfpSubmissionService.create(
+        "member-2@example.com",
+        "Member 2",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Submission two",
+            "Summary",
+            "Abstract",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            List.of(),
+            List.of()));
+    cfpSubmissionService.create(
+        "member-3@example.com",
+        "Member 3",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Submission three",
+            "Summary",
+            "Abstract",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            List.of(),
+            List.of()));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=created&limit=2&offset=0")
+        .then()
+        .statusCode(200)
+        .body("limit", equalTo(2))
+        .body("offset", equalTo(0))
+        .body("total", equalTo(3))
+        .body("has_more", equalTo(true))
+        .body("next_offset", equalTo(2))
+        .body("items", hasSize(2));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void mineEndpointExposesPaginationMetadata() {
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Mine one",
+            "Summary",
+            "Abstract",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            List.of(),
+            List.of()));
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Mine two",
+            "Summary",
+            "Abstract",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            List.of(),
+            List.of()));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/mine?limit=1&offset=0")
+        .then()
+        .statusCode(200)
+        .body("limit", equalTo(1))
+        .body("offset", equalTo(0))
+        .body("total", equalTo(2))
+        .body("has_more", equalTo(true))
+        .body("next_offset", equalTo(1))
+        .body("items", hasSize(1));
   }
 
   @Test
@@ -743,6 +857,9 @@ public class CfpSubmissionApiResourceTest {
         .get("/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=score&limit=10&offset=0")
         .then()
         .statusCode(200)
+        .body("total", equalTo(2))
+        .body("has_more", equalTo(false))
+        .body("next_offset", org.hamcrest.Matchers.nullValue())
         .body("items", hasSize(2))
         .body("items[0].id", equalTo(high.id()))
         .body("items[1].id", equalTo(low.id()));
