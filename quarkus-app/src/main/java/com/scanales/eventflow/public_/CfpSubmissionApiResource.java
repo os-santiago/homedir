@@ -424,7 +424,11 @@ public class CfpSubmissionApiResource {
       }
       CfpSubmission updated =
           cfpSubmissionService.updateStatus(
-              id, status.get(), currentUserId().orElse("admin"), request != null ? request.note() : null);
+              id,
+              status.get(),
+              currentUserId().orElse("admin"),
+              request != null ? request.note() : null,
+              request != null ? request.expectedUpdatedAt() : null);
       metrics.recordFunnelStep("cfp.submission.status");
       metrics.recordFunnelStep("cfp.submission.status." + status.get().apiValue());
       if (status.get() == CfpSubmissionStatus.ACCEPTED) {
@@ -437,7 +441,9 @@ public class CfpSubmissionApiResource {
     } catch (CfpSubmissionService.InvalidTransitionException e) {
       return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      Response.Status statusCode =
+          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+      return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
@@ -467,12 +473,15 @@ public class CfpSubmissionApiResource {
               request.technicalDetail(),
               request.narrative(),
               request.contentImpact(),
-              currentUserId().orElse("admin"));
+              currentUserId().orElse("admin"),
+              request.expectedUpdatedAt());
       return Response.ok(new SubmissionResponse(toView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      Response.Status statusCode =
+          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+      return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
@@ -777,12 +786,16 @@ public class CfpSubmissionApiResource {
       List<String> tags,
       List<String> links) {}
 
-  public record UpdateStatusRequest(String status, String note) {}
+  public record UpdateStatusRequest(
+      String status,
+      String note,
+      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record UpdateRatingRequest(
       @JsonProperty("technical_detail") Integer technicalDetail,
       Integer narrative,
-      @JsonProperty("content_impact") Integer contentImpact) {}
+      @JsonProperty("content_impact") Integer contentImpact,
+      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record PromoteResponse(
       @JsonProperty("speaker_id") String speakerId,

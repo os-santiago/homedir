@@ -10,6 +10,7 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.PersistenceService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -221,6 +222,43 @@ public class CfpSubmissionServiceTest {
         () ->
             cfpSubmissionService.updateStatus(
                 created.id(), CfpSubmissionStatus.PENDING, "admin@example.org", "rollback"));
+  }
+
+  @Test
+  void statusUpdateRejectsStaleWriteWhenExpectedVersionDoesNotMatch() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stale status check",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+    Instant expectedUpdatedAt = created.updatedAt();
+
+    cfpSubmissionService.updateStatus(
+        created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.updateStatus(
+                    created.id(),
+                    CfpSubmissionStatus.ACCEPTED,
+                    "admin@example.org",
+                    "accepted",
+                    expectedUpdatedAt));
+
+    assertEquals("stale_submission", exception.getMessage());
   }
 
   @Test
@@ -594,6 +632,44 @@ public class CfpSubmissionServiceTest {
     CfpSubmission persisted = persistenceService.loadCfpSubmissions().get(created.id());
     assertNotNull(persisted);
     assertEquals(4.7d, CfpSubmissionService.calculateWeightedScore(persisted));
+  }
+
+  @Test
+  void ratingUpdateRejectsStaleWriteWhenExpectedVersionDoesNotMatch() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stale rating check",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+    Instant expectedUpdatedAt = created.updatedAt();
+
+    cfpSubmissionService.updateRating(EVENT_ID, created.id(), 4, 4, 4, "admin@example.org");
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.updateRating(
+                    EVENT_ID,
+                    created.id(),
+                    5,
+                    5,
+                    5,
+                    "admin@example.org",
+                    expectedUpdatedAt));
+
+    assertEquals("stale_submission", exception.getMessage());
   }
 
   @Test

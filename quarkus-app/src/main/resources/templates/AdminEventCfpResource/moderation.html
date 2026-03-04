@@ -401,7 +401,7 @@ Moderacion CFP · {event.title}
       }
     }
 
-    async function updateStatus(submissionId, nextStatus, noteField) {
+    async function updateStatus(submissionId, nextStatus, noteField, expectedUpdatedAt) {
       const note = noteField ? String(noteField.value || "").trim() : "";
       const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/status", {
         method: "PUT",
@@ -409,7 +409,11 @@ Moderacion CFP · {event.title}
           "Content-Type": "application/json",
           Accept: "application/json"
         },
-        body: JSON.stringify({ status: nextStatus, note: note })
+        body: JSON.stringify({
+          status: nextStatus,
+          note: note,
+          expected_updated_at: expectedUpdatedAt || null
+        })
       });
       if (!response.ok) {
         let detail = "";
@@ -424,14 +428,14 @@ Moderacion CFP · {event.title}
       }
     }
 
-    async function updateRating(submissionId, rating) {
+    async function updateRating(submissionId, rating, expectedUpdatedAt) {
       const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/rating", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json"
         },
-        body: JSON.stringify(rating)
+        body: JSON.stringify(Object.assign({}, rating, { expected_updated_at: expectedUpdatedAt || null }))
       });
       if (!response.ok) {
         let detail = "";
@@ -589,10 +593,14 @@ Moderacion CFP · {event.title}
         btn.addEventListener("click", async () => {
           btn.disabled = true;
           try {
-            await updateStatus(item.id, targetStatus, note);
+            await updateStatus(item.id, targetStatus, note, item.updated_at);
             await loadList();
           } catch (error) {
-            window.alert(error.message || "Error actualizando estado");
+            if ((error.message || "").includes("stale_submission")) {
+              window.alert("Otro moderador ya actualizo esta propuesta. Recarga la cola.");
+            } else {
+              window.alert(error.message || "Error actualizando estado");
+            }
           } finally {
             btn.disabled = false;
           }
@@ -611,13 +619,18 @@ Moderacion CFP · {event.title}
             technical_detail: Number(technical.select.value),
             narrative: Number(narrative.select.value),
             content_impact: Number(impact.select.value)
-          });
+          }, item.updated_at);
           if (payload && payload.item) {
             item.rating_weighted = payload.item.rating_weighted;
+            item.updated_at = payload.item.updated_at || item.updated_at;
             scoreChip.textContent = scoreLabel(payload.item);
           }
         } catch (error) {
-          window.alert(error.message || "Error guardando rating");
+          if ((error.message || "").includes("stale_submission")) {
+            window.alert("Otro moderador ya actualizo esta propuesta. Recarga la cola.");
+          } else {
+            window.alert(error.message || "Error guardando rating");
+          }
         } finally {
           saveRatingBtn.disabled = false;
         }
