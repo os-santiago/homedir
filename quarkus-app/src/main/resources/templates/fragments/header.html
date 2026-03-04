@@ -121,10 +121,10 @@
   </div>
 </nav>
 <div class="alpha-banner">
-  <span class="alpha-badge">ALPHA v{app:version()}</span>
+  <span class="alpha-badge">{#if activePage == 'proyectos' || activePage == 'about'}ALPHA v{app:version()}{#else}HomeDir v{app:version()}{/if}</span>
   · <a href="https://github.com/os-santiago/homedir" target="_blank"
     class="link-white-underline">{i18n:header_alpha_repo}</a>
-  · <span class="text-opacity-80">{i18n:header_alpha_text}</span>
+  · <span class="text-opacity-80">{#if activePage == 'proyectos' || activePage == 'about'}{i18n:header_alpha_text}{#else}{i18n:header_release_text}{/if}</span>
 </div>
 {#if system.degraded}
 <div class="system-banner">

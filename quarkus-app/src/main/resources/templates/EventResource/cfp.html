@@ -22,6 +22,15 @@
     <h1 class="public-title">{i18n:events_cfp_heading}</h1>
   </div>
   <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
+  {#if !cfpTestingModeEnabled}
+  <div class="cfp-live-banner" role="note" aria-label="{i18n:events_cfp_live_aria}">
+    <span class="cfp-live-badge">{i18n:events_cfp_live_badge}</span>
+    <div>
+      <p class="cfp-live-title">{i18n:events_cfp_live_title}</p>
+      <p class="cfp-live-desc">{i18n:events_cfp_live_desc}</p>
+    </div>
+  </div>
+  {/if}
 </header>
 
 <section class="page-grid">
@@ -355,6 +364,45 @@
     border-radius: var(--radius-sm);
     border: 1px solid rgba(255, 213, 79, 0.45);
     background: rgba(255, 213, 79, 0.08);
+  }
+
+  .cfp-live-banner {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    border: 1px solid rgba(90, 193, 132, 0.5);
+    background: rgba(26, 48, 37, 0.72);
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+  }
+
+  .cfp-live-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(90, 193, 132, 0.8);
+    background: rgba(90, 193, 132, 0.16);
+    color: #d9ffe7;
+    font-weight: 800;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cfp-live-title {
+    margin: 0;
+    font-weight: 700;
+    color: #e8fff2;
+  }
+
+  .cfp-live-desc {
+    margin: 0.15rem 0 0;
+    color: rgba(223, 244, 233, 0.92);
+    font-size: 0.9rem;
   }
 
   .cfp-testing-badge {
