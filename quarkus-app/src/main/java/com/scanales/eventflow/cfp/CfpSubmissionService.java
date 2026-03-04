@@ -287,12 +287,18 @@ public class CfpSubmissionService {
   }
 
   public CfpSubmission updateStatus(String id, CfpSubmissionStatus newStatus, String moderator, String note) {
+    return updateStatus(id, newStatus, moderator, note, null);
+  }
+
+  public CfpSubmission updateStatus(
+      String id, CfpSubmissionStatus newStatus, String moderator, String note, Instant expectedUpdatedAt) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       if (newStatus == null) {
         throw new ValidationException("status_required");
       }
       CfpSubmission current = findOrThrow(id);
+      validateExpectedUpdatedAt(current, expectedUpdatedAt);
       if (!isTransitionAllowed(current.status(), newStatus)) {
         throw new InvalidTransitionException("invalid_status_transition");
       }
@@ -357,6 +363,17 @@ public class CfpSubmissionService {
       Integer narrative,
       Integer contentImpact,
       String moderator) {
+    return updateRating(eventId, id, technicalDetail, narrative, contentImpact, moderator, null);
+  }
+
+  public CfpSubmission updateRating(
+      String eventId,
+      String id,
+      Integer technicalDetail,
+      Integer narrative,
+      Integer contentImpact,
+      String moderator,
+      Instant expectedUpdatedAt) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -367,6 +384,7 @@ public class CfpSubmissionService {
       if (!normalizedEventId.equals(current.eventId())) {
         throw new NotFoundException("submission_not_found");
       }
+      validateExpectedUpdatedAt(current, expectedUpdatedAt);
 
       int normalizedTechnical = normalizeRating(technicalDetail, "invalid_rating_technical_detail");
       int normalizedNarrative = normalizeRating(narrative, "invalid_rating_narrative");
@@ -401,6 +419,16 @@ public class CfpSubmissionService {
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
+    }
+  }
+
+  private static void validateExpectedUpdatedAt(CfpSubmission current, Instant expectedUpdatedAt) {
+    if (expectedUpdatedAt == null || current == null) {
+      return;
+    }
+    Instant currentUpdatedAt = current.updatedAt();
+    if (!Objects.equals(currentUpdatedAt, expectedUpdatedAt)) {
+      throw new ValidationException("stale_submission");
     }
   }
   public CfpSubmission delete(String eventId, String id) {

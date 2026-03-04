@@ -12,6 +12,7 @@ import com.scanales.eventflow.service.SpeakerService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -400,6 +401,46 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "admin@example.org")
+  void statusUpdateRejectsStaleVersionConflict() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Conflict status proposal",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    Instant staleVersion = created.updatedAt();
+    cfpSubmissionService.updateStatus(
+        created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "status":"accepted",
+              "note":"approved",
+              "expected_updated_at":"%s"
+            }
+            """.formatted(staleVersion))
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/status")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("stale_submission"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
   void adminCanPromoteAcceptedSubmissionToCatalog() {
     CfpSubmission created =
         cfpSubmissionService.create(
@@ -444,6 +485,46 @@ public class CfpSubmissionApiResourceTest {
 
     assertNotNull(speakerService.getSpeaker(speakerId));
     assertNotNull(speakerService.getTalk(speakerId, talkId));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void ratingUpdateRejectsStaleVersionConflict() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Conflict rating proposal",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    Instant staleVersion = created.updatedAt();
+    cfpSubmissionService.updateRating(EVENT_ID, created.id(), 2, 2, 2, "admin@example.org");
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "technical_detail":5,
+              "narrative":5,
+              "content_impact":5,
+              "expected_updated_at":"%s"
+            }
+            """.formatted(staleVersion))
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/rating")
+        .then()
+        .statusCode(409)
+        .body("error", equalTo("stale_submission"));
   }
 
   @Test
