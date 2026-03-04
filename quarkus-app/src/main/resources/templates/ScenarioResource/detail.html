@@ -42,9 +42,9 @@
     {#if talks.isEmpty()}
     <p class="event-description">{i18n:events_scenario_no_talks}</p>
     {#else}
-    <ul class="talk-list">
+    <ul class="talk-list scenario-talk-list">
       {#for t in talks}
-      <li class="card talk-card">
+      <li class="scenario-talk-card">
         <h3 class="talk-title">{t.name}</h3>
 
         {#if !t.break && !t.speakers.isEmpty()}
