@@ -27,8 +27,11 @@ public class CfpFormOptionsService {
   @ConfigProperty(name = "cfp.form.languages", defaultValue = "en|English,es|Spanish")
   String languagesRaw;
 
-  @ConfigProperty(name = "cfp.form.tracks", defaultValue = "ai-agents-copilots|AI Agents & Copilots in Production,platform-engineering-idp|Platform Engineering & Internal Developer Platforms,cloud-native-security|Cloud Native Security & Supply Chain,developer-experience-innersource|Developer Experience & InnerSource,data-ai-platforms-llmops|Data/AI Platforms & LLMOps")
+  @ConfigProperty(name = "cfp.form.tracks", defaultValue = "ai-agents-copilots|AI Agents & Copilots in Production,platform-engineering-idp|Platform Engineering & Internal Developer Platforms,cloud-native-security|Cloud Native Security & Supply Chain,developer-experience-innersource|Developer Experience & InnerSource,data-ai-platforms-llmops|Data/AI Platforms & LLMOps,sre-observability-reliability|SRE, Observability & Reliability,engineering-culture|Engineering Culture & Team Practices,success-cases|Success Cases")
   String tracksRaw;
+
+  @ConfigProperty(name = "cfp.form.tracks.max-items", defaultValue = "8")
+  int tracksMaxItems;
 
   @ConfigProperty(name = "cfp.form.duration-by-format", defaultValue = "talk=30,workshop=90,panel=60,lightning-talk=15")
   String durationByFormatRaw;
@@ -126,7 +129,8 @@ public class CfpFormOptionsService {
     List<CfpFormOption> formats = parseOptions(formatsRaw, true, 8);
     List<CfpFormOption> durations = parseDurations(durationsRaw, 8);
     List<CfpFormOption> languages = parseOptions(languagesRaw, true, 8);
-    List<CfpFormOption> tracks = parseOptions(tracksRaw, true, 5);
+    int trackLimit = Math.max(1, Math.min(tracksMaxItems, 20));
+    List<CfpFormOption> tracks = parseOptions(tracksRaw, true, trackLimit);
 
     if (levels.isEmpty()) {
       levels = List.of(new CfpFormOption("intermediate", "Intermediate"));
