@@ -667,6 +667,18 @@ public interface AppMessages {
     @Message("CFP testing notice")
     String events_cfp_testing_aria();
 
+    @Message("Live")
+    String events_cfp_live_badge();
+
+    @Message("Call for Papers is officially open")
+    String events_cfp_live_title();
+
+    @Message("Submit your proposal and follow moderation updates from this page.")
+    String events_cfp_live_desc();
+
+    @Message("CFP official status notice")
+    String events_cfp_live_aria();
+
     @Message("CFP: testing mode")
     String events_cfp_admin_testing_title();
 
@@ -1902,8 +1914,11 @@ public interface AppMessages {
     @Message("Alpha Repo")
     String header_alpha_repo();
 
-    @Message("This is an alpha version. Things might break.")
+    @Message("DevRel, OpenSource, InnerSource Community Platform")
     String header_alpha_text();
+
+    @Message("Stable public channel for releases and community updates")
+    String header_release_text();
 
     @Message("Header Navigation")
     String header_aria_label();
