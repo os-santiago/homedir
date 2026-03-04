@@ -669,6 +669,36 @@ public class CfpSubmissionApiResourceTest {
   }
 
   @Test
+  @TestSecurity(user = "admin@example.org")
+  void rejectStatusWithoutNoteReturnsBadRequest() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Reject note required",
+                "Summary",
+                "Long abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "data-ai-platforms-llmops",
+                List.of(),
+                List.of()));
+
+    given()
+        .contentType("application/json")
+        .body("{\"status\":\"rejected\",\"note\":\"   \"}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/status")
+        .then()
+        .statusCode(400)
+        .body("error", equalTo("reject_note_required"));
+  }
+
+  @Test
   @TestSecurity(user = "member@example.com")
   void createRejectsThirdProposalWithConflict() {
     for (int i = 1; i <= 2; i++) {

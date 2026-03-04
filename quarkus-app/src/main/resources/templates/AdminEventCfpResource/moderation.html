@@ -385,6 +385,7 @@
       ratingImpact: "{i18n:events_cfp_admin_rating_impact}",
       moderationNotePlaceholder: "{i18n:events_cfp_admin_note_placeholder}",
       staleSubmissionError: "{i18n:events_cfp_admin_error_stale_submission}",
+      rejectNoteRequiredError: "{i18n:events_cfp_admin_error_reject_note_required}",
       updateStatusError: "{i18n:events_cfp_admin_error_update_status}",
       saveRatingError: "{i18n:events_cfp_admin_error_save_rating}",
       promoteError: "{i18n:events_cfp_admin_error_promote}",
@@ -532,14 +533,18 @@
         })
       });
       if (!response.ok) {
-        let detail = "";
+        let errorCode = "";
         try {
           const payload = await response.json();
           if (payload && payload.error) {
-            detail = " (" + payload.error + ")";
+            errorCode = String(payload.error);
           }
         } catch (e) {
         }
+        if (errorCode === "reject_note_required") {
+          throw new Error(i18n.rejectNoteRequiredError);
+        }
+        const detail = errorCode ? " (" + errorCode + ")" : "";
         throw new Error(i18n.updateStatusError + detail);
       }
     }

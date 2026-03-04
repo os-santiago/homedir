@@ -343,6 +343,9 @@ public class CfpSubmissionService {
       if (normalizedNote == null) {
         normalizedNote = current.moderationNote();
       }
+      if (newStatus == CfpSubmissionStatus.REJECTED && (normalizedNote == null || normalizedNote.isBlank())) {
+        throw new ValidationException("reject_note_required");
+      }
 
       boolean statusChanged = current.status() != newStatus;
       boolean moderatorChanged = !Objects.equals(normalizedModerator, current.moderatedBy());

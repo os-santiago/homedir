@@ -226,6 +226,35 @@ public class CfpSubmissionServiceTest {
   }
 
   @Test
+  void rejectStatusRequiresModerationNote() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Reject note guardrail",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.updateStatus(
+                    created.id(), CfpSubmissionStatus.REJECTED, "admin@example.org", " "));
+
+    assertEquals("reject_note_required", exception.getMessage());
+  }
+
+  @Test
   void statusUpdateRejectsStaleWriteWhenExpectedVersionDoesNotMatch() {
     CfpSubmission created =
         cfpSubmissionService.create(
