@@ -20,12 +20,14 @@ public class CfpSubmissionServiceTest {
   private static final String EVENT_ID = "cfp-event-1";
 
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject CfpEventConfigService cfpEventConfigService;
   @Inject EventService eventService;
   @Inject PersistenceService persistenceService;
 
   @BeforeEach
   void setup() {
     cfpSubmissionService.clearAllForTests();
+    cfpEventConfigService.resetForTests();
     eventService.reset();
     Event event = new Event(EVENT_ID, "CFP Event", "Event for CFP tests");
     eventService.saveEvent(event);
@@ -308,6 +310,90 @@ public class CfpSubmissionServiceTest {
   }
 
   @Test
+  void createAppliesEventSpecificMaxSubmissionsLimit() {
+    cfpEventConfigService.upsert(
+        EVENT_ID,
+        new CfpEventConfigService.UpdateRequest(
+            true,
+            null,
+            null,
+            1,
+            null));
+
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk A",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.create(
+                    "member@example.com",
+                    "Member",
+                    new CfpSubmissionService.CreateRequest(
+                        EVENT_ID,
+                        "Talk B",
+                        "Summary",
+                        "Abstract",
+                        "intermediate",
+                        "talk",
+                        30,
+                        "en",
+                        "platform-engineering-idp",
+                        java.util.List.of(),
+                        java.util.List.of())));
+
+    assertEquals("proposal_limit_reached", exception.getMessage());
+  }
+
+  @Test
+  void createRejectsSubmissionsWhenEventWindowIsClosed() {
+    cfpEventConfigService.upsert(
+        EVENT_ID,
+        new CfpEventConfigService.UpdateRequest(
+            false,
+            null,
+            null,
+            null,
+            null));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.create(
+                    "member@example.com",
+                    "Member",
+                    new CfpSubmissionService.CreateRequest(
+                        EVENT_ID,
+                        "Closed window talk",
+                        "Summary",
+                        "Abstract",
+                        "intermediate",
+                        "talk",
+                        30,
+                        "en",
+                        "platform-engineering-idp",
+                        java.util.List.of(),
+                        java.util.List.of())));
+
+    assertEquals("submissions_closed", exception.getMessage());
+  }
+
+  @Test
   void createRejectsDuplicateTitleForSameUserAndEvent() {
     cfpSubmissionService.create(
         "member@example.com",
@@ -562,4 +648,3 @@ public class CfpSubmissionServiceTest {
     assertEquals(low.id(), ordered.get(1).id());
   }
 }
-

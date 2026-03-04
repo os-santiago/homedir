@@ -685,6 +685,90 @@ public interface AppMessages {
     @Message("Could not update testing mode right now.")
     String events_cfp_admin_testing_error();
 
+    @Message("CFP: event configuration")
+    String events_cfp_admin_event_config_title();
+
+    @Message("Control submission window, event-specific limits, and optional testing override for this event.")
+    String events_cfp_admin_event_config_desc();
+
+    @Message("Accept submissions")
+    String events_cfp_admin_event_config_accepting_label();
+
+    @Message("Opens at")
+    String events_cfp_admin_event_config_opens_label();
+
+    @Message("Closes at")
+    String events_cfp_admin_event_config_closes_label();
+
+    @Message("Max proposals per user (override)")
+    String events_cfp_admin_event_config_max_label();
+
+    @Message("Use global limit")
+    String events_cfp_admin_event_config_max_placeholder();
+
+    @Message("Testing mode override")
+    String events_cfp_admin_event_config_testing_override_label();
+
+    @Message("Inherit global setting")
+    String events_cfp_admin_event_config_testing_override_inherit();
+
+    @Message("Force enabled")
+    String events_cfp_admin_event_config_testing_override_on();
+
+    @Message("Force disabled")
+    String events_cfp_admin_event_config_testing_override_off();
+
+    @Message("Save override")
+    String events_cfp_admin_event_config_save();
+
+    @Message("Clear override")
+    String events_cfp_admin_event_config_clear();
+
+    @Message("Event override saved.")
+    String events_cfp_admin_event_config_saved();
+
+    @Message("Event override cleared.")
+    String events_cfp_admin_event_config_cleared();
+
+    @Message("Could not update event CFP configuration right now.")
+    String events_cfp_admin_event_config_error();
+
+    @Message("Open now")
+    String events_cfp_admin_event_config_summary_open();
+
+    @Message("Closed now")
+    String events_cfp_admin_event_config_summary_closed();
+
+    @Message("Max/user:")
+    String events_cfp_admin_event_config_summary_max();
+
+    @Message("Testing notice: ON")
+    String events_cfp_admin_event_config_summary_testing_on();
+
+    @Message("Testing notice: OFF")
+    String events_cfp_admin_event_config_summary_testing_off();
+
+    @Message("Event override: ON")
+    String events_cfp_admin_event_config_summary_override_on();
+
+    @Message("Event override: OFF")
+    String events_cfp_admin_event_config_summary_override_off();
+
+    @Message("CFP submissions are currently closed for this event.")
+    String events_cfp_closed_hint();
+
+    @Message("CFP submissions are currently closed.")
+    String events_cfp_error_closed();
+
+    @Message("Window")
+    String events_cfp_window_label();
+
+    @Message("Opens")
+    String events_cfp_window_open();
+
+    @Message("Closes")
+    String events_cfp_window_close();
+
     @Message("Agenda: proposed mode")
     String events_agenda_admin_proposed_title();
 
@@ -1089,6 +1173,18 @@ public interface AppMessages {
     @Message("Project")
     String nav_projects();
 
+    @Message("Beta")
+    String nav_beta();
+
+    @Message("Mode")
+    String mode_switch_label();
+
+    @Message("Classic")
+    String mode_switch_classic();
+
+    @Message("RPG (Experimental)")
+    String mode_switch_rpg_experimental();
+
     @Message("Home")
     String nav_home();
 
@@ -1295,6 +1391,15 @@ public interface AppMessages {
 
     @Message("Curated picks")
     String community_pulse_curated_picks();
+
+    @Message("Discord live")
+    String community_discord_preview_label();
+
+    @Message("online now")
+    String community_discord_preview_online();
+
+    @Message("Open Discord board")
+    String community_discord_preview_cta();
 
     @Message("Featured")
     String community_view_featured();
@@ -1800,6 +1905,18 @@ public interface AppMessages {
     @Message("Deselect all")
     String notifications_center_js_deselect_all();
 
+    @Message("What you will see here")
+    String notifications_center_js_sample_title();
+
+    @Message("New event or agenda update is published.")
+    String notifications_center_js_sample_event();
+
+    @Message("A community pick you follow receives traction.")
+    String notifications_center_js_sample_community();
+
+    @Message("Important project release and delivery updates.")
+    String notifications_center_js_sample_project();
+
     @Message("Signed in as")
     String nav_signed_in_as();
 
@@ -2002,6 +2119,99 @@ public interface AppMessages {
 
     @Message("See what changed today and choose your next contribution lane.")
     String home_highlights_intro();
+
+    @Message("Since your last visit")
+    String home_today_eyebrow();
+
+    @Message("Your community today")
+    String home_today_title();
+
+    @Message("A quick pulse of what changed in the last 24 hours so you can jump into impact faster.")
+    String home_today_intro();
+
+    @Message("Account status:")
+    String home_today_account_status_prefix();
+
+    @Message("HomeDir active")
+    String home_today_account_status_homedir();
+
+    @Message("GitHub linked")
+    String home_today_account_status_github_linked();
+
+    @Message("Link GitHub")
+    String home_today_account_status_github_missing();
+
+    @Message("Discord linked")
+    String home_today_account_status_discord_linked();
+
+    @Message("Link Discord")
+    String home_today_account_status_discord_missing();
+
+    @Message("Open profile setup")
+    String home_today_account_status_cta();
+
+    @Message("Starter track")
+    String home_starter_track_title();
+
+    @Message("{completed}/3 completed")
+    String home_starter_track_progress(int completed);
+
+    @Message("GitHub linked")
+    String home_starter_task_github_done();
+
+    @Message("Link GitHub")
+    String home_starter_task_github_todo();
+
+    @Message("Discord linked")
+    String home_starter_task_discord_done();
+
+    @Message("Link Discord")
+    String home_starter_task_discord_todo();
+
+    @Message("First Community vote done")
+    String home_starter_task_vote_done();
+
+    @Message("Vote one Community Pick")
+    String home_starter_task_vote_todo();
+
+    @Message("Open Community Picks")
+    String home_starter_track_picks_cta();
+
+    @Message("First visit today")
+    String home_today_since_first();
+
+    @Message("Last visit")
+    String home_today_since_last_prefix();
+
+    @Message("Fresh picks")
+    String home_today_card_picks_chip();
+
+    @Message("curated picks in the last 24h")
+    String home_today_card_picks_desc();
+
+    @Message("Member pulse")
+    String home_today_card_members_chip();
+
+    @Message("member-submitted picks in the last 24h")
+    String home_today_card_members_desc();
+
+    @Message("Events")
+    String home_today_card_events_chip();
+
+    @Message("upcoming events currently visible")
+    String home_today_card_events_desc();
+
+    @Message("Lightning threads")
+    String home_today_card_lta_chip();
+
+    @Message("new LTA threads in the last 24h")
+    String home_today_card_lta_desc();
+
+    @Message("Community Board")
+    String home_today_card_board_chip();
+
+    @Message("members listed in HomeDir users")
+    String home_today_card_board_desc();
 
     @Message("Get started")
     String home_login_value_eyebrow();
@@ -2264,7 +2474,7 @@ public interface AppMessages {
     @Message("total contributions")
     String home_project_total_contributions();
 
-    @Message("Latest release")
+    @Message("Deployed runtime")
     String home_project_release_label();
 
     @Message("Latest commit")
@@ -2278,6 +2488,246 @@ public interface AppMessages {
 
     @Message("No contributor data available at the moment.")
     String home_project_no_data();
+
+    @Message("Beta Lab · HomeDir")
+    String beta_title();
+
+    @Message("Beta · Isometric MVP")
+    String beta_subtitle();
+
+    @Message("Homedir Virtual Campus")
+    String beta_hero_title();
+
+    @Message("Explore a lightweight 2D isometric map and jump into Community, Events, Project, and Profile.")
+    String beta_hero_desc();
+
+    @Message("Experimental MVP. We are testing a low-overhead gamified navigation loop before scaling.")
+    String beta_mvp_notice();
+
+    @Message("Campus Map")
+    String beta_map_title();
+
+    @Message("Move with arrows/WASD, click a hotspot, and open the section directly.")
+    String beta_map_desc();
+
+    @Message("Community")
+    String beta_zone_community();
+
+    @Message("Events")
+    String beta_zone_events();
+
+    @Message("Project")
+    String beta_zone_project();
+
+    @Message("Profile")
+    String beta_zone_profile();
+
+    @Message("Open selected zone")
+    String beta_zone_open();
+
+    @Message("Visited zones: {count}/4")
+    String beta_zone_visit_state(int count);
+
+    @Message("Visited zones: {0}/4")
+    String beta_zone_visit_prefix();
+
+    @Message("Visited")
+    String beta_zone_visit_counter_label();
+
+    @Message("No zone selected yet.")
+    String beta_zone_selected_none();
+
+    @Message("Selected zone: {zone}")
+    String beta_zone_selected_label(String zone);
+
+    @Message("Selected zone: {0}")
+    String beta_zone_selected_prefix();
+
+    @Message("Visited")
+    String beta_zone_visited_badge();
+
+    @Message("Curated picks, LTA, and community moderation loops.")
+    String beta_zone_community_desc();
+
+    @Message("Upcoming activities, agenda previews, and CFP workflows.")
+    String beta_zone_events_desc();
+
+    @Message("Delivery metrics, releases, and technical capability map.")
+    String beta_zone_project_desc();
+
+    @Message("Identity, class progress, rewards, and account linking.")
+    String beta_zone_profile_desc();
+
+    @Message("Zone preview")
+    String beta_preview_title();
+
+    @Message("Select a location to preview the area before visiting.")
+    String beta_preview_default_desc();
+
+    @Message("Sign in to map these interactions to your profile progression.")
+    String beta_login_hint();
+
+    @Message("Sign in now")
+    String beta_login_cta();
+
+    @Message("Quick controls")
+    String beta_controls_title();
+
+    @Message("Reset local progress")
+    String beta_controls_reset();
+
+    @Message("Move with arrow keys or WASD")
+    String beta_controls_move();
+
+    @Message("Select zones by clicking hotspot cards or map markers")
+    String beta_controls_click();
+
+    @Message("Select a zone first.")
+    String beta_js_open_first();
+
+    @Message("Login required to enter buildings")
+    String beta_js_hint_locked();
+
+    @Message("Click or step on a district to enter")
+    String beta_js_hint_enter();
+
+    @Message("Open section")
+    String beta_js_open_section();
+
+    @Message("Open")
+    String beta_js_open_card();
+
+    @Message("inside")
+    String beta_js_inside_suffix();
+
+    @Message("INTERIOR")
+    String beta_js_interior_suffix();
+
+    @Message("Back to town")
+    String beta_js_back_town();
+
+    @Message("Inventory")
+    String beta_js_inventory_label();
+
+    @Message("Deliveries")
+    String beta_js_deliveries_label();
+
+    @Message("E/Enter to interact · Esc to exit")
+    String beta_js_interact_hint();
+
+    @Message("Read")
+    String beta_js_action_read();
+
+    @Message("Look")
+    String beta_js_action_look();
+
+    @Message("Take")
+    String beta_js_action_take();
+
+    @Message("Collect")
+    String beta_js_action_collect();
+
+    @Message("Deliver")
+    String beta_js_action_deliver();
+
+    @Message("You have nothing to deliver yet.")
+    String beta_js_deliver_empty();
+
+    @Message("Delivery completed.")
+    String beta_js_deliver_success();
+
+    @Message("Already collected in this room.")
+    String beta_js_collected_already();
+
+    @Message("Item collected.")
+    String beta_js_collected_success();
+
+    @Message("Close")
+    String beta_js_modal_close();
+
+    @Message("Runtime")
+    String beta_world_release_label();
+
+    @Message("Classic site")
+    String beta_exit_classic();
+
+    @Message("District viewport")
+    String beta_zone_view_title();
+
+    @Message("Travel through Homedir Town to reveal each district and its live content.")
+    String beta_zone_intro();
+
+    @Message("Inn")
+    String beta_zone_inn();
+
+    @Message("Guild")
+    String beta_zone_guild();
+
+    @Message("Theater")
+    String beta_zone_theater();
+
+    @Message("City Hall")
+    String beta_zone_cityhall();
+
+    @Message("A quick pulse of what is happening now across Community, Events, and Project.")
+    String beta_zone_inn_desc();
+
+    @Message("Curated picks from the network and members, adapted into a lightweight in-game feed.")
+    String beta_zone_guild_desc();
+
+    @Message("Upcoming hosted events and countdown signals shown directly in the RPG world.")
+    String beta_zone_theater_desc();
+
+    @Message("Project delivery status, contributor signal, and connected community metrics.")
+    String beta_zone_cityhall_desc();
+
+    @Message("Curated items")
+    String beta_inn_stat_curated();
+
+    @Message("Upcoming events")
+    String beta_inn_stat_events();
+
+    @Message("HomeDir users")
+    String beta_inn_stat_members();
+
+    @Message("Total contributions")
+    String beta_inn_stat_contributions();
+
+    @Message("No curated picks yet. Add content to activate the Guild board.")
+    String beta_guild_empty();
+
+    @Message("No upcoming events yet. Publish events to activate Theater.")
+    String beta_theater_empty();
+
+    @Message("No contributors available right now.")
+    String beta_cityhall_empty();
+
+    @Message("Open source")
+    String beta_open_source();
+
+    @Message("Open classic Home")
+    String beta_open_classic_home();
+
+    @Message("Open classic Community")
+    String beta_open_classic_community();
+
+    @Message("Open classic Events")
+    String beta_open_classic_events();
+
+    @Message("Open classic Project")
+    String beta_open_classic_project();
+
+    @Message("Release")
+    String beta_cityhall_stat_release();
+
+    @Message("GitHub users")
+    String beta_cityhall_stat_github_users();
+
+    @Message("Discord users")
+    String beta_cityhall_stat_discord_users();
+
+    @Message("Tracked contributors")
+    String beta_cityhall_stat_contributors();
 
     @Message("Ready to contribute")
     String home_project_actions_chip();
@@ -2373,6 +2823,24 @@ public interface AppMessages {
     @Message("Build, learn, and share with the OSSantiago community.")
     String layout_default_twitter_description();
 
+    @Message("Could not load")
+    String app_js_load_error_prefix();
+
+    @Message("content")
+    String app_js_loading_content();
+
+    @Message("data")
+    String app_js_loading_data();
+
+    @Message("page")
+    String app_js_loading_page();
+
+    @Message("Session expired")
+    String app_js_session_expired();
+
+    @Message("No events available")
+    String app_js_no_events();
+
     @Message("Event not found - Homedir")
     String events_detail_not_found_page_title();
 
@@ -2453,6 +2921,33 @@ public interface AppMessages {
 
     @Message("Explore other events")
     String events_detail_not_found_cta();
+
+    @Message("Scenario not found - Homedir")
+    String events_scenario_not_found_page_title();
+
+    @Message("Back to {eventTitle}")
+    String events_scenario_back_to_event(String eventTitle);
+
+    @Message("Talks in this scenario")
+    String events_scenario_talks_title();
+
+    @Message("{count} sessions")
+    String events_scenario_sessions_count(int count);
+
+    @Message("No talks have been published for this scenario yet.")
+    String events_scenario_no_talks();
+
+    @Message("View talk")
+    String events_scenario_view_talk();
+
+    @Message("Scenario not found")
+    String events_scenario_not_found_heading();
+
+    @Message("We could not find the requested scenario.")
+    String events_scenario_not_found_desc();
+
+    @Message("Back to Events")
+    String events_scenario_back_to_events();
 
     @Message("Talk")
     String talk_title_default();
@@ -2574,6 +3069,18 @@ public interface AppMessages {
     @Message("Open profile setup")
     String community_board_activation_cta_member();
 
+    @Message("View public profile")
+    String community_board_activation_cta_public();
+
+    @Message("Copy profile link")
+    String community_board_activation_cta_copy();
+
+    @Message("Find me here")
+    String community_board_activation_cta_find_me();
+
+    @Message("Complete your profile setup to enable a public profile link.")
+    String community_board_activation_no_public_profile();
+
     @Message("Guild members: {count}")
     String community_board_discord_guild_members(int count);
 
@@ -2643,6 +3150,9 @@ public interface AppMessages {
     @Message("No members found with current filter.")
     String community_board_no_members();
 
+    @Message("Unnamed member")
+    String community_board_unnamed_member();
+
     @Message("No results for '{query}'. Try another name or handle.")
     String community_board_no_results(String query);
 
@@ -2666,5 +3176,14 @@ public interface AppMessages {
 
     @Message("Copy failed")
     String community_board_copy_failed();
+
+    @Message("{displayName} · Community Member")
+    String community_member_profile_title(String displayName);
+
+    @Message("Community · Member")
+    String community_member_subtitle();
+
+    @Message("Back to board")
+    String community_member_back_to_board();
 
 }

@@ -1,0 +1,368 @@
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #050b14;
+}
+
+.beta-rpg-page {
+  color: #ecf3ff;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  overflow: hidden;
+}
+
+.beta-mode-topbar {
+  min-height: 34px;
+  padding: 0.18rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  background: rgba(0, 0, 0, 0.58);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.beta-mode-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(224, 234, 248, 0.92);
+}
+
+.beta-mode-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.beta-mode-link {
+  text-decoration: none;
+  color: rgba(226, 236, 248, 0.9);
+  border: 1px solid rgba(226, 236, 248, 0.45);
+  border-radius: 999px;
+  min-height: 22px;
+  padding: 0.08rem 0.52rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.beta-mode-link:hover {
+  border-color: rgba(255, 219, 130, 0.8);
+  background: rgba(255, 219, 130, 0.16);
+}
+
+.beta-mode-link-active {
+  color: #1f1f1f;
+  border-color: #ffd700;
+  background: #ffd700;
+}
+
+.beta-game-root {
+  width: 100%;
+  height: calc(100dvh - 34px);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(66, 104, 150, 0.26), transparent 44%),
+    radial-gradient(circle at 90% 100%, rgba(29, 73, 54, 0.24), transparent 48%),
+    #050b14;
+}
+
+.beta-map-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.beta-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #061021;
+}
+
+.beta-hud-panel {
+  position: absolute;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(181, 209, 240, 0.26);
+  background: rgba(7, 16, 27, 0.82);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.38);
+  border-radius: 12px;
+}
+
+.beta-hud-player {
+  top: 0.8rem;
+  left: 0.8rem;
+  width: clamp(250px, 26vw, 312px);
+  min-height: 106px;
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 0.65rem;
+  padding: 0.62rem;
+  z-index: 4;
+}
+
+.beta-hud-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  border: 1px solid rgba(181, 209, 240, 0.36);
+  background: rgba(16, 33, 52, 0.92);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.beta-hud-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.beta-hud-avatar span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.beta-hud-profile {
+  display: grid;
+  gap: 0.24rem;
+}
+
+.beta-hud-name,
+.beta-hud-class,
+.beta-hud-level,
+.beta-hud-xp-label {
+  margin: 0;
+}
+
+.beta-hud-name {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.beta-hud-class,
+.beta-hud-level,
+.beta-hud-xp-label {
+  font-size: 0.73rem;
+  color: rgba(224, 235, 248, 0.92);
+}
+
+.beta-hud-xp-bar {
+  margin-top: 0.1rem;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(16, 33, 52, 0.92);
+  border: 1px solid rgba(181, 209, 240, 0.2);
+  overflow: hidden;
+}
+
+.beta-hud-xp-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #7dd3fc 0%, #34d399 50%, #facc15 100%);
+}
+
+.beta-hud-state {
+  top: calc(0.8rem + 116px + 0.55rem);
+  left: 0.8rem;
+  width: clamp(250px, 28vw, 340px);
+  padding: 0.58rem 0.66rem;
+  z-index: 4;
+}
+
+.beta-hud-state p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(224, 235, 248, 0.95);
+}
+
+.beta-hud-state p + p {
+  margin-top: 0.2rem;
+}
+
+.beta-state-line strong {
+  color: #9de4b4;
+  margin-left: 0.3rem;
+}
+
+.beta-visited-counter strong {
+  margin-left: 0.25rem;
+  color: #ffd27a;
+}
+
+.beta-hud-help {
+  left: 50%;
+  bottom: 0.8rem;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - 1.6rem));
+  padding: 0.52rem 0.62rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  z-index: 4;
+}
+
+.beta-hud-help p {
+  margin: 0;
+  font-size: 0.74rem;
+  color: rgba(218, 231, 249, 0.9);
+}
+
+.beta-reset-btn,
+.beta-login-btn {
+  border: 1px solid rgba(173, 206, 246, 0.28);
+  border-radius: 8px;
+  background: rgba(12, 20, 33, 0.95);
+  color: inherit;
+  font-size: 0.74rem;
+  padding: 0.4rem 0.48rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.beta-reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.beta-login-gate {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  background: rgba(5, 11, 20, 0.78);
+  z-index: 8;
+}
+
+.beta-interaction-modal {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(4, 10, 18, 0.72);
+  z-index: 10;
+}
+
+.beta-interaction-modal[hidden] {
+  display: none !important;
+}
+
+.beta-interaction-card {
+  width: min(520px, calc(100% - 1.5rem));
+  border-radius: 14px;
+  border: 1px solid rgba(173, 206, 246, 0.35);
+  background: rgba(7, 16, 27, 0.96);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  padding: 0.95rem 0.9rem 0.85rem 0.9rem;
+  position: relative;
+}
+
+.beta-interaction-card h3 {
+  margin: 0 2rem 0.35rem 0;
+  font-size: 0.95rem;
+  color: #f2f7ff;
+}
+
+.beta-modal-meta,
+.beta-modal-body {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.beta-modal-meta {
+  color: rgba(197, 217, 243, 0.92);
+}
+
+.beta-modal-body {
+  margin-top: 0.45rem;
+  color: rgba(224, 235, 248, 0.95);
+}
+
+.beta-modal-actions {
+  margin-top: 0.72rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.beta-modal-close {
+  position: absolute;
+  right: 0.55rem;
+  top: 0.45rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(173, 206, 246, 0.34);
+  background: rgba(12, 20, 33, 0.94);
+  color: #e9f1ff;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.beta-modal-close:hover {
+  border-color: rgba(255, 219, 130, 0.72);
+  background: rgba(53, 43, 23, 0.94);
+}
+
+.beta-login-gate h2 {
+  margin: 0;
+  font-size: 1.04rem;
+}
+
+.beta-login-gate p {
+  margin: 0;
+  max-width: 520px;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  color: rgba(224, 235, 248, 0.92);
+}
+
+.beta-login-btn {
+  min-width: 210px;
+  font-size: 0.82rem;
+  padding: 0.52rem 0.75rem;
+}
+
+.beta-login-btn:hover,
+.beta-reset-btn:hover {
+  border-color: rgba(255, 219, 130, 0.72);
+  background: rgba(53, 43, 23, 0.94);
+}
+
+@media (max-width: 920px) {
+  .beta-mode-topbar {
+    justify-content: space-between;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
+
+  .beta-hud-player {
+    width: calc(100% - 1.6rem);
+    grid-template-columns: 56px 1fr;
+  }
+
+  .beta-hud-state {
+    top: calc(0.8rem + 108px + 0.55rem);
+    width: calc(100% - 1.6rem);
+  }
+
+  .beta-hud-help {
+    flex-direction: column;
+    align-items: flex-start;
+    width: calc(100% - 1.6rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .beta-mode-label {
+    display: none;
+  }
+}

@@ -41,7 +41,11 @@ public class CommunityContentService {
   @ConfigProperty(name = "community.content.cache-ttl", defaultValue = "PT1H")
   Duration cacheTtl;
 
+  @ConfigProperty(name = "community.content.seed.enabled", defaultValue = "true")
+  boolean starterContentEnabled;
+
   private final CommunityContentParser parser = new CommunityContentParser();
+  private final List<CommunityContentItem> starterItems = buildStarterItems();
   private final AtomicReference<CacheSnapshot> cache = new AtomicReference<>(CacheSnapshot.empty());
   private final AtomicBoolean refreshInProgress = new AtomicBoolean(false);
   private final ExecutorService refreshExecutor =
@@ -72,12 +76,12 @@ public class CommunityContentService {
 
   public List<CommunityContentItem> listNew(int limit, int offset) {
     maybeRefreshAsyncOnDemand();
-    return paginate(cache.get().items(), limit, offset);
+    return paginate(effectiveItems(cache.get()), limit, offset);
   }
 
   public List<CommunityContentItem> allItems() {
     maybeRefreshAsyncOnDemand();
-    return cache.get().items();
+    return effectiveItems(cache.get());
   }
 
   public Optional<CommunityContentItem> getById(String id) {
@@ -85,7 +89,15 @@ public class CommunityContentService {
       return Optional.empty();
     }
     maybeRefreshAsyncOnDemand();
-    return Optional.ofNullable(cache.get().byId().get(id));
+    CacheSnapshot snapshot = cache.get();
+    CommunityContentItem item = snapshot.byId().get(id);
+    if (item != null) {
+      return Optional.of(item);
+    }
+    if (!useStarterContent(snapshot)) {
+      return Optional.empty();
+    }
+    return starterItems.stream().filter(candidate -> id.equals(candidate.id())).findFirst();
   }
 
   public boolean containsUrl(String normalizedUrl) {
@@ -93,13 +105,21 @@ public class CommunityContentService {
       return false;
     }
     maybeRefreshAsyncOnDemand();
-    return cache.get().urls().contains(normalizedUrl);
+    CacheSnapshot snapshot = cache.get();
+    if (snapshot.urls().contains(normalizedUrl)) {
+      return true;
+    }
+    if (!useStarterContent(snapshot)) {
+      return false;
+    }
+    return starterItems.stream().anyMatch(item -> normalizedUrl.equals(item.url()));
   }
 
   public CommunityContentMetrics metrics() {
     CacheSnapshot snapshot = cache.get();
+    int size = effectiveItems(snapshot).size();
     return new CommunityContentMetrics(
-        snapshot.items().size(),
+        size,
         snapshot.loadedAt(),
         snapshot.loadDurationMs(),
         snapshot.filesLoaded(),
@@ -246,6 +266,61 @@ public class CommunityContentService {
     }
     int end = Math.min(source.size(), offset + limit);
     return source.subList(offset, end);
+  }
+
+  private List<CommunityContentItem> effectiveItems(CacheSnapshot snapshot) {
+    if (snapshot == null) {
+      return starterContentEnabled ? starterItems : List.of();
+    }
+    if (useStarterContent(snapshot)) {
+      return starterItems;
+    }
+    return snapshot.items();
+  }
+
+  private boolean useStarterContent(CacheSnapshot snapshot) {
+    return starterContentEnabled && snapshot != null && snapshot.items().isEmpty();
+  }
+
+  private static List<CommunityContentItem> buildStarterItems() {
+    Instant now = Instant.now();
+    return List.of(
+        new CommunityContentItem(
+            "starter-ai-platform-01",
+            "AI platform ops: practical guardrails for production teams",
+            "https://github.blog/ai-and-ml/",
+            "A practical signal for teams scaling AI features with delivery, safety, and observability guardrails.",
+            "github.blog",
+            "https://github.blog/wp-content/uploads/2023/03/GitHub-Blog-Feature-Image-2.png",
+            now.minus(Duration.ofHours(9)),
+            null,
+            List.of("AI", "Platform Engineering", "MLOps"),
+            "HomeDir Curator",
+            CommunityContentMedia.ARTICLE_BLOG),
+        new CommunityContentItem(
+            "starter-cloudnative-02",
+            "Cloud native in 2026: platform engineering patterns that actually stick",
+            "https://www.cncf.io/blog/",
+            "Curated perspective on platform teams, cloud native reliability, and fast feedback loops for developers.",
+            "cncf.io",
+            "https://www.cncf.io/wp-content/uploads/2018/03/cncf-color.png",
+            now.minus(Duration.ofHours(18)),
+            null,
+            List.of("Cloud Native", "Platform Engineering", "DevOps"),
+            "HomeDir Curator",
+            CommunityContentMedia.ARTICLE_BLOG),
+        new CommunityContentItem(
+            "starter-video-03",
+            "Kubernetes and platform engineering explained in one short video",
+            "https://www.youtube.com/watch?v=X48VuDVv0do",
+            "Quick visual recap for engineering teams navigating Kubernetes, platform APIs, and developer experience.",
+            "youtube.com",
+            null,
+            now.minus(Duration.ofHours(28)),
+            null,
+            List.of("Kubernetes", "Platform Engineering", "Cloud Native"),
+            "HomeDir Curator",
+            CommunityContentMedia.VIDEO_STORY));
   }
 
   private record CacheSnapshot(

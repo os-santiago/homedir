@@ -1,3 +1,14 @@
+<div class="mode-switch-bar" role="navigation" aria-label="{i18n:mode_switch_label}">
+  <span class="mode-switch-label">{i18n:mode_switch_label}</span>
+  <div class="mode-switch-actions">
+    <a href="/" class="mode-switch-link {#if activePage != 'beta'}mode-switch-link-active{/if}">
+      {i18n:mode_switch_classic}
+    </a>
+    <a href="/beta" class="mode-switch-link {#if activePage == 'beta'}mode-switch-link-active{/if}">
+      {i18n:mode_switch_rpg_experimental}
+    </a>
+  </div>
+</div>
 <nav class="top-nav" aria-label="{i18n:header_aria_label}">
   <div class="logo">
     <a href="/" class="header-logo-link">
@@ -113,7 +124,7 @@
     <a href="/login.html" class="login-btn-nav">{i18n:nav_login}</a>
     {#else}
     <a
-      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'proyectos'}/proyectos{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
+      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'proyectos'}/proyectos{#else if activePage == 'beta'}/beta{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
       class="login-btn-nav"
       data-login-return-current="true">{i18n:nav_login}</a>
     {/if}
@@ -121,7 +132,7 @@
   </div>
 </nav>
 <div class="alpha-banner">
-  <span class="alpha-badge">ALPHA v{appVersion}</span>
+  <span class="alpha-badge">ALPHA v{app:version()}</span>
   · <a href="https://github.com/os-santiago/homedir" target="_blank"
     class="link-white-underline">{i18n:header_alpha_repo}</a>
   · <span class="text-opacity-80">{i18n:header_alpha_text}</span>

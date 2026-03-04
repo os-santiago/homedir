@@ -7,7 +7,7 @@
     <version>${revision}</version>
 
     <properties>
-        <revision>3.330.1</revision>
+        <revision>3.403.1</revision>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.26.4</quarkus.platform.version>
@@ -346,6 +346,32 @@
                                         <exclude>**/generated/**</exclude>
                                         <exclude>**/*$*</exclude>
                                     </excludes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>check</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <rule>
+                                            <element>BUNDLE</element>
+                                            <limits>
+                                                <limit>
+                                                    <counter>LINE</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.60</minimum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>BRANCH</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.40</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
                                 </configuration>
                             </execution>
                         </executions>

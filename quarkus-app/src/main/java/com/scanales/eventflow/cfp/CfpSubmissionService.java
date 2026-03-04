@@ -43,6 +43,7 @@ public class CfpSubmissionService {
   @Inject EventService eventService;
   @Inject CfpFormOptionsService cfpFormOptionsService;
   @Inject CfpConfigService cfpConfigService;
+  @Inject CfpEventConfigService cfpEventConfigService;
 
   private final ConcurrentHashMap<String, CfpSubmission> submissions = new ConcurrentHashMap<>();
   private final Object submissionsLock = new Object();
@@ -71,6 +72,10 @@ public class CfpSubmissionService {
       String proposerId = sanitizeUserId(userId);
       if (proposerId == null) {
         throw new ValidationException("user_id_required");
+      }
+      CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(eventId);
+      if (!eventConfig.currentlyOpen()) {
+        throw new ValidationException("submissions_closed");
       }
 
       String title = sanitizeText(request.title(), 160);
@@ -126,7 +131,8 @@ public class CfpSubmissionService {
         tags = normalizedTags;
       }
 
-      validateUserProposalConstraints(eventId, proposerId, normalizedTitle);
+      validateUserProposalConstraints(
+          eventId, proposerId, normalizedTitle, eventConfig.maxSubmissionsPerUserPerEvent());
       List<String> links = sanitizeLinks(request.links(), 5);
       Instant now = Instant.now();
 
@@ -380,6 +386,9 @@ public class CfpSubmissionService {
       if (cfpConfigService != null) {
         cfpConfigService.resetForTests();
       }
+      if (cfpEventConfigService != null) {
+        cfpEventConfigService.resetForTests();
+      }
       persistSync();
     }
   }
@@ -489,7 +498,7 @@ public class CfpSubmissionService {
     return value;
   }
   private void validateUserProposalConstraints(
-      String eventId, String proposerId, String normalizedTitle) {
+      String eventId, String proposerId, String normalizedTitle, int maxPerUserForEvent) {
     int existingCount = 0;
     for (CfpSubmission item : submissions.values()) {
       if (!eventId.equals(item.eventId())) {
@@ -506,13 +515,28 @@ public class CfpSubmissionService {
         }
       }
     }
-    if (existingCount >= maxSubmissionsPerUserPerEvent()) {
+    if (existingCount >= maxPerUserForEvent) {
       throw new ValidationException("proposal_limit_reached");
     }
   }
 
-  private int maxSubmissionsPerUserPerEvent() {
-    return currentMaxSubmissionsPerUserPerEvent();
+  private CfpEventConfigService.ResolvedEventConfig resolveEventConfig(String eventId) {
+    if (cfpEventConfigService != null) {
+      return cfpEventConfigService.resolveForEvent(eventId);
+    }
+    CfpConfig global =
+        cfpConfigService != null
+            ? cfpConfigService.current()
+            : CfpConfig.defaults(DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT, true);
+    return new CfpEventConfigService.ResolvedEventConfig(
+        eventId,
+        false,
+        true,
+        null,
+        null,
+        global.maxSubmissionsPerUserPerEvent(),
+        global.testingModeEnabled(),
+        true);
   }
 
   private static String normalizeTitleForComparison(String raw) {

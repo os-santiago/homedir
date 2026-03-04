@@ -3,10 +3,6 @@ name: PR Validation
 on:
   pull_request:
     branches: [ main ]
-    paths:
-      - 'quarkus-app/**'
-      - '.github/workflows/pr-check.yml'
-      - '.github/workflows/release.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,6 +12,7 @@ jobs:
   build-and-test:
     name: Build & Verify
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,9 +24,13 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Verify Build & Tests
+      - name: Verify Build, Tests and Coverage Gate
         working-directory: quarkus-app
-        run: ./mvnw clean verify -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+        run: ./mvnw clean verify -B -Pcoverage -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
+      - name: Public Experience Smoke Test
+        working-directory: quarkus-app
+        run: ./mvnw -B -Dtest=PublicExperienceSmokeTest test
         
       # Optional: Add checkstyle or other linting here if configured
       # - name: Checkstyle

@@ -38,6 +38,7 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Capacity Assessment 2026-02-17 (stub)](development/capacity-assessment-2026-02-17.md)
 - [Codex Optimization Notes (stub)](development/codex-optimization-notes.md)
 - [Production-Safe Delivery Playbook (stub)](development/production-safe-delivery-playbook.md)
+- [Release Stage Gates (stub)](development/release-stage-gates.md)
 
 ## Contexto AI
 
@@ -77,4 +78,3 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Prompt Dashboard Metrics MVP](prompt-dashboard-metrics-mvp.md)
 - [User Data](user-data.md)
 - [Task: Event Break Notifications](tasks/event-break-notifications.md)
-

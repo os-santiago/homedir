@@ -18,6 +18,10 @@ class AdminMetricsFunnelRowsTest {
             Map.entry("funnel:community.vote", 77L),
             Map.entry("funnel:community_propose_submit", 5L),
             Map.entry("funnel:community.submission.create", 55L),
+            Map.entry("funnel:community_lightning_post", 4L),
+            Map.entry("funnel:community.lightning.thread.create", 44L),
+            Map.entry("funnel:community_lightning_comment", 6L),
+            Map.entry("funnel:community.lightning.comment.create", 66L),
             Map.entry("funnel:cfp_submit", 3L),
             Map.entry("funnel:cfp.submission.create", 33L),
             Map.entry("funnel:cfp_approved", 2L),
@@ -31,6 +35,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(11L, byId.get("login_success"));
     assertEquals(7L, byId.get("community_vote"));
     assertEquals(5L, byId.get("community_propose_submit"));
+    assertEquals(4L, byId.get("community_lightning_post"));
+    assertEquals(6L, byId.get("community_lightning_comment"));
     assertEquals(3L, byId.get("cfp_submit"));
     assertEquals(2L, byId.get("cfp_approved"));
     assertEquals(9L, byId.get("board_profile_open"));
@@ -39,6 +45,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("100%", conversions.get("login_success"));
     assertEquals("63.6%", conversions.get("community_vote"));
     assertEquals("45.5%", conversions.get("community_propose_submit"));
+    assertEquals("36.4%", conversions.get("community_lightning_post"));
+    assertEquals("54.5%", conversions.get("community_lightning_comment"));
     assertEquals("27.3%", conversions.get("cfp_submit"));
     assertEquals("18.2%", conversions.get("cfp_approved"));
     assertEquals("81.8%", conversions.get("board_profile_open"));
@@ -51,6 +59,8 @@ class AdminMetricsFunnelRowsTest {
             "funnel:auth.login.callback", 8L,
             "funnel:community.vote", 6L,
             "funnel:community.submission.create", 4L,
+            "funnel:community.lightning.thread.create", 5L,
+            "funnel:community.lightning.comment.create", 2L,
             "funnel:cfp.submission.create", 3L,
             "funnel:cfp.submission.status.accepted", 1L,
             "funnel:board_profile_open", 2L);
@@ -60,6 +70,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(8L, byId.get("login_success"));
     assertEquals(6L, byId.get("community_vote"));
     assertEquals(4L, byId.get("community_propose_submit"));
+    assertEquals(5L, byId.get("community_lightning_post"));
+    assertEquals(2L, byId.get("community_lightning_comment"));
     assertEquals(3L, byId.get("cfp_submit"));
     assertEquals(1L, byId.get("cfp_approved"));
     assertEquals(2L, byId.get("board_profile_open"));
@@ -68,6 +80,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("100%", conversions.get("login_success"));
     assertEquals("75.0%", conversions.get("community_vote"));
     assertEquals("50.0%", conversions.get("community_propose_submit"));
+    assertEquals("62.5%", conversions.get("community_lightning_post"));
+    assertEquals("25.0%", conversions.get("community_lightning_comment"));
     assertEquals("37.5%", conversions.get("cfp_submit"));
     assertEquals("12.5%", conversions.get("cfp_approved"));
     assertEquals("25.0%", conversions.get("board_profile_open"));
@@ -78,6 +92,8 @@ class AdminMetricsFunnelRowsTest {
     Map<String, Long> snap = Map.of("funnel:community_vote", 3L);
     Map<String, String> conversions = conversionById(snap);
     assertEquals("—", conversions.get("community_vote"));
+    assertEquals("—", conversions.get("community_lightning_post"));
+    assertEquals("—", conversions.get("community_lightning_comment"));
     assertEquals("—", conversions.get("cfp_submit"));
   }
 

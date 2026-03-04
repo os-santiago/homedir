@@ -108,14 +108,15 @@ Sigue estos pasos rápidos antes de abrir un pull request:
 
 1. **Instala prerequisitos** – Java 21 y Maven 3.9 o superior.
 2. **Formatea código** – `mvn -f quarkus-app/pom.xml spotless:apply`.
-3. **Chequeo dependencias** – corre `mvn -f quarkus-app/pom.xml enforcer:enforce` y `./dev/deps-check.sh`.
+3. **Chequeo dependencias** – corre `mvn -f quarkus-app/pom.xml enforcer:enforce` y `./scripts/deps-check.sh`.
 4. **Commit con Conventional Commits**.
 5. **Push y abre el PR** – arregla problemas reportados por CI y re-pushea.
 
 ### Cobertura de tests
 
-- Corre `./dev/pr-check.sh` para revisar formato, compilar, correr tests y generar `quarkus-app/target/site/jacoco/index.html`.
-- Mantén **≥ 70%** de cobertura en líneas y ramas en el diff de tu PR.
+- Corre `./scripts/pr-check.sh` para revisar formato, compilar, correr tests y generar `quarkus-app/target/site/jacoco/index.html`.
+- Baseline CI (marcha blanca): mantén **≥ 60%** en líneas y **≥ 40%** en ramas.
+- Política de subida gradual: incrementa umbrales por iteraciones según `docs/en/development/release-stage-gates.md`.
 
 ## Contribuyendo a la UI (Frontend)
 

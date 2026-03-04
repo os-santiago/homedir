@@ -38,6 +38,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Codex Optimization Notes](development/codex-optimization-notes.md)
 - [Formatting (ES canonical, EN stub)](development/formatting.md)
 - [Production-Safe Delivery Playbook](development/production-safe-delivery-playbook.md)
+- [Release Stage Gates](development/release-stage-gates.md)
 
 ## AI Context
 
@@ -77,4 +78,3 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Prompt Dashboard Metrics MVP](prompt-dashboard-metrics-mvp.md)
 - [User Data](user-data.md)
 - [Task: Event Break Notifications](tasks/event-break-notifications.md)
-
