@@ -754,6 +754,126 @@ public interface AppMessages {
     @Message("Event override: OFF")
     String events_cfp_admin_event_config_summary_override_off();
 
+    @Message("CFP Moderation · {event}")
+    String events_cfp_admin_moderation_page_title(String event);
+
+    @Message("CFP Moderation")
+    String events_cfp_admin_moderation_heading();
+
+    @Message("Event: {event}")
+    String events_cfp_admin_event_label(String event);
+
+    @Message("Edit event")
+    String events_cfp_admin_nav_edit_event();
+
+    @Message("Public CFP")
+    String events_cfp_admin_nav_public_cfp();
+
+    @Message("Proposal queue")
+    String events_cfp_admin_queue_title();
+
+    @Message("Evaluate proposals with technical ratings and prioritize with weighted score.")
+    String events_cfp_admin_queue_desc();
+
+    @Message("Refresh")
+    String events_cfp_admin_queue_refresh();
+
+    @Message("Export CSV")
+    String events_cfp_admin_queue_export();
+
+    @Message("Total")
+    String events_cfp_admin_stat_total();
+
+    @Message("Last update:")
+    String events_cfp_admin_last_update_prefix();
+
+    @Message("n/a")
+    String events_cfp_admin_not_available();
+
+    @Message("Status:")
+    String events_cfp_admin_label_status();
+
+    @Message("Sort:")
+    String events_cfp_admin_label_sort();
+
+    @Message("All")
+    String events_cfp_admin_filter_all();
+
+    @Message("Most recent")
+    String events_cfp_admin_sort_recent();
+
+    @Message("Highest score")
+    String events_cfp_admin_sort_score();
+
+    @Message("Score:")
+    String events_cfp_admin_score_prefix();
+
+    @Message("Score: n/a")
+    String events_cfp_admin_score_not_available();
+
+    @Message("(Untitled)")
+    String events_cfp_admin_untitled();
+
+    @Message("Proposed by:")
+    String events_cfp_admin_proposed_by();
+
+    @Message("N/A")
+    String events_cfp_admin_submission_not_available();
+
+    @Message("Technical detail")
+    String events_cfp_admin_rating_technical();
+
+    @Message("Narrative")
+    String events_cfp_admin_rating_narrative();
+
+    @Message("Content impact")
+    String events_cfp_admin_rating_impact();
+
+    @Message("Moderation note (optional)")
+    String events_cfp_admin_note_placeholder();
+
+    @Message("Another moderator already updated this proposal. Refresh the queue.")
+    String events_cfp_admin_error_stale_submission();
+
+    @Message("Could not update status")
+    String events_cfp_admin_error_update_status();
+
+    @Message("Could not save rating")
+    String events_cfp_admin_error_save_rating();
+
+    @Message("Could not promote proposal")
+    String events_cfp_admin_error_promote();
+
+    @Message("Save rating")
+    String events_cfp_admin_save_rating();
+
+    @Message("Under review")
+    String events_cfp_admin_action_under_review();
+
+    @Message("Accept")
+    String events_cfp_admin_action_accept();
+
+    @Message("Reject")
+    String events_cfp_admin_action_reject();
+
+    @Message("Promote to catalog")
+    String events_cfp_admin_action_promote();
+
+    @Message("Cataloged:")
+    String events_cfp_admin_promote_success();
+
+    @Message("Loading proposals...")
+    String events_cfp_admin_queue_loading();
+
+    @Message("No proposals in this status.")
+    String events_cfp_admin_queue_empty();
+
+    @Message("Could not load proposals right now.")
+    String events_cfp_admin_queue_load_error();
+
+    @Message("Load error")
+    String events_cfp_admin_queue_load_generic_error();
+
     @Message("CFP submissions are currently closed for this event.")
     String events_cfp_closed_hint();
 

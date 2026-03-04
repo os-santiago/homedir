@@ -1,6 +1,6 @@
 {#include layout/main}
 {#title}
-Moderacion CFP · {event.title}
+{i18n:events_cfp_admin_moderation_page_title(event.title)}
 {/title}
 {#body}
 <section class="page-header">
@@ -8,14 +8,14 @@ Moderacion CFP · {event.title}
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div>
         <p class="section-subtitle" style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">CFP</p>
-        <h1 class="page-title">Moderacion CFP</h1>
-        <p class="section-subtitle">Evento: {event.title}</p>
+        <h1 class="page-title">{i18n:events_cfp_admin_moderation_heading}</h1>
+        <p class="section-subtitle">{i18n:events_cfp_admin_event_label(event.title)}</p>
       </div>
       <div class="action-group admin-nav-strip">
-        <a href="/private/admin" class="btn btn-secondary">Panel admin</a>
-        <a href="/private/admin/events" class="btn btn-secondary">Eventos</a>
-        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">Editar evento</a>
-        <a href="/event/{event.id}/cfp" class="btn btn-secondary">CFP publico</a>
+        <a href="/private/admin" class="btn btn-secondary">{i18n:nav_admin_panel}</a>
+        <a href="/private/admin/events" class="btn btn-secondary">{i18n:nav_events}</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
+        <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
       </div>
     </div>
   </div>
@@ -107,36 +107,36 @@ Moderacion CFP · {event.title}
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
-        <h2 class="card-title" style="margin: 0;">Cola de propuestas</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">Evalua propuestas con rating tecnico y prioriza con score ponderado.</p>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_queue_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_queue_desc}</p>
       </div>
       <div class="action-group" style="gap: 0.5rem;">
-        <button id="reloadCfpBtn" type="button" class="btn btn-secondary">Actualizar</button>
-        <a id="exportCsvBtn" href="#" class="btn btn-secondary">Exportar CSV</a>
+        <button id="reloadCfpBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_queue_refresh}</button>
+        <a id="exportCsvBtn" href="#" class="btn btn-secondary">{i18n:events_cfp_admin_queue_export}</a>
       </div>
     </div>
     <div id="cfpStatsSummary" class="cfp-stats-grid" aria-live="polite">
-      <div class="cfp-stats-item"><span>Total</span><strong id="cfpStatTotal">-</strong></div>
-      <div class="cfp-stats-item"><span>Pendiente</span><strong id="cfpStatPending">-</strong></div>
-      <div class="cfp-stats-item"><span>En revision</span><strong id="cfpStatUnderReview">-</strong></div>
-      <div class="cfp-stats-item"><span>Aceptadas</span><strong id="cfpStatAccepted">-</strong></div>
-      <div class="cfp-stats-item"><span>Rechazadas</span><strong id="cfpStatRejected">-</strong></div>
-      <div class="cfp-stats-item"><span>Retiradas</span><strong id="cfpStatWithdrawn">-</strong></div>
+      <div class="cfp-stats-item"><span>{i18n:events_cfp_admin_stat_total}</span><strong id="cfpStatTotal">-</strong></div>
+      <div class="cfp-stats-item"><span>{i18n:events_cfp_status_pending}</span><strong id="cfpStatPending">-</strong></div>
+      <div class="cfp-stats-item"><span>{i18n:events_cfp_status_under_review}</span><strong id="cfpStatUnderReview">-</strong></div>
+      <div class="cfp-stats-item"><span>{i18n:events_cfp_status_accepted}</span><strong id="cfpStatAccepted">-</strong></div>
+      <div class="cfp-stats-item"><span>{i18n:events_cfp_status_rejected}</span><strong id="cfpStatRejected">-</strong></div>
+      <div class="cfp-stats-item"><span>{i18n:events_cfp_status_withdrawn}</span><strong id="cfpStatWithdrawn">-</strong></div>
     </div>
-    <p id="cfpStatsMeta" class="form-hint" style="margin: 0.5rem 0 0 0;">Ultima actualizacion: n/a</p>
+    <p id="cfpStatsMeta" class="form-hint" style="margin: 0.5rem 0 0 0;">{i18n:events_cfp_admin_last_update_prefix} {i18n:events_cfp_admin_not_available}</p>
     <div class="cfp-toolbar-grid">
       <div class="cfp-toolbar-row">
-        <span class="form-hint">Estado:</span>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="all">Todos</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="pending">Pendiente</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="under_review">En revision</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="accepted">Aceptadas</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="rejected">Rechazadas</button>
+        <span class="form-hint">{i18n:events_cfp_admin_label_status}</span>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="all">{i18n:events_cfp_admin_filter_all}</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="pending">{i18n:events_cfp_status_pending}</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="under_review">{i18n:events_cfp_status_under_review}</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="accepted">{i18n:events_cfp_status_accepted}</button>
+        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="rejected">{i18n:events_cfp_status_rejected}</button>
       </div>
       <div class="cfp-toolbar-row">
-        <span class="form-hint">Orden:</span>
-        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="created">Mas recientes</button>
-        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="score">Mayor score</button>
+        <span class="form-hint">{i18n:events_cfp_admin_label_sort}</span>
+        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="created">{i18n:events_cfp_admin_sort_recent}</button>
+        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="score">{i18n:events_cfp_admin_sort_score}</button>
       </div>
     </div>
     <div class="cfp-toolbar-row cfp-pagination-row">
@@ -365,6 +365,39 @@ Moderacion CFP · {event.title}
     const statRejectedEl = document.getElementById("cfpStatRejected");
     const statWithdrawnEl = document.getElementById("cfpStatWithdrawn");
     const statsMetaEl = document.getElementById("cfpStatsMeta");
+    const i18n = {
+      statusPending: "{i18n:events_cfp_status_pending}",
+      statusUnderReview: "{i18n:events_cfp_status_under_review}",
+      statusAccepted: "{i18n:events_cfp_status_accepted}",
+      statusRejected: "{i18n:events_cfp_status_rejected}",
+      statusWithdrawn: "{i18n:events_cfp_status_withdrawn}",
+      scorePrefix: "{i18n:events_cfp_admin_score_prefix}",
+      scoreNotAvailable: "{i18n:events_cfp_admin_score_not_available}",
+      untitled: "{i18n:events_cfp_admin_untitled}",
+      proposedBy: "{i18n:events_cfp_admin_proposed_by}",
+      notAvailable: "{i18n:events_cfp_admin_not_available}",
+      ratingTechnical: "{i18n:events_cfp_admin_rating_technical}",
+      ratingNarrative: "{i18n:events_cfp_admin_rating_narrative}",
+      ratingImpact: "{i18n:events_cfp_admin_rating_impact}",
+      moderationNotePlaceholder: "{i18n:events_cfp_admin_note_placeholder}",
+      staleSubmissionError: "{i18n:events_cfp_admin_error_stale_submission}",
+      updateStatusError: "{i18n:events_cfp_admin_error_update_status}",
+      saveRatingError: "{i18n:events_cfp_admin_error_save_rating}",
+      promoteError: "{i18n:events_cfp_admin_error_promote}",
+      saveRatingAction: "{i18n:events_cfp_admin_save_rating}",
+      actionUnderReview: "{i18n:events_cfp_admin_action_under_review}",
+      actionAccept: "{i18n:events_cfp_admin_action_accept}",
+      actionReject: "{i18n:events_cfp_admin_action_reject}",
+      actionPromote: "{i18n:events_cfp_admin_action_promote}",
+      promoteSuccessPrefix: "{i18n:events_cfp_admin_promote_success}",
+      queueLoading: "{i18n:events_cfp_admin_queue_loading}",
+      queueEmpty: "{i18n:events_cfp_admin_queue_empty}",
+      queueLoadError: "{i18n:events_cfp_admin_queue_load_error}",
+      queueLoadGenericError: "{i18n:events_cfp_admin_queue_load_generic_error}",
+      lastUpdatePrefix: "{i18n:events_cfp_admin_last_update_prefix}",
+      statsUnavailableValue: "{i18n:events_cfp_admin_not_available}",
+      submissionNotAvailable: "{i18n:events_cfp_admin_submission_not_available}"
+    };
     const pageSize = 20;
     let activeStatus = "pending";
     let activeSort = "created";
@@ -374,11 +407,11 @@ Moderacion CFP · {event.title}
     let nextOffset = null;
 
     const statusLabel = {
-      pending: "Pendiente",
-      under_review: "En revision",
-      accepted: "Aceptada",
-      rejected: "Rechazada",
-      withdrawn: "Retirada"
+      pending: i18n.statusPending,
+      under_review: i18n.statusUnderReview,
+      accepted: i18n.statusAccepted,
+      rejected: i18n.statusRejected,
+      withdrawn: i18n.statusWithdrawn
     };
 
     function setActiveFilter(status) {
@@ -425,8 +458,8 @@ Moderacion CFP · {event.title}
       if (statsMetaEl) {
         const latest = payload?.latest_updated_at ? fmtDate(payload.latest_updated_at) : "";
         statsMetaEl.textContent = latest
-          ? "Ultima actualizacion: " + latest
-          : "Ultima actualizacion: n/a";
+          ? i18n.lastUpdatePrefix + " " + latest
+          : i18n.lastUpdatePrefix + " " + i18n.statsUnavailableValue;
       }
     }
 
@@ -443,7 +476,7 @@ Moderacion CFP · {event.title}
         applyStats(payload);
       } catch (error) {
         if (statsMetaEl) {
-          statsMetaEl.textContent = "Ultima actualizacion: n/a";
+          statsMetaEl.textContent = i18n.lastUpdatePrefix + " " + i18n.statsUnavailableValue;
         }
       }
     }
@@ -503,7 +536,7 @@ Moderacion CFP · {event.title}
           }
         } catch (e) {
         }
-        throw new Error("No fue posible actualizar estado" + detail);
+        throw new Error(i18n.updateStatusError + detail);
       }
     }
 
@@ -525,7 +558,7 @@ Moderacion CFP · {event.title}
           }
         } catch (e) {
         }
-        throw new Error("No fue posible guardar rating" + detail);
+        throw new Error(i18n.saveRatingError + detail);
       }
       return response.json();
     }
@@ -544,7 +577,7 @@ Moderacion CFP · {event.title}
           }
         } catch (e) {
         }
-        throw new Error("No fue posible promover propuesta" + detail);
+        throw new Error(i18n.promoteError + detail);
       }
       return response.json();
     }
@@ -578,9 +611,9 @@ Moderacion CFP · {event.title}
 
     function scoreLabel(item) {
       if (typeof item.rating_weighted === "number") {
-        return "Score: " + item.rating_weighted.toFixed(2);
+        return i18n.scorePrefix + " " + item.rating_weighted.toFixed(2);
       }
-      return "Score: n/a";
+      return i18n.scoreNotAvailable;
     }
 
     function buildSubmissionCard(item) {
@@ -595,7 +628,7 @@ Moderacion CFP · {event.title}
       top.style.flexWrap = "wrap";
 
       const title = document.createElement("h3");
-      title.textContent = item.title || "(Sin titulo)";
+      title.textContent = item.title || i18n.untitled;
       top.appendChild(title);
 
       const chipWrap = document.createElement("div");
@@ -617,7 +650,7 @@ Moderacion CFP · {event.title}
       article.appendChild(top);
 
       article.appendChild(
-          row("Propuesto por: " + (item.proposer_name || item.proposer_user_id || "N/A") + " · " + fmtDate(item.created_at)));
+          row(i18n.proposedBy + " " + (item.proposer_name || item.proposer_user_id || i18n.submissionNotAvailable) + " · " + fmtDate(item.created_at)));
 
       if (item.level || item.format || item.duration_min) {
         const chips = [];
@@ -643,9 +676,9 @@ Moderacion CFP · {event.title}
 
       const ratings = document.createElement("div");
       ratings.className = "cfp-rating-grid";
-      const technical = buildRatingSelect("rating-tech-" + item.id, "Detalle tecnico", item.rating_technical_detail ?? 0);
-      const narrative = buildRatingSelect("rating-narrative-" + item.id, "Narrativa", item.rating_narrative ?? 0);
-      const impact = buildRatingSelect("rating-impact-" + item.id, "Impacto", item.rating_content_impact ?? 0);
+      const technical = buildRatingSelect("rating-tech-" + item.id, i18n.ratingTechnical, item.rating_technical_detail ?? 0);
+      const narrative = buildRatingSelect("rating-narrative-" + item.id, i18n.ratingNarrative, item.rating_narrative ?? 0);
+      const impact = buildRatingSelect("rating-impact-" + item.id, i18n.ratingImpact, item.rating_content_impact ?? 0);
       ratings.appendChild(technical.wrap);
       ratings.appendChild(narrative.wrap);
       ratings.appendChild(impact.wrap);
@@ -654,7 +687,7 @@ Moderacion CFP · {event.title}
       const note = document.createElement("input");
       note.type = "text";
       note.className = "form-input cfp-admin-note";
-      note.placeholder = "Nota de moderacion (opcional)";
+      note.placeholder = i18n.moderationNotePlaceholder;
       note.id = "moderation-note-" + item.id;
       note.name = note.id;
       // Ensure persisted moderation notes are visible after refresh/reload.
@@ -676,9 +709,9 @@ Moderacion CFP · {event.title}
             await loadList();
           } catch (error) {
             if ((error.message || "").includes("stale_submission")) {
-              window.alert("Otro moderador ya actualizo esta propuesta. Recarga la cola.");
+              window.alert(i18n.staleSubmissionError);
             } else {
-              window.alert(error.message || "Error actualizando estado");
+              window.alert(error.message || i18n.updateStatusError);
             }
           } finally {
             btn.disabled = false;
@@ -690,7 +723,7 @@ Moderacion CFP · {event.title}
       const saveRatingBtn = document.createElement("button");
       saveRatingBtn.type = "button";
       saveRatingBtn.className = "btn btn-secondary";
-      saveRatingBtn.textContent = "Guardar rating";
+      saveRatingBtn.textContent = i18n.saveRatingAction;
       saveRatingBtn.addEventListener("click", async () => {
         saveRatingBtn.disabled = true;
         try {
@@ -707,9 +740,9 @@ Moderacion CFP · {event.title}
           await loadStats();
         } catch (error) {
           if ((error.message || "").includes("stale_submission")) {
-            window.alert("Otro moderador ya actualizo esta propuesta. Recarga la cola.");
+            window.alert(i18n.staleSubmissionError);
           } else {
-            window.alert(error.message || "Error guardando rating");
+            window.alert(error.message || i18n.saveRatingError);
           }
         } finally {
           saveRatingBtn.disabled = false;
@@ -717,21 +750,21 @@ Moderacion CFP · {event.title}
       });
       actions.appendChild(saveRatingBtn);
 
-      actionButton("En revision", "under_review", "btn btn-secondary");
-      actionButton("Aceptar", "accepted", "btn btn-primary");
-      actionButton("Rechazar", "rejected", "btn btn-danger");
+      actionButton(i18n.actionUnderReview, "under_review", "btn btn-secondary");
+      actionButton(i18n.actionAccept, "accepted", "btn btn-primary");
+      actionButton(i18n.actionReject, "rejected", "btn btn-danger");
       if (currentStatus === "accepted") {
         const promoteBtn = document.createElement("button");
         promoteBtn.type = "button";
         promoteBtn.className = "btn btn-secondary";
-        promoteBtn.textContent = "Promover a catalogo";
+        promoteBtn.textContent = i18n.actionPromote;
         promoteBtn.addEventListener("click", async () => {
           promoteBtn.disabled = true;
           try {
             const payload = await promoteSubmission(item.id);
-            window.alert("Catalogado: " + payload.speaker_id + " / " + payload.talk_id);
+            window.alert(i18n.promoteSuccessPrefix + " " + payload.speaker_id + " / " + payload.talk_id);
           } catch (error) {
-            window.alert(error.message || "Error promoviendo propuesta");
+            window.alert(error.message || i18n.promoteError);
           } finally {
             promoteBtn.disabled = false;
           }
@@ -744,7 +777,7 @@ Moderacion CFP · {event.title}
     }
 
     async function loadList() {
-      renderEmpty("Cargando propuestas...");
+      renderEmpty(i18n.queueLoading);
       try {
         const params = new URLSearchParams({
           status: activeStatus,
@@ -756,7 +789,7 @@ Moderacion CFP · {event.title}
           headers: { Accept: "application/json" }
         });
         if (!response.ok) {
-          throw new Error("Error de carga");
+          throw new Error(i18n.queueLoadGenericError);
         }
         const payload = await response.json();
         totalItems = Number.isFinite(Number(payload.total)) ? Number(payload.total) : 0;
@@ -769,7 +802,7 @@ Moderacion CFP · {event.title}
             await loadList();
             return;
           }
-          renderEmpty("No hay propuestas en este estado.");
+          renderEmpty(i18n.queueEmpty);
           updateListPagination();
           return;
         }
@@ -783,7 +816,7 @@ Moderacion CFP · {event.title}
         totalItems = 0;
         hasMoreItems = false;
         nextOffset = null;
-        renderEmpty("No fue posible cargar propuestas en este momento.");
+        renderEmpty(i18n.queueLoadError);
         updateListPagination();
       }
     }
