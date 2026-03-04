@@ -191,10 +191,37 @@ public class CfpEventConfigService {
     if (normalized.isBlank()) {
       return null;
     }
-    normalized = normalized.replaceAll("[^a-z0-9_-]", "-");
-    normalized = normalized.replaceAll("-{2,}", "-");
-    normalized = normalized.replaceAll("^-+", "").replaceAll("-+$", "");
-    return normalized.isBlank() ? null : normalized;
+    StringBuilder out = new StringBuilder(normalized.length());
+    boolean previousWasDash = false;
+    for (int i = 0; i < normalized.length(); i++) {
+      char current = normalized.charAt(i);
+      boolean allowed =
+          (current >= 'a' && current <= 'z')
+              || (current >= '0' && current <= '9')
+              || current == '_';
+      if (allowed) {
+        out.append(current);
+        previousWasDash = false;
+        continue;
+      }
+      if (!previousWasDash) {
+        out.append('-');
+        previousWasDash = true;
+      }
+    }
+
+    int start = 0;
+    while (start < out.length() && out.charAt(start) == '-') {
+      start++;
+    }
+    int end = out.length();
+    while (end > start && out.charAt(end - 1) == '-') {
+      end--;
+    }
+    if (start >= end) {
+      return null;
+    }
+    return out.substring(start, end);
   }
 
   public record UpdateRequest(
