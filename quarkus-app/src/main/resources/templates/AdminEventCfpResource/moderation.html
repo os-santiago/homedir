@@ -42,6 +42,54 @@ Moderacion CFP · {event.title}
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_event_config_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_event_config_desc}</p>
+      </div>
+    </div>
+    <div class="cfp-event-config-grid">
+      <label class="form-hint cfp-inline-toggle">
+        <input id="cfpEventAcceptingToggle" type="checkbox" style="transform: translateY(1px);">
+        <span>{i18n:events_cfp_admin_event_config_accepting_label}</span>
+      </label>
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_event_config_opens_label}</span>
+        <input id="cfpEventOpensAt" type="datetime-local" class="form-input">
+      </label>
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_event_config_closes_label}</span>
+        <input id="cfpEventClosesAt" type="datetime-local" class="form-input">
+      </label>
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_event_config_max_label}</span>
+        <input
+          id="cfpEventMaxPerUser"
+          type="number"
+          class="form-input"
+          min="1"
+          max="10"
+          step="1"
+          placeholder="{i18n:events_cfp_admin_event_config_max_placeholder}">
+      </label>
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_event_config_testing_override_label}</span>
+        <select id="cfpEventTestingOverride" class="form-select">
+          <option value="">{i18n:events_cfp_admin_event_config_testing_override_inherit}</option>
+          <option value="true">{i18n:events_cfp_admin_event_config_testing_override_on}</option>
+          <option value="false">{i18n:events_cfp_admin_event_config_testing_override_off}</option>
+        </select>
+      </label>
+    </div>
+    <div class="action-group" style="margin-top: 0.75rem; gap: 0.5rem;">
+      <button id="cfpEventConfigSaveBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_event_config_save}</button>
+      <button id="cfpEventConfigClearBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_event_config_clear}</button>
+    </div>
+    <p id="cfpEventConfigSummary" class="form-hint" style="margin-top: 0.6rem;"></p>
+    <p id="cfpEventConfigFeedback" class="form-hint" style="margin-top: 0.35rem;" hidden></p>
+  </div>
+
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
         <h2 class="card-title" style="margin: 0;">{i18n:events_agenda_admin_proposed_title}</h2>
         <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_agenda_admin_proposed_desc}</p>
       </div>
@@ -96,6 +144,25 @@ Moderacion CFP · {event.title}
     margin-top: 1rem;
     display: grid;
     gap: 0.65rem;
+  }
+
+  .cfp-event-config-grid {
+    margin-top: 0.85rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.55rem;
+  }
+
+  .cfp-event-config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .cfp-inline-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
   }
 
   .cfp-toolbar-row {
@@ -214,12 +281,22 @@ Moderacion CFP · {event.title}
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const agendaConfigEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/agenda/config";
     const configEndpoint = baseEndpoint + "/config";
+    const eventConfigEndpoint = baseEndpoint + "/event-config";
     const listEl = document.getElementById("cfpQueueList");
     const reloadBtn = document.getElementById("reloadCfpBtn");
     const exportBtn = document.getElementById("exportCsvBtn");
     const testingToggle = document.getElementById("cfpTestingToggle");
     const testingSaveBtn = document.getElementById("cfpTestingSaveBtn");
     const testingFeedback = document.getElementById("cfpTestingFeedback");
+    const eventAcceptingToggle = document.getElementById("cfpEventAcceptingToggle");
+    const eventOpensAtInput = document.getElementById("cfpEventOpensAt");
+    const eventClosesAtInput = document.getElementById("cfpEventClosesAt");
+    const eventMaxPerUserInput = document.getElementById("cfpEventMaxPerUser");
+    const eventTestingOverride = document.getElementById("cfpEventTestingOverride");
+    const eventConfigSaveBtn = document.getElementById("cfpEventConfigSaveBtn");
+    const eventConfigClearBtn = document.getElementById("cfpEventConfigClearBtn");
+    const eventConfigSummary = document.getElementById("cfpEventConfigSummary");
+    const eventConfigFeedback = document.getElementById("cfpEventConfigFeedback");
     const agendaNoticeToggle = document.getElementById("agendaNoticeToggle");
     const agendaNoticeSaveBtn = document.getElementById("agendaNoticeSaveBtn");
     const agendaNoticeFeedback = document.getElementById("agendaNoticeFeedback");
@@ -571,6 +648,172 @@ Moderacion CFP · {event.title}
       testingFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
     }
 
+    function showEventConfigFeedback(message, isError) {
+      if (!eventConfigFeedback) return;
+      eventConfigFeedback.hidden = false;
+      eventConfigFeedback.textContent = message;
+      eventConfigFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+    }
+
+    function toLocalInputValue(isoValue) {
+      if (!isoValue) {
+        return "";
+      }
+      const date = new Date(isoValue);
+      if (Number.isNaN(date.getTime())) {
+        return "";
+      }
+      const local = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+      return local.toISOString().slice(0, 16);
+    }
+
+    function toIsoValue(localValue) {
+      if (!localValue) {
+        return null;
+      }
+      const date = new Date(localValue);
+      if (Number.isNaN(date.getTime())) {
+        return null;
+      }
+      return date.toISOString();
+    }
+
+    function setEventConfigSummary(payload) {
+      if (!eventConfigSummary) {
+        return;
+      }
+      const effective = payload && payload.effective ? payload.effective : null;
+      if (!effective) {
+        eventConfigSummary.textContent = "{i18n:events_cfp_admin_event_config_error}";
+        return;
+      }
+      const parts = [];
+      parts.push(
+        effective.currently_open
+          ? "{i18n:events_cfp_admin_event_config_summary_open}"
+          : "{i18n:events_cfp_admin_event_config_summary_closed}");
+      parts.push("{i18n:events_cfp_admin_event_config_summary_max} " + String(effective.max_per_user));
+      parts.push(
+        effective.testing_mode_enabled
+          ? "{i18n:events_cfp_admin_event_config_summary_testing_on}"
+          : "{i18n:events_cfp_admin_event_config_summary_testing_off}");
+      parts.push(
+        payload && payload.has_override
+          ? "{i18n:events_cfp_admin_event_config_summary_override_on}"
+          : "{i18n:events_cfp_admin_event_config_summary_override_off}");
+      eventConfigSummary.textContent = parts.join(" · ");
+    }
+
+    function applyEventConfig(payload) {
+      const override = payload && payload.override ? payload.override : null;
+      const effective = payload && payload.effective ? payload.effective : null;
+      if (eventAcceptingToggle) {
+        eventAcceptingToggle.checked =
+          override && typeof override.accepting_submissions === "boolean"
+            ? !!override.accepting_submissions
+            : !!(effective && effective.accepting_submissions);
+      }
+      if (eventOpensAtInput) {
+        eventOpensAtInput.value = toLocalInputValue(override ? override.opens_at : null);
+      }
+      if (eventClosesAtInput) {
+        eventClosesAtInput.value = toLocalInputValue(override ? override.closes_at : null);
+      }
+      if (eventMaxPerUserInput) {
+        const value = override && typeof override.max_per_user === "number" ? override.max_per_user : "";
+        eventMaxPerUserInput.value = value === "" ? "" : String(value);
+      }
+      if (eventTestingOverride) {
+        const overrideTesting = override ? override.testing_mode_enabled : null;
+        if (overrideTesting === true) {
+          eventTestingOverride.value = "true";
+        } else if (overrideTesting === false) {
+          eventTestingOverride.value = "false";
+        } else {
+          eventTestingOverride.value = "";
+        }
+      }
+      setEventConfigSummary(payload);
+    }
+
+    async function loadEventConfig() {
+      if (!eventConfigSummary) {
+        return;
+      }
+      try {
+        const response = await fetch(eventConfigEndpoint, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
+          return;
+        }
+        const payload = await response.json();
+        applyEventConfig(payload);
+      } catch (error) {
+        showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
+      }
+    }
+
+    async function saveEventConfig() {
+      if (!eventConfigSaveBtn) return;
+      eventConfigSaveBtn.disabled = true;
+      if (eventConfigFeedback) {
+        eventConfigFeedback.hidden = true;
+      }
+      try {
+        const maxRaw = eventMaxPerUserInput ? String(eventMaxPerUserInput.value || "").trim() : "";
+        const maxValue = maxRaw ? Number.parseInt(maxRaw, 10) : null;
+        const testingRaw = eventTestingOverride ? String(eventTestingOverride.value || "") : "";
+        const testingOverride =
+          testingRaw === "true" ? true : (testingRaw === "false" ? false : null);
+        const response = await fetch(eventConfigEndpoint, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            accepting_submissions: !!(eventAcceptingToggle && eventAcceptingToggle.checked),
+            opens_at: toIsoValue(eventOpensAtInput ? eventOpensAtInput.value : ""),
+            closes_at: toIsoValue(eventClosesAtInput ? eventClosesAtInput.value : ""),
+            max_per_user: Number.isFinite(maxValue) ? maxValue : null,
+            testing_mode_enabled: testingOverride
+          })
+        });
+        if (!response.ok) {
+          showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
+          return;
+        }
+        const payload = await response.json();
+        applyEventConfig(payload);
+        showEventConfigFeedback("{i18n:events_cfp_admin_event_config_saved}", false);
+      } catch (error) {
+        showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
+      } finally {
+        eventConfigSaveBtn.disabled = false;
+      }
+    }
+
+    async function clearEventConfig() {
+      if (!eventConfigClearBtn) return;
+      eventConfigClearBtn.disabled = true;
+      if (eventConfigFeedback) {
+        eventConfigFeedback.hidden = true;
+      }
+      try {
+        const response = await fetch(eventConfigEndpoint, {
+          method: "DELETE",
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+          showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
+          return;
+        }
+        await loadEventConfig();
+        showEventConfigFeedback("{i18n:events_cfp_admin_event_config_cleared}", false);
+      } catch (error) {
+        showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
+      } finally {
+        eventConfigClearBtn.disabled = false;
+      }
+    }
+
     function showAgendaNoticeFeedback(message, isError) {
       if (!agendaNoticeFeedback) return;
       agendaNoticeFeedback.hidden = false;
@@ -660,10 +903,13 @@ Moderacion CFP · {event.title}
 
     reloadBtn?.addEventListener("click", loadList);
     testingSaveBtn?.addEventListener("click", saveTestingConfig);
+    eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
+    eventConfigClearBtn?.addEventListener("click", clearEventConfig);
     agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
     setActiveFilter(activeStatus);
     setActiveSort(activeSort);
     loadTestingConfig();
+    loadEventConfig();
     loadAgendaNoticeConfig();
     loadList();
   })();
