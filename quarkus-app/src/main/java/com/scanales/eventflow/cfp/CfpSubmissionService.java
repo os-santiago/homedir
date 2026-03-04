@@ -11,10 +11,12 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -275,6 +277,35 @@ public class CfpSubmissionService {
     }
   }
 
+  public EventStats statsByEvent(String eventId) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        return EventStats.empty();
+      }
+      EnumMap<CfpSubmissionStatus, Integer> counts = new EnumMap<>(CfpSubmissionStatus.class);
+      int total = 0;
+      Instant latestUpdatedAt = null;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedEventId.equals(item.eventId())) {
+          continue;
+        }
+        total++;
+        CfpSubmissionStatus status = item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
+        counts.merge(status, 1, Integer::sum);
+        Instant updated = item.updatedAt();
+        if (updated != null && (latestUpdatedAt == null || updated.isAfter(latestUpdatedAt))) {
+          latestUpdatedAt = updated;
+        }
+      }
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        counts.putIfAbsent(status, 0);
+      }
+      return new EventStats(total, Map.copyOf(counts), latestUpdatedAt);
+    }
+  }
+
   public Optional<CfpSubmission> findById(String id) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
@@ -320,7 +351,7 @@ public class CfpSubmissionService {
         return current;
       }
 
-      Instant now = Instant.now();
+      Instant now = nextUpdatedAt(current);
       Instant moderatedAt = current.moderatedAt();
       if (moderatedAt == null || statusChanged || moderatorChanged || noteChanged) {
         moderatedAt = now;
@@ -390,7 +421,7 @@ public class CfpSubmissionService {
       int normalizedNarrative = normalizeRating(narrative, "invalid_rating_narrative");
       int normalizedImpact = normalizeRating(contentImpact, "invalid_rating_content_impact");
 
-      Instant now = Instant.now();
+      Instant now = nextUpdatedAt(current);
       CfpSubmission updated =
           new CfpSubmission(
               current.id(),
@@ -431,6 +462,19 @@ public class CfpSubmissionService {
       throw new ValidationException("stale_submission");
     }
   }
+
+  private static Instant nextUpdatedAt(CfpSubmission current) {
+    Instant now = Instant.now();
+    if (current == null || current.updatedAt() == null) {
+      return now;
+    }
+    Instant currentUpdatedAt = current.updatedAt();
+    if (!now.isAfter(currentUpdatedAt)) {
+      return currentUpdatedAt.plusNanos(1);
+    }
+    return now;
+  }
+
   public CfpSubmission delete(String eventId, String id) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
@@ -769,6 +813,16 @@ public class CfpSubmissionService {
   public static class InvalidTransitionException extends RuntimeException {
     public InvalidTransitionException(String message) {
       super(message);
+    }
+  }
+
+  public record EventStats(int total, Map<CfpSubmissionStatus, Integer> countsByStatus, Instant latestUpdatedAt) {
+    public static EventStats empty() {
+      EnumMap<CfpSubmissionStatus, Integer> emptyCounts = new EnumMap<>(CfpSubmissionStatus.class);
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        emptyCounts.put(status, 0);
+      }
+      return new EventStats(0, Map.copyOf(emptyCounts), null);
     }
   }
 }
