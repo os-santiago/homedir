@@ -130,6 +130,11 @@ Moderacion CFP · {event.title}
         <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="score">Mayor score</button>
       </div>
     </div>
+    <div class="cfp-toolbar-row cfp-pagination-row">
+      <button id="cfpPrevPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_prev}</button>
+      <p id="cfpPageInfo" class="form-hint cfp-page-info">0-0 / 0</p>
+      <button id="cfpNextPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_next}</button>
+    </div>
   </div>
 
   <div id="cfpQueueList"></div>
@@ -170,6 +175,16 @@ Moderacion CFP · {event.title}
     flex-wrap: wrap;
     align-items: center;
     gap: 0.45rem;
+  }
+
+  .cfp-pagination-row {
+    margin-top: 0.55rem;
+  }
+
+  .cfp-page-info {
+    margin: 0;
+    min-width: 108px;
+    text-align: center;
   }
 
   .cfp-filter-btn.is-active,
@@ -302,8 +317,16 @@ Moderacion CFP · {event.title}
     const agendaNoticeFeedback = document.getElementById("agendaNoticeFeedback");
     const filterButtons = Array.from(document.querySelectorAll(".cfp-filter-btn"));
     const sortButtons = Array.from(document.querySelectorAll(".cfp-sort-btn"));
+    const prevPageBtn = document.getElementById("cfpPrevPageBtn");
+    const nextPageBtn = document.getElementById("cfpNextPageBtn");
+    const pageInfo = document.getElementById("cfpPageInfo");
+    const pageSize = 20;
     let activeStatus = "pending";
     let activeSort = "created";
+    let activeOffset = 0;
+    let totalItems = 0;
+    let hasMoreItems = false;
+    let nextOffset = null;
 
     const statusLabel = {
       pending: "Pendiente",
@@ -315,6 +338,7 @@ Moderacion CFP · {event.title}
 
     function setActiveFilter(status) {
       activeStatus = status;
+      activeOffset = 0;
       filterButtons.forEach((button) => {
         button.classList.toggle("is-active", button.dataset.status === status);
       });
@@ -323,6 +347,7 @@ Moderacion CFP · {event.title}
 
     function setActiveSort(sort) {
       activeSort = sort;
+      activeOffset = 0;
       sortButtons.forEach((button) => {
         button.classList.toggle("is-active", button.dataset.sort === sort);
       });
@@ -360,6 +385,20 @@ Moderacion CFP · {event.title}
       p.textContent = message;
       card.appendChild(p);
       listEl.appendChild(card);
+    }
+
+    function updateListPagination() {
+      const from = totalItems === 0 ? 0 : (activeOffset + 1);
+      const to = totalItems === 0 ? 0 : Math.min(totalItems, activeOffset + (listEl?.children?.length || 0));
+      if (pageInfo) {
+        pageInfo.textContent = from + "-" + to + " / " + totalItems;
+      }
+      if (prevPageBtn) {
+        prevPageBtn.disabled = activeOffset <= 0;
+      }
+      if (nextPageBtn) {
+        nextPageBtn.disabled = !hasMoreItems;
+      }
     }
 
     async function updateStatus(submissionId, nextStatus, noteField) {
@@ -617,8 +656,8 @@ Moderacion CFP · {event.title}
         const params = new URLSearchParams({
           status: activeStatus,
           sort: activeSort,
-          limit: "100",
-          offset: "0"
+          limit: String(pageSize),
+          offset: String(activeOffset)
         });
         const response = await fetch(baseEndpoint + "?" + params.toString(), {
           headers: { Accept: "application/json" }
@@ -627,17 +666,31 @@ Moderacion CFP · {event.title}
           throw new Error("Error de carga");
         }
         const payload = await response.json();
+        totalItems = Number.isFinite(Number(payload.total)) ? Number(payload.total) : 0;
+        hasMoreItems = !!payload.has_more;
+        nextOffset = Number.isFinite(Number(payload.next_offset)) ? Number(payload.next_offset) : null;
         const items = (payload && payload.items) ? payload.items : [];
         if (!items.length) {
+          if (activeOffset > 0 && totalItems > 0) {
+            activeOffset = Math.max(0, activeOffset - pageSize);
+            await loadList();
+            return;
+          }
           renderEmpty("No hay propuestas en este estado.");
+          updateListPagination();
           return;
         }
         listEl.innerHTML = "";
         items.forEach((item) => {
           listEl.appendChild(buildSubmissionCard(item));
         });
+        updateListPagination();
       } catch (error) {
+        totalItems = 0;
+        hasMoreItems = false;
+        nextOffset = null;
         renderEmpty("No fue posible cargar propuestas en este momento.");
+        updateListPagination();
       }
     }
 
@@ -902,6 +955,20 @@ Moderacion CFP · {event.title}
     });
 
     reloadBtn?.addEventListener("click", loadList);
+    prevPageBtn?.addEventListener("click", () => {
+      if (activeOffset <= 0) {
+        return;
+      }
+      activeOffset = Math.max(0, activeOffset - pageSize);
+      loadList().then(() => listEl?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    });
+    nextPageBtn?.addEventListener("click", () => {
+      if (!hasMoreItems) {
+        return;
+      }
+      activeOffset = Number.isFinite(nextOffset) ? nextOffset : (activeOffset + pageSize);
+      loadList().then(() => listEl?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    });
     testingSaveBtn?.addEventListener("click", saveTestingConfig);
     eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
     eventConfigClearBtn?.addEventListener("click", clearEventConfig);

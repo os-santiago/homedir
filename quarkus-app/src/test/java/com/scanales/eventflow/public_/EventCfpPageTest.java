@@ -43,7 +43,9 @@ public class EventCfpPageTest {
         .body(containsString("id=\"cfpDuration\""))
         .body(containsString("id=\"cfpLanguage\""))
         .body(containsString("id=\"cfpTrack\""))
-        .body(containsString("id=\"cfpAvailabilityHint\""));
+        .body(containsString("id=\"cfpAvailabilityHint\""))
+        .body(containsString("id=\"cfpMinePrevBtn\""))
+        .body(containsString("id=\"cfpMineNextBtn\""));
   }
 
   @Test

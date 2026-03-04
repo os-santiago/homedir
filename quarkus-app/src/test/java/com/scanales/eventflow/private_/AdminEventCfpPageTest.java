@@ -37,6 +37,8 @@ public class AdminEventCfpPageTest {
         .body(containsString("/api/events/"))
         .body(containsString("/cfp/submissions"))
         .body(containsString("id=\"cfpEventConfigSaveBtn\""))
+        .body(containsString("id=\"cfpPrevPageBtn\""))
+        .body(containsString("id=\"cfpNextPageBtn\""))
         .body(containsString("Panel admin"));
   }
 
