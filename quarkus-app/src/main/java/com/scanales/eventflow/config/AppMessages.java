@@ -2181,6 +2181,18 @@ public interface AppMessages {
     @Message("No linked accounts yet.")
     String public_profile_accounts_empty();
 
+    @Message("LVL {level}")
+    String public_profile_level_badge(int level);
+
+    @Message("{questClass} Guild")
+    String public_profile_guild_badge(String questClass);
+
+    @Message("Total Experience")
+    String public_profile_total_experience();
+
+    @Message("Top Contributor")
+    String public_profile_top_contributor();
+
     @Message("Class progression")
     String public_profile_class_progress_title();
 
@@ -2190,11 +2202,35 @@ public interface AppMessages {
     @Message("Signals captured")
     String public_profile_activity_count_subtitle();
 
+    @Message("Badges & Titles")
+    String public_profile_badges_titles();
+
+    @Message("Recent activity")
+    String public_profile_recent_activity();
+
+    @Message("No recent activity recorded.")
+    String public_profile_no_recent_activity();
+
+    @Message("Community status")
+    String public_profile_community_status();
+
+    @Message("Active")
+    String public_profile_status_active();
+
     @Message("No badges earned yet. Keep contributing to unlock more.")
     String public_profile_badges_empty();
 
     @Message("Share Profile")
     String btn_share_profile();
+
+    @Message("Check out my developer profile on HomeDir!")
+    String profile_share_text();
+
+    @Message("My HomeDir Profile")
+    String profile_share_title();
+
+    @Message("Profile link copied to clipboard:")
+    String profile_share_copied();
 
     @Message("XP Progress")
     String xp_progress();
@@ -2912,6 +2948,48 @@ public interface AppMessages {
 
     @Message("About / Version")
     String footer_about_version();
+
+    @Message("About · Homedir")
+    String about_page_title();
+
+    @Message("Status")
+    String about_status_heading();
+
+    @Message("Deployed Runtime Version")
+    String about_runtime_version_label();
+
+    @Message("Deployed Commit Hash")
+    String about_commit_hash_label();
+
+    @Message("Build Time")
+    String about_build_time_label();
+
+    @Message("Environment")
+    String about_environment_label();
+
+    @Message("Version Source of Truth")
+    String about_version_source_label();
+
+    @Message("This page shows the currently deployed runtime build.")
+    String about_version_source_value();
+
+    @Message("Google Auth")
+    String about_google_auth_label();
+
+    @Message("GitHub Auth")
+    String about_github_auth_label();
+
+    @Message("Configured")
+    String about_auth_configured();
+
+    @Message("Misconfigured (Using default/missing)")
+    String about_auth_google_misconfigured();
+
+    @Message("Missing Client ID")
+    String about_auth_github_missing_client_id();
+
+    @Message("Back to Home")
+    String about_back_home_btn();
 
     @Message("Close login")
     String login_modal_close_aria();
