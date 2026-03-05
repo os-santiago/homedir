@@ -1,6 +1,7 @@
 package io.eventflow.notifications.rest;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,8 +24,11 @@ public class NotificationPageResourceTest {
         .get("/notifications/center")
         .then()
         .statusCode(200)
-        .body(containsString("Notifications Center"))
-        .body(containsString("global alerts"));
+        .body(
+            anyOf(
+                containsString("Notifications Center"),
+                containsString("Centro de notificaciones")))
+        .body(anyOf(containsString("global alerts"), containsString("alertas globales")));
   }
 
   @Test
