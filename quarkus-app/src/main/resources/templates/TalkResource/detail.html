@@ -5,6 +5,14 @@
 {#head}
 <style>
   {#if event}
+  body.homedir-body {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body::before {
+    display: none !important;
+  }
+
   .app-container {
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
   }
