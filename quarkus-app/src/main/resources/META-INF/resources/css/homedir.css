@@ -3410,6 +3410,32 @@ footer {
   line-height: 1.34;
 }
 
+/* Strictly stabilize event/scenario/talk/speaker content regions.
+   This mirrors Community's low-motion baseline to avoid flicker and hover loops. */
+.homedir-body.ultra-lite-mode .page-header *,
+.homedir-body.ultra-lite-mode .page-grid *,
+.homedir-body.ultra-lite-mode .talk-detail *,
+.homedir-body.ultra-lite-mode .speaker-detail * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.homedir-body.ultra-lite-mode .page-grid .section-card,
+.homedir-body.ultra-lite-mode .page-grid .section-card:hover,
+.homedir-body.ultra-lite-mode .talk-detail .card,
+.homedir-body.ultra-lite-mode .talk-detail .card:hover,
+.homedir-body.ultra-lite-mode .speaker-detail .card,
+.homedir-body.ultra-lite-mode .speaker-detail .card:hover {
+  cursor: default;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.56) !important;
+}
+
 .homedir-body.ultra-lite-mode .section-header {
   position: relative;
   padding-bottom: 0.18rem;
