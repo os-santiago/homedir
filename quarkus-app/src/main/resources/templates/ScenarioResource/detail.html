@@ -10,8 +10,7 @@
 {/title}
 {#head}
 <style>
-  /* Scenario-specific ultra-lite hard guard.
-     Keeps this view aligned with Community baseline and avoids hover/flicker regressions. */
+  /* Scenario-specific ultra-lite hard guard plus layout alignment with primary sections. */
   .scenario-ultra-shell,
   .scenario-ultra-shell *,
   .scenario-ultra-shell *::before,
@@ -36,6 +35,59 @@
   .scenario-ultra-shell .section-card::before,
   .scenario-ultra-shell .section-card:hover::before {
     content: none !important;
+  }
+
+  .scenario-ultra-shell .scenario-full-width {
+    grid-column: 1 / -1;
+  }
+
+  .scenario-ultra-shell .scenario-shell-card {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .scenario-ultra-shell .scenario-talk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .scenario-ultra-shell .scenario-talk-item {
+    display: grid;
+    gap: 0.55rem;
+    align-content: start;
+    padding: 0.7rem 0.75rem;
+    border-left: 3px solid rgba(255, 215, 0, 0.55) !important;
+  }
+
+  .scenario-ultra-shell .scenario-talk-title {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.32;
+  }
+
+  .scenario-ultra-shell .scenario-talk-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.32rem;
+  }
+
+  .scenario-ultra-shell .scenario-talk-meta .badge {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .scenario-ultra-shell .scenario-talk-action {
+    margin-top: 0.2rem;
+  }
+
+  .scenario-ultra-shell .scenario-empty-card {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto;
   }
 
   .scenario-ultra-shell .btn-primary:hover,
@@ -70,24 +122,24 @@
   </header>
 
   <section class="page-grid">
-    <article class="section-card" style="grid-column: 1 / -1;">
-      <div class="section-header" style="margin-bottom: 1rem;">
+    <article class="section-card scenario-shell-card scenario-full-width">
+      <div class="section-header">
         <h2>{i18n:events_scenario_talks_title}</h2>
         <span class="badge">{i18n:events_scenario_sessions_count(talks.size)}</span>
       </div>
 
       {#if talks.isEmpty()}
-      <p class="event-description">{i18n:events_scenario_no_talks}</p>
+      <p class="hd-empty-callout">{i18n:events_scenario_no_talks}</p>
       {#else}
-      <ul class="talk-list scenario-talk-list">
+      <div class="scenario-talk-grid">
         {#for t in talks}
-        <li class="scenario-talk-card">
-          <h3 class="talk-title">{t.name}</h3>
+        <article class="section-card scenario-talk-item">
+          <h3 class="scenario-talk-title">{t.name}</h3>
 
           {#if !t.break && !t.speakers.isEmpty()}
           <div class="speaker-avatars">
             {#for s in t.speakers}
-            <a href="/speaker/{s.id}" title="{s.name}" style="text-decoration: none;">
+            <a href="/speaker/{s.id}" title="{s.name}" class="hd-link">
               {#if app:validUrl(s.photoUrl)}
               <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
               {#else}
@@ -98,31 +150,31 @@
           </div>
           {/if}
 
-          <div class="chips">
-            <span class="chip">Día {t.day}</span>
-            {#if t.startTimeStr}<span class="chip">{t.startTimeStr}</span>{/if}
-            {#if t.durationMinutes > 0}<span class="chip">{t.durationMinutes} min</span>{/if}
+          <div class="scenario-talk-meta">
+            <span class="badge">{i18n:talk_chip_day(t.day)}</span>
+            {#if t.startTimeStr}<span class="badge">{t.startTimeStr}</span>{/if}
+            {#if t.durationMinutes > 0}<span class="badge">{i18n:talk_duration_minutes(t.durationMinutes)}</span>{/if}
           </div>
 
           {#if !t.break && event}
-          <a href="/talk/{t.id}" class="btn-primary" style="margin-top: 0.8rem; display: inline-flex;">
+          <a href="/talk/{t.id}" class="btn-primary scenario-talk-action">
             {i18n:events_scenario_view_talk}
           </a>
           {/if}
-        </li>
+        </article>
         {/for}
-      </ul>
+      </div>
       {/if}
     </article>
   </section>
 </section>
 {#else}
-<div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 45vh;">
-  <div class="section-card" style="text-align: center;">
-    <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">podium</span>
+<div class="page-container">
+  <div class="section-card scenario-empty-card">
+    <span class="material-symbols-outlined">podium</span>
     <h2>{i18n:events_scenario_not_found_heading}</h2>
     <p>{i18n:events_scenario_not_found_desc}</p>
-    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">{i18n:events_scenario_back_to_events}</a>
+    <a href="/eventos" class="btn-primary">{i18n:events_scenario_back_to_events}</a>
   </div>
 </div>
 {/if}
