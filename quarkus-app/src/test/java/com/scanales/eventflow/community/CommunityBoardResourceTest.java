@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.startsWith;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.UserProfileService;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.specification.RequestSpecification;
 import jakarta.inject.Inject;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +20,10 @@ public class CommunityBoardResourceTest {
 
   @Inject UserProfileService userProfileService;
   @Inject CommunityBoardService boardService;
+
+  private static RequestSpecification englishRequest() {
+    return given().header("Accept-Language", "en");
+  }
 
   @BeforeEach
   void setup() throws Exception {
@@ -50,7 +55,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void boardSummaryPageRenders() {
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board")
         .then()
@@ -67,7 +72,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void boardDetailPageRendersMembers() {
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/github-users")
         .then()
@@ -79,7 +84,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void homedirMembersWithoutGithubUseUnifiedPublicProfilePath() {
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/homedir-users")
         .then()
@@ -101,7 +106,7 @@ public class CommunityBoardResourceTest {
     Files.writeString(discordFile, yaml.toString());
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/discord-users")
         .then()
@@ -126,7 +131,7 @@ public class CommunityBoardResourceTest {
     Files.writeString(discordFile, yaml.toString());
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/discord-users?limit=200&offset=0")
         .then()
@@ -138,7 +143,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void englishCommunityAliasRedirectsToLocalizedBoardPath() {
-    given()
+    englishRequest()
         .redirects()
         .follow(false)
         .when()
@@ -150,7 +155,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void memberSharePageRenders() {
-    given()
+    englishRequest()
         .redirects()
         .follow(false)
         .when()
@@ -162,7 +167,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void spanishMemberAliasRedirectsToCanonicalSharePath() {
-    given()
+    englishRequest()
         .redirects()
         .follow(false)
         .when()
@@ -174,7 +179,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void unknownMemberSharePageReturnsNotFound() {
-    given().when().get("/community/member/github-users/does-not-exist").then().statusCode(404);
+    englishRequest().when().get("/community/member/github-users/does-not-exist").then().statusCode(404);
   }
 
   @Test
@@ -191,7 +196,7 @@ public class CommunityBoardResourceTest {
         """);
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .redirects()
         .follow(false)
         .when()
@@ -215,7 +220,7 @@ public class CommunityBoardResourceTest {
             Instant.parse("2026-02-18T00:00:00Z")));
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/discord-users")
         .then()
@@ -237,7 +242,7 @@ public class CommunityBoardResourceTest {
             Instant.parse("2026-02-18T00:00:00Z")));
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .redirects()
         .follow(false)
         .when()
@@ -263,7 +268,7 @@ public class CommunityBoardResourceTest {
             Instant.parse("2026-02-19T00:00:00Z")));
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/discord-users")
         .then()
@@ -289,7 +294,7 @@ public class CommunityBoardResourceTest {
         """);
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/discord-users")
         .then()
@@ -312,7 +317,7 @@ public class CommunityBoardResourceTest {
         """);
     boardService.resetDiscordCacheForTests();
 
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/discord-users?q=hidden_user_name")
         .then()
@@ -322,7 +327,7 @@ public class CommunityBoardResourceTest {
 
   @Test
   void discordBoardSearchMatchesHandleEvenWhenQueryUsesDifferentSeparators() {
-    given()
+    englishRequest()
         .when()
         .get("/comunidad/board/discord-users?q=discorduser1001")
         .then()
@@ -330,3 +335,4 @@ public class CommunityBoardResourceTest {
         .body(containsString("Discord User"));
   }
 }
+

@@ -62,6 +62,7 @@ public class PublicProfileResourceTest {
   @Test
   void githubProfileShowsUnifiedAccounts() {
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/u/public-user")
         .then()
@@ -79,6 +80,7 @@ public class PublicProfileResourceTest {
   void homedirProfileWithoutGithubIsResolvable() {
     String homedirId = homedirMemberId("homedir.user@example.com");
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/u/" + homedirId)
         .then()
@@ -90,7 +92,7 @@ public class PublicProfileResourceTest {
 
   @Test
   void unknownProfileReturnsNotFound() {
-    given().when().get("/u/does-not-exist").then().statusCode(404);
+    given().header("Accept-Language", "en").when().get("/u/does-not-exist").then().statusCode(404);
   }
 
   private static String homedirMemberId(String identitySeed) {
