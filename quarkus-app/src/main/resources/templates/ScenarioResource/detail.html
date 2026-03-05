@@ -1,4 +1,4 @@
-{#include layout/main activePage="eventos"}
+{#include layout/main activePage="eventos" mainClass="community-ultra-lite"}
 {#title}
 {#if scenario && event}
 {scenario.name} - {event.title} - Homedir
@@ -8,75 +8,113 @@
 {i18n:events_scenario_not_found_page_title}
 {/if}
 {/title}
+{#head}
+<style>
+  /* Scenario-specific ultra-lite hard guard.
+     Keeps this view aligned with Community baseline and avoids hover/flicker regressions. */
+  .scenario-ultra-shell,
+  .scenario-ultra-shell *,
+  .scenario-ultra-shell *::before,
+  .scenario-ultra-shell *::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    will-change: auto !important;
+  }
+
+  .scenario-ultra-shell .section-card,
+  .scenario-ultra-shell .scenario-talk-card {
+    background: rgba(0, 0, 0, 0.26) !important;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.52) !important;
+    border-color: rgba(255, 255, 255, 0.24) !important;
+  }
+
+  .scenario-ultra-shell .section-card::before,
+  .scenario-ultra-shell .section-card:hover::before {
+    content: none !important;
+  }
+
+  .scenario-ultra-shell .btn-primary:hover,
+  .scenario-ultra-shell .btn-primary:active {
+    transform: none !important;
+  }
+</style>
+{/head}
 {#body}
 {#if scenario}
-<header class="page-header">
-  <div class="section-header">
-    {#if event}
-    <p class="section-subtitle">
-      <a href="/event/{event.id}" class="hd-link">← {i18n:events_scenario_back_to_event(event.title)}</a>
-    </p>
-    {/if}
-    <h1 class="public-title">{scenario.name}</h1>
-  </div>
-
-  {#if scenario.location}
-  <p class="section-subtitle">
-    <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
-    {scenario.location}
-  </p>
-  {/if}
-
-  {#if scenario.features}
-  <p class="section-subtitle">{scenario.features}</p>
-  {/if}
-</header>
-
-<section class="page-grid">
-  <article class="section-card" style="grid-column: 1 / -1;">
-    <div class="section-header" style="margin-bottom: 1rem;">
-      <h2>{i18n:events_scenario_talks_title}</h2>
-      <span class="badge">{i18n:events_scenario_sessions_count(talks.size)}</span>
+<section class="scenario-ultra-shell">
+  <header class="page-header">
+    <div class="section-header">
+      {#if event}
+      <p class="section-subtitle">
+        <a href="/event/{event.id}" class="hd-link">← {i18n:events_scenario_back_to_event(event.title)}</a>
+      </p>
+      {/if}
+      <h1 class="public-title">{scenario.name}</h1>
     </div>
 
-    {#if talks.isEmpty()}
-    <p class="event-description">{i18n:events_scenario_no_talks}</p>
-    {#else}
-    <ul class="talk-list scenario-talk-list">
-      {#for t in talks}
-      <li class="scenario-talk-card">
-        <h3 class="talk-title">{t.name}</h3>
-
-        {#if !t.break && !t.speakers.isEmpty()}
-        <div class="speaker-avatars">
-          {#for s in t.speakers}
-          <a href="/speaker/{s.id}" title="{s.name}" style="text-decoration: none;">
-            {#if app:validUrl(s.photoUrl)}
-            <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
-            {#else}
-            <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
-            {/if}
-          </a>
-          {/for}
-        </div>
-        {/if}
-
-        <div class="chips">
-          <span class="chip">Día {t.day}</span>
-          {#if t.startTimeStr}<span class="chip">{t.startTimeStr}</span>{/if}
-          {#if t.durationMinutes > 0}<span class="chip">{t.durationMinutes} min</span>{/if}
-        </div>
-
-        {#if !t.break && event}
-        <a href="/talk/{t.id}" class="btn-primary" style="margin-top: 0.8rem; display: inline-flex;">
-          {i18n:events_scenario_view_talk}
-        </a>
-        {/if}
-      </li>
-      {/for}
-    </ul>
+    {#if scenario.location}
+    <p class="section-subtitle">
+      <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
+      {scenario.location}
+    </p>
     {/if}
-  </article>
+
+    {#if scenario.features}
+    <p class="section-subtitle">{scenario.features}</p>
+    {/if}
+  </header>
+
+  <section class="page-grid">
+    <article class="section-card" style="grid-column: 1 / -1;">
+      <div class="section-header" style="margin-bottom: 1rem;">
+        <h2>{i18n:events_scenario_talks_title}</h2>
+        <span class="badge">{i18n:events_scenario_sessions_count(talks.size)}</span>
+      </div>
+
+      {#if talks.isEmpty()}
+      <p class="event-description">{i18n:events_scenario_no_talks}</p>
+      {#else}
+      <ul class="talk-list scenario-talk-list">
+        {#for t in talks}
+        <li class="scenario-talk-card">
+          <h3 class="talk-title">{t.name}</h3>
+
+          {#if !t.break && !t.speakers.isEmpty()}
+          <div class="speaker-avatars">
+            {#for s in t.speakers}
+            <a href="/speaker/{s.id}" title="{s.name}" style="text-decoration: none;">
+              {#if app:validUrl(s.photoUrl)}
+              <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
+              {#else}
+              <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
+              {/if}
+            </a>
+            {/for}
+          </div>
+          {/if}
+
+          <div class="chips">
+            <span class="chip">Día {t.day}</span>
+            {#if t.startTimeStr}<span class="chip">{t.startTimeStr}</span>{/if}
+            {#if t.durationMinutes > 0}<span class="chip">{t.durationMinutes} min</span>{/if}
+          </div>
+
+          {#if !t.break && event}
+          <a href="/talk/{t.id}" class="btn-primary" style="margin-top: 0.8rem; display: inline-flex;">
+            {i18n:events_scenario_view_talk}
+          </a>
+          {/if}
+        </li>
+        {/for}
+      </ul>
+      {/if}
+    </article>
+  </section>
 </section>
 {#else}
 <div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 45vh;">
