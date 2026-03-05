@@ -13,6 +13,10 @@
 {#head}
 {#if event}
 <style>
+  .app-container {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+  }
+
   main#main-content.homedir-main {
     --event-theme-primary: {event.resolvedThemePrimaryColor};
     --event-theme-accent: {event.resolvedThemeAccentColor};

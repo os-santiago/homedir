@@ -8,6 +8,12 @@
 {#main}
 {#if speaker}
 <style>
+  {#if themeEvent}
+  .app-container {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+  }
+  {/if}
+
   .speaker-theme-shell {
     --event-theme-primary: {#if themeEvent}{themeEvent.resolvedThemePrimaryColor}{#else}#ffd54f{/if};
     --event-theme-accent: {#if themeEvent}{themeEvent.resolvedThemeAccentColor}{#else}#72ff9f{/if};
