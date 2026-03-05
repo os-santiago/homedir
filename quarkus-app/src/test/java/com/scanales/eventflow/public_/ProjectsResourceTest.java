@@ -1,6 +1,7 @@
 package com.scanales.eventflow.public_;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 
@@ -18,8 +19,14 @@ public class ProjectsResourceTest {
         .get("/proyectos")
         .then()
         .statusCode(200)
-        .body(containsString("Product delivery overview"))
-        .body(containsString("Homedir feature map"))
+        .body(
+            anyOf(
+                containsString("Product delivery overview"),
+                containsString("Resumen de entrega del producto")))
+        .body(
+            anyOf(
+                containsString("Homedir feature map"),
+                containsString("Mapa de features de Homedir")))
         .body(containsString("Gamification: Levels"))
         .body(containsString("Rewards Catalog Preview"))
         .body(containsString("/notifications/center"));

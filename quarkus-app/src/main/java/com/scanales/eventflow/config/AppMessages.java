@@ -475,6 +475,9 @@ public interface AppMessages {
     @Message("Live now")
     String events_countdown_live();
 
+    @Message("LIVE")
+    String events_countdown_live_badge();
+
     @Message("Starts today")
     String events_countdown_today();
 
@@ -483,6 +486,9 @@ public interface AppMessages {
 
     @Message("Starts in {days} days")
     String events_countdown_days(long days);
+
+    @Message("D-{days}")
+    String events_countdown_days_short(long days);
 
     @Message("Call for Papers")
     String events_cfp_open_cta();
@@ -2175,6 +2181,18 @@ public interface AppMessages {
     @Message("No linked accounts yet.")
     String public_profile_accounts_empty();
 
+    @Message("LVL {level}")
+    String public_profile_level_badge(int level);
+
+    @Message("{questClass} Guild")
+    String public_profile_guild_badge(String questClass);
+
+    @Message("Total Experience")
+    String public_profile_total_experience();
+
+    @Message("Top Contributor")
+    String public_profile_top_contributor();
+
     @Message("Class progression")
     String public_profile_class_progress_title();
 
@@ -2183,6 +2201,21 @@ public interface AppMessages {
 
     @Message("Signals captured")
     String public_profile_activity_count_subtitle();
+
+    @Message("Badges & Titles")
+    String public_profile_badges_titles();
+
+    @Message("Recent activity")
+    String public_profile_recent_activity();
+
+    @Message("No recent activity recorded.")
+    String public_profile_no_recent_activity();
+
+    @Message("Community status")
+    String public_profile_community_status();
+
+    @Message("Active")
+    String public_profile_status_active();
 
     @Message("No badges earned yet. Keep contributing to unlock more.")
     String public_profile_badges_empty();
@@ -3074,6 +3107,15 @@ public interface AppMessages {
 
     @Message("Website")
     String events_detail_web();
+
+    @Message("Twitter")
+    String events_detail_social_twitter();
+
+    @Message("LinkedIn")
+    String events_detail_social_linkedin();
+
+    @Message("Instagram")
+    String events_detail_social_instagram();
 
     @Message("Scenarios")
     String events_detail_scenarios_title();
