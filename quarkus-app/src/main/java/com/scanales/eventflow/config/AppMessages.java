@@ -475,6 +475,9 @@ public interface AppMessages {
     @Message("Live now")
     String events_countdown_live();
 
+    @Message("LIVE")
+    String events_countdown_live_badge();
+
     @Message("Starts today")
     String events_countdown_today();
 
@@ -483,6 +486,9 @@ public interface AppMessages {
 
     @Message("Starts in {days} days")
     String events_countdown_days(long days);
+
+    @Message("D-{days}")
+    String events_countdown_days_short(long days);
 
     @Message("Call for Papers")
     String events_cfp_open_cta();
@@ -3059,6 +3065,15 @@ public interface AppMessages {
 
     @Message("Website")
     String events_detail_web();
+
+    @Message("Twitter")
+    String events_detail_social_twitter();
+
+    @Message("LinkedIn")
+    String events_detail_social_linkedin();
+
+    @Message("Instagram")
+    String events_detail_social_instagram();
 
     @Message("Scenarios")
     String events_detail_scenarios_title();
