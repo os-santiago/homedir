@@ -119,7 +119,11 @@ public class AdminEventResource {
       @FormParam("twitter") String twitter,
       @FormParam("linkedin") String linkedin,
       @FormParam("instagram") String instagram,
-      @FormParam("ticketsUrl") String ticketsUrl) {
+      @FormParam("ticketsUrl") String ticketsUrl,
+      @FormParam("themePrimaryColor") String themePrimaryColor,
+      @FormParam("themeAccentColor") String themeAccentColor,
+      @FormParam("themeSurfaceColor") String themeSurfaceColor,
+      @FormParam("themeTextColor") String themeTextColor) {
     if (!isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -137,6 +141,10 @@ public class AdminEventResource {
     event.setLinkedin(sanitizeUrl(linkedin));
     event.setInstagram(sanitizeUrl(instagram));
     event.setTicketsUrl(sanitizeUrl(ticketsUrl));
+    event.setThemePrimaryColor(themePrimaryColor);
+    event.setThemeAccentColor(themeAccentColor);
+    event.setThemeSurfaceColor(themeSurfaceColor);
+    event.setThemeTextColor(themeTextColor);
     eventService.saveEvent(event);
     return Response.status(Response.Status.SEE_OTHER)
         .header("Location", "/private/admin/events")
@@ -161,7 +169,11 @@ public class AdminEventResource {
       @FormParam("twitter") String twitter,
       @FormParam("linkedin") String linkedin,
       @FormParam("instagram") String instagram,
-      @FormParam("ticketsUrl") String ticketsUrl) {
+      @FormParam("ticketsUrl") String ticketsUrl,
+      @FormParam("themePrimaryColor") String themePrimaryColor,
+      @FormParam("themeAccentColor") String themeAccentColor,
+      @FormParam("themeSurfaceColor") String themeSurfaceColor,
+      @FormParam("themeTextColor") String themeTextColor) {
     if (!isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -183,6 +195,10 @@ public class AdminEventResource {
     event.setLinkedin(sanitizeUrl(linkedin));
     event.setInstagram(sanitizeUrl(instagram));
     event.setTicketsUrl(sanitizeUrl(ticketsUrl));
+    event.setThemePrimaryColor(themePrimaryColor);
+    event.setThemeAccentColor(themeAccentColor);
+    event.setThemeSurfaceColor(themeSurfaceColor);
+    event.setThemeTextColor(themeTextColor);
     eventService.saveEvent(event);
     return Response.status(Response.Status.SEE_OTHER).header("Location", "/event/" + id).build();
   }
