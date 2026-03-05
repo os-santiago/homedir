@@ -4,12 +4,17 @@
 {/title}
 {#head}
 <style>
-  /* Talk-specific ultra-lite hard guard plus alignment with primary sections. */
-  .talk-ultra-shell {
+  main#main-content.homedir-main {
     --event-theme-primary: {#if event}{event.resolvedThemePrimaryColor}{#else}#ffd54f{/if};
     --event-theme-accent: {#if event}{event.resolvedThemeAccentColor}{#else}#72ff9f{/if};
     --event-theme-surface: {#if event}{event.resolvedThemeSurfaceColor}{#else}#2d3d57{/if};
     --event-theme-text: {#if event}{event.resolvedThemeTextColor}{#else}#ffffff{/if};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+    color: var(--event-theme-text);
+  }
+
+  /* Talk-specific ultra-lite hard guard plus alignment with primary sections. */
+  .talk-ultra-shell {
     color: var(--event-theme-text);
   }
 
