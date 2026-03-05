@@ -614,17 +614,19 @@
 <script>
     function shareProfile(handle) {
         const url = window.location.origin + '/u/' + handle;
-        const text = 'Check out my developer profile on HomeDir!';
+        const text = `{i18n:profile_share_text}`;
+        const shareTitle = `{i18n:profile_share_title}`;
+        const copiedMessage = `{i18n:profile_share_copied}`;
 
         if (navigator.share) {
             navigator.share({
-                title: 'My HomeDir Profile',
+                title: shareTitle,
                 text: text,
                 url: url
             }).catch(console.error);
         } else {
             navigator.clipboard.writeText(url).then(() => {
-                alert('Profile link copied to clipboard: ' + url);
+                alert(copiedMessage + ' ' + url);
             });
         }
     }
