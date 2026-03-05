@@ -25,6 +25,7 @@
     - Iteracion 1: introducir recurso nuevo oculto/sin consumo productivo.
     - Iteracion 2: integrar consumo progresivo del recurso nuevo.
     - Iteracion 3: retirar versiones legadas/deprecadas una vez validado en produccion.
+19. La calidad objetivo de entrega debe mantenerse sobre 95% de exito tanto en checks de PR como en pases a produccion; si baja, priorizar estabilizacion antes de nuevas features.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
@@ -43,11 +44,12 @@
    - Rollback plan
 9. Activar auto-merge cuando los checks requeridos esten listos.
 10. Monitorear `PR Validation` y luego `Production Release` en GitHub Actions.
-11. Verificar en produccion:
+11. Antes de solicitar merge, ejecutar validaciones locales enfocadas al alcance del cambio para reducir fallas en checks del PR y sostener objetivo de exito >95%.
+12. Verificar en produccion:
     - HTTP 200 en `/`, `/comunidad`, `/eventos`, `/proyectos`
     - Comportamiento funcional del cambio
     - Sin errores criticos nuevos en consola de navegador
-12. Si falla produccion:
+13. Si falla produccion:
     - detener iteraciones nuevas
     - revertir o rollback a version estable
     - abrir PR correctivo con causa raiz y prevencion
