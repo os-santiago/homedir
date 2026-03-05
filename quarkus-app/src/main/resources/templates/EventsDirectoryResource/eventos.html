@@ -132,7 +132,7 @@
       <div class="event-countdown-panel">
         <p class="event-countdown-label">{i18n:events_countdown_title}</p>
         <strong class="event-countdown-value {#if event.ongoing}is-live{/if}">
-          {#if event.ongoing}LIVE{#else}D-{event.daysUntil}{/if}
+          {#if event.ongoing}{i18n:events_countdown_live_badge}{#else}{i18n:events_countdown_days_short(event.daysUntil)}{/if}
         </strong>
         <p class="event-countdown-caption">
           {#if event.ongoing}
