@@ -9,6 +9,8 @@
     --event-theme-primary: {#if event}{event.resolvedThemePrimaryColor}{#else}#ffd54f{/if};
     --event-theme-accent: {#if event}{event.resolvedThemeAccentColor}{#else}#72ff9f{/if};
     --event-theme-surface: {#if event}{event.resolvedThemeSurfaceColor}{#else}#2d3d57{/if};
+    --event-theme-text: {#if event}{event.resolvedThemeTextColor}{#else}#ffffff{/if};
+    color: var(--event-theme-text);
   }
 
   .talk-ultra-shell,
@@ -41,9 +43,9 @@
   }
 
   .talk-ultra-shell .talk-meta-row .badge {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--event-theme-surface);
+    color: var(--event-theme-text);
+    border: 1px solid var(--event-theme-accent);
     text-transform: none;
     letter-spacing: 0;
   }
@@ -55,9 +57,9 @@
   }
 
   .talk-ultra-shell .talk-kv-item {
-    border: 1px solid var(--event-theme-surface);
+    border: 1px solid var(--event-theme-primary);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--event-theme-surface);
     padding: 0.46rem 0.58rem;
     display: grid;
     gap: 0.12rem;
@@ -91,10 +93,10 @@
   }
 
   .talk-ultra-shell .talk-occurrence-item {
-    border: 1px solid var(--event-theme-surface);
+    border: 1px solid var(--event-theme-primary);
     border-left: 3px solid var(--event-theme-primary);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.22);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface);
     padding: 0.5rem 0.62rem;
     display: flex;
     flex-wrap: wrap;
@@ -113,7 +115,28 @@
   }
 
   .talk-ultra-shell .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
     border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .talk-ultra-shell .btn,
+  .talk-ultra-shell .btn-secondary,
+  .talk-ultra-shell .login-btn-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .talk-ultra-shell .section-card {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface);
+    border-color: var(--event-theme-primary);
+  }
+
+  .talk-ultra-shell .avatar.placeholder {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
   }
 </style>
 {/head}
@@ -149,7 +172,7 @@
       {#if !talk.speakers.isEmpty()}
       <div class="speaker-avatars">
         {#for s in talk.speakers}
-        <a href="/speaker/{s.id}" title="{s.name}" class="hd-link">
+        <a href="/speaker/{s.id}{#if event}?event={event.id}{/if}" title="{s.name}" class="hd-link">
           {#if app:validUrl(s.photoUrl)}
           <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
           {#else}
@@ -164,12 +187,12 @@
         {#if !talk.speakers.isEmpty()}
         <div class="talk-kv-item">
           <span class="talk-kv-label">{i18n:talk_label_speaker}</span>
-          <span class="talk-kv-value"><a href="/speaker/{talk.speakers[0].id}" class="hd-link">{talk.speakers[0].name}</a></span>
+          <span class="talk-kv-value"><a href="/speaker/{talk.speakers[0].id}{#if event}?event={event.id}{/if}" class="hd-link">{talk.speakers[0].name}</a></span>
         </div>
         {#if talk.speakers.size > 1}
         <div class="talk-kv-item">
           <span class="talk-kv-label">{i18n:talk_label_co_speaker}</span>
-          <span class="talk-kv-value"><a href="/speaker/{talk.speakers[1].id}" class="hd-link">{talk.speakers[1].name}</a></span>
+          <span class="talk-kv-value"><a href="/speaker/{talk.speakers[1].id}{#if event}?event={event.id}{/if}" class="hd-link">{talk.speakers[1].name}</a></span>
         </div>
         {/if}
         {/if}

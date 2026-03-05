@@ -15,6 +15,8 @@
     --event-theme-primary: {#if event}{event.resolvedThemePrimaryColor}{#else}#ffd54f{/if};
     --event-theme-accent: {#if event}{event.resolvedThemeAccentColor}{#else}#72ff9f{/if};
     --event-theme-surface: {#if event}{event.resolvedThemeSurfaceColor}{#else}#2d3d57{/if};
+    --event-theme-text: {#if event}{event.resolvedThemeTextColor}{#else}#ffffff{/if};
+    color: var(--event-theme-text);
   }
 
   .scenario-ultra-shell,
@@ -33,9 +35,10 @@
 
   .scenario-ultra-shell .section-card,
   .scenario-ultra-shell .scenario-talk-card {
-    background: rgba(0, 0, 0, 0.26) !important;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.52) !important;
-    border-color: var(--event-theme-surface) !important;
+    border-color: var(--event-theme-primary) !important;
+    color: var(--event-theme-text) !important;
   }
 
   .scenario-ultra-shell .section-card::before,
@@ -79,8 +82,8 @@
   }
 
   .scenario-ultra-shell .scenario-talk-meta .badge {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.92);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--event-theme-surface);
+    color: var(--event-theme-text);
     border: 1px solid var(--event-theme-accent);
     text-transform: none;
     letter-spacing: 0;
@@ -91,7 +94,22 @@
   }
 
   .scenario-ultra-shell .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
     border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .scenario-ultra-shell .btn,
+  .scenario-ultra-shell .login-btn-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .scenario-ultra-shell .avatar.placeholder {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
   }
 
   .scenario-ultra-shell .scenario-talk-action {
@@ -153,7 +171,7 @@
           {#if !t.break && !t.speakers.isEmpty()}
           <div class="speaker-avatars">
             {#for s in t.speakers}
-            <a href="/speaker/{s.id}" title="{s.name}" class="hd-link">
+            <a href="/speaker/{s.id}{#if event}?event={event.id}{/if}" title="{s.name}" class="hd-link">
               {#if app:validUrl(s.photoUrl)}
               <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
               {#else}

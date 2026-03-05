@@ -36,6 +36,10 @@ public class SpeakerResourceTalkEventsTest {
     speakerService.saveSpeaker(speaker);
 
     Event event = new Event(EVENT_ID, "Evento de prueba", "desc");
+    event.setThemePrimaryColor("#123456");
+    event.setThemeAccentColor("#345678");
+    event.setThemeSurfaceColor("#0f2233");
+    event.setThemeTextColor("#f7f7f7");
     Talk eventTalk = new Talk(TALK_ID, "Charla test");
     eventTalk.setSpeakers(List.of(speaker));
     eventTalk.setStartTime(LocalTime.of(10, 0));
@@ -58,5 +62,16 @@ public class SpeakerResourceTalkEventsTest {
         .then()
         .statusCode(200)
         .body(containsString("Evento de prueba"));
+  }
+
+  @Test
+  public void speakerViewUsesEventPaletteWhenEventQueryProvided() {
+    given()
+        .when()
+        .get("/speaker/" + SPEAKER_ID + "?event=" + EVENT_ID)
+        .then()
+        .statusCode(200)
+        .body(containsString("--event-theme-primary: #123456"))
+        .body(containsString("--event-theme-accent: #345678"));
   }
 }
