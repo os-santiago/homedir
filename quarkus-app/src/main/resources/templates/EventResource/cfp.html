@@ -14,6 +14,10 @@
 {#if event}
 <style>
   body.homedir-body {
+    --event-theme-primary: {event.resolvedThemePrimaryColor};
+    --event-theme-accent: {event.resolvedThemeAccentColor};
+    --event-theme-surface: {event.resolvedThemeSurfaceColor};
+    --event-theme-text: {event.resolvedThemeTextColor};
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
   }
 
@@ -25,11 +29,27 @@
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
   }
 
+  body.homedir-body .top-nav,
+  body.homedir-body .hd-top-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+  }
+
+  body.homedir-body .alpha-banner {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-top-color: var(--event-theme-primary) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+    color: var(--event-theme-text) !important;
+  }
+
+  body.homedir-body .nav-link,
+  body.homedir-body .login-btn-nav,
+  body.homedir-body .header-locale-select {
+    color: var(--event-theme-text) !important;
+    border-color: var(--event-theme-accent) !important;
+  }
+
   main#main-content.homedir-main {
-    --event-theme-primary: {event.resolvedThemePrimaryColor};
-    --event-theme-accent: {event.resolvedThemeAccentColor};
-    --event-theme-surface: {event.resolvedThemeSurfaceColor};
-    --event-theme-text: {event.resolvedThemeTextColor};
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
     color: var(--event-theme-text);
   }
