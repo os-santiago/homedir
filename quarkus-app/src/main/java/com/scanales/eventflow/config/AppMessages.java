@@ -2907,6 +2907,48 @@ public interface AppMessages {
     @Message("About / Version")
     String footer_about_version();
 
+    @Message("About · Homedir")
+    String about_page_title();
+
+    @Message("Status")
+    String about_status_heading();
+
+    @Message("Deployed Runtime Version")
+    String about_runtime_version_label();
+
+    @Message("Deployed Commit Hash")
+    String about_commit_hash_label();
+
+    @Message("Build Time")
+    String about_build_time_label();
+
+    @Message("Environment")
+    String about_environment_label();
+
+    @Message("Version Source of Truth")
+    String about_version_source_label();
+
+    @Message("This page shows the currently deployed runtime build.")
+    String about_version_source_value();
+
+    @Message("Google Auth")
+    String about_google_auth_label();
+
+    @Message("GitHub Auth")
+    String about_github_auth_label();
+
+    @Message("Configured")
+    String about_auth_configured();
+
+    @Message("Misconfigured (Using default/missing)")
+    String about_auth_google_misconfigured();
+
+    @Message("Missing Client ID")
+    String about_auth_github_missing_client_id();
+
+    @Message("Back to Home")
+    String about_back_home_btn();
+
     @Message("Close login")
     String login_modal_close_aria();
 
