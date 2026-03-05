@@ -5,6 +5,12 @@
 {#head}
 <style>
   /* Talk-specific ultra-lite hard guard plus alignment with primary sections. */
+  .talk-ultra-shell {
+    --event-theme-primary: {#if event}{event.resolvedThemePrimaryColor}{#else}#ffd54f{/if};
+    --event-theme-accent: {#if event}{event.resolvedThemeAccentColor}{#else}#72ff9f{/if};
+    --event-theme-surface: {#if event}{event.resolvedThemeSurfaceColor}{#else}#2d3d57{/if};
+  }
+
   .talk-ultra-shell,
   .talk-ultra-shell *,
   .talk-ultra-shell *::before,
@@ -49,7 +55,7 @@
   }
 
   .talk-ultra-shell .talk-kv-item {
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--event-theme-surface);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.04);
     padding: 0.46rem 0.58rem;
@@ -85,8 +91,8 @@
   }
 
   .talk-ultra-shell .talk-occurrence-item {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-left: 3px solid rgba(255, 215, 0, 0.55);
+    border: 1px solid var(--event-theme-surface);
+    border-left: 3px solid var(--event-theme-primary);
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.22);
     padding: 0.5rem 0.62rem;
@@ -100,6 +106,14 @@
     text-align: center;
     max-width: 720px;
     margin: 0 auto;
+  }
+
+  .talk-ultra-shell .hd-link {
+    color: var(--event-theme-accent);
+  }
+
+  .talk-ultra-shell .btn-primary {
+    border-color: var(--event-theme-primary);
   }
 </style>
 {/head}

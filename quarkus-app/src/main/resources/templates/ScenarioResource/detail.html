@@ -11,6 +11,12 @@
 {#head}
 <style>
   /* Scenario-specific ultra-lite hard guard plus layout alignment with primary sections. */
+  .scenario-ultra-shell {
+    --event-theme-primary: {#if event}{event.resolvedThemePrimaryColor}{#else}#ffd54f{/if};
+    --event-theme-accent: {#if event}{event.resolvedThemeAccentColor}{#else}#72ff9f{/if};
+    --event-theme-surface: {#if event}{event.resolvedThemeSurfaceColor}{#else}#2d3d57{/if};
+  }
+
   .scenario-ultra-shell,
   .scenario-ultra-shell *,
   .scenario-ultra-shell *::before,
@@ -29,7 +35,7 @@
   .scenario-ultra-shell .scenario-talk-card {
     background: rgba(0, 0, 0, 0.26) !important;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.52) !important;
-    border-color: rgba(255, 255, 255, 0.24) !important;
+    border-color: var(--event-theme-surface) !important;
   }
 
   .scenario-ultra-shell .section-card::before,
@@ -57,7 +63,7 @@
     gap: 0.55rem;
     align-content: start;
     padding: 0.7rem 0.75rem;
-    border-left: 3px solid rgba(255, 215, 0, 0.55) !important;
+    border-left: 3px solid var(--event-theme-primary) !important;
   }
 
   .scenario-ultra-shell .scenario-talk-title {
@@ -75,9 +81,17 @@
   .scenario-ultra-shell .scenario-talk-meta .badge {
     background: rgba(255, 255, 255, 0.06);
     color: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--event-theme-accent);
     text-transform: none;
     letter-spacing: 0;
+  }
+
+  .scenario-ultra-shell .hd-link {
+    color: var(--event-theme-accent);
+  }
+
+  .scenario-ultra-shell .btn-primary {
+    border-color: var(--event-theme-primary);
   }
 
   .scenario-ultra-shell .scenario-talk-action {

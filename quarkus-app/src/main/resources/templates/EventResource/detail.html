@@ -6,9 +6,42 @@
 {i18n:events_detail_not_found_page_title}
 {/if}
 {/title}
+{#head}
+{#if event}
+<style>
+  .event-theme-shell {
+    --event-theme-primary: {event.resolvedThemePrimaryColor};
+    --event-theme-accent: {event.resolvedThemeAccentColor};
+    --event-theme-surface: {event.resolvedThemeSurfaceColor};
+    --event-theme-text: {event.resolvedThemeTextColor};
+    --color-accent: var(--event-theme-primary);
+    --color-primary: var(--event-theme-primary);
+  }
+
+  .event-theme-shell .section-card {
+    border-color: var(--event-theme-surface);
+  }
+
+  .event-theme-shell .hd-link {
+    color: var(--event-theme-accent);
+  }
+
+  .event-theme-shell .btn-primary,
+  .event-theme-shell .login-btn-nav.active {
+    border-color: var(--event-theme-primary);
+  }
+
+  .event-theme-shell .event-type {
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+</style>
+{/if}
+{/head}
 
 {#body}
 {#if event}
+<section class="event-theme-shell">
 <header class="page-header">
   <div class="section-header">
     <p class="section-subtitle">
@@ -248,6 +281,7 @@
     {/if}
 
 </div>
+</section>
 {#else}
 <div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
     <div class="section-card" style="text-align: center;">
