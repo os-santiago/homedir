@@ -2190,6 +2190,15 @@ public interface AppMessages {
     @Message("Share Profile")
     String btn_share_profile();
 
+    @Message("Check out my developer profile on HomeDir!")
+    String profile_share_text();
+
+    @Message("My HomeDir Profile")
+    String profile_share_title();
+
+    @Message("Profile link copied to clipboard:")
+    String profile_share_copied();
+
     @Message("XP Progress")
     String xp_progress();
 
