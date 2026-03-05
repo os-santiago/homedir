@@ -12,6 +12,7 @@ public class HomeTimelineTest {
   @Test
   public void homeHighlightsCommunityAndEvents() {
     given()
+        .header("Accept-Language", "en")
         .accept("text/html")
         .when()
         .get("/")
@@ -24,6 +25,19 @@ public class HomeTimelineTest {
         .body(containsString("Community"))
         .body(containsString("Events"))
         .body(containsString("Project"));
+  }
+
+  @Test
+  public void homeFallbackLocaleIsSpanishWhenHeaderIsUnsupported() {
+    given()
+        .header("Accept-Language", "fr-FR,fr;q=0.9")
+        .accept("text/html")
+        .when()
+        .get("/")
+        .then()
+        .statusCode(200)
+        .body(containsString("<html lang=\"es\">"))
+        .body(containsString(">Inicio</a>"));
   }
 
   @Test

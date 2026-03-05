@@ -2931,6 +2931,15 @@ public interface AppMessages {
     @Message("Avatar")
     String header_avatar_alt();
 
+    @Message("Language selector")
+    String header_language_aria();
+
+    @Message("Spanish")
+    String header_language_spanish();
+
+    @Message("English")
+    String header_language_english();
+
     @Message("LV")
     String header_level_short();
 

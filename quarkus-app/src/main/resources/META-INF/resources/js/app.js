@@ -76,7 +76,13 @@ const SELECTORS = {
     /** Indicador cuando no hay eventos */
     noEvents: '[data-no-events]',
     /** Formularios generales de la página */
-    forms: 'form'
+    forms: 'form',
+    /** Formulario selector de idioma en el header */
+    localeSwitcherForm: '[data-locale-switcher-form]',
+    /** Select de idioma del header */
+    localeSwitcherSelect: '[data-locale-select]',
+    /** Hidden redirect del selector de idioma */
+    localeSwitcherRedirect: '[data-locale-redirect]'
 };
 
 // Funciones de ayuda para seleccionar elementos utilizando los selectores centralizados.
@@ -110,6 +116,33 @@ function currentRelativeUrl() {
     return `${path}${query}${hash}`;
 }
 
+function normalizeSupportedLocale(rawLocale) {
+    if (typeof rawLocale !== 'string') return null;
+    const trimmed = rawLocale.trim().toLowerCase();
+    if (!trimmed) return null;
+    const short = trimmed.includes('-') ? trimmed.split('-')[0] : trimmed;
+    if (short === 'es' || short === 'en') return short;
+    return null;
+}
+
+function resolveBrowserPreferredLocale() {
+    const langs = Array.isArray(navigator.languages) ? navigator.languages : [];
+    const fallbackList = [navigator.language, navigator.userLanguage, navigator.browserLanguage]
+        .filter(Boolean);
+    const candidates = [...langs, ...fallbackList];
+    for (const candidate of candidates) {
+        const normalized = normalizeSupportedLocale(candidate);
+        if (normalized) return normalized;
+    }
+    return 'es';
+}
+
+function setLocaleCookie(locale) {
+    const safeLocale = normalizeSupportedLocale(locale) || 'es';
+    const oneYearInSeconds = 60 * 60 * 24 * 365;
+    document.cookie = `QP_LOCALE=${safeLocale}; Path=/; Max-Age=${oneYearInSeconds}; SameSite=Lax`;
+}
+
 function buildLoginCallbackUrl(redirectTarget) {
     const fallback = '/';
     const rawTarget = typeof redirectTarget === 'string' ? redirectTarget.trim() : '';
@@ -122,6 +155,55 @@ function setupLoginReturnLinks() {
     links.forEach((link) => {
         const preferred = (link.getAttribute('data-login-redirect') || '').trim();
         link.setAttribute('href', buildLoginCallbackUrl(preferred || currentRelativeUrl()));
+    });
+}
+
+function setupLocaleSwitcher() {
+    const form = $('localeSwitcherForm');
+    if (!form) return;
+    const select = form.querySelector(SELECTORS.localeSwitcherSelect);
+    const redirectInput = form.querySelector(SELECTORS.localeSwitcherRedirect);
+    if (!select) return;
+
+    const isAuthenticated = String(form.dataset.authenticated || '').toLowerCase() === 'true';
+    const applyRedirectTarget = () => {
+        if (redirectInput) {
+            redirectInput.value = currentRelativeUrl();
+        }
+    };
+
+    applyRedirectTarget();
+
+    if (!isAuthenticated && !normalizeSupportedLocale(select.value)) {
+        select.value = resolveBrowserPreferredLocale();
+    }
+
+    form.addEventListener('submit', (event) => {
+        applyRedirectTarget();
+        const chosenLocale = normalizeSupportedLocale(select.value)
+            || (isAuthenticated ? 'es' : resolveBrowserPreferredLocale());
+
+        if (!isAuthenticated) {
+            event.preventDefault();
+            setLocaleCookie(chosenLocale);
+            window.location.assign(currentRelativeUrl());
+            return;
+        }
+
+        select.value = chosenLocale;
+    });
+
+    select.addEventListener('change', () => {
+        if (!isAuthenticated) {
+            setLocaleCookie(select.value);
+            window.location.assign(currentRelativeUrl());
+            return;
+        }
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
     });
 }
 
@@ -369,6 +451,7 @@ function restoreScroll() {
 }
 
 function onDomContentLoaded() {
+    setupLocaleSwitcher();
     setupLoginReturnLinks();
     setupMenu();
     setupUserMenu();

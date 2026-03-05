@@ -425,7 +425,7 @@ public class ProfileResource {
 
     // Validate locale simple check
     if (locale == null || (!locale.equals("en") && !locale.equals("es"))) {
-      locale = "en"; // Default fallback
+      locale = "es"; // Default fallback
     }
 
     // 1. Update user profile preference
@@ -654,7 +654,7 @@ public class ProfileResource {
   }
 
   private String resolveLanguage(String localeCookie, String userId) {
-    String lang = "en";
+    String lang = "es";
     if (localeCookie != null && !localeCookie.isBlank()) {
       lang = localeCookie;
     } else {
@@ -663,7 +663,7 @@ public class ProfileResource {
         lang = p.get().getPreferredLocale();
       }
     }
-    return "es".equalsIgnoreCase(lang) ? "es" : "en";
+    return "en".equalsIgnoreCase(lang) ? "en" : "es";
   }
 
   private static String normalizeId(String raw) {
