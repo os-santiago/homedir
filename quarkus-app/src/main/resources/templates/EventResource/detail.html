@@ -9,11 +9,16 @@
 {#head}
 {#if event}
 <style>
-  .event-theme-shell {
+  main#main-content.homedir-main {
     --event-theme-primary: {event.resolvedThemePrimaryColor};
     --event-theme-accent: {event.resolvedThemeAccentColor};
     --event-theme-surface: {event.resolvedThemeSurfaceColor};
     --event-theme-text: {event.resolvedThemeTextColor};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+    color: var(--event-theme-text);
+  }
+
+  .event-theme-shell {
     --color-accent: var(--event-theme-accent);
     --color-primary: var(--event-theme-primary);
     color: var(--event-theme-text);

@@ -10,6 +10,62 @@
 {i18n:events_cfp_not_found_title}
 {/if}
 {/title}
+{#head}
+{#if event}
+<style>
+  main#main-content.homedir-main {
+    --event-theme-primary: {event.resolvedThemePrimaryColor};
+    --event-theme-accent: {event.resolvedThemeAccentColor};
+    --event-theme-surface: {event.resolvedThemeSurfaceColor};
+    --event-theme-text: {event.resolvedThemeTextColor};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .public-title,
+  main#main-content.homedir-main .section-subtitle,
+  main#main-content.homedir-main .form-hint,
+  main#main-content.homedir-main label {
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .section-card,
+  main#main-content.homedir-main .cfp-submission-item,
+  main#main-content.homedir-main .cfp-live-banner,
+  main#main-content.homedir-main .cfp-testing-banner,
+  main#main-content.homedir-main .cfp-submitting-modal {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .btn,
+  main#main-content.homedir-main .login-btn-nav,
+  main#main-content.homedir-main .btn-secondary,
+  main#main-content.homedir-main .cfp-view-btn {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .cfp-status-badge,
+  main#main-content.homedir-main .badge {
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .hd-link {
+    color: var(--event-theme-accent);
+  }
+</style>
+{/if}
+{/head}
 
 {#body}
 {#if event}
