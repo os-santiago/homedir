@@ -25,6 +25,20 @@
       <span id="notif-badge" class="badge hidden">0</span>
     </a>
 
+    <form action="/private/profile/update-locale"
+      method="POST"
+      class="header-locale-switcher"
+      data-locale-switcher-form
+      data-authenticated="{#if userSession.loggedIn || userAuthenticated}true{#else}false{/if}">
+      <input type="hidden" name="redirect" value="" data-locale-redirect>
+      <span class="material-symbols-outlined header-locale-icon" aria-hidden="true">language</span>
+      <label for="headerLocaleSelect" class="sr-only">{i18n:header_language_aria}</label>
+      <select id="headerLocaleSelect" name="locale" class="header-locale-select" data-locale-select aria-label="{i18n:header_language_aria}">
+        <option value="es" {#if resolvedLocaleCode == 'es'}selected{/if}>{i18n:header_language_spanish}</option>
+        <option value="en" {#if resolvedLocaleCode == 'en'}selected{/if}>{i18n:header_language_english}</option>
+      </select>
+    </form>
+
     {#if userSession.loggedIn || userAuthenticated}
     <div class="user-menu-container user-menu-wrapper" id="userMenuNav">
       <div class="user-menu-toggle">

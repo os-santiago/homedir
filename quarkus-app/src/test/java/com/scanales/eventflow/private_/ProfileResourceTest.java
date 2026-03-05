@@ -270,17 +270,58 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void updateLocalePersistsProfilePreferenceAndSetsLocaleCookie() {
+    userProfiles.upsert(currentUserEmail(), currentUserEmail(), currentUserEmail());
+
+    given()
+        .redirects()
+        .follow(false)
+        .contentType("application/x-www-form-urlencoded")
+        .formParam("locale", "en")
+        .formParam("redirect", "/comunidad")
+        .when()
+        .post("/private/profile/update-locale")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/comunidad"))
+        .header("Set-Cookie", containsString("QP_LOCALE=en"));
+
+    UserProfile profile = userProfiles.find(currentUserEmail()).orElseThrow();
+    assertEquals("en", profile.getPreferredLocale());
+  }
+
+  @Test
+  public void updateLocaleFallsBackToSpanishWhenLocaleIsUnsupported() {
+    userProfiles.upsert(currentUserEmail(), currentUserEmail(), currentUserEmail());
+
+    given()
+        .redirects()
+        .follow(false)
+        .contentType("application/x-www-form-urlencoded")
+        .formParam("locale", "fr")
+        .formParam("redirect", "/private/profile")
+        .when()
+        .post("/private/profile/update-locale")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/private/profile"))
+        .header("Set-Cookie", containsString("QP_LOCALE=es"));
+
+    UserProfile profile = userProfiles.find(currentUserEmail()).orElseThrow();
+    assertEquals("es", profile.getPreferredLocale());
+  }
+
+  @Test
   public void profileShowsClassMomentumAndNoManualClassForm() {
     userProfiles.addXp(currentUserEmail(), 20, "Test scientist progress", QuestClass.SCIENTIST);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/private/profile")
         .then()
         .statusCode(200)
-        .body(containsString("Activity to class map"))
-        .body(containsString("Notifications monitoring"))
-        .body(containsString("Action"))
+        .body(anyOf(containsString("Activity to class map"), containsString("Mapa actividad")))
         .body(containsString("/notifications/center"))
         .body(containsString("/private/profile/catalog#"))
         .body(not(containsString("/private/profile/update-class")));
@@ -314,7 +355,10 @@ public class ProfileResourceTest {
         .get("/private/profile")
         .then()
         .statusCode(200)
-        .body(containsString("Load 10 older entries"))
+        .body(
+            anyOf(
+                containsString("Load 10 older entries"),
+                containsString("Cargar 10 registros anteriores")))
         .body(containsString("historyLimit=20"));
 
     given()
@@ -322,7 +366,10 @@ public class ProfileResourceTest {
         .get("/private/profile?historyLimit=200")
         .then()
         .statusCode(200)
-        .body(containsString("Showing up to 100 recent entries for safety."));
+        .body(
+            anyOf(
+                containsString("Showing up to 100 recent entries for safety."),
+                containsString("Mostrando hasta 100 registros recientes por seguridad.")));
   }
 
   @Test

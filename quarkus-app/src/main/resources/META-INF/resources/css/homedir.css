@@ -447,6 +447,37 @@ footer {
   gap: 1.5rem;
 }
 
+.header-locale-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.header-locale-icon {
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.header-locale-select {
+  min-width: 84px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  outline: none;
+  cursor: pointer;
+}
+
+.header-locale-select option {
+  color: #111;
+}
+
 .eyebrow {
   font-size: 0.55rem;
   letter-spacing: 3px;
@@ -923,6 +954,10 @@ footer {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .header-locale-switcher {
+    order: 5;
   }
 
   .homedir-main {

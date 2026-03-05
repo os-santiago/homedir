@@ -18,7 +18,7 @@ public class LocaleResponseFilter {
 
     private static final String COOKIE_NAME = "QP_LOCALE";
     private static final Set<String> SUPPORTED_LANGS = Set.of("en", "es");
-    private static final String DEFAULT_LANG = "en";
+    private static final String DEFAULT_LANG = "es";
 
     @Inject
     SecurityIdentity identity;
