@@ -14,26 +14,60 @@
     --event-theme-accent: {event.resolvedThemeAccentColor};
     --event-theme-surface: {event.resolvedThemeSurfaceColor};
     --event-theme-text: {event.resolvedThemeTextColor};
-    --color-accent: var(--event-theme-primary);
+    --color-accent: var(--event-theme-accent);
     --color-primary: var(--event-theme-primary);
+    color: var(--event-theme-text);
   }
 
-  .event-theme-shell .section-card {
-    border-color: var(--event-theme-surface);
+  .event-theme-shell .section-card,
+  .event-theme-shell .hd-table,
+  .event-theme-shell .hd-table th,
+  .event-theme-shell .hd-table td,
+  .event-theme-shell .agenda-slot {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .event-theme-shell .section-header h2,
+  .event-theme-shell .section-header h3,
+  .event-theme-shell .public-title,
+  .event-theme-shell .section-subtitle,
+  .event-theme-shell .event-description {
+    color: var(--event-theme-text);
+  }
+
+  .event-theme-shell .badge,
+  .event-theme-shell .chip,
+  .event-theme-shell .event-type {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .event-theme-shell .btn,
+  .event-theme-shell .login-btn-nav,
+  .event-theme-shell .btn-secondary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .event-theme-shell .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .event-theme-shell .icon-wrapper,
+  .event-theme-shell .avatar.placeholder {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
   }
 
   .event-theme-shell .hd-link {
     color: var(--event-theme-accent);
-  }
-
-  .event-theme-shell .btn-primary,
-  .event-theme-shell .login-btn-nav.active {
-    border-color: var(--event-theme-primary);
-  }
-
-  .event-theme-shell .event-type {
-    border-color: var(--event-theme-primary);
-    color: var(--event-theme-text);
   }
 </style>
 {/if}
@@ -211,7 +245,7 @@
                                 {#if !t.break && !t.speakers.isEmpty()}
                                 <div class="speaker-avatars">
                                     {#for s in t.speakers}
-                                    <a href="/speaker/{s.id}" title="{s.name}" style="text-decoration: none;">
+                                    <a href="/speaker/{s.id}?event={event.id}" title="{s.name}" style="text-decoration: none;">
                                         {#if app:validUrl(s.photoUrl)}
                                         <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
                                         {#else}
