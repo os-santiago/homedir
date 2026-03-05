@@ -14,7 +14,15 @@ class LandingStatsResourceTest {
   @Test
   void landingStatsExposeNonNegativeValuesAndAvoidLegacyDummyTuple() {
     Response response =
-        given().accept("application/json").when().get("/api/landing/stats").then().statusCode(200).extract().response();
+        given()
+            .accept("application/json")
+            .header("X-Forwarded-For", "203.0.113.231")
+            .when()
+            .get("/api/landing/stats")
+            .then()
+            .statusCode(200)
+            .extract()
+            .response();
 
     long members = response.jsonPath().getLong("totalMembers");
     long xp = response.jsonPath().getLong("totalXP");
