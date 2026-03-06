@@ -205,6 +205,76 @@
 
         </section>
 
+        <section class="hd-panel centered" id="cfp-panel">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">{i18n:events_cfp_eyebrow}</p>
+                    <h2 class="hd-panel-title">{i18n:profile_cfp_title}</h2>
+                    <p class="hd-page-intro">{i18n:profile_cfp_intro}</p>
+                </div>
+            </div>
+
+            <div class="hd-grid-details">
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_cfp_total}</span>
+                    <span class="hd-detail-value">{cfpOverview.total}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_cfp_events}</span>
+                    <span class="hd-detail-value">{cfpOverview.distinctEvents}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_accepted}</span>
+                    <span class="hd-detail-value">{cfpOverview.accepted}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_under_review}</span>
+                    <span class="hd-detail-value">{cfpOverview.underReview}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_pending}</span>
+                    <span class="hd-detail-value">{cfpOverview.pending}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_rejected}</span>
+                    <span class="hd-detail-value">{cfpOverview.rejected}</span>
+                </div>
+            </div>
+
+            <div class="hd-dashboard-header">
+                <div>
+                    <h3 class="hd-section-subtitle">{i18n:profile_cfp_latest}</h3>
+                </div>
+            </div>
+            {#if cfpRecentSubmissions.isEmpty()}
+            <div class="hd-empty-state">
+                <p>{i18n:events_cfp_empty_mine}</p>
+                <a href="/eventos" class="hd-btn hd-btn-secondary">{i18n:profile_cfp_open_events}</a>
+            </div>
+            {#else}
+            <ul class="hd-list hd-list-log" role="list">
+                {#for item in cfpRecentSubmissions}
+                <li class="hd-list-item hd-log-entry">
+                    <div class="hd-list-content">
+                        <strong>{item.title}</strong>
+                        <span class="hd-list-meta">{item.eventTitle} ·
+                            {#switch item.status}
+                            {#case 'pending'}{i18n:events_cfp_status_pending}{/case}
+                            {#case 'under_review'}{i18n:events_cfp_status_under_review}{/case}
+                            {#case 'accepted'}{i18n:events_cfp_status_accepted}{/case}
+                            {#case 'rejected'}{i18n:events_cfp_status_rejected}{/case}
+                            {#case 'withdrawn'}{i18n:events_cfp_status_withdrawn}{/case}
+                            {#else}{item.status}{/else}
+                            {/switch}
+                        </span>
+                    </div>
+                    <a class="hd-btn hd-btn-secondary" href="{item.manageUrl}">{i18n:profile_cfp_manage}</a>
+                </li>
+                {/for}
+            </ul>
+            {/if}
+        </section>
+
         <section class="hd-panel centered">
             <div class="hd-dashboard-header">
                 <div>

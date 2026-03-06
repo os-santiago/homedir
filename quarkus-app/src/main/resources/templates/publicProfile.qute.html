@@ -65,6 +65,26 @@
                 <p class="wrapped-subtext">{i18n:public_profile_activity_count_subtitle}</p>
             </div>
 
+            <div class="wrapped-card">
+                <span class="wrapped-stat-label">{i18n:public_profile_cfp_title}</span>
+                <span class="wrapped-stat-value neon">{cfpAcceptedCount}</span>
+                <p class="wrapped-subtext">{i18n:public_profile_cfp_accepted_label}</p>
+            </div>
+
+            <div class="wrapped-card wrapped-card-full">
+                <span class="wrapped-stat-label">{i18n:public_profile_cfp_latest}</span>
+                <div class="wrapped-list-container">
+                    {#for item in cfpRecentAccepted}
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{item.title}</span>
+                        <a href="{item.eventUrl}" class="wrapped-item-xp">{item.eventTitle}</a>
+                    </div>
+                    {#else}
+                    <p class="wrapped-empty-msg">{i18n:public_profile_cfp_empty}</p>
+                    {/for}
+                </div>
+            </div>
+
             <div class="wrapped-card wrapped-card-full">
                 <span class="wrapped-stat-label">{i18n:public_profile_accounts_title}</span>
                 <div class="wrapped-list-container">

@@ -2139,6 +2139,27 @@ public interface AppMessages {
     @Message("Showing up to {limit} recent entries for safety.")
     String resume_history_limit_notice(int limit);
 
+    @Message("Call for Papers")
+    String profile_cfp_title();
+
+    @Message("Track your CFP proposals and jump directly to event moderation flows.")
+    String profile_cfp_intro();
+
+    @Message("Total proposals")
+    String profile_cfp_total();
+
+    @Message("Events")
+    String profile_cfp_events();
+
+    @Message("Recent CFP activity")
+    String profile_cfp_latest();
+
+    @Message("Manage")
+    String profile_cfp_manage();
+
+    @Message("Browse Events")
+    String profile_cfp_open_events();
+
     @Message("Search")
     String search_aria_label();
 
@@ -2201,6 +2222,18 @@ public interface AppMessages {
 
     @Message("Signals captured")
     String public_profile_activity_count_subtitle();
+
+    @Message("CFP track record")
+    String public_profile_cfp_title();
+
+    @Message("Accepted talks")
+    String public_profile_cfp_accepted_label();
+
+    @Message("Latest accepted proposals")
+    String public_profile_cfp_latest();
+
+    @Message("No accepted CFP talks published yet.")
+    String public_profile_cfp_empty();
 
     @Message("Badges & Titles")
     String public_profile_badges_titles();

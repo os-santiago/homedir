@@ -1,5 +1,8 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.cfp.CfpSubmission;
+import com.scanales.eventflow.cfp.CfpSubmissionService;
+import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.CommunityMember;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.QuestClass;
@@ -7,6 +10,7 @@ import com.scanales.eventflow.model.QuestProfile;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.config.AppMessages;
 import com.scanales.eventflow.service.CommunityService;
+import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.QuestService;
 import com.scanales.eventflow.service.UsageMetricsService;
@@ -58,6 +62,12 @@ public class PublicProfileResource {
     @Inject
     AppMessages messages;
 
+    @Inject
+    CfpSubmissionService cfpSubmissionService;
+
+    @Inject
+    EventService eventService;
+
     @GET
     @Path("/{username}")
     @Produces(MediaType.TEXT_HTML)
@@ -98,6 +108,17 @@ public class PublicProfileResource {
         List<String> badges = resolved.badges() == null ? List.of() : resolved.badges();
         boolean hasGithub = resolved.githubLogin() != null;
         boolean hasDiscord = resolved.discordHandle() != null || resolved.discordProfileUrl() != null;
+        java.util.Set<String> cfpUserIds = resolveCfpUserIds(profile, resolved.userId());
+        CfpSubmissionService.MineStats cfpStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+        int cfpAcceptedCount = cfpStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
+        List<PublicCfpItem> cfpRecentAccepted =
+            cfpSubmissionService
+                .listMineAcrossEvents(cfpUserIds, CfpSubmissionService.SortOrder.UPDATED_DESC, 12, 0)
+                .stream()
+                .filter(item -> item.status() == CfpSubmissionStatus.ACCEPTED)
+                .limit(3)
+                .map(this::toPublicCfpItem)
+                .toList();
 
         return Response.ok(TemplateLocaleUtil.apply(
             publicProfile
@@ -124,6 +145,8 @@ public class PublicProfileResource {
                 .data("hasGithub", hasGithub)
                 .data("hasDiscord", hasDiscord)
                 .data("hasLinkedAccounts", hasGithub || hasDiscord)
+                .data("cfpAcceptedCount", cfpAcceptedCount)
+                .data("cfpRecentAccepted", cfpRecentAccepted)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")
                 .data("ogDescription", "Check out @" + resolved.canonicalUsername() + " and their community activity.")
                 .data(
@@ -339,6 +362,42 @@ public class PublicProfileResource {
         }
     }
 
+    private java.util.Set<String> resolveCfpUserIds(UserProfile profile, String resolvedUserId) {
+        java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
+        addNormalizedUserId(ids, resolvedUserId);
+        if (profile != null) {
+            addNormalizedUserId(ids, profile.getUserId());
+            addNormalizedUserId(ids, profile.getEmail());
+        }
+        return ids.isEmpty() ? java.util.Set.of() : java.util.Collections.unmodifiableSet(ids);
+    }
+
+    private PublicCfpItem toPublicCfpItem(CfpSubmission submission) {
+        if (submission == null) {
+            return new PublicCfpItem("", "", "/eventos");
+        }
+        String eventId = submission.eventId() != null ? submission.eventId() : "";
+        com.scanales.eventflow.model.Event event = eventService.getEvent(eventId);
+        String eventTitle =
+            event != null && event.getTitle() != null && !event.getTitle().isBlank()
+                ? event.getTitle()
+                : eventId;
+        return new PublicCfpItem(
+            submission.title() != null ? submission.title() : "",
+            eventTitle,
+            "/event/" + eventId);
+    }
+
+    private static void addNormalizedUserId(java.util.Set<String> ids, String raw) {
+        if (ids == null || raw == null) {
+            return;
+        }
+        String normalized = raw.trim().toLowerCase(Locale.ROOT);
+        if (!normalized.isBlank()) {
+            ids.add(normalized);
+        }
+    }
+
     private Optional<String> currentUserId() {
         if (identity == null || identity.isAnonymous()) {
             return Optional.empty();
@@ -372,5 +431,8 @@ public class PublicProfileResource {
         String discordProfileUrl,
         String homedirId,
         List<String> badges) {
+    }
+
+    private record PublicCfpItem(String title, String eventTitle, String eventUrl) {
     }
 }
