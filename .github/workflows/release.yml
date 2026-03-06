@@ -54,7 +54,10 @@ jobs:
 
       - name: Verify Build & Tests (Release Gate)
         working-directory: quarkus-app
-        run: ./mvnw clean verify -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+        run: |
+          ../scripts/ci/retry.sh \
+            ./mvnw clean verify -B \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
       - name: Calculate Next Version (dry run)
         id: version_calc
@@ -172,7 +175,8 @@ jobs:
           if [ -n "${DEPLOY_SSH_KNOWN_HOSTS:-}" ]; then
             printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
           else
-            if ssh-keyscan -T 5 -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
+            if RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=5 ./scripts/ci/retry.sh \
+              ssh-keyscan -T 5 -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
               echo "known_hosts populated from ssh-keyscan."
             else
               echo "::warning::ssh-keyscan failed for ${DEPLOY_HOST}:${port}. Continuing with StrictHostKeyChecking=${strict}."
@@ -193,12 +197,14 @@ jobs:
           cmd="${DEPLOY_COMMAND:-/usr/local/bin/homedir-update.sh}"
           strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
           if [ "${strict}" = "no" ]; then
-            ssh -p "$port" \
+            RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ./scripts/ci/retry.sh \
+              ssh -p "$port" \
               -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
               "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
           else
-            ssh -p "$port" \
+            RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ./scripts/ci/retry.sh \
+              ssh -p "$port" \
               -o StrictHostKeyChecking="${strict}" \
               "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
           fi

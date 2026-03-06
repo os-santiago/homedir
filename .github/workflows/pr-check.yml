@@ -3,6 +3,7 @@ name: PR Validation
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, reopened, synchronize, ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,6 +12,7 @@ concurrency:
 jobs:
   build-and-test:
     name: Build & Verify
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -24,13 +26,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Verify Build, Tests and Coverage Gate
-        working-directory: quarkus-app
-        run: ./mvnw clean verify -B -Pcoverage -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-
-      - name: Public Experience Smoke Test
-        working-directory: quarkus-app
-        run: ./mvnw -B -Dtest=PublicExperienceSmokeTest test
+      - name: PR preflight (build, tests, smoke) with retry
+        run: ./scripts/ci/pr_preflight.sh
         
       # Optional: Add checkstyle or other linting here if configured
       # - name: Checkstyle

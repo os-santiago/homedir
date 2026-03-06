@@ -131,14 +131,20 @@ jobs:
             scp_opts=("-P" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
           fi
           tar -czf platform-resilience-assets.tgz -C platform scripts systemd nginx/snippets
-          scp "${scp_opts[@]}" platform-resilience-assets.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/platform-resilience-assets.tgz"
-          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
+          RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=8 ./scripts/ci/retry.sh \
+            scp "${scp_opts[@]}" platform-resilience-assets.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/platform-resilience-assets.tgz"
+          RETRY_ATTEMPTS=2 RETRY_SLEEP_SECONDS=8 ./scripts/ci/retry.sh \
+            ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
             set -euo pipefail
             sync_root="/tmp/homedir-platform-sync"
             rm -rf "${sync_root}"
             mkdir -p "${sync_root}"
             tar -xzf /tmp/platform-resilience-assets.tgz -C "${sync_root}"
-            base="${sync_root}/platform"
+            base="${sync_root}"
+
+            test -f "${base}/scripts/homedir-update.sh"
+            test -f "${base}/systemd/homedir-update.service"
+            test -f "${base}/nginx/snippets/homedir-incident-guard.conf"
 
             for script in \
               homedir-update.sh \
