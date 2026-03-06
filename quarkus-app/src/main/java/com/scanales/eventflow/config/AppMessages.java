@@ -3012,37 +3012,37 @@ public interface AppMessages {
     @Message("Last updated: March 6, 2026")
     String legal_privacy_last_updated();
 
-    @Message("HomeDir processes community identity and participation data to provide profile, event, and collaboration features.")
+    @Message("This policy describes how HomeDir processes personal data for community identity, events, and collaboration features in Chile.")
     String legal_privacy_intro();
 
-    @Message("Data We Process")
+    @Message("Controller and Data Categories")
     String legal_privacy_data_title();
 
-    @Message("We process account identity details, linked integration metadata (Google/GitHub/Discord), activity signals, and content submitted in the platform.")
+    @Message("HomeDir, operated by the OpenSourceSantiago community, processes account identity data, linked integration metadata (Google/GitHub/Discord), usage activity signals, and content submitted by users.")
     String legal_privacy_data_body();
 
-    @Message("How We Use Data")
+    @Message("Purposes and Legal Basis")
     String legal_privacy_use_title();
 
-    @Message("We use this data to operate profiles, events, CFP workflows, community interactions, moderation, security checks, and service quality metrics.")
+    @Message("Data is processed to operate accounts, events, CFP workflows, community interactions, moderation, security controls, and service metrics, based on user consent, service operation needs, and legitimate security interests.")
     String legal_privacy_use_body();
 
-    @Message("Storage and Security")
+    @Message("Retention, Security, and International Services")
     String legal_privacy_storage_title();
 
-    @Message("Data is stored in persistent storage controlled by HomeDir operators, with backups, access controls, and operational safeguards.")
+    @Message("Data is stored in persistent systems managed by HomeDir operators with backups, access controls, and operational safeguards. Some integrations may involve international providers selected by users.")
     String legal_privacy_storage_body();
 
-    @Message("Third-Party Integrations")
+    @Message("Third-Party Integrations and Sharing")
     String legal_privacy_third_title();
 
-    @Message("When you connect external providers, HomeDir receives only the required account metadata to enable the selected integration features.")
+    @Message("When users connect external providers, HomeDir receives only required metadata for enabled features and does not sell personal data. Limited processing by technical operators may occur under platform operation duties.")
     String legal_privacy_third_body();
 
-    @Message("Your Rights")
+    @Message("Your Rights in Chile")
     String legal_privacy_rights_title();
 
-    @Message("You can review your profile data, unlink integrations, and request account-level updates through the official community channels.")
+    @Message("Users can request access, correction, deletion, portability, and objection where applicable, and can unlink integrations. Requests can be submitted through official community channels and the contact page (/contacto).")
     String legal_privacy_rights_body();
 
     @Message("Terms of Service · Homedir")
@@ -3054,37 +3054,37 @@ public interface AppMessages {
     @Message("Last updated: March 6, 2026")
     String legal_terms_last_updated();
 
-    @Message("By using HomeDir you agree to use the platform responsibly and in alignment with the community purpose.")
+    @Message("By using HomeDir, users accept these terms and agree to responsible use aligned with community purpose and applicable Chilean law.")
     String legal_terms_intro();
 
-    @Message("Acceptable Use")
+    @Message("Service Scope and Acceptable Use")
     String legal_terms_use_title();
 
-    @Message("Do not abuse APIs, attempt service disruption, automate spam, or submit harmful content. Follow moderation and community safety rules.")
+    @Message("Users must not abuse APIs, disrupt services, automate spam, bypass security controls, or publish harmful/illegal content. Community moderation and safety rules are mandatory.")
     String legal_terms_use_body();
 
-    @Message("Accounts and Access")
+    @Message("Accounts, Access, and Identity")
     String legal_terms_accounts_title();
 
-    @Message("Users are responsible for safeguarding their linked accounts and for all actions performed under their authenticated identity.")
+    @Message("Users are responsible for safeguarding linked accounts and actions under authenticated identity. HomeDir may limit or suspend access to protect platform integrity and community safety.")
     String legal_terms_accounts_body();
 
-    @Message("User Content and Submissions")
+    @Message("User Content, License, and Moderation")
     String legal_terms_content_title();
 
-    @Message("You retain ownership of submitted content while granting HomeDir permission to store, moderate, and display it within platform features.")
+    @Message("Users retain ownership of submitted content and grant HomeDir a non-exclusive permission to store, moderate, and display it inside platform features. Content that violates rules may be restricted or removed.")
     String legal_terms_content_body();
 
-    @Message("Availability")
+    @Message("Availability and Liability Limits")
     String legal_terms_availability_title();
 
-    @Message("HomeDir is provided as a continuously evolving service. Operators may apply maintenance windows, limits, and operational controls.")
+    @Message("HomeDir is an evolving service. Operators may apply maintenance windows, quotas, and operational controls. Service continuity is managed with best effort and no uninterrupted availability guarantee.")
     String legal_terms_availability_body();
 
-    @Message("Changes")
+    @Message("Changes, Consumer Information, and Jurisdiction")
     String legal_terms_changes_title();
 
-    @Message("These terms may be updated over time. Updated versions become effective once published in this page.")
+    @Message("These terms may be updated and become effective when published on this page. HomeDir publishes relevant service conditions transparently and applies Chilean law, with jurisdiction in Santiago, Chile.")
     String legal_terms_changes_body();
 
     @Message("About · Homedir")
