@@ -125,11 +125,13 @@ jobs:
           port="${DEPLOY_PORT:-22}"
           strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
           ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=${strict}")
+          scp_opts=("-P" "$port" "-o" "StrictHostKeyChecking=${strict}")
           if [ "${strict}" = "no" ]; then
             ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
+            scp_opts=("-P" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
           fi
           tar -czf platform-resilience-assets.tgz -C platform scripts systemd nginx/snippets
-          scp "${ssh_opts[@]}" platform-resilience-assets.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/platform-resilience-assets.tgz"
+          scp "${scp_opts[@]}" platform-resilience-assets.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/platform-resilience-assets.tgz"
           ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
             set -euo pipefail
             sync_root="/tmp/homedir-platform-sync"
@@ -318,10 +320,12 @@ jobs:
           port="${DEPLOY_PORT:-22}"
           strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
           ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=${strict}")
+          scp_opts=("-P" "$port" "-o" "StrictHostKeyChecking=${strict}")
           if [ "${strict}" = "no" ]; then
             ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
+            scp_opts=("-P" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
           fi
-          scp "${ssh_opts[@]}" tools/load-test/community_capacity_probe.py "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/community_capacity_probe.py"
+          scp "${scp_opts[@]}" tools/load-test/community_capacity_probe.py "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/community_capacity_probe.py"
           ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
             set -euo pipefail
             python3 /tmp/community_capacity_probe.py \
@@ -333,7 +337,7 @@ jobs:
             --simulate-multi-origin \
             --auto-cfp-endpoints | tee /tmp/cfp-probe-report.txt
           '
-          scp "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/cfp-probe-report.txt" cfp-probe-report.txt
+          scp "${scp_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/cfp-probe-report.txt" cfp-probe-report.txt
           ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "rm -f /tmp/community_capacity_probe.py /tmp/cfp-probe-report.txt"
 
       - name: Assert probe thresholds
