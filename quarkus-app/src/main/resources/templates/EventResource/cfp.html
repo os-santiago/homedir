@@ -111,7 +111,7 @@
   </div>
   <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
   {#if !cfpTestingModeEnabled}
-  <div class="cfp-live-banner" role="note" aria-label="{i18n:events_cfp_live_aria}">
+  <div id="cfpLiveBanner" class="cfp-live-banner" role="note" aria-label="{i18n:events_cfp_live_aria}" hidden>
     <span class="cfp-live-badge">{i18n:events_cfp_live_badge}</span>
     <div>
       <p class="cfp-live-title">{i18n:events_cfp_live_title}</p>
@@ -522,6 +522,36 @@
 <script>
   (() => {
     const isAuth = {#if userAuthenticated}true{#else}false{/if};
+    const eventId = "{event.id}";
+    const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
+    const configEndpoint = endpoint + "/config";
+    const cfpLiveBanner = document.getElementById("cfpLiveBanner");
+
+    function setLiveBannerVisibility(payload) {
+      if (!cfpLiveBanner) {
+        return;
+      }
+      const hasKnownState = !!payload && typeof payload.currently_open === "boolean";
+      cfpLiveBanner.hidden = !(hasKnownState && !!payload.currently_open);
+    }
+
+    async function fetchConfigPayload() {
+      try {
+        const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          return null;
+        }
+        return await response.json();
+      } catch (error) {
+        return null;
+      }
+    }
+
+    const initialConfigPromise = fetchConfigPayload().then((payload) => {
+      setLiveBannerVisibility(payload);
+      return payload;
+    });
+
     const sectionNew = document.getElementById("cfpSectionNew");
     const sectionMine = document.getElementById("cfpSectionMine");
     const showNewBtn = document.getElementById("cfpShowNewBtn");
@@ -543,7 +573,6 @@
       return;
     }
 
-    const eventId = "{event.id}";
     const form = document.getElementById("cfpForm");
     const userScopeRaw = form ? String(form.dataset.userScope || "") : "";
     const userScope = String(userScopeRaw || "").trim().toLowerCase();
@@ -551,9 +580,7 @@
     const draftStorageKey = "homedir.cfp.draft." + eventId + "." + storageScope;
     const lastStorageKey = "homedir.cfp.last." + eventId + "." + storageScope;
 
-    const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const minePageLimit = 10;
-    const configEndpoint = endpoint + "/config";
     const submitBtn = document.getElementById("cfpSubmitBtn");
     const autofillBtn = document.getElementById("cfpAutofillBtn");
     const reloadBtn = document.getElementById("cfpReloadBtn");
@@ -861,19 +888,24 @@
     }
 
     async function loadConfig() {
-      let payload = null;
       try {
-        const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
-        if (!response.ok) {
+        const payload = await initialConfigPromise;
+        setLiveBannerVisibility(payload);
+        if (!payload) {
           return;
         }
-        payload = await response.json();
         const configured = Number.parseInt(String(payload.max_per_user || ""), 10);
         if (Number.isFinite(configured) && configured > 0) {
           proposalLimit = configured;
         }
       } catch (error) {
       } finally {
+        let payload = null;
+        try {
+          payload = await initialConfigPromise;
+        } catch (error) {
+          payload = null;
+        }
         updateAvailabilityHint(payload);
       }
     }
