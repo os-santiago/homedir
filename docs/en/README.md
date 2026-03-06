@@ -37,6 +37,9 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Capacity Assessment 2026-02-17](development/capacity-assessment-2026-02-17.md)
 - [Codex Optimization Notes](development/codex-optimization-notes.md)
 - [Formatting (ES canonical, EN stub)](development/formatting.md)
+- [Disaster Recovery Playbook](development/disaster-recovery-playbook.md)
+- [Incident Response First Level](development/incident-response-first-level.md)
+- [Security Hardening Baseline](development/security-hardening-baseline.md)
 - [Production-Safe Delivery Playbook](development/production-safe-delivery-playbook.md)
 - [Release Stage Gates](development/release-stage-gates.md)
 
