@@ -36,6 +36,40 @@
         </nav>
 
         <section class="hd-panel centered" id="overview-panel" data-profile-section="overview">
+            <div class="hd-dashboard-header">
+                <div>
+                    <h2 class="hd-panel-title">{i18n:profile_overview_title}</h2>
+                    <p class="hd-page-intro">{i18n:profile_overview_intro}</p>
+                </div>
+            </div>
+
+            <article class="hd-card hd-profile-spotlight">
+                <div class="hd-profile-avatar-wrap">
+                    {#if picture??}
+                    <img src="{picture}" alt="{name}" class="hd-profile-avatar">
+                    {#else}
+                    {#if github != null && github.avatarUrl != null}
+                    <img src="{github.avatarUrl}" alt="{name}" class="hd-profile-avatar">
+                    {#else if discord != null && discord.avatarUrl != null}
+                    <img src="{discord.avatarUrl}" alt="{name}" class="hd-profile-avatar">
+                    {#else}
+                    <span class="hd-profile-avatar-fallback">{userInitial}</span>
+                    {/if}
+                    {/if}
+                </div>
+                <div class="hd-profile-spotlight-main">
+                    <h3>{name}</h3>
+                    <p class="hd-page-intro">{i18n:resume_level(questProfile.level)} · {questProfile.currentXp} XP</p>
+                    <div class="hd-profile-spotlight-chips">
+                        <span class="hd-economy-chip">{i18n:label_registered_talks}: {totalTalks}</span>
+                        <span class="hd-economy-chip">{i18n:events_cfp_eyebrow}: {cfpOverview.total}</span>
+                        {#if dominantClass??}
+                        <span class="hd-economy-chip">{i18n:profile_primary_class}: {dominantClass.displayName}</span>
+                        {/if}
+                    </div>
+                </div>
+            </article>
+
             <div class="hd-panel-actions hd-panel-actions-margin">
                 {#if githubLinked}
                 <div class="hd-alert hd-alert-success">{i18n:msg_github_linked}</div>
@@ -59,10 +93,25 @@
 
             <div class="hd-grid-details">
                 <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_display_name}</span>
+                    <span class="hd-detail-value">{name}</span>
+                </div>
+                <div class="hd-detail-item">
                     <span class="hd-detail-label">{i18n:label_email}</span>
                     <span class="hd-detail-value">{email}</span>
                 </div>
-                <!-- Add more user details here -->
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_member_id}</span>
+                    <span class="hd-detail-value">{sub}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:label_attended_talks}</span>
+                    <span class="hd-detail-value">{attendedTalks}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:label_ratings}</span>
+                    <span class="hd-detail-value">{ratedTalks}</span>
+                </div>
             </div>
         </section>
 
@@ -563,6 +612,54 @@
         display: none !important;
     }
 
+    .hd-profile-spotlight {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.85rem;
+        align-items: center;
+        margin-bottom: 0.85rem;
+    }
+
+    .hd-profile-avatar-wrap {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 14, 18, 0.76);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hd-profile-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .hd-profile-avatar-fallback {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #dff6ff;
+    }
+
+    .hd-profile-spotlight-main h3 {
+        margin: 0;
+        font-size: 1.03rem;
+    }
+
+    .hd-profile-spotlight-main .hd-page-intro {
+        margin: 0.25rem 0 0.4rem;
+    }
+
+    .hd-profile-spotlight-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
     .class-xp-meta {
         margin: 0.5rem 0 0.4rem;
         font-size: 0.82rem;
@@ -725,6 +822,15 @@
 
         .hd-profile-nav-btn {
             white-space: nowrap;
+        }
+
+        .hd-profile-spotlight {
+            grid-template-columns: 1fr;
+        }
+
+        .hd-profile-avatar-wrap {
+            width: 64px;
+            height: 64px;
         }
 
         .activity-class-map {
