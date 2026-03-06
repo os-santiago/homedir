@@ -278,6 +278,62 @@ public class CfpSubmissionService {
     }
   }
 
+  public List<CfpSubmission> listMineAcrossEvents(
+      Set<String> userIds, SortOrder sortOrder, int requestedLimit, int requestedOffset) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      if (userIds == null || userIds.isEmpty()) {
+        return List.of();
+      }
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
+      if (normalizedUserIds.isEmpty()) {
+        return List.of();
+      }
+      List<CfpSubmission> filtered =
+          submissions.values().stream()
+              .filter(item -> normalizedUserIds.contains(item.proposerUserId()))
+              .sorted(sortComparator(sortOrder))
+              .toList();
+      return paginate(filtered, requestedLimit, requestedOffset);
+    }
+  }
+
+  public MineStats statsMineAcrossEvents(Set<String> userIds) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      if (userIds == null || userIds.isEmpty()) {
+        return MineStats.empty();
+      }
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
+      if (normalizedUserIds.isEmpty()) {
+        return MineStats.empty();
+      }
+      EnumMap<CfpSubmissionStatus, Integer> counts = new EnumMap<>(CfpSubmissionStatus.class);
+      Set<String> distinctEvents = new LinkedHashSet<>();
+      int total = 0;
+      Instant latestUpdatedAt = null;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedUserIds.contains(item.proposerUserId())) {
+          continue;
+        }
+        total++;
+        if (item.eventId() != null && !item.eventId().isBlank()) {
+          distinctEvents.add(item.eventId());
+        }
+        CfpSubmissionStatus status = item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
+        counts.merge(status, 1, Integer::sum);
+        Instant updated = item.updatedAt() != null ? item.updatedAt() : item.createdAt();
+        if (updated != null && (latestUpdatedAt == null || updated.isAfter(latestUpdatedAt))) {
+          latestUpdatedAt = updated;
+        }
+      }
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        counts.putIfAbsent(status, 0);
+      }
+      return new MineStats(total, Map.copyOf(counts), distinctEvents.size(), latestUpdatedAt);
+    }
+  }
+
   public EventStats statsByEvent(String eventId) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
@@ -832,6 +888,17 @@ public class CfpSubmissionService {
         emptyCounts.put(status, 0);
       }
       return new EventStats(0, Map.copyOf(emptyCounts), null);
+    }
+  }
+
+  public record MineStats(
+      int total, Map<CfpSubmissionStatus, Integer> countsByStatus, int distinctEvents, Instant latestUpdatedAt) {
+    public static MineStats empty() {
+      EnumMap<CfpSubmissionStatus, Integer> emptyCounts = new EnumMap<>(CfpSubmissionStatus.class);
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        emptyCounts.put(status, 0);
+      }
+      return new MineStats(0, Map.copyOf(emptyCounts), 0, null);
     }
   }
 }

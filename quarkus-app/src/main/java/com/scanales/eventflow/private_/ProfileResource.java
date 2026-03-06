@@ -1,5 +1,8 @@
 package com.scanales.eventflow.private_;
 
+import com.scanales.eventflow.cfp.CfpSubmission;
+import com.scanales.eventflow.cfp.CfpSubmissionService;
+import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.model.GamificationActivity;
@@ -40,6 +43,7 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Optional;
@@ -127,6 +131,26 @@ public class ProfileResource {
       java.util.List<com.scanales.eventflow.model.Speaker> speakers) {
   }
 
+  public record CfpOverview(
+      int total,
+      int accepted,
+      int underReview,
+      int pending,
+      int rejected,
+      int withdrawn,
+      int distinctEvents) {
+  }
+
+  public record CfpSubmissionItem(
+      String id,
+      String eventId,
+      String eventTitle,
+      String title,
+      String status,
+      String updatedAtLabel,
+      String manageUrl) {
+  }
+
   @Inject
   EventService eventService;
   @Inject
@@ -145,6 +169,8 @@ public class ProfileResource {
   GamificationService gamificationService;
   @Inject
   AppMessages messages;
+  @Inject
+  CfpSubmissionService cfpSubmissionService;
 
   @GET
   @Authenticated
@@ -195,6 +221,22 @@ public class ProfileResource {
     QuestClass dominantClass = dominantClassSummary.questClass();
     String dominantClassMessage = dominantClassSummary.message();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
+    java.util.Set<String> cfpUserIds = currentUserIds(email, sub);
+    CfpSubmissionService.MineStats cfpMineStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+    CfpOverview cfpOverview = new CfpOverview(
+        cfpMineStats.total(),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
+        cfpMineStats.distinctEvents());
+    java.util.List<CfpSubmissionItem> cfpRecentSubmissions =
+        cfpSubmissionService
+            .listMineAcrossEvents(cfpUserIds, CfpSubmissionService.SortOrder.UPDATED_DESC, 10, 0)
+            .stream()
+            .map(this::toCfpSubmissionItem)
+            .toList();
     int questProgressPercent = 0;
     if (questProfile.nextLevelXp > 0) {
       questProgressPercent =
@@ -251,6 +293,8 @@ public class ProfileResource {
         messages,
         ogTitle,
         ogDescription)
+        .data("cfpOverview", cfpOverview)
+        .data("cfpRecentSubmissions", cfpRecentSubmissions)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
@@ -686,6 +730,55 @@ public class ProfileResource {
       return hex.substring(0, end);
     } catch (Exception e) {
       return Integer.toHexString(value.hashCode());
+    }
+  }
+
+  private CfpSubmissionItem toCfpSubmissionItem(CfpSubmission submission) {
+    if (submission == null) {
+      return new CfpSubmissionItem(
+          "",
+          "",
+          "",
+          "",
+          CfpSubmissionStatus.PENDING.apiValue(),
+          "",
+          "/eventos");
+    }
+    String eventId = submission.eventId() != null ? submission.eventId() : "";
+    com.scanales.eventflow.model.Event event = eventService.getEvent(eventId);
+    String eventTitle =
+        event != null && event.getTitle() != null && !event.getTitle().isBlank() ? event.getTitle() : eventId;
+    Instant updatedAt = submission.updatedAt() != null ? submission.updatedAt() : submission.createdAt();
+    String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
+    String status = submission.status() != null ? submission.status().apiValue() : CfpSubmissionStatus.PENDING.apiValue();
+    return new CfpSubmissionItem(
+        submission.id(),
+        eventId,
+        eventTitle,
+        submission.title(),
+        status,
+        updatedAtLabel,
+        "/event/" + eventId + "/cfp#my-proposals");
+  }
+
+  private java.util.Set<String> currentUserIds(String email, String sub) {
+    java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
+    addNormalizedUserId(ids, email);
+    addNormalizedUserId(ids, getClaim("email"));
+    addNormalizedUserId(ids, sub);
+    addNormalizedUserId(ids, getClaim("sub"));
+    String principal = identity != null && identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    addNormalizedUserId(ids, principal);
+    return ids.isEmpty() ? java.util.Set.of() : java.util.Collections.unmodifiableSet(ids);
+  }
+
+  private static void addNormalizedUserId(java.util.Set<String> ids, String raw) {
+    if (ids == null || raw == null) {
+      return;
+    }
+    String normalized = raw.trim().toLowerCase(Locale.ROOT);
+    if (!normalized.isBlank()) {
+      ids.add(normalized);
     }
   }
 }
