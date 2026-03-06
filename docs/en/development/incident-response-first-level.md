@@ -78,4 +78,5 @@ Alternative:
 2. Document attack indicators and timeline.
 3. Rotate sensitive tokens if compromise is suspected.
 4. Execute DR drill if root cause indicates host compromise risk.
-5. Run `/usr/local/bin/homedir-security-hardening.sh audit` before declaring incident closure.
+5. Run `/usr/local/bin/homedir-cfp-traffic-guard.sh check` and confirm thresholds are healthy.
+6. Run `/usr/local/bin/homedir-security-hardening.sh audit` before declaring incident closure.

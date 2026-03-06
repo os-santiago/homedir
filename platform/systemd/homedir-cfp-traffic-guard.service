@@ -1,0 +1,13 @@
+[Unit]
+Description=CFP critical route traffic guard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+KillMode=process
+EnvironmentFile=-/etc/homedir.env
+ExecStart=/usr/local/bin/homedir-cfp-traffic-guard.sh check
+StandardOutput=journal
+StandardError=journal
+User=root

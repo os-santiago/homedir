@@ -96,6 +96,7 @@ Optional flags:
 4. Verify:
    - `/q/health` returns 200
    - `/`, `/comunidad`, `/eventos`, `/proyectos` return 200
+   - `homedir-cfp-traffic-guard.timer` is enabled and active
    - `/usr/local/bin/homedir-security-hardening.sh audit` reports zero FAIL checks
    - admin backup page can list/download/restore as expected
 5. Record elapsed recovery time and issues.

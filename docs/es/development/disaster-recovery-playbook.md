@@ -78,5 +78,6 @@ Flags utiles:
 4. Verificar:
    - `/q/health` en 200
    - `/`, `/comunidad`, `/eventos`, `/proyectos` en 200
+   - `homedir-cfp-traffic-guard.timer` habilitado y activo
 5. Registrar tiempo de recuperacion y hallazgos.
 6. Ejecutar `/usr/local/bin/homedir-security-hardening.sh audit` y exigir cero FAIL.

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import random
+import re
 import threading
 import time
 import urllib.error
@@ -30,23 +31,41 @@ class EndpointStats:
 
 
 class ProbeRunner:
-    def __init__(self, base_url: str, users: int, duration_s: int, timeout_s: float, think_ms: int) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        users: int,
+        duration_s: int,
+        timeout_s: float,
+        think_ms: int,
+        simulate_multi_origin: bool,
+        auto_cfp_endpoints: bool,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.users = max(1, users)
         self.duration_s = max(1, duration_s)
         self.timeout_s = max(1.0, timeout_s)
         self.think_ms = max(0, think_ms)
+        self.simulate_multi_origin = simulate_multi_origin
         self.stop_at = time.monotonic() + self.duration_s
         self.lock = threading.Lock()
         self.stats: dict[str, EndpointStats] = defaultdict(EndpointStats)
         self.total_requests = 0
         self.total_errors = 0
+        self.discovered_event_id: str | None = None
 
         self.sequence = [
             ("/", 1.0),
             ("/comunidad", 1.0),
+            ("/eventos", 1.0),
             ("/api/community/content?view=featured&limit=10", 2.0),
         ]
+        if auto_cfp_endpoints:
+            self.discovered_event_id = self._discover_event_id()
+            if self.discovered_event_id:
+                event_id = urllib.parse.quote(self.discovered_event_id, safe="")
+                self.sequence.append((f"/event/{event_id}/cfp", 1.5))
+                self.sequence.append((f"/api/events/{event_id}/cfp/submissions/config", 1.5))
 
     def run(self) -> None:
         threads = [threading.Thread(target=self._vu_loop, name=f"vu-{i}", daemon=True) for i in range(self.users)]
@@ -73,12 +92,17 @@ class ProbeRunner:
         t0 = time.perf_counter()
         status = -1
         try:
+            headers = {
+                "User-Agent": "homedir-capacity-probe/1.0",
+                "Accept": "application/json,text/html,*/*",
+            }
+            if self.simulate_multi_origin:
+                pseudo_ip = self._pseudo_ip()
+                headers["X-Forwarded-For"] = pseudo_ip
+                headers["CF-Connecting-IP"] = pseudo_ip
             req = urllib.request.Request(
                 url=url,
-                headers={
-                    "User-Agent": "homedir-capacity-probe/1.0",
-                    "Accept": "application/json,text/html,*/*",
-                },
+                headers=headers,
             )
             with urllib.request.urlopen(req, timeout=self.timeout_s) as res:
                 res.read(1024)
@@ -98,6 +122,9 @@ class ProbeRunner:
         print("=== HomeDir Community Capacity Probe ===")
         print(f"base_url={self.base_url}")
         print(f"users={self.users} duration_s={self.duration_s} timeout_s={self.timeout_s:.1f}")
+        print(f"simulate_multi_origin={self.simulate_multi_origin}")
+        if self.discovered_event_id:
+            print(f"discovered_event_id={self.discovered_event_id}")
         print(f"total_requests={self.total_requests} elapsed_s={elapsed_s:.2f} rps={self.total_requests / elapsed_s:.2f}")
         print(f"error_rate={(self.total_errors / max(1, self.total_requests)) * 100:.2f}%")
         print("")
@@ -112,6 +139,26 @@ class ProbeRunner:
             print(
                 f"path={path} count={len(lat)} avg_ms={avg:.1f} p50_ms={p50:.1f} p95_ms={p95:.1f} p99_ms={p99:.1f} status=[{status_str}]"
             )
+
+    def _discover_event_id(self) -> str | None:
+        url = urllib.parse.urljoin(self.base_url + "/", "eventos")
+        try:
+            req = urllib.request.Request(url=url, headers={"User-Agent": "homedir-capacity-probe/1.0"})
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as res:
+                html = res.read(1_500_000).decode("utf-8", errors="replace")
+            match = re.search(r"/event/([^/\"?#]+)/cfp", html)
+            if match:
+                return urllib.parse.unquote(match.group(1))
+        except Exception:
+            return None
+        return None
+
+    def _pseudo_ip(self) -> str:
+        first = random.randint(11, 223)
+        second = random.randint(0, 255)
+        third = random.randint(0, 255)
+        fourth = random.randint(1, 254)
+        return f"{first}.{second}.{third}.{fourth}"
 
 
 def _pct(values: list[float], pct: int) -> float:
@@ -130,6 +177,16 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--duration", type=int, default=120, help="Duration in seconds.")
     p.add_argument("--timeout", type=float, default=8.0, help="Per-request timeout in seconds.")
     p.add_argument("--think-ms", type=int, default=500, help="Average think time between user loops.")
+    p.add_argument(
+        "--simulate-multi-origin",
+        action="store_true",
+        help="Inject random client IP headers per request (X-Forwarded-For/CF-Connecting-IP).",
+    )
+    p.add_argument(
+        "--auto-cfp-endpoints",
+        action="store_true",
+        help="Auto-discover an event id from /eventos and include public CFP endpoints in probe sequence.",
+    )
     return p.parse_args()
 
 
@@ -141,6 +198,8 @@ def main() -> None:
         duration_s=args.duration,
         timeout_s=args.timeout,
         think_ms=args.think_ms,
+        simulate_multi_origin=args.simulate_multi_origin,
+        auto_cfp_endpoints=args.auto_cfp_endpoints,
     )
     runner.run()
 

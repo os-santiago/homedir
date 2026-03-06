@@ -52,6 +52,7 @@ Comandos:
 
 5. Controles de host
 - `homedir-auto-deploy.timer` habilitado y activo.
+- `homedir-cfp-traffic-guard.timer` habilitado y activo.
 - Firewall host activo (`firewalld` o `ufw`).
 - Baseline SSH: root restringido y auth por password deshabilitada.
 

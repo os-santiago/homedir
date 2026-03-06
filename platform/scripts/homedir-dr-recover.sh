@@ -301,6 +301,7 @@ for script in \
   homedir-auto-deploy.sh \
   homedir-discord-alert.sh \
   homedir-ir-first-level.sh \
+  homedir-cfp-traffic-guard.sh \
   homedir-security-hardening.sh \
   homedir-dr-backup.sh \
   homedir-dr-recover.sh \
@@ -313,6 +314,8 @@ for unit in \
   homedir-auto-deploy.timer \
   homedir-update.service \
   homedir-update.timer \
+  homedir-cfp-traffic-guard.service \
+  homedir-cfp-traffic-guard.timer \
   homedir-webhook.service; do
   run_cmd install -m 0644 "${platform_dir}/systemd/${unit}" "/etc/systemd/system/${unit}"
 done
@@ -391,6 +394,7 @@ fi
 
 log "enabling fallback auto-deploy timer"
 run_cmd systemctl enable --now homedir-auto-deploy.timer
+run_cmd systemctl enable --now homedir-cfp-traffic-guard.timer
 if [[ "${ENABLE_WEBHOOK}" == "true" ]]; then
   run_cmd systemctl enable --now homedir-webhook.service
 fi
