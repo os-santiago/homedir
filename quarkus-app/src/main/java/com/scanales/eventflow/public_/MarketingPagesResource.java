@@ -30,6 +30,10 @@ public class MarketingPagesResource {
     public static native TemplateInstance docs();
 
     public static native TemplateInstance contacto();
+
+    public static native TemplateInstance privacy();
+
+    public static native TemplateInstance terms();
   }
 
   @GET
@@ -56,5 +60,43 @@ public class MarketingPagesResource {
     }
     // TODO: definir template de fallback si en el futuro se desea una versión mínima
     return TemplateLocaleUtil.apply(Templates.contacto(), localeCookie);
+  }
+
+  @GET
+  @Path("/privacy-policy")
+  public TemplateInstance privacyPolicy(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @Context HttpHeaders headers,
+      @Context RoutingContext context) {
+    metrics.recordPageView("/privacy-policy", headers, context);
+    return TemplateLocaleUtil.apply(Templates.privacy(), localeCookie);
+  }
+
+  @GET
+  @Path("/politica-de-privacidad")
+  public TemplateInstance privacyPolicyEs(
+      @Context HttpHeaders headers,
+      @Context RoutingContext context) {
+    metrics.recordPageView("/politica-de-privacidad", headers, context);
+    return TemplateLocaleUtil.apply(Templates.privacy(), "es");
+  }
+
+  @GET
+  @Path("/terms-of-service")
+  public TemplateInstance termsOfService(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @Context HttpHeaders headers,
+      @Context RoutingContext context) {
+    metrics.recordPageView("/terms-of-service", headers, context);
+    return TemplateLocaleUtil.apply(Templates.terms(), localeCookie);
+  }
+
+  @GET
+  @Path("/condiciones-del-servicio")
+  public TemplateInstance termsOfServiceEs(
+      @Context HttpHeaders headers,
+      @Context RoutingContext context) {
+    metrics.recordPageView("/condiciones-del-servicio", headers, context);
+    return TemplateLocaleUtil.apply(Templates.terms(), "es");
   }
 }
