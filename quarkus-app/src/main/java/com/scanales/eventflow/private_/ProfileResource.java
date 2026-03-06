@@ -61,6 +61,7 @@ public class ProfileResource {
         String name,
         String givenName,
         String familyName,
+        String picture,
         String email,
         String sub,
         java.util.List<EventGroup> groups,
@@ -191,6 +192,7 @@ public class ProfileResource {
     }
     String givenName = getClaim("given_name");
     String familyName = getClaim("family_name");
+    String picture = getClaim("picture");
     String sub = getClaim("sub");
     if (sub == null) {
       sub = email;
@@ -260,6 +262,7 @@ public class ProfileResource {
         name,
         givenName,
         familyName,
+        picture,
         email,
         sub,
         groups,

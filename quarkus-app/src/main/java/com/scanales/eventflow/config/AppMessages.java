@@ -81,6 +81,21 @@ public interface AppMessages {
     @Message("Email")
     String label_email();
 
+    @Message("Display name")
+    String profile_display_name();
+
+    @Message("Member ID")
+    String profile_member_id();
+
+    @Message("Primary class")
+    String profile_primary_class();
+
+    @Message("Profile Spotlight")
+    String profile_overview_title();
+
+    @Message("Your default identity in HomeDir with quick access to your activity signals.")
+    String profile_overview_intro();
+
     @Message("Registered Talks")
     String label_registered_talks();
 
@@ -117,7 +132,7 @@ public interface AppMessages {
     @Message("Settings")
     String section_settings();
 
-    @Message("Economy")
+    @Message("Collection")
     String section_economy();
 
     @Message("Use your HCoin rewards to unlock profile and community upgrades.")
