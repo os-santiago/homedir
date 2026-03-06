@@ -2997,6 +2997,96 @@ public interface AppMessages {
     @Message("About / Version")
     String footer_about_version();
 
+    @Message("Application Privacy Policy")
+    String footer_privacy_policy();
+
+    @Message("Application Terms of Service")
+    String footer_terms_of_service();
+
+    @Message("Privacy Policy · Homedir")
+    String legal_privacy_page_title();
+
+    @Message("Application Privacy Policy")
+    String legal_privacy_heading();
+
+    @Message("Last updated: March 6, 2026")
+    String legal_privacy_last_updated();
+
+    @Message("HomeDir processes community identity and participation data to provide profile, event, and collaboration features.")
+    String legal_privacy_intro();
+
+    @Message("Data We Process")
+    String legal_privacy_data_title();
+
+    @Message("We process account identity details, linked integration metadata (Google/GitHub/Discord), activity signals, and content submitted in the platform.")
+    String legal_privacy_data_body();
+
+    @Message("How We Use Data")
+    String legal_privacy_use_title();
+
+    @Message("We use this data to operate profiles, events, CFP workflows, community interactions, moderation, security checks, and service quality metrics.")
+    String legal_privacy_use_body();
+
+    @Message("Storage and Security")
+    String legal_privacy_storage_title();
+
+    @Message("Data is stored in persistent storage controlled by HomeDir operators, with backups, access controls, and operational safeguards.")
+    String legal_privacy_storage_body();
+
+    @Message("Third-Party Integrations")
+    String legal_privacy_third_title();
+
+    @Message("When you connect external providers, HomeDir receives only the required account metadata to enable the selected integration features.")
+    String legal_privacy_third_body();
+
+    @Message("Your Rights")
+    String legal_privacy_rights_title();
+
+    @Message("You can review your profile data, unlink integrations, and request account-level updates through the official community channels.")
+    String legal_privacy_rights_body();
+
+    @Message("Terms of Service · Homedir")
+    String legal_terms_page_title();
+
+    @Message("Application Terms of Service")
+    String legal_terms_heading();
+
+    @Message("Last updated: March 6, 2026")
+    String legal_terms_last_updated();
+
+    @Message("By using HomeDir you agree to use the platform responsibly and in alignment with the community purpose.")
+    String legal_terms_intro();
+
+    @Message("Acceptable Use")
+    String legal_terms_use_title();
+
+    @Message("Do not abuse APIs, attempt service disruption, automate spam, or submit harmful content. Follow moderation and community safety rules.")
+    String legal_terms_use_body();
+
+    @Message("Accounts and Access")
+    String legal_terms_accounts_title();
+
+    @Message("Users are responsible for safeguarding their linked accounts and for all actions performed under their authenticated identity.")
+    String legal_terms_accounts_body();
+
+    @Message("User Content and Submissions")
+    String legal_terms_content_title();
+
+    @Message("You retain ownership of submitted content while granting HomeDir permission to store, moderate, and display it within platform features.")
+    String legal_terms_content_body();
+
+    @Message("Availability")
+    String legal_terms_availability_title();
+
+    @Message("HomeDir is provided as a continuously evolving service. Operators may apply maintenance windows, limits, and operational controls.")
+    String legal_terms_availability_body();
+
+    @Message("Changes")
+    String legal_terms_changes_title();
+
+    @Message("These terms may be updated over time. Updated versions become effective once published in this page.")
+    String legal_terms_changes_body();
+
     @Message("About · Homedir")
     String about_page_title();
 
