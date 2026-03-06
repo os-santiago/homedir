@@ -295,7 +295,13 @@ run_cmd git clone "${REPO_URL}" "${repo_dir}"
 run_cmd git -C "${repo_dir}" checkout "${REPO_REF}"
 
 platform_dir="${repo_dir}/platform"
-[[ -d "${platform_dir}" ]] || fail "platform directory not found in repository checkout"
+if [[ ! -d "${platform_dir}" ]]; then
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    log "WARNING: platform directory check skipped in dry-run mode (clone is simulated)"
+  else
+    fail "platform directory not found in repository checkout"
+  fi
+fi
 
 log "installing platform scripts and systemd units"
 for script in \
