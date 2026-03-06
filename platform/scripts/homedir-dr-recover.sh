@@ -144,7 +144,9 @@ parse_host_data_dir() {
 validate_env_file() {
   local env_file="$1"
   [[ -f "${env_file}" ]] || fail "env file not found after restore: ${env_file}"
-  grep -q "__" "${env_file}" && fail "env file still contains placeholder values (__...__). Provide production secrets."
+  if grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=__[A-Za-z0-9_]+__$' "${env_file}"; then
+    fail "env file still contains placeholder values (__...__). Provide production secrets."
+  fi
 }
 
 wait_for_health() {

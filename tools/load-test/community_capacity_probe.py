@@ -40,6 +40,7 @@ class ProbeRunner:
         think_ms: int,
         simulate_multi_origin: bool,
         auto_cfp_endpoints: bool,
+        extra_endpoints: list[str],
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.users = max(1, users)
@@ -66,6 +67,10 @@ class ProbeRunner:
                 event_id = urllib.parse.quote(self.discovered_event_id, safe="")
                 self.sequence.append((f"/event/{event_id}/cfp", 1.5))
                 self.sequence.append((f"/api/events/{event_id}/cfp/submissions/config", 1.5))
+        for endpoint in extra_endpoints:
+            path = endpoint.strip()
+            if path:
+                self.sequence.append((path, 1.0))
 
     def run(self) -> None:
         threads = [threading.Thread(target=self._vu_loop, name=f"vu-{i}", daemon=True) for i in range(self.users)]
@@ -187,6 +192,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Auto-discover an event id from /eventos and include public CFP endpoints in probe sequence.",
     )
+    p.add_argument(
+        "--extra-endpoint",
+        action="append",
+        default=[],
+        help="Extra endpoint path to include in sequence (repeatable). Example: --extra-endpoint /event/<id>/cfp",
+    )
     return p.parse_args()
 
 
@@ -200,6 +211,7 @@ def main() -> None:
         think_ms=args.think_ms,
         simulate_multi_origin=args.simulate_multi_origin,
         auto_cfp_endpoints=args.auto_cfp_endpoints,
+        extra_endpoints=args.extra_endpoint,
     )
     runner.run()
 

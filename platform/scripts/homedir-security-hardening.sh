@@ -214,7 +214,7 @@ run_audit() {
   fi
 
   if [[ -f "${ENV_FILE}" ]]; then
-    if grep -q "__" "${ENV_FILE}"; then
+    if grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=__[A-Za-z0-9_]+__$' "${ENV_FILE}"; then
       print_check "FAIL" "env file contains placeholder values (__...__)"
     else
       print_check "PASS" "env file has no placeholders"
