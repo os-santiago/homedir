@@ -144,7 +144,9 @@ parse_host_data_dir() {
 validate_env_file() {
   local env_file="$1"
   [[ -f "${env_file}" ]] || fail "env file not found after restore: ${env_file}"
-  grep -q "__" "${env_file}" && fail "env file still contains placeholder values (__...__). Provide production secrets."
+  if grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=__[A-Za-z0-9_]+__$' "${env_file}"; then
+    fail "env file still contains placeholder values (__...__). Provide production secrets."
+  fi
 }
 
 wait_for_health() {
@@ -301,6 +303,7 @@ for script in \
   homedir-auto-deploy.sh \
   homedir-discord-alert.sh \
   homedir-ir-first-level.sh \
+  homedir-cfp-traffic-guard.sh \
   homedir-security-hardening.sh \
   homedir-dr-backup.sh \
   homedir-dr-recover.sh \
@@ -313,6 +316,8 @@ for unit in \
   homedir-auto-deploy.timer \
   homedir-update.service \
   homedir-update.timer \
+  homedir-cfp-traffic-guard.service \
+  homedir-cfp-traffic-guard.timer \
   homedir-webhook.service; do
   run_cmd install -m 0644 "${platform_dir}/systemd/${unit}" "/etc/systemd/system/${unit}"
 done
@@ -391,6 +396,7 @@ fi
 
 log "enabling fallback auto-deploy timer"
 run_cmd systemctl enable --now homedir-auto-deploy.timer
+run_cmd systemctl enable --now homedir-cfp-traffic-guard.timer
 if [[ "${ENABLE_WEBHOOK}" == "true" ]]; then
   run_cmd systemctl enable --now homedir-webhook.service
 fi

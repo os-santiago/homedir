@@ -52,6 +52,7 @@ Commands:
 
 5. Host-level controls
 - `homedir-auto-deploy.timer` enabled and active.
+- `homedir-cfp-traffic-guard.timer` enabled and active.
 - Host firewall active (`firewalld` or `ufw`).
 - SSH baseline: root login restricted, password auth disabled.
 

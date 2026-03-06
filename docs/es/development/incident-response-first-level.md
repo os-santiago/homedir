@@ -77,4 +77,5 @@ Alternativa:
 2. Documentar indicadores de ataque y linea de tiempo.
 3. Rotar secretos si hay sospecha de compromiso.
 4. Ejecutar simulacro DR si hay riesgo de compromiso del host.
-5. Ejecutar `/usr/local/bin/homedir-security-hardening.sh audit` antes de cerrar el incidente.
+5. Ejecutar `/usr/local/bin/homedir-cfp-traffic-guard.sh check` y confirmar umbrales saludables.
+6. Ejecutar `/usr/local/bin/homedir-security-hardening.sh audit` antes de cerrar el incidente.

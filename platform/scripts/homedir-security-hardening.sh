@@ -214,7 +214,7 @@ run_audit() {
   fi
 
   if [[ -f "${ENV_FILE}" ]]; then
-    if grep -q "__" "${ENV_FILE}"; then
+    if grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=__[A-Za-z0-9_]+__$' "${ENV_FILE}"; then
       print_check "FAIL" "env file contains placeholder values (__...__)"
     else
       print_check "PASS" "env file has no placeholders"
@@ -245,6 +245,7 @@ run_audit() {
   fi
 
   check_timer_active "homedir-auto-deploy.timer"
+  check_timer_active "homedir-cfp-traffic-guard.timer"
   check_service_active "homedir-webhook.service"
   check_service_active "fail2ban.service"
   check_firewall
@@ -338,6 +339,9 @@ run_apply() {
 
   if unit_exists "fail2ban.service"; then
     run_cmd systemctl enable --now fail2ban.service
+  fi
+  if unit_exists "homedir-cfp-traffic-guard.timer"; then
+    run_cmd systemctl enable --now homedir-cfp-traffic-guard.timer
   fi
   run_cmd systemctl daemon-reload
 

@@ -1,0 +1,352 @@
+name: CFP Go-Live Resilience
+
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: "Concurrent users for synthetic probe"
+        required: false
+        default: "40"
+      duration:
+        description: "Probe duration in seconds"
+        required: false
+        default: "90"
+      max_error_rate:
+        description: "Max global error rate (%)"
+        required: false
+        default: "12"
+      max_429:
+        description: "Max total 429 in probe"
+        required: false
+        default: "250"
+      max_timeouts:
+        description: "Max total timeouts (-1) in probe"
+        required: false
+        default: "120"
+
+jobs:
+  gate-1-release-and-health:
+    name: Gate 1 - Release and Health
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Verify latest Production Release run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run list --repo "$REPO" \
+            --workflow "Production Release" \
+            --branch main \
+            --limit 1 \
+            --json databaseId,status,conclusion,url,headSha > release-run.json
+          python - <<'PY'
+          import json, sys
+          data = json.load(open("release-run.json", "r", encoding="utf-8"))
+          if not data:
+              print("ERROR: no Production Release runs found on main", file=sys.stderr)
+              raise SystemExit(1)
+          run = data[0]
+          print(f"latest_release_run={run['url']} status={run['status']} conclusion={run['conclusion']} sha={run['headSha']}")
+          if run["status"] != "completed" or run["conclusion"] != "success":
+              print("ERROR: latest Production Release run is not successful", file=sys.stderr)
+              raise SystemExit(1)
+          PY
+
+      - name: Verify public health and key routes
+        run: |
+          set -euo pipefail
+          base="https://homedir.opensourcesantiago.io"
+          paths=(/q/health / /comunidad /eventos /proyectos)
+          for path in "${paths[@]}"; do
+            url="${base}${path}"
+            code="$(curl -sS -o /dev/null -w "%{http_code}" "${url}")"
+            echo "route=${path} status=${code}"
+            if [ "${code}" != "200" ]; then
+              echo "ERROR: expected HTTP 200 for ${url}, got ${code}" >&2
+              exit 1
+            fi
+          done
+
+  gate-2-3-4-vps-drills:
+    name: Gate 2/3/4 - Incident + DR + Monitoring
+    runs-on: ubuntu-latest
+    needs:
+      - gate-1-release-and-health
+    permissions:
+      contents: read
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_HOST || vars.VPS_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER != '' && vars.DEPLOY_SSH_USER || vars.VPS_USER }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT != '' && vars.DEPLOY_SSH_PORT || vars.VPS_PORT }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY != '' && secrets.DEPLOY_SSH_PRIVATE_KEY || secrets.VPS_SSH_KEY }}
+      DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+      DEPLOY_SSH_STRICT_HOST_KEY_CHECKING: ${{ vars.DEPLOY_SSH_STRICT_HOST_KEY_CHECKING }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve deploy configuration
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_HOST:-}" ] || [ -z "${DEPLOY_USER:-}" ] || [ -z "${DEPLOY_SSH_PRIVATE_KEY:-}" ]; then
+            echo "ERROR: deploy SSH configuration is incomplete for VPS drills." >&2
+            exit 1
+          fi
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Prepare SSH known_hosts
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          if [ "${strict}" = "no" ]; then
+            echo "Strict host key checking disabled; skipping known_hosts bootstrap."
+            exit 0
+          fi
+          if [ -n "${DEPLOY_SSH_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          else
+            ssh-keyscan -T 5 -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Sync resilience scripts and units to VPS
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=${strict}")
+          if [ "${strict}" = "no" ]; then
+            ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
+          fi
+          tar -czf platform-resilience-assets.tgz -C platform scripts systemd nginx/snippets
+          scp "${ssh_opts[@]}" platform-resilience-assets.tgz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/platform-resilience-assets.tgz"
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
+            set -euo pipefail
+            sync_root="/tmp/homedir-platform-sync"
+            rm -rf "${sync_root}"
+            mkdir -p "${sync_root}"
+            tar -xzf /tmp/platform-resilience-assets.tgz -C "${sync_root}"
+            base="${sync_root}/platform"
+
+            for script in \
+              homedir-update.sh \
+              homedir-auto-deploy.sh \
+              homedir-discord-alert.sh \
+              homedir-ir-first-level.sh \
+              homedir-cfp-traffic-guard.sh \
+              homedir-dr-backup.sh \
+              homedir-dr-recover.sh \
+              homedir-dr-restore.py \
+              homedir-security-hardening.sh \
+              homedir-webhook.py; do
+              install -m 0755 "${base}/scripts/${script}" "/usr/local/bin/${script}"
+            done
+
+            for unit in \
+              homedir-auto-deploy.service \
+              homedir-auto-deploy.timer \
+              homedir-update.service \
+              homedir-update.timer \
+              homedir-webhook.service \
+              homedir-cfp-traffic-guard.service \
+              homedir-cfp-traffic-guard.timer; do
+              install -m 0644 "${base}/systemd/${unit}" "/etc/systemd/system/${unit}"
+            done
+
+            mkdir -p /etc/nginx/snippets
+            install -m 0644 "${base}/nginx/snippets/homedir-incident-guard.conf" /etc/nginx/snippets/homedir-incident-guard.conf
+            install -m 0644 "${base}/nginx/snippets/homedir-security-hardening.conf" /etc/nginx/snippets/homedir-security-hardening.conf
+
+            systemctl daemon-reload
+            systemctl enable --now homedir-cfp-traffic-guard.timer
+            systemctl start homedir-cfp-traffic-guard.service || true
+            rm -rf "${sync_root}" /tmp/platform-resilience-assets.tgz
+          '
+
+      - name: Run Gate 2 incident drill
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=${strict}")
+          if [ "${strict}" = "no" ]; then
+            ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
+          fi
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "/usr/local/bin/homedir-ir-first-level.sh status"
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "/usr/local/bin/homedir-ir-first-level.sh snapshot"
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "/usr/local/bin/homedir-ir-first-level.sh shield-on"
+          sleep 5
+          code="$(curl -sS -o /dev/null -w "%{http_code}" https://homedir.opensourcesantiago.io/)"
+          echo "maintenance_probe_status=${code}"
+          if [ "${code}" != "503" ]; then
+            echo "ERROR: expected HTTP 503 while shield is enabled" >&2
+            ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "/usr/local/bin/homedir-ir-first-level.sh shield-off" || true
+            exit 1
+          fi
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "/usr/local/bin/homedir-ir-first-level.sh shield-off"
+          health="$(curl -sS -o /dev/null -w "%{http_code}" https://homedir.opensourcesantiago.io/q/health)"
+          echo "post_shield_health_status=${health}"
+          if [ "${health}" != "200" ]; then
+            echo "ERROR: healthcheck did not recover after shield-off" >&2
+            exit 1
+          fi
+
+      - name: Run Gate 3 DR readiness drill
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=${strict}")
+          if [ "${strict}" = "no" ]; then
+            ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
+          fi
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
+            set -euo pipefail
+            if ! command -v age-keygen >/dev/null 2>&1 || ! command -v age >/dev/null 2>&1; then
+              if command -v dnf >/dev/null 2>&1; then
+                dnf -y install age >/dev/null
+              elif command -v apt-get >/dev/null 2>&1; then
+                apt-get update -y >/dev/null
+                apt-get install -y age >/dev/null
+              fi
+            fi
+            command -v age-keygen >/dev/null 2>&1
+            command -v age >/dev/null 2>&1
+
+            ts="$(date -u +%Y%m%dT%H%M%SZ)"
+            drill_dir="/var/tmp/homedir-dr-drill-${ts}"
+            mkdir -p "${drill_dir}"
+
+            age-keygen -o "${drill_dir}/age-key.txt" >/dev/null
+            recipient="$(awk "/^# public key:/ {print \$4}" "${drill_dir}/age-key.txt")"
+            [ -n "${recipient}" ]
+
+            /usr/local/bin/homedir-dr-backup.sh --age-recipient "${recipient}" --output-dir "${drill_dir}" --label cfp-go-live
+            artifact="$(ls -1 "${drill_dir}"/homedir-data-*.tar.gz.age | tail -n 1)"
+            [ -n "${artifact}" ]
+            age -d -i "${drill_dir}/age-key.txt" -o "${drill_dir}/backup.tar.gz" "${artifact}"
+
+            /usr/local/bin/homedir-dr-restore.py --archive "${drill_dir}/backup.tar.gz" --output-dir "${drill_dir}/restore"
+            restored_files="$(find "${drill_dir}/restore" -type f | wc -l | tr -d " ")"
+            echo "dr_drill_restored_files=${restored_files}"
+            if [ "${restored_files}" -lt 1 ]; then
+              echo "ERROR: DR restore drill produced no files" >&2
+              exit 1
+            fi
+
+            /usr/local/bin/homedir-dr-recover.sh \
+              --env-file /etc/homedir.env \
+              --skip-data-restore \
+              --skip-nginx \
+              --apply-hardening \
+              --dry-run
+
+            rm -rf "${drill_dir}"
+          '
+
+      - name: Run Gate 4 monitoring checks
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=${strict}")
+          if [ "${strict}" = "no" ]; then
+            ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
+          fi
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
+            set -euo pipefail
+            systemctl is-enabled --quiet homedir-cfp-traffic-guard.timer
+            systemctl is-active --quiet homedir-cfp-traffic-guard.timer
+            /usr/local/bin/homedir-cfp-traffic-guard.sh check
+            /usr/local/bin/homedir-security-hardening.sh audit
+          '
+
+  gate-5-multi-origin-load:
+    name: Gate 5 - Multi-Origin Load Validation
+    runs-on: ubuntu-latest
+    needs:
+      - gate-2-3-4-vps-drills
+    permissions:
+      contents: read
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST != '' && vars.DEPLOY_SSH_HOST || vars.VPS_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER != '' && vars.DEPLOY_SSH_USER || vars.VPS_USER }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT != '' && vars.DEPLOY_SSH_PORT || vars.VPS_PORT }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY != '' && secrets.DEPLOY_SSH_PRIVATE_KEY || secrets.VPS_SSH_KEY }}
+      DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+      DEPLOY_SSH_STRICT_HOST_KEY_CHECKING: ${{ vars.DEPLOY_SSH_STRICT_HOST_KEY_CHECKING }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Prepare SSH known_hosts
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          if [ "${strict}" = "no" ]; then
+            echo "Strict host key checking disabled; skipping known_hosts bootstrap."
+            exit 0
+          fi
+          if [ -n "${DEPLOY_SSH_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          else
+            ssh-keyscan -T 5 -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Run synthetic probe from VPS localhost
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
+          ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=${strict}")
+          if [ "${strict}" = "no" ]; then
+            ssh_opts=("-p" "$port" "-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/dev/null")
+          fi
+          scp "${ssh_opts[@]}" tools/load-test/community_capacity_probe.py "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/community_capacity_probe.py"
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" '
+            set -euo pipefail
+            python3 /tmp/community_capacity_probe.py \
+            --base-url "http://127.0.0.1:8080" \
+            --users "${{ inputs.users }}" \
+            --duration "${{ inputs.duration }}" \
+            --timeout 8 \
+            --think-ms 350 \
+            --simulate-multi-origin \
+            --auto-cfp-endpoints | tee /tmp/cfp-probe-report.txt
+          '
+          scp "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/cfp-probe-report.txt" cfp-probe-report.txt
+          ssh "${ssh_opts[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "rm -f /tmp/community_capacity_probe.py /tmp/cfp-probe-report.txt"
+
+      - name: Assert probe thresholds
+        run: |
+          set -euo pipefail
+          python scripts/ci/cfp_probe_assert.py \
+            --report cfp-probe-report.txt \
+            --max-error-rate "${{ inputs.max_error_rate }}" \
+            --max-429 "${{ inputs.max_429 }}" \
+            --max-timeouts "${{ inputs.max_timeouts }}"
+
+      - name: Upload probe artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfp-go-live-probe
+          path: cfp-probe-report.txt

@@ -9,11 +9,13 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-discord-alert.sh` – sends deploy and webhook alerts to Discord with severity icons/colors (`WARN`, `FAIL`, `RECOVERY`).
 - `scripts/homedir-ir-first-level.sh` – first-level incident response (`status`, `snapshot`, `shield-on`, `recover`, `shield-off`) for attacks/DoS.
 - `scripts/homedir-security-hardening.sh` – hardening baseline automation (`audit`, `apply`) for VPS + runtime controls.
+- `scripts/homedir-cfp-traffic-guard.sh` – monitors CFP/community critical routes for 429/5xx/timeouts and triggers alerts on threshold breaches.
 - `scripts/homedir-dr-backup.sh` – creates an encrypted DR backup artifact (`tar.gz.age`) + sha256 + metadata.
 - `scripts/homedir-dr-recover.sh` – one-command disaster recovery orchestrator for a pre-provisioned VM.
 - `scripts/homedir-dr-restore.py` – safe archive extractor used by DR recovery (blocks path traversal/symlinks).
 - `systemd/homedir-webhook.service` – runs the optional webhook listener.
 - `systemd/homedir-auto-deploy.service` / `systemd/homedir-auto-deploy.timer` – periodic fallback auto-deploy from Quay.
+- `systemd/homedir-cfp-traffic-guard.service` / `systemd/homedir-cfp-traffic-guard.timer` – periodic CFP route resilience monitoring.
 - `systemd/homedir-update.service` / `systemd/homedir-update.timer` – optional manual/timer runner; keep disabled unless you set a tag.
 - `nginx/homedir.conf`, `nginx/int.conf` – HTTPS reverse proxies with a maintenance page for 502/503/504.
 - `nginx/snippets/homedir-incident-guard.conf` – lock-file based emergency shield to force maintenance mode during incidents.
@@ -29,6 +31,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
    - For webhook security, define `WEBHOOK_SHARED_SECRET` and `WEBHOOK_STATUS_TOKEN`, keep `WEBHOOK_REQUIRE_SIGNATURE=true`, and bind webhook to localhost (`WEBHOOK_BIND_ADDRESS=127.0.0.1`).
 4) Install systemd units from `platform/systemd/` into `/etc/systemd/system/`, run `systemctl daemon-reload`, then enable:
    - `homedir-auto-deploy.timer` (fallback every 1 min)
+   - `homedir-cfp-traffic-guard.timer` (CFP route guard every 5 min)
    - `homedir-webhook.service` only if you want Quay webhook support
 5) Place nginx configs into `/etc/nginx/sites-available/`, symlink to `sites-enabled`, and reload nginx.  
 6) Configure GitHub Actions deploy secrets/vars (for immediate deploy on release):
@@ -63,6 +66,20 @@ Manual reopen:
 
 ```bash
 /usr/local/bin/homedir-ir-first-level.sh shield-off
+```
+
+## CFP monitoring guard
+
+Manual check:
+
+```bash
+/usr/local/bin/homedir-cfp-traffic-guard.sh status
+```
+
+Enforced check (exit non-zero on breach):
+
+```bash
+/usr/local/bin/homedir-cfp-traffic-guard.sh check
 ```
 
 ## DR backup flow (recommended)
