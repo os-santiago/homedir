@@ -15,9 +15,6 @@ jobs:
     if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
-      INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,6 +33,8 @@ jobs:
         if: ${{ success() }}
         continue-on-error: true
         env:
+          INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
+          INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_CREATED_AT: ${{ github.event.pull_request.created_at }}

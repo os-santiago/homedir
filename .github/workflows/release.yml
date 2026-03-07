@@ -38,8 +38,6 @@ jobs:
       DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY != '' && secrets.DEPLOY_SSH_PRIVATE_KEY || secrets.VPS_SSH_KEY }}
       DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
       DEPLOY_SSH_STRICT_HOST_KEY_CHECKING: ${{ vars.DEPLOY_SSH_STRICT_HOST_KEY_CHECKING }}
-      INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
-      INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
 
     steps:
       - name: Checkout code
@@ -237,6 +235,8 @@ jobs:
         if: ${{ success() }}
         continue-on-error: true
         env:
+          INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
+          INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
           RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           HEAD_COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
