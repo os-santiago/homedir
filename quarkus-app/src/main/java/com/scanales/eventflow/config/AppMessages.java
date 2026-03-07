@@ -3708,6 +3708,12 @@ public interface AppMessages {
     @Message("Open initiatives aging > 30d")
     String admin_insights_js_status_aging_open_30d();
 
+    @Message("Open initiatives stalled > 7d (no events)")
+    String admin_insights_js_status_stalled_open_7d();
+
+    @Message("Open initiatives stalled > 30d (no events)")
+    String admin_insights_js_status_stalled_open_30d();
+
     @Message("Average lead to merge")
     String admin_insights_js_status_avg_merge();
 

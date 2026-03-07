@@ -69,6 +69,8 @@
      data-status-prod-verified="{i18n:admin_insights_js_status_prod_verified}"
      data-status-aging-open-7d="{i18n:admin_insights_js_status_aging_open_7d}"
      data-status-aging-open-30d="{i18n:admin_insights_js_status_aging_open_30d}"
+     data-status-stalled-open-7d="{i18n:admin_insights_js_status_stalled_open_7d}"
+     data-status-stalled-open-30d="{i18n:admin_insights_js_status_stalled_open_30d}"
      data-status-avg-merge="{i18n:admin_insights_js_status_avg_merge}"
      data-status-avg-prod="{i18n:admin_insights_js_status_avg_prod}"
      data-status-pr-validation-passed="{i18n:admin_insights_js_status_pr_validation_passed}"
@@ -227,6 +229,8 @@
         '<strong>' + i18n.statusProdVerified + ':</strong> ' + (status.productionVerifiedInitiatives || 0),
         '<strong>' + i18n.statusAgingOpen7d + ':</strong> ' + (status.agingOpenInitiativesOver7Days || 0),
         '<strong>' + i18n.statusAgingOpen30d + ':</strong> ' + (status.agingOpenInitiativesOver30Days || 0),
+        '<strong>' + i18n.statusStalledOpen7d + ':</strong> ' + (status.stalledOpenInitiativesLast7Days || 0),
+        '<strong>' + i18n.statusStalledOpen30d + ':</strong> ' + (status.stalledOpenInitiativesLast30Days || 0),
         '<strong>' + i18n.statusPrValidationPassed + ':</strong> ' + (status.prValidationPassedEvents || 0),
         '<strong>' + i18n.statusPrValidationFailed + ':</strong> ' + (status.prValidationFailedEvents || 0),
         '<strong>' + i18n.statusPrValidationSuccessRate + ':</strong> ' + formatPercent(status.prValidationSuccessRatePct),

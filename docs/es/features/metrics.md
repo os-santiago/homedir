@@ -41,6 +41,8 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
 - **Iniciativas abiertas envejecidas** (estado de admin insights):
   - Iniciativas abiertas con antigüedad mayor a 7 días
   - Iniciativas abiertas con antigüedad mayor a 30 días
+  - Iniciativas abiertas estancadas por más de 7 días (sin eventos)
+  - Iniciativas abiertas estancadas por más de 30 días (sin eventos)
 - **Exportación CSV**: Admin insights se puede exportar desde `/api/private/admin/insights/initiatives/export.csv` (solo admin).
 
 ## Eventos Registrados

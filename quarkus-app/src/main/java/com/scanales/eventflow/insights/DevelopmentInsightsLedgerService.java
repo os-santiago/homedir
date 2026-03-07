@@ -114,6 +114,8 @@ public class DevelopmentInsightsLedgerService {
       int prodVerifiedCount = 0;
       int agingOpenOver7DaysCount = 0;
       int agingOpenOver30DaysCount = 0;
+      int stalledOpenLast7DaysCount = 0;
+      int stalledOpenLast30DaysCount = 0;
       int prValidationPassedCount = 0;
       int prValidationFailedCount = 0;
       int productionReleaseFailedCount = 0;
@@ -193,6 +195,7 @@ public class DevelopmentInsightsLedgerService {
               snapshot.definitionStartedAt() != null
                   ? snapshot.definitionStartedAt()
                   : snapshot.startedAt();
+          Instant lastActivityAt = snapshot.lastEventAt();
           if (openSince != null) {
             if (openSince.isBefore(sevenDaysAgo)) {
               agingOpenOver7DaysCount++;
@@ -200,6 +203,12 @@ public class DevelopmentInsightsLedgerService {
             if (openSince.isBefore(thirtyDaysAgo)) {
               agingOpenOver30DaysCount++;
             }
+          }
+          if (lastActivityAt == null || lastActivityAt.isBefore(sevenDaysAgo)) {
+            stalledOpenLast7DaysCount++;
+          }
+          if (lastActivityAt == null || lastActivityAt.isBefore(thirtyDaysAgo)) {
+            stalledOpenLast30DaysCount++;
           }
         }
         if (snapshot.leadHoursToMerge() != null) {
@@ -231,6 +240,8 @@ public class DevelopmentInsightsLedgerService {
           prodVerifiedCount,
           agingOpenOver7DaysCount,
           agingOpenOver30DaysCount,
+          stalledOpenLast7DaysCount,
+          stalledOpenLast30DaysCount,
           prValidationPassedCount,
           prValidationFailedCount,
           productionReleaseFailedCount,
