@@ -23,6 +23,12 @@ public class AdminInsightsApiResourceTest {
   }
 
   @Test
+  @TestSecurity(user = "alice")
+  public void nonAdminCannotExportCsv() {
+    given().when().get("/api/private/admin/insights/initiatives/export.csv").then().statusCode(403);
+  }
+
+  @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   public void initiativesIncludeLeadKpis() {
     String initiativeId = "kpi-" + UUID.randomUUID();
@@ -171,5 +177,26 @@ public class AdminInsightsApiResourceTest {
         .post("/api/private/admin/insights/events")
         .then()
         .statusCode(201);
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  public void csvExportIncludesHeaderAndRows() {
+    String initiativeId = "csv-" + UUID.randomUUID();
+    startInitiative(initiativeId, "2026-03-04T00:00:00Z");
+    appendEvent(initiativeId, "PR_OPENED");
+
+    String csv =
+        given()
+            .accept("text/csv")
+            .when()
+            .get("/api/private/admin/insights/initiatives/export.csv?limit=200&offset=0")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+
+    assertTrue(csv.contains("initiative_id,title,state"));
+    assertTrue(csv.contains(initiativeId));
   }
 }
