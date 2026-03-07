@@ -279,6 +279,42 @@ jobs:
             "sha=${HEAD_SHA}" \
             "run_id=${RUN_ID}"
 
+      - name: Emit insights ingest events (production release failed)
+        if: ${{ failure() }}
+        continue-on-error: true
+        env:
+          INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
+          INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          HEAD_COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
+          HEAD_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          pr_number="$(echo "${HEAD_COMMIT_MESSAGE:-}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p' | head -n1)"
+          if [ -n "${pr_number}" ]; then
+            initiative_id="pr-${pr_number}"
+            title="PR #${pr_number}"
+          else
+            short_sha="$(echo "${HEAD_SHA:-unknown}" | cut -c1-12)"
+            initiative_id="release-failed-${short_sha}"
+            title="${HEAD_COMMIT_MESSAGE:-Production release failed}"
+          fi
+          started_at="${HEAD_COMMIT_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
+          bash scripts/ci/insights_ingest.sh start \
+            "${initiative_id}" \
+            "${title}" \
+            "${started_at}" \
+            "source=production-release" \
+            "sha=${HEAD_SHA}" \
+            "run_id=${RUN_ID}"
+          bash scripts/ci/insights_ingest.sh event \
+            "${initiative_id}" \
+            "PRODUCTION_RELEASE_FAILED" \
+            "source=production-release" \
+            "sha=${HEAD_SHA}" \
+            "run_id=${RUN_ID}"
+
       - name: Deploy fallback notice (SSH unavailable)
         if: ${{ steps.deploy_config.outputs.enabled == 'true' && steps.deploy_ssh.outcome != 'success' }}
         run: |

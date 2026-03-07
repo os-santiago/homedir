@@ -16,6 +16,10 @@ Homedir records interaction events and persists them asynchronously to provide i
   - `INSIGHTS_INGEST_BASE_URL` (GitHub variable)
   - `INSIGHTS_INGEST_KEY` (GitHub secret)
 - **Behavior**: If those values are missing, CI steps skip ingestion without failing builds/releases.
+- **Failure signals**: CI/CD also emits failure events when available:
+  - `PR_VALIDATION_FAILED`
+  - `PRODUCTION_RELEASE_FAILED`
+  This allows lead-time dashboards to include non-success outcomes.
 
 ## Tracked Events
 - **Page Views**: `Page_view: {route}`
