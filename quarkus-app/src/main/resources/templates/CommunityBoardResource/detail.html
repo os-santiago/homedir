@@ -1,4 +1,4 @@
-{#include layout/main activePage="comunidad"}
+{#include layout/main activePage="comunidad" noLoginModal=true}
 {#title}
 {#if groupPath == 'homedir-users'}
 {i18n:community_board_group_homedir} · {i18n:community_board_heading}
@@ -48,12 +48,34 @@
           <p class="section-subtitle">{i18n:community_board_pagination_status(pageStart, pageEnd, total)}</p>
         {/if}
       </div>
+      {#if isAuthenticated}
+      <div class="board-self-actions">
+        {#if publicProfilePath}
+        <a class="btn-primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
+        <button
+          type="button"
+          class="btn-primary board-copy-btn"
+          data-default-label="{i18n:community_board_activation_cta_copy}"
+          data-success-label="{i18n:community_board_link_copied}"
+          data-error-label="{i18n:community_board_copy_failed}"
+          data-share-link="{publicProfilePath}">
+          {i18n:community_board_activation_cta_copy}
+        </button>
+        {/if}
+        {#if myMemberSearchUrl}
+        <a class="btn-primary" href="{myMemberSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+        {/if}
+      </div>
+      {/if}
       {#if groupPath == 'discord-users'}
         <div class="board-detail-metrics" aria-label="Discord coverage metrics">
           <span class="board-detail-metric">{i18n:community_board_discord_guild_members(discordGuildMembers)}</span>
           <span class="board-detail-metric">{i18n:community_board_discord_listed(discordListedUsers)}</span>
           <span class="board-detail-metric">{i18n:community_board_discord_linked_profiles(discordLinkedProfiles)}</span>
           <span class="board-detail-metric">{i18n:community_board_discord_coverage(discordCoveragePercent)}</span>
+        </div>
+        <div class="board-discord-tip">
+          {i18n:community_board_discord_link_tip}
         </div>
       {/if}
 
@@ -68,25 +90,31 @@
         <input type="hidden" name="limit" value="{limit}" />
         <button type="submit" class="btn-primary">{i18n:community_board_search}</button>
       </form>
+      <p class="board-share-hint">{i18n:community_board_share_hint}</p>
 
       <div class="board-members-grid">
         {#if members.isEmpty}
           <article class="board-member-card">
-            <p>{i18n:community_board_no_members}</p>
+            {#if hasSearchQuery}
+              <p>{i18n:community_board_no_results(searchQuery)}</p>
+            {#else}
+              <p>{i18n:community_board_no_members}</p>
+            {/if}
           </article>
         {#else}
           {#for member in members}
+            {#let memberName=(member.displayName ?: i18n:community_board_unnamed_member)}
             <article class="board-member-card {#if highlightedMember == member.id}is-highlighted{/if}">
               <div class="board-member-main">
                 {#if member.avatarUrl}
-                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{member.displayName}" loading="lazy" decoding="async" fetchpriority="low" width="44" height="44" />
+                  <img class="board-member-avatar" src="{member.avatarUrl}" alt="{memberName}" loading="lazy" decoding="async" fetchpriority="low" width="44" height="44" />
                 {#else}
                   <div class="board-member-avatar board-member-avatar-fallback">
-                    {member.displayName.substring(0,1)}
+                    {memberName.substring(0,1)}
                   </div>
                 {/if}
                 <div class="board-member-text">
-                  <h2>{member.displayName}</h2>
+                  <h2>{memberName}</h2>
                   <p>{member.handle}</p>
                   {#if member.memberSince}
                     <small>{i18n:community_board_member_since(member.memberSince)}</small>
@@ -109,6 +137,7 @@
                 </button>
               </div>
             </article>
+            {/let}
           {/for}
         {/if}
       </div>
@@ -192,6 +221,19 @@
       flex-wrap: wrap;
     }
 
+    .board-self-actions {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      margin: 0 0 0.9rem 0;
+    }
+
+    .board-share-hint {
+      margin: 0 0 1rem;
+      font-size: 0.84rem;
+      opacity: 0.9;
+    }
+
     .board-detail-metrics {
       display: flex;
       gap: 0.45rem;
@@ -208,6 +250,16 @@
       background: rgba(0, 0, 0, 0.28);
     }
 
+    .board-discord-tip {
+      margin-bottom: 1rem;
+      border: 1px dashed rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      padding: 0.55rem 0.7rem;
+      font-size: 0.82rem;
+      opacity: 0.92;
+      background: rgba(0, 0, 0, 0.22);
+    }
+
     .board-search-input {
       flex: 1 1 280px;
       min-width: 220px;
@@ -216,6 +268,11 @@
       border-radius: 8px;
       color: #fff;
       padding: 0.6rem 0.75rem;
+    }
+
+    .board-search-input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+      opacity: 1;
     }
 
     .board-members-grid {

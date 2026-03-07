@@ -17,10 +17,15 @@ on:
           - minor
           - major
 
+concurrency:
+  group: production-release-main
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Tag & Deploy
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip release]') }}
     permissions:
       contents: write
       packages: write
@@ -40,19 +45,6 @@ jobs:
         with:
           fetch-depth: 0 # Required for changelog/version calc
 
-      - name: Calculate Next Version
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ github.token }}
-          default_bump: patch
-          custom_release_rules: feat:minor,fix:patch,chore:patch,refactor:patch,perf:patch
-          release_branches: main
-          tag_prefix: v
-          dry_run: false # We allow it to tag, or we can tag manually. Let's let it tag.
-          # If we want manual control, we can set dry_run: true and tag manually in next step.
-          # For "auto versioning", let this action handle it.
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -60,11 +52,62 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Verify Build & Tests (Release Gate)
+        working-directory: quarkus-app
+        run: |
+          ../scripts/ci/retry.sh \
+            ./mvnw clean verify -B \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
+      - name: Calculate Next Version (dry run)
+        id: version_calc
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ github.token }}
+          default_bump: patch
+          custom_release_rules: feat:minor,fix:patch,chore:patch,refactor:patch,perf:patch
+          release_branches: main
+          tag_prefix: v
+          dry_run: true
+
+      - name: Sync pom.xml revision for release tag
+        id: sync_pom
+        env:
+          RELEASE_VERSION: ${{ steps.version_calc.outputs.new_version }}
+        run: |
+          set -euo pipefail
+          sed -i -E "s#<revision>[^<]+</revision>#<revision>${RELEASE_VERSION}</revision>#" quarkus-app/pom.xml
+          if git diff --quiet -- quarkus-app/pom.xml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "pom.xml already aligned with ${RELEASE_VERSION}"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quarkus-app/pom.xml
+          git commit -m "chore(release): sync pom revision to ${RELEASE_VERSION} [skip release]"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create release tag
+        id: tag_version
+        env:
+          RELEASE_VERSION: ${{ steps.version_calc.outputs.new_version }}
+        run: |
+          set -euo pipefail
+          TAG="v${RELEASE_VERSION}"
+          git fetch --tags --force
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag ${TAG} already exists"
+            exit 1
+          fi
+          git tag "$TAG"
+          git push origin "$TAG"
+          echo "new_version=${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "new_tag=${TAG}" >> "$GITHUB_OUTPUT"
+
       - name: Build with Maven
         working-directory: quarkus-app
-        # Use the calculated version (new_tag includes v, clean_version does not? new_version usually has no v if configured, let's check docs or use strip)
-        # Action outputs: new_tag (v1.0.0), new_version (1.0.0)
-        run: ./mvnw package -Drevision=${{ steps.tag_version.outputs.new_version }} -DskipTests
+        run: ./mvnw package -B -Drevision=${{ steps.tag_version.outputs.new_version }} -DskipTests
 
       - name: Login to Quay.io
         uses: docker/login-action@v3
@@ -85,6 +128,21 @@ jobs:
             
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$TAG
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.tag_version.outputs.new_version }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TITLE="Release ${TAG}"
+          NOTES="Automated production release for ${TAG}."
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+          else
+            gh release create "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+          fi
 
       - name: Resolve deploy configuration
         id: deploy_config
@@ -117,7 +175,8 @@ jobs:
           if [ -n "${DEPLOY_SSH_KNOWN_HOSTS:-}" ]; then
             printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
           else
-            if ssh-keyscan -T 5 -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
+            if RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=5 ./scripts/ci/retry.sh \
+              ssh-keyscan -T 5 -p "$port" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
               echo "known_hosts populated from ssh-keyscan."
             else
               echo "::warning::ssh-keyscan failed for ${DEPLOY_HOST}:${port}. Continuing with StrictHostKeyChecking=${strict}."
@@ -138,12 +197,14 @@ jobs:
           cmd="${DEPLOY_COMMAND:-/usr/local/bin/homedir-update.sh}"
           strict="${DEPLOY_SSH_STRICT_HOST_KEY_CHECKING:-accept-new}"
           if [ "${strict}" = "no" ]; then
-            ssh -p "$port" \
+            RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ./scripts/ci/retry.sh \
+              ssh -p "$port" \
               -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
               "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
           else
-            ssh -p "$port" \
+            RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ./scripts/ci/retry.sh \
+              ssh -p "$port" \
               -o StrictHostKeyChecking="${strict}" \
               "${DEPLOY_USER}@${DEPLOY_HOST}" "DEPLOY_TRIGGER=github-actions ${cmd} ${RELEASE_TAG}"
           fi
@@ -169,6 +230,90 @@ jobs:
           done
           echo "healthcheck failed: $url" >&2
           exit 1
+
+      - name: Emit insights ingest events (production release)
+        if: ${{ success() }}
+        continue-on-error: true
+        env:
+          INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
+          INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
+          RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          HEAD_COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
+          HEAD_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          pr_number="$(echo "${HEAD_COMMIT_MESSAGE:-}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p' | head -n1)"
+          if [ -n "${pr_number}" ]; then
+            initiative_id="pr-${pr_number}"
+            title="PR #${pr_number}"
+          else
+            initiative_id="release-${RELEASE_TAG}"
+            title="${HEAD_COMMIT_MESSAGE:-Release ${RELEASE_TAG}}"
+          fi
+          started_at="${HEAD_COMMIT_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
+          bash scripts/ci/insights_ingest.sh start \
+            "${initiative_id}" \
+            "${title}" \
+            "${started_at}" \
+            "source=production-release" \
+            "release_tag=${RELEASE_TAG}" \
+            "sha=${HEAD_SHA}" \
+            "run_id=${RUN_ID}"
+          if [ -n "${pr_number}" ]; then
+            bash scripts/ci/insights_ingest.sh event \
+              "${initiative_id}" \
+              "PR_MERGED" \
+              "source=production-release" \
+              "pr=${pr_number}" \
+              "release_tag=${RELEASE_TAG}" \
+              "sha=${HEAD_SHA}" \
+              "run_id=${RUN_ID}"
+          fi
+          bash scripts/ci/insights_ingest.sh event \
+            "${initiative_id}" \
+            "PRODUCTION_VERIFIED" \
+            "source=production-release" \
+            "release_tag=${RELEASE_TAG}" \
+            "sha=${HEAD_SHA}" \
+            "run_id=${RUN_ID}"
+
+      - name: Emit insights ingest events (production release failed)
+        if: ${{ failure() }}
+        continue-on-error: true
+        env:
+          INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
+          INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          HEAD_COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
+          HEAD_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          pr_number="$(echo "${HEAD_COMMIT_MESSAGE:-}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p' | head -n1)"
+          if [ -n "${pr_number}" ]; then
+            initiative_id="pr-${pr_number}"
+            title="PR #${pr_number}"
+          else
+            short_sha="$(echo "${HEAD_SHA:-unknown}" | cut -c1-12)"
+            initiative_id="release-failed-${short_sha}"
+            title="${HEAD_COMMIT_MESSAGE:-Production release failed}"
+          fi
+          started_at="${HEAD_COMMIT_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
+          bash scripts/ci/insights_ingest.sh start \
+            "${initiative_id}" \
+            "${title}" \
+            "${started_at}" \
+            "source=production-release" \
+            "sha=${HEAD_SHA}" \
+            "run_id=${RUN_ID}"
+          bash scripts/ci/insights_ingest.sh event \
+            "${initiative_id}" \
+            "PRODUCTION_RELEASE_FAILED" \
+            "source=production-release" \
+            "sha=${HEAD_SHA}" \
+            "run_id=${RUN_ID}"
 
       - name: Deploy fallback notice (SSH unavailable)
         if: ${{ steps.deploy_config.outputs.enabled == 'true' && steps.deploy_ssh.outcome != 'success' }}

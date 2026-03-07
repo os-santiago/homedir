@@ -8,10 +8,12 @@ import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class NotificationResourceTest {
+  private static final String TEST_CLIENT_IP = "198.51.100.77";
 
   @Test
   void returnsGoneForAllOperations() {
     given()
+        .header("X-Forwarded-For", TEST_CLIENT_IP)
         .when()
         .get("/api/notifications")
         .then()
@@ -20,6 +22,7 @@ class NotificationResourceTest {
         .body("hint", containsString("global"));
 
     given()
+        .header("X-Forwarded-For", TEST_CLIENT_IP)
         .when()
         .post("/api/notifications/anything")
         .then()

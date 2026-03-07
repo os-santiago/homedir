@@ -16,6 +16,7 @@ import com.scanales.eventflow.community.CommunityLightningStateSnapshot;
 import com.scanales.eventflow.economy.EconomyStateSnapshot;
 import com.scanales.eventflow.agenda.AgendaProposalConfig;
 import com.scanales.eventflow.cfp.CfpConfig;
+import com.scanales.eventflow.cfp.CfpEventConfig;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -113,6 +114,7 @@ public class PersistenceService {
   private Path communityLightningStateFile;
   private Path cfpSubmissionsFile;
   private Path cfpConfigFile;
+  private Path cfpEventConfigFile;
   private Path agendaProposalConfigFile;
   private Path cfpBackupsDir;
   private Path cfpWalFile;
@@ -130,6 +132,9 @@ public class PersistenceService {
   private static final String CFP_CHECKSUM_FIELD = "checksum_sha256";
   private static final TypeReference<Map<String, CfpSubmission>> CFP_SUBMISSIONS_TYPE =
       new TypeReference<Map<String, CfpSubmission>>() {
+      };
+  private static final TypeReference<Map<String, CfpEventConfig>> CFP_EVENT_CONFIG_TYPE =
+      new TypeReference<Map<String, CfpEventConfig>>() {
       };
   private static final DateTimeFormatter CFP_BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
@@ -194,6 +199,7 @@ public class PersistenceService {
     communityLightningStateFile = dataDir.resolve("community").resolve("lightning").resolve("state.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
     cfpConfigFile = dataDir.resolve("cfp-config.json");
+    cfpEventConfigFile = dataDir.resolve("cfp-event-config.json");
     agendaProposalConfigFile = dataDir.resolve("event-agenda-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
     cfpWalFile = dataDir.resolve(CFP_WAL_FILE_NAME);
@@ -475,6 +481,41 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(cfpConfigFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Loads CFP event-level config overrides from disk. */
+  public Map<String, CfpEventConfig> loadCfpEventConfigs() {
+    if (cfpEventConfigFile == null || !Files.exists(cfpEventConfigFile)) {
+      return Map.of();
+    }
+    try {
+      Map<String, CfpEventConfig> data =
+          mapper.readValue(cfpEventConfigFile.toFile(), CFP_EVENT_CONFIG_TYPE);
+      if (data == null || data.isEmpty()) {
+        return Map.of();
+      }
+      return new java.util.LinkedHashMap<>(data);
+    } catch (IOException e) {
+      LOG.error("Failed to read " + cfpEventConfigFile.toAbsolutePath(), e);
+      return Map.of();
+    }
+  }
+
+  /** Persists CFP event-level config overrides synchronously. */
+  public void saveCfpEventConfigsSync(Map<String, CfpEventConfig> configs) {
+    writeSync(cfpEventConfigFile, configs == null ? Map.of() : Map.copyOf(configs));
+  }
+
+  /** Last modified timestamp for CFP event-level config file, or -1 when unavailable. */
+  public long cfpEventConfigLastModifiedMillis() {
+    try {
+      if (cfpEventConfigFile == null || !Files.exists(cfpEventConfigFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(cfpEventConfigFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }

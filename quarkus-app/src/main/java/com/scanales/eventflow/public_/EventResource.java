@@ -3,7 +3,10 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.agenda.AgendaProposalConfigService;
 import com.scanales.eventflow.cfp.CfpFormCatalog;
 import com.scanales.eventflow.cfp.CfpConfigService;
+import com.scanales.eventflow.cfp.CfpEventConfigService;
 import com.scanales.eventflow.cfp.CfpFormOptionsService;
+import com.scanales.eventflow.cfp.CfpTimelinePlanner;
+import com.scanales.eventflow.cfp.CfpTimelineView;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
@@ -16,13 +19,13 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
-import java.util.Map;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import java.util.Map;
 
 @Path("/event")
 public class EventResource {
@@ -31,7 +34,11 @@ public class EventResource {
   static class Templates {
     static native TemplateInstance detail(Event event, boolean agendaProposalNoticeEnabled);
 
-    static native TemplateInstance cfp(Event event, CfpFormCatalog cfpCatalog, Map<String, Integer> cfpDurationByFormat);
+    static native TemplateInstance cfp(
+        Event event,
+        CfpFormCatalog cfpCatalog,
+        Map<String, Integer> cfpDurationByFormat,
+        CfpTimelineView cfpTimeline);
   }
 
   @Inject EventService eventService;
@@ -45,6 +52,7 @@ public class EventResource {
   @Inject CfpFormOptionsService cfpFormOptionsService;
 
   @Inject CfpConfigService cfpConfigService;
+  @Inject CfpEventConfigService cfpEventConfigService;
   @Inject AgendaProposalConfigService agendaProposalConfigService;
   @Inject GamificationService gamificationService;
 
@@ -90,9 +98,27 @@ public class EventResource {
     metrics.recordPageView("/event/cfp", headers, context);
     currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id + ":cfp"));
     Event event = eventService.getEvent(id);
+    CfpTimelineView cfpTimeline = null;
+    if (event != null) {
+      try {
+        CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(id);
+        cfpTimeline =
+            CfpTimelinePlanner.build(
+                    event,
+                    resolved.opensAt(),
+                    resolved.closesAt(),
+                    java.util.Locale.forLanguageTag(TemplateLocaleUtil.resolve(localeCookie, headers)))
+                .orElse(null);
+      } catch (Exception ignored) {
+        cfpTimeline = null;
+      }
+    }
     return withLayoutData(
             Templates.cfp(
-                event, cfpFormOptionsService.catalog(), cfpFormOptionsService.durationByFormat()),
+                event,
+                cfpFormOptionsService.catalog(),
+                cfpFormOptionsService.durationByFormat(),
+                cfpTimeline),
             "eventos",
             localeCookie)
         .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());

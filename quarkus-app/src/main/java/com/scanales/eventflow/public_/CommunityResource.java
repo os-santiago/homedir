@@ -99,7 +99,9 @@ public class CommunityResource {
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
     String activeSubmenu =
-        forcedSubmenu != null && !forcedSubmenu.isBlank() ? forcedSubmenu : "lta";
+        forcedSubmenu != null && !forcedSubmenu.isBlank()
+            ? forcedSubmenu
+            : resolveDefaultSubmenu(viewParam, filterParam, mediaParam);
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
     currentUserId().ifPresent(
         userId -> {
@@ -115,6 +117,7 @@ public class CommunityResource {
           }
         });
     var summary = boardService.summary();
+    int discordOnlineUsers = summary.discordOnlineUsers() != null ? summary.discordOnlineUsers() : 0;
     TemplateInstance template =
         Templates.community(
             authenticated,
@@ -125,13 +128,26 @@ public class CommunityResource {
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
+        .data("noLoginModal", true)
         .data("activeCommunitySubmenu", activeSubmenu)
         .data("initialFilter", initialFilter)
         .data("initialMedia", initialMedia)
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
+        .data("discordOnlineUsers", discordOnlineUsers)
         .data("userName", currentUserName().orElse(null))
         .data("userInitial", initialFrom(currentUserName().orElse(null)));
+  }
+
+  private String resolveDefaultSubmenu(String viewParam, String filterParam, String mediaParam) {
+    if (hasQueryValue(viewParam) || hasQueryValue(filterParam) || hasQueryValue(mediaParam)) {
+      return "picks";
+    }
+    return "lta";
+  }
+
+  private boolean hasQueryValue(String value) {
+    return value != null && !value.isBlank();
   }
 
   @GET

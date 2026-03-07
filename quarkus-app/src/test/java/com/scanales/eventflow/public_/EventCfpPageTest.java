@@ -31,6 +31,7 @@ public class EventCfpPageTest {
     eventService.saveEvent(event);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/event/" + EVENT_ID + "/cfp")
         .then()
@@ -42,7 +43,10 @@ public class EventCfpPageTest {
         .body(containsString("id=\"cfpFormat\""))
         .body(containsString("id=\"cfpDuration\""))
         .body(containsString("id=\"cfpLanguage\""))
-        .body(containsString("id=\"cfpTrack\""));
+        .body(containsString("id=\"cfpTrack\""))
+        .body(containsString("id=\"cfpAvailabilityHint\""))
+        .body(containsString("id=\"cfpMinePrevBtn\""))
+        .body(containsString("id=\"cfpMineNextBtn\""));
   }
 
   @Test
@@ -51,6 +55,7 @@ public class EventCfpPageTest {
     eventService.saveEvent(event);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/event/" + EVENT_ID + "/cfp")
         .then()
@@ -63,6 +68,7 @@ public class EventCfpPageTest {
   @Test
   public void cfpPageShowsNotFoundStateWhenEventMissing() {
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/event/missing-event-for-cfp/cfp")
         .then()

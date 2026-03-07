@@ -7,6 +7,33 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
 - **Visualización**: Panel de Administración (`/private/admin`).
 - **Privacidad**: Sin PII en exportaciones y vistas; datos agregados solamente.
 
+## Ingesta de Insights de Desarrollo (Opcional)
+- **Endpoint interno**: `/api/internal/insights/*` (oculto, deshabilitado por defecto).
+- **Guardrails**:
+  - `insights.ingest.enabled=false` por defecto.
+  - `X-Insights-Key` obligatorio en cada request.
+- **Integración CI**:
+  - `INSIGHTS_INGEST_BASE_URL` (variable de GitHub)
+  - `INSIGHTS_INGEST_KEY` (secret de GitHub)
+- **Comportamiento**: Si faltan esas variables, los pasos CI omiten la ingesta sin fallar builds/releases.
+- **Señales de falla**: CI/CD también emite eventos de falla cuando aplica:
+  - `PR_VALIDATION_FAILED`
+  - `PRODUCTION_RELEASE_FAILED`
+  Esto permite que los dashboards de lead-time incluyan resultados no exitosos.
+- **Ratios de calidad** (estado de admin insights):
+  - Tasa de éxito de validación PR (`exitosas / total`)
+  - Tasa de éxito en producción (`production_verified / (production_verified + release_failed)`)
+- **Tendencia de entrega de corto plazo** (estado de admin insights):
+  - Eventos en últimos 7 días
+  - Eventos en 7 días anteriores
+  - Delta de tendencia vs 7 días anteriores
+  - Iniciativas activas en últimos 7 días
+  - Tipos de evento más frecuentes en últimos 7 días (top 5)
+- **Guardrail de frescura** (estado de admin insights):
+  - Minutos desde el último evento
+  - Estado de frescura (`saludable`/`desactualizado`) basado en `insights.ledger.stale-minutes` (default 1440)
+- **Exportación CSV**: Admin insights se puede exportar desde `/api/private/admin/insights/initiatives/export.csv` (solo admin).
+
 ## Eventos Registrados
 - **Vistas de Página**: `Page_view: {route}`
 - **Vistas de Evento**: `Event_view: {eventid}`

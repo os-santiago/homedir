@@ -11,10 +11,12 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +38,7 @@ public class CfpSubmissionService {
 
   public enum SortOrder {
     CREATED_DESC,
+    UPDATED_DESC,
     SCORE_DESC
   }
 
@@ -43,6 +46,7 @@ public class CfpSubmissionService {
   @Inject EventService eventService;
   @Inject CfpFormOptionsService cfpFormOptionsService;
   @Inject CfpConfigService cfpConfigService;
+  @Inject CfpEventConfigService cfpEventConfigService;
 
   private final ConcurrentHashMap<String, CfpSubmission> submissions = new ConcurrentHashMap<>();
   private final Object submissionsLock = new Object();
@@ -71,6 +75,10 @@ public class CfpSubmissionService {
       String proposerId = sanitizeUserId(userId);
       if (proposerId == null) {
         throw new ValidationException("user_id_required");
+      }
+      CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(eventId);
+      if (!eventConfig.currentlyOpen()) {
+        throw new ValidationException("submissions_closed");
       }
 
       String title = sanitizeText(request.title(), 160);
@@ -126,7 +134,8 @@ public class CfpSubmissionService {
         tags = normalizedTags;
       }
 
-      validateUserProposalConstraints(eventId, proposerId, normalizedTitle);
+      validateUserProposalConstraints(
+          eventId, proposerId, normalizedTitle, eventConfig.maxSubmissionsPerUserPerEvent());
       List<String> links = sanitizeLinks(request.links(), 5);
       Instant now = Instant.now();
 
@@ -209,11 +218,7 @@ public class CfpSubmissionService {
       if (normalizedEventId == null || userIds == null || userIds.isEmpty()) {
         return List.of();
       }
-      Set<String> normalizedUserIds =
-          userIds.stream()
-              .map(CfpSubmissionService::sanitizeUserId)
-              .filter(item -> item != null)
-              .collect(java.util.stream.Collectors.toSet());
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
       if (normalizedUserIds.isEmpty()) {
         return List.of();
       }
@@ -225,6 +230,136 @@ public class CfpSubmissionService {
               .sorted(Comparator.comparing(CfpSubmission::createdAt, createdComparator))
               .toList();
       return paginate(filtered, requestedLimit, requestedOffset);
+    }
+  }
+
+  public int countByEvent(String eventId, Optional<CfpSubmissionStatus> statusFilter) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        return 0;
+      }
+      int count = 0;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedEventId.equals(item.eventId())) {
+          continue;
+        }
+        if (statusFilter.isPresent() && item.status() != statusFilter.get()) {
+          continue;
+        }
+        count++;
+      }
+      return count;
+    }
+  }
+
+  public int countMine(String eventId, Set<String> userIds) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null || userIds == null || userIds.isEmpty()) {
+        return 0;
+      }
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
+      if (normalizedUserIds.isEmpty()) {
+        return 0;
+      }
+      int count = 0;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedEventId.equals(item.eventId())) {
+          continue;
+        }
+        if (normalizedUserIds.contains(item.proposerUserId())) {
+          count++;
+        }
+      }
+      return count;
+    }
+  }
+
+  public List<CfpSubmission> listMineAcrossEvents(
+      Set<String> userIds, SortOrder sortOrder, int requestedLimit, int requestedOffset) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      if (userIds == null || userIds.isEmpty()) {
+        return List.of();
+      }
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
+      if (normalizedUserIds.isEmpty()) {
+        return List.of();
+      }
+      List<CfpSubmission> filtered =
+          submissions.values().stream()
+              .filter(item -> normalizedUserIds.contains(item.proposerUserId()))
+              .sorted(sortComparator(sortOrder))
+              .toList();
+      return paginate(filtered, requestedLimit, requestedOffset);
+    }
+  }
+
+  public MineStats statsMineAcrossEvents(Set<String> userIds) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      if (userIds == null || userIds.isEmpty()) {
+        return MineStats.empty();
+      }
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
+      if (normalizedUserIds.isEmpty()) {
+        return MineStats.empty();
+      }
+      EnumMap<CfpSubmissionStatus, Integer> counts = new EnumMap<>(CfpSubmissionStatus.class);
+      Set<String> distinctEvents = new LinkedHashSet<>();
+      int total = 0;
+      Instant latestUpdatedAt = null;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedUserIds.contains(item.proposerUserId())) {
+          continue;
+        }
+        total++;
+        if (item.eventId() != null && !item.eventId().isBlank()) {
+          distinctEvents.add(item.eventId());
+        }
+        CfpSubmissionStatus status = item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
+        counts.merge(status, 1, Integer::sum);
+        Instant updated = item.updatedAt() != null ? item.updatedAt() : item.createdAt();
+        if (updated != null && (latestUpdatedAt == null || updated.isAfter(latestUpdatedAt))) {
+          latestUpdatedAt = updated;
+        }
+      }
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        counts.putIfAbsent(status, 0);
+      }
+      return new MineStats(total, Map.copyOf(counts), distinctEvents.size(), latestUpdatedAt);
+    }
+  }
+
+  public EventStats statsByEvent(String eventId) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        return EventStats.empty();
+      }
+      EnumMap<CfpSubmissionStatus, Integer> counts = new EnumMap<>(CfpSubmissionStatus.class);
+      int total = 0;
+      Instant latestUpdatedAt = null;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedEventId.equals(item.eventId())) {
+          continue;
+        }
+        total++;
+        CfpSubmissionStatus status = item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
+        counts.merge(status, 1, Integer::sum);
+        Instant updated = item.updatedAt();
+        if (updated != null && (latestUpdatedAt == null || updated.isAfter(latestUpdatedAt))) {
+          latestUpdatedAt = updated;
+        }
+      }
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        counts.putIfAbsent(status, 0);
+      }
+      return new EventStats(total, Map.copyOf(counts), latestUpdatedAt);
     }
   }
 
@@ -240,12 +375,18 @@ public class CfpSubmissionService {
   }
 
   public CfpSubmission updateStatus(String id, CfpSubmissionStatus newStatus, String moderator, String note) {
+    return updateStatus(id, newStatus, moderator, note, null);
+  }
+
+  public CfpSubmission updateStatus(
+      String id, CfpSubmissionStatus newStatus, String moderator, String note, Instant expectedUpdatedAt) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       if (newStatus == null) {
         throw new ValidationException("status_required");
       }
       CfpSubmission current = findOrThrow(id);
+      validateExpectedUpdatedAt(current, expectedUpdatedAt);
       if (!isTransitionAllowed(current.status(), newStatus)) {
         throw new InvalidTransitionException("invalid_status_transition");
       }
@@ -259,6 +400,9 @@ public class CfpSubmissionService {
       if (normalizedNote == null) {
         normalizedNote = current.moderationNote();
       }
+      if (newStatus == CfpSubmissionStatus.REJECTED && (normalizedNote == null || normalizedNote.isBlank())) {
+        throw new ValidationException("reject_note_required");
+      }
 
       boolean statusChanged = current.status() != newStatus;
       boolean moderatorChanged = !Objects.equals(normalizedModerator, current.moderatedBy());
@@ -267,7 +411,7 @@ public class CfpSubmissionService {
         return current;
       }
 
-      Instant now = Instant.now();
+      Instant now = nextUpdatedAt(current);
       Instant moderatedAt = current.moderatedAt();
       if (moderatedAt == null || statusChanged || moderatorChanged || noteChanged) {
         moderatedAt = now;
@@ -310,6 +454,17 @@ public class CfpSubmissionService {
       Integer narrative,
       Integer contentImpact,
       String moderator) {
+    return updateRating(eventId, id, technicalDetail, narrative, contentImpact, moderator, null);
+  }
+
+  public CfpSubmission updateRating(
+      String eventId,
+      String id,
+      Integer technicalDetail,
+      Integer narrative,
+      Integer contentImpact,
+      String moderator,
+      Instant expectedUpdatedAt) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -320,12 +475,13 @@ public class CfpSubmissionService {
       if (!normalizedEventId.equals(current.eventId())) {
         throw new NotFoundException("submission_not_found");
       }
+      validateExpectedUpdatedAt(current, expectedUpdatedAt);
 
       int normalizedTechnical = normalizeRating(technicalDetail, "invalid_rating_technical_detail");
       int normalizedNarrative = normalizeRating(narrative, "invalid_rating_narrative");
       int normalizedImpact = normalizeRating(contentImpact, "invalid_rating_content_impact");
 
-      Instant now = Instant.now();
+      Instant now = nextUpdatedAt(current);
       CfpSubmission updated =
           new CfpSubmission(
               current.id(),
@@ -356,6 +512,29 @@ public class CfpSubmissionService {
       return updated;
     }
   }
+
+  private static void validateExpectedUpdatedAt(CfpSubmission current, Instant expectedUpdatedAt) {
+    if (expectedUpdatedAt == null || current == null) {
+      return;
+    }
+    Instant currentUpdatedAt = current.updatedAt();
+    if (!Objects.equals(currentUpdatedAt, expectedUpdatedAt)) {
+      throw new ValidationException("stale_submission");
+    }
+  }
+
+  private static Instant nextUpdatedAt(CfpSubmission current) {
+    Instant now = Instant.now();
+    if (current == null || current.updatedAt() == null) {
+      return now;
+    }
+    Instant currentUpdatedAt = current.updatedAt();
+    if (!now.isAfter(currentUpdatedAt)) {
+      return currentUpdatedAt.plusNanos(1);
+    }
+    return now;
+  }
+
   public CfpSubmission delete(String eventId, String id) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
@@ -379,6 +558,9 @@ public class CfpSubmissionService {
       submissions.clear();
       if (cfpConfigService != null) {
         cfpConfigService.resetForTests();
+      }
+      if (cfpEventConfigService != null) {
+        cfpEventConfigService.resetForTests();
       }
       persistSync();
     }
@@ -452,8 +634,13 @@ public class CfpSubmissionService {
   private static Comparator<CfpSubmission> sortComparator(SortOrder sortOrder) {
     Comparator<Instant> createdComparator = Comparator.nullsLast(Comparator.reverseOrder());
     Comparator<CfpSubmission> byCreated = Comparator.comparing(CfpSubmission::createdAt, createdComparator);
+    Comparator<Instant> updatedComparator = Comparator.nullsLast(Comparator.reverseOrder());
+    Comparator<CfpSubmission> byUpdated = Comparator.comparing(CfpSubmission::updatedAt, updatedComparator);
     if (sortOrder == SortOrder.SCORE_DESC) {
       return Comparator.comparingDouble(CfpSubmissionService::scoreForOrdering).reversed().thenComparing(byCreated);
+    }
+    if (sortOrder == SortOrder.UPDATED_DESC) {
+      return byUpdated.thenComparing(byCreated);
     }
     return byCreated;
   }
@@ -489,7 +676,7 @@ public class CfpSubmissionService {
     return value;
   }
   private void validateUserProposalConstraints(
-      String eventId, String proposerId, String normalizedTitle) {
+      String eventId, String proposerId, String normalizedTitle, int maxPerUserForEvent) {
     int existingCount = 0;
     for (CfpSubmission item : submissions.values()) {
       if (!eventId.equals(item.eventId())) {
@@ -506,13 +693,28 @@ public class CfpSubmissionService {
         }
       }
     }
-    if (existingCount >= maxSubmissionsPerUserPerEvent()) {
+    if (existingCount >= maxPerUserForEvent) {
       throw new ValidationException("proposal_limit_reached");
     }
   }
 
-  private int maxSubmissionsPerUserPerEvent() {
-    return currentMaxSubmissionsPerUserPerEvent();
+  private CfpEventConfigService.ResolvedEventConfig resolveEventConfig(String eventId) {
+    if (cfpEventConfigService != null) {
+      return cfpEventConfigService.resolveForEvent(eventId);
+    }
+    CfpConfig global =
+        cfpConfigService != null
+            ? cfpConfigService.current()
+            : CfpConfig.defaults(DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT, true);
+    return new CfpEventConfigService.ResolvedEventConfig(
+        eventId,
+        false,
+        true,
+        null,
+        null,
+        global.maxSubmissionsPerUserPerEvent(),
+        global.testingModeEnabled(),
+        true);
   }
 
   private static String normalizeTitleForComparison(String raw) {
@@ -640,6 +842,13 @@ public class CfpSubmissionService {
     return source.subList(offset, end);
   }
 
+  private static Set<String> normalizeUserIds(Set<String> userIds) {
+    return userIds.stream()
+        .map(CfpSubmissionService::sanitizeUserId)
+        .filter(item -> item != null)
+        .collect(java.util.stream.Collectors.toSet());
+  }
+
   public record CreateRequest(
       String eventId,
       String title,
@@ -669,6 +878,27 @@ public class CfpSubmissionService {
   public static class InvalidTransitionException extends RuntimeException {
     public InvalidTransitionException(String message) {
       super(message);
+    }
+  }
+
+  public record EventStats(int total, Map<CfpSubmissionStatus, Integer> countsByStatus, Instant latestUpdatedAt) {
+    public static EventStats empty() {
+      EnumMap<CfpSubmissionStatus, Integer> emptyCounts = new EnumMap<>(CfpSubmissionStatus.class);
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        emptyCounts.put(status, 0);
+      }
+      return new EventStats(0, Map.copyOf(emptyCounts), null);
+    }
+  }
+
+  public record MineStats(
+      int total, Map<CfpSubmissionStatus, Integer> countsByStatus, int distinctEvents, Instant latestUpdatedAt) {
+    public static MineStats empty() {
+      EnumMap<CfpSubmissionStatus, Integer> emptyCounts = new EnumMap<>(CfpSubmissionStatus.class);
+      for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
+        emptyCounts.put(status, 0);
+      }
+      return new MineStats(0, Map.copyOf(emptyCounts), 0, null);
     }
   }
 }

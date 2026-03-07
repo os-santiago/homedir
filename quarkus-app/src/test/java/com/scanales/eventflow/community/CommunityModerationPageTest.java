@@ -13,6 +13,7 @@ public class CommunityModerationPageTest {
   @Test
   void moderationPageRendersForAnonymous() {
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/comunidad/moderation")
         .then()
@@ -25,6 +26,7 @@ public class CommunityModerationPageTest {
   @TestSecurity(user = "admin@example.org")
   void moderationQueueVisibleForAdmin() {
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/comunidad/moderation")
         .then()

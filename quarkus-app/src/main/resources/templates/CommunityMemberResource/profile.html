@@ -1,9 +1,9 @@
 {#include layout/main activePage="comunidad"}
-{#title}{displayName} · Community Member{/title}
+{#title}{i18n:community_member_profile_title(displayName)}{/title}
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header">
-      <p class="section-subtitle">Community · Member</p>
+      <p class="section-subtitle">{i18n:community_member_subtitle}</p>
       <h1>{displayName}</h1>
     </div>
     <p class="section-subtitle">{groupTitle}</p>
@@ -25,14 +25,14 @@
           <h2>{displayName}</h2>
           <p>{handle}</p>
           {#if memberSince}
-            <small>Member since {memberSince}</small>
+            <small>{i18n:community_board_member_since(memberSince)}</small>
           {/if}
         </div>
       </article>
 
       <div class="board-member-profile-actions">
-        <a class="btn-primary" href="{profileLink}">Open profile</a>
-        <a class="btn-primary" href="{boardLink}">Back to board</a>
+        <a class="btn-primary" href="{profileLink}">{i18n:community_board_open}</a>
+        <a class="btn-primary" href="{boardLink}">{i18n:community_member_back_to_board}</a>
       </div>
     </div>
   </section>

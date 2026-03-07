@@ -33,10 +33,12 @@ public class AdminEventCfpPageTest {
         .get("/private/admin/events/" + EVENT_ID + "/cfp")
         .then()
         .statusCode(200)
-        .body(containsString("Moderacion CFP"))
         .body(containsString("/api/events/"))
         .body(containsString("/cfp/submissions"))
-        .body(containsString("Panel admin"));
+        .body(containsString("id=\"cfpEventConfigSaveBtn\""))
+        .body(containsString("id=\"cfpPrevPageBtn\""))
+        .body(containsString("id=\"cfpNextPageBtn\""))
+        .body(containsString("id=\"cfpStatsSummary\""));
   }
 
   @Test
@@ -53,4 +55,3 @@ public class AdminEventCfpPageTest {
     given().when().get("/private/admin/events/missing-cfp-event/cfp").then().statusCode(404);
   }
 }
-

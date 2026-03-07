@@ -1,4 +1,4 @@
-{#include layout/main activePage="home" mainClass="homedir-main-home"}
+{#include layout/main activePage="home" mainClass="homedir-main-home" noLoginModal=true}
 {#title}{i18n:nav_home}{/title}
 {#body}
 <header class="public-header home-highlight-hero">
@@ -8,13 +8,109 @@
   </div>
   <p class="home-welcome-es">{i18n:home_welcome_es}</p>
   <p class="home-highlights-intro">{i18n:home_highlights_intro}</p>
+  {#if !userAuthenticated}
+  <section class="section-card home-value-login" aria-label="{i18n:home_login_value_title}">
+    <div class="section-header hd-section-heading home-value-login-header">
+      <p class="section-subtitle">{i18n:home_login_value_eyebrow}</p>
+      <h2 class="page-title">{i18n:home_login_value_title}</h2>
+    </div>
+    <div class="home-value-login-grid">
+      <article class="home-value-login-card">
+        <p class="section-subtitle">{i18n:home_login_google_step}</p>
+        <h3>{i18n:home_login_google_title}</h3>
+        <p>{i18n:home_login_google_desc}</p>
+        <a href="/private/login-callback?redirect=/" class="btn-primary" data-login-return-current="true">
+          {i18n:home_login_google_cta}
+        </a>
+      </article>
+      <article class="home-value-login-card">
+        <p class="section-subtitle">{i18n:home_login_github_step}</p>
+        <h3>{i18n:home_login_github_title}</h3>
+        <p>{i18n:home_login_github_desc}</p>
+        <a href="/private/login-callback?redirect=/private/profile" class="btn-primary" data-login-return-current="true">
+          {i18n:home_login_github_cta}
+        </a>
+      </article>
+    </div>
+  </section>
+  {/if}
+  {#if userAuthenticated}
+  <section class="section-card home-today-panel" aria-label="{i18n:home_today_title}">
+    <div class="home-today-head">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_today_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_today_title}</h2>
+      </div>
+      <span id="home-last-visit-chip" class="home-chip" data-i18n-first="{i18n:home_today_since_first}"
+        data-i18n-last-prefix="{i18n:home_today_since_last_prefix}">{i18n:home_today_since_first}</span>
+    </div>
+    <p class="home-pane-summary">{i18n:home_today_intro}</p>
+    <p class="home-pane-summary">
+      {i18n:home_today_account_status_prefix}
+      <strong>{i18n:home_today_account_status_homedir}</strong>
+      ·
+      <strong>{#if homeAccountHasGithub}{i18n:home_today_account_status_github_linked}{#else}{i18n:home_today_account_status_github_missing}{/if}</strong>
+      ·
+      <strong>{#if homeAccountHasDiscord}{i18n:home_today_account_status_discord_linked}{#else}{i18n:home_today_account_status_discord_missing}{/if}</strong>
+      ·
+      <a href="/private/profile">{i18n:home_today_account_status_cta}</a>
+    </p>
+    <p class="home-pane-summary">
+      <strong>{i18n:home_starter_track_title}</strong>
+      ·
+      {i18n:home_starter_track_progress(homeStarterCompleted)}
+      ·
+      {#if homeAccountHasGithub}{i18n:home_starter_task_github_done}{#else}{i18n:home_starter_task_github_todo}{/if}
+      ·
+      {#if homeAccountHasDiscord}{i18n:home_starter_task_discord_done}{#else}{i18n:home_starter_task_discord_todo}{/if}
+      ·
+      {#if homeStarterHasVote}{i18n:home_starter_task_vote_done}{#else}{i18n:home_starter_task_vote_todo}{/if}
+      ·
+      <a href="/comunidad/picks">{i18n:home_starter_track_picks_cta}</a>
+    </p>
+    <div class="home-top-metrics home-today-metrics">
+      <a href="/comunidad/picks" class="home-top-metric">
+        <span class="home-top-metric-head">
+          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">article</span>
+          <span class="home-chip">{i18n:home_today_card_picks_chip}</span>
+        </span>
+        <strong>{homeTodayFreshPicks}</strong>
+        <small>{i18n:home_today_card_picks_desc}</small>
+      </a>
+      <a href="/comunidad/propose" class="home-top-metric">
+        <span class="home-top-metric-head">
+          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">group</span>
+          <span class="home-chip">{i18n:home_today_card_members_chip}</span>
+        </span>
+        <strong>{homeTodayMemberPicks}</strong>
+        <small>{i18n:home_today_card_members_desc}</small>
+      </a>
+      <a href="/eventos" class="home-top-metric">
+        <span class="home-top-metric-head">
+          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
+          <span class="home-chip">{i18n:home_today_card_events_chip}</span>
+        </span>
+        <strong>{upcomingCount}</strong>
+        <small>{i18n:home_today_card_events_desc}</small>
+      </a>
+      <a href="/comunidad/lta" class="home-top-metric">
+        <span class="home-top-metric-head">
+          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">bolt</span>
+          <span class="home-chip">{i18n:home_today_card_lta_chip}</span>
+        </span>
+        <strong>{homeTodayLtaThreads}</strong>
+        <small>{i18n:home_today_card_lta_desc}</small>
+      </a>
+    </div>
+  </section>
+  {/if}
   <section class="home-new-hot" aria-label="{i18n:home_new_hot_title}">
     <div class="home-new-hot-header">
       <span class="home-chip home-new-hot-badge">{i18n:home_new_hot_badge}</span>
       <h2 class="home-new-hot-title">{i18n:home_new_hot_title}</h2>
     </div>
     <div class="home-new-hot-grid">
-      <a href="/comunidad?view=featured" class="home-new-hot-card">
+      <a href="/comunidad/picks" class="home-new-hot-card">
         <img src="/img/home-new-hot-curated.svg" alt="{i18n:home_new_hot_card_curated_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_curated_title}</h3>
@@ -28,7 +124,7 @@
           <p>{i18n:home_new_hot_card_events_desc}</p>
         </div>
       </a>
-      <a href="/comunidad#community-lta" class="home-new-hot-card">
+      <a href="/comunidad/lta" class="home-new-hot-card">
         <img src="/img/home-new-hot-lta.svg" alt="{i18n:home_new_hot_card_lta_alt}" loading="lazy" width="160" height="90">
         <div class="home-new-hot-copy">
           <h3>{i18n:home_new_hot_card_lta_title}</h3>
@@ -44,7 +140,7 @@
       </a>
     </div>
   </section>
-  <section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad#community-lta"
+  <section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad/lta"
     data-i18n-title="{i18n:home_lta_preview_title}"
     data-i18n-subtitle="{i18n:home_lta_preview_subtitle}"
     data-i18n-empty="{i18n:home_lta_preview_empty}"
@@ -57,7 +153,7 @@
     </div>
     <div id="home-lta-preview-list" class="home-lta-preview-list" aria-live="polite"></div>
     <div class="home-lta-preview-actions">
-      <a href="/comunidad#community-lta" class="btn-primary">{i18n:home_lta_preview_open}</a>
+      <a href="/comunidad/lta" class="btn-primary">{i18n:home_lta_preview_open}</a>
     </div>
   </section>
   <div class="home-top-metrics">
@@ -100,7 +196,7 @@
           <h2 class="page-title">{i18n:home_social_highlights_title}</h2>
         </div>
       </div>
-      <a href="/comunidad" class="btn-primary">{i18n:home_btn_open_social}</a>
+      <a href="/comunidad/picks" class="btn-primary">{i18n:home_btn_open_social}</a>
     </div>
     {#if socialHighlights.isEmpty()}
     <article class="home-highlight-empty">
@@ -220,5 +316,34 @@
   </article>
 </section>
 <script src="/js/home-lta-preview.js?v={app:version()}" defer></script>
+<script>
+  (function () {
+    const chip = document.getElementById("home-last-visit-chip");
+    if (!chip || typeof window === "undefined" || !window.localStorage) {
+      return;
+    }
+    const key = "homedir.lastVisitAt";
+    const now = Date.now();
+    const previous = Number(window.localStorage.getItem(key) || 0);
+    const firstLabel = chip.dataset.i18nFirst || chip.textContent || "";
+    const prefix = chip.dataset.i18nLastPrefix || "Last visit";
+    if (!previous || Number.isNaN(previous) || previous <= 0 || previous >= now) {
+      chip.textContent = firstLabel;
+    } else {
+      const diffMs = now - previous;
+      const minutes = Math.max(1, Math.floor(diffMs / 60000));
+      if (minutes < 60) {
+        chip.textContent = prefix + ": " + minutes + "m";
+      } else if (minutes < 1440) {
+        const hours = Math.floor(minutes / 60);
+        chip.textContent = prefix + ": " + hours + "h";
+      } else {
+        const days = Math.floor(minutes / 1440);
+        chip.textContent = prefix + ": " + days + "d";
+      }
+    }
+    window.localStorage.setItem(key, String(now));
+  })();
+</script>
 {/body}
 {/include}

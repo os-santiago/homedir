@@ -7,7 +7,95 @@
 {/breadcrumbs}
 {#main}
 {#if speaker}
-<section class="speaker-detail">
+<style>
+  {#if themeEvent}
+  body.homedir-body {
+    --event-theme-primary: {themeEvent.resolvedThemePrimaryColor};
+    --event-theme-accent: {themeEvent.resolvedThemeAccentColor};
+    --event-theme-surface: {themeEvent.resolvedThemeSurfaceColor};
+    --event-theme-text: {themeEvent.resolvedThemeTextColor};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body::before {
+    display: none !important;
+  }
+
+  .app-container {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body .top-nav,
+  body.homedir-body .hd-top-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+  }
+
+  body.homedir-body .alpha-banner {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-top-color: var(--event-theme-primary) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+    color: var(--event-theme-text) !important;
+  }
+
+  body.homedir-body .nav-link,
+  body.homedir-body .login-btn-nav,
+  body.homedir-body .header-locale-select {
+    color: var(--event-theme-text) !important;
+    border-color: var(--event-theme-accent) !important;
+  }
+  {/if}
+
+  .speaker-theme-shell {
+    --event-theme-primary: {#if themeEvent}{themeEvent.resolvedThemePrimaryColor}{#else}#ffd54f{/if};
+    --event-theme-accent: {#if themeEvent}{themeEvent.resolvedThemeAccentColor}{#else}#72ff9f{/if};
+    --event-theme-surface: {#if themeEvent}{themeEvent.resolvedThemeSurfaceColor}{#else}#2d3d57{/if};
+    --event-theme-text: {#if themeEvent}{themeEvent.resolvedThemeTextColor}{#else}#ffffff{/if};
+    color: var(--event-theme-text);
+  }
+
+  .speaker-theme-shell .card,
+  .speaker-theme-shell .talk-card {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .speaker-theme-shell .chip {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .speaker-theme-shell .btn,
+  .speaker-theme-shell .btn-secondary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .speaker-theme-shell .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .speaker-theme-shell a {
+    color: var(--event-theme-accent);
+  }
+
+  .speaker-theme-shell .page-title,
+  .speaker-theme-shell .card-title,
+  .speaker-theme-shell .speaker-bio,
+  .speaker-theme-shell .talk-title {
+    color: var(--event-theme-text);
+  }
+
+  .speaker-theme-shell .speaker-photo {
+    border: 2px solid var(--event-theme-primary);
+  }
+</style>
+<section class="speaker-detail speaker-theme-shell">
   <div class="card speaker-summary">
     <div class="speaker-header">
       {#if speaker.photoUrl}<img src="{speaker.photoUrl}" alt="Foto de {speaker.name}" class="speaker-photo" width="80"

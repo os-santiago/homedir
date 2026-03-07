@@ -2,13 +2,14 @@
 {@ boolean noNav = false}
 {@ boolean noFooter = false}
 {@ boolean noCharacterSheet = false}
+{@ boolean noLoginModal = false}
 {@ String activePage = ""}
 {@ String mainClass = ""}
 {@ boolean ultraLiteMode = false}
 {@ boolean userAuthenticated = false}
 {@ String userName = ""}
 {@ String userInitial = ""}
-{@ String resolvedLocaleCode = "en"}
+{@ String resolvedLocaleCode = "es"}
 <html lang="{resolvedLocaleCode}">
 
 <head>
@@ -25,6 +26,9 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v={app:version()}" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v={app:version()}" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v={app:version()}" />
   <link rel="icon" href="/favicon.ico?v={app:version()}" />
   <link rel="stylesheet" href="/styles.css?v={app:version()}" />
   <link rel="stylesheet" href="/css/retro-theme.css?v={app:version()}" />
@@ -46,7 +50,13 @@
   {#insert head}{/}
 </head>
 
-<body class="homedir-body ultra-lite-mode{#if ultraLiteMode} ultra-lite-mode{/if}">
+<body class="homedir-body ultra-lite-mode{#if ultraLiteMode} ultra-lite-mode{/if}"
+  data-i18n-app-load-error-prefix="{i18n:app_js_load_error_prefix}"
+  data-i18n-app-loading-content="{i18n:app_js_loading_content}"
+  data-i18n-app-loading-data="{i18n:app_js_loading_data}"
+  data-i18n-app-loading-page="{i18n:app_js_loading_page}"
+  data-i18n-app-session-expired="{i18n:app_js_session_expired}"
+  data-i18n-app-no-events="{i18n:app_js_no_events}">
   {#include fragments/floating-shapes.html /}
 
   <div class="app-container">
@@ -65,7 +75,9 @@
     {/if}
   </div>
 
+  {#if noLoginModal != true}
   {#include fragments/login-modal.html/}
+  {/if}
   <script src="/js/homedir.js?v={app:version()}"></script>
   <script>
     window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };

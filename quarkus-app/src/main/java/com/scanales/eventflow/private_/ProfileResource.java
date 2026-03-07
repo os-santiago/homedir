@@ -1,5 +1,11 @@
 package com.scanales.eventflow.private_;
 
+import com.scanales.eventflow.cfp.CfpSubmission;
+import com.scanales.eventflow.cfp.CfpSubmissionService;
+import com.scanales.eventflow.cfp.CfpSubmissionStatus;
+import com.scanales.eventflow.cfp.CfpEventConfigService;
+import com.scanales.eventflow.cfp.CfpTimelinePlanner;
+import com.scanales.eventflow.cfp.CfpTimelineView;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.model.GamificationActivity;
@@ -40,7 +46,12 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -57,6 +68,7 @@ public class ProfileResource {
         String name,
         String givenName,
         String familyName,
+        String picture,
         String email,
         String sub,
         java.util.List<EventGroup> groups,
@@ -86,6 +98,7 @@ public class ProfileResource {
         boolean resumeHistoryAtLimit,
         int questProgressPercent,
         String publicProfileHandle,
+        CfpTimelineView cfpTimeline,
         String currentLanguage,
         AppMessages i18n,
         String ogTitle,
@@ -127,6 +140,26 @@ public class ProfileResource {
       java.util.List<com.scanales.eventflow.model.Speaker> speakers) {
   }
 
+  public record CfpOverview(
+      int total,
+      int accepted,
+      int underReview,
+      int pending,
+      int rejected,
+      int withdrawn,
+      int distinctEvents) {
+  }
+
+  public record CfpSubmissionItem(
+      String id,
+      String eventId,
+      String eventTitle,
+      String title,
+      String status,
+      String updatedAtLabel,
+      String manageUrl) {
+  }
+
   @Inject
   EventService eventService;
   @Inject
@@ -145,6 +178,10 @@ public class ProfileResource {
   GamificationService gamificationService;
   @Inject
   AppMessages messages;
+  @Inject
+  CfpSubmissionService cfpSubmissionService;
+  @Inject
+  CfpEventConfigService cfpEventConfigService;
 
   @GET
   @Authenticated
@@ -165,6 +202,7 @@ public class ProfileResource {
     }
     String givenName = getClaim("given_name");
     String familyName = getClaim("family_name");
+    String picture = getClaim("picture");
     String sub = getClaim("sub");
     if (sub == null) {
       sub = email;
@@ -195,6 +233,23 @@ public class ProfileResource {
     QuestClass dominantClass = dominantClassSummary.questClass();
     String dominantClassMessage = dominantClassSummary.message();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
+    java.util.Set<String> cfpUserIds = currentUserIds(email, sub);
+    CfpSubmissionService.MineStats cfpMineStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+    CfpOverview cfpOverview = new CfpOverview(
+        cfpMineStats.total(),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
+        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
+        cfpMineStats.distinctEvents());
+    java.util.List<CfpSubmissionItem> cfpRecentSubmissions =
+        cfpSubmissionService
+            .listMineAcrossEvents(cfpUserIds, CfpSubmissionService.SortOrder.UPDATED_DESC, 10, 0)
+            .stream()
+            .map(this::toCfpSubmissionItem)
+            .toList();
+    CfpTimelineView cfpTimeline = resolveProfileCfpTimeline(cfpRecentSubmissions, finalLang);
     int questProgressPercent = 0;
     if (questProfile.nextLevelXp > 0) {
       questProgressPercent =
@@ -218,6 +273,7 @@ public class ProfileResource {
         name,
         givenName,
         familyName,
+        picture,
         email,
         sub,
         groups,
@@ -247,10 +303,13 @@ public class ProfileResource {
         resumeHistoryAtLimit,
         questProgressPercent,
         publicProfileHandle,
+        cfpTimeline,
         finalLang,
         messages,
         ogTitle,
         ogDescription)
+        .data("cfpOverview", cfpOverview)
+        .data("cfpRecentSubmissions", cfpRecentSubmissions)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
@@ -425,7 +484,7 @@ public class ProfileResource {
 
     // Validate locale simple check
     if (locale == null || (!locale.equals("en") && !locale.equals("es"))) {
-      locale = "en"; // Default fallback
+      locale = "es"; // Default fallback
     }
 
     // 1. Update user profile preference
@@ -654,16 +713,14 @@ public class ProfileResource {
   }
 
   private String resolveLanguage(String localeCookie, String userId) {
-    String lang = "en";
-    if (localeCookie != null && !localeCookie.isBlank()) {
+    String lang = "es";
+    java.util.Optional<com.scanales.eventflow.model.UserProfile> p = userProfiles.find(userId);
+    if (p.isPresent() && p.get().getPreferredLocale() != null) {
+      lang = p.get().getPreferredLocale();
+    } else if (localeCookie != null && !localeCookie.isBlank()) {
       lang = localeCookie;
-    } else {
-      java.util.Optional<com.scanales.eventflow.model.UserProfile> p = userProfiles.find(userId);
-      if (p.isPresent() && p.get().getPreferredLocale() != null) {
-        lang = p.get().getPreferredLocale();
-      }
     }
-    return "es".equalsIgnoreCase(lang) ? "es" : "en";
+    return "en".equalsIgnoreCase(lang) ? "en" : "es";
   }
 
   private static String normalizeId(String raw) {
@@ -686,6 +743,97 @@ public class ProfileResource {
       return hex.substring(0, end);
     } catch (Exception e) {
       return Integer.toHexString(value.hashCode());
+    }
+  }
+
+  private CfpSubmissionItem toCfpSubmissionItem(CfpSubmission submission) {
+    if (submission == null) {
+      return new CfpSubmissionItem(
+          "",
+          "",
+          "",
+          "",
+          CfpSubmissionStatus.PENDING.apiValue(),
+          "",
+          "/eventos");
+    }
+    String eventId = submission.eventId() != null ? submission.eventId() : "";
+    com.scanales.eventflow.model.Event event = eventService.getEvent(eventId);
+    String eventTitle =
+        event != null && event.getTitle() != null && !event.getTitle().isBlank() ? event.getTitle() : eventId;
+    Instant updatedAt = submission.updatedAt() != null ? submission.updatedAt() : submission.createdAt();
+    String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
+    String status = submission.status() != null ? submission.status().apiValue() : CfpSubmissionStatus.PENDING.apiValue();
+    return new CfpSubmissionItem(
+        submission.id(),
+        eventId,
+        eventTitle,
+        submission.title(),
+        status,
+        updatedAtLabel,
+        "/event/" + eventId + "/cfp#my-proposals");
+  }
+
+  private CfpTimelineView resolveProfileCfpTimeline(
+      java.util.List<CfpSubmissionItem> submissions, String language) {
+    if (submissions == null || submissions.isEmpty()) {
+      return null;
+    }
+    LinkedHashSet<String> eventIds = new LinkedHashSet<>();
+    submissions.stream()
+        .map(CfpSubmissionItem::eventId)
+        .filter(id -> id != null && !id.isBlank())
+        .forEach(eventIds::add);
+    if (eventIds.isEmpty()) {
+      return null;
+    }
+    LocalDate today = LocalDate.now(ZoneId.of("America/Santiago"));
+    com.scanales.eventflow.model.Event selectedEvent = null;
+    String selectedEventId = null;
+    long bestScore = Long.MAX_VALUE;
+    for (String eventId : eventIds) {
+      com.scanales.eventflow.model.Event event = eventService.getEvent(eventId);
+      if (event == null || event.getDate() == null) {
+        continue;
+      }
+      long delta = ChronoUnit.DAYS.between(today, event.getDate());
+      long score = delta >= 0 ? delta : (1_000_000L + Math.abs(delta));
+      if (score < bestScore) {
+        bestScore = score;
+        selectedEvent = event;
+        selectedEventId = eventId;
+      }
+    }
+    if (selectedEvent == null || selectedEventId == null) {
+      return null;
+    }
+    try {
+      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(selectedEventId);
+      Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(language) ? "en" : "es");
+      return CfpTimelinePlanner.build(selectedEvent, resolved.opensAt(), resolved.closesAt(), locale).orElse(null);
+    } catch (Exception ignored) {
+      return null;
+    }
+  }
+
+  private java.util.Set<String> currentUserIds(String email, String sub) {
+    java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
+    addNormalizedUserId(ids, email);
+    addNormalizedUserId(ids, getClaim("email"));
+    addNormalizedUserId(ids, sub);
+    addNormalizedUserId(ids, getClaim("sub"));
+    String principal = identity != null && identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    addNormalizedUserId(ids, principal);
+    return ids.isEmpty() ? java.util.Set.of() : java.util.Collections.unmodifiableSet(ids);
+  }
+
+  private static void addNormalizedUserId(java.util.Set<String> ids, String raw) {
+    if (ids == null || raw == null) {
+      return;
+    }
+    String normalized = raw.trim().toLowerCase(Locale.ROOT);
+    if (!normalized.isBlank()) {
+      ids.add(normalized);
     }
   }
 }

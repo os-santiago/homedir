@@ -24,7 +24,8 @@ public class SpeakerResource {
 
   @CheckedTemplate
   static class Templates {
-    static native TemplateInstance detail(Speaker speaker, Map<String, List<Event>> talkEvents);
+    static native TemplateInstance detail(
+        Speaker speaker, Map<String, List<Event>> talkEvents, Event themeEvent);
   }
 
   @Inject SpeakerService speakerService;
@@ -37,6 +38,7 @@ public class SpeakerResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance detail(
       @PathParam("id") String id,
+      @jakarta.ws.rs.QueryParam("event") String eventId,
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
     Speaker sp = speakerService.getSpeaker(id);
     Map<String, List<Event>> talkEvents = new HashMap<>();
@@ -48,6 +50,10 @@ public class SpeakerResource {
         }
       }
     }
-    return TemplateLocaleUtil.apply(Templates.detail(sp, talkEvents), localeCookie);
+    Event themeEvent = null;
+    if (eventId != null && !eventId.isBlank()) {
+      themeEvent = eventService.getEvent(eventId.trim());
+    }
+    return TemplateLocaleUtil.apply(Templates.detail(sp, talkEvents, themeEvent), localeCookie);
   }
 }

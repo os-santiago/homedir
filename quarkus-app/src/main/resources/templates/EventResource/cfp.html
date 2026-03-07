@@ -2,6 +2,7 @@
 {@java.lang.Boolean userAuthenticated}
 {@java.lang.String userName}
 {@com.scanales.eventflow.cfp.CfpFormCatalog cfpCatalog}
+{@com.scanales.eventflow.cfp.CfpTimelineView cfpTimeline}
 {@java.lang.Boolean cfpTestingModeEnabled}
 {#title}
 {#if event}
@@ -10,6 +11,94 @@
 {i18n:events_cfp_not_found_title}
 {/if}
 {/title}
+{#head}
+{#if event}
+<style>
+  body.homedir-body {
+    --event-theme-primary: {event.resolvedThemePrimaryColor};
+    --event-theme-accent: {event.resolvedThemeAccentColor};
+    --event-theme-surface: {event.resolvedThemeSurfaceColor};
+    --event-theme-text: {event.resolvedThemeTextColor};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body::before {
+    display: none !important;
+  }
+
+  .app-container {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body .top-nav,
+  body.homedir-body .hd-top-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+  }
+
+  body.homedir-body .alpha-banner {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-top-color: var(--event-theme-primary) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+    color: var(--event-theme-text) !important;
+  }
+
+  body.homedir-body .nav-link,
+  body.homedir-body .login-btn-nav,
+  body.homedir-body .header-locale-select {
+    color: var(--event-theme-text) !important;
+    border-color: var(--event-theme-accent) !important;
+  }
+
+  main#main-content.homedir-main {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .public-title,
+  main#main-content.homedir-main .section-subtitle,
+  main#main-content.homedir-main .form-hint,
+  main#main-content.homedir-main label {
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .section-card,
+  main#main-content.homedir-main .cfp-submission-item,
+  main#main-content.homedir-main .cfp-live-banner,
+  main#main-content.homedir-main .cfp-testing-banner,
+  main#main-content.homedir-main .cfp-submitting-modal {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .btn,
+  main#main-content.homedir-main .login-btn-nav,
+  main#main-content.homedir-main .btn-secondary,
+  main#main-content.homedir-main .cfp-view-btn {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .cfp-status-badge,
+  main#main-content.homedir-main .badge {
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  main#main-content.homedir-main .hd-link {
+    color: var(--event-theme-accent);
+  }
+</style>
+{/if}
+{/head}
 
 {#body}
 {#if event}
@@ -22,7 +111,44 @@
     <h1 class="public-title">{i18n:events_cfp_heading}</h1>
   </div>
   <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
+  {#if !cfpTestingModeEnabled}
+  <div id="cfpLiveBanner" class="cfp-live-banner" role="note" aria-label="{i18n:events_cfp_live_aria}" hidden>
+    <span class="cfp-live-badge">{i18n:events_cfp_live_badge}</span>
+    <div>
+      <p class="cfp-live-title">{i18n:events_cfp_live_title}</p>
+      <p class="cfp-live-desc">{i18n:events_cfp_live_desc}</p>
+    </div>
+  </div>
+  {/if}
 </header>
+
+{#if cfpTimeline}
+<section class="section-card cfp-journey-card cfp-journey-top" aria-label="{i18n:events_cfp_timeline_title}">
+  <div class="cfp-journey-header">
+    <h2>{i18n:events_cfp_timeline_title}</h2>
+    <p class="form-hint">{i18n:events_cfp_timeline_desc}</p>
+    <p class="cfp-journey-range">{cfpTimeline.fromLabel} → {cfpTimeline.toLabel}</p>
+  </div>
+  <div class="cfp-journey-track">
+    {#for stage in cfpTimeline.stages}
+    <article class="cfp-journey-stage {#if stage.active}is-active{/if}" style="--cfp-stage-flex: {stage.flexDays};">
+      <div class="cfp-journey-stage-bar"></div>
+      <p class="cfp-journey-stage-title">
+        {#switch stage.key}
+        {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
+        {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
+        {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+        {#case 'presentations'}{i18n:events_cfp_timeline_stage_presentations}{/case}
+        {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
+        {#else}{stage.key}{/else}
+        {/switch}
+      </p>
+      <p class="cfp-journey-stage-dates">{#if stage.fromLabel eq stage.toLabel}{stage.fromLabel}{#else}{stage.fromLabel} → {stage.toLabel}{/if}</p>
+    </article>
+    {/for}
+  </div>
+</section>
+{/if}
 
 <section class="page-grid">
   <div class="cfp-view-switch" style="grid-column: 1 / -1;">
@@ -114,8 +240,9 @@
         <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_autofill_last}</button>
       </div>
       <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
+      <p id="cfpAvailabilityHint" class="form-hint cfp-quota-hint"></p>
     </form>
-    <p id="cfpFeedback" class="form-hint" hidden></p>
+    <p id="cfpFeedback" class="form-hint cfp-feedback" role="status" aria-live="polite" hidden></p>
     {#else}
     <p class="section-subtitle">{i18n:events_cfp_login_required}</p>
     <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary" data-login-return-current="true">{i18n:events_cfp_login_btn}</a>
@@ -134,6 +261,32 @@
       <button id="cfpReloadBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_refresh}</button>
       {/if}
     </div>
+    {#if cfpTimeline}
+    <div class="cfp-journey-card cfp-journey-inline" aria-label="{i18n:events_cfp_timeline_my_title}">
+      <div class="cfp-journey-header compact">
+        <h3>{i18n:events_cfp_timeline_my_title}</h3>
+        <p class="cfp-journey-range">{cfpTimeline.fromLabel} → {cfpTimeline.toLabel}</p>
+      </div>
+      <div class="cfp-journey-track">
+        {#for stage in cfpTimeline.stages}
+        <article class="cfp-journey-stage {#if stage.active}is-active{/if}" style="--cfp-stage-flex: {stage.flexDays};">
+          <div class="cfp-journey-stage-bar"></div>
+          <p class="cfp-journey-stage-title">
+            {#switch stage.key}
+            {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
+            {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
+            {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+            {#case 'presentations'}{i18n:events_cfp_timeline_stage_presentations}{/case}
+            {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
+            {#else}{stage.key}{/else}
+            {/switch}
+          </p>
+          <p class="cfp-journey-stage-dates">{#if stage.fromLabel eq stage.toLabel}{stage.fromLabel}{#else}{stage.fromLabel} → {stage.toLabel}{/if}</p>
+        </article>
+        {/for}
+      </div>
+    </div>
+    {/if}
     <div class="cfp-status-guide">
       <p><span class="cfp-status-badge cfp-status-pending">{i18n:events_cfp_status_pending}</span> {i18n:events_cfp_status_desc_pending}</p>
       <p><span class="cfp-status-badge cfp-status-under_review">{i18n:events_cfp_status_under_review}</span> {i18n:events_cfp_status_desc_under_review}</p>
@@ -146,6 +299,11 @@
       {#else}
       <p class="form-hint">{i18n:events_cfp_login_to_view}</p>
       {/if}
+    </div>
+    <div class="cfp-pagination-controls">
+      <button id="cfpMinePrevBtn" type="button" class="btn login-btn-nav">{i18n:community_board_prev}</button>
+      <p id="cfpMinePagingLabel" class="form-hint cfp-pagination-label">0-0 / 0</p>
+      <button id="cfpMineNextBtn" type="button" class="btn login-btn-nav">{i18n:community_board_next}</button>
     </div>
   </article>
 </section>
@@ -260,6 +418,7 @@
     font-size: 0.85rem;
     opacity: 0.92;
   }
+
   .cfp-submission-item {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-sm);
@@ -318,11 +477,48 @@
     margin-top: 0.3rem;
   }
 
+  .cfp-feedback {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-weight: 700;
+    line-height: 1.35;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  main#main-content.homedir-main .cfp-feedback.is-error {
+    border-color: rgba(255, 126, 126, 0.85);
+    background: rgba(255, 96, 96, 0.2);
+    color: #ffe7e7 !important;
+  }
+
+  main#main-content.homedir-main .cfp-feedback.is-success {
+    border-color: rgba(114, 255, 159, 0.8);
+    background: rgba(114, 255, 159, 0.18);
+    color: #e9fff1 !important;
+  }
+
   .cfp-submission-actions {
     margin-top: 0.7rem;
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+  }
+
+  .cfp-pagination-controls {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .cfp-pagination-label {
+    margin: 0;
+    min-width: 108px;
+    text-align: center;
   }
 
   .cfp-testing-banner {
@@ -335,6 +531,45 @@
     border-radius: var(--radius-sm);
     border: 1px solid rgba(255, 213, 79, 0.45);
     background: rgba(255, 213, 79, 0.08);
+  }
+
+  .cfp-live-banner {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    border: 1px solid rgba(90, 193, 132, 0.5);
+    background: rgba(26, 48, 37, 0.72);
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+  }
+
+  .cfp-live-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(90, 193, 132, 0.8);
+    background: rgba(90, 193, 132, 0.16);
+    color: #d9ffe7;
+    font-weight: 800;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cfp-live-title {
+    margin: 0;
+    font-weight: 700;
+    color: #e8fff2;
+  }
+
+  .cfp-live-desc {
+    margin: 0.15rem 0 0;
+    color: rgba(223, 244, 233, 0.92);
+    font-size: 0.9rem;
   }
 
   .cfp-testing-badge {
@@ -366,6 +601,36 @@
 <script>
   (() => {
     const isAuth = {#if userAuthenticated}true{#else}false{/if};
+    const eventId = "{event.id}";
+    const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
+    const configEndpoint = endpoint + "/config";
+    const cfpLiveBanner = document.getElementById("cfpLiveBanner");
+
+    function setLiveBannerVisibility(payload) {
+      if (!cfpLiveBanner) {
+        return;
+      }
+      const hasKnownState = !!payload && typeof payload.currently_open === "boolean";
+      cfpLiveBanner.hidden = !(hasKnownState && !!payload.currently_open);
+    }
+
+    async function fetchConfigPayload() {
+      try {
+        const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          return null;
+        }
+        return await response.json();
+      } catch (error) {
+        return null;
+      }
+    }
+
+    const initialConfigPromise = fetchConfigPayload().then((payload) => {
+      setLiveBannerVisibility(payload);
+      return payload;
+    });
+
     const sectionNew = document.getElementById("cfpSectionNew");
     const sectionMine = document.getElementById("cfpSectionMine");
     const showNewBtn = document.getElementById("cfpShowNewBtn");
@@ -387,7 +652,6 @@
       return;
     }
 
-    const eventId = "{event.id}";
     const form = document.getElementById("cfpForm");
     const userScopeRaw = form ? String(form.dataset.userScope || "") : "";
     const userScope = String(userScopeRaw || "").trim().toLowerCase();
@@ -395,16 +659,18 @@
     const draftStorageKey = "homedir.cfp.draft." + eventId + "." + storageScope;
     const lastStorageKey = "homedir.cfp.last." + eventId + "." + storageScope;
 
-    const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
-    const mineEndpoint = endpoint + "/mine?limit=20&offset=0";
-    const configEndpoint = endpoint + "/config";
+    const minePageLimit = 10;
     const submitBtn = document.getElementById("cfpSubmitBtn");
     const autofillBtn = document.getElementById("cfpAutofillBtn");
     const reloadBtn = document.getElementById("cfpReloadBtn");
     const feedback = document.getElementById("cfpFeedback");
     const quotaHint = document.getElementById("cfpQuotaHint");
+    const availabilityHint = document.getElementById("cfpAvailabilityHint");
     const countLabel = document.getElementById("cfpCountLabel");
     const mineList = document.getElementById("cfpMineList");
+    const minePrevBtn = document.getElementById("cfpMinePrevBtn");
+    const mineNextBtn = document.getElementById("cfpMineNextBtn");
+    const minePagingLabel = document.getElementById("cfpMinePagingLabel");
     const formatSelect = document.getElementById("cfpFormat");
     const durationSelect = document.getElementById("cfpDuration");
     const languageSelect = document.getElementById("cfpLanguage");
@@ -435,7 +701,11 @@
 
     let proposalLimit = 2;
     let mineItems = [];
+    let mineTotal = 0;
+    let mineOffset = 0;
+    let mineHasMore = false;
     let submitInFlight = false;
+    let cfpCurrentlyOpen = true;
 
     const labels = {
       pending: "{i18n:events_cfp_status_pending}",
@@ -447,7 +717,8 @@
 
     const errorLabels = {
       duplicate_title: "{i18n:events_cfp_error_duplicate_title}",
-      proposal_limit_reached: "{i18n:events_cfp_error_limit_reached}"
+      proposal_limit_reached: "{i18n:events_cfp_error_limit_reached}",
+      submissions_closed: "{i18n:events_cfp_error_closed}"
     };
 
     function buildOptionMap(selectId) {
@@ -515,7 +786,13 @@
       if (!feedback) return;
       feedback.hidden = false;
       feedback.textContent = message;
-      feedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+      feedback.classList.toggle("is-error", !!isError);
+      feedback.classList.toggle("is-success", !isError);
+      feedback.setAttribute("role", isError ? "alert" : "status");
+      feedback.setAttribute("aria-live", isError ? "assertive" : "polite");
+      if (isError) {
+        feedback.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     }
 
     function safeStorageGet(key) {
@@ -637,8 +914,37 @@
       return labels[status] || status || "";
     }
 
+    function updateAvailabilityHint(payload) {
+      if (!availabilityHint) {
+        return;
+      }
+      const currentlyOpen =
+        !payload || typeof payload.currently_open !== "boolean" ? true : !!payload.currently_open;
+      cfpCurrentlyOpen = currentlyOpen;
+      if (currentlyOpen) {
+        availabilityHint.textContent = "";
+        return;
+      }
+      const opens = formatDate(payload && payload.opens_at ? payload.opens_at : null);
+      const closes = formatDate(payload && payload.closes_at ? payload.closes_at : null);
+      let message = "{i18n:events_cfp_closed_hint}";
+      if (opens || closes) {
+        const windowParts = [];
+        if (opens) {
+          windowParts.push("{i18n:events_cfp_window_open}: " + opens);
+        }
+        if (closes) {
+          windowParts.push("{i18n:events_cfp_window_close}: " + closes);
+        }
+        if (windowParts.length > 0) {
+          message += " {i18n:events_cfp_window_label}: " + windowParts.join(" · ");
+        }
+      }
+      availabilityHint.textContent = message;
+    }
+
     function updateQuotaHint() {
-      const submitted = mineItems ? mineItems.length : 0;
+      const submitted = mineTotal;
       const remaining = Math.max(0, proposalLimit - submitted);
       if (countLabel) {
         countLabel.textContent = submitted + "/" + proposalLimit + " {i18n:events_cfp_proposals_unit}";
@@ -648,22 +954,44 @@
           "{i18n:events_cfp_quota_prefix} " + proposalLimit + " · {i18n:events_cfp_quota_remaining} " + remaining + ".";
       }
       if (submitBtn) {
-        submitBtn.disabled = remaining <= 0;
+        submitBtn.disabled = !cfpCurrentlyOpen || remaining <= 0;
+      }
+    }
+
+    function updateMinePaginationMeta() {
+      const from = mineTotal === 0 ? 0 : (mineOffset + 1);
+      const to = mineTotal === 0 ? 0 : Math.min(mineTotal, mineOffset + mineItems.length);
+      if (minePagingLabel) {
+        minePagingLabel.textContent = from + "-" + to + " / " + mineTotal;
+      }
+      if (minePrevBtn) {
+        minePrevBtn.disabled = mineOffset <= 0;
+      }
+      if (mineNextBtn) {
+        mineNextBtn.disabled = !mineHasMore;
       }
     }
 
     async function loadConfig() {
       try {
-        const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
-        if (!response.ok) {
+        const payload = await initialConfigPromise;
+        setLiveBannerVisibility(payload);
+        if (!payload) {
           return;
         }
-        const payload = await response.json();
         const configured = Number.parseInt(String(payload.max_per_user || ""), 10);
         if (Number.isFinite(configured) && configured > 0) {
           proposalLimit = configured;
         }
       } catch (error) {
+      } finally {
+        let payload = null;
+        try {
+          payload = await initialConfigPromise;
+        } catch (error) {
+          payload = null;
+        }
+        updateAvailabilityHint(payload);
       }
     }
 
@@ -690,14 +1018,23 @@
       }
     }
 
-    function renderMine(items) {
+    function renderMine(items, payload) {
       mineItems = Array.isArray(items) ? items : [];
+      const parsedTotal = payload && Number.isFinite(Number(payload.total)) ? Number(payload.total) : mineItems.length;
+      mineTotal = Math.max(0, parsedTotal);
+      mineHasMore = !!(payload && payload.has_more);
       mineList.innerHTML = "";
       if (mineItems.length === 0) {
+        if (mineOffset > 0 && mineTotal > 0) {
+          mineOffset = Math.max(0, mineOffset - minePageLimit);
+          loadMine();
+          return;
+        }
         const empty = document.createElement("p");
         empty.className = "form-hint";
         empty.textContent = "{i18n:events_cfp_empty_mine}";
         mineList.appendChild(empty);
+        updateMinePaginationMeta();
         updateQuotaHint();
         return;
       }
@@ -753,22 +1090,35 @@
 
         mineList.appendChild(article);
       });
+      updateMinePaginationMeta();
       updateQuotaHint();
+    }
+
+    function mineEndpointForCurrentPage() {
+      const params = new URLSearchParams({
+        limit: String(minePageLimit),
+        offset: String(mineOffset)
+      });
+      return endpoint + "/mine?" + params.toString();
     }
 
     async function loadMine() {
       if (!mineList) return;
       try {
         mineList.innerHTML = '<p class="form-hint">{i18n:events_cfp_loading}</p>';
-        const response = await fetch(mineEndpoint, { headers: { Accept: "application/json" } });
+        const response = await fetch(mineEndpointForCurrentPage(), { headers: { Accept: "application/json" } });
         if (!response.ok) {
           throw new Error("status_" + response.status);
         }
         const payload = await response.json();
-        renderMine(payload.items || []);
+        mineHasMore = !!payload.has_more;
+        renderMine(payload.items || [], payload);
       } catch (error) {
         mineList.innerHTML = '<p class="form-hint">{i18n:events_cfp_error_load}</p>';
         mineItems = [];
+        mineTotal = 0;
+        mineHasMore = false;
+        updateMinePaginationMeta();
         updateQuotaHint();
       }
     }
@@ -791,6 +1141,12 @@
         if (typeof form.reportValidity === "function") {
           form.reportValidity();
         }
+        return;
+      }
+
+      if (!cfpCurrentlyOpen) {
+        showFeedback("{i18n:events_cfp_error_closed}", true);
+        updateQuotaHint();
         return;
       }
 
@@ -836,6 +1192,7 @@
         clearDraft();
         showFeedback("{i18n:events_cfp_success_submit}", false);
         setActiveSection("mine");
+        mineOffset = 0;
         await loadMine();
       } catch (error) {
         showFeedback("{i18n:events_cfp_error_submit}", true);
@@ -859,8 +1216,28 @@
       saveDraftFromForm();
     });
     autofillBtn?.addEventListener("click", restoreLastProposal);
-    reloadBtn?.addEventListener("click", loadMine);
-    showMineBtn?.addEventListener("click", loadMine);
+    reloadBtn?.addEventListener("click", () => {
+      mineOffset = 0;
+      loadMine();
+    });
+    showMineBtn?.addEventListener("click", () => {
+      mineOffset = 0;
+      loadMine();
+    });
+    minePrevBtn?.addEventListener("click", () => {
+      if (mineOffset <= 0) {
+        return;
+      }
+      mineOffset = Math.max(0, mineOffset - minePageLimit);
+      loadMine().then(() => mineList?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    });
+    mineNextBtn?.addEventListener("click", () => {
+      if (!mineHasMore) {
+        return;
+      }
+      mineOffset = mineOffset + minePageLimit;
+      loadMine().then(() => mineList?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    });
     window.addEventListener("beforeunload", saveDraftFromForm);
 
     syncDurationFromFormat();

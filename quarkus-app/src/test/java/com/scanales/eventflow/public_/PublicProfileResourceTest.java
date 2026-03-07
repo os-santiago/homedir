@@ -3,14 +3,20 @@ package com.scanales.eventflow.public_;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
+import com.scanales.eventflow.cfp.CfpSubmission;
+import com.scanales.eventflow.cfp.CfpSubmissionService;
+import com.scanales.eventflow.cfp.CfpSubmissionStatus;
+import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.QuestClass;
+import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserProfileService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +24,15 @@ import org.junit.jupiter.api.Test;
 public class PublicProfileResourceTest {
 
   @Inject UserProfileService userProfileService;
+  @Inject EventService eventService;
+  @Inject CfpSubmissionService cfpSubmissionService;
+
+  private static final String CFP_EVENT_ID = "public-cfp-event";
 
   @BeforeEach
   void setup() {
+    cfpSubmissionService.clearAllForTests();
+    eventService.saveEvent(new Event(CFP_EVENT_ID, "Public CFP Event", "Public CFP profile view test"));
     userProfileService.linkGithub(
         "public.user@example.com",
         "Public User",
@@ -57,11 +69,30 @@ public class PublicProfileResourceTest {
             "https://discord.com/users/discord-homedir-2",
             null,
             Instant.parse("2026-02-10T00:00:00Z")));
+
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "public.user@example.com",
+            "Public User",
+            new CfpSubmissionService.CreateRequest(
+                CFP_EVENT_ID,
+                "Public CFP Talk",
+                "Public CFP summary.",
+                "Public CFP abstract text.",
+                "beginner",
+                "talk",
+                30,
+                "en",
+                "ai-agents-copilots",
+                List.of("public"),
+                List.of("https://example.com/public-cfp")));
+    cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
   }
 
   @Test
   void githubProfileShowsUnifiedAccounts() {
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/u/public-user")
         .then()
@@ -70,6 +101,9 @@ public class PublicProfileResourceTest {
         .body(containsString("@public-user"))
         .body(containsString("public_user#1001"))
         .body(containsString("Connected accounts"))
+        .body(containsString("CFP track record"))
+        .body(containsString("Public CFP Talk"))
+        .body(containsString("Public CFP Event"))
         .body(containsString("Class progression"))
         .body(containsString("Activities completed"))
         .body(containsString("Scientist"));
@@ -79,6 +113,7 @@ public class PublicProfileResourceTest {
   void homedirProfileWithoutGithubIsResolvable() {
     String homedirId = homedirMemberId("homedir.user@example.com");
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/u/" + homedirId)
         .then()
@@ -90,7 +125,7 @@ public class PublicProfileResourceTest {
 
   @Test
   void unknownProfileReturnsNotFound() {
-    given().when().get("/u/does-not-exist").then().statusCode(404);
+    given().header("Accept-Language", "en").when().get("/u/does-not-exist").then().statusCode(404);
   }
 
   private static String homedirMemberId(String identitySeed) {

@@ -44,6 +44,7 @@ public class EventResourceMapLinkTest {
     eventService.saveEvent(event);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/event/" + EVENT_WITH_MAP)
         .then()
@@ -58,6 +59,7 @@ public class EventResourceMapLinkTest {
     eventService.saveEvent(event);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/event/" + EVENT_WITHOUT_MAP)
         .then()
@@ -76,6 +78,7 @@ public class EventResourceMapLinkTest {
     eventService.saveEvent(event);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/event/" + EVENT_WITH_TALK)
         .then()
@@ -94,6 +97,7 @@ public class EventResourceMapLinkTest {
     eventService.saveEvent(event);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/event/map4")
         .then()

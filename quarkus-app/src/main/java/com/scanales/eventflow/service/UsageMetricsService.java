@@ -41,11 +41,14 @@ public class UsageMetricsService {
   private final Map<String, Set<Registrant>> registrations = new ConcurrentHashMap<>();
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
   private final AtomicBoolean dirty = new AtomicBoolean(false);
+  private final AtomicLong dirtySinceTime = new AtomicLong();
   private final AtomicLong flushFailures = new AtomicLong();
   private final AtomicInteger bufferSize = new AtomicInteger();
+  private final AtomicLong lastBufferFullWarnAt = new AtomicLong();
   private final AtomicLong writesOk = new AtomicLong();
   private final AtomicLong writesFail = new AtomicLong();
   private volatile long lastFlushTime;
+  private volatile long lastHealthTransitionLogTime;
   private volatile String lastError;
   private volatile HealthState currentState = HealthState.OK;
   private volatile boolean bufferWarned;
@@ -87,6 +90,12 @@ public class UsageMetricsService {
 
   @ConfigProperty(name = "metrics.buffer.max-size", defaultValue = "10000")
   int bufferMaxSize;
+
+  @ConfigProperty(name = "metrics.health.log-cooldown", defaultValue = "PT60S")
+  Duration healthLogCooldown;
+
+  @ConfigProperty(name = "metrics.log.buffer-full-cooldown", defaultValue = "PT30S")
+  Duration bufferFullLogCooldown;
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDir = "data";
@@ -335,7 +344,7 @@ public class UsageMetricsService {
     registrations
         .computeIfAbsent(talkId, k -> ConcurrentHashMap.newKeySet())
         .add(new Registrant(name, email));
-    dirty.set(true);
+    markDirty(System.currentTimeMillis());
   }
 
   /** Removes a talk registration and decrements its counter if present. */
@@ -444,7 +453,7 @@ public class UsageMetricsService {
       increment("refresh.error");
     }
     counters.put("refresh.last_duration_ms", durationMs);
-    dirty.set(true);
+    markDirty(System.currentTimeMillis());
   }
 
   /** Record an HTTP 5xx response for the given route. */
@@ -458,11 +467,12 @@ public class UsageMetricsService {
   }
 
   private void increment(String key) {
+    long now = System.currentTimeMillis();
     int size = bufferSize.incrementAndGet();
     if (size > bufferMaxSize) {
       bufferSize.decrementAndGet();
       incrementDiscard("buffer_full");
-      LOG.warn("discarded_buffer_full");
+      logBufferFullDiscard(now);
       updateHealthState();
       return;
     }
@@ -471,16 +481,17 @@ public class UsageMetricsService {
       bufferWarned = true;
     }
     counters.merge(key, 1L, Long::sum);
-    dirty.set(true);
+    markDirty(now);
     updateHealthState();
   }
 
   private void decrement(String key) {
+    long now = System.currentTimeMillis();
     int size = bufferSize.incrementAndGet();
     if (size > bufferMaxSize) {
       bufferSize.decrementAndGet();
       incrementDiscard("buffer_full");
-      LOG.warn("discarded_buffer_full");
+      logBufferFullDiscard(now);
       updateHealthState();
       return;
     }
@@ -492,8 +503,29 @@ public class UsageMetricsService {
     if (newVal != null && newVal <= 0L) {
       counters.remove(key, newVal);
     }
-    dirty.set(true);
+    markDirty(now);
     updateHealthState();
+  }
+
+  private void markDirty(long now) {
+    if (dirty.compareAndSet(false, true)) {
+      dirtySinceTime.set(now);
+      return;
+    }
+    if (dirtySinceTime.get() == 0L) {
+      dirtySinceTime.compareAndSet(0L, now);
+    }
+  }
+
+  private void logBufferFullDiscard(long now) {
+    long cooldownMs = Math.max(0L, bufferFullLogCooldown.toMillis());
+    long last = lastBufferFullWarnAt.get();
+    if (cooldownMs > 0 && now - last < cooldownMs) {
+      return;
+    }
+    if (lastBufferFullWarnAt.compareAndSet(last, now)) {
+      LOG.warn("discarded_buffer_full");
+    }
   }
 
   private void incrementDiscard(String reason) {
@@ -579,6 +611,7 @@ public class UsageMetricsService {
       lastFlushTime = System.currentTimeMillis();
       bufferSize.set(0);
       bufferWarned = false;
+      dirtySinceTime.set(0L);
       writesOk.incrementAndGet();
       lastError = null;
       if (migrateFromV1) {
@@ -698,15 +731,27 @@ public class UsageMetricsService {
 
   private HealthState computeState() {
     long now = System.currentTimeMillis();
-    long age = now - lastFlushTime;
     long interval = flushInterval.toMillis();
     int buf = bufferSize.get();
     long fail = writesFail.get();
-    if (age >= interval * 5 || buf >= bufferMaxSize || fail >= 3) {
+    if (buf >= bufferMaxSize || fail >= 3) {
       return HealthState.ERROR;
     }
-    if (age >= interval * 2 || buf >= (int) (bufferMaxSize * 0.7) || fail >= 1) {
+    if (buf >= (int) (bufferMaxSize * 0.7) || fail >= 1) {
       return HealthState.DEGRADADO;
+    }
+    if (dirty.get()) {
+      long since = dirtySinceTime.get();
+      if (since <= 0L) {
+        since = lastFlushTime;
+      }
+      long pendingAge = now - since;
+      if (pendingAge >= interval * 5) {
+        return HealthState.ERROR;
+      }
+      if (pendingAge >= interval * 2) {
+        return HealthState.DEGRADADO;
+      }
     }
     return HealthState.OK;
   }
@@ -714,7 +759,12 @@ public class UsageMetricsService {
   private void updateHealthState() {
     HealthState newState = computeState();
     if (newState != currentState) {
-      LOG.warnf("health_state_change %s->%s", currentState, newState);
+      long now = System.currentTimeMillis();
+      long cooldownMs = Math.max(0L, healthLogCooldown.toMillis());
+      if (cooldownMs <= 0L || now - lastHealthTransitionLogTime >= cooldownMs) {
+        LOG.warnf("health_state_change %s->%s", currentState, newState);
+        lastHealthTransitionLogTime = now;
+      }
       currentState = newState;
     }
   }
@@ -737,10 +787,13 @@ public class UsageMetricsService {
     bufferSize.set(0);
     bufferWarned = false;
     dirty.set(false);
+    dirtySinceTime.set(0L);
     writesOk.set(0);
     writesFail.set(0);
     flushFailures.set(0);
     lastFlushTime = System.currentTimeMillis();
+    lastHealthTransitionLogTime = 0L;
+    lastBufferFullWarnAt.set(0L);
     lastError = null;
     currentState = HealthState.OK;
     lastFileSizeBytes = 0;

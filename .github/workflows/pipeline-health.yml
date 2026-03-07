@@ -1,0 +1,67 @@
+name: Pipeline Health
+
+on:
+  workflow_dispatch:
+    inputs:
+      enforce:
+        description: "Fail job when thresholds are below target"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "15 * * * *"
+  workflow_run:
+    workflows:
+      - PR Validation
+      - Production Release
+    types:
+      - completed
+
+jobs:
+  report:
+    name: Rolling Pipeline Health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate 14-day pipeline health report
+        id: health
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENFORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.enforce || 'false' }}
+        run: |
+          set -euo pipefail
+          ENFORCE_FLAG=""
+          if [ "${ENFORCE}" = "true" ]; then
+            ENFORCE_FLAG="--enforce"
+          fi
+          python scripts/ci/pipeline_health_report.py \
+            --repo "${{ github.repository }}" \
+            --days 14 \
+            --pr-threshold 95 \
+            --release-threshold 95 \
+            --output-json pipeline-health.json \
+            --output-md pipeline-health.md \
+            ${ENFORCE_FLAG}
+
+      - name: Add report to workflow summary
+        run: cat pipeline-health.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Warn when health is below threshold
+        if: ${{ steps.health.outputs.status == 'warn' }}
+        run: |
+          echo "::warning::Pipeline health below threshold in last 14 days (PR=${{ steps.health.outputs.pr_success_rate }}%, Release=${{ steps.health.outputs.release_success_rate }}%)."
+
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-health-report
+          path: |
+            pipeline-health.json
+            pipeline-health.md

@@ -1,4 +1,4 @@
-{#include layout/main activePage="notifications"}
+{#include layout/main activePage="notifications" noLoginModal=true}
 {#title}{i18n:notifications_center_title}{/title}
 
 {#body}
@@ -13,7 +13,11 @@
   data-i18n-cat-break="{i18n:notifications_center_js_category_break}"
   data-i18n-cat-announcement="{i18n:notifications_center_js_category_announcement}"
   data-i18n-select-all="{i18n:notifications_center_js_select_all}"
-  data-i18n-deselect-all="{i18n:notifications_center_js_deselect_all}">
+  data-i18n-deselect-all="{i18n:notifications_center_js_deselect_all}"
+  data-i18n-sample-title="{i18n:notifications_center_js_sample_title}"
+  data-i18n-sample-event="{i18n:notifications_center_js_sample_event}"
+  data-i18n-sample-community="{i18n:notifications_center_js_sample_community}"
+  data-i18n-sample-project="{i18n:notifications_center_js_sample_project}">
   <div class="page-header">
     <div class="section-header">
       <h1 class="page-title">{i18n:notifications_center_title}</h1>
@@ -45,6 +49,11 @@
       <div id="empty" class="hidden">
         <span class="material-symbols-outlined">notifications_off</span>
         <p>{i18n:notifications_center_empty}</p>
+        <p class="notifications-empty-hint">{i18n:notifications_center_empty_hint}</p>
+        <div class="notifications-empty-actions">
+          <a href="/eventos" class="btn-primary">{i18n:notifications_center_empty_cta_events}</a>
+          <a href="/comunidad/board" class="btn-primary">{i18n:notifications_center_empty_cta_board}</a>
+        </div>
       </div>
     </div>
   </div>

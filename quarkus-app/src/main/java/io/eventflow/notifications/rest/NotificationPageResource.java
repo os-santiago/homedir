@@ -3,6 +3,7 @@ package io.eventflow.notifications.rest;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.util.AdminUtils;
+import com.scanales.eventflow.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -10,6 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Locale;
 import java.util.Optional;
@@ -29,10 +31,30 @@ public class NotificationPageResource {
   @GET
   @Path("/center")
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance center() {
+  public TemplateInstance center(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context HttpHeaders headers) {
     currentUserId()
         .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.NOTIFICATIONS_CENTER_VIEW));
-    return Templates.center();
+    boolean authenticated = identity != null && !identity.isAnonymous();
+    String userName = authenticated && identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    return TemplateLocaleUtil.apply(Templates.center(), localeCookie, headers)
+        .data("activePage", "notifications")
+        .data("noLoginModal", true)
+        .data("userAuthenticated", authenticated)
+        .data("userName", userName)
+        .data("userInitial", initialFrom(userName));
+  }
+
+  private static String initialFrom(String name) {
+    if (name == null) {
+      return null;
+    }
+    String trimmed = name.trim();
+    if (trimmed.isEmpty()) {
+      return null;
+    }
+    return trimmed.substring(0, 1).toUpperCase(Locale.ROOT);
   }
 
   private Optional<String> currentUserId() {

@@ -1,4 +1,4 @@
-{#include layout/main activePage="eventos"}
+{#include layout/main activePage="eventos" noLoginModal=true}
 {#title}{i18n:events_title}{/title}
 {#body}
 
@@ -38,6 +38,10 @@
   {#if upcoming.isEmpty()}
   <div class="section-card events-full-width">
     <p class="hd-empty-callout">{i18n:events_empty_upcoming}</p>
+    <div class="community-empty-actions">
+      <a href="#past-events" class="btn-primary">{i18n:events_empty_upcoming_cta_history}</a>
+      <a href="/comunidad/picks" class="btn-primary">{i18n:events_empty_upcoming_cta_community}</a>
+    </div>
   </div>
   {#else}
   <div class="events-upcoming-strip events-full-width">
@@ -128,7 +132,7 @@
       <div class="event-countdown-panel">
         <p class="event-countdown-label">{i18n:events_countdown_title}</p>
         <strong class="event-countdown-value {#if event.ongoing}is-live{/if}">
-          {#if event.ongoing}LIVE{#else}D-{event.daysUntil}{/if}
+          {#if event.ongoing}{i18n:events_countdown_live_badge}{#else}{i18n:events_countdown_days_short(event.daysUntil)}{/if}
         </strong>
         <p class="event-countdown-caption">
           {#if event.ongoing}
@@ -149,7 +153,7 @@
   {/if}
 </section>
 
-<section class="page-grid">
+<section class="page-grid" id="past-events">
   <div class="section-header events-full-width events-section-margin hd-section-heading">
     <p class="section-subtitle">{i18n:events_section_past_subtitle}</p>
     <h2 class="page-title">{i18n:events_section_past_title}</h2>

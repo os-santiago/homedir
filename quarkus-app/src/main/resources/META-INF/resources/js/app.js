@@ -76,19 +76,71 @@ const SELECTORS = {
     /** Indicador cuando no hay eventos */
     noEvents: '[data-no-events]',
     /** Formularios generales de la página */
-    forms: 'form'
+    forms: 'form',
+    /** Formulario selector de idioma en el header */
+    localeSwitcherForm: '[data-locale-switcher-form]',
+    /** Select de idioma del header */
+    localeSwitcherSelect: '[data-locale-select]',
+    /** Hidden redirect del selector de idioma */
+    localeSwitcherRedirect: '[data-locale-redirect]'
 };
 
 // Funciones de ayuda para seleccionar elementos utilizando los selectores centralizados.
 const $ = (key) => document.querySelector(SELECTORS[key]);
 const $$ = (key) => document.querySelectorAll(SELECTORS[key]);
 const isUltraLiteMode = () => document.body && document.body.classList.contains('ultra-lite-mode');
+const APP_I18N = (() => {
+    const body = document.body;
+    const dataset = body && body.dataset ? body.dataset : {};
+    const read = (key, fallback) => {
+        const value = dataset[key];
+        if (typeof value === 'string' && value.trim()) {
+            return value;
+        }
+        return fallback;
+    };
+    return {
+        loadErrorPrefix: read('i18nAppLoadErrorPrefix', 'Could not load'),
+        loadingContent: read('i18nAppLoadingContent', 'content'),
+        loadingData: read('i18nAppLoadingData', 'data'),
+        loadingPage: read('i18nAppLoadingPage', 'page'),
+        sessionExpired: read('i18nAppSessionExpired', 'Session expired'),
+        noEvents: read('i18nAppNoEvents', 'No events available')
+    };
+})();
 
 function currentRelativeUrl() {
     const path = window.location.pathname || '/';
     const query = window.location.search || '';
     const hash = window.location.hash || '';
     return `${path}${query}${hash}`;
+}
+
+function normalizeSupportedLocale(rawLocale) {
+    if (typeof rawLocale !== 'string') return null;
+    const trimmed = rawLocale.trim().toLowerCase();
+    if (!trimmed) return null;
+    const short = trimmed.includes('-') ? trimmed.split('-')[0] : trimmed;
+    if (short === 'es' || short === 'en') return short;
+    return null;
+}
+
+function resolveBrowserPreferredLocale() {
+    const langs = Array.isArray(navigator.languages) ? navigator.languages : [];
+    const fallbackList = [navigator.language, navigator.userLanguage, navigator.browserLanguage]
+        .filter(Boolean);
+    const candidates = [...langs, ...fallbackList];
+    for (const candidate of candidates) {
+        const normalized = normalizeSupportedLocale(candidate);
+        if (normalized) return normalized;
+    }
+    return 'es';
+}
+
+function setLocaleCookie(locale) {
+    const safeLocale = normalizeSupportedLocale(locale) || 'es';
+    const oneYearInSeconds = 60 * 60 * 24 * 365;
+    document.cookie = `QP_LOCALE=${safeLocale}; Path=/; Max-Age=${oneYearInSeconds}; SameSite=Lax`;
 }
 
 function buildLoginCallbackUrl(redirectTarget) {
@@ -103,6 +155,55 @@ function setupLoginReturnLinks() {
     links.forEach((link) => {
         const preferred = (link.getAttribute('data-login-redirect') || '').trim();
         link.setAttribute('href', buildLoginCallbackUrl(preferred || currentRelativeUrl()));
+    });
+}
+
+function setupLocaleSwitcher() {
+    const form = $('localeSwitcherForm');
+    if (!form) return;
+    const select = form.querySelector(SELECTORS.localeSwitcherSelect);
+    const redirectInput = form.querySelector(SELECTORS.localeSwitcherRedirect);
+    if (!select) return;
+
+    const isAuthenticated = String(form.dataset.authenticated || '').toLowerCase() === 'true';
+    const applyRedirectTarget = () => {
+        if (redirectInput) {
+            redirectInput.value = currentRelativeUrl();
+        }
+    };
+
+    applyRedirectTarget();
+
+    if (!isAuthenticated && !normalizeSupportedLocale(select.value)) {
+        select.value = resolveBrowserPreferredLocale();
+    }
+
+    form.addEventListener('submit', (event) => {
+        applyRedirectTarget();
+        const chosenLocale = normalizeSupportedLocale(select.value)
+            || (isAuthenticated ? 'es' : resolveBrowserPreferredLocale());
+
+        if (!isAuthenticated) {
+            event.preventDefault();
+            setLocaleCookie(chosenLocale);
+            window.location.assign(currentRelativeUrl());
+            return;
+        }
+
+        select.value = chosenLocale;
+    });
+
+    select.addEventListener('change', () => {
+        if (!isAuthenticated) {
+            setLocaleCookie(select.value);
+            window.location.assign(currentRelativeUrl());
+            return;
+        }
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
     });
 }
 
@@ -256,9 +357,9 @@ function bannerParallax() {
 }
 
 let loadingTimeout;
-let loadingTarget = 'el contenido';
+let loadingTarget = APP_I18N.loadingContent;
 
-function showLoading(target = 'el contenido', enableTimeout = true) {
+function showLoading(target = APP_I18N.loadingContent, enableTimeout = true) {
     loadingTarget = target;
     document.body.classList.remove('loaded');
     const loader = $('loading');
@@ -267,7 +368,7 @@ function showLoading(target = 'el contenido', enableTimeout = true) {
     if (enableTimeout) {
         loadingTimeout = setTimeout(() => {
             hideLoading();
-            showNotification('error', `No se pudo cargar ${loadingTarget}`);
+            showNotification('error', `${APP_I18N.loadErrorPrefix} ${loadingTarget}`);
         }, 5000);
     }
 }
@@ -303,7 +404,7 @@ function handleForms() {
             }
             sessionStorage.setItem('scrollPos', String(window.scrollY));
             sessionStorage.setItem('scrollPath', window.location.pathname);
-            showLoading('los datos');
+            showLoading(APP_I18N.loadingData);
             const btn = e.submitter || form.querySelector('button[type="submit"]');
             if (btn) {
                 setTimeout(() => btn.disabled = true, 0);
@@ -330,7 +431,7 @@ function handleNotificationsFromUrl() {
         showNotification('error', params.get('error'));
     }
     if (params.get('session') === 'expired') {
-        showNotification('error', 'Sesión expirada');
+        showNotification('error', APP_I18N.sessionExpired);
     }
     if (params.has('msg')) {
         const msg = params.get('msg');
@@ -350,6 +451,7 @@ function restoreScroll() {
 }
 
 function onDomContentLoaded() {
+    setupLocaleSwitcher();
     setupLoginReturnLinks();
     setupMenu();
     setupUserMenu();
@@ -367,7 +469,7 @@ function onDomContentLoaded() {
     hideLoading();
     if ($('noEvents')) {
         hideLoading();
-        showNotification('info', 'No hay eventos disponibles');
+        showNotification('info', APP_I18N.noEvents);
     }
 }
 
@@ -388,7 +490,7 @@ function initListeners() {
         scrollHandler = bannerParallax;
         window.addEventListener('scroll', scrollHandler);
 
-        beforeUnloadHandler = () => showLoading('la página', false);
+        beforeUnloadHandler = () => showLoading(APP_I18N.loadingPage, false);
         window.addEventListener('beforeunload', beforeUnloadHandler);
 
         unloadHandler = () => removeListeners();

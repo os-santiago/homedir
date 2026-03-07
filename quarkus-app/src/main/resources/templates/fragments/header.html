@@ -1,8 +1,8 @@
 <nav class="top-nav header-3col" aria-label="{i18n:header_aria_label}">
   <div class="logo header-left">
     <a href="/" class="header-logo-link">
-      <div class="logo-icon">
-        <span class="material-symbols-outlined">token</span>
+      <div class="logo-icon logo-icon-image">
+        <img src="/img/homedir-logo-nav.png" alt="HomeDir logo" class="header-brand-logo">
       </div>
       <div class="logo-text header-logo-text">
         <span id="navPlatformName" class="header-platform-name">HomeDir</span>
@@ -35,6 +35,20 @@
       <span id="notif-badge" class="badge hidden notif-badge">0</span>
     </a>
   </div>
+
+    <form action="/private/profile/update-locale"
+      method="POST"
+      class="header-locale-switcher"
+      data-locale-switcher-form
+      data-authenticated="{#if userSession.loggedIn || userAuthenticated}true{#else}false{/if}">
+      <input type="hidden" name="redirect" value="" data-locale-redirect>
+      <span class="material-symbols-outlined header-locale-icon" aria-hidden="true">language</span>
+      <label for="headerLocaleSelect" class="sr-only">{i18n:header_language_aria}</label>
+      <select id="headerLocaleSelect" name="locale" class="header-locale-select" data-locale-select aria-label="{i18n:header_language_aria}">
+        <option value="es" {#if resolvedLocaleCode == 'es'}selected{/if}>{i18n:header_language_spanish}</option>
+        <option value="en" {#if resolvedLocaleCode == 'en'}selected{/if}>{i18n:header_language_english}</option>
+      </select>
+    </form>
 
   <div class="header-right">
     {#if userSession.loggedIn || userAuthenticated}
@@ -124,17 +138,19 @@
     {#if isDev}
     <a href="/login.html" class="login-btn-nav">{i18n:nav_login}</a>
     {#else}
-    <a href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'proyectos'}/proyectos{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
-      class="login-btn-nav" data-login-return-current="true">{i18n:nav_login}</a>
+    <a
+      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'proyectos'}/proyectos{#else if activePage == 'beta'}/beta{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
+      class="login-btn-nav"
+      data-login-return-current="true">{i18n:nav_login}</a>
     {/if}
     {/if}
   </div>
 </nav>
 <div class="alpha-banner">
-  <span class="alpha-badge">ALPHA v{appVersion}</span>
+  <span class="alpha-badge">{#if activePage == 'proyectos' || activePage == 'about'}ALPHA v{app:version()}{#else}HomeDir v{app:version()}{/if}</span>
   · <a href="https://github.com/os-santiago/homedir" target="_blank"
     class="link-white-underline">{i18n:header_alpha_repo}</a>
-  · <span class="text-opacity-80">{i18n:header_alpha_text}</span>
+  · <span class="text-opacity-80">{#if activePage == 'proyectos' || activePage == 'about'}{i18n:header_alpha_text}{#else}{i18n:header_release_text}{/if}</span>
 </div>
 {#if system.degraded}
 <div class="system-banner">
@@ -218,4 +234,5 @@
     });
   });
 </script>
+
 

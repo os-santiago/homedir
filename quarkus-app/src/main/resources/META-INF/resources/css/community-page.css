@@ -320,6 +320,29 @@
     letter-spacing: 0.4px;
   }
 
+  .community-pulse-meta {
+    margin: 0;
+    font-size: 0.68rem;
+    opacity: 0.78;
+    line-height: 1.2;
+  }
+
+  .community-pulse-card-discord-preview {
+    align-content: start;
+    gap: 0.35rem;
+  }
+
+  .community-discord-preview-link {
+    font-size: 0.7rem;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.9;
+  }
+
+  .community-discord-preview-link:hover {
+    color: #ffd700;
+  }
+
   .community-filter-row {
     display: flex;
     gap: 0.35rem;
@@ -1147,6 +1170,13 @@
     display: none;
   }
 
+  .community-empty-actions {
+    margin-top: 0.65rem;
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
   .community-actions {
     display: flex;
     justify-content: center;
@@ -1297,4 +1327,3 @@
       transition: none;
     }
   }
-

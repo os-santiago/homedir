@@ -51,7 +51,7 @@ public class AdminMetricsResource {
   public record DataHealth(String state, String css, String tooltip) {
   }
 
-  public record FunnelRow(String id, String label, long count) {
+  public record FunnelRow(String id, String label, long count, String conversion) {
   }
 
   @RegisterForReflection
@@ -761,21 +761,73 @@ public class AdminMetricsResource {
   static List<FunnelRow> buildFunnelRows(Map<String, Long> snap) {
     List<FunnelRow> rows = new ArrayList<>();
     // Core product funnel with canonical keys and compatibility for legacy aliases.
-    rows.add(new FunnelRow("login_success", "Login success", resolveFunnelCount(snap, "login_success", "auth.login.callback")));
-    rows.add(new FunnelRow("community_vote", "Community vote", resolveFunnelCount(snap, "community_vote", "community.vote")));
+    long loginSuccess = resolveFunnelCount(snap, "login_success", "auth.login.callback");
+    rows.add(new FunnelRow("login_success", "Login success", loginSuccess, "100%"));
+
+    long communityVote = resolveFunnelCount(snap, "community_vote", "community.vote");
+    rows.add(
+        new FunnelRow(
+            "community_vote",
+            "Community vote",
+            communityVote,
+            funnelConversion(communityVote, loginSuccess)));
+
+    long communityPropose =
+        resolveFunnelCount(snap, "community_propose_submit", "community.submission.create");
     rows.add(
         new FunnelRow(
             "community_propose_submit",
             "Community propose submit",
-            resolveFunnelCount(snap, "community_propose_submit", "community.submission.create")));
-    rows.add(new FunnelRow("cfp_submit", "CFP submit", resolveFunnelCount(snap, "cfp_submit", "cfp.submission.create")));
+            communityPropose,
+            funnelConversion(communityPropose, loginSuccess)));
+
+    long ltaPost =
+        resolveFunnelCount(
+            snap, "community_lightning_post", "community.lightning.thread.create");
+    rows.add(
+        new FunnelRow(
+            "community_lightning_post",
+            "LTA thread post",
+            ltaPost,
+            funnelConversion(ltaPost, loginSuccess)));
+
+    long ltaComment =
+        resolveFunnelCount(
+            snap, "community_lightning_comment", "community.lightning.comment.create");
+    rows.add(
+        new FunnelRow(
+            "community_lightning_comment",
+            "LTA comment",
+            ltaComment,
+            funnelConversion(ltaComment, loginSuccess)));
+
+    long cfpSubmit = resolveFunnelCount(snap, "cfp_submit", "cfp.submission.create");
+    rows.add(new FunnelRow("cfp_submit", "CFP submit", cfpSubmit, funnelConversion(cfpSubmit, loginSuccess)));
+
+    long cfpApproved = resolveFunnelCount(snap, "cfp_approved", "cfp.submission.status.accepted");
     rows.add(
         new FunnelRow(
             "cfp_approved",
             "CFP approved",
-            resolveFunnelCount(snap, "cfp_approved", "cfp.submission.status.accepted")));
-    rows.add(new FunnelRow("board_profile_open", "Board profile open", resolveFunnelCount(snap, "board_profile_open")));
+            cfpApproved,
+            funnelConversion(cfpApproved, loginSuccess)));
+
+    long boardProfileOpen = resolveFunnelCount(snap, "board_profile_open");
+    rows.add(
+        new FunnelRow(
+            "board_profile_open",
+            "Board profile open",
+            boardProfileOpen,
+            funnelConversion(boardProfileOpen, loginSuccess)));
     return rows;
+  }
+
+  private static String funnelConversion(long count, long loginSuccess) {
+    if (loginSuccess <= 0) {
+      return "—";
+    }
+    double pct = (count * 100.0d) / loginSuccess;
+    return String.format(Locale.ROOT, "%.1f%%", pct);
   }
 
   private static long resolveFunnelCount(Map<String, Long> snap, String canonical, String... legacyAliases) {

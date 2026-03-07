@@ -122,6 +122,44 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
+.notifications-empty-hint {
+  max-width: 520px;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+}
+
+.notifications-empty-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+}
+
+.notifications-sample {
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.notifications-sample-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.notifications-sample-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
 .notifications-center .notif .title {
   font-weight: bold;
 }

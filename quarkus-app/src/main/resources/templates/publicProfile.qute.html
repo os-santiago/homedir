@@ -19,8 +19,8 @@
             </div>
             <h1 class="wrapped-title">{displayName}</h1>
             <p class="wrapped-subtitle">
-                <span class="wrapped-stat-value gold" style="font-size: 1.2rem;">LVL {level}</span> • {questClassEmoji}
-                {questClass} Guild
+                <span class="wrapped-stat-value gold" style="font-size: 1.2rem;">{i18n:public_profile_level_badge(level)}</span> • {questClassEmoji}
+                {i18n:public_profile_guild_badge(questClass)}
             </p>
         </header>
 
@@ -29,12 +29,12 @@
 
             <!-- Card 1: Main Stats (XP) -->
             <div class="wrapped-card">
-                <span class="wrapped-stat-label">Total Experience</span>
+                <span class="wrapped-stat-label">{i18n:public_profile_total_experience}</span>
                 <span class="wrapped-stat-value neon">{currentXp} XP</span>
                 <div class="wrapped-xp-channel">
                     <div class="wrapped-xp-bar js-wrapped-progress" data-progress="{xpPercentage}"></div>
                 </div>
-                <p class="wrapped-subtext">Top Contributor</p>
+                <p class="wrapped-subtext">{i18n:public_profile_top_contributor}</p>
             </div>
 
             <div class="wrapped-card wrapped-card-full">
@@ -63,6 +63,26 @@
                 <span class="wrapped-stat-label">{i18n:public_profile_activity_count_title}</span>
                 <span class="wrapped-stat-value purple">{questsCompleted}</span>
                 <p class="wrapped-subtext">{i18n:public_profile_activity_count_subtitle}</p>
+            </div>
+
+            <div class="wrapped-card">
+                <span class="wrapped-stat-label">{i18n:public_profile_cfp_title}</span>
+                <span class="wrapped-stat-value neon">{cfpAcceptedCount}</span>
+                <p class="wrapped-subtext">{i18n:public_profile_cfp_accepted_label}</p>
+            </div>
+
+            <div class="wrapped-card wrapped-card-full">
+                <span class="wrapped-stat-label">{i18n:public_profile_cfp_latest}</span>
+                <div class="wrapped-list-container">
+                    {#for item in cfpRecentAccepted}
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{item.title}</span>
+                        <a href="{item.eventUrl}" class="wrapped-item-xp">{item.eventTitle}</a>
+                    </div>
+                    {#else}
+                    <p class="wrapped-empty-msg">{i18n:public_profile_cfp_empty}</p>
+                    {/for}
+                </div>
             </div>
 
             <div class="wrapped-card wrapped-card-full">
@@ -103,7 +123,7 @@
 
             <!-- Card 3: Badges Collection -->
             <div class="wrapped-card wrapped-card-full">
-                <span class="wrapped-stat-label">Badges & Titles</span>
+                <span class="wrapped-stat-label">{i18n:public_profile_badges_titles}</span>
                 <div class="wrapped-badges">
                     {#for badge in badges}
                     <span class="wrapped-badge-pill"><span class="material-symbols-outlined"
@@ -116,7 +136,7 @@
 
             <!-- Card 4: Recent History -->
             <div class="wrapped-card wrapped-card-full">
-                <span class="wrapped-stat-label">Recent Activity</span>
+                <span class="wrapped-stat-label">{i18n:public_profile_recent_activity}</span>
                 <div class="wrapped-list-container">
                     {#for item in history}
                     <div class="wrapped-list-item">
@@ -124,17 +144,17 @@
                         <span class="wrapped-item-xp">+{item.xp} XP</span>
                     </div>
                     {#else}
-                    <p class="wrapped-empty-msg">No recent activity recorded.</p>
+                    <p class="wrapped-empty-msg">{i18n:public_profile_no_recent_activity}</p>
                     {/for}
                 </div>
             </div>
 
             <!-- Card 5: Community Status -->
             <div class="wrapped-card">
-                <span class="wrapped-stat-label">Community Status</span>
+                <span class="wrapped-stat-label">{i18n:public_profile_community_status}</span>
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
                     <span class="material-symbols-outlined" style="color: var(--accent-green)">check_circle</span>
-                    <span class="wrapped-stat-value" style="font-size: 1.5rem; color: white;">Active</span>
+                    <span class="wrapped-stat-value" style="font-size: 1.5rem; color: white;">{i18n:public_profile_status_active}</span>
                 </div>
             </div>
 

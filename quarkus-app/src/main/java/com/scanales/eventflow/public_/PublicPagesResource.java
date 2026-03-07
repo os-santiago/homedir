@@ -2,12 +2,16 @@ package com.scanales.eventflow.public_;
 
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
+import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.community.CommunityLightningService;
+import com.scanales.eventflow.community.CommunityVoteService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.GithubService;
 import com.scanales.eventflow.service.GithubService.GithubContributor;
+import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.service.UserSessionService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.TemplateLocaleUtil;
@@ -22,6 +26,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +61,19 @@ public class PublicPagesResource {
   CommunityContentService communityContentService;
 
   @Inject
+  CommunityBoardService communityBoardService;
+
+  @Inject
+  CommunityLightningService communityLightningService;
+
+  @Inject
+  CommunityVoteService communityVoteService;
+
+  @Inject
   GamificationService gamificationService;
+
+  @Inject
+  UserProfileService userProfileService;
 
   @GET
   public TemplateInstance home(
@@ -66,16 +84,39 @@ public class PublicPagesResource {
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
     int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
 
-    List<Event> popularEvents = eventService.findUpcomingEvents(3);
-    int upcomingCount =
-        (int)
-            eventService.listEvents().stream()
-                .filter(event -> event.getDate() != null)
-                .filter(event -> !event.getDate().isBefore(LocalDate.now()))
-                .count();
+    List<Event> upcomingEvents = eventService.listUpcomingEvents();
+    List<Event> popularEvents = upcomingEvents.stream().limit(3).toList();
+    int upcomingCount = upcomingEvents.size();
 
     List<CommunityContentItem> socialHighlights = communityContentService.listNew(3, 0);
+    List<CommunityContentItem> allCommunityItems = communityContentService.allItems();
     int socialHighlightsCount = communityContentService.metrics().cacheSize();
+    Instant todayCutoff = Instant.now().minus(Duration.ofHours(24));
+    long recentPicksCount =
+        allCommunityItems.stream()
+            .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
+            .count();
+    long recentMemberPicksCount =
+        allCommunityItems.stream()
+            .filter(this::isMemberOrigin)
+            .filter(item -> item.createdAt() != null && !item.createdAt().isBefore(todayCutoff))
+            .count();
+    int recentLtaThreads = communityLightningService.countPublishedSince(todayCutoff);
+    long homeStarterVoteCount =
+        currentUserId().map(communityVoteService::countVotesByUser).orElse(0L);
+    boolean homeStarterHasVote = homeStarterVoteCount > 0L;
+    boolean homeAccountHasGithub =
+        currentUserId()
+            .flatMap(userProfileService::find)
+            .map(profile -> profile.getGithub() != null && profile.hasGithub())
+            .orElse(false);
+    boolean homeAccountHasDiscord =
+        currentUserId()
+            .flatMap(userProfileService::find)
+            .map(profile -> profile.getDiscord() != null && profile.hasDiscord())
+            .orElse(false);
+    int homeStarterCompleted =
+        (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0) + (homeStarterHasVote ? 1 : 0);
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -89,7 +130,15 @@ public class PublicPagesResource {
             .data("socialHighlightsCount", socialHighlightsCount)
             .data("upcomingCount", upcomingCount)
             .data("projectContributorCount", contributors.size())
-            .data("projectContributionTotal", contributionTotal),
+            .data("projectContributionTotal", contributionTotal)
+            .data("homeTodayFreshPicks", toIntSafely(recentPicksCount))
+            .data("homeTodayMemberPicks", toIntSafely(recentMemberPicksCount))
+            .data("homeTodayLtaThreads", recentLtaThreads)
+            .data("homeAccountHasGithub", homeAccountHasGithub)
+            .data("homeAccountHasDiscord", homeAccountHasDiscord)
+            .data("homeStarterHasVote", homeStarterHasVote)
+            .data("homeStarterCompleted", homeStarterCompleted)
+            .data("noLoginModal", true),
         "home",
         localeCookie,
         headers);
@@ -137,11 +186,11 @@ public class PublicPagesResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
     currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW));
-    List<Event> upcoming = eventService.findUpcomingEvents(10);
-    List<Event> past = eventService.findPastEvents(10);
+    List<Event> upcoming = eventService.listUpcomingEvents().stream().limit(10).toList();
+    List<Event> past = eventService.listPastEvents().stream().limit(10).toList();
     return withLayoutData(
         events
-            .data("today", java.time.LocalDate.now())
+            .data("today", LocalDate.now())
             .data("upcomingEvents", upcoming)
             .data("pastEvents", past)
             .data("upcomingCount", upcoming.size())
@@ -191,5 +240,18 @@ public class PublicPagesResource {
       return java.util.Optional.of(principal.toLowerCase(Locale.ROOT));
     }
     return java.util.Optional.empty();
+  }
+
+  private boolean isMemberOrigin(CommunityContentItem item) {
+    if (item == null) {
+      return false;
+    }
+    String id = item.id() == null ? "" : item.id().toLowerCase(Locale.ROOT);
+    String source = item.source() == null ? "" : item.source().trim().toLowerCase(Locale.ROOT);
+    return id.startsWith("submission-") || "community member".equals(source) || "member".equals(source);
+  }
+
+  private int toIntSafely(long value) {
+    return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.max(0, value);
   }
 }

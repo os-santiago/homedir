@@ -5,9 +5,17 @@ After=network.target
 [Service]
 Type=simple
 Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/homedir.env
 ExecStart=/usr/bin/python3 /usr/local/bin/homedir-webhook.py
 Restart=always
 RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
 User=root
 
 [Install]

@@ -1,90 +1,251 @@
-{#include layout/main activePage="eventos"}
+{#include layout/main activePage="eventos" mainClass="community-ultra-lite"}
 {#title}
 {#if scenario && event}
 {scenario.name} - {event.title} - Homedir
 {#else if scenario}
 {scenario.name} - Homedir
 {#else}
-Escenario no encontrado - Homedir
+{i18n:events_scenario_not_found_page_title}
 {/if}
 {/title}
+{#head}
+<style>
+  {#if event}
+  body.homedir-body {
+    --event-theme-primary: {event.resolvedThemePrimaryColor};
+    --event-theme-accent: {event.resolvedThemeAccentColor};
+    --event-theme-surface: {event.resolvedThemeSurfaceColor};
+    --event-theme-text: {event.resolvedThemeTextColor};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body::before {
+    display: none !important;
+  }
+
+  .app-container {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body .top-nav,
+  body.homedir-body .hd-top-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+  }
+
+  body.homedir-body .alpha-banner {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-top-color: var(--event-theme-primary) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+    color: var(--event-theme-text) !important;
+  }
+
+  body.homedir-body .nav-link,
+  body.homedir-body .login-btn-nav,
+  body.homedir-body .header-locale-select {
+    color: var(--event-theme-text) !important;
+    border-color: var(--event-theme-accent) !important;
+  }
+
+  main#main-content.homedir-main {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+    color: var(--event-theme-text);
+  }
+  {/if}
+
+  /* Scenario-specific ultra-lite hard guard plus layout alignment with primary sections. */
+  .scenario-ultra-shell {
+    color: var(--event-theme-text);
+  }
+
+  .scenario-ultra-shell,
+  .scenario-ultra-shell *,
+  .scenario-ultra-shell *::before,
+  .scenario-ultra-shell *::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    will-change: auto !important;
+  }
+
+  .scenario-ultra-shell .section-card,
+  .scenario-ultra-shell .scenario-talk-card {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.52) !important;
+    border-color: var(--event-theme-primary) !important;
+    color: var(--event-theme-text) !important;
+  }
+
+  .scenario-ultra-shell .section-card::before,
+  .scenario-ultra-shell .section-card:hover::before {
+    content: none !important;
+  }
+
+  .scenario-ultra-shell .scenario-full-width {
+    grid-column: 1 / -1;
+  }
+
+  .scenario-ultra-shell .scenario-shell-card {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .scenario-ultra-shell .scenario-talk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .scenario-ultra-shell .scenario-talk-item {
+    display: grid;
+    gap: 0.55rem;
+    align-content: start;
+    padding: 0.7rem 0.75rem;
+    border-left: 3px solid var(--event-theme-primary) !important;
+  }
+
+  .scenario-ultra-shell .scenario-talk-title {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.32;
+  }
+
+  .scenario-ultra-shell .scenario-talk-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.32rem;
+  }
+
+  .scenario-ultra-shell .scenario-talk-meta .badge {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--event-theme-surface);
+    color: var(--event-theme-text);
+    border: 1px solid var(--event-theme-accent);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .scenario-ultra-shell .hd-link {
+    color: var(--event-theme-accent);
+  }
+
+  .scenario-ultra-shell .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .scenario-ultra-shell .btn,
+  .scenario-ultra-shell .login-btn-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .scenario-ultra-shell .avatar.placeholder {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .scenario-ultra-shell .scenario-talk-action {
+    margin-top: 0.2rem;
+  }
+
+  .scenario-ultra-shell .scenario-empty-card {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .scenario-ultra-shell .btn-primary:hover,
+  .scenario-ultra-shell .btn-primary:active {
+    transform: none !important;
+  }
+</style>
+{/head}
 {#body}
 {#if scenario}
-<header class="page-header">
-  <div class="section-header">
-    {#if event}
-    <p class="section-subtitle">
-      <a href="/event/{event.id}" class="hd-link">← Volver a {event.title}</a>
-    </p>
-    {/if}
-    <h1 class="public-title">{scenario.name}</h1>
-  </div>
-
-  {#if scenario.location}
-  <p class="section-subtitle">
-    <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
-    {scenario.location}
-  </p>
-  {/if}
-
-  {#if scenario.features}
-  <p class="section-subtitle">{scenario.features}</p>
-  {/if}
-</header>
-
-<section class="page-grid">
-  <article class="section-card" style="grid-column: 1 / -1;">
-    <div class="section-header" style="margin-bottom: 1rem;">
-      <h2>Charlas en este escenario</h2>
-      <span class="badge">{talks.size} sesión{#if talks.size != 1}es{/if}</span>
+<section class="scenario-ultra-shell">
+  <header class="page-header">
+    <div class="section-header">
+      {#if event}
+      <p class="section-subtitle">
+        <a href="/event/{event.id}" class="hd-link">← {i18n:events_scenario_back_to_event(event.title)}</a>
+      </p>
+      {/if}
+      <h1 class="public-title">{scenario.name}</h1>
     </div>
 
-    {#if talks.isEmpty()}
-    <p class="event-description">No hay charlas publicadas para este escenario todavía.</p>
-    {#else}
-    <ul class="talk-list">
-      {#for t in talks}
-      <li class="card talk-card">
-        <h3 class="talk-title">{t.name}</h3>
-
-        {#if !t.break && !t.speakers.isEmpty()}
-        <div class="speaker-avatars">
-          {#for s in t.speakers}
-          <a href="/speaker/{s.id}" title="{s.name}" style="text-decoration: none;">
-            {#if app:validUrl(s.photoUrl)}
-            <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
-            {#else}
-            <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
-            {/if}
-          </a>
-          {/for}
-        </div>
-        {/if}
-
-        <div class="chips">
-          <span class="chip">Día {t.day}</span>
-          {#if t.startTimeStr}<span class="chip">{t.startTimeStr}</span>{/if}
-          {#if t.durationMinutes > 0}<span class="chip">{t.durationMinutes} min</span>{/if}
-        </div>
-
-        {#if !t.break && event}
-        <a href="/talk/{t.id}" class="btn-primary" style="margin-top: 0.8rem; display: inline-flex;">
-          Ver charla
-        </a>
-        {/if}
-      </li>
-      {/for}
-    </ul>
+    {#if scenario.location}
+    <p class="section-subtitle">
+      <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
+      {scenario.location}
+    </p>
     {/if}
-  </article>
+
+    {#if scenario.features}
+    <p class="section-subtitle">{scenario.features}</p>
+    {/if}
+  </header>
+
+  <section class="page-grid">
+    <article class="section-card scenario-shell-card scenario-full-width">
+      <div class="section-header">
+        <h2>{i18n:events_scenario_talks_title}</h2>
+        <span class="badge">{i18n:events_scenario_sessions_count(talks.size)}</span>
+      </div>
+
+      {#if talks.isEmpty()}
+      <p class="hd-empty-callout">{i18n:events_scenario_no_talks}</p>
+      {#else}
+      <div class="scenario-talk-grid">
+        {#for t in talks}
+        <article class="section-card scenario-talk-item">
+          <h3 class="scenario-talk-title">{t.name}</h3>
+
+          {#if !t.break && !t.speakers.isEmpty()}
+          <div class="speaker-avatars">
+            {#for s in t.speakers}
+            <a href="/speaker/{s.id}{#if event}?event={event.id}{/if}" title="{s.name}" class="hd-link">
+              {#if app:validUrl(s.photoUrl)}
+              <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
+              {#else}
+              <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
+              {/if}
+            </a>
+            {/for}
+          </div>
+          {/if}
+
+          <div class="scenario-talk-meta">
+            <span class="badge">{i18n:talk_chip_day(t.day)}</span>
+            {#if t.startTimeStr}<span class="badge">{t.startTimeStr}</span>{/if}
+            {#if t.durationMinutes > 0}<span class="badge">{i18n:talk_duration_minutes(t.durationMinutes)}</span>{/if}
+          </div>
+
+          {#if !t.break && event}
+          <a href="/talk/{t.id}" class="btn-primary scenario-talk-action">
+            {i18n:events_scenario_view_talk}
+          </a>
+          {/if}
+        </article>
+        {/for}
+      </div>
+      {/if}
+    </article>
+  </section>
 </section>
 {#else}
-<div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 45vh;">
-  <div class="section-card" style="text-align: center;">
-    <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">podium</span>
-    <h2>Escenario no encontrado</h2>
-    <p>No pudimos encontrar el escenario solicitado.</p>
-    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">Volver a Eventos</a>
+<div class="page-container">
+  <div class="section-card scenario-empty-card">
+    <span class="material-symbols-outlined">podium</span>
+    <h2>{i18n:events_scenario_not_found_heading}</h2>
+    <p>{i18n:events_scenario_not_found_desc}</p>
+    <a href="/eventos" class="btn-primary">{i18n:events_scenario_back_to_events}</a>
   </div>
 </div>
 {/if}

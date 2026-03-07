@@ -15,6 +15,9 @@ public class PublicExperienceSmokeTest {
   private static final int HOME_HTML_BUDGET_BYTES = 120_000;
   private static final int COMMUNITY_HTML_BUDGET_BYTES = 240_000;
   private static final int COMMUNITY_BOARD_HTML_BUDGET_BYTES = 200_000;
+  private static final int EVENTS_HTML_BUDGET_BYTES = 160_000;
+  private static final int PROJECTS_HTML_BUDGET_BYTES = 220_000;
+  private static final int BETA_HTML_BUDGET_BYTES = 200_000;
 
   @Test
   void homePageAvoidsKnownRuntimeRegressionPatterns() {
@@ -23,6 +26,7 @@ public class PublicExperienceSmokeTest {
     assertTrue(html.contains("data-login-return-current=\"true\""));
     assertFalse(html.contains("canva-theme-v2.css"));
     assertFalse(html.contains("/js/retro-theme.js"));
+    assertRuntimeBootstrapGuardrails(html);
   }
 
   @Test
@@ -32,6 +36,7 @@ public class PublicExperienceSmokeTest {
     assertTrue(html.contains("data-login-return-current=\"true\""));
     assertFalse(html.contains("canva-theme-v2.css"));
     assertFalse(html.contains("/js/retro-theme.js"));
+    assertRuntimeBootstrapGuardrails(html);
   }
 
   @Test
@@ -40,6 +45,34 @@ public class PublicExperienceSmokeTest {
         fetchHtmlWithBudget("/comunidad/board/discord-users", COMMUNITY_BOARD_HTML_BUDGET_BYTES);
     assertTrue(html.contains("window.userAuthenticated"));
     assertFalse(html.contains("canva-theme-v2.css"));
+    assertRuntimeBootstrapGuardrails(html);
+  }
+
+  @Test
+  void eventsPageAvoidsKnownRuntimeRegressionPatterns() {
+    String html = fetchHtmlWithBudget("/eventos", EVENTS_HTML_BUDGET_BYTES);
+    assertTrue(html.contains("window.userAuthenticated"));
+    assertFalse(html.contains("canva-theme-v2.css"));
+    assertFalse(html.contains("/js/retro-theme.js"));
+    assertRuntimeBootstrapGuardrails(html);
+  }
+
+  @Test
+  void projectsPageAvoidsKnownRuntimeRegressionPatterns() {
+    String html = fetchHtmlWithBudget("/proyectos", PROJECTS_HTML_BUDGET_BYTES);
+    assertTrue(html.contains("window.userAuthenticated"));
+    assertFalse(html.contains("canva-theme-v2.css"));
+    assertFalse(html.contains("/js/retro-theme.js"));
+    assertRuntimeBootstrapGuardrails(html);
+  }
+
+  @Test
+  void betaPageAvoidsKnownRuntimeRegressionPatterns() {
+    String html = fetchHtmlWithBudget("/beta", BETA_HTML_BUDGET_BYTES);
+    assertTrue(html.contains("window.userAuthenticated"));
+    assertFalse(html.contains("canva-theme-v2.css"));
+    assertFalse(html.contains("/js/retro-theme.js"));
+    assertRuntimeBootstrapGuardrails(html);
   }
 
   @Test
@@ -61,5 +94,24 @@ public class PublicExperienceSmokeTest {
         html.length() <= budgetBytes,
         () -> "HTML payload over budget for " + path + ": " + html.length() + " bytes");
     return html;
+  }
+
+  private void assertRuntimeBootstrapGuardrails(String html) {
+    int bootstrapIndex = html.indexOf("window.userAuthenticated");
+    int appScriptIndex = html.indexOf("/js/app.js");
+    assertTrue(bootstrapIndex >= 0, "Missing userAuthenticated bootstrap script");
+    assertTrue(appScriptIndex >= 0, "Missing app.js include");
+    assertTrue(
+        bootstrapIndex < appScriptIndex,
+        "userAuthenticated bootstrap must appear before app.js include");
+    assertSingleOccurrence(html, "/js/homedir.js");
+    assertSingleOccurrence(html, "/js/app.js");
+  }
+
+  private void assertSingleOccurrence(String content, String needle) {
+    int first = content.indexOf(needle);
+    assertTrue(first >= 0, "Missing required asset reference: " + needle);
+    int second = content.indexOf(needle, first + needle.length());
+    assertTrue(second < 0, "Duplicate asset reference detected: " + needle);
   }
 }

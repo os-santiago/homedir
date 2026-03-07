@@ -1,0 +1,373 @@
+{#include layout/main}
+{#title}{i18n:admin_insights_title}{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <p class="section-subtitle">{i18n:admin_insights_subtitle}</p>
+        <h1 class="page-title">{i18n:admin_insights_heading}</h1>
+      </div>
+      <div class="action-group">
+        <a href="/private/admin" class="btn btn-secondary">{i18n:admin_insights_back_to_panel}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="page-grid">
+    <div class="card">
+      <h2 class="card-title">{i18n:admin_insights_ledger_status_title}</h2>
+      <div id="insightsStatus" class="form-hint">{i18n:admin_insights_loading}</div>
+      <div class="action-group" style="margin-top: 0.8rem;">
+        <button id="insightsRefreshBtn" type="button" class="btn btn-secondary">{i18n:admin_insights_refresh}</button>
+        <a href="/api/private/admin/insights/initiatives/export.csv" class="btn btn-secondary">{i18n:admin_insights_export_csv}</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">{i18n:admin_insights_start_initiative_title}</h2>
+      <form id="insightsStartForm" class="form-group" style="display:grid; gap:0.6rem;">
+        <input id="initiativeId" class="form-input" placeholder="{i18n:admin_insights_initiative_id_placeholder}" maxlength="120" required />
+        <input id="initiativeTitle" class="form-input" placeholder="{i18n:admin_insights_initiative_title_placeholder}" maxlength="240" required />
+        <input id="initiativeStartedAt" class="form-input" placeholder="{i18n:admin_insights_started_at_placeholder}" />
+        <button type="submit" class="btn btn-primary">{i18n:admin_insights_start}</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">{i18n:admin_insights_append_event_title}</h2>
+      <form id="insightsEventForm" class="form-group" style="display:grid; gap:0.6rem;">
+        <input id="eventInitiativeId" class="form-input" placeholder="{i18n:admin_insights_event_initiative_placeholder}" maxlength="120" required />
+        <input id="eventType" class="form-input" placeholder="{i18n:admin_insights_event_type_placeholder}" maxlength="64" required />
+        <input id="eventPr" class="form-input" placeholder="{i18n:admin_insights_event_pr_placeholder}" maxlength="64" />
+        <input id="eventSha" class="form-input" placeholder="{i18n:admin_insights_event_sha_placeholder}" maxlength="120" />
+        <button type="submit" class="btn btn-primary">{i18n:admin_insights_append}</button>
+      </form>
+      <p id="insightsMessage" class="form-hint" style="margin-top:0.6rem;"></p>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2 class="card-title">{i18n:admin_insights_initiatives_title}</h2>
+      <div id="insightsInitiatives" class="form-hint">{i18n:admin_insights_loading}</div>
+    </div>
+  </div>
+</div>
+
+<div id="insightsI18n"
+     data-request-failed="{i18n:admin_insights_js_request_failed}"
+     data-yes="{i18n:admin_insights_js_yes}"
+     data-no="{i18n:admin_insights_js_no}"
+     data-na="{i18n:admin_insights_js_na}"
+     data-status-enabled="{i18n:admin_insights_js_status_enabled}"
+     data-status-ledger="{i18n:admin_insights_js_status_ledger}"
+     data-status-events="{i18n:admin_insights_js_status_events}"
+     data-status-initiatives="{i18n:admin_insights_js_status_initiatives}"
+     data-status-started="{i18n:admin_insights_js_status_started}"
+     data-status-merged="{i18n:admin_insights_js_status_merged}"
+     data-status-prod-verified="{i18n:admin_insights_js_status_prod_verified}"
+     data-status-avg-merge="{i18n:admin_insights_js_status_avg_merge}"
+     data-status-avg-prod="{i18n:admin_insights_js_status_avg_prod}"
+     data-status-pr-validation-passed="{i18n:admin_insights_js_status_pr_validation_passed}"
+     data-status-pr-validation-failed="{i18n:admin_insights_js_status_pr_validation_failed}"
+     data-status-pr-validation-success-rate="{i18n:admin_insights_js_status_pr_validation_success_rate}"
+     data-status-prod-release-failed="{i18n:admin_insights_js_status_prod_release_failed}"
+     data-status-prod-success-rate="{i18n:admin_insights_js_status_prod_success_rate}"
+     data-status-events-last-7d="{i18n:admin_insights_js_status_events_last_7d}"
+     data-status-events-previous-7d="{i18n:admin_insights_js_status_events_previous_7d}"
+     data-status-events-trend="{i18n:admin_insights_js_status_events_trend}"
+     data-status-active-initiatives-7d="{i18n:admin_insights_js_status_active_initiatives_7d}"
+     data-status-top-event-types-7d="{i18n:admin_insights_js_status_top_event_types_7d}"
+     data-no-top-event-types="{i18n:admin_insights_js_no_top_event_types}"
+     data-status-minutes-since-last="{i18n:admin_insights_js_status_minutes_since_last}"
+     data-status-freshness="{i18n:admin_insights_js_status_freshness}"
+     data-status-freshness-healthy="{i18n:admin_insights_js_status_freshness_healthy}"
+     data-status-freshness-stale="{i18n:admin_insights_js_status_freshness_stale}"
+     data-status-last-event="{i18n:admin_insights_js_status_last_event}"
+     data-status-compactions="{i18n:admin_insights_js_status_compactions}"
+     data-status-load-errors="{i18n:admin_insights_js_status_load_errors}"
+     data-status-write-errors="{i18n:admin_insights_js_status_write_errors}"
+     data-hours-suffix="{i18n:admin_insights_js_hours_suffix}"
+     data-minutes-suffix="{i18n:admin_insights_js_minutes_suffix}"
+     data-no-initiatives="{i18n:admin_insights_js_no_initiatives}"
+     data-load-more="{i18n:admin_insights_js_load_more}"
+     data-all-loaded="{i18n:admin_insights_js_all_loaded}"
+     data-table-initiative="{i18n:admin_insights_js_table_initiative}"
+     data-table-title="{i18n:admin_insights_js_table_title}"
+     data-table-state="{i18n:admin_insights_js_table_state}"
+     data-table-events="{i18n:admin_insights_js_table_events}"
+     data-table-lead-merge="{i18n:admin_insights_js_table_lead_merge}"
+     data-table-lead-prod="{i18n:admin_insights_js_table_lead_prod}"
+     data-table-last-type="{i18n:admin_insights_js_table_last_type}"
+     data-table-last-update="{i18n:admin_insights_js_table_last_update}"
+     data-state-active="{i18n:admin_insights_js_state_active}"
+     data-started="{i18n:admin_insights_js_started}"
+     data-could-not-start="{i18n:admin_insights_js_could_not_start}"
+     data-appended="{i18n:admin_insights_js_appended}"
+     data-could-not-append="{i18n:admin_insights_js_could_not_append}"
+     style="display:none"></div>
+<div class="container">
+  <div class="action-group" style="margin-top:0.8rem;">
+    <button id="insightsLoadMoreBtn" type="button" class="btn btn-secondary">{i18n:admin_insights_js_load_more}</button>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const PAGE_SIZE = 50;
+    const statusEl = document.getElementById('insightsStatus');
+    const initiativesEl = document.getElementById('insightsInitiatives');
+    const messageEl = document.getElementById('insightsMessage');
+    const refreshBtn = document.getElementById('insightsRefreshBtn');
+    const loadMoreBtn = document.getElementById('insightsLoadMoreBtn');
+    const startForm = document.getElementById('insightsStartForm');
+    const eventForm = document.getElementById('insightsEventForm');
+    const i18nEl = document.getElementById('insightsI18n');
+    const i18n = i18nEl ? i18nEl.dataset : {};
+    let initiativesOffset = 0;
+    let initiativesDone = false;
+    let initiativesCache = [];
+
+    function showMessage(text, isError) {
+      if (!messageEl) return;
+      messageEl.textContent = text || '';
+      messageEl.style.color = isError ? 'var(--color-danger, #ff8b8b)' : 'var(--color-accent, #ffd54f)';
+    }
+
+    async function readJson(url, options) {
+      const response = await fetch(url, options || { headers: { Accept: 'application/json' } });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = payload && payload.message ? payload.message : i18n.requestFailed;
+        throw new Error(message);
+      }
+      return payload;
+    }
+
+    function formatHours(value) {
+      if (value == null) {
+        return i18n.na;
+      }
+      return String(value) + (i18n.hoursSuffix || 'h');
+    }
+
+    function formatPercent(value) {
+      if (value == null) {
+        return i18n.na;
+      }
+      return String(value) + '%';
+    }
+
+    function formatSignedPercent(value) {
+      if (value == null) {
+        return i18n.na;
+      }
+      const n = Number(value);
+      if (Number.isNaN(n)) {
+        return i18n.na;
+      }
+      const prefix = n > 0 ? '+' : '';
+      return prefix + String(n) + '%';
+    }
+
+    function formatMinutes(value) {
+      if (value == null) {
+        return i18n.na;
+      }
+      return String(value) + (i18n.minutesSuffix || 'min');
+    }
+
+    function formatTopEventTypes(topTypes) {
+      if (!topTypes || typeof topTypes !== 'object') {
+        return i18n.noTopEventTypes || i18n.na;
+      }
+      const entries = Object.entries(topTypes)
+        .filter((entry) => entry && entry.length === 2);
+      if (entries.length === 0) {
+        return i18n.noTopEventTypes || i18n.na;
+      }
+      return entries.map((entry) => String(entry[0]) + '=' + String(entry[1])).join(', ');
+    }
+
+    function updateLoadMoreState() {
+      if (!loadMoreBtn) return;
+      const noItems = initiativesCache.length === 0;
+      loadMoreBtn.disabled = initiativesDone || noItems;
+      loadMoreBtn.textContent = initiativesDone ? i18n.allLoaded : i18n.loadMore;
+      loadMoreBtn.style.display = noItems ? 'none' : '';
+    }
+
+    function renderStatus(status) {
+      if (!statusEl || !status) return;
+      const na = i18n.na;
+      const yes = i18n.yes;
+      const no = i18n.no;
+      const lastEvent = status.lastEventAt ? new Date(status.lastEventAt).toLocaleString() : na;
+      const freshness = status.stale ? i18n.statusFreshnessStale : i18n.statusFreshnessHealthy;
+      statusEl.innerHTML = [
+        '<strong>' + i18n.statusEnabled + ':</strong> ' + (status.enabled ? yes : no),
+        '<strong>' + i18n.statusLedger + ':</strong> ' + (status.ledgerPath || na),
+        '<strong>' + i18n.statusEvents + ':</strong> ' + status.storedEvents + ' / ' + status.maxEntries,
+        '<strong>' + i18n.statusInitiatives + ':</strong> ' + status.initiatives,
+        '<strong>' + i18n.statusStarted + ':</strong> ' + (status.startedInitiatives || 0),
+        '<strong>' + i18n.statusMerged + ':</strong> ' + (status.mergedInitiatives || 0),
+        '<strong>' + i18n.statusProdVerified + ':</strong> ' + (status.productionVerifiedInitiatives || 0),
+        '<strong>' + i18n.statusPrValidationPassed + ':</strong> ' + (status.prValidationPassedEvents || 0),
+        '<strong>' + i18n.statusPrValidationFailed + ':</strong> ' + (status.prValidationFailedEvents || 0),
+        '<strong>' + i18n.statusPrValidationSuccessRate + ':</strong> ' + formatPercent(status.prValidationSuccessRatePct),
+        '<strong>' + i18n.statusProdReleaseFailed + ':</strong> ' + (status.productionReleaseFailedEvents || 0),
+        '<strong>' + i18n.statusProdSuccessRate + ':</strong> ' + formatPercent(status.productionSuccessRatePct),
+        '<strong>' + i18n.statusEventsLast7d + ':</strong> ' + (status.eventsLast7Days || 0),
+        '<strong>' + i18n.statusEventsPrevious7d + ':</strong> ' + (status.eventsPrevious7Days || 0),
+        '<strong>' + i18n.statusEventsTrend + ':</strong> ' + formatSignedPercent(status.eventsTrendPct),
+        '<strong>' + i18n.statusActiveInitiatives7d + ':</strong> ' + (status.activeInitiativesLast7Days || 0),
+        '<strong>' + i18n.statusTopEventTypes7d + ':</strong> ' + formatTopEventTypes(status.topEventTypesLast7Days),
+        '<strong>' + i18n.statusMinutesSinceLast + ':</strong> ' + formatMinutes(status.minutesSinceLastEvent),
+        '<strong>' + i18n.statusFreshness + ':</strong> ' + freshness,
+        '<strong>' + i18n.statusAvgMerge + ':</strong> ' + formatHours(status.avgLeadHoursToMerge),
+        '<strong>' + i18n.statusAvgProd + ':</strong> ' + formatHours(status.avgLeadHoursToProduction),
+        '<strong>' + i18n.statusLastEvent + ':</strong> ' + lastEvent,
+        '<strong>' + i18n.statusCompactions + ':</strong> ' + status.compactions,
+        '<strong>' + i18n.statusLoadErrors + ':</strong> ' + status.loadErrors,
+        '<strong>' + i18n.statusWriteErrors + ':</strong> ' + status.writeErrors
+      ].join('<br>');
+    }
+
+    function renderInitiatives(items) {
+      if (!initiativesEl) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        initiativesEl.textContent = i18n.noInitiatives;
+        updateLoadMoreState();
+        return;
+      }
+      const na = i18n.na;
+      const rows = items.map((item) => {
+        const last = item.lastEventAt ? new Date(item.lastEventAt).toLocaleString() : na;
+        const leadMerge = item.leadHoursToMerge != null ? item.leadHoursToMerge : na;
+        const leadProd = item.leadHoursToProduction != null ? item.leadHoursToProduction : na;
+        return '<tr>'
+          + '<td>' + item.initiativeId + '</td>'
+          + '<td>' + (item.title || item.initiativeId) + '</td>'
+          + '<td>' + (item.state || i18n.stateActive) + '</td>'
+          + '<td>' + (item.totalEvents || 0) + '</td>'
+          + '<td>' + leadMerge + '</td>'
+          + '<td>' + leadProd + '</td>'
+          + '<td>' + (item.lastEventType || na) + '</td>'
+          + '<td>' + last + '</td>'
+          + '</tr>';
+      }).join('');
+      initiativesEl.innerHTML =
+        '<table class="table" style="font-size: 0.9rem;">'
+        + '<thead><tr>'
+        + '<th style="text-align:left;">' + i18n.tableInitiative + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableTitle + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableState + '</th>'
+        + '<th style="text-align:right;">' + i18n.tableEvents + '</th>'
+        + '<th style="text-align:right;">' + i18n.tableLeadMerge + '</th>'
+        + '<th style="text-align:right;">' + i18n.tableLeadProd + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableLastType + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableLastUpdate + '</th>'
+        + '</tr></thead>'
+        + '<tbody>' + rows + '</tbody>'
+        + '</table>';
+      updateLoadMoreState();
+    }
+
+    async function fetchInitiatives(offset) {
+      const query = '/api/private/admin/insights/initiatives?limit=' + PAGE_SIZE + '&offset=' + offset;
+      return readJson(query);
+    }
+
+    async function loadMoreInitiatives() {
+      if (initiativesDone) return;
+      if (loadMoreBtn) loadMoreBtn.disabled = true;
+      const next = await fetchInitiatives(initiativesOffset);
+      const rows = Array.isArray(next) ? next : [];
+      if (rows.length === 0) {
+        initiativesDone = true;
+      } else {
+        initiativesCache = initiativesCache.concat(rows);
+        initiativesOffset += rows.length;
+        if (rows.length < PAGE_SIZE) {
+          initiativesDone = true;
+        }
+      }
+      renderInitiatives(initiativesCache);
+    }
+
+    async function refresh() {
+      showMessage('', false);
+      initiativesOffset = 0;
+      initiativesDone = false;
+      initiativesCache = [];
+      const [status, initiatives] = await Promise.all([
+        readJson('/api/private/admin/insights/status'),
+        fetchInitiatives(0)
+      ]);
+      renderStatus(status);
+      initiativesCache = Array.isArray(initiatives) ? initiatives : [];
+      initiativesOffset = initiativesCache.length;
+      if (initiativesCache.length < PAGE_SIZE) {
+        initiativesDone = true;
+      }
+      renderInitiatives(initiativesCache);
+    }
+
+    async function onStartSubmit(event) {
+      event.preventDefault();
+      const payload = {
+        initiativeId: document.getElementById('initiativeId').value,
+        title: document.getElementById('initiativeTitle').value,
+        definitionStartedAt: document.getElementById('initiativeStartedAt').value || null,
+        metadata: {}
+      };
+      try {
+        await readJson('/api/private/admin/insights/initiatives/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        showMessage(i18n.started, false);
+        startForm.reset();
+        await refresh();
+      } catch (error) {
+        showMessage(error.message || i18n.couldNotStart, true);
+      }
+    }
+
+    async function onEventSubmit(event) {
+      event.preventDefault();
+      const metadata = {};
+      const pr = document.getElementById('eventPr').value.trim();
+      const sha = document.getElementById('eventSha').value.trim();
+      if (pr) metadata.pr = pr;
+      if (sha) metadata.sha = sha;
+      const payload = {
+        initiativeId: document.getElementById('eventInitiativeId').value,
+        type: document.getElementById('eventType').value,
+        metadata
+      };
+      try {
+        await readJson('/api/private/admin/insights/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        showMessage(i18n.appended, false);
+        eventForm.reset();
+        await refresh();
+      } catch (error) {
+        showMessage(error.message || i18n.couldNotAppend, true);
+      }
+    }
+
+    refreshBtn?.addEventListener('click', () => refresh().catch((error) => showMessage(error.message, true)));
+    loadMoreBtn?.addEventListener('click', () => loadMoreInitiatives().catch((error) => showMessage(error.message, true)));
+    startForm?.addEventListener('submit', onStartSubmit);
+    eventForm?.addEventListener('submit', onEventSubmit);
+    refresh().catch((error) => showMessage(error.message, true));
+  })();
+</script>
+{/body}
+{/include}

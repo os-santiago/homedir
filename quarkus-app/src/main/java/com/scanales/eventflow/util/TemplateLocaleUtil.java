@@ -11,7 +11,7 @@ import java.util.Set;
 public final class TemplateLocaleUtil {
 
   private static final Set<String> SUPPORTED_LANGS = Set.of("en", "es");
-  private static final String DEFAULT_LANG = "en";
+  private static final String DEFAULT_LANG = "es";
 
   private TemplateLocaleUtil() {}
 
@@ -21,9 +21,18 @@ public final class TemplateLocaleUtil {
 
   public static TemplateInstance apply(
       TemplateInstance templateInstance, String localeCode, HttpHeaders headers) {
-    String normalized = normalizeOrNull(localeCode);
+    String normalized = resolve(localeCode, headers);
+    Locale locale = Locale.forLanguageTag(normalized);
+    return templateInstance
+        .setLocale(locale)
+        .data("resolvedLocaleCode", normalized)
+        .data("locale", locale);
+  }
+
+  public static String resolve(String localeCode, HttpHeaders headers) {
+    String normalized = normalizeOrNull(resolveProfileLocale());
     if (normalized == null) {
-      normalized = normalizeOrNull(resolveProfileLocale());
+      normalized = normalizeOrNull(localeCode);
     }
     if (normalized == null) {
       normalized = normalizeFromHeaders(headers);
@@ -31,11 +40,7 @@ public final class TemplateLocaleUtil {
     if (normalized == null) {
       normalized = DEFAULT_LANG;
     }
-    Locale locale = Locale.forLanguageTag(normalized);
-    return templateInstance
-        .setLocale(locale)
-        .data("resolvedLocaleCode", normalized)
-        .data("locale", locale);
+    return normalized;
   }
 
   public static String normalize(String localeCode) {

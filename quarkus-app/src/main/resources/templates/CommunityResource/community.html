@@ -5,7 +5,8 @@
 {@ int homedirUsers = 0}
 {@ int githubUsers = 0}
 {@ int discordUsers = 0}
-{#include layout/main activePage="comunidad"}
+{@ int discordOnlineUsers = 0}
+{#include layout/main activePage="comunidad" noLoginModal=true}
 {#title}{i18n:community_page_title}{/title}
 {#head}
   <link rel="stylesheet" href="/css/community-page.css?v={app:version()}" />
@@ -24,7 +25,6 @@
     {#if activeCommunitySubmenu == 'lta'}
     <div class="section-card events-full-width community-shell-card">
       <div class="section-header community-section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:community_page_eyebrow}</p>
         <h2 class="page-title">{i18n:home_lightning_title_aka}</h2>
       </div>
       <section id="community-lta" class="home-lightning-strip community-lta-shell" aria-label="{i18n:home_lightning_title}">
@@ -134,7 +134,6 @@
         data-i18n-cta-vote-ready="{i18n:community_js_cta_vote_ready}"
         data-i18n-empty-no-votes="{i18n:community_js_empty_no_votes}">
         <div class="section-header community-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:community_page_eyebrow}</p>
           <h2 class="page-title">{i18n:community_submenu_picks}</h2>
         </div>
         <div id="community-feedback" class="community-feedback hidden" role="alert"></div>
@@ -149,6 +148,14 @@
         </section>
         <section id="community-personal-empty" class="community-personal-empty" aria-live="polite">
           <p>{i18n:community_js_empty_no_votes}</p>
+        </section>
+        {#else}
+        <section id="community-activation-guest" class="community-activation" aria-live="polite">
+          <div class="community-activation-copy">
+            <strong>{i18n:community_js_cta_vote_title}</strong>
+            <p>{i18n:community_vote_guest_desc}</p>
+          </div>
+          <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/picks" data-login-return-current="true">{i18n:community_login}</a>
         </section>
         {/if}
 
@@ -165,6 +172,12 @@
             <span class="community-pulse-label">{i18n:community_pulse_discord_users}</span>
             <strong class="community-pulse-value">{discordUsers}</strong>
           </a>
+          <div class="community-pulse-card community-pulse-card-discord-preview">
+            <span class="community-pulse-label">{i18n:community_discord_preview_label}</span>
+            <strong class="community-pulse-value">{discordOnlineUsers}</strong>
+            <small class="community-pulse-meta">{i18n:community_discord_preview_online}</small>
+            <a href="/comunidad/board/discord-users" class="community-discord-preview-link">{i18n:community_discord_preview_cta}</a>
+          </div>
           <div class="community-pulse-card community-pulse-card-neutral">
             <span class="community-pulse-label">{i18n:community_pulse_curated_picks}</span>
             <strong id="community-content-total" class="community-pulse-value">0</strong>
@@ -250,6 +263,10 @@
 
         <div id="community-empty" class="community-empty hidden">
           <p>{i18n:community_empty_no_content}</p>
+          <div class="community-empty-actions">
+            <a class="btn-primary" href="/comunidad/lta">{i18n:community_empty_cta_lta}</a>
+            <a class="btn-primary" href="/comunidad/propose">{i18n:community_empty_cta_propose}</a>
+          </div>
         </div>
 
         <div id="community-list" class="community-list"></div>
@@ -396,5 +413,3 @@
 <script src="/js/community-submissions.js?v={app:version()}" defer></script>
 {/body}
 {/include}
-
-
