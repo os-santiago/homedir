@@ -138,11 +138,12 @@
         {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
         {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
         {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+        {#case 'presentations'}{i18n:events_cfp_timeline_stage_presentations}{/case}
         {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
         {#else}{stage.key}{/else}
         {/switch}
       </p>
-      <p class="cfp-journey-stage-dates">{stage.fromLabel} → {stage.toLabel}</p>
+      <p class="cfp-journey-stage-dates">{#if stage.fromLabel eq stage.toLabel}{stage.fromLabel}{#else}{stage.fromLabel} → {stage.toLabel}{/if}</p>
     </article>
     {/for}
   </div>
@@ -275,11 +276,12 @@
             {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
             {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
             {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+            {#case 'presentations'}{i18n:events_cfp_timeline_stage_presentations}{/case}
             {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
             {#else}{stage.key}{/else}
             {/switch}
           </p>
-          <p class="cfp-journey-stage-dates">{stage.fromLabel} → {stage.toLabel}</p>
+          <p class="cfp-journey-stage-dates">{#if stage.fromLabel eq stage.toLabel}{stage.fromLabel}{#else}{stage.fromLabel} → {stage.toLabel}{/if}</p>
         </article>
         {/for}
       </div>

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class CfpTimelinePlannerTest {
 
   @Test
-  void buildsProportionalTimelineWithFourStages() {
+  void buildsProportionalTimelineWithMilestonesAndEventWindow() {
     ZoneId zone = ZoneId.of("America/Santiago");
     Event event = new Event("devopsdays-santiago-2026", "DevOpsDays Santiago 2026", "CFP timeline");
     event.setDate(LocalDate.of(2026, 10, 10));
@@ -31,16 +31,18 @@ class CfpTimelinePlannerTest {
         CfpTimelinePlanner.build(event, opensAt, closesAt, Locale.ENGLISH, now).orElseThrow();
 
     List<CfpTimelineStageView> stages = timeline.stages();
-    assertEquals(4, stages.size());
+    assertEquals(5, stages.size());
     assertEquals("cfp", stages.get(0).key());
     assertEquals("evaluation", stages.get(1).key());
     assertEquals("results", stages.get(2).key());
-    assertEquals("event", stages.get(3).key());
+    assertEquals("presentations", stages.get(3).key());
+    assertEquals("event", stages.get(4).key());
     assertTrue(stages.stream().allMatch(stage -> stage.flexDays() > 0));
-    assertTrue(stages.get(2).active());
+    assertTrue(stages.get(3).active());
     assertFalse(stages.get(0).active());
     assertFalse(stages.get(1).active());
-    assertFalse(stages.get(3).active());
+    assertFalse(stages.get(2).active());
+    assertFalse(stages.get(4).active());
   }
 
   @Test
@@ -56,7 +58,7 @@ class CfpTimelinePlannerTest {
             .build(event, null, null, Locale.forLanguageTag("es"), ZonedDateTime.now(zone).toInstant())
             .orElseThrow();
 
-    assertEquals(4, timeline.stages().size());
+    assertEquals(5, timeline.stages().size());
     assertFalse(timeline.fromLabel().isBlank());
     assertFalse(timeline.toLabel().isBlank());
   }
