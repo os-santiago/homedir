@@ -145,6 +145,8 @@ public class DevelopmentInsightsLedgerService {
           countLeadProd++;
         }
       }
+      int prValidationTotalCount = prValidationPassedCount + prValidationFailedCount;
+      int productionOutcomeTotalCount = prodVerifiedCount + productionReleaseFailedCount;
       return new DevelopmentInsightsStatus(
           enabled,
           ledgerPath != null ? ledgerPath.toString() : "",
@@ -158,6 +160,10 @@ public class DevelopmentInsightsLedgerService {
           prValidationPassedCount,
           prValidationFailedCount,
           productionReleaseFailedCount,
+          prValidationTotalCount,
+          percentage(prValidationPassedCount, prValidationTotalCount),
+          productionOutcomeTotalCount,
+          percentage(prodVerifiedCount, productionOutcomeTotalCount),
           averageHours(sumLeadMerge, countLeadMerge),
           averageHours(sumLeadProd, countLeadProd),
           lastEventAt,
@@ -558,5 +564,12 @@ public class DevelopmentInsightsLedgerService {
       return null;
     }
     return Math.round((double) sum / (double) count);
+  }
+
+  private static Long percentage(int numerator, int denominator) {
+    if (denominator <= 0) {
+      return null;
+    }
+    return Math.round(((double) numerator * 100d) / (double) denominator);
   }
 }
