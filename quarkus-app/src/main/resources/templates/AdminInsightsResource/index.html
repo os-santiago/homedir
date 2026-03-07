@@ -63,6 +63,9 @@
      data-status-ledger="{i18n:admin_insights_js_status_ledger}"
      data-status-events="{i18n:admin_insights_js_status_events}"
      data-status-initiatives="{i18n:admin_insights_js_status_initiatives}"
+     data-status-started="{i18n:admin_insights_js_status_started}"
+     data-status-merged="{i18n:admin_insights_js_status_merged}"
+     data-status-prod-verified="{i18n:admin_insights_js_status_prod_verified}"
      data-status-last-event="{i18n:admin_insights_js_status_last_event}"
      data-status-compactions="{i18n:admin_insights_js_status_compactions}"
      data-status-load-errors="{i18n:admin_insights_js_status_load_errors}"
@@ -72,6 +75,8 @@
      data-table-title="{i18n:admin_insights_js_table_title}"
      data-table-state="{i18n:admin_insights_js_table_state}"
      data-table-events="{i18n:admin_insights_js_table_events}"
+     data-table-lead-merge="{i18n:admin_insights_js_table_lead_merge}"
+     data-table-lead-prod="{i18n:admin_insights_js_table_lead_prod}"
      data-table-last-type="{i18n:admin_insights_js_table_last_type}"
      data-table-last-update="{i18n:admin_insights_js_table_last_update}"
      data-state-active="{i18n:admin_insights_js_state_active}"
@@ -119,6 +124,9 @@
         '<strong>' + i18n.statusLedger + ':</strong> ' + (status.ledgerPath || na),
         '<strong>' + i18n.statusEvents + ':</strong> ' + status.storedEvents + ' / ' + status.maxEntries,
         '<strong>' + i18n.statusInitiatives + ':</strong> ' + status.initiatives,
+        '<strong>' + i18n.statusStarted + ':</strong> ' + (status.startedInitiatives || 0),
+        '<strong>' + i18n.statusMerged + ':</strong> ' + (status.mergedInitiatives || 0),
+        '<strong>' + i18n.statusProdVerified + ':</strong> ' + (status.productionVerifiedInitiatives || 0),
         '<strong>' + i18n.statusLastEvent + ':</strong> ' + lastEvent,
         '<strong>' + i18n.statusCompactions + ':</strong> ' + status.compactions,
         '<strong>' + i18n.statusLoadErrors + ':</strong> ' + status.loadErrors,
@@ -135,11 +143,15 @@
       const na = i18n.na;
       const rows = items.map((item) => {
         const last = item.lastEventAt ? new Date(item.lastEventAt).toLocaleString() : na;
+        const leadMerge = item.leadHoursToMerge != null ? item.leadHoursToMerge : na;
+        const leadProd = item.leadHoursToProduction != null ? item.leadHoursToProduction : na;
         return '<tr>'
           + '<td>' + item.initiativeId + '</td>'
           + '<td>' + (item.title || item.initiativeId) + '</td>'
           + '<td>' + (item.state || i18n.stateActive) + '</td>'
           + '<td>' + (item.totalEvents || 0) + '</td>'
+          + '<td>' + leadMerge + '</td>'
+          + '<td>' + leadProd + '</td>'
           + '<td>' + (item.lastEventType || na) + '</td>'
           + '<td>' + last + '</td>'
           + '</tr>';
@@ -151,6 +163,8 @@
         + '<th style="text-align:left;">' + i18n.tableTitle + '</th>'
         + '<th style="text-align:left;">' + i18n.tableState + '</th>'
         + '<th style="text-align:right;">' + i18n.tableEvents + '</th>'
+        + '<th style="text-align:right;">' + i18n.tableLeadMerge + '</th>'
+        + '<th style="text-align:right;">' + i18n.tableLeadProd + '</th>'
         + '<th style="text-align:left;">' + i18n.tableLastType + '</th>'
         + '<th style="text-align:left;">' + i18n.tableLastUpdate + '</th>'
         + '</tr></thead>'

@@ -3690,6 +3690,15 @@ public interface AppMessages {
     @Message("Initiatives")
     String admin_insights_js_status_initiatives();
 
+    @Message("Started initiatives")
+    String admin_insights_js_status_started();
+
+    @Message("Merged initiatives")
+    String admin_insights_js_status_merged();
+
+    @Message("Production verified")
+    String admin_insights_js_status_prod_verified();
+
     @Message("Last event")
     String admin_insights_js_status_last_event();
 
@@ -3716,6 +3725,12 @@ public interface AppMessages {
 
     @Message("Events")
     String admin_insights_js_table_events();
+
+    @Message("Lead to merge (h)")
+    String admin_insights_js_table_lead_merge();
+
+    @Message("Lead to production (h)")
+    String admin_insights_js_table_lead_prod();
 
     @Message("Last type")
     String admin_insights_js_table_last_type();

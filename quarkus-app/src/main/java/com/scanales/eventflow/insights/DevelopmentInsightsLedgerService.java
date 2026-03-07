@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayDeque;
@@ -100,6 +101,22 @@ public class DevelopmentInsightsLedgerService {
   public DevelopmentInsightsStatus status() {
     lock.lock();
     try {
+      int startedCount = 0;
+      int mergedCount = 0;
+      int prodVerifiedCount = 0;
+      for (MutableInitiativeSummary summary : initiatives.values()) {
+        String state = summary.state;
+        if ("prod_verified".equals(state)) {
+          prodVerifiedCount++;
+          mergedCount++;
+          startedCount++;
+        } else if ("merged".equals(state)) {
+          mergedCount++;
+          startedCount++;
+        } else if ("started".equals(state)) {
+          startedCount++;
+        }
+      }
       return new DevelopmentInsightsStatus(
           enabled,
           ledgerPath != null ? ledgerPath.toString() : "",
@@ -107,6 +124,9 @@ public class DevelopmentInsightsLedgerService {
           maxEntries,
           events.size(),
           initiatives.size(),
+          startedCount,
+          mergedCount,
+          prodVerifiedCount,
           lastEventAt,
           compactions,
           loadErrors,
@@ -132,7 +152,7 @@ public class DevelopmentInsightsLedgerService {
 
   public DevelopmentInsightsEvent startInitiative(
       String initiativeId, String title, String definitionStartedAt, Map<String, String> extraMetadata) {
-    Map<String, String> metadata = sanitizeMetadata(extraMetadata);
+    Map<String, String> metadata = new LinkedHashMap<>(sanitizeMetadata(extraMetadata));
     if (title != null && !title.isBlank()) {
       metadata.put("title", trimValue(title, 240));
     }
@@ -417,7 +437,10 @@ public class DevelopmentInsightsLedgerService {
     private final String initiativeId;
     private String title;
     private String state = "active";
-    private Instant startedAt;
+    private Instant definitionStartedAt;
+    private Instant prOpenedAt;
+    private Instant prMergedAt;
+    private Instant productionVerifiedAt;
     private Instant lastEventAt;
     private String lastEventType;
     private long totalEvents;
@@ -443,30 +466,55 @@ public class DevelopmentInsightsLedgerService {
       }
       if ("INITIATIVE_STARTED".equals(event.type())) {
         Instant definitionStart = parseInstantSafe(metadata != null ? metadata.get("definition_started_at") : null, event.at());
-        if (startedAt == null || definitionStart.isBefore(startedAt)) {
-          startedAt = definitionStart;
+        if (definitionStartedAt == null || definitionStart.isBefore(definitionStartedAt)) {
+          definitionStartedAt = definitionStart;
         }
         state = "started";
+      } else if ("PR_OPENED".equals(event.type())) {
+        if (prOpenedAt == null || event.at().isBefore(prOpenedAt)) {
+          prOpenedAt = event.at();
+        }
       } else if ("PRODUCTION_VERIFIED".equals(event.type())) {
+        if (productionVerifiedAt == null || event.at().isBefore(productionVerifiedAt)) {
+          productionVerifiedAt = event.at();
+        }
         state = "prod_verified";
       } else if ("PR_MERGED".equals(event.type()) && !"prod_verified".equals(state)) {
+        if (prMergedAt == null || event.at().isBefore(prMergedAt)) {
+          prMergedAt = event.at();
+        }
         state = "merged";
       }
-      if (startedAt == null) {
-        startedAt = event.at();
+      if (definitionStartedAt == null) {
+        definitionStartedAt = event.at();
       }
     }
 
     private InitiativeSummary snapshot() {
+      Long leadToMerge = safeLeadHours(definitionStartedAt, prMergedAt);
+      Long leadToProd = safeLeadHours(definitionStartedAt, productionVerifiedAt);
       return new InitiativeSummary(
           initiativeId,
           title != null ? title : initiativeId,
           state,
-          startedAt,
+          definitionStartedAt,
+          definitionStartedAt,
+          prOpenedAt,
+          prMergedAt,
+          productionVerifiedAt,
+          leadToMerge,
+          leadToProd,
           lastEventAt,
           lastEventType,
           totalEvents);
     }
   }
-}
 
+  private static Long safeLeadHours(Instant from, Instant to) {
+    if (from == null || to == null) {
+      return null;
+    }
+    long hours = Duration.between(from, to).toHours();
+    return Math.max(hours, 0L);
+  }
+}

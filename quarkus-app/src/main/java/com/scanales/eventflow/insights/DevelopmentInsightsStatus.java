@@ -10,9 +10,11 @@ public record DevelopmentInsightsStatus(
     int maxEntries,
     int storedEvents,
     int initiatives,
+    int startedInitiatives,
+    int mergedInitiatives,
+    int productionVerifiedInitiatives,
     Instant lastEventAt,
     long compactions,
     long loadErrors,
     long writeErrors) {
 }
-
