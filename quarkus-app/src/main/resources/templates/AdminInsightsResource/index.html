@@ -78,11 +78,16 @@
      data-status-events-previous-7d="{i18n:admin_insights_js_status_events_previous_7d}"
      data-status-events-trend="{i18n:admin_insights_js_status_events_trend}"
      data-status-active-initiatives-7d="{i18n:admin_insights_js_status_active_initiatives_7d}"
+     data-status-minutes-since-last="{i18n:admin_insights_js_status_minutes_since_last}"
+     data-status-freshness="{i18n:admin_insights_js_status_freshness}"
+     data-status-freshness-healthy="{i18n:admin_insights_js_status_freshness_healthy}"
+     data-status-freshness-stale="{i18n:admin_insights_js_status_freshness_stale}"
      data-status-last-event="{i18n:admin_insights_js_status_last_event}"
      data-status-compactions="{i18n:admin_insights_js_status_compactions}"
      data-status-load-errors="{i18n:admin_insights_js_status_load_errors}"
      data-status-write-errors="{i18n:admin_insights_js_status_write_errors}"
      data-hours-suffix="{i18n:admin_insights_js_hours_suffix}"
+     data-minutes-suffix="{i18n:admin_insights_js_minutes_suffix}"
      data-no-initiatives="{i18n:admin_insights_js_no_initiatives}"
      data-load-more="{i18n:admin_insights_js_load_more}"
      data-all-loaded="{i18n:admin_insights_js_all_loaded}"
@@ -164,6 +169,13 @@
       return prefix + String(n) + '%';
     }
 
+    function formatMinutes(value) {
+      if (value == null) {
+        return i18n.na;
+      }
+      return String(value) + (i18n.minutesSuffix || 'min');
+    }
+
     function updateLoadMoreState() {
       if (!loadMoreBtn) return;
       const noItems = initiativesCache.length === 0;
@@ -178,6 +190,7 @@
       const yes = i18n.yes;
       const no = i18n.no;
       const lastEvent = status.lastEventAt ? new Date(status.lastEventAt).toLocaleString() : na;
+      const freshness = status.stale ? i18n.statusFreshnessStale : i18n.statusFreshnessHealthy;
       statusEl.innerHTML = [
         '<strong>' + i18n.statusEnabled + ':</strong> ' + (status.enabled ? yes : no),
         '<strong>' + i18n.statusLedger + ':</strong> ' + (status.ledgerPath || na),
@@ -195,6 +208,8 @@
         '<strong>' + i18n.statusEventsPrevious7d + ':</strong> ' + (status.eventsPrevious7Days || 0),
         '<strong>' + i18n.statusEventsTrend + ':</strong> ' + formatSignedPercent(status.eventsTrendPct),
         '<strong>' + i18n.statusActiveInitiatives7d + ':</strong> ' + (status.activeInitiativesLast7Days || 0),
+        '<strong>' + i18n.statusMinutesSinceLast + ':</strong> ' + formatMinutes(status.minutesSinceLastEvent),
+        '<strong>' + i18n.statusFreshness + ':</strong> ' + freshness,
         '<strong>' + i18n.statusAvgMerge + ':</strong> ' + formatHours(status.avgLeadHoursToMerge),
         '<strong>' + i18n.statusAvgProd + ':</strong> ' + formatHours(status.avgLeadHoursToProduction),
         '<strong>' + i18n.statusLastEvent + ':</strong> ' + lastEvent,

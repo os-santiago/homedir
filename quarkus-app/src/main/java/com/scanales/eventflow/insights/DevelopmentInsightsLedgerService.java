@@ -50,6 +50,9 @@ public class DevelopmentInsightsLedgerService {
   @ConfigProperty(name = "insights.ledger.max-entries", defaultValue = "20000")
   int maxEntries;
 
+  @ConfigProperty(name = "insights.ledger.stale-minutes", defaultValue = "1440")
+  long staleMinutesThreshold;
+
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
 
@@ -72,6 +75,9 @@ public class DevelopmentInsightsLedgerService {
     mapper = objectMapper.copy();
     if (maxEntries < 100) {
       maxEntries = 100;
+    }
+    if (staleMinutesThreshold < 1) {
+      staleMinutesThreshold = 1L;
     }
     String sysProp = System.getProperty("homedir.data.dir");
     if (sysProp != null && !sysProp.isBlank()) {
@@ -164,6 +170,8 @@ public class DevelopmentInsightsLedgerService {
       }
       int prValidationTotalCount = prValidationPassedCount + prValidationFailedCount;
       int productionOutcomeTotalCount = prodVerifiedCount + productionReleaseFailedCount;
+      Long minutesSinceLast = minutesSince(lastEventAt, now);
+      boolean staleState = isStale(minutesSinceLast, staleMinutesThreshold);
       return new DevelopmentInsightsStatus(
           enabled,
           ledgerPath != null ? ledgerPath.toString() : "",
@@ -187,6 +195,8 @@ public class DevelopmentInsightsLedgerService {
           eventsPrevious7DaysCount,
           percentageDelta(eventsLast7DaysCount, eventsPrevious7DaysCount),
           activeInitiativesLast7Days.size(),
+          minutesSinceLast,
+          staleState,
           lastEventAt,
           compactions,
           loadErrors,
@@ -599,5 +609,20 @@ public class DevelopmentInsightsLedgerService {
       return null;
     }
     return Math.round((((double) current - (double) previous) * 100d) / (double) previous);
+  }
+
+  private static Long minutesSince(Instant at, Instant now) {
+    if (at == null || now == null) {
+      return null;
+    }
+    long minutes = Duration.between(at, now).toMinutes();
+    return Math.max(minutes, 0L);
+  }
+
+  private static boolean isStale(Long minutesSinceLastEvent, long thresholdMinutes) {
+    if (minutesSinceLastEvent == null) {
+      return true;
+    }
+    return minutesSinceLastEvent > thresholdMinutes;
   }
 }
