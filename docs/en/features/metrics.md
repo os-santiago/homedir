@@ -23,6 +23,11 @@ Homedir records interaction events and persists them asynchronously to provide i
 - **Quality ratios** (admin insights status):
   - PR validation success rate (`passed / total`)
   - Production success rate (`production_verified / (production_verified + release_failed)`)
+- **Short-term delivery trend** (admin insights status):
+  - Events in last 7 days
+  - Events in previous 7 days
+  - Trend delta vs previous 7 days
+  - Active initiatives in last 7 days
 - **CSV export**: Admin insights can be exported from `/api/private/admin/insights/initiatives/export.csv` (admin only).
 
 ## Tracked Events

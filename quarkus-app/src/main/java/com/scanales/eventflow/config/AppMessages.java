@@ -3723,6 +3723,18 @@ public interface AppMessages {
     @Message("Production success rate")
     String admin_insights_js_status_prod_success_rate();
 
+    @Message("Events (last 7d)")
+    String admin_insights_js_status_events_last_7d();
+
+    @Message("Events (previous 7d)")
+    String admin_insights_js_status_events_previous_7d();
+
+    @Message("Event trend vs previous 7d")
+    String admin_insights_js_status_events_trend();
+
+    @Message("Active initiatives (last 7d)")
+    String admin_insights_js_status_active_initiatives_7d();
+
     @Message("Last event")
     String admin_insights_js_status_last_event();
 

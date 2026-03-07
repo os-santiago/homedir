@@ -74,6 +74,10 @@
      data-status-pr-validation-success-rate="{i18n:admin_insights_js_status_pr_validation_success_rate}"
      data-status-prod-release-failed="{i18n:admin_insights_js_status_prod_release_failed}"
      data-status-prod-success-rate="{i18n:admin_insights_js_status_prod_success_rate}"
+     data-status-events-last-7d="{i18n:admin_insights_js_status_events_last_7d}"
+     data-status-events-previous-7d="{i18n:admin_insights_js_status_events_previous_7d}"
+     data-status-events-trend="{i18n:admin_insights_js_status_events_trend}"
+     data-status-active-initiatives-7d="{i18n:admin_insights_js_status_active_initiatives_7d}"
      data-status-last-event="{i18n:admin_insights_js_status_last_event}"
      data-status-compactions="{i18n:admin_insights_js_status_compactions}"
      data-status-load-errors="{i18n:admin_insights_js_status_load_errors}"
@@ -148,6 +152,18 @@
       return String(value) + '%';
     }
 
+    function formatSignedPercent(value) {
+      if (value == null) {
+        return i18n.na;
+      }
+      const n = Number(value);
+      if (Number.isNaN(n)) {
+        return i18n.na;
+      }
+      const prefix = n > 0 ? '+' : '';
+      return prefix + String(n) + '%';
+    }
+
     function updateLoadMoreState() {
       if (!loadMoreBtn) return;
       const noItems = initiativesCache.length === 0;
@@ -175,6 +191,10 @@
         '<strong>' + i18n.statusPrValidationSuccessRate + ':</strong> ' + formatPercent(status.prValidationSuccessRatePct),
         '<strong>' + i18n.statusProdReleaseFailed + ':</strong> ' + (status.productionReleaseFailedEvents || 0),
         '<strong>' + i18n.statusProdSuccessRate + ':</strong> ' + formatPercent(status.productionSuccessRatePct),
+        '<strong>' + i18n.statusEventsLast7d + ':</strong> ' + (status.eventsLast7Days || 0),
+        '<strong>' + i18n.statusEventsPrevious7d + ':</strong> ' + (status.eventsPrevious7Days || 0),
+        '<strong>' + i18n.statusEventsTrend + ':</strong> ' + formatSignedPercent(status.eventsTrendPct),
+        '<strong>' + i18n.statusActiveInitiatives7d + ':</strong> ' + (status.activeInitiativesLast7Days || 0),
         '<strong>' + i18n.statusAvgMerge + ':</strong> ' + formatHours(status.avgLeadHoursToMerge),
         '<strong>' + i18n.statusAvgProd + ':</strong> ' + formatHours(status.avgLeadHoursToProduction),
         '<strong>' + i18n.statusLastEvent + ':</strong> ' + lastEvent,
