@@ -30,6 +30,10 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
   - Eventos en 7 días anteriores
   - Delta de tendencia vs 7 días anteriores
   - Iniciativas activas en últimos 7 días
+  - Eventos en últimos 30 días
+  - Eventos en 30 días anteriores
+  - Delta de tendencia vs 30 días anteriores
+  - Iniciativas activas en últimos 30 días
   - Tipos de evento más frecuentes en últimos 7 días (top 5)
 - **Guardrail de frescura** (estado de admin insights):
   - Minutos desde el último evento

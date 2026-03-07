@@ -30,6 +30,10 @@ Homedir records interaction events and persists them asynchronously to provide i
   - Events in previous 7 days
   - Trend delta vs previous 7 days
   - Active initiatives in last 7 days
+  - Events in last 30 days
+  - Events in previous 30 days
+  - Trend delta vs previous 30 days
+  - Active initiatives in last 30 days
   - Top event types in last 7 days (top 5)
 - **Freshness guardrail** (admin insights status):
   - Minutes since last event
