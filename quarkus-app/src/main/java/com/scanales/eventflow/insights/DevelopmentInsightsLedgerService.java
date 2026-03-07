@@ -20,11 +20,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -107,13 +109,28 @@ public class DevelopmentInsightsLedgerService {
       int prValidationPassedCount = 0;
       int prValidationFailedCount = 0;
       int productionReleaseFailedCount = 0;
+      int eventsLast7DaysCount = 0;
+      int eventsPrevious7DaysCount = 0;
+      Set<String> activeInitiativesLast7Days = new HashSet<>();
       long sumLeadMerge = 0L;
       long sumLeadProd = 0L;
       int countLeadMerge = 0;
       int countLeadProd = 0;
+      Instant now = Instant.now();
+      Instant sevenDaysAgo = now.minus(Duration.ofDays(7));
+      Instant fourteenDaysAgo = now.minus(Duration.ofDays(14));
       for (DevelopmentInsightsEvent event : events) {
         if (event == null || event.type() == null) {
           continue;
+        }
+        Instant eventAt = event.at();
+        if (eventAt != null) {
+          if (!eventAt.isBefore(sevenDaysAgo)) {
+            eventsLast7DaysCount++;
+            activeInitiativesLast7Days.add(event.initiativeId());
+          } else if (!eventAt.isBefore(fourteenDaysAgo)) {
+            eventsPrevious7DaysCount++;
+          }
         }
         if ("PR_VALIDATION_PASSED".equals(event.type())) {
           prValidationPassedCount++;
@@ -166,6 +183,10 @@ public class DevelopmentInsightsLedgerService {
           percentage(prodVerifiedCount, productionOutcomeTotalCount),
           averageHours(sumLeadMerge, countLeadMerge),
           averageHours(sumLeadProd, countLeadProd),
+          eventsLast7DaysCount,
+          eventsPrevious7DaysCount,
+          percentageDelta(eventsLast7DaysCount, eventsPrevious7DaysCount),
+          activeInitiativesLast7Days.size(),
           lastEventAt,
           compactions,
           loadErrors,
@@ -571,5 +592,12 @@ public class DevelopmentInsightsLedgerService {
       return null;
     }
     return Math.round(((double) numerator * 100d) / (double) denominator);
+  }
+
+  private static Long percentageDelta(int current, int previous) {
+    if (previous <= 0) {
+      return null;
+    }
+    return Math.round((((double) current - (double) previous) * 100d) / (double) previous);
   }
 }
