@@ -714,13 +714,11 @@ public class ProfileResource {
 
   private String resolveLanguage(String localeCookie, String userId) {
     String lang = "es";
-    if (localeCookie != null && !localeCookie.isBlank()) {
+    java.util.Optional<com.scanales.eventflow.model.UserProfile> p = userProfiles.find(userId);
+    if (p.isPresent() && p.get().getPreferredLocale() != null) {
+      lang = p.get().getPreferredLocale();
+    } else if (localeCookie != null && !localeCookie.isBlank()) {
       lang = localeCookie;
-    } else {
-      java.util.Optional<com.scanales.eventflow.model.UserProfile> p = userProfiles.find(userId);
-      if (p.isPresent() && p.get().getPreferredLocale() != null) {
-        lang = p.get().getPreferredLocale();
-      }
     }
     return "en".equalsIgnoreCase(lang) ? "en" : "es";
   }
