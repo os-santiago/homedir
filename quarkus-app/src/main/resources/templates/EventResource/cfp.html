@@ -2,6 +2,7 @@
 {@java.lang.Boolean userAuthenticated}
 {@java.lang.String userName}
 {@com.scanales.eventflow.cfp.CfpFormCatalog cfpCatalog}
+{@com.scanales.eventflow.cfp.CfpTimelineView cfpTimeline}
 {@java.lang.Boolean cfpTestingModeEnabled}
 {#title}
 {#if event}
@@ -121,6 +122,33 @@
   {/if}
 </header>
 
+{#if cfpTimeline}
+<section class="section-card cfp-journey-card cfp-journey-top" aria-label="{i18n:events_cfp_timeline_title}">
+  <div class="cfp-journey-header">
+    <h2>{i18n:events_cfp_timeline_title}</h2>
+    <p class="form-hint">{i18n:events_cfp_timeline_desc}</p>
+    <p class="cfp-journey-range">{cfpTimeline.fromLabel} → {cfpTimeline.toLabel}</p>
+  </div>
+  <div class="cfp-journey-track">
+    {#for stage in cfpTimeline.stages}
+    <article class="cfp-journey-stage {#if stage.active}is-active{/if}" style="--cfp-stage-flex: {stage.flexDays};">
+      <div class="cfp-journey-stage-bar"></div>
+      <p class="cfp-journey-stage-title">
+        {#switch stage.key}
+        {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
+        {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
+        {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+        {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
+        {#else}{stage.key}{/else}
+        {/switch}
+      </p>
+      <p class="cfp-journey-stage-dates">{stage.fromLabel} → {stage.toLabel}</p>
+    </article>
+    {/for}
+  </div>
+</section>
+{/if}
+
 <section class="page-grid">
   <div class="cfp-view-switch" style="grid-column: 1 / -1;">
     <button id="cfpShowNewBtn" type="button" class="btn login-btn-nav cfp-view-btn is-active">{i18n:events_cfp_tab_new_proposal}</button>
@@ -232,6 +260,31 @@
       <button id="cfpReloadBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_refresh}</button>
       {/if}
     </div>
+    {#if cfpTimeline}
+    <div class="cfp-journey-card cfp-journey-inline" aria-label="{i18n:events_cfp_timeline_my_title}">
+      <div class="cfp-journey-header compact">
+        <h3>{i18n:events_cfp_timeline_my_title}</h3>
+        <p class="cfp-journey-range">{cfpTimeline.fromLabel} → {cfpTimeline.toLabel}</p>
+      </div>
+      <div class="cfp-journey-track">
+        {#for stage in cfpTimeline.stages}
+        <article class="cfp-journey-stage {#if stage.active}is-active{/if}" style="--cfp-stage-flex: {stage.flexDays};">
+          <div class="cfp-journey-stage-bar"></div>
+          <p class="cfp-journey-stage-title">
+            {#switch stage.key}
+            {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
+            {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
+            {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+            {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
+            {#else}{stage.key}{/else}
+            {/switch}
+          </p>
+          <p class="cfp-journey-stage-dates">{stage.fromLabel} → {stage.toLabel}</p>
+        </article>
+        {/for}
+      </div>
+    </div>
+    {/if}
     <div class="cfp-status-guide">
       <p><span class="cfp-status-badge cfp-status-pending">{i18n:events_cfp_status_pending}</span> {i18n:events_cfp_status_desc_pending}</p>
       <p><span class="cfp-status-badge cfp-status-under_review">{i18n:events_cfp_status_under_review}</span> {i18n:events_cfp_status_desc_under_review}</p>
@@ -363,6 +416,7 @@
     font-size: 0.85rem;
     opacity: 0.92;
   }
+
   .cfp-submission-item {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-sm);

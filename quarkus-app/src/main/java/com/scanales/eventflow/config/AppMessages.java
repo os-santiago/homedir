@@ -700,6 +700,27 @@ public interface AppMessages {
     @Message("CFP official status notice")
     String events_cfp_live_aria();
 
+    @Message("CFP timeline")
+    String events_cfp_timeline_title();
+
+    @Message("Timeline from CFP opening to event days. Segment width is proportional to each stage duration.")
+    String events_cfp_timeline_desc();
+
+    @Message("My proposal timeline")
+    String events_cfp_timeline_my_title();
+
+    @Message("CFP window")
+    String events_cfp_timeline_stage_cfp();
+
+    @Message("Evaluation")
+    String events_cfp_timeline_stage_evaluation();
+
+    @Message("Results")
+    String events_cfp_timeline_stage_results();
+
+    @Message("Event days")
+    String events_cfp_timeline_stage_event();
+
     @Message("CFP: testing mode")
     String events_cfp_admin_testing_title();
 
@@ -2159,6 +2180,9 @@ public interface AppMessages {
 
     @Message("Track your CFP proposals and jump directly to event moderation flows.")
     String profile_cfp_intro();
+
+    @Message("CFP plan timeline")
+    String profile_cfp_timeline_title();
 
     @Message("Total proposals")
     String profile_cfp_total();

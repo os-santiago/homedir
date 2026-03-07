@@ -733,6 +733,88 @@ footer {
   opacity: 0.95;
 }
 
+.cfp-journey-card {
+  margin-top: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cfp-journey-top {
+  margin: 0 0 0.9rem 0;
+}
+
+.cfp-journey-header h2,
+.cfp-journey-header h3 {
+  margin: 0;
+}
+
+.cfp-journey-header.compact h3 {
+  font-size: 1rem;
+}
+
+.cfp-journey-range {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.cfp-journey-track {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.cfp-journey-stage {
+  flex: var(--cfp-stage-flex, 1) 1 0;
+  min-width: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 0.5rem 0.55rem 0.6rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cfp-journey-stage.is-active {
+  border-color: rgba(255, 213, 79, 0.65);
+  background: rgba(255, 213, 79, 0.1);
+}
+
+.cfp-journey-stage-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.cfp-journey-stage.is-active .cfp-journey-stage-bar {
+  background: linear-gradient(90deg, rgba(255, 213, 79, 0.95), rgba(114, 255, 159, 0.95));
+}
+
+.cfp-journey-stage-title {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cfp-journey-stage-dates {
+  margin: 0.25rem 0 0;
+  font-size: 0.76rem;
+  opacity: 0.84;
+}
+
+@media (max-width: 860px) {
+  .cfp-journey-track {
+    flex-direction: column;
+  }
+
+  .cfp-journey-stage {
+    min-width: 0;
+  }
+}
+
 .section-card .section-icon {
   display: block;
   font-size: 3rem;
