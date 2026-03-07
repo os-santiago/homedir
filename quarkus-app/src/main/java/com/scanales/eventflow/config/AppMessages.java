@@ -3705,6 +3705,21 @@ public interface AppMessages {
     @Message("Average lead to production")
     String admin_insights_js_status_avg_prod();
 
+    @Message("PR validations passed")
+    String admin_insights_js_status_pr_validation_passed();
+
+    @Message("PR validations failed")
+    String admin_insights_js_status_pr_validation_failed();
+
+    @Message("PR validation success rate")
+    String admin_insights_js_status_pr_validation_success_rate();
+
+    @Message("Production releases failed")
+    String admin_insights_js_status_prod_release_failed();
+
+    @Message("Production success rate")
+    String admin_insights_js_status_prod_success_rate();
+
     @Message("Last event")
     String admin_insights_js_status_last_event();
 
