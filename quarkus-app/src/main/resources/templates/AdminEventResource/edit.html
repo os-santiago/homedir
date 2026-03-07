@@ -145,6 +145,36 @@ Nuevo Evento · Homedir
           </div>
         </div>
       </fieldset>
+
+      <fieldset class="form-group"
+        style="border: 1px solid var(--color-border); padding: 1rem; border-radius: var(--radius-sm); margin-top: 1rem;">
+        <legend class="form-label" style="padding: 0 0.5rem;">Paleta visual del evento</legend>
+        <p class="form-hint" style="margin-bottom: 0.75rem;">
+          La paleta se aplica solo a las vistas públicas del evento y mantiene la estructura global del sitio.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label for="themePrimaryColor" class="form-label">Color principal</label>
+            <input id="themePrimaryColor" name="themePrimaryColor" type="color"
+              value="{event.resolvedThemePrimaryColor}" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="themeAccentColor" class="form-label">Color acento</label>
+            <input id="themeAccentColor" name="themeAccentColor" type="color"
+              value="{event.resolvedThemeAccentColor}" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="themeSurfaceColor" class="form-label">Color superficie</label>
+            <input id="themeSurfaceColor" name="themeSurfaceColor" type="color"
+              value="{event.resolvedThemeSurfaceColor}" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="themeTextColor" class="form-label">Color texto</label>
+            <input id="themeTextColor" name="themeTextColor" type="color"
+              value="{event.resolvedThemeTextColor}" class="form-input">
+          </div>
+        </div>
+      </fieldset>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Guardar</button>
       </div>

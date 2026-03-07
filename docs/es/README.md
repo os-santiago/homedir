@@ -34,8 +34,12 @@ El idioma canonico para mantenimiento es **ingles**.
 ## Desarrollo
 
 - [Formatting](development/formatting.md)
+- [Disaster Recovery Playbook](development/disaster-recovery-playbook.md)
+- [Incident Response First Level](development/incident-response-first-level.md)
+- [Security Hardening Baseline](development/security-hardening-baseline.md)
 - [Experience SLO (stub)](development/experience-slo.md)
 - [Capacity Assessment 2026-02-17 (stub)](development/capacity-assessment-2026-02-17.md)
+- [CFP Go-Live Resilience Checklist](development/cfp-go-live-resilience-checklist.md)
 - [Codex Optimization Notes (stub)](development/codex-optimization-notes.md)
 - [Production-Safe Delivery Playbook (stub)](development/production-safe-delivery-playbook.md)
 - [Release Stage Gates (stub)](development/release-stage-gates.md)

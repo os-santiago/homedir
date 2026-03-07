@@ -13,6 +13,7 @@ public class OAuthLoginTest {
   @Test
   public void privateUnauthorized() {
     given()
+        .header("X-Forwarded-For", "198.51.100.10")
         .when()
         .get("/private")
         .then()
@@ -23,6 +24,12 @@ public class OAuthLoginTest {
   @Test
   @TestSecurity(user = "alice")
   public void privateAuthorized() {
-    given().when().get("/private").then().statusCode(200).body(containsString("alice"));
+    given()
+        .header("X-Forwarded-For", "198.51.100.11")
+        .when()
+        .get("/private")
+        .then()
+        .statusCode(200)
+        .body(containsString("alice"));
   }
 }

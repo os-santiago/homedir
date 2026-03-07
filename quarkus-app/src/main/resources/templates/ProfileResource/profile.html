@@ -4,7 +4,7 @@
 {#head}
 <meta property="og:title" content="{ogTitle}" />
 <meta property="og:description" content="{ogDescription}" />
-<meta property="og:image" content="https://homedir-d48e2.web.app/images/og-default.png" />
+<meta property="og:image" content="https://homedir.opensourcesantiago.io/images/og-default.png" />
 <meta property="og:type" content="profile" />
 {/head}
 
@@ -24,7 +24,52 @@
             </div>
         </div>
 
-        <div class="hd-panel centered">
+        <nav class="hd-profile-nav" aria-label="Profile sections">
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="overview-panel">{i18n:profile_eyebrow}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="integrations-panel">{i18n:section_integrations}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="resume-panel">{i18n:section_resume}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="cfp-panel">{i18n:profile_cfp_title}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="identity-panel">{i18n:section_identity}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="economy-panel">{i18n:section_economy}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="settings-panel">{i18n:settings_language}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="agenda-panel">{i18n:section_agenda}</button>
+        </nav>
+
+        <section class="hd-panel centered" id="overview-panel" data-profile-section="overview">
+            <div class="hd-dashboard-header">
+                <div>
+                    <h2 class="hd-panel-title">{i18n:profile_overview_title}</h2>
+                    <p class="hd-page-intro">{i18n:profile_overview_intro}</p>
+                </div>
+            </div>
+
+            <article class="hd-card hd-profile-spotlight">
+                <div class="hd-profile-avatar-wrap">
+                    {#if picture??}
+                    <img src="{picture}" alt="{name}" class="hd-profile-avatar">
+                    {#else}
+                    {#if github != null && github.avatarUrl != null}
+                    <img src="{github.avatarUrl}" alt="{name}" class="hd-profile-avatar">
+                    {#else if discord != null && discord.avatarUrl != null}
+                    <img src="{discord.avatarUrl}" alt="{name}" class="hd-profile-avatar">
+                    {#else}
+                    <span class="hd-profile-avatar-fallback">{userInitial}</span>
+                    {/if}
+                    {/if}
+                </div>
+                <div class="hd-profile-spotlight-main">
+                    <h3>{name}</h3>
+                    <p class="hd-page-intro">{i18n:resume_level(questProfile.level)} · {questProfile.currentXp} XP</p>
+                    <div class="hd-profile-spotlight-chips">
+                        <span class="hd-economy-chip">{i18n:label_registered_talks}: {totalTalks}</span>
+                        <span class="hd-economy-chip">{i18n:events_cfp_eyebrow}: {cfpOverview.total}</span>
+                        {#if dominantClass??}
+                        <span class="hd-economy-chip">{i18n:profile_primary_class}: {dominantClass.displayName}</span>
+                        {/if}
+                    </div>
+                </div>
+            </article>
+
             <div class="hd-panel-actions hd-panel-actions-margin">
                 {#if githubLinked}
                 <div class="hd-alert hd-alert-success">{i18n:msg_github_linked}</div>
@@ -48,15 +93,30 @@
 
             <div class="hd-grid-details">
                 <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_display_name}</span>
+                    <span class="hd-detail-value">{name}</span>
+                </div>
+                <div class="hd-detail-item">
                     <span class="hd-detail-label">{i18n:label_email}</span>
                     <span class="hd-detail-value">{email}</span>
                 </div>
-                <!-- Add more user details here -->
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_member_id}</span>
+                    <span class="hd-detail-value">{sub}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:label_attended_talks}</span>
+                    <span class="hd-detail-value">{attendedTalks}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:label_ratings}</span>
+                    <span class="hd-detail-value">{ratedTalks}</span>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <section class="hd-panel centered">
-            <h2 class="hd-panel-title">Integrations</h2>
+        <section class="hd-panel centered" id="integrations-panel" data-profile-section="integrations">
+            <h2 class="hd-panel-title">{i18n:section_integrations}</h2>
 
             <div class="hd-integration-card">
                 <div class="hd-integration-header">
@@ -116,7 +176,7 @@
         </section>
 
         <!-- Gamification Section -->
-        <section class="hd-panel centered">
+        <section class="hd-panel centered" id="resume-panel" data-profile-section="resume">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n:section_resume}</p>
@@ -168,7 +228,7 @@
                 {#if resumeHistoryAtLimit}
                 <span class="hd-detail-label">{i18n:resume_history_limit_notice(resumeHistoryLimit)}</span>
                 {#else}
-                <a class="hd-btn hd-btn-secondary" href="/private/profile?historyLimit={resumeHistoryNextLimit}">
+                <a class="hd-btn hd-btn-secondary" href="/private/profile?historyLimit={resumeHistoryNextLimit}#resume-panel">
                     {i18n:resume_history_load_more}
                 </a>
                 {/if}
@@ -205,7 +265,103 @@
 
         </section>
 
-        <section class="hd-panel centered">
+        <section class="hd-panel centered" id="cfp-panel" data-profile-section="cfp">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">{i18n:events_cfp_eyebrow}</p>
+                    <h2 class="hd-panel-title">{i18n:profile_cfp_title}</h2>
+                    <p class="hd-page-intro">{i18n:profile_cfp_intro}</p>
+                </div>
+            </div>
+            {#if cfpTimeline}
+            <div class="cfp-journey-card cfp-journey-profile" aria-label="{i18n:profile_cfp_timeline_title}">
+                <div class="cfp-journey-header compact">
+                    <h3>{i18n:profile_cfp_timeline_title}</h3>
+                    <p class="cfp-journey-range">{cfpTimeline.fromLabel} → {cfpTimeline.toLabel}</p>
+                </div>
+                <div class="cfp-journey-track">
+                    {#for stage in cfpTimeline.stages}
+                    <article class="cfp-journey-stage {#if stage.active}is-active{/if}" style="--cfp-stage-flex: {stage.flexDays};">
+                        <div class="cfp-journey-stage-bar"></div>
+                        <p class="cfp-journey-stage-title">
+                            {#switch stage.key}
+                            {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
+                            {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
+                            {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+                            {#case 'presentations'}{i18n:events_cfp_timeline_stage_presentations}{/case}
+                            {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
+                            {#else}{stage.key}{/else}
+                            {/switch}
+                        </p>
+                        <p class="cfp-journey-stage-dates">{#if stage.fromLabel eq stage.toLabel}{stage.fromLabel}{#else}{stage.fromLabel} → {stage.toLabel}{/if}</p>
+                    </article>
+                    {/for}
+                </div>
+            </div>
+            {/if}
+
+            <div class="hd-grid-details">
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_cfp_total}</span>
+                    <span class="hd-detail-value">{cfpOverview.total}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_cfp_events}</span>
+                    <span class="hd-detail-value">{cfpOverview.distinctEvents}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_accepted}</span>
+                    <span class="hd-detail-value">{cfpOverview.accepted}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_under_review}</span>
+                    <span class="hd-detail-value">{cfpOverview.underReview}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_pending}</span>
+                    <span class="hd-detail-value">{cfpOverview.pending}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_rejected}</span>
+                    <span class="hd-detail-value">{cfpOverview.rejected}</span>
+                </div>
+            </div>
+
+            <div class="hd-dashboard-header">
+                <div>
+                    <h3 class="hd-section-subtitle">{i18n:profile_cfp_latest}</h3>
+                </div>
+            </div>
+            {#if cfpRecentSubmissions.isEmpty()}
+            <div class="hd-empty-state">
+                <p>{i18n:events_cfp_empty_mine}</p>
+                <a href="/eventos" class="hd-btn hd-btn-secondary">{i18n:profile_cfp_open_events}</a>
+            </div>
+            {#else}
+            <ul class="hd-list hd-list-log" role="list">
+                {#for item in cfpRecentSubmissions}
+                <li class="hd-list-item hd-log-entry">
+                    <div class="hd-list-content">
+                        <strong>{item.title}</strong>
+                        <span class="hd-list-meta">{item.eventTitle} ·
+                            {#switch item.status}
+                            {#case 'pending'}{i18n:events_cfp_status_pending}{/case}
+                            {#case 'under_review'}{i18n:events_cfp_status_under_review}{/case}
+                            {#case 'accepted'}{i18n:events_cfp_status_accepted}{/case}
+                            {#case 'rejected'}{i18n:events_cfp_status_rejected}{/case}
+                            {#case 'withdrawn'}{i18n:events_cfp_status_withdrawn}{/case}
+                            {#else}{item.status}{/else}
+                            {/switch}
+                        </span>
+                    </div>
+                    <a class="hd-btn hd-btn-secondary" href="{item.manageUrl}">{i18n:profile_cfp_manage}</a>
+                </li>
+                {/for}
+            </ul>
+            {/if}
+        </section>
+
+        <section class="hd-panel centered" id="identity-panel" data-profile-section="identity">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n:section_identity}</p>
@@ -274,7 +430,7 @@
             </div>
         </section>
 
-        <section class="hd-panel centered" id="economy-panel" data-economy-panel>
+        <section class="hd-panel centered" id="economy-panel" data-profile-section="economy" data-economy-panel>
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n:section_economy}</p>
@@ -336,7 +492,7 @@
             </article>
         </section>
 
-        <section class="hd-panel centered">
+        <section class="hd-panel centered" id="settings-panel" data-profile-section="settings">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n:section_settings}</p>
@@ -347,8 +503,8 @@
             <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
                 <div class="form-group-margin form-actions-centered">
                     <select name="locale" class="hd-form-input">
-                        <option value="en" {#if currentLanguage eq 'en' }selected{/if}>English</option>
                         <option value="es" {#if currentLanguage eq 'es' }selected{/if}>Español</option>
+                        <option value="en" {#if currentLanguage eq 'en' }selected{/if}>English</option>
                     </select>
                 </div>
                 <div class="form-actions-centered">
@@ -359,7 +515,7 @@
 
 
 
-        <section class="hd-panel centered">
+        <section class="hd-panel centered" id="agenda-panel" data-profile-section="agenda">
             <div class="hd-dashboard-header">
                 <div>
                     <p class="hd-eyebrow">{i18n:section_agenda}</p>
@@ -443,6 +599,93 @@
 </section>
 
 <style>
+    .hd-profile-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin: 0 0 0.9rem;
+        padding: 0.35rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(10, 18, 22, 0.4);
+    }
+
+    .hd-profile-nav-btn {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
+        background: rgba(8, 14, 18, 0.75);
+        color: inherit;
+        font-size: 0.82rem;
+        line-height: 1.2;
+        cursor: pointer;
+        transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+    }
+
+    .hd-profile-nav-btn:hover {
+        border-color: rgba(255, 255, 255, 0.32);
+        background: rgba(13, 23, 30, 0.86);
+    }
+
+    .hd-profile-nav-btn.is-active {
+        border-color: rgba(96, 205, 255, 0.75);
+        background: rgba(28, 69, 95, 0.72);
+        color: #dff6ff;
+    }
+
+    [data-profile-section][hidden] {
+        display: none !important;
+    }
+
+    .hd-profile-spotlight {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.85rem;
+        align-items: center;
+        margin-bottom: 0.85rem;
+    }
+
+    .hd-profile-avatar-wrap {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 14, 18, 0.76);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hd-profile-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .hd-profile-avatar-fallback {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #dff6ff;
+    }
+
+    .hd-profile-spotlight-main h3 {
+        margin: 0;
+        font-size: 1.03rem;
+    }
+
+    .hd-profile-spotlight-main .hd-page-intro {
+        margin: 0.25rem 0 0.4rem;
+    }
+
+    .hd-profile-spotlight-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
     .class-xp-meta {
         margin: 0.5rem 0 0.4rem;
         font-size: 0.82rem;
@@ -597,6 +840,25 @@
     }
 
     @media (max-width: 900px) {
+        .hd-profile-nav {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 0.45rem;
+        }
+
+        .hd-profile-nav-btn {
+            white-space: nowrap;
+        }
+
+        .hd-profile-spotlight {
+            grid-template-columns: 1fr;
+        }
+
+        .hd-profile-avatar-wrap {
+            width: 64px;
+            height: 64px;
+        }
+
         .activity-class-map {
             grid-template-columns: 1fr;
         }
@@ -614,17 +876,19 @@
 <script>
     function shareProfile(handle) {
         const url = window.location.origin + '/u/' + handle;
-        const text = 'Check out my developer profile on HomeDir!';
+        const text = `{i18n:profile_share_text}`;
+        const shareTitle = `{i18n:profile_share_title}`;
+        const copiedMessage = `{i18n:profile_share_copied}`;
 
         if (navigator.share) {
             navigator.share({
-                title: 'My HomeDir Profile',
+                title: shareTitle,
                 text: text,
                 url: url
             }).catch(console.error);
         } else {
             navigator.clipboard.writeText(url).then(() => {
-                alert('Profile link copied to clipboard: ' + url);
+                alert(copiedMessage + ' ' + url);
             });
         }
     }
@@ -635,6 +899,54 @@
             bar.style.setProperty('--xp-percent', progress + '%');
             if (progress > 0 && progress < 2) {
                 bar.style.minWidth = '2px';
+            }
+        });
+
+        const profileSections = Array.from(document.querySelectorAll('[data-profile-section]'));
+        const profileNavButtons = Array.from(document.querySelectorAll('[data-profile-nav]'));
+
+        const openProfileSection = (panelId, updateHash = true) => {
+            if (!panelId) return;
+            const selectedSection = document.getElementById(panelId);
+            if (!selectedSection || !selectedSection.hasAttribute('data-profile-section')) return;
+
+            profileSections.forEach((section) => {
+                section.hidden = section.id !== panelId;
+            });
+            profileNavButtons.forEach((button) => {
+                const active = button.dataset.profileNav === panelId;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+            if (updateHash) {
+                if (window.location.hash !== ('#' + panelId)) {
+                    history.replaceState(null, '', '#' + panelId);
+                }
+            }
+        };
+
+        profileNavButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                openProfileSection(button.dataset.profileNav, true);
+            });
+        });
+
+        const initialPanelId = (() => {
+            const hash = (window.location.hash || '').replace('#', '').trim();
+            if (hash) {
+                const hashedSection = document.getElementById(hash);
+                if (hashedSection && hashedSection.hasAttribute('data-profile-section')) {
+                    return hash;
+                }
+            }
+            return 'overview-panel';
+        })();
+        openProfileSection(initialPanelId, false);
+
+        window.addEventListener('hashchange', () => {
+            const hash = (window.location.hash || '').replace('#', '').trim();
+            if (hash) {
+                openProfileSection(hash, false);
             }
         });
 

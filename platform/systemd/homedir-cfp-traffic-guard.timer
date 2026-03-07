@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodic CFP traffic guard checks
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+RandomizedDelaySec=20s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

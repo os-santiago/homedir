@@ -46,6 +46,22 @@ public class AdminNotificationResourceTest {
     }
   }
 
+  private JsonObject awaitMessageWithId(WsClient client, String expectedId) throws InterruptedException {
+    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+    while (System.nanoTime() < deadline) {
+      String payload = client.messages.poll(250, TimeUnit.MILLISECONDS);
+      if (payload == null || payload.isBlank()) {
+        continue;
+      }
+      JsonObject parsed = Json.createReader(new StringReader(payload)).readObject();
+      String receivedId = parsed.getString("id", null);
+      if (expectedId.equals(receivedId)) {
+        return parsed;
+      }
+    }
+    return null;
+  }
+
   static class WsClient extends Endpoint {
     final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
@@ -84,14 +100,12 @@ public class AdminNotificationResourceTest {
             .statusCode(200)
             .extract()
             .path("id");
-    String m1 = c1.messages.poll(5, TimeUnit.SECONDS);
-    String m2 = c2.messages.poll(5, TimeUnit.SECONDS);
-    assertNotNull(m1);
-    assertNotNull(m2);
-    JsonObject j1 = Json.createReader(new StringReader(m1)).readObject();
-    JsonObject j2 = Json.createReader(new StringReader(m2)).readObject();
-    assertEquals(id, j1.getString("id"));
-    assertEquals(id, j2.getString("id"));
+    JsonObject j1 = awaitMessageWithId(c1, id);
+    JsonObject j2 = awaitMessageWithId(c2, id);
+    assertNotNull(j1);
+    assertNotNull(j2);
+    assertEquals(id, j1.getString("id", null));
+    assertEquals(id, j2.getString("id", null));
 
     String latestJson =
         given()

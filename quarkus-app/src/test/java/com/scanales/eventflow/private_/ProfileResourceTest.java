@@ -4,9 +4,12 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserProfileService;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -16,6 +19,7 @@ import jakarta.inject.Inject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,12 +32,33 @@ public class ProfileResourceTest {
   @Inject UserScheduleService userSchedule;
   @Inject UserProfileService userProfiles;
   @Inject CommunityBoardService boardService;
+  @Inject EventService eventService;
+  @Inject CfpSubmissionService cfpSubmissionService;
 
   @Inject SecurityIdentity securityIdentity;
+
+  private static final String CFP_EVENT_ID = "profile-cfp-event";
 
   @BeforeEach
   void setup() throws Exception {
     userSchedule.reset();
+    cfpSubmissionService.clearAllForTests();
+    eventService.saveEvent(new Event(CFP_EVENT_ID, "Profile CFP Event", "CFP profile integration test"));
+    cfpSubmissionService.create(
+        currentUserEmail(),
+        "Current User",
+        new CfpSubmissionService.CreateRequest(
+            CFP_EVENT_ID,
+            "Profile CFP Talk",
+            "CFP summary for profile page.",
+            "Detailed abstract for profile CFP test coverage.",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "ai-agents-copilots",
+            List.of("profile"),
+            List.of("https://example.com/profile-cfp")));
     Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.createDirectories(discordFile.getParent());
     Files.writeString(
@@ -270,20 +295,74 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void updateLocalePersistsProfilePreferenceAndSetsLocaleCookie() {
+    userProfiles.upsert(currentUserEmail(), currentUserEmail(), currentUserEmail());
+
+    given()
+        .redirects()
+        .follow(false)
+        .contentType("application/x-www-form-urlencoded")
+        .formParam("locale", "en")
+        .formParam("redirect", "/comunidad")
+        .when()
+        .post("/private/profile/update-locale")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/comunidad"))
+        .header("Set-Cookie", containsString("QP_LOCALE=en"));
+
+    UserProfile profile = userProfiles.find(currentUserEmail()).orElseThrow();
+    assertEquals("en", profile.getPreferredLocale());
+  }
+
+  @Test
+  public void updateLocaleFallsBackToSpanishWhenLocaleIsUnsupported() {
+    userProfiles.upsert(currentUserEmail(), currentUserEmail(), currentUserEmail());
+
+    given()
+        .redirects()
+        .follow(false)
+        .contentType("application/x-www-form-urlencoded")
+        .formParam("locale", "fr")
+        .formParam("redirect", "/private/profile")
+        .when()
+        .post("/private/profile/update-locale")
+        .then()
+        .statusCode(303)
+        .header("Location", endsWith("/private/profile"))
+        .header("Set-Cookie", containsString("QP_LOCALE=es"));
+
+    UserProfile profile = userProfiles.find(currentUserEmail()).orElseThrow();
+    assertEquals("es", profile.getPreferredLocale());
+  }
+
+  @Test
   public void profileShowsClassMomentumAndNoManualClassForm() {
     userProfiles.addXp(currentUserEmail(), 20, "Test scientist progress", QuestClass.SCIENTIST);
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/private/profile")
         .then()
         .statusCode(200)
-        .body(containsString("Activity to class map"))
-        .body(containsString("Notifications monitoring"))
-        .body(containsString("Action"))
+        .body(anyOf(containsString("Activity to class map"), containsString("Mapa actividad")))
         .body(containsString("/notifications/center"))
         .body(containsString("/private/profile/catalog#"))
         .body(not(containsString("/private/profile/update-class")));
+  }
+
+  @Test
+  public void profileShowsCfpOverviewAndManageLinks() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("Call for Papers"))
+        .body(containsString("Profile CFP Talk"))
+        .body(containsString("/event/" + CFP_EVENT_ID + "/cfp#my-proposals"));
   }
 
   @Test
@@ -314,7 +393,10 @@ public class ProfileResourceTest {
         .get("/private/profile")
         .then()
         .statusCode(200)
-        .body(containsString("Load 10 older entries"))
+        .body(
+            anyOf(
+                containsString("Load 10 older entries"),
+                containsString("Cargar 10 registros anteriores")))
         .body(containsString("historyLimit=20"));
 
     given()
@@ -322,7 +404,10 @@ public class ProfileResourceTest {
         .get("/private/profile?historyLimit=200")
         .then()
         .statusCode(200)
-        .body(containsString("Showing up to 100 recent entries for safety."));
+        .body(
+            anyOf(
+                containsString("Showing up to 100 recent entries for safety."),
+                containsString("Mostrando hasta 100 registros recientes por seguridad.")));
   }
 
   @Test

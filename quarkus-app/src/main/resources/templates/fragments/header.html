@@ -1,19 +1,8 @@
-<div class="mode-switch-bar" role="navigation" aria-label="{i18n:mode_switch_label}">
-  <span class="mode-switch-label">{i18n:mode_switch_label}</span>
-  <div class="mode-switch-actions">
-    <a href="/" class="mode-switch-link {#if activePage != 'beta'}mode-switch-link-active{/if}">
-      {i18n:mode_switch_classic}
-    </a>
-    <a href="/beta" class="mode-switch-link {#if activePage == 'beta'}mode-switch-link-active{/if}">
-      {i18n:mode_switch_rpg_experimental}
-    </a>
-  </div>
-</div>
-<nav class="top-nav" aria-label="{i18n:header_aria_label}">
-  <div class="logo">
+<nav class="top-nav header-3col" aria-label="{i18n:header_aria_label}">
+  <div class="logo header-left">
     <a href="/" class="header-logo-link">
-      <div class="logo-icon">
-        <span class="material-symbols-outlined">token</span>
+      <div class="logo-icon logo-icon-image">
+        <img src="/img/homedir-logo-nav.png" alt="HomeDir logo" class="header-brand-logo">
       </div>
       <div class="logo-text header-logo-text">
         <span id="navPlatformName" class="header-platform-name">HomeDir</span>
@@ -22,20 +11,46 @@
     </a>
   </div>
 
-  <div class="nav-actions">
+  <div class="nav-actions header-center">
+    <div class="lang-selector-container">
+      <button class="hd-circle-btn lang-toggle-btn" type="button" aria-label="{i18n:header_language_aria}"
+        aria-haspopup="true" aria-expanded="false" aria-controls="lang-selector-dropdown">
+        <span class="material-symbols-outlined icon-lg">language</span>
+      </button>
+      <div id="lang-selector-dropdown" class="lang-selector-dropdown" role="menu">
+        <button type="button" class="lang-option" data-locale="en" role="menuitem">English</button>
+        <button type="button" class="lang-option" data-locale="es" role="menuitem">Español</button>
+      </div>
+    </div>
     <a href="/" class="nav-link {#if activePage == 'home'}nav-link-active{/if}">{i18n:nav_home}</a>
     <a href="/comunidad" class="nav-link {#if activePage == 'comunidad'}nav-link-active{/if}">{i18n:nav_community}</a>
     <a href="/eventos" class="nav-link {#if activePage == 'eventos'}nav-link-active{/if}">{i18n:nav_events}</a>
     <a href="/proyectos" class="nav-link {#if activePage == 'proyectos'}nav-link-active{/if}">{i18n:nav_projects}</a>
 
     <a href="/notifications/center"
-      class="nav-link notifications-bell {#if activePage == 'notifications'}nav-link-active{/if}"
+      class="hd-circle-btn notifications-bell {#if activePage == 'notifications'}active-circle-btn{/if}"
       aria-label="{i18n:nav_notifications}" data-nav-link>
-      <span class="material-symbols-outlined">notifications</span>
+      <span class="material-symbols-outlined icon-lg">notifications</span>
       <span class="sr-only">{i18n:nav_notifications}</span>
-      <span id="notif-badge" class="badge hidden">0</span>
+      <span id="notif-badge" class="badge hidden notif-badge">0</span>
     </a>
+  </div>
 
+    <form action="/private/profile/update-locale"
+      method="POST"
+      class="header-locale-switcher"
+      data-locale-switcher-form
+      data-authenticated="{#if userSession.loggedIn || userAuthenticated}true{#else}false{/if}">
+      <input type="hidden" name="redirect" value="" data-locale-redirect>
+      <span class="material-symbols-outlined header-locale-icon" aria-hidden="true">language</span>
+      <label for="headerLocaleSelect" class="sr-only">{i18n:header_language_aria}</label>
+      <select id="headerLocaleSelect" name="locale" class="header-locale-select" data-locale-select aria-label="{i18n:header_language_aria}">
+        <option value="es" {#if resolvedLocaleCode == 'es'}selected{/if}>{i18n:header_language_spanish}</option>
+        <option value="en" {#if resolvedLocaleCode == 'en'}selected{/if}>{i18n:header_language_english}</option>
+      </select>
+    </form>
+
+  <div class="header-right">
     {#if userSession.loggedIn || userAuthenticated}
     <div class="user-menu-container user-menu-wrapper" id="userMenuNav">
       <div class="user-menu-toggle">
@@ -132,14 +147,93 @@
   </div>
 </nav>
 <div class="alpha-banner">
-  <span class="alpha-badge">ALPHA v{app:version()}</span>
+  <span class="alpha-badge">{#if activePage == 'proyectos' || activePage == 'about'}ALPHA v{app:version()}{#else}HomeDir v{app:version()}{/if}</span>
   · <a href="https://github.com/os-santiago/homedir" target="_blank"
     class="link-white-underline">{i18n:header_alpha_repo}</a>
-  · <span class="text-opacity-80">{i18n:header_alpha_text}</span>
+  · <span class="text-opacity-80">{#if activePage == 'proyectos' || activePage == 'about'}{i18n:header_alpha_text}{#else}{i18n:header_release_text}{/if}</span>
 </div>
 {#if system.degraded}
 <div class="system-banner">
-  <span class="material-symbols-outlined" style="vertical-align: middle;">warning</span> {system.message} -
+  <span class="material-symbols-outlined icon-middle">warning</span> {system.message} -
   {i18n:header_system_degraded}
 </div>
 {/if}
+
+<script>
+  function updateLocaleApp(locale) {
+    document.cookie = "QP_LOCALE=" + locale + "; path=/; max-age=31536000";
+    if (window.userAuthenticated) {
+      fetch('/private/profile/update-locale', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          locale: locale,
+          redirect: window.location.pathname + window.location.search
+        })
+      }).then(() => {
+        window.location.reload();
+      }).catch(() => {
+        window.location.reload();
+      });
+    } else {
+      window.location.reload();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var langContainer = document.querySelector('.lang-selector-container');
+    var langToggle = document.querySelector('.lang-toggle-btn');
+    var langButtons = document.querySelectorAll('.lang-selector-dropdown .lang-option');
+    if (!langContainer || !langToggle) {
+      return;
+    }
+
+    function setLanguageMenuState(isOpen) {
+      langContainer.classList.toggle('is-open', isOpen);
+      langToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+
+    langToggle.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      setLanguageMenuState(!langContainer.classList.contains('is-open'));
+    });
+
+    langToggle.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        setLanguageMenuState(true);
+        if (langButtons.length > 0) {
+          langButtons[0].focus();
+        }
+      }
+    });
+
+    langButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var locale = button.getAttribute('data-locale');
+        if (locale) {
+          updateLocaleApp(locale);
+        }
+      });
+    });
+
+    document.addEventListener('click', function (event) {
+      if (!langContainer.contains(event.target)) {
+        setLanguageMenuState(false);
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        setLanguageMenuState(false);
+        langToggle.focus();
+      }
+    });
+  });
+</script>
+
+
+

@@ -81,6 +81,21 @@ public interface AppMessages {
     @Message("Email")
     String label_email();
 
+    @Message("Display name")
+    String profile_display_name();
+
+    @Message("Member ID")
+    String profile_member_id();
+
+    @Message("Primary class")
+    String profile_primary_class();
+
+    @Message("Profile Spotlight")
+    String profile_overview_title();
+
+    @Message("Your default identity in HomeDir with quick access to your activity signals.")
+    String profile_overview_intro();
+
     @Message("Registered Talks")
     String label_registered_talks();
 
@@ -117,7 +132,7 @@ public interface AppMessages {
     @Message("Settings")
     String section_settings();
 
-    @Message("Economy")
+    @Message("Collection")
     String section_economy();
 
     @Message("Use your HCoin rewards to unlock profile and community upgrades.")
@@ -475,6 +490,9 @@ public interface AppMessages {
     @Message("Live now")
     String events_countdown_live();
 
+    @Message("LIVE")
+    String events_countdown_live_badge();
+
     @Message("Starts today")
     String events_countdown_today();
 
@@ -483,6 +501,9 @@ public interface AppMessages {
 
     @Message("Starts in {days} days")
     String events_countdown_days(long days);
+
+    @Message("D-{days}")
+    String events_countdown_days_short(long days);
 
     @Message("Call for Papers")
     String events_cfp_open_cta();
@@ -667,6 +688,42 @@ public interface AppMessages {
     @Message("CFP testing notice")
     String events_cfp_testing_aria();
 
+    @Message("Live")
+    String events_cfp_live_badge();
+
+    @Message("Call for Papers is officially open")
+    String events_cfp_live_title();
+
+    @Message("Submit your proposal and follow moderation updates from this page.")
+    String events_cfp_live_desc();
+
+    @Message("CFP official status notice")
+    String events_cfp_live_aria();
+
+    @Message("CFP timeline")
+    String events_cfp_timeline_title();
+
+    @Message("Timeline from CFP opening to event days. Segment width is proportional to each stage duration.")
+    String events_cfp_timeline_desc();
+
+    @Message("My proposal timeline")
+    String events_cfp_timeline_my_title();
+
+    @Message("CFP window")
+    String events_cfp_timeline_stage_cfp();
+
+    @Message("Evaluation")
+    String events_cfp_timeline_stage_evaluation();
+
+    @Message("Results")
+    String events_cfp_timeline_stage_results();
+
+    @Message("Presentations submissions deadline")
+    String events_cfp_timeline_stage_presentations();
+
+    @Message("Event days")
+    String events_cfp_timeline_stage_event();
+
     @Message("CFP: testing mode")
     String events_cfp_admin_testing_title();
 
@@ -684,6 +741,228 @@ public interface AppMessages {
 
     @Message("Could not update testing mode right now.")
     String events_cfp_admin_testing_error();
+
+    @Message("CFP: event configuration")
+    String events_cfp_admin_event_config_title();
+
+    @Message("Control submission window, event-specific limits, and optional testing override for this event.")
+    String events_cfp_admin_event_config_desc();
+
+    @Message("Accept submissions")
+    String events_cfp_admin_event_config_accepting_label();
+
+    @Message("Opens at")
+    String events_cfp_admin_event_config_opens_label();
+
+    @Message("Closes at")
+    String events_cfp_admin_event_config_closes_label();
+
+    @Message("Max proposals per user (override)")
+    String events_cfp_admin_event_config_max_label();
+
+    @Message("Use global limit")
+    String events_cfp_admin_event_config_max_placeholder();
+
+    @Message("Testing mode override")
+    String events_cfp_admin_event_config_testing_override_label();
+
+    @Message("Inherit global setting")
+    String events_cfp_admin_event_config_testing_override_inherit();
+
+    @Message("Force enabled")
+    String events_cfp_admin_event_config_testing_override_on();
+
+    @Message("Force disabled")
+    String events_cfp_admin_event_config_testing_override_off();
+
+    @Message("Save override")
+    String events_cfp_admin_event_config_save();
+
+    @Message("Clear override")
+    String events_cfp_admin_event_config_clear();
+
+    @Message("Event override saved.")
+    String events_cfp_admin_event_config_saved();
+
+    @Message("Event override cleared.")
+    String events_cfp_admin_event_config_cleared();
+
+    @Message("Could not update event CFP configuration right now.")
+    String events_cfp_admin_event_config_error();
+
+    @Message("Open now")
+    String events_cfp_admin_event_config_summary_open();
+
+    @Message("Closed now")
+    String events_cfp_admin_event_config_summary_closed();
+
+    @Message("Max/user:")
+    String events_cfp_admin_event_config_summary_max();
+
+    @Message("Testing notice: ON")
+    String events_cfp_admin_event_config_summary_testing_on();
+
+    @Message("Testing notice: OFF")
+    String events_cfp_admin_event_config_summary_testing_off();
+
+    @Message("Event override: ON")
+    String events_cfp_admin_event_config_summary_override_on();
+
+    @Message("Event override: OFF")
+    String events_cfp_admin_event_config_summary_override_off();
+
+    @Message("CFP Moderation · {event}")
+    String events_cfp_admin_moderation_page_title(String event);
+
+    @Message("CFP Moderation")
+    String events_cfp_admin_moderation_heading();
+
+    @Message("Event: {event}")
+    String events_cfp_admin_event_label(String event);
+
+    @Message("Edit event")
+    String events_cfp_admin_nav_edit_event();
+
+    @Message("Public CFP")
+    String events_cfp_admin_nav_public_cfp();
+
+    @Message("Proposal queue")
+    String events_cfp_admin_queue_title();
+
+    @Message("Evaluate proposals with technical ratings and prioritize with weighted score.")
+    String events_cfp_admin_queue_desc();
+
+    @Message("Refresh")
+    String events_cfp_admin_queue_refresh();
+
+    @Message("Export CSV")
+    String events_cfp_admin_queue_export();
+
+    @Message("Total")
+    String events_cfp_admin_stat_total();
+
+    @Message("Last update:")
+    String events_cfp_admin_last_update_prefix();
+
+    @Message("n/a")
+    String events_cfp_admin_not_available();
+
+    @Message("Status:")
+    String events_cfp_admin_label_status();
+
+    @Message("Sort:")
+    String events_cfp_admin_label_sort();
+
+    @Message("All")
+    String events_cfp_admin_filter_all();
+
+    @Message("Most recent")
+    String events_cfp_admin_sort_recent();
+
+    @Message("Recently updated")
+    String events_cfp_admin_sort_updated();
+
+    @Message("Highest score")
+    String events_cfp_admin_sort_score();
+
+    @Message("Score:")
+    String events_cfp_admin_score_prefix();
+
+    @Message("Score: n/a")
+    String events_cfp_admin_score_not_available();
+
+    @Message("(Untitled)")
+    String events_cfp_admin_untitled();
+
+    @Message("Proposed by:")
+    String events_cfp_admin_proposed_by();
+
+    @Message("Created:")
+    String events_cfp_admin_created_at();
+
+    @Message("Updated:")
+    String events_cfp_admin_updated_at();
+
+    @Message("Moderated:")
+    String events_cfp_admin_moderated_at();
+
+    @Message("by")
+    String events_cfp_admin_by();
+
+    @Message("N/A")
+    String events_cfp_admin_submission_not_available();
+
+    @Message("Technical detail")
+    String events_cfp_admin_rating_technical();
+
+    @Message("Narrative")
+    String events_cfp_admin_rating_narrative();
+
+    @Message("Content impact")
+    String events_cfp_admin_rating_impact();
+
+    @Message("Moderation note (optional)")
+    String events_cfp_admin_note_placeholder();
+
+    @Message("Another moderator already updated this proposal. Refresh the queue.")
+    String events_cfp_admin_error_stale_submission();
+
+    @Message("Add a moderation note before rejecting this proposal.")
+    String events_cfp_admin_error_reject_note_required();
+
+    @Message("Could not update status")
+    String events_cfp_admin_error_update_status();
+
+    @Message("Could not save rating")
+    String events_cfp_admin_error_save_rating();
+
+    @Message("Could not promote proposal")
+    String events_cfp_admin_error_promote();
+
+    @Message("Save rating")
+    String events_cfp_admin_save_rating();
+
+    @Message("Under review")
+    String events_cfp_admin_action_under_review();
+
+    @Message("Accept")
+    String events_cfp_admin_action_accept();
+
+    @Message("Reject")
+    String events_cfp_admin_action_reject();
+
+    @Message("Promote to catalog")
+    String events_cfp_admin_action_promote();
+
+    @Message("Cataloged:")
+    String events_cfp_admin_promote_success();
+
+    @Message("Loading proposals...")
+    String events_cfp_admin_queue_loading();
+
+    @Message("No proposals in this status.")
+    String events_cfp_admin_queue_empty();
+
+    @Message("Could not load proposals right now.")
+    String events_cfp_admin_queue_load_error();
+
+    @Message("Load error")
+    String events_cfp_admin_queue_load_generic_error();
+
+    @Message("CFP submissions are currently closed for this event.")
+    String events_cfp_closed_hint();
+
+    @Message("CFP submissions are currently closed.")
+    String events_cfp_error_closed();
+
+    @Message("Window")
+    String events_cfp_window_label();
+
+    @Message("Opens")
+    String events_cfp_window_open();
+
+    @Message("Closes")
+    String events_cfp_window_close();
 
     @Message("Agenda: proposed mode")
     String events_agenda_admin_proposed_title();
@@ -1680,8 +1959,11 @@ public interface AppMessages {
     @Message("Alpha Repo")
     String header_alpha_repo();
 
-    @Message("This is an alpha version. Things might break.")
+    @Message("DevRel, OpenSource, InnerSource Community Platform")
     String header_alpha_text();
+
+    @Message("Stable public channel for releases and community updates")
+    String header_release_text();
 
     @Message("Header Navigation")
     String header_aria_label();
@@ -1896,6 +2178,30 @@ public interface AppMessages {
     @Message("Showing up to {limit} recent entries for safety.")
     String resume_history_limit_notice(int limit);
 
+    @Message("Call for Papers")
+    String profile_cfp_title();
+
+    @Message("Track your CFP proposals and jump directly to event moderation flows.")
+    String profile_cfp_intro();
+
+    @Message("CFP plan timeline")
+    String profile_cfp_timeline_title();
+
+    @Message("Total proposals")
+    String profile_cfp_total();
+
+    @Message("Events")
+    String profile_cfp_events();
+
+    @Message("Recent CFP activity")
+    String profile_cfp_latest();
+
+    @Message("Manage")
+    String profile_cfp_manage();
+
+    @Message("Browse Events")
+    String profile_cfp_open_events();
+
     @Message("Search")
     String search_aria_label();
 
@@ -1938,6 +2244,18 @@ public interface AppMessages {
     @Message("No linked accounts yet.")
     String public_profile_accounts_empty();
 
+    @Message("LVL {level}")
+    String public_profile_level_badge(int level);
+
+    @Message("{questClass} Guild")
+    String public_profile_guild_badge(String questClass);
+
+    @Message("Total Experience")
+    String public_profile_total_experience();
+
+    @Message("Top Contributor")
+    String public_profile_top_contributor();
+
     @Message("Class progression")
     String public_profile_class_progress_title();
 
@@ -1947,11 +2265,47 @@ public interface AppMessages {
     @Message("Signals captured")
     String public_profile_activity_count_subtitle();
 
+    @Message("CFP track record")
+    String public_profile_cfp_title();
+
+    @Message("Accepted talks")
+    String public_profile_cfp_accepted_label();
+
+    @Message("Latest accepted proposals")
+    String public_profile_cfp_latest();
+
+    @Message("No accepted CFP talks published yet.")
+    String public_profile_cfp_empty();
+
+    @Message("Badges & Titles")
+    String public_profile_badges_titles();
+
+    @Message("Recent activity")
+    String public_profile_recent_activity();
+
+    @Message("No recent activity recorded.")
+    String public_profile_no_recent_activity();
+
+    @Message("Community status")
+    String public_profile_community_status();
+
+    @Message("Active")
+    String public_profile_status_active();
+
     @Message("No badges earned yet. Keep contributing to unlock more.")
     String public_profile_badges_empty();
 
     @Message("Share Profile")
     String btn_share_profile();
+
+    @Message("Check out my developer profile on HomeDir!")
+    String profile_share_text();
+
+    @Message("My HomeDir Profile")
+    String profile_share_title();
+
+    @Message("Profile link copied to clipboard:")
+    String profile_share_copied();
 
     @Message("XP Progress")
     String xp_progress();
@@ -2670,6 +3024,138 @@ public interface AppMessages {
     @Message("About / Version")
     String footer_about_version();
 
+    @Message("Application Privacy Policy")
+    String footer_privacy_policy();
+
+    @Message("Application Terms of Service")
+    String footer_terms_of_service();
+
+    @Message("Privacy Policy · Homedir")
+    String legal_privacy_page_title();
+
+    @Message("Application Privacy Policy")
+    String legal_privacy_heading();
+
+    @Message("Last updated: March 6, 2026")
+    String legal_privacy_last_updated();
+
+    @Message("This policy describes how HomeDir processes personal data for community identity, events, and collaboration features in Chile.")
+    String legal_privacy_intro();
+
+    @Message("Controller and Data Categories")
+    String legal_privacy_data_title();
+
+    @Message("HomeDir, operated by the OpenSourceSantiago community, processes account identity data, linked integration metadata (Google/GitHub/Discord), usage activity signals, and content submitted by users.")
+    String legal_privacy_data_body();
+
+    @Message("Purposes and Legal Basis")
+    String legal_privacy_use_title();
+
+    @Message("Data is processed to operate accounts, events, CFP workflows, community interactions, moderation, security controls, and service metrics, based on user consent, service operation needs, and legitimate security interests.")
+    String legal_privacy_use_body();
+
+    @Message("Retention, Security, and International Services")
+    String legal_privacy_storage_title();
+
+    @Message("Data is stored in persistent systems managed by HomeDir operators with backups, access controls, and operational safeguards. Some integrations may involve international providers selected by users.")
+    String legal_privacy_storage_body();
+
+    @Message("Third-Party Integrations and Sharing")
+    String legal_privacy_third_title();
+
+    @Message("When users connect external providers, HomeDir receives only required metadata for enabled features and does not sell personal data. Limited processing by technical operators may occur under platform operation duties.")
+    String legal_privacy_third_body();
+
+    @Message("Your Rights in Chile")
+    String legal_privacy_rights_title();
+
+    @Message("Users can request access, correction, deletion, portability, and objection where applicable, and can unlink integrations. Requests can be submitted through official community channels and the contact page (/contacto).")
+    String legal_privacy_rights_body();
+
+    @Message("Terms of Service · Homedir")
+    String legal_terms_page_title();
+
+    @Message("Application Terms of Service")
+    String legal_terms_heading();
+
+    @Message("Last updated: March 6, 2026")
+    String legal_terms_last_updated();
+
+    @Message("By using HomeDir, users accept these terms and agree to responsible use aligned with community purpose and applicable Chilean law.")
+    String legal_terms_intro();
+
+    @Message("Service Scope and Acceptable Use")
+    String legal_terms_use_title();
+
+    @Message("Users must not abuse APIs, disrupt services, automate spam, bypass security controls, or publish harmful/illegal content. Community moderation and safety rules are mandatory.")
+    String legal_terms_use_body();
+
+    @Message("Accounts, Access, and Identity")
+    String legal_terms_accounts_title();
+
+    @Message("Users are responsible for safeguarding linked accounts and actions under authenticated identity. HomeDir may limit or suspend access to protect platform integrity and community safety.")
+    String legal_terms_accounts_body();
+
+    @Message("User Content, License, and Moderation")
+    String legal_terms_content_title();
+
+    @Message("Users retain ownership of submitted content and grant HomeDir a non-exclusive permission to store, moderate, and display it inside platform features. Content that violates rules may be restricted or removed.")
+    String legal_terms_content_body();
+
+    @Message("Availability and Liability Limits")
+    String legal_terms_availability_title();
+
+    @Message("HomeDir is an evolving service. Operators may apply maintenance windows, quotas, and operational controls. Service continuity is managed with best effort and no uninterrupted availability guarantee.")
+    String legal_terms_availability_body();
+
+    @Message("Changes, Consumer Information, and Jurisdiction")
+    String legal_terms_changes_title();
+
+    @Message("These terms may be updated and become effective when published on this page. HomeDir publishes relevant service conditions transparently and applies Chilean law, with jurisdiction in Santiago, Chile.")
+    String legal_terms_changes_body();
+
+    @Message("About · Homedir")
+    String about_page_title();
+
+    @Message("Status")
+    String about_status_heading();
+
+    @Message("Deployed Runtime Version")
+    String about_runtime_version_label();
+
+    @Message("Deployed Commit Hash")
+    String about_commit_hash_label();
+
+    @Message("Build Time")
+    String about_build_time_label();
+
+    @Message("Environment")
+    String about_environment_label();
+
+    @Message("Version Source of Truth")
+    String about_version_source_label();
+
+    @Message("This page shows the currently deployed runtime build.")
+    String about_version_source_value();
+
+    @Message("Google Auth")
+    String about_google_auth_label();
+
+    @Message("GitHub Auth")
+    String about_github_auth_label();
+
+    @Message("Configured")
+    String about_auth_configured();
+
+    @Message("Misconfigured (Using default/missing)")
+    String about_auth_google_misconfigured();
+
+    @Message("Missing Client ID")
+    String about_auth_github_missing_client_id();
+
+    @Message("Back to Home")
+    String about_back_home_btn();
+
     @Message("Close login")
     String login_modal_close_aria();
 
@@ -2693,6 +3179,15 @@ public interface AppMessages {
 
     @Message("Avatar")
     String header_avatar_alt();
+
+    @Message("Language selector")
+    String header_language_aria();
+
+    @Message("Spanish")
+    String header_language_spanish();
+
+    @Message("English")
+    String header_language_english();
 
     @Message("LV")
     String header_level_short();
@@ -2786,6 +3281,15 @@ public interface AppMessages {
 
     @Message("Website")
     String events_detail_web();
+
+    @Message("Twitter")
+    String events_detail_social_twitter();
+
+    @Message("LinkedIn")
+    String events_detail_social_linkedin();
+
+    @Message("Instagram")
+    String events_detail_social_instagram();
 
     @Message("Scenarios")
     String events_detail_scenarios_title();
@@ -3101,5 +3605,227 @@ public interface AppMessages {
 
     @Message("Back to board")
     String community_member_back_to_board();
+
+    @Message("Development insights")
+    String admin_insights_nav_label();
+
+    @Message("Development Insights · Homedir")
+    String admin_insights_title();
+
+    @Message("Admin")
+    String admin_insights_subtitle();
+
+    @Message("Development Insights")
+    String admin_insights_heading();
+
+    @Message("Back to panel")
+    String admin_insights_back_to_panel();
+
+    @Message("Ledger status")
+    String admin_insights_ledger_status_title();
+
+    @Message("Loading...")
+    String admin_insights_loading();
+
+    @Message("Refresh")
+    String admin_insights_refresh();
+
+    @Message("Export CSV")
+    String admin_insights_export_csv();
+
+    @Message("Start initiative")
+    String admin_insights_start_initiative_title();
+
+    @Message("initiative-id")
+    String admin_insights_initiative_id_placeholder();
+
+    @Message("Title")
+    String admin_insights_initiative_title_placeholder();
+
+    @Message("Definition start (ISO, optional)")
+    String admin_insights_started_at_placeholder();
+
+    @Message("Start")
+    String admin_insights_start();
+
+    @Message("Append event")
+    String admin_insights_append_event_title();
+
+    @Message("initiative-id")
+    String admin_insights_event_initiative_placeholder();
+
+    @Message("Event type (e.g. PR_OPENED)")
+    String admin_insights_event_type_placeholder();
+
+    @Message("Metadata: pr (optional)")
+    String admin_insights_event_pr_placeholder();
+
+    @Message("Metadata: sha (optional)")
+    String admin_insights_event_sha_placeholder();
+
+    @Message("Append event")
+    String admin_insights_append();
+
+    @Message("Initiatives")
+    String admin_insights_initiatives_title();
+
+    @Message("Request failed")
+    String admin_insights_js_request_failed();
+
+    @Message("yes")
+    String admin_insights_js_yes();
+
+    @Message("no")
+    String admin_insights_js_no();
+
+    @Message("n/a")
+    String admin_insights_js_na();
+
+    @Message("Enabled")
+    String admin_insights_js_status_enabled();
+
+    @Message("Ledger")
+    String admin_insights_js_status_ledger();
+
+    @Message("Events")
+    String admin_insights_js_status_events();
+
+    @Message("Initiatives")
+    String admin_insights_js_status_initiatives();
+
+    @Message("Started initiatives")
+    String admin_insights_js_status_started();
+
+    @Message("Merged initiatives")
+    String admin_insights_js_status_merged();
+
+    @Message("Production verified")
+    String admin_insights_js_status_prod_verified();
+
+    @Message("Average lead to merge")
+    String admin_insights_js_status_avg_merge();
+
+    @Message("Average lead to production")
+    String admin_insights_js_status_avg_prod();
+
+    @Message("PR validations passed")
+    String admin_insights_js_status_pr_validation_passed();
+
+    @Message("PR validations failed")
+    String admin_insights_js_status_pr_validation_failed();
+
+    @Message("PR validation success rate")
+    String admin_insights_js_status_pr_validation_success_rate();
+
+    @Message("Production releases failed")
+    String admin_insights_js_status_prod_release_failed();
+
+    @Message("Production success rate")
+    String admin_insights_js_status_prod_success_rate();
+
+    @Message("Production verified (last 7d)")
+    String admin_insights_js_status_prod_verified_7d();
+
+    @Message("Production releases failed (last 7d)")
+    String admin_insights_js_status_prod_release_failed_7d();
+
+    @Message("Production success rate (last 7d)")
+    String admin_insights_js_status_prod_success_rate_7d();
+
+    @Message("Events (last 7d)")
+    String admin_insights_js_status_events_last_7d();
+
+    @Message("Events (previous 7d)")
+    String admin_insights_js_status_events_previous_7d();
+
+    @Message("Event trend vs previous 7d")
+    String admin_insights_js_status_events_trend();
+
+    @Message("Active initiatives (last 7d)")
+    String admin_insights_js_status_active_initiatives_7d();
+
+    @Message("Top event types (last 7d)")
+    String admin_insights_js_status_top_event_types_7d();
+
+    @Message("No recent event types")
+    String admin_insights_js_no_top_event_types();
+
+    @Message("Minutes since last event")
+    String admin_insights_js_status_minutes_since_last();
+
+    @Message("Freshness status")
+    String admin_insights_js_status_freshness();
+
+    @Message("healthy")
+    String admin_insights_js_status_freshness_healthy();
+
+    @Message("stale")
+    String admin_insights_js_status_freshness_stale();
+
+    @Message("min")
+    String admin_insights_js_minutes_suffix();
+
+    @Message("Last event")
+    String admin_insights_js_status_last_event();
+
+    @Message("Compactions")
+    String admin_insights_js_status_compactions();
+
+    @Message("Load errors")
+    String admin_insights_js_status_load_errors();
+
+    @Message("Write errors")
+    String admin_insights_js_status_write_errors();
+
+    @Message("h")
+    String admin_insights_js_hours_suffix();
+
+    @Message("No initiatives yet.")
+    String admin_insights_js_no_initiatives();
+
+    @Message("Load 50 more")
+    String admin_insights_js_load_more();
+
+    @Message("All initiatives loaded")
+    String admin_insights_js_all_loaded();
+
+    @Message("Initiative")
+    String admin_insights_js_table_initiative();
+
+    @Message("Title")
+    String admin_insights_js_table_title();
+
+    @Message("State")
+    String admin_insights_js_table_state();
+
+    @Message("Events")
+    String admin_insights_js_table_events();
+
+    @Message("Lead to merge (h)")
+    String admin_insights_js_table_lead_merge();
+
+    @Message("Lead to production (h)")
+    String admin_insights_js_table_lead_prod();
+
+    @Message("Last type")
+    String admin_insights_js_table_last_type();
+
+    @Message("Last update")
+    String admin_insights_js_table_last_update();
+
+    @Message("active")
+    String admin_insights_js_state_active();
+
+    @Message("Initiative started.")
+    String admin_insights_js_started();
+
+    @Message("Could not start initiative.")
+    String admin_insights_js_could_not_start();
+
+    @Message("Event appended.")
+    String admin_insights_js_appended();
+
+    @Message("Could not append event.")
+    String admin_insights_js_could_not_append();
 
 }

@@ -2,8 +2,9 @@ package com.scanales.eventflow.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.cfp.CfpSubmission;
-import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpConfigService;
+import com.scanales.eventflow.cfp.CfpEventConfig;
+import com.scanales.eventflow.cfp.CfpEventConfigService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.GamificationActivity;
@@ -47,6 +48,7 @@ public class CfpSubmissionApiResource {
 
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject CfpConfigService cfpConfigService;
+  @Inject CfpEventConfigService cfpEventConfigService;
   @Inject PersistenceService persistenceService;
   @Inject SpeakerService speakerService;
   @Inject UsageMetricsService metrics;
@@ -85,7 +87,9 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status status =
-          ("proposal_limit_reached".equals(e.getMessage()) || "duplicate_title".equals(e.getMessage()))
+          ("proposal_limit_reached".equals(e.getMessage())
+                  || "duplicate_title".equals(e.getMessage())
+                  || "submissions_closed".equals(e.getMessage()))
               ? Response.Status.CONFLICT
               : Response.Status.BAD_REQUEST;
       return Response.status(status).entity(Map.of("error", e.getMessage())).build();
@@ -113,21 +117,97 @@ public class CfpSubmissionApiResource {
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
         cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream().map(this::toView).toList();
-    return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
+    int total = cfpSubmissionService.countMine(eventId, userIds);
+    boolean hasMore = offset + items.size() < total;
+    Integer nextOffset = hasMore ? offset + items.size() : null;
+    return Response.ok(new SubmissionListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
   }
   @GET
   @Path("/config")
   public Response submissionConfig(@PathParam("eventId") String eventId) {
-    CfpConfig config = cfpConfigService.current();
-    int limit = config.maxSubmissionsPerUserPerEvent();
-    return Response.ok(
-            new SubmissionLimitConfigResponse(
-                limit,
-                CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
-                CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
-                AdminUtils.isAdmin(identity),
-                config.testingModeEnabled()))
-        .build();
+    try {
+      return Response.ok(toSubmissionLimitConfigResponse(eventId, AdminUtils.isAdmin(identity))).build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
+  }
+
+  @GET
+  @Path("/event-config")
+  @Authenticated
+  public Response eventSubmissionConfig(@PathParam("eventId") String eventId) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    try {
+      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+      Optional<CfpEventConfig> override = cfpEventConfigService.findOverride(eventId);
+      return Response.ok(
+              new EventSubmissionConfigResponse(
+                  resolved.eventId(),
+                  resolved.hasOverride(),
+                  override.map(this::toEventConfigView).orElse(null),
+                  toEventConfigView(resolved)))
+          .build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
+  }
+
+  @PUT
+  @Path("/event-config")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateEventSubmissionConfig(
+      @PathParam("eventId") String eventId, EventSubmissionConfigUpdateRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    if (request == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_config")).build();
+    }
+    try {
+      CfpEventConfig override =
+          cfpEventConfigService.upsert(
+              eventId,
+              new CfpEventConfigService.UpdateRequest(
+                  request.acceptingSubmissions(),
+                  request.opensAt(),
+                  request.closesAt(),
+                  request.maxPerUser(),
+                  request.testingModeEnabled()));
+      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+      return Response.ok(
+              new EventSubmissionConfigResponse(
+                  resolved.eventId(),
+                  true,
+                  toEventConfigView(override),
+                  toEventConfigView(resolved)))
+          .build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
+  }
+
+  @DELETE
+  @Path("/event-config")
+  @Authenticated
+  public Response clearEventSubmissionConfig(@PathParam("eventId") String eventId) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    try {
+      boolean cleared = cfpEventConfigService.clearOverride(eventId);
+      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+      return Response.ok(
+              new EventSubmissionConfigClearResponse(
+                  resolved.eventId(),
+                  cleared,
+                  toEventConfigView(resolved)))
+          .build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
   }
 
   @GET
@@ -226,15 +306,12 @@ public class CfpSubmissionApiResource {
                   "max", CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT))
           .build();
     }
-    CfpConfig updated = cfpConfigService.update(requestedLimit, requestedTesting);
-    return Response.ok(
-            new SubmissionLimitConfigResponse(
-                updated.maxSubmissionsPerUserPerEvent(),
-                CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
-                CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
-                true,
-                updated.testingModeEnabled()))
-        .build();
+    cfpConfigService.update(requestedLimit, requestedTesting);
+    try {
+      return Response.ok(toSubmissionLimitConfigResponse(eventId, true)).build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
   }
   @DELETE
   @Path("/{id}")
@@ -265,6 +342,26 @@ public class CfpSubmissionApiResource {
   }
 
   @GET
+  @Path("/stats")
+  @Authenticated
+  public Response stats(@PathParam("eventId") String eventId) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    CfpSubmissionService.EventStats stats = cfpSubmissionService.statsByEvent(eventId);
+    return Response.ok(
+            new SubmissionStatsResponse(
+                stats.total(),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
+                stats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
+                stats.latestUpdatedAt()))
+        .build();
+  }
+
+  @GET
   @Authenticated
   public Response listForModeration(
       @PathParam("eventId") String eventId,
@@ -289,7 +386,10 @@ public class CfpSubmissionApiResource {
         cfpSubmissionService.listByEvent(eventId, statusFilter, sortOrder, limit, offset).stream()
             .map(this::toView)
             .toList();
-    return Response.ok(new SubmissionListResponse(limit, offset, items)).build();
+    int total = cfpSubmissionService.countByEvent(eventId, statusFilter);
+    boolean hasMore = offset + items.size() < total;
+    Integer nextOffset = hasMore ? offset + items.size() : null;
+    return Response.ok(new SubmissionListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
   }
 
   @GET
@@ -344,7 +444,11 @@ public class CfpSubmissionApiResource {
       }
       CfpSubmission updated =
           cfpSubmissionService.updateStatus(
-              id, status.get(), currentUserId().orElse("admin"), request != null ? request.note() : null);
+              id,
+              status.get(),
+              currentUserId().orElse("admin"),
+              request != null ? request.note() : null,
+              request != null ? request.expectedUpdatedAt() : null);
       metrics.recordFunnelStep("cfp.submission.status");
       metrics.recordFunnelStep("cfp.submission.status." + status.get().apiValue());
       if (status.get() == CfpSubmissionStatus.ACCEPTED) {
@@ -357,7 +461,9 @@ public class CfpSubmissionApiResource {
     } catch (CfpSubmissionService.InvalidTransitionException e) {
       return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      Response.Status statusCode =
+          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+      return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
@@ -387,12 +493,15 @@ public class CfpSubmissionApiResource {
               request.technicalDetail(),
               request.narrative(),
               request.contentImpact(),
-              currentUserId().orElse("admin"));
+              currentUserId().orElse("admin"),
+              request.expectedUpdatedAt());
       return Response.ok(new SubmissionResponse(toView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      Response.Status statusCode =
+          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+      return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
@@ -442,6 +551,44 @@ public class CfpSubmissionApiResource {
     speakerService.saveTalk(speakerId, talk);
 
     return Response.ok(new PromoteResponse(speakerId, talkId, createdSpeaker, createdTalk)).build();
+  }
+
+  private EventSubmissionConfigView toEventConfigView(CfpEventConfig config) {
+    if (config == null) {
+      return null;
+    }
+    return new EventSubmissionConfigView(
+        config.acceptingSubmissions(),
+        config.opensAt(),
+        config.closesAt(),
+        config.maxSubmissionsPerUserPerEvent(),
+        config.testingModeEnabled(),
+        null);
+  }
+
+  private static EventSubmissionConfigView toEventConfigView(CfpEventConfigService.ResolvedEventConfig config) {
+    return new EventSubmissionConfigView(
+        config.acceptingSubmissions(),
+        config.opensAt(),
+        config.closesAt(),
+        config.maxSubmissionsPerUserPerEvent(),
+        config.testingModeEnabled(),
+        config.currentlyOpen());
+  }
+
+  private SubmissionLimitConfigResponse toSubmissionLimitConfigResponse(String eventId, boolean admin) {
+    CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+    return new SubmissionLimitConfigResponse(
+        resolved.maxSubmissionsPerUserPerEvent(),
+        CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
+        CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT,
+        admin,
+        resolved.testingModeEnabled(),
+        resolved.acceptingSubmissions(),
+        resolved.opensAt(),
+        resolved.closesAt(),
+        resolved.currentlyOpen(),
+        resolved.hasOverride());
   }
 
   private SubmissionView toView(CfpSubmission submission) {
@@ -525,6 +672,9 @@ public class CfpSubmissionApiResource {
     if (sort == null || sort.isBlank() || "created".equalsIgnoreCase(sort) || "recent".equalsIgnoreCase(sort)) {
       return CfpSubmissionService.SortOrder.CREATED_DESC;
     }
+    if ("updated".equalsIgnoreCase(sort) || "latest_update".equalsIgnoreCase(sort)) {
+      return CfpSubmissionService.SortOrder.UPDATED_DESC;
+    }
     if ("score".equalsIgnoreCase(sort) || "weighted".equalsIgnoreCase(sort)) {
       return CfpSubmissionService.SortOrder.SCORE_DESC;
     }
@@ -534,7 +684,8 @@ public class CfpSubmissionApiResource {
   private static String buildCsv(List<CfpSubmission> items) {
     StringBuilder csv = new StringBuilder();
     csv.append(
-            "id,event_id,title,status,proposer_user_id,proposer_name,created_at,level,format,duration_min,language,track,"
+            "id,event_id,title,status,proposer_user_id,proposer_name,created_at,updated_at,moderated_at,moderated_by,"
+                + "level,format,duration_min,language,track,"
                 + "rating_technical_detail,rating_narrative,rating_content_impact,rating_weighted,moderation_note,links")
         .append('\n');
 
@@ -547,6 +698,9 @@ public class CfpSubmissionApiResource {
           .append(csvValue(item.proposerUserId())).append(',')
           .append(csvValue(item.proposerName())).append(',')
           .append(csvValue(item.createdAt() != null ? item.createdAt().toString() : null)).append(',')
+          .append(csvValue(item.updatedAt() != null ? item.updatedAt().toString() : null)).append(',')
+          .append(csvValue(item.moderatedAt() != null ? item.moderatedAt().toString() : null)).append(',')
+          .append(csvValue(item.moderatedBy())).append(',')
           .append(csvValue(item.level())).append(',')
           .append(csvValue(item.format())).append(',')
           .append(csvValue(item.durationMin())).append(',')
@@ -659,12 +813,16 @@ public class CfpSubmissionApiResource {
       List<String> tags,
       List<String> links) {}
 
-  public record UpdateStatusRequest(String status, String note) {}
+  public record UpdateStatusRequest(
+      String status,
+      String note,
+      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record UpdateRatingRequest(
       @JsonProperty("technical_detail") Integer technicalDetail,
       Integer narrative,
-      @JsonProperty("content_impact") Integer contentImpact) {}
+      @JsonProperty("content_impact") Integer contentImpact,
+      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record PromoteResponse(
       @JsonProperty("speaker_id") String speakerId,
@@ -674,10 +832,51 @@ public class CfpSubmissionApiResource {
 
   public record SubmissionResponse(SubmissionView item) {}
 
-  public record SubmissionListResponse(int limit, int offset, List<SubmissionView> items) {}
+  public record SubmissionListResponse(
+      int limit,
+      int offset,
+      int total,
+      @JsonProperty("has_more") boolean hasMore,
+      @JsonProperty("next_offset") Integer nextOffset,
+      List<SubmissionView> items) {}
+
+  public record SubmissionStatsResponse(
+      int total,
+      int pending,
+      @JsonProperty("under_review") int underReview,
+      int accepted,
+      int rejected,
+      int withdrawn,
+      @JsonProperty("latest_updated_at") Instant latestUpdatedAt) {}
   public record SubmissionLimitConfigUpdateRequest(
       @JsonProperty("max_per_user") Integer maxPerUser,
       @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled) {}
+
+  public record EventSubmissionConfigUpdateRequest(
+      @JsonProperty("accepting_submissions") Boolean acceptingSubmissions,
+      @JsonProperty("opens_at") Instant opensAt,
+      @JsonProperty("closes_at") Instant closesAt,
+      @JsonProperty("max_per_user") Integer maxPerUser,
+      @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled) {}
+
+  public record EventSubmissionConfigView(
+      @JsonProperty("accepting_submissions") boolean acceptingSubmissions,
+      @JsonProperty("opens_at") Instant opensAt,
+      @JsonProperty("closes_at") Instant closesAt,
+      @JsonProperty("max_per_user") Integer maxPerUser,
+      @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled,
+      @JsonProperty("currently_open") Boolean currentlyOpen) {}
+
+  public record EventSubmissionConfigResponse(
+      @JsonProperty("event_id") String eventId,
+      @JsonProperty("has_override") boolean hasOverride,
+      EventSubmissionConfigView override,
+      EventSubmissionConfigView effective) {}
+
+  public record EventSubmissionConfigClearResponse(
+      @JsonProperty("event_id") String eventId,
+      boolean cleared,
+      EventSubmissionConfigView effective) {}
 
   public record StorageHealthResponse(
       @JsonProperty("primary_path") String primaryPath,
@@ -729,7 +928,12 @@ public class CfpSubmissionApiResource {
       @JsonProperty("min_allowed") int minAllowed,
       @JsonProperty("max_allowed") int maxAllowed,
       boolean admin,
-      @JsonProperty("testing_mode_enabled") boolean testingModeEnabled) {}
+      @JsonProperty("testing_mode_enabled") boolean testingModeEnabled,
+      @JsonProperty("accepting_submissions") boolean acceptingSubmissions,
+      @JsonProperty("opens_at") Instant opensAt,
+      @JsonProperty("closes_at") Instant closesAt,
+      @JsonProperty("currently_open") boolean currentlyOpen,
+      @JsonProperty("has_event_override") boolean hasEventOverride) {}
 
   public record SubmissionView(
       String id,

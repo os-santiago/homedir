@@ -7,6 +7,34 @@ Homedir records interaction events and persists them asynchronously to provide i
 - **Display**: Admin Dashboard (`/private/admin`).
 - **Privacy**: No PII in exports; aggregated data only.
 
+## Development Insights Ingest (Optional)
+- **Internal endpoint**: `/api/internal/insights/*` (hidden, disabled by default).
+- **Guardrails**:
+  - `insights.ingest.enabled=false` by default.
+  - `X-Insights-Key` required for every request.
+- **CI wiring**:
+  - `INSIGHTS_INGEST_BASE_URL` (GitHub variable)
+  - `INSIGHTS_INGEST_KEY` (GitHub secret)
+- **Behavior**: If those values are missing, CI steps skip ingestion without failing builds/releases.
+- **Failure signals**: CI/CD also emits failure events when available:
+  - `PR_VALIDATION_FAILED`
+  - `PRODUCTION_RELEASE_FAILED`
+  This allows lead-time dashboards to include non-success outcomes.
+- **Quality ratios** (admin insights status):
+  - PR validation success rate (`passed / total`)
+  - Production success rate (`production_verified / (production_verified + release_failed)`)
+  - Production success rate (last 7d)
+- **Short-term delivery trend** (admin insights status):
+  - Events in last 7 days
+  - Events in previous 7 days
+  - Trend delta vs previous 7 days
+  - Active initiatives in last 7 days
+  - Top event types in last 7 days (top 5)
+- **Freshness guardrail** (admin insights status):
+  - Minutes since last event
+  - Freshness status (`healthy`/`stale`) based on `insights.ledger.stale-minutes` (default 1440)
+- **CSV export**: Admin insights can be exported from `/api/private/admin/insights/initiatives/export.csv` (admin only).
+
 ## Tracked Events
 - **Page Views**: `Page_view: {route}`
 - **Event Views**: `Event_view: {eventid}`

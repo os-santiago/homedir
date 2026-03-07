@@ -18,7 +18,7 @@ public class LocaleResponseFilter {
 
     private static final String COOKIE_NAME = "QP_LOCALE";
     private static final Set<String> SUPPORTED_LANGS = Set.of("en", "es");
-    private static final String DEFAULT_LANG = "en";
+    private static final String DEFAULT_LANG = "es";
 
     @Inject
     SecurityIdentity identity;
@@ -38,15 +38,15 @@ public class LocaleResponseFilter {
     }
 
     private String resolveLocaleCode(ContainerRequestContext requestContext) {
+        String profileLang = normalizeLang(resolveProfileLocale());
+        if (profileLang != null) {
+            return profileLang;
+        }
+
         Cookie localeCookie = requestContext.getCookies().get(COOKIE_NAME);
         String cookieLang = normalizeLang(localeCookie != null ? localeCookie.getValue() : null);
         if (cookieLang != null) {
             return cookieLang;
-        }
-
-        String profileLang = normalizeLang(resolveProfileLocale());
-        if (profileLang != null) {
-            return profileLang;
         }
 
         for (Locale locale : requestContext.getAcceptableLanguages()) {

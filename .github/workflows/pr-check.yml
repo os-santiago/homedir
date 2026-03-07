@@ -3,6 +3,7 @@ name: PR Validation
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, reopened, synchronize, ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,6 +12,7 @@ concurrency:
 jobs:
   build-and-test:
     name: Build & Verify
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -24,13 +26,70 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Verify Build, Tests and Coverage Gate
-        working-directory: quarkus-app
-        run: ./mvnw clean verify -B -Pcoverage -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - name: PR preflight (build, tests, smoke) with retry
+        run: ./scripts/ci/pr_preflight.sh
 
-      - name: Public Experience Smoke Test
-        working-directory: quarkus-app
-        run: ./mvnw -B -Dtest=PublicExperienceSmokeTest test
+      - name: Emit insights ingest events (PR validation)
+        if: ${{ success() }}
+        continue-on-error: true
+        env:
+          INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
+          INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          initiative_id="pr-${PR_NUMBER}"
+          started_at="${PR_CREATED_AT:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
+          bash scripts/ci/insights_ingest.sh start \
+            "${initiative_id}" \
+            "${PR_TITLE}" \
+            "${started_at}" \
+            "source=pr-validation" \
+            "pr=${PR_NUMBER}" \
+            "sha=${PR_SHA}" \
+            "run_id=${RUN_ID}"
+
+      - name: Emit insights ingest events (PR validation failed)
+        if: ${{ failure() }}
+        continue-on-error: true
+        env:
+          INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
+          INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          initiative_id="pr-${PR_NUMBER}"
+          started_at="${PR_CREATED_AT:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
+          bash scripts/ci/insights_ingest.sh start \
+            "${initiative_id}" \
+            "${PR_TITLE}" \
+            "${started_at}" \
+            "source=pr-validation" \
+            "pr=${PR_NUMBER}" \
+            "sha=${PR_SHA}" \
+            "run_id=${RUN_ID}"
+          bash scripts/ci/insights_ingest.sh event \
+            "${initiative_id}" \
+            "PR_VALIDATION_FAILED" \
+            "source=pr-validation" \
+            "pr=${PR_NUMBER}" \
+            "sha=${PR_SHA}" \
+            "run_id=${RUN_ID}"
+          bash scripts/ci/insights_ingest.sh event \
+            "${initiative_id}" \
+            "PR_VALIDATION_PASSED" \
+            "source=pr-validation" \
+            "pr=${PR_NUMBER}" \
+            "sha=${PR_SHA}" \
+            "run_id=${RUN_ID}"
         
       # Optional: Add checkstyle or other linting here if configured
       # - name: Checkstyle

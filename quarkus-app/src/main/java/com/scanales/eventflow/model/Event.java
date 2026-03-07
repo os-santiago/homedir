@@ -10,7 +10,10 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @RegisterForReflection
 @JsonIgnoreProperties(value = "dayList", allowGetters = true)
@@ -58,6 +61,12 @@ public class Event {
   /** URL to obtain tickets for the event. */
   private String ticketsUrl;
 
+  /** Event-specific visual palette (optional). */
+  private String themePrimaryColor;
+  private String themeAccentColor;
+  private String themeSurfaceColor;
+  private String themeTextColor;
+
   private List<Talk> agenda = new ArrayList<>();
 
   /** Time when the event was created. */
@@ -71,6 +80,21 @@ public class Event {
 
   /** Time zone identifier for the event, e.g. "UTC" or "Europe/Madrid". */
   private String timezone;
+
+  private static final Pattern HEX_COLOR_PATTERN =
+      Pattern.compile("^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$");
+
+  private static final String DEFAULT_THEME_PRIMARY = "#ffd54f";
+  private static final String DEFAULT_THEME_ACCENT = "#72ff9f";
+  private static final String DEFAULT_THEME_SURFACE = "#2d3d57";
+  private static final String DEFAULT_THEME_TEXT = "#ffffff";
+
+  private static final Map<String, ThemePreset> EVENT_THEME_PRESETS =
+      Map.of(
+          "devopsdays-santiago-2026",
+          new ThemePreset("#e91c26", "#50bce7", "#082440", "#ffffff"));
+
+  private record ThemePreset(String primary, String accent, String surface, String text) {}
 
   public Event() {
   }
@@ -216,6 +240,54 @@ public class Event {
 
   public void setTicketsUrl(String ticketsUrl) {
     this.ticketsUrl = ticketsUrl;
+  }
+
+  public String getThemePrimaryColor() {
+    return themePrimaryColor;
+  }
+
+  public void setThemePrimaryColor(String themePrimaryColor) {
+    this.themePrimaryColor = normalizeHexColor(themePrimaryColor);
+  }
+
+  public String getThemeAccentColor() {
+    return themeAccentColor;
+  }
+
+  public void setThemeAccentColor(String themeAccentColor) {
+    this.themeAccentColor = normalizeHexColor(themeAccentColor);
+  }
+
+  public String getThemeSurfaceColor() {
+    return themeSurfaceColor;
+  }
+
+  public void setThemeSurfaceColor(String themeSurfaceColor) {
+    this.themeSurfaceColor = normalizeHexColor(themeSurfaceColor);
+  }
+
+  public String getThemeTextColor() {
+    return themeTextColor;
+  }
+
+  public void setThemeTextColor(String themeTextColor) {
+    this.themeTextColor = normalizeHexColor(themeTextColor);
+  }
+
+  public String getResolvedThemePrimaryColor() {
+    return resolveThemeColor(themePrimaryColor, ThemePreset::primary, DEFAULT_THEME_PRIMARY);
+  }
+
+  public String getResolvedThemeAccentColor() {
+    return resolveThemeColor(themeAccentColor, ThemePreset::accent, DEFAULT_THEME_ACCENT);
+  }
+
+  public String getResolvedThemeSurfaceColor() {
+    return resolveThemeColor(themeSurfaceColor, ThemePreset::surface, DEFAULT_THEME_SURFACE);
+  }
+
+  public String getResolvedThemeTextColor() {
+    return resolveThemeColor(themeTextColor, ThemePreset::text, DEFAULT_THEME_TEXT);
   }
 
   public List<Talk> getAgenda() {
@@ -528,5 +600,59 @@ public class Event {
       result.put(slotStart, talksAtSlot);
     }
     return result;
+  }
+
+  private String resolveThemeColor(
+      String configured,
+      java.util.function.Function<ThemePreset, String> fromPreset,
+      String fallback) {
+    String normalized = normalizeHexColor(configured);
+    if (normalized != null) {
+      return normalized;
+    }
+    ThemePreset preset = presetForEventId(id);
+    if (preset != null) {
+      String presetColor = normalizeHexColor(fromPreset.apply(preset));
+      if (presetColor != null) {
+        return presetColor;
+      }
+    }
+    return fallback;
+  }
+
+  private static ThemePreset presetForEventId(String eventId) {
+    if (eventId == null || eventId.isBlank()) {
+      return null;
+    }
+    return EVENT_THEME_PRESETS.get(eventId.trim().toLowerCase(Locale.ROOT));
+  }
+
+  private static String normalizeHexColor(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String value = raw.trim();
+    if (value.isEmpty()) {
+      return null;
+    }
+    if (!value.startsWith("#")) {
+      value = "#" + value;
+    }
+    if (!HEX_COLOR_PATTERN.matcher(value).matches()) {
+      return null;
+    }
+    String hex = value.substring(1);
+    if (hex.length() == 3) {
+      hex =
+          new StringBuilder()
+              .append(hex.charAt(0))
+              .append(hex.charAt(0))
+              .append(hex.charAt(1))
+              .append(hex.charAt(1))
+              .append(hex.charAt(2))
+              .append(hex.charAt(2))
+              .toString();
+    }
+    return "#" + hex.toLowerCase(Locale.ROOT);
   }
 }

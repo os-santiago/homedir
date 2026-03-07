@@ -230,6 +230,25 @@ footer {
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
 }
 
+.logo-icon-image {
+  width: 72px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0.7rem;
+  background: rgba(7, 10, 19, 0.32);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+}
+
+.header-brand-logo {
+  padding-top: 5px;
+  width: 100%;
+  height: 190%;
+  object-fit: cover;
+  display: block;
+}
+
 .hd-logo-text,
 .logo-text {
   display: flex;
@@ -372,6 +391,37 @@ footer {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.header-locale-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.header-locale-icon {
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.header-locale-select {
+  min-width: 84px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  outline: none;
+  cursor: pointer;
+}
+
+.header-locale-select option {
+  color: #111;
 }
 
 .eyebrow {
@@ -614,6 +664,90 @@ footer {
   opacity: 0.95;
 }
 
+.cfp-journey-card {
+  margin-top: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cfp-journey-top {
+  margin: 0 0 0.9rem 0;
+}
+
+.cfp-journey-header h2,
+.cfp-journey-header h3 {
+  margin: 0;
+}
+
+.cfp-journey-header.compact h3 {
+  font-size: 1rem;
+}
+
+.cfp-journey-range {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.cfp-journey-track {
+  margin-top: 0.55rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.cfp-journey-stage {
+  flex: var(--cfp-stage-flex, 1) 1 0;
+  min-width: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 0.38rem 0.45rem 0.45rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cfp-journey-stage.is-active {
+  border-color: rgba(255, 213, 79, 0.65);
+  background: rgba(255, 213, 79, 0.1);
+}
+
+.cfp-journey-stage-bar {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.cfp-journey-stage.is-active .cfp-journey-stage-bar {
+  background: linear-gradient(90deg, rgba(255, 213, 79, 0.95), rgba(114, 255, 159, 0.95));
+}
+
+.cfp-journey-stage-title {
+  margin: 0.35rem 0 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cfp-journey-stage-dates {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  opacity: 0.84;
+}
+
+@media (max-width: 860px) {
+  .cfp-journey-track {
+    flex-direction: column;
+  }
+
+  .cfp-journey-stage {
+    min-width: 0;
+  }
+}
+
 .section-card .section-icon {
   display: block;
   font-size: 3rem;
@@ -854,6 +988,10 @@ footer {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .header-locale-switcher {
+    order: 5;
   }
 
   .homedir-main {
@@ -3279,6 +3417,94 @@ footer {
   content: none !important;
 }
 
+/* Normalize legacy card/list components to the same lightweight baseline used in Community. */
+.homedir-body.ultra-lite-mode .card,
+.homedir-body.ultra-lite-mode .card:hover,
+.homedir-body.ultra-lite-mode .box,
+.homedir-body.ultra-lite-mode .box:hover,
+.homedir-body.ultra-lite-mode .scenario-card,
+.homedir-body.ultra-lite-mode .scenario-card:hover,
+.homedir-body.ultra-lite-mode .speaker-card,
+.homedir-body.ultra-lite-mode .speaker-card:hover,
+.homedir-body.ultra-lite-mode .talk-card,
+.homedir-body.ultra-lite-mode .talk-card:hover,
+.homedir-body.ultra-lite-mode .event-card,
+.homedir-body.ultra-lite-mode .event-card:hover,
+.homedir-body.ultra-lite-mode .project-card,
+.homedir-body.ultra-lite-mode .project-card:hover,
+.homedir-body.ultra-lite-mode .community-card,
+.homedir-body.ultra-lite-mode .community-card:hover {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease !important;
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.56);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 32%),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.015) 0 1px, rgba(255, 255, 255, 0) 1px 8px);
+}
+
+.homedir-body.ultra-lite-mode .talk-list,
+.homedir-body.ultra-lite-mode .speaker-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 0.62rem;
+}
+
+.homedir-body.ultra-lite-mode .scenario-talk-list {
+  margin-top: 0.18rem;
+}
+
+.homedir-body.ultra-lite-mode .scenario-talk-card {
+  list-style: none;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-left: 3px solid rgba(255, 215, 0, 0.55);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.26);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.52);
+  padding: 0.68rem 0.74rem;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.homedir-body.ultra-lite-mode .scenario-talk-card .talk-title {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.34;
+}
+
+/* Strictly stabilize event/scenario/talk/speaker content regions.
+   This mirrors Community's low-motion baseline to avoid flicker and hover loops. */
+.homedir-body.ultra-lite-mode .page-header *,
+.homedir-body.ultra-lite-mode .page-grid *,
+.homedir-body.ultra-lite-mode .talk-detail *,
+.homedir-body.ultra-lite-mode .speaker-detail * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.homedir-body.ultra-lite-mode .page-grid .section-card,
+.homedir-body.ultra-lite-mode .page-grid .section-card:hover,
+.homedir-body.ultra-lite-mode .talk-detail .card,
+.homedir-body.ultra-lite-mode .talk-detail .card:hover,
+.homedir-body.ultra-lite-mode .speaker-detail .card,
+.homedir-body.ultra-lite-mode .speaker-detail .card:hover {
+  cursor: default;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.56) !important;
+}
+
 .homedir-body.ultra-lite-mode .section-header {
   position: relative;
   padding-bottom: 0.18rem;
@@ -3452,4 +3678,152 @@ footer {
 /* Stabilize hover on member cards to avoid edge-trigger flicker */
 .community-member-card:hover {
   transform: none;
+}
+
+/* Header layout and language selector (extracted from template for maintainability) */
+.top-nav.header-3col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.nav-actions.header-center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.header-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.lang-selector-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  margin-right: 0.5rem;
+  margin-top: -2px;
+}
+
+.hd-circle-btn {
+  width: 25px;
+  height: 25px;
+  min-width: 25px;
+  min-height: 25px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color, #fff);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  padding: 0;
+}
+
+.hd-circle-btn:hover,
+.hd-circle-btn.active-circle-btn {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.icon-lg {
+  font-size: 20px;
+}
+
+.icon-middle {
+  vertical-align: middle;
+}
+
+.notifications-bell {
+  text-decoration: none;
+  position: relative;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 0.5rem;
+  padding: 2px 4px;
+}
+
+.lang-selector-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--dropdown-background, #151515);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0;
+  min-width: 120px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.lang-selector-container:hover .lang-selector-dropdown,
+.lang-selector-container.is-open .lang-selector-dropdown,
+.lang-toggle-btn:focus + .lang-selector-dropdown,
+.lang-selector-dropdown:focus-within {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(5px);
+}
+
+.lang-selector-dropdown .lang-option {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0.4rem 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-selector-dropdown .lang-option:hover,
+.lang-selector-dropdown .lang-option:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  outline: none;
+}
+
+@media (max-width: 960px) {
+  .top-nav.header-3col {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-left,
+  .header-right {
+    flex: initial;
+  }
+
+  .nav-actions.header-center {
+    order: 3;
+    width: 100%;
+    flex: initial;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
 }

@@ -10,7 +10,9 @@ import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.PersistenceService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,12 +22,14 @@ public class CfpSubmissionServiceTest {
   private static final String EVENT_ID = "cfp-event-1";
 
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject CfpEventConfigService cfpEventConfigService;
   @Inject EventService eventService;
   @Inject PersistenceService persistenceService;
 
   @BeforeEach
   void setup() {
     cfpSubmissionService.clearAllForTests();
+    cfpEventConfigService.resetForTests();
     eventService.reset();
     Event event = new Event(EVENT_ID, "CFP Event", "Event for CFP tests");
     eventService.saveEvent(event);
@@ -222,6 +226,72 @@ public class CfpSubmissionServiceTest {
   }
 
   @Test
+  void rejectStatusRequiresModerationNote() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Reject note guardrail",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.updateStatus(
+                    created.id(), CfpSubmissionStatus.REJECTED, "admin@example.org", " "));
+
+    assertEquals("reject_note_required", exception.getMessage());
+  }
+
+  @Test
+  void statusUpdateRejectsStaleWriteWhenExpectedVersionDoesNotMatch() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stale status check",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+    Instant expectedUpdatedAt = created.updatedAt();
+
+    cfpSubmissionService.updateStatus(
+        created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.updateStatus(
+                    created.id(),
+                    CfpSubmissionStatus.ACCEPTED,
+                    "admin@example.org",
+                    "accepted",
+                    expectedUpdatedAt));
+
+    assertEquals("stale_submission", exception.getMessage());
+  }
+
+  @Test
   void listByEventSupportsStatusFilter() {
     CfpSubmission created =
         cfpSubmissionService.create(
@@ -305,6 +375,90 @@ public class CfpSubmissionServiceTest {
                         java.util.List.of())));
 
     assertEquals("proposal_limit_reached", exception.getMessage());
+  }
+
+  @Test
+  void createAppliesEventSpecificMaxSubmissionsLimit() {
+    cfpEventConfigService.upsert(
+        EVENT_ID,
+        new CfpEventConfigService.UpdateRequest(
+            true,
+            null,
+            null,
+            1,
+            null));
+
+    cfpSubmissionService.create(
+        "member@example.com",
+        "Member",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Talk A",
+            "Summary",
+            "Abstract",
+            "intermediate",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            java.util.List.of(),
+            java.util.List.of()));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.create(
+                    "member@example.com",
+                    "Member",
+                    new CfpSubmissionService.CreateRequest(
+                        EVENT_ID,
+                        "Talk B",
+                        "Summary",
+                        "Abstract",
+                        "intermediate",
+                        "talk",
+                        30,
+                        "en",
+                        "platform-engineering-idp",
+                        java.util.List.of(),
+                        java.util.List.of())));
+
+    assertEquals("proposal_limit_reached", exception.getMessage());
+  }
+
+  @Test
+  void createRejectsSubmissionsWhenEventWindowIsClosed() {
+    cfpEventConfigService.upsert(
+        EVENT_ID,
+        new CfpEventConfigService.UpdateRequest(
+            false,
+            null,
+            null,
+            null,
+            null));
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.create(
+                    "member@example.com",
+                    "Member",
+                    new CfpSubmissionService.CreateRequest(
+                        EVENT_ID,
+                        "Closed window talk",
+                        "Summary",
+                        "Abstract",
+                        "intermediate",
+                        "talk",
+                        30,
+                        "en",
+                        "platform-engineering-idp",
+                        java.util.List.of(),
+                        java.util.List.of())));
+
+    assertEquals("submissions_closed", exception.getMessage());
   }
 
   @Test
@@ -511,6 +665,44 @@ public class CfpSubmissionServiceTest {
   }
 
   @Test
+  void ratingUpdateRejectsStaleWriteWhenExpectedVersionDoesNotMatch() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stale rating check",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+    Instant expectedUpdatedAt = created.updatedAt();
+
+    cfpSubmissionService.updateRating(EVENT_ID, created.id(), 4, 4, 4, "admin@example.org");
+
+    CfpSubmissionService.ValidationException exception =
+        assertThrows(
+            CfpSubmissionService.ValidationException.class,
+            () ->
+                cfpSubmissionService.updateRating(
+                    EVENT_ID,
+                    created.id(),
+                    5,
+                    5,
+                    5,
+                    "admin@example.org",
+                    expectedUpdatedAt));
+
+    assertEquals("stale_submission", exception.getMessage());
+  }
+
+  @Test
   void listByEventCanSortByWeightedScore() {
     CfpSubmission low =
         cfpSubmissionService.create(
@@ -561,5 +753,81 @@ public class CfpSubmissionServiceTest {
     assertEquals(high.id(), ordered.get(0).id());
     assertEquals(low.id(), ordered.get(1).id());
   }
-}
 
+  @Test
+  void statsByEventReturnsStatusCountsAndLatestUpdate() {
+    CfpSubmission pending =
+        cfpSubmissionService.create(
+            "member-a@example.com",
+            "Member A",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stats pending",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+
+    CfpSubmission underReview =
+        cfpSubmissionService.create(
+            "member-b@example.com",
+            "Member B",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stats review",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+    underReview =
+        cfpSubmissionService.updateStatus(
+            underReview.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+
+    CfpSubmission accepted =
+        cfpSubmissionService.create(
+            "member-c@example.com",
+            "Member C",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Stats accepted",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                java.util.List.of(),
+                java.util.List.of()));
+    accepted =
+        cfpSubmissionService.updateStatus(
+            accepted.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "review");
+    accepted =
+        cfpSubmissionService.updateStatus(
+            accepted.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "accept");
+
+    CfpSubmissionService.EventStats stats = cfpSubmissionService.statsByEvent(EVENT_ID);
+    assertEquals(3, stats.total());
+    assertEquals(1, stats.countsByStatus().get(CfpSubmissionStatus.PENDING));
+    assertEquals(1, stats.countsByStatus().get(CfpSubmissionStatus.UNDER_REVIEW));
+    assertEquals(1, stats.countsByStatus().get(CfpSubmissionStatus.ACCEPTED));
+    assertEquals(0, stats.countsByStatus().get(CfpSubmissionStatus.REJECTED));
+    assertEquals(0, stats.countsByStatus().get(CfpSubmissionStatus.WITHDRAWN));
+    assertNotNull(stats.latestUpdatedAt());
+
+    Instant maxUpdatedAt = Stream.of(pending.updatedAt(), underReview.updatedAt(), accepted.updatedAt())
+        .max(Instant::compareTo)
+        .orElse(null);
+    assertEquals(maxUpdatedAt, stats.latestUpdatedAt());
+  }
+}
