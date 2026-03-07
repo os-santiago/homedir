@@ -21,6 +21,15 @@ public final class TemplateLocaleUtil {
 
   public static TemplateInstance apply(
       TemplateInstance templateInstance, String localeCode, HttpHeaders headers) {
+    String normalized = resolve(localeCode, headers);
+    Locale locale = Locale.forLanguageTag(normalized);
+    return templateInstance
+        .setLocale(locale)
+        .data("resolvedLocaleCode", normalized)
+        .data("locale", locale);
+  }
+
+  public static String resolve(String localeCode, HttpHeaders headers) {
     String normalized = normalizeOrNull(resolveProfileLocale());
     if (normalized == null) {
       normalized = normalizeOrNull(localeCode);
@@ -31,11 +40,7 @@ public final class TemplateLocaleUtil {
     if (normalized == null) {
       normalized = DEFAULT_LANG;
     }
-    Locale locale = Locale.forLanguageTag(normalized);
-    return templateInstance
-        .setLocale(locale)
-        .data("resolvedLocaleCode", normalized)
-        .data("locale", locale);
+    return normalized;
   }
 
   public static String normalize(String localeCode) {

@@ -107,7 +107,7 @@ public class EventResource {
                     event,
                     resolved.opensAt(),
                     resolved.closesAt(),
-                    java.util.Locale.forLanguageTag(TemplateLocaleUtil.normalize(localeCookie)))
+                    java.util.Locale.forLanguageTag(TemplateLocaleUtil.resolve(localeCookie, headers)))
                 .orElse(null);
       } catch (Exception ignored) {
         cfpTimeline = null;
