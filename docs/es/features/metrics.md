@@ -23,6 +23,7 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
 - **Ratios de calidad** (estado de admin insights):
   - Tasa de éxito de validación PR (`exitosas / total`)
   - Tasa de éxito en producción (`production_verified / (production_verified + release_failed)`)
+- **Exportación CSV**: Admin insights se puede exportar desde `/api/private/admin/insights/initiatives/export.csv` (solo admin).
 
 ## Eventos Registrados
 - **Vistas de Página**: `Page_view: {route}`

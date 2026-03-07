@@ -3630,6 +3630,9 @@ public interface AppMessages {
     @Message("Refresh")
     String admin_insights_refresh();
 
+    @Message("Export CSV")
+    String admin_insights_export_csv();
+
     @Message("Start initiative")
     String admin_insights_start_initiative_title();
 
