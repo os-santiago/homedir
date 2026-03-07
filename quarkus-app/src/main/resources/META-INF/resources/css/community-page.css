@@ -1321,6 +1321,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .floating-shapes {
+      display: none !important;
+    }
+
     .community-skeleton-card {
       animation: none;
     }
