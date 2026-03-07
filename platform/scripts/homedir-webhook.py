@@ -10,16 +10,31 @@ import subprocess
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+
+def env_or_file(name: str, default: str = "") -> str:
+    value = os.environ.get(name, "")
+    if value:
+        return value
+    file_path = os.environ.get(f"{name}_FILE", "").strip()
+    if not file_path:
+        return default
+    try:
+        with open(file_path, "r", encoding="utf-8") as fh:
+            return fh.read().strip()
+    except OSError:
+        return default
+
+
 PORT = int(os.environ.get("WEBHOOK_PORT", "9000"))
 BIND_ADDRESS = os.environ.get("WEBHOOK_BIND_ADDRESS", "127.0.0.1")
 LOGFILE = os.environ.get("WEBHOOK_LOGFILE", "/var/log/homedir-webhook.log")
 UPDATE_SCRIPT = os.environ.get("UPDATE_SCRIPT", "/usr/local/bin/homedir-update.sh")
 ALERT_SCRIPT = os.environ.get("ALERT_SCRIPT", "/usr/local/bin/homedir-discord-alert.sh")
-WEBHOOK_SHARED_SECRET = os.environ.get("WEBHOOK_SHARED_SECRET", "")
+WEBHOOK_SHARED_SECRET = env_or_file("WEBHOOK_SHARED_SECRET", "")
 WEBHOOK_REQUIRE_SIGNATURE = (
     os.environ.get("WEBHOOK_REQUIRE_SIGNATURE", "true").strip().lower() == "true"
 )
-WEBHOOK_STATUS_TOKEN = os.environ.get("WEBHOOK_STATUS_TOKEN", "")
+WEBHOOK_STATUS_TOKEN = env_or_file("WEBHOOK_STATUS_TOKEN", "")
 MAX_BODY_BYTES = int(os.environ.get("WEBHOOK_MAX_BODY_BYTES", "1048576"))
 STATUS_CMD = os.environ.get(
     "STATUS_CMD",

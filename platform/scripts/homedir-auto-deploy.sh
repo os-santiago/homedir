@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
 ENV_FILE="${ENV_FILE:-/etc/homedir.env}"
-if [[ -f "$ENV_FILE" ]]; then
-  set -a
-  # shellcheck source=/dev/null
-  source "$ENV_FILE"
-  set +a
+if [[ ! -f "${ENV_LIB}" ]]; then
+  ENV_LIB="/usr/local/bin/homedir-env-lib.sh"
 fi
+# shellcheck source=/dev/null
+source "${ENV_LIB}"
+homedir_env_load "${ENV_FILE}"
 
 AUTO_DEPLOY_ENABLED="${AUTO_DEPLOY_ENABLED:-true}"
 if [[ "${AUTO_DEPLOY_ENABLED,,}" != "true" ]]; then

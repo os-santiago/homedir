@@ -2,6 +2,8 @@
 set -euo pipefail
 umask 077
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
 ENV_FILE_DEFAULT="/etc/homedir.env"
 OUTPUT_DIR_DEFAULT="/var/backups/homedir-dr"
 
@@ -12,6 +14,12 @@ LABEL=""
 ALLOW_PLAINTEXT="false"
 DRY_RUN="false"
 declare -a AGE_RECIPIENTS=()
+
+if [[ ! -f "${ENV_LIB}" ]]; then
+  ENV_LIB="/usr/local/bin/homedir-env-lib.sh"
+fi
+# shellcheck source=/dev/null
+source "${ENV_LIB}"
 
 usage() {
   cat <<'EOF'
@@ -57,12 +65,7 @@ need_cmd() {
 }
 
 resolve_data_dir_from_env() {
-  if [[ -f "${ENV_FILE}" ]]; then
-    set -a
-    # shellcheck source=/dev/null
-    source "${ENV_FILE}"
-    set +a
-  fi
+  homedir_env_load "${ENV_FILE}"
 
   if [[ -n "${DATA_DIR}" ]]; then
     return 0

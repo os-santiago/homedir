@@ -143,9 +143,14 @@ parse_host_data_dir() {
 
 validate_env_file() {
   local env_file="$1"
+  local app_public_url
   [[ -f "${env_file}" ]] || fail "env file not found after restore: ${env_file}"
   if grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=__[A-Za-z0-9_]+__$' "${env_file}"; then
     fail "env file still contains placeholder values (__...__). Provide production secrets."
+  fi
+  app_public_url="$(awk -F= '$1 == "APP_PUBLIC_URL" {sub(/^[^=]*=/, "", $0); print $0; exit}' "${env_file}")"
+  if [[ -z "${app_public_url}" || ! "${app_public_url}" =~ ^https:// || "${app_public_url}" =~ localhost|127\.0\.0\.1 ]]; then
+    fail "APP_PUBLIC_URL must be a public https endpoint (not localhost/127.0.0.1)"
   fi
 }
 
@@ -305,12 +310,14 @@ fi
 
 log "installing platform scripts and systemd units"
 for script in \
+  homedir-env-lib.sh \
   homedir-update.sh \
   homedir-auto-deploy.sh \
   homedir-discord-alert.sh \
   homedir-ir-first-level.sh \
   homedir-cfp-traffic-guard.sh \
   homedir-security-hardening.sh \
+  homedir-secrets-rotate.sh \
   homedir-dr-backup.sh \
   homedir-dr-recover.sh \
   homedir-dr-restore.py; do

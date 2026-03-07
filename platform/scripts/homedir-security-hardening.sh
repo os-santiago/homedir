@@ -80,10 +80,26 @@ print_check() {
 
 env_value() {
   local key="$1"
+  local value file_var file_path
   if [[ ! -f "${ENV_FILE}" ]]; then
     return 1
   fi
-  awk -F= -v k="${key}" '$1 == k {sub(/^[^=]*=/, "", $0); print $0; exit}' "${ENV_FILE}"
+  value="$(awk -F= -v k="${key}" '$1 == k {sub(/^[^=]*=/, "", $0); print $0; exit}' "${ENV_FILE}")"
+  if [[ -n "${value}" ]]; then
+    echo "${value}"
+    return 0
+  fi
+
+  file_var="${key}_FILE"
+  file_path="$(awk -F= -v k="${file_var}" '$1 == k {sub(/^[^=]*=/, "", $0); print $0; exit}' "${ENV_FILE}")"
+  if [[ -n "${file_path}" && -f "${file_path}" ]]; then
+    value="$(<"${file_path}")"
+    value="${value%$'\r'}"
+    value="${value%$'\n'}"
+    echo "${value}"
+    return 0
+  fi
+  return 1
 }
 
 is_placeholder_value() {
@@ -109,6 +125,43 @@ check_mode_owner_group() {
   else
     print_check "FAIL" "${path} expected ${expect_mode} ${expect_owner}:${expect_group}, found ${mode} ${owner}:${group}"
   fi
+}
+
+check_secret_file_targets() {
+  local line key file_path mode owner group
+  [[ -f "${ENV_FILE}" ]] || return 0
+  while IFS= read -r line; do
+    [[ "${line}" =~ ^([A-Za-z_][A-Za-z0-9_]*)_FILE=(.+)$ ]] || continue
+    key="${BASH_REMATCH[1]}"
+    file_path="${BASH_REMATCH[2]}"
+    [[ -n "${file_path}" ]] || continue
+    if [[ ! -f "${file_path}" ]]; then
+      print_check "FAIL" "${key}_FILE points to missing file (${file_path})"
+      continue
+    fi
+    mode="$(stat -c '%a' "${file_path}")"
+    owner="$(stat -c '%U' "${file_path}")"
+    group="$(stat -c '%G' "${file_path}")"
+    if [[ "${mode}" == "600" && "${owner}" == "root" && "${group}" == "root" ]]; then
+      print_check "PASS" "${key}_FILE uses protected file permissions"
+    else
+      print_check "FAIL" "${key}_FILE target must be 600 root:root (found ${mode} ${owner}:${group})"
+    fi
+  done < "${ENV_FILE}"
+}
+
+apply_secret_file_permissions() {
+  local line file_path
+  [[ -f "${ENV_FILE}" ]] || return 0
+  while IFS= read -r line; do
+    [[ "${line}" =~ ^[A-Za-z_][A-Za-z0-9_]*_FILE=(.+)$ ]] || continue
+    file_path="${BASH_REMATCH[1]}"
+    [[ -n "${file_path}" ]] || continue
+    if [[ -f "${file_path}" ]]; then
+      run_cmd chown root:root "${file_path}"
+      run_cmd chmod 600 "${file_path}"
+    fi
+  done < "${ENV_FILE}"
 }
 
 check_dir_restricted() {
@@ -204,6 +257,7 @@ run_audit() {
 
   echo "== HomeDir security hardening audit =="
   check_mode_owner_group "${ENV_FILE}" "600" "root" "root"
+  check_secret_file_targets
   check_dir_restricted "${INCIDENT_LOG_DIR}"
   check_dir_restricted "${BACKUP_DIR}"
 
@@ -221,9 +275,14 @@ run_audit() {
     fi
 
     local webhook_secret webhook_token webhook_signature
+    local app_public_url allow_x_forwarded allow_forwarded force_https_redirect
     webhook_secret="$(env_value "WEBHOOK_SHARED_SECRET" || true)"
     webhook_token="$(env_value "WEBHOOK_STATUS_TOKEN" || true)"
     webhook_signature="$(env_value "WEBHOOK_REQUIRE_SIGNATURE" || true)"
+    app_public_url="$(env_value "APP_PUBLIC_URL" || true)"
+    allow_x_forwarded="$(env_value "QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED" || true)"
+    allow_forwarded="$(env_value "QUARKUS_HTTP_PROXY_ALLOW_FORWARDED" || true)"
+    force_https_redirect="$(env_value "QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME" || true)"
 
     if [[ -z "${webhook_secret}" ]] || is_placeholder_value "${webhook_secret}"; then
       print_check "FAIL" "WEBHOOK_SHARED_SECRET missing or placeholder"
@@ -241,6 +300,30 @@ run_audit() {
       print_check "PASS" "WEBHOOK_REQUIRE_SIGNATURE=true"
     else
       print_check "WARN" "WEBHOOK_REQUIRE_SIGNATURE should be true"
+    fi
+
+    if [[ "${app_public_url}" =~ ^https:// ]] && [[ ! "${app_public_url}" =~ localhost|127\.0\.0\.1 ]]; then
+      print_check "PASS" "APP_PUBLIC_URL uses public https endpoint"
+    else
+      print_check "FAIL" "APP_PUBLIC_URL must be https public URL (not localhost/127.0.0.1)"
+    fi
+
+    if [[ "${allow_x_forwarded,,}" == "true" ]]; then
+      print_check "PASS" "QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED=true"
+    else
+      print_check "FAIL" "QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED must be true"
+    fi
+
+    if [[ "${allow_forwarded,,}" == "false" ]]; then
+      print_check "PASS" "QUARKUS_HTTP_PROXY_ALLOW_FORWARDED=false"
+    else
+      print_check "FAIL" "QUARKUS_HTTP_PROXY_ALLOW_FORWARDED must be false"
+    fi
+
+    if [[ "${force_https_redirect,,}" == "true" ]]; then
+      print_check "PASS" "QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME=true"
+    else
+      print_check "FAIL" "QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME must be true"
     fi
   fi
 
@@ -315,6 +398,7 @@ run_apply() {
   if [[ -f "${ENV_FILE}" ]]; then
     run_cmd chown root:root "${ENV_FILE}"
     run_cmd chmod 600 "${ENV_FILE}"
+    apply_secret_file_permissions
   else
     log "WARNING: ${ENV_FILE} not found; skipping permission hardening"
   fi

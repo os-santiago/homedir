@@ -23,6 +23,7 @@ Comandos:
 
 `apply` es intencionalmente no destructivo:
 - fuerza permisos restrictivos en `/etc/homedir.env`
+- valida archivos de secretos `*_FILE` con `600 root:root`
 - restringe directorios de incidentes/backups
 - instala baseline de sysctl de red
 - habilita `fail2ban` si esta instalado
@@ -32,6 +33,7 @@ Comandos:
 
 1. Secretos y backups
 - `/etc/homedir.env` con propietario `root:root` y modo `600`.
+- Preferir variables `*_FILE` en `/etc/homedir.env` y guardar valores reales en `/etc/homedir-secrets/*` (`600 root:root`).
 - Artefactos de backup cifrados (`*.age`) y validados con sha256 antes de restore.
 - Sin secretos en texto plano ni backups sin cifrar en git.
 
@@ -43,8 +45,8 @@ Comandos:
 3. Endurecimiento del canal deploy
 - Listener webhook enlazado a localhost por defecto.
 - Validacion de firma webhook activa (`WEBHOOK_REQUIRE_SIGNATURE=true`).
-- Secreto compartido configurado (`WEBHOOK_SHARED_SECRET`).
-- Endpoint de estado protegido con token (`WEBHOOK_STATUS_TOKEN`).
+- Secreto compartido configurado (`WEBHOOK_SHARED_SECRET` o `WEBHOOK_SHARED_SECRET_FILE`).
+- Endpoint de estado protegido con token (`WEBHOOK_STATUS_TOKEN` o `WEBHOOK_STATUS_TOKEN_FILE`).
 
 4. Endurecimiento del edge
 - Snippet nginx de hardening incluido (timeouts, headers, filtro de metodos, limite de body).
@@ -55,6 +57,11 @@ Comandos:
 - `homedir-cfp-traffic-guard.timer` habilitado y activo.
 - Firewall host activo (`firewalld` o `ufw`).
 - Baseline SSH: root restringido y auth por password deshabilitada.
+- Baseline anti-drift para OAuth/proxy:
+  - `APP_PUBLIC_URL` debe ser HTTPS publico (sin localhost).
+  - `QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED=true`
+  - `QUARKUS_HTTP_PROXY_ALLOW_FORWARDED=false`
+  - `QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME=true`
 
 ## Integracion en DR
 
@@ -68,6 +75,12 @@ Despues de recuperar, ejecutar:
 
 ```bash
 /usr/local/bin/homedir-security-hardening.sh audit
+```
+
+Rotacion periodica recomendada de secretos internos:
+
+```bash
+/usr/local/bin/homedir-secrets-rotate.sh --restart-services
 ```
 
 Criterio de salida para simulacro DR:
