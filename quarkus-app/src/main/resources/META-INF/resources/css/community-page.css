@@ -1,9 +1,4 @@
-/* Community page runs in low-motion mode to prevent scroll flicker and repaint spikes. */
-  .floating-shapes {
-    display: none;
-  }
-
-  /* Hard ultra-lite: prevent repaint loops and hover jitter inside picks content. */
+/* Hard ultra-lite: prevent repaint loops and hover jitter inside picks content. */
   #community-content-root,
   #community-content-root *,
   #community-content-root *::before,
@@ -1170,6 +1165,14 @@
     display: none;
   }
 
+  .community-submissions-card .community-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 0;
+  }
+
   .community-empty-actions {
     margin-top: 0.65rem;
     display: flex;
@@ -1318,6 +1321,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .floating-shapes {
+      display: none !important;
+    }
+
     .community-skeleton-card {
       animation: none;
     }
