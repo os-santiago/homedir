@@ -737,7 +737,7 @@ footer {
   margin-top: 0.85rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  padding: 0.85rem;
+  padding: 0.65rem 0.75rem;
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -755,16 +755,16 @@ footer {
 }
 
 .cfp-journey-range {
-  margin: 0.35rem 0 0;
-  font-size: 0.82rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
   opacity: 0.85;
 }
 
 .cfp-journey-track {
-  margin-top: 0.75rem;
+  margin-top: 0.55rem;
   display: flex;
   align-items: stretch;
-  gap: 0.5rem;
+  gap: 0.4rem;
   width: 100%;
 }
 
@@ -773,7 +773,7 @@ footer {
   min-width: 120px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
-  padding: 0.5rem 0.55rem 0.6rem;
+  padding: 0.38rem 0.45rem 0.45rem;
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -784,7 +784,7 @@ footer {
 
 .cfp-journey-stage-bar {
   width: 100%;
-  height: 6px;
+  height: 4px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
 }
@@ -794,14 +794,16 @@ footer {
 }
 
 .cfp-journey-stage-title {
-  margin: 0.45rem 0 0;
-  font-size: 0.82rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.76rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .cfp-journey-stage-dates {
-  margin: 0.25rem 0 0;
-  font-size: 0.76rem;
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.2;
   opacity: 0.84;
 }
 

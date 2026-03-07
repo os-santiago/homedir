@@ -718,6 +718,9 @@ public interface AppMessages {
     @Message("Results")
     String events_cfp_timeline_stage_results();
 
+    @Message("Presentations submissions deadline")
+    String events_cfp_timeline_stage_presentations();
+
     @Message("Event days")
     String events_cfp_timeline_stage_event();
 
