@@ -115,6 +115,8 @@ public class DevelopmentInsightsLedgerService {
       int prValidationPassedCount = 0;
       int prValidationFailedCount = 0;
       int productionReleaseFailedCount = 0;
+      int productionVerifiedEventsLast7DaysCount = 0;
+      int productionReleaseFailedEventsLast7DaysCount = 0;
       int eventsLast7DaysCount = 0;
       int eventsPrevious7DaysCount = 0;
       Map<String, Integer> eventTypeCountsLast7Days = new LinkedHashMap<>();
@@ -136,6 +138,11 @@ public class DevelopmentInsightsLedgerService {
             eventsLast7DaysCount++;
             activeInitiativesLast7Days.add(event.initiativeId());
             eventTypeCountsLast7Days.merge(event.type(), 1, Integer::sum);
+            if ("PRODUCTION_VERIFIED".equals(event.type())) {
+              productionVerifiedEventsLast7DaysCount++;
+            } else if ("PRODUCTION_RELEASE_FAILED".equals(event.type())) {
+              productionReleaseFailedEventsLast7DaysCount++;
+            }
           } else if (!eventAt.isBefore(fourteenDaysAgo)) {
             eventsPrevious7DaysCount++;
           }
@@ -172,6 +179,8 @@ public class DevelopmentInsightsLedgerService {
       }
       int prValidationTotalCount = prValidationPassedCount + prValidationFailedCount;
       int productionOutcomeTotalCount = prodVerifiedCount + productionReleaseFailedCount;
+      int productionOutcome7dTotalCount =
+          productionVerifiedEventsLast7DaysCount + productionReleaseFailedEventsLast7DaysCount;
       Long minutesSinceLast = minutesSince(lastEventAt, now);
       boolean staleState = isStale(minutesSinceLast, staleMinutesThreshold);
       return new DevelopmentInsightsStatus(
@@ -191,6 +200,9 @@ public class DevelopmentInsightsLedgerService {
           percentage(prValidationPassedCount, prValidationTotalCount),
           productionOutcomeTotalCount,
           percentage(prodVerifiedCount, productionOutcomeTotalCount),
+          productionVerifiedEventsLast7DaysCount,
+          productionReleaseFailedEventsLast7DaysCount,
+          percentage(productionVerifiedEventsLast7DaysCount, productionOutcome7dTotalCount),
           averageHours(sumLeadMerge, countLeadMerge),
           averageHours(sumLeadProd, countLeadProd),
           eventsLast7DaysCount,
