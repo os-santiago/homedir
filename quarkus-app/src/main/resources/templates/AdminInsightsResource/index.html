@@ -72,6 +72,9 @@
      data-status-pr-validation-passed="{i18n:admin_insights_js_status_pr_validation_passed}"
      data-status-pr-validation-failed="{i18n:admin_insights_js_status_pr_validation_failed}"
      data-status-pr-validation-success-rate="{i18n:admin_insights_js_status_pr_validation_success_rate}"
+     data-status-pr-validation-passed-7d="{i18n:admin_insights_js_status_pr_validation_passed_7d}"
+     data-status-pr-validation-failed-7d="{i18n:admin_insights_js_status_pr_validation_failed_7d}"
+     data-status-pr-validation-success-rate-7d="{i18n:admin_insights_js_status_pr_validation_success_rate_7d}"
      data-status-prod-release-failed="{i18n:admin_insights_js_status_prod_release_failed}"
      data-status-prod-success-rate="{i18n:admin_insights_js_status_prod_success_rate}"
      data-status-prod-verified-7d="{i18n:admin_insights_js_status_prod_verified_7d}"
@@ -219,6 +222,9 @@
         '<strong>' + i18n.statusPrValidationPassed + ':</strong> ' + (status.prValidationPassedEvents || 0),
         '<strong>' + i18n.statusPrValidationFailed + ':</strong> ' + (status.prValidationFailedEvents || 0),
         '<strong>' + i18n.statusPrValidationSuccessRate + ':</strong> ' + formatPercent(status.prValidationSuccessRatePct),
+        '<strong>' + i18n.statusPrValidationPassed7d + ':</strong> ' + (status.prValidationPassedEventsLast7Days || 0),
+        '<strong>' + i18n.statusPrValidationFailed7d + ':</strong> ' + (status.prValidationFailedEventsLast7Days || 0),
+        '<strong>' + i18n.statusPrValidationSuccessRate7d + ':</strong> ' + formatPercent(status.prValidationSuccessRatePctLast7Days),
         '<strong>' + i18n.statusProdReleaseFailed + ':</strong> ' + (status.productionReleaseFailedEvents || 0),
         '<strong>' + i18n.statusProdSuccessRate + ':</strong> ' + formatPercent(status.productionSuccessRatePct),
         '<strong>' + i18n.statusProdVerified7d + ':</strong> ' + (status.productionVerifiedEventsLast7Days || 0),

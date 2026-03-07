@@ -115,6 +115,8 @@ public class DevelopmentInsightsLedgerService {
       int prValidationPassedCount = 0;
       int prValidationFailedCount = 0;
       int productionReleaseFailedCount = 0;
+      int prValidationPassedEventsLast7DaysCount = 0;
+      int prValidationFailedEventsLast7DaysCount = 0;
       int productionVerifiedEventsLast7DaysCount = 0;
       int productionReleaseFailedEventsLast7DaysCount = 0;
       int eventsLast7DaysCount = 0;
@@ -138,7 +140,11 @@ public class DevelopmentInsightsLedgerService {
             eventsLast7DaysCount++;
             activeInitiativesLast7Days.add(event.initiativeId());
             eventTypeCountsLast7Days.merge(event.type(), 1, Integer::sum);
-            if ("PRODUCTION_VERIFIED".equals(event.type())) {
+            if ("PR_VALIDATION_PASSED".equals(event.type())) {
+              prValidationPassedEventsLast7DaysCount++;
+            } else if ("PR_VALIDATION_FAILED".equals(event.type())) {
+              prValidationFailedEventsLast7DaysCount++;
+            } else if ("PRODUCTION_VERIFIED".equals(event.type())) {
               productionVerifiedEventsLast7DaysCount++;
             } else if ("PRODUCTION_RELEASE_FAILED".equals(event.type())) {
               productionReleaseFailedEventsLast7DaysCount++;
@@ -179,6 +185,8 @@ public class DevelopmentInsightsLedgerService {
       }
       int prValidationTotalCount = prValidationPassedCount + prValidationFailedCount;
       int productionOutcomeTotalCount = prodVerifiedCount + productionReleaseFailedCount;
+      int prValidation7dTotalCount =
+          prValidationPassedEventsLast7DaysCount + prValidationFailedEventsLast7DaysCount;
       int productionOutcome7dTotalCount =
           productionVerifiedEventsLast7DaysCount + productionReleaseFailedEventsLast7DaysCount;
       Long minutesSinceLast = minutesSince(lastEventAt, now);
@@ -200,6 +208,9 @@ public class DevelopmentInsightsLedgerService {
           percentage(prValidationPassedCount, prValidationTotalCount),
           productionOutcomeTotalCount,
           percentage(prodVerifiedCount, productionOutcomeTotalCount),
+          prValidationPassedEventsLast7DaysCount,
+          prValidationFailedEventsLast7DaysCount,
+          percentage(prValidationPassedEventsLast7DaysCount, prValidation7dTotalCount),
           productionVerifiedEventsLast7DaysCount,
           productionReleaseFailedEventsLast7DaysCount,
           percentage(productionVerifiedEventsLast7DaysCount, productionOutcome7dTotalCount),
