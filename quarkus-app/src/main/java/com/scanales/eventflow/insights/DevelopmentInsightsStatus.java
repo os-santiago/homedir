@@ -14,6 +14,8 @@ public record DevelopmentInsightsStatus(
     int startedInitiatives,
     int mergedInitiatives,
     int productionVerifiedInitiatives,
+    int agingOpenInitiativesOver7Days,
+    int agingOpenInitiativesOver30Days,
     int prValidationPassedEvents,
     int prValidationFailedEvents,
     int productionReleaseFailedEvents,

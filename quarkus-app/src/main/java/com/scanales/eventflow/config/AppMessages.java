@@ -3702,6 +3702,12 @@ public interface AppMessages {
     @Message("Production verified")
     String admin_insights_js_status_prod_verified();
 
+    @Message("Open initiatives aging > 7d")
+    String admin_insights_js_status_aging_open_7d();
+
+    @Message("Open initiatives aging > 30d")
+    String admin_insights_js_status_aging_open_30d();
+
     @Message("Average lead to merge")
     String admin_insights_js_status_avg_merge();
 

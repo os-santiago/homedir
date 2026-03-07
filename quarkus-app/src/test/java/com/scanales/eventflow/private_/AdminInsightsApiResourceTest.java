@@ -95,6 +95,8 @@ public class AdminInsightsApiResourceTest {
     assertTrue(((Number) status.get("startedInitiatives")).intValue() >= 1);
     assertTrue(((Number) status.get("mergedInitiatives")).intValue() >= 1);
     assertTrue(((Number) status.get("productionVerifiedInitiatives")).intValue() >= 1);
+    assertTrue(((Number) status.get("agingOpenInitiativesOver7Days")).intValue() >= 0);
+    assertTrue(((Number) status.get("agingOpenInitiativesOver30Days")).intValue() >= 0);
     assertTrue(((Number) status.get("prValidationPassedEvents")).intValue() >= 1);
     assertTrue(((Number) status.get("prValidationFailedEvents")).intValue() >= 1);
     assertTrue(((Number) status.get("productionReleaseFailedEvents")).intValue() >= 1);

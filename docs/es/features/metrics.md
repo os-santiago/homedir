@@ -38,6 +38,9 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
 - **Guardrail de frescura** (estado de admin insights):
   - Minutos desde el último evento
   - Estado de frescura (`saludable`/`desactualizado`) basado en `insights.ledger.stale-minutes` (default 1440)
+- **Iniciativas abiertas envejecidas** (estado de admin insights):
+  - Iniciativas abiertas con antigüedad mayor a 7 días
+  - Iniciativas abiertas con antigüedad mayor a 30 días
 - **Exportación CSV**: Admin insights se puede exportar desde `/api/private/admin/insights/initiatives/export.csv` (solo admin).
 
 ## Eventos Registrados
