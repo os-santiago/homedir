@@ -41,6 +41,8 @@ Homedir records interaction events and persists them asynchronously to provide i
 - **Aging open initiatives** (admin insights status):
   - Open initiatives older than 7 days
   - Open initiatives older than 30 days
+  - Open initiatives stalled for more than 7 days (no events)
+  - Open initiatives stalled for more than 30 days (no events)
 - **CSV export**: Admin insights can be exported from `/api/private/admin/insights/initiatives/export.csv` (admin only).
 
 ## Tracked Events
