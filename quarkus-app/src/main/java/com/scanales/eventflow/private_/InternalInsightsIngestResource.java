@@ -13,6 +13,7 @@ import jakarta.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Map;
+import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
@@ -28,8 +29,8 @@ public class InternalInsightsIngestResource {
   @ConfigProperty(name = "insights.ingest.enabled", defaultValue = "false")
   boolean ingestEnabled;
 
-  @ConfigProperty(name = "insights.ingest.key", defaultValue = "")
-  String ingestKey;
+  @ConfigProperty(name = "insights.ingest.key")
+  Optional<String> ingestKey;
 
   @Inject DevelopmentInsightsLedgerService insightsLedger;
 
@@ -112,10 +113,11 @@ public class InternalInsightsIngestResource {
   }
 
   private boolean isAuthorized(String providedKey) {
-    if (ingestKey == null || ingestKey.isBlank() || providedKey == null || providedKey.isBlank()) {
+    String configuredKey = ingestKey.orElse("");
+    if (configuredKey.isBlank() || providedKey == null || providedKey.isBlank()) {
       return false;
     }
-    byte[] expected = ingestKey.getBytes(StandardCharsets.UTF_8);
+    byte[] expected = configuredKey.getBytes(StandardCharsets.UTF_8);
     byte[] provided = providedKey.getBytes(StandardCharsets.UTF_8);
     return MessageDigest.isEqual(expected, provided);
   }
