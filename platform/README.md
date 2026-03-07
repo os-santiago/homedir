@@ -4,6 +4,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 
 ## Contents
 - `scripts/homedir-update.sh` – pulls a tagged image, restarts the container, and rolls back on failure.
+- `scripts/homedir-env-lib.sh` – shared env loader with `*_FILE` secret resolution.
 - `scripts/homedir-webhook.py` – optional listener for Quay webhooks that triggers `homedir-update.sh` with the tag from the payload (ignores `latest`-only webhooks), validates webhook signatures, and exposes a token-protected status endpoint.
 - `scripts/homedir-auto-deploy.sh` – fallback poller that checks Quay tags and deploys the newest semver tag when webhook delivery is missing.
 - `scripts/homedir-discord-alert.sh` – sends deploy and webhook alerts to Discord with severity icons/colors (`WARN`, `FAIL`, `RECOVERY`).
@@ -13,6 +14,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-dr-backup.sh` – creates an encrypted DR backup artifact (`tar.gz.age`) + sha256 + metadata.
 - `scripts/homedir-dr-recover.sh` – one-command disaster recovery orchestrator for a pre-provisioned VM.
 - `scripts/homedir-dr-restore.py` – safe archive extractor used by DR recovery (blocks path traversal/symlinks).
+- `scripts/homedir-secrets-rotate.sh` – rotates internal runtime secrets with backup + optional service restart.
 - `systemd/homedir-webhook.service` – runs the optional webhook listener.
 - `systemd/homedir-auto-deploy.service` / `systemd/homedir-auto-deploy.timer` – periodic fallback auto-deploy from Quay.
 - `systemd/homedir-cfp-traffic-guard.service` / `systemd/homedir-cfp-traffic-guard.timer` – periodic CFP route resilience monitoring.
@@ -26,9 +28,15 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 ## Bootstrap steps (summary)
 1) Install dependencies: `podman`, `python3`, `nginx`, `certbot` (or provide your own TLS certs).  
 2) Copy scripts to `/usr/local/bin/` and make them executable.  
-3) Create `/etc/homedir.env` from `platform/env.example` and fill all secrets.  
-   - To enable Discord alerts, set `ALERTS_DISCORD_WEBHOOK_URL` and keep `DISCORD_ALERTS_ENABLED=true`.
-   - For webhook security, define `WEBHOOK_SHARED_SECRET` and `WEBHOOK_STATUS_TOKEN`, keep `WEBHOOK_REQUIRE_SIGNATURE=true`, and bind webhook to localhost (`WEBHOOK_BIND_ADDRESS=127.0.0.1`).
+3) Create `/etc/homedir.env` from `platform/env.example`. Prefer `*_FILE` variables for sensitive values.  
+   - Store secret files under `/etc/homedir-secrets` with `root:root` and mode `600`.
+   - To enable Discord alerts, set `ALERTS_DISCORD_WEBHOOK_URL_FILE` and keep `DISCORD_ALERTS_ENABLED=true`.
+   - For webhook security, define `WEBHOOK_SHARED_SECRET_FILE` and `WEBHOOK_STATUS_TOKEN_FILE`, keep `WEBHOOK_REQUIRE_SIGNATURE=true`, and bind webhook to localhost (`WEBHOOK_BIND_ADDRESS=127.0.0.1`).
+   - Keep OAuth callback baseline values in env:
+     - `APP_PUBLIC_URL=https://homedir.opensourcesantiago.io`
+     - `QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED=true`
+     - `QUARKUS_HTTP_PROXY_ALLOW_FORWARDED=false`
+     - `QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME=true`
 4) Install systemd units from `platform/systemd/` into `/etc/systemd/system/`, run `systemctl daemon-reload`, then enable:
    - `homedir-auto-deploy.timer` (fallback every 1 min)
    - `homedir-cfp-traffic-guard.timer` (CFP route guard every 5 min)
@@ -123,7 +131,7 @@ What it automates:
 - `homedir-update.sh` normalizes tags like `v3.361.0` to `3.361.0` to avoid pull failures.  
 - Release workflow now deploys by SSH immediately after pushing the image; timer remains active as a safety net.
 - Discord alerts are non-blocking: if webhook delivery fails, deploy flow continues and logs the warning in `/var/log/homedir-alerts.log`.
-- Secrets must never land in git—always inject via `/etc/homedir.env` or your secret manager.  
+- Secrets must never land in git—always inject via `/etc/homedir.env` + `*_FILE` secure files or your secret manager.  
 - Nginx returns the maintenance page when the backend is down, avoiding default 502/Cloudflare responses.
 - First-level shield uses `/etc/homedir.incident.lock`; when present, public traffic receives maintenance (503) while local `/q/health` remains available.
 - `homedir-webhook.py` now requires signed requests by default (`X-Quay-Signature`) and does not log raw webhook payloads.
@@ -136,3 +144,5 @@ What it automates:
   - `CONTAINER_PIDS_LIMIT` (recommended `2048`)
 - Never store plaintext secrets or unencrypted backups in git. Keep `/etc/homedir.env`, age identity keys, and backup artifacts in secure storage with restricted access.
 - Run `/usr/local/bin/homedir-security-hardening.sh audit` periodically and after each DR recovery.
+- Rotate internal runtime secrets periodically (monthly or after incident):
+  - `/usr/local/bin/homedir-secrets-rotate.sh --restart-services`

@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
 # Optional: override with ENV_FILE=/path/to/envfile
 ENV_FILE="${ENV_FILE:-/etc/homedir.env}"
-if [[ -f "$ENV_FILE" ]]; then
-  set -a
-  # shellcheck source=/dev/null
-  source "$ENV_FILE"
-  set +a
+if [[ ! -f "${ENV_LIB}" ]]; then
+  ENV_LIB="/usr/local/bin/homedir-env-lib.sh"
 fi
+# shellcheck source=/dev/null
+source "${ENV_LIB}"
+homedir_env_load "${ENV_FILE}"
 
 TAG="${1:-${DEPLOY_TAG:-}}"
 if [[ -z "$TAG" ]]; then
@@ -33,6 +35,9 @@ LOCKDIR="${LOCKDIR:-/var/lock/homedir-update.lock.d}"
 CONTAINER_MEMORY_LIMIT="${CONTAINER_MEMORY_LIMIT:-2g}"
 CONTAINER_CPU_LIMIT="${CONTAINER_CPU_LIMIT:-3}"
 CONTAINER_PIDS_LIMIT="${CONTAINER_PIDS_LIMIT:-2048}"
+QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED="${QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED:-true}"
+QUARKUS_HTTP_PROXY_ALLOW_FORWARDED="${QUARKUS_HTTP_PROXY_ALLOW_FORWARDED:-false}"
+QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME="${QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME:-true}"
 container_data_dir="$(echo "$DATA_VOLUME" | awk -F: '{print $2}')"
 if [[ -z "$container_data_dir" ]]; then
   container_data_dir="/work/data"
@@ -48,6 +53,12 @@ log() {
   echo "$(date -Iseconds): $*" >> "$LOGFILE"
 }
 
+fail() {
+  log "ERROR: $*"
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
 notify_alert() {
   local severity="$1"
   local title="$2"
@@ -56,6 +67,31 @@ notify_alert() {
   if [[ -x "$ALERT_SCRIPT" ]]; then
     "$ALERT_SCRIPT" "$severity" "$title" "$message" "$details" >/dev/null 2>&1 || true
   fi
+}
+
+validate_runtime_baseline() {
+  [[ -n "${APP_PUBLIC_URL:-}" ]] || fail "APP_PUBLIC_URL is required and must be https://<domain>"
+  if [[ ! "${APP_PUBLIC_URL}" =~ ^https:// ]]; then
+    fail "APP_PUBLIC_URL must use https scheme (current: ${APP_PUBLIC_URL})"
+  fi
+  if [[ "${APP_PUBLIC_URL}" =~ localhost|127\.0\.0\.1 ]]; then
+    fail "APP_PUBLIC_URL must not point to localhost/127.0.0.1 in production (current: ${APP_PUBLIC_URL})"
+  fi
+}
+
+file_env_overrides() {
+  local file_var key file_path
+  local -a args
+  args=()
+  while IFS='=' read -r file_var _; do
+    [[ "${file_var}" =~ ^[A-Za-z_][A-Za-z0-9_]*_FILE$ ]] || continue
+    key="${file_var%_FILE}"
+    file_path="${!file_var:-}"
+    [[ -n "${file_path}" ]] || continue
+    [[ -f "${file_path}" ]] || fail "${file_var} points to missing file: ${file_path}"
+    args+=(--env "${key}=${!key:-}")
+  done < <(env)
+  printf '%s\0' "${args[@]}"
 }
 
 prepare_community_storage() {
@@ -94,11 +130,13 @@ trap cleanup_lock EXIT
 
 start_container() {
   local image="$1"
+  local -a file_env_args
   systemctl stop homedir-podman-run.scope >/dev/null 2>&1 || true
   systemctl reset-failed homedir-podman-run.scope >/dev/null 2>&1 || true
 
   env_args=()
   [[ -f "$ENV_FILE" ]] && env_args+=(--env-file "$ENV_FILE")
+  mapfile -d '' -t file_env_args < <(file_env_overrides)
   resource_args=()
   [[ -n "${CONTAINER_MEMORY_LIMIT:-}" ]] && resource_args+=(--memory "${CONTAINER_MEMORY_LIMIT}")
   [[ -n "${CONTAINER_CPU_LIMIT:-}" ]] && resource_args+=(--cpus "${CONTAINER_CPU_LIMIT}")
@@ -107,14 +145,20 @@ start_container() {
   podman run -d --name "$CONTAINER" --restart=always \
     -p "${HOST_PORT}:${CONTAINER_PORT}" \
     "${env_args[@]}" \
+    "${file_env_args[@]}" \
     "${resource_args[@]}" \
     -e "HOMEDIR_DATA_DIR=${HOMEDIR_DATA_DIR}" \
     -e "JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}" \
+    -e "APP_PUBLIC_URL=${APP_PUBLIC_URL}" \
+    -e "QUARKUS_HTTP_PROXY_ALLOW_X_FORWARDED=true" \
+    -e "QUARKUS_HTTP_PROXY_ALLOW_FORWARDED=false" \
+    -e "QUARKUS_OIDC_AUTHENTICATION_FORCE_REDIRECT_HTTPS_SCHEME=true" \
     -v "$DATA_VOLUME" \
     "$image" >>"$LOGFILE" 2>&1
 }
 
 log "starting update for tag=${TAG}"
+validate_runtime_baseline
 if [[ "$RAW_TAG" != "$TAG" ]]; then
   log "normalized incoming tag raw=${RAW_TAG} normalized=${TAG}"
 fi

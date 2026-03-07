@@ -2,13 +2,15 @@
 set -euo pipefail
 umask 077
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
 ENV_FILE="${ENV_FILE:-/etc/homedir.env}"
-if [[ -f "${ENV_FILE}" ]]; then
-  set -a
-  # shellcheck source=/dev/null
-  source "${ENV_FILE}"
-  set +a
+if [[ ! -f "${ENV_LIB}" ]]; then
+  ENV_LIB="/usr/local/bin/homedir-env-lib.sh"
 fi
+# shellcheck source=/dev/null
+source "${ENV_LIB}"
+homedir_env_load "${ENV_FILE}"
 
 CFP_MONITOR_ENABLED="${CFP_MONITOR_ENABLED:-true}"
 CFP_MONITOR_WINDOW_MINUTES="${CFP_MONITOR_WINDOW_MINUTES:-5}"
