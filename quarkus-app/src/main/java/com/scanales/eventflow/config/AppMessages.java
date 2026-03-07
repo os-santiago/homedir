@@ -3606,4 +3606,136 @@ public interface AppMessages {
     @Message("Back to board")
     String community_member_back_to_board();
 
+    @Message("Development insights")
+    String admin_insights_nav_label();
+
+    @Message("Development Insights · Homedir")
+    String admin_insights_title();
+
+    @Message("Admin")
+    String admin_insights_subtitle();
+
+    @Message("Development Insights")
+    String admin_insights_heading();
+
+    @Message("Back to panel")
+    String admin_insights_back_to_panel();
+
+    @Message("Ledger status")
+    String admin_insights_ledger_status_title();
+
+    @Message("Loading...")
+    String admin_insights_loading();
+
+    @Message("Refresh")
+    String admin_insights_refresh();
+
+    @Message("Start initiative")
+    String admin_insights_start_initiative_title();
+
+    @Message("initiative-id")
+    String admin_insights_initiative_id_placeholder();
+
+    @Message("Title")
+    String admin_insights_initiative_title_placeholder();
+
+    @Message("Definition start (ISO, optional)")
+    String admin_insights_started_at_placeholder();
+
+    @Message("Start")
+    String admin_insights_start();
+
+    @Message("Append event")
+    String admin_insights_append_event_title();
+
+    @Message("initiative-id")
+    String admin_insights_event_initiative_placeholder();
+
+    @Message("Event type (e.g. PR_OPENED)")
+    String admin_insights_event_type_placeholder();
+
+    @Message("Metadata: pr (optional)")
+    String admin_insights_event_pr_placeholder();
+
+    @Message("Metadata: sha (optional)")
+    String admin_insights_event_sha_placeholder();
+
+    @Message("Append event")
+    String admin_insights_append();
+
+    @Message("Initiatives")
+    String admin_insights_initiatives_title();
+
+    @Message("Request failed")
+    String admin_insights_js_request_failed();
+
+    @Message("yes")
+    String admin_insights_js_yes();
+
+    @Message("no")
+    String admin_insights_js_no();
+
+    @Message("n/a")
+    String admin_insights_js_na();
+
+    @Message("Enabled")
+    String admin_insights_js_status_enabled();
+
+    @Message("Ledger")
+    String admin_insights_js_status_ledger();
+
+    @Message("Events")
+    String admin_insights_js_status_events();
+
+    @Message("Initiatives")
+    String admin_insights_js_status_initiatives();
+
+    @Message("Last event")
+    String admin_insights_js_status_last_event();
+
+    @Message("Compactions")
+    String admin_insights_js_status_compactions();
+
+    @Message("Load errors")
+    String admin_insights_js_status_load_errors();
+
+    @Message("Write errors")
+    String admin_insights_js_status_write_errors();
+
+    @Message("No initiatives yet.")
+    String admin_insights_js_no_initiatives();
+
+    @Message("Initiative")
+    String admin_insights_js_table_initiative();
+
+    @Message("Title")
+    String admin_insights_js_table_title();
+
+    @Message("State")
+    String admin_insights_js_table_state();
+
+    @Message("Events")
+    String admin_insights_js_table_events();
+
+    @Message("Last type")
+    String admin_insights_js_table_last_type();
+
+    @Message("Last update")
+    String admin_insights_js_table_last_update();
+
+    @Message("active")
+    String admin_insights_js_state_active();
+
+    @Message("Initiative started.")
+    String admin_insights_js_started();
+
+    @Message("Could not start initiative.")
+    String admin_insights_js_could_not_start();
+
+    @Message("Event appended.")
+    String admin_insights_js_appended();
+
+    @Message("Could not append event.")
+    String admin_insights_js_could_not_append();
+
 }
