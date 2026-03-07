@@ -1,6 +1,7 @@
 package com.scanales.eventflow.insights;
 
 import java.time.Instant;
+import java.util.Map;
 
 /** Runtime status for the development insights ledger. */
 public record DevelopmentInsightsStatus(
@@ -26,6 +27,7 @@ public record DevelopmentInsightsStatus(
     int eventsPrevious7Days,
     Long eventsTrendPct,
     int activeInitiativesLast7Days,
+    Map<String, Integer> topEventTypesLast7Days,
     Long minutesSinceLastEvent,
     boolean stale,
     Instant lastEventAt,

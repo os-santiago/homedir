@@ -111,6 +111,9 @@ public class AdminInsightsApiResourceTest {
       assertTrue(eventsTrend instanceof Number);
     }
     assertTrue(((Number) status.get("activeInitiativesLast7Days")).intValue() >= 1);
+    Object topTypes = status.get("topEventTypesLast7Days");
+    assertTrue(topTypes instanceof Map);
+    assertTrue(((Map<?, ?>) topTypes).containsKey("INITIATIVE_STARTED"));
     assertTrue(((Number) status.get("minutesSinceLastEvent")).longValue() >= 0L);
     Object stale = status.get("stale");
     assertTrue(stale instanceof Boolean);
