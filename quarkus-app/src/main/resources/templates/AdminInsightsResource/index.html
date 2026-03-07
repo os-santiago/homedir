@@ -1,0 +1,226 @@
+{#include layout/main}
+{#title}{i18n:admin_insights_title}{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <p class="section-subtitle">{i18n:admin_insights_subtitle}</p>
+        <h1 class="page-title">{i18n:admin_insights_heading}</h1>
+      </div>
+      <div class="action-group">
+        <a href="/private/admin" class="btn btn-secondary">{i18n:admin_insights_back_to_panel}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="page-grid">
+    <div class="card">
+      <h2 class="card-title">{i18n:admin_insights_ledger_status_title}</h2>
+      <div id="insightsStatus" class="form-hint">{i18n:admin_insights_loading}</div>
+      <div class="action-group" style="margin-top: 0.8rem;">
+        <button id="insightsRefreshBtn" type="button" class="btn btn-secondary">{i18n:admin_insights_refresh}</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">{i18n:admin_insights_start_initiative_title}</h2>
+      <form id="insightsStartForm" class="form-group" style="display:grid; gap:0.6rem;">
+        <input id="initiativeId" class="form-input" placeholder="{i18n:admin_insights_initiative_id_placeholder}" maxlength="120" required />
+        <input id="initiativeTitle" class="form-input" placeholder="{i18n:admin_insights_initiative_title_placeholder}" maxlength="240" required />
+        <input id="initiativeStartedAt" class="form-input" placeholder="{i18n:admin_insights_started_at_placeholder}" />
+        <button type="submit" class="btn btn-primary">{i18n:admin_insights_start}</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">{i18n:admin_insights_append_event_title}</h2>
+      <form id="insightsEventForm" class="form-group" style="display:grid; gap:0.6rem;">
+        <input id="eventInitiativeId" class="form-input" placeholder="{i18n:admin_insights_event_initiative_placeholder}" maxlength="120" required />
+        <input id="eventType" class="form-input" placeholder="{i18n:admin_insights_event_type_placeholder}" maxlength="64" required />
+        <input id="eventPr" class="form-input" placeholder="{i18n:admin_insights_event_pr_placeholder}" maxlength="64" />
+        <input id="eventSha" class="form-input" placeholder="{i18n:admin_insights_event_sha_placeholder}" maxlength="120" />
+        <button type="submit" class="btn btn-primary">{i18n:admin_insights_append}</button>
+      </form>
+      <p id="insightsMessage" class="form-hint" style="margin-top:0.6rem;"></p>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2 class="card-title">{i18n:admin_insights_initiatives_title}</h2>
+      <div id="insightsInitiatives" class="form-hint">{i18n:admin_insights_loading}</div>
+    </div>
+  </div>
+</div>
+
+<div id="insightsI18n"
+     data-request-failed="{i18n:admin_insights_js_request_failed}"
+     data-yes="{i18n:admin_insights_js_yes}"
+     data-no="{i18n:admin_insights_js_no}"
+     data-na="{i18n:admin_insights_js_na}"
+     data-status-enabled="{i18n:admin_insights_js_status_enabled}"
+     data-status-ledger="{i18n:admin_insights_js_status_ledger}"
+     data-status-events="{i18n:admin_insights_js_status_events}"
+     data-status-initiatives="{i18n:admin_insights_js_status_initiatives}"
+     data-status-last-event="{i18n:admin_insights_js_status_last_event}"
+     data-status-compactions="{i18n:admin_insights_js_status_compactions}"
+     data-status-load-errors="{i18n:admin_insights_js_status_load_errors}"
+     data-status-write-errors="{i18n:admin_insights_js_status_write_errors}"
+     data-no-initiatives="{i18n:admin_insights_js_no_initiatives}"
+     data-table-initiative="{i18n:admin_insights_js_table_initiative}"
+     data-table-title="{i18n:admin_insights_js_table_title}"
+     data-table-state="{i18n:admin_insights_js_table_state}"
+     data-table-events="{i18n:admin_insights_js_table_events}"
+     data-table-last-type="{i18n:admin_insights_js_table_last_type}"
+     data-table-last-update="{i18n:admin_insights_js_table_last_update}"
+     data-state-active="{i18n:admin_insights_js_state_active}"
+     data-started="{i18n:admin_insights_js_started}"
+     data-could-not-start="{i18n:admin_insights_js_could_not_start}"
+     data-appended="{i18n:admin_insights_js_appended}"
+     data-could-not-append="{i18n:admin_insights_js_could_not_append}"
+     style="display:none"></div>
+
+<script>
+  (() => {
+    const statusEl = document.getElementById('insightsStatus');
+    const initiativesEl = document.getElementById('insightsInitiatives');
+    const messageEl = document.getElementById('insightsMessage');
+    const refreshBtn = document.getElementById('insightsRefreshBtn');
+    const startForm = document.getElementById('insightsStartForm');
+    const eventForm = document.getElementById('insightsEventForm');
+    const i18nEl = document.getElementById('insightsI18n');
+    const i18n = i18nEl ? i18nEl.dataset : {};
+
+    function showMessage(text, isError) {
+      if (!messageEl) return;
+      messageEl.textContent = text || '';
+      messageEl.style.color = isError ? 'var(--color-danger, #ff8b8b)' : 'var(--color-accent, #ffd54f)';
+    }
+
+    async function readJson(url, options) {
+      const response = await fetch(url, options || { headers: { Accept: 'application/json' } });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = payload && payload.message ? payload.message : (i18n.requestFailed || 'Request failed');
+        throw new Error(message);
+      }
+      return payload;
+    }
+
+    function renderStatus(status) {
+      if (!statusEl || !status) return;
+      const na = i18n.na || 'n/a';
+      const yes = i18n.yes || 'yes';
+      const no = i18n.no || 'no';
+      const lastEvent = status.lastEventAt ? new Date(status.lastEventAt).toLocaleString() : na;
+      statusEl.innerHTML = [
+        '<strong>' + (i18n.statusEnabled || 'Enabled') + ':</strong> ' + (status.enabled ? yes : no),
+        '<strong>' + (i18n.statusLedger || 'Ledger') + ':</strong> ' + (status.ledgerPath || na),
+        '<strong>' + (i18n.statusEvents || 'Events') + ':</strong> ' + status.storedEvents + ' / ' + status.maxEntries,
+        '<strong>' + (i18n.statusInitiatives || 'Initiatives') + ':</strong> ' + status.initiatives,
+        '<strong>' + (i18n.statusLastEvent || 'Last event') + ':</strong> ' + lastEvent,
+        '<strong>' + (i18n.statusCompactions || 'Compactions') + ':</strong> ' + status.compactions,
+        '<strong>' + (i18n.statusLoadErrors || 'Load errors') + ':</strong> ' + status.loadErrors,
+        '<strong>' + (i18n.statusWriteErrors || 'Write errors') + ':</strong> ' + status.writeErrors
+      ].join('<br>');
+    }
+
+    function renderInitiatives(items) {
+      if (!initiativesEl) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        initiativesEl.textContent = i18n.noInitiatives || 'No initiatives yet.';
+        return;
+      }
+      const na = i18n.na || 'n/a';
+      const rows = items.map((item) => {
+        const last = item.lastEventAt ? new Date(item.lastEventAt).toLocaleString() : na;
+        return '<tr>'
+          + '<td>' + item.initiativeId + '</td>'
+          + '<td>' + (item.title || item.initiativeId) + '</td>'
+          + '<td>' + (item.state || i18n.stateActive || 'active') + '</td>'
+          + '<td>' + (item.totalEvents || 0) + '</td>'
+          + '<td>' + (item.lastEventType || na) + '</td>'
+          + '<td>' + last + '</td>'
+          + '</tr>';
+      }).join('');
+      initiativesEl.innerHTML =
+        '<table class="table" style="font-size: 0.9rem;">'
+        + '<thead><tr>'
+        + '<th style="text-align:left;">' + (i18n.tableInitiative || 'Initiative') + '</th>'
+        + '<th style="text-align:left;">' + (i18n.tableTitle || 'Title') + '</th>'
+        + '<th style="text-align:left;">' + (i18n.tableState || 'State') + '</th>'
+        + '<th style="text-align:right;">' + (i18n.tableEvents || 'Events') + '</th>'
+        + '<th style="text-align:left;">' + (i18n.tableLastType || 'Last type') + '</th>'
+        + '<th style="text-align:left;">' + (i18n.tableLastUpdate || 'Last update') + '</th>'
+        + '</tr></thead>'
+        + '<tbody>' + rows + '</tbody>'
+        + '</table>';
+    }
+
+    async function refresh() {
+      showMessage('', false);
+      const [status, initiatives] = await Promise.all([
+        readJson('/api/private/admin/insights/status'),
+        readJson('/api/private/admin/insights/initiatives?limit=50')
+      ]);
+      renderStatus(status);
+      renderInitiatives(initiatives);
+    }
+
+    async function onStartSubmit(event) {
+      event.preventDefault();
+      const payload = {
+        initiativeId: document.getElementById('initiativeId').value,
+        title: document.getElementById('initiativeTitle').value,
+        definitionStartedAt: document.getElementById('initiativeStartedAt').value || null,
+        metadata: {}
+      };
+      try {
+        await readJson('/api/private/admin/insights/initiatives/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        showMessage(i18n.started || 'Initiative started.', false);
+        startForm.reset();
+        await refresh();
+      } catch (error) {
+        showMessage(error.message || i18n.couldNotStart || 'Could not start initiative.', true);
+      }
+    }
+
+    async function onEventSubmit(event) {
+      event.preventDefault();
+      const metadata = {};
+      const pr = document.getElementById('eventPr').value.trim();
+      const sha = document.getElementById('eventSha').value.trim();
+      if (pr) metadata.pr = pr;
+      if (sha) metadata.sha = sha;
+      const payload = {
+        initiativeId: document.getElementById('eventInitiativeId').value,
+        type: document.getElementById('eventType').value,
+        metadata
+      };
+      try {
+        await readJson('/api/private/admin/insights/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        showMessage(i18n.appended || 'Event appended.', false);
+        eventForm.reset();
+        await refresh();
+      } catch (error) {
+        showMessage(error.message || i18n.couldNotAppend || 'Could not append event.', true);
+      }
+    }
+
+    refreshBtn?.addEventListener('click', () => refresh().catch((error) => showMessage(error.message, true)));
+    startForm?.addEventListener('submit', onStartSubmit);
+    eventForm?.addEventListener('submit', onEventSubmit);
+    refresh().catch((error) => showMessage(error.message, true));
+  })();
+</script>
+{/body}
+{/include}
