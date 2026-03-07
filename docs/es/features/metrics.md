@@ -7,6 +7,16 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
 - **Visualización**: Panel de Administración (`/private/admin`).
 - **Privacidad**: Sin PII en exportaciones y vistas; datos agregados solamente.
 
+## Ingesta de Insights de Desarrollo (Opcional)
+- **Endpoint interno**: `/api/internal/insights/*` (oculto, deshabilitado por defecto).
+- **Guardrails**:
+  - `insights.ingest.enabled=false` por defecto.
+  - `X-Insights-Key` obligatorio en cada request.
+- **Integración CI**:
+  - `INSIGHTS_INGEST_BASE_URL` (variable de GitHub)
+  - `INSIGHTS_INGEST_KEY` (secret de GitHub)
+- **Comportamiento**: Si faltan esas variables, los pasos CI omiten la ingesta sin fallar builds/releases.
+
 ## Eventos Registrados
 - **Vistas de Página**: `Page_view: {route}`
 - **Vistas de Evento**: `Event_view: {eventid}`
