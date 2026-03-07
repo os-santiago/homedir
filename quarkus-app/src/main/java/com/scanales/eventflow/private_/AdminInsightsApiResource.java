@@ -52,12 +52,15 @@ public class AdminInsightsApiResource {
 
   @GET
   @Path("initiatives")
-  public Response initiatives(@QueryParam("limit") @DefaultValue("50") int limit) {
+  public Response initiatives(
+      @QueryParam("limit") @DefaultValue("50") int limit,
+      @QueryParam("offset") @DefaultValue("0") int offset) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     int safeLimit = Math.max(1, Math.min(limit, 200));
-    return Response.ok(insightsLedger.listInitiatives(safeLimit)).build();
+    int safeOffset = Math.max(0, Math.min(offset, 20000));
+    return Response.ok(insightsLedger.listInitiatives(safeLimit, safeOffset)).build();
   }
 
   @POST

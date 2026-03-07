@@ -13,6 +13,8 @@ public record DevelopmentInsightsStatus(
     int startedInitiatives,
     int mergedInitiatives,
     int productionVerifiedInitiatives,
+    Long avgLeadHoursToMerge,
+    Long avgLeadHoursToProduction,
     Instant lastEventAt,
     long compactions,
     long loadErrors,

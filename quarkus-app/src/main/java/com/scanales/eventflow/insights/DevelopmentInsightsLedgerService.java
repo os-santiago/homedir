@@ -104,6 +104,10 @@ public class DevelopmentInsightsLedgerService {
       int startedCount = 0;
       int mergedCount = 0;
       int prodVerifiedCount = 0;
+      long sumLeadMerge = 0L;
+      long sumLeadProd = 0L;
+      int countLeadMerge = 0;
+      int countLeadProd = 0;
       for (MutableInitiativeSummary summary : initiatives.values()) {
         String state = summary.state;
         if ("prod_verified".equals(state)) {
@@ -116,6 +120,15 @@ public class DevelopmentInsightsLedgerService {
         } else if ("started".equals(state)) {
           startedCount++;
         }
+        InitiativeSummary snapshot = summary.snapshot();
+        if (snapshot.leadHoursToMerge() != null) {
+          sumLeadMerge += snapshot.leadHoursToMerge();
+          countLeadMerge++;
+        }
+        if (snapshot.leadHoursToProduction() != null) {
+          sumLeadProd += snapshot.leadHoursToProduction();
+          countLeadProd++;
+        }
       }
       return new DevelopmentInsightsStatus(
           enabled,
@@ -127,6 +140,8 @@ public class DevelopmentInsightsLedgerService {
           startedCount,
           mergedCount,
           prodVerifiedCount,
+          averageHours(sumLeadMerge, countLeadMerge),
+          averageHours(sumLeadProd, countLeadProd),
           lastEventAt,
           compactions,
           loadErrors,
@@ -136,13 +151,15 @@ public class DevelopmentInsightsLedgerService {
     }
   }
 
-  public List<InitiativeSummary> listInitiatives(int limit) {
+  public List<InitiativeSummary> listInitiatives(int limit, int offset) {
     int safeLimit = Math.max(1, Math.min(limit, 200));
+    int safeOffset = Math.max(0, offset);
     lock.lock();
     try {
       return initiatives.values().stream()
           .map(MutableInitiativeSummary::snapshot)
           .sorted(Comparator.comparing(InitiativeSummary::lastEventAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+          .skip(safeOffset)
           .limit(safeLimit)
           .toList();
     } finally {
@@ -516,5 +533,12 @@ public class DevelopmentInsightsLedgerService {
     }
     long hours = Duration.between(from, to).toHours();
     return Math.max(hours, 0L);
+  }
+
+  private static Long averageHours(long sum, int count) {
+    if (count <= 0) {
+      return null;
+    }
+    return Math.round((double) sum / (double) count);
   }
 }

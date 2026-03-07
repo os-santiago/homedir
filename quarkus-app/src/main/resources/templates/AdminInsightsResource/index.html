@@ -66,11 +66,16 @@
      data-status-started="{i18n:admin_insights_js_status_started}"
      data-status-merged="{i18n:admin_insights_js_status_merged}"
      data-status-prod-verified="{i18n:admin_insights_js_status_prod_verified}"
+     data-status-avg-merge="{i18n:admin_insights_js_status_avg_merge}"
+     data-status-avg-prod="{i18n:admin_insights_js_status_avg_prod}"
      data-status-last-event="{i18n:admin_insights_js_status_last_event}"
      data-status-compactions="{i18n:admin_insights_js_status_compactions}"
      data-status-load-errors="{i18n:admin_insights_js_status_load_errors}"
      data-status-write-errors="{i18n:admin_insights_js_status_write_errors}"
+     data-hours-suffix="{i18n:admin_insights_js_hours_suffix}"
      data-no-initiatives="{i18n:admin_insights_js_no_initiatives}"
+     data-load-more="{i18n:admin_insights_js_load_more}"
+     data-all-loaded="{i18n:admin_insights_js_all_loaded}"
      data-table-initiative="{i18n:admin_insights_js_table_initiative}"
      data-table-title="{i18n:admin_insights_js_table_title}"
      data-table-state="{i18n:admin_insights_js_table_state}"
@@ -85,17 +90,27 @@
      data-appended="{i18n:admin_insights_js_appended}"
      data-could-not-append="{i18n:admin_insights_js_could_not_append}"
      style="display:none"></div>
+<div class="container">
+  <div class="action-group" style="margin-top:0.8rem;">
+    <button id="insightsLoadMoreBtn" type="button" class="btn btn-secondary">{i18n:admin_insights_js_load_more}</button>
+  </div>
+</div>
 
 <script>
   (() => {
+    const PAGE_SIZE = 50;
     const statusEl = document.getElementById('insightsStatus');
     const initiativesEl = document.getElementById('insightsInitiatives');
     const messageEl = document.getElementById('insightsMessage');
     const refreshBtn = document.getElementById('insightsRefreshBtn');
+    const loadMoreBtn = document.getElementById('insightsLoadMoreBtn');
     const startForm = document.getElementById('insightsStartForm');
     const eventForm = document.getElementById('insightsEventForm');
     const i18nEl = document.getElementById('insightsI18n');
     const i18n = i18nEl ? i18nEl.dataset : {};
+    let initiativesOffset = 0;
+    let initiativesDone = false;
+    let initiativesCache = [];
 
     function showMessage(text, isError) {
       if (!messageEl) return;
@@ -113,6 +128,21 @@
       return payload;
     }
 
+    function formatHours(value) {
+      if (value == null) {
+        return i18n.na;
+      }
+      return String(value) + (i18n.hoursSuffix || 'h');
+    }
+
+    function updateLoadMoreState() {
+      if (!loadMoreBtn) return;
+      const noItems = initiativesCache.length === 0;
+      loadMoreBtn.disabled = initiativesDone || noItems;
+      loadMoreBtn.textContent = initiativesDone ? i18n.allLoaded : i18n.loadMore;
+      loadMoreBtn.style.display = noItems ? 'none' : '';
+    }
+
     function renderStatus(status) {
       if (!statusEl || !status) return;
       const na = i18n.na;
@@ -127,6 +157,8 @@
         '<strong>' + i18n.statusStarted + ':</strong> ' + (status.startedInitiatives || 0),
         '<strong>' + i18n.statusMerged + ':</strong> ' + (status.mergedInitiatives || 0),
         '<strong>' + i18n.statusProdVerified + ':</strong> ' + (status.productionVerifiedInitiatives || 0),
+        '<strong>' + i18n.statusAvgMerge + ':</strong> ' + formatHours(status.avgLeadHoursToMerge),
+        '<strong>' + i18n.statusAvgProd + ':</strong> ' + formatHours(status.avgLeadHoursToProduction),
         '<strong>' + i18n.statusLastEvent + ':</strong> ' + lastEvent,
         '<strong>' + i18n.statusCompactions + ':</strong> ' + status.compactions,
         '<strong>' + i18n.statusLoadErrors + ':</strong> ' + status.loadErrors,
@@ -138,6 +170,7 @@
       if (!initiativesEl) return;
       if (!Array.isArray(items) || items.length === 0) {
         initiativesEl.textContent = i18n.noInitiatives;
+        updateLoadMoreState();
         return;
       }
       const na = i18n.na;
@@ -170,16 +203,47 @@
         + '</tr></thead>'
         + '<tbody>' + rows + '</tbody>'
         + '</table>';
+      updateLoadMoreState();
+    }
+
+    async function fetchInitiatives(offset) {
+      const query = '/api/private/admin/insights/initiatives?limit=' + PAGE_SIZE + '&offset=' + offset;
+      return readJson(query);
+    }
+
+    async function loadMoreInitiatives() {
+      if (initiativesDone) return;
+      if (loadMoreBtn) loadMoreBtn.disabled = true;
+      const next = await fetchInitiatives(initiativesOffset);
+      const rows = Array.isArray(next) ? next : [];
+      if (rows.length === 0) {
+        initiativesDone = true;
+      } else {
+        initiativesCache = initiativesCache.concat(rows);
+        initiativesOffset += rows.length;
+        if (rows.length < PAGE_SIZE) {
+          initiativesDone = true;
+        }
+      }
+      renderInitiatives(initiativesCache);
     }
 
     async function refresh() {
       showMessage('', false);
+      initiativesOffset = 0;
+      initiativesDone = false;
+      initiativesCache = [];
       const [status, initiatives] = await Promise.all([
         readJson('/api/private/admin/insights/status'),
-        readJson('/api/private/admin/insights/initiatives?limit=50')
+        fetchInitiatives(0)
       ]);
       renderStatus(status);
-      renderInitiatives(initiatives);
+      initiativesCache = Array.isArray(initiatives) ? initiatives : [];
+      initiativesOffset = initiativesCache.length;
+      if (initiativesCache.length < PAGE_SIZE) {
+        initiativesDone = true;
+      }
+      renderInitiatives(initiativesCache);
     }
 
     async function onStartSubmit(event) {
@@ -231,6 +295,7 @@
     }
 
     refreshBtn?.addEventListener('click', () => refresh().catch((error) => showMessage(error.message, true)));
+    loadMoreBtn?.addEventListener('click', () => loadMoreInitiatives().catch((error) => showMessage(error.message, true)));
     startForm?.addEventListener('submit', onStartSubmit);
     eventForm?.addEventListener('submit', onEventSubmit);
     refresh().catch((error) => showMessage(error.message, true));
