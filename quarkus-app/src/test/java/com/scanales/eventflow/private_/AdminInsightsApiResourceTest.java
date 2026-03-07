@@ -119,6 +119,13 @@ public class AdminInsightsApiResourceTest {
       assertTrue(eventsTrend instanceof Number);
     }
     assertTrue(((Number) status.get("activeInitiativesLast7Days")).intValue() >= 1);
+    assertTrue(((Number) status.get("eventsLast30Days")).intValue() >= 1);
+    assertTrue(((Number) status.get("eventsPrevious30Days")).intValue() >= 0);
+    Object eventsTrend30d = status.get("eventsTrendPct30Days");
+    if (eventsTrend30d != null) {
+      assertTrue(eventsTrend30d instanceof Number);
+    }
+    assertTrue(((Number) status.get("activeInitiativesLast30Days")).intValue() >= 1);
     Object topTypes = status.get("topEventTypesLast7Days");
     assertTrue(topTypes instanceof Map);
     assertTrue(((Map<?, ?>) topTypes).containsKey("INITIATIVE_STARTED"));

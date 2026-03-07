@@ -121,8 +121,11 @@ public class DevelopmentInsightsLedgerService {
       int productionReleaseFailedEventsLast7DaysCount = 0;
       int eventsLast7DaysCount = 0;
       int eventsPrevious7DaysCount = 0;
+      int eventsLast30DaysCount = 0;
+      int eventsPrevious30DaysCount = 0;
       Map<String, Integer> eventTypeCountsLast7Days = new LinkedHashMap<>();
       Set<String> activeInitiativesLast7Days = new HashSet<>();
+      Set<String> activeInitiativesLast30Days = new HashSet<>();
       long sumLeadMerge = 0L;
       long sumLeadProd = 0L;
       int countLeadMerge = 0;
@@ -130,12 +133,20 @@ public class DevelopmentInsightsLedgerService {
       Instant now = Instant.now();
       Instant sevenDaysAgo = now.minus(Duration.ofDays(7));
       Instant fourteenDaysAgo = now.minus(Duration.ofDays(14));
+      Instant thirtyDaysAgo = now.minus(Duration.ofDays(30));
+      Instant sixtyDaysAgo = now.minus(Duration.ofDays(60));
       for (DevelopmentInsightsEvent event : events) {
         if (event == null || event.type() == null) {
           continue;
         }
         Instant eventAt = event.at();
         if (eventAt != null) {
+          if (!eventAt.isBefore(thirtyDaysAgo)) {
+            eventsLast30DaysCount++;
+            activeInitiativesLast30Days.add(event.initiativeId());
+          } else if (!eventAt.isBefore(sixtyDaysAgo)) {
+            eventsPrevious30DaysCount++;
+          }
           if (!eventAt.isBefore(sevenDaysAgo)) {
             eventsLast7DaysCount++;
             activeInitiativesLast7Days.add(event.initiativeId());
@@ -220,6 +231,10 @@ public class DevelopmentInsightsLedgerService {
           eventsPrevious7DaysCount,
           percentageDelta(eventsLast7DaysCount, eventsPrevious7DaysCount),
           activeInitiativesLast7Days.size(),
+          eventsLast30DaysCount,
+          eventsPrevious30DaysCount,
+          percentageDelta(eventsLast30DaysCount, eventsPrevious30DaysCount),
+          activeInitiativesLast30Days.size(),
           topCounts(eventTypeCountsLast7Days, 5),
           minutesSinceLast,
           staleState,

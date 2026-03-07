@@ -3753,6 +3753,18 @@ public interface AppMessages {
     @Message("Active initiatives (last 7d)")
     String admin_insights_js_status_active_initiatives_7d();
 
+    @Message("Events (last 30d)")
+    String admin_insights_js_status_events_last_30d();
+
+    @Message("Events (previous 30d)")
+    String admin_insights_js_status_events_previous_30d();
+
+    @Message("Event trend vs previous 30d")
+    String admin_insights_js_status_events_trend_30d();
+
+    @Message("Active initiatives (last 30d)")
+    String admin_insights_js_status_active_initiatives_30d();
+
     @Message("Top event types (last 7d)")
     String admin_insights_js_status_top_event_types_7d();
 
