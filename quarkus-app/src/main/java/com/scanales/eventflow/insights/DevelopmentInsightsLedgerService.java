@@ -104,10 +104,25 @@ public class DevelopmentInsightsLedgerService {
       int startedCount = 0;
       int mergedCount = 0;
       int prodVerifiedCount = 0;
+      int prValidationPassedCount = 0;
+      int prValidationFailedCount = 0;
+      int productionReleaseFailedCount = 0;
       long sumLeadMerge = 0L;
       long sumLeadProd = 0L;
       int countLeadMerge = 0;
       int countLeadProd = 0;
+      for (DevelopmentInsightsEvent event : events) {
+        if (event == null || event.type() == null) {
+          continue;
+        }
+        if ("PR_VALIDATION_PASSED".equals(event.type())) {
+          prValidationPassedCount++;
+        } else if ("PR_VALIDATION_FAILED".equals(event.type())) {
+          prValidationFailedCount++;
+        } else if ("PRODUCTION_RELEASE_FAILED".equals(event.type())) {
+          productionReleaseFailedCount++;
+        }
+      }
       for (MutableInitiativeSummary summary : initiatives.values()) {
         String state = summary.state;
         if ("prod_verified".equals(state)) {
@@ -140,6 +155,9 @@ public class DevelopmentInsightsLedgerService {
           startedCount,
           mergedCount,
           prodVerifiedCount,
+          prValidationPassedCount,
+          prValidationFailedCount,
+          productionReleaseFailedCount,
           averageHours(sumLeadMerge, countLeadMerge),
           averageHours(sumLeadProd, countLeadProd),
           lastEventAt,

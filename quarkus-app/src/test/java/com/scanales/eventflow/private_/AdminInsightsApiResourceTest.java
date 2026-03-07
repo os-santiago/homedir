@@ -46,7 +46,10 @@ public class AdminInsightsApiResourceTest {
         .statusCode(201);
 
     appendEvent(initiativeId, "PR_OPENED");
+    appendEvent(initiativeId, "PR_VALIDATION_PASSED");
+    appendEvent(initiativeId, "PR_VALIDATION_FAILED");
     appendEvent(initiativeId, "PR_MERGED");
+    appendEvent(initiativeId, "PRODUCTION_RELEASE_FAILED");
     appendEvent(initiativeId, "PRODUCTION_VERIFIED");
 
     List<Map<String, Object>> initiatives =
@@ -86,6 +89,9 @@ public class AdminInsightsApiResourceTest {
     assertTrue(((Number) status.get("startedInitiatives")).intValue() >= 1);
     assertTrue(((Number) status.get("mergedInitiatives")).intValue() >= 1);
     assertTrue(((Number) status.get("productionVerifiedInitiatives")).intValue() >= 1);
+    assertTrue(((Number) status.get("prValidationPassedEvents")).intValue() >= 1);
+    assertTrue(((Number) status.get("prValidationFailedEvents")).intValue() >= 1);
+    assertTrue(((Number) status.get("productionReleaseFailedEvents")).intValue() >= 1);
     assertTrue(((Number) status.get("avgLeadHoursToMerge")).longValue() >= 0L);
     assertTrue(((Number) status.get("avgLeadHoursToProduction")).longValue() >= 0L);
   }
