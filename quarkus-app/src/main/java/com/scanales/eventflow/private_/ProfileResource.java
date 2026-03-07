@@ -3,6 +3,9 @@ package com.scanales.eventflow.private_;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
+import com.scanales.eventflow.cfp.CfpEventConfigService;
+import com.scanales.eventflow.cfp.CfpTimelinePlanner;
+import com.scanales.eventflow.cfp.CfpTimelineView;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.model.GamificationActivity;
@@ -44,7 +47,11 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -91,6 +98,7 @@ public class ProfileResource {
         boolean resumeHistoryAtLimit,
         int questProgressPercent,
         String publicProfileHandle,
+        CfpTimelineView cfpTimeline,
         String currentLanguage,
         AppMessages i18n,
         String ogTitle,
@@ -172,6 +180,8 @@ public class ProfileResource {
   AppMessages messages;
   @Inject
   CfpSubmissionService cfpSubmissionService;
+  @Inject
+  CfpEventConfigService cfpEventConfigService;
 
   @GET
   @Authenticated
@@ -239,6 +249,7 @@ public class ProfileResource {
             .stream()
             .map(this::toCfpSubmissionItem)
             .toList();
+    CfpTimelineView cfpTimeline = resolveProfileCfpTimeline(cfpRecentSubmissions, finalLang);
     int questProgressPercent = 0;
     if (questProfile.nextLevelXp > 0) {
       questProgressPercent =
@@ -292,6 +303,7 @@ public class ProfileResource {
         resumeHistoryAtLimit,
         questProgressPercent,
         publicProfileHandle,
+        cfpTimeline,
         finalLang,
         messages,
         ogTitle,
@@ -762,6 +774,48 @@ public class ProfileResource {
         status,
         updatedAtLabel,
         "/event/" + eventId + "/cfp#my-proposals");
+  }
+
+  private CfpTimelineView resolveProfileCfpTimeline(
+      java.util.List<CfpSubmissionItem> submissions, String language) {
+    if (submissions == null || submissions.isEmpty()) {
+      return null;
+    }
+    LinkedHashSet<String> eventIds = new LinkedHashSet<>();
+    submissions.stream()
+        .map(CfpSubmissionItem::eventId)
+        .filter(id -> id != null && !id.isBlank())
+        .forEach(eventIds::add);
+    if (eventIds.isEmpty()) {
+      return null;
+    }
+    LocalDate today = LocalDate.now(ZoneId.of("America/Santiago"));
+    com.scanales.eventflow.model.Event selectedEvent = null;
+    String selectedEventId = null;
+    long bestScore = Long.MAX_VALUE;
+    for (String eventId : eventIds) {
+      com.scanales.eventflow.model.Event event = eventService.getEvent(eventId);
+      if (event == null || event.getDate() == null) {
+        continue;
+      }
+      long delta = ChronoUnit.DAYS.between(today, event.getDate());
+      long score = delta >= 0 ? delta : (1_000_000L + Math.abs(delta));
+      if (score < bestScore) {
+        bestScore = score;
+        selectedEvent = event;
+        selectedEventId = eventId;
+      }
+    }
+    if (selectedEvent == null || selectedEventId == null) {
+      return null;
+    }
+    try {
+      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(selectedEventId);
+      Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(language) ? "en" : "es");
+      return CfpTimelinePlanner.build(selectedEvent, resolved.opensAt(), resolved.closesAt(), locale).orElse(null);
+    } catch (Exception ignored) {
+      return null;
+    }
   }
 
   private java.util.Set<String> currentUserIds(String email, String sub) {

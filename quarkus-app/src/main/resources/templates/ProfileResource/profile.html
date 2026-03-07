@@ -273,6 +273,31 @@
                     <p class="hd-page-intro">{i18n:profile_cfp_intro}</p>
                 </div>
             </div>
+            {#if cfpTimeline}
+            <div class="cfp-journey-card cfp-journey-profile" aria-label="{i18n:profile_cfp_timeline_title}">
+                <div class="cfp-journey-header compact">
+                    <h3>{i18n:profile_cfp_timeline_title}</h3>
+                    <p class="cfp-journey-range">{cfpTimeline.fromLabel} → {cfpTimeline.toLabel}</p>
+                </div>
+                <div class="cfp-journey-track">
+                    {#for stage in cfpTimeline.stages}
+                    <article class="cfp-journey-stage {#if stage.active}is-active{/if}" style="--cfp-stage-flex: {stage.flexDays};">
+                        <div class="cfp-journey-stage-bar"></div>
+                        <p class="cfp-journey-stage-title">
+                            {#switch stage.key}
+                            {#case 'cfp'}{i18n:events_cfp_timeline_stage_cfp}{/case}
+                            {#case 'evaluation'}{i18n:events_cfp_timeline_stage_evaluation}{/case}
+                            {#case 'results'}{i18n:events_cfp_timeline_stage_results}{/case}
+                            {#case 'event'}{i18n:events_cfp_timeline_stage_event}{/case}
+                            {#else}{stage.key}{/else}
+                            {/switch}
+                        </p>
+                        <p class="cfp-journey-stage-dates">{stage.fromLabel} → {stage.toLabel}</p>
+                    </article>
+                    {/for}
+                </div>
+            </div>
+            {/if}
 
             <div class="hd-grid-details">
                 <div class="hd-detail-item">
