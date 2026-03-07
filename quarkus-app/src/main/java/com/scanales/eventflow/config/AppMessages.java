@@ -3723,6 +3723,15 @@ public interface AppMessages {
     @Message("Production success rate")
     String admin_insights_js_status_prod_success_rate();
 
+    @Message("PR validations passed (last 7d)")
+    String admin_insights_js_status_pr_validation_passed_7d();
+
+    @Message("PR validations failed (last 7d)")
+    String admin_insights_js_status_pr_validation_failed_7d();
+
+    @Message("PR validation success rate (last 7d)")
+    String admin_insights_js_status_pr_validation_success_rate_7d();
+
     @Message("Production verified (last 7d)")
     String admin_insights_js_status_prod_verified_7d();
 

@@ -22,6 +22,7 @@ Homedir records interaction events and persists them asynchronously to provide i
   This allows lead-time dashboards to include non-success outcomes.
 - **Quality ratios** (admin insights status):
   - PR validation success rate (`passed / total`)
+  - PR validation success rate (last 7d)
   - Production success rate (`production_verified / (production_verified + release_failed)`)
   - Production success rate (last 7d)
 - **Short-term delivery trend** (admin insights status):

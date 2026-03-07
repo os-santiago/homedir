@@ -22,6 +22,7 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
   Esto permite que los dashboards de lead-time incluyan resultados no exitosos.
 - **Ratios de calidad** (estado de admin insights):
   - Tasa de éxito de validación PR (`exitosas / total`)
+  - Tasa de éxito de validación PR (últimos 7 días)
   - Tasa de éxito en producción (`production_verified / (production_verified + release_failed)`)
   - Tasa de éxito en producción (últimos 7 días)
 - **Tendencia de entrega de corto plazo** (estado de admin insights):
