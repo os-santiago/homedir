@@ -28,6 +28,7 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
   - Eventos en 7 días anteriores
   - Delta de tendencia vs 7 días anteriores
   - Iniciativas activas en últimos 7 días
+  - Tipos de evento más frecuentes en últimos 7 días (top 5)
 - **Guardrail de frescura** (estado de admin insights):
   - Minutos desde el último evento
   - Estado de frescura (`saludable`/`desactualizado`) basado en `insights.ledger.stale-minutes` (default 1440)

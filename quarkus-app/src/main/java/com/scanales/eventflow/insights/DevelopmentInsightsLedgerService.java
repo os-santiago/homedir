@@ -117,6 +117,7 @@ public class DevelopmentInsightsLedgerService {
       int productionReleaseFailedCount = 0;
       int eventsLast7DaysCount = 0;
       int eventsPrevious7DaysCount = 0;
+      Map<String, Integer> eventTypeCountsLast7Days = new LinkedHashMap<>();
       Set<String> activeInitiativesLast7Days = new HashSet<>();
       long sumLeadMerge = 0L;
       long sumLeadProd = 0L;
@@ -134,6 +135,7 @@ public class DevelopmentInsightsLedgerService {
           if (!eventAt.isBefore(sevenDaysAgo)) {
             eventsLast7DaysCount++;
             activeInitiativesLast7Days.add(event.initiativeId());
+            eventTypeCountsLast7Days.merge(event.type(), 1, Integer::sum);
           } else if (!eventAt.isBefore(fourteenDaysAgo)) {
             eventsPrevious7DaysCount++;
           }
@@ -195,6 +197,7 @@ public class DevelopmentInsightsLedgerService {
           eventsPrevious7DaysCount,
           percentageDelta(eventsLast7DaysCount, eventsPrevious7DaysCount),
           activeInitiativesLast7Days.size(),
+          topCounts(eventTypeCountsLast7Days, 5),
           minutesSinceLast,
           staleState,
           lastEventAt,
@@ -624,5 +627,20 @@ public class DevelopmentInsightsLedgerService {
       return true;
     }
     return minutesSinceLastEvent > thresholdMinutes;
+  }
+
+  private static Map<String, Integer> topCounts(Map<String, Integer> counts, int limit) {
+    if (counts == null || counts.isEmpty() || limit <= 0) {
+      return Map.of();
+    }
+    return counts.entrySet().stream()
+        .sorted(
+            Comparator.comparing(Map.Entry<String, Integer>::getValue, Comparator.reverseOrder())
+                .thenComparing(Map.Entry::getKey))
+        .limit(limit)
+        .collect(
+            LinkedHashMap::new,
+            (m, e) -> m.put(e.getKey(), e.getValue()),
+            LinkedHashMap::putAll);
   }
 }

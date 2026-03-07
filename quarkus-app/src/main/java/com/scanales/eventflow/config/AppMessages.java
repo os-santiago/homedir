@@ -3735,6 +3735,12 @@ public interface AppMessages {
     @Message("Active initiatives (last 7d)")
     String admin_insights_js_status_active_initiatives_7d();
 
+    @Message("Top event types (last 7d)")
+    String admin_insights_js_status_top_event_types_7d();
+
+    @Message("No recent event types")
+    String admin_insights_js_no_top_event_types();
+
     @Message("Minutes since last event")
     String admin_insights_js_status_minutes_since_last();
 
