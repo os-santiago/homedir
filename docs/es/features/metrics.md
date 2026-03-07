@@ -23,6 +23,7 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
 - **Ratios de calidad** (estado de admin insights):
   - Tasa de éxito de validación PR (`exitosas / total`)
   - Tasa de éxito en producción (`production_verified / (production_verified + release_failed)`)
+  - Tasa de éxito en producción (últimos 7 días)
 - **Tendencia de entrega de corto plazo** (estado de admin insights):
   - Eventos en últimos 7 días
   - Eventos en 7 días anteriores
