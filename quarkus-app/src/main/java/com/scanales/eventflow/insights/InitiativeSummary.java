@@ -8,8 +8,13 @@ public record InitiativeSummary(
     String title,
     String state,
     Instant startedAt,
+    Instant definitionStartedAt,
+    Instant prOpenedAt,
+    Instant prMergedAt,
+    Instant productionVerifiedAt,
+    Long leadHoursToMerge,
+    Long leadHoursToProduction,
     Instant lastEventAt,
     String lastEventType,
     long totalEvents) {
 }
-
