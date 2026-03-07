@@ -26,6 +26,8 @@ public record DevelopmentInsightsStatus(
     int eventsPrevious7Days,
     Long eventsTrendPct,
     int activeInitiativesLast7Days,
+    Long minutesSinceLastEvent,
+    boolean stale,
     Instant lastEventAt,
     long compactions,
     long loadErrors,

@@ -3735,6 +3735,21 @@ public interface AppMessages {
     @Message("Active initiatives (last 7d)")
     String admin_insights_js_status_active_initiatives_7d();
 
+    @Message("Minutes since last event")
+    String admin_insights_js_status_minutes_since_last();
+
+    @Message("Freshness status")
+    String admin_insights_js_status_freshness();
+
+    @Message("healthy")
+    String admin_insights_js_status_freshness_healthy();
+
+    @Message("stale")
+    String admin_insights_js_status_freshness_stale();
+
+    @Message("min")
+    String admin_insights_js_minutes_suffix();
+
     @Message("Last event")
     String admin_insights_js_status_last_event();
 

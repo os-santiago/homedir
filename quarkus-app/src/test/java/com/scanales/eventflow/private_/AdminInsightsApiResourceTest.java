@@ -111,6 +111,9 @@ public class AdminInsightsApiResourceTest {
       assertTrue(eventsTrend instanceof Number);
     }
     assertTrue(((Number) status.get("activeInitiativesLast7Days")).intValue() >= 1);
+    assertTrue(((Number) status.get("minutesSinceLastEvent")).longValue() >= 0L);
+    Object stale = status.get("stale");
+    assertTrue(stale instanceof Boolean);
     assertTrue(((Number) status.get("avgLeadHoursToMerge")).longValue() >= 0L);
     assertTrue(((Number) status.get("avgLeadHoursToProduction")).longValue() >= 0L);
   }
