@@ -353,10 +353,15 @@ if [[ "${SKIP_NGINX}" != "true" ]]; then
 fi
 
 log "installing secure env file at ${ENV_TARGET}"
-decrypt_if_needed "${ENV_SOURCE}" "${tmp_env}"
-validate_env_file "${tmp_env}"
-run_cmd install -D -m 0600 "${tmp_env}" "${ENV_TARGET}"
-secure_delete "${tmp_env}"
+if [[ "${DRY_RUN}" == "true" ]]; then
+  log "DRY-RUN: skipping decrypted env materialization and placeholder validation"
+  echo "DRY-RUN: install -D -m 0600 ${ENV_SOURCE} ${ENV_TARGET}"
+else
+  decrypt_if_needed "${ENV_SOURCE}" "${tmp_env}"
+  validate_env_file "${tmp_env}"
+  run_cmd install -D -m 0600 "${tmp_env}" "${ENV_TARGET}"
+  secure_delete "${tmp_env}"
+fi
 
 parse_host_data_dir "${ENV_TARGET}"
 [[ -n "${HOST_DATA_DIR}" ]] || fail "failed to resolve host data directory"
