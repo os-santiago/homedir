@@ -127,7 +127,10 @@ public class DevelopmentInsightsLedgerService {
       int eventsPrevious7DaysCount = 0;
       int eventsLast30DaysCount = 0;
       int eventsPrevious30DaysCount = 0;
+      int eventsLast24HoursCount = 0;
+      int eventsPrevious24HoursCount = 0;
       Map<String, Integer> eventTypeCountsLast7Days = new LinkedHashMap<>();
+      Set<String> activeInitiativesLast24Hours = new HashSet<>();
       Set<String> activeInitiativesLast7Days = new HashSet<>();
       Set<String> activeInitiativesLast30Days = new HashSet<>();
       long sumLeadMerge = 0L;
@@ -139,12 +142,20 @@ public class DevelopmentInsightsLedgerService {
       Instant fourteenDaysAgo = now.minus(Duration.ofDays(14));
       Instant thirtyDaysAgo = now.minus(Duration.ofDays(30));
       Instant sixtyDaysAgo = now.minus(Duration.ofDays(60));
+      Instant twentyFourHoursAgo = now.minus(Duration.ofHours(24));
+      Instant fortyEightHoursAgo = now.minus(Duration.ofHours(48));
       for (DevelopmentInsightsEvent event : events) {
         if (event == null || event.type() == null) {
           continue;
         }
         Instant eventAt = event.at();
         if (eventAt != null) {
+          if (!eventAt.isBefore(twentyFourHoursAgo)) {
+            eventsLast24HoursCount++;
+            activeInitiativesLast24Hours.add(event.initiativeId());
+          } else if (!eventAt.isBefore(fortyEightHoursAgo)) {
+            eventsPrevious24HoursCount++;
+          }
           if (!eventAt.isBefore(thirtyDaysAgo)) {
             eventsLast30DaysCount++;
             activeInitiativesLast30Days.add(event.initiativeId());
@@ -257,6 +268,10 @@ public class DevelopmentInsightsLedgerService {
           percentage(productionVerifiedEventsLast7DaysCount, productionOutcome7dTotalCount),
           averageHours(sumLeadMerge, countLeadMerge),
           averageHours(sumLeadProd, countLeadProd),
+          eventsLast24HoursCount,
+          eventsPrevious24HoursCount,
+          percentageDelta(eventsLast24HoursCount, eventsPrevious24HoursCount),
+          activeInitiativesLast24Hours.size(),
           eventsLast7DaysCount,
           eventsPrevious7DaysCount,
           percentageDelta(eventsLast7DaysCount, eventsPrevious7DaysCount),

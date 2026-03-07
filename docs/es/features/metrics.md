@@ -26,6 +26,10 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
   - Tasa de éxito en producción (`production_verified / (production_verified + release_failed)`)
   - Tasa de éxito en producción (últimos 7 días)
 - **Tendencia de entrega de corto plazo** (estado de admin insights):
+  - Eventos en las últimas 24 horas
+  - Eventos en las 24 horas anteriores
+  - Delta de tendencia vs 24 horas anteriores
+  - Iniciativas activas en las últimas 24 horas
   - Eventos en últimos 7 días
   - Eventos en 7 días anteriores
   - Delta de tendencia vs 7 días anteriores
