@@ -241,7 +241,7 @@
       <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
       <p id="cfpAvailabilityHint" class="form-hint cfp-quota-hint"></p>
     </form>
-    <p id="cfpFeedback" class="form-hint" hidden></p>
+    <p id="cfpFeedback" class="form-hint cfp-feedback" role="status" aria-live="polite" hidden></p>
     {#else}
     <p class="section-subtitle">{i18n:events_cfp_login_required}</p>
     <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary" data-login-return-current="true">{i18n:events_cfp_login_btn}</a>
@@ -473,6 +473,29 @@
 
   .cfp-quota-hint {
     margin-top: 0.3rem;
+  }
+
+  .cfp-feedback {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-weight: 700;
+    line-height: 1.35;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  main#main-content.homedir-main .cfp-feedback.is-error {
+    border-color: rgba(255, 126, 126, 0.85);
+    background: rgba(255, 96, 96, 0.2);
+    color: #ffe7e7 !important;
+  }
+
+  main#main-content.homedir-main .cfp-feedback.is-success {
+    border-color: rgba(114, 255, 159, 0.8);
+    background: rgba(114, 255, 159, 0.18);
+    color: #e9fff1 !important;
   }
 
   .cfp-submission-actions {
@@ -761,7 +784,13 @@
       if (!feedback) return;
       feedback.hidden = false;
       feedback.textContent = message;
-      feedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+      feedback.classList.toggle("is-error", !!isError);
+      feedback.classList.toggle("is-success", !isError);
+      feedback.setAttribute("role", isError ? "alert" : "status");
+      feedback.setAttribute("aria-live", isError ? "assertive" : "polite");
+      if (isError) {
+        feedback.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     }
 
     function safeStorageGet(key) {
