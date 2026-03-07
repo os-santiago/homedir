@@ -112,6 +112,8 @@ public class DevelopmentInsightsLedgerService {
       int startedCount = 0;
       int mergedCount = 0;
       int prodVerifiedCount = 0;
+      int agingOpenOver7DaysCount = 0;
+      int agingOpenOver30DaysCount = 0;
       int prValidationPassedCount = 0;
       int prValidationFailedCount = 0;
       int productionReleaseFailedCount = 0;
@@ -185,6 +187,21 @@ public class DevelopmentInsightsLedgerService {
           startedCount++;
         }
         InitiativeSummary snapshot = summary.snapshot();
+        boolean openState = !"merged".equals(state) && !"prod_verified".equals(state);
+        if (openState) {
+          Instant openSince =
+              snapshot.definitionStartedAt() != null
+                  ? snapshot.definitionStartedAt()
+                  : snapshot.startedAt();
+          if (openSince != null) {
+            if (openSince.isBefore(sevenDaysAgo)) {
+              agingOpenOver7DaysCount++;
+            }
+            if (openSince.isBefore(thirtyDaysAgo)) {
+              agingOpenOver30DaysCount++;
+            }
+          }
+        }
         if (snapshot.leadHoursToMerge() != null) {
           sumLeadMerge += snapshot.leadHoursToMerge();
           countLeadMerge++;
@@ -212,6 +229,8 @@ public class DevelopmentInsightsLedgerService {
           startedCount,
           mergedCount,
           prodVerifiedCount,
+          agingOpenOver7DaysCount,
+          agingOpenOver30DaysCount,
           prValidationPassedCount,
           prValidationFailedCount,
           productionReleaseFailedCount,

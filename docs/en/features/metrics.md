@@ -38,6 +38,9 @@ Homedir records interaction events and persists them asynchronously to provide i
 - **Freshness guardrail** (admin insights status):
   - Minutes since last event
   - Freshness status (`healthy`/`stale`) based on `insights.ledger.stale-minutes` (default 1440)
+- **Aging open initiatives** (admin insights status):
+  - Open initiatives older than 7 days
+  - Open initiatives older than 30 days
 - **CSV export**: Admin insights can be exported from `/api/private/admin/insights/initiatives/export.csv` (admin only).
 
 ## Tracked Events
