@@ -1,6 +1,7 @@
 package com.scanales.eventflow.private_;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -85,6 +86,68 @@ public class AdminInsightsApiResourceTest {
     assertTrue(((Number) status.get("startedInitiatives")).intValue() >= 1);
     assertTrue(((Number) status.get("mergedInitiatives")).intValue() >= 1);
     assertTrue(((Number) status.get("productionVerifiedInitiatives")).intValue() >= 1);
+    assertTrue(((Number) status.get("avgLeadHoursToMerge")).longValue() >= 0L);
+    assertTrue(((Number) status.get("avgLeadHoursToProduction")).longValue() >= 0L);
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  public void initiativesSupportOffsetPagination() {
+    String initiativeA = "page-a-" + UUID.randomUUID();
+    String initiativeB = "page-b-" + UUID.randomUUID();
+    String initiativeC = "page-c-" + UUID.randomUUID();
+
+    startInitiative(initiativeA, "2026-03-01T00:00:00Z");
+    startInitiative(initiativeB, "2026-03-02T00:00:00Z");
+    startInitiative(initiativeC, "2026-03-03T00:00:00Z");
+
+    List<Map<String, Object>> page0 =
+        given()
+            .accept(MediaType.APPLICATION_JSON)
+            .when()
+            .get("/api/private/admin/insights/initiatives?limit=1&offset=0")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
+            .getList("$");
+
+    List<Map<String, Object>> page1 =
+        given()
+            .accept(MediaType.APPLICATION_JSON)
+            .when()
+            .get("/api/private/admin/insights/initiatives?limit=1&offset=1")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
+            .getList("$");
+
+    assertEquals(1, page0.size());
+    assertEquals(1, page1.size());
+    String firstId = String.valueOf(page0.get(0).get("initiativeId"));
+    String secondId = String.valueOf(page1.get(0).get("initiativeId"));
+    assertTrue(!firstId.equals(secondId));
+  }
+
+  private static void startInitiative(String initiativeId, String definitionStartedAt) {
+    Map<String, Object> startRequest =
+        Map.of(
+            "initiativeId",
+            initiativeId,
+            "title",
+            "Pagination Test " + initiativeId,
+            "definitionStartedAt",
+            definitionStartedAt,
+            "metadata",
+            Map.of("source", "test"));
+    given()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(startRequest)
+        .when()
+        .post("/api/private/admin/insights/initiatives/start")
+        .then()
+        .statusCode(201);
   }
 
   private static void appendEvent(String initiativeId, String type) {

@@ -3699,6 +3699,12 @@ public interface AppMessages {
     @Message("Production verified")
     String admin_insights_js_status_prod_verified();
 
+    @Message("Average lead to merge")
+    String admin_insights_js_status_avg_merge();
+
+    @Message("Average lead to production")
+    String admin_insights_js_status_avg_prod();
+
     @Message("Last event")
     String admin_insights_js_status_last_event();
 
@@ -3711,8 +3717,17 @@ public interface AppMessages {
     @Message("Write errors")
     String admin_insights_js_status_write_errors();
 
+    @Message("h")
+    String admin_insights_js_hours_suffix();
+
     @Message("No initiatives yet.")
     String admin_insights_js_no_initiatives();
+
+    @Message("Load 50 more")
+    String admin_insights_js_load_more();
+
+    @Message("All initiatives loaded")
+    String admin_insights_js_all_loaded();
 
     @Message("Initiative")
     String admin_insights_js_table_initiative();
