@@ -17,10 +17,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Map;
 
-/**
- * Hidden admin API for development insights ledger. Iteration 1 exposes foundational endpoints
- * without frontend consumption.
- */
+/** Admin API for development insights ledger operations. */
 @Path("/api/private/admin/insights")
 @Authenticated
 @Produces(MediaType.APPLICATION_JSON)
@@ -116,4 +113,3 @@ public class AdminInsightsApiResource {
     }
   }
 }
-

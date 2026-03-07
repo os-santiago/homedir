@@ -102,7 +102,7 @@
       const response = await fetch(url, options || { headers: { Accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const message = payload && payload.message ? payload.message : (i18n.requestFailed || 'Request failed');
+        const message = payload && payload.message ? payload.message : i18n.requestFailed;
         throw new Error(message);
       }
       return payload;
@@ -110,35 +110,35 @@
 
     function renderStatus(status) {
       if (!statusEl || !status) return;
-      const na = i18n.na || 'n/a';
-      const yes = i18n.yes || 'yes';
-      const no = i18n.no || 'no';
+      const na = i18n.na;
+      const yes = i18n.yes;
+      const no = i18n.no;
       const lastEvent = status.lastEventAt ? new Date(status.lastEventAt).toLocaleString() : na;
       statusEl.innerHTML = [
-        '<strong>' + (i18n.statusEnabled || 'Enabled') + ':</strong> ' + (status.enabled ? yes : no),
-        '<strong>' + (i18n.statusLedger || 'Ledger') + ':</strong> ' + (status.ledgerPath || na),
-        '<strong>' + (i18n.statusEvents || 'Events') + ':</strong> ' + status.storedEvents + ' / ' + status.maxEntries,
-        '<strong>' + (i18n.statusInitiatives || 'Initiatives') + ':</strong> ' + status.initiatives,
-        '<strong>' + (i18n.statusLastEvent || 'Last event') + ':</strong> ' + lastEvent,
-        '<strong>' + (i18n.statusCompactions || 'Compactions') + ':</strong> ' + status.compactions,
-        '<strong>' + (i18n.statusLoadErrors || 'Load errors') + ':</strong> ' + status.loadErrors,
-        '<strong>' + (i18n.statusWriteErrors || 'Write errors') + ':</strong> ' + status.writeErrors
+        '<strong>' + i18n.statusEnabled + ':</strong> ' + (status.enabled ? yes : no),
+        '<strong>' + i18n.statusLedger + ':</strong> ' + (status.ledgerPath || na),
+        '<strong>' + i18n.statusEvents + ':</strong> ' + status.storedEvents + ' / ' + status.maxEntries,
+        '<strong>' + i18n.statusInitiatives + ':</strong> ' + status.initiatives,
+        '<strong>' + i18n.statusLastEvent + ':</strong> ' + lastEvent,
+        '<strong>' + i18n.statusCompactions + ':</strong> ' + status.compactions,
+        '<strong>' + i18n.statusLoadErrors + ':</strong> ' + status.loadErrors,
+        '<strong>' + i18n.statusWriteErrors + ':</strong> ' + status.writeErrors
       ].join('<br>');
     }
 
     function renderInitiatives(items) {
       if (!initiativesEl) return;
       if (!Array.isArray(items) || items.length === 0) {
-        initiativesEl.textContent = i18n.noInitiatives || 'No initiatives yet.';
+        initiativesEl.textContent = i18n.noInitiatives;
         return;
       }
-      const na = i18n.na || 'n/a';
+      const na = i18n.na;
       const rows = items.map((item) => {
         const last = item.lastEventAt ? new Date(item.lastEventAt).toLocaleString() : na;
         return '<tr>'
           + '<td>' + item.initiativeId + '</td>'
           + '<td>' + (item.title || item.initiativeId) + '</td>'
-          + '<td>' + (item.state || i18n.stateActive || 'active') + '</td>'
+          + '<td>' + (item.state || i18n.stateActive) + '</td>'
           + '<td>' + (item.totalEvents || 0) + '</td>'
           + '<td>' + (item.lastEventType || na) + '</td>'
           + '<td>' + last + '</td>'
@@ -147,12 +147,12 @@
       initiativesEl.innerHTML =
         '<table class="table" style="font-size: 0.9rem;">'
         + '<thead><tr>'
-        + '<th style="text-align:left;">' + (i18n.tableInitiative || 'Initiative') + '</th>'
-        + '<th style="text-align:left;">' + (i18n.tableTitle || 'Title') + '</th>'
-        + '<th style="text-align:left;">' + (i18n.tableState || 'State') + '</th>'
-        + '<th style="text-align:right;">' + (i18n.tableEvents || 'Events') + '</th>'
-        + '<th style="text-align:left;">' + (i18n.tableLastType || 'Last type') + '</th>'
-        + '<th style="text-align:left;">' + (i18n.tableLastUpdate || 'Last update') + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableInitiative + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableTitle + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableState + '</th>'
+        + '<th style="text-align:right;">' + i18n.tableEvents + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableLastType + '</th>'
+        + '<th style="text-align:left;">' + i18n.tableLastUpdate + '</th>'
         + '</tr></thead>'
         + '<tbody>' + rows + '</tbody>'
         + '</table>';
@@ -182,11 +182,11 @@
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify(payload)
         });
-        showMessage(i18n.started || 'Initiative started.', false);
+        showMessage(i18n.started, false);
         startForm.reset();
         await refresh();
       } catch (error) {
-        showMessage(error.message || i18n.couldNotStart || 'Could not start initiative.', true);
+        showMessage(error.message || i18n.couldNotStart, true);
       }
     }
 
@@ -208,11 +208,11 @@
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify(payload)
         });
-        showMessage(i18n.appended || 'Event appended.', false);
+        showMessage(i18n.appended, false);
         eventForm.reset();
         await refresh();
       } catch (error) {
-        showMessage(error.message || i18n.couldNotAppend || 'Could not append event.', true);
+        showMessage(error.message || i18n.couldNotAppend, true);
       }
     }
 
