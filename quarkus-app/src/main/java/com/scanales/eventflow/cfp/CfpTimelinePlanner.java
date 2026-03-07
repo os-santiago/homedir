@@ -41,13 +41,18 @@ public final class CfpTimelinePlanner {
     int timelineEventDays = Math.max(1, Math.min(2, event.getDays() > 0 ? event.getDays() : 2));
     LocalDate eventEnd = eventStart.plusDays(timelineEventDays - 1L);
 
-    LocalDate resultsDate = eventStart.minusMonths(3L);
+    int eventYear = eventStart.getYear();
+    LocalDate evaluationStart = LocalDate.of(eventYear, Month.JUNE, 8);
+    LocalDate evaluationEnd = LocalDate.of(eventYear, Month.JULY, 8);
+    LocalDate resultsDate = LocalDate.of(eventYear, Month.JULY, 15);
+    LocalDate presentationsDeadline = LocalDate.of(eventYear, Month.AUGUST, 25);
+
     LocalDate cfpClose = toLocalDate(cfpClosesAt, zone);
     if (cfpClose == null) {
-      cfpClose = resultsDate.minusMonths(2L);
+      cfpClose = evaluationStart;
     }
-    if (cfpClose.isAfter(resultsDate)) {
-      cfpClose = resultsDate;
+    if (cfpClose.isAfter(evaluationStart)) {
+      cfpClose = evaluationStart;
     }
 
     LocalDate cfpOpen = toLocalDate(cfpOpensAt, zone);
@@ -58,26 +63,29 @@ public final class CfpTimelinePlanner {
       cfpOpen = cfpClose;
     }
 
-    if (resultsDate.isBefore(cfpClose)) {
-      resultsDate = cfpClose;
-    }
     if (resultsDate.isAfter(eventStart)) {
       resultsDate = eventStart;
     }
-
-    LocalDate nowDate = ZonedDateTime.ofInstant(now != null ? now : Instant.now(), zone).toLocalDate();
-    LocalDate evaluationStart = cfpClose;
-    LocalDate evaluationEnd = resultsDate.minusDays(7L);
+    if (evaluationEnd.isAfter(resultsDate)) {
+      evaluationEnd = resultsDate;
+    }
+    if (evaluationStart.isAfter(evaluationEnd)) {
+      evaluationStart = evaluationEnd;
+    }
+    if (evaluationStart.isBefore(cfpClose)) {
+      evaluationStart = cfpClose;
+    }
     if (evaluationEnd.isBefore(evaluationStart)) {
       evaluationEnd = evaluationStart;
     }
-    LocalDate presentationsDeadline = LocalDate.of(eventStart.getYear(), Month.AUGUST, 25);
     if (presentationsDeadline.isBefore(resultsDate)) {
       presentationsDeadline = resultsDate;
     }
     if (presentationsDeadline.isAfter(eventStart)) {
       presentationsDeadline = eventStart;
     }
+
+    LocalDate nowDate = ZonedDateTime.ofInstant(now != null ? now : Instant.now(), zone).toLocalDate();
 
     List<CfpTimelineStageView> stages = List.of(
         new CfpTimelineStageView(
