@@ -21,9 +21,9 @@ public final class TemplateLocaleUtil {
 
   public static TemplateInstance apply(
       TemplateInstance templateInstance, String localeCode, HttpHeaders headers) {
-    String normalized = normalizeOrNull(localeCode);
+    String normalized = normalizeOrNull(resolveProfileLocale());
     if (normalized == null) {
-      normalized = normalizeOrNull(resolveProfileLocale());
+      normalized = normalizeOrNull(localeCode);
     }
     if (normalized == null) {
       normalized = normalizeFromHeaders(headers);
