@@ -20,6 +20,7 @@ import com.scanales.eventflow.cfp.CfpEventConfig;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.volunteers.VolunteerApplication;
 import com.scanales.eventflow.volunteers.VolunteerEventConfig;
+import com.scanales.eventflow.volunteers.VolunteerLoungeMessage;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -119,6 +120,7 @@ public class PersistenceService {
   private Path cfpEventConfigFile;
   private Path volunteerSubmissionsFile;
   private Path volunteerEventConfigFile;
+  private Path volunteerLoungeFile;
   private Path agendaProposalConfigFile;
   private Path cfpBackupsDir;
   private Path cfpWalFile;
@@ -145,6 +147,9 @@ public class PersistenceService {
       };
   private static final TypeReference<Map<String, VolunteerEventConfig>> VOLUNTEER_EVENT_CONFIG_TYPE =
       new TypeReference<Map<String, VolunteerEventConfig>>() {
+      };
+  private static final TypeReference<Map<String, VolunteerLoungeMessage>> VOLUNTEER_LOUNGE_TYPE =
+      new TypeReference<Map<String, VolunteerLoungeMessage>>() {
       };
   private static final DateTimeFormatter CFP_BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
@@ -212,6 +217,7 @@ public class PersistenceService {
     cfpEventConfigFile = dataDir.resolve("cfp-event-config.json");
     volunteerSubmissionsFile = dataDir.resolve("volunteer-submissions.json");
     volunteerEventConfigFile = dataDir.resolve("volunteer-event-config.json");
+    volunteerLoungeFile = dataDir.resolve("volunteer-lounge.json");
     agendaProposalConfigFile = dataDir.resolve("event-agenda-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
     cfpWalFile = dataDir.resolve(CFP_WAL_FILE_NAME);
@@ -603,6 +609,41 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(volunteerEventConfigFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Persists volunteer lounge messages synchronously. */
+  public void saveVolunteerLoungeMessagesSync(Map<String, VolunteerLoungeMessage> messages) {
+    writeSync(volunteerLoungeFile, messages == null ? Map.of() : Map.copyOf(messages));
+  }
+
+  /** Loads volunteer lounge messages from disk or returns an empty map if none. */
+  public Map<String, VolunteerLoungeMessage> loadVolunteerLoungeMessages() {
+    if (volunteerLoungeFile == null || !Files.exists(volunteerLoungeFile)) {
+      return Map.of();
+    }
+    try {
+      Map<String, VolunteerLoungeMessage> data =
+          mapper.readValue(volunteerLoungeFile.toFile(), VOLUNTEER_LOUNGE_TYPE);
+      if (data == null || data.isEmpty()) {
+        return Map.of();
+      }
+      return new java.util.LinkedHashMap<>(data);
+    } catch (IOException e) {
+      LOG.error("Failed to read " + volunteerLoungeFile.toAbsolutePath(), e);
+      return Map.of();
+    }
+  }
+
+  /** Last modified timestamp for volunteer lounge file, or -1 when unavailable. */
+  public long volunteerLoungeMessagesLastModifiedMillis() {
+    try {
+      if (volunteerLoungeFile == null || !Files.exists(volunteerLoungeFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(volunteerLoungeFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }

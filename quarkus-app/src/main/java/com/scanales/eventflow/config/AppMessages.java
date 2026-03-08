@@ -679,6 +679,9 @@ public interface AppMessages {
     @Message("No lounge messages yet. Start the coordination thread.")
     String events_volunteers_lounge_empty();
 
+    @Message("Lounge message posted.")
+    String events_volunteers_lounge_success_post();
+
     @Message("Could not load lounge messages right now.")
     String events_volunteers_lounge_error_load();
 

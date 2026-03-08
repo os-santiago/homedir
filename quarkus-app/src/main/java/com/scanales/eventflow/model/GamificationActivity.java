@@ -54,6 +54,7 @@ public enum GamificationActivity {
   CFP_ACCEPTED("cfp_accepted", 40, QuestClass.WARRIOR, false, false, "CFP accepted"),
   VOLUNTEER_APPLY("volunteer_apply", 24, QuestClass.WARRIOR, false, false, "Volunteer application submitted"),
   VOLUNTEER_SELECTED("volunteer_selected", 42, QuestClass.WARRIOR, false, false, "Volunteer application selected"),
+  VOLUNTEER_LOUNGE_POST("volunteer_lounge_post", 10, QuestClass.WARRIOR, true, false, "Volunteer lounge post"),
   VOLUNTEER_WITHDRAW("volunteer_withdraw", 6, QuestClass.WARRIOR, true, false, "Volunteer application withdrawn"),
   SESSION_EVALUATION("session_evaluation", 12, QuestClass.WARRIOR, false, false, "Session evaluation");
 
