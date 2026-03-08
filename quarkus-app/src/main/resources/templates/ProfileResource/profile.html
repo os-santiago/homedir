@@ -1531,13 +1531,17 @@
             }
         };
 
+        const summaryLabelAdded = '{i18n:label_registered_talks}';
+        const summaryLabelAttended = '{i18n:label_attended_talks}';
+        const summaryLabelRated = '{i18n:label_ratings}';
+
         const updateSummary = () => {
             const total = document.querySelectorAll('.talk-row').length;
             const attended = document.querySelectorAll('.talk-row[data-attended="true"]').length;
             const rated = document.querySelectorAll('.talk-row[data-rated="true"]').length;
             const summary = document.getElementById('summary');
             if (summary) {
-                summary.textContent = 'Has agregado ' + total + ' charlas a tu agenda, has asistido a ' + attended + ' y calificado ' + rated + '.';
+                summary.textContent = summaryLabelAdded + ': ' + total + ' · ' + summaryLabelAttended + ': ' + attended + ' · ' + summaryLabelRated + ': ' + rated;
             }
         };
 
