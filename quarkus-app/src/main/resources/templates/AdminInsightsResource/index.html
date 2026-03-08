@@ -27,41 +27,8 @@
     </div>
 
     <div class="card">
-      <h2 class="card-title">{i18n:admin_insights_start_initiative_title}</h2>
-      <form id="insightsStartForm" class="form-group" style="display:grid; gap:0.6rem;">
-        <input id="initiativeId" class="form-input" placeholder="{i18n:admin_insights_initiative_id_placeholder}" maxlength="120" required />
-        <input id="initiativeTitle" class="form-input" placeholder="{i18n:admin_insights_initiative_title_placeholder}" maxlength="240" required />
-        <input id="initiativeStartedAt" class="form-input" placeholder="{i18n:admin_insights_started_at_placeholder}" />
-        <button type="submit" class="btn btn-primary">{i18n:admin_insights_start}</button>
-      </form>
-    </div>
-
-    <div class="card">
-      <h2 class="card-title">{i18n:admin_insights_append_event_title}</h2>
-      <form id="insightsEventForm" class="form-group" style="display:grid; gap:0.6rem;">
-        <input id="eventInitiativeId" class="form-input" placeholder="{i18n:admin_insights_event_initiative_placeholder}" maxlength="120" required />
-        <input id="eventType" class="form-input" placeholder="{i18n:admin_insights_event_type_placeholder}" maxlength="64" required list="insightsEventTypeList" />
-        <datalist id="insightsEventTypeList">
-          <option value="INITIATIVE_STARTED"></option>
-          <option value="PR_OPENED"></option>
-          <option value="PR_VALIDATION_PASSED"></option>
-          <option value="PR_VALIDATION_FAILED"></option>
-          <option value="PR_MERGED"></option>
-          <option value="PRODUCTION_VERIFIED"></option>
-          <option value="PRODUCTION_RELEASE_FAILED"></option>
-        </datalist>
-        <div class="insights-event-presets" aria-label="{i18n:admin_insights_event_type_placeholder}">
-          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PR_OPENED">PR_OPENED</button>
-          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PR_MERGED">PR_MERGED</button>
-          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PR_VALIDATION_PASSED">PR_VALIDATION_PASSED</button>
-          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PRODUCTION_VERIFIED">PRODUCTION_VERIFIED</button>
-        </div>
-        <p class="form-hint" style="margin:0;">{i18n:admin_insights_event_type_hint}</p>
-        <input id="eventPr" class="form-input" placeholder="{i18n:admin_insights_event_pr_placeholder}" maxlength="64" />
-        <input id="eventSha" class="form-input" placeholder="{i18n:admin_insights_event_sha_placeholder}" maxlength="120" />
-        <button type="submit" class="btn btn-primary">{i18n:admin_insights_append}</button>
-      </form>
-      <p id="insightsMessage" class="form-hint" style="margin-top:0.6rem;"></p>
+      <h2 class="card-title">{i18n:admin_insights_auto_mode_title}</h2>
+      <p class="form-hint" style="margin-top:0.35rem;">{i18n:admin_insights_auto_mode_desc}</p>
     </div>
 
     <div class="card" style="grid-column: 1 / -1;">
