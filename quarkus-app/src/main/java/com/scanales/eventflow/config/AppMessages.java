@@ -928,6 +928,9 @@ public interface AppMessages {
     @Message("Reference links (optional, comma separated)")
     String events_cfp_form_links();
 
+    @Message("https://sessionize.com/your-session, https://github.com/...")
+    String events_cfp_form_links_placeholder();
+
     @Message("Send proposal")
     String events_cfp_form_submit();
 
@@ -957,6 +960,9 @@ public interface AppMessages {
 
     @Message("Could not submit your proposal. Please try again.")
     String events_cfp_error_submit();
+
+    @Message("This proposal changed while you were editing it. Reload and try again.")
+    String events_cfp_error_stale();
 
     @Message("Submitting...")
     String events_cfp_submitting_title();
@@ -1026,6 +1032,84 @@ public interface AppMessages {
 
     @Message("proposals")
     String events_cfp_proposals_unit();
+
+    @Message("Owner")
+    String events_cfp_viewer_role_owner();
+
+    @Message("Panelist")
+    String events_cfp_viewer_role_panelist();
+
+    @Message("Panelists")
+    String events_cfp_panelists_title();
+
+    @Message("For panel format, add up to 4 panelists. Linked accounts will be assigned as speakers after acceptance.")
+    String events_cfp_panelists_desc();
+
+    @Message("Panelist name")
+    String events_cfp_panelists_name();
+
+    @Message("Panelist email")
+    String events_cfp_panelists_email();
+
+    @Message("Save panelists")
+    String events_cfp_panelists_save();
+
+    @Message("Saving panelists...")
+    String events_cfp_panelists_saving();
+
+    @Message("Panelists updated.")
+    String events_cfp_panelists_saved();
+
+    @Message("Could not update panelists.")
+    String events_cfp_panelists_error();
+
+    @Message("Linked")
+    String events_cfp_panelists_status_linked();
+
+    @Message("Pending login")
+    String events_cfp_panelists_status_pending();
+
+    @Message("No panelists added yet.")
+    String events_cfp_panelists_empty();
+
+    @Message("Pending panelists without Homedir account:")
+    String events_cfp_panelists_pending_prefix();
+
+    @Message("Accepted panel: pending panelists should sign in to complete assignment.")
+    String events_cfp_panelists_accepted_hint();
+
+    @Message("Presentation")
+    String events_cfp_presentation_title();
+
+    @Message("Current file")
+    String events_cfp_presentation_current();
+
+    @Message("Upload PDF")
+    String events_cfp_presentation_upload();
+
+    @Message("Uploading PDF...")
+    String events_cfp_presentation_uploading();
+
+    @Message("Presentation uploaded.")
+    String events_cfp_presentation_uploaded();
+
+    @Message("Select a PDF file before uploading.")
+    String events_cfp_presentation_file_required();
+
+    @Message("Presentations can be uploaded only after acceptance.")
+    String events_cfp_presentation_requires_accepted();
+
+    @Message("For panel format, owner or linked panelists can upload the presentation.")
+    String events_cfp_presentation_panel_hint();
+
+    @Message("Could not upload presentation.")
+    String events_cfp_presentation_error();
+
+    @Message("Presentation must be a PDF file.")
+    String events_cfp_presentation_error_type();
+
+    @Message("Presentation size must be between 1 byte and 25 MB.")
+    String events_cfp_presentation_error_size();
 
     @Message("Submitted and waiting for moderator review.")
     String events_cfp_status_desc_pending();
@@ -2651,6 +2735,48 @@ public interface AppMessages {
 
     @Message("Apply now")
     String profile_volunteers_apply_now();
+
+    @Message("Speaker")
+    String profile_speaker_title();
+
+    @Message("Complete your speaker profile once your CFP submission is created.")
+    String profile_speaker_intro();
+
+    @Message("Active")
+    String profile_speaker_status_active();
+
+    @Message("Inactive")
+    String profile_speaker_status_inactive();
+
+    @Message("Submit a CFP proposal first to unlock your speaker profile fields.")
+    String profile_speaker_locked_hint();
+
+    @Message("Headline")
+    String profile_speaker_headline();
+
+    @Message("Bio")
+    String profile_speaker_bio();
+
+    @Message("Organization")
+    String profile_speaker_organization();
+
+    @Message("Website")
+    String profile_speaker_website();
+
+    @Message("LinkedIn")
+    String profile_speaker_linkedin();
+
+    @Message("Topics (comma separated)")
+    String profile_speaker_topics();
+
+    @Message("Save speaker profile")
+    String profile_speaker_save();
+
+    @Message("Speaker profile updated")
+    String profile_speaker_saved();
+
+    @Message("Speaker profile is inactive. Submit a CFP proposal first.")
+    String profile_speaker_error_inactive();
 
     @Message("Search")
     String search_aria_label();

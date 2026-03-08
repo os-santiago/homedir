@@ -224,6 +224,8 @@ public class ProfileResource {
       @jakarta.ws.rs.QueryParam("discordUnlinked") boolean discordUnlinked,
       @jakarta.ws.rs.QueryParam("githubError") String githubError,
       @jakarta.ws.rs.QueryParam("discordError") String discordError,
+      @jakarta.ws.rs.QueryParam("speakerSaved") boolean speakerSaved,
+      @jakarta.ws.rs.QueryParam("speakerError") String speakerError,
       @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub,
       @jakarta.ws.rs.QueryParam("historyLimit") Integer historyLimitParam,
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
@@ -246,6 +248,8 @@ public class ProfileResource {
     var info = userSchedule.getTalkDetailsForUser(email);
     var summary = userSchedule.getSummaryForUser(email);
     var userProfile = userProfiles.upsert(email, name, email);
+    var speakerProfile = userProfile.getSpeakerProfile();
+    boolean speakerActive = speakerProfile != null && speakerProfile.active();
     gamificationService.award(email, GamificationActivity.PROFILE_VIEW);
 
     // Fetch Gamification Profile
@@ -361,6 +365,10 @@ public class ProfileResource {
         ogDescription)
         .data("cfpOverview", cfpOverview)
         .data("cfpRecentSubmissions", cfpRecentSubmissions)
+        .data("speakerProfile", speakerProfile)
+        .data("speakerActive", speakerActive)
+        .data("speakerSaved", speakerSaved)
+        .data("speakerError", speakerError)
         .data("volunteerOverview", volunteerOverview)
         .data("volunteerRecentApplications", volunteerRecentApplications)
         .data("volunteerOpenEvents", volunteerOpenEvents)
@@ -508,6 +516,34 @@ public class ProfileResource {
     return Response.status(Response.Status.SEE_OTHER)
         .header("Location", "/private/profile")
         .build();
+  }
+
+  @POST
+  @Path("speaker")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response updateSpeakerProfile(
+      @jakarta.ws.rs.FormParam("headline") String headline,
+      @jakarta.ws.rs.FormParam("bio") String bio,
+      @jakarta.ws.rs.FormParam("organization") String organization,
+      @jakarta.ws.rs.FormParam("website") String website,
+      @jakarta.ws.rs.FormParam("linkedin") String linkedin,
+      @jakarta.ws.rs.FormParam("topics") String topics) {
+    String email = getEmail();
+    String target = "/private/profile#speaker-panel";
+    var profile = userProfiles.upsert(email, getClaim("name"), email);
+    if (!profile.hasActiveSpeakerProfile()) {
+      return redirectWithStatus(target, "speakerError", "inactive");
+    }
+    java.util.List<String> topicList =
+        topics == null
+            ? java.util.List.of()
+            : java.util.Arrays.stream(topics.split(","))
+                .map(String::trim)
+                .filter(item -> !item.isBlank())
+                .toList();
+    userProfiles.updateSpeakerProfile(email, headline, bio, organization, website, linkedin, topicList);
+    return redirectWithStatus(target, "speakerSaved", "1");
   }
 
   @POST

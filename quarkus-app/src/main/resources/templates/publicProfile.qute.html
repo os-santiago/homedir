@@ -72,6 +72,16 @@
             </div>
 
             <div class="wrapped-card">
+                <span class="wrapped-stat-label">{i18n:profile_speaker_title}</span>
+                <span class="wrapped-stat-value neon">
+                    {#if speakerActive}{i18n:profile_speaker_status_active}{#else}{i18n:profile_speaker_status_inactive}{/if}
+                </span>
+                <p class="wrapped-subtext">
+                    {#if speakerProfile != null && speakerProfile.headline != null}{speakerProfile.headline}{#else}{i18n:profile_speaker_intro}{/if}
+                </p>
+            </div>
+
+            <div class="wrapped-card">
                 <span class="wrapped-stat-label">{i18n:public_profile_volunteer_title}</span>
                 <span class="wrapped-stat-value neon">{volunteerSelectedCount}</span>
                 <p class="wrapped-subtext">{i18n:public_profile_volunteer_selected_label}</p>

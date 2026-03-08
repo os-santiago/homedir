@@ -29,6 +29,7 @@
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="integrations-panel">{i18n:section_integrations}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="resume-panel">{i18n:section_resume}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="cfp-panel">{i18n:profile_cfp_title}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="speaker-panel">{i18n:profile_speaker_title}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="volunteer-panel">{i18n:profile_volunteers_title}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="identity-panel">{i18n:section_identity}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="economy-panel">{i18n:section_economy}</button>
@@ -360,6 +361,71 @@
                 </li>
                 {/for}
             </ul>
+            {/if}
+        </section>
+
+        <section class="hd-panel centered" id="speaker-panel" data-profile-section="speaker">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">{i18n:profile_speaker_title}</p>
+                    <h2 class="hd-panel-title">{i18n:profile_speaker_title}</h2>
+                    <p class="hd-page-intro">{i18n:profile_speaker_intro}</p>
+                </div>
+            </div>
+
+            <div class="hd-grid-details">
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_admin_label_status}</span>
+                    <span class="hd-detail-value">
+                        {#if speakerActive}{i18n:profile_speaker_status_active}{#else}{i18n:profile_speaker_status_inactive}{/if}
+                    </span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_cfp_status_accepted}</span>
+                    <span class="hd-detail-value">{cfpOverview.accepted}</span>
+                </div>
+            </div>
+
+            {#if speakerSaved}
+            <div class="hd-alert hd-alert-success">{i18n:profile_speaker_saved}</div>
+            {/if}
+            {#if speakerError??}
+            <div class="hd-alert hd-alert-warning">{i18n:profile_speaker_error_inactive}</div>
+            {/if}
+
+            {#if !speakerActive}
+            <p class="hd-page-intro">{i18n:profile_speaker_locked_hint}</p>
+            {#else}
+            <form action="/private/profile/speaker" method="POST" class="hd-panel-actions" style="display: grid; gap: 0.8rem;">
+                <input type="hidden" name="redirect" value="/private/profile#speaker-panel">
+                <div class="form-group">
+                    <label class="form-label" for="speakerHeadline">{i18n:profile_speaker_headline}</label>
+                    <input id="speakerHeadline" name="headline" class="form-input" maxlength="120" value="{#if speakerProfile != null}{speakerProfile.headline}{/if}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="speakerBio">{i18n:profile_speaker_bio}</label>
+                    <textarea id="speakerBio" name="bio" class="form-textarea" rows="4" maxlength="2000">{#if speakerProfile != null}{speakerProfile.bio}{/if}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="speakerOrganization">{i18n:profile_speaker_organization}</label>
+                    <input id="speakerOrganization" name="organization" class="form-input" maxlength="120" value="{#if speakerProfile != null}{speakerProfile.organization}{/if}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="speakerWebsite">{i18n:profile_speaker_website}</label>
+                    <input id="speakerWebsite" name="website" class="form-input" maxlength="500" value="{#if speakerProfile != null}{speakerProfile.website}{/if}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="speakerLinkedin">{i18n:profile_speaker_linkedin}</label>
+                    <input id="speakerLinkedin" name="linkedin" class="form-input" maxlength="500" value="{#if speakerProfile != null}{speakerProfile.linkedin}{/if}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="speakerTopics">{i18n:profile_speaker_topics}</label>
+                    <input id="speakerTopics" name="topics" class="form-input" maxlength="320" value="{#if speakerProfile != null}{speakerProfile.topicsCsv}{/if}">
+                </div>
+                <div class="hd-panel-actions">
+                    <button type="submit" class="hd-btn hd-btn-primary">{i18n:profile_speaker_save}</button>
+                </div>
+            </form>
             {/if}
         </section>
 

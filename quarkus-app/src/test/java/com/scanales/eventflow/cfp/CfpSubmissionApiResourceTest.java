@@ -291,6 +291,83 @@ public class CfpSubmissionApiResourceTest {
   }
 
   @Test
+  @TestSecurity(user = "panelist@example.com")
+  void mineEndpointIncludesPanelistEntriesAndOwnedTotal() {
+    CfpSubmission submission =
+        cfpSubmissionService.create(
+            "owner@example.com",
+            "Owner",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Panel API proposal",
+                "Summary",
+                "Panel abstract",
+                "intermediate",
+                "panel",
+                60,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updatePanelists(
+        EVENT_ID,
+        submission.id(),
+        List.of(new CfpSubmissionService.PanelistInput("Panelist", "panelist@example.com", "panelist@example.com")),
+        "owner@example.com",
+        null);
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/mine?limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("total", equalTo(1))
+        .body("owned_total", equalTo(0))
+        .body("items", hasSize(1))
+        .body("items[0].viewer_role", equalTo("panelist"))
+        .body("items[0].can_edit", equalTo(false));
+  }
+
+  @Test
+  @TestSecurity(user = "panelist@example.com")
+  void panelistCanUploadPresentationForAcceptedPanel() {
+    CfpSubmission submission =
+        cfpSubmissionService.create(
+            "owner@example.com",
+            "Owner",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Panel upload proposal",
+                "Summary",
+                "Panel abstract",
+                "intermediate",
+                "panel",
+                60,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updatePanelists(
+        EVENT_ID,
+        submission.id(),
+        List.of(new CfpSubmissionService.PanelistInput("Panelist", "panelist@example.com", "panelist@example.com")),
+        "owner@example.com",
+        null);
+    cfpSubmissionService.updateStatus(
+        submission.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "accepted");
+
+    given()
+        .multiPart("file", "slides.pdf", "%PDF-1.4".getBytes(java.nio.charset.StandardCharsets.UTF_8), "application/pdf")
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions/" + submission.id() + "/presentation")
+        .then()
+        .statusCode(200)
+        .body("item.presentation_asset.file_name", org.hamcrest.Matchers.notNullValue())
+        .body("item.viewer_role", equalTo("panelist"));
+  }
+
+  @Test
   @TestSecurity(user = "member@example.com")
   void createAcceptsLanguageLabel() {
     given()

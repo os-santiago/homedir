@@ -2,6 +2,7 @@ package com.scanales.eventflow.cfp;
 
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.PersistenceService;
+import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.PaginationGuardrails;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -17,6 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +49,7 @@ public class CfpSubmissionService {
   @Inject CfpFormOptionsService cfpFormOptionsService;
   @Inject CfpConfigService cfpConfigService;
   @Inject CfpEventConfigService cfpEventConfigService;
+  @Inject UserProfileService userProfileService;
 
   private final ConcurrentHashMap<String, CfpSubmission> submissions = new ConcurrentHashMap<>();
   private final Object submissionsLock = new Object();
@@ -163,6 +166,8 @@ public class CfpSubmissionService {
               null,
               null,
               null,
+              null,
+              List.of(),
               null);
       submissions.put(submission.id(), submission);
       persistSync();
@@ -226,7 +231,7 @@ public class CfpSubmissionService {
       List<CfpSubmission> filtered =
           submissions.values().stream()
               .filter(item -> normalizedEventId.equals(item.eventId()))
-              .filter(item -> normalizedUserIds.contains(item.proposerUserId()))
+              .filter(item -> matchesMineIdentity(item, normalizedUserIds))
               .sorted(Comparator.comparing(CfpSubmission::createdAt, createdComparator))
               .toList();
       return paginate(filtered, requestedLimit, requestedOffset);
@@ -270,7 +275,32 @@ public class CfpSubmissionService {
         if (!normalizedEventId.equals(item.eventId())) {
           continue;
         }
-        if (normalizedUserIds.contains(item.proposerUserId())) {
+        if (matchesMineIdentity(item, normalizedUserIds)) {
+          count++;
+        }
+      }
+      return count;
+    }
+  }
+
+  public int countMineOwned(String eventId, Set<String> userIds) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null || userIds == null || userIds.isEmpty()) {
+        return 0;
+      }
+      Set<String> normalizedUserIds = normalizeUserIds(userIds);
+      if (normalizedUserIds.isEmpty()) {
+        return 0;
+      }
+      int count = 0;
+      for (CfpSubmission item : submissions.values()) {
+        if (!normalizedEventId.equals(item.eventId())) {
+          continue;
+        }
+        String proposer = sanitizeUserId(item.proposerUserId());
+        if (proposer != null && normalizedUserIds.contains(proposer)) {
           count++;
         }
       }
@@ -291,7 +321,7 @@ public class CfpSubmissionService {
       }
       List<CfpSubmission> filtered =
           submissions.values().stream()
-              .filter(item -> normalizedUserIds.contains(item.proposerUserId()))
+              .filter(item -> matchesMineIdentity(item, normalizedUserIds))
               .sorted(sortComparator(sortOrder))
               .toList();
       return paginate(filtered, requestedLimit, requestedOffset);
@@ -313,7 +343,7 @@ public class CfpSubmissionService {
       int total = 0;
       Instant latestUpdatedAt = null;
       for (CfpSubmission item : submissions.values()) {
-        if (!normalizedUserIds.contains(item.proposerUserId())) {
+        if (!matchesMineIdentity(item, normalizedUserIds)) {
           continue;
         }
         total++;
@@ -440,7 +470,9 @@ public class CfpSubmissionService {
               normalizedNote,
               current.ratingTechnicalDetail(),
               current.ratingNarrative(),
-              current.ratingContentImpact());
+              current.ratingContentImpact(),
+              current.panelists() == null ? List.of() : current.panelists(),
+              current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -506,7 +538,188 @@ public class CfpSubmissionService {
               current.moderationNote(),
               normalizedTechnical,
               normalizedNarrative,
-              normalizedImpact);
+              normalizedImpact,
+              current.panelists() == null ? List.of() : current.panelists(),
+              current.presentationAsset());
+      submissions.put(updated.id(), updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CfpSubmission updatePanelists(
+      String eventId,
+      String id,
+      List<PanelistInput> panelists,
+      String actorUserId,
+      Instant expectedUpdatedAt) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        throw new NotFoundException("submission_not_found");
+      }
+      CfpSubmission current = findOrThrow(id);
+      if (!normalizedEventId.equals(current.eventId())) {
+        throw new NotFoundException("submission_not_found");
+      }
+      validateExpectedUpdatedAt(current, expectedUpdatedAt);
+      List<CfpPanelist> normalized = normalizePanelists(current, panelists);
+      Instant now = nextUpdatedAt(current);
+      CfpSubmission updated =
+          new CfpSubmission(
+              current.id(),
+              current.eventId(),
+              current.proposerUserId(),
+              current.proposerName(),
+              current.title(),
+              current.summary(),
+              current.abstractText(),
+              current.level(),
+              current.format(),
+              current.durationMin(),
+              current.language(),
+              current.track(),
+              current.tags(),
+              current.links(),
+              current.status(),
+              current.createdAt(),
+              now,
+              current.moderatedAt(),
+              current.moderatedBy(),
+              current.moderationNote(),
+              current.ratingTechnicalDetail(),
+              current.ratingNarrative(),
+              current.ratingContentImpact(),
+              normalized,
+              current.presentationAsset());
+      submissions.put(updated.id(), updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CfpSubmission updatePresentationAsset(
+      String eventId,
+      String id,
+      CfpPresentationAsset presentationAsset,
+      String actorUserId,
+      Instant expectedUpdatedAt) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        throw new NotFoundException("submission_not_found");
+      }
+      CfpSubmission current = findOrThrow(id);
+      if (!normalizedEventId.equals(current.eventId())) {
+        throw new NotFoundException("submission_not_found");
+      }
+      validateExpectedUpdatedAt(current, expectedUpdatedAt);
+      if (current.status() != CfpSubmissionStatus.ACCEPTED) {
+        throw new ValidationException("presentation_requires_accepted_submission");
+      }
+      CfpPresentationAsset sanitized = sanitizePresentationAsset(presentationAsset, actorUserId);
+      if ("panel".equalsIgnoreCase(current.format())) {
+        if (current.panelists() == null || current.panelists().isEmpty()) {
+          throw new ValidationException("panel_requires_panelists");
+        }
+        String normalizedActor = sanitizeUserId(actorUserId);
+        boolean actorAllowed =
+            normalizedActor != null
+                && (normalizedActor.equals(sanitizeUserId(current.proposerUserId()))
+                    || current.panelists().stream()
+                        .map(CfpPanelist::userId)
+                        .map(CfpSubmissionService::sanitizeUserId)
+                        .anyMatch(normalizedActor::equals));
+        if (!actorAllowed) {
+          throw new ValidationException("panel_uploader_not_allowed");
+        }
+      }
+      Instant now = nextUpdatedAt(current);
+      CfpSubmission updated =
+          new CfpSubmission(
+              current.id(),
+              current.eventId(),
+              current.proposerUserId(),
+              current.proposerName(),
+              current.title(),
+              current.summary(),
+              current.abstractText(),
+              current.level(),
+              current.format(),
+              current.durationMin(),
+              current.language(),
+              current.track(),
+              current.tags(),
+              current.links(),
+              current.status(),
+              current.createdAt(),
+              now,
+              current.moderatedAt(),
+              current.moderatedBy(),
+              current.moderationNote(),
+              current.ratingTechnicalDetail(),
+              current.ratingNarrative(),
+              current.ratingContentImpact(),
+              current.panelists() == null ? List.of() : current.panelists(),
+              sanitized);
+      submissions.put(updated.id(), updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CfpSubmission refreshPanelistsLinkState(String eventId, String id) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        throw new NotFoundException("submission_not_found");
+      }
+      CfpSubmission current = findOrThrow(id);
+      if (!normalizedEventId.equals(current.eventId())) {
+        throw new NotFoundException("submission_not_found");
+      }
+      if (current.panelists() == null || current.panelists().isEmpty()) {
+        return current;
+      }
+      List<PanelistInput> inputs =
+          current.panelists().stream()
+              .map(item -> new PanelistInput(item.name(), item.email(), item.userId()))
+              .toList();
+      List<CfpPanelist> refreshed = normalizePanelists(current, inputs);
+      if (Objects.equals(refreshed, current.panelists())) {
+        return current;
+      }
+      Instant now = nextUpdatedAt(current);
+      CfpSubmission updated =
+          new CfpSubmission(
+              current.id(),
+              current.eventId(),
+              current.proposerUserId(),
+              current.proposerName(),
+              current.title(),
+              current.summary(),
+              current.abstractText(),
+              current.level(),
+              current.format(),
+              current.durationMin(),
+              current.language(),
+              current.track(),
+              current.tags(),
+              current.links(),
+              current.status(),
+              current.createdAt(),
+              now,
+              current.moderatedAt(),
+              current.moderatedBy(),
+              current.moderationNote(),
+              current.ratingTechnicalDetail(),
+              current.ratingNarrative(),
+              current.ratingContentImpact(),
+              refreshed,
+              current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -521,6 +734,112 @@ public class CfpSubmissionService {
     if (!Objects.equals(currentUpdatedAt, expectedUpdatedAt)) {
       throw new ValidationException("stale_submission");
     }
+  }
+
+  private List<CfpPanelist> normalizePanelists(CfpSubmission current, List<PanelistInput> requested) {
+    if (requested == null || requested.isEmpty()) {
+      return List.of();
+    }
+    if (!"panel".equalsIgnoreCase(current.format())) {
+      throw new ValidationException("panelists_allowed_only_for_panel_format");
+    }
+    if (requested.size() > 4) {
+      throw new ValidationException("panelists_max_reached");
+    }
+    Map<String, CfpPanelist> previousById = new HashMap<>();
+    if (current.panelists() != null) {
+      for (CfpPanelist existing : current.panelists()) {
+        if (existing != null && existing.id() != null) {
+          previousById.put(existing.id(), existing);
+        }
+      }
+    }
+    LinkedHashMap<String, CfpPanelist> normalized = new LinkedHashMap<>();
+    Instant now = Instant.now();
+    for (PanelistInput input : requested) {
+      if (input == null) {
+        continue;
+      }
+      String name = sanitizeText(input.name(), 120);
+      String email = sanitizeEmail(input.email());
+      String userId = sanitizeUserId(input.userId());
+      if (email != null) {
+        userId =
+            userProfileService.findByEmail(email).map(profile -> sanitizeUserId(profile.getUserId())).orElse(userId);
+      }
+      if (name == null && userId == null && email == null) {
+        continue;
+      }
+      String idToken = panelistToken(name, email, userId);
+      CfpPanelist previous = previousById.get(idToken);
+      String status =
+          userId != null ? CfpPanelistStatus.LINKED.apiValue() : CfpPanelistStatus.PENDING_LOGIN.apiValue();
+      CfpPanelist normalizedItem =
+          new CfpPanelist(
+              idToken,
+              name != null ? name : (email != null ? email : userId),
+              email,
+              userId,
+              status,
+              previous != null ? previous.createdAt() : now,
+              now);
+      normalized.put(idToken, normalizedItem);
+    }
+    if (normalized.size() > 4) {
+      throw new ValidationException("panelists_max_reached");
+    }
+    return List.copyOf(normalized.values());
+  }
+
+  private CfpPresentationAsset sanitizePresentationAsset(CfpPresentationAsset asset, String actorUserId) {
+    if (asset == null) {
+      throw new ValidationException("presentation_asset_required");
+    }
+    String fileName = sanitizeText(asset.fileName(), 180);
+    String contentType = sanitizeText(asset.contentType(), 80);
+    String storagePath = sanitizeText(asset.storagePath(), 500);
+    long size = asset.sizeBytes();
+    if (fileName == null || storagePath == null) {
+      throw new ValidationException("presentation_asset_required");
+    }
+    if (contentType == null) {
+      contentType = "application/pdf";
+    }
+    String normalizedContentType = contentType.toLowerCase(Locale.ROOT);
+    if (!normalizedContentType.contains("pdf")) {
+      throw new ValidationException("invalid_presentation_content_type");
+    }
+    if (size <= 0 || size > 25L * 1024L * 1024L) {
+      throw new ValidationException("invalid_presentation_size");
+    }
+    return new CfpPresentationAsset(
+        fileName,
+        "application/pdf",
+        size,
+        storagePath,
+        sanitizeUserId(actorUserId),
+        Instant.now());
+  }
+
+  private static String sanitizeEmail(String raw) {
+    String value = sanitizeText(raw, 200);
+    if (value == null) {
+      return null;
+    }
+    String normalized = value.toLowerCase(Locale.ROOT);
+    if (!normalized.contains("@") || normalized.startsWith("@") || normalized.endsWith("@")) {
+      return null;
+    }
+    return normalized;
+  }
+
+  private static String panelistToken(String name, String email, String userId) {
+    String base = userId != null ? userId : (email != null ? email : name);
+    String normalized = sanitizeId(base);
+    if (normalized == null || normalized.isBlank()) {
+      normalized = "panelist-" + UUID.randomUUID();
+    }
+    return normalized;
   }
 
   private static Instant nextUpdatedAt(CfpSubmission current) {
@@ -848,6 +1167,31 @@ public class CfpSubmissionService {
         .filter(item -> item != null)
         .collect(java.util.stream.Collectors.toSet());
   }
+
+  private static boolean matchesMineIdentity(CfpSubmission item, Set<String> normalizedUserIds) {
+    if (item == null || normalizedUserIds == null || normalizedUserIds.isEmpty()) {
+      return false;
+    }
+    String proposer = sanitizeUserId(item.proposerUserId());
+    if (proposer != null && normalizedUserIds.contains(proposer)) {
+      return true;
+    }
+    if (item.panelists() == null || item.panelists().isEmpty()) {
+      return false;
+    }
+    for (CfpPanelist panelist : item.panelists()) {
+      if (panelist == null) {
+        continue;
+      }
+      String panelistUserId = sanitizeUserId(panelist.userId());
+      if (panelistUserId != null && normalizedUserIds.contains(panelistUserId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public record PanelistInput(String name, String email, String userId) {}
 
   public record CreateRequest(
       String eventId,

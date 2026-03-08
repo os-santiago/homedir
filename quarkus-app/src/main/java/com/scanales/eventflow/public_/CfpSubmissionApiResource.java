@@ -1,6 +1,9 @@
 package com.scanales.eventflow.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.scanales.eventflow.cfp.CfpPanelist;
+import com.scanales.eventflow.cfp.CfpPanelistStatus;
+import com.scanales.eventflow.cfp.CfpPresentationAsset;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpConfigService;
 import com.scanales.eventflow.cfp.CfpEventConfig;
@@ -8,6 +11,8 @@ import com.scanales.eventflow.cfp.CfpEventConfigService;
 import com.scanales.eventflow.cfp.CfpInsightsService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
+import com.scanales.eventflow.eventops.EventOperationsService;
+import com.scanales.eventflow.eventops.EventStaffRole;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.Talk;
@@ -15,13 +20,17 @@ import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.PersistenceService;
 import com.scanales.eventflow.service.SpeakerService;
 import com.scanales.eventflow.service.UsageMetricsService;
+import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.PaginationGuardrails;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -31,6 +40,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.Collections;
@@ -56,6 +69,11 @@ public class CfpSubmissionApiResource {
   @Inject GamificationService gamificationService;
   @Inject CfpInsightsService cfpInsightsService;
   @Inject SecurityIdentity identity;
+  @Inject EventOperationsService eventOperationsService;
+  @Inject UserProfileService userProfileService;
+
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDirPath;
 
   @POST
   @Authenticated
@@ -83,6 +101,8 @@ public class CfpSubmissionApiResource {
                   request != null ? request.track() : null,
                   request != null ? request.tags() : null,
                   request != null ? request.links() : null));
+      userProfileService.activateSpeakerProfile(
+          primaryUserId, currentUserName().orElse(primaryUserId), primaryUserId);
       metrics.recordFunnelStep("cfp.submission.create");
       metrics.recordFunnelStep("cfp_submit");
       gamificationService.award(primaryUserId, GamificationActivity.CFP_SUBMIT, eventId);
@@ -119,11 +139,15 @@ public class CfpSubmissionApiResource {
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
-        cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream().map(this::toView).toList();
+        cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream()
+            .map(item -> safeRefreshPanelists(eventId, item))
+            .map(item -> toView(item, userIds))
+            .toList();
     int total = cfpSubmissionService.countMine(eventId, userIds);
+    int ownedTotal = cfpSubmissionService.countMineOwned(eventId, userIds);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
-    return Response.ok(new SubmissionListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
+    return Response.ok(new SubmissionListResponse(limit, offset, total, ownedTotal, hasMore, nextOffset, items)).build();
   }
   @GET
   @Path("/config")
@@ -329,7 +353,7 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
     }
     boolean admin = AdminUtils.isAdmin(identity);
-    if (!admin && !userIds.contains(existing.get().proposerUserId())) {
+    if (!admin && !containsUserId(userIds, existing.get().proposerUserId())) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "owner_required")).build();
     }
     try {
@@ -387,12 +411,13 @@ public class CfpSubmissionApiResource {
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<SubmissionView> items =
         cfpSubmissionService.listByEvent(eventId, statusFilter, sortOrder, limit, offset).stream()
+            .map(item -> safeRefreshPanelists(eventId, item))
             .map(this::toView)
             .toList();
     int total = cfpSubmissionService.countByEvent(eventId, statusFilter);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
-    return Response.ok(new SubmissionListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
+    return Response.ok(new SubmissionListResponse(limit, offset, total, total, hasMore, nextOffset, items)).build();
   }
 
   @GET
@@ -457,6 +482,32 @@ public class CfpSubmissionApiResource {
       if (status.get() == CfpSubmissionStatus.ACCEPTED) {
         metrics.recordFunnelStep("cfp_approved");
         gamificationService.award(updated.proposerUserId(), GamificationActivity.CFP_ACCEPTED, updated.id());
+        userProfileService.activateSpeakerProfile(
+            updated.proposerUserId(),
+            updated.proposerName() != null ? updated.proposerName() : updated.proposerUserId(),
+            updated.proposerUserId());
+        eventOperationsService.upsertStaff(
+            updated.eventId(),
+            updated.proposerUserId(),
+            updated.proposerName(),
+            EventStaffRole.SPEAKER,
+            "cfp_acceptance",
+            true);
+        updated = cfpSubmissionService.refreshPanelistsLinkState(eventId, id);
+        if (updated.panelists() != null) {
+          for (CfpPanelist panelist : updated.panelists()) {
+            if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
+              continue;
+            }
+            eventOperationsService.upsertStaff(
+                updated.eventId(),
+                panelist.userId(),
+                panelist.name(),
+                EventStaffRole.SPEAKER,
+                "cfp_panelist",
+                true);
+          }
+        }
       }
       cfpInsightsService.recordStatusChange(existing.get(), updated);
       return Response.ok(new SubmissionResponse(toView(updated))).build();
@@ -513,6 +564,128 @@ public class CfpSubmissionApiResource {
           .build();
     }
   }
+
+  @PUT
+  @Path("/{id}/panelists")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updatePanelists(
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      UpdatePanelistsRequest request) {
+    Set<String> userIds = currentUserIds();
+    if (userIds.isEmpty()) {
+      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+    }
+    Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+    if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+    }
+    boolean admin = AdminUtils.isAdmin(identity);
+    if (!admin && !containsUserId(userIds, existing.get().proposerUserId())) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "owner_required")).build();
+    }
+    try {
+      List<CfpSubmissionService.PanelistInput> panelists =
+          request == null || request.panelists() == null
+              ? List.of()
+              : request.panelists().stream()
+                  .map(item -> new CfpSubmissionService.PanelistInput(item.name(), item.email(), item.userId()))
+                  .toList();
+      CfpSubmission updated =
+          cfpSubmissionService.updatePanelists(
+              eventId,
+              id,
+              panelists,
+              currentUserId().orElse(existing.get().proposerUserId()),
+              request != null ? request.expectedUpdatedAt() : null);
+      if (updated.status() == CfpSubmissionStatus.ACCEPTED && updated.panelists() != null) {
+        for (CfpPanelist panelist : updated.panelists()) {
+          if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
+            continue;
+          }
+          eventOperationsService.upsertStaff(
+              updated.eventId(),
+              panelist.userId(),
+              panelist.name(),
+              EventStaffRole.SPEAKER,
+              "cfp_panelist",
+              true);
+        }
+      }
+      metrics.recordFunnelStep("cfp.submission.panelists.update");
+      return Response.ok(new SubmissionResponse(toView(updated, userIds))).build();
+    } catch (CfpSubmissionService.ValidationException e) {
+      Response.Status statusCode =
+          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+      return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
+    } catch (CfpSubmissionService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    }
+  }
+
+  @POST
+  @Path("/{id}/presentation")
+  @Authenticated
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  public Response uploadPresentation(
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      @FormParam("file") FileUpload file,
+      @FormParam("expectedUpdatedAt") String expectedUpdatedAtRaw) {
+    Set<String> userIds = currentUserIds();
+    if (userIds.isEmpty()) {
+      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+    }
+    Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+    if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+    }
+    boolean admin = AdminUtils.isAdmin(identity);
+    boolean owner = containsUserId(userIds, existing.get().proposerUserId());
+    boolean panelist =
+        existing.get().panelists() != null
+            && existing.get().panelists().stream()
+                .anyMatch(item -> item != null && containsUserId(userIds, item.userId()));
+    if (!admin && !owner && !panelist) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "owner_required")).build();
+    }
+    if (file == null || file.fileName() == null || file.fileName().isBlank()) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "presentation_file_required")).build();
+    }
+    try {
+      StoredPresentation stored = storePresentationPdf(eventId, id, file);
+      Instant expectedUpdatedAt = parseInstant(expectedUpdatedAtRaw);
+      CfpPresentationAsset asset =
+          new CfpPresentationAsset(
+              stored.fileName(),
+              stored.contentType(),
+              stored.sizeBytes(),
+              stored.storagePath(),
+              currentUserId().orElse(existing.get().proposerUserId()),
+              Instant.now());
+      CfpSubmission updated =
+          cfpSubmissionService.updatePresentationAsset(
+              eventId,
+              id,
+              asset,
+              currentUserId().orElse(existing.get().proposerUserId()),
+              expectedUpdatedAt);
+      metrics.recordFunnelStep("cfp.submission.presentation.upload");
+      return Response.ok(new SubmissionResponse(toView(updated, userIds))).build();
+    } catch (CfpSubmissionService.ValidationException e) {
+      Response.Status statusCode =
+          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+      return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
+    } catch (CfpSubmissionService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    } catch (IOException e) {
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+          .entity(Map.of("error", "presentation_storage_unavailable"))
+          .build();
+    }
+  }
+
   @POST
   @Path("/{id}/promote")
   @Authenticated
@@ -598,6 +771,22 @@ public class CfpSubmissionApiResource {
   }
 
   private SubmissionView toView(CfpSubmission submission) {
+    return toView(submission, Set.of());
+  }
+
+  private SubmissionView toView(CfpSubmission submission, Set<String> viewerUserIds) {
+    List<PanelistView> panelists =
+        submission.panelists() == null
+            ? List.of()
+            : submission.panelists().stream().map(this::toPanelistView).toList();
+    int pendingPanelists =
+        (int)
+            panelists.stream()
+                .filter(item -> CfpPanelistStatus.PENDING_LOGIN.apiValue().equals(item.status()))
+                .count();
+    PresentationAssetView presentationAsset = toPresentationAssetView(submission.presentationAsset());
+    String viewerRole = resolveViewerRole(submission, viewerUserIds);
+    boolean canEdit = "owner".equals(viewerRole);
     return new SubmissionView(
         submission.id(),
         submission.eventId(),
@@ -622,7 +811,89 @@ public class CfpSubmissionApiResource {
         submission.ratingTechnicalDetail(),
         submission.ratingNarrative(),
         submission.ratingContentImpact(),
-        CfpSubmissionService.calculateWeightedScore(submission));
+        CfpSubmissionService.calculateWeightedScore(submission),
+        panelists,
+        pendingPanelists,
+        presentationAsset,
+        viewerRole,
+        canEdit);
+  }
+
+  private static String resolveViewerRole(CfpSubmission submission, Set<String> viewerUserIds) {
+    if (submission == null || viewerUserIds == null || viewerUserIds.isEmpty()) {
+      return "viewer";
+    }
+    String proposer = normalizeUserId(submission.proposerUserId());
+    if (proposer != null && viewerUserIds.contains(proposer)) {
+      return "owner";
+    }
+    if (submission.panelists() != null) {
+      for (CfpPanelist panelist : submission.panelists()) {
+        if (panelist == null) {
+          continue;
+        }
+        String panelistUserId = normalizeUserId(panelist.userId());
+        if (panelistUserId != null && viewerUserIds.contains(panelistUserId)) {
+          return "panelist";
+        }
+      }
+    }
+    return "viewer";
+  }
+
+  private CfpSubmission safeRefreshPanelists(String eventId, CfpSubmission submission) {
+    if (submission == null) {
+      return null;
+    }
+    if (submission.panelists() == null || submission.panelists().isEmpty()) {
+      return submission;
+    }
+    try {
+      CfpSubmission refreshed = cfpSubmissionService.refreshPanelistsLinkState(eventId, submission.id());
+      if (refreshed.status() == CfpSubmissionStatus.ACCEPTED && refreshed.panelists() != null) {
+        for (CfpPanelist panelist : refreshed.panelists()) {
+          if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
+            continue;
+          }
+          eventOperationsService.upsertStaff(
+              refreshed.eventId(),
+              panelist.userId(),
+              panelist.name(),
+              EventStaffRole.SPEAKER,
+              "cfp_panelist",
+              true);
+        }
+      }
+      return refreshed;
+    } catch (Exception ignored) {
+      return submission;
+    }
+  }
+
+  private PanelistView toPanelistView(CfpPanelist panelist) {
+    if (panelist == null) {
+      return new PanelistView("", "", null, null, CfpPanelistStatus.PENDING_LOGIN.apiValue(), null, null);
+    }
+    return new PanelistView(
+        panelist.id(),
+        panelist.name(),
+        panelist.email(),
+        panelist.userId(),
+        panelist.status(),
+        panelist.createdAt(),
+        panelist.updatedAt());
+  }
+
+  private PresentationAssetView toPresentationAssetView(CfpPresentationAsset asset) {
+    if (asset == null) {
+      return null;
+    }
+    return new PresentationAssetView(
+        asset.fileName(),
+        asset.contentType(),
+        asset.sizeBytes(),
+        asset.uploadedByUserId(),
+        asset.uploadedAt());
   }
 
   private Optional<String> currentUserId() {
@@ -650,6 +921,14 @@ public class CfpSubmissionApiResource {
       return;
     }
     target.add(raw.trim().toLowerCase(Locale.ROOT));
+  }
+
+  private static boolean containsUserId(Set<String> userIds, String candidate) {
+    if (userIds == null || userIds.isEmpty()) {
+      return false;
+    }
+    String normalized = normalizeUserId(candidate);
+    return normalized != null && userIds.contains(normalized);
   }
 
   private Optional<String> currentUserName() {
@@ -692,11 +971,20 @@ public class CfpSubmissionApiResource {
     csv.append(
             "id,event_id,title,status,proposer_user_id,proposer_name,created_at,updated_at,moderated_at,moderated_by,"
                 + "level,format,duration_min,language,track,"
-                + "rating_technical_detail,rating_narrative,rating_content_impact,rating_weighted,moderation_note,links")
+                + "rating_technical_detail,rating_narrative,rating_content_impact,rating_weighted,"
+                + "panelists_count,panelists_pending,presentation_file,moderation_note,links")
         .append('\n');
 
     for (CfpSubmission item : items) {
       Double weighted = CfpSubmissionService.calculateWeightedScore(item);
+      int panelistsCount = item.panelists() == null ? 0 : item.panelists().size();
+      int panelistsPending =
+          item.panelists() == null
+              ? 0
+              : (int)
+                  item.panelists().stream()
+                      .filter(p -> p != null && CfpPanelistStatus.PENDING_LOGIN.apiValue().equals(p.status()))
+                      .count();
       csv.append(csvValue(item.id())).append(',')
           .append(csvValue(item.eventId())).append(',')
           .append(csvValue(item.title())).append(',')
@@ -716,6 +1004,9 @@ public class CfpSubmissionApiResource {
           .append(csvValue(item.ratingNarrative())).append(',')
           .append(csvValue(item.ratingContentImpact())).append(',')
           .append(csvValue(weighted)).append(',')
+          .append(csvValue(panelistsCount)).append(',')
+          .append(csvValue(panelistsPending)).append(',')
+          .append(csvValue(item.presentationAsset() != null ? item.presentationAsset().fileName() : null)).append(',')
           .append(csvValue(item.moderationNote())).append(',')
           .append(csvValue(item.links() == null ? null : String.join(" | ", item.links())))
           .append('\n');
@@ -788,15 +1079,33 @@ public class CfpSubmissionApiResource {
     if (raw == null) {
       return "item";
     }
-    String value = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
-    value = value.replaceAll("^-+", "").replaceAll("-+$", "");
-    if (value.isBlank()) {
-      value = "item";
+    int effectiveMax = Math.max(4, maxLength);
+    String input = raw.trim().toLowerCase(Locale.ROOT);
+    if (input.isBlank()) {
+      return "item";
     }
-    if (value.length() > maxLength) {
-      value = value.substring(0, maxLength).replaceAll("-+$", "");
+    StringBuilder out = new StringBuilder(Math.min(input.length(), effectiveMax));
+    boolean lastDash = false;
+    for (int i = 0; i < input.length(); i++) {
+      char ch = input.charAt(i);
+      boolean alphaNum = (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9');
+      if (alphaNum) {
+        if (out.length() >= effectiveMax) {
+          break;
+        }
+        out.append(ch);
+        lastDash = false;
+        continue;
+      }
+      if (!lastDash && out.length() > 0 && out.length() < effectiveMax) {
+        out.append('-');
+        lastDash = true;
+      }
     }
-    return value.isBlank() ? "item" : value;
+    while (out.length() > 0 && out.charAt(out.length() - 1) == '-') {
+      out.deleteCharAt(out.length() - 1);
+    }
+    return out.length() == 0 ? "item" : out.toString();
   }
 
   private static String sanitizeDisplayText(String raw) {
@@ -806,6 +1115,111 @@ public class CfpSubmissionApiResource {
     String value = raw.trim().replaceAll("\\s+", " ");
     return value.isBlank() ? null : value;
   }
+
+  private static String normalizeUserId(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String value = raw.trim().toLowerCase(Locale.ROOT);
+    return value.isBlank() ? null : value;
+  }
+
+  private StoredPresentation storePresentationPdf(String eventId, String submissionId, FileUpload file)
+      throws IOException {
+    String safeEventId = sanitizeIdToken(eventId, 40);
+    String safeSubmissionId = sanitizeIdToken(submissionId, 48);
+    java.nio.file.Path uploadsRoot = resolveDataDir().resolve("uploads").resolve("cfp").normalize();
+    java.nio.file.Path baseDir =
+        uploadsRoot.resolve(safeEventId).resolve(safeSubmissionId).normalize();
+    if (!baseDir.startsWith(uploadsRoot)) {
+      throw new IOException("invalid_presentation_path");
+    }
+    Files.createDirectories(baseDir);
+    String originalName = file.fileName() != null ? file.fileName().trim() : "presentation.pdf";
+    String sanitizedName = sanitizeFileName(originalName);
+    if (!sanitizedName.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
+      sanitizedName = sanitizedName + ".pdf";
+    }
+    java.nio.file.Path target = baseDir.resolve("presentation.pdf");
+    java.nio.file.Path source = file.uploadedFile();
+    if (source == null || !Files.exists(source)) {
+      throw new IOException("uploaded_file_missing");
+    }
+    long sizeBytes = Files.size(source);
+    if (sizeBytes <= 0 || sizeBytes > 25L * 1024L * 1024L) {
+      throw new IOException("invalid_presentation_size");
+    }
+    String contentType = file.contentType();
+    String normalizedType = contentType != null ? contentType.toLowerCase(Locale.ROOT) : "application/pdf";
+    if (!normalizedType.contains("pdf")) {
+      throw new IOException("invalid_presentation_content_type");
+    }
+    Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+    return new StoredPresentation(sanitizedName, "application/pdf", sizeBytes, target.toString());
+  }
+
+  private java.nio.file.Path resolveDataDir() {
+    String sysProp = System.getProperty("homedir.data.dir");
+    String raw = (sysProp != null && !sysProp.isBlank()) ? sysProp : dataDirPath;
+    return Paths.get(raw == null || raw.isBlank() ? "data" : raw);
+  }
+
+  private static String sanitizeFileName(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return "presentation.pdf";
+    }
+    StringBuilder out = new StringBuilder(raw.length());
+    boolean lastDash = false;
+    for (int i = 0; i < raw.length(); i++) {
+      char ch = raw.charAt(i);
+      boolean safe =
+          (ch >= 'a' && ch <= 'z')
+              || (ch >= 'A' && ch <= 'Z')
+              || (ch >= '0' && ch <= '9')
+              || ch == '.'
+              || ch == '_'
+              || ch == '-';
+      if (ch == '/' || ch == '\\') {
+        safe = false;
+      }
+      if (safe) {
+        out.append(ch);
+        lastDash = false;
+      } else if (!lastDash) {
+        out.append('-');
+        lastDash = true;
+      }
+    }
+    int start = 0;
+    int end = out.length();
+    while (start < end && out.charAt(start) == '-') {
+      start++;
+    }
+    while (end > start && out.charAt(end - 1) == '-') {
+      end--;
+    }
+    String value = start >= end ? "" : out.substring(start, end);
+    if (value.isBlank()) {
+      return "presentation.pdf";
+    }
+    if (value.length() > 120) {
+      value = value.substring(value.length() - 120);
+    }
+    return value;
+  }
+
+  private static Instant parseInstant(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return null;
+    }
+    try {
+      return Instant.parse(raw.trim());
+    } catch (Exception ignored) {
+      return null;
+    }
+  }
+
+  private record StoredPresentation(String fileName, String contentType, long sizeBytes, String storagePath) {}
 
   public record CreateSubmissionRequest(
       String title,
@@ -830,6 +1244,15 @@ public class CfpSubmissionApiResource {
       @JsonProperty("content_impact") Integer contentImpact,
       @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
+  public record UpdatePanelistsRequest(
+      List<PanelistInputRequest> panelists,
+      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
+
+  public record PanelistInputRequest(
+      String name,
+      String email,
+      @JsonProperty("user_id") String userId) {}
+
   public record PromoteResponse(
       @JsonProperty("speaker_id") String speakerId,
       @JsonProperty("talk_id") String talkId,
@@ -842,6 +1265,7 @@ public class CfpSubmissionApiResource {
       int limit,
       int offset,
       int total,
+      @JsonProperty("owned_total") int ownedTotal,
       @JsonProperty("has_more") boolean hasMore,
       @JsonProperty("next_offset") Integer nextOffset,
       List<SubmissionView> items) {}
@@ -965,5 +1389,26 @@ public class CfpSubmissionApiResource {
       @JsonProperty("rating_technical_detail") Integer ratingTechnicalDetail,
       @JsonProperty("rating_narrative") Integer ratingNarrative,
       @JsonProperty("rating_content_impact") Integer ratingContentImpact,
-      @JsonProperty("rating_weighted") Double ratingWeighted) {}
+      @JsonProperty("rating_weighted") Double ratingWeighted,
+      List<PanelistView> panelists,
+      @JsonProperty("pending_panelists") int pendingPanelists,
+      @JsonProperty("presentation_asset") PresentationAssetView presentationAsset,
+      @JsonProperty("viewer_role") String viewerRole,
+      @JsonProperty("can_edit") boolean canEdit) {}
+
+  public record PanelistView(
+      String id,
+      String name,
+      String email,
+      @JsonProperty("user_id") String userId,
+      String status,
+      @JsonProperty("created_at") Instant createdAt,
+      @JsonProperty("updated_at") Instant updatedAt) {}
+
+  public record PresentationAssetView(
+      @JsonProperty("file_name") String fileName,
+      @JsonProperty("content_type") String contentType,
+      @JsonProperty("size_bytes") long sizeBytes,
+      @JsonProperty("uploaded_by_user_id") String uploadedByUserId,
+      @JsonProperty("uploaded_at") Instant uploadedAt) {}
 }
