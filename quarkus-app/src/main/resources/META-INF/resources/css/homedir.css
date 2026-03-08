@@ -764,6 +764,38 @@ footer {
   margin-top: 0.25rem;
 }
 
+.homedir-main.admin-context-main {
+  position: relative;
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(42, 20, 58, 0.55) 0%, rgba(15, 8, 30, 0.5) 100%),
+    rgba(0, 0, 0, 0.22);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  padding-top: 1.4rem;
+}
+
+.homedir-main.admin-context-main::before {
+  content: "";
+  position: absolute;
+  top: 0.6rem;
+  left: 1.4rem;
+  width: 72px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.95), rgba(255, 255, 255, 0.15));
+  opacity: 0.95;
+}
+
+.homedir-main.admin-context-main .section-card {
+  background: rgba(12, 8, 24, 0.52);
+  border-color: rgba(255, 255, 255, 0.58);
+}
+
+.homedir-main.admin-context-main .section-card:hover {
+  background: rgba(12, 8, 24, 0.6);
+}
+
 .admin-hub-operator {
   margin-top: 0.6rem;
   display: inline-flex;
