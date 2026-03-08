@@ -19,6 +19,7 @@ Homedir registra eventos de interacción y los persiste asincrónicamente para m
 - **Tracking automatico**:
   - La validacion de PR emite eventos en forma automatica (`PR_OPENED`, `PR_VALIDATION_PASSED`, `PR_VALIDATION_FAILED`).
   - El release a produccion emite `PR_MERGED` y `PRODUCTION_VERIFIED` (o `PRODUCTION_RELEASE_FAILED` en caso de falla).
+  - El flujo runtime de voluntarios emite eventos de capacidad en insights (`VOLUNTEER_*`) y contadores de funnel (`volunteer_*`).
   - No se requiere carga manual desde admin para el tracking normal de CI/CD.
 - **Agrupacion de iniciativas (ciclos de negocio multi-PR)**:
   - Prioridad 1: label del PR `initiative:<id>` o `insights:<id>` (id explicito de iniciativa de negocio).

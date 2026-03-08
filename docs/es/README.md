@@ -30,6 +30,7 @@ El idioma canonico para mantenimiento es **ingles**.
 ## Eventos
 
 - [CFP Resilience (stub)](events/cfp-resilience.md)
+- [Modulo de Voluntarios (stub)](events/volunteers-module.md)
 
 ## Desarrollo
 
