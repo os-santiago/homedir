@@ -652,6 +652,99 @@ public interface AppMessages {
     @Message("We could not find this event.")
     String events_volunteers_not_found_desc();
 
+    @Message("Volunteers moderation · {eventTitle}")
+    String events_volunteers_admin_page_title(String eventTitle);
+
+    @Message("Volunteer moderation")
+    String events_volunteers_admin_heading();
+
+    @Message("Event: {eventTitle}")
+    String events_volunteers_admin_event_label(String eventTitle);
+
+    @Message("Volunteer submission window")
+    String events_volunteers_admin_config_title();
+
+    @Message("Configure if the event is currently accepting volunteer applications and its schedule.")
+    String events_volunteers_admin_config_desc();
+
+    @Message("Accepting submissions")
+    String events_volunteers_admin_config_accepting();
+
+    @Message("Opens at")
+    String events_volunteers_admin_config_opens();
+
+    @Message("Closes at")
+    String events_volunteers_admin_config_closes();
+
+    @Message("Save volunteer config")
+    String events_volunteers_admin_config_save();
+
+    @Message("Clear override")
+    String events_volunteers_admin_config_clear();
+
+    @Message("Volunteer configuration saved.")
+    String events_volunteers_admin_config_saved();
+
+    @Message("Volunteer configuration reset to defaults.")
+    String events_volunteers_admin_config_cleared();
+
+    @Message("Could not update volunteer configuration.")
+    String events_volunteers_admin_config_error();
+
+    @Message("Volunteer moderation queue")
+    String events_volunteers_admin_queue_title();
+
+    @Message("Review volunteer applications, update status, and score each profile.")
+    String events_volunteers_admin_queue_desc();
+
+    @Message("Refresh")
+    String events_volunteers_admin_refresh();
+
+    @Message("Total")
+    String events_volunteers_admin_stat_total();
+
+    @Message("Status")
+    String events_volunteers_admin_filter_label();
+
+    @Message("Sort")
+    String events_volunteers_admin_sort_label();
+
+    @Message("Loading volunteer applications...")
+    String events_volunteers_admin_queue_loading();
+
+    @Message("No volunteer applications found for this filter.")
+    String events_volunteers_admin_queue_empty();
+
+    @Message("Could not load volunteer applications.")
+    String events_volunteers_admin_queue_load_error();
+
+    @Message("Move to under review")
+    String events_volunteers_admin_action_under_review();
+
+    @Message("Select volunteer")
+    String events_volunteers_admin_action_select();
+
+    @Message("Mark as not selected")
+    String events_volunteers_admin_action_reject();
+
+    @Message("No differentiator provided.")
+    String events_volunteers_admin_no_differentiator();
+
+    @Message("Add moderation note (required to reject).")
+    String events_volunteers_admin_note_placeholder();
+
+    @Message("This application changed while you were reviewing it. Reload and try again.")
+    String events_volunteers_admin_error_stale();
+
+    @Message("A moderation note is required when marking an application as not selected.")
+    String events_volunteers_admin_error_reject_note_required();
+
+    @Message("Could not update volunteer status.")
+    String events_volunteers_admin_error_action();
+
+    @Message("Could not save volunteer rating.")
+    String events_volunteers_admin_error_rating();
+
     @Message("Call for Papers · {eventTitle}")
     String events_cfp_page_title(String eventTitle);
 
