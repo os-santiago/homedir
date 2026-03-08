@@ -71,6 +71,12 @@
                 <p class="wrapped-subtext">{i18n:public_profile_cfp_accepted_label}</p>
             </div>
 
+            <div class="wrapped-card">
+                <span class="wrapped-stat-label">{i18n:public_profile_volunteer_title}</span>
+                <span class="wrapped-stat-value neon">{volunteerSelectedCount}</span>
+                <p class="wrapped-subtext">{i18n:public_profile_volunteer_selected_label}</p>
+            </div>
+
             <div class="wrapped-card wrapped-card-full">
                 <span class="wrapped-stat-label">{i18n:public_profile_cfp_latest}</span>
                 <div class="wrapped-list-container">
@@ -81,6 +87,20 @@
                     </div>
                     {#else}
                     <p class="wrapped-empty-msg">{i18n:public_profile_cfp_empty}</p>
+                    {/for}
+                </div>
+            </div>
+
+            <div class="wrapped-card wrapped-card-full">
+                <span class="wrapped-stat-label">{i18n:public_profile_volunteer_latest}</span>
+                <div class="wrapped-list-container">
+                    {#for item in volunteerRecentSelected}
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{item.eventTitle}</span>
+                        <a href="{item.eventUrl}" class="wrapped-item-xp">{item.eventId}</a>
+                    </div>
+                    {#else}
+                    <p class="wrapped-empty-msg">{i18n:public_profile_volunteer_empty}</p>
                     {/for}
                 </div>
             </div>

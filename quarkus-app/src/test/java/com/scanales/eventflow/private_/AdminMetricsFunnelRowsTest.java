@@ -26,6 +26,12 @@ class AdminMetricsFunnelRowsTest {
             Map.entry("funnel:cfp.submission.create", 33L),
             Map.entry("funnel:cfp_approved", 2L),
             Map.entry("funnel:cfp.submission.status.accepted", 22L),
+            Map.entry("funnel:volunteer_submit", 4L),
+            Map.entry("funnel:volunteer.submission.create", 44L),
+            Map.entry("funnel:volunteer_selected", 1L),
+            Map.entry("funnel:volunteer.submission.status.selected", 11L),
+            Map.entry("funnel:volunteer_lounge_post", 2L),
+            Map.entry("funnel:volunteer.lounge.post", 22L),
             Map.entry("funnel:board_profile_open", 9L));
 
     Map<String, Long> byId =
@@ -39,6 +45,9 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(6L, byId.get("community_lightning_comment"));
     assertEquals(3L, byId.get("cfp_submit"));
     assertEquals(2L, byId.get("cfp_approved"));
+    assertEquals(4L, byId.get("volunteer_submit"));
+    assertEquals(1L, byId.get("volunteer_selected"));
+    assertEquals(2L, byId.get("volunteer_lounge_post"));
     assertEquals(9L, byId.get("board_profile_open"));
 
     Map<String, String> conversions = conversionById(snap);
@@ -49,21 +58,27 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("54.5%", conversions.get("community_lightning_comment"));
     assertEquals("27.3%", conversions.get("cfp_submit"));
     assertEquals("18.2%", conversions.get("cfp_approved"));
+    assertEquals("36.4%", conversions.get("volunteer_submit"));
+    assertEquals("9.1%", conversions.get("volunteer_selected"));
+    assertEquals("18.2%", conversions.get("volunteer_lounge_post"));
     assertEquals("81.8%", conversions.get("board_profile_open"));
   }
 
   @Test
   void fallsBackToLegacyAliasesWhenCanonicalMissing() {
     Map<String, Long> snap =
-        Map.of(
-            "funnel:auth.login.callback", 8L,
-            "funnel:community.vote", 6L,
-            "funnel:community.submission.create", 4L,
-            "funnel:community.lightning.thread.create", 5L,
-            "funnel:community.lightning.comment.create", 2L,
-            "funnel:cfp.submission.create", 3L,
-            "funnel:cfp.submission.status.accepted", 1L,
-            "funnel:board_profile_open", 2L);
+        Map.ofEntries(
+            Map.entry("funnel:auth.login.callback", 8L),
+            Map.entry("funnel:community.vote", 6L),
+            Map.entry("funnel:community.submission.create", 4L),
+            Map.entry("funnel:community.lightning.thread.create", 5L),
+            Map.entry("funnel:community.lightning.comment.create", 2L),
+            Map.entry("funnel:cfp.submission.create", 3L),
+            Map.entry("funnel:cfp.submission.status.accepted", 1L),
+            Map.entry("funnel:volunteer.submission.create", 2L),
+            Map.entry("funnel:volunteer.submission.status.selected", 1L),
+            Map.entry("funnel:volunteer.lounge.post", 4L),
+            Map.entry("funnel:board_profile_open", 2L));
 
     Map<String, Long> byId = rowsById(snap);
 
@@ -74,6 +89,9 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(2L, byId.get("community_lightning_comment"));
     assertEquals(3L, byId.get("cfp_submit"));
     assertEquals(1L, byId.get("cfp_approved"));
+    assertEquals(2L, byId.get("volunteer_submit"));
+    assertEquals(1L, byId.get("volunteer_selected"));
+    assertEquals(4L, byId.get("volunteer_lounge_post"));
     assertEquals(2L, byId.get("board_profile_open"));
 
     Map<String, String> conversions = conversionById(snap);
@@ -84,6 +102,9 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("25.0%", conversions.get("community_lightning_comment"));
     assertEquals("37.5%", conversions.get("cfp_submit"));
     assertEquals("12.5%", conversions.get("cfp_approved"));
+    assertEquals("25.0%", conversions.get("volunteer_submit"));
+    assertEquals("12.5%", conversions.get("volunteer_selected"));
+    assertEquals("50.0%", conversions.get("volunteer_lounge_post"));
     assertEquals("25.0%", conversions.get("board_profile_open"));
   }
 
@@ -95,6 +116,9 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("—", conversions.get("community_lightning_post"));
     assertEquals("—", conversions.get("community_lightning_comment"));
     assertEquals("—", conversions.get("cfp_submit"));
+    assertEquals("—", conversions.get("volunteer_submit"));
+    assertEquals("—", conversions.get("volunteer_selected"));
+    assertEquals("—", conversions.get("volunteer_lounge_post"));
   }
 
   private static Map<String, Long> rowsById(Map<String, Long> snap) {

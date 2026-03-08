@@ -19,6 +19,7 @@ Homedir records interaction events and persists them asynchronously to provide i
 - **Automatic tracking**:
   - PR validation emits events automatically (`PR_OPENED`, `PR_VALIDATION_PASSED`, `PR_VALIDATION_FAILED`).
   - Production release emits `PR_MERGED` and `PRODUCTION_VERIFIED` (or `PRODUCTION_RELEASE_FAILED` on failure).
+  - Runtime volunteer workflows emit capability events automatically in insights (`VOLUNTEER_*`) and funnel counters (`volunteer_*`).
   - No manual admin input is required for standard CI/CD flow tracking.
 - **Initiative grouping (multi-PR business cycles)**:
   - Priority 1: PR label `initiative:<id>` or `insights:<id>` (explicit business initiative id).

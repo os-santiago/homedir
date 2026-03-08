@@ -30,6 +30,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 ## Events
 
 - [CFP Resilience](events/cfp-resilience.md)
+- [Volunteers Module](events/volunteers-module.md)
 
 ## Development
 
