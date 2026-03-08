@@ -161,13 +161,25 @@ public class VolunteerInsightsService {
     if (raw == null || raw.isBlank()) {
       return "unknown";
     }
-    String value =
-        raw.trim()
-            .toLowerCase(Locale.ROOT)
-            .replaceAll("[^a-z0-9]+", "-")
-            .replaceAll("^-+", "")
-            .replaceAll("-+$", "");
-    return value.isBlank() ? "unknown" : value;
+    String source = raw.trim().toLowerCase(Locale.ROOT);
+    StringBuilder out = new StringBuilder(source.length());
+    boolean lastDash = false;
+    for (int i = 0; i < source.length(); i++) {
+      char c = source.charAt(i);
+      boolean alphaNum = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+      if (alphaNum) {
+        out.append(c);
+        lastDash = false;
+      } else if (!lastDash && out.length() > 0) {
+        out.append('-');
+        lastDash = true;
+      }
+    }
+    int end = out.length();
+    if (end > 0 && out.charAt(end - 1) == '-') {
+      out.setLength(end - 1);
+    }
+    return out.isEmpty() ? "unknown" : out.toString();
   }
 
   private static String toUpperSnake(String raw) {
@@ -196,7 +208,19 @@ public class VolunteerInsightsService {
     if (raw == null || raw.isBlank()) {
       return "meta";
     }
-    String key = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_\\-.]", "_");
+    String source = raw.trim().toLowerCase(Locale.ROOT);
+    StringBuilder out = new StringBuilder(source.length());
+    for (int i = 0; i < source.length(); i++) {
+      char c = source.charAt(i);
+      boolean allowed =
+          (c >= 'a' && c <= 'z')
+              || (c >= '0' && c <= '9')
+              || c == '_'
+              || c == '-'
+              || c == '.';
+      out.append(allowed ? c : '_');
+    }
+    String key = out.toString();
     if (key.length() > 80) {
       key = key.substring(0, 80);
     }

@@ -319,8 +319,11 @@ public class VolunteerSubmissionApiResource {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
+    if (request == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+    }
     VolunteerApplicationStatus newStatus =
-        request != null ? VolunteerApplicationStatus.fromApi(request.status()).orElse(null) : null;
+        VolunteerApplicationStatus.fromApi(request.status()).orElse(null);
     if (newStatus == null) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
     }
@@ -331,8 +334,8 @@ public class VolunteerSubmissionApiResource {
               id,
               newStatus,
               currentModeratorName().orElse("admin"),
-              request != null ? request.note() : null,
-              request != null ? request.expectedUpdatedAt() : null);
+              request.note(),
+              request.expectedUpdatedAt());
       if (!eventId.equalsIgnoreCase(updated.eventId())) {
         return Response.status(Response.Status.NOT_FOUND)
             .entity(Map.of("error", "application_not_found"))
