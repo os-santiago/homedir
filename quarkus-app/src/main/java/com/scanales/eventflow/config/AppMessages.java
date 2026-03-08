@@ -3678,6 +3678,9 @@ public interface AppMessages {
     @Message("Event type (e.g. PR_OPENED)")
     String admin_insights_event_type_placeholder();
 
+    @Message("Use standard types for cleaner analytics (PR_OPENED, PR_MERGED, PR_VALIDATION_PASSED, PRODUCTION_VERIFIED).")
+    String admin_insights_event_type_hint();
+
     @Message("Metadata: pr (optional)")
     String admin_insights_event_pr_placeholder();
 
@@ -3893,6 +3896,9 @@ public interface AppMessages {
 
     @Message("Could not append event.")
     String admin_insights_js_could_not_append();
+
+    @Message("Event type is invalid. Use only A-Z, 0-9 and underscore.")
+    String admin_insights_js_event_type_invalid();
 
     @Message("Search initiatives by id, title, or state")
     String admin_insights_initiatives_search_placeholder();
