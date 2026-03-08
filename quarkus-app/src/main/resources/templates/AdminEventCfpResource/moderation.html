@@ -150,6 +150,24 @@
   <div id="cfpQueueList"></div>
 </div>
 
+<div id="cfpFullModal" class="cfp-modal" hidden>
+  <div class="cfp-modal-backdrop" data-modal-close></div>
+  <div class="cfp-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cfpFullModalTitle">
+    <div class="cfp-modal-header">
+      <h3 id="cfpFullModalTitle">{i18n:events_cfp_admin_modal_title}</h3>
+      <button id="cfpFullModalCloseBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_modal_close}</button>
+    </div>
+    <div class="cfp-modal-body">
+      <p id="cfpFullModalSummaryLabel" class="cfp-modal-label">{i18n:events_cfp_admin_modal_summary}</p>
+      <p id="cfpFullModalSummaryValue" class="cfp-modal-text"></p>
+      <p id="cfpFullModalAbstractLabel" class="cfp-modal-label">{i18n:events_cfp_admin_modal_abstract}</p>
+      <p id="cfpFullModalAbstractValue" class="cfp-modal-text"></p>
+      <p id="cfpFullModalLinksLabel" class="cfp-modal-label">{i18n:events_cfp_admin_modal_links}</p>
+      <ul id="cfpFullModalLinks" class="cfp-modal-links"></ul>
+    </div>
+  </div>
+</div>
+
 <style>
   .admin-nav-strip {
     gap: 0.45rem;
@@ -255,6 +273,17 @@
     margin-top: 0.55rem;
   }
 
+  .cfp-admin-links {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .cfp-admin-links a {
+    word-break: break-word;
+  }
+
   .cfp-admin-actions {
     display: flex;
     flex-wrap: wrap;
@@ -327,6 +356,79 @@
   .cfp-rating-item select {
     width: 100%;
   }
+
+  .cfp-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3200;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+  }
+
+  .cfp-modal[hidden] {
+    display: none;
+  }
+
+  .cfp-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 10, 22, 0.74);
+  }
+
+  .cfp-modal-dialog {
+    position: relative;
+    width: min(820px, 100%);
+    max-height: min(86vh, 760px);
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: var(--radius-md);
+    background: rgba(10, 17, 34, 0.96);
+    box-shadow: 0 24px 56px rgba(3, 8, 20, 0.45);
+    padding: 0.95rem;
+  }
+
+  .cfp-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+    padding-bottom: 0.6rem;
+  }
+
+  .cfp-modal-header h3 {
+    margin: 0;
+  }
+
+  .cfp-modal-body {
+    padding-top: 0.7rem;
+  }
+
+  .cfp-modal-label {
+    margin: 0.7rem 0 0.35rem 0;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+  }
+
+  .cfp-modal-text {
+    margin: 0;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  .cfp-modal-links {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .cfp-modal-links a {
+    word-break: break-word;
+  }
 </style>
 
 <script>
@@ -366,6 +468,15 @@
     const statRejectedEl = document.getElementById("cfpStatRejected");
     const statWithdrawnEl = document.getElementById("cfpStatWithdrawn");
     const statsMetaEl = document.getElementById("cfpStatsMeta");
+    const fullModal = document.getElementById("cfpFullModal");
+    const fullModalTitle = document.getElementById("cfpFullModalTitle");
+    const fullModalSummaryLabel = document.getElementById("cfpFullModalSummaryLabel");
+    const fullModalSummaryValue = document.getElementById("cfpFullModalSummaryValue");
+    const fullModalAbstractLabel = document.getElementById("cfpFullModalAbstractLabel");
+    const fullModalAbstractValue = document.getElementById("cfpFullModalAbstractValue");
+    const fullModalLinksLabel = document.getElementById("cfpFullModalLinksLabel");
+    const fullModalLinks = document.getElementById("cfpFullModalLinks");
+    const fullModalCloseBtn = document.getElementById("cfpFullModalCloseBtn");
     const i18n = {
       statusPending: "{i18n:events_cfp_status_pending}",
       statusUnderReview: "{i18n:events_cfp_status_under_review}",
@@ -402,7 +513,13 @@
       queueLoadGenericError: "{i18n:events_cfp_admin_queue_load_generic_error}",
       lastUpdatePrefix: "{i18n:events_cfp_admin_last_update_prefix}",
       statsUnavailableValue: "{i18n:events_cfp_admin_not_available}",
-      submissionNotAvailable: "{i18n:events_cfp_admin_submission_not_available}"
+      submissionNotAvailable: "{i18n:events_cfp_admin_submission_not_available}",
+      actionViewFull: "{i18n:events_cfp_admin_action_view_full}",
+      modalTitle: "{i18n:events_cfp_admin_modal_title}",
+      modalSummary: "{i18n:events_cfp_admin_modal_summary}",
+      modalAbstract: "{i18n:events_cfp_admin_modal_abstract}",
+      modalLinks: "{i18n:events_cfp_admin_modal_links}",
+      modalLinksEmpty: "{i18n:events_cfp_admin_modal_links_empty}"
     };
     const pageSize = 20;
     let activeStatus = "pending";
@@ -451,6 +568,84 @@
       const dt = new Date(value);
       if (Number.isNaN(dt.getTime())) return "";
       return dt.toLocaleString();
+    }
+
+    function sanitizeHttpUrl(value) {
+      if (!value) return null;
+      const raw = String(value).trim();
+      if (!raw) return null;
+      try {
+        const parsed = new URL(raw);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          return null;
+        }
+        return parsed.toString();
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function clearElement(element) {
+      while (element && element.firstChild) {
+        element.removeChild(element.firstChild);
+      }
+    }
+
+    function renderLinkList(container, links) {
+      clearElement(container);
+      const safeLinks = Array.isArray(links)
+        ? links.map(sanitizeHttpUrl).filter((value) => !!value)
+        : [];
+      if (!safeLinks.length) {
+        const empty = document.createElement("li");
+        empty.className = "form-hint";
+        empty.textContent = i18n.modalLinksEmpty;
+        container.appendChild(empty);
+        return;
+      }
+      safeLinks.forEach((href) => {
+        const item = document.createElement("li");
+        const anchor = document.createElement("a");
+        anchor.href = href;
+        anchor.target = "_blank";
+        anchor.rel = "noopener noreferrer";
+        anchor.textContent = href;
+        item.appendChild(anchor);
+        container.appendChild(item);
+      });
+    }
+
+    function closeFullModal() {
+      if (!fullModal) return;
+      fullModal.hidden = true;
+      document.body.style.removeProperty("overflow");
+    }
+
+    function openFullModal(item) {
+      if (!fullModal) return;
+      if (fullModalTitle) {
+        fullModalTitle.textContent = item.title || i18n.modalTitle;
+      }
+      if (fullModalSummaryLabel) {
+        fullModalSummaryLabel.textContent = i18n.modalSummary;
+      }
+      if (fullModalSummaryValue) {
+        fullModalSummaryValue.textContent = item.summary || i18n.submissionNotAvailable;
+      }
+      if (fullModalAbstractLabel) {
+        fullModalAbstractLabel.textContent = i18n.modalAbstract;
+      }
+      if (fullModalAbstractValue) {
+        fullModalAbstractValue.textContent = item.abstract_text || i18n.submissionNotAvailable;
+      }
+      if (fullModalLinksLabel) {
+        fullModalLinksLabel.textContent = i18n.modalLinks;
+      }
+      if (fullModalLinks) {
+        renderLinkList(fullModalLinks, item.links);
+      }
+      fullModal.hidden = false;
+      document.body.style.overflow = "hidden";
     }
 
     function applyStats(payload) {
@@ -704,6 +899,25 @@
         article.appendChild(abstractText);
       }
 
+      const previewLinks = Array.isArray(item.links)
+        ? item.links.map(sanitizeHttpUrl).filter((value) => !!value).slice(0, 2)
+        : [];
+      if (previewLinks.length) {
+        const linksList = document.createElement("ul");
+        linksList.className = "cfp-admin-links";
+        previewLinks.forEach((href) => {
+          const entry = document.createElement("li");
+          const anchor = document.createElement("a");
+          anchor.href = href;
+          anchor.target = "_blank";
+          anchor.rel = "noopener noreferrer";
+          anchor.textContent = href;
+          entry.appendChild(anchor);
+          linksList.appendChild(entry);
+        });
+        article.appendChild(linksList);
+      }
+
       const ratings = document.createElement("div");
       ratings.className = "cfp-rating-grid";
       const technical = buildRatingSelect("rating-tech-" + item.id, i18n.ratingTechnical, item.rating_technical_detail ?? 0);
@@ -726,6 +940,15 @@
 
       const actions = document.createElement("div");
       actions.className = "cfp-admin-actions";
+
+      const viewFullBtn = document.createElement("button");
+      viewFullBtn.type = "button";
+      viewFullBtn.className = "btn btn-secondary";
+      viewFullBtn.textContent = i18n.actionViewFull;
+      viewFullBtn.addEventListener("click", () => {
+        openFullModal(item);
+      });
+      actions.appendChild(viewFullBtn);
 
       function actionButton(label, targetStatus, variant) {
         const btn = document.createElement("button");
@@ -1133,6 +1356,18 @@
     eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
     eventConfigClearBtn?.addEventListener("click", clearEventConfig);
     agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
+    fullModalCloseBtn?.addEventListener("click", closeFullModal);
+    fullModal?.addEventListener("click", (event) => {
+      const target = event.target;
+      if (target && target instanceof HTMLElement && target.hasAttribute("data-modal-close")) {
+        closeFullModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && fullModal && !fullModal.hidden) {
+        closeFullModal();
+      }
+    });
     setActiveFilter(activeStatus);
     setActiveSort(activeSort);
     loadTestingConfig();
