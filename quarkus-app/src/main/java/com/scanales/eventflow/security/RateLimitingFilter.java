@@ -12,7 +12,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -78,11 +80,47 @@ public class RateLimitingFilter implements ContainerRequestFilter {
   @ConfigProperty(name = "rate.limit.api.community-content.limit", defaultValue = "600")
   int communityContentApiLimit;
 
+  @Inject
+  @ConfigProperty(name = "rate.limit.api.community-content.read.limit", defaultValue = "1800")
+  int communityContentApiReadLimit;
+
+  @Inject
+  @ConfigProperty(name = "rate.limit.api.community-content.write.limit", defaultValue = "600")
+  int communityContentApiWriteLimit;
+
+  @Inject
+  @ConfigProperty(
+      name = "rate.limit.api.community-content.adaptive.enabled",
+      defaultValue = "true")
+  boolean communityContentAdaptiveEnabled;
+
+  @Inject
+  @ConfigProperty(
+      name = "rate.limit.api.community-content.adaptive.per-fingerprint-bonus",
+      defaultValue = "120")
+  int communityContentAdaptivePerFingerprintBonus;
+
+  @Inject
+  @ConfigProperty(
+      name = "rate.limit.api.community-content.adaptive.max-fingerprints",
+      defaultValue = "20")
+  int communityContentAdaptiveMaxFingerprints;
+
+  @Inject
+  @ConfigProperty(
+      name = "rate.limit.api.community-content.adaptive.max-limit",
+      defaultValue = "2400")
+  int communityContentAdaptiveMaxLimit;
+
   private final Map<String, Counter> counters = new ConcurrentHashMap<>();
+  private final Map<String, FingerprintWindow> communityContentFingerprintWindows =
+      new ConcurrentHashMap<>();
   private final AtomicLong totalChecked = new AtomicLong();
   private final AtomicLong totalThrottled = new AtomicLong();
+  private final AtomicLong adaptiveLimitApplied = new AtomicLong();
   private final Map<String, AtomicLong> checkedByBucket = new ConcurrentHashMap<>();
   private final Map<String, AtomicLong> throttledByBucket = new ConcurrentHashMap<>();
+  private final AtomicLong cleanupTicker = new AtomicLong();
 
   @Override
   public void filter(ContainerRequestContext ctx) {
@@ -97,7 +135,7 @@ public class RateLimitingFilter implements ContainerRequestFilter {
       return;
     }
 
-    Bucket bucket = resolveBucket(path);
+    Bucket bucket = resolveBucket(path, ctx.getMethod());
     if (bucket == null) {
       return;
     }
@@ -107,6 +145,7 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     String clientKey = extractClientKey(ctx);
     long now = System.currentTimeMillis();
 
+    int effectiveLimit = effectiveLimit(bucket, clientKey, ctx, now);
     Counter c = counters.compute(
         bucket.key(clientKey),
         (k, v) -> {
@@ -116,12 +155,12 @@ public class RateLimitingFilter implements ContainerRequestFilter {
           return new Counter(v.windowStartMs, v.count + 1);
         });
 
-    if (now - c.windowStartMs < bucket.windowMs && c.count > bucket.limit) {
+    if (now - c.windowStartMs < bucket.windowMs && c.count > effectiveLimit) {
       totalThrottled.incrementAndGet();
       throttledByBucket.computeIfAbsent(bucket.name, key -> new AtomicLong()).incrementAndGet();
       LOG.warnf(
           "Rate limit exceeded bucket=%s client=%s path=%s count=%d limit=%d windowSeconds=%d",
-          bucket.name, clientKey, path, c.count, bucket.limit, bucket.windowSeconds);
+          bucket.name, clientKey, path, c.count, effectiveLimit, bucket.windowSeconds);
       ctx.abortWith(
           Response.status(429)
               .entity("Too many requests. Please retry later.")
@@ -129,6 +168,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
               .header("Retry-After", bucket.windowSeconds)
               .build());
     }
+
+    maybeCleanupAdaptiveWindows(now, bucket.windowMs);
   }
 
   public RateLimitStats stats() {
@@ -139,6 +180,14 @@ public class RateLimitingFilter implements ContainerRequestFilter {
         logoutLimit,
         apiLimit,
         communityContentApiLimit,
+        communityContentApiReadLimit,
+        communityContentApiWriteLimit,
+        communityContentAdaptiveEnabled,
+        communityContentAdaptivePerFingerprintBonus,
+        communityContentAdaptiveMaxFingerprints,
+        communityContentAdaptiveMaxLimit,
+        communityContentFingerprintWindows.size(),
+        adaptiveLimitApplied.get(),
         totalChecked.get(),
         totalThrottled.get(),
         snapshot(checkedByBucket),
@@ -163,7 +212,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     return false;
   }
 
-  private Bucket resolveBucket(String path) {
+  private Bucket resolveBucket(String path, String method) {
+    String normalizedMethod = method == null || method.isBlank() ? "GET" : method.trim().toUpperCase();
     if (LOGOUT_PATHS.contains(path)) {
       return new Bucket("logout", logoutLimit, windowSeconds);
     }
@@ -171,7 +221,11 @@ public class RateLimitingFilter implements ContainerRequestFilter {
       return new Bucket("auth", authLimit, windowSeconds);
     }
     if (path.startsWith(COMMUNITY_CONTENT_API_PREFIX)) {
-      return new Bucket("api-community-content", communityContentApiLimit, windowSeconds);
+      int communityLimit =
+          "GET".equals(normalizedMethod)
+              ? Math.max(communityContentApiLimit, communityContentApiReadLimit)
+              : Math.max(1, communityContentApiWriteLimit);
+      return new Bucket("api-community-content", communityLimit, windowSeconds);
     }
     if (path.startsWith("/api") || path.startsWith("/private") || path.startsWith("/public")) {
       return new Bucket("api", apiLimit, windowSeconds);
@@ -213,6 +267,100 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     }
   }
 
+  private static final class FingerprintWindow {
+    final long windowStartMs;
+    final Set<String> fingerprints;
+
+    FingerprintWindow(long windowStartMs, Set<String> fingerprints) {
+      this.windowStartMs = windowStartMs;
+      this.fingerprints = fingerprints;
+    }
+  }
+
+  private int effectiveLimit(
+      Bucket bucket, String clientKey, ContainerRequestContext ctx, long now) {
+    if (!"api-community-content".equals(bucket.name) || !communityContentAdaptiveEnabled) {
+      return bucket.limit;
+    }
+    if (communityContentAdaptivePerFingerprintBonus <= 0 || communityContentAdaptiveMaxLimit <= bucket.limit) {
+      return bucket.limit;
+    }
+
+    String fingerprint = extractCommunityContentFingerprint(ctx);
+    FingerprintWindow state =
+        communityContentFingerprintWindows.compute(
+            clientKey,
+            (key, current) -> {
+              if (current == null || now - current.windowStartMs >= bucket.windowMs) {
+                Set<String> values = new HashSet<>();
+                values.add(fingerprint);
+                return new FingerprintWindow(now, values);
+              }
+              Set<String> values = new HashSet<>(current.fingerprints);
+              if (values.size() < Math.max(1, communityContentAdaptiveMaxFingerprints)) {
+                values.add(fingerprint);
+              }
+              return new FingerprintWindow(current.windowStartMs, values);
+            });
+
+    int distinctFingerprints = state.fingerprints.size();
+    int bonusUnits =
+        Math.max(0, Math.min(distinctFingerprints - 1, Math.max(0, communityContentAdaptiveMaxFingerprints - 1)));
+    int adaptiveLimit = bucket.limit + (bonusUnits * communityContentAdaptivePerFingerprintBonus);
+    int effectiveLimit = Math.min(Math.max(bucket.limit, adaptiveLimit), communityContentAdaptiveMaxLimit);
+    if (effectiveLimit > bucket.limit) {
+      adaptiveLimitApplied.incrementAndGet();
+    }
+    return effectiveLimit;
+  }
+
+  private String extractCommunityContentFingerprint(ContainerRequestContext ctx) {
+    String sessionCookie =
+        extractCookieValue(ctx.getHeaderString(HttpHeaders.COOKIE), "q_session", "JSESSIONID", "session", "connect.sid");
+    String userAgent = nullToEmpty(ctx.getHeaderString(HttpHeaders.USER_AGENT));
+    String acceptLanguage = nullToEmpty(ctx.getHeaderString(HttpHeaders.ACCEPT_LANGUAGE));
+    String accept = nullToEmpty(ctx.getHeaderString(HttpHeaders.ACCEPT));
+    String method = nullToEmpty(ctx.getMethod());
+    String fingerprintMaterial = sessionCookie + "|" + userAgent + "|" + acceptLanguage + "|" + accept + "|" + method;
+    return Integer.toHexString(Objects.hash(fingerprintMaterial));
+  }
+
+  private static String extractCookieValue(String cookieHeader, String... names) {
+    if (cookieHeader == null || cookieHeader.isBlank() || names == null || names.length == 0) {
+      return "";
+    }
+    String[] parts = cookieHeader.split(";");
+    for (String part : parts) {
+      if (part == null || part.isBlank()) {
+        continue;
+      }
+      String[] keyValue = part.trim().split("=", 2);
+      if (keyValue.length != 2) {
+        continue;
+      }
+      String key = keyValue[0].trim();
+      for (String name : names) {
+        if (name.equalsIgnoreCase(key)) {
+          return keyValue[1].trim();
+        }
+      }
+    }
+    return "";
+  }
+
+  private void maybeCleanupAdaptiveWindows(long now, long windowMs) {
+    long tick = cleanupTicker.incrementAndGet();
+    if (tick % 5_000 != 0) {
+      return;
+    }
+    long staleAfterMs = Math.max(windowMs * 2L, Duration.ofMinutes(5).toMillis());
+    communityContentFingerprintWindows.entrySet().removeIf(entry -> now - entry.getValue().windowStartMs >= staleAfterMs);
+  }
+
+  private static String nullToEmpty(String value) {
+    return value == null ? "" : value;
+  }
+
   private static Map<String, Long> snapshot(Map<String, AtomicLong> source) {
     if (source.isEmpty()) {
       return Map.of();
@@ -229,6 +377,14 @@ public class RateLimitingFilter implements ContainerRequestFilter {
       int logoutLimit,
       int apiLimit,
       int communityContentApiLimit,
+      int communityContentApiReadLimit,
+      int communityContentApiWriteLimit,
+      boolean communityContentAdaptiveEnabled,
+      int communityContentAdaptivePerFingerprintBonus,
+      int communityContentAdaptiveMaxFingerprints,
+      int communityContentAdaptiveMaxLimit,
+      int communityContentAdaptiveTrackedIps,
+      long adaptiveLimitApplied,
       long totalChecked,
       long totalThrottled,
       Map<String, Long> checkedByBucket,

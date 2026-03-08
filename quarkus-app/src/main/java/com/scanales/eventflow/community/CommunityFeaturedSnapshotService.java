@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -45,9 +46,14 @@ public class CommunityFeaturedSnapshotService {
   @ConfigProperty(name = "community.content.featured.response-cache-ttl", defaultValue = "PT10S")
   Duration responseCacheTtl;
 
+  @ConfigProperty(name = "community.content.featured.vote-refresh-debounce", defaultValue = "PT2S")
+  Duration voteRefreshDebounce;
+
   private final AtomicReference<Snapshot> snapshot = new AtomicReference<>(Snapshot.empty());
   private final Map<ResponseKey, ResponseEntry> responseCache = new ConcurrentHashMap<>();
   private final AtomicBoolean refreshInProgress = new AtomicBoolean(false);
+  private final AtomicBoolean voteRefreshPending = new AtomicBoolean(false);
+  private final AtomicLong lastVoteRefreshRequestedAtMs = new AtomicLong(0L);
   private final ExecutorService refreshExecutor =
       Executors.newSingleThreadExecutor(
           new ThreadFactory() {
@@ -71,6 +77,7 @@ public class CommunityFeaturedSnapshotService {
 
   @Scheduled(every = "{community.content.featured.snapshot-refresh-every:30s}")
   void scheduledRefresh() {
+    maybeTriggerDebouncedVoteRefresh("vote-debounce-schedule");
     triggerRefreshAsync(true, "schedule");
   }
 
@@ -101,8 +108,14 @@ public class CommunityFeaturedSnapshotService {
   }
 
   public void onVotesUpdated() {
-    responseCache.clear();
-    triggerRefreshAsync(true, "vote-updated");
+    invalidateResponseCacheAfterVote();
+    voteRefreshPending.set(true);
+    maybeTriggerDebouncedVoteRefresh("vote-updated");
+  }
+
+  public void onVoteUpdated(String contentId, CommunityVoteAggregate aggregate) {
+    applyVoteToSnapshot(contentId, aggregate);
+    onVotesUpdated();
   }
 
   public void refreshNowForTests() {
@@ -110,6 +123,7 @@ public class CommunityFeaturedSnapshotService {
   }
 
   private void maybeRefreshAsyncOnDemand() {
+    maybeTriggerDebouncedVoteRefresh("vote-debounce-on-demand");
     Snapshot current = snapshot.get();
     if (current.refreshedAt() == null) {
       triggerRefreshAsync(false, "empty-snapshot");
@@ -118,6 +132,86 @@ public class CommunityFeaturedSnapshotService {
     if (Instant.now().isAfter(current.refreshedAt().plus(snapshotMaxAge))) {
       triggerRefreshAsync(false, "stale-snapshot");
     }
+  }
+
+  private void maybeTriggerDebouncedVoteRefresh(String reason) {
+    if (!voteRefreshPending.get()) {
+      return;
+    }
+    long debounceMs = Math.max(0L, effectiveVoteDebounce().toMillis());
+    long now = System.currentTimeMillis();
+    long last = lastVoteRefreshRequestedAtMs.get();
+    if (now - last < debounceMs) {
+      return;
+    }
+    if (!lastVoteRefreshRequestedAtMs.compareAndSet(last, now)) {
+      return;
+    }
+    voteRefreshPending.set(false);
+    triggerRefreshAsync(true, reason);
+  }
+
+  private void invalidateResponseCacheAfterVote() {
+    if (responseCache.isEmpty()) {
+      return;
+    }
+    responseCache.entrySet().removeIf(entry -> entry.getKey().offset() == 0);
+  }
+
+  private void applyVoteToSnapshot(String contentId, CommunityVoteAggregate aggregate) {
+    if (contentId == null || contentId.isBlank() || aggregate == null) {
+      return;
+    }
+    Snapshot current = snapshot.get();
+    if (current == null || current.refreshedAt() == null || current.rankedByFilter().isEmpty()) {
+      return;
+    }
+
+    boolean changed = false;
+    Map<String, List<FeaturedItem>> updated = new HashMap<>();
+    Instant now = Instant.now();
+    for (Map.Entry<String, List<FeaturedItem>> entry : current.rankedByFilter().entrySet()) {
+      List<FeaturedItem> source = entry.getValue();
+      if (source == null || source.isEmpty()) {
+        updated.put(entry.getKey(), source == null ? List.of() : source);
+        continue;
+      }
+      List<FeaturedItem> rewritten = new ArrayList<>(source.size());
+      boolean listChanged = false;
+      for (FeaturedItem item : source) {
+        if (item != null
+            && item.item() != null
+            && item.item().id() != null
+            && item.item().id().equals(contentId)) {
+          double score =
+              CommunityScoreCalculator.score(aggregate, item.item().createdAt(), now, decayEnabled);
+          rewritten.add(new FeaturedItem(item.item(), aggregate, score));
+          listChanged = true;
+          changed = true;
+        } else {
+          rewritten.add(item);
+        }
+      }
+      if (listChanged) {
+        rewritten.sort(
+            Comparator.comparingDouble((FeaturedItem r) -> r.score())
+                .reversed()
+                .thenComparing(r -> r.item().createdAt(), Comparator.reverseOrder()));
+        updated.put(entry.getKey(), List.copyOf(rewritten));
+      } else {
+        updated.put(entry.getKey(), source);
+      }
+    }
+    if (changed) {
+      snapshot.set(new Snapshot(Map.copyOf(updated), current.refreshedAt(), current.durationMs()));
+    }
+  }
+
+  private Duration effectiveVoteDebounce() {
+    if (voteRefreshDebounce == null || voteRefreshDebounce.isNegative()) {
+      return Duration.ZERO;
+    }
+    return voteRefreshDebounce;
   }
 
   private void triggerRefreshAsync(boolean force, String reason) {
