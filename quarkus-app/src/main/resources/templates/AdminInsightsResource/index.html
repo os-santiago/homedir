@@ -73,6 +73,10 @@
      data-status-stalled-open-30d="{i18n:admin_insights_js_status_stalled_open_30d}"
      data-status-avg-merge="{i18n:admin_insights_js_status_avg_merge}"
      data-status-avg-prod="{i18n:admin_insights_js_status_avg_prod}"
+     data-status-events-last-24h="{i18n:admin_insights_js_status_events_last_24h}"
+     data-status-events-previous-24h="{i18n:admin_insights_js_status_events_previous_24h}"
+     data-status-events-trend-24h="{i18n:admin_insights_js_status_events_trend_24h}"
+     data-status-active-initiatives-24h="{i18n:admin_insights_js_status_active_initiatives_24h}"
      data-status-pr-validation-passed="{i18n:admin_insights_js_status_pr_validation_passed}"
      data-status-pr-validation-failed="{i18n:admin_insights_js_status_pr_validation_failed}"
      data-status-pr-validation-success-rate="{i18n:admin_insights_js_status_pr_validation_success_rate}"
@@ -242,6 +246,10 @@
         '<strong>' + i18n.statusProdVerified7d + ':</strong> ' + (status.productionVerifiedEventsLast7Days || 0),
         '<strong>' + i18n.statusProdReleaseFailed7d + ':</strong> ' + (status.productionReleaseFailedEventsLast7Days || 0),
         '<strong>' + i18n.statusProdSuccessRate7d + ':</strong> ' + formatPercent(status.productionSuccessRatePctLast7Days),
+        '<strong>' + i18n.statusEventsLast24h + ':</strong> ' + (status.eventsLast24Hours || 0),
+        '<strong>' + i18n.statusEventsPrevious24h + ':</strong> ' + (status.eventsPrevious24Hours || 0),
+        '<strong>' + i18n.statusEventsTrend24h + ':</strong> ' + formatSignedPercent(status.eventsTrendPct24Hours),
+        '<strong>' + i18n.statusActiveInitiatives24h + ':</strong> ' + (status.activeInitiativesLast24Hours || 0),
         '<strong>' + i18n.statusEventsLast7d + ':</strong> ' + (status.eventsLast7Days || 0),
         '<strong>' + i18n.statusEventsPrevious7d + ':</strong> ' + (status.eventsPrevious7Days || 0),
         '<strong>' + i18n.statusEventsTrend + ':</strong> ' + formatSignedPercent(status.eventsTrendPct),

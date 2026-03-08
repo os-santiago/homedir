@@ -3720,6 +3720,18 @@ public interface AppMessages {
     @Message("Average lead to production")
     String admin_insights_js_status_avg_prod();
 
+    @Message("Events (last 24h)")
+    String admin_insights_js_status_events_last_24h();
+
+    @Message("Events (previous 24h)")
+    String admin_insights_js_status_events_previous_24h();
+
+    @Message("Event trend vs previous 24h")
+    String admin_insights_js_status_events_trend_24h();
+
+    @Message("Active initiatives (last 24h)")
+    String admin_insights_js_status_active_initiatives_24h();
+
     @Message("PR validations passed")
     String admin_insights_js_status_pr_validation_passed();
 
