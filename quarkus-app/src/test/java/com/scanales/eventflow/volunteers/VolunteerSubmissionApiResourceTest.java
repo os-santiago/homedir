@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.scanales.eventflow.eventops.EventOperationsService;
+import com.scanales.eventflow.eventops.EventStaffRole;
 import com.scanales.eventflow.insights.DevelopmentInsightsLedgerService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.notifications.NotificationService;
@@ -28,11 +30,13 @@ class VolunteerSubmissionApiResourceTest {
   @Inject EventService eventService;
   @Inject NotificationService notificationService;
   @Inject DevelopmentInsightsLedgerService insightsLedger;
+  @Inject EventOperationsService eventOperationsService;
 
   @BeforeEach
   void setup() {
     volunteerApplicationService.clearAllForTests();
     volunteerEventConfigService.resetForTests();
+    eventOperationsService.clearAllForTests();
     eventService.reset();
     notificationService.reset();
     eventService.saveEvent(new Event(EVENT_ID, "Volunteer API Event", "desc"));
@@ -370,6 +374,12 @@ class VolunteerSubmissionApiResourceTest {
     assertEquals(1, notifications.size());
     assertEquals("Volunteer application update", notifications.get(0).title);
     assertTrue(notifications.get(0).message != null && notifications.get(0).message.contains("selected"));
+
+    assertTrue(
+        eventOperationsService
+            .findStaffByEventAndUser(EVENT_ID, "member@example.com", EventStaffRole.VOLUNTEER)
+            .map(item -> item.active() && "volunteer".equals(item.role()))
+            .orElse(false));
 
     assertTrue(insightsLedger.status().storedEvents() > eventsBefore);
   }

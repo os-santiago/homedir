@@ -68,6 +68,7 @@ class VolunteerLoungeApiResourceTest {
         .statusCode(201)
         .body("item.id", notNullValue())
         .body("item.event_id", equalTo(EVENT_ID))
+        .body("item.message_type", equalTo("post"))
         .body("item.body", equalTo("Setup complete for registration desk."));
 
     given()
@@ -78,6 +79,7 @@ class VolunteerLoungeApiResourceTest {
         .statusCode(200)
         .body("total", equalTo(1))
         .body("items", hasSize(1))
+        .body("items[0].message_type", equalTo("post"))
         .body("items[0].body", equalTo("Setup complete for registration desk."));
 
     assertTrue(usageMetricsService.snapshot().getOrDefault("funnel:volunteer_lounge_post", 0L) >= 1L);
@@ -146,5 +148,70 @@ class VolunteerLoungeApiResourceTest {
         .then()
         .statusCode(429)
         .body("error", equalTo("rate_limit"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanCreateAndDeleteAnnouncements() {
+    given()
+        .contentType("application/json")
+        .body("{\"body\":\"Volunteer check-in starts at 08:00 at main entrance.\"}")
+        .when()
+        .post("/api/events/" + EVENT_ID + "/volunteers/lounge/announcements")
+        .then()
+        .statusCode(201)
+        .body("item.id", notNullValue())
+        .body("item.message_type", equalTo("announcement"));
+
+    String announcementId =
+        given()
+            .accept("application/json")
+            .when()
+            .get("/api/events/" + EVENT_ID + "/volunteers/lounge/announcements")
+            .then()
+            .statusCode(200)
+            .body("total", equalTo(1))
+            .body("items", hasSize(1))
+            .extract()
+            .path("items[0].id");
+
+    given()
+        .when()
+        .delete("/api/events/" + EVENT_ID + "/volunteers/lounge/announcements/" + announcementId)
+        .then()
+        .statusCode(204);
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/volunteers/lounge/announcements")
+        .then()
+        .statusCode(200)
+        .body("total", equalTo(0));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void nonAdminCannotCreateAnnouncement() {
+    VolunteerApplication created =
+        volunteerApplicationService.create(
+            "member@example.com",
+            "Member",
+            new VolunteerApplicationService.CreateRequest(EVENT_ID, "About", "Reason", "Diff"));
+    volunteerApplicationService.updateStatus(
+        created.id(),
+        VolunteerApplicationStatus.SELECTED,
+        "admin@example.org",
+        "selected",
+        created.updatedAt());
+
+    given()
+        .contentType("application/json")
+        .body("{\"body\":\"Unauthorized announcement attempt.\"}")
+        .when()
+        .post("/api/events/" + EVENT_ID + "/volunteers/lounge/announcements")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
   }
 }

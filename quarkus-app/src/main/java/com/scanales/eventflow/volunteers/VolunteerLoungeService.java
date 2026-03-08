@@ -21,7 +21,8 @@ import java.util.regex.Pattern;
 @ApplicationScoped
 public class VolunteerLoungeService {
   private static final Pattern CONTROL = Pattern.compile("[\\p{Cntrl}&&[^\n\t]]");
-  private static final int MAX_BODY_LENGTH = 200;
+  private static final int MAX_POST_BODY_LENGTH = 200;
+  private static final int MAX_ANNOUNCEMENT_BODY_LENGTH = 500;
   private static final int MAX_MESSAGES_PER_EVENT = 500;
   private static final Duration POST_RATE_LIMIT = Duration.ofMinutes(1);
 
@@ -66,18 +67,50 @@ public class VolunteerLoungeService {
       if (normalizedEventId == null) {
         return 0;
       }
-      int count = 0;
-      for (VolunteerLoungeMessage item : messages.values()) {
-        if (normalizedEventId.equals(item.eventId())) {
-          count++;
-        }
+      return countByEventInternal(normalizedEventId, null);
+    }
+  }
+
+  public List<VolunteerLoungeMessage> listByEventAndType(
+      String eventId, VolunteerLoungeMessageType messageType, int requestedLimit, int requestedOffset) {
+    synchronized (lock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null || messageType == null) {
+        return List.of();
       }
-      return count;
+      String typeFilter = messageType.apiValue();
+      List<VolunteerLoungeMessage> filtered =
+          messages.values().stream()
+              .filter(item -> normalizedEventId.equals(item.eventId()))
+              .filter(item -> typeFilter.equals(normalizedType(item)))
+              .sorted(
+                  Comparator.comparing(
+                          VolunteerLoungeMessage::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                      .thenComparing(VolunteerLoungeMessage::id))
+              .toList();
+      return paginate(filtered, requestedLimit, requestedOffset);
+    }
+  }
+
+  public int countByEventAndType(String eventId, VolunteerLoungeMessageType messageType) {
+    synchronized (lock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null || messageType == null) {
+        return 0;
+      }
+      return countByEventInternal(normalizedEventId, messageType.apiValue());
     }
   }
 
   public VolunteerLoungeMessage create(
-      String eventId, String userId, String userName, String body, String parentId) {
+      String eventId,
+      String userId,
+      String userName,
+      String body,
+      String parentId,
+      VolunteerLoungeMessageType messageType) {
     synchronized (lock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -91,34 +124,48 @@ public class VolunteerLoungeService {
       if (normalizedUserId == null) {
         throw new ValidationException("user_id_required");
       }
-      String normalizedBody = sanitizeBody(body);
+      VolunteerLoungeMessageType normalizedType =
+          messageType == null ? VolunteerLoungeMessageType.POST : messageType;
+      int maxBodyLength =
+          normalizedType == VolunteerLoungeMessageType.ANNOUNCEMENT
+              ? MAX_ANNOUNCEMENT_BODY_LENGTH
+              : MAX_POST_BODY_LENGTH;
+      String normalizedBody = sanitizeBody(body, maxBodyLength);
       if (normalizedBody == null) {
         throw new ValidationException("invalid_body");
       }
       String normalizedParentId = sanitizeId(parentId);
-      if (normalizedParentId != null) {
+      if (normalizedType == VolunteerLoungeMessageType.ANNOUNCEMENT && normalizedParentId != null) {
+        throw new ValidationException("invalid_parent");
+      }
+      if (normalizedType == VolunteerLoungeMessageType.POST && normalizedParentId != null) {
         VolunteerLoungeMessage parent = messages.get(normalizedParentId);
-        if (parent == null || !normalizedEventId.equals(parent.eventId())) {
+        if (parent == null
+            || !normalizedEventId.equals(parent.eventId())
+            || VolunteerLoungeMessageType.ANNOUNCEMENT.apiValue().equals(normalizedType(parent))) {
           throw new ValidationException("invalid_parent");
         }
       }
 
-      int eventCount = countByEvent(normalizedEventId);
+      int eventCount = countByEventInternal(normalizedEventId, null);
       if (eventCount >= MAX_MESSAGES_PER_EVENT) {
         throw new ValidationException("event_capacity_reached");
       }
 
       String rateLimitKey = normalizedEventId + ":" + normalizedUserId;
       Instant now = Instant.now();
-      Instant previous = lastPostByUserEvent.get(rateLimitKey);
-      if (previous != null && previous.plus(POST_RATE_LIMIT).isAfter(now)) {
-        throw new ValidationException("rate_limit");
+      if (normalizedType == VolunteerLoungeMessageType.POST) {
+        Instant previous = lastPostByUserEvent.get(rateLimitKey);
+        if (previous != null && previous.plus(POST_RATE_LIMIT).isAfter(now)) {
+          throw new ValidationException("rate_limit");
+        }
       }
 
       VolunteerLoungeMessage created =
           new VolunteerLoungeMessage(
               UUID.randomUUID().toString(),
               normalizedEventId,
+              normalizedType.apiValue(),
               normalizedParentId,
               normalizedUserId,
               sanitizeUserName(userName),
@@ -126,7 +173,9 @@ public class VolunteerLoungeService {
               now,
               now);
       messages.put(created.id(), created);
-      lastPostByUserEvent.put(rateLimitKey, now);
+      if (normalizedType == VolunteerLoungeMessageType.POST) {
+        lastPostByUserEvent.put(rateLimitKey, now);
+      }
       persistSync();
       return created;
     }
@@ -146,6 +195,24 @@ public class VolunteerLoungeService {
   public void reloadFromDisk() {
     synchronized (lock) {
       refreshFromDisk(true);
+    }
+  }
+
+  public boolean delete(String eventId, String id) {
+    synchronized (lock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      String normalizedId = sanitizeId(id);
+      if (normalizedEventId == null || normalizedId == null) {
+        return false;
+      }
+      VolunteerLoungeMessage current = messages.get(normalizedId);
+      if (current == null || !normalizedEventId.equals(current.eventId())) {
+        return false;
+      }
+      messages.remove(normalizedId);
+      persistSync();
+      return true;
     }
   }
 
@@ -203,7 +270,21 @@ public class VolunteerLoungeService {
     return cleaned.length() > 80 ? cleaned.substring(0, 80) : cleaned;
   }
 
-  private static String sanitizeBody(String raw) {
+  private int countByEventInternal(String eventId, String typeFilter) {
+    int count = 0;
+    for (VolunteerLoungeMessage item : messages.values()) {
+      if (!eventId.equals(item.eventId())) {
+        continue;
+      }
+      if (typeFilter != null && !typeFilter.equals(normalizedType(item))) {
+        continue;
+      }
+      count++;
+    }
+    return count;
+  }
+
+  private static String sanitizeBody(String raw, int maxLength) {
     if (raw == null) {
       return null;
     }
@@ -211,10 +292,17 @@ public class VolunteerLoungeService {
     if (cleaned.isBlank()) {
       return null;
     }
-    if (cleaned.length() > MAX_BODY_LENGTH) {
-      cleaned = cleaned.substring(0, MAX_BODY_LENGTH).trim();
+    if (cleaned.length() > maxLength) {
+      cleaned = cleaned.substring(0, maxLength).trim();
     }
     return cleaned.isBlank() ? null : cleaned;
+  }
+
+  private static String normalizedType(VolunteerLoungeMessage item) {
+    if (item == null) {
+      return VolunteerLoungeMessageType.POST.apiValue();
+    }
+    return item.normalizedMessageType();
   }
 
   private static List<VolunteerLoungeMessage> paginate(

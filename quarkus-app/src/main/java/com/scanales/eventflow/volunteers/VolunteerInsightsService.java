@@ -95,6 +95,20 @@ public class VolunteerInsightsService {
     appendSafe(initiativeId, "VOLUNTEER_LOUNGE_POSTED", metadata);
   }
 
+  public void recordLoungeAnnouncement(VolunteerLoungeMessage message) {
+    if (message == null || message.eventId() == null || message.eventId().isBlank()) {
+      return;
+    }
+    String initiativeId = initiativeId(message.eventId());
+    ensureInitiativeStarted(initiativeId, message.eventId());
+    Map<String, String> metadata = new LinkedHashMap<>();
+    metadata.put("module", "event-volunteers");
+    metadata.put("event_id", safe(message.eventId()));
+    metadata.put("message_id", safe(message.id()));
+    metadata.put("user_id", safe(message.userId()));
+    appendSafe(initiativeId, "VOLUNTEER_LOUNGE_ANNOUNCEMENT", metadata);
+  }
+
   private void append(VolunteerApplication application, String type, Map<String, String> metadata) {
     if (application == null || application.eventId() == null || application.eventId().isBlank()) {
       return;
