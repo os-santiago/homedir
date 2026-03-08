@@ -1079,15 +1079,33 @@ public class CfpSubmissionApiResource {
     if (raw == null) {
       return "item";
     }
-    String value = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
-    value = value.replaceAll("^-+", "").replaceAll("-+$", "");
-    if (value.isBlank()) {
-      value = "item";
+    int effectiveMax = Math.max(4, maxLength);
+    String input = raw.trim().toLowerCase(Locale.ROOT);
+    if (input.isBlank()) {
+      return "item";
     }
-    if (value.length() > maxLength) {
-      value = value.substring(0, maxLength).replaceAll("-+$", "");
+    StringBuilder out = new StringBuilder(Math.min(input.length(), effectiveMax));
+    boolean lastDash = false;
+    for (int i = 0; i < input.length(); i++) {
+      char ch = input.charAt(i);
+      boolean alphaNum = (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9');
+      if (alphaNum) {
+        if (out.length() >= effectiveMax) {
+          break;
+        }
+        out.append(ch);
+        lastDash = false;
+        continue;
+      }
+      if (!lastDash && out.length() > 0 && out.length() < effectiveMax) {
+        out.append('-');
+        lastDash = true;
+      }
     }
-    return value.isBlank() ? "item" : value;
+    while (out.length() > 0 && out.charAt(out.length() - 1) == '-') {
+      out.deleteCharAt(out.length() - 1);
+    }
+    return out.length() == 0 ? "item" : out.toString();
   }
 
   private static String sanitizeDisplayText(String raw) {
@@ -1150,12 +1168,37 @@ public class CfpSubmissionApiResource {
     if (raw == null || raw.isBlank()) {
       return "presentation.pdf";
     }
-    String value = raw.replace('\\', '-').replace('/', '-');
-    value = value.replaceAll("[^a-zA-Z0-9._-]", "-");
-    while (value.contains("--")) {
-      value = value.replace("--", "-");
+    StringBuilder out = new StringBuilder(raw.length());
+    boolean lastDash = false;
+    for (int i = 0; i < raw.length(); i++) {
+      char ch = raw.charAt(i);
+      boolean safe =
+          (ch >= 'a' && ch <= 'z')
+              || (ch >= 'A' && ch <= 'Z')
+              || (ch >= '0' && ch <= '9')
+              || ch == '.'
+              || ch == '_'
+              || ch == '-';
+      if (ch == '/' || ch == '\\') {
+        safe = false;
+      }
+      if (safe) {
+        out.append(ch);
+        lastDash = false;
+      } else if (!lastDash) {
+        out.append('-');
+        lastDash = true;
+      }
     }
-    value = value.replaceAll("^-+", "").replaceAll("-+$", "");
+    int start = 0;
+    int end = out.length();
+    while (start < end && out.charAt(start) == '-') {
+      start++;
+    }
+    while (end > start && out.charAt(end - 1) == '-') {
+      end--;
+    }
+    String value = start >= end ? "" : out.substring(start, end);
     if (value.isBlank()) {
       return "presentation.pdf";
     }
