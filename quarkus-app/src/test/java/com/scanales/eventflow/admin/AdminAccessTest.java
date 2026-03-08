@@ -39,6 +39,7 @@ public class AdminAccessTest {
         .body(containsString("id=\"insightsEventTypeList\""))
         .body(containsString("class=\"btn btn-ghost insights-event-preset\""))
         .body(containsString("id=\"insightsInitiativesSearch\""))
+        .body(containsString("id=\"insightsInitiativesState\""))
         .body(containsString("id=\"insightsInitiativesCount\""));
   }
 }

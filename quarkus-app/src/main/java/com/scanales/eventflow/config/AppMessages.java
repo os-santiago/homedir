@@ -3903,6 +3903,15 @@ public interface AppMessages {
     @Message("Search initiatives by id, title, or state")
     String admin_insights_initiatives_search_placeholder();
 
+    @Message("All states")
+    String admin_insights_initiatives_state_all();
+
+    @Message("Open only")
+    String admin_insights_initiatives_state_open();
+
+    @Message("Completed only")
+    String admin_insights_initiatives_state_completed();
+
     @Message("Shown")
     String admin_insights_js_shown_label();
 

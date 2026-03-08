@@ -72,6 +72,11 @@
           class="form-input insights-initiatives-search"
           type="search"
           placeholder="{i18n:admin_insights_initiatives_search_placeholder}" />
+        <select id="insightsInitiativesState" class="form-input insights-initiatives-state" aria-label="{i18n:admin_insights_js_table_state}">
+          <option value="all">{i18n:admin_insights_initiatives_state_all}</option>
+          <option value="open">{i18n:admin_insights_initiatives_state_open}</option>
+          <option value="completed">{i18n:admin_insights_initiatives_state_completed}</option>
+        </select>
         <p id="insightsInitiativesCount" class="form-hint insights-initiatives-count"></p>
       </div>
       <div id="insightsInitiatives" class="form-hint">{i18n:admin_insights_loading}</div>
@@ -173,6 +178,11 @@
     min-width: 220px;
   }
 
+  .insights-initiatives-state {
+    flex: 0 0 190px;
+    min-width: 160px;
+  }
+
   .insights-initiatives-count {
     margin: 0;
     white-space: nowrap;
@@ -199,6 +209,7 @@
     const refreshBtn = document.getElementById('insightsRefreshBtn');
     const loadMoreBtn = document.getElementById('insightsLoadMoreBtn');
     const initiativesSearchEl = document.getElementById('insightsInitiativesSearch');
+    const initiativesStateEl = document.getElementById('insightsInitiativesState');
     const initiativesCountEl = document.getElementById('insightsInitiativesCount');
     const startForm = document.getElementById('insightsStartForm');
     const eventForm = document.getElementById('insightsEventForm');
@@ -210,6 +221,7 @@
     let initiativesDone = false;
     let initiativesCache = [];
     let initiativesQuery = '';
+    let initiativesStateFilter = (initiativesStateEl ? initiativesStateEl.value : 'all');
 
     function showMessage(text, isError) {
       if (!messageEl) return;
@@ -298,14 +310,33 @@
       ].some((text) => text.includes(query));
     }
 
+    function normalizeState(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    function isCompletedState(state) {
+      return state === 'merged' || state === 'prod_verified';
+    }
+
+    function initiativeMatchesStateFilter(item) {
+      if (initiativesStateFilter === 'all') {
+        return true;
+      }
+      const state = normalizeState(item && item.state);
+      if (initiativesStateFilter === 'completed') {
+        return isCompletedState(state);
+      }
+      if (initiativesStateFilter === 'open') {
+        return !isCompletedState(state);
+      }
+      return true;
+    }
+
     function filteredInitiatives(items) {
       if (!Array.isArray(items) || items.length === 0) {
         return [];
       }
-      if (!initiativesQuery) {
-        return items;
-      }
-      return items.filter((item) => initiativeMatchesQuery(item, initiativesQuery));
+      return items.filter((item) => initiativeMatchesQuery(item, initiativesQuery) && initiativeMatchesStateFilter(item));
     }
 
     function updateLoadMoreState() {
@@ -558,6 +589,12 @@
       renderCurrentInitiatives();
     }
 
+    function onStateFilterChange(event) {
+      const value = event && event.target ? event.target.value : 'all';
+      initiativesStateFilter = value === 'completed' || value === 'open' ? value : 'all';
+      renderCurrentInitiatives();
+    }
+
     function onEventTypePresetClick(event) {
       const button = event && event.currentTarget ? event.currentTarget : null;
       if (!button || !eventTypeInput) return;
@@ -570,6 +607,7 @@
     refreshBtn?.addEventListener('click', () => refresh().catch((error) => showMessage(error.message, true)));
     loadMoreBtn?.addEventListener('click', () => loadMoreInitiatives().catch((error) => showMessage(error.message, true)));
     initiativesSearchEl?.addEventListener('input', onSearchInput);
+    initiativesStateEl?.addEventListener('change', onStateFilterChange);
     eventTypePresetButtons.forEach((button) => button.addEventListener('click', onEventTypePresetClick));
     startForm?.addEventListener('submit', onStartSubmit);
     eventForm?.addEventListener('submit', onEventSubmit);
