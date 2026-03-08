@@ -29,6 +29,7 @@
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="integrations-panel">{i18n:section_integrations}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="resume-panel">{i18n:section_resume}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="cfp-panel">{i18n:profile_cfp_title}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="volunteer-panel">{i18n:profile_volunteers_title}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="identity-panel">{i18n:section_identity}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="economy-panel">{i18n:section_economy}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="settings-panel">{i18n:settings_language}</button>
@@ -63,6 +64,7 @@
                     <div class="hd-profile-spotlight-chips">
                         <span class="hd-economy-chip">{i18n:label_registered_talks}: {totalTalks}</span>
                         <span class="hd-economy-chip">{i18n:events_cfp_eyebrow}: {cfpOverview.total}</span>
+                        <span class="hd-economy-chip">{i18n:events_volunteers_open_cta}: {volunteerOverview.total}</span>
                         {#if dominantClass??}
                         <span class="hd-economy-chip">{i18n:profile_primary_class}: {dominantClass.displayName}</span>
                         {/if}
@@ -355,6 +357,103 @@
                         </span>
                     </div>
                     <a class="hd-btn hd-btn-secondary" href="{item.manageUrl}">{i18n:profile_cfp_manage}</a>
+                </li>
+                {/for}
+            </ul>
+            {/if}
+        </section>
+
+        <section class="hd-panel centered" id="volunteer-panel" data-profile-section="volunteers">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">{i18n:events_volunteers_open_cta}</p>
+                    <h2 class="hd-panel-title">{i18n:profile_volunteers_title}</h2>
+                    <p class="hd-page-intro">{i18n:profile_volunteers_intro}</p>
+                </div>
+            </div>
+
+            <div class="hd-grid-details">
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_volunteers_total}</span>
+                    <span class="hd-detail-value">{volunteerOverview.total}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:profile_volunteers_events}</span>
+                    <span class="hd-detail-value">{volunteerOverview.distinctEvents}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_volunteers_status_selected}</span>
+                    <span class="hd-detail-value">{volunteerOverview.selected}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_volunteers_status_under_review}</span>
+                    <span class="hd-detail-value">{volunteerOverview.underReview}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_volunteers_status_applied}</span>
+                    <span class="hd-detail-value">{volunteerOverview.applied}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{i18n:events_volunteers_status_not_selected}</span>
+                    <span class="hd-detail-value">{volunteerOverview.notSelected}</span>
+                </div>
+            </div>
+
+            <div class="hd-dashboard-header">
+                <div>
+                    <h3 class="hd-section-subtitle">{i18n:profile_volunteers_latest}</h3>
+                </div>
+            </div>
+            {#if volunteerRecentApplications.isEmpty()}
+            <div class="hd-empty-state">
+                <p>{i18n:profile_volunteers_empty}</p>
+                <a href="/eventos" class="hd-btn hd-btn-secondary">{i18n:profile_volunteers_open_events}</a>
+            </div>
+            {#else}
+            <ul class="hd-list hd-list-log" role="list">
+                {#for item in volunteerRecentApplications}
+                <li class="hd-list-item hd-log-entry">
+                    <div class="hd-list-content">
+                        <strong>{item.eventTitle}</strong>
+                        <span class="hd-list-meta">
+                            {#switch item.status}
+                            {#case 'applied'}{i18n:events_volunteers_status_applied}{/case}
+                            {#case 'under_review'}{i18n:events_volunteers_status_under_review}{/case}
+                            {#case 'selected'}{i18n:events_volunteers_status_selected}{/case}
+                            {#case 'not_selected'}{i18n:events_volunteers_status_not_selected}{/case}
+                            {#case 'withdrawn'}{i18n:events_volunteers_status_withdrawn}{/case}
+                            {#else}{item.status}{/else}
+                            {/switch}
+                        </span>
+                    </div>
+                    <div class="hd-panel-actions">
+                        <a class="hd-btn hd-btn-secondary" href="{item.manageUrl}">{i18n:profile_volunteers_manage}</a>
+                        {#if item.loungeUrl??}
+                        <a class="hd-btn hd-btn-secondary" href="{item.loungeUrl}">{i18n:profile_volunteers_lounge}</a>
+                        {/if}
+                    </div>
+                </li>
+                {/for}
+            </ul>
+            {/if}
+
+            <div class="hd-dashboard-header class-map-header">
+                <div>
+                    <h3 class="hd-section-subtitle">{i18n:profile_volunteers_open_calls}</h3>
+                    <p class="hd-page-intro">{i18n:profile_volunteers_open_calls_intro}</p>
+                </div>
+            </div>
+            {#if volunteerOpenEvents.isEmpty()}
+            <p class="hd-page-intro">{i18n:profile_volunteers_open_calls_empty}</p>
+            {#else}
+            <ul class="hd-list hd-list-log" role="list">
+                {#for item in volunteerOpenEvents}
+                <li class="hd-list-item hd-log-entry">
+                    <div class="hd-list-content">
+                        <strong>{item.eventTitle}</strong>
+                        <span class="hd-list-meta">{item.eventId}</span>
+                    </div>
+                    <a class="hd-btn hd-btn-secondary" href="{item.applyUrl}">{i18n:profile_volunteers_apply_now}</a>
                 </li>
                 {/for}
             </ul>

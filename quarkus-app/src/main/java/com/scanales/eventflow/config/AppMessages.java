@@ -649,6 +649,51 @@ public interface AppMessages {
     @Message("Moderation note")
     String events_volunteers_moderation_note();
 
+    @Message("Volunteer lounge")
+    String events_volunteers_lounge_title();
+
+    @Message("Private coordination space for selected volunteers and organizers.")
+    String events_volunteers_lounge_intro();
+
+    @Message("Selected volunteers can post updates, ask questions, and share coordination notes here.")
+    String events_volunteers_lounge_hint();
+
+    @Message("You need to be selected as volunteer to access this lounge.")
+    String events_volunteers_lounge_locked();
+
+    @Message("Write a volunteer update or question")
+    String events_volunteers_lounge_placeholder();
+
+    @Message("Reply to this message")
+    String events_volunteers_lounge_reply();
+
+    @Message("Clear reply")
+    String events_volunteers_lounge_clear_reply();
+
+    @Message("Post message")
+    String events_volunteers_lounge_post();
+
+    @Message("Posting...")
+    String events_volunteers_lounge_posting();
+
+    @Message("No lounge messages yet. Start the coordination thread.")
+    String events_volunteers_lounge_empty();
+
+    @Message("Could not load lounge messages right now.")
+    String events_volunteers_lounge_error_load();
+
+    @Message("Could not post message right now.")
+    String events_volunteers_lounge_error_post();
+
+    @Message("You can post one lounge message per minute.")
+    String events_volunteers_lounge_error_rate_limit();
+
+    @Message("Replying to")
+    String events_volunteers_lounge_replying_to();
+
+    @Message("Posted")
+    String events_volunteers_lounge_posted_at();
+
     @Message("We could not find this event.")
     String events_volunteers_not_found_desc();
 
@@ -2460,6 +2505,45 @@ public interface AppMessages {
     @Message("Browse Events")
     String profile_cfp_open_events();
 
+    @Message("Volunteers")
+    String profile_volunteers_title();
+
+    @Message("Track your volunteer applications, status updates, and open opportunities.")
+    String profile_volunteers_intro();
+
+    @Message("Total applications")
+    String profile_volunteers_total();
+
+    @Message("Events")
+    String profile_volunteers_events();
+
+    @Message("Recent volunteer activity")
+    String profile_volunteers_latest();
+
+    @Message("You do not have volunteer applications yet.")
+    String profile_volunteers_empty();
+
+    @Message("Explore volunteer events")
+    String profile_volunteers_open_events();
+
+    @Message("Open application")
+    String profile_volunteers_manage();
+
+    @Message("Volunteer lounge")
+    String profile_volunteers_lounge();
+
+    @Message("Open volunteer calls")
+    String profile_volunteers_open_calls();
+
+    @Message("Events currently accepting volunteer applications.")
+    String profile_volunteers_open_calls_intro();
+
+    @Message("No volunteer calls are open right now.")
+    String profile_volunteers_open_calls_empty();
+
+    @Message("Apply now")
+    String profile_volunteers_apply_now();
+
     @Message("Search")
     String search_aria_label();
 
@@ -2534,6 +2618,18 @@ public interface AppMessages {
 
     @Message("No accepted CFP talks published yet.")
     String public_profile_cfp_empty();
+
+    @Message("Volunteer track record")
+    String public_profile_volunteer_title();
+
+    @Message("Selected events")
+    String public_profile_volunteer_selected_label();
+
+    @Message("Latest selected events")
+    String public_profile_volunteer_latest();
+
+    @Message("No selected volunteer events published yet.")
+    String public_profile_volunteer_empty();
 
     @Message("Badges & Titles")
     String public_profile_badges_titles();

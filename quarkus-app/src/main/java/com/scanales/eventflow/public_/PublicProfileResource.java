@@ -17,6 +17,9 @@ import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.service.UserProfileService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.TemplateLocaleUtil;
+import com.scanales.eventflow.volunteers.VolunteerApplication;
+import com.scanales.eventflow.volunteers.VolunteerApplicationService;
+import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
 import io.quarkus.qute.Template;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -67,6 +70,8 @@ public class PublicProfileResource {
 
     @Inject
     EventService eventService;
+    @Inject
+    VolunteerApplicationService volunteerApplicationService;
 
     @GET
     @Path("/{username}")
@@ -119,6 +124,18 @@ public class PublicProfileResource {
                 .limit(3)
                 .map(this::toPublicCfpItem)
                 .toList();
+        VolunteerApplicationService.MineStats volunteerStats =
+            volunteerApplicationService.statsMineAcrossEvents(cfpUserIds);
+        int volunteerSelectedCount =
+            volunteerStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.SELECTED, 0);
+        List<PublicVolunteerItem> volunteerRecentSelected =
+            volunteerApplicationService
+                .listMineAcrossEvents(cfpUserIds, VolunteerApplicationService.SortOrder.UPDATED_DESC, 12, 0)
+                .stream()
+                .filter(item -> item.status() == VolunteerApplicationStatus.SELECTED)
+                .limit(3)
+                .map(this::toPublicVolunteerItem)
+                .toList();
 
         return Response.ok(TemplateLocaleUtil.apply(
             publicProfile
@@ -147,6 +164,8 @@ public class PublicProfileResource {
                 .data("hasLinkedAccounts", hasGithub || hasDiscord)
                 .data("cfpAcceptedCount", cfpAcceptedCount)
                 .data("cfpRecentAccepted", cfpRecentAccepted)
+                .data("volunteerSelectedCount", volunteerSelectedCount)
+                .data("volunteerRecentSelected", volunteerRecentSelected)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")
                 .data("ogDescription", "Check out @" + resolved.canonicalUsername() + " and their community activity.")
                 .data(
@@ -388,6 +407,19 @@ public class PublicProfileResource {
             "/event/" + eventId);
     }
 
+    private PublicVolunteerItem toPublicVolunteerItem(VolunteerApplication application) {
+        if (application == null) {
+            return new PublicVolunteerItem("", "", "");
+        }
+        String eventId = application.eventId() != null ? application.eventId() : "";
+        com.scanales.eventflow.model.Event event = eventService.getEvent(eventId);
+        String eventTitle =
+            event != null && event.getTitle() != null && !event.getTitle().isBlank()
+                ? event.getTitle()
+                : eventId;
+        return new PublicVolunteerItem(eventTitle, "/event/" + eventId + "/volunteers", eventId);
+    }
+
     private static void addNormalizedUserId(java.util.Set<String> ids, String raw) {
         if (ids == null || raw == null) {
             return;
@@ -434,5 +466,8 @@ public class PublicProfileResource {
     }
 
     private record PublicCfpItem(String title, String eventTitle, String eventUrl) {
+    }
+
+    private record PublicVolunteerItem(String eventTitle, String eventUrl, String eventId) {
     }
 }
