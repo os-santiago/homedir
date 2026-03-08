@@ -108,7 +108,8 @@
       <a href="/event/{event.id}" class="hd-link">← {i18n:events_cfp_back_to_event}</a>
     </p>
     <p class="section-subtitle">{i18n:events_cfp_eyebrow}</p>
-    <h1 class="public-title">{i18n:events_cfp_heading}</h1>
+    <h1 class="public-title">{event.title} CFP</h1>
+    <p class="section-subtitle">{i18n:events_cfp_heading}</p>
   </div>
   <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
   {#if !cfpTestingModeEnabled}

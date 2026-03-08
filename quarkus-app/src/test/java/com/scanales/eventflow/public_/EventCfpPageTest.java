@@ -76,4 +76,22 @@ public class EventCfpPageTest {
         .body(containsString("event_busy"))
         .body(not(containsString("id=\"cfpForm\"")));
   }
+
+  @Test
+  public void cfpTimelineUsesSpanishWhenLocaleCookieIsSpanish() {
+    Event event = new Event(EVENT_ID, "CFP Event", "desc");
+    event.setDate(java.time.LocalDate.of(2026, 9, 8));
+    event.setDays(2);
+    eventService.saveEvent(event);
+
+    given()
+        .header("Accept-Language", "en")
+        .cookie("QP_LOCALE", "es")
+        .when()
+        .get("/event/" + EVENT_ID + "/cfp")
+        .then()
+        .statusCode(200)
+        .body(containsString("Ventana CFP"))
+        .body(not(containsString("CFP window")));
+  }
 }

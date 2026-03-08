@@ -3708,15 +3708,6 @@ footer {
   align-items: center;
 }
 
-.lang-selector-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  align-self: center;
-  margin-right: 0.5rem;
-  margin-top: -2px;
-}
-
 .hd-circle-btn {
   width: 25px;
   height: 25px;
@@ -3759,52 +3750,6 @@ footer {
   right: -5px;
   font-size: 0.5rem;
   padding: 2px 4px;
-}
-
-.lang-selector-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(10px);
-  background: var(--dropdown-background, #151515);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem 0;
-  min-width: 120px;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-}
-
-.lang-selector-container:hover .lang-selector-dropdown,
-.lang-selector-container.is-open .lang-selector-dropdown,
-.lang-toggle-btn:focus + .lang-selector-dropdown,
-.lang-selector-dropdown:focus-within {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(5px);
-}
-
-.lang-selector-dropdown .lang-option {
-  display: block;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  padding: 0.4rem 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.lang-selector-dropdown .lang-option:hover,
-.lang-selector-dropdown .lang-option:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  outline: none;
 }
 
 @media (max-width: 960px) {

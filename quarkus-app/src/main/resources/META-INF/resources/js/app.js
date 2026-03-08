@@ -182,10 +182,10 @@ function setupLocaleSwitcher() {
         applyRedirectTarget();
         const chosenLocale = normalizeSupportedLocale(select.value)
             || (isAuthenticated ? 'es' : resolveBrowserPreferredLocale());
+        setLocaleCookie(chosenLocale);
 
         if (!isAuthenticated) {
             event.preventDefault();
-            setLocaleCookie(chosenLocale);
             window.location.assign(currentRelativeUrl());
             return;
         }
@@ -194,8 +194,12 @@ function setupLocaleSwitcher() {
     });
 
     select.addEventListener('change', () => {
+        const chosenLocale = normalizeSupportedLocale(select.value)
+            || (isAuthenticated ? 'es' : resolveBrowserPreferredLocale());
+        select.value = chosenLocale;
+        setLocaleCookie(chosenLocale);
+
         if (!isAuthenticated) {
-            setLocaleCookie(select.value);
             window.location.assign(currentRelativeUrl());
             return;
         }
