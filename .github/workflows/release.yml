@@ -235,6 +235,8 @@ jobs:
         if: ${{ success() }}
         continue-on-error: true
         env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
           INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
           RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
@@ -246,8 +248,18 @@ jobs:
           set -euo pipefail
           pr_number="$(echo "${HEAD_COMMIT_MESSAGE:-}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p' | head -n1)"
           if [ -n "${pr_number}" ]; then
-            initiative_id="pr-${pr_number}"
-            title="PR #${pr_number}"
+            pr_json="$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${pr_number}" || true)"
+            pr_title="$(echo "${pr_json}" | jq -r '.title // empty' 2>/dev/null || true)"
+            pr_head_ref="$(echo "${pr_json}" | jq -r '.head.ref // empty' 2>/dev/null || true)"
+            pr_labels_json="$(echo "${pr_json}" | jq -c '[.labels[]?.name]' 2>/dev/null || echo '[]')"
+            if [ -z "${pr_title}" ]; then
+              pr_title="PR #${pr_number}"
+            fi
+            initiative_id="$(bash scripts/ci/insights_resolve_initiative.sh "${pr_number}" "${pr_title}" "${pr_head_ref}" "${pr_labels_json}")"
+            title="${pr_title}"
           else
             initiative_id="release-${RELEASE_TAG}"
             title="${HEAD_COMMIT_MESSAGE:-Release ${RELEASE_TAG}}"
@@ -283,6 +295,8 @@ jobs:
         if: ${{ failure() }}
         continue-on-error: true
         env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
           INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
@@ -293,8 +307,18 @@ jobs:
           set -euo pipefail
           pr_number="$(echo "${HEAD_COMMIT_MESSAGE:-}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p' | head -n1)"
           if [ -n "${pr_number}" ]; then
-            initiative_id="pr-${pr_number}"
-            title="PR #${pr_number}"
+            pr_json="$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${pr_number}" || true)"
+            pr_title="$(echo "${pr_json}" | jq -r '.title // empty' 2>/dev/null || true)"
+            pr_head_ref="$(echo "${pr_json}" | jq -r '.head.ref // empty' 2>/dev/null || true)"
+            pr_labels_json="$(echo "${pr_json}" | jq -c '[.labels[]?.name]' 2>/dev/null || echo '[]')"
+            if [ -z "${pr_title}" ]; then
+              pr_title="PR #${pr_number}"
+            fi
+            initiative_id="$(bash scripts/ci/insights_resolve_initiative.sh "${pr_number}" "${pr_title}" "${pr_head_ref}" "${pr_labels_json}")"
+            title="${pr_title}"
           else
             short_sha="$(echo "${HEAD_SHA:-unknown}" | cut -c1-12)"
             initiative_id="release-failed-${short_sha}"
