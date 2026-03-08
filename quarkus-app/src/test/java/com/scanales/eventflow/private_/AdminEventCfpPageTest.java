@@ -38,7 +38,9 @@ public class AdminEventCfpPageTest {
         .body(containsString("id=\"cfpEventConfigSaveBtn\""))
         .body(containsString("id=\"cfpPrevPageBtn\""))
         .body(containsString("id=\"cfpNextPageBtn\""))
-        .body(containsString("id=\"cfpStatsSummary\""));
+        .body(containsString("id=\"cfpStatsSummary\""))
+        .body(containsString("id=\"cfpFullModal\""))
+        .body(containsString("id=\"cfpFullModalLinks\""));
   }
 
   @Test

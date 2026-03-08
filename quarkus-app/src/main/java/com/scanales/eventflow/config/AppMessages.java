@@ -934,6 +934,9 @@ public interface AppMessages {
     @Message("Promote to catalog")
     String events_cfp_admin_action_promote();
 
+    @Message("View full proposal")
+    String events_cfp_admin_action_view_full();
+
     @Message("Cataloged:")
     String events_cfp_admin_promote_success();
 
@@ -948,6 +951,24 @@ public interface AppMessages {
 
     @Message("Load error")
     String events_cfp_admin_queue_load_generic_error();
+
+    @Message("Full proposal")
+    String events_cfp_admin_modal_title();
+
+    @Message("Summary")
+    String events_cfp_admin_modal_summary();
+
+    @Message("Abstract")
+    String events_cfp_admin_modal_abstract();
+
+    @Message("Reference links")
+    String events_cfp_admin_modal_links();
+
+    @Message("No reference links")
+    String events_cfp_admin_modal_links_empty();
+
+    @Message("Close")
+    String events_cfp_admin_modal_close();
 
     @Message("CFP submissions are currently closed for this event.")
     String events_cfp_closed_hint();
