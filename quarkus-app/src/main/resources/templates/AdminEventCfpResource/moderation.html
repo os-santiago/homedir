@@ -538,6 +538,12 @@
       modalAbstract: "{i18n:events_cfp_admin_modal_abstract}",
       modalLinks: "{i18n:events_cfp_admin_modal_links}",
       modalLinksEmpty: "{i18n:events_cfp_admin_modal_links_empty}",
+      panelistsTitle: "{i18n:events_cfp_panelists_title}",
+      panelistsLinked: "{i18n:events_cfp_panelists_status_linked}",
+      panelistsPending: "{i18n:events_cfp_panelists_status_pending}",
+      panelistsPendingPrefix: "{i18n:events_cfp_panelists_pending_prefix}",
+      presentationTitle: "{i18n:events_cfp_presentation_title}",
+      presentationCurrent: "{i18n:events_cfp_presentation_current}",
       insightsTitle: "{i18n:events_cfp_admin_insights_title}",
       insightsLoading: "{i18n:events_cfp_admin_insights_loading}",
       insightsMissing: "{i18n:events_cfp_admin_insights_missing}",
@@ -1011,6 +1017,36 @@
           linksList.appendChild(entry);
         });
         article.appendChild(linksList);
+      }
+
+      if (Array.isArray(item.panelists) && item.panelists.length > 0) {
+        const panelistsLine = document.createElement("p");
+        panelistsLine.className = "cfp-admin-meta";
+        const values = item.panelists.map((panelist) => {
+          const name = panelist && panelist.name ? panelist.name : i18n.notAvailable;
+          const st =
+            panelist && panelist.status === "linked"
+              ? i18n.panelistsLinked
+              : i18n.panelistsPending;
+          return name + " (" + st + ")";
+        });
+        panelistsLine.textContent = i18n.panelistsTitle + ": " + values.join(" · ");
+        article.appendChild(panelistsLine);
+      }
+      if (Number(item.pending_panelists || 0) > 0) {
+        const pendingWarn = document.createElement("p");
+        pendingWarn.className = "cfp-admin-meta";
+        pendingWarn.textContent = i18n.panelistsPendingPrefix + " " + String(item.pending_panelists);
+        article.appendChild(pendingWarn);
+      }
+      if (item.presentation_asset && item.presentation_asset.file_name) {
+        const presentationLine = document.createElement("p");
+        presentationLine.className = "cfp-admin-meta";
+        const uploadedAt = fmtDate(item.presentation_asset.uploaded_at) || i18n.notAvailable;
+        presentationLine.textContent =
+          i18n.presentationTitle + ": " + i18n.presentationCurrent + " " + item.presentation_asset.file_name
+          + " · " + uploadedAt;
+        article.appendChild(presentationLine);
       }
 
       const ratings = document.createElement("div");

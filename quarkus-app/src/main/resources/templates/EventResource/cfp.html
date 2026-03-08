@@ -233,7 +233,7 @@
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
           <label class="form-label" for="cfpLinks">{i18n:events_cfp_form_links}</label>
-          <input id="cfpLinks" name="links" class="form-input" placeholder="https://sessionize.com/your-session, https://github.com/...">
+          <input id="cfpLinks" name="links" class="form-input" placeholder="{i18n:events_cfp_form_links_placeholder}">
         </div>
       </div>
       <div class="form-actions">
@@ -508,6 +508,53 @@
     flex-wrap: wrap;
   }
 
+  .cfp-role-chip {
+    margin-left: 0.45rem;
+    font-size: 0.72rem;
+    opacity: 0.8;
+  }
+
+  .cfp-panelists-box,
+  .cfp-presentation-box {
+    margin-top: 0.7rem;
+    padding: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .cfp-panelists-box h4,
+  .cfp-presentation-box h4 {
+    margin: 0 0 0.35rem 0;
+    font-size: 0.9rem;
+  }
+
+  .cfp-panelists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.55rem;
+    margin-top: 0.55rem;
+  }
+
+  .cfp-panelists-status {
+    margin-top: 0.45rem;
+    font-size: 0.8rem;
+    opacity: 0.88;
+  }
+
+  .cfp-panelists-warning {
+    margin-top: 0.45rem;
+    color: #ffe7a6;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .cfp-presentation-meta {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    opacity: 0.9;
+  }
+
   .cfp-pagination-controls {
     margin-top: 0.8rem;
     display: flex;
@@ -703,6 +750,7 @@
     let proposalLimit = 2;
     let mineItems = [];
     let mineTotal = 0;
+    let mineOwnedTotal = 0;
     let mineOffset = 0;
     let mineHasMore = false;
     let submitInFlight = false;
@@ -713,13 +761,45 @@
       under_review: "{i18n:events_cfp_status_under_review}",
       accepted: "{i18n:events_cfp_status_accepted}",
       rejected: "{i18n:events_cfp_status_rejected}",
-      withdrawn: "{i18n:events_cfp_status_withdrawn}"
+      withdrawn: "{i18n:events_cfp_status_withdrawn}",
+      roleOwner: "{i18n:events_cfp_viewer_role_owner}",
+      rolePanelist: "{i18n:events_cfp_viewer_role_panelist}",
+      panelistsTitle: "{i18n:events_cfp_panelists_title}",
+      panelistsDesc: "{i18n:events_cfp_panelists_desc}",
+      panelistsName: "{i18n:events_cfp_panelists_name}",
+      panelistsEmail: "{i18n:events_cfp_panelists_email}",
+      panelistsSave: "{i18n:events_cfp_panelists_save}",
+      panelistsSaving: "{i18n:events_cfp_panelists_saving}",
+      panelistsSaved: "{i18n:events_cfp_panelists_saved}",
+      panelistsError: "{i18n:events_cfp_panelists_error}",
+      panelistsStatusLinked: "{i18n:events_cfp_panelists_status_linked}",
+      panelistsStatusPending: "{i18n:events_cfp_panelists_status_pending}",
+      panelistsEmpty: "{i18n:events_cfp_panelists_empty}",
+      panelistsPendingPrefix: "{i18n:events_cfp_panelists_pending_prefix}",
+      panelistsAcceptedHint: "{i18n:events_cfp_panelists_accepted_hint}",
+      presentationTitle: "{i18n:events_cfp_presentation_title}",
+      presentationCurrent: "{i18n:events_cfp_presentation_current}",
+      presentationUpload: "{i18n:events_cfp_presentation_upload}",
+      presentationUploading: "{i18n:events_cfp_presentation_uploading}",
+      presentationUploaded: "{i18n:events_cfp_presentation_uploaded}",
+      presentationError: "{i18n:events_cfp_presentation_error}",
+      presentationRequiresAccepted: "{i18n:events_cfp_presentation_requires_accepted}",
+      presentationPanelHint: "{i18n:events_cfp_presentation_panel_hint}"
     };
 
     const errorLabels = {
       duplicate_title: "{i18n:events_cfp_error_duplicate_title}",
       proposal_limit_reached: "{i18n:events_cfp_error_limit_reached}",
-      submissions_closed: "{i18n:events_cfp_error_closed}"
+      submissions_closed: "{i18n:events_cfp_error_closed}",
+      panelists_allowed_only_for_panel_format: "{i18n:events_cfp_panelists_error}",
+      panelists_max_reached: "{i18n:events_cfp_panelists_error}",
+      stale_submission: "{i18n:events_cfp_error_stale}",
+      presentation_requires_accepted_submission: "{i18n:events_cfp_presentation_requires_accepted}",
+      panel_requires_panelists: "{i18n:events_cfp_presentation_panel_hint}",
+      panel_uploader_not_allowed: "{i18n:events_cfp_presentation_error}",
+      invalid_presentation_content_type: "{i18n:events_cfp_presentation_error_type}",
+      invalid_presentation_size: "{i18n:events_cfp_presentation_error_size}",
+      presentation_storage_unavailable: "{i18n:events_cfp_presentation_error}"
     };
 
     function buildOptionMap(selectId) {
@@ -945,7 +1025,7 @@
     }
 
     function updateQuotaHint() {
-      const submitted = mineTotal;
+      const submitted = mineOwnedTotal;
       const remaining = Math.max(0, proposalLimit - submitted);
       if (countLabel) {
         countLabel.textContent = submitted + "/" + proposalLimit + " {i18n:events_cfp_proposals_unit}";
@@ -1019,10 +1099,63 @@
       }
     }
 
+    async function savePanelists(submissionId, panelists, expectedUpdatedAt) {
+      const response = await fetch(endpoint + "/" + encodeURIComponent(submissionId) + "/panelists", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          panelists: panelists,
+          expected_updated_at: expectedUpdatedAt || null
+        })
+      });
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const payload = await response.json();
+          if (payload && payload.error) {
+            detail = payload.error;
+          }
+        } catch (e) {
+        }
+        throw new Error(errorLabels[detail] || labels.panelistsError || "{i18n:events_cfp_panelists_error}");
+      }
+      return response.json();
+    }
+
+    async function uploadPresentation(submissionId, file, expectedUpdatedAt) {
+      const body = new FormData();
+      body.append("file", file);
+      if (expectedUpdatedAt) {
+        body.append("expectedUpdatedAt", expectedUpdatedAt);
+      }
+      const response = await fetch(endpoint + "/" + encodeURIComponent(submissionId) + "/presentation", {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: body
+      });
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const payload = await response.json();
+          if (payload && payload.error) {
+            detail = payload.error;
+          }
+        } catch (e) {
+        }
+        throw new Error(errorLabels[detail] || "{i18n:events_cfp_presentation_error}");
+      }
+      return response.json();
+    }
+
     function renderMine(items, payload) {
       mineItems = Array.isArray(items) ? items : [];
       const parsedTotal = payload && Number.isFinite(Number(payload.total)) ? Number(payload.total) : mineItems.length;
+      const parsedOwnedTotal =
+        payload && Number.isFinite(Number(payload.owned_total))
+          ? Number(payload.owned_total)
+          : mineItems.filter((item) => !!item && !!item.can_edit).length;
       mineTotal = Math.max(0, parsedTotal);
+      mineOwnedTotal = Math.max(0, parsedOwnedTotal);
       mineHasMore = !!(payload && payload.has_more);
       mineList.innerHTML = "";
       if (mineItems.length === 0) {
@@ -1056,6 +1189,12 @@
         badge.className = "cfp-status-badge cfp-status-" + status;
         badge.textContent = statusLabel(status);
         head.appendChild(badge);
+        if (item.viewer_role === "panelist") {
+          const roleChip = document.createElement("span");
+          roleChip.className = "cfp-role-chip";
+          roleChip.textContent = labels.rolePanelist;
+          head.appendChild(roleChip);
+        }
         article.appendChild(head);
 
         if (item.summary) {
@@ -1079,14 +1218,175 @@
         meta.textContent = metaParts.join(" · ");
         article.appendChild(meta);
 
+        const isPanelFormat = String(item.format || "").toLowerCase() === "panel";
+        const canEdit = !!item.can_edit;
+        const canUploadPanelAsset = item.viewer_role === "panelist" || canEdit;
+
+        if (isPanelFormat) {
+          const panelBox = document.createElement("div");
+          panelBox.className = "cfp-panelists-box";
+          const panelTitle = document.createElement("h4");
+          panelTitle.textContent = labels.panelistsTitle;
+          panelBox.appendChild(panelTitle);
+
+          const panelDesc = document.createElement("p");
+          panelDesc.className = "form-hint";
+          panelDesc.textContent = labels.panelistsDesc;
+          panelBox.appendChild(panelDesc);
+
+          const panelStatus = document.createElement("p");
+          panelStatus.className = "cfp-panelists-status";
+          if (Array.isArray(item.panelists) && item.panelists.length > 0) {
+            const statuses = item.panelists.map((panelist) => {
+              const name = panelist && panelist.name ? panelist.name : labels.panelistsEmpty;
+              const statusLabelText =
+                panelist && panelist.status === "linked"
+                  ? labels.panelistsStatusLinked
+                  : labels.panelistsStatusPending;
+              return name + " (" + statusLabelText + ")";
+            });
+            panelStatus.textContent = statuses.join(" · ");
+          } else {
+            panelStatus.textContent = labels.panelistsEmpty;
+          }
+          panelBox.appendChild(panelStatus);
+
+          if (item.pending_panelists > 0) {
+            const warning = document.createElement("p");
+            warning.className = "cfp-panelists-warning";
+            warning.textContent = labels.panelistsPendingPrefix + " " + String(item.pending_panelists) + ".";
+            panelBox.appendChild(warning);
+          }
+          if (status === "accepted" && item.pending_panelists > 0) {
+            const acceptedHint = document.createElement("p");
+            acceptedHint.className = "form-hint";
+            acceptedHint.textContent = labels.panelistsAcceptedHint;
+            panelBox.appendChild(acceptedHint);
+          }
+
+          if (canEdit) {
+            const grid = document.createElement("div");
+            grid.className = "cfp-panelists-grid";
+            const maxRows = 4;
+            const current = Array.isArray(item.panelists) ? item.panelists.slice(0, maxRows) : [];
+            const inputs = [];
+            for (let idx = 0; idx < maxRows; idx += 1) {
+              const row = current[idx] || {};
+              const nameInput = document.createElement("input");
+              nameInput.className = "form-input";
+              nameInput.maxLength = 120;
+              nameInput.placeholder = labels.panelistsName + " #" + String(idx + 1);
+              nameInput.value = row.name || "";
+              const emailInput = document.createElement("input");
+              emailInput.className = "form-input";
+              emailInput.maxLength = 200;
+              emailInput.placeholder = labels.panelistsEmail + " #" + String(idx + 1);
+              emailInput.value = row.email || "";
+              grid.appendChild(nameInput);
+              grid.appendChild(emailInput);
+              inputs.push({ nameInput, emailInput });
+            }
+            panelBox.appendChild(grid);
+
+            const savePanelBtn = document.createElement("button");
+            savePanelBtn.type = "button";
+            savePanelBtn.className = "btn login-btn-nav";
+            savePanelBtn.style.marginTop = "0.6rem";
+            savePanelBtn.textContent = labels.panelistsSave;
+            savePanelBtn.addEventListener("click", async () => {
+              savePanelBtn.disabled = true;
+              savePanelBtn.textContent = labels.panelistsSaving;
+              try {
+                const panelistsPayload = inputs
+                  .map((row) => ({
+                    name: String(row.nameInput.value || "").trim(),
+                    email: String(row.emailInput.value || "").trim()
+                  }))
+                  .filter((row) => row.name || row.email);
+                await savePanelists(item.id, panelistsPayload, item.updated_at);
+                showFeedback(labels.panelistsSaved, false);
+                await loadMine();
+              } catch (error) {
+                showFeedback(error.message || "{i18n:events_cfp_panelists_error}", true);
+              } finally {
+                savePanelBtn.disabled = false;
+                savePanelBtn.textContent = labels.panelistsSave;
+              }
+            });
+            panelBox.appendChild(savePanelBtn);
+          }
+          article.appendChild(panelBox);
+        }
+
+        const presentationBox = document.createElement("div");
+        presentationBox.className = "cfp-presentation-box";
+        const presentationTitle = document.createElement("h4");
+        presentationTitle.textContent = labels.presentationTitle;
+        presentationBox.appendChild(presentationTitle);
+
+        const presentationMeta = document.createElement("p");
+        presentationMeta.className = "cfp-presentation-meta";
+        if (item.presentation_asset && item.presentation_asset.file_name) {
+          const uploadedAt = formatDate(item.presentation_asset.uploaded_at);
+          presentationMeta.textContent =
+            labels.presentationCurrent + ": " + item.presentation_asset.file_name
+            + (uploadedAt ? " · " + uploadedAt : "");
+        } else {
+          presentationMeta.textContent = labels.presentationCurrent + ": -";
+        }
+        presentationBox.appendChild(presentationMeta);
+
+        const uploadAllowed = status === "accepted" && (!isPanelFormat || canUploadPanelAsset);
+        if (!uploadAllowed) {
+          const hint = document.createElement("p");
+          hint.className = "form-hint";
+          hint.textContent = status === "accepted" ? labels.presentationPanelHint : labels.presentationRequiresAccepted;
+          presentationBox.appendChild(hint);
+        } else {
+          const uploadInput = document.createElement("input");
+          uploadInput.type = "file";
+          uploadInput.accept = "application/pdf,.pdf";
+          uploadInput.className = "form-input";
+          presentationBox.appendChild(uploadInput);
+
+          const uploadBtn = document.createElement("button");
+          uploadBtn.type = "button";
+          uploadBtn.className = "btn login-btn-nav";
+          uploadBtn.style.marginTop = "0.45rem";
+          uploadBtn.textContent = labels.presentationUpload;
+          uploadBtn.addEventListener("click", async () => {
+            const file = uploadInput.files && uploadInput.files[0] ? uploadInput.files[0] : null;
+            if (!file) {
+              showFeedback("{i18n:events_cfp_presentation_file_required}", true);
+              return;
+            }
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = labels.presentationUploading;
+            try {
+              await uploadPresentation(item.id, file, item.updated_at);
+              showFeedback(labels.presentationUploaded, false);
+              await loadMine();
+            } catch (error) {
+              showFeedback(error.message || "{i18n:events_cfp_presentation_error}", true);
+            } finally {
+              uploadBtn.disabled = false;
+              uploadBtn.textContent = labels.presentationUpload;
+            }
+          });
+          presentationBox.appendChild(uploadBtn);
+        }
+        article.appendChild(presentationBox);
+
         const actions = document.createElement("div");
         actions.className = "cfp-submission-actions";
-        const deleteBtn = document.createElement("button");
-        deleteBtn.type = "button";
-        deleteBtn.className = "btn login-btn-nav";
-        deleteBtn.textContent = "{i18n:events_cfp_delete}";
-        deleteBtn.addEventListener("click", () => deleteSubmission(item.id));
-        actions.appendChild(deleteBtn);
+        if (canEdit) {
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "btn login-btn-nav";
+          deleteBtn.textContent = "{i18n:events_cfp_delete}";
+          deleteBtn.addEventListener("click", () => deleteSubmission(item.id));
+          actions.appendChild(deleteBtn);
+        }
         article.appendChild(actions);
 
         mineList.appendChild(article);
@@ -1118,6 +1418,7 @@
         mineList.innerHTML = '<p class="form-hint">{i18n:events_cfp_error_load}</p>';
         mineItems = [];
         mineTotal = 0;
+        mineOwnedTotal = 0;
         mineHasMore = false;
         updateMinePaginationMeta();
         updateQuotaHint();
@@ -1151,7 +1452,7 @@
         return;
       }
 
-      if (mineItems.length >= proposalLimit) {
+      if (mineOwnedTotal >= proposalLimit) {
         showFeedback("{i18n:events_cfp_error_limit_reached}", true);
         updateQuotaHint();
         return;
