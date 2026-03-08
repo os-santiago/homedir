@@ -77,6 +77,11 @@
           <option value="open">{i18n:admin_insights_initiatives_state_open}</option>
           <option value="completed">{i18n:admin_insights_initiatives_state_completed}</option>
         </select>
+        <select id="insightsInitiativesSort" class="form-input insights-initiatives-sort" aria-label="{i18n:admin_insights_js_table_last_update}">
+          <option value="recent">{i18n:admin_insights_initiatives_sort_recent}</option>
+          <option value="oldest">{i18n:admin_insights_initiatives_sort_oldest}</option>
+          <option value="most_events">{i18n:admin_insights_initiatives_sort_most_events}</option>
+        </select>
         <p id="insightsInitiativesCount" class="form-hint insights-initiatives-count"></p>
       </div>
       <div id="insightsInitiatives" class="form-hint">{i18n:admin_insights_loading}</div>
@@ -183,6 +188,11 @@
     min-width: 160px;
   }
 
+  .insights-initiatives-sort {
+    flex: 0 0 190px;
+    min-width: 160px;
+  }
+
   .insights-initiatives-count {
     margin: 0;
     white-space: nowrap;
@@ -210,6 +220,7 @@
     const loadMoreBtn = document.getElementById('insightsLoadMoreBtn');
     const initiativesSearchEl = document.getElementById('insightsInitiativesSearch');
     const initiativesStateEl = document.getElementById('insightsInitiativesState');
+    const initiativesSortEl = document.getElementById('insightsInitiativesSort');
     const initiativesCountEl = document.getElementById('insightsInitiativesCount');
     const startForm = document.getElementById('insightsStartForm');
     const eventForm = document.getElementById('insightsEventForm');
@@ -222,6 +233,7 @@
     let initiativesCache = [];
     let initiativesQuery = '';
     let initiativesStateFilter = (initiativesStateEl ? initiativesStateEl.value : 'all');
+    let initiativesSort = (initiativesSortEl ? initiativesSortEl.value : 'recent');
 
     function showMessage(text, isError) {
       if (!messageEl) return;
@@ -332,11 +344,46 @@
       return true;
     }
 
+    function eventMillis(item) {
+      const value = item && item.lastEventAt ? Date.parse(String(item.lastEventAt)) : Number.NaN;
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function sortInitiatives(items) {
+      const rows = Array.isArray(items) ? items.slice() : [];
+      rows.sort((a, b) => {
+        if (initiativesSort === 'most_events') {
+          const eventsA = Number(a && a.totalEvents ? a.totalEvents : 0);
+          const eventsB = Number(b && b.totalEvents ? b.totalEvents : 0);
+          if (eventsA !== eventsB) {
+            return eventsB - eventsA;
+          }
+          return eventMillis(b) - eventMillis(a);
+        }
+        if (initiativesSort === 'oldest') {
+          const oldest = eventMillis(a) - eventMillis(b);
+          if (oldest !== 0) {
+            return oldest;
+          }
+        } else {
+          const recent = eventMillis(b) - eventMillis(a);
+          if (recent !== 0) {
+            return recent;
+          }
+        }
+        const idA = String(a && a.initiativeId ? a.initiativeId : '');
+        const idB = String(b && b.initiativeId ? b.initiativeId : '');
+        return idA.localeCompare(idB);
+      });
+      return rows;
+    }
+
     function filteredInitiatives(items) {
       if (!Array.isArray(items) || items.length === 0) {
         return [];
       }
-      return items.filter((item) => initiativeMatchesQuery(item, initiativesQuery) && initiativeMatchesStateFilter(item));
+      const filtered = items.filter((item) => initiativeMatchesQuery(item, initiativesQuery) && initiativeMatchesStateFilter(item));
+      return sortInitiatives(filtered);
     }
 
     function updateLoadMoreState() {
@@ -595,6 +642,12 @@
       renderCurrentInitiatives();
     }
 
+    function onSortChange(event) {
+      const value = event && event.target ? event.target.value : 'recent';
+      initiativesSort = value === 'oldest' || value === 'most_events' ? value : 'recent';
+      renderCurrentInitiatives();
+    }
+
     function onEventTypePresetClick(event) {
       const button = event && event.currentTarget ? event.currentTarget : null;
       if (!button || !eventTypeInput) return;
@@ -608,6 +661,7 @@
     loadMoreBtn?.addEventListener('click', () => loadMoreInitiatives().catch((error) => showMessage(error.message, true)));
     initiativesSearchEl?.addEventListener('input', onSearchInput);
     initiativesStateEl?.addEventListener('change', onStateFilterChange);
+    initiativesSortEl?.addEventListener('change', onSortChange);
     eventTypePresetButtons.forEach((button) => button.addEventListener('click', onEventTypePresetClick));
     startForm?.addEventListener('submit', onStartSubmit);
     eventForm?.addEventListener('submit', onEventSubmit);
