@@ -2,7 +2,12 @@ package com.scanales.eventflow.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.notifications.Notification;
+import com.scanales.eventflow.notifications.NotificationService;
+import com.scanales.eventflow.notifications.NotificationType;
 import com.scanales.eventflow.service.GamificationService;
+import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import com.scanales.eventflow.util.AdminUtils;
 import com.scanales.eventflow.util.PaginationGuardrails;
@@ -11,6 +16,7 @@ import com.scanales.eventflow.volunteers.VolunteerApplicationService;
 import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
 import com.scanales.eventflow.volunteers.VolunteerEventConfig;
 import com.scanales.eventflow.volunteers.VolunteerEventConfigService;
+import com.scanales.eventflow.volunteers.VolunteerInsightsService;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -33,6 +39,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Path("/api/events/{eventId}/volunteers/submissions")
 @Produces(MediaType.APPLICATION_JSON)
@@ -46,6 +53,9 @@ public class VolunteerSubmissionApiResource {
   @Inject VolunteerEventConfigService volunteerEventConfigService;
   @Inject UsageMetricsService metrics;
   @Inject GamificationService gamificationService;
+  @Inject EventService eventService;
+  @Inject NotificationService notificationService;
+  @Inject VolunteerInsightsService volunteerInsightsService;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -70,7 +80,9 @@ public class VolunteerSubmissionApiResource {
                   request != null ? request.joinReason() : null,
                   request != null ? request.differentiator() : null));
       metrics.recordFunnelStep("volunteer_submit");
+      metrics.recordFunnelStep("volunteer.submission.create");
       gamificationService.award(primaryUserId, GamificationActivity.VOLUNTEER_APPLY, eventId);
+      volunteerInsightsService.recordApplicationSubmitted(created);
       return Response.status(Response.Status.CREATED)
           .entity(new VolunteerSubmissionResponse(toView(created)))
           .build();
@@ -110,6 +122,7 @@ public class VolunteerSubmissionApiResource {
                   request != null ? request.aboutMe() : null,
                   request != null ? request.joinReason() : null,
                   request != null ? request.differentiator() : null));
+      volunteerInsightsService.recordApplicationUpdated(updated);
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException
         | VolunteerApplicationService.InvalidTransitionException e) {
@@ -132,7 +145,9 @@ public class VolunteerSubmissionApiResource {
     String primaryUserId = userIds.iterator().next();
     try {
       VolunteerApplication updated = volunteerApplicationService.withdrawMine(id, eventId, primaryUserId);
+      metrics.recordFunnelStep("volunteer.submission.withdraw");
       gamificationService.award(primaryUserId, GamificationActivity.VOLUNTEER_WITHDRAW, eventId);
+      volunteerInsightsService.recordApplicationWithdrawn(updated);
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException
         | VolunteerApplicationService.InvalidTransitionException e) {
@@ -310,6 +325,7 @@ public class VolunteerSubmissionApiResource {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
     }
     try {
+      Optional<VolunteerApplication> beforeUpdate = volunteerApplicationService.findById(id);
       VolunteerApplication updated =
           volunteerApplicationService.updateStatus(
               id,
@@ -322,11 +338,15 @@ public class VolunteerSubmissionApiResource {
             .entity(Map.of("error", "application_not_found"))
             .build();
       }
+      metrics.recordFunnelStep("volunteer.submission.status");
+      metrics.recordFunnelStep("volunteer.submission.status." + updated.status().apiValue());
       if (updated.status() == VolunteerApplicationStatus.SELECTED) {
         metrics.recordFunnelStep("volunteer_selected");
         gamificationService.award(
             updated.applicantUserId(), GamificationActivity.VOLUNTEER_SELECTED, updated.eventId());
       }
+      volunteerInsightsService.recordStatusChange(beforeUpdate.orElse(null), updated);
+      notifyApplicantStatusChange(beforeUpdate.orElse(null), updated);
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException
         | VolunteerApplicationService.InvalidTransitionException e) {
@@ -358,6 +378,7 @@ public class VolunteerSubmissionApiResource {
               request.differentiator(),
               currentModeratorName().orElse("admin"),
               request.expectedUpdatedAt());
+      volunteerInsightsService.recordRatingUpdated(updated);
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -505,6 +526,61 @@ public class VolunteerSubmissionApiResource {
 
   private static int normalizeLimit(Integer rawLimit) {
     return PaginationGuardrails.clampLimit(rawLimit, DEFAULT_LIMIT, MAX_LIMIT);
+  }
+
+  private void notifyApplicantStatusChange(VolunteerApplication before, VolunteerApplication after) {
+    if (after == null || after.status() == null) {
+      return;
+    }
+    VolunteerApplicationStatus previousStatus = before != null ? before.status() : null;
+    VolunteerApplicationStatus nextStatus = after.status();
+    if (previousStatus == nextStatus) {
+      return;
+    }
+    String targetUser = after.applicantUserId();
+    if (targetUser == null || targetUser.isBlank()) {
+      return;
+    }
+    Notification notification = new Notification();
+    notification.id = UUID.randomUUID().toString();
+    notification.userId = targetUser;
+    notification.eventId = after.eventId();
+    notification.type = NotificationType.SOCIAL;
+    notification.title = "Volunteer application update";
+    notification.message =
+        "Your volunteer application for "
+            + resolveEventTitle(after.eventId())
+            + " is now "
+            + humanStatus(nextStatus)
+            + ".";
+    long stamp = after.updatedAt() != null ? after.updatedAt().toEpochMilli() : System.currentTimeMillis();
+    notification.dedupeKey =
+        "volunteer-status:" + after.id() + ":" + nextStatus.apiValue() + ":" + stamp;
+    notificationService.enqueue(notification);
+  }
+
+  private String resolveEventTitle(String eventId) {
+    Event event = eventService != null ? eventService.getEvent(eventId) : null;
+    if (event != null && event.getTitle() != null && !event.getTitle().isBlank()) {
+      return event.getTitle().trim();
+    }
+    if (eventId == null || eventId.isBlank()) {
+      return "this event";
+    }
+    return eventId;
+  }
+
+  private static String humanStatus(VolunteerApplicationStatus status) {
+    if (status == null) {
+      return "updated";
+    }
+    return switch (status) {
+      case APPLIED -> "applied";
+      case UNDER_REVIEW -> "under review";
+      case SELECTED -> "selected";
+      case NOT_SELECTED -> "not selected";
+      case WITHDRAWN -> "withdrawn";
+    };
   }
 
   public record CreateVolunteerRequest(

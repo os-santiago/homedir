@@ -11,6 +11,7 @@ import com.scanales.eventflow.volunteers.VolunteerApplicationService;
 import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
 import com.scanales.eventflow.volunteers.VolunteerLoungeMessage;
 import com.scanales.eventflow.volunteers.VolunteerLoungeService;
+import com.scanales.eventflow.volunteers.VolunteerInsightsService;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -45,6 +46,7 @@ public class VolunteerLoungeApiResource {
   @Inject SecurityIdentity identity;
   @Inject UsageMetricsService metrics;
   @Inject GamificationService gamificationService;
+  @Inject VolunteerInsightsService volunteerInsightsService;
 
   @GET
   public Response list(
@@ -98,6 +100,7 @@ public class VolunteerLoungeApiResource {
       metrics.recordFunnelStep("volunteer.lounge.post");
       metrics.recordFunnelStep("volunteer_lounge_post");
       gamificationService.award(primaryUserId, GamificationActivity.VOLUNTEER_LOUNGE_POST, eventId);
+      volunteerInsightsService.recordLoungePost(created);
       return Response.status(Response.Status.CREATED)
           .entity(new VolunteerLoungeMutationResponse(toItem(created)))
           .build();

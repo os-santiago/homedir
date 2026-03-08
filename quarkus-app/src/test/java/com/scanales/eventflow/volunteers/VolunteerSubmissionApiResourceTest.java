@@ -4,8 +4,12 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.scanales.eventflow.insights.DevelopmentInsightsLedgerService;
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.notifications.NotificationService;
 import com.scanales.eventflow.service.EventService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -22,12 +26,15 @@ class VolunteerSubmissionApiResourceTest {
   @Inject VolunteerApplicationService volunteerApplicationService;
   @Inject VolunteerEventConfigService volunteerEventConfigService;
   @Inject EventService eventService;
+  @Inject NotificationService notificationService;
+  @Inject DevelopmentInsightsLedgerService insightsLedger;
 
   @BeforeEach
   void setup() {
     volunteerApplicationService.clearAllForTests();
     volunteerEventConfigService.resetForTests();
     eventService.reset();
+    notificationService.reset();
     eventService.saveEvent(new Event(EVENT_ID, "Volunteer API Event", "desc"));
   }
 
@@ -326,5 +333,44 @@ class VolunteerSubmissionApiResourceTest {
         .then()
         .statusCode(409)
         .body("error", equalTo("submissions_closed"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void statusUpdateNotifiesApplicantAndTracksMetricsAndInsights() {
+    VolunteerApplication created =
+        volunteerApplicationService.create(
+            "member@example.com",
+            "Member",
+            new VolunteerApplicationService.CreateRequest(
+                EVENT_ID,
+                "About me",
+                "Join reason",
+                "Differentiator"));
+    long eventsBefore = insightsLedger.status().storedEvents();
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "status":"selected",
+              "note":"Welcome to the volunteer squad",
+              "expected_updated_at":"%s"
+            }
+            """
+                .formatted(created.updatedAt().toString()))
+        .when()
+        .put("/api/events/" + EVENT_ID + "/volunteers/submissions/" + created.id() + "/status")
+        .then()
+        .statusCode(200)
+        .body("item.status", equalTo("selected"));
+
+    var notifications = notificationService.listForUser("member@example.com", 10, false);
+    assertEquals(1, notifications.size());
+    assertEquals("Volunteer application update", notifications.get(0).title);
+    assertTrue(notifications.get(0).message != null && notifications.get(0).message.contains("selected"));
+
+    assertTrue(insightsLedger.status().storedEvents() > eventsBefore);
   }
 }

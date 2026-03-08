@@ -4,9 +4,12 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.scanales.eventflow.insights.DevelopmentInsightsLedgerService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
+import com.scanales.eventflow.service.UsageMetricsService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -22,6 +25,8 @@ class VolunteerLoungeApiResourceTest {
   @Inject VolunteerLoungeService volunteerLoungeService;
   @Inject VolunteerEventConfigService volunteerEventConfigService;
   @Inject EventService eventService;
+  @Inject UsageMetricsService usageMetricsService;
+  @Inject DevelopmentInsightsLedgerService insightsLedger;
 
   @BeforeEach
   void setup() {
@@ -29,6 +34,7 @@ class VolunteerLoungeApiResourceTest {
     volunteerLoungeService.clearAllForTests();
     volunteerEventConfigService.resetForTests();
     eventService.reset();
+    usageMetricsService.reset();
     eventService.saveEvent(new Event(EVENT_ID, "Volunteer Lounge Event", "desc"));
   }
 
@@ -46,6 +52,7 @@ class VolunteerLoungeApiResourceTest {
         "admin@example.org",
         "selected",
         created.updatedAt());
+    long insightsEventsBefore = insightsLedger.status().storedEvents();
 
     given()
         .contentType("application/json")
@@ -72,6 +79,10 @@ class VolunteerLoungeApiResourceTest {
         .body("total", equalTo(1))
         .body("items", hasSize(1))
         .body("items[0].body", equalTo("Setup complete for registration desk."));
+
+    assertTrue(usageMetricsService.snapshot().getOrDefault("funnel:volunteer_lounge_post", 0L) >= 1L);
+    assertTrue(usageMetricsService.snapshot().getOrDefault("funnel:volunteer.lounge.post", 0L) >= 1L);
+    assertTrue(insightsLedger.status().storedEvents() > insightsEventsBefore);
   }
 
   @Test
