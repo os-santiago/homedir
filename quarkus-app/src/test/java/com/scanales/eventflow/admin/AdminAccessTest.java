@@ -36,6 +36,8 @@ public class AdminAccessTest {
         .get("/private/admin/insights")
         .then()
         .statusCode(200)
+        .body(containsString("id=\"insightsEventTypeList\""))
+        .body(containsString("class=\"btn btn-ghost insights-event-preset\""))
         .body(containsString("id=\"insightsInitiativesSearch\""))
         .body(containsString("id=\"insightsInitiativesCount\""));
   }

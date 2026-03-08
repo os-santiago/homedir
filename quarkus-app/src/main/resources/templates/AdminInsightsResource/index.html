@@ -40,7 +40,23 @@
       <h2 class="card-title">{i18n:admin_insights_append_event_title}</h2>
       <form id="insightsEventForm" class="form-group" style="display:grid; gap:0.6rem;">
         <input id="eventInitiativeId" class="form-input" placeholder="{i18n:admin_insights_event_initiative_placeholder}" maxlength="120" required />
-        <input id="eventType" class="form-input" placeholder="{i18n:admin_insights_event_type_placeholder}" maxlength="64" required />
+        <input id="eventType" class="form-input" placeholder="{i18n:admin_insights_event_type_placeholder}" maxlength="64" required list="insightsEventTypeList" />
+        <datalist id="insightsEventTypeList">
+          <option value="INITIATIVE_STARTED"></option>
+          <option value="PR_OPENED"></option>
+          <option value="PR_VALIDATION_PASSED"></option>
+          <option value="PR_VALIDATION_FAILED"></option>
+          <option value="PR_MERGED"></option>
+          <option value="PRODUCTION_VERIFIED"></option>
+          <option value="PRODUCTION_RELEASE_FAILED"></option>
+        </datalist>
+        <div class="insights-event-presets" aria-label="{i18n:admin_insights_event_type_placeholder}">
+          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PR_OPENED">PR_OPENED</button>
+          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PR_MERGED">PR_MERGED</button>
+          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PR_VALIDATION_PASSED">PR_VALIDATION_PASSED</button>
+          <button type="button" class="btn btn-ghost insights-event-preset" data-event-type="PRODUCTION_VERIFIED">PRODUCTION_VERIFIED</button>
+        </div>
+        <p class="form-hint" style="margin:0;">{i18n:admin_insights_event_type_hint}</p>
         <input id="eventPr" class="form-input" placeholder="{i18n:admin_insights_event_pr_placeholder}" maxlength="64" />
         <input id="eventSha" class="form-input" placeholder="{i18n:admin_insights_event_sha_placeholder}" maxlength="120" />
         <button type="submit" class="btn btn-primary">{i18n:admin_insights_append}</button>
@@ -132,6 +148,7 @@
      data-could-not-start="{i18n:admin_insights_js_could_not_start}"
      data-appended="{i18n:admin_insights_js_appended}"
      data-could-not-append="{i18n:admin_insights_js_could_not_append}"
+     data-event-type-invalid="{i18n:admin_insights_js_event_type_invalid}"
      data-shown-label="{i18n:admin_insights_js_shown_label}"
      data-total-label="{i18n:admin_insights_js_total_label}"
      data-no-filtered-initiatives="{i18n:admin_insights_js_no_filtered_initiatives}"
@@ -160,6 +177,17 @@
     margin: 0;
     white-space: nowrap;
   }
+
+  .insights-event-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .insights-event-preset {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.55rem;
+  }
 </style>
 
 <script>
@@ -174,6 +202,8 @@
     const initiativesCountEl = document.getElementById('insightsInitiativesCount');
     const startForm = document.getElementById('insightsStartForm');
     const eventForm = document.getElementById('insightsEventForm');
+    const eventTypeInput = document.getElementById('eventType');
+    const eventTypePresetButtons = Array.from(document.querySelectorAll('.insights-event-preset'));
     const i18nEl = document.getElementById('insightsI18n');
     const i18n = i18nEl ? i18nEl.dataset : {};
     let initiativesOffset = 0;
@@ -244,6 +274,19 @@
 
     function normalizeText(value) {
       return String(value || '').trim().toLowerCase();
+    }
+
+    function normalizeEventType(value) {
+      return String(value || '')
+        .trim()
+        .toUpperCase()
+        .replace(/[\s\-]+/g, '_')
+        .replace(/[^A-Z0-9_]/g, '');
+    }
+
+    function isValidEventType(value) {
+      const text = String(value || '');
+      return text.length >= 2 && text.length <= 64 && /^[A-Z0-9_]+$/.test(text);
     }
 
     function initiativeMatchesQuery(item, query) {
@@ -482,9 +525,18 @@
       const sha = document.getElementById('eventSha').value.trim();
       if (pr) metadata.pr = pr;
       if (sha) metadata.sha = sha;
+      const normalizedType = normalizeEventType(eventTypeInput ? eventTypeInput.value : '');
+      if (!isValidEventType(normalizedType)) {
+        showMessage(i18n.eventTypeInvalid || i18n.couldNotAppend, true);
+        eventTypeInput?.focus();
+        return;
+      }
+      if (eventTypeInput) {
+        eventTypeInput.value = normalizedType;
+      }
       const payload = {
         initiativeId: document.getElementById('eventInitiativeId').value,
-        type: document.getElementById('eventType').value,
+        type: normalizedType,
         metadata
       };
       try {
@@ -506,9 +558,19 @@
       renderCurrentInitiatives();
     }
 
+    function onEventTypePresetClick(event) {
+      const button = event && event.currentTarget ? event.currentTarget : null;
+      if (!button || !eventTypeInput) return;
+      const preset = normalizeEventType(button.getAttribute('data-event-type'));
+      if (!isValidEventType(preset)) return;
+      eventTypeInput.value = preset;
+      eventTypeInput.focus();
+    }
+
     refreshBtn?.addEventListener('click', () => refresh().catch((error) => showMessage(error.message, true)));
     loadMoreBtn?.addEventListener('click', () => loadMoreInitiatives().catch((error) => showMessage(error.message, true)));
     initiativesSearchEl?.addEventListener('input', onSearchInput);
+    eventTypePresetButtons.forEach((button) => button.addEventListener('click', onEventTypePresetClick));
     startForm?.addEventListener('submit', onStartSubmit);
     eventForm?.addEventListener('submit', onEventSubmit);
     refresh().catch((error) => showMessage(error.message, true));
