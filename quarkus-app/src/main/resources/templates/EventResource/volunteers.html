@@ -1,0 +1,493 @@
+{#include layout/main activePage="eventos"}
+{@java.lang.Boolean userAuthenticated}
+{@java.lang.String userName}
+{#title}
+{#if event}
+{i18n:events_volunteers_page_title(event.title)}
+{#else}
+{i18n:events_volunteers_not_found_title}
+{/if}
+{/title}
+{#head}
+{#if event}
+<style>
+  body.homedir-body {
+    --event-theme-primary: {event.resolvedThemePrimaryColor};
+    --event-theme-accent: {event.resolvedThemeAccentColor};
+    --event-theme-surface: {event.resolvedThemeSurfaceColor};
+    --event-theme-text: {event.resolvedThemeTextColor};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body::before {
+    display: none !important;
+  }
+
+  .app-container {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body .top-nav,
+  body.homedir-body .hd-top-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+  }
+
+  body.homedir-body .alpha-banner {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-top-color: var(--event-theme-primary) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+    color: var(--event-theme-text) !important;
+  }
+
+  body.homedir-body .nav-link,
+  body.homedir-body .login-btn-nav,
+  body.homedir-body .header-locale-select {
+    color: var(--event-theme-text) !important;
+    border-color: var(--event-theme-accent) !important;
+  }
+
+  main#main-content.homedir-main {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+    color: var(--event-theme-text);
+  }
+
+  .volunteer-page-shell .section-card,
+  .volunteer-page-shell .volunteer-status-card,
+  .volunteer-page-shell .volunteer-application-item {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .volunteer-page-shell .btn,
+  .volunteer-page-shell .login-btn-nav,
+  .volunteer-page-shell .btn-secondary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
+    border-color: var(--event-theme-accent);
+    color: var(--event-theme-text);
+  }
+
+  .volunteer-page-shell .btn-primary {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
+    border-color: var(--event-theme-primary);
+    color: var(--event-theme-text);
+  }
+
+  .volunteer-page-shell .hd-link {
+    color: var(--event-theme-accent);
+  }
+
+  .volunteer-page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+
+  .volunteer-status-card {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .volunteer-status-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.14rem 0.55rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .volunteer-status-chip--applied {
+    border-color: rgba(255, 215, 0, 0.7);
+    background: rgba(255, 215, 0, 0.14);
+  }
+
+  .volunteer-status-chip--under_review {
+    border-color: rgba(120, 185, 255, 0.7);
+    background: rgba(120, 185, 255, 0.14);
+  }
+
+  .volunteer-status-chip--selected {
+    border-color: rgba(114, 255, 159, 0.7);
+    background: rgba(114, 255, 159, 0.14);
+  }
+
+  .volunteer-status-chip--not_selected,
+  .volunteer-status-chip--withdrawn {
+    border-color: rgba(255, 126, 126, 0.75);
+    background: rgba(255, 126, 126, 0.14);
+  }
+
+  .volunteer-feedback {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-weight: 700;
+    line-height: 1.35;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .volunteer-feedback.is-error {
+    border-color: rgba(255, 126, 126, 0.85);
+    background: rgba(255, 96, 96, 0.2);
+    color: #ffe7e7;
+  }
+
+  .volunteer-feedback.is-success {
+    border-color: rgba(114, 255, 159, 0.8);
+    background: rgba(114, 255, 159, 0.18);
+    color: #e9fff1;
+  }
+
+  .volunteer-form-actions {
+    margin-top: 0.9rem;
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  .volunteer-application-item {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .volunteer-application-item p {
+    margin: 0;
+  }
+
+  @media (max-width: 720px) {
+    .volunteer-page-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{/if}
+{/head}
+
+{#body}
+{#if event}
+<section class="volunteer-page-shell">
+<header class="page-header">
+  <div class="section-header">
+    <p class="section-subtitle">
+      <a href="/event/{event.id}" class="hd-link">← {i18n:events_volunteers_back_to_event}</a>
+    </p>
+    <p class="section-subtitle">{i18n:events_volunteers_eyebrow}</p>
+    <h1 class="public-title">{event.title} · {i18n:events_volunteers_heading}</h1>
+    <p class="section-subtitle">{i18n:events_volunteers_intro(event.title)}</p>
+  </div>
+</header>
+
+<div class="volunteer-page-grid">
+  <article class="section-card">
+    <h2 style="margin-top: 0;">{i18n:events_volunteers_apply_title}</h2>
+    <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n:events_volunteers_apply_desc}</p>
+
+    {#if userAuthenticated}
+    <form id="volunteerForm">
+      <div class="form-group" style="margin-bottom: 0.75rem;">
+        <label class="form-label" for="volunteerAboutMe">{i18n:events_volunteers_form_about_me}</label>
+        <textarea id="volunteerAboutMe" name="aboutMe" class="form-textarea" rows="4" maxlength="1500" required></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom: 0.75rem;">
+        <label class="form-label" for="volunteerJoinReason">{i18n:events_volunteers_form_join_reason}</label>
+        <textarea id="volunteerJoinReason" name="joinReason" class="form-textarea" rows="4" maxlength="1500" required></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom: 0.75rem;">
+        <label class="form-label" for="volunteerDifferentiator">{i18n:events_volunteers_form_differentiator}</label>
+        <textarea id="volunteerDifferentiator" name="differentiator" class="form-textarea" rows="3" maxlength="500"></textarea>
+      </div>
+      <div class="volunteer-form-actions">
+        <button id="volunteerSubmitBtn" type="button" class="btn btn-primary">{i18n:events_volunteers_form_submit}</button>
+        <button id="volunteerWithdrawBtn" type="button" class="btn login-btn-nav" hidden>{i18n:events_volunteers_form_withdraw}</button>
+      </div>
+    </form>
+    <p id="volunteerFeedback" class="volunteer-feedback" hidden></p>
+    {#else}
+    <p class="section-subtitle">{i18n:events_volunteers_login_required}</p>
+    <a href="/private/login-callback?redirect=/event/{event.id}/volunteers" class="btn-primary" data-login-return-current="true">{i18n:events_volunteers_login_btn}</a>
+    {/if}
+  </article>
+
+  <article class="section-card">
+    <h2 style="margin-top: 0;">{i18n:events_volunteers_my_application_title}</h2>
+    <div id="volunteerConfigInfo" class="volunteer-status-card">
+      <strong>{i18n:events_volunteers_window_title}</strong>
+      <p id="volunteerWindowMessage" class="form-hint" style="margin: 0;">{i18n:events_volunteers_loading}</p>
+    </div>
+    <div id="volunteerMineInfo" style="margin-top: 0.8rem;">
+      <p class="form-hint">{#if userAuthenticated}{i18n:events_volunteers_loading}{#else}{i18n:events_volunteers_login_to_view}{/if}</p>
+    </div>
+  </article>
+</div>
+</section>
+
+<script>
+  (() => {
+    const eventId = "{event.id}";
+    const isAuthenticated = {#if userAuthenticated}true{#else}false{/if};
+    const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/volunteers/submissions";
+    const form = document.getElementById("volunteerForm");
+    const aboutInput = document.getElementById("volunteerAboutMe");
+    const joinInput = document.getElementById("volunteerJoinReason");
+    const differentiatorInput = document.getElementById("volunteerDifferentiator");
+    const submitBtn = document.getElementById("volunteerSubmitBtn");
+    const withdrawBtn = document.getElementById("volunteerWithdrawBtn");
+    const feedbackEl = document.getElementById("volunteerFeedback");
+    const configMessageEl = document.getElementById("volunteerWindowMessage");
+    const mineInfoEl = document.getElementById("volunteerMineInfo");
+
+    const i18n = {
+      loading: "{i18n:events_volunteers_loading}",
+      emptyMine: "{i18n:events_volunteers_empty_mine}",
+      statusApplied: "{i18n:events_volunteers_status_applied}",
+      statusUnderReview: "{i18n:events_volunteers_status_under_review}",
+      statusSelected: "{i18n:events_volunteers_status_selected}",
+      statusNotSelected: "{i18n:events_volunteers_status_not_selected}",
+      statusWithdrawn: "{i18n:events_volunteers_status_withdrawn}",
+      descApplied: "{i18n:events_volunteers_status_desc_applied}",
+      descUnderReview: "{i18n:events_volunteers_status_desc_under_review}",
+      descSelected: "{i18n:events_volunteers_status_desc_selected}",
+      descNotSelected: "{i18n:events_volunteers_status_desc_not_selected}",
+      descWithdrawn: "{i18n:events_volunteers_status_desc_withdrawn}",
+      submit: "{i18n:events_volunteers_form_submit}",
+      update: "{i18n:events_volunteers_form_update}",
+      successApply: "{i18n:events_volunteers_success_apply}",
+      successUpdate: "{i18n:events_volunteers_success_update}",
+      successWithdraw: "{i18n:events_volunteers_success_withdraw}",
+      errorLoad: "{i18n:events_volunteers_error_load}",
+      errorSubmit: "{i18n:events_volunteers_error_submit}",
+      errorUpdate: "{i18n:events_volunteers_error_update}",
+      errorWithdraw: "{i18n:events_volunteers_error_withdraw}",
+      errorAlreadyApplied: "{i18n:events_volunteers_error_already_applied}",
+      errorWindowClosed: "{i18n:events_volunteers_error_window_closed}",
+      windowOpen: "{i18n:events_volunteers_window_open}",
+      windowClosed: "{i18n:events_volunteers_window_closed}",
+      windowSchedule: "{i18n:events_volunteers_window_schedule}",
+      appliedAt: "{i18n:events_volunteers_applied_at}",
+      updatedAt: "{i18n:events_volunteers_updated_at}",
+      moderationNote: "{i18n:events_volunteers_moderation_note}"
+    };
+
+    let currentMine = null;
+
+    function formatDate(value) {
+      if (!value) return "-";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return d.toLocaleString();
+    }
+
+    function statusLabel(status) {
+      switch ((status || "").toLowerCase()) {
+        case "under_review": return i18n.statusUnderReview;
+        case "selected": return i18n.statusSelected;
+        case "not_selected": return i18n.statusNotSelected;
+        case "withdrawn": return i18n.statusWithdrawn;
+        case "applied":
+        default: return i18n.statusApplied;
+      }
+    }
+
+    function statusDescription(status) {
+      switch ((status || "").toLowerCase()) {
+        case "under_review": return i18n.descUnderReview;
+        case "selected": return i18n.descSelected;
+        case "not_selected": return i18n.descNotSelected;
+        case "withdrawn": return i18n.descWithdrawn;
+        case "applied":
+        default: return i18n.descApplied;
+      }
+    }
+
+    function setFeedback(message, kind) {
+      if (!feedbackEl) return;
+      if (!message) {
+        feedbackEl.hidden = true;
+        feedbackEl.textContent = "";
+        feedbackEl.classList.remove("is-error", "is-success");
+        return;
+      }
+      feedbackEl.hidden = false;
+      feedbackEl.textContent = message;
+      feedbackEl.classList.remove("is-error", "is-success");
+      feedbackEl.classList.add(kind === "success" ? "is-success" : "is-error");
+    }
+
+    function setButtonsState(busy) {
+      if (submitBtn) submitBtn.disabled = busy;
+      if (withdrawBtn) withdrawBtn.disabled = busy;
+    }
+
+    async function loadConfig() {
+      if (!configMessageEl) return;
+      configMessageEl.textContent = i18n.loading;
+      try {
+        const res = await fetch(baseEndpoint + "/config", { headers: { "Accept": "application/json" } });
+        if (!res.ok) throw new Error("config_error");
+        const data = await res.json();
+        const open = !!data.currently_open;
+        const opensAt = data.opens_at ? formatDate(data.opens_at) : "-";
+        const closesAt = data.closes_at ? formatDate(data.closes_at) : "-";
+        configMessageEl.textContent = (open ? i18n.windowOpen : i18n.windowClosed) + " · " + i18n.windowSchedule + ": " + opensAt + " → " + closesAt;
+      } catch (error) {
+        configMessageEl.textContent = i18n.errorLoad;
+      }
+    }
+
+    function renderMine(item) {
+      if (!mineInfoEl) return;
+      if (!item) {
+        mineInfoEl.innerHTML = '<p class=\"form-hint\">' + i18n.emptyMine + '</p>';
+        if (submitBtn) submitBtn.textContent = i18n.submit;
+        if (withdrawBtn) withdrawBtn.hidden = true;
+        currentMine = null;
+        return;
+      }
+
+      currentMine = item;
+      if (aboutInput) aboutInput.value = item.about_me || "";
+      if (joinInput) joinInput.value = item.join_reason || "";
+      if (differentiatorInput) differentiatorInput.value = item.differentiator || "";
+
+      const status = (item.status || "applied").toLowerCase();
+      const immutable = status === "selected" || status === "not_selected";
+      if (aboutInput) aboutInput.disabled = immutable;
+      if (joinInput) joinInput.disabled = immutable;
+      if (differentiatorInput) differentiatorInput.disabled = immutable;
+      if (submitBtn) {
+        submitBtn.textContent = immutable ? statusLabel(status) : i18n.update;
+        submitBtn.disabled = immutable;
+      }
+      if (withdrawBtn) {
+        withdrawBtn.hidden = immutable || status === "withdrawn";
+      }
+
+      const noteBlock = item.moderation_note
+        ? '<p><strong>' + i18n.moderationNote + ':</strong> ' + item.moderation_note + '</p>'
+        : '';
+      mineInfoEl.innerHTML =
+        '<div class=\"volunteer-application-item\">'
+        + '<div><span class=\"volunteer-status-chip volunteer-status-chip--' + status + '\">' + statusLabel(status) + '</span></div>'
+        + '<p>' + statusDescription(status) + '</p>'
+        + '<p><strong>' + i18n.appliedAt + ':</strong> ' + formatDate(item.created_at) + '</p>'
+        + '<p><strong>' + i18n.updatedAt + ':</strong> ' + formatDate(item.updated_at) + '</p>'
+        + noteBlock
+        + '</div>';
+    }
+
+    async function loadMine() {
+      if (!isAuthenticated || !mineInfoEl) return;
+      mineInfoEl.innerHTML = '<p class=\"form-hint\">' + i18n.loading + '</p>';
+      try {
+        const res = await fetch(baseEndpoint + "/mine", { headers: { "Accept": "application/json" } });
+        if (!res.ok) throw new Error("mine_error");
+        const data = await res.json();
+        const item = Array.isArray(data.items) && data.items.length > 0 ? data.items[0] : null;
+        renderMine(item);
+      } catch (error) {
+        mineInfoEl.innerHTML = '<p class=\"form-hint\">' + i18n.errorLoad + '</p>';
+      }
+    }
+
+    async function submitApplication() {
+      if (!isAuthenticated || !form || !submitBtn) return;
+      const payload = {
+        about_me: aboutInput ? aboutInput.value : "",
+        join_reason: joinInput ? joinInput.value : "",
+        differentiator: differentiatorInput ? differentiatorInput.value : ""
+      };
+      setButtonsState(true);
+      setFeedback(null);
+      try {
+        let res;
+        if (currentMine && currentMine.id) {
+          res = await fetch(baseEndpoint + "/" + encodeURIComponent(currentMine.id), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error("update_error");
+          setFeedback(i18n.successUpdate, "success");
+        } else {
+          res = await fetch(baseEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            const code = (err && err.error) ? String(err.error) : "";
+            if (code === "already_applied") throw new Error("already_applied");
+            if (code === "submissions_closed") throw new Error("submissions_closed");
+            throw new Error("submit_error");
+          }
+          setFeedback(i18n.successApply, "success");
+        }
+        await loadMine();
+      } catch (error) {
+        if (error.message === "already_applied") {
+          setFeedback(i18n.errorAlreadyApplied, "error");
+        } else if (error.message === "submissions_closed") {
+          setFeedback(i18n.errorWindowClosed, "error");
+        } else {
+          setFeedback(currentMine ? i18n.errorUpdate : i18n.errorSubmit, "error");
+        }
+      } finally {
+        setButtonsState(false);
+      }
+    }
+
+    async function withdrawApplication() {
+      if (!isAuthenticated || !currentMine || !currentMine.id) return;
+      setButtonsState(true);
+      setFeedback(null);
+      try {
+        const res = await fetch(baseEndpoint + "/" + encodeURIComponent(currentMine.id) + "/withdraw", {
+          method: "POST",
+          headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("withdraw_error");
+        setFeedback(i18n.successWithdraw, "success");
+        await loadMine();
+      } catch (error) {
+        setFeedback(i18n.errorWithdraw, "error");
+      } finally {
+        setButtonsState(false);
+      }
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener("click", submitApplication);
+    }
+    if (withdrawBtn) {
+      withdrawBtn.addEventListener("click", withdrawApplication);
+    }
+
+    loadConfig();
+    loadMine();
+  })();
+</script>
+{#else}
+<div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+  <div class="section-card" style="text-align: center;">
+    <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">group_off</span>
+    <h2>{i18n:events_volunteers_not_found_title}</h2>
+    <p>{i18n:events_volunteers_not_found_desc}</p>
+    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">{i18n:events_detail_not_found_cta}</a>
+  </div>
+</div>
+{/if}
+{/body}
+{/include}

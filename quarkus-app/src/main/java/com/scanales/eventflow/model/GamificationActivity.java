@@ -38,6 +38,7 @@ public enum GamificationActivity {
       "Events exploration mission"),
   EVENT_DIRECTORY_VIEW("event_directory_view", 4, QuestClass.ENGINEER, true, false, "Events directory exploration"),
   EVENT_VIEW("event_view", 3, QuestClass.ENGINEER, true, false, "Event exploration"),
+  VOLUNTEER_VIEW("volunteer_view", 4, QuestClass.WARRIOR, true, false, "Volunteer hub exploration"),
   PROJECT_VIEW("project_view", 3, QuestClass.ENGINEER, true, false, "Project exploration"),
   BOARD_PROFILE_OPEN("board_profile_open", 4, QuestClass.SCIENTIST, true, false, "Community board profile open"),
   NOTIFICATIONS_CENTER_VIEW(

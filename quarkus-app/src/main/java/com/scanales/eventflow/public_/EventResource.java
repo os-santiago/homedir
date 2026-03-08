@@ -39,6 +39,8 @@ public class EventResource {
         CfpFormCatalog cfpCatalog,
         Map<String, Integer> cfpDurationByFormat,
         CfpTimelineView cfpTimeline);
+
+    static native TemplateInstance volunteers(Event event);
   }
 
   @Inject EventService eventService;
@@ -122,6 +124,21 @@ public class EventResource {
             "eventos",
             localeCookie)
         .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
+  }
+
+  @GET
+  @Path("{id}/volunteers")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance volunteers(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/event/volunteers", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id));
+    Event event = eventService.getEvent(id);
+    return withLayoutData(Templates.volunteers(event), "eventos", localeCookie);
   }
 
   private TemplateInstance withLayoutData(
