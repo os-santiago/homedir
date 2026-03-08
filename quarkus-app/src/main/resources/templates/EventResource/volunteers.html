@@ -1,6 +1,8 @@
 {#include layout/main activePage="eventos"}
 {@java.lang.Boolean userAuthenticated}
 {@java.lang.String userName}
+{@java.lang.Boolean volunteerSelected}
+{@java.lang.String resolvedLocaleCode}
 {#title}
 {#if event}
 {i18n:events_volunteers_page_title(event.title)}
@@ -166,54 +168,6 @@
     margin: 0;
   }
 
-  .volunteer-lounge-list {
-    display: grid;
-    gap: 0.65rem;
-    margin-top: 0.8rem;
-  }
-
-  .volunteer-lounge-message {
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: var(--radius-sm);
-    padding: 0.7rem;
-    background: rgba(255, 255, 255, 0.04);
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  .volunteer-lounge-message p {
-    margin: 0;
-  }
-
-  .volunteer-lounge-meta {
-    font-size: 0.78rem;
-    opacity: 0.82;
-    display: flex;
-    justify-content: space-between;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-  }
-
-  .volunteer-lounge-actions {
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  .volunteer-lounge-replying {
-    margin-top: 0.6rem;
-    padding: 0.55rem 0.7rem;
-    border: 1px solid rgba(120, 185, 255, 0.55);
-    border-radius: var(--radius-sm);
-    background: rgba(120, 185, 255, 0.12);
-    font-size: 0.8rem;
-  }
-
-  .volunteer-lounge-reply {
-    margin-left: 1rem;
-    border-left: 2px solid rgba(120, 185, 255, 0.45);
-    padding-left: 0.75rem;
-  }
-
   @media (max-width: 720px) {
     .volunteer-page-grid {
       grid-template-columns: 1fr;
@@ -243,24 +197,33 @@
     <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n:events_volunteers_apply_desc}</p>
 
     {#if userAuthenticated}
-    <form id="volunteerForm">
-      <div class="form-group" style="margin-bottom: 0.75rem;">
-        <label class="form-label" for="volunteerAboutMe">{i18n:events_volunteers_form_about_me}</label>
-        <textarea id="volunteerAboutMe" name="aboutMe" class="form-textarea" rows="4" maxlength="1500" required></textarea>
-      </div>
-      <div class="form-group" style="margin-bottom: 0.75rem;">
-        <label class="form-label" for="volunteerJoinReason">{i18n:events_volunteers_form_join_reason}</label>
-        <textarea id="volunteerJoinReason" name="joinReason" class="form-textarea" rows="4" maxlength="1500" required></textarea>
-      </div>
-      <div class="form-group" style="margin-bottom: 0.75rem;">
-        <label class="form-label" for="volunteerDifferentiator">{i18n:events_volunteers_form_differentiator}</label>
-        <textarea id="volunteerDifferentiator" name="differentiator" class="form-textarea" rows="3" maxlength="500"></textarea>
-      </div>
-      <div class="volunteer-form-actions">
-        <button id="volunteerSubmitBtn" type="button" class="btn btn-primary">{i18n:events_volunteers_form_submit}</button>
-        <button id="volunteerWithdrawBtn" type="button" class="btn login-btn-nav" hidden>{i18n:events_volunteers_form_withdraw}</button>
-      </div>
-    </form>
+    <div id="volunteerApplyContent" {#if volunteerSelected}hidden{/if}>
+      <form id="volunteerForm">
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" for="volunteerAboutMe">{i18n:events_volunteers_form_about_me}</label>
+          <textarea id="volunteerAboutMe" name="aboutMe" class="form-textarea" rows="4" maxlength="1500" required></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" for="volunteerJoinReason">{i18n:events_volunteers_form_join_reason}</label>
+          <textarea id="volunteerJoinReason" name="joinReason" class="form-textarea" rows="4" maxlength="1500" required></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" for="volunteerDifferentiator">{i18n:events_volunteers_form_differentiator}</label>
+          <textarea id="volunteerDifferentiator" name="differentiator" class="form-textarea" rows="3" maxlength="500"></textarea>
+        </div>
+        <div class="volunteer-form-actions">
+          <button id="volunteerSubmitBtn" type="button" class="btn btn-primary">{i18n:events_volunteers_form_submit}</button>
+          <button id="volunteerWithdrawBtn" type="button" class="btn login-btn-nav" hidden>{i18n:events_volunteers_form_withdraw}</button>
+        </div>
+      </form>
+    </div>
+    <div id="volunteerSelectedCta" class="volunteer-status-card" {#if !volunteerSelected}hidden{/if}>
+      <strong>{i18n:events_volunteers_selected_cta_title}</strong>
+      <p class="form-hint" style="margin: 0;">{i18n:events_volunteers_selected_cta_desc}</p>
+      <a href="/event/{event.id}/volunteers/lounge" class="btn btn-primary" style="margin-top: 0.45rem;">
+        {i18n:events_volunteers_selected_cta_button}
+      </a>
+    </div>
     <p id="volunteerFeedback" class="volunteer-feedback" hidden></p>
     {#else}
     <p class="section-subtitle">{i18n:events_volunteers_login_required}</p>
@@ -279,42 +242,18 @@
     </div>
   </article>
 </div>
-
-<article id="volunteer-lounge" class="section-card" style="margin-top: 1rem;" hidden>
-  <h2 style="margin-top: 0;">{i18n:events_volunteers_lounge_title}</h2>
-  <p class="section-subtitle">{i18n:events_volunteers_lounge_intro}</p>
-  <p class="form-hint">{i18n:events_volunteers_lounge_hint}</p>
-  {#if userAuthenticated}
-  <div id="volunteerLoungeReplying" class="volunteer-lounge-replying" hidden></div>
-  <div class="form-group" style="margin-top: 0.8rem;">
-    <label class="form-label" for="volunteerLoungeInput">{i18n:events_volunteers_lounge_title}</label>
-    <textarea
-      id="volunteerLoungeInput"
-      class="form-textarea"
-      rows="3"
-      maxlength="200"
-      placeholder="{i18n:events_volunteers_lounge_placeholder}"></textarea>
-  </div>
-  <div class="volunteer-form-actions">
-    <button id="volunteerLoungePostBtn" type="button" class="btn btn-primary">{i18n:events_volunteers_lounge_post}</button>
-    <button id="volunteerLoungeClearReplyBtn" type="button" class="btn login-btn-nav" hidden>{i18n:events_volunteers_lounge_clear_reply}</button>
-  </div>
-  <p id="volunteerLoungeFeedback" class="volunteer-feedback" hidden></p>
-  <div id="volunteerLoungeList" class="volunteer-lounge-list">
-    <p class="form-hint">{i18n:events_volunteers_loading}</p>
-  </div>
-  {#else}
-  <p class="section-subtitle">{i18n:events_volunteers_lounge_locked}</p>
-  {/if}
-</article>
 </section>
 
 <script>
   (() => {
     const eventId = "{event.id}";
     const isAuthenticated = {#if userAuthenticated}true{#else}false{/if};
+    const localeCode = "{resolvedLocaleCode}";
+    const localeTag = localeCode === "en" ? "en-US" : "es-CL";
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/volunteers/submissions";
     const form = document.getElementById("volunteerForm");
+    const applyContent = document.getElementById("volunteerApplyContent");
+    const selectedCta = document.getElementById("volunteerSelectedCta");
     const aboutInput = document.getElementById("volunteerAboutMe");
     const joinInput = document.getElementById("volunteerJoinReason");
     const differentiatorInput = document.getElementById("volunteerDifferentiator");
@@ -323,14 +262,6 @@
     const feedbackEl = document.getElementById("volunteerFeedback");
     const configMessageEl = document.getElementById("volunteerWindowMessage");
     const mineInfoEl = document.getElementById("volunteerMineInfo");
-    const loungeCard = document.getElementById("volunteer-lounge");
-    const loungeInput = document.getElementById("volunteerLoungeInput");
-    const loungePostBtn = document.getElementById("volunteerLoungePostBtn");
-    const loungeFeedbackEl = document.getElementById("volunteerLoungeFeedback");
-    const loungeListEl = document.getElementById("volunteerLoungeList");
-    const loungeReplyingEl = document.getElementById("volunteerLoungeReplying");
-    const loungeClearReplyBtn = document.getElementById("volunteerLoungeClearReplyBtn");
-    const loungeEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/volunteers/lounge";
 
     const i18n = {
       loading: "{i18n:events_volunteers_loading}",
@@ -361,30 +292,16 @@
       windowSchedule: "{i18n:events_volunteers_window_schedule}",
       appliedAt: "{i18n:events_volunteers_applied_at}",
       updatedAt: "{i18n:events_volunteers_updated_at}",
-      moderationNote: "{i18n:events_volunteers_moderation_note}",
-      loungeLocked: "{i18n:events_volunteers_lounge_locked}",
-      loungePlaceholder: "{i18n:events_volunteers_lounge_placeholder}",
-      loungePost: "{i18n:events_volunteers_lounge_post}",
-      loungePosting: "{i18n:events_volunteers_lounge_posting}",
-      loungeEmpty: "{i18n:events_volunteers_lounge_empty}",
-      loungeSuccessPost: "{i18n:events_volunteers_lounge_success_post}",
-      loungeErrorLoad: "{i18n:events_volunteers_lounge_error_load}",
-      loungeErrorPost: "{i18n:events_volunteers_lounge_error_post}",
-      loungeErrorRateLimit: "{i18n:events_volunteers_lounge_error_rate_limit}",
-      loungeReply: "{i18n:events_volunteers_lounge_reply}",
-      loungeClearReply: "{i18n:events_volunteers_lounge_clear_reply}",
-      loungeReplyingTo: "{i18n:events_volunteers_lounge_replying_to}",
-      loungePostedAt: "{i18n:events_volunteers_lounge_posted_at}"
+      moderationNote: "{i18n:events_volunteers_moderation_note}"
     };
 
     let currentMine = null;
-    let loungeReplyParentId = null;
 
     function formatDate(value) {
       if (!value) return "-";
       const d = new Date(value);
       if (Number.isNaN(d.getTime())) return value;
-      return d.toLocaleString();
+      return d.toLocaleString(localeTag);
     }
 
     function statusLabel(status) {
@@ -428,49 +345,12 @@
       if (withdrawBtn) withdrawBtn.disabled = busy;
     }
 
-    function escapeHtml(value) {
-      return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll("\"", "&quot;")
-        .replaceAll("'", "&#39;");
-    }
-
-    function setLoungeFeedback(message, kind) {
-      if (!loungeFeedbackEl) return;
-      if (!message) {
-        loungeFeedbackEl.hidden = true;
-        loungeFeedbackEl.textContent = "";
-        loungeFeedbackEl.classList.remove("is-error", "is-success");
-        return;
+    function setSelectedState(selected) {
+      if (applyContent) {
+        applyContent.hidden = selected;
       }
-      loungeFeedbackEl.hidden = false;
-      loungeFeedbackEl.textContent = message;
-      loungeFeedbackEl.classList.remove("is-error", "is-success");
-      loungeFeedbackEl.classList.add(kind === "success" ? "is-success" : "is-error");
-    }
-
-    function setLoungeReply(parentId, userName) {
-      loungeReplyParentId = parentId || null;
-      if (!loungeReplyingEl || !loungeClearReplyBtn) return;
-      if (!loungeReplyParentId) {
-        loungeReplyingEl.hidden = true;
-        loungeReplyingEl.textContent = "";
-        loungeClearReplyBtn.hidden = true;
-        return;
-      }
-      loungeReplyingEl.hidden = false;
-      loungeClearReplyBtn.hidden = false;
-      loungeReplyingEl.textContent = i18n.loungeReplyingTo + ": " + (userName || "Volunteer");
-    }
-
-    function setLoungeVisible(enabled) {
-      if (!loungeCard) return;
-      loungeCard.hidden = !enabled;
-      if (!enabled) {
-        setLoungeReply(null);
-        setLoungeFeedback(null);
+      if (selectedCta) {
+        selectedCta.hidden = !selected;
       }
     }
 
@@ -493,11 +373,11 @@
     function renderMine(item) {
       if (!mineInfoEl) return;
       if (!item) {
-        mineInfoEl.innerHTML = '<p class=\"form-hint\">' + i18n.emptyMine + '</p>';
+        mineInfoEl.innerHTML = '<p class="form-hint">' + i18n.emptyMine + '</p>';
         if (submitBtn) submitBtn.textContent = i18n.submit;
         if (withdrawBtn) withdrawBtn.hidden = true;
+        setSelectedState(false);
         currentMine = null;
-        setLoungeVisible(false);
         return;
       }
 
@@ -523,111 +403,19 @@
         ? '<p><strong>' + i18n.moderationNote + ':</strong> ' + item.moderation_note + '</p>'
         : '';
       mineInfoEl.innerHTML =
-        '<div class=\"volunteer-application-item\">'
-        + '<div><span class=\"volunteer-status-chip volunteer-status-chip--' + status + '\">' + statusLabel(status) + '</span></div>'
+        '<div class="volunteer-application-item">'
+        + '<div><span class="volunteer-status-chip volunteer-status-chip--' + status + '">' + statusLabel(status) + '</span></div>'
         + '<p>' + statusDescription(status) + '</p>'
         + '<p><strong>' + i18n.appliedAt + ':</strong> ' + formatDate(item.created_at) + '</p>'
         + '<p><strong>' + i18n.updatedAt + ':</strong> ' + formatDate(item.updated_at) + '</p>'
         + noteBlock
         + '</div>';
-      const canAccessLounge = status === "selected";
-      setLoungeVisible(canAccessLounge);
-      if (canAccessLounge) {
-        loadLounge();
-      }
-    }
-
-    function renderLounge(items) {
-      if (!loungeListEl) return;
-      if (!Array.isArray(items) || items.length === 0) {
-        loungeListEl.innerHTML = '<p class="form-hint">' + escapeHtml(i18n.loungeEmpty) + '</p>';
-        return;
-      }
-      const byId = new Map();
-      items.forEach(item => {
-        if (item && item.id) {
-          byId.set(item.id, item);
-        }
-      });
-      loungeListEl.innerHTML = items.map(item => {
-        const messageId = item && item.id ? item.id : "";
-        const userName = item && item.user_name ? item.user_name : "Volunteer";
-        const body = item && item.body ? item.body : "";
-        const parent = item && item.parent_id ? byId.get(item.parent_id) : null;
-        const replyBlock = parent
-          ? '<div class="volunteer-lounge-reply"><p><strong>@' + escapeHtml(parent.user_name || "Volunteer") + ':</strong> '
-              + escapeHtml(parent.body || "") + '</p></div>'
-          : "";
-        return (
-          '<article class="volunteer-lounge-message">'
-          + '<div class="volunteer-lounge-meta"><strong>' + escapeHtml(userName) + '</strong><span>' + escapeHtml(i18n.loungePostedAt) + ': ' + escapeHtml(formatDate(item.created_at)) + '</span></div>'
-          + replyBlock
-          + '<p>' + escapeHtml(body) + '</p>'
-          + '<div class="volunteer-lounge-actions"><button type="button" class="btn login-btn-nav" data-lounge-reply-id="' + escapeHtml(messageId) + '" data-lounge-reply-user="' + escapeHtml(userName) + '">' + escapeHtml(i18n.loungeReply) + '</button></div>'
-          + '</article>'
-        );
-      }).join("");
-    }
-
-    async function loadLounge() {
-      if (!loungeListEl) return;
-      loungeListEl.innerHTML = '<p class="form-hint">' + escapeHtml(i18n.loading) + '</p>';
-      try {
-        const res = await fetch(loungeEndpoint + "?limit=40&offset=0", { headers: { "Accept": "application/json" } });
-        if (!res.ok) {
-          throw new Error("load_lounge");
-        }
-        const data = await res.json();
-        renderLounge(data.items);
-      } catch (error) {
-        loungeListEl.innerHTML = '<p class="form-hint">' + escapeHtml(i18n.loungeErrorLoad) + '</p>';
-      }
-    }
-
-    async function submitLoungeMessage() {
-      if (!loungeInput || !loungePostBtn || loungeCard?.hidden) return;
-      const body = loungeInput.value ? loungeInput.value.trim() : "";
-      if (!body) {
-        setLoungeFeedback(i18n.loungeErrorPost, "error");
-        return;
-      }
-      setLoungeFeedback(null);
-      loungePostBtn.disabled = true;
-      loungePostBtn.textContent = i18n.loungePosting;
-      try {
-        const payload = { body: body, parent_id: loungeReplyParentId };
-        const res = await fetch(loungeEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) {
-          const errorPayload = await res.json().catch(() => ({}));
-          const code = errorPayload && errorPayload.error ? String(errorPayload.error) : "";
-          if (code === "rate_limit") {
-            throw new Error("rate_limit");
-          }
-          throw new Error("post_error");
-        }
-        loungeInput.value = "";
-        setLoungeReply(null);
-        setLoungeFeedback(i18n.loungeSuccessPost, "success");
-        await loadLounge();
-      } catch (error) {
-        if (error.message === "rate_limit") {
-          setLoungeFeedback(i18n.loungeErrorRateLimit, "error");
-        } else {
-          setLoungeFeedback(i18n.loungeErrorPost, "error");
-        }
-      } finally {
-        loungePostBtn.disabled = false;
-        loungePostBtn.textContent = i18n.loungePost;
-      }
+      setSelectedState(status === "selected");
     }
 
     async function loadMine() {
       if (!isAuthenticated || !mineInfoEl) return;
-      mineInfoEl.innerHTML = '<p class=\"form-hint\">' + i18n.loading + '</p>';
+      mineInfoEl.innerHTML = '<p class="form-hint">' + i18n.loading + '</p>';
       try {
         const res = await fetch(baseEndpoint + "/mine", { headers: { "Accept": "application/json" } });
         if (!res.ok) throw new Error("mine_error");
@@ -635,8 +423,8 @@
         const item = Array.isArray(data.items) && data.items.length > 0 ? data.items[0] : null;
         renderMine(item);
       } catch (error) {
-        mineInfoEl.innerHTML = '<p class=\"form-hint\">' + i18n.errorLoad + '</p>';
-        setLoungeVisible(false);
+        mineInfoEl.innerHTML = '<p class="form-hint">' + i18n.errorLoad + '</p>';
+        setSelectedState(false);
       }
     }
 
@@ -712,24 +500,6 @@
     }
     if (withdrawBtn) {
       withdrawBtn.addEventListener("click", withdrawApplication);
-    }
-    if (loungePostBtn) {
-      loungePostBtn.addEventListener("click", submitLoungeMessage);
-    }
-    if (loungeClearReplyBtn) {
-      loungeClearReplyBtn.addEventListener("click", () => setLoungeReply(null));
-    }
-    if (loungeListEl) {
-      loungeListEl.addEventListener("click", (event) => {
-        const replyBtn = event.target.closest("[data-lounge-reply-id]");
-        if (!replyBtn) return;
-        const replyId = replyBtn.getAttribute("data-lounge-reply-id");
-        const replyUser = replyBtn.getAttribute("data-lounge-reply-user");
-        setLoungeReply(replyId, replyUser);
-        if (loungeInput) {
-          loungeInput.focus();
-        }
-      });
     }
 
     loadConfig();

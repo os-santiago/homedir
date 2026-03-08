@@ -595,6 +595,15 @@ public interface AppMessages {
     @Message("Congratulations! You were selected as volunteer for this event.")
     String events_volunteers_status_desc_selected();
 
+    @Message("You are selected. Continue coordination inside the Volunteer Lounge.")
+    String events_volunteers_selected_cta_title();
+
+    @Message("Use the lounge to review announcements, ask questions, and coordinate with organizers and volunteers.")
+    String events_volunteers_selected_cta_desc();
+
+    @Message("Open Volunteer Lounge")
+    String events_volunteers_selected_cta_button();
+
     @Message("Your application was reviewed but not selected for this edition.")
     String events_volunteers_status_desc_not_selected();
 
@@ -652,6 +661,21 @@ public interface AppMessages {
     @Message("Volunteer lounge")
     String events_volunteers_lounge_title();
 
+    @Message("Volunteer Lounge · {eventTitle}")
+    String events_volunteers_lounge_page_title(String eventTitle);
+
+    @Message("Back to volunteer application")
+    String events_volunteers_lounge_back_to_volunteers();
+
+    @Message("Volunteer Lounge")
+    String events_volunteers_lounge_heading();
+
+    @Message("Volunteer Lounge access required")
+    String events_volunteers_lounge_locked_title();
+
+    @Message("Return to volunteer application")
+    String events_volunteers_lounge_back_to_application();
+
     @Message("Private coordination space for selected volunteers and organizers.")
     String events_volunteers_lounge_intro();
 
@@ -696,6 +720,60 @@ public interface AppMessages {
 
     @Message("Posted")
     String events_volunteers_lounge_posted_at();
+
+    @Message("Announcements")
+    String events_volunteers_lounge_announcements_title();
+
+    @Message("Important updates published by organizers.")
+    String events_volunteers_lounge_announcements_desc();
+
+    @Message("New announcement")
+    String events_volunteers_lounge_announcements_new_label();
+
+    @Message("Share schedule updates, logistics notes, or important instructions")
+    String events_volunteers_lounge_announcements_placeholder();
+
+    @Message("Publish announcement")
+    String events_volunteers_lounge_announcements_post();
+
+    @Message("Publishing announcement...")
+    String events_volunteers_lounge_announcements_posting();
+
+    @Message("Could not publish announcement right now.")
+    String events_volunteers_lounge_announcements_error_post();
+
+    @Message("Could not load announcements right now.")
+    String events_volunteers_lounge_announcements_error_load();
+
+    @Message("No announcements published yet.")
+    String events_volunteers_lounge_announcements_empty();
+
+    @Message("Announcement published.")
+    String events_volunteers_lounge_announcements_success_post();
+
+    @Message("Delete announcement")
+    String events_volunteers_lounge_announcements_delete();
+
+    @Message("Could not delete announcement right now.")
+    String events_volunteers_lounge_announcements_delete_error();
+
+    @Message("Announcement deleted.")
+    String events_volunteers_lounge_announcements_deleted();
+
+    @Message("Posts")
+    String events_volunteers_lounge_posts_title();
+
+    @Message("New post")
+    String events_volunteers_lounge_posts_new_label();
+
+    @Message("Announcement by")
+    String events_volunteers_lounge_announcement_by();
+
+    @Message("Volunteer")
+    String events_volunteers_lounge_user_fallback();
+
+    @Message("Organizer")
+    String events_volunteers_lounge_admin_fallback();
 
     @Message("We could not find this event.")
     String events_volunteers_not_found_desc();

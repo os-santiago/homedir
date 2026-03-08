@@ -7,8 +7,13 @@ import com.scanales.eventflow.cfp.CfpEventConfigService;
 import com.scanales.eventflow.cfp.CfpFormOptionsService;
 import com.scanales.eventflow.cfp.CfpTimelinePlanner;
 import com.scanales.eventflow.cfp.CfpTimelineView;
+import com.scanales.eventflow.eventops.EventOperationsService;
+import com.scanales.eventflow.eventops.EventStaffRole;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.volunteers.VolunteerApplication;
+import com.scanales.eventflow.volunteers.VolunteerApplicationService;
+import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.UsageMetricsService;
@@ -26,6 +31,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Map;
+import java.util.Optional;
 
 @Path("/event")
 public class EventResource {
@@ -40,7 +46,10 @@ public class EventResource {
         Map<String, Integer> cfpDurationByFormat,
         CfpTimelineView cfpTimeline);
 
-    static native TemplateInstance volunteers(Event event);
+    static native TemplateInstance volunteers(Event event, boolean volunteerSelected);
+
+    static native TemplateInstance volunteersLounge(
+        Event event, boolean loungeAccess, boolean eventAdmin, String loungeAccessReason);
   }
 
   @Inject EventService eventService;
@@ -57,6 +66,8 @@ public class EventResource {
   @Inject CfpEventConfigService cfpEventConfigService;
   @Inject AgendaProposalConfigService agendaProposalConfigService;
   @Inject GamificationService gamificationService;
+  @Inject VolunteerApplicationService volunteerApplicationService;
+  @Inject EventOperationsService eventOperationsService;
 
   @GET
   @Path("{id}")
@@ -85,7 +96,8 @@ public class EventResource {
             agendaProposalConfigService != null
                 && agendaProposalConfigService.isProposalNoticeEnabled()),
         "eventos",
-        localeCookie);
+        localeCookie,
+        headers);
   }
 
   @GET
@@ -122,7 +134,8 @@ public class EventResource {
                 cfpFormOptionsService.durationByFormat(),
                 cfpTimeline),
             "eventos",
-            localeCookie)
+            localeCookie,
+            headers)
         .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
   }
 
@@ -138,14 +151,83 @@ public class EventResource {
     metrics.recordPageView("/event/volunteers", headers, context);
     currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id));
     Event event = eventService.getEvent(id);
-    return withLayoutData(Templates.volunteers(event), "eventos", localeCookie);
+    boolean volunteerSelected = false;
+    java.util.Optional<String> currentUser = currentUserId();
+    if (event != null && currentUser.isPresent()) {
+      java.util.Optional<VolunteerApplication> app =
+          volunteerApplicationService.findByEventAndUser(id, currentUser.get());
+      volunteerSelected =
+          app.isPresent() && app.get().status() == VolunteerApplicationStatus.SELECTED;
+    }
+    return withLayoutData(
+        Templates.volunteers(event, volunteerSelected),
+        "eventos",
+        localeCookie,
+        headers);
+  }
+
+  @GET
+  @Path("{id}/volunteers/lounge")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance volunteersLounge(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/event/volunteers/lounge", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id));
+    Event event = eventService.getEvent(id);
+    boolean authenticated = identity != null && !identity.isAnonymous();
+    boolean eventAdmin = authenticated && AdminUtils.isAdmin(identity);
+    boolean loungeAccess = eventAdmin;
+    String loungeAccessReason = "login_required";
+    if (authenticated) {
+      loungeAccessReason = "volunteer_access_denied";
+      if (!eventAdmin) {
+        Optional<String> currentUser = currentUserId();
+        if (currentUser.isPresent()) {
+          java.util.Set<String> aliases = java.util.Set.of(currentUser.get());
+          boolean hasStaffAccess =
+              eventOperationsService.hasStaffRole(
+                  id,
+                  aliases,
+                  java.util.Set.of(
+                      EventStaffRole.ORGANIZER,
+                      EventStaffRole.PRODUCTION,
+                      EventStaffRole.OPERATIONS,
+                      EventStaffRole.VOLUNTEER),
+                  true);
+          Optional<VolunteerApplication> app =
+              volunteerApplicationService.findByEventAndUser(id, currentUser.get());
+          if (hasStaffAccess
+              || (app.isPresent() && app.get().status() == VolunteerApplicationStatus.SELECTED)) {
+            loungeAccess = true;
+            loungeAccessReason = "selected";
+          }
+        }
+      } else {
+        loungeAccessReason = "admin";
+      }
+    }
+    return withLayoutData(
+            Templates.volunteersLounge(event, loungeAccess, eventAdmin, loungeAccessReason),
+            "eventos",
+            localeCookie,
+            headers)
+        .data("loungeAccess", loungeAccess)
+        .data("eventAdmin", eventAdmin)
+        .data("loungeAccessReason", loungeAccessReason);
   }
 
   private TemplateInstance withLayoutData(
-      TemplateInstance templateInstance, String activePage, String localeCookie) {
+      TemplateInstance templateInstance,
+      String activePage,
+      String localeCookie,
+      jakarta.ws.rs.core.HttpHeaders headers) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : null;
-    return TemplateLocaleUtil.apply(templateInstance, localeCookie)
+    return TemplateLocaleUtil.apply(templateInstance, localeCookie, headers)
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)

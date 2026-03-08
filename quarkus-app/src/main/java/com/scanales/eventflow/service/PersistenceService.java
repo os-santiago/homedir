@@ -14,6 +14,7 @@ import com.scanales.eventflow.model.SystemError;
 import com.scanales.eventflow.community.CommunitySubmission;
 import com.scanales.eventflow.community.CommunityLightningStateSnapshot;
 import com.scanales.eventflow.economy.EconomyStateSnapshot;
+import com.scanales.eventflow.eventops.EventOperationsStateSnapshot;
 import com.scanales.eventflow.agenda.AgendaProposalConfig;
 import com.scanales.eventflow.cfp.CfpConfig;
 import com.scanales.eventflow.cfp.CfpEventConfig;
@@ -121,6 +122,7 @@ public class PersistenceService {
   private Path volunteerSubmissionsFile;
   private Path volunteerEventConfigFile;
   private Path volunteerLoungeFile;
+  private Path eventOperationsStateFile;
   private Path agendaProposalConfigFile;
   private Path cfpBackupsDir;
   private Path cfpWalFile;
@@ -218,6 +220,7 @@ public class PersistenceService {
     volunteerSubmissionsFile = dataDir.resolve("volunteer-submissions.json");
     volunteerEventConfigFile = dataDir.resolve("volunteer-event-config.json");
     volunteerLoungeFile = dataDir.resolve("volunteer-lounge.json");
+    eventOperationsStateFile = dataDir.resolve("event-operations-state.json");
     agendaProposalConfigFile = dataDir.resolve("event-agenda-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
     cfpWalFile = dataDir.resolve(CFP_WAL_FILE_NAME);
@@ -644,6 +647,39 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(volunteerLoungeFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Persists event operations state snapshot synchronously. */
+  public void saveEventOperationsStateSync(EventOperationsStateSnapshot snapshot) {
+    writeSync(
+        eventOperationsStateFile,
+        snapshot == null ? EventOperationsStateSnapshot.empty() : snapshot);
+  }
+
+  /** Loads event operations snapshot from disk if present. */
+  public java.util.Optional<EventOperationsStateSnapshot> loadEventOperationsState() {
+    if (eventOperationsStateFile == null || !Files.exists(eventOperationsStateFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(
+          mapper.readValue(eventOperationsStateFile.toFile(), EventOperationsStateSnapshot.class));
+    } catch (IOException e) {
+      LOG.error("Failed to read " + eventOperationsStateFile.toAbsolutePath(), e);
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Last modified timestamp for event operations snapshot file, or -1 when unavailable. */
+  public long eventOperationsStateLastModifiedMillis() {
+    try {
+      if (eventOperationsStateFile == null || !Files.exists(eventOperationsStateFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(eventOperationsStateFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }

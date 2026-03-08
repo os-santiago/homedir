@@ -3,6 +3,7 @@ package com.scanales.eventflow.public_;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.eventops.EventOperationsService;
 import com.scanales.eventflow.notifications.Notification;
 import com.scanales.eventflow.notifications.NotificationService;
 import com.scanales.eventflow.notifications.NotificationType;
@@ -56,6 +57,7 @@ public class VolunteerSubmissionApiResource {
   @Inject EventService eventService;
   @Inject NotificationService notificationService;
   @Inject VolunteerInsightsService volunteerInsightsService;
+  @Inject EventOperationsService eventOperationsService;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -148,6 +150,7 @@ public class VolunteerSubmissionApiResource {
       metrics.recordFunnelStep("volunteer.submission.withdraw");
       gamificationService.award(primaryUserId, GamificationActivity.VOLUNTEER_WITHDRAW, eventId);
       volunteerInsightsService.recordApplicationWithdrawn(updated);
+      syncVolunteerStaffAssignment(Optional.empty(), updated);
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException
         | VolunteerApplicationService.InvalidTransitionException e) {
@@ -348,6 +351,7 @@ public class VolunteerSubmissionApiResource {
         gamificationService.award(
             updated.applicantUserId(), GamificationActivity.VOLUNTEER_SELECTED, updated.eventId());
       }
+      syncVolunteerStaffAssignment(beforeUpdate, updated);
       volunteerInsightsService.recordStatusChange(beforeUpdate.orElse(null), updated);
       notifyApplicantStatusChange(beforeUpdate.orElse(null), updated);
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
@@ -529,6 +533,30 @@ public class VolunteerSubmissionApiResource {
 
   private static int normalizeLimit(Integer rawLimit) {
     return PaginationGuardrails.clampLimit(rawLimit, DEFAULT_LIMIT, MAX_LIMIT);
+  }
+
+  private void syncVolunteerStaffAssignment(
+      Optional<VolunteerApplication> beforeOptional, VolunteerApplication after) {
+    if (after == null) {
+      return;
+    }
+    VolunteerApplicationStatus beforeStatus =
+        beforeOptional != null && beforeOptional.isPresent() ? beforeOptional.get().status() : null;
+    VolunteerApplicationStatus afterStatus = after.status();
+    boolean beforeSelected = beforeStatus == VolunteerApplicationStatus.SELECTED;
+    boolean afterSelected = afterStatus == VolunteerApplicationStatus.SELECTED;
+    if (!beforeSelected && !afterSelected && afterStatus != VolunteerApplicationStatus.WITHDRAWN) {
+      return;
+    }
+    try {
+      eventOperationsService.upsertVolunteerSelection(
+          after.eventId(),
+          after.applicantUserId(),
+          after.applicantName(),
+          afterSelected);
+    } catch (Exception ignored) {
+      // Volunteer flow should remain available even if ops sync fails.
+    }
   }
 
   private void notifyApplicantStatusChange(VolunteerApplication before, VolunteerApplication after) {
