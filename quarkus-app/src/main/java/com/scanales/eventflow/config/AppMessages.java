@@ -4197,6 +4197,123 @@ public interface AppMessages {
     @Message("Development insights")
     String admin_insights_nav_label();
 
+    @Message("Admin panel · Homedir")
+    String admin_hub_page_title();
+
+    @Message("Administration")
+    String admin_hub_subtitle();
+
+    @Message("Admin control hub")
+    String admin_hub_heading();
+
+    @Message("Manage events, speakers, operations, and observability from a single place.")
+    String admin_hub_intro();
+
+    @Message("Operator: {name}")
+    String admin_hub_operator(String name);
+
+    @Message("Admin main sections")
+    String admin_hub_grid_aria();
+
+    @Message("Operations")
+    String admin_hub_operations_title();
+
+    @Message("Create and maintain event content, speaker records, and runtime data flow.")
+    String admin_hub_operations_desc();
+
+    @Message("Operations links")
+    String admin_hub_operations_nav_aria();
+
+    @Message("Observability")
+    String admin_hub_observability_title();
+
+    @Message("Track health, capacity, and delivery quality signals before production impact.")
+    String admin_hub_observability_desc();
+
+    @Message("Observability links")
+    String admin_hub_observability_nav_aria();
+
+    @Message("Coordination")
+    String admin_hub_coordination_title();
+
+    @Message("Broadcast updates, run simulations, and keep the team aligned on procedures.")
+    String admin_hub_coordination_desc();
+
+    @Message("Coordination links")
+    String admin_hub_coordination_nav_aria();
+
+    @Message("Events")
+    String admin_hub_action_events_title();
+
+    @Message("Manage event catalog, metadata, and scheduling controls.")
+    String admin_hub_action_events_desc();
+
+    @Message("Speakers")
+    String admin_hub_action_speakers_title();
+
+    @Message("Maintain speaker profiles and their linked content.")
+    String admin_hub_action_speakers_desc();
+
+    @Message("GitHub sync")
+    String admin_hub_action_sync_title();
+
+    @Message("Refresh external community data and ingestion status.")
+    String admin_hub_action_sync_desc();
+
+    @Message("Backups")
+    String admin_hub_action_backup_title();
+
+    @Message("Run backup actions and validate restore readiness.")
+    String admin_hub_action_backup_desc();
+
+    @Message("Metrics")
+    String admin_hub_action_metrics_title();
+
+    @Message("Review usage and funnel conversion by module.")
+    String admin_hub_action_metrics_desc();
+
+    @Message("Insights")
+    String admin_hub_action_insights_title();
+
+    @Message("Inspect delivery initiatives and lead-time evolution.")
+    String admin_hub_action_insights_desc();
+
+    @Message("Capacity")
+    String admin_hub_action_capacity_title();
+
+    @Message("Check runtime limits, pressure, and scaling headroom.")
+    String admin_hub_action_capacity_desc();
+
+    @Message("Errors")
+    String admin_hub_action_errors_title();
+
+    @Message("Review and resolve system incidents.")
+    String admin_hub_action_errors_desc();
+
+    @Message("Notifications")
+    String admin_hub_action_notifications_title();
+
+    @Message("Configure announcement templates and channels.")
+    String admin_hub_action_notifications_desc();
+
+    @Message("Notification simulator")
+    String admin_hub_action_simulator_title();
+
+    @Message("Test event notifications before publishing.")
+    String admin_hub_action_simulator_desc();
+
+    @Message("Admin guide")
+    String admin_hub_action_guide_title();
+
+    @Message("Open operating guide and workflow checklist.")
+    String admin_hub_action_guide_desc();
+
+    @Message("Quick access")
+    String admin_hub_shortcuts_title();
+
+    @Message("High-frequency actions with large hit areas for keyboard and touch navigation.")
+    String admin_hub_shortcuts_desc();
+
     @Message("Development Insights · Homedir")
     String admin_insights_title();
 
