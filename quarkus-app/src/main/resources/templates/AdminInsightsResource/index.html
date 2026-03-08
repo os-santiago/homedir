@@ -50,6 +50,14 @@
 
     <div class="card" style="grid-column: 1 / -1;">
       <h2 class="card-title">{i18n:admin_insights_initiatives_title}</h2>
+      <div class="insights-initiatives-toolbar">
+        <input
+          id="insightsInitiativesSearch"
+          class="form-input insights-initiatives-search"
+          type="search"
+          placeholder="{i18n:admin_insights_initiatives_search_placeholder}" />
+        <p id="insightsInitiativesCount" class="form-hint insights-initiatives-count"></p>
+      </div>
       <div id="insightsInitiatives" class="form-hint">{i18n:admin_insights_loading}</div>
     </div>
   </div>
@@ -124,12 +132,35 @@
      data-could-not-start="{i18n:admin_insights_js_could_not_start}"
      data-appended="{i18n:admin_insights_js_appended}"
      data-could-not-append="{i18n:admin_insights_js_could_not_append}"
+     data-shown-label="{i18n:admin_insights_js_shown_label}"
+     data-total-label="{i18n:admin_insights_js_total_label}"
+     data-no-filtered-initiatives="{i18n:admin_insights_js_no_filtered_initiatives}"
      style="display:none"></div>
 <div class="container">
   <div class="action-group" style="margin-top:0.8rem;">
     <button id="insightsLoadMoreBtn" type="button" class="btn btn-secondary">{i18n:admin_insights_js_load_more}</button>
   </div>
 </div>
+
+<style>
+  .insights-initiatives-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0.55rem 0 0.75rem 0;
+  }
+
+  .insights-initiatives-search {
+    flex: 1 1 260px;
+    min-width: 220px;
+  }
+
+  .insights-initiatives-count {
+    margin: 0;
+    white-space: nowrap;
+  }
+</style>
 
 <script>
   (() => {
@@ -139,6 +170,8 @@
     const messageEl = document.getElementById('insightsMessage');
     const refreshBtn = document.getElementById('insightsRefreshBtn');
     const loadMoreBtn = document.getElementById('insightsLoadMoreBtn');
+    const initiativesSearchEl = document.getElementById('insightsInitiativesSearch');
+    const initiativesCountEl = document.getElementById('insightsInitiativesCount');
     const startForm = document.getElementById('insightsStartForm');
     const eventForm = document.getElementById('insightsEventForm');
     const i18nEl = document.getElementById('insightsI18n');
@@ -146,6 +179,7 @@
     let initiativesOffset = 0;
     let initiativesDone = false;
     let initiativesCache = [];
+    let initiativesQuery = '';
 
     function showMessage(text, isError) {
       if (!messageEl) return;
@@ -206,6 +240,29 @@
         return i18n.noTopEventTypes || i18n.na;
       }
       return entries.map((entry) => String(entry[0]) + '=' + String(entry[1])).join(', ');
+    }
+
+    function normalizeText(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    function initiativeMatchesQuery(item, query) {
+      if (!query) return true;
+      return [
+        normalizeText(item && item.initiativeId),
+        normalizeText(item && item.title),
+        normalizeText(item && item.state)
+      ].some((text) => text.includes(query));
+    }
+
+    function filteredInitiatives(items) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return [];
+      }
+      if (!initiativesQuery) {
+        return items;
+      }
+      return items.filter((item) => initiativeMatchesQuery(item, initiativesQuery));
     }
 
     function updateLoadMoreState() {
@@ -270,44 +327,90 @@
       ].join('<br>');
     }
 
-    function renderInitiatives(items) {
+    function setInitiativesCount(shown, total) {
+      if (!initiativesCountEl) return;
+      if (!total) {
+        initiativesCountEl.textContent = '';
+        return;
+      }
+      const shownLabel = i18n.shownLabel || i18n.tableEvents || '';
+      const totalLabel = i18n.totalLabel || i18n.statusEvents || '';
+      initiativesCountEl.textContent = shownLabel + ': ' + shown + ' · ' + totalLabel + ': ' + total;
+    }
+
+    function buildHeaderCell(label, alignRight) {
+      const cell = document.createElement('th');
+      cell.textContent = label;
+      cell.style.textAlign = alignRight ? 'right' : 'left';
+      return cell;
+    }
+
+    function buildDataCell(value, alignRight) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      if (alignRight) {
+        cell.style.textAlign = 'right';
+      }
+      return cell;
+    }
+
+    function renderInitiatives(items, totalCount) {
       if (!initiativesEl) return;
-      if (!Array.isArray(items) || items.length === 0) {
-        initiativesEl.textContent = i18n.noInitiatives;
+      const total = Number.isFinite(totalCount) ? totalCount : 0;
+      const rows = Array.isArray(items) ? items : [];
+      if (rows.length === 0) {
+        initiativesEl.textContent = total > 0
+          ? (i18n.noFilteredInitiatives || i18n.noInitiatives)
+          : i18n.noInitiatives;
+        setInitiativesCount(0, total);
         updateLoadMoreState();
         return;
       }
+
       const na = i18n.na;
-      const rows = items.map((item) => {
+      const table = document.createElement('table');
+      table.className = 'table';
+      table.style.fontSize = '0.9rem';
+
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      headerRow.appendChild(buildHeaderCell(i18n.tableInitiative, false));
+      headerRow.appendChild(buildHeaderCell(i18n.tableTitle, false));
+      headerRow.appendChild(buildHeaderCell(i18n.tableState, false));
+      headerRow.appendChild(buildHeaderCell(i18n.tableEvents, true));
+      headerRow.appendChild(buildHeaderCell(i18n.tableLeadMerge, true));
+      headerRow.appendChild(buildHeaderCell(i18n.tableLeadProd, true));
+      headerRow.appendChild(buildHeaderCell(i18n.tableLastType, false));
+      headerRow.appendChild(buildHeaderCell(i18n.tableLastUpdate, false));
+      thead.appendChild(headerRow);
+
+      const tbody = document.createElement('tbody');
+      rows.forEach((item) => {
+        const row = document.createElement('tr');
         const last = item.lastEventAt ? new Date(item.lastEventAt).toLocaleString() : na;
-        const leadMerge = item.leadHoursToMerge != null ? item.leadHoursToMerge : na;
-        const leadProd = item.leadHoursToProduction != null ? item.leadHoursToProduction : na;
-        return '<tr>'
-          + '<td>' + item.initiativeId + '</td>'
-          + '<td>' + (item.title || item.initiativeId) + '</td>'
-          + '<td>' + (item.state || i18n.stateActive) + '</td>'
-          + '<td>' + (item.totalEvents || 0) + '</td>'
-          + '<td>' + leadMerge + '</td>'
-          + '<td>' + leadProd + '</td>'
-          + '<td>' + (item.lastEventType || na) + '</td>'
-          + '<td>' + last + '</td>'
-          + '</tr>';
-      }).join('');
-      initiativesEl.innerHTML =
-        '<table class="table" style="font-size: 0.9rem;">'
-        + '<thead><tr>'
-        + '<th style="text-align:left;">' + i18n.tableInitiative + '</th>'
-        + '<th style="text-align:left;">' + i18n.tableTitle + '</th>'
-        + '<th style="text-align:left;">' + i18n.tableState + '</th>'
-        + '<th style="text-align:right;">' + i18n.tableEvents + '</th>'
-        + '<th style="text-align:right;">' + i18n.tableLeadMerge + '</th>'
-        + '<th style="text-align:right;">' + i18n.tableLeadProd + '</th>'
-        + '<th style="text-align:left;">' + i18n.tableLastType + '</th>'
-        + '<th style="text-align:left;">' + i18n.tableLastUpdate + '</th>'
-        + '</tr></thead>'
-        + '<tbody>' + rows + '</tbody>'
-        + '</table>';
+        const leadMerge = item.leadHoursToMerge != null ? String(item.leadHoursToMerge) : na;
+        const leadProd = item.leadHoursToProduction != null ? String(item.leadHoursToProduction) : na;
+        row.appendChild(buildDataCell(String(item.initiativeId || ''), false));
+        row.appendChild(buildDataCell(String(item.title || item.initiativeId || ''), false));
+        row.appendChild(buildDataCell(String(item.state || i18n.stateActive), false));
+        row.appendChild(buildDataCell(String(item.totalEvents || 0), true));
+        row.appendChild(buildDataCell(leadMerge, true));
+        row.appendChild(buildDataCell(leadProd, true));
+        row.appendChild(buildDataCell(String(item.lastEventType || na), false));
+        row.appendChild(buildDataCell(String(last), false));
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      initiativesEl.replaceChildren(table);
+      setInitiativesCount(rows.length, total);
       updateLoadMoreState();
+    }
+
+    function renderCurrentInitiatives() {
+      const rows = filteredInitiatives(initiativesCache);
+      renderInitiatives(rows, initiativesCache.length);
     }
 
     async function fetchInitiatives(offset) {
@@ -329,7 +432,7 @@
           initiativesDone = true;
         }
       }
-      renderInitiatives(initiativesCache);
+      renderCurrentInitiatives();
     }
 
     async function refresh() {
@@ -347,7 +450,7 @@
       if (initiativesCache.length < PAGE_SIZE) {
         initiativesDone = true;
       }
-      renderInitiatives(initiativesCache);
+      renderCurrentInitiatives();
     }
 
     async function onStartSubmit(event) {
@@ -398,8 +501,14 @@
       }
     }
 
+    function onSearchInput(event) {
+      initiativesQuery = normalizeText(event && event.target ? event.target.value : '');
+      renderCurrentInitiatives();
+    }
+
     refreshBtn?.addEventListener('click', () => refresh().catch((error) => showMessage(error.message, true)));
     loadMoreBtn?.addEventListener('click', () => loadMoreInitiatives().catch((error) => showMessage(error.message, true)));
+    initiativesSearchEl?.addEventListener('input', onSearchInput);
     startForm?.addEventListener('submit', onStartSubmit);
     eventForm?.addEventListener('submit', onEventSubmit);
     refresh().catch((error) => showMessage(error.message, true));
