@@ -3894,4 +3894,16 @@ public interface AppMessages {
     @Message("Could not append event.")
     String admin_insights_js_could_not_append();
 
+    @Message("Search initiatives by id, title, or state")
+    String admin_insights_initiatives_search_placeholder();
+
+    @Message("Shown")
+    String admin_insights_js_shown_label();
+
+    @Message("Total")
+    String admin_insights_js_total_label();
+
+    @Message("No initiatives match the current filter.")
+    String admin_insights_js_no_filtered_initiatives();
+
 }

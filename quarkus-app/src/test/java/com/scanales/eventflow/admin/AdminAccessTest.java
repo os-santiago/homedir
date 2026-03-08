@@ -1,6 +1,7 @@
 package com.scanales.eventflow.admin;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -30,6 +31,12 @@ public class AdminAccessTest {
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   public void adminCanAccessInsights() {
-    given().when().get("/private/admin/insights").then().statusCode(200);
+    given()
+        .when()
+        .get("/private/admin/insights")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"insightsInitiativesSearch\""))
+        .body(containsString("id=\"insightsInitiativesCount\""));
   }
 }
