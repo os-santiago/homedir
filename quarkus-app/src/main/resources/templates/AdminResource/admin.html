@@ -1,45 +1,149 @@
 {#include layout/main}
 
-{#title}Panel de administración · Homedir{/title}
+{#title}{i18n:admin_hub_page_title}{/title}
 
 {#body}
-<section class="page-header">
-    <div class="container">
-        <h1 class="page-title">Panel de Administración</h1>
-        <p class="section-subtitle">Gestiona eventos, oradores y métricas desde un solo lugar.</p>
+<header class="page-header events-page-header">
+    <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:admin_hub_subtitle}</p>
+        <h1>{i18n:admin_hub_heading}</h1>
     </div>
+    <p class="section-subtitle">{i18n:admin_hub_intro}</p>
+    <p class="admin-hub-operator">{i18n:admin_hub_operator(name)}</p>
+</header>
+
+<section class="page-grid admin-hub-grid" aria-label="{i18n:admin_hub_grid_aria}">
+    <article class="section-card admin-hub-card">
+        <div class="admin-hub-card-head">
+            <span class="material-symbols-outlined admin-hub-card-icon" aria-hidden="true">event</span>
+            <h2>{i18n:admin_hub_operations_title}</h2>
+        </div>
+        <p class="admin-hub-card-desc">{i18n:admin_hub_operations_desc}</p>
+        <nav class="admin-hub-actions" aria-label="{i18n:admin_hub_operations_nav_aria}">
+            <a href="/private/admin/events" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_events_title}</strong>
+                    <small>{i18n:admin_hub_action_events_desc}</small>
+                </span>
+            </a>
+            <a href="/private/admin/speakers" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">record_voice_over</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_speakers_title}</strong>
+                    <small>{i18n:admin_hub_action_speakers_desc}</small>
+                </span>
+            </a>
+            <a href="/private/admin/sync" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">sync</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_sync_title}</strong>
+                    <small>{i18n:admin_hub_action_sync_desc}</small>
+                </span>
+            </a>
+            <a href="/private/admin/backup" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_backup_title}</strong>
+                    <small>{i18n:admin_hub_action_backup_desc}</small>
+                </span>
+            </a>
+        </nav>
+    </article>
+
+    <article class="section-card admin-hub-card">
+        <div class="admin-hub-card-head">
+            <span class="material-symbols-outlined admin-hub-card-icon" aria-hidden="true">monitoring</span>
+            <h2>{i18n:admin_hub_observability_title}</h2>
+        </div>
+        <p class="admin-hub-card-desc">{i18n:admin_hub_observability_desc}</p>
+        <nav class="admin-hub-actions" aria-label="{i18n:admin_hub_observability_nav_aria}">
+            <a href="/private/admin/metrics" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_metrics_title}</strong>
+                    <small>{i18n:admin_hub_action_metrics_desc}</small>
+                </span>
+            </a>
+            <a href="/private/admin/insights" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">insights</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_insights_title}</strong>
+                    <small>{i18n:admin_hub_action_insights_desc}</small>
+                </span>
+            </a>
+            <a href="/private/admin/capacity" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">speed</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_capacity_title}</strong>
+                    <small>{i18n:admin_hub_action_capacity_desc}</small>
+                </span>
+            </a>
+            <a href="/private/admin/errors" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">error</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_errors_title}</strong>
+                    <small>{i18n:admin_hub_action_errors_desc}</small>
+                </span>
+            </a>
+        </nav>
+    </article>
+
+    <article class="section-card admin-hub-card">
+        <div class="admin-hub-card-head">
+            <span class="material-symbols-outlined admin-hub-card-icon" aria-hidden="true">campaign</span>
+            <h2>{i18n:admin_hub_coordination_title}</h2>
+        </div>
+        <p class="admin-hub-card-desc">{i18n:admin_hub_coordination_desc}</p>
+        <nav class="admin-hub-actions" aria-label="{i18n:admin_hub_coordination_nav_aria}">
+            <a href="/admin/notifications" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_notifications_title}</strong>
+                    <small>{i18n:admin_hub_action_notifications_desc}</small>
+                </span>
+            </a>
+            <a href="/admin/notifications/sim" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">experiment</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_simulator_title}</strong>
+                    <small>{i18n:admin_hub_action_simulator_desc}</small>
+                </span>
+            </a>
+            <a href="/private/admin/guide" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">menu_book</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_guide_title}</strong>
+                    <small>{i18n:admin_hub_action_guide_desc}</small>
+                </span>
+            </a>
+        </nav>
+    </article>
 </section>
 
-<div class="container">
-    <div class="page-grid">
-        <div class="card">
-            <h2 class="card-title">Acciones rápidas</h2>
-            <div class="action-group">
-                <a href="/private/admin/events" class="btn btn-secondary">Administrar eventos</a>
-                <a href="/private/admin/speakers" class="btn btn-secondary">Administrar oradores</a>
-                <a href="/private/admin/metrics" class="btn btn-secondary">Métricas</a>
-                <a href="/private/admin/insights" class="btn btn-secondary">{i18n:admin_insights_nav_label}</a>
-                <a href="/private/admin/sync" class="btn btn-secondary">Sincronización (GitHub)</a>
-                <a href="/private/admin/capacity" class="btn btn-secondary">Capacidad</a>
-                <a href="/private/admin/backup" class="btn btn-secondary">Respaldo de datos</a>
-            </div>
+<section class="page-grid admin-hub-shortcuts">
+    <article class="section-card admin-hub-shortcuts-card">
+        <h2>{i18n:admin_hub_shortcuts_title}</h2>
+        <p>{i18n:admin_hub_shortcuts_desc}</p>
+        <div class="admin-hub-shortcuts-row" role="list">
+            <a href="/private/admin/events" class="btn btn-secondary admin-hub-shortcut-btn" role="listitem">
+                <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
+                {i18n:admin_hub_action_events_title}
+            </a>
+            <a href="/private/admin/metrics" class="btn btn-secondary admin-hub-shortcut-btn" role="listitem">
+                <span class="material-symbols-outlined" aria-hidden="true">monitoring</span>
+                {i18n:admin_hub_action_metrics_title}
+            </a>
+            <a href="/private/admin/backup" class="btn btn-secondary admin-hub-shortcut-btn" role="listitem">
+                <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                {i18n:admin_hub_action_backup_title}
+            </a>
+            <a href="/private/admin/insights" class="btn btn-secondary admin-hub-shortcut-btn" role="listitem">
+                <span class="material-symbols-outlined" aria-hidden="true">insights</span>
+                {i18n:admin_hub_action_insights_title}
+            </a>
         </div>
-
-        <div class="card">
-            <h2 class="card-title">Notificaciones</h2>
-            <div class="action-group">
-                <a href="/admin/notifications" class="btn btn-secondary">Gestionar Notificaciones</a>
-                <a href="/admin/notifications/sim" class="btn btn-secondary">Simular Eventos</a>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2 class="card-title">Ayuda</h2>
-            <div class="action-group">
-                <a href="/private/admin/guide" class="btn btn-secondary">Ver Guía de Administración</a>
-            </div>
-        </div>
-    </div>
-</div>
+    </article>
+</section>
 {/body}
 {/include}

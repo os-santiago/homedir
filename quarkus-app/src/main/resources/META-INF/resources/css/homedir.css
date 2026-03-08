@@ -756,6 +756,158 @@ footer {
   opacity: 0.85;
 }
 
+/* ===========================================
+   ADMIN HUB
+   =========================================== */
+
+.admin-hub-grid {
+  margin-top: 0.25rem;
+}
+
+.admin-hub-operator {
+  margin-top: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.2rem 0.58rem;
+}
+
+.admin-hub-card {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.admin-hub-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.admin-hub-card-icon {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.52);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.admin-hub-card h2 {
+  margin: 0;
+}
+
+.admin-hub-card-desc {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  opacity: 0.92;
+}
+
+.admin-hub-actions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-hub-action {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0.55rem;
+  align-items: start;
+  text-decoration: none;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  padding: 0.58rem 0.62rem;
+  background: rgba(0, 0, 0, 0.26);
+  transition: background-color 0.14s ease, border-color 0.14s ease;
+}
+
+.admin-hub-action .material-symbols-outlined {
+  font-size: 1.2rem;
+  margin-top: 0.05rem;
+}
+
+.admin-hub-action strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.admin-hub-action small {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  opacity: 0.9;
+}
+
+.admin-hub-action:hover {
+  color: #fff;
+  text-decoration: none;
+  border-color: rgba(255, 215, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.admin-hub-action:focus-visible {
+  outline: 2px solid #ffd700;
+  outline-offset: 2px;
+}
+
+.admin-hub-shortcuts {
+  margin-top: -1.2rem;
+}
+
+.admin-hub-shortcuts-card h2 {
+  margin-bottom: 0.45rem;
+}
+
+.admin-hub-shortcuts-card > p {
+  margin: 0 0 0.85rem;
+  opacity: 0.9;
+}
+
+.admin-hub-shortcuts-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.admin-hub-shortcut-btn {
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .admin-hub-shortcuts {
+    margin-top: -0.8rem;
+  }
+
+  .admin-hub-shortcuts-row {
+    flex-direction: column;
+  }
+
+  .admin-hub-shortcut-btn {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 
 .icon-wrapper {
   width: 64px;
