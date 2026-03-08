@@ -116,6 +116,13 @@ public class AdminInsightsApiResourceTest {
     assertTrue(((Number) status.get("productionReleaseFailedEventsLast7Days")).intValue() >= 1);
     assertTrue(((Number) status.get("productionSuccessRatePctLast7Days")).longValue() >= 0L);
     assertTrue(((Number) status.get("productionSuccessRatePctLast7Days")).longValue() <= 100L);
+    assertTrue(((Number) status.get("eventsLast24Hours")).intValue() >= 1);
+    assertTrue(((Number) status.get("eventsPrevious24Hours")).intValue() >= 0);
+    Object eventsTrend24h = status.get("eventsTrendPct24Hours");
+    if (eventsTrend24h != null) {
+      assertTrue(eventsTrend24h instanceof Number);
+    }
+    assertTrue(((Number) status.get("activeInitiativesLast24Hours")).intValue() >= 1);
     assertTrue(((Number) status.get("eventsLast7Days")).intValue() >= 1);
     assertTrue(((Number) status.get("eventsPrevious7Days")).intValue() >= 0);
     Object eventsTrend = status.get("eventsTrendPct");

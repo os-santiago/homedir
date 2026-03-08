@@ -26,6 +26,10 @@ Homedir records interaction events and persists them asynchronously to provide i
   - Production success rate (`production_verified / (production_verified + release_failed)`)
   - Production success rate (last 7d)
 - **Short-term delivery trend** (admin insights status):
+  - Events in last 24 hours
+  - Events in previous 24 hours
+  - Trend delta vs previous 24 hours
+  - Active initiatives in last 24 hours
   - Events in last 7 days
   - Events in previous 7 days
   - Trend delta vs previous 7 days
