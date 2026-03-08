@@ -1123,6 +1123,33 @@ public interface AppMessages {
     @Message("Export CSV")
     String events_cfp_admin_queue_export();
 
+    @Message("CFP insights")
+    String events_cfp_admin_insights_title();
+
+    @Message("Loading CFP insights...")
+    String events_cfp_admin_insights_loading();
+
+    @Message("No automatic insights data available yet for this CFP initiative.")
+    String events_cfp_admin_insights_missing();
+
+    @Message("Initiative:")
+    String events_cfp_admin_insights_initiative();
+
+    @Message("State:")
+    String events_cfp_admin_insights_state();
+
+    @Message("Events:")
+    String events_cfp_admin_insights_events();
+
+    @Message("Last type:")
+    String events_cfp_admin_insights_last_type();
+
+    @Message("Last update:")
+    String events_cfp_admin_insights_last_update();
+
+    @Message("Open insights")
+    String events_cfp_admin_insights_open();
+
     @Message("Total")
     String events_cfp_admin_stat_total();
 
@@ -4025,6 +4052,12 @@ public interface AppMessages {
 
     @Message("Append event")
     String admin_insights_append();
+
+    @Message("Automatic tracking mode")
+    String admin_insights_auto_mode_title();
+
+    @Message("Insights events are captured automatically from product flows and delivery pipelines. Manual append is disabled.")
+    String admin_insights_auto_mode_desc();
 
     @Message("Initiatives")
     String admin_insights_initiatives_title();

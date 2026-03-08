@@ -5,7 +5,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.scanales.eventflow.insights.DevelopmentInsightsLedgerService;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.SpeakerService;
@@ -26,6 +28,7 @@ public class CfpSubmissionApiResourceTest {
   @Inject CfpEventConfigService cfpEventConfigService;
   @Inject EventService eventService;
   @Inject SpeakerService speakerService;
+  @Inject DevelopmentInsightsLedgerService insightsLedger;
 
   @BeforeEach
   void setup() {
@@ -93,6 +96,37 @@ public class CfpSubmissionApiResourceTest {
         .body("items", hasSize(1))
         .body("items[0].title", equalTo("Cloud Native Platform Stories"))
         .body("items[0].track", equalTo("platform-engineering-idp"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void createSubmissionWritesAutomaticInsightsInitiative() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "title":"Insights integration for CFP",
+              "summary":"Automatic insights capture",
+              "abstract_text":"Testing automatic insights events for CFP module.",
+              "level":"intermediate",
+              "format":"talk",
+              "duration_min":30,
+              "language":"en",
+              "track":"platform-engineering-idp",
+              "links":["https://example.org/insights"]
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(201);
+
+    String expectedInitiativeId = "event-cfp-cfp-api-event-1";
+    boolean exists =
+        insightsLedger.listInitiatives(200, 0).stream()
+            .anyMatch(item -> expectedInitiativeId.equals(item.initiativeId()) && item.totalEvents() > 0);
+    assertTrue(exists, "automatic CFP insights initiative should exist with recorded events");
   }
 
   @Test

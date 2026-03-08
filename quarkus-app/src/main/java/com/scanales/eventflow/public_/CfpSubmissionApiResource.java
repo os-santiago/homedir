@@ -5,6 +5,7 @@ import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpConfigService;
 import com.scanales.eventflow.cfp.CfpEventConfig;
 import com.scanales.eventflow.cfp.CfpEventConfigService;
+import com.scanales.eventflow.cfp.CfpInsightsService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.GamificationActivity;
@@ -53,6 +54,7 @@ public class CfpSubmissionApiResource {
   @Inject SpeakerService speakerService;
   @Inject UsageMetricsService metrics;
   @Inject GamificationService gamificationService;
+  @Inject CfpInsightsService cfpInsightsService;
   @Inject SecurityIdentity identity;
 
   @POST
@@ -84,6 +86,7 @@ public class CfpSubmissionApiResource {
       metrics.recordFunnelStep("cfp.submission.create");
       metrics.recordFunnelStep("cfp_submit");
       gamificationService.award(primaryUserId, GamificationActivity.CFP_SUBMIT, eventId);
+      cfpInsightsService.recordSubmissionCreated(submission);
       return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status status =
@@ -455,6 +458,7 @@ public class CfpSubmissionApiResource {
         metrics.recordFunnelStep("cfp_approved");
         gamificationService.award(updated.proposerUserId(), GamificationActivity.CFP_ACCEPTED, updated.id());
       }
+      cfpInsightsService.recordStatusChange(existing.get(), updated);
       return Response.ok(new SubmissionResponse(toView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
@@ -495,6 +499,7 @@ public class CfpSubmissionApiResource {
               request.contentImpact(),
               currentUserId().orElse("admin"),
               request.expectedUpdatedAt());
+      cfpInsightsService.recordRatingUpdated(updated);
       return Response.ok(new SubmissionResponse(toView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
@@ -549,6 +554,7 @@ public class CfpSubmissionApiResource {
     talk.setDescription(buildTalkDescription(submission));
     talk.setDurationMinutes(submission.durationMin() != null ? submission.durationMin() : 30);
     speakerService.saveTalk(speakerId, talk);
+    cfpInsightsService.recordPromoted(submission, speakerId, talkId);
 
     return Response.ok(new PromoteResponse(speakerId, talkId, createdSpeaker, createdTalk)).build();
   }

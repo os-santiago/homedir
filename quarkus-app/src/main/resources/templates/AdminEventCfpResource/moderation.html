@@ -125,6 +125,12 @@
       <div class="cfp-stats-item"><span>{i18n:events_cfp_status_withdrawn}</span><strong id="cfpStatWithdrawn">-</strong></div>
     </div>
     <p id="cfpStatsMeta" class="form-hint" style="margin: 0.5rem 0 0 0;">{i18n:events_cfp_admin_last_update_prefix} {i18n:events_cfp_admin_not_available}</p>
+    <div class="cfp-insights-box" id="cfpInsightsSummary">
+      {i18n:events_cfp_admin_insights_loading}
+    </div>
+    <div class="action-group" style="margin-top: 0.55rem;">
+      <a href="/private/admin/insights" class="btn btn-secondary">{i18n:events_cfp_admin_insights_open}</a>
+    </div>
     <div class="cfp-toolbar-grid">
       <div class="cfp-toolbar-row">
         <span class="form-hint">{i18n:events_cfp_admin_label_status}</span>
@@ -178,6 +184,16 @@
     margin-top: 1rem;
     display: grid;
     gap: 0.65rem;
+  }
+
+  .cfp-insights-box {
+    margin-top: 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.55rem 0.65rem;
+    font-size: 0.84rem;
+    line-height: 1.42;
   }
 
   .cfp-stats-grid {
@@ -469,6 +485,7 @@
     const statRejectedEl = document.getElementById("cfpStatRejected");
     const statWithdrawnEl = document.getElementById("cfpStatWithdrawn");
     const statsMetaEl = document.getElementById("cfpStatsMeta");
+    const cfpInsightsSummaryEl = document.getElementById("cfpInsightsSummary");
     const fullModal = document.getElementById("cfpFullModal");
     const fullModalTitle = document.getElementById("cfpFullModalTitle");
     const fullModalSummaryLabel = document.getElementById("cfpFullModalSummaryLabel");
@@ -520,7 +537,15 @@
       modalSummary: "{i18n:events_cfp_admin_modal_summary}",
       modalAbstract: "{i18n:events_cfp_admin_modal_abstract}",
       modalLinks: "{i18n:events_cfp_admin_modal_links}",
-      modalLinksEmpty: "{i18n:events_cfp_admin_modal_links_empty}"
+      modalLinksEmpty: "{i18n:events_cfp_admin_modal_links_empty}",
+      insightsTitle: "{i18n:events_cfp_admin_insights_title}",
+      insightsLoading: "{i18n:events_cfp_admin_insights_loading}",
+      insightsMissing: "{i18n:events_cfp_admin_insights_missing}",
+      insightsInitiative: "{i18n:events_cfp_admin_insights_initiative}",
+      insightsState: "{i18n:events_cfp_admin_insights_state}",
+      insightsEvents: "{i18n:events_cfp_admin_insights_events}",
+      insightsLastType: "{i18n:events_cfp_admin_insights_last_type}",
+      insightsLastUpdate: "{i18n:events_cfp_admin_insights_last_update}"
     };
     const pageSize = 20;
     let activeStatus = "pending";
@@ -562,6 +587,34 @@
       if (activeStatus) params.set("status", activeStatus);
       if (activeSort) params.set("sort", activeSort);
       exportBtn.href = baseEndpoint + "/export.csv?" + params.toString();
+    }
+
+    function toCfpInitiativeId(id) {
+      const raw = String(id || "").trim().toLowerCase();
+      if (!raw) {
+        return "event-cfp-unknown";
+      }
+      let out = "";
+      let lastDash = false;
+      for (let i = 0; i < raw.length; i += 1) {
+        const code = raw.charCodeAt(i);
+        const isLower = code >= 97 && code <= 122;
+        const isDigit = code >= 48 && code <= 57;
+        if (isLower || isDigit) {
+          out += raw.charAt(i);
+          lastDash = false;
+        } else if (!lastDash && out.length > 0) {
+          out += "-";
+          lastDash = true;
+        }
+      }
+      if (out.endsWith("-")) {
+        out = out.slice(0, -1);
+      }
+      if (!out) {
+        out = "unknown";
+      }
+      return "event-cfp-" + out;
     }
 
     function fmtDate(value) {
@@ -680,6 +733,47 @@
         if (statsMetaEl) {
           statsMetaEl.textContent = i18n.lastUpdatePrefix + " " + i18n.statsUnavailableValue;
         }
+      }
+    }
+
+    function renderCfpInsightsSummary(item) {
+      if (!cfpInsightsSummaryEl) return;
+      if (!item) {
+        cfpInsightsSummaryEl.textContent = i18n.insightsMissing;
+        return;
+      }
+      const parts = [
+        i18n.insightsTitle,
+        i18n.insightsInitiative + " " + String(item.initiativeId || i18n.notAvailable),
+        i18n.insightsState + " " + String(item.state || i18n.notAvailable),
+        i18n.insightsEvents + " " + String(item.totalEvents ?? 0),
+        i18n.insightsLastType + " " + String(item.lastEventType || i18n.notAvailable),
+        i18n.insightsLastUpdate + " " + (fmtDate(item.lastEventAt) || i18n.notAvailable)
+      ];
+      cfpInsightsSummaryEl.innerHTML = parts.map((entry) => "<div>" + entry + "</div>").join("");
+    }
+
+    async function loadCfpInsightsSummary() {
+      if (!cfpInsightsSummaryEl) {
+        return;
+      }
+      cfpInsightsSummaryEl.textContent = i18n.insightsLoading;
+      try {
+        const response = await fetch("/api/private/admin/insights/initiatives?limit=500&offset=0", {
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+          cfpInsightsSummaryEl.textContent = i18n.insightsMissing;
+          return;
+        }
+        const initiatives = await response.json();
+        const wantedId = toCfpInitiativeId(eventId);
+        const item = Array.isArray(initiatives)
+          ? initiatives.find((candidate) => candidate && candidate.initiativeId === wantedId)
+          : null;
+        renderCfpInsightsSummary(item || null);
+      } catch (error) {
+        cfpInsightsSummaryEl.textContent = i18n.insightsMissing;
       }
     }
 
@@ -1338,7 +1432,10 @@
       });
     });
 
-    reloadBtn?.addEventListener("click", loadList);
+    reloadBtn?.addEventListener("click", () => {
+      loadList();
+      loadCfpInsightsSummary();
+    });
     prevPageBtn?.addEventListener("click", () => {
       if (activeOffset <= 0) {
         return;
@@ -1374,6 +1471,7 @@
     loadTestingConfig();
     loadEventConfig();
     loadAgendaNoticeConfig();
+    loadCfpInsightsSummary();
     loadList();
   })();
 </script>
