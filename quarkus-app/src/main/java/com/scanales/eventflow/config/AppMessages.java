@@ -508,6 +508,291 @@ public interface AppMessages {
     @Message("Call for Papers")
     String events_cfp_open_cta();
 
+    @Message("Volunteers")
+    String events_volunteers_open_cta();
+
+    @Message("Volunteers · {eventTitle}")
+    String events_volunteers_page_title(String eventTitle);
+
+    @Message("Event not found · Volunteers")
+    String events_volunteers_not_found_title();
+
+    @Message("Back to event")
+    String events_volunteers_back_to_event();
+
+    @Message("Events · Volunteer Program")
+    String events_volunteers_eyebrow();
+
+    @Message("Volunteer Program")
+    String events_volunteers_heading();
+
+    @Message("Apply as volunteer for {eventTitle}. Selected members collaborate with the organizing team before event day.")
+    String events_volunteers_intro(String eventTitle);
+
+    @Message("Submit your volunteer application")
+    String events_volunteers_apply_title();
+
+    @Message("Tell us about your background, your motivation, and what makes your contribution unique.")
+    String events_volunteers_apply_desc();
+
+    @Message("About me")
+    String events_volunteers_form_about_me();
+
+    @Message("I want to join because...")
+    String events_volunteers_form_join_reason();
+
+    @Message("My contribution differentiator (optional)")
+    String events_volunteers_form_differentiator();
+
+    @Message("Submit application")
+    String events_volunteers_form_submit();
+
+    @Message("Update application")
+    String events_volunteers_form_update();
+
+    @Message("Withdraw application")
+    String events_volunteers_form_withdraw();
+
+    @Message("Login to apply as volunteer for this event.")
+    String events_volunteers_login_required();
+
+    @Message("Login")
+    String events_volunteers_login_btn();
+
+    @Message("My volunteer application")
+    String events_volunteers_my_application_title();
+
+    @Message("Loading volunteer data...")
+    String events_volunteers_loading();
+
+    @Message("Login to view your volunteer application.")
+    String events_volunteers_login_to_view();
+
+    @Message("You have not applied as volunteer for this event yet.")
+    String events_volunteers_empty_mine();
+
+    @Message("Applied")
+    String events_volunteers_status_applied();
+
+    @Message("Under review")
+    String events_volunteers_status_under_review();
+
+    @Message("Selected")
+    String events_volunteers_status_selected();
+
+    @Message("Not selected")
+    String events_volunteers_status_not_selected();
+
+    @Message("Withdrawn")
+    String events_volunteers_status_withdrawn();
+
+    @Message("Your application is registered and waiting for organizer review.")
+    String events_volunteers_status_desc_applied();
+
+    @Message("The organizing team is currently reviewing your application.")
+    String events_volunteers_status_desc_under_review();
+
+    @Message("Congratulations! You were selected as volunteer for this event.")
+    String events_volunteers_status_desc_selected();
+
+    @Message("Your application was reviewed but not selected for this edition.")
+    String events_volunteers_status_desc_not_selected();
+
+    @Message("You withdrew this volunteer application.")
+    String events_volunteers_status_desc_withdrawn();
+
+    @Message("Volunteer application submitted.")
+    String events_volunteers_success_apply();
+
+    @Message("Volunteer application updated.")
+    String events_volunteers_success_update();
+
+    @Message("Volunteer application withdrawn.")
+    String events_volunteers_success_withdraw();
+
+    @Message("Could not load volunteer data right now.")
+    String events_volunteers_error_load();
+
+    @Message("Could not submit volunteer application.")
+    String events_volunteers_error_submit();
+
+    @Message("Could not update volunteer application.")
+    String events_volunteers_error_update();
+
+    @Message("Could not withdraw volunteer application.")
+    String events_volunteers_error_withdraw();
+
+    @Message("You already applied as volunteer for this event.")
+    String events_volunteers_error_already_applied();
+
+    @Message("Volunteer applications are currently closed.")
+    String events_volunteers_error_window_closed();
+
+    @Message("Application window")
+    String events_volunteers_window_title();
+
+    @Message("Open for applications")
+    String events_volunteers_window_open();
+
+    @Message("Closed for applications")
+    String events_volunteers_window_closed();
+
+    @Message("Window schedule")
+    String events_volunteers_window_schedule();
+
+    @Message("Applied at")
+    String events_volunteers_applied_at();
+
+    @Message("Last updated")
+    String events_volunteers_updated_at();
+
+    @Message("Moderation note")
+    String events_volunteers_moderation_note();
+
+    @Message("Volunteer lounge")
+    String events_volunteers_lounge_title();
+
+    @Message("Private coordination space for selected volunteers and organizers.")
+    String events_volunteers_lounge_intro();
+
+    @Message("Selected volunteers can post updates, ask questions, and share coordination notes here.")
+    String events_volunteers_lounge_hint();
+
+    @Message("You need to be selected as volunteer to access this lounge.")
+    String events_volunteers_lounge_locked();
+
+    @Message("Write a volunteer update or question")
+    String events_volunteers_lounge_placeholder();
+
+    @Message("Reply to this message")
+    String events_volunteers_lounge_reply();
+
+    @Message("Clear reply")
+    String events_volunteers_lounge_clear_reply();
+
+    @Message("Post message")
+    String events_volunteers_lounge_post();
+
+    @Message("Posting...")
+    String events_volunteers_lounge_posting();
+
+    @Message("No lounge messages yet. Start the coordination thread.")
+    String events_volunteers_lounge_empty();
+
+    @Message("Lounge message posted.")
+    String events_volunteers_lounge_success_post();
+
+    @Message("Could not load lounge messages right now.")
+    String events_volunteers_lounge_error_load();
+
+    @Message("Could not post message right now.")
+    String events_volunteers_lounge_error_post();
+
+    @Message("You can post one lounge message per minute.")
+    String events_volunteers_lounge_error_rate_limit();
+
+    @Message("Replying to")
+    String events_volunteers_lounge_replying_to();
+
+    @Message("Posted")
+    String events_volunteers_lounge_posted_at();
+
+    @Message("We could not find this event.")
+    String events_volunteers_not_found_desc();
+
+    @Message("Volunteers moderation · {eventTitle}")
+    String events_volunteers_admin_page_title(String eventTitle);
+
+    @Message("Volunteer moderation")
+    String events_volunteers_admin_heading();
+
+    @Message("Event: {eventTitle}")
+    String events_volunteers_admin_event_label(String eventTitle);
+
+    @Message("Volunteer submission window")
+    String events_volunteers_admin_config_title();
+
+    @Message("Configure if the event is currently accepting volunteer applications and its schedule.")
+    String events_volunteers_admin_config_desc();
+
+    @Message("Accepting submissions")
+    String events_volunteers_admin_config_accepting();
+
+    @Message("Opens at")
+    String events_volunteers_admin_config_opens();
+
+    @Message("Closes at")
+    String events_volunteers_admin_config_closes();
+
+    @Message("Save volunteer config")
+    String events_volunteers_admin_config_save();
+
+    @Message("Clear override")
+    String events_volunteers_admin_config_clear();
+
+    @Message("Volunteer configuration saved.")
+    String events_volunteers_admin_config_saved();
+
+    @Message("Volunteer configuration reset to defaults.")
+    String events_volunteers_admin_config_cleared();
+
+    @Message("Could not update volunteer configuration.")
+    String events_volunteers_admin_config_error();
+
+    @Message("Volunteer moderation queue")
+    String events_volunteers_admin_queue_title();
+
+    @Message("Review volunteer applications, update status, and score each profile.")
+    String events_volunteers_admin_queue_desc();
+
+    @Message("Refresh")
+    String events_volunteers_admin_refresh();
+
+    @Message("Total")
+    String events_volunteers_admin_stat_total();
+
+    @Message("Status")
+    String events_volunteers_admin_filter_label();
+
+    @Message("Sort")
+    String events_volunteers_admin_sort_label();
+
+    @Message("Loading volunteer applications...")
+    String events_volunteers_admin_queue_loading();
+
+    @Message("No volunteer applications found for this filter.")
+    String events_volunteers_admin_queue_empty();
+
+    @Message("Could not load volunteer applications.")
+    String events_volunteers_admin_queue_load_error();
+
+    @Message("Move to under review")
+    String events_volunteers_admin_action_under_review();
+
+    @Message("Select volunteer")
+    String events_volunteers_admin_action_select();
+
+    @Message("Mark as not selected")
+    String events_volunteers_admin_action_reject();
+
+    @Message("No differentiator provided.")
+    String events_volunteers_admin_no_differentiator();
+
+    @Message("Add moderation note (required to reject).")
+    String events_volunteers_admin_note_placeholder();
+
+    @Message("This application changed while you were reviewing it. Reload and try again.")
+    String events_volunteers_admin_error_stale();
+
+    @Message("A moderation note is required when marking an application as not selected.")
+    String events_volunteers_admin_error_reject_note_required();
+
+    @Message("Could not update volunteer status.")
+    String events_volunteers_admin_error_action();
+
+    @Message("Could not save volunteer rating.")
+    String events_volunteers_admin_error_rating();
+
     @Message("Call for Papers · {eventTitle}")
     String events_cfp_page_title(String eventTitle);
 
@@ -2223,6 +2508,45 @@ public interface AppMessages {
     @Message("Browse Events")
     String profile_cfp_open_events();
 
+    @Message("Volunteers")
+    String profile_volunteers_title();
+
+    @Message("Track your volunteer applications, status updates, and open opportunities.")
+    String profile_volunteers_intro();
+
+    @Message("Total applications")
+    String profile_volunteers_total();
+
+    @Message("Events")
+    String profile_volunteers_events();
+
+    @Message("Recent volunteer activity")
+    String profile_volunteers_latest();
+
+    @Message("You do not have volunteer applications yet.")
+    String profile_volunteers_empty();
+
+    @Message("Explore volunteer events")
+    String profile_volunteers_open_events();
+
+    @Message("Open application")
+    String profile_volunteers_manage();
+
+    @Message("Volunteer lounge")
+    String profile_volunteers_lounge();
+
+    @Message("Open volunteer calls")
+    String profile_volunteers_open_calls();
+
+    @Message("Events currently accepting volunteer applications.")
+    String profile_volunteers_open_calls_intro();
+
+    @Message("No volunteer calls are open right now.")
+    String profile_volunteers_open_calls_empty();
+
+    @Message("Apply now")
+    String profile_volunteers_apply_now();
+
     @Message("Search")
     String search_aria_label();
 
@@ -2297,6 +2621,18 @@ public interface AppMessages {
 
     @Message("No accepted CFP talks published yet.")
     String public_profile_cfp_empty();
+
+    @Message("Volunteer track record")
+    String public_profile_volunteer_title();
+
+    @Message("Selected events")
+    String public_profile_volunteer_selected_label();
+
+    @Message("Latest selected events")
+    String public_profile_volunteer_latest();
+
+    @Message("No selected volunteer events published yet.")
+    String public_profile_volunteer_empty();
 
     @Message("Badges & Titles")
     String public_profile_badges_titles();

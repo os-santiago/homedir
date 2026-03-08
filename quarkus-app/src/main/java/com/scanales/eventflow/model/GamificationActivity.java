@@ -38,6 +38,7 @@ public enum GamificationActivity {
       "Events exploration mission"),
   EVENT_DIRECTORY_VIEW("event_directory_view", 4, QuestClass.ENGINEER, true, false, "Events directory exploration"),
   EVENT_VIEW("event_view", 3, QuestClass.ENGINEER, true, false, "Event exploration"),
+  VOLUNTEER_VIEW("volunteer_view", 4, QuestClass.WARRIOR, true, false, "Volunteer hub exploration"),
   PROJECT_VIEW("project_view", 3, QuestClass.ENGINEER, true, false, "Project exploration"),
   BOARD_PROFILE_OPEN("board_profile_open", 4, QuestClass.SCIENTIST, true, false, "Community board profile open"),
   NOTIFICATIONS_CENTER_VIEW(
@@ -51,6 +52,10 @@ public enum GamificationActivity {
   AGENDA_VIEW("agenda_view", 4, QuestClass.WARRIOR, true, false, "Agenda exploration"),
   CFP_SUBMIT("cfp_submit", 30, QuestClass.WARRIOR, false, false, "CFP submission"),
   CFP_ACCEPTED("cfp_accepted", 40, QuestClass.WARRIOR, false, false, "CFP accepted"),
+  VOLUNTEER_APPLY("volunteer_apply", 24, QuestClass.WARRIOR, false, false, "Volunteer application submitted"),
+  VOLUNTEER_SELECTED("volunteer_selected", 42, QuestClass.WARRIOR, false, false, "Volunteer application selected"),
+  VOLUNTEER_LOUNGE_POST("volunteer_lounge_post", 10, QuestClass.WARRIOR, true, false, "Volunteer lounge post"),
+  VOLUNTEER_WITHDRAW("volunteer_withdraw", 6, QuestClass.WARRIOR, true, false, "Volunteer application withdrawn"),
   SESSION_EVALUATION("session_evaluation", 12, QuestClass.WARRIOR, false, false, "Session evaluation");
 
   private final String key;

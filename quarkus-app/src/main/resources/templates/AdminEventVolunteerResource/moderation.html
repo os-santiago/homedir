@@ -1,0 +1,516 @@
+{#include layout/main}
+{#title}
+{i18n:events_volunteers_admin_page_title(event.title)}
+{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <p class="section-subtitle" style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">VOLUNTEERS</p>
+        <h1 class="page-title">{i18n:events_volunteers_admin_heading}</h1>
+        <p class="section-subtitle">{i18n:events_volunteers_admin_event_label(event.title)}</p>
+      </div>
+      <div class="action-group admin-nav-strip">
+        <a href="/private/admin" class="btn btn-secondary">{i18n:nav_admin_panel}</a>
+        <a href="/private/admin/events" class="btn btn-secondary">{i18n:nav_events}</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
+        <a href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">CFP</a>
+        <a href="/event/{event.id}/volunteers" class="btn btn-secondary">{i18n:events_volunteers_open_cta}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_volunteers_admin_config_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_volunteers_admin_config_desc}</p>
+      </div>
+    </div>
+    <div class="vol-config-grid">
+      <label class="form-hint vol-inline-toggle">
+        <input id="volAcceptingToggle" type="checkbox" style="transform: translateY(1px);">
+        <span>{i18n:events_volunteers_admin_config_accepting}</span>
+      </label>
+      <label class="form-hint vol-config-field">
+        <span>{i18n:events_volunteers_admin_config_opens}</span>
+        <input id="volOpensAt" type="datetime-local" class="form-input">
+      </label>
+      <label class="form-hint vol-config-field">
+        <span>{i18n:events_volunteers_admin_config_closes}</span>
+        <input id="volClosesAt" type="datetime-local" class="form-input">
+      </label>
+    </div>
+    <div class="action-group" style="margin-top: 0.75rem; gap: 0.5rem;">
+      <button id="volConfigSaveBtn" type="button" class="btn btn-secondary">{i18n:events_volunteers_admin_config_save}</button>
+      <button id="volConfigClearBtn" type="button" class="btn btn-secondary">{i18n:events_volunteers_admin_config_clear}</button>
+    </div>
+    <p id="volConfigSummary" class="form-hint" style="margin-top: 0.6rem;"></p>
+    <p id="volConfigFeedback" class="form-hint" style="margin-top: 0.35rem;" hidden></p>
+  </div>
+
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_volunteers_admin_queue_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_volunteers_admin_queue_desc}</p>
+      </div>
+      <div class="action-group" style="gap: 0.5rem;">
+        <button id="volReloadBtn" type="button" class="btn btn-secondary">{i18n:events_volunteers_admin_refresh}</button>
+      </div>
+    </div>
+
+    <div id="volStatsSummary" class="vol-stats-grid" aria-live="polite">
+      <div class="vol-stats-item"><span>{i18n:events_volunteers_admin_stat_total}</span><strong id="volStatTotal">-</strong></div>
+      <div class="vol-stats-item"><span>{i18n:events_volunteers_status_applied}</span><strong id="volStatApplied">-</strong></div>
+      <div class="vol-stats-item"><span>{i18n:events_volunteers_status_under_review}</span><strong id="volStatUnderReview">-</strong></div>
+      <div class="vol-stats-item"><span>{i18n:events_volunteers_status_selected}</span><strong id="volStatSelected">-</strong></div>
+      <div class="vol-stats-item"><span>{i18n:events_volunteers_status_not_selected}</span><strong id="volStatNotSelected">-</strong></div>
+      <div class="vol-stats-item"><span>{i18n:events_volunteers_status_withdrawn}</span><strong id="volStatWithdrawn">-</strong></div>
+    </div>
+
+    <div class="vol-toolbar-grid">
+      <div class="vol-toolbar-row">
+        <span class="form-hint">{i18n:events_volunteers_admin_filter_label}</span>
+        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="all">{i18n:events_cfp_admin_filter_all}</button>
+        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="applied">{i18n:events_volunteers_status_applied}</button>
+        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="under_review">{i18n:events_volunteers_status_under_review}</button>
+        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="selected">{i18n:events_volunteers_status_selected}</button>
+        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="not_selected">{i18n:events_volunteers_status_not_selected}</button>
+      </div>
+      <div class="vol-toolbar-row">
+        <span class="form-hint">{i18n:events_volunteers_admin_sort_label}</span>
+        <button type="button" class="btn btn-ghost vol-sort-btn" data-sort="created">{i18n:events_cfp_admin_sort_recent}</button>
+        <button type="button" class="btn btn-ghost vol-sort-btn" data-sort="updated">{i18n:events_cfp_admin_sort_updated}</button>
+        <button type="button" class="btn btn-ghost vol-sort-btn" data-sort="score">{i18n:events_cfp_admin_sort_score}</button>
+      </div>
+    </div>
+
+    <div class="vol-toolbar-row vol-pagination-row">
+      <button id="volPrevPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_prev}</button>
+      <p id="volPageInfo" class="form-hint vol-page-info">0-0 / 0</p>
+      <button id="volNextPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_next}</button>
+    </div>
+  </div>
+
+  <div id="volQueueList"></div>
+</div>
+
+<style>
+  .admin-nav-strip { gap: 0.45rem; }
+  .vol-config-grid { margin-top: 0.85rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.55rem; }
+  .vol-config-field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .vol-inline-toggle { display: inline-flex; align-items: center; gap: 0.45rem; }
+  .vol-stats-grid { margin-top: 0.8rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 0.5rem; }
+  .vol-stats-item { border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--radius-sm); background: rgba(255, 255, 255, 0.03); padding: 0.5rem 0.6rem; display: flex; flex-direction: column; gap: 0.2rem; }
+  .vol-stats-item span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.78; }
+  .vol-stats-item strong { font-size: 1rem; line-height: 1.1; }
+  .vol-toolbar-grid { margin-top: 1rem; display: grid; gap: 0.65rem; }
+  .vol-toolbar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+  .vol-pagination-row { margin-top: 0.55rem; }
+  .vol-page-info { margin: 0; min-width: 108px; text-align: center; }
+  .vol-filter-btn.is-active, .vol-sort-btn.is-active { border-color: rgba(255, 215, 0, 0.7); background: rgba(255, 215, 0, 0.12); }
+  .vol-admin-card { margin-bottom: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: var(--radius-sm); padding: 0.9rem; background: rgba(255, 255, 255, 0.03); }
+  .vol-admin-card h3 { margin: 0; font-size: 1.05rem; }
+  .vol-admin-meta { font-size: 0.82rem; opacity: 0.82; margin-top: 0.25rem; }
+  .vol-admin-text { margin-top: 0.55rem; white-space: pre-wrap; }
+  .vol-admin-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center; }
+  .vol-admin-note { width: 100%; margin-top: 0.55rem; }
+  .vol-status-chip { display: inline-flex; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.25); padding: 0.15rem 0.55rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .vol-status-chip--applied { border-color: rgba(255, 215, 0, 0.7); background: rgba(255, 215, 0, 0.14); }
+  .vol-status-chip--under_review { border-color: rgba(120, 185, 255, 0.7); background: rgba(120, 185, 255, 0.14); }
+  .vol-status-chip--selected { border-color: rgba(114, 255, 159, 0.7); background: rgba(114, 255, 159, 0.14); }
+  .vol-status-chip--not_selected, .vol-status-chip--withdrawn { border-color: rgba(255, 126, 126, 0.75); background: rgba(255, 126, 126, 0.14); }
+  .vol-rating-grid { margin-top: 0.7rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; }
+  .vol-rating-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .vol-rating-item label { font-size: 0.75rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.04em; }
+  .vol-rating-item select { width: 100%; }
+</style>
+
+<script>
+  (() => {
+    const eventId = "{event.id}";
+    const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/volunteers/submissions";
+    const queueEl = document.getElementById("volQueueList");
+    const reloadBtn = document.getElementById("volReloadBtn");
+    const filterButtons = Array.from(document.querySelectorAll(".vol-filter-btn"));
+    const sortButtons = Array.from(document.querySelectorAll(".vol-sort-btn"));
+    const prevPageBtn = document.getElementById("volPrevPageBtn");
+    const nextPageBtn = document.getElementById("volNextPageBtn");
+    const pageInfo = document.getElementById("volPageInfo");
+    const acceptToggle = document.getElementById("volAcceptingToggle");
+    const opensInput = document.getElementById("volOpensAt");
+    const closesInput = document.getElementById("volClosesAt");
+    const configSaveBtn = document.getElementById("volConfigSaveBtn");
+    const configClearBtn = document.getElementById("volConfigClearBtn");
+    const configSummary = document.getElementById("volConfigSummary");
+    const configFeedback = document.getElementById("volConfigFeedback");
+
+    const statTotal = document.getElementById("volStatTotal");
+    const statApplied = document.getElementById("volStatApplied");
+    const statUnderReview = document.getElementById("volStatUnderReview");
+    const statSelected = document.getElementById("volStatSelected");
+    const statNotSelected = document.getElementById("volStatNotSelected");
+    const statWithdrawn = document.getElementById("volStatWithdrawn");
+
+    const i18n = {
+      queueLoading: "{i18n:events_volunteers_admin_queue_loading}",
+      queueEmpty: "{i18n:events_volunteers_admin_queue_empty}",
+      queueLoadError: "{i18n:events_volunteers_admin_queue_load_error}",
+      actionUnderReview: "{i18n:events_volunteers_admin_action_under_review}",
+      actionSelect: "{i18n:events_volunteers_admin_action_select}",
+      actionReject: "{i18n:events_volunteers_admin_action_reject}",
+      actionSaveRating: "{i18n:events_cfp_admin_save_rating}",
+      scorePrefix: "{i18n:events_cfp_admin_score_prefix}",
+      scoreNotAvailable: "{i18n:events_cfp_admin_score_not_available}",
+      noDifferentiator: "{i18n:events_volunteers_admin_no_differentiator}",
+      notePlaceholder: "{i18n:events_volunteers_admin_note_placeholder}",
+      configSaved: "{i18n:events_volunteers_admin_config_saved}",
+      configCleared: "{i18n:events_volunteers_admin_config_cleared}",
+      configError: "{i18n:events_volunteers_admin_config_error}",
+      staleError: "{i18n:events_volunteers_admin_error_stale}",
+      rejectNoteRequired: "{i18n:events_volunteers_admin_error_reject_note_required}",
+      actionError: "{i18n:events_volunteers_admin_error_action}",
+      saveRatingError: "{i18n:events_volunteers_admin_error_rating}",
+      statusApplied: "{i18n:events_volunteers_status_applied}",
+      statusUnderReview: "{i18n:events_volunteers_status_under_review}",
+      statusSelected: "{i18n:events_volunteers_status_selected}",
+      statusNotSelected: "{i18n:events_volunteers_status_not_selected}",
+      statusWithdrawn: "{i18n:events_volunteers_status_withdrawn}",
+      labelAbout: "{i18n:events_volunteers_form_about_me}",
+      labelReason: "{i18n:events_volunteers_form_join_reason}",
+      labelDifferentiator: "{i18n:events_volunteers_form_differentiator}",
+      createdAt: "{i18n:events_cfp_admin_created_at}",
+      updatedAt: "{i18n:events_cfp_admin_updated_at}",
+      by: "{i18n:events_cfp_admin_by}",
+      notAvailable: "{i18n:events_cfp_admin_not_available}"
+    };
+
+    const state = { status: "all", sort: "created", limit: 20, offset: 0, total: 0, nextOffset: null };
+
+    function toLocalDateTimeInput(value) {
+      if (!value) return "";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "";
+      const p = (x) => String(x).padStart(2, "0");
+      return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes());
+    }
+
+    function fromLocalDateTimeInput(value) {
+      if (!value) return null;
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return null;
+      return d.toISOString();
+    }
+
+    function formatDate(value) {
+      if (!value) return i18n.notAvailable;
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return d.toLocaleString();
+    }
+
+    function statusLabel(status) {
+      switch ((status || "").toLowerCase()) {
+        case "under_review": return i18n.statusUnderReview;
+        case "selected": return i18n.statusSelected;
+        case "not_selected": return i18n.statusNotSelected;
+        case "withdrawn": return i18n.statusWithdrawn;
+        case "applied":
+        default: return i18n.statusApplied;
+      }
+    }
+
+    function setConfigFeedback(message, ok) {
+      if (!configFeedback) return;
+      if (!message) {
+        configFeedback.hidden = true;
+        configFeedback.textContent = "";
+        return;
+      }
+      configFeedback.hidden = false;
+      configFeedback.textContent = message;
+      configFeedback.style.color = ok ? "#9fffd0" : "#ffb2b2";
+    }
+
+    function renderStats(stats) {
+      if (!stats) return;
+      statTotal.textContent = String(stats.total || 0);
+      statApplied.textContent = String(stats.applied || 0);
+      statUnderReview.textContent = String(stats.under_review || 0);
+      statSelected.textContent = String(stats.selected || 0);
+      statNotSelected.textContent = String(stats.not_selected || 0);
+      statWithdrawn.textContent = String(stats.withdrawn || 0);
+    }
+
+    function renderPager(itemsCount) {
+      const total = Number(state.total || 0);
+      const from = total === 0 ? 0 : state.offset + 1;
+      const to = Math.min(total, state.offset + itemsCount);
+      pageInfo.textContent = String(from) + "-" + String(to) + " / " + String(total);
+      prevPageBtn.disabled = state.offset <= 0;
+      nextPageBtn.disabled = state.nextOffset == null;
+    }
+
+    function makeStatusChip(status) {
+      const normalized = (status || "applied").toLowerCase();
+      return '<span class="vol-status-chip vol-status-chip--' + normalized + '">' + statusLabel(normalized) + '</span>';
+    }
+
+    async function fetchJson(url, options) {
+      const res = await fetch(url, options || {});
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const code = err && err.error ? String(err.error) : "request_failed";
+        throw new Error(code);
+      }
+      return res.json();
+    }
+
+    async function loadConfig() {
+      setConfigFeedback(null, true);
+      try {
+        const data = await fetchJson(baseEndpoint + "/event-config", { headers: { "Accept": "application/json" } });
+        const resolved = data && data.resolved ? data.resolved : null;
+        if (resolved) {
+          acceptToggle.checked = !!resolved.accepting_submissions;
+          opensInput.value = toLocalDateTimeInput(resolved.opens_at);
+          closesInput.value = toLocalDateTimeInput(resolved.closes_at);
+          const stateLabel = resolved.currently_open ? "open" : "closed";
+          configSummary.textContent = stateLabel + " · " + formatDate(resolved.opens_at) + " → " + formatDate(resolved.closes_at);
+        }
+      } catch (error) {
+        configSummary.textContent = i18n.configError;
+      }
+    }
+
+    async function saveConfig() {
+      setConfigFeedback(null, true);
+      try {
+        await fetchJson(baseEndpoint + "/event-config", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            accepting_submissions: !!acceptToggle.checked,
+            opens_at: fromLocalDateTimeInput(opensInput.value),
+            closes_at: fromLocalDateTimeInput(closesInput.value)
+          })
+        });
+        setConfigFeedback(i18n.configSaved, true);
+        await loadConfig();
+      } catch (error) {
+        setConfigFeedback(i18n.configError + " (" + error.message + ")", false);
+      }
+    }
+
+    async function clearConfig() {
+      setConfigFeedback(null, true);
+      try {
+        await fetchJson(baseEndpoint + "/event-config", { method: "DELETE", headers: { "Accept": "application/json" } });
+        setConfigFeedback(i18n.configCleared, true);
+        await loadConfig();
+      } catch (error) {
+        setConfigFeedback(i18n.configError + " (" + error.message + ")", false);
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const stats = await fetchJson(baseEndpoint + "/stats", { headers: { "Accept": "application/json" } });
+        renderStats(stats);
+      } catch (error) {
+        renderStats({ total: 0, applied: 0, under_review: 0, selected: 0, not_selected: 0, withdrawn: 0 });
+      }
+    }
+
+    function scoreLabel(item) {
+      if (item.rating_weighted == null) return i18n.scoreNotAvailable;
+      return i18n.scorePrefix + ": " + String(item.rating_weighted);
+    }
+
+    function statusActions(item) {
+      const payload = {
+        expected_updated_at: item.updated_at,
+        note: (item._noteInput && item._noteInput.value) ? item._noteInput.value : null
+      };
+      return {
+        under_review: () => updateStatus(item, "under_review", payload),
+        selected: () => updateStatus(item, "selected", payload),
+        not_selected: () => updateStatus(item, "not_selected", payload)
+      };
+    }
+
+    async function updateStatus(item, nextStatus, payload) {
+      try {
+        await fetchJson(baseEndpoint + "/" + encodeURIComponent(item.id) + "/status", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ status: nextStatus, note: payload.note, expected_updated_at: payload.expected_updated_at })
+        });
+        await loadAll();
+      } catch (error) {
+        if (error.message === "stale_submission") {
+          alert(i18n.staleError);
+          await loadAll();
+          return;
+        }
+        if (error.message === "reject_note_required") {
+          alert(i18n.rejectNoteRequired);
+          return;
+        }
+        alert(i18n.actionError + " (" + error.message + ")");
+      }
+    }
+
+    async function saveRating(item, card) {
+      const profile = card.querySelector('[data-vol-rating="profile"]').value;
+      const motivation = card.querySelector('[data-vol-rating="motivation"]').value;
+      const differentiator = card.querySelector('[data-vol-rating="differentiator"]').value;
+      try {
+        await fetchJson(baseEndpoint + "/" + encodeURIComponent(item.id) + "/rating", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            profile: profile === "" ? null : Number(profile),
+            motivation: motivation === "" ? null : Number(motivation),
+            differentiator: differentiator === "" ? null : Number(differentiator),
+            expected_updated_at: item.updated_at
+          })
+        });
+        await loadAll();
+      } catch (error) {
+        if (error.message === "stale_submission") {
+          alert(i18n.staleError);
+          await loadAll();
+          return;
+        }
+        alert(i18n.saveRatingError + " (" + error.message + ")");
+      }
+    }
+
+    function ratingOptions(selected) {
+      let html = '<option value=""></option>';
+      for (let idx = 0; idx <= 5; idx++) {
+        const mark = Number(selected) === idx ? ' selected' : '';
+        html += '<option value="' + idx + '"' + mark + '>' + idx + '</option>';
+      }
+      return html;
+    }
+
+    function renderQueue(items) {
+      if (!queueEl) return;
+      if (!Array.isArray(items) || items.length === 0) {
+        queueEl.innerHTML = '<div class="card"><p class="form-hint" style="margin:0;">' + i18n.queueEmpty + '</p></div>';
+        renderPager(0);
+        return;
+      }
+      queueEl.innerHTML = "";
+      items.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = "vol-admin-card";
+        const differentiator = item.differentiator ? item.differentiator : i18n.noDifferentiator;
+        card.innerHTML =
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.6rem;flex-wrap:wrap;">'
+          + '<h3>' + (item.applicant_name || item.applicant_user_id || item.id) + '</h3>'
+          + '<div>' + makeStatusChip(item.status) + ' <span class="vol-status-chip">' + scoreLabel(item) + '</span></div>'
+          + '</div>'
+          + '<p class="vol-admin-meta">' + i18n.by + ': ' + (item.applicant_user_id || i18n.notAvailable) + ' · '
+          + i18n.createdAt + ': ' + formatDate(item.created_at) + ' · '
+          + i18n.updatedAt + ': ' + formatDate(item.updated_at) + '</p>'
+          + '<p class="vol-admin-text"><strong>' + i18n.labelAbout + ':</strong><br>' + (item.about_me || '') + '</p>'
+          + '<p class="vol-admin-text"><strong>' + i18n.labelReason + ':</strong><br>' + (item.join_reason || '') + '</p>'
+          + '<p class="vol-admin-text"><strong>' + i18n.labelDifferentiator + ':</strong><br>' + differentiator + '</p>'
+          + '<textarea class="form-textarea vol-admin-note" rows="2" maxlength="500" placeholder="' + i18n.notePlaceholder + '">' + (item.moderation_note || '') + '</textarea>'
+          + '<div class="vol-admin-actions">'
+          + '<button type="button" class="btn btn-secondary" data-vol-action="under_review">' + i18n.actionUnderReview + '</button>'
+          + '<button type="button" class="btn btn-secondary" data-vol-action="selected">' + i18n.actionSelect + '</button>'
+          + '<button type="button" class="btn btn-secondary" data-vol-action="not_selected">' + i18n.actionReject + '</button>'
+          + '</div>'
+          + '<div class="vol-rating-grid">'
+          + '<div class="vol-rating-item"><label>Profile</label><select class="form-select" data-vol-rating="profile">' + ratingOptions(item.rating_profile) + '</select></div>'
+          + '<div class="vol-rating-item"><label>Motivation</label><select class="form-select" data-vol-rating="motivation">' + ratingOptions(item.rating_motivation) + '</select></div>'
+          + '<div class="vol-rating-item"><label>Differentiator</label><select class="form-select" data-vol-rating="differentiator">' + ratingOptions(item.rating_differentiator) + '</select></div>'
+          + '</div>'
+          + '<div class="vol-admin-actions"><button type="button" class="btn btn-secondary" data-vol-action="save_rating">' + i18n.actionSaveRating + '</button></div>';
+
+        const noteInput = card.querySelector('.vol-admin-note');
+        item._noteInput = noteInput;
+        const actions = statusActions(item);
+
+        card.querySelector('[data-vol-action="under_review"]').addEventListener('click', actions.under_review);
+        card.querySelector('[data-vol-action="selected"]').addEventListener('click', actions.selected);
+        card.querySelector('[data-vol-action="not_selected"]').addEventListener('click', actions.not_selected);
+        card.querySelector('[data-vol-action="save_rating"]').addEventListener('click', () => saveRating(item, card));
+
+        queueEl.appendChild(card);
+      });
+      renderPager(items.length);
+    }
+
+    async function loadQueue() {
+      if (!queueEl) return;
+      queueEl.innerHTML = '<div class="card"><p class="form-hint" style="margin:0;">' + i18n.queueLoading + '</p></div>';
+      try {
+        const params = new URLSearchParams();
+        params.set("status", state.status);
+        params.set("sort", state.sort);
+        params.set("limit", String(state.limit));
+        params.set("offset", String(state.offset));
+        const data = await fetchJson(baseEndpoint + "?" + params.toString(), { headers: { "Accept": "application/json" } });
+        state.total = Number(data.total || 0);
+        state.nextOffset = data.next_offset == null ? null : Number(data.next_offset);
+        renderQueue(Array.isArray(data.items) ? data.items : []);
+      } catch (error) {
+        queueEl.innerHTML = '<div class="card"><p class="form-hint" style="margin:0;">' + i18n.queueLoadError + '</p></div>';
+        renderPager(0);
+      }
+    }
+
+    async function loadAll() {
+      await Promise.all([loadConfig(), loadStats(), loadQueue()]);
+    }
+
+    reloadBtn.addEventListener("click", () => { loadAll(); });
+    configSaveBtn.addEventListener("click", saveConfig);
+    configClearBtn.addEventListener("click", clearConfig);
+
+    filterButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.status = btn.dataset.status || "all";
+        state.offset = 0;
+        filterButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
+        loadQueue();
+      });
+    });
+
+    sortButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.sort = btn.dataset.sort || "created";
+        state.offset = 0;
+        sortButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
+        loadQueue();
+      });
+    });
+
+    prevPageBtn.addEventListener("click", () => {
+      if (state.offset <= 0) return;
+      state.offset = Math.max(0, state.offset - state.limit);
+      loadQueue();
+    });
+
+    nextPageBtn.addEventListener("click", () => {
+      if (state.nextOffset == null) return;
+      state.offset = state.nextOffset;
+      loadQueue();
+    });
+
+    if (filterButtons[0]) filterButtons[0].classList.add("is-active");
+    if (sortButtons[0]) sortButtons[0].classList.add("is-active");
+    loadAll();
+  })();
+</script>
+{/body}
+{/include}

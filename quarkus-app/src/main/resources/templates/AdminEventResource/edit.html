@@ -26,6 +26,7 @@ Nuevo Evento · Homedir
         <a href="/private/admin/events" class="btn btn-secondary">Volver a eventos</a>
         {#if event.id}
         <a href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">Moderar CFP</a>
+        <a href="/private/admin/events/{event.id}/volunteers" class="btn btn-secondary">Moderar Voluntarios</a>
         {/if}
       </div>
     </div>
@@ -42,6 +43,7 @@ Nuevo Evento · Homedir
     <a href="#breaks" class="btn btn-ghost">Breaks</a>
     <a href="#agenda" class="btn btn-ghost">Agenda</a>
     <a href="/private/admin/events/{event.id}/cfp" class="btn btn-ghost">CFP</a>
+    <a href="/private/admin/events/{event.id}/volunteers" class="btn btn-ghost">Voluntarios</a>
     {/if}
   </div>
 

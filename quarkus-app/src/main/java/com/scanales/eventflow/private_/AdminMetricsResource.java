@@ -812,6 +812,31 @@ public class AdminMetricsResource {
             cfpApproved,
             funnelConversion(cfpApproved, loginSuccess)));
 
+    long volunteerSubmit = resolveFunnelCount(snap, "volunteer_submit", "volunteer.submission.create");
+    rows.add(
+        new FunnelRow(
+            "volunteer_submit",
+            "Volunteer submit",
+            volunteerSubmit,
+            funnelConversion(volunteerSubmit, loginSuccess)));
+
+    long volunteerSelected =
+        resolveFunnelCount(snap, "volunteer_selected", "volunteer.submission.status.selected");
+    rows.add(
+        new FunnelRow(
+            "volunteer_selected",
+            "Volunteer selected",
+            volunteerSelected,
+            funnelConversion(volunteerSelected, loginSuccess)));
+
+    long volunteerLoungePost = resolveFunnelCount(snap, "volunteer_lounge_post", "volunteer.lounge.post");
+    rows.add(
+        new FunnelRow(
+            "volunteer_lounge_post",
+            "Volunteer lounge post",
+            volunteerLoungePost,
+            funnelConversion(volunteerLoungePost, loginSuccess)));
+
     long boardProfileOpen = resolveFunnelCount(snap, "board_profile_open");
     rows.add(
         new FunnelRow(

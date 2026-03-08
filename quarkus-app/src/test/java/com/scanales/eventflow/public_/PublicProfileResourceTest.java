@@ -11,6 +11,9 @@ import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserProfileService;
+import com.scanales.eventflow.volunteers.VolunteerApplication;
+import com.scanales.eventflow.volunteers.VolunteerApplicationService;
+import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
@@ -26,13 +29,17 @@ public class PublicProfileResourceTest {
   @Inject UserProfileService userProfileService;
   @Inject EventService eventService;
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject VolunteerApplicationService volunteerApplicationService;
 
   private static final String CFP_EVENT_ID = "public-cfp-event";
+  private static final String VOLUNTEER_EVENT_ID = "public-volunteer-event";
 
   @BeforeEach
   void setup() {
     cfpSubmissionService.clearAllForTests();
+    volunteerApplicationService.clearAllForTests();
     eventService.saveEvent(new Event(CFP_EVENT_ID, "Public CFP Event", "Public CFP profile view test"));
+    eventService.saveEvent(new Event(VOLUNTEER_EVENT_ID, "Public Volunteer Event", "Public volunteer profile view test"));
     userProfileService.linkGithub(
         "public.user@example.com",
         "Public User",
@@ -87,6 +94,21 @@ public class PublicProfileResourceTest {
                 List.of("public"),
                 List.of("https://example.com/public-cfp")));
     cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
+    VolunteerApplication volunteerCreated =
+        volunteerApplicationService.create(
+            "public.user@example.com",
+            "Public User",
+            new VolunteerApplicationService.CreateRequest(
+                VOLUNTEER_EVENT_ID,
+                "Experienced on-site helper for technology meetups.",
+                "I want to support attendees and speaker logistics.",
+                "Strong coordination and communication."));
+    volunteerApplicationService.updateStatus(
+        volunteerCreated.id(),
+        VolunteerApplicationStatus.SELECTED,
+        "admin",
+        "selected",
+        volunteerCreated.updatedAt());
   }
 
   @Test
@@ -104,6 +126,8 @@ public class PublicProfileResourceTest {
         .body(containsString("CFP track record"))
         .body(containsString("Public CFP Talk"))
         .body(containsString("Public CFP Event"))
+        .body(containsString("Volunteer track record"))
+        .body(containsString("Public Volunteer Event"))
         .body(containsString("Class progression"))
         .body(containsString("Activities completed"))
         .body(containsString("Scientist"));

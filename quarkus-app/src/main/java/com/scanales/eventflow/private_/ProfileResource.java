@@ -6,6 +6,10 @@ import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.cfp.CfpEventConfigService;
 import com.scanales.eventflow.cfp.CfpTimelinePlanner;
 import com.scanales.eventflow.cfp.CfpTimelineView;
+import com.scanales.eventflow.volunteers.VolunteerApplication;
+import com.scanales.eventflow.volunteers.VolunteerApplicationService;
+import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
+import com.scanales.eventflow.volunteers.VolunteerEventConfigService;
 import com.scanales.eventflow.model.Talk;
 import com.scanales.eventflow.model.TalkInfo;
 import com.scanales.eventflow.model.GamificationActivity;
@@ -50,6 +54,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -160,6 +165,29 @@ public class ProfileResource {
       String manageUrl) {
   }
 
+  public record VolunteerOverview(
+      int total,
+      int selected,
+      int underReview,
+      int applied,
+      int notSelected,
+      int withdrawn,
+      int distinctEvents) {
+  }
+
+  public record VolunteerApplicationItem(
+      String id,
+      String eventId,
+      String eventTitle,
+      String status,
+      String updatedAtLabel,
+      String manageUrl,
+      String loungeUrl) {
+  }
+
+  public record VolunteerEventItem(String eventId, String eventTitle, String applyUrl) {
+  }
+
   @Inject
   EventService eventService;
   @Inject
@@ -182,6 +210,10 @@ public class ProfileResource {
   CfpSubmissionService cfpSubmissionService;
   @Inject
   CfpEventConfigService cfpEventConfigService;
+  @Inject
+  VolunteerApplicationService volunteerApplicationService;
+  @Inject
+  VolunteerEventConfigService volunteerEventConfigService;
 
   @GET
   @Authenticated
@@ -250,6 +282,25 @@ public class ProfileResource {
             .map(this::toCfpSubmissionItem)
             .toList();
     CfpTimelineView cfpTimeline = resolveProfileCfpTimeline(cfpRecentSubmissions, finalLang);
+
+    VolunteerApplicationService.MineStats volunteerMineStats =
+        volunteerApplicationService.statsMineAcrossEvents(cfpUserIds);
+    VolunteerOverview volunteerOverview = new VolunteerOverview(
+        volunteerMineStats.total(),
+        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.SELECTED, 0),
+        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.UNDER_REVIEW, 0),
+        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.APPLIED, 0),
+        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.NOT_SELECTED, 0),
+        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.WITHDRAWN, 0),
+        volunteerMineStats.distinctEvents());
+    java.util.List<VolunteerApplicationItem> volunteerRecentApplications =
+        volunteerApplicationService
+            .listMineAcrossEvents(cfpUserIds, VolunteerApplicationService.SortOrder.UPDATED_DESC, 10, 0)
+            .stream()
+            .map(this::toVolunteerApplicationItem)
+            .toList();
+    java.util.List<VolunteerEventItem> volunteerOpenEvents = listVolunteerOpenEvents();
+
     int questProgressPercent = 0;
     if (questProfile.nextLevelXp > 0) {
       questProgressPercent =
@@ -310,6 +361,9 @@ public class ProfileResource {
         ogDescription)
         .data("cfpOverview", cfpOverview)
         .data("cfpRecentSubmissions", cfpRecentSubmissions)
+        .data("volunteerOverview", volunteerOverview)
+        .data("volunteerRecentApplications", volunteerRecentApplications)
+        .data("volunteerOpenEvents", volunteerOpenEvents)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
@@ -814,6 +868,56 @@ public class ProfileResource {
     } catch (Exception ignored) {
       return null;
     }
+  }
+
+  private VolunteerApplicationItem toVolunteerApplicationItem(VolunteerApplication application) {
+    if (application == null) {
+      return new VolunteerApplicationItem("", "", "", VolunteerApplicationStatus.APPLIED.apiValue(), "", "/eventos", null);
+    }
+    String eventId = application.eventId() != null ? application.eventId() : "";
+    com.scanales.eventflow.model.Event event = eventService.getEvent(eventId);
+    String eventTitle =
+        event != null && event.getTitle() != null && !event.getTitle().isBlank() ? event.getTitle() : eventId;
+    Instant updatedAt = application.updatedAt() != null ? application.updatedAt() : application.createdAt();
+    String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
+    String status =
+        application.status() != null
+            ? application.status().apiValue()
+            : VolunteerApplicationStatus.APPLIED.apiValue();
+    String manageUrl = "/event/" + eventId + "/volunteers";
+    String loungeUrl =
+        application.status() == VolunteerApplicationStatus.SELECTED
+            ? "/event/" + eventId + "/volunteers#volunteer-lounge"
+            : null;
+    return new VolunteerApplicationItem(
+        application.id(), eventId, eventTitle, status, updatedAtLabel, manageUrl, loungeUrl);
+  }
+
+  private java.util.List<VolunteerEventItem> listVolunteerOpenEvents() {
+    LocalDate today = LocalDate.now(ZoneId.of("America/Santiago"));
+    return eventService.listEvents().stream()
+        .filter(event -> event != null && event.getId() != null && !event.getId().isBlank())
+        .filter(event -> event.getDate() == null || !event.getDate().isBefore(today.minusDays(1)))
+        .filter(
+            event -> {
+              try {
+                return volunteerEventConfigService.resolveForEvent(event.getId()).currentlyOpen();
+              } catch (Exception e) {
+                return false;
+              }
+            })
+        .sorted(
+            Comparator.comparing(
+                com.scanales.eventflow.model.Event::getDate,
+                Comparator.nullsLast(Comparator.naturalOrder())))
+        .limit(6)
+        .map(
+            event ->
+                new VolunteerEventItem(
+                    event.getId(),
+                    event.getTitle() != null ? event.getTitle() : event.getId(),
+                    "/event/" + event.getId() + "/volunteers"))
+        .toList();
   }
 
   private java.util.Set<String> currentUserIds(String email, String sub) {

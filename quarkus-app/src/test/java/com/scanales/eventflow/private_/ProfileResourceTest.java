@@ -12,6 +12,9 @@ import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.UserScheduleService;
 import com.scanales.eventflow.service.UserProfileService;
+import com.scanales.eventflow.volunteers.VolunteerApplication;
+import com.scanales.eventflow.volunteers.VolunteerApplicationService;
+import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -34,16 +37,20 @@ public class ProfileResourceTest {
   @Inject CommunityBoardService boardService;
   @Inject EventService eventService;
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject VolunteerApplicationService volunteerApplicationService;
 
   @Inject SecurityIdentity securityIdentity;
 
   private static final String CFP_EVENT_ID = "profile-cfp-event";
+  private static final String VOLUNTEER_EVENT_ID = "profile-volunteer-event";
 
   @BeforeEach
   void setup() throws Exception {
     userSchedule.reset();
     cfpSubmissionService.clearAllForTests();
+    volunteerApplicationService.clearAllForTests();
     eventService.saveEvent(new Event(CFP_EVENT_ID, "Profile CFP Event", "CFP profile integration test"));
+    eventService.saveEvent(new Event(VOLUNTEER_EVENT_ID, "Profile Volunteer Event", "Volunteer profile integration test"));
     cfpSubmissionService.create(
         currentUserEmail(),
         "Current User",
@@ -59,6 +66,21 @@ public class ProfileResourceTest {
             "ai-agents-copilots",
             List.of("profile"),
             List.of("https://example.com/profile-cfp")));
+    VolunteerApplication volunteerCreated =
+        volunteerApplicationService.create(
+            currentUserEmail(),
+            "Current User",
+            new VolunteerApplicationService.CreateRequest(
+                VOLUNTEER_EVENT_ID,
+                "I have operational experience running community events.",
+                "I want to support this edition.",
+                "I can coordinate attendee registration."));
+    volunteerApplicationService.updateStatus(
+        volunteerCreated.id(),
+        VolunteerApplicationStatus.SELECTED,
+        "admin@example.org",
+        "Great fit",
+        volunteerCreated.updatedAt());
     Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.createDirectories(discordFile.getParent());
     Files.writeString(
@@ -363,6 +385,20 @@ public class ProfileResourceTest {
         .body(containsString("Call for Papers"))
         .body(containsString("Profile CFP Talk"))
         .body(containsString("/event/" + CFP_EVENT_ID + "/cfp#my-proposals"));
+  }
+
+  @Test
+  public void profileShowsVolunteerOverviewAndLoungeLink() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("Volunteers"))
+        .body(containsString("Profile Volunteer Event"))
+        .body(containsString("/event/" + VOLUNTEER_EVENT_ID + "/volunteers"))
+        .body(containsString("/event/" + VOLUNTEER_EVENT_ID + "/volunteers#volunteer-lounge"));
   }
 
   @Test
