@@ -82,6 +82,11 @@
           <option value="oldest">{i18n:admin_insights_initiatives_sort_oldest}</option>
           <option value="most_events">{i18n:admin_insights_initiatives_sort_most_events}</option>
         </select>
+        <select id="insightsInitiativesWindow" class="form-input insights-initiatives-window" aria-label="{i18n:admin_insights_js_table_last_update}">
+          <option value="all">{i18n:admin_insights_initiatives_window_all}</option>
+          <option value="7d">{i18n:admin_insights_initiatives_window_7d}</option>
+          <option value="30d">{i18n:admin_insights_initiatives_window_30d}</option>
+        </select>
         <p id="insightsInitiativesCount" class="form-hint insights-initiatives-count"></p>
       </div>
       <div id="insightsInitiatives" class="form-hint">{i18n:admin_insights_loading}</div>
@@ -193,6 +198,11 @@
     min-width: 160px;
   }
 
+  .insights-initiatives-window {
+    flex: 0 0 180px;
+    min-width: 150px;
+  }
+
   .insights-initiatives-count {
     margin: 0;
     white-space: nowrap;
@@ -221,6 +231,7 @@
     const initiativesSearchEl = document.getElementById('insightsInitiativesSearch');
     const initiativesStateEl = document.getElementById('insightsInitiativesState');
     const initiativesSortEl = document.getElementById('insightsInitiativesSort');
+    const initiativesWindowEl = document.getElementById('insightsInitiativesWindow');
     const initiativesCountEl = document.getElementById('insightsInitiativesCount');
     const startForm = document.getElementById('insightsStartForm');
     const eventForm = document.getElementById('insightsEventForm');
@@ -234,6 +245,7 @@
     let initiativesQuery = '';
     let initiativesStateFilter = (initiativesStateEl ? initiativesStateEl.value : 'all');
     let initiativesSort = (initiativesSortEl ? initiativesSortEl.value : 'recent');
+    let initiativesWindow = (initiativesWindowEl ? initiativesWindowEl.value : 'all');
 
     function showMessage(text, isError) {
       if (!messageEl) return;
@@ -344,6 +356,24 @@
       return true;
     }
 
+    function initiativeMatchesWindow(item) {
+      if (initiativesWindow === 'all') {
+        return true;
+      }
+      const millis = eventMillis(item);
+      if (millis <= 0) {
+        return false;
+      }
+      const now = Date.now();
+      if (initiativesWindow === '7d') {
+        return millis >= (now - (7 * 24 * 60 * 60 * 1000));
+      }
+      if (initiativesWindow === '30d') {
+        return millis >= (now - (30 * 24 * 60 * 60 * 1000));
+      }
+      return true;
+    }
+
     function eventMillis(item) {
       const value = item && item.lastEventAt ? Date.parse(String(item.lastEventAt)) : Number.NaN;
       return Number.isFinite(value) ? value : 0;
@@ -382,7 +412,10 @@
       if (!Array.isArray(items) || items.length === 0) {
         return [];
       }
-      const filtered = items.filter((item) => initiativeMatchesQuery(item, initiativesQuery) && initiativeMatchesStateFilter(item));
+      const filtered = items.filter((item) =>
+        initiativeMatchesQuery(item, initiativesQuery)
+        && initiativeMatchesStateFilter(item)
+        && initiativeMatchesWindow(item));
       return sortInitiatives(filtered);
     }
 
@@ -648,6 +681,12 @@
       renderCurrentInitiatives();
     }
 
+    function onWindowChange(event) {
+      const value = event && event.target ? event.target.value : 'all';
+      initiativesWindow = value === '7d' || value === '30d' ? value : 'all';
+      renderCurrentInitiatives();
+    }
+
     function onEventTypePresetClick(event) {
       const button = event && event.currentTarget ? event.currentTarget : null;
       if (!button || !eventTypeInput) return;
@@ -662,6 +701,7 @@
     initiativesSearchEl?.addEventListener('input', onSearchInput);
     initiativesStateEl?.addEventListener('change', onStateFilterChange);
     initiativesSortEl?.addEventListener('change', onSortChange);
+    initiativesWindowEl?.addEventListener('change', onWindowChange);
     eventTypePresetButtons.forEach((button) => button.addEventListener('click', onEventTypePresetClick));
     startForm?.addEventListener('submit', onStartSubmit);
     eventForm?.addEventListener('submit', onEventSubmit);
