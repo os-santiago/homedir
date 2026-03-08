@@ -447,6 +447,8 @@ public class PersistenceServiceTest {
         null,
         null,
         null,
+        null,
+        java.util.List.of(),
         null);
   }
 

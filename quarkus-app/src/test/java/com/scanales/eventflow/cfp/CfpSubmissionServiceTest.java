@@ -11,7 +11,9 @@ import com.scanales.eventflow.service.PersistenceService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -375,6 +377,39 @@ public class CfpSubmissionServiceTest {
                         java.util.List.of())));
 
     assertEquals("proposal_limit_reached", exception.getMessage());
+  }
+
+  @Test
+  void panelistIsVisibleInMineButDoesNotConsumeOwnerQuota() {
+    CfpSubmission submission =
+        cfpSubmissionService.create(
+            "owner@example.com",
+            "Owner",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Panel proposal",
+                "Summary",
+                "Panel abstract",
+                "intermediate",
+                "panel",
+                60,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    cfpSubmissionService.updatePanelists(
+        EVENT_ID,
+        submission.id(),
+        List.of(new CfpSubmissionService.PanelistInput("Panelist", "panelist@example.com", "panelist@example.com")),
+        "owner@example.com",
+        null);
+
+    List<CfpSubmission> panelistMine =
+        cfpSubmissionService.listMine(EVENT_ID, Set.of("panelist@example.com"), 10, 0);
+    assertEquals(1, panelistMine.size());
+    assertEquals(1, cfpSubmissionService.countMine(EVENT_ID, Set.of("panelist@example.com")));
+    assertEquals(0, cfpSubmissionService.countMineOwned(EVENT_ID, Set.of("panelist@example.com")));
   }
 
   @Test

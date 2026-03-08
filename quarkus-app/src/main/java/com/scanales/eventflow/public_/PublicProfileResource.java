@@ -97,6 +97,8 @@ public class PublicProfileResource {
 
         QuestProfile questProfile = questService.getProfile(resolved.userId(), 5);
         UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
+        UserProfile.SpeakerProfile speakerProfile = profile != null ? profile.getSpeakerProfile() : null;
+        boolean speakerActive = speakerProfile != null && speakerProfile.active();
         List<PublicClassProgress> classProgress = buildClassProgress(profile, questProfile.currentXp);
         DominantClassSummary dominantClassSummary = resolveDominantClassSummary(classProgress);
         QuestClass dominantClass = dominantClassSummary.questClass();
@@ -164,6 +166,8 @@ public class PublicProfileResource {
                 .data("hasLinkedAccounts", hasGithub || hasDiscord)
                 .data("cfpAcceptedCount", cfpAcceptedCount)
                 .data("cfpRecentAccepted", cfpRecentAccepted)
+                .data("speakerProfile", speakerProfile)
+                .data("speakerActive", speakerActive)
                 .data("volunteerSelectedCount", volunteerSelectedCount)
                 .data("volunteerRecentSelected", volunteerRecentSelected)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")

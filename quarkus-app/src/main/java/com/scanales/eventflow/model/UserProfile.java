@@ -14,6 +14,7 @@ public class UserProfile {
   private String preferredLocale;
   private GithubAccount github;
   private DiscordAccount discord;
+  private SpeakerProfile speakerProfile;
 
   private QuestClass questClass;
   private int currentXp;
@@ -34,6 +35,7 @@ public class UserProfile {
       @JsonProperty("preferredLocale") String preferredLocale,
       @JsonProperty("github") GithubAccount github,
       @JsonProperty("discord") DiscordAccount discord,
+      @JsonProperty("speakerProfile") SpeakerProfile speakerProfile,
       @JsonProperty("questClass") QuestClass questClass,
       @JsonProperty("currentXp") int currentXp,
       @JsonProperty("classXp") java.util.Map<QuestClass, Integer> classXp,
@@ -47,6 +49,7 @@ public class UserProfile {
     this.preferredLocale = preferredLocale;
     this.github = github;
     this.discord = discord;
+    this.speakerProfile = speakerProfile;
     this.questClass = questClass;
     this.currentXp = currentXp;
     this.classXp = sanitizeClassXp(classXp);
@@ -57,7 +60,7 @@ public class UserProfile {
   }
 
   public UserProfile(String userId, String name, String email, GithubAccount github) {
-    this(userId, name, email, null, github, null, null, 0, null, null, null, null, null);
+    this(userId, name, email, null, github, null, null, null, 0, null, null, null, null, null);
   }
 
   public String getPreferredLocale() {
@@ -114,6 +117,18 @@ public class UserProfile {
 
   public void setDiscord(DiscordAccount discord) {
     this.discord = discord;
+  }
+
+  public SpeakerProfile getSpeakerProfile() {
+    return speakerProfile;
+  }
+
+  public void setSpeakerProfile(SpeakerProfile speakerProfile) {
+    this.speakerProfile = speakerProfile;
+  }
+
+  public boolean hasActiveSpeakerProfile() {
+    return speakerProfile != null && speakerProfile.active();
   }
 
   public int getCurrentXp() {
@@ -255,6 +270,39 @@ public class UserProfile {
       this.profileUrl = profileUrl;
       this.avatarUrl = avatarUrl;
       this.linkedAt = linkedAt;
+    }
+  }
+
+  public record SpeakerProfile(
+      boolean active,
+      String headline,
+      String bio,
+      String organization,
+      String website,
+      String linkedin,
+      String topicsCsv,
+      Instant activatedAt,
+      Instant updatedAt) {
+    @JsonCreator
+    public SpeakerProfile(
+        @JsonProperty("active") boolean active,
+        @JsonProperty("headline") String headline,
+        @JsonProperty("bio") String bio,
+        @JsonProperty("organization") String organization,
+        @JsonProperty("website") String website,
+        @JsonProperty("linkedin") String linkedin,
+        @JsonProperty("topicsCsv") String topicsCsv,
+        @JsonProperty("activatedAt") Instant activatedAt,
+        @JsonProperty("updatedAt") Instant updatedAt) {
+      this.active = active;
+      this.headline = headline;
+      this.bio = bio;
+      this.organization = organization;
+      this.website = website;
+      this.linkedin = linkedin;
+      this.topicsCsv = topicsCsv;
+      this.activatedAt = activatedAt;
+      this.updatedAt = updatedAt;
     }
   }
 
