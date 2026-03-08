@@ -3912,6 +3912,15 @@ public interface AppMessages {
     @Message("Completed only")
     String admin_insights_initiatives_state_completed();
 
+    @Message("Recent activity")
+    String admin_insights_initiatives_sort_recent();
+
+    @Message("Oldest activity")
+    String admin_insights_initiatives_sort_oldest();
+
+    @Message("Most events")
+    String admin_insights_initiatives_sort_most_events();
+
     @Message("Shown")
     String admin_insights_js_shown_label();
 
