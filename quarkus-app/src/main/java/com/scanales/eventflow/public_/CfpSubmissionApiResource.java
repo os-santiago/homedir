@@ -1108,8 +1108,14 @@ public class CfpSubmissionApiResource {
 
   private StoredPresentation storePresentationPdf(String eventId, String submissionId, FileUpload file)
       throws IOException {
+    String safeEventId = sanitizeIdToken(eventId, 40);
+    String safeSubmissionId = sanitizeIdToken(submissionId, 48);
+    java.nio.file.Path uploadsRoot = resolveDataDir().resolve("uploads").resolve("cfp").normalize();
     java.nio.file.Path baseDir =
-        resolveDataDir().resolve("uploads").resolve("cfp").resolve(eventId).resolve(submissionId);
+        uploadsRoot.resolve(safeEventId).resolve(safeSubmissionId).normalize();
+    if (!baseDir.startsWith(uploadsRoot)) {
+      throw new IOException("invalid_presentation_path");
+    }
     Files.createDirectories(baseDir);
     String originalName = file.fileName() != null ? file.fileName().trim() : "presentation.pdf";
     String sanitizedName = sanitizeFileName(originalName);

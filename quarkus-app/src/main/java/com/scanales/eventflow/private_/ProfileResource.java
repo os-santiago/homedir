@@ -528,15 +528,12 @@ public class ProfileResource {
       @jakarta.ws.rs.FormParam("organization") String organization,
       @jakarta.ws.rs.FormParam("website") String website,
       @jakarta.ws.rs.FormParam("linkedin") String linkedin,
-      @jakarta.ws.rs.FormParam("topics") String topics,
-      @jakarta.ws.rs.FormParam("redirect") String redirect) {
+      @jakarta.ws.rs.FormParam("topics") String topics) {
     String email = getEmail();
+    String target = "/private/profile#speaker-panel";
     var profile = userProfiles.upsert(email, getClaim("name"), email);
     if (!profile.hasActiveSpeakerProfile()) {
-      return redirectWithStatus(
-          RedirectSanitizer.sanitizeInternalRedirect(redirect, "/private/profile#speaker-panel"),
-          "speakerError",
-          "inactive");
+      return redirectWithStatus(target, "speakerError", "inactive");
     }
     java.util.List<String> topicList =
         topics == null
@@ -546,10 +543,7 @@ public class ProfileResource {
                 .filter(item -> !item.isBlank())
                 .toList();
     userProfiles.updateSpeakerProfile(email, headline, bio, organization, website, linkedin, topicList);
-    return redirectWithStatus(
-        RedirectSanitizer.sanitizeInternalRedirect(redirect, "/private/profile#speaker-panel"),
-        "speakerSaved",
-        "1");
+    return redirectWithStatus(target, "speakerSaved", "1");
   }
 
   @POST
