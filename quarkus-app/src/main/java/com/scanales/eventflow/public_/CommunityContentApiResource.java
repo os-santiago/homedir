@@ -186,7 +186,17 @@ public class CommunityContentApiResource {
     }
     try {
       voteService.upsertVote(userId.get(), id, parsedVote.get());
-      featuredSnapshotService.onVotesUpdated();
+      CommunityVoteAggregate updatedAggregate =
+          voteService
+              .getAggregates(List.of(id), userId.get())
+              .getOrDefault(id, CommunityVoteAggregate.empty());
+      CommunityVoteAggregate aggregateForSnapshot =
+          new CommunityVoteAggregate(
+              updatedAggregate.recommended(),
+              updatedAggregate.mustSee(),
+              updatedAggregate.notForMe(),
+              null);
+      featuredSnapshotService.onVoteUpdated(id, aggregateForSnapshot);
       metrics.recordFunnelStep("community.vote");
       metrics.recordFunnelStep("community_vote");
       metrics.recordFunnelStep("community.vote." + parsedVote.get().apiValue());

@@ -26,6 +26,12 @@ class RateLimitingFilterTest {
     setField("logoutLimit", 1);
     setField("apiLimit", 2);
     setField("communityContentApiLimit", 3);
+    setField("communityContentApiReadLimit", 3);
+    setField("communityContentApiWriteLimit", 3);
+    setField("communityContentAdaptiveEnabled", true);
+    setField("communityContentAdaptivePerFingerprintBonus", 2);
+    setField("communityContentAdaptiveMaxFingerprints", 10);
+    setField("communityContentAdaptiveMaxLimit", 20);
   }
 
   @Test
@@ -79,6 +85,31 @@ class RateLimitingFilterTest {
   }
 
   @Test
+  void communityContentAdaptiveLimitAllowsSharedIpWithDifferentFingerprints() {
+    setFieldUnchecked("communityContentApiLimit", 2);
+    setFieldUnchecked("communityContentApiReadLimit", 2);
+    setFieldUnchecked("communityContentAdaptivePerFingerprintBonus", 2);
+    setFieldUnchecked("communityContentAdaptiveMaxLimit", 10);
+
+    ContainerRequestContext ctxA = context("api/community/content", "7.7.7.7", "agent-a", "q_session=a1");
+    ContainerRequestContext ctxB = context("api/community/content", "7.7.7.7", "agent-b", "q_session=b2");
+
+    filter.filter(ctxA);
+    filter.filter(ctxB);
+    filter.filter(ctxA);
+    filter.filter(ctxB);
+
+    verify(ctxA, never()).abortWith(any());
+    verify(ctxB, never()).abortWith(any());
+
+    ArgumentCaptor<Response> captor = ArgumentCaptor.forClass(Response.class);
+    filter.filter(ctxA);
+
+    verify(ctxA, times(1)).abortWith(captor.capture());
+    assertEquals(429, captor.getValue().getStatus());
+  }
+
+  @Test
   void usesCfConnectingIpWhenForwardedForIsMissing() {
     ContainerRequestContext ctxA = mock(ContainerRequestContext.class);
     UriInfo uriA = mock(UriInfo.class);
@@ -121,6 +152,27 @@ class RateLimitingFilterTest {
     assertEquals(1, stats.totalThrottled());
     assertTrue(stats.checkedByBucket().getOrDefault("api-community-content", 0L) >= 4L);
     assertTrue(stats.throttledByBucket().getOrDefault("api-community-content", 0L) >= 1L);
+    assertTrue(stats.communityContentAdaptiveEnabled());
+  }
+
+  private void setFieldUnchecked(String name, Object value) {
+    try {
+      setField(name, value);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private ContainerRequestContext context(String path, String ip, String userAgent, String cookie) {
+    ContainerRequestContext ctx = mock(ContainerRequestContext.class);
+    UriInfo uri = mock(UriInfo.class);
+    when(uri.getPath()).thenReturn(path);
+    when(ctx.getUriInfo()).thenReturn(uri);
+    when(ctx.getHeaderString("X-Forwarded-For")).thenReturn(ip);
+    when(ctx.getHeaderString("User-Agent")).thenReturn(userAgent);
+    when(ctx.getHeaderString("Cookie")).thenReturn(cookie);
+    when(ctx.getMethod()).thenReturn("GET");
+    return ctx;
   }
 
   private void setField(String name, Object value) throws Exception {
