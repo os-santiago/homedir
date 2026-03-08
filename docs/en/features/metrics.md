@@ -16,6 +16,16 @@ Homedir records interaction events and persists them asynchronously to provide i
   - `INSIGHTS_INGEST_BASE_URL` (GitHub variable)
   - `INSIGHTS_INGEST_KEY` (GitHub secret)
 - **Behavior**: If those values are missing, CI steps skip ingestion without failing builds/releases.
+- **Automatic tracking**:
+  - PR validation emits events automatically (`PR_OPENED`, `PR_VALIDATION_PASSED`, `PR_VALIDATION_FAILED`).
+  - Production release emits `PR_MERGED` and `PRODUCTION_VERIFIED` (or `PRODUCTION_RELEASE_FAILED` on failure).
+  - No manual admin input is required for standard CI/CD flow tracking.
+- **Initiative grouping (multi-PR business cycles)**:
+  - Priority 1: PR label `initiative:<id>` or `insights:<id>` (explicit business initiative id).
+  - Priority 2: Conventional PR title scope, e.g. `feat(cfp): ...` groups into `initiative-cfp`.
+  - Priority 3: PR branch token.
+  - Fallback: `pr-<number>`.
+  This allows end-to-end tracking across several iterative PRs until production delivery of one business capability.
 - **Failure signals**: CI/CD also emits failure events when available:
   - `PR_VALIDATION_FAILED`
   - `PRODUCTION_RELEASE_FAILED`
