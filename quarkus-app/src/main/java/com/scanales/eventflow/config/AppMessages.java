@@ -3921,6 +3921,15 @@ public interface AppMessages {
     @Message("Most events")
     String admin_insights_initiatives_sort_most_events();
 
+    @Message("All time")
+    String admin_insights_initiatives_window_all();
+
+    @Message("Last 7 days")
+    String admin_insights_initiatives_window_7d();
+
+    @Message("Last 30 days")
+    String admin_insights_initiatives_window_30d();
+
     @Message("Shown")
     String admin_insights_js_shown_label();
 

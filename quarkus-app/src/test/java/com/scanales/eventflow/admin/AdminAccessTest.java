@@ -41,6 +41,7 @@ public class AdminAccessTest {
         .body(containsString("id=\"insightsInitiativesSearch\""))
         .body(containsString("id=\"insightsInitiativesState\""))
         .body(containsString("id=\"insightsInitiativesSort\""))
+        .body(containsString("id=\"insightsInitiativesWindow\""))
         .body(containsString("id=\"insightsInitiativesCount\""));
   }
 }
