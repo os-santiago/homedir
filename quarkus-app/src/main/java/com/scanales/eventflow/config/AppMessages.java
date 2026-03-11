@@ -30,6 +30,9 @@ public interface AppMessages {
     @Message("Claim Discord from Community Board")
     String btn_claim_discord_from_board();
 
+    @Message("Profile glow active")
+    String public_profile_reward_glow_active();
+
     @Message("Unlink Discord")
     String btn_unlink_discord();
 
