@@ -50,6 +50,12 @@
       </div>
       {#if isAuthenticated}
       <div class="board-self-actions">
+        {#if groupPath == 'discord-users'}
+        {#if discordLinked}
+        <span class="board-status-chip">{i18n:community_board_discord_connected}</span>
+        {/if}
+        <a class="btn-primary" href="/private/profile#integrations-panel">{i18n:community_board_connect_discord}</a>
+        {/if}
         {#if publicProfilePath}
         <a class="btn-primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
         <button
@@ -123,9 +129,6 @@
               </div>
               <div class="board-member-actions">
                 <a class="btn-primary" href="{member.profileLink}">{i18n:community_board_open}</a>
-                {#if groupPath == 'discord-users' && isAuthenticated}
-                <a class="btn-primary board-claim-form" href="/private/discord/start?redirect=/comunidad/board/discord-users?member={member.id}">{i18n:community_board_claim}</a>
-                {/if}
                 <button
                   type="button"
                   class="btn-primary board-copy-btn"
@@ -363,6 +366,18 @@
       opacity: 0.5;
       pointer-events: none;
       user-select: none;
+    }
+
+    .board-status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(120, 255, 160, 0.55);
+      background: rgba(120, 255, 160, 0.12);
+      font-size: 0.8rem;
+      font-weight: 700;
     }
 
     .board-copy-btn.is-done {

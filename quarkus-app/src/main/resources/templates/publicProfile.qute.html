@@ -135,6 +135,10 @@
                     {/if}
                     {#if hasDiscord}
                     <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{i18n:public_profile_discord_status_label}</span>
+                        <span class="wrapped-item-xp">{i18n:public_profile_discord_status_connected}</span>
+                    </div>
+                    <div class="wrapped-list-item">
                         <span class="wrapped-item-title">{i18n:public_profile_accounts_discord}</span>
                         {#if discordProfileUrl}
                         <a href="{discordProfileUrl}" target="_blank" rel="noopener noreferrer" class="wrapped-item-xp">
@@ -155,6 +159,10 @@
             <div class="wrapped-card wrapped-card-full">
                 <span class="wrapped-stat-label">{i18n:public_profile_badges_titles}</span>
                 <div class="wrapped-badges">
+                    {#if hasDiscord}
+                    <span class="wrapped-badge-pill"><span class="material-symbols-outlined"
+                            style="font-size: 16px;">forum</span> {i18n:public_profile_discord_badge}</span>
+                    {/if}
                     {#for badge in badges}
                     <span class="wrapped-badge-pill"><span class="material-symbols-outlined"
                             style="font-size: 16px;">verified</span> {badge}</span>

@@ -50,6 +50,7 @@ public class CommunityBoardResource {
   static class Templates {
     static native TemplateInstance board(
         boolean isAuthenticated,
+        boolean discordLinked,
         int homedirUsers,
         int githubUsers,
         int discordUsers,
@@ -66,6 +67,7 @@ public class CommunityBoardResource {
 
     static native TemplateInstance detail(
         boolean isAuthenticated,
+        boolean discordLinked,
         String groupPath,
         String groupTitle,
         String groupDescription,
@@ -101,6 +103,7 @@ public class CommunityBoardResource {
     TemplateInstance template =
         Templates.board(
             isAuthenticated(),
+            boardIdentity.discordLinked(),
             summary.homedirUsers(),
             summary.githubUsers(),
             summary.discordUsers(),
@@ -155,6 +158,7 @@ public class CommunityBoardResource {
     TemplateInstance template =
         Templates.detail(
             isAuthenticated(),
+            boardIdentity.discordLinked(),
             group.path(),
             titleFor(group),
             descriptionFor(group),
@@ -257,7 +261,8 @@ public class CommunityBoardResource {
         publicProfilePath,
         searchUrlForMember(CommunityBoardGroup.HOMEDIR_USERS, homedirMemberId),
         searchUrlForMember(CommunityBoardGroup.GITHUB_USERS, githubLogin),
-        searchUrlForMember(CommunityBoardGroup.DISCORD_USERS, discordId));
+        searchUrlForMember(CommunityBoardGroup.DISCORD_USERS, discordId),
+        discordId != null);
   }
 
   private String resolvePublicProfileHandle(String userId, String githubLogin) {
@@ -408,9 +413,10 @@ public class CommunityBoardResource {
       String publicProfilePath,
       String homedirSearchUrl,
       String githubSearchUrl,
-      String discordSearchUrl) {
+      String discordSearchUrl,
+      boolean discordLinked) {
     static BoardIdentity empty() {
-      return new BoardIdentity(null, null, null, null);
+      return new BoardIdentity(null, null, null, null, false);
     }
 
     String searchUrlFor(CommunityBoardGroup group) {
