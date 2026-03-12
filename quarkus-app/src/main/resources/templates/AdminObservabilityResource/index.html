@@ -302,7 +302,7 @@
       if (value == null || Number.isNaN(Number(value))) return '—';
       const n = Number(value);
       const prefix = n > 0 ? '+' : '';
-      return `${prefix}${n}%`;
+      return prefix + n + '%';
     }
 
     function intensityLevel(value, max) {
@@ -317,123 +317,118 @@
     function renderSummary(data) {
       const topModuleLabel = data.hottestModule ? labelFor('modules', data.hottestModule.code) : '—';
       const topModuleTrend = data.hottestModule ? formatTrend(data.hottestModule.trendPct) : '—';
-      summaryEl.innerHTML = `
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_interactions}</span>
-          <strong class="admin-observability-kpi-value">${data.interactionsLastWindow}</strong>
-          <small class="admin-observability-kpi-note">${formatTrend(data.interactionsTrendPct)}</small>
-        </article>
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_active_modules}</span>
-          <strong class="admin-observability-kpi-value">${data.activeModules}</strong>
-          <small class="admin-observability-kpi-note">${data.windowHours}h</small>
-        </article>
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_top_module}</span>
-          <strong class="admin-observability-kpi-value">${topModuleLabel}</strong>
-          <small class="admin-observability-kpi-note">${topModuleTrend}</small>
-        </article>
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_metrics_discards}</span>
-          <strong class="admin-observability-kpi-value">${data.discardedMetricsEvents}</strong>
-          <small class="admin-observability-kpi-note">buffer / dedupe / bot</small>
-        </article>
-      `;
+      summaryEl.innerHTML =
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">{i18n:admin_observability_summary_interactions}</span>' +
+          '<strong class="admin-observability-kpi-value">' + data.interactionsLastWindow + '</strong>' +
+          '<small class="admin-observability-kpi-note">' + formatTrend(data.interactionsTrendPct) + '</small>' +
+        '</article>' +
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">{i18n:admin_observability_summary_active_modules}</span>' +
+          '<strong class="admin-observability-kpi-value">' + data.activeModules + '</strong>' +
+          '<small class="admin-observability-kpi-note">' + data.windowHours + 'h</small>' +
+        '</article>' +
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">{i18n:admin_observability_summary_top_module}</span>' +
+          '<strong class="admin-observability-kpi-value">' + topModuleLabel + '</strong>' +
+          '<small class="admin-observability-kpi-note">' + topModuleTrend + '</small>' +
+        '</article>' +
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">{i18n:admin_observability_summary_metrics_discards}</span>' +
+          '<strong class="admin-observability-kpi-value">' + data.discardedMetricsEvents + '</strong>' +
+          '<small class="admin-observability-kpi-note">buffer / dedupe / bot</small>' +
+        '</article>';
     }
 
     function renderHeatmap(data) {
       if (!Array.isArray(data.heatmap) || data.heatmap.length === 0) {
-        heatmapEl.innerHTML = `<p class="form-hint">${i18n.noHeat}</p>`;
+        heatmapEl.innerHTML = '<p class="form-hint">' + i18n.noHeat + '</p>';
         return;
       }
       const maxValue = Math.max(...data.heatmap.flatMap((row) => row.counts || [0]));
-      const headerHours = data.hourLabels.map((label) => `<span class="admin-observability-heatmap-hour">${label}</span>`).join('');
+      const headerHours = data.hourLabels.map((label) => '<span class="admin-observability-heatmap-hour">' + label + '</span>').join('');
       const rows = data.heatmap.map((row) => {
         const cells = (row.counts || []).map((count) => {
           const level = intensityLevel(Number(count || 0), maxValue);
-          return `<span class="admin-observability-cell level-${level}" title="${count}"></span>`;
+          return '<span class="admin-observability-cell level-' + level + '" title="' + count + '"></span>';
         }).join('');
-        return `
-          <div class="admin-observability-heatmap-row">
-            <span class="admin-observability-heatmap-label">${labelFor('modules', row.code)}</span>
-            ${cells}
-            <span class="admin-observability-heatmap-total">${row.total}</span>
-          </div>
-        `;
+        return '<div class="admin-observability-heatmap-row">' +
+          '<span class="admin-observability-heatmap-label">' + labelFor('modules', row.code) + '</span>' +
+          cells +
+          '<span class="admin-observability-heatmap-total">' + row.total + '</span>' +
+        '</div>';
       }).join('');
-      heatmapEl.innerHTML = `
-        <div class="admin-observability-heatmap-grid">
-          <div class="admin-observability-heatmap-header">
-            <span></span>
-            ${headerHours}
-            <span class="admin-observability-heatmap-total">24h</span>
-          </div>
-          ${rows}
-        </div>
-      `;
+      heatmapEl.innerHTML =
+        '<div class="admin-observability-heatmap-grid">' +
+          '<div class="admin-observability-heatmap-header">' +
+            '<span></span>' +
+            headerHours +
+            '<span class="admin-observability-heatmap-total">24h</span>' +
+          '</div>' +
+          rows +
+        '</div>';
     }
 
     function renderHotActions(data) {
       if (!Array.isArray(data.hotActions) || data.hotActions.length === 0) {
-        hotActionsEl.innerHTML = `<p class="form-hint">${i18n.noActions}</p>`;
+        hotActionsEl.innerHTML = '<p class="form-hint">' + i18n.noActions + '</p>';
         return;
       }
-      hotActionsEl.innerHTML = data.hotActions.map((row) => `
-        <article class="admin-observability-item">
-          <div class="admin-observability-item-copy">
-            <strong>${labelFor('actions', row.code)}</strong>
-            <small>${labelFor('modules', row.module)}</small>
-            <small>${i18n.lastSeen}: ${row.lastSeenLabel || '—'}</small>
-          </div>
-          <div class="admin-observability-item-meta">
-            <strong>${row.total}</strong><br />
-            <small>${formatTrend(row.trendPct)}</small>
-          </div>
-        </article>
-      `).join('');
+      hotActionsEl.innerHTML = data.hotActions.map((row) =>
+        '<article class="admin-observability-item">' +
+          '<div class="admin-observability-item-copy">' +
+            '<strong>' + labelFor('actions', row.code) + '</strong>' +
+            '<small>' + labelFor('modules', row.module) + '</small>' +
+            '<small>' + i18n.lastSeen + ': ' + (row.lastSeenLabel || '—') + '</small>' +
+          '</div>' +
+          '<div class="admin-observability-item-meta">' +
+            '<strong>' + row.total + '</strong><br />' +
+            '<small>' + formatTrend(row.trendPct) + '</small>' +
+          '</div>' +
+        '</article>'
+      ).join('');
     }
 
     function renderFriction(data) {
       if (!Array.isArray(data.frictionWatch) || data.frictionWatch.length === 0) {
-        frictionEl.innerHTML = `<p class="form-hint">${i18n.noFriction}</p>`;
+        frictionEl.innerHTML = '<p class="form-hint">' + i18n.noFriction + '</p>';
         return;
       }
-      frictionEl.innerHTML = data.frictionWatch.map((row) => `
-        <article class="admin-observability-item">
-          <div class="admin-observability-item-copy">
-            <strong>${labelFor('modules', row.module)}</strong>
-            <small>${row.interactions} interactions / ${row.keyActions} key actions</small>
-          </div>
-          <div class="admin-observability-item-meta">
-            <span class="admin-observability-badge ${row.severity}">${row.severity === 'high' ? i18n.high : i18n.watch}</span><br />
-            <small>${row.conversionPct == null ? '—' : `${row.conversionPct}%`}</small>
-          </div>
-        </article>
-      `).join('');
+      frictionEl.innerHTML = data.frictionWatch.map((row) =>
+        '<article class="admin-observability-item">' +
+          '<div class="admin-observability-item-copy">' +
+            '<strong>' + labelFor('modules', row.module) + '</strong>' +
+            '<small>' + row.interactions + ' interactions / ' + row.keyActions + ' key actions</small>' +
+          '</div>' +
+          '<div class="admin-observability-item-meta">' +
+            '<span class="admin-observability-badge ' + row.severity + '">' + (row.severity === 'high' ? i18n.high : i18n.watch) + '</span><br />' +
+            '<small>' + (row.conversionPct == null ? '—' : (row.conversionPct + '%')) + '</small>' +
+          '</div>' +
+        '</article>'
+      ).join('');
     }
 
     function renderDelivery(data) {
       const pulse = data.deliveryPulse || {};
       const freshness = pulse.stale ? i18n.stale : i18n.healthy;
-      deliveryEl.innerHTML = `
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">${i18n.eventsLast24}</span>
-          <strong class="admin-observability-kpi-value">${pulse.eventsLast24Hours ?? 0}</strong>
-        </article>
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">${i18n.activeInitiativesLast24}</span>
-          <strong class="admin-observability-kpi-value">${pulse.activeInitiativesLast24Hours ?? 0}</strong>
-        </article>
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">${i18n.prodSuccess7d}</span>
-          <strong class="admin-observability-kpi-value">${pulse.productionSuccessRatePctLast7Days == null ? '—' : `${pulse.productionSuccessRatePctLast7Days}%`}</strong>
-        </article>
-        <article class="admin-observability-kpi">
-          <span class="admin-observability-kpi-label">${i18n.prValidation7d}</span>
-          <strong class="admin-observability-kpi-value">${pulse.prValidationSuccessRatePctLast7Days == null ? '—' : `${pulse.prValidationSuccessRatePctLast7Days}%`}</strong>
-          <small class="admin-observability-kpi-note">${i18n.freshness}: ${freshness}${pulse.minutesSinceLastEvent == null ? '' : ` · ${pulse.minutesSinceLastEvent}m`}</small>
-        </article>
-      `;
+      deliveryEl.innerHTML =
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">' + i18n.eventsLast24 + '</span>' +
+          '<strong class="admin-observability-kpi-value">' + (pulse.eventsLast24Hours ?? 0) + '</strong>' +
+        '</article>' +
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">' + i18n.activeInitiativesLast24 + '</span>' +
+          '<strong class="admin-observability-kpi-value">' + (pulse.activeInitiativesLast24Hours ?? 0) + '</strong>' +
+        '</article>' +
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">' + i18n.prodSuccess7d + '</span>' +
+          '<strong class="admin-observability-kpi-value">' + (pulse.productionSuccessRatePctLast7Days == null ? '—' : (pulse.productionSuccessRatePctLast7Days + '%')) + '</strong>' +
+        '</article>' +
+        '<article class="admin-observability-kpi">' +
+          '<span class="admin-observability-kpi-label">' + i18n.prValidation7d + '</span>' +
+          '<strong class="admin-observability-kpi-value">' + (pulse.prValidationSuccessRatePctLast7Days == null ? '—' : (pulse.prValidationSuccessRatePctLast7Days + '%')) + '</strong>' +
+          '<small class="admin-observability-kpi-note">' + i18n.freshness + ': ' + freshness + (pulse.minutesSinceLastEvent == null ? '' : (' · ' + pulse.minutesSinceLastEvent + 'm')) + '</small>' +
+        '</article>';
     }
 
     async function loadDashboard() {
@@ -450,7 +445,7 @@
         renderDelivery(payload);
       } catch (error) {
         const message = error && error.message ? error.message : (i18n.requestFailed || 'Request failed');
-        summaryEl.innerHTML = `<p class="form-hint" style="color:var(--color-danger, #ff8b8b);">${message}</p>`;
+        summaryEl.innerHTML = '<p class="form-hint" style="color:var(--color-danger, #ff8b8b);">' + message + '</p>';
         heatmapEl.innerHTML = '';
         hotActionsEl.innerHTML = '';
         frictionEl.innerHTML = '';
