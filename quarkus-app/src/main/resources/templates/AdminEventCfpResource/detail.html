@@ -217,7 +217,7 @@
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           status: targetStatus,
-          moderation_note: noteValue || "",
+          note: noteValue || "",
           expected_updated_at: expectedUpdatedAt || null
         })
       });
@@ -253,8 +253,17 @@
       return payload;
     }
 
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
     function buildMetaItem(label, value) {
-      return '<div class="cfp-detail-meta-item"><span>' + label + '</span><strong>' + (value || i18n.notAvailable) + '</strong></div>';
+      return '<div class="cfp-detail-meta-item"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value || i18n.notAvailable) + '</strong></div>';
     }
 
     function buildReviewSelect(id, label, value) {
@@ -282,63 +291,70 @@
     function renderDetail(item) {
       currentItem = item;
       const status = item.status || "pending";
+      const statusText = statusLabel[status] || status;
       const safeLinks = Array.isArray(item.links) ? item.links.map(sanitizeHttpUrl).filter((value) => !!value) : [];
       const panelists = Array.isArray(item.panelists) ? item.panelists : [];
 
-      shell.innerHTML = `
-        <div class="card cfp-detail-section">
-          <div class="cfp-detail-header">
-            <div>
-              <h2>${item.title || i18n.notAvailable}</h2>
-              <p class="form-hint" style="margin-top: 0.35rem;">${scoreLabel(item)}</p>
-            </div>
-            <span class="cfp-status-chip cfp-status-chip--${status}">${statusLabel[status] || status}</span>
-          </div>
-          <div class="cfp-detail-meta-grid">
-            ${buildMetaItem(i18n.proposedBy, item.proposer_name || item.proposer_user_id)}
-            ${buildMetaItem(i18n.createdAt, fmtDate(item.created_at))}
-            ${buildMetaItem(i18n.updatedAt, fmtDate(item.updated_at))}
-            ${buildMetaItem(i18n.moderatedAt, item.moderated_at ? (fmtDate(item.moderated_at) + (item.moderated_by ? " · " + i18n.by + " " + item.moderated_by : "")) : i18n.notAvailable)}
-            ${buildMetaItem(i18n.track, item.track)}
-            ${buildMetaItem(i18n.language, item.language)}
-            ${buildMetaItem(i18n.format, item.format)}
-            ${buildMetaItem(i18n.duration, item.duration_min ? item.duration_min + " min" : null)}
-          </div>
-        </div>
-        <div class="card cfp-detail-section">
-          <h3>${i18n.summary}</h3>
-          <p class="cfp-detail-summary" style="margin-top: 0.65rem;">${item.summary || i18n.notAvailable}</p>
-        </div>
-        <div class="card cfp-detail-section">
-          <h3>${i18n.abstractText}</h3>
-          <p class="cfp-detail-abstract" style="margin-top: 0.65rem;">${item.abstract_text || i18n.notAvailable}</p>
-        </div>
-        <div class="card cfp-detail-section">
-          <h3>${i18n.links}</h3>
-          ${safeLinks.length
-            ? '<ul class="cfp-detail-links">' + safeLinks.map((href) => '<li><a href="' + href + '" target="_blank" rel="noopener noreferrer">' + href + '</a></li>').join("") + "</ul>"
-            : '<p class="form-hint" style="margin-top: 0.6rem;">' + i18n.linksEmpty + "</p>"}
-          ${panelists.length
-            ? '<p class="form-hint" style="margin-top: 0.8rem;"><strong>' + i18n.panelistsTitle + ':</strong> ' + panelists.map((panelist) => {
-                const name = panelist && panelist.name ? panelist.name : i18n.notAvailable;
-                const state = panelist && panelist.status === "linked" ? i18n.panelistsLinked : i18n.panelistsPending;
-                return name + " (" + state + ")";
-              }).join(" · ") + '</p>'
-            : ""}
-          ${Number(item.pending_panelists || 0) > 0
-            ? '<p class="form-hint" style="margin-top: 0.35rem;">' + i18n.panelistsPendingPrefix + " " + String(item.pending_panelists) + "</p>"
-            : ""}
-          ${item.presentation_asset && item.presentation_asset.file_name
-            ? '<p class="form-hint" style="margin-top: 0.35rem;"><strong>' + i18n.presentationTitle + ':</strong> ' + i18n.presentationCurrent + " " + item.presentation_asset.file_name + "</p>"
-            : ""}
-        </div>
-        <div class="card cfp-detail-section">
-          <h3>${i18n.sectionReview}</h3>
-          <p class="form-hint" style="margin-top: 0.35rem;">${i18n.reviewDesc}</p>
-          <div id="cfpReviewGrid" class="cfp-review-grid"></div>
-          <input id="cfpModerationNote" type="text" class="form-input cfp-detail-note" placeholder="${i18n.moderationNotePlaceholder}" value="${item.moderation_note || ""}">
-          <div class="cfp-detail-actions" id="cfpDetailActions"></div>
-        </div>`;
+      const linksHtml = safeLinks.length
+        ? '<ul class="cfp-detail-links">'
+            + safeLinks.map((href) => '<li><a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(href) + '</a></li>').join("")
+            + "</ul>"
+        : '<p class="form-hint" style="margin-top: 0.6rem;">' + escapeHtml(i18n.linksEmpty) + "</p>";
+
+      const panelistsHtml = panelists.length
+        ? '<p class="form-hint" style="margin-top: 0.8rem;"><strong>' + escapeHtml(i18n.panelistsTitle) + ':</strong> '
+            + escapeHtml(panelists.map((panelist) => {
+              const name = panelist && panelist.name ? panelist.name : i18n.notAvailable;
+              const state = panelist && panelist.status === "linked" ? i18n.panelistsLinked : i18n.panelistsPending;
+              return name + " (" + state + ")";
+            }).join(" · "))
+            + '</p>'
+        : "";
+
+      const pendingHtml = Number(item.pending_panelists || 0) > 0
+        ? '<p class="form-hint" style="margin-top: 0.35rem;">'
+            + escapeHtml(i18n.panelistsPendingPrefix + " " + String(item.pending_panelists))
+            + "</p>"
+        : "";
+
+      const presentationHtml = item.presentation_asset && item.presentation_asset.file_name
+        ? '<p class="form-hint" style="margin-top: 0.35rem;"><strong>'
+            + escapeHtml(i18n.presentationTitle)
+            + ':</strong> '
+            + escapeHtml(i18n.presentationCurrent + " " + item.presentation_asset.file_name)
+            + "</p>"
+        : "";
+
+      shell.innerHTML =
+        '<div class="card cfp-detail-section">'
+          + '<div class="cfp-detail-header"><div>'
+          + '<h2>' + escapeHtml(item.title || i18n.notAvailable) + '</h2>'
+          + '<p class="form-hint" style="margin-top: 0.35rem;">' + escapeHtml(scoreLabel(item)) + '</p>'
+          + '</div>'
+          + '<span class="cfp-status-chip cfp-status-chip--' + escapeHtml(status) + '">' + escapeHtml(statusText) + '</span>'
+          + '</div>'
+          + '<div class="cfp-detail-meta-grid">'
+          + buildMetaItem(i18n.proposedBy, item.proposer_name || item.proposer_user_id)
+          + buildMetaItem(i18n.createdAt, fmtDate(item.created_at))
+          + buildMetaItem(i18n.updatedAt, fmtDate(item.updated_at))
+          + buildMetaItem(i18n.moderatedAt, item.moderated_at ? (fmtDate(item.moderated_at) + (item.moderated_by ? " · " + i18n.by + " " + item.moderated_by : "")) : i18n.notAvailable)
+          + buildMetaItem(i18n.track, item.track)
+          + buildMetaItem(i18n.language, item.language)
+          + buildMetaItem(i18n.format, item.format)
+          + buildMetaItem(i18n.duration, item.duration_min ? item.duration_min + " min" : null)
+          + '</div></div>'
+          + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.summary) + '</h3>'
+          + '<p class="cfp-detail-summary" style="margin-top: 0.65rem;">' + escapeHtml(item.summary || i18n.notAvailable) + '</p></div>'
+          + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.abstractText) + '</h3>'
+          + '<p class="cfp-detail-abstract" style="margin-top: 0.65rem;">' + escapeHtml(item.abstract_text || i18n.notAvailable) + '</p></div>'
+          + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.links) + '</h3>'
+          + linksHtml + panelistsHtml + pendingHtml + presentationHtml
+          + '</div>'
+          + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.sectionReview) + '</h3>'
+          + '<p class="form-hint" style="margin-top: 0.35rem;">' + escapeHtml(i18n.reviewDesc) + '</p>'
+          + '<div id="cfpReviewGrid" class="cfp-review-grid"></div>'
+          + '<input id="cfpModerationNote" type="text" class="form-input cfp-detail-note" placeholder="' + escapeHtml(i18n.moderationNotePlaceholder) + '" value="' + escapeHtml(item.moderation_note || "") + '">'
+          + '<div class="cfp-detail-actions" id="cfpDetailActions"></div></div>';
 
       const reviewGrid = document.getElementById("cfpReviewGrid");
       const technical = buildReviewSelect("cfp-rating-tech", i18n.ratingTechnical, item.rating_technical_detail ?? 0);
