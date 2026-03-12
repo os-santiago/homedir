@@ -70,10 +70,33 @@ jobs:
           tag_prefix: v
           dry_run: true
 
+      - name: Resolve release version and tag
+        id: release_meta
+        env:
+          CALCULATED_VERSION: ${{ steps.version_calc.outputs.new_version }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          existing_tag="$(git tag --points-at "${GITHUB_SHA}" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1 || true)"
+          if [ -n "${existing_tag}" ]; then
+            release_tag="${existing_tag}"
+            release_version="${existing_tag#v}"
+            reused_tag="true"
+            echo "Reusing existing tag ${release_tag} for ${GITHUB_SHA}."
+          else
+            release_version="${CALCULATED_VERSION}"
+            release_tag="v${release_version}"
+            reused_tag="false"
+            echo "Resolved new release tag ${release_tag}."
+          fi
+          echo "new_version=${release_version}" >> "$GITHUB_OUTPUT"
+          echo "new_tag=${release_tag}" >> "$GITHUB_OUTPUT"
+          echo "reused_tag=${reused_tag}" >> "$GITHUB_OUTPUT"
+
       - name: Sync pom.xml revision for release tag
         id: sync_pom
         env:
-          RELEASE_VERSION: ${{ steps.version_calc.outputs.new_version }}
+          RELEASE_VERSION: ${{ steps.release_meta.outputs.new_version }}
         run: |
           set -euo pipefail
           sed -i -E "s#<revision>[^<]+</revision>#<revision>${RELEASE_VERSION}</revision>#" quarkus-app/pom.xml
@@ -88,26 +111,9 @@ jobs:
           git commit -m "chore(release): sync pom revision to ${RELEASE_VERSION} [skip release]"
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Create release tag
-        id: tag_version
-        env:
-          RELEASE_VERSION: ${{ steps.version_calc.outputs.new_version }}
-        run: |
-          set -euo pipefail
-          TAG="v${RELEASE_VERSION}"
-          git fetch --tags --force
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "::error::Tag ${TAG} already exists"
-            exit 1
-          fi
-          git tag "$TAG"
-          git push origin "$TAG"
-          echo "new_version=${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "new_tag=${TAG}" >> "$GITHUB_OUTPUT"
-
       - name: Build with Maven
         working-directory: quarkus-app
-        run: ./mvnw package -B -Drevision=${{ steps.tag_version.outputs.new_version }} -DskipTests
+        run: ./mvnw package -B -Drevision=${{ steps.release_meta.outputs.new_version }} -DskipTests
 
       - name: Login to Quay.io
         uses: docker/login-action@v3
@@ -120,19 +126,42 @@ jobs:
         working-directory: quarkus-app
         env:
           IMAGE_NAME: ${{ vars.REGISTRY }}/${{ vars.IMAGE_NAME }}
-          TAG: ${{ steps.tag_version.outputs.new_version }}
+          TAG: ${{ steps.release_meta.outputs.new_version }}
         run: |
+          set -euo pipefail
           docker build -f src/main/docker/Dockerfile.jvm \
             -t $IMAGE_NAME:latest \
             -t $IMAGE_NAME:$TAG .
-            
-          docker push $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:$TAG
+
+          RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $IMAGE_NAME:$TAG
+          RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $IMAGE_NAME:latest
+
+      - name: Create release tag
+        id: tag_version
+        env:
+          RELEASE_VERSION: ${{ steps.release_meta.outputs.new_version }}
+          RELEASE_TAG: ${{ steps.release_meta.outputs.new_tag }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          if git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1; then
+            existing_tag_sha="$(git rev-list -n 1 "${RELEASE_TAG}")"
+            if [ "${existing_tag_sha}" != "${GITHUB_SHA}" ]; then
+              echo "::error::Tag ${RELEASE_TAG} already exists on ${existing_tag_sha}, expected ${GITHUB_SHA}"
+              exit 1
+            fi
+            echo "Tag ${RELEASE_TAG} already exists for current commit; reusing."
+          else
+            git tag "${RELEASE_TAG}"
+            git push origin "${RELEASE_TAG}"
+          fi
+          echo "new_version=${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "new_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: v${{ steps.tag_version.outputs.new_version }}
+          TAG: ${{ steps.tag_version.outputs.new_tag }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -190,7 +219,7 @@ jobs:
         continue-on-error: true
         timeout-minutes: 4
         env:
-          RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
+          RELEASE_TAG: ${{ steps.tag_version.outputs.new_tag }}
         run: |
           set -euo pipefail
           port="${DEPLOY_PORT:-22}"
@@ -239,7 +268,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           INSIGHTS_INGEST_BASE_URL: ${{ vars.INSIGHTS_INGEST_BASE_URL }}
           INSIGHTS_INGEST_KEY: ${{ secrets.INSIGHTS_INGEST_KEY }}
-          RELEASE_TAG: v${{ steps.tag_version.outputs.new_version }}
+          RELEASE_TAG: ${{ steps.tag_version.outputs.new_tag }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           HEAD_COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
           HEAD_SHA: ${{ github.sha }}
