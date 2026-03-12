@@ -4,16 +4,16 @@
 {#body}
 <link rel="stylesheet" href="/css/wrapped.css">
 
-<div class="wrapped-body-container">
+<div class="wrapped-body-container{#if hasProfileGlow} wrapped-body-container-glow{/if}">
     <div class="wrapped-container">
 
         <!-- Header Section -->
-        <header class="wrapped-header">
+        <header class="wrapped-header{#if hasProfileGlow} wrapped-header-glow{/if}">
             <div class="wrapped-avatar-container">
                 {#if avatarUrl}
-                <img src="{avatarUrl}" alt="{displayName}" class="wrapped-avatar">
+                <img src="{avatarUrl}" alt="{displayName}" class="wrapped-avatar{#if hasProfileGlow} wrapped-avatar-glow{/if}">
                 {#else}
-                <div class="wrapped-avatar wrapped-avatar-fallback">{displayName.substring(0,1)}</div>
+                <div class="wrapped-avatar wrapped-avatar-fallback{#if hasProfileGlow} wrapped-avatar-glow{/if}">{displayName.substring(0,1)}</div>
                 {/if}
                 <div class="wrapped-rank-badge">{questClass}</div>
             </div>
@@ -22,13 +22,16 @@
                 <span class="wrapped-stat-value gold" style="font-size: 1.2rem;">{i18n:public_profile_level_badge(level)}</span> • {questClassEmoji}
                 {i18n:public_profile_guild_badge(questClass)}
             </p>
+            {#if hasProfileGlow}
+            <p class="wrapped-premium-chip">{i18n:public_profile_reward_glow_active}</p>
+            {/if}
         </header>
 
         <!-- Bento Grid -->
         <div class="wrapped-grid">
 
             <!-- Card 1: Main Stats (XP) -->
-            <div class="wrapped-card">
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_total_experience}</span>
                 <span class="wrapped-stat-value neon">{currentXp} XP</span>
                 <div class="wrapped-xp-channel">
@@ -37,7 +40,7 @@
                 <p class="wrapped-subtext">{i18n:public_profile_top_contributor}</p>
             </div>
 
-            <div class="wrapped-card wrapped-card-full">
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_class_progress_title}</span>
                 <p class="wrapped-subtext">
                     {#if dominantClassMessage??}{dominantClassMessage}{#else}{i18n:profile_dominant_class(questClass)}{/if}
@@ -59,19 +62,19 @@
             </div>
 
             <!-- Card 2: Activities Completed -->
-            <div class="wrapped-card">
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_activity_count_title}</span>
                 <span class="wrapped-stat-value purple">{questsCompleted}</span>
                 <p class="wrapped-subtext">{i18n:public_profile_activity_count_subtitle}</p>
             </div>
 
-            <div class="wrapped-card">
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_cfp_title}</span>
                 <span class="wrapped-stat-value neon">{cfpAcceptedCount}</span>
                 <p class="wrapped-subtext">{i18n:public_profile_cfp_accepted_label}</p>
             </div>
 
-            <div class="wrapped-card">
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:profile_speaker_title}</span>
                 <span class="wrapped-stat-value neon">
                     {#if speakerActive}{i18n:profile_speaker_status_active}{#else}{i18n:profile_speaker_status_inactive}{/if}
@@ -81,13 +84,13 @@
                 </p>
             </div>
 
-            <div class="wrapped-card">
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_volunteer_title}</span>
                 <span class="wrapped-stat-value neon">{volunteerSelectedCount}</span>
                 <p class="wrapped-subtext">{i18n:public_profile_volunteer_selected_label}</p>
             </div>
 
-            <div class="wrapped-card wrapped-card-full">
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_cfp_latest}</span>
                 <div class="wrapped-list-container">
                     {#for item in cfpRecentAccepted}
@@ -101,7 +104,7 @@
                 </div>
             </div>
 
-            <div class="wrapped-card wrapped-card-full">
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_volunteer_latest}</span>
                 <div class="wrapped-list-container">
                     {#for item in volunteerRecentSelected}
@@ -115,7 +118,7 @@
                 </div>
             </div>
 
-            <div class="wrapped-card wrapped-card-full">
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_accounts_title}</span>
                 <div class="wrapped-list-container">
                     <div class="wrapped-list-item">
@@ -156,7 +159,7 @@
             </div>
 
             <!-- Card 3: Badges Collection -->
-            <div class="wrapped-card wrapped-card-full">
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_badges_titles}</span>
                 <div class="wrapped-badges">
                     {#if hasDiscord}
@@ -188,7 +191,7 @@
             </div>
 
             <!-- Card 5: Community Status -->
-            <div class="wrapped-card">
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_community_status}</span>
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
                     <span class="material-symbols-outlined" style="color: var(--accent-green)">check_circle</span>
@@ -199,7 +202,7 @@
         </div>
 
         <!-- Call to Action -->
-        <div class="wrapped-cta">
+        <div class="wrapped-cta{#if hasProfileGlow} wrapped-cta-glow{/if}">
             <h2>{i18n:public_profile_cta_title}</h2>
             <p>{i18n:public_profile_cta_desc}</p>
             <a href="/private/login-callback?redirect=/" class="wrapped-btn-primary" data-login-return-current="true">

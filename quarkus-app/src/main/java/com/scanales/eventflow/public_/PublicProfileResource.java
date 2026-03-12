@@ -20,6 +20,8 @@ import com.scanales.eventflow.util.TemplateLocaleUtil;
 import com.scanales.eventflow.volunteers.VolunteerApplication;
 import com.scanales.eventflow.volunteers.VolunteerApplicationService;
 import com.scanales.eventflow.volunteers.VolunteerApplicationStatus;
+import com.scanales.eventflow.economy.EconomyInventoryItem;
+import com.scanales.eventflow.economy.EconomyService;
 import io.quarkus.qute.Template;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -73,6 +75,9 @@ public class PublicProfileResource {
     @Inject
     VolunteerApplicationService volunteerApplicationService;
 
+    @Inject
+    EconomyService economyService;
+
     @GET
     @Path("/{username}")
     @Produces(MediaType.TEXT_HTML)
@@ -116,6 +121,7 @@ public class PublicProfileResource {
         boolean hasGithub = resolved.githubLogin() != null;
         boolean hasDiscord = resolved.discordHandle() != null || resolved.discordProfileUrl() != null;
         java.util.Set<String> cfpUserIds = resolveCfpUserIds(profile, resolved.userId());
+        boolean hasProfileGlow = hasInventoryItem(cfpUserIds, "profile-glow");
         CfpSubmissionService.MineStats cfpStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
         int cfpAcceptedCount = cfpStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
         List<PublicCfpItem> cfpRecentAccepted =
@@ -164,6 +170,7 @@ public class PublicProfileResource {
                 .data("hasGithub", hasGithub)
                 .data("hasDiscord", hasDiscord)
                 .data("hasLinkedAccounts", hasGithub || hasDiscord)
+                .data("hasProfileGlow", hasProfileGlow)
                 .data("cfpAcceptedCount", cfpAcceptedCount)
                 .data("cfpRecentAccepted", cfpRecentAccepted)
                 .data("speakerProfile", speakerProfile)
@@ -432,6 +439,26 @@ public class PublicProfileResource {
         if (!normalized.isBlank()) {
             ids.add(normalized);
         }
+    }
+
+    private boolean hasInventoryItem(java.util.Set<String> userIds, String itemId) {
+        if (userIds == null || userIds.isEmpty() || itemId == null || itemId.isBlank()) {
+            return false;
+        }
+        for (String userId : userIds) {
+            List<EconomyInventoryItem> items = economyService.listInventory(userId, 50, 0);
+            boolean match =
+                items.stream()
+                    .anyMatch(
+                        item ->
+                            item != null
+                                && item.quantity() > 0
+                                && itemId.equalsIgnoreCase(item.itemId()));
+            if (match) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Optional<String> currentUserId() {

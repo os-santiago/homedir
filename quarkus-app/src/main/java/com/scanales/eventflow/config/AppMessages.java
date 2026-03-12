@@ -33,6 +33,9 @@ public interface AppMessages {
     @Message("Connect Discord")
     String btn_connect_discord();
 
+    @Message("Profile glow active")
+    String public_profile_reward_glow_active();
+
     @Message("Unlink Discord")
     String btn_unlink_discord();
 
