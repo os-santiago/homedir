@@ -6,9 +6,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
 ENV_FILE_DEFAULT="/etc/homedir.env"
 OUTPUT_DIR_DEFAULT="/var/backups/homedir-dr"
+RETAIN_COUNT_DEFAULT="28"
 
 ENV_FILE="${ENV_FILE_DEFAULT}"
 OUTPUT_DIR="${OUTPUT_DIR_DEFAULT}"
+RETAIN_COUNT="${RETAIN_COUNT_DEFAULT}"
 DATA_DIR=""
 LABEL=""
 ALLOW_PLAINTEXT="false"
@@ -30,6 +32,7 @@ Options:
   --env-file <path>           Environment file (default: /etc/homedir.env)
   --data-dir <path>           Host data directory to back up (default: from DATA_VOLUME or /work/data)
   --output-dir <path>         Output directory (default: /var/backups/homedir-dr)
+  --retain-count <number>     Keep only the newest backup sets after a successful run (default: 28, 0 disables pruning)
   --label <text>              Optional label for artifact naming
   --age-recipient <value>     age recipient (repeatable) to encrypt archive
   --allow-plaintext           Allow non-encrypted archive output (not recommended)
@@ -37,7 +40,7 @@ Options:
   -h, --help                  Show this help
 
 Examples:
-  homedir-dr-backup.sh --age-recipient age1... --label pre-maintenance
+  homedir-dr-backup.sh --age-recipient age1... --retain-count 28 --label pre-maintenance
   homedir-dr-backup.sh --data-dir /srv/homedir --output-dir /mnt/secure-backups --age-recipient age1...
 EOF
 }
@@ -86,7 +89,7 @@ safe_label() {
     echo ""
     return
   fi
-  echo "${raw}" | tr -cs 'a-zA-Z0-9._-' '-'
+  printf '%s' "${raw}" | tr -cs 'a-zA-Z0-9._-' '-'
 }
 
 secure_delete() {
@@ -97,6 +100,57 @@ secure_delete() {
   else
     rm -f "${file}"
   fi
+}
+
+artifact_base_name() {
+  local artifact_name
+  artifact_name="$(basename "$1")"
+
+  if [[ "${artifact_name}" == *.tar.gz.age ]]; then
+    echo "${artifact_name%.tar.gz.age}"
+    return 0
+  fi
+
+  if [[ "${artifact_name}" == *.tar.gz ]]; then
+    echo "${artifact_name%.tar.gz}"
+    return 0
+  fi
+
+  fail "unsupported backup artifact name: ${artifact_name}"
+}
+
+prune_old_backups() {
+  local retain_count="$1"
+  [[ "${retain_count}" =~ ^[0-9]+$ ]] || fail "--retain-count must be a non-negative integer"
+  if [[ "${retain_count}" == "0" ]]; then
+    log "retention disabled; skipping prune"
+    return 0
+  fi
+
+  mapfile -t backup_artifacts < <(
+    find "${OUTPUT_DIR}" -maxdepth 1 -type f \
+      \( -name 'homedir-data-*.tar.gz' -o -name 'homedir-data-*.tar.gz.age' \) \
+      -printf '%f\n' | sort -r
+  )
+
+  local total="${#backup_artifacts[@]}"
+  if (( total <= retain_count )); then
+    log "retention check: ${total} backup sets present, nothing to prune"
+    return 0
+  fi
+
+  local prune_count=$(( total - retain_count ))
+  log "pruning ${prune_count} old backup set(s); keeping newest ${retain_count}"
+
+  local artifact_name artifact_path base_name
+  for artifact_name in "${backup_artifacts[@]:retain_count}"; do
+    artifact_path="${OUTPUT_DIR}/${artifact_name}"
+    base_name="$(artifact_base_name "${artifact_name}")"
+    run_cmd rm -f \
+      "${artifact_path}" \
+      "${artifact_path}.sha256" \
+      "${OUTPUT_DIR}/${base_name}.metadata.json"
+  done
 }
 
 while [[ $# -gt 0 ]]; do
@@ -111,6 +165,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --output-dir)
       OUTPUT_DIR="${2:-}"
+      shift 2
+      ;;
+    --retain-count)
+      RETAIN_COUNT="${2:-}"
       shift 2
       ;;
     --label)
@@ -220,3 +278,4 @@ fi
 log "backup generated: ${artifact}"
 log "checksum file: ${artifact}.sha256"
 log "metadata file: ${metadata}"
+prune_old_backups "${RETAIN_COUNT}"

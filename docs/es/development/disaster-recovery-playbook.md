@@ -48,8 +48,15 @@ Para contencion de primer nivel ante ataque (antes de DR completo), usar:
 ```bash
 /usr/local/bin/homedir-dr-backup.sh \
   --age-recipient <AGE_PUBLIC_RECIPIENT> \
+  --retain-count 28 \
   --output-dir /var/backups/homedir-dr
 ```
+
+Resultado:
+- artefacto cifrado (`.tar.gz.age`)
+- archivo de integridad (`.sha256`)
+- archivo de metadata (`.metadata.json`)
+- poda automatica de backups antiguos por sobre `--retain-count` (`28` por defecto)
 
 ## Recuperacion (un comando)
 
