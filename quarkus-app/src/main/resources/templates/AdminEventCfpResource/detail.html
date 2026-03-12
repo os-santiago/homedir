@@ -1,0 +1,437 @@
+{#include layout/main}
+{#title}
+{i18n:events_cfp_admin_detail_page_title(event.title)}
+{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <p class="section-subtitle" style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">CFP</p>
+        <h1 class="page-title">{i18n:events_cfp_admin_detail_heading}</h1>
+        <p class="section-subtitle">{i18n:events_cfp_admin_event_label(event.title)}</p>
+      </div>
+      <div class="action-group admin-nav-strip">
+        <a href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_back_overview}</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
+        <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="card" style="margin-bottom: 1rem;">
+    <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_detail_heading}</h2>
+    <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_detail_desc}</p>
+    <p id="cfpDetailFeedback" class="form-hint" style="margin-top: 0.55rem;" hidden></p>
+  </div>
+
+  <div id="cfpDetailShell" class="cfp-detail-layout" aria-live="polite">
+    <div class="card">
+      <p class="form-hint" style="margin: 0;">{i18n:events_cfp_admin_detail_loading}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .admin-nav-strip {
+    gap: 0.45rem;
+  }
+
+  .cfp-detail-layout {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .cfp-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .cfp-detail-header h2,
+  .cfp-detail-section h3 {
+    margin: 0;
+  }
+
+  .cfp-detail-summary,
+  .cfp-detail-abstract {
+    white-space: pre-wrap;
+  }
+
+  .cfp-detail-meta-grid,
+  .cfp-review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+
+  .cfp-detail-meta-item,
+  .cfp-review-item {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.65rem 0.75rem;
+  }
+
+  .cfp-detail-meta-item span,
+  .cfp-review-item label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.78;
+    margin-bottom: 0.35rem;
+  }
+
+  .cfp-detail-links {
+    margin: 0.6rem 0 0 1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .cfp-detail-links a {
+    color: var(--color-accent);
+    word-break: break-word;
+  }
+
+  .cfp-detail-note {
+    margin-top: 0.75rem;
+  }
+
+  .cfp-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+  }
+</style>
+
+<script>
+  (() => {
+    const eventId = "{event.id}";
+    const submissionId = "{submissionId}";
+    const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
+    const shell = document.getElementById("cfpDetailShell");
+    const feedback = document.getElementById("cfpDetailFeedback");
+    let currentItem = null;
+
+    const i18n = {
+      loading: "{i18n:events_cfp_admin_detail_loading}",
+      loadError: "{i18n:events_cfp_admin_detail_load_error}",
+      status: "{i18n:events_cfp_admin_label_status}",
+      scorePrefix: "{i18n:events_cfp_admin_score_prefix}",
+      scoreNotAvailable: "{i18n:events_cfp_admin_score_not_available}",
+      proposedBy: "{i18n:events_cfp_admin_proposed_by}",
+      createdAt: "{i18n:events_cfp_admin_created_at}",
+      updatedAt: "{i18n:events_cfp_admin_updated_at}",
+      moderatedAt: "{i18n:events_cfp_admin_moderated_at}",
+      by: "{i18n:events_cfp_admin_by}",
+      summary: "{i18n:events_cfp_admin_modal_summary}",
+      abstractText: "{i18n:events_cfp_admin_modal_abstract}",
+      links: "{i18n:events_cfp_admin_modal_links}",
+      linksEmpty: "{i18n:events_cfp_admin_modal_links_empty}",
+      track: "{i18n:events_cfp_admin_meta_track}",
+      language: "{i18n:events_cfp_admin_meta_language}",
+      format: "{i18n:events_cfp_admin_meta_format}",
+      duration: "{i18n:talk_label_duration}",
+      ratingTechnical: "{i18n:events_cfp_admin_rating_technical}",
+      ratingNarrative: "{i18n:events_cfp_admin_rating_narrative}",
+      ratingImpact: "{i18n:events_cfp_admin_rating_impact}",
+      moderationNotePlaceholder: "{i18n:events_cfp_admin_note_placeholder}",
+      saveRating: "{i18n:events_cfp_admin_save_rating}",
+      underReview: "{i18n:events_cfp_admin_action_under_review}",
+      accept: "{i18n:events_cfp_admin_action_accept}",
+      reject: "{i18n:events_cfp_admin_action_reject}",
+      promote: "{i18n:events_cfp_admin_action_promote}",
+      promoteSuccess: "{i18n:events_cfp_admin_promote_success}",
+      staleSubmissionError: "{i18n:events_cfp_admin_error_stale_submission}",
+      updateStatusError: "{i18n:events_cfp_admin_error_update_status}",
+      saveRatingError: "{i18n:events_cfp_admin_error_save_rating}",
+      promoteError: "{i18n:events_cfp_admin_error_promote}",
+      reviewTitle: "{i18n:label_ratings}",
+      reviewDesc: "{i18n:events_cfp_admin_queue_desc}",
+      panelistsTitle: "{i18n:events_cfp_panelists_title}",
+      panelistsLinked: "{i18n:events_cfp_panelists_status_linked}",
+      panelistsPending: "{i18n:events_cfp_panelists_status_pending}",
+      panelistsPendingPrefix: "{i18n:events_cfp_panelists_pending_prefix}",
+      presentationTitle: "{i18n:events_cfp_presentation_title}",
+      presentationCurrent: "{i18n:events_cfp_presentation_current}",
+      notAvailable: "{i18n:events_cfp_admin_not_available}",
+      sectionMetadata: "{i18n:events_cfp_admin_section_metadata}",
+      sectionReview: "{i18n:events_cfp_admin_section_review}"
+    };
+
+    const statusLabel = {
+      pending: "{i18n:events_cfp_status_pending}",
+      under_review: "{i18n:events_cfp_status_under_review}",
+      accepted: "{i18n:events_cfp_status_accepted}",
+      rejected: "{i18n:events_cfp_status_rejected}",
+      withdrawn: "{i18n:events_cfp_status_withdrawn}"
+    };
+
+    function fmtDate(value) {
+      if (!value) return null;
+      try {
+        return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+      } catch (error) {
+        return value;
+      }
+    }
+
+    function sanitizeHttpUrl(value) {
+      if (!value || typeof value !== "string") return null;
+      try {
+        const url = new URL(value);
+        if (url.protocol === "http:" || url.protocol === "https:") {
+          return url.toString();
+        }
+      } catch (error) {
+        return null;
+      }
+      return null;
+    }
+
+    function scoreLabel(item) {
+      if (typeof item.rating_weighted === "number") {
+        return i18n.scorePrefix + " " + item.rating_weighted.toFixed(2);
+      }
+      return i18n.scoreNotAvailable;
+    }
+
+    function showFeedback(message, isError) {
+      if (!feedback) return;
+      feedback.hidden = false;
+      feedback.textContent = message;
+      feedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+    }
+
+    async function updateStatus(targetStatus, noteValue, expectedUpdatedAt) {
+      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/status", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          status: targetStatus,
+          moderation_note: noteValue || "",
+          expected_updated_at: expectedUpdatedAt || null
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload && payload.error ? payload.error : i18n.updateStatusError);
+      }
+      return payload;
+    }
+
+    async function updateRating(rating, expectedUpdatedAt) {
+      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/rating", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(Object.assign({}, rating, { expected_updated_at: expectedUpdatedAt || null }))
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload && payload.error ? payload.error : i18n.saveRatingError);
+      }
+      return payload;
+    }
+
+    async function promoteSubmission() {
+      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/promote", {
+        method: "POST",
+        headers: { Accept: "application/json" }
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload && payload.error ? payload.error : i18n.promoteError);
+      }
+      return payload;
+    }
+
+    function buildMetaItem(label, value) {
+      return '<div class="cfp-detail-meta-item"><span>' + label + '</span><strong>' + (value || i18n.notAvailable) + '</strong></div>';
+    }
+
+    function buildReviewSelect(id, label, value) {
+      const wrap = document.createElement("div");
+      wrap.className = "cfp-review-item";
+      const title = document.createElement("label");
+      title.htmlFor = id;
+      title.textContent = label;
+      wrap.appendChild(title);
+      const select = document.createElement("select");
+      select.className = "form-select";
+      select.id = id;
+      select.name = id;
+      for (let i = 0; i <= 5; i += 1) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = String(i);
+        if (Number(value) === i) opt.selected = true;
+        select.appendChild(opt);
+      }
+      wrap.appendChild(select);
+      return { wrap, select };
+    }
+
+    function renderDetail(item) {
+      currentItem = item;
+      const status = item.status || "pending";
+      const safeLinks = Array.isArray(item.links) ? item.links.map(sanitizeHttpUrl).filter((value) => !!value) : [];
+      const panelists = Array.isArray(item.panelists) ? item.panelists : [];
+
+      shell.innerHTML = `
+        <div class="card cfp-detail-section">
+          <div class="cfp-detail-header">
+            <div>
+              <h2>${item.title || i18n.notAvailable}</h2>
+              <p class="form-hint" style="margin-top: 0.35rem;">${scoreLabel(item)}</p>
+            </div>
+            <span class="cfp-status-chip cfp-status-chip--${status}">${statusLabel[status] || status}</span>
+          </div>
+          <div class="cfp-detail-meta-grid">
+            ${buildMetaItem(i18n.proposedBy, item.proposer_name || item.proposer_user_id)}
+            ${buildMetaItem(i18n.createdAt, fmtDate(item.created_at))}
+            ${buildMetaItem(i18n.updatedAt, fmtDate(item.updated_at))}
+            ${buildMetaItem(i18n.moderatedAt, item.moderated_at ? (fmtDate(item.moderated_at) + (item.moderated_by ? " · " + i18n.by + " " + item.moderated_by : "")) : i18n.notAvailable)}
+            ${buildMetaItem(i18n.track, item.track)}
+            ${buildMetaItem(i18n.language, item.language)}
+            ${buildMetaItem(i18n.format, item.format)}
+            ${buildMetaItem(i18n.duration, item.duration_min ? item.duration_min + " min" : null)}
+          </div>
+        </div>
+        <div class="card cfp-detail-section">
+          <h3>${i18n.summary}</h3>
+          <p class="cfp-detail-summary" style="margin-top: 0.65rem;">${item.summary || i18n.notAvailable}</p>
+        </div>
+        <div class="card cfp-detail-section">
+          <h3>${i18n.abstractText}</h3>
+          <p class="cfp-detail-abstract" style="margin-top: 0.65rem;">${item.abstract_text || i18n.notAvailable}</p>
+        </div>
+        <div class="card cfp-detail-section">
+          <h3>${i18n.links}</h3>
+          ${safeLinks.length
+            ? '<ul class="cfp-detail-links">' + safeLinks.map((href) => '<li><a href="' + href + '" target="_blank" rel="noopener noreferrer">' + href + '</a></li>').join("") + "</ul>"
+            : '<p class="form-hint" style="margin-top: 0.6rem;">' + i18n.linksEmpty + "</p>"}
+          ${panelists.length
+            ? '<p class="form-hint" style="margin-top: 0.8rem;"><strong>' + i18n.panelistsTitle + ':</strong> ' + panelists.map((panelist) => {
+                const name = panelist && panelist.name ? panelist.name : i18n.notAvailable;
+                const state = panelist && panelist.status === "linked" ? i18n.panelistsLinked : i18n.panelistsPending;
+                return name + " (" + state + ")";
+              }).join(" · ") + '</p>'
+            : ""}
+          ${Number(item.pending_panelists || 0) > 0
+            ? '<p class="form-hint" style="margin-top: 0.35rem;">' + i18n.panelistsPendingPrefix + " " + String(item.pending_panelists) + "</p>"
+            : ""}
+          ${item.presentation_asset && item.presentation_asset.file_name
+            ? '<p class="form-hint" style="margin-top: 0.35rem;"><strong>' + i18n.presentationTitle + ':</strong> ' + i18n.presentationCurrent + " " + item.presentation_asset.file_name + "</p>"
+            : ""}
+        </div>
+        <div class="card cfp-detail-section">
+          <h3>${i18n.sectionReview}</h3>
+          <p class="form-hint" style="margin-top: 0.35rem;">${i18n.reviewDesc}</p>
+          <div id="cfpReviewGrid" class="cfp-review-grid"></div>
+          <input id="cfpModerationNote" type="text" class="form-input cfp-detail-note" placeholder="${i18n.moderationNotePlaceholder}" value="${item.moderation_note || ""}">
+          <div class="cfp-detail-actions" id="cfpDetailActions"></div>
+        </div>`;
+
+      const reviewGrid = document.getElementById("cfpReviewGrid");
+      const technical = buildReviewSelect("cfp-rating-tech", i18n.ratingTechnical, item.rating_technical_detail ?? 0);
+      const narrative = buildReviewSelect("cfp-rating-narrative", i18n.ratingNarrative, item.rating_narrative ?? 0);
+      const impact = buildReviewSelect("cfp-rating-impact", i18n.ratingImpact, item.rating_content_impact ?? 0);
+      reviewGrid.appendChild(technical.wrap);
+      reviewGrid.appendChild(narrative.wrap);
+      reviewGrid.appendChild(impact.wrap);
+
+      const note = document.getElementById("cfpModerationNote");
+      const actions = document.getElementById("cfpDetailActions");
+
+      function attachAction(label, className, handler) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = className;
+        btn.textContent = label;
+        btn.addEventListener("click", handler);
+        actions.appendChild(btn);
+      }
+
+      attachAction(i18n.saveRating, "btn btn-secondary", async (event) => {
+        const btn = event.currentTarget;
+        btn.disabled = true;
+        try {
+          await updateRating({
+            technical_detail: Number(technical.select.value),
+            narrative: Number(narrative.select.value),
+            content_impact: Number(impact.select.value)
+          }, currentItem.updated_at);
+          showFeedback(i18n.saveRating, false);
+          await loadDetail();
+        } catch (error) {
+          showFeedback((error.message || "").includes("stale_submission") ? i18n.staleSubmissionError : (error.message || i18n.saveRatingError), true);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      function attachStatusAction(label, targetStatus, className) {
+        attachAction(label, className, async (event) => {
+          const btn = event.currentTarget;
+          btn.disabled = true;
+          try {
+            await updateStatus(targetStatus, note.value, currentItem.updated_at);
+            showFeedback(label, false);
+            await loadDetail();
+          } catch (error) {
+            showFeedback((error.message || "").includes("stale_submission") ? i18n.staleSubmissionError : (error.message || i18n.updateStatusError), true);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      }
+
+      attachStatusAction(i18n.underReview, "under_review", "btn btn-secondary");
+      attachStatusAction(i18n.accept, "accepted", "btn btn-primary");
+      attachStatusAction(i18n.reject, "rejected", "btn btn-danger");
+
+      if (status === "accepted") {
+        attachAction(i18n.promote, "btn btn-secondary", async (event) => {
+          const btn = event.currentTarget;
+          btn.disabled = true;
+          try {
+            const payload = await promoteSubmission();
+            showFeedback(i18n.promoteSuccess + " " + payload.speaker_id + " / " + payload.talk_id, false);
+          } catch (error) {
+            showFeedback(error.message || i18n.promoteError, true);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      }
+    }
+
+    async function loadDetail() {
+      shell.innerHTML = '<div class="card"><p class="form-hint" style="margin: 0;">' + i18n.loading + "</p></div>";
+      try {
+        const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId), {
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+          throw new Error(i18n.loadError);
+        }
+        const payload = await response.json();
+        renderDetail(payload.item || {});
+      } catch (error) {
+        shell.innerHTML = '<div class="card"><p class="form-hint" style="margin: 0;">' + (error.message || i18n.loadError) + "</p></div>";
+      }
+    }
+
+    loadDetail();
+  })();
+</script>
+{/body}
+{/include}

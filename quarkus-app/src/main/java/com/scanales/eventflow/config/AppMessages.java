@@ -1270,6 +1270,15 @@ public interface AppMessages {
     @Message("CFP Moderation")
     String events_cfp_admin_moderation_heading();
 
+    @Message("CFP Proposal Detail · {event}")
+    String events_cfp_admin_detail_page_title(String event);
+
+    @Message("Proposal detail")
+    String events_cfp_admin_detail_heading();
+
+    @Message("Review the full proposal, save ratings, update status, and promote accepted talks.")
+    String events_cfp_admin_detail_desc();
+
     @Message("Event: {event}")
     String events_cfp_admin_event_label(String event);
 
@@ -1278,6 +1287,9 @@ public interface AppMessages {
 
     @Message("Public CFP")
     String events_cfp_admin_nav_public_cfp();
+
+    @Message("Back to overview")
+    String events_cfp_admin_nav_back_overview();
 
     @Message("Proposal queue")
     String events_cfp_admin_queue_title();
@@ -1417,17 +1429,26 @@ public interface AppMessages {
     @Message("View full proposal")
     String events_cfp_admin_action_view_full();
 
+    @Message("Open detail")
+    String events_cfp_admin_action_open_detail();
+
     @Message("Cataloged:")
     String events_cfp_admin_promote_success();
 
     @Message("Loading proposals...")
     String events_cfp_admin_queue_loading();
 
+    @Message("Loading proposal detail...")
+    String events_cfp_admin_detail_loading();
+
     @Message("No proposals in this status.")
     String events_cfp_admin_queue_empty();
 
     @Message("Could not load proposals right now.")
     String events_cfp_admin_queue_load_error();
+
+    @Message("Could not load this proposal right now.")
+    String events_cfp_admin_detail_load_error();
 
     @Message("Load error")
     String events_cfp_admin_queue_load_generic_error();
@@ -1449,6 +1470,21 @@ public interface AppMessages {
 
     @Message("Close")
     String events_cfp_admin_modal_close();
+
+    @Message("Submission metadata")
+    String events_cfp_admin_section_metadata();
+
+    @Message("Moderation")
+    String events_cfp_admin_section_review();
+
+    @Message("Track")
+    String events_cfp_admin_meta_track();
+
+    @Message("Language")
+    String events_cfp_admin_meta_language();
+
+    @Message("Format")
+    String events_cfp_admin_meta_format();
 
     @Message("CFP submissions are currently closed for this event.")
     String events_cfp_closed_hint();
