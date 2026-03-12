@@ -28,6 +28,7 @@
 19. La calidad objetivo de entrega debe mantenerse sobre 95% de exito semanal (ultimos 7 dias) tanto en checks de PR como en pases a produccion; si baja, priorizar estabilizacion antes de nuevas features.
 20. Si el proyecto es multilenguaje, todo texto visible debe implementarse via archivos/bundles de idioma; evitar texto hardcoded de forma global en templates, JS, backend y mensajes UI.
 21. Override explicito permitido: si se solicita trabajar/ejecutar en modo "entrega por lotes" (o equivalente), se permiten multiples iteraciones atomicas dentro de un solo PR, con validaciones intermedias por etapa y un punto de restauracion para rollback completo del lote.
+22. Toda falla de PR, bloqueo de integracion o incidente generado por un cambio debe cerrarse incorporando el aprendizaje resultante en `ADEV.md` como regla o principio consolidado, evitando redundancia y duplicidad.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
