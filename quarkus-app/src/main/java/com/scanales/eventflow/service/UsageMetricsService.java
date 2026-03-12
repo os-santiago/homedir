@@ -2,6 +2,7 @@ package com.scanales.eventflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.model.Speaker;
+import com.scanales.eventflow.observability.BusinessObservabilityLedgerService;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.PostConstruct;
@@ -102,6 +103,9 @@ public class UsageMetricsService {
 
   @Inject
   ObjectMapper mapper;
+
+  @Inject
+  BusinessObservabilityLedgerService businessObservabilityLedgerService;
 
   @PostConstruct
   void init() {
@@ -260,6 +264,7 @@ public class UsageMetricsService {
       }
     }
     increment("page_view:" + route);
+    businessObservabilityLedgerService.recordRoute(route);
   }
 
   public void recordEventView(String eventId, String ua) {
@@ -289,6 +294,8 @@ public class UsageMetricsService {
       }
     }
     increment("event_view:" + eventId);
+    businessObservabilityLedgerService.recordModule("events");
+    businessObservabilityLedgerService.recordAction("event_view");
   }
 
   public void recordTalkView(String talkId, String sessionId, String ua) {
@@ -314,6 +321,8 @@ public class UsageMetricsService {
       }
     }
     increment("talk_view:" + talkId);
+    businessObservabilityLedgerService.recordModule("events");
+    businessObservabilityLedgerService.recordAction("talk_view");
   }
 
   public void recordTalkRegister(String talkId, java.util.List<Speaker> speakers, String ua) {
@@ -333,6 +342,8 @@ public class UsageMetricsService {
       }
     }
     increment("talk_register:" + talkId);
+    businessObservabilityLedgerService.recordModule("events");
+    businessObservabilityLedgerService.recordAction("talk_register");
   }
 
   public void recordTalkRegister(
@@ -399,6 +410,8 @@ public class UsageMetricsService {
       }
     }
     increment("stage_visit:" + stageId + ":" + today);
+    businessObservabilityLedgerService.recordModule("events");
+    businessObservabilityLedgerService.recordAction("stage_visit");
   }
 
   public void recordStageVisit(
@@ -442,6 +455,7 @@ public class UsageMetricsService {
       return;
     }
     increment("funnel:" + normalized);
+    businessObservabilityLedgerService.recordAction(normalized);
   }
 
   /** Records a refresh attempt for the admin metrics dashboard. */
