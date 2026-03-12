@@ -21,7 +21,10 @@
         </div>
         {#if isAuthenticated}
         <div class="board-activation-actions">
-          <a class="btn-primary" href="/private/profile">{i18n:community_board_activation_cta_member}</a>
+          {#if discordLinked}
+          <span class="board-status-chip">{i18n:community_board_discord_connected}</span>
+          {/if}
+          <a class="btn-primary" href="/private/profile#integrations-panel">{i18n:community_board_connect_discord}</a>
           {#if publicProfilePath}
           <a class="btn-primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
           <button
@@ -140,6 +143,18 @@
       margin: 0;
       font-size: 0.82rem;
       opacity: 0.9;
+    }
+
+    .board-status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(120, 255, 160, 0.55);
+      background: rgba(120, 255, 160, 0.12);
+      font-size: 0.8rem;
+      font-weight: 700;
     }
 
     .board-activation h2 {

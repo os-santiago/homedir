@@ -154,9 +154,9 @@
                     {/if}
                 </div>
                 {#if discord == null}
-                <p>{i18n:msg_no_discord}</p>
+                <p>{i18n:profile_discord_connect_desc}</p>
                 <a href="/private/discord/start?redirect=/private/profile" class="btn-primary">
-                    {i18n:btn_claim_discord_from_board}
+                    {i18n:btn_connect_discord}
                 </a>
                 {#else}
                 <div class="hd-github-user">
@@ -165,6 +165,7 @@
                     {/if}
                     <div class="hd-github-info">
                         <strong>{discord.handle ?: discord.id}</strong>
+                        <span class="hd-detail-label">{i18n:profile_discord_connected_benefit}</span>
                         {#if discord.profileUrl}
                         <a href="{discord.profileUrl}" target="_blank" class="hd-link">{i18n:btn_view_profile}</a>
                         {/if}
