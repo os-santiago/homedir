@@ -127,7 +127,7 @@ public class BusinessObservabilityService {
         continue;
       }
       long keyActions = actionByModule.getOrDefault(module, 0L);
-      long conversionPct = interactions <= 0L ? 0L : Math.round((double) keyActions * 100d / interactions);
+      long conversionPct = Math.round((double) keyActions * 100d / interactions);
       if (conversionPct > 45L) {
         continue;
       }
