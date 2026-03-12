@@ -1,0 +1,466 @@
+{#include layout/main mainClass="admin-context-main"}
+{#title}{i18n:admin_observability_page_title}{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <p class="section-subtitle">{i18n:admin_observability_subtitle}</p>
+        <h1 class="page-title">{i18n:admin_observability_heading}</h1>
+        <p class="form-hint" style="margin-top:0.45rem;max-width:72ch;">{i18n:admin_observability_intro}</p>
+      </div>
+      <div class="action-group">
+        <a href="/private/admin" class="btn btn-secondary">{i18n:admin_observability_back_to_panel}</a>
+        <button id="observabilityRefreshBtn" type="button" class="btn btn-secondary">{i18n:admin_observability_refresh}</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="page-grid">
+    <article class="section-card admin-observability-card">
+      <h2>{i18n:admin_observability_summary_title}</h2>
+      <div id="observabilitySummary" class="admin-observability-summary">
+        <p class="form-hint">{i18n:admin_observability_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-observability-card" style="grid-column: 1 / -1;">
+      <div class="admin-observability-card-head">
+        <div>
+          <p class="section-subtitle">{i18n:admin_observability_heatmap_desc}</p>
+          <h2>{i18n:admin_observability_heatmap_title}</h2>
+        </div>
+      </div>
+      <div id="observabilityHeatmap" class="admin-observability-heatmap">
+        <p class="form-hint">{i18n:admin_observability_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-observability-card">
+      <p class="section-subtitle">{i18n:admin_observability_hot_actions_desc}</p>
+      <h2>{i18n:admin_observability_hot_actions_title}</h2>
+      <div id="observabilityHotActions" class="admin-observability-list">
+        <p class="form-hint">{i18n:admin_observability_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-observability-card">
+      <p class="section-subtitle">{i18n:admin_observability_friction_desc}</p>
+      <h2>{i18n:admin_observability_friction_title}</h2>
+      <div id="observabilityFriction" class="admin-observability-list">
+        <p class="form-hint">{i18n:admin_observability_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-observability-card" style="grid-column: 1 / -1;">
+      <p class="section-subtitle">{i18n:admin_observability_delivery_desc}</p>
+      <h2>{i18n:admin_observability_delivery_title}</h2>
+      <div id="observabilityDelivery" class="admin-observability-delivery">
+        <p class="form-hint">{i18n:admin_observability_loading}</p>
+      </div>
+    </article>
+  </div>
+</div>
+
+<script type="application/json" id="observabilityLabels">
+{
+  "modules": {
+    "home": "{i18n:admin_observability_module_home}",
+    "community": "{i18n:admin_observability_module_community}",
+    "events": "{i18n:admin_observability_module_events}",
+    "project": "{i18n:admin_observability_module_project}",
+    "profile": "{i18n:admin_observability_module_profile}",
+    "admin": "{i18n:admin_observability_module_admin}",
+    "info": "{i18n:admin_observability_module_info}",
+    "other": "{i18n:admin_observability_module_other}"
+  },
+  "actions": {
+    "login_success": "{i18n:admin_observability_action_login_success}",
+    "event_view": "{i18n:admin_observability_action_event_view}",
+    "talk_view": "{i18n:admin_observability_action_talk_view}",
+    "stage_visit": "{i18n:admin_observability_action_stage_visit}",
+    "talk_register": "{i18n:admin_observability_action_talk_register}",
+    "community_vote": "{i18n:admin_observability_action_community_vote}",
+    "community_propose_submit": "{i18n:admin_observability_action_community_propose_submit}",
+    "community_lightning_post": "{i18n:admin_observability_action_community_lightning_post}",
+    "community_lightning_comment": "{i18n:admin_observability_action_community_lightning_comment}",
+    "board_profile_open": "{i18n:admin_observability_action_board_profile_open}",
+    "profile_public_open": "{i18n:admin_observability_action_profile_public_open}",
+    "cfp_submit": "{i18n:admin_observability_action_cfp_submit}",
+    "cfp_approved": "{i18n:admin_observability_action_cfp_approved}",
+    "volunteer_submit": "{i18n:admin_observability_action_volunteer_submit}",
+    "volunteer_selected": "{i18n:admin_observability_action_volunteer_selected}",
+    "volunteer_lounge_post": "{i18n:admin_observability_action_volunteer_lounge_post}",
+    "economy_purchase": "{i18n:admin_observability_action_economy_purchase}"
+  }
+}
+</script>
+
+<div id="observabilityI18n"
+     data-request-failed="{i18n:admin_observability_js_request_failed}"
+     data-no-heat="{i18n:admin_observability_js_no_heat}"
+     data-no-actions="{i18n:admin_observability_js_no_actions}"
+     data-no-friction="{i18n:admin_observability_js_no_friction}"
+     data-healthy="{i18n:admin_observability_js_healthy}"
+     data-stale="{i18n:admin_observability_js_stale}"
+     data-last-seen="{i18n:admin_observability_js_last_seen}"
+     data-events-last24="{i18n:admin_observability_js_events_last24}"
+     data-active-initiatives-last24="{i18n:admin_observability_js_active_initiatives_last24}"
+     data-prod-success-7d="{i18n:admin_observability_js_prod_success_7d}"
+     data-pr-validation-7d="{i18n:admin_observability_js_pr_validation_7d}"
+     data-freshness="{i18n:admin_observability_js_freshness}"
+     data-minutes-since-last="{i18n:admin_observability_js_minutes_since_last}"
+     data-high="{i18n:admin_observability_js_severity_high}"
+     data-watch="{i18n:admin_observability_js_severity_watch}"
+     style="display:none"></div>
+
+<style>
+  .admin-observability-card {
+    min-height: 100%;
+  }
+
+  .admin-observability-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .admin-observability-summary {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .admin-observability-kpi {
+    padding: 0.9rem 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(10, 14, 24, 0.7);
+  }
+
+  .admin-observability-kpi-label {
+    display: block;
+    font-size: 0.82rem;
+    opacity: 0.82;
+  }
+
+  .admin-observability-kpi-value {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  .admin-observability-kpi-note {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.82rem;
+    opacity: 0.72;
+  }
+
+  .admin-observability-heatmap-grid {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .admin-observability-heatmap-header,
+  .admin-observability-heatmap-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 160px) repeat(24, minmax(12px, 1fr)) minmax(84px, 110px);
+    gap: 0.3rem;
+    align-items: center;
+  }
+
+  .admin-observability-heatmap-hour {
+    font-size: 0.68rem;
+    opacity: 0.7;
+    text-align: center;
+  }
+
+  .admin-observability-heatmap-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .admin-observability-heatmap-total {
+    text-align: right;
+    font-size: 0.82rem;
+    opacity: 0.82;
+  }
+
+  .admin-observability-cell {
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    transition: background-color 120ms ease;
+  }
+
+  .admin-observability-cell.level-1 { background: rgba(64, 169, 255, 0.18); }
+  .admin-observability-cell.level-2 { background: rgba(64, 169, 255, 0.35); }
+  .admin-observability-cell.level-3 { background: rgba(64, 169, 255, 0.56); }
+  .admin-observability-cell.level-4 { background: rgba(64, 169, 255, 0.82); }
+
+  .admin-observability-list {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.8rem;
+  }
+
+  .admin-observability-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.9rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(10, 14, 24, 0.64);
+  }
+
+  .admin-observability-item-copy {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .admin-observability-item-copy small {
+    opacity: 0.72;
+  }
+
+  .admin-observability-item-meta {
+    text-align: right;
+    white-space: nowrap;
+    font-size: 0.86rem;
+  }
+
+  .admin-observability-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .admin-observability-badge.high {
+    background: rgba(255, 114, 94, 0.16);
+    color: #ffb4a4;
+  }
+
+  .admin-observability-badge.watch {
+    background: rgba(255, 205, 87, 0.16);
+    color: #ffe19b;
+  }
+
+  .admin-observability-delivery {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin-top: 0.8rem;
+  }
+
+  @media (max-width: 920px) {
+    .admin-observability-heatmap-header,
+    .admin-observability-heatmap-row {
+      grid-template-columns: minmax(100px, 140px) repeat(12, minmax(16px, 1fr)) minmax(70px, 88px);
+    }
+
+    .admin-observability-heatmap-header .admin-observability-heatmap-hour:nth-child(n + 14),
+    .admin-observability-heatmap-row .admin-observability-cell:nth-child(n + 14):nth-child(-n + 25) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const summaryEl = document.getElementById('observabilitySummary');
+    const heatmapEl = document.getElementById('observabilityHeatmap');
+    const hotActionsEl = document.getElementById('observabilityHotActions');
+    const frictionEl = document.getElementById('observabilityFriction');
+    const deliveryEl = document.getElementById('observabilityDelivery');
+    const refreshBtn = document.getElementById('observabilityRefreshBtn');
+    const i18n = document.getElementById('observabilityI18n')?.dataset || {};
+    const labels = JSON.parse(document.getElementById('observabilityLabels')?.textContent || '{}');
+
+    function labelFor(type, code) {
+      const dict = labels[type] || {};
+      if (dict[code]) return dict[code];
+      return String(code || '')
+        .split('_')
+        .map((part) => part ? part.charAt(0).toUpperCase() + part.slice(1) : '')
+        .join(' ');
+    }
+
+    function formatTrend(value) {
+      if (value == null || Number.isNaN(Number(value))) return '—';
+      const n = Number(value);
+      const prefix = n > 0 ? '+' : '';
+      return `${prefix}${n}%`;
+    }
+
+    function intensityLevel(value, max) {
+      if (!value || value <= 0 || !max || max <= 0) return 0;
+      const ratio = value / max;
+      if (ratio >= 0.8) return 4;
+      if (ratio >= 0.5) return 3;
+      if (ratio >= 0.25) return 2;
+      return 1;
+    }
+
+    function renderSummary(data) {
+      const topModuleLabel = data.hottestModule ? labelFor('modules', data.hottestModule.code) : '—';
+      const topModuleTrend = data.hottestModule ? formatTrend(data.hottestModule.trendPct) : '—';
+      summaryEl.innerHTML = `
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_interactions}</span>
+          <strong class="admin-observability-kpi-value">${data.interactionsLastWindow}</strong>
+          <small class="admin-observability-kpi-note">${formatTrend(data.interactionsTrendPct)}</small>
+        </article>
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_active_modules}</span>
+          <strong class="admin-observability-kpi-value">${data.activeModules}</strong>
+          <small class="admin-observability-kpi-note">${data.windowHours}h</small>
+        </article>
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_top_module}</span>
+          <strong class="admin-observability-kpi-value">${topModuleLabel}</strong>
+          <small class="admin-observability-kpi-note">${topModuleTrend}</small>
+        </article>
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">{i18n:admin_observability_summary_metrics_discards}</span>
+          <strong class="admin-observability-kpi-value">${data.discardedMetricsEvents}</strong>
+          <small class="admin-observability-kpi-note">buffer / dedupe / bot</small>
+        </article>
+      `;
+    }
+
+    function renderHeatmap(data) {
+      if (!Array.isArray(data.heatmap) || data.heatmap.length === 0) {
+        heatmapEl.innerHTML = `<p class="form-hint">${i18n.noHeat}</p>`;
+        return;
+      }
+      const maxValue = Math.max(...data.heatmap.flatMap((row) => row.counts || [0]));
+      const headerHours = data.hourLabels.map((label) => `<span class="admin-observability-heatmap-hour">${label}</span>`).join('');
+      const rows = data.heatmap.map((row) => {
+        const cells = (row.counts || []).map((count) => {
+          const level = intensityLevel(Number(count || 0), maxValue);
+          return `<span class="admin-observability-cell level-${level}" title="${count}"></span>`;
+        }).join('');
+        return `
+          <div class="admin-observability-heatmap-row">
+            <span class="admin-observability-heatmap-label">${labelFor('modules', row.code)}</span>
+            ${cells}
+            <span class="admin-observability-heatmap-total">${row.total}</span>
+          </div>
+        `;
+      }).join('');
+      heatmapEl.innerHTML = `
+        <div class="admin-observability-heatmap-grid">
+          <div class="admin-observability-heatmap-header">
+            <span></span>
+            ${headerHours}
+            <span class="admin-observability-heatmap-total">24h</span>
+          </div>
+          ${rows}
+        </div>
+      `;
+    }
+
+    function renderHotActions(data) {
+      if (!Array.isArray(data.hotActions) || data.hotActions.length === 0) {
+        hotActionsEl.innerHTML = `<p class="form-hint">${i18n.noActions}</p>`;
+        return;
+      }
+      hotActionsEl.innerHTML = data.hotActions.map((row) => `
+        <article class="admin-observability-item">
+          <div class="admin-observability-item-copy">
+            <strong>${labelFor('actions', row.code)}</strong>
+            <small>${labelFor('modules', row.module)}</small>
+            <small>${i18n.lastSeen}: ${row.lastSeenLabel || '—'}</small>
+          </div>
+          <div class="admin-observability-item-meta">
+            <strong>${row.total}</strong><br />
+            <small>${formatTrend(row.trendPct)}</small>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderFriction(data) {
+      if (!Array.isArray(data.frictionWatch) || data.frictionWatch.length === 0) {
+        frictionEl.innerHTML = `<p class="form-hint">${i18n.noFriction}</p>`;
+        return;
+      }
+      frictionEl.innerHTML = data.frictionWatch.map((row) => `
+        <article class="admin-observability-item">
+          <div class="admin-observability-item-copy">
+            <strong>${labelFor('modules', row.module)}</strong>
+            <small>${row.interactions} interactions / ${row.keyActions} key actions</small>
+          </div>
+          <div class="admin-observability-item-meta">
+            <span class="admin-observability-badge ${row.severity}">${row.severity === 'high' ? i18n.high : i18n.watch}</span><br />
+            <small>${row.conversionPct == null ? '—' : `${row.conversionPct}%`}</small>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderDelivery(data) {
+      const pulse = data.deliveryPulse || {};
+      const freshness = pulse.stale ? i18n.stale : i18n.healthy;
+      deliveryEl.innerHTML = `
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">${i18n.eventsLast24}</span>
+          <strong class="admin-observability-kpi-value">${pulse.eventsLast24Hours ?? 0}</strong>
+        </article>
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">${i18n.activeInitiativesLast24}</span>
+          <strong class="admin-observability-kpi-value">${pulse.activeInitiativesLast24Hours ?? 0}</strong>
+        </article>
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">${i18n.prodSuccess7d}</span>
+          <strong class="admin-observability-kpi-value">${pulse.productionSuccessRatePctLast7Days == null ? '—' : `${pulse.productionSuccessRatePctLast7Days}%`}</strong>
+        </article>
+        <article class="admin-observability-kpi">
+          <span class="admin-observability-kpi-label">${i18n.prValidation7d}</span>
+          <strong class="admin-observability-kpi-value">${pulse.prValidationSuccessRatePctLast7Days == null ? '—' : `${pulse.prValidationSuccessRatePctLast7Days}%`}</strong>
+          <small class="admin-observability-kpi-note">${i18n.freshness}: ${freshness}${pulse.minutesSinceLastEvent == null ? '' : ` · ${pulse.minutesSinceLastEvent}m`}</small>
+        </article>
+      `;
+    }
+
+    async function loadDashboard() {
+      try {
+        const response = await fetch('/api/private/admin/observability/dashboard?hours=24', { headers: { Accept: 'application/json' } });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.message || i18n.requestFailed || 'Request failed');
+        }
+        renderSummary(payload);
+        renderHeatmap(payload);
+        renderHotActions(payload);
+        renderFriction(payload);
+        renderDelivery(payload);
+      } catch (error) {
+        const message = error && error.message ? error.message : (i18n.requestFailed || 'Request failed');
+        summaryEl.innerHTML = `<p class="form-hint" style="color:var(--color-danger, #ff8b8b);">${message}</p>`;
+        heatmapEl.innerHTML = '';
+        hotActionsEl.innerHTML = '';
+        frictionEl.innerHTML = '';
+        deliveryEl.innerHTML = '';
+      }
+    }
+
+    refreshBtn?.addEventListener('click', loadDashboard);
+    loadDashboard();
+  })();
+</script>
+{/body}
+{/include}
