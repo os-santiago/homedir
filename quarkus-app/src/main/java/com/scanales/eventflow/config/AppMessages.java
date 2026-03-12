@@ -30,6 +30,9 @@ public interface AppMessages {
     @Message("Claim Discord from Community Board")
     String btn_claim_discord_from_board();
 
+    @Message("Connect Discord")
+    String btn_connect_discord();
+
     @Message("Unlink Discord")
     String btn_unlink_discord();
 
@@ -4157,6 +4160,27 @@ public interface AppMessages {
 
     @Message("No members found with current filter.")
     String community_board_no_members();
+
+    @Message("Connect Discord")
+    String community_board_connect_discord();
+
+    @Message("Discord connected")
+    String community_board_discord_connected();
+
+    @Message("Connect Discord to appear in the Community Board, enrich your public profile, and unlock community signals tied to your account.")
+    String profile_discord_connect_desc();
+
+    @Message("Visible in Community Board and public profile")
+    String profile_discord_connected_benefit();
+
+    @Message("Discord")
+    String public_profile_discord_status_label();
+
+    @Message("Connected")
+    String public_profile_discord_status_connected();
+
+    @Message("Discord connected")
+    String public_profile_discord_badge();
 
     @Message("Unnamed member")
     String community_board_unnamed_member();
