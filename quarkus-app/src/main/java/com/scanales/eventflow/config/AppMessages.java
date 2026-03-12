@@ -4305,6 +4305,12 @@ public interface AppMessages {
     @Message("Inspect delivery initiatives and lead-time evolution.")
     String admin_hub_action_insights_desc();
 
+    @Message("Business observability")
+    String admin_hub_action_observability_title();
+
+    @Message("See where users are active, which journeys are moving, and where friction is growing.")
+    String admin_hub_action_observability_desc();
+
     @Message("Capacity")
     String admin_hub_action_capacity_title();
 
@@ -4352,6 +4358,186 @@ public interface AppMessages {
 
     @Message("Back to panel")
     String admin_insights_back_to_panel();
+
+    @Message("Business Observability · Homedir")
+    String admin_observability_page_title();
+
+    @Message("Admin")
+    String admin_observability_subtitle();
+
+    @Message("Business observability")
+    String admin_observability_heading();
+
+    @Message("A compact product pulse that explains where users are active, which actions are happening, and where delivery or UX friction needs attention.")
+    String admin_observability_intro();
+
+    @Message("Back to panel")
+    String admin_observability_back_to_panel();
+
+    @Message("Loading...")
+    String admin_observability_loading();
+
+    @Message("Refresh")
+    String admin_observability_refresh();
+
+    @Message("Today in Homedir")
+    String admin_observability_summary_title();
+
+    @Message("Interactions")
+    String admin_observability_summary_interactions();
+
+    @Message("Active modules")
+    String admin_observability_summary_active_modules();
+
+    @Message("Top module")
+    String admin_observability_summary_top_module();
+
+    @Message("Discarded metrics")
+    String admin_observability_summary_metrics_discards();
+
+    @Message("User activity heatmap")
+    String admin_observability_heatmap_title();
+
+    @Message("Last 24 hours by module and hour.")
+    String admin_observability_heatmap_desc();
+
+    @Message("What is happening now")
+    String admin_observability_hot_actions_title();
+
+    @Message("The most active actions recorded across the product.")
+    String admin_observability_hot_actions_desc();
+
+    @Message("Friction watch")
+    String admin_observability_friction_title();
+
+    @Message("Modules with activity that is not converting into key actions.")
+    String admin_observability_friction_desc();
+
+    @Message("Delivery pulse")
+    String admin_observability_delivery_title();
+
+    @Message("Cross-check runtime user activity with development insights freshness.")
+    String admin_observability_delivery_desc();
+
+    @Message("Request failed")
+    String admin_observability_js_request_failed();
+
+    @Message("No module activity recorded yet.")
+    String admin_observability_js_no_heat();
+
+    @Message("No highlighted actions yet.")
+    String admin_observability_js_no_actions();
+
+    @Message("No friction signals right now.")
+    String admin_observability_js_no_friction();
+
+    @Message("healthy")
+    String admin_observability_js_healthy();
+
+    @Message("stale")
+    String admin_observability_js_stale();
+
+    @Message("Last seen")
+    String admin_observability_js_last_seen();
+
+    @Message("Events (24h)")
+    String admin_observability_js_events_last24();
+
+    @Message("Active initiatives (24h)")
+    String admin_observability_js_active_initiatives_last24();
+
+    @Message("Production success (7d)")
+    String admin_observability_js_prod_success_7d();
+
+    @Message("PR validation success (7d)")
+    String admin_observability_js_pr_validation_7d();
+
+    @Message("Freshness")
+    String admin_observability_js_freshness();
+
+    @Message("Minutes since last delivery event")
+    String admin_observability_js_minutes_since_last();
+
+    @Message("high")
+    String admin_observability_js_severity_high();
+
+    @Message("watch")
+    String admin_observability_js_severity_watch();
+
+    @Message("Home")
+    String admin_observability_module_home();
+
+    @Message("Community")
+    String admin_observability_module_community();
+
+    @Message("Events")
+    String admin_observability_module_events();
+
+    @Message("Project")
+    String admin_observability_module_project();
+
+    @Message("Profile")
+    String admin_observability_module_profile();
+
+    @Message("Admin")
+    String admin_observability_module_admin();
+
+    @Message("Info")
+    String admin_observability_module_info();
+
+    @Message("Other")
+    String admin_observability_module_other();
+
+    @Message("Login success")
+    String admin_observability_action_login_success();
+
+    @Message("Event opened")
+    String admin_observability_action_event_view();
+
+    @Message("Talk opened")
+    String admin_observability_action_talk_view();
+
+    @Message("Stage visited")
+    String admin_observability_action_stage_visit();
+
+    @Message("Talk registration")
+    String admin_observability_action_talk_register();
+
+    @Message("Community vote")
+    String admin_observability_action_community_vote();
+
+    @Message("Content proposed")
+    String admin_observability_action_community_propose_submit();
+
+    @Message("LTA thread posted")
+    String admin_observability_action_community_lightning_post();
+
+    @Message("LTA comment posted")
+    String admin_observability_action_community_lightning_comment();
+
+    @Message("Board profile opened")
+    String admin_observability_action_board_profile_open();
+
+    @Message("Public profile opened")
+    String admin_observability_action_profile_public_open();
+
+    @Message("CFP submitted")
+    String admin_observability_action_cfp_submit();
+
+    @Message("CFP approved")
+    String admin_observability_action_cfp_approved();
+
+    @Message("Volunteer application submitted")
+    String admin_observability_action_volunteer_submit();
+
+    @Message("Volunteer selected")
+    String admin_observability_action_volunteer_selected();
+
+    @Message("Volunteer lounge post")
+    String admin_observability_action_volunteer_lounge_post();
+
+    @Message("Reward purchased")
+    String admin_observability_action_economy_purchase();
 
     @Message("Ledger status")
     String admin_insights_ledger_status_title();
