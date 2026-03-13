@@ -421,6 +421,22 @@ public class CfpSubmissionApiResource {
   }
 
   @GET
+  @Path("/{id}")
+  @Authenticated
+  public Response getSubmissionDetail(
+      @PathParam("eventId") String eventId, @PathParam("id") String id) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+    if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+    }
+    CfpSubmission refreshed = safeRefreshPanelists(eventId, existing.get());
+    return Response.ok(new SubmissionResponse(toView(refreshed))).build();
+  }
+
+  @GET
   @Path("/export.csv")
   @Authenticated
   @Produces("text/csv")

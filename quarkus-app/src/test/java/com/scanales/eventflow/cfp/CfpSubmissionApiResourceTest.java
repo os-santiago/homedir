@@ -645,6 +645,38 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "admin@example.org")
+  void adminCanReadSubmissionDetailById() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Detailed proposal",
+                "Short summary",
+                "Long abstract for the admin detail page.",
+                "advanced",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of("https://example.org/detail")));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id())
+        .then()
+        .statusCode(200)
+        .body("item.id", equalTo(created.id()))
+        .body("item.title", equalTo("Detailed proposal"))
+        .body("item.summary", equalTo("Short summary"))
+        .body("item.abstract_text", equalTo("Long abstract for the admin detail page."));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
   void statusUpdateRejectsStaleVersionConflict() {
     CfpSubmission created =
         cfpSubmissionService.create(
