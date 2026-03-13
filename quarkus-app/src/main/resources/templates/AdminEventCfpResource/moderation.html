@@ -23,6 +23,13 @@
 </section>
 
 <div class="container">
+  <nav class="hd-profile-nav cfp-admin-subnav" aria-label="{i18n:events_cfp_admin_subnav_aria}">
+    <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-overview-panel">{i18n:events_cfp_admin_subnav_overview}</button>
+    <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-configuration-panel">{i18n:events_cfp_admin_subnav_configuration}</button>
+    <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-review-panel">{i18n:events_cfp_admin_subnav_review}</button>
+  </nav>
+
+  <section id="cfp-configuration-panel" data-cfp-admin-section hidden>
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
@@ -105,11 +112,14 @@
     <p id="agendaNoticeFeedback" class="form-hint" style="margin-top: 0.6rem;" hidden></p>
   </div>
 
+  </section>
+
+  <section id="cfp-overview-panel" data-cfp-admin-section>
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_queue_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_queue_desc}</p>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_overview_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_overview_desc}</p>
       </div>
       <div class="action-group" style="gap: 0.5rem;">
         <button id="reloadCfpBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_queue_refresh}</button>
@@ -130,6 +140,20 @@
     </div>
     <div class="action-group" style="margin-top: 0.55rem;">
       <a href="/private/admin/insights" class="btn btn-secondary">{i18n:events_cfp_admin_insights_open}</a>
+    </div>
+  </div>
+  </section>
+
+  <section id="cfp-review-panel" data-cfp-admin-section hidden>
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_queue_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_review_desc}</p>
+      </div>
+      <div class="action-group" style="gap: 0.5rem;">
+        <button id="cfpGoOverviewBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_subnav_overview}</button>
+      </div>
     </div>
     <div class="cfp-toolbar-grid">
       <div class="cfp-toolbar-row">
@@ -155,11 +179,20 @@
   </div>
 
   <div id="cfpQueueList"></div>
+  </section>
 </div>
 
 <style>
   .admin-nav-strip {
     gap: 0.45rem;
+  }
+
+  .cfp-admin-subnav {
+    margin-bottom: 1rem;
+  }
+
+  [data-cfp-admin-section][hidden] {
+    display: none !important;
   }
 
   .cfp-toolbar-grid {
@@ -350,6 +383,9 @@
     const agendaNoticeToggle = document.getElementById("agendaNoticeToggle");
     const agendaNoticeSaveBtn = document.getElementById("agendaNoticeSaveBtn");
     const agendaNoticeFeedback = document.getElementById("agendaNoticeFeedback");
+    const cfpNavButtons = Array.from(document.querySelectorAll("[data-cfp-admin-nav]"));
+    const cfpSections = Array.from(document.querySelectorAll("[data-cfp-admin-section]"));
+    const cfpGoOverviewBtn = document.getElementById("cfpGoOverviewBtn");
     const filterButtons = Array.from(document.querySelectorAll(".cfp-filter-btn"));
     const sortButtons = Array.from(document.querySelectorAll(".cfp-sort-btn"));
     const prevPageBtn = document.getElementById("cfpPrevPageBtn");
@@ -408,6 +444,23 @@
     let totalItems = 0;
     let hasMoreItems = false;
     let nextOffset = null;
+
+    function openCfpAdminSection(panelId, updateHash = true) {
+      if (!panelId) return;
+      const selectedSection = document.getElementById(panelId);
+      if (!selectedSection || !selectedSection.hasAttribute("data-cfp-admin-section")) return;
+      cfpSections.forEach((section) => {
+        section.hidden = section.id !== panelId;
+      });
+      cfpNavButtons.forEach((button) => {
+        const active = button.dataset.cfpAdminNav === panelId;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      if (updateHash && window.location.hash !== ("#" + panelId)) {
+        history.replaceState(null, "", "#" + panelId);
+      }
+    }
 
     const statusLabel = {
       pending: i18n.statusPending,
@@ -1012,6 +1065,15 @@
       });
     });
 
+    cfpNavButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        openCfpAdminSection(button.dataset.cfpAdminNav, true);
+      });
+    });
+    cfpGoOverviewBtn?.addEventListener("click", () => {
+      openCfpAdminSection("cfp-overview-panel", true);
+    });
+
     reloadBtn?.addEventListener("click", () => {
       loadList();
       loadCfpInsightsSummary();
@@ -1036,6 +1098,23 @@
     agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
     setActiveFilter(activeStatus);
     setActiveSort(activeSort);
+    const initialPanelId = (() => {
+      const hash = (window.location.hash || "").replace("#", "").trim();
+      if (hash) {
+        const hashedSection = document.getElementById(hash);
+        if (hashedSection && hashedSection.hasAttribute("data-cfp-admin-section")) {
+          return hash;
+        }
+      }
+      return "cfp-overview-panel";
+    })();
+    openCfpAdminSection(initialPanelId, false);
+    window.addEventListener("hashchange", () => {
+      const hash = (window.location.hash || "").replace("#", "").trim();
+      if (hash) {
+        openCfpAdminSection(hash, false);
+      }
+    });
     loadTestingConfig();
     loadEventConfig();
     loadAgendaNoticeConfig();
