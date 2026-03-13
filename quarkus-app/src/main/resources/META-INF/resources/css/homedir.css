@@ -1182,6 +1182,46 @@ footer {
   justify-content: flex-end;
 }
 
+.hd-profile-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 0.9rem;
+  padding: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(10, 18, 22, 0.4);
+}
+
+.hd-profile-nav-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  background: rgba(8, 14, 18, 0.75);
+  color: inherit;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.hd-profile-nav-btn:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(13, 23, 30, 0.86);
+}
+
+.hd-profile-nav-btn:focus-visible {
+  outline: 2px solid rgba(96, 205, 255, 0.72);
+  outline-offset: 2px;
+}
+
+.hd-profile-nav-btn.is-active {
+  border-color: rgba(96, 205, 255, 0.75);
+  background: rgba(28, 69, 95, 0.72);
+  color: #dff6ff;
+}
+
 @media (max-width: 1100px) {
   .admin-metrics-toolbar .admin-shell-toolbar-group {
     flex: 1 1 100%;
@@ -1207,6 +1247,18 @@ footer {
   .admin-shell-toolbar .btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 900px) {
+  .hd-profile-nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.45rem;
+  }
+
+  .hd-profile-nav-btn {
+    white-space: nowrap;
   }
 }
 
