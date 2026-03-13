@@ -1291,6 +1291,27 @@ public interface AppMessages {
     @Message("Back to overview")
     String events_cfp_admin_nav_back_overview();
 
+    @Message("CFP admin sections")
+    String events_cfp_admin_subnav_aria();
+
+    @Message("Overview")
+    String events_cfp_admin_subnav_overview();
+
+    @Message("Configuration")
+    String events_cfp_admin_subnav_configuration();
+
+    @Message("Review queue")
+    String events_cfp_admin_subnav_review();
+
+    @Message("Submission overview")
+    String events_cfp_admin_overview_title();
+
+    @Message("Read the current state before jumping into detailed moderation.")
+    String events_cfp_admin_overview_desc();
+
+    @Message("Filter, sort, and open each proposal detail from the review queue.")
+    String events_cfp_admin_review_desc();
+
     @Message("Proposal queue")
     String events_cfp_admin_queue_title();
 
