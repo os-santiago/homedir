@@ -43,6 +43,9 @@ public class AdminEventCfpPageTest {
         .body(containsString("id=\"cfpPrevPageBtn\""))
         .body(containsString("id=\"cfpNextPageBtn\""))
         .body(containsString("id=\"cfpStatsSummary\""))
+        .body(containsString("data-cfp-admin-nav=\"cfp-overview-panel\""))
+        .body(containsString("data-cfp-admin-nav=\"cfp-configuration-panel\""))
+        .body(containsString("data-cfp-admin-nav=\"cfp-review-panel\""))
         .body(containsString("Open detail"))
         .body(containsString("/cfp/submissions/"));
   }
