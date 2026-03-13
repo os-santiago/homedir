@@ -18,8 +18,8 @@
 </section>
 
 <div class="container admin-shell-stack">
-  <section class="admin-shell-panel">
-    <form method="get" class="admin-shell-toolbar" aria-label="Filtros de métricas">
+  <section class="admin-shell-panel admin-metrics-panel">
+    <form method="get" class="admin-shell-toolbar admin-metrics-toolbar" aria-label="Filtros de métricas">
       <div class="admin-shell-toolbar-group">
         <button type="submit" name="range" value="today" class="btn {#if data.range == 'today'}btn-primary{#else}btn-secondary{/if}">Hoy</button>
         <button type="submit" name="range" value="7" class="btn {#if data.range == '7'}btn-primary{#else}btn-secondary{/if}">7 días</button>
@@ -51,7 +51,7 @@
     </form>
   </section>
 
-  <section class="admin-shell-panel">
+  <section class="admin-shell-panel admin-metrics-panel">
     <div class="admin-shell-split">
       <div>
         <p class="section-subtitle">Resumen del periodo</p>
@@ -83,8 +83,8 @@
     </div>
   </section>
 
-  <div class="page-grid">
-    <section class="admin-shell-panel">
+  <div class="page-grid admin-metrics-grid">
+    <section class="admin-shell-panel admin-metrics-panel">
       <p class="section-subtitle">Journey</p>
       <h2 class="card-title">Funnel de producto</h2>
       {#if data.funnelRows.isEmpty}
@@ -113,7 +113,7 @@
       {/if}
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel admin-metrics-panel">
       <p class="section-subtitle">Contenido</p>
       <h2 class="card-title">Top Charlas</h2>
       {#if data.topTalks.isEmpty}
@@ -144,7 +144,7 @@
       {/if}
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel admin-metrics-panel">
       <p class="section-subtitle">Eventos</p>
       <h2 class="card-title">Rendimiento por evento</h2>
       <p class="admin-shell-note">Vistas = aperturas del evento. Charlas vistas = detalle de charlas dentro del evento. Registros = reservas hechas desde el evento.</p>
@@ -176,7 +176,7 @@
       {/if}
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel admin-metrics-panel">
       <p class="section-subtitle">Integridad</p>
       <h2 class="card-title">Calidad de datos</h2>
       <div class="admin-shell-table-wrap">
@@ -203,7 +203,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel admin-metrics-panel">
       <p class="section-subtitle">Persistencia</p>
       <h2 class="card-title">Mantenimiento</h2>
       <div class="admin-shell-table-wrap">
@@ -228,7 +228,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel admin-metrics-panel">
       <p class="section-subtitle">Operación</p>
       <h2 class="card-title">Salud</h2>
       <div style="margin-bottom: 1rem;">

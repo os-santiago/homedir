@@ -1073,6 +1073,8 @@ footer {
   align-items: flex-end;
   gap: 0.85rem;
   flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
 }
 
 .admin-shell-toolbar-group {
@@ -1080,6 +1082,14 @@ footer {
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-shell-toolbar-group .form-input,
+.admin-shell-toolbar-group .form-select {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .admin-shell-table-wrap {
@@ -1148,6 +1158,38 @@ footer {
 
 .homedir-main.admin-context-main .admin-shell-stack > .page-grid > * {
   min-width: 0;
+}
+
+.admin-metrics-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+.admin-metrics-panel {
+  width: 100%;
+  max-width: 100%;
+}
+
+.admin-metrics-toolbar .admin-shell-toolbar-group:first-child {
+  flex: 1 1 280px;
+}
+
+.admin-metrics-toolbar .admin-shell-toolbar-group:nth-child(2) {
+  flex: 1 1 320px;
+}
+
+.admin-metrics-toolbar .admin-shell-toolbar-group:last-child {
+  flex: 1 1 260px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1100px) {
+  .admin-metrics-toolbar .admin-shell-toolbar-group {
+    flex: 1 1 100%;
+  }
+
+  .admin-metrics-toolbar .admin-shell-toolbar-group:last-child {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 768px) {
