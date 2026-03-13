@@ -108,8 +108,8 @@
      data-last-seen="{i18n:admin_observability_js_last_seen}"
      data-events-last24="{i18n:admin_observability_js_events_last24}"
      data-active-initiatives-last24="{i18n:admin_observability_js_active_initiatives_last24}"
-     data-prod-success-7d="{i18n:admin_observability_js_prod_success_7d}"
-     data-pr-validation-7d="{i18n:admin_observability_js_pr_validation_7d}"
+     data-prod-success-week="{i18n:admin_observability_js_prod_success_7d}"
+     data-pr-validation-week="{i18n:admin_observability_js_pr_validation_7d}"
      data-freshness="{i18n:admin_observability_js_freshness}"
      data-minutes-since-last="{i18n:admin_observability_js_minutes_since_last}"
      data-high="{i18n:admin_observability_js_severity_high}"
@@ -421,11 +421,11 @@
           '<strong class="admin-observability-kpi-value">' + (pulse.activeInitiativesLast24Hours ?? 0) + '</strong>' +
         '</article>' +
         '<article class="admin-observability-kpi">' +
-          '<span class="admin-observability-kpi-label">' + i18n.prodSuccess7d + '</span>' +
+          '<span class="admin-observability-kpi-label">' + i18n.prodSuccessWeek + '</span>' +
           '<strong class="admin-observability-kpi-value">' + (pulse.productionSuccessRatePctLast7Days == null ? '—' : (pulse.productionSuccessRatePctLast7Days + '%')) + '</strong>' +
         '</article>' +
         '<article class="admin-observability-kpi">' +
-          '<span class="admin-observability-kpi-label">' + i18n.prValidation7d + '</span>' +
+          '<span class="admin-observability-kpi-label">' + i18n.prValidationWeek + '</span>' +
           '<strong class="admin-observability-kpi-value">' + (pulse.prValidationSuccessRatePctLast7Days == null ? '—' : (pulse.prValidationSuccessRatePctLast7Days + '%')) + '</strong>' +
           '<small class="admin-observability-kpi-note">' + i18n.freshness + ': ' + freshness + (pulse.minutesSinceLastEvent == null ? '' : (' · ' + pulse.minutesSinceLastEvent + 'm')) + '</small>' +
         '</article>';
