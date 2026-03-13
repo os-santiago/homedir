@@ -1,22 +1,19 @@
-{#include layout/main}
+{#include layout/main mainClass="admin-context-main"}
 
 {#title}Eventos · Homedir{/title}
 
 {#body}
 <section class="page-header">
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <p class="section-subtitle"
-                    style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
-                    Administración</p>
-                <h1 class="page-title"><span class="icon" style="vertical-align: middle;"><span
-                            class="material-symbols-outlined">calendar_month</span></span> Eventos</h1>
+        <div class="admin-shell-header">
+            <div class="admin-shell-heading section-header hd-section-heading">
+                <p class="section-subtitle">Administración</p>
+                <h1>Eventos</h1>
                 {#if message}
                 <p class="section-subtitle">{message}</p>
                 {/if}
             </div>
-            <div class="action-group">
+            <div class="admin-shell-actions">
                 <a href="/private/admin/events/new" class="btn btn-primary"><span
                         class="material-symbols-outlined">add</span> Nuevo evento</a>
                 <a href="/private/admin" class="btn btn-secondary">Volver</a>
@@ -26,7 +23,7 @@
 </section>
 
 <div class="container">
-    <div class="card">
+    <div class="admin-shell-panel">
         <h2 class="card-title">Importar eventos</h2>
         <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="form-group"
             aria-label="Importar eventos" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
@@ -41,11 +38,11 @@
     </div>
 
     {#if events.isEmpty()}
-    <div class="card">
+    <div class="admin-shell-panel">
         <p class="text-muted">No hay eventos registrados.</p>
     </div>
     {#else}
-    <div class="card" style="overflow-x: auto;">
+    <div class="admin-shell-panel admin-shell-table-wrap">
         <table class="table" style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="border-bottom: 1px solid var(--color-border);">
