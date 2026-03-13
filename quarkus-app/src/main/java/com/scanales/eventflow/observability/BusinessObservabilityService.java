@@ -20,14 +20,12 @@ public class BusinessObservabilityService {
   private static final DateTimeFormatter LAST_SEEN_FORMAT =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'").withZone(ZoneOffset.UTC);
 
-  @Inject BusinessObservabilityLedgerService ledgerService;
-
   @Inject UsageMetricsService usageMetricsService;
 
   @Inject DevelopmentInsightsLedgerService insightsLedgerService;
 
   public DashboardSnapshot dashboard(int hours) {
-    BusinessObservabilityLedgerService.ObservabilityWindow window = ledgerService.window(hours);
+    UsageMetricsService.ObservabilityWindow window = usageMetricsService.observabilityWindow(hours);
     DevelopmentInsightsStatus insights = insightsLedgerService.status();
     long activeModules = window.modules().stream().filter(row -> row.total() > 0L).count();
     HeatRow hottestModule =
@@ -87,7 +85,7 @@ public class BusinessObservabilityService {
       boolean stale,
       Long minutesSinceLastEvent) {}
 
-  private HeatRow toHeatRow(BusinessObservabilityLedgerService.SeriesSnapshot row) {
+  private HeatRow toHeatRow(UsageMetricsService.ObservabilitySeriesSnapshot row) {
     String status = row.total() >= 12 ? "hot" : row.total() >= 4 ? "active" : "light";
     return new HeatRow(
         row.code(),
@@ -98,7 +96,7 @@ public class BusinessObservabilityService {
         row.counts());
   }
 
-  private ActivityRow toActionRow(BusinessObservabilityLedgerService.SeriesSnapshot row) {
+  private ActivityRow toActionRow(UsageMetricsService.ObservabilitySeriesSnapshot row) {
     return new ActivityRow(
         row.code(),
         BusinessObservabilityTaxonomy.moduleForAction(row.code()),
@@ -107,16 +105,15 @@ public class BusinessObservabilityService {
         formatLastSeen(row.lastSeenAt()));
   }
 
-  private List<FrictionRow> buildFrictionWatch(
-      BusinessObservabilityLedgerService.ObservabilityWindow window) {
+  private List<FrictionRow> buildFrictionWatch(UsageMetricsService.ObservabilityWindow window) {
     Map<String, Long> moduleTotals =
         window.modules().stream()
             .collect(
                 java.util.stream.Collectors.toMap(
-                    BusinessObservabilityLedgerService.SeriesSnapshot::code,
-                    BusinessObservabilityLedgerService.SeriesSnapshot::total));
+                    UsageMetricsService.ObservabilitySeriesSnapshot::code,
+                    UsageMetricsService.ObservabilitySeriesSnapshot::total));
     Map<String, Long> actionByModule = new java.util.LinkedHashMap<>();
-    for (BusinessObservabilityLedgerService.SeriesSnapshot action : window.actions()) {
+    for (UsageMetricsService.ObservabilitySeriesSnapshot action : window.actions()) {
       actionByModule.merge(
           BusinessObservabilityTaxonomy.moduleForAction(action.code()), action.total(), Long::sum);
     }

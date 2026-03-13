@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.eventflow.TestDataDir;
 import com.scanales.eventflow.insights.DevelopmentInsightsLedgerService;
-import com.scanales.eventflow.observability.BusinessObservabilityLedgerService;
 import com.scanales.eventflow.service.UsageMetricsService;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -25,14 +24,11 @@ class AdminObservabilityApiResourceTest {
 
   @Inject UsageMetricsService usageMetricsService;
 
-  @Inject BusinessObservabilityLedgerService businessObservabilityLedgerService;
-
   @Inject DevelopmentInsightsLedgerService insightsLedgerService;
 
   @BeforeEach
   void setUp() {
     usageMetricsService.reset();
-    businessObservabilityLedgerService.reset();
   }
 
   @Test
