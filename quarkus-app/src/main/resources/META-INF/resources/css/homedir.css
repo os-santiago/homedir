@@ -1191,7 +1191,6 @@ footer {
     justify-content: flex-start;
   }
 }
-
 @media (max-width: 768px) {
   .homedir-main.admin-context-main .page-header > .container,
   .homedir-main.admin-context-main .retro-container {
