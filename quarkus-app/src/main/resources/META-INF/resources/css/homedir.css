@@ -940,6 +940,216 @@ footer {
   }
 }
 
+.homedir-main.admin-context-main .page-header {
+  margin-bottom: 1.35rem;
+}
+
+.homedir-main.admin-context-main .page-header > .container,
+.homedir-main.admin-context-main .retro-container {
+  background: rgba(10, 8, 24, 0.54);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  padding: 1.4rem 1.5rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.homedir-main.admin-context-main .page-header > .container {
+  display: grid;
+  gap: 1rem;
+}
+
+.homedir-main.admin-context-main .page-header .page-title,
+.homedir-main.admin-context-main .retro-title-large {
+  margin: 0;
+}
+
+.homedir-main.admin-context-main .page-header .section-subtitle,
+.homedir-main.admin-context-main .retro-subtitle {
+  opacity: 0.86;
+}
+
+.homedir-main.admin-context-main .card,
+.homedir-main.admin-context-main .retro-box {
+  background: rgba(10, 8, 24, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.homedir-main.admin-context-main .card {
+  padding: 1.2rem;
+}
+
+.homedir-main.admin-context-main .table,
+.homedir-main.admin-context-main .hd-table,
+.homedir-main.admin-context-main .retro-table {
+  width: 100%;
+}
+
+.homedir-main.admin-context-main .table th,
+.homedir-main.admin-context-main .table td,
+.homedir-main.admin-context-main .hd-table th,
+.homedir-main.admin-context-main .hd-table td,
+.homedir-main.admin-context-main .retro-table th,
+.homedir-main.admin-context-main .retro-table td {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.homedir-main.admin-context-main .form-input,
+.homedir-main.admin-context-main .form-select,
+.homedir-main.admin-context-main .form-textarea,
+.homedir-main.admin-context-main .hd-form-input {
+  background: rgba(5, 6, 16, 0.62);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.homedir-main.admin-context-main .form-input:focus,
+.homedir-main.admin-context-main .form-select:focus,
+.homedir-main.admin-context-main .form-textarea:focus,
+.homedir-main.admin-context-main .hd-form-input:focus {
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.14);
+}
+
+.admin-shell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-shell-heading {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-shell-heading .section-subtitle {
+  margin: 0;
+}
+
+.admin-shell-heading .page-title,
+.admin-shell-heading h1 {
+  margin: 0;
+}
+
+.admin-shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.admin-shell-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-shell-panel {
+  background: rgba(10, 8, 24, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 1.2rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.admin-shell-panel > :first-child {
+  margin-top: 0;
+}
+
+.admin-shell-panel > :last-child {
+  margin-bottom: 0;
+}
+
+.admin-shell-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.admin-shell-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-shell-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-shell-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 0.85rem;
+}
+
+.admin-shell-stat {
+  padding: 0.95rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.admin-shell-stat-label {
+  display: block;
+  font-size: 0.74rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  opacity: 0.76;
+}
+
+.admin-shell-stat-value {
+  display: block;
+  margin-top: 0.28rem;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: 0.5px;
+}
+
+.admin-shell-note {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.84;
+}
+
+.admin-shell-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-shell-split > * {
+  min-width: 0;
+}
+
+.admin-shell-empty {
+  margin: 0;
+  opacity: 0.78;
+}
+
+@media (max-width: 768px) {
+  .homedir-main.admin-context-main .page-header > .container,
+  .homedir-main.admin-context-main .retro-container {
+    padding: 1.1rem;
+  }
+
+  .admin-shell-actions,
+  .admin-shell-toolbar,
+  .admin-shell-toolbar-group {
+    width: 100%;
+  }
+
+  .admin-shell-actions .btn,
+  .admin-shell-toolbar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 
 .icon-wrapper {
   width: 64px;

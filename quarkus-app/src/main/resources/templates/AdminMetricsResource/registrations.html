@@ -1,29 +1,45 @@
-{#include layout/base}
+{#include layout/main mainClass="admin-context-main"}
 {#title}Registros por charla{/title}
-{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/private/admin/metrics">Métricas</a><span class="sep">/</span><span>Registros</span>{/breadcrumbs}
-{#main}
-<section class="admin-metrics">
-  <h1 class="page-title">Registros por charla</h1>
-  {#for ev in events}
-    <h2>{ev.event.title}</h2>
-    <table class="hd-table">
-      <thead>
-        <tr>
-          <th class="hd-table-head">Charla</th>
-          <th class="hd-table-head">Registros</th>
-        </tr>
-      </thead>
-      <tbody>
-      {#for row in ev.rows}
-        <tr class="hd-table-row">
-          <td class="hd-table-cell"><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td>
-          <td class="hd-table-cell">{row.registrations}</td>
-        </tr>
-      {/for}
-      </tbody>
-    </table>
-  {/for}
-  <a href="/private/admin/metrics" class="hd-btn hd-btn-secondary">Volver</a>
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading section-header hd-section-heading">
+        <p class="section-subtitle">Administración</p>
+        <h1>Registros por charla</h1>
+        <p class="admin-shell-note">Resumen de reservas agrupadas por evento y charla.</p>
+      </div>
+      <div class="admin-shell-actions">
+        <a href="/private/admin/metrics" class="btn btn-secondary">Volver a métricas</a>
+      </div>
+    </div>
+  </div>
 </section>
-{/main}
+<div class="container admin-shell-stack">
+  {#for ev in events}
+  <section class="admin-shell-panel">
+    <p class="section-subtitle">{ev.event.title}</p>
+    <h2 class="card-title">Charlas registradas</h2>
+    <div class="admin-shell-table-wrap">
+      <table class="hd-table">
+        <thead>
+          <tr>
+            <th class="hd-table-head">Charla</th>
+            <th class="hd-table-head">Registros</th>
+          </tr>
+        </thead>
+        <tbody>
+        {#for row in ev.rows}
+          <tr class="hd-table-row">
+            <td class="hd-table-cell"><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td>
+            <td class="hd-table-cell">{row.registrations}</td>
+          </tr>
+        {/for}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {/for}
+</div>
+{/body}
 {/include}

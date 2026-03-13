@@ -1,58 +1,76 @@
-{#include layout/base}
+{#include layout/main mainClass="admin-context-main"}
 {#title}Usuarios registrados{/title}
-{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/private/admin/metrics">Métricas</a><span class="sep">/</span><a href="/private/admin/metrics/registrations">Registros</a><span class="sep">/</span><span>{talk.name}</span>{/breadcrumbs}
-{#main}
-<section class="admin-metrics">
-  <h1 class="page-title">{talk.name} - {event.title}</h1>
-  <form method="get" class="filter hd-form">
-    <input type="hidden" name="talk" value="{talk.id}">
-    <div class="hd-form-grid">
-      <div class="hd-form-field">
-        <label for="filter-name" class="hd-form-label">Nombre</label>
-        <input id="filter-name" type="search" name="name" value="{name}" class="hd-form-input">
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading section-header hd-section-heading">
+        <p class="section-subtitle">Administración</p>
+        <h1>{talk.name} - {event.title}</h1>
+        <p class="admin-shell-note">Listado de personas registradas para la charla seleccionada.</p>
       </div>
-      <div class="hd-form-field">
-        <label for="filter-email" class="hd-form-label">Email</label>
-        <input id="filter-email" type="search" name="email" value="{email}" class="hd-form-input">
-      </div>
-      <div class="hd-form-field">
-        <label for="filter-size" class="hd-form-label">Resultados</label>
-        <select id="filter-size" name="size" class="hd-form-input">
-          <option value="20"{#if size == 20} selected{/if}>20</option>
-          <option value="50"{#if size == 50} selected{/if}>50</option>
-          <option value="100"{#if size == 100} selected{/if}>100</option>
-        </select>
+      <div class="admin-shell-actions">
+        <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Volver a registros</a>
       </div>
     </div>
-    <div class="hd-form-actions">
-      <button type="submit" class="hd-btn hd-btn-secondary">Filtrar</button>
-    </div>
-  </form>
-  <table class="hd-table registrants-table">
-    <thead>
-      <tr>
-        <th class="hd-table-head">Nombre</th>
-        <th class="hd-table-head">Email</th>
-      </tr>
-    </thead>
-    <tbody>
-    {#for u in users}
-      <tr class="hd-table-row">
-        <td class="hd-table-cell">{u.name}</td>
-        <td class="hd-table-cell">{u.email}</td>
-      </tr>
-    {/for}
-    </tbody>
-  </table>
-  <div class="pagination">
-    {#if hasPrev}
-      <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={prev}" class="hd-btn hd-btn-secondary">Anterior</a>
-    {/if}
-    {#if hasNext}
-      <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={next}" class="hd-btn hd-btn-secondary">Siguiente</a>
-    {/if}
   </div>
-  <a href="/private/admin/metrics/registrations" class="hd-btn hd-btn-secondary">Volver</a>
 </section>
-{/main}
+<div class="container admin-shell-stack">
+  <section class="admin-shell-panel">
+    <form method="get" class="filter hd-form">
+      <input type="hidden" name="talk" value="{talk.id}">
+      <div class="hd-form-grid">
+        <div class="hd-form-field">
+          <label for="filter-name" class="hd-form-label">Nombre</label>
+          <input id="filter-name" type="search" name="name" value="{name}" class="hd-form-input">
+        </div>
+        <div class="hd-form-field">
+          <label for="filter-email" class="hd-form-label">Email</label>
+          <input id="filter-email" type="search" name="email" value="{email}" class="hd-form-input">
+        </div>
+        <div class="hd-form-field">
+          <label for="filter-size" class="hd-form-label">Resultados</label>
+          <select id="filter-size" name="size" class="hd-form-input">
+            <option value="20"{#if size == 20} selected{/if}>20</option>
+            <option value="50"{#if size == 50} selected{/if}>50</option>
+            <option value="100"{#if size == 100} selected{/if}>100</option>
+          </select>
+        </div>
+      </div>
+      <div class="hd-form-actions">
+        <button type="submit" class="hd-btn hd-btn-secondary">Filtrar</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="admin-shell-panel">
+    <div class="admin-shell-table-wrap">
+      <table class="hd-table registrants-table">
+        <thead>
+          <tr>
+            <th class="hd-table-head">Nombre</th>
+            <th class="hd-table-head">Email</th>
+          </tr>
+        </thead>
+        <tbody>
+        {#for u in users}
+          <tr class="hd-table-row">
+            <td class="hd-table-cell">{u.name}</td>
+            <td class="hd-table-cell">{u.email}</td>
+          </tr>
+        {/for}
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" style="margin-top: 1rem;">
+      {#if hasPrev}
+        <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={prev}" class="hd-btn hd-btn-secondary">Anterior</a>
+      {/if}
+      {#if hasNext}
+        <a href="?talk={talk.id}&name={name}&email={email}&size={size}&page={next}" class="hd-btn hd-btn-secondary">Siguiente</a>
+      {/if}
+    </div>
+  </section>
+</div>
+{/body}
 {/include}

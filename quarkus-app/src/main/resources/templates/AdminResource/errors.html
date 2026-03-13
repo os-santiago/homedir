@@ -1,20 +1,26 @@
-{#include layout/main}
+{#include layout/main mainClass="admin-context-main"}
 
 {#title}Errores del Sistema · Panel de Administración{/title}
 
 {#body}
-<section class="retro-container">
-    <div class="admin-dashboard-header">
-        <h1 class="retro-title-large">Consola de Errores</h1>
-        <p class="retro-subtitle">Registro de fallos del sistema y excepciones.</p>
+<section class="page-header">
+    <div class="container">
+        <div class="admin-shell-header">
+            <div class="admin-shell-heading section-header hd-section-heading">
+                <p class="section-subtitle">Administración</p>
+                <h1>Consola de Errores</h1>
+                <p class="section-subtitle">Registro de fallos del sistema y excepciones.</p>
+            </div>
+            <div class="admin-shell-actions">
+                <a href="/private/admin" class="btn btn-secondary"><span class="material-symbols-outlined"
+                        style="font-size: 1em; vertical-align: middle;">arrow_back</span> Volver al Panel</a>
+            </div>
+        </div>
     </div>
+</section>
 
-    <div class="errors-back-link">
-        <a href="/private/admin" class="retro-btn"><span class="material-symbols-outlined"
-                style="font-size: 1em; vertical-align: middle;">arrow_back</span> Volver al Panel</a>
-    </div>
-
-    <div class="retro-box">
+<div class="container admin-shell-stack">
+    <div class="admin-shell-panel admin-shell-table-wrap">
         {#if errors.isEmpty}
         <p class="errors-empty-state">No hay errores registrados.</p>
         {#else}
@@ -57,6 +63,6 @@
         </div>
         {/if}
     </div>
-</section>
+</div>
 {/body}
 {/include}

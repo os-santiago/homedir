@@ -1,17 +1,15 @@
-{#include layout/main}
+{#include layout/main mainClass="admin-context-main"}
 {#title}Broadcast de notificaciones · Homedir{/title}
 {#body}
 <section class="page-header">
   <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div>
-        <p class="section-subtitle"
-          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
-          Administración</p>
-        <h1 class="page-title">Broadcast de notificaciones</h1>
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading section-header hd-section-heading">
+        <p class="section-subtitle">Administración</p>
+        <h1>Broadcast de notificaciones</h1>
         <p class="section-subtitle">Envía y gestiona avisos globales para todos los usuarios conectados.</p>
       </div>
-      <div class="action-group">
+      <div class="admin-shell-actions">
         <a href="/admin/notifications/sim" class="btn btn-secondary">Simular notificaciones</a>
         <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
       </div>
@@ -19,8 +17,8 @@
   </div>
 </section>
 
-<div class="container">
-  <div class="card">
+<div class="container admin-shell-stack">
+  <div class="admin-shell-panel">
     <h2 class="card-title">Emitir broadcast</h2>
     <form id="broadcast" class="form-group" aria-label="Broadcast de notificaciones">
       <div
@@ -58,7 +56,7 @@
     </form>
   </div>
 
-  <div class="card">
+  <div class="admin-shell-panel">
     <h2 class="card-title">Acciones</h2>
     <div class="action-group">
       <button id="broadcast-demo" class="btn btn-secondary" type="button">Broadcast demo</button>
@@ -66,7 +64,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="admin-shell-panel">
     <h2 class="card-title">Últimas notificaciones</h2>
     <div id="admin-list" class="list" aria-live="polite"></div>
   </div>
