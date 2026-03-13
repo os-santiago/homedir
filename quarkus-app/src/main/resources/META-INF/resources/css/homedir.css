@@ -1043,6 +1043,11 @@ footer {
 .admin-shell-stack {
   display: grid;
   gap: 1rem;
+  min-width: 0;
+}
+
+.admin-shell-stack > * {
+  min-width: 0;
 }
 
 .admin-shell-panel {
@@ -1051,6 +1056,8 @@ footer {
   border-radius: 16px;
   padding: 1.2rem;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .admin-shell-panel > :first-child {
@@ -1077,6 +1084,7 @@ footer {
 
 .admin-shell-table-wrap {
   overflow-x: auto;
+  max-width: 100%;
 }
 
 .admin-shell-stat-grid {
@@ -1129,6 +1137,17 @@ footer {
 .admin-shell-empty {
   margin: 0;
   opacity: 0.78;
+}
+
+.homedir-main.admin-context-main .admin-shell-stack > .page-grid {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.homedir-main.admin-context-main .admin-shell-stack > .page-grid > * {
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
