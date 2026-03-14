@@ -155,6 +155,24 @@
         <button id="cfpGoOverviewBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_subnav_overview}</button>
       </div>
     </div>
+    <div class="cfp-review-search-grid">
+      <label class="form-hint cfp-review-search-field">
+        <span>{i18n:events_cfp_admin_filter_proposed_by}</span>
+        <input id="cfpFilterProposedBy" name="cfpFilterProposedBy" type="search" class="form-input" placeholder="{i18n:events_cfp_admin_filter_proposed_by_placeholder}">
+      </label>
+      <label class="form-hint cfp-review-search-field">
+        <span>{i18n:events_cfp_admin_filter_title}</span>
+        <input id="cfpFilterTitle" name="cfpFilterTitle" type="search" class="form-input" placeholder="{i18n:events_cfp_admin_filter_title_placeholder}">
+      </label>
+      <label class="form-hint cfp-review-search-field">
+        <span>{i18n:events_cfp_admin_filter_track}</span>
+        <input id="cfpFilterTrack" name="cfpFilterTrack" type="search" class="form-input" placeholder="{i18n:events_cfp_admin_filter_track_placeholder}">
+      </label>
+    </div>
+    <div class="cfp-toolbar-row" style="margin-top: 0.65rem;">
+      <button id="cfpApplyFiltersBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_filter_apply}</button>
+      <button id="cfpClearFiltersBtn" type="button" class="btn btn-ghost">{i18n:events_cfp_admin_filter_clear}</button>
+    </div>
     <div class="cfp-toolbar-grid">
       <div class="cfp-toolbar-row">
         <span class="form-hint">{i18n:events_cfp_admin_label_status}</span>
@@ -199,6 +217,19 @@
     margin-top: 1rem;
     display: grid;
     gap: 0.65rem;
+  }
+
+  .cfp-review-search-grid {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.55rem;
+  }
+
+  .cfp-review-search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
   }
 
   .cfp-insights-box {
@@ -388,6 +419,11 @@
     const cfpGoOverviewBtn = document.getElementById("cfpGoOverviewBtn");
     const filterButtons = Array.from(document.querySelectorAll(".cfp-filter-btn"));
     const sortButtons = Array.from(document.querySelectorAll(".cfp-sort-btn"));
+    const filterProposedByInput = document.getElementById("cfpFilterProposedBy");
+    const filterTitleInput = document.getElementById("cfpFilterTitle");
+    const filterTrackInput = document.getElementById("cfpFilterTrack");
+    const applyFiltersBtn = document.getElementById("cfpApplyFiltersBtn");
+    const clearFiltersBtn = document.getElementById("cfpClearFiltersBtn");
     const prevPageBtn = document.getElementById("cfpPrevPageBtn");
     const nextPageBtn = document.getElementById("cfpNextPageBtn");
     const pageInfo = document.getElementById("cfpPageInfo");
@@ -441,6 +477,9 @@
     let activeStatus = "pending";
     let activeSort = "created";
     let activeOffset = 0;
+    let activeProposedBy = "";
+    let activeTitle = "";
+    let activeTrack = "";
     let totalItems = 0;
     let hasMoreItems = false;
     let nextOffset = null;
@@ -488,11 +527,31 @@
       refreshExportUrl();
     }
 
+    function setSearchFilters(filters) {
+      activeProposedBy = String(filters?.proposedBy || "").trim();
+      activeTitle = String(filters?.title || "").trim();
+      activeTrack = String(filters?.track || "").trim();
+      activeOffset = 0;
+      if (filterProposedByInput) {
+        filterProposedByInput.value = activeProposedBy;
+      }
+      if (filterTitleInput) {
+        filterTitleInput.value = activeTitle;
+      }
+      if (filterTrackInput) {
+        filterTrackInput.value = activeTrack;
+      }
+      refreshExportUrl();
+    }
+
     function refreshExportUrl() {
       if (!exportBtn) return;
       const params = new URLSearchParams();
       if (activeStatus) params.set("status", activeStatus);
       if (activeSort) params.set("sort", activeSort);
+      if (activeProposedBy) params.set("proposed_by", activeProposedBy);
+      if (activeTitle) params.set("title", activeTitle);
+      if (activeTrack) params.set("track", activeTrack);
       exportBtn.href = baseEndpoint + "/export.csv?" + params.toString();
     }
 
@@ -769,6 +828,9 @@
           limit: String(pageSize),
           offset: String(activeOffset)
         });
+        if (activeProposedBy) params.set("proposed_by", activeProposedBy);
+        if (activeTitle) params.set("title", activeTitle);
+        if (activeTrack) params.set("track", activeTrack);
         const response = await fetch(baseEndpoint + "?" + params.toString(), {
           headers: { Accept: "application/json" }
         });
@@ -1065,6 +1127,30 @@
       });
     });
 
+    applyFiltersBtn?.addEventListener("click", () => {
+      setSearchFilters({
+        proposedBy: filterProposedByInput ? filterProposedByInput.value : "",
+        title: filterTitleInput ? filterTitleInput.value : "",
+        track: filterTrackInput ? filterTrackInput.value : ""
+      });
+      loadList();
+    });
+    clearFiltersBtn?.addEventListener("click", () => {
+      setSearchFilters({ proposedBy: "", title: "", track: "" });
+      loadList();
+    });
+    [filterProposedByInput, filterTitleInput, filterTrackInput]
+      .filter((element) => !!element)
+      .forEach((element) => {
+        element.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") {
+            return;
+          }
+          event.preventDefault();
+          applyFiltersBtn?.click();
+        });
+      });
+
     cfpNavButtons.forEach((button) => {
       button.addEventListener("click", () => {
         openCfpAdminSection(button.dataset.cfpAdminNav, true);
@@ -1098,6 +1184,7 @@
     agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
     setActiveFilter(activeStatus);
     setActiveSort(activeSort);
+    setSearchFilters({ proposedBy: "", title: "", track: "" });
     const initialPanelId = (() => {
       const hash = (window.location.hash || "").replace("#", "").trim();
       if (hash) {

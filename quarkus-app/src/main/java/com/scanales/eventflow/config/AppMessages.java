@@ -1366,6 +1366,30 @@ public interface AppMessages {
     @Message("Sort:")
     String events_cfp_admin_label_sort();
 
+    @Message("Proposed by")
+    String events_cfp_admin_filter_proposed_by();
+
+    @Message("Search proposer name or account")
+    String events_cfp_admin_filter_proposed_by_placeholder();
+
+    @Message("Title")
+    String events_cfp_admin_filter_title();
+
+    @Message("Search proposal title")
+    String events_cfp_admin_filter_title_placeholder();
+
+    @Message("Track")
+    String events_cfp_admin_filter_track();
+
+    @Message("Search track")
+    String events_cfp_admin_filter_track_placeholder();
+
+    @Message("Apply filters")
+    String events_cfp_admin_filter_apply();
+
+    @Message("Clear filters")
+    String events_cfp_admin_filter_clear();
+
     @Message("All")
     String events_cfp_admin_filter_all();
 
