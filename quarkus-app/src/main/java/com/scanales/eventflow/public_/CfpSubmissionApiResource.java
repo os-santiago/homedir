@@ -394,6 +394,9 @@ public class CfpSubmissionApiResource {
       @PathParam("eventId") String eventId,
       @QueryParam("status") String status,
       @QueryParam("sort") String sort,
+      @QueryParam("proposed_by") String proposedBy,
+      @QueryParam("title") String title,
+      @QueryParam("track") String track,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
     if (!AdminUtils.isAdmin(identity)) {
@@ -409,12 +412,16 @@ public class CfpSubmissionApiResource {
     }
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
+    CfpSubmissionService.ModerationFilter moderationFilter =
+        new CfpSubmissionService.ModerationFilter(proposedBy, title, track);
     List<SubmissionView> items =
-        cfpSubmissionService.listByEvent(eventId, statusFilter, sortOrder, limit, offset).stream()
+        cfpSubmissionService
+            .listByEvent(eventId, statusFilter, moderationFilter, sortOrder, limit, offset)
+            .stream()
             .map(item -> safeRefreshPanelists(eventId, item))
             .map(this::toView)
             .toList();
-    int total = cfpSubmissionService.countByEvent(eventId, statusFilter);
+    int total = cfpSubmissionService.countByEvent(eventId, statusFilter, moderationFilter);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
     return Response.ok(new SubmissionListResponse(limit, offset, total, total, hasMore, nextOffset, items)).build();
@@ -443,7 +450,10 @@ public class CfpSubmissionApiResource {
   public Response exportModerationCsv(
       @PathParam("eventId") String eventId,
       @QueryParam("status") String status,
-      @QueryParam("sort") String sort) {
+      @QueryParam("sort") String sort,
+      @QueryParam("proposed_by") String proposedBy,
+      @QueryParam("title") String title,
+      @QueryParam("track") String track) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
@@ -456,7 +466,10 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_sort")).build();
     }
 
-    List<CfpSubmission> items = cfpSubmissionService.listByEventAll(eventId, statusFilter, sortOrder);
+    CfpSubmissionService.ModerationFilter moderationFilter =
+        new CfpSubmissionService.ModerationFilter(proposedBy, title, track);
+    List<CfpSubmission> items =
+        cfpSubmissionService.listByEventAll(eventId, statusFilter, moderationFilter, sortOrder);
     String csv = buildCsv(items);
     String filename = "cfp-" + sanitizeIdToken(eventId, 30) + "-report.csv";
     return Response.ok(csv)
