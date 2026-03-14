@@ -620,6 +620,64 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "admin@example.org")
+  void rejectedSubmissionRemainsVisibleWithUpdatedStatusAndRatingUnderFilters() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "speaker-alpha@example.com",
+            "Speaker Alpha",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Platform scorecards in production",
+                "Summary",
+                "Long abstract",
+                "advanced",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of("platform"),
+                List.of("https://example.org/platform")));
+
+    given()
+        .contentType("application/json")
+        .body("{\"technical_detail\":4,\"narrative\":5,\"content_impact\":3}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/rating")
+        .then()
+        .statusCode(200)
+        .body("item.rating_weighted", equalTo(4.0f));
+
+    given()
+        .contentType("application/json")
+        .body("{\"status\":\"rejected\",\"note\":\"not the right fit for this edition\"}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/status")
+        .then()
+        .statusCode(200)
+        .body("item.status", equalTo("rejected"))
+        .body("item.moderation_note", equalTo("not the right fit for this edition"));
+
+    given()
+        .accept("application/json")
+        .queryParam("status", "rejected")
+        .queryParam("proposed_by", "alpha")
+        .queryParam("title", "scorecards")
+        .queryParam("track", "platform")
+        .queryParam("limit", 10)
+        .queryParam("offset", 0)
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions")
+        .then()
+        .statusCode(200)
+        .body("items", hasSize(1))
+        .body("items[0].id", equalTo(created.id()))
+        .body("items[0].status", equalTo("rejected"))
+        .body("items[0].moderation_note", equalTo("not the right fit for this edition"))
+        .body("items[0].rating_weighted", equalTo(4.0f));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
   void adminCanReadModerationStats() {
     CfpSubmission pending =
         cfpSubmissionService.create(
