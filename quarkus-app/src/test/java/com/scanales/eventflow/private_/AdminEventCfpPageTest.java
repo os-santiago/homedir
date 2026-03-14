@@ -83,6 +83,7 @@ public class AdminEventCfpPageTest {
         .statusCode(200)
         .body(containsString("id=\"cfpDetailShell\""))
         .body(containsString("id=\"cfpDetailFeedback\""))
+        .body(containsString("id=\"cfpBackToOverviewLink\""))
         .body(containsString("const submissionId = \"" + submission.id() + "\""));
   }
 

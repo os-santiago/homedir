@@ -12,7 +12,7 @@
         <p class="section-subtitle">{i18n:events_cfp_admin_event_label(event.title)}</p>
       </div>
       <div class="action-group admin-nav-strip">
-        <a href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_back_overview}</a>
+        <a id="cfpBackToOverviewLink" href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_back_overview}</a>
         <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
         <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
       </div>
@@ -119,6 +119,7 @@
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const shell = document.getElementById("cfpDetailShell");
     const feedback = document.getElementById("cfpDetailFeedback");
+    const backToOverviewLink = document.getElementById("cfpBackToOverviewLink");
     let currentItem = null;
 
     const i18n = {
@@ -174,6 +175,27 @@
       rejected: "{i18n:events_cfp_status_rejected}",
       withdrawn: "{i18n:events_cfp_status_withdrawn}"
     };
+
+    function buildBackToQueueUrl(statusOverride) {
+      const params = new URLSearchParams(window.location.search);
+      const currentStatus = String(statusOverride || params.get("status") || "pending").trim();
+      params.set("status", currentStatus);
+      if (!params.get("sort")) {
+        params.set("sort", "created");
+      }
+      params.delete("offset");
+      const query = params.toString();
+      return "/private/admin/events/" + encodeURIComponent(eventId) + "/cfp"
+        + (query ? "?" + query : "")
+        + "#cfp-review-panel";
+    }
+
+    function syncBackToOverviewLink(statusOverride) {
+      if (!backToOverviewLink) {
+        return;
+      }
+      backToOverviewLink.href = buildBackToQueueUrl(statusOverride);
+    }
 
     function fmtDate(value) {
       if (!value) return null;
@@ -291,6 +313,7 @@
     function renderDetail(item) {
       currentItem = item;
       const status = item.status || "pending";
+      syncBackToOverviewLink(status);
       const statusText = statusLabel[status] || status;
       const safeLinks = Array.isArray(item.links) ? item.links.map(sanitizeHttpUrl).filter((value) => !!value) : [];
       const panelists = Array.isArray(item.panelists) ? item.panelists : [];
@@ -380,11 +403,14 @@
         const btn = event.currentTarget;
         btn.disabled = true;
         try {
-          await updateRating({
+          const payload = await updateRating({
             technical_detail: Number(technical.select.value),
             narrative: Number(narrative.select.value),
             content_impact: Number(impact.select.value)
           }, currentItem.updated_at);
+          if (payload && payload.item) {
+            currentItem = payload.item;
+          }
           showFeedback(i18n.saveRating, false);
           await loadDetail();
         } catch (error) {
@@ -398,8 +424,12 @@
         attachAction(label, className, async (event) => {
           const btn = event.currentTarget;
           btn.disabled = true;
-          try {
-            await updateStatus(targetStatus, note.value, currentItem.updated_at);
+        try {
+            const payload = await updateStatus(targetStatus, note.value, currentItem.updated_at);
+            if (payload && payload.item) {
+              currentItem = payload.item;
+            }
+            syncBackToOverviewLink(targetStatus);
             showFeedback(label, false);
             await loadDetail();
           } catch (error) {
@@ -446,6 +476,7 @@
       }
     }
 
+    syncBackToOverviewLink(null);
     loadDetail();
   })();
 </script>

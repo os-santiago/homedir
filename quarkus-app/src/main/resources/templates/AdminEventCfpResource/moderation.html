@@ -483,6 +483,7 @@
     let totalItems = 0;
     let hasMoreItems = false;
     let nextOffset = null;
+    let listRequestSequence = 0;
 
     function openCfpAdminSection(panelId, updateHash = true) {
       if (!panelId) return;
@@ -497,7 +498,8 @@
         button.setAttribute("aria-pressed", active ? "true" : "false");
       });
       if (updateHash && window.location.hash !== ("#" + panelId)) {
-        history.replaceState(null, "", "#" + panelId);
+        const search = window.location.search || "";
+        history.replaceState(null, "", window.location.pathname + search + "#" + panelId);
       }
     }
 
@@ -509,29 +511,46 @@
       withdrawn: i18n.statusWithdrawn
     };
 
-    function setActiveFilter(status) {
-      activeStatus = status;
-      activeOffset = 0;
+    function normalizeStatus(value) {
+      const raw = String(value || "").trim().toLowerCase();
+      return ["all", "pending", "under_review", "accepted", "rejected", "withdrawn"].includes(raw)
+        ? raw
+        : "pending";
+    }
+
+    function normalizeSort(value) {
+      const raw = String(value || "").trim().toLowerCase();
+      return ["created", "updated", "score"].includes(raw) ? raw : "created";
+    }
+
+    function activeSearchParams() {
+      const params = new URLSearchParams();
+      if (activeStatus) params.set("status", activeStatus);
+      if (activeSort) params.set("sort", activeSort);
+      if (activeProposedBy) params.set("proposed_by", activeProposedBy);
+      if (activeTitle) params.set("title", activeTitle);
+      if (activeTrack) params.set("track", activeTrack);
+      if (activeOffset > 0) params.set("offset", String(activeOffset));
+      return params;
+    }
+
+    function syncModerationUrl() {
+      const params = activeSearchParams();
+      const query = params.toString();
+      const hash = window.location.hash || "#cfp-review-panel";
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname + (query ? "?" + query : "") + hash);
+    }
+
+    function applyControlsFromState() {
       filterButtons.forEach((button) => {
-        button.classList.toggle("is-active", button.dataset.status === status);
+        button.classList.toggle("is-active", button.dataset.status === activeStatus);
       });
-      refreshExportUrl();
-    }
-
-    function setActiveSort(sort) {
-      activeSort = sort;
-      activeOffset = 0;
       sortButtons.forEach((button) => {
-        button.classList.toggle("is-active", button.dataset.sort === sort);
+        button.classList.toggle("is-active", button.dataset.sort === activeSort);
       });
-      refreshExportUrl();
-    }
-
-    function setSearchFilters(filters) {
-      activeProposedBy = String(filters?.proposedBy || "").trim();
-      activeTitle = String(filters?.title || "").trim();
-      activeTrack = String(filters?.track || "").trim();
-      activeOffset = 0;
       if (filterProposedByInput) {
         filterProposedByInput.value = activeProposedBy;
       }
@@ -542,6 +561,40 @@
         filterTrackInput.value = activeTrack;
       }
       refreshExportUrl();
+    }
+
+    function restoreModerationStateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      activeStatus = normalizeStatus(params.get("status"));
+      activeSort = normalizeSort(params.get("sort"));
+      activeProposedBy = String(params.get("proposed_by") || "").trim();
+      activeTitle = String(params.get("title") || "").trim();
+      activeTrack = String(params.get("track") || "").trim();
+      const offsetRaw = Number.parseInt(String(params.get("offset") || "0"), 10);
+      activeOffset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? offsetRaw : 0;
+    }
+
+    function setActiveFilter(status) {
+      activeStatus = normalizeStatus(status);
+      activeOffset = 0;
+      applyControlsFromState();
+      syncModerationUrl();
+    }
+
+    function setActiveSort(sort) {
+      activeSort = normalizeSort(sort);
+      activeOffset = 0;
+      applyControlsFromState();
+      syncModerationUrl();
+    }
+
+    function setSearchFilters(filters) {
+      activeProposedBy = String(filters?.proposedBy || "").trim();
+      activeTitle = String(filters?.title || "").trim();
+      activeTrack = String(filters?.track || "").trim();
+      activeOffset = 0;
+      applyControlsFromState();
+      syncModerationUrl();
     }
 
     function refreshExportUrl() {
@@ -810,8 +863,11 @@
 
       const detailLink = document.createElement("a");
       detailLink.className = "btn btn-secondary";
+      const detailParams = activeSearchParams().toString();
       detailLink.href =
-        "/private/admin/events/" + encodeURIComponent(eventId) + "/cfp/submissions/" + encodeURIComponent(item.id);
+        "/private/admin/events/" + encodeURIComponent(eventId) + "/cfp/submissions/" + encodeURIComponent(item.id)
+        + (detailParams ? "?" + detailParams : "")
+        + "#cfp-review-panel";
       detailLink.textContent = i18n.actionOpenDetail;
       actions.appendChild(detailLink);
 
@@ -820,7 +876,9 @@
     }
 
     async function loadList() {
+      const requestSequence = ++listRequestSequence;
       renderEmpty(i18n.queueLoading);
+      syncModerationUrl();
       try {
         const params = new URLSearchParams({
           status: activeStatus,
@@ -838,6 +896,9 @@
           throw new Error(i18n.queueLoadGenericError);
         }
         const payload = await response.json();
+        if (requestSequence !== listRequestSequence) {
+          return;
+        }
         totalItems = Number.isFinite(Number(payload.total)) ? Number(payload.total) : 0;
         hasMoreItems = !!payload.has_more;
         nextOffset = Number.isFinite(Number(payload.next_offset)) ? Number(payload.next_offset) : null;
@@ -859,6 +920,9 @@
         updateListPagination();
         loadStats();
       } catch (error) {
+        if (requestSequence !== listRequestSequence) {
+          return;
+        }
         totalItems = 0;
         hasMoreItems = false;
         nextOffset = null;
@@ -1169,6 +1233,7 @@
         return;
       }
       activeOffset = Math.max(0, activeOffset - pageSize);
+      syncModerationUrl();
       loadList().then(() => listEl?.scrollIntoView({ behavior: "smooth", block: "start" }));
     });
     nextPageBtn?.addEventListener("click", () => {
@@ -1176,15 +1241,15 @@
         return;
       }
       activeOffset = Number.isFinite(nextOffset) ? nextOffset : (activeOffset + pageSize);
+      syncModerationUrl();
       loadList().then(() => listEl?.scrollIntoView({ behavior: "smooth", block: "start" }));
     });
     testingSaveBtn?.addEventListener("click", saveTestingConfig);
     eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
     eventConfigClearBtn?.addEventListener("click", clearEventConfig);
     agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
-    setActiveFilter(activeStatus);
-    setActiveSort(activeSort);
-    setSearchFilters({ proposedBy: "", title: "", track: "" });
+    restoreModerationStateFromUrl();
+    applyControlsFromState();
     const initialPanelId = (() => {
       const hash = (window.location.hash || "").replace("#", "").trim();
       if (hash) {
