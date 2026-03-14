@@ -570,6 +570,56 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "admin@example.org")
+  void adminCanFilterReviewQueueByProposerTitleAndTrack() {
+    cfpSubmissionService.create(
+        "speaker-alpha@example.com",
+        "Speaker Alpha",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Platform scorecards in production",
+            "Summary",
+            "Long abstract",
+            "advanced",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            List.of("platform"),
+            List.of("https://example.org/platform")));
+    cfpSubmissionService.create(
+        "speaker-beta@example.com",
+        "Speaker Beta",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "DevOps collaboration stories",
+            "Summary",
+            "Long abstract",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "devops",
+            List.of("devops"),
+            List.of("https://example.org/devops")));
+
+    given()
+        .accept("application/json")
+        .queryParam("status", "all")
+        .queryParam("proposed_by", "alpha")
+        .queryParam("title", "scorecards")
+        .queryParam("track", "platform")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions?limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items", hasSize(1))
+        .body("items[0].proposer_name", equalTo("Speaker Alpha"))
+        .body("items[0].title", equalTo("Platform scorecards in production"))
+        .body("items[0].track", equalTo("platform-engineering-idp"));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
   void adminCanReadModerationStats() {
     CfpSubmission pending =
         cfpSubmissionService.create(

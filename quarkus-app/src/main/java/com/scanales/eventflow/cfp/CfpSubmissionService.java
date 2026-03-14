@@ -44,6 +44,12 @@ public class CfpSubmissionService {
     SCORE_DESC
   }
 
+  public record ModerationFilter(String proposedBy, String title, String track) {
+    public static ModerationFilter empty() {
+      return new ModerationFilter(null, null, null);
+    }
+  }
+
   @Inject PersistenceService persistenceService;
   @Inject EventService eventService;
   @Inject CfpFormOptionsService cfpFormOptionsService;
@@ -180,7 +186,13 @@ public class CfpSubmissionService {
       Optional<CfpSubmissionStatus> statusFilter,
       int requestedLimit,
       int requestedOffset) {
-    return listByEvent(eventId, statusFilter, SortOrder.CREATED_DESC, requestedLimit, requestedOffset);
+    return listByEvent(
+        eventId,
+        statusFilter,
+        ModerationFilter.empty(),
+        SortOrder.CREATED_DESC,
+        requestedLimit,
+        requestedOffset);
   }
 
   public List<CfpSubmission> listByEvent(
@@ -189,11 +201,33 @@ public class CfpSubmissionService {
       SortOrder sortOrder,
       int requestedLimit,
       int requestedOffset) {
-    return paginate(listByEventAll(eventId, statusFilter, sortOrder), requestedLimit, requestedOffset);
+    return listByEvent(
+        eventId, statusFilter, ModerationFilter.empty(), sortOrder, requestedLimit, requestedOffset);
+  }
+
+  public List<CfpSubmission> listByEvent(
+      String eventId,
+      Optional<CfpSubmissionStatus> statusFilter,
+      ModerationFilter moderationFilter,
+      SortOrder sortOrder,
+      int requestedLimit,
+      int requestedOffset) {
+    return paginate(
+        listByEventAll(eventId, statusFilter, moderationFilter, sortOrder),
+        requestedLimit,
+        requestedOffset);
   }
 
   public List<CfpSubmission> listByEventAll(
       String eventId, Optional<CfpSubmissionStatus> statusFilter, SortOrder sortOrder) {
+    return listByEventAll(eventId, statusFilter, ModerationFilter.empty(), sortOrder);
+  }
+
+  public List<CfpSubmission> listByEventAll(
+      String eventId,
+      Optional<CfpSubmissionStatus> statusFilter,
+      ModerationFilter moderationFilter,
+      SortOrder sortOrder) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -203,6 +237,7 @@ public class CfpSubmissionService {
       return submissions.values().stream()
           .filter(item -> normalizedEventId.equals(item.eventId()))
           .filter(item -> statusFilter.isEmpty() || item.status() == statusFilter.get())
+          .filter(item -> matchesModerationFilter(item, moderationFilter))
           .sorted(sortComparator(sortOrder))
           .toList();
     }
@@ -239,6 +274,13 @@ public class CfpSubmissionService {
   }
 
   public int countByEvent(String eventId, Optional<CfpSubmissionStatus> statusFilter) {
+    return countByEvent(eventId, statusFilter, ModerationFilter.empty());
+  }
+
+  public int countByEvent(
+      String eventId,
+      Optional<CfpSubmissionStatus> statusFilter,
+      ModerationFilter moderationFilter) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -251,6 +293,9 @@ public class CfpSubmissionService {
           continue;
         }
         if (statusFilter.isPresent() && item.status() != statusFilter.get()) {
+          continue;
+        }
+        if (!matchesModerationFilter(item, moderationFilter)) {
           continue;
         }
         count++;
@@ -1159,6 +1204,46 @@ public class CfpSubmissionService {
     }
     int end = Math.min(source.size(), offset + limit);
     return source.subList(offset, end);
+  }
+
+  private static boolean matchesModerationFilter(
+      CfpSubmission item, ModerationFilter moderationFilter) {
+    if (item == null || moderationFilter == null) {
+      return true;
+    }
+    String proposedBy = normalizeSearchToken(moderationFilter.proposedBy());
+    if (proposedBy != null
+        && !containsIgnoreCase(item.proposerName(), proposedBy)
+        && !containsIgnoreCase(item.proposerUserId(), proposedBy)) {
+      return false;
+    }
+    String title = normalizeSearchToken(moderationFilter.title());
+    if (title != null && !containsIgnoreCase(item.title(), title)) {
+      return false;
+    }
+    String track = normalizeSearchToken(moderationFilter.track());
+    if (track != null && !containsIgnoreCase(item.track(), track)) {
+      return false;
+    }
+    return true;
+  }
+
+  private static boolean containsIgnoreCase(String value, String query) {
+    if (query == null) {
+      return true;
+    }
+    if (value == null || value.isBlank()) {
+      return false;
+    }
+    return value.toLowerCase(Locale.ROOT).contains(query);
+  }
+
+  private static String normalizeSearchToken(String value) {
+    if (value == null) {
+      return null;
+    }
+    String normalized = value.trim().toLowerCase(Locale.ROOT);
+    return normalized.isEmpty() ? null : normalized;
   }
 
   private static Set<String> normalizeUserIds(Set<String> userIds) {
