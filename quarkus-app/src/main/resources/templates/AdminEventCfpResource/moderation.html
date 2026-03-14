@@ -597,6 +597,23 @@
       syncModerationUrl();
     }
 
+    function setSearchFilters(filters) {
+      activeProposedBy = String(filters?.proposedBy || "").trim();
+      activeTitle = String(filters?.title || "").trim();
+      activeTrack = String(filters?.track || "").trim();
+      activeOffset = 0;
+      if (filterProposedByInput) {
+        filterProposedByInput.value = activeProposedBy;
+      }
+      if (filterTitleInput) {
+        filterTitleInput.value = activeTitle;
+      }
+      if (filterTrackInput) {
+        filterTrackInput.value = activeTrack;
+      }
+      refreshExportUrl();
+    }
+
     function refreshExportUrl() {
       if (!exportBtn) return;
       const params = new URLSearchParams();
