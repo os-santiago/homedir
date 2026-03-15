@@ -2854,6 +2854,151 @@ footer {
   opacity: 0.96;
 }
 
+.home-onboarding-shell {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.home-onboarding-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.home-onboarding-copy {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+
+.home-onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.1rem;
+}
+
+.home-onboarding-actions .btn-primary,
+.home-onboarding-actions .btn-secondary {
+  min-width: 170px;
+  justify-content: center;
+}
+
+.home-hero-spotlight {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.home-hero-spotlight-grid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.home-proof-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.home-progress-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.home-progress-summary {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.home-progress-summary strong {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  line-height: 1.1;
+}
+
+.home-progress-summary span {
+  font-size: 0.85rem;
+  letter-spacing: 0.2px;
+}
+
+.home-progress-summary small {
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+.home-progress-bar {
+  margin-top: -0.1rem;
+}
+
+.home-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.home-progress-stat {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.52rem;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.home-progress-stat span {
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  opacity: 0.8;
+}
+
+.home-progress-stat strong {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  line-height: 1.1;
+}
+
+.home-how-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.home-how-card {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.home-how-card .material-symbols-outlined {
+  font-size: 1.1rem;
+  opacity: 0.92;
+}
+
+.home-how-card h2 {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.home-how-card p {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.38;
+  opacity: 0.92;
+}
+
 .home-new-hot {
   margin-top: 0.22rem;
   display: grid;
@@ -3408,7 +3553,7 @@ footer {
 .home-top-metrics {
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
   margin-top: 0.3rem;
 }
@@ -4087,6 +4232,14 @@ footer {
     gap: 0.75rem;
   }
 
+  .home-onboarding-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .home-how-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .home-new-hot-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4116,7 +4269,7 @@ footer {
   }
 
   .home-top-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -4131,6 +4284,11 @@ footer {
   }
 
   .home-top-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .home-how-grid,
+  .home-progress-grid {
     grid-template-columns: 1fr;
   }
 

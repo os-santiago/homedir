@@ -3248,6 +3248,126 @@ public interface AppMessages {
     @Message("Sign in and open profile setup")
     String home_login_github_cta();
 
+    @Message("HomeDir onboarding")
+    String home_p0_shell_aria();
+
+    @Message("HomeDir onboarding")
+    String home_p0_eyebrow();
+
+    @Message("HomeDir: build, learn, and level up with your community.")
+    String home_p0_title();
+
+    @Message("Start with one account, connect your contribution signals, and turn community activity into visible progress.")
+    String home_p0_subtitle();
+
+    @Message("See the community, events, and project in one place, then unlock your profile, classes, HCoin, and rewards.")
+    String home_p0_intro_guest();
+
+    @Message("Your account is live. Keep building momentum by linking signals, voting on picks, and joining the next event.")
+    String home_p0_intro_member();
+
+    @Message("Create my HomeDir account")
+    String home_p0_guest_primary_cta();
+
+    @Message("Explore Community Picks")
+    String home_p0_guest_secondary_cta();
+
+    @Message("Open my profile")
+    String home_p0_member_primary_cta();
+
+    @Message("Continue with Community Picks")
+    String home_p0_member_secondary_cta();
+
+    @Message("HomeDir users")
+    String home_p0_chip_members();
+
+    @Message("GitHub signals")
+    String home_p0_chip_github();
+
+    @Message("rewards ready")
+    String home_p0_chip_rewards();
+
+    @Message("Gamification")
+    String home_p0_progress_badge();
+
+    @Message("Your visible progress")
+    String home_p0_progress_eyebrow();
+
+    @Message("Level up in public")
+    String home_p0_progress_title();
+
+    @Message("Level {level}")
+    String home_p0_progress_level(int level);
+
+    @Message("Choose your dominant class")
+    String home_p0_progress_class_fallback();
+
+    @Message("{currentXp} XP / {nextLevelXp} XP")
+    String home_p0_progress_xp(int currentXp, int nextLevelXp);
+
+    @Message("HCoin")
+    String home_p0_progress_hcoin();
+
+    @Message("Collection")
+    String home_p0_progress_collection();
+
+    @Message("Linked signals")
+    String home_p0_progress_links();
+
+    @Message("Starter track")
+    String home_p0_progress_starter();
+
+    @Message("How HomeDir works")
+    String home_p0_flow_title();
+
+    @Message("Sign in once")
+    String home_p0_flow_step_one_title();
+
+    @Message("Create your HomeDir account and keep your preferences, profile, and progress in one place.")
+    String home_p0_flow_step_one_desc();
+
+    @Message("Connect signals")
+    String home_p0_flow_step_two_title();
+
+    @Message("Link GitHub and Discord so your public profile reflects where you participate and contribute.")
+    String home_p0_flow_step_two_desc();
+
+    @Message("Join the flow")
+    String home_p0_flow_step_three_title();
+
+    @Message("Vote on picks, explore events, and move through the community with quick actions that compound.")
+    String home_p0_flow_step_three_desc();
+
+    @Message("Earn visible value")
+    String home_p0_flow_step_four_title();
+
+    @Message("Gain XP, HCoin, classes, and rewards that make your profile more credible and more shareable.")
+    String home_p0_flow_step_four_desc();
+
+    @Message("new curated picks in the last 24h")
+    String home_p0_metric_picks();
+
+    @Message("new lightning threads in the last 24h")
+    String home_p0_metric_threads();
+
+    @Message("active upcoming events")
+    String home_p0_metric_events();
+
+    @Message("rewards available to unlock")
+    String home_p0_metric_rewards();
+
+    @Message("Community Board")
+    String home_p0_metric_board_chip();
+
+    @Message("people already visible in HomeDir")
+    String home_p0_metric_board_desc();
+
+    @Message("GitHub")
+    String home_p0_metric_github_chip();
+
+    @Message("linked community contributor profiles")
+    String home_p0_metric_github_desc();
+
     @Message("New / Hot")
     String home_new_hot_badge();
 

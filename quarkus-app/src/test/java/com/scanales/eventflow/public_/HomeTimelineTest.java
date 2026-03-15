@@ -19,9 +19,9 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("Contributor Hub"))
-        .body(containsString("New / Hot"))
-        .body(containsString("LTA quick preview"))
+        .body(containsString("HomeDir: build, learn, and level up with your community."))
+        .body(containsString("How HomeDir works"))
+        .body(containsString("Turn login into visible impact"))
         .body(containsString("Community"))
         .body(containsString("Events"))
         .body(containsString("Project"));
@@ -52,10 +52,10 @@ public class HomeTimelineTest {
         .body(containsString("<html lang=\"es\">"))
         .body(containsString(">Inicio</a>"))
         .body(containsString("HomeDir"))
-        .body(containsString("HomeDir unifica contenido curado, eventos y actividad del proyecto en un solo hub."))
-        .body(containsString("Vista rápida de LTA"))
-        .body(containsString("Community"))
-        .body(containsString("Events"));
+        .body(containsString("HomeDir: construye, aprende y sube de nivel con tu comunidad."))
+        .body(containsString("Cómo funciona HomeDir"))
+        .body(containsString("Comunidad"))
+        .body(containsString("Eventos"));
   }
 
   @Test
