@@ -83,8 +83,10 @@ public class AdminEventCfpPageTest {
         .statusCode(200)
         .body(containsString("id=\"cfpDetailShell\""))
         .body(containsString("id=\"cfpDetailFeedback\""))
+        .body(containsString("id=\"cfpActionModal\""))
         .body(containsString("id=\"cfpBackToOverviewLink\""))
         .body(containsString("Add a moderation note before rejecting this proposal."))
+        .body(containsString("Update confirmed"))
         .body(containsString("const submissionId = \"" + submission.id() + "\""));
   }
 

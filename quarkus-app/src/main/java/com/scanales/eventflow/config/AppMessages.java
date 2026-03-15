@@ -1459,6 +1459,21 @@ public interface AppMessages {
     @Message("Save rating")
     String events_cfp_admin_save_rating();
 
+    @Message("Update confirmed")
+    String events_cfp_admin_feedback_title();
+
+    @Message("Rating saved.")
+    String events_cfp_admin_feedback_rating_saved();
+
+    @Message("Proposal moved to under review.")
+    String events_cfp_admin_feedback_under_review_saved();
+
+    @Message("Proposal accepted.")
+    String events_cfp_admin_feedback_accept_saved();
+
+    @Message("Proposal rejected.")
+    String events_cfp_admin_feedback_reject_saved();
+
     @Message("Under review")
     String events_cfp_admin_action_under_review();
 
