@@ -164,7 +164,7 @@ public class CfpSubmissionService {
               track,
               tags,
               links,
-              CfpSubmissionStatus.PENDING,
+              CfpSubmissionStatus.UNDER_REVIEW,
               now,
               now,
               null,
@@ -374,6 +374,14 @@ public class CfpSubmissionService {
   }
 
   public MineStats statsMineAcrossEvents(Set<String> userIds) {
+    return statsMineAcrossEvents(userIds, false);
+  }
+
+  public MineStats visibleStatsMineAcrossEvents(Set<String> userIds) {
+    return statsMineAcrossEvents(userIds, true);
+  }
+
+  private MineStats statsMineAcrossEvents(Set<String> userIds, boolean visibleStatus) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       if (userIds == null || userIds.isEmpty()) {
@@ -395,7 +403,10 @@ public class CfpSubmissionService {
         if (item.eventId() != null && !item.eventId().isBlank()) {
           distinctEvents.add(item.eventId());
         }
-        CfpSubmissionStatus status = item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
+        CfpSubmissionStatus status =
+            visibleStatus
+                ? visibleStatus(item)
+                : (item.status() != null ? item.status() : CfpSubmissionStatus.PENDING);
         counts.merge(status, 1, Integer::sum);
         Instant updated = item.updatedAt() != null ? item.updatedAt() : item.createdAt();
         if (updated != null && (latestUpdatedAt == null || updated.isAfter(latestUpdatedAt))) {
@@ -661,7 +672,7 @@ public class CfpSubmissionService {
         throw new NotFoundException("submission_not_found");
       }
       validateExpectedUpdatedAt(current, expectedUpdatedAt);
-      if (current.status() != CfpSubmissionStatus.ACCEPTED) {
+      if (!isPresentationUploadAllowed(current)) {
         throw new ValidationException("presentation_requires_accepted_submission");
       }
       CfpPresentationAsset sanitized = sanitizePresentationAsset(presentationAsset, actorUserId);
@@ -940,6 +951,63 @@ public class CfpSubmissionService {
     return cfpConfigService != null ? cfpConfigService.currentMaxSubmissionsPerUserPerEvent() : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
   }
 
+  public CfpSubmissionStatus visibleStatus(CfpSubmission submission) {
+    if (submission == null) {
+      return CfpSubmissionStatus.PENDING;
+    }
+    CfpSubmissionStatus internal = submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
+    if (internal == CfpSubmissionStatus.ACCEPTED || internal == CfpSubmissionStatus.REJECTED) {
+      CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(submission.eventId());
+      if (!eventConfig.resultsPublished()) {
+        return CfpSubmissionStatus.UNDER_REVIEW;
+      }
+    }
+    return internal;
+  }
+
+  public String resultMessage(CfpSubmission submission) {
+    if (submission == null) {
+      return null;
+    }
+    CfpSubmissionStatus visibleStatus = visibleStatus(submission);
+    CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(submission.eventId());
+    if (!eventConfig.resultsPublished()) {
+      return null;
+    }
+    return switch (visibleStatus) {
+      case ACCEPTED -> sanitizeText(eventConfig.acceptedResultsMessage(), 1200);
+      case REJECTED -> sanitizeText(eventConfig.rejectedResultsMessage(), 1200);
+      default -> null;
+    };
+  }
+
+  public boolean areResultsPublished(String eventId) {
+    return resolveEventConfig(eventId).resultsPublished();
+  }
+
+  public Instant resultsPublishedAt(String eventId) {
+    return resolveEventConfig(eventId).resultsPublishedAt();
+  }
+
+  public boolean isPresentationUploadAllowed(CfpSubmission submission) {
+    return visibleStatus(submission) == CfpSubmissionStatus.ACCEPTED;
+  }
+
+  public List<CfpSubmission> acceptedVisibleSubmissionsForEvent(String eventId) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        return List.of();
+      }
+      return submissions.values().stream()
+          .filter(item -> normalizedEventId.equals(item.eventId()))
+          .filter(item -> visibleStatus(item) == CfpSubmissionStatus.ACCEPTED)
+          .sorted(sortComparator(SortOrder.UPDATED_DESC))
+          .toList();
+    }
+  }
+
   public int updateMaxSubmissionsPerUserPerEvent(int requestedLimit) {
     return cfpConfigService != null ? cfpConfigService.updateMaxSubmissionsPerUserPerEvent(requestedLimit) : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
   }
@@ -1070,7 +1138,7 @@ public class CfpSubmissionService {
         cfpConfigService != null
             ? cfpConfigService.current()
             : CfpConfig.defaults(DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT, true);
-    return new CfpEventConfigService.ResolvedEventConfig(
+      return new CfpEventConfigService.ResolvedEventConfig(
         eventId,
         false,
         true,
@@ -1078,7 +1146,12 @@ public class CfpSubmissionService {
         null,
         global.maxSubmissionsPerUserPerEvent(),
         global.testingModeEnabled(),
-        true);
+        true,
+        false,
+        null,
+        null,
+        null,
+        null);
   }
 
   private static String normalizeTitleForComparison(String raw) {

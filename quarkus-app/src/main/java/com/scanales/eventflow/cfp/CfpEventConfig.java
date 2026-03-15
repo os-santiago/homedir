@@ -11,9 +11,13 @@ public record CfpEventConfig(
     @JsonProperty("closes_at") Instant closesAt,
     @JsonProperty("max_submissions_per_user_per_event") Integer maxSubmissionsPerUserPerEvent,
     @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled,
+    @JsonProperty("results_published_at") Instant resultsPublishedAt,
+    @JsonProperty("results_published_by") String resultsPublishedBy,
+    @JsonProperty("accepted_results_message") String acceptedResultsMessage,
+    @JsonProperty("rejected_results_message") String rejectedResultsMessage,
     @JsonProperty("updated_at") Instant updatedAt) {
 
   public static CfpEventConfig defaults(String eventId) {
-    return new CfpEventConfig(eventId, true, null, null, null, null, Instant.now());
+    return new CfpEventConfig(eventId, true, null, null, null, null, null, null, null, null, Instant.now());
   }
 }
