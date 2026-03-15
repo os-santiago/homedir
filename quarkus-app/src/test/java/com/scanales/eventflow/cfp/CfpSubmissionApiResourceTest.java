@@ -229,7 +229,7 @@ public class CfpSubmissionApiResourceTest {
                 List.of()));
 
     cfpSubmissionService.updateStatus(
-        older.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+        older.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "triage");
 
     given()
         .accept("application/json")
