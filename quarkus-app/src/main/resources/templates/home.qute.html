@@ -192,6 +192,86 @@
     </a>
     {/if}
   </div>
+
+  {#if userAuthenticated}
+  <section class="home-member-command-grid" aria-label="{i18n:home_p1_mission_title}">
+    <article class="section-card home-member-card">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_p1_mission_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_p1_mission_title}</h2>
+      </div>
+      <p class="home-member-card-copy">{i18n:home_p1_mission_intro}</p>
+      <div class="home-member-reward-strip">
+        {#if homeStarterAllDone}
+        <span class="home-chip">{i18n:home_p1_mission_complete}</span>
+        {#else}
+        <span class="home-chip">{i18n:home_starter_track_progress(homeStarterCompleted)}</span>
+        <strong>{i18n:home_p1_mission_reward(homeStarterRemainingXp, homeStarterRemainingHcoin)}</strong>
+        {/if}
+      </div>
+      <div class="home-member-checklist" role="list">
+        <article class="home-member-checklist-item {#if homeAccountHasGithub}is-complete{/if}" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">{#if homeAccountHasGithub}check_circle{#else}radio_button_unchecked{/if}</span>
+          <div>
+            <strong>{#if homeAccountHasGithub}{i18n:home_starter_task_github_done}{#else}{i18n:home_starter_task_github_todo}{/if}</strong>
+            <p>{i18n:home_p1_task_github_desc}</p>
+          </div>
+          <a href="/private/profile#integrations-panel" class="btn-secondary">{i18n:home_p1_task_connect_cta}</a>
+        </article>
+        <article class="home-member-checklist-item {#if homeAccountHasDiscord}is-complete{/if}" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">{#if homeAccountHasDiscord}check_circle{#else}radio_button_unchecked{/if}</span>
+          <div>
+            <strong>{#if homeAccountHasDiscord}{i18n:home_starter_task_discord_done}{#else}{i18n:home_starter_task_discord_todo}{/if}</strong>
+            <p>{i18n:home_p1_task_discord_desc}</p>
+          </div>
+          <a href="/private/profile#integrations-panel" class="btn-secondary">{i18n:home_p1_task_connect_cta}</a>
+        </article>
+        <article class="home-member-checklist-item {#if homeStarterHasVote}is-complete{/if}" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">{#if homeStarterHasVote}check_circle{#else}radio_button_unchecked{/if}</span>
+          <div>
+            <strong>{#if homeStarterHasVote}{i18n:home_starter_task_vote_done}{#else}{i18n:home_starter_task_vote_todo}{/if}</strong>
+            <p>{i18n:home_p1_task_vote_desc}</p>
+          </div>
+          <a href="/comunidad/picks" class="btn-secondary">{i18n:home_starter_track_picks_cta}</a>
+        </article>
+      </div>
+    </article>
+
+    <article class="section-card home-member-card">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_p1_today_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_p1_today_title}</h2>
+      </div>
+      <p class="home-member-card-copy">{i18n:home_p1_today_intro}</p>
+      <div class="home-member-actions-grid">
+        <a href="/private/profile#integrations-panel" class="home-member-action-card">
+          <span class="material-symbols-outlined" aria-hidden="true">manage_accounts</span>
+          <strong>{i18n:home_p1_action_profile_title}</strong>
+          <p>{#if homeLinkedSignals < 3}{i18n:home_p1_action_profile_desc_incomplete}{#else}{i18n:home_p1_action_profile_desc_ready}{/if}</p>
+          <span class="home-member-action-cta">{i18n:home_p1_action_profile_cta}</span>
+        </a>
+        <a href="/comunidad/picks" class="home-member-action-card">
+          <span class="material-symbols-outlined" aria-hidden="true">article</span>
+          <strong>{i18n:home_p1_action_picks_title}</strong>
+          <p>{#if homeStarterHasVote}{i18n:home_p1_action_picks_desc_ready(homeTodayFreshPicks)}{#else}{i18n:home_p1_action_picks_desc_start}{/if}</p>
+          <span class="home-member-action-cta">{i18n:home_p1_action_picks_cta}</span>
+        </a>
+        <a href="/eventos" class="home-member-action-card">
+          <span class="material-symbols-outlined" aria-hidden="true">event</span>
+          <strong>{i18n:home_p1_action_events_title}</strong>
+          <p>{#if upcomingCount > 0}{i18n:home_p1_action_events_desc_live(upcomingCount)}{#else}{i18n:home_p1_action_events_desc_empty}{/if}</p>
+          <span class="home-member-action-cta">{i18n:home_p1_action_events_cta}</span>
+        </a>
+        <a href="/private/profile/catalog" class="home-member-action-card">
+          <span class="material-symbols-outlined" aria-hidden="true">redeem</span>
+          <strong>{i18n:home_p1_action_rewards_title}</strong>
+          <p>{i18n:home_p1_action_rewards_desc(homeWalletBalance, homeRewardsCatalogCount)}</p>
+          <span class="home-member-action-cta">{i18n:home_p1_action_rewards_cta}</span>
+        </a>
+      </div>
+    </article>
+  </section>
+  {/if}
 </header>
 
 <section class="page-grid home-panorama-grid">
@@ -211,7 +291,8 @@
     {#if socialHighlights.isEmpty()}
     <article class="home-highlight-empty">
       <span class="material-symbols-outlined">rss_feed</span>
-      <p>{i18n:home_social_empty}</p>
+      <p>{i18n:home_p1_empty_social_desc}</p>
+      <a href="/comunidad/picks" class="btn-secondary">{i18n:home_p1_empty_social_cta}</a>
     </article>
     {#else}
     <div class="home-pane-list">
@@ -250,7 +331,8 @@
     {#if popularEvents.isEmpty()}
     <article class="home-highlight-empty">
       <span class="material-symbols-outlined">event_busy</span>
-      <p>{i18n:home_events_empty}</p>
+      <p>{i18n:home_p1_empty_events_desc}</p>
+      <a href="/eventos" class="btn-secondary">{i18n:home_p1_empty_events_cta}</a>
     </article>
     {#else}
     <div class="home-pane-list">
