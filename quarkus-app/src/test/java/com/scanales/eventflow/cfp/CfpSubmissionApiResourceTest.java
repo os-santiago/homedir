@@ -80,7 +80,7 @@ public class CfpSubmissionApiResourceTest {
         .post("/api/events/" + EVENT_ID + "/cfp/submissions")
         .then()
         .statusCode(201)
-        .body("item.status", equalTo("pending"))
+        .body("item.status", equalTo("under_review"))
         .body("item.event_id", equalTo(EVENT_ID))
         .body("item.track", equalTo("platform-engineering-idp"));
 
@@ -229,7 +229,7 @@ public class CfpSubmissionApiResourceTest {
                 List.of()));
 
     cfpSubmissionService.updateStatus(
-        older.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+        older.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "triage");
 
     given()
         .accept("application/json")
@@ -356,6 +356,7 @@ public class CfpSubmissionApiResourceTest {
         null);
     cfpSubmissionService.updateStatus(
         submission.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "accepted");
+    cfpEventConfigService.publishResults(EVENT_ID, "admin@example.org", "Accepted", "Rejected");
 
     given()
         .multiPart("file", "slides.pdf", "%PDF-1.4".getBytes(java.nio.charset.StandardCharsets.UTF_8), "application/pdf")
@@ -365,6 +366,109 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(200)
         .body("item.presentation_asset.file_name", org.hamcrest.Matchers.notNullValue())
         .body("item.viewer_role", equalTo("panelist"));
+  }
+
+  @Test
+  @TestSecurity(user = "member@example.com")
+  void mineKeepsInternalAcceptedHiddenUntilResultsArePublished() {
+    CfpSubmission submission =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Hidden until publish",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updateStatus(
+        submission.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "internal accept");
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/mine?limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items[0].status", equalTo("under_review"))
+        .body("items[0].internal_status", equalTo("accepted"))
+        .body("items[0].public_status", equalTo("under_review"))
+        .body("items[0].results_published", equalTo(false));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void publishResultsMakesFinalStatusAndMessagesVisible() {
+    CfpSubmission accepted =
+        cfpSubmissionService.create(
+            "accepted@example.com",
+            "Accepted User",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Accepted talk",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updateStatus(
+        accepted.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "internal accept");
+
+    CfpSubmission rejected =
+        cfpSubmissionService.create(
+            "rejected@example.com",
+            "Rejected User",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Rejected talk",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updateStatus(
+        rejected.id(), CfpSubmissionStatus.REJECTED, "admin@example.org", "internal reject");
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "accepted_message":"Welcome to the agenda",
+              "rejected_message":"Thanks for applying"
+            }
+            """)
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions/publish-results")
+        .then()
+        .statusCode(200)
+        .body("accepted_published", equalTo(1))
+        .body("rejected_published", equalTo(1));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/" + accepted.id())
+        .then()
+        .statusCode(200)
+        .body("item.status", equalTo("accepted"))
+        .body("item.public_status", equalTo("accepted"))
+        .body("item.result_message", equalTo("Welcome to the agenda"))
+        .body("item.results_published", equalTo(true));
   }
 
   @Test
@@ -521,7 +625,7 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "admin@example.org")
-  void adminCanListPendingAndAcceptSubmission() {
+  void adminCanListUnderReviewAndAcceptSubmissionInternally() {
     CfpSubmission created =
         cfpSubmissionService.create(
             "member@example.com",
@@ -547,7 +651,8 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(200)
         .body("items", hasSize(1))
         .body("items[0].id", equalTo(created.id()))
-        .body("items[0].status", equalTo("pending"));
+        .body("items[0].status", equalTo("under_review"))
+        .body("items[0].public_status", equalTo("under_review"));
 
     given()
         .contentType("application/json")
@@ -565,7 +670,8 @@ public class CfpSubmissionApiResourceTest {
         .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/status")
         .then()
         .statusCode(200)
-        .body("item.status", equalTo("accepted"));
+        .body("item.status", equalTo("accepted"))
+        .body("item.public_status", equalTo("under_review"));
   }
 
   @Test
@@ -743,8 +849,8 @@ public class CfpSubmissionApiResourceTest {
         .then()
         .statusCode(200)
         .body("total", equalTo(3))
-        .body("pending", equalTo(1))
-        .body("under_review", equalTo(1))
+        .body("pending", equalTo(0))
+        .body("under_review", equalTo(2))
         .body("accepted", equalTo(1))
         .body("rejected", equalTo(0))
         .body("withdrawn", equalTo(0))
@@ -844,6 +950,11 @@ public class CfpSubmissionApiResourceTest {
                 List.of()));
 
     cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "ok");
+    cfpEventConfigService.publishResults(
+        EVENT_ID,
+        "admin@example.org",
+        "Welcome to the agenda",
+        "Thank you for submitting.");
 
     String speakerId =
         given()

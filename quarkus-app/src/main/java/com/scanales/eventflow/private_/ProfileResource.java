@@ -270,15 +270,15 @@ public class ProfileResource {
     String dominantClassMessage = dominantClassSummary.message();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
     java.util.Set<String> cfpUserIds = currentUserIds(email, sub);
-    CfpSubmissionService.MineStats cfpMineStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+    CfpSubmissionService.MineStats cfpVisibleMineStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
     CfpOverview cfpOverview = new CfpOverview(
-        cfpMineStats.total(),
-        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
-        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
-        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
-        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
-        cfpMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
-        cfpMineStats.distinctEvents());
+        cfpVisibleMineStats.total(),
+        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
+        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
+        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
+        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
+        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
+        cfpVisibleMineStats.distinctEvents());
     java.util.List<CfpSubmissionItem> cfpRecentSubmissions =
         cfpSubmissionService
             .listMineAcrossEvents(cfpUserIds, CfpSubmissionService.SortOrder.UPDATED_DESC, 10, 0)
@@ -853,7 +853,7 @@ public class ProfileResource {
         event != null && event.getTitle() != null && !event.getTitle().isBlank() ? event.getTitle() : eventId;
     Instant updatedAt = submission.updatedAt() != null ? submission.updatedAt() : submission.createdAt();
     String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
-    String status = submission.status() != null ? submission.status().apiValue() : CfpSubmissionStatus.PENDING.apiValue();
+    String status = cfpSubmissionService.visibleStatus(submission).apiValue();
     return new CfpSubmissionItem(
         submission.id(),
         eventId,

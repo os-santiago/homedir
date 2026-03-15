@@ -1129,6 +1129,12 @@ public interface AppMessages {
     @Message("Not selected for this edition.")
     String events_cfp_status_desc_rejected();
 
+    @Message("Published decision")
+    String events_cfp_result_message_label();
+
+    @Message("Published")
+    String events_cfp_result_published_label();
+
     @Message("Testing")
     String events_cfp_testing_badge();
 
@@ -1264,6 +1270,42 @@ public interface AppMessages {
     @Message("Event override: OFF")
     String events_cfp_admin_event_config_summary_override_off();
 
+    @Message("CFP: publish results")
+    String events_cfp_admin_results_title();
+
+    @Message("Keep internal decisions hidden while proposals stay under review publicly, then publish the final outcome for everyone at once.")
+    String events_cfp_admin_results_desc();
+
+    @Message("Acceptance message")
+    String events_cfp_admin_results_accept_message();
+
+    @Message("Rejection message")
+    String events_cfp_admin_results_reject_message();
+
+    @Message("Publish results")
+    String events_cfp_admin_results_publish();
+
+    @Message("Results published.")
+    String events_cfp_admin_results_published();
+
+    @Message("Could not publish CFP results right now.")
+    String events_cfp_admin_results_error();
+
+    @Message("Public results: published")
+    String events_cfp_admin_results_summary_published();
+
+    @Message("Public results: hidden")
+    String events_cfp_admin_results_summary_hidden();
+
+    @Message("Accepted")
+    String events_cfp_admin_results_summary_accept_count();
+
+    @Message("Rejected")
+    String events_cfp_admin_results_summary_reject_count();
+
+    @Message("by")
+    String events_cfp_admin_results_summary_by();
+
     @Message("CFP Moderation · {event}")
     String events_cfp_admin_moderation_page_title(String event);
 
@@ -1362,6 +1404,9 @@ public interface AppMessages {
 
     @Message("Status:")
     String events_cfp_admin_label_status();
+
+    @Message("Visible now:")
+    String events_cfp_admin_public_status_label();
 
     @Message("Sort:")
     String events_cfp_admin_label_sort();

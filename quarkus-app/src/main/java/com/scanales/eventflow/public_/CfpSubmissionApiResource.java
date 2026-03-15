@@ -107,7 +107,9 @@ public class CfpSubmissionApiResource {
       metrics.recordFunnelStep("cfp_submit");
       gamificationService.award(primaryUserId, GamificationActivity.CFP_SUBMIT, eventId);
       cfpInsightsService.recordSubmissionCreated(submission);
-      return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
+      return Response.status(Response.Status.CREATED)
+          .entity(new SubmissionResponse(toViewerView(submission, userIds)))
+          .build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status status =
           ("proposal_limit_reached".equals(e.getMessage())
@@ -141,7 +143,7 @@ public class CfpSubmissionApiResource {
     List<SubmissionView> items =
         cfpSubmissionService.listMine(eventId, userIds, limit, offset).stream()
             .map(item -> safeRefreshPanelists(eventId, item))
-            .map(item -> toView(item, userIds))
+            .map(item -> toViewerView(item, userIds))
             .toList();
     int total = cfpSubmissionService.countMine(eventId, userIds);
     int ownedTotal = cfpSubmissionService.countMineOwned(eventId, userIds);
@@ -231,6 +233,51 @@ public class CfpSubmissionApiResource {
                   resolved.eventId(),
                   cleared,
                   toEventConfigView(resolved)))
+          .build();
+    } catch (CfpEventConfigService.ValidationException e) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+    }
+  }
+
+  @POST
+  @Path("/publish-results")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response publishResults(
+      @PathParam("eventId") String eventId, PublishResultsRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    try {
+      CfpEventConfig config =
+          cfpEventConfigService.publishResults(
+              eventId,
+              currentUserId().orElse("admin"),
+              request != null ? request.acceptedMessage() : null,
+              request != null ? request.rejectedMessage() : null);
+      List<CfpSubmission> submissions =
+          cfpSubmissionService.listByEventAll(eventId, Optional.empty(), CfpSubmissionService.SortOrder.UPDATED_DESC);
+      int acceptedPublished = 0;
+      int rejectedPublished = 0;
+      for (CfpSubmission submission : submissions) {
+        CfpSubmissionStatus visibleStatus = cfpSubmissionService.visibleStatus(submission);
+        if (visibleStatus == CfpSubmissionStatus.ACCEPTED) {
+          applyAcceptedPublicationSideEffects(submission);
+          acceptedPublished++;
+        } else if (visibleStatus == CfpSubmissionStatus.REJECTED) {
+          rejectedPublished++;
+        }
+      }
+      metrics.recordFunnelStep("cfp.results.publish");
+      return Response.ok(
+              new PublishResultsResponse(
+                  eventId,
+                  acceptedPublished,
+                  rejectedPublished,
+                  config.resultsPublishedAt(),
+                  config.resultsPublishedBy(),
+                  config.acceptedResultsMessage(),
+                  config.rejectedResultsMessage()))
           .build();
     } catch (CfpEventConfigService.ValidationException e) {
       return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
@@ -358,7 +405,7 @@ public class CfpSubmissionApiResource {
     }
     try {
       CfpSubmission deleted = cfpSubmissionService.delete(eventId, id);
-      return Response.ok(new SubmissionResponse(toView(deleted))).build();
+      return Response.ok(new SubmissionResponse(admin ? toAdminView(deleted) : toViewerView(deleted, userIds))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
@@ -419,7 +466,7 @@ public class CfpSubmissionApiResource {
             .listByEvent(eventId, statusFilter, moderationFilter, sortOrder, limit, offset)
             .stream()
             .map(item -> safeRefreshPanelists(eventId, item))
-            .map(this::toView)
+            .map(this::toAdminView)
             .toList();
     int total = cfpSubmissionService.countByEvent(eventId, statusFilter, moderationFilter);
     boolean hasMore = offset + items.size() < total;
@@ -440,7 +487,7 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
     }
     CfpSubmission refreshed = safeRefreshPanelists(eventId, existing.get());
-    return Response.ok(new SubmissionResponse(toView(refreshed))).build();
+    return Response.ok(new SubmissionResponse(toAdminView(refreshed))).build();
   }
 
   @GET
@@ -508,38 +555,12 @@ public class CfpSubmissionApiResource {
               request != null ? request.expectedUpdatedAt() : null);
       metrics.recordFunnelStep("cfp.submission.status");
       metrics.recordFunnelStep("cfp.submission.status." + status.get().apiValue());
-      if (status.get() == CfpSubmissionStatus.ACCEPTED) {
-        metrics.recordFunnelStep("cfp_approved");
-        gamificationService.award(updated.proposerUserId(), GamificationActivity.CFP_ACCEPTED, updated.id());
-        userProfileService.activateSpeakerProfile(
-            updated.proposerUserId(),
-            updated.proposerName() != null ? updated.proposerName() : updated.proposerUserId(),
-            updated.proposerUserId());
-        eventOperationsService.upsertStaff(
-            updated.eventId(),
-            updated.proposerUserId(),
-            updated.proposerName(),
-            EventStaffRole.SPEAKER,
-            "cfp_acceptance",
-            true);
-        updated = cfpSubmissionService.refreshPanelistsLinkState(eventId, id);
-        if (updated.panelists() != null) {
-          for (CfpPanelist panelist : updated.panelists()) {
-            if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
-              continue;
-            }
-            eventOperationsService.upsertStaff(
-                updated.eventId(),
-                panelist.userId(),
-                panelist.name(),
-                EventStaffRole.SPEAKER,
-                "cfp_panelist",
-                true);
-          }
-        }
+      if (status.get() == CfpSubmissionStatus.ACCEPTED && cfpSubmissionService.areResultsPublished(eventId)) {
+        updated = safeRefreshPanelists(eventId, updated);
+        applyAcceptedPublicationSideEffects(updated);
       }
       cfpInsightsService.recordStatusChange(existing.get(), updated);
-      return Response.ok(new SubmissionResponse(toView(updated))).build();
+      return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.InvalidTransitionException e) {
@@ -580,7 +601,7 @@ public class CfpSubmissionApiResource {
               currentUserId().orElse("admin"),
               request.expectedUpdatedAt());
       cfpInsightsService.recordRatingUpdated(updated);
-      return Response.ok(new SubmissionResponse(toView(updated))).build();
+      return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.ValidationException e) {
@@ -628,7 +649,7 @@ public class CfpSubmissionApiResource {
               panelists,
               currentUserId().orElse(existing.get().proposerUserId()),
               request != null ? request.expectedUpdatedAt() : null);
-      if (updated.status() == CfpSubmissionStatus.ACCEPTED && updated.panelists() != null) {
+      if (cfpSubmissionService.visibleStatus(updated) == CfpSubmissionStatus.ACCEPTED && updated.panelists() != null) {
         for (CfpPanelist panelist : updated.panelists()) {
           if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
             continue;
@@ -643,7 +664,7 @@ public class CfpSubmissionApiResource {
         }
       }
       metrics.recordFunnelStep("cfp.submission.panelists.update");
-      return Response.ok(new SubmissionResponse(toView(updated, userIds))).build();
+      return Response.ok(new SubmissionResponse(toViewerView(updated, userIds))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status statusCode =
           "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
@@ -701,7 +722,7 @@ public class CfpSubmissionApiResource {
               currentUserId().orElse(existing.get().proposerUserId()),
               expectedUpdatedAt);
       metrics.recordFunnelStep("cfp.submission.presentation.upload");
-      return Response.ok(new SubmissionResponse(toView(updated, userIds))).build();
+      return Response.ok(new SubmissionResponse(toViewerView(updated, userIds))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status statusCode =
           "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
@@ -728,7 +749,7 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
     }
     CfpSubmission submission = existing.get();
-    if (submission.status() != CfpSubmissionStatus.ACCEPTED) {
+    if (cfpSubmissionService.visibleStatus(submission) != CfpSubmissionStatus.ACCEPTED) {
       return Response.status(Response.Status.CONFLICT).entity(Map.of("error", "submission_not_accepted")).build();
     }
 
@@ -771,7 +792,12 @@ public class CfpSubmissionApiResource {
         config.closesAt(),
         config.maxSubmissionsPerUserPerEvent(),
         config.testingModeEnabled(),
-        null);
+        null,
+        config.resultsPublishedAt() != null,
+        config.resultsPublishedAt(),
+        config.resultsPublishedBy(),
+        config.acceptedResultsMessage(),
+        config.rejectedResultsMessage());
   }
 
   private static EventSubmissionConfigView toEventConfigView(CfpEventConfigService.ResolvedEventConfig config) {
@@ -781,7 +807,12 @@ public class CfpSubmissionApiResource {
         config.closesAt(),
         config.maxSubmissionsPerUserPerEvent(),
         config.testingModeEnabled(),
-        config.currentlyOpen());
+        config.currentlyOpen(),
+        config.resultsPublished(),
+        config.resultsPublishedAt(),
+        config.resultsPublishedBy(),
+        config.acceptedResultsMessage(),
+        config.rejectedResultsMessage());
   }
 
   private SubmissionLimitConfigResponse toSubmissionLimitConfigResponse(String eventId, boolean admin) {
@@ -799,11 +830,15 @@ public class CfpSubmissionApiResource {
         resolved.hasOverride());
   }
 
-  private SubmissionView toView(CfpSubmission submission) {
-    return toView(submission, Set.of());
+  private SubmissionView toAdminView(CfpSubmission submission) {
+    return toView(submission, Set.of(), true);
   }
 
-  private SubmissionView toView(CfpSubmission submission, Set<String> viewerUserIds) {
+  private SubmissionView toViewerView(CfpSubmission submission, Set<String> viewerUserIds) {
+    return toView(submission, viewerUserIds, false);
+  }
+
+  private SubmissionView toView(CfpSubmission submission, Set<String> viewerUserIds, boolean adminView) {
     List<PanelistView> panelists =
         submission.panelists() == null
             ? List.of()
@@ -816,6 +851,12 @@ public class CfpSubmissionApiResource {
     PresentationAssetView presentationAsset = toPresentationAssetView(submission.presentationAsset());
     String viewerRole = resolveViewerRole(submission, viewerUserIds);
     boolean canEdit = "owner".equals(viewerRole);
+    CfpSubmissionStatus internalStatus =
+        submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
+    CfpSubmissionStatus publicStatus = cfpSubmissionService.visibleStatus(submission);
+    String resultMessage = cfpSubmissionService.resultMessage(submission);
+    Instant resultsPublishedAt = cfpSubmissionService.resultsPublishedAt(submission.eventId());
+    boolean resultsPublished = resultsPublishedAt != null;
     return new SubmissionView(
         submission.id(),
         submission.eventId(),
@@ -831,7 +872,9 @@ public class CfpSubmissionApiResource {
         submission.track(),
         submission.tags(),
         submission.links(),
-        submission.status().apiValue(),
+        (adminView ? internalStatus : publicStatus).apiValue(),
+        internalStatus.apiValue(),
+        publicStatus.apiValue(),
         submission.createdAt(),
         submission.updatedAt(),
         submission.moderatedAt(),
@@ -844,6 +887,9 @@ public class CfpSubmissionApiResource {
         panelists,
         pendingPanelists,
         presentationAsset,
+        resultsPublished,
+        resultsPublishedAt,
+        resultMessage,
         viewerRole,
         canEdit);
   }
@@ -879,7 +925,8 @@ public class CfpSubmissionApiResource {
     }
     try {
       CfpSubmission refreshed = cfpSubmissionService.refreshPanelistsLinkState(eventId, submission.id());
-      if (refreshed.status() == CfpSubmissionStatus.ACCEPTED && refreshed.panelists() != null) {
+      if (cfpSubmissionService.visibleStatus(refreshed) == CfpSubmissionStatus.ACCEPTED
+          && refreshed.panelists() != null) {
         for (CfpPanelist panelist : refreshed.panelists()) {
           if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
             continue;
@@ -973,7 +1020,7 @@ public class CfpSubmissionApiResource {
 
   private static Optional<CfpSubmissionStatus> parseStatusFilter(String status) {
     if (status == null || status.isBlank()) {
-      return Optional.of(CfpSubmissionStatus.PENDING);
+      return Optional.of(CfpSubmissionStatus.UNDER_REVIEW);
     }
     if ("all".equalsIgnoreCase(status.trim())) {
       return Optional.empty();
@@ -995,10 +1042,10 @@ public class CfpSubmissionApiResource {
     return null;
   }
 
-  private static String buildCsv(List<CfpSubmission> items) {
+  private String buildCsv(List<CfpSubmission> items) {
     StringBuilder csv = new StringBuilder();
     csv.append(
-            "id,event_id,title,status,proposer_user_id,proposer_name,created_at,updated_at,moderated_at,moderated_by,"
+            "id,event_id,title,status,public_status,proposer_user_id,proposer_name,created_at,updated_at,moderated_at,moderated_by,"
                 + "level,format,duration_min,language,track,"
                 + "rating_technical_detail,rating_narrative,rating_content_impact,rating_weighted,"
                 + "panelists_count,panelists_pending,presentation_file,moderation_note,links")
@@ -1018,6 +1065,7 @@ public class CfpSubmissionApiResource {
           .append(csvValue(item.eventId())).append(',')
           .append(csvValue(item.title())).append(',')
           .append(csvValue(item.status() != null ? item.status().apiValue() : null)).append(',')
+          .append(csvValue(cfpSubmissionService.visibleStatus(item).apiValue())).append(',')
           .append(csvValue(item.proposerUserId())).append(',')
           .append(csvValue(item.proposerName())).append(',')
           .append(csvValue(item.createdAt() != null ? item.createdAt().toString() : null)).append(',')
@@ -1062,6 +1110,52 @@ public class CfpSubmissionApiResource {
 
   private static int normalizeLimit(Integer rawLimit) {
     return PaginationGuardrails.clampLimit(rawLimit, DEFAULT_LIMIT, MAX_LIMIT);
+  }
+
+  private void applyAcceptedPublicationSideEffects(CfpSubmission submission) {
+    if (submission == null || submission.proposerUserId() == null || submission.proposerUserId().isBlank()) {
+      return;
+    }
+    if (!alreadyAwardedAccepted(submission.proposerUserId(), submission.id())) {
+      gamificationService.award(submission.proposerUserId(), GamificationActivity.CFP_ACCEPTED, submission.id());
+      metrics.recordFunnelStep("cfp_approved");
+    }
+    userProfileService.activateSpeakerProfile(
+        submission.proposerUserId(),
+        submission.proposerName() != null ? submission.proposerName() : submission.proposerUserId(),
+        submission.proposerUserId());
+    eventOperationsService.upsertStaff(
+        submission.eventId(),
+        submission.proposerUserId(),
+        submission.proposerName(),
+        EventStaffRole.SPEAKER,
+        "cfp_acceptance",
+        true);
+    if (submission.panelists() == null) {
+      return;
+    }
+    for (CfpPanelist panelist : submission.panelists()) {
+      if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
+        continue;
+      }
+      eventOperationsService.upsertStaff(
+          submission.eventId(),
+          panelist.userId(),
+          panelist.name(),
+          EventStaffRole.SPEAKER,
+          "cfp_panelist",
+          true);
+    }
+  }
+
+  private boolean alreadyAwardedAccepted(String userId, String submissionId) {
+    if (userId == null || userId.isBlank() || submissionId == null || submissionId.isBlank()) {
+      return false;
+    }
+    return userProfileService
+        .find(userId)
+        .map(profile -> profile.hasHistoryTitle(GamificationActivity.CFP_ACCEPTED.title() + " · " + submissionId))
+        .orElse(false);
   }
 
   private static String buildSpeakerId(CfpSubmission submission) {
@@ -1267,6 +1361,10 @@ public class CfpSubmissionApiResource {
       String note,
       @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
+  public record PublishResultsRequest(
+      @JsonProperty("accepted_message") String acceptedMessage,
+      @JsonProperty("rejected_message") String rejectedMessage) {}
+
   public record UpdateRatingRequest(
       @JsonProperty("technical_detail") Integer technicalDetail,
       Integer narrative,
@@ -1324,7 +1422,12 @@ public class CfpSubmissionApiResource {
       @JsonProperty("closes_at") Instant closesAt,
       @JsonProperty("max_per_user") Integer maxPerUser,
       @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled,
-      @JsonProperty("currently_open") Boolean currentlyOpen) {}
+      @JsonProperty("currently_open") Boolean currentlyOpen,
+      @JsonProperty("results_published") boolean resultsPublished,
+      @JsonProperty("results_published_at") Instant resultsPublishedAt,
+      @JsonProperty("results_published_by") String resultsPublishedBy,
+      @JsonProperty("accepted_results_message") String acceptedResultsMessage,
+      @JsonProperty("rejected_results_message") String rejectedResultsMessage) {}
 
   public record EventSubmissionConfigResponse(
       @JsonProperty("event_id") String eventId,
@@ -1336,6 +1439,15 @@ public class CfpSubmissionApiResource {
       @JsonProperty("event_id") String eventId,
       boolean cleared,
       EventSubmissionConfigView effective) {}
+
+  public record PublishResultsResponse(
+      @JsonProperty("event_id") String eventId,
+      @JsonProperty("accepted_published") int acceptedPublished,
+      @JsonProperty("rejected_published") int rejectedPublished,
+      @JsonProperty("results_published_at") Instant resultsPublishedAt,
+      @JsonProperty("results_published_by") String resultsPublishedBy,
+      @JsonProperty("accepted_message") String acceptedMessage,
+      @JsonProperty("rejected_message") String rejectedMessage) {}
 
   public record StorageHealthResponse(
       @JsonProperty("primary_path") String primaryPath,
@@ -1410,6 +1522,8 @@ public class CfpSubmissionApiResource {
       List<String> tags,
       List<String> links,
       String status,
+      @JsonProperty("internal_status") String internalStatus,
+      @JsonProperty("public_status") String publicStatus,
       @JsonProperty("created_at") Instant createdAt,
       @JsonProperty("updated_at") Instant updatedAt,
       @JsonProperty("moderated_at") Instant moderatedAt,
@@ -1422,6 +1536,9 @@ public class CfpSubmissionApiResource {
       List<PanelistView> panelists,
       @JsonProperty("pending_panelists") int pendingPanelists,
       @JsonProperty("presentation_asset") PresentationAssetView presentationAsset,
+      @JsonProperty("results_published") boolean resultsPublished,
+      @JsonProperty("results_published_at") Instant resultsPublishedAt,
+      @JsonProperty("result_message") String resultMessage,
       @JsonProperty("viewer_role") String viewerRole,
       @JsonProperty("can_edit") boolean canEdit) {}
 

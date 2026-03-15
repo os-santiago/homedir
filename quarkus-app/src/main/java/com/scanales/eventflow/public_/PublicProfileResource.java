@@ -122,13 +122,13 @@ public class PublicProfileResource {
         boolean hasDiscord = resolved.discordHandle() != null || resolved.discordProfileUrl() != null;
         java.util.Set<String> cfpUserIds = resolveCfpUserIds(profile, resolved.userId());
         boolean hasProfileGlow = hasInventoryItem(cfpUserIds, "profile-glow");
-        CfpSubmissionService.MineStats cfpStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+        CfpSubmissionService.MineStats cfpStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
         int cfpAcceptedCount = cfpStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
         List<PublicCfpItem> cfpRecentAccepted =
             cfpSubmissionService
                 .listMineAcrossEvents(cfpUserIds, CfpSubmissionService.SortOrder.UPDATED_DESC, 12, 0)
                 .stream()
-                .filter(item -> item.status() == CfpSubmissionStatus.ACCEPTED)
+                .filter(item -> cfpSubmissionService.visibleStatus(item) == CfpSubmissionStatus.ACCEPTED)
                 .limit(3)
                 .map(this::toPublicCfpItem)
                 .toList();
