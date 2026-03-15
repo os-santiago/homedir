@@ -123,6 +123,9 @@ public class PublicPagesResource {
             .flatMap(userProfileService::find)
             .map(profile -> profile.getDiscord() != null && profile.hasDiscord())
             .orElse(false);
+    int homeStarterRemainingXp =
+        starterXpRemaining(homeAccountHasGithub, homeAccountHasDiscord, homeStarterHasVote);
+    int homeStarterRemainingHcoin = economyService.previewGamificationReward(homeStarterRemainingXp);
     int homeLinkedSignals = 1 + (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0);
     int homeStarterCompleted =
         (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0) + (homeStarterHasVote ? 1 : 0);
@@ -153,6 +156,9 @@ public class PublicPagesResource {
             .data("homeLinkedSignals", homeLinkedSignals)
             .data("homeStarterHasVote", homeStarterHasVote)
             .data("homeStarterCompleted", homeStarterCompleted)
+            .data("homeStarterRemainingXp", homeStarterRemainingXp)
+            .data("homeStarterRemainingHcoin", homeStarterRemainingHcoin)
+            .data("homeStarterAllDone", homeStarterCompleted >= 3)
             .data("homeWalletBalance", homeWalletBalance)
             .data("homeInventoryCount", homeInventoryCount)
             .data("homeRewardsCatalogCount", homeRewardsCatalogCount)
@@ -272,5 +278,20 @@ public class PublicPagesResource {
 
   private int toIntSafely(long value) {
     return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.max(0, value);
+  }
+
+  private int starterXpRemaining(
+      boolean homeAccountHasGithub, boolean homeAccountHasDiscord, boolean homeStarterHasVote) {
+    int total = 0;
+    if (!homeAccountHasGithub) {
+      total += GamificationActivity.GITHUB_LINKED.xp();
+    }
+    if (!homeAccountHasDiscord) {
+      total += GamificationActivity.DISCORD_LINKED.xp();
+    }
+    if (!homeStarterHasVote) {
+      total += GamificationActivity.COMMUNITY_VOTE.xp();
+    }
+    return total;
   }
 }
