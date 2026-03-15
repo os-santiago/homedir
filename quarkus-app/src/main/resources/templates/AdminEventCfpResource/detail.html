@@ -457,7 +457,7 @@
           const btn = event.currentTarget;
           btn.disabled = true;
           const noteValue = note.value;
-        try {
+          try {
             const payload = await updateStatus(targetStatus, noteValue, currentItem.updated_at);
             if (payload && payload.item) {
               currentItem = payload.item;
