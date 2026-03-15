@@ -1,26 +1,31 @@
-{#include layout/main}
+{#include layout/main mainClass="admin-context-main"}
 
 {#title}Guía de administración · Homedir{/title}
 
 {#body}
 <section class="page-header">
   <div class="container">
-    <h1 class="page-title">Guía de administración</h1>
-    <p class="section-subtitle">Este panel permite gestionar eventos, oradores, métricas y respaldos.</p>
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading section-header hd-section-heading">
+        <p class="section-subtitle">Administración</p>
+        <h1>Guía de administración</h1>
+        <p class="section-subtitle">Este panel permite gestionar eventos, oradores, métricas y respaldos.</p>
+      </div>
+      <div class="admin-shell-actions">
+        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
+      </div>
+    </div>
   </div>
 </section>
 
-<div class="container">
-  <div class="card">
+<div class="container admin-shell-stack">
+  <div class="admin-shell-panel">
     <ul class="u-p-2" style="list-style-position: inside; line-height: 1.8;">
       <li>Revisa <strong>Eventos</strong> para crear o modificar eventos.</li>
       <li>Administra <strong>Oradores</strong> vinculados a las charlas.</li>
       <li>Consulta <strong>Métricas</strong> para ver uso del sistema.</li>
       <li>Usa <strong>Respaldo de datos</strong> para exportar o importar información.</li>
     </ul>
-    <div class="u-mt-3">
-      <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
-    </div>
   </div>
 </div>
 {/body}

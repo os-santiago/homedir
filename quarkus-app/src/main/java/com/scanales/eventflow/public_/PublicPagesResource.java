@@ -3,8 +3,11 @@ package com.scanales.eventflow.public_;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.community.CommunityBoardService;
+import com.scanales.eventflow.community.CommunityBoardSummary;
 import com.scanales.eventflow.community.CommunityLightningService;
 import com.scanales.eventflow.community.CommunityVoteService;
+import com.scanales.eventflow.economy.EconomyService;
+import com.scanales.eventflow.economy.EconomyWallet;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.service.EventService;
@@ -70,6 +73,9 @@ public class PublicPagesResource {
   CommunityVoteService communityVoteService;
 
   @Inject
+  EconomyService economyService;
+
+  @Inject
   GamificationService gamificationService;
 
   @Inject
@@ -79,7 +85,8 @@ public class PublicPagesResource {
   public TemplateInstance home(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
+    var currentUserId = currentUserId();
+    currentUserId.ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
     int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
@@ -90,6 +97,7 @@ public class PublicPagesResource {
 
     List<CommunityContentItem> socialHighlights = communityContentService.listNew(3, 0);
     List<CommunityContentItem> allCommunityItems = communityContentService.allItems();
+    CommunityBoardSummary boardSummary = communityBoardService.summary();
     int socialHighlightsCount = communityContentService.metrics().cacheSize();
     Instant todayCutoff = Instant.now().minus(Duration.ofHours(24));
     long recentPicksCount =
@@ -103,20 +111,26 @@ public class PublicPagesResource {
             .count();
     int recentLtaThreads = communityLightningService.countPublishedSince(todayCutoff);
     long homeStarterVoteCount =
-        currentUserId().map(communityVoteService::countVotesByUser).orElse(0L);
+        currentUserId.map(communityVoteService::countVotesByUser).orElse(0L);
     boolean homeStarterHasVote = homeStarterVoteCount > 0L;
     boolean homeAccountHasGithub =
-        currentUserId()
+        currentUserId
             .flatMap(userProfileService::find)
             .map(profile -> profile.getGithub() != null && profile.hasGithub())
             .orElse(false);
     boolean homeAccountHasDiscord =
-        currentUserId()
+        currentUserId
             .flatMap(userProfileService::find)
             .map(profile -> profile.getDiscord() != null && profile.hasDiscord())
             .orElse(false);
+    int homeLinkedSignals = 1 + (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0);
     int homeStarterCompleted =
         (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0) + (homeStarterHasVote ? 1 : 0);
+    long homeWalletBalance =
+        currentUserId.map(economyService::getWallet).map(EconomyWallet::balanceHcoin).orElse(0L);
+    int homeInventoryCount =
+        currentUserId.map(userId -> economyService.listInventory(userId, 20, 0).size()).orElse(0);
+    int homeRewardsCatalogCount = economyService.listCatalog().size();
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -136,8 +150,13 @@ public class PublicPagesResource {
             .data("homeTodayLtaThreads", recentLtaThreads)
             .data("homeAccountHasGithub", homeAccountHasGithub)
             .data("homeAccountHasDiscord", homeAccountHasDiscord)
+            .data("homeLinkedSignals", homeLinkedSignals)
             .data("homeStarterHasVote", homeStarterHasVote)
             .data("homeStarterCompleted", homeStarterCompleted)
+            .data("homeWalletBalance", homeWalletBalance)
+            .data("homeInventoryCount", homeInventoryCount)
+            .data("homeRewardsCatalogCount", homeRewardsCatalogCount)
+            .data("homeBoardSummary", boardSummary)
             .data("noLoginModal", true),
         "home",
         localeCookie,

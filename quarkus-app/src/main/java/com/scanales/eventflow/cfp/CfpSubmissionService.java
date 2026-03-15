@@ -44,6 +44,12 @@ public class CfpSubmissionService {
     SCORE_DESC
   }
 
+  public record ModerationFilter(String proposedBy, String title, String track) {
+    public static ModerationFilter empty() {
+      return new ModerationFilter(null, null, null);
+    }
+  }
+
   @Inject PersistenceService persistenceService;
   @Inject EventService eventService;
   @Inject CfpFormOptionsService cfpFormOptionsService;
@@ -158,7 +164,7 @@ public class CfpSubmissionService {
               track,
               tags,
               links,
-              CfpSubmissionStatus.PENDING,
+              CfpSubmissionStatus.UNDER_REVIEW,
               now,
               now,
               null,
@@ -180,7 +186,13 @@ public class CfpSubmissionService {
       Optional<CfpSubmissionStatus> statusFilter,
       int requestedLimit,
       int requestedOffset) {
-    return listByEvent(eventId, statusFilter, SortOrder.CREATED_DESC, requestedLimit, requestedOffset);
+    return listByEvent(
+        eventId,
+        statusFilter,
+        ModerationFilter.empty(),
+        SortOrder.CREATED_DESC,
+        requestedLimit,
+        requestedOffset);
   }
 
   public List<CfpSubmission> listByEvent(
@@ -189,11 +201,33 @@ public class CfpSubmissionService {
       SortOrder sortOrder,
       int requestedLimit,
       int requestedOffset) {
-    return paginate(listByEventAll(eventId, statusFilter, sortOrder), requestedLimit, requestedOffset);
+    return listByEvent(
+        eventId, statusFilter, ModerationFilter.empty(), sortOrder, requestedLimit, requestedOffset);
+  }
+
+  public List<CfpSubmission> listByEvent(
+      String eventId,
+      Optional<CfpSubmissionStatus> statusFilter,
+      ModerationFilter moderationFilter,
+      SortOrder sortOrder,
+      int requestedLimit,
+      int requestedOffset) {
+    return paginate(
+        listByEventAll(eventId, statusFilter, moderationFilter, sortOrder),
+        requestedLimit,
+        requestedOffset);
   }
 
   public List<CfpSubmission> listByEventAll(
       String eventId, Optional<CfpSubmissionStatus> statusFilter, SortOrder sortOrder) {
+    return listByEventAll(eventId, statusFilter, ModerationFilter.empty(), sortOrder);
+  }
+
+  public List<CfpSubmission> listByEventAll(
+      String eventId,
+      Optional<CfpSubmissionStatus> statusFilter,
+      ModerationFilter moderationFilter,
+      SortOrder sortOrder) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -203,6 +237,7 @@ public class CfpSubmissionService {
       return submissions.values().stream()
           .filter(item -> normalizedEventId.equals(item.eventId()))
           .filter(item -> statusFilter.isEmpty() || item.status() == statusFilter.get())
+          .filter(item -> matchesModerationFilter(item, moderationFilter))
           .sorted(sortComparator(sortOrder))
           .toList();
     }
@@ -239,6 +274,13 @@ public class CfpSubmissionService {
   }
 
   public int countByEvent(String eventId, Optional<CfpSubmissionStatus> statusFilter) {
+    return countByEvent(eventId, statusFilter, ModerationFilter.empty());
+  }
+
+  public int countByEvent(
+      String eventId,
+      Optional<CfpSubmissionStatus> statusFilter,
+      ModerationFilter moderationFilter) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -251,6 +293,9 @@ public class CfpSubmissionService {
           continue;
         }
         if (statusFilter.isPresent() && item.status() != statusFilter.get()) {
+          continue;
+        }
+        if (!matchesModerationFilter(item, moderationFilter)) {
           continue;
         }
         count++;
@@ -329,6 +374,14 @@ public class CfpSubmissionService {
   }
 
   public MineStats statsMineAcrossEvents(Set<String> userIds) {
+    return statsMineAcrossEvents(userIds, false);
+  }
+
+  public MineStats visibleStatsMineAcrossEvents(Set<String> userIds) {
+    return statsMineAcrossEvents(userIds, true);
+  }
+
+  private MineStats statsMineAcrossEvents(Set<String> userIds, boolean visibleStatus) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       if (userIds == null || userIds.isEmpty()) {
@@ -350,7 +403,10 @@ public class CfpSubmissionService {
         if (item.eventId() != null && !item.eventId().isBlank()) {
           distinctEvents.add(item.eventId());
         }
-        CfpSubmissionStatus status = item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
+        CfpSubmissionStatus status =
+            visibleStatus
+                ? visibleStatus(item)
+                : (item.status() != null ? item.status() : CfpSubmissionStatus.PENDING);
         counts.merge(status, 1, Integer::sum);
         Instant updated = item.updatedAt() != null ? item.updatedAt() : item.createdAt();
         if (updated != null && (latestUpdatedAt == null || updated.isAfter(latestUpdatedAt))) {
@@ -616,7 +672,7 @@ public class CfpSubmissionService {
         throw new NotFoundException("submission_not_found");
       }
       validateExpectedUpdatedAt(current, expectedUpdatedAt);
-      if (current.status() != CfpSubmissionStatus.ACCEPTED) {
+      if (!isPresentationUploadAllowed(current)) {
         throw new ValidationException("presentation_requires_accepted_submission");
       }
       CfpPresentationAsset sanitized = sanitizePresentationAsset(presentationAsset, actorUserId);
@@ -895,6 +951,63 @@ public class CfpSubmissionService {
     return cfpConfigService != null ? cfpConfigService.currentMaxSubmissionsPerUserPerEvent() : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
   }
 
+  public CfpSubmissionStatus visibleStatus(CfpSubmission submission) {
+    if (submission == null) {
+      return CfpSubmissionStatus.PENDING;
+    }
+    CfpSubmissionStatus internal = submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
+    if (internal == CfpSubmissionStatus.ACCEPTED || internal == CfpSubmissionStatus.REJECTED) {
+      CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(submission.eventId());
+      if (!eventConfig.resultsPublished()) {
+        return CfpSubmissionStatus.UNDER_REVIEW;
+      }
+    }
+    return internal;
+  }
+
+  public String resultMessage(CfpSubmission submission) {
+    if (submission == null) {
+      return null;
+    }
+    CfpSubmissionStatus visibleStatus = visibleStatus(submission);
+    CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(submission.eventId());
+    if (!eventConfig.resultsPublished()) {
+      return null;
+    }
+    return switch (visibleStatus) {
+      case ACCEPTED -> sanitizeText(eventConfig.acceptedResultsMessage(), 1200);
+      case REJECTED -> sanitizeText(eventConfig.rejectedResultsMessage(), 1200);
+      default -> null;
+    };
+  }
+
+  public boolean areResultsPublished(String eventId) {
+    return resolveEventConfig(eventId).resultsPublished();
+  }
+
+  public Instant resultsPublishedAt(String eventId) {
+    return resolveEventConfig(eventId).resultsPublishedAt();
+  }
+
+  public boolean isPresentationUploadAllowed(CfpSubmission submission) {
+    return visibleStatus(submission) == CfpSubmissionStatus.ACCEPTED;
+  }
+
+  public List<CfpSubmission> acceptedVisibleSubmissionsForEvent(String eventId) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        return List.of();
+      }
+      return submissions.values().stream()
+          .filter(item -> normalizedEventId.equals(item.eventId()))
+          .filter(item -> visibleStatus(item) == CfpSubmissionStatus.ACCEPTED)
+          .sorted(sortComparator(SortOrder.UPDATED_DESC))
+          .toList();
+    }
+  }
+
   public int updateMaxSubmissionsPerUserPerEvent(int requestedLimit) {
     return cfpConfigService != null ? cfpConfigService.updateMaxSubmissionsPerUserPerEvent(requestedLimit) : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
   }
@@ -1025,7 +1138,7 @@ public class CfpSubmissionService {
         cfpConfigService != null
             ? cfpConfigService.current()
             : CfpConfig.defaults(DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT, true);
-    return new CfpEventConfigService.ResolvedEventConfig(
+      return new CfpEventConfigService.ResolvedEventConfig(
         eventId,
         false,
         true,
@@ -1033,7 +1146,12 @@ public class CfpSubmissionService {
         null,
         global.maxSubmissionsPerUserPerEvent(),
         global.testingModeEnabled(),
-        true);
+        true,
+        false,
+        null,
+        null,
+        null,
+        null);
   }
 
   private static String normalizeTitleForComparison(String raw) {
@@ -1159,6 +1277,46 @@ public class CfpSubmissionService {
     }
     int end = Math.min(source.size(), offset + limit);
     return source.subList(offset, end);
+  }
+
+  private static boolean matchesModerationFilter(
+      CfpSubmission item, ModerationFilter moderationFilter) {
+    if (item == null || moderationFilter == null) {
+      return true;
+    }
+    String proposedBy = normalizeSearchToken(moderationFilter.proposedBy());
+    if (proposedBy != null
+        && !containsIgnoreCase(item.proposerName(), proposedBy)
+        && !containsIgnoreCase(item.proposerUserId(), proposedBy)) {
+      return false;
+    }
+    String title = normalizeSearchToken(moderationFilter.title());
+    if (title != null && !containsIgnoreCase(item.title(), title)) {
+      return false;
+    }
+    String track = normalizeSearchToken(moderationFilter.track());
+    if (track != null && !containsIgnoreCase(item.track(), track)) {
+      return false;
+    }
+    return true;
+  }
+
+  private static boolean containsIgnoreCase(String value, String query) {
+    if (query == null) {
+      return true;
+    }
+    if (value == null || value.isBlank()) {
+      return false;
+    }
+    return value.toLowerCase(Locale.ROOT).contains(query);
+  }
+
+  private static String normalizeSearchToken(String value) {
+    if (value == null) {
+      return null;
+    }
+    String normalized = value.trim().toLowerCase(Locale.ROOT);
+    return normalized.isEmpty() ? null : normalized;
   }
 
   private static Set<String> normalizeUserIds(Set<String> userIds) {

@@ -2,6 +2,7 @@ package com.scanales.eventflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.eventflow.model.Speaker;
+import com.scanales.eventflow.observability.BusinessObservabilityTaxonomy;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.PostConstruct;
@@ -12,8 +13,10 @@ import jakarta.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,13 +32,17 @@ import org.jboss.logging.Logger;
 public class UsageMetricsService {
 
   private static final Logger LOG = Logger.getLogger(UsageMetricsService.class);
-  private static final int CURRENT_SCHEMA_VERSION = 2;
+  private static final int CURRENT_SCHEMA_VERSION = 3;
 
   private final Map<String, Long> counters = new ConcurrentHashMap<>();
   private final Map<String, Long> talkViews = new ConcurrentHashMap<>();
   private final Map<String, Long> eventViews = new ConcurrentHashMap<>();
   private final Map<String, Long> stageVisits = new ConcurrentHashMap<>();
   private final Map<String, Long> pageViews = new ConcurrentHashMap<>();
+  private final Map<String, Long> moduleHourly = new ConcurrentHashMap<>();
+  private final Map<String, Long> actionHourly = new ConcurrentHashMap<>();
+  private final Map<String, Long> moduleLastSeen = new ConcurrentHashMap<>();
+  private final Map<String, Long> actionLastSeen = new ConcurrentHashMap<>();
   private final Map<String, RateLimiter> rates = new ConcurrentHashMap<>();
   private final Map<String, LongAdder> discardedByReason = new ConcurrentHashMap<>();
   private final Map<String, Set<Registrant>> registrations = new ConcurrentHashMap<>();
@@ -55,8 +62,10 @@ public class UsageMetricsService {
 
   private Path metricsV1Path;
   private Path metricsV2Path;
+  private Path businessObservabilityV1Path;
   private Path metricsPath;
   private boolean migrateFromV1;
+  private boolean migrateObservabilityV1;
   private int schemaVersion = CURRENT_SCHEMA_VERSION;
   private long lastFileSizeBytes;
 
@@ -97,11 +106,13 @@ public class UsageMetricsService {
   @ConfigProperty(name = "metrics.log.buffer-full-cooldown", defaultValue = "PT30S")
   Duration bufferFullLogCooldown;
 
+  @ConfigProperty(name = "observability.business.retention-hours", defaultValue = "336")
+  int observabilityRetentionHours;
+
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDir = "data";
 
-  @Inject
-  ObjectMapper mapper;
+  @Inject ObjectMapper mapper;
 
   @PostConstruct
   void init() {
@@ -111,6 +122,8 @@ public class UsageMetricsService {
     }
     this.metricsV1Path = Paths.get(dataDir, "metrics-v1.json");
     this.metricsV2Path = Paths.get(dataDir, "metrics-v2.json");
+    this.businessObservabilityV1Path =
+        Paths.get(dataDir, "observability", "business-observability-v1.json");
     load();
     lastFlushTime = System.currentTimeMillis();
     scheduler.scheduleWithFixedDelay(
@@ -186,6 +199,12 @@ public class UsageMetricsService {
                 registrations.put(talkId, set);
               });
         }
+        restoreObservability(data.get("observability"));
+      }
+      if (moduleHourly.isEmpty()
+          && actionHourly.isEmpty()
+          && Files.exists(businessObservabilityV1Path)) {
+        importLegacyObservabilityLedger();
       }
     } catch (Exception e) {
       LOG.warn("Failed to load metrics", e);
@@ -198,6 +217,18 @@ public class UsageMetricsService {
       return discarded.values().stream().mapToLong(Long::longValue).sum();
     }
   }
+
+  public record ObservabilitySeriesSnapshot(
+      String code, List<Long> counts, long total, long previousTotal, Long trendPct, Long lastSeenAt) {}
+
+  public record ObservabilityWindow(
+      long generatedAtMillis,
+      int windowHours,
+      List<String> hourLabels,
+      List<ObservabilitySeriesSnapshot> modules,
+      List<ObservabilitySeriesSnapshot> actions,
+      long interactionsLastWindow,
+      long interactionsPreviousWindow) {}
 
   public Summary getSummary() {
     try {
@@ -216,6 +247,48 @@ public class UsageMetricsService {
   /** Size in bytes of the last flushed metrics file. */
   public long getFileSizeBytes() {
     return lastFileSizeBytes;
+  }
+
+  public ObservabilityWindow observabilityWindow(int hours) {
+    int retention = Math.max(24, observabilityRetentionHours);
+    int safeHours = Math.max(6, Math.min(hours, retention));
+    long latestEpochHour = currentEpochHour(Instant.now());
+    long firstEpochHour = latestEpochHour - safeHours + 1L;
+    long previousFirstEpochHour = firstEpochHour - safeHours;
+    List<String> hourLabels = new ArrayList<>(safeHours);
+    for (long bucket = firstEpochHour; bucket <= latestEpochHour; bucket++) {
+      hourLabels.add(
+          java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+              .withZone(ZoneOffset.UTC)
+              .format(Instant.ofEpochSecond(bucket * 3600L)));
+    }
+    List<ObservabilitySeriesSnapshot> modules =
+        buildObservabilitySeries(
+            BusinessObservabilityTaxonomy.moduleOrder(),
+            moduleHourly,
+            moduleLastSeen,
+            firstEpochHour,
+            latestEpochHour,
+            previousFirstEpochHour);
+    List<ObservabilitySeriesSnapshot> actions =
+        buildObservabilitySeries(
+            BusinessObservabilityTaxonomy.actionOrder(),
+            actionHourly,
+            actionLastSeen,
+            firstEpochHour,
+            latestEpochHour,
+            previousFirstEpochHour);
+    long interactionsLastWindow = modules.stream().mapToLong(ObservabilitySeriesSnapshot::total).sum();
+    long interactionsPreviousWindow =
+        modules.stream().mapToLong(ObservabilitySeriesSnapshot::previousTotal).sum();
+    return new ObservabilityWindow(
+        System.currentTimeMillis(),
+        safeHours,
+        List.copyOf(hourLabels),
+        modules,
+        actions,
+        interactionsLastWindow,
+        interactionsPreviousWindow);
   }
 
   private boolean isBot(String ua) {
@@ -260,6 +333,7 @@ public class UsageMetricsService {
       }
     }
     increment("page_view:" + route);
+    recordObservabilityRoute(route);
   }
 
   public void recordEventView(String eventId, String ua) {
@@ -289,6 +363,8 @@ public class UsageMetricsService {
       }
     }
     increment("event_view:" + eventId);
+    recordObservabilityModule("events");
+    recordObservabilityAction("event_view");
   }
 
   public void recordTalkView(String talkId, String sessionId, String ua) {
@@ -314,6 +390,8 @@ public class UsageMetricsService {
       }
     }
     increment("talk_view:" + talkId);
+    recordObservabilityModule("events");
+    recordObservabilityAction("talk_view");
   }
 
   public void recordTalkRegister(String talkId, java.util.List<Speaker> speakers, String ua) {
@@ -333,6 +411,8 @@ public class UsageMetricsService {
       }
     }
     increment("talk_register:" + talkId);
+    recordObservabilityModule("events");
+    recordObservabilityAction("talk_register");
   }
 
   public void recordTalkRegister(
@@ -399,6 +479,8 @@ public class UsageMetricsService {
       }
     }
     increment("stage_visit:" + stageId + ":" + today);
+    recordObservabilityModule("events");
+    recordObservabilityAction("stage_visit");
   }
 
   public void recordStageVisit(
@@ -442,6 +524,7 @@ public class UsageMetricsService {
       return;
     }
     increment("funnel:" + normalized);
+    recordObservabilityAction(normalized);
   }
 
   /** Records a refresh attempt for the admin metrics dashboard. */
@@ -554,6 +637,178 @@ public class UsageMetricsService {
     return safe.toString();
   }
 
+  private void recordObservabilityRoute(String route) {
+    recordObservabilityModule(BusinessObservabilityTaxonomy.moduleForRoute(route));
+  }
+
+  private void recordObservabilityModule(String module) {
+    recordObservabilitySeries(moduleHourly, moduleLastSeen, sanitizeObservabilityCode(module));
+  }
+
+  private void recordObservabilityAction(String rawAction) {
+    String canonical = BusinessObservabilityTaxonomy.canonicalAction(rawAction);
+    if (canonical == null) {
+      return;
+    }
+    recordObservabilitySeries(actionHourly, actionLastSeen, sanitizeObservabilityCode(canonical));
+  }
+
+  private void recordObservabilitySeries(
+      Map<String, Long> buckets, Map<String, Long> lastSeenMap, String code) {
+    if (code == null) {
+      return;
+    }
+    long now = System.currentTimeMillis();
+    long epochHour = currentEpochHour(Instant.ofEpochMilli(now));
+    buckets.merge(bucketKey(code, epochHour), 1L, Long::sum);
+    lastSeenMap.put(code, now);
+    pruneObservabilityBuckets(epochHour);
+  }
+
+  private void restoreObservability(Object raw) {
+    if (!(raw instanceof Map<?, ?> observability)) {
+      return;
+    }
+    restoreLongMap(observability.get("moduleHourly"), moduleHourly);
+    restoreLongMap(observability.get("actionHourly"), actionHourly);
+    restoreLongMap(observability.get("moduleLastSeen"), moduleLastSeen);
+    restoreLongMap(observability.get("actionLastSeen"), actionLastSeen);
+    pruneObservabilityBuckets(currentEpochHour(Instant.now()));
+  }
+
+  private void importLegacyObservabilityLedger() {
+    try {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> raw = mapper.readValue(businessObservabilityV1Path.toFile(), Map.class);
+      restoreLongMap(raw.get("moduleHourly"), moduleHourly);
+      restoreLongMap(raw.get("actionHourly"), actionHourly);
+      restoreLongMap(raw.get("moduleLastSeen"), moduleLastSeen);
+      restoreLongMap(raw.get("actionLastSeen"), actionLastSeen);
+      pruneObservabilityBuckets(currentEpochHour(Instant.now()));
+      if (!moduleHourly.isEmpty() || !actionHourly.isEmpty()) {
+        migrateObservabilityV1 = true;
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to import legacy business observability ledger", e);
+    }
+  }
+
+  private void restoreLongMap(Object raw, Map<String, Long> target) {
+    if (!(raw instanceof Map<?, ?> values)) {
+      return;
+    }
+    values.forEach(
+        (key, value) -> {
+          if (key != null && value instanceof Number number) {
+            target.put(String.valueOf(key), number.longValue());
+          }
+        });
+  }
+
+  private List<ObservabilitySeriesSnapshot> buildObservabilitySeries(
+      List<String> codes,
+      Map<String, Long> buckets,
+      Map<String, Long> lastSeenMap,
+      long firstEpochHour,
+      long latestEpochHour,
+      long previousFirstEpochHour) {
+    List<ObservabilitySeriesSnapshot> rows = new ArrayList<>();
+    for (String code : codes) {
+      List<Long> counts = new ArrayList<>((int) (latestEpochHour - firstEpochHour + 1));
+      long total = 0L;
+      for (long hour = firstEpochHour; hour <= latestEpochHour; hour++) {
+        long value = buckets.getOrDefault(bucketKey(code, hour), 0L);
+        counts.add(value);
+        total += value;
+      }
+      long previousTotal = 0L;
+      for (long hour = previousFirstEpochHour; hour < firstEpochHour; hour++) {
+        previousTotal += buckets.getOrDefault(bucketKey(code, hour), 0L);
+      }
+      if (total <= 0L && previousTotal <= 0L) {
+        continue;
+      }
+      rows.add(
+          new ObservabilitySeriesSnapshot(
+              code,
+              List.copyOf(counts),
+              total,
+              previousTotal,
+              trendPct(total, previousTotal),
+              lastSeenMap.get(code)));
+    }
+    rows.sort(
+        java.util.Comparator.comparingLong(ObservabilitySeriesSnapshot::total)
+            .reversed()
+            .thenComparing(ObservabilitySeriesSnapshot::code));
+    return List.copyOf(rows);
+  }
+
+  private void pruneObservabilityBuckets(long latestEpochHour) {
+    long retention = Math.max(24, observabilityRetentionHours);
+    long minEpochHour = latestEpochHour - retention;
+    pruneObservabilityMap(moduleHourly, minEpochHour);
+    pruneObservabilityMap(actionHourly, minEpochHour);
+  }
+
+  private void pruneObservabilityMap(Map<String, Long> buckets, long minEpochHour) {
+    buckets.keySet().removeIf(key -> parseEpochHour(key) < minEpochHour);
+  }
+
+  private long parseEpochHour(String key) {
+    int pipe = key.lastIndexOf('|');
+    if (pipe < 0 || pipe + 1 >= key.length()) {
+      return Long.MIN_VALUE;
+    }
+    try {
+      return Long.parseLong(key.substring(pipe + 1));
+    } catch (NumberFormatException ignored) {
+      return Long.MIN_VALUE;
+    }
+  }
+
+  private long currentEpochHour(Instant instant) {
+    return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0)
+        .toEpochSecond()
+        / 3600L;
+  }
+
+  private String bucketKey(String code, long epochHour) {
+    return code + "|" + epochHour;
+  }
+
+  private Long trendPct(long current, long previous) {
+    if (previous <= 0L) {
+      return current > 0L ? 100L : null;
+    }
+    return Math.round(((double) (current - previous) / (double) previous) * 100d);
+  }
+
+  private String sanitizeObservabilityCode(String code) {
+    if (code == null || code.isBlank()) {
+      return null;
+    }
+    String normalized = code.trim().toLowerCase();
+    StringBuilder safe = new StringBuilder(normalized.length());
+    for (int i = 0; i < normalized.length(); i++) {
+      char c = normalized.charAt(i);
+      if ((c >= 'a' && c <= 'z')
+          || (c >= '0' && c <= '9')
+          || c == '.'
+          || c == '-'
+          || c == '_') {
+        safe.append(c);
+      }
+    }
+    if (safe.isEmpty() || safe.length() > 80) {
+      return null;
+    }
+    return safe.toString();
+  }
+
   private boolean isBurst(String sessionId) {
     if (sessionId == null)
       return false;
@@ -586,6 +841,12 @@ public class UsageMetricsService {
     Map<String, List<Registrant>> regs = new HashMap<>();
     registrations.forEach((k, v) -> regs.put(k, new ArrayList<>(v)));
     file.put("registrants", regs);
+    Map<String, Object> observability = new HashMap<>();
+    observability.put("moduleHourly", Map.copyOf(moduleHourly));
+    observability.put("actionHourly", Map.copyOf(actionHourly));
+    observability.put("moduleLastSeen", Map.copyOf(moduleLastSeen));
+    observability.put("actionLastSeen", Map.copyOf(actionLastSeen));
+    file.put("observability", observability);
     Map<String, Object> meta = new HashMap<>();
     meta.put("schemaVersion", CURRENT_SCHEMA_VERSION);
     meta.put("lastFlush", System.currentTimeMillis());
@@ -620,6 +881,13 @@ public class UsageMetricsService {
         } catch (IOException ignored) {
         }
         migrateFromV1 = false;
+      }
+      if (migrateObservabilityV1) {
+        try {
+          Files.deleteIfExists(businessObservabilityV1Path);
+        } catch (IOException ignored) {
+        }
+        migrateObservabilityV1 = false;
       }
       dirty.set(false);
       LOG.info("metrics_flush_ok");
@@ -781,6 +1049,10 @@ public class UsageMetricsService {
     eventViews.clear();
     stageVisits.clear();
     pageViews.clear();
+    moduleHourly.clear();
+    actionHourly.clear();
+    moduleLastSeen.clear();
+    actionLastSeen.clear();
     rates.clear();
     discardedByReason.clear();
     registrations.clear();
@@ -802,6 +1074,7 @@ public class UsageMetricsService {
     try {
       Files.deleteIfExists(metricsV1Path);
       Files.deleteIfExists(metricsV2Path);
+      Files.deleteIfExists(businessObservabilityV1Path);
     } catch (IOException e) {
       LOG.warn("Failed to delete metrics file", e);
     }

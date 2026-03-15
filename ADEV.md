@@ -74,3 +74,4 @@
 8. Mantener workstreams limpios: abrir rama dedicada desde una base estable, no mezclar cambios ajenos y revalidar cuando cambien flags, comandos o herramientas para conservar comparabilidad.
 9. En paginas multilenguaje, los tests deben fijar explicitamente el locale esperado y validar el contenido localizado correspondiente; no depender del idioma por defecto o de textos heredados.
 10. Cuando cambie la narrativa, jerarquia o copy de una vista, revisar tambien pruebas hermanas del mismo recurso para evitar dejar expectations antiguas que solo fallan en CI.
+11. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.

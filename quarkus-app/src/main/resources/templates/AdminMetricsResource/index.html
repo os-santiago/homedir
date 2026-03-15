@@ -1,226 +1,258 @@
-{#include layout/main}
+{#include layout/main mainClass="admin-context-main"}
 {#title}Métricas · Homedir{/title}
 {#body}
 <section class="page-header">
   <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div>
-        <p class="section-subtitle"
-          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
-          Administración</p>
-        <h1 class="page-title">Métricas</h1>
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading section-header hd-section-heading">
+        <p class="section-subtitle">Administración</p>
+        <h1>Métricas</h1>
+        <p class="admin-shell-note">Supervisa actividad, funnel y salud operativa del sitio desde una sola consola.</p>
       </div>
-      <div class="action-group">
+      <div class="admin-shell-actions">
+        <a href="/private/admin/observability" class="btn btn-secondary">Observabilidad</a>
         <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
       </div>
     </div>
   </div>
 </section>
 
-<div class="container">
-  <div class="card" style="margin-bottom: 2rem;">
-    <form method="get" class="form-group" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-      <div style="display: flex; gap: 0.5rem;">
-        <button type="submit" name="range" value="today"
-          class="btn {#if data.range == 'today'}btn-primary{#else}btn-secondary{/if}">Hoy</button>
-        <button type="submit" name="range" value="7"
-          class="btn {#if data.range == '7'}btn-primary{#else}btn-secondary{/if}">7 días</button>
-        <button type="submit" name="range" value="30"
-          class="btn {#if data.range == '30'}btn-primary{#else}btn-secondary{/if}">30 días</button>
-        <button type="submit" name="range" value="all"
-          class="btn {#if data.range == 'all'}btn-primary{#else}btn-secondary{/if}">Todo</button>
+<div class="container admin-shell-stack">
+  <section class="admin-shell-panel admin-metrics-panel">
+    <form method="get" class="admin-shell-toolbar admin-metrics-toolbar" aria-label="Filtros de métricas">
+      <div class="admin-shell-toolbar-group">
+        <button type="submit" name="range" value="today" class="btn {#if data.range == 'today'}btn-primary{#else}btn-secondary{/if}">Hoy</button>
+        <button type="submit" name="range" value="7" class="btn {#if data.range == '7'}btn-primary{#else}btn-secondary{/if}">7 días</button>
+        <button type="submit" name="range" value="30" class="btn {#if data.range == '30'}btn-primary{#else}btn-secondary{/if}">30 días</button>
+        <button type="submit" name="range" value="all" class="btn {#if data.range == 'all'}btn-primary{#else}btn-secondary{/if}">Todo</button>
       </div>
 
-      <select name="event" class="form-select" style="width: auto;">
-        <option value="" {#if !data.eventId} selected{/if}>Todos los eventos</option>
-        {#for ev in data.events}
-        <option value="{ev.id}" {#if data.eventId eq ev.id} selected{/if}>{ev.title}</option>
-        {/for}
-      </select>
+      <div class="admin-shell-toolbar-group">
+        <select name="event" class="form-select">
+          <option value="" {#if !data.eventId} selected{/if}>Todos los eventos</option>
+          {#for ev in data.events}
+          <option value="{ev.id}" {#if data.eventId eq ev.id} selected{/if}>{ev.title}</option>
+          {/for}
+        </select>
 
-      <input type="search" name="speaker" list="speakers" placeholder="Orador..." value="{data.speakerId}"
-        class="form-input" style="width: auto;">
-      <datalist id="speakers">
-        {#for sp in data.speakers}
-        <option value="{sp.id}">{sp.name}</option>
-        {/for}
-      </datalist>
+        <input type="search" name="speaker" list="speakers" placeholder="Orador o ID..." value="{data.speakerId}" class="form-input">
+        <datalist id="speakers">
+          {#for sp in data.speakers}
+          <option value="{sp.id}">{sp.name}</option>
+          {/for}
+        </datalist>
+      </div>
 
-      <a href="/private/admin/metrics/export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}"
-        class="btn btn-secondary">Exportar CSV</a>
-      <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Registros por charla</a>
+      <div class="admin-shell-toolbar-group">
+        <a href="/private/admin/metrics/export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
+        <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Registros por charla</a>
+        <a href="/private/admin/metrics/guide" class="btn btn-secondary">Guía</a>
+      </div>
     </form>
-  </div>
+  </section>
 
-  <div class="page-grid">
-    <div class="card">
-      <h2 class="card-title">Resumen</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
-        <div class="stat-card"><span class="stat-label">Eventos vistos</span><span
-            class="stat-value">{data.eventsViewed}</span></div>
-        <div class="stat-card"><span class="stat-label">Charlas vistas</span><span
-            class="stat-value">{data.talksViewed}</span></div>
-        <div class="stat-card"><span class="stat-label">Registros</span><span
-            class="stat-value">{data.talksRegistered}</span></div>
-        <div class="stat-card"><span class="stat-label">Visitas escenario</span><span
-            class="stat-value">{data.stageVisits}</span></div>
-        <div class="stat-card"><span class="stat-label">Conversión</span><span
-            class="stat-value">{data.globalConversion}</span></div>
+  <section class="admin-shell-panel admin-metrics-panel">
+    <div class="admin-shell-split">
+      <div>
+        <p class="section-subtitle">Resumen del periodo</p>
+        <h2 class="card-title">Señales principales</h2>
+      </div>
+      <p class="admin-shell-note">Filtra por rango o evento para aislar la lectura operativa.</p>
+    </div>
+    <div class="admin-shell-stat-grid">
+      <div class="admin-shell-stat">
+        <span class="admin-shell-stat-label">Eventos vistos</span>
+        <span class="admin-shell-stat-value">{data.eventsViewed}</span>
+      </div>
+      <div class="admin-shell-stat">
+        <span class="admin-shell-stat-label">Charlas vistas</span>
+        <span class="admin-shell-stat-value">{data.talksViewed}</span>
+      </div>
+      <div class="admin-shell-stat">
+        <span class="admin-shell-stat-label">Registros</span>
+        <span class="admin-shell-stat-value">{data.talksRegistered}</span>
+      </div>
+      <div class="admin-shell-stat">
+        <span class="admin-shell-stat-label">Visitas escenario</span>
+        <span class="admin-shell-stat-value">{data.stageVisits}</span>
+      </div>
+      <div class="admin-shell-stat">
+        <span class="admin-shell-stat-label">Conversión global</span>
+        <span class="admin-shell-stat-value">{data.globalConversion}</span>
       </div>
     </div>
+  </section>
 
-    <div class="card">
+  <div class="page-grid admin-metrics-grid">
+    <section class="admin-shell-panel admin-metrics-panel">
+      <p class="section-subtitle">Journey</p>
       <h2 class="card-title">Funnel de producto</h2>
       {#if data.funnelRows.isEmpty}
-      <p class="text-muted">Sin datos.</p>
+      <p class="admin-shell-empty">Sin datos.</p>
       {#else}
-      <table class="table" style="font-size: 0.9rem;">
-        <thead>
-          <tr>
-            <th style="text-align: left;">Paso</th>
-            <th style="text-align: right;">Conteo</th>
-            <th style="text-align: right;">vs Login</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#for row in data.funnelRows}
-          <tr>
-            <td>{row.label}</td>
-            <td style="text-align: right;">{row.count}</td>
-            <td style="text-align: right;">{row.conversion}</td>
-          </tr>
-          {/for}
-        </tbody>
-      </table>
+      <div class="admin-shell-table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Paso</th>
+              <th style="text-align: right;">Conteo</th>
+              <th style="text-align: right;">vs Login</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#for row in data.funnelRows}
+            <tr>
+              <td>{row.label}</td>
+              <td style="text-align: right;">{row.count}</td>
+              <td style="text-align: right;">{row.conversion}</td>
+            </tr>
+            {/for}
+          </tbody>
+        </table>
+      </div>
       {/if}
-    </div>
+    </section>
 
-    <div class="card">
+    <section class="admin-shell-panel admin-metrics-panel">
+      <p class="section-subtitle">Contenido</p>
       <h2 class="card-title">Top Charlas</h2>
       {#if data.topTalks.isEmpty}
-      <p class="text-muted">Sin datos.</p>
+      <p class="admin-shell-empty">Sin datos.</p>
       {#else}
-      <table class="table" style="font-size: 0.9rem;">
-        <thead>
-          <tr>
-            <th style="text-align: left;">Título</th>
-            <th style="text-align: right;">Vistas</th>
-            <th style="text-align: right;">Reg</th>
-            <th style="text-align: right;">%</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#for row in data.topTalks}
-          <tr>
-            <td><a href="/private/admin/metrics/registrants?talk={row.id}"
-                style="color: var(--color-primary);">{row.name}</a></td>
-            <td style="text-align: right;">{row.views}</td>
-            <td style="text-align: right;">{row.registrations}</td>
-            <td style="text-align: right;">{row.conversion}</td>
-          </tr>
-          {/for}
-        </tbody>
-      </table>
+      <div class="admin-shell-table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Título</th>
+              <th style="text-align: right;">Vistas</th>
+              <th style="text-align: right;">Registros</th>
+              <th style="text-align: right;">Conversión</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#for row in data.topTalks}
+            <tr>
+              <td><a href="/private/admin/metrics/registrants?talk={row.id}" style="color: var(--color-primary);">{row.name}</a></td>
+              <td style="text-align: right;">{row.views}</td>
+              <td style="text-align: right;">{row.registrations}</td>
+              <td style="text-align: right;">{row.conversion}</td>
+            </tr>
+            {/for}
+          </tbody>
+        </table>
+      </div>
       {/if}
-    </div>
+    </section>
 
-    <div class="card">
-      <h2 class="card-title">Eventos</h2>
+    <section class="admin-shell-panel admin-metrics-panel">
+      <p class="section-subtitle">Eventos</p>
+      <h2 class="card-title">Rendimiento por evento</h2>
+      <p class="admin-shell-note">Vistas = aperturas del evento. Charlas vistas = detalle de charlas dentro del evento. Registros = reservas hechas desde el evento.</p>
       {#if data.eventRows.isEmpty}
-      <p class="text-muted">Sin datos.</p>
+      <p class="admin-shell-empty">Sin datos.</p>
       {#else}
-      <table class="table" style="font-size: 0.9rem;">
-        <thead>
-          <tr>
-            <th style="text-align: left;">Evento</th>
-            <th style="text-align: right;">Vistas</th>
-            <th style="text-align: right;">C. Vistas</th>
-            <th style="text-align: right;">Reg</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#for row in data.eventRows}
-          <tr>
-            <td>{row.name}</td>
-            <td style="text-align: right;">{row.eventViews}</td>
-            <td style="text-align: right;">{row.talkViews}</td>
-            <td style="text-align: right;">{row.registrations}</td>
-          </tr>
-          {/for}
-        </tbody>
-      </table>
+      <div class="admin-shell-table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Evento</th>
+              <th style="text-align: right;">Vistas</th>
+              <th style="text-align: right;">Charlas vistas</th>
+              <th style="text-align: right;">Registros</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#for row in data.eventRows}
+            <tr>
+              <td>{row.name}</td>
+              <td style="text-align: right;">{row.eventViews}</td>
+              <td style="text-align: right;">{row.talkViews}</td>
+              <td style="text-align: right;">{row.registrations}</td>
+            </tr>
+            {/for}
+          </tbody>
+        </table>
+      </div>
       {/if}
-    </div>
+    </section>
 
-    <div class="card">
+    <section class="admin-shell-panel admin-metrics-panel">
+      <p class="section-subtitle">Integridad</p>
       <h2 class="card-title">Calidad de datos</h2>
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>dedupe</td>
-            <td style="text-align: right;">{data.discards.get('dedupe')}</td>
-          </tr>
-          <tr>
-            <td>bot</td>
-            <td style="text-align: right;">{data.discards.get('bot')}</td>
-          </tr>
-          <tr>
-            <td>burst</td>
-            <td style="text-align: right;">{data.discards.get('burst')}</td>
-          </tr>
-          <tr>
-            <td>buffer_full</td>
-            <td style="text-align: right;">{data.discards.get('buffer_full')}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="admin-shell-table-wrap">
+        <table class="table">
+          <tbody>
+            <tr>
+              <td>dedupe</td>
+              <td style="text-align: right;">{data.discards.get('dedupe')}</td>
+            </tr>
+            <tr>
+              <td>bot</td>
+              <td style="text-align: right;">{data.discards.get('bot')}</td>
+            </tr>
+            <tr>
+              <td>burst</td>
+              <td style="text-align: right;">{data.discards.get('burst')}</td>
+            </tr>
+            <tr>
+              <td>buffer_full</td>
+              <td style="text-align: right;">{data.discards.get('buffer_full')}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-    <div class="card">
+    <section class="admin-shell-panel admin-metrics-panel">
+      <p class="section-subtitle">Persistencia</p>
       <h2 class="card-title">Mantenimiento</h2>
-      <table class="table" style="margin-bottom: 1rem;">
-        <tbody>
-          <tr>
-            <td>schemaVersion</td>
-            <td style="text-align: right;">{data.schemaVersion}</td>
-          </tr>
-          <tr>
-            <td>fileSizeBytes</td>
-            <td style="text-align: right;">{data.fileSizeBytes}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="action-group">
+      <div class="admin-shell-table-wrap">
+        <table class="table">
+          <tbody>
+            <tr>
+              <td>schemaVersion</td>
+              <td style="text-align: right;">{data.schemaVersion}</td>
+            </tr>
+            <tr>
+              <td>fileSizeBytes</td>
+              <td style="text-align: right;">{data.fileSizeBytes}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-shell-actions" style="margin-top: 1rem;">
         <form method="post" action="/private/admin/metrics/reset" onsubmit="return confirm('¿Borrar datos?');">
           <button type="submit" class="btn btn-danger">Reset data</button>
         </form>
         <a href="/private/admin/metrics/data" class="btn btn-secondary">Download data</a>
       </div>
-    </div>
+    </section>
 
-    <div class="card">
+    <section class="admin-shell-panel admin-metrics-panel">
+      <p class="section-subtitle">Operación</p>
       <h2 class="card-title">Salud</h2>
       <div style="margin-bottom: 1rem;">
-        <span class="badge"
-          style="padding: 0.5rem 1rem; border-radius: 4px; background: rgba(255,255,255,0.1);">{data.dataHealth.state}</span>
+        <span class="badge" style="padding: 0.5rem 1rem; border-radius: 999px; background: rgba(255,255,255,0.1);">{data.dataHealth.state}</span>
       </div>
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>lastFlush</td>
-            <td style="text-align: right;">{data.health.lastFlush}</td>
-          </tr>
-          <tr>
-            <td>flushInterval</td>
-            <td style="text-align: right;">{data.health.flushIntervalMillis} ms</td>
-          </tr>
-          <tr>
-            <td>buffer</td>
-            <td style="text-align: right;">{data.health.bufferCurrentSize}/{data.health.bufferMaxSize}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="admin-shell-table-wrap">
+        <table class="table">
+          <tbody>
+            <tr>
+              <td>lastFlush</td>
+              <td style="text-align: right;">{data.health.lastFlush}</td>
+            </tr>
+            <tr>
+              <td>flushInterval</td>
+              <td style="text-align: right;">{data.health.flushIntervalMillis} ms</td>
+            </tr>
+            <tr>
+              <td>buffer</td>
+              <td style="text-align: right;">{data.health.bufferCurrentSize}/{data.health.bufferMaxSize}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </div>
 {/body}

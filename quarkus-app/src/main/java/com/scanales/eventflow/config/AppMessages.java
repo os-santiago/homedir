@@ -1129,6 +1129,12 @@ public interface AppMessages {
     @Message("Not selected for this edition.")
     String events_cfp_status_desc_rejected();
 
+    @Message("Published decision")
+    String events_cfp_result_message_label();
+
+    @Message("Published")
+    String events_cfp_result_published_label();
+
     @Message("Testing")
     String events_cfp_testing_badge();
 
@@ -1264,11 +1270,56 @@ public interface AppMessages {
     @Message("Event override: OFF")
     String events_cfp_admin_event_config_summary_override_off();
 
+    @Message("CFP: publish results")
+    String events_cfp_admin_results_title();
+
+    @Message("Keep internal decisions hidden while proposals stay under review publicly, then publish the final outcome for everyone at once.")
+    String events_cfp_admin_results_desc();
+
+    @Message("Acceptance message")
+    String events_cfp_admin_results_accept_message();
+
+    @Message("Rejection message")
+    String events_cfp_admin_results_reject_message();
+
+    @Message("Publish results")
+    String events_cfp_admin_results_publish();
+
+    @Message("Results published.")
+    String events_cfp_admin_results_published();
+
+    @Message("Could not publish CFP results right now.")
+    String events_cfp_admin_results_error();
+
+    @Message("Public results: published")
+    String events_cfp_admin_results_summary_published();
+
+    @Message("Public results: hidden")
+    String events_cfp_admin_results_summary_hidden();
+
+    @Message("Accepted")
+    String events_cfp_admin_results_summary_accept_count();
+
+    @Message("Rejected")
+    String events_cfp_admin_results_summary_reject_count();
+
+    @Message("by")
+    String events_cfp_admin_results_summary_by();
+
     @Message("CFP Moderation · {event}")
     String events_cfp_admin_moderation_page_title(String event);
 
     @Message("CFP Moderation")
     String events_cfp_admin_moderation_heading();
+
+    @Message("CFP Proposal Detail · {event}")
+    String events_cfp_admin_detail_page_title(String event);
+
+    @Message("Proposal detail")
+    String events_cfp_admin_detail_heading();
+
+    @Message("Review the full proposal, save ratings, update status, and promote accepted talks.")
+    String events_cfp_admin_detail_desc();
 
     @Message("Event: {event}")
     String events_cfp_admin_event_label(String event);
@@ -1278,6 +1329,30 @@ public interface AppMessages {
 
     @Message("Public CFP")
     String events_cfp_admin_nav_public_cfp();
+
+    @Message("Back to overview")
+    String events_cfp_admin_nav_back_overview();
+
+    @Message("CFP admin sections")
+    String events_cfp_admin_subnav_aria();
+
+    @Message("Overview")
+    String events_cfp_admin_subnav_overview();
+
+    @Message("Configuration")
+    String events_cfp_admin_subnav_configuration();
+
+    @Message("Review queue")
+    String events_cfp_admin_subnav_review();
+
+    @Message("Submission overview")
+    String events_cfp_admin_overview_title();
+
+    @Message("Read the current state before jumping into detailed moderation.")
+    String events_cfp_admin_overview_desc();
+
+    @Message("Filter, sort, and open each proposal detail from the review queue.")
+    String events_cfp_admin_review_desc();
 
     @Message("Proposal queue")
     String events_cfp_admin_queue_title();
@@ -1330,8 +1405,35 @@ public interface AppMessages {
     @Message("Status:")
     String events_cfp_admin_label_status();
 
+    @Message("Visible now:")
+    String events_cfp_admin_public_status_label();
+
     @Message("Sort:")
     String events_cfp_admin_label_sort();
+
+    @Message("Proposed by")
+    String events_cfp_admin_filter_proposed_by();
+
+    @Message("Search proposer name or account")
+    String events_cfp_admin_filter_proposed_by_placeholder();
+
+    @Message("Title")
+    String events_cfp_admin_filter_title();
+
+    @Message("Search proposal title")
+    String events_cfp_admin_filter_title_placeholder();
+
+    @Message("Track")
+    String events_cfp_admin_filter_track();
+
+    @Message("Search track")
+    String events_cfp_admin_filter_track_placeholder();
+
+    @Message("Apply filters")
+    String events_cfp_admin_filter_apply();
+
+    @Message("Clear filters")
+    String events_cfp_admin_filter_clear();
 
     @Message("All")
     String events_cfp_admin_filter_all();
@@ -1402,6 +1504,21 @@ public interface AppMessages {
     @Message("Save rating")
     String events_cfp_admin_save_rating();
 
+    @Message("Update confirmed")
+    String events_cfp_admin_feedback_title();
+
+    @Message("Rating saved.")
+    String events_cfp_admin_feedback_rating_saved();
+
+    @Message("Proposal moved to under review.")
+    String events_cfp_admin_feedback_under_review_saved();
+
+    @Message("Proposal accepted.")
+    String events_cfp_admin_feedback_accept_saved();
+
+    @Message("Proposal rejected.")
+    String events_cfp_admin_feedback_reject_saved();
+
     @Message("Under review")
     String events_cfp_admin_action_under_review();
 
@@ -1417,17 +1534,26 @@ public interface AppMessages {
     @Message("View full proposal")
     String events_cfp_admin_action_view_full();
 
+    @Message("Open detail")
+    String events_cfp_admin_action_open_detail();
+
     @Message("Cataloged:")
     String events_cfp_admin_promote_success();
 
     @Message("Loading proposals...")
     String events_cfp_admin_queue_loading();
 
+    @Message("Loading proposal detail...")
+    String events_cfp_admin_detail_loading();
+
     @Message("No proposals in this status.")
     String events_cfp_admin_queue_empty();
 
     @Message("Could not load proposals right now.")
     String events_cfp_admin_queue_load_error();
+
+    @Message("Could not load this proposal right now.")
+    String events_cfp_admin_detail_load_error();
 
     @Message("Load error")
     String events_cfp_admin_queue_load_generic_error();
@@ -1449,6 +1575,21 @@ public interface AppMessages {
 
     @Message("Close")
     String events_cfp_admin_modal_close();
+
+    @Message("Submission metadata")
+    String events_cfp_admin_section_metadata();
+
+    @Message("Moderation")
+    String events_cfp_admin_section_review();
+
+    @Message("Track")
+    String events_cfp_admin_meta_track();
+
+    @Message("Language")
+    String events_cfp_admin_meta_language();
+
+    @Message("Format")
+    String events_cfp_admin_meta_format();
 
     @Message("CFP submissions are currently closed for this event.")
     String events_cfp_closed_hint();
@@ -3107,6 +3248,126 @@ public interface AppMessages {
     @Message("Sign in and open profile setup")
     String home_login_github_cta();
 
+    @Message("HomeDir onboarding")
+    String home_p0_shell_aria();
+
+    @Message("HomeDir onboarding")
+    String home_p0_eyebrow();
+
+    @Message("HomeDir: build, learn, and level up with your community.")
+    String home_p0_title();
+
+    @Message("Start with one account, connect your contribution signals, and turn community activity into visible progress.")
+    String home_p0_subtitle();
+
+    @Message("See the community, events, and project in one place, then unlock your profile, classes, HCoin, and rewards.")
+    String home_p0_intro_guest();
+
+    @Message("Your account is live. Keep building momentum by linking signals, voting on picks, and joining the next event.")
+    String home_p0_intro_member();
+
+    @Message("Create my HomeDir account")
+    String home_p0_guest_primary_cta();
+
+    @Message("Explore Community Picks")
+    String home_p0_guest_secondary_cta();
+
+    @Message("Open my profile")
+    String home_p0_member_primary_cta();
+
+    @Message("Continue with Community Picks")
+    String home_p0_member_secondary_cta();
+
+    @Message("HomeDir users")
+    String home_p0_chip_members();
+
+    @Message("GitHub signals")
+    String home_p0_chip_github();
+
+    @Message("rewards ready")
+    String home_p0_chip_rewards();
+
+    @Message("Gamification")
+    String home_p0_progress_badge();
+
+    @Message("Your visible progress")
+    String home_p0_progress_eyebrow();
+
+    @Message("Level up in public")
+    String home_p0_progress_title();
+
+    @Message("Level {level}")
+    String home_p0_progress_level(int level);
+
+    @Message("Choose your dominant class")
+    String home_p0_progress_class_fallback();
+
+    @Message("{currentXp} XP / {nextLevelXp} XP")
+    String home_p0_progress_xp(int currentXp, int nextLevelXp);
+
+    @Message("HCoin")
+    String home_p0_progress_hcoin();
+
+    @Message("Collection")
+    String home_p0_progress_collection();
+
+    @Message("Linked signals")
+    String home_p0_progress_links();
+
+    @Message("Starter track")
+    String home_p0_progress_starter();
+
+    @Message("How HomeDir works")
+    String home_p0_flow_title();
+
+    @Message("Sign in once")
+    String home_p0_flow_step_one_title();
+
+    @Message("Create your HomeDir account and keep your preferences, profile, and progress in one place.")
+    String home_p0_flow_step_one_desc();
+
+    @Message("Connect signals")
+    String home_p0_flow_step_two_title();
+
+    @Message("Link GitHub and Discord so your public profile reflects where you participate and contribute.")
+    String home_p0_flow_step_two_desc();
+
+    @Message("Join the flow")
+    String home_p0_flow_step_three_title();
+
+    @Message("Vote on picks, explore events, and move through the community with quick actions that compound.")
+    String home_p0_flow_step_three_desc();
+
+    @Message("Earn visible value")
+    String home_p0_flow_step_four_title();
+
+    @Message("Gain XP, HCoin, classes, and rewards that make your profile more credible and more shareable.")
+    String home_p0_flow_step_four_desc();
+
+    @Message("new curated picks in the last 24h")
+    String home_p0_metric_picks();
+
+    @Message("new lightning threads in the last 24h")
+    String home_p0_metric_threads();
+
+    @Message("active upcoming events")
+    String home_p0_metric_events();
+
+    @Message("rewards available to unlock")
+    String home_p0_metric_rewards();
+
+    @Message("Community Board")
+    String home_p0_metric_board_chip();
+
+    @Message("people already visible in HomeDir")
+    String home_p0_metric_board_desc();
+
+    @Message("GitHub")
+    String home_p0_metric_github_chip();
+
+    @Message("linked community contributor profiles")
+    String home_p0_metric_github_desc();
+
     @Message("New / Hot")
     String home_new_hot_badge();
 
@@ -4305,6 +4566,12 @@ public interface AppMessages {
     @Message("Inspect delivery initiatives and lead-time evolution.")
     String admin_hub_action_insights_desc();
 
+    @Message("Business observability")
+    String admin_hub_action_observability_title();
+
+    @Message("See where users are active, which journeys are moving, and where friction is growing.")
+    String admin_hub_action_observability_desc();
+
     @Message("Capacity")
     String admin_hub_action_capacity_title();
 
@@ -4352,6 +4619,186 @@ public interface AppMessages {
 
     @Message("Back to panel")
     String admin_insights_back_to_panel();
+
+    @Message("Business Observability · Homedir")
+    String admin_observability_page_title();
+
+    @Message("Admin")
+    String admin_observability_subtitle();
+
+    @Message("Business observability")
+    String admin_observability_heading();
+
+    @Message("A compact product pulse that explains where users are active, which actions are happening, and where delivery or UX friction needs attention.")
+    String admin_observability_intro();
+
+    @Message("Back to panel")
+    String admin_observability_back_to_panel();
+
+    @Message("Loading...")
+    String admin_observability_loading();
+
+    @Message("Refresh")
+    String admin_observability_refresh();
+
+    @Message("Today in Homedir")
+    String admin_observability_summary_title();
+
+    @Message("Interactions")
+    String admin_observability_summary_interactions();
+
+    @Message("Active modules")
+    String admin_observability_summary_active_modules();
+
+    @Message("Top module")
+    String admin_observability_summary_top_module();
+
+    @Message("Discarded metrics")
+    String admin_observability_summary_metrics_discards();
+
+    @Message("User activity heatmap")
+    String admin_observability_heatmap_title();
+
+    @Message("Last 24 hours by module and hour.")
+    String admin_observability_heatmap_desc();
+
+    @Message("What is happening now")
+    String admin_observability_hot_actions_title();
+
+    @Message("The most active actions recorded across the product.")
+    String admin_observability_hot_actions_desc();
+
+    @Message("Friction watch")
+    String admin_observability_friction_title();
+
+    @Message("Modules with activity that is not converting into key actions.")
+    String admin_observability_friction_desc();
+
+    @Message("Delivery pulse")
+    String admin_observability_delivery_title();
+
+    @Message("Cross-check runtime user activity with development insights freshness.")
+    String admin_observability_delivery_desc();
+
+    @Message("Request failed")
+    String admin_observability_js_request_failed();
+
+    @Message("No module activity recorded yet.")
+    String admin_observability_js_no_heat();
+
+    @Message("No highlighted actions yet.")
+    String admin_observability_js_no_actions();
+
+    @Message("No friction signals right now.")
+    String admin_observability_js_no_friction();
+
+    @Message("healthy")
+    String admin_observability_js_healthy();
+
+    @Message("stale")
+    String admin_observability_js_stale();
+
+    @Message("Last seen")
+    String admin_observability_js_last_seen();
+
+    @Message("Events (24h)")
+    String admin_observability_js_events_last24();
+
+    @Message("Active initiatives (24h)")
+    String admin_observability_js_active_initiatives_last24();
+
+    @Message("Production success (7d)")
+    String admin_observability_js_prod_success_7d();
+
+    @Message("PR validation success (7d)")
+    String admin_observability_js_pr_validation_7d();
+
+    @Message("Freshness")
+    String admin_observability_js_freshness();
+
+    @Message("Minutes since last delivery event")
+    String admin_observability_js_minutes_since_last();
+
+    @Message("high")
+    String admin_observability_js_severity_high();
+
+    @Message("watch")
+    String admin_observability_js_severity_watch();
+
+    @Message("Home")
+    String admin_observability_module_home();
+
+    @Message("Community")
+    String admin_observability_module_community();
+
+    @Message("Events")
+    String admin_observability_module_events();
+
+    @Message("Project")
+    String admin_observability_module_project();
+
+    @Message("Profile")
+    String admin_observability_module_profile();
+
+    @Message("Admin")
+    String admin_observability_module_admin();
+
+    @Message("Info")
+    String admin_observability_module_info();
+
+    @Message("Other")
+    String admin_observability_module_other();
+
+    @Message("Login success")
+    String admin_observability_action_login_success();
+
+    @Message("Event opened")
+    String admin_observability_action_event_view();
+
+    @Message("Talk opened")
+    String admin_observability_action_talk_view();
+
+    @Message("Stage visited")
+    String admin_observability_action_stage_visit();
+
+    @Message("Talk registration")
+    String admin_observability_action_talk_register();
+
+    @Message("Community vote")
+    String admin_observability_action_community_vote();
+
+    @Message("Content proposed")
+    String admin_observability_action_community_propose_submit();
+
+    @Message("LTA thread posted")
+    String admin_observability_action_community_lightning_post();
+
+    @Message("LTA comment posted")
+    String admin_observability_action_community_lightning_comment();
+
+    @Message("Board profile opened")
+    String admin_observability_action_board_profile_open();
+
+    @Message("Public profile opened")
+    String admin_observability_action_profile_public_open();
+
+    @Message("CFP submitted")
+    String admin_observability_action_cfp_submit();
+
+    @Message("CFP approved")
+    String admin_observability_action_cfp_approved();
+
+    @Message("Volunteer application submitted")
+    String admin_observability_action_volunteer_submit();
+
+    @Message("Volunteer selected")
+    String admin_observability_action_volunteer_selected();
+
+    @Message("Volunteer lounge post")
+    String admin_observability_action_volunteer_lounge_post();
+
+    @Message("Reward purchased")
+    String admin_observability_action_economy_purchase();
 
     @Message("Ledger status")
     String admin_insights_ledger_status_title();

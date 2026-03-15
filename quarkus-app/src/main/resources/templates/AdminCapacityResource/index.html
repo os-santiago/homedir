@@ -1,17 +1,15 @@
-{#include layout/main}
+{#include layout/main mainClass="admin-context-main"}
 {#title}Capacidad · Homedir{/title}
 {#body}
 <section class="page-header">
   <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div>
-        <p class="section-subtitle"
-          style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">
-          Administración</p>
-        <h1 class="page-title">Control de capacidad</h1>
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading section-header hd-section-heading">
+        <p class="section-subtitle">Administración</p>
+        <h1>Control de capacidad</h1>
         <p class="section-subtitle">Monitorea el estado de memoria y disco para proteger el login.</p>
       </div>
-      <div class="action-group">
+      <div class="admin-shell-actions">
         <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
       </div>
     </div>
@@ -20,7 +18,7 @@
 
 <div class="container">
   <div class="page-grid">
-    <div class="card">
+    <div class="admin-shell-panel">
       <h2 class="card-title">Estado actual</h2>
       <table class="table">
         <tbody>
@@ -52,7 +50,7 @@
       </table>
     </div>
 
-    <div class="card">
+    <div class="admin-shell-panel">
       <h2 class="card-title">Lecturas</h2>
       <table class="table">
         <tbody>
@@ -84,7 +82,7 @@
       </table>
     </div>
 
-    <div class="card">
+    <div class="admin-shell-panel">
       <h2 class="card-title">Escrituras</h2>
       <table class="table">
         <tbody>

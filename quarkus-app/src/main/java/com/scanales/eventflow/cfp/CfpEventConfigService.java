@@ -67,7 +67,12 @@ public class CfpEventConfigService {
           closesAt,
           effectiveMax,
           effectiveTesting,
-          currentlyOpen);
+          currentlyOpen,
+          override != null && override.resultsPublishedAt() != null,
+          override != null ? override.resultsPublishedAt() : null,
+          override != null ? override.resultsPublishedBy() : null,
+          override != null ? override.acceptedResultsMessage() : null,
+          override != null ? override.rejectedResultsMessage() : null);
     }
   }
 
@@ -96,6 +101,42 @@ public class CfpEventConfigService {
               closesAt,
               normalizedLimit,
               request.testingModeEnabled(),
+              currentResultsPublishedAt(normalizedEventId),
+              currentResultsPublishedBy(normalizedEventId),
+              currentAcceptedResultsMessage(normalizedEventId),
+              currentRejectedResultsMessage(normalizedEventId),
+              Instant.now());
+      overrides.put(normalizedEventId, updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CfpEventConfig publishResults(
+      String eventId, String actor, String acceptedMessage, String rejectedMessage) {
+    synchronized (lock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeEventId(eventId);
+      if (normalizedEventId == null) {
+        throw new ValidationException("event_id_required");
+      }
+      String normalizedActor = sanitizeText(actor, 200);
+      if (normalizedActor == null) {
+        throw new ValidationException("actor_required");
+      }
+      CfpEventConfig current = overrides.getOrDefault(normalizedEventId, CfpEventConfig.defaults(normalizedEventId));
+      CfpEventConfig updated =
+          new CfpEventConfig(
+              normalizedEventId,
+              current.acceptingSubmissions(),
+              current.opensAt(),
+              current.closesAt(),
+              normalizeLimit(current.maxSubmissionsPerUserPerEvent()),
+              current.testingModeEnabled(),
+              Instant.now(),
+              normalizedActor,
+              sanitizeText(acceptedMessage, 1200),
+              sanitizeText(rejectedMessage, 1200),
               Instant.now());
       overrides.put(normalizedEventId, updated);
       persistSync();
@@ -147,15 +188,39 @@ public class CfpEventConfigService {
           overrides.put(
               normalizedEventId,
               new CfpEventConfig(
-                  normalizedEventId,
-                  config.acceptingSubmissions(),
-                  config.opensAt(),
-                  config.closesAt(),
-                  normalizedLimit,
-                  config.testingModeEnabled(),
-                  config.updatedAt() != null ? config.updatedAt() : Instant.now()));
+              normalizedEventId,
+              config.acceptingSubmissions(),
+              config.opensAt(),
+              config.closesAt(),
+              normalizedLimit,
+              config.testingModeEnabled(),
+              config.resultsPublishedAt(),
+              config.resultsPublishedBy(),
+              config.acceptedResultsMessage(),
+              config.rejectedResultsMessage(),
+              config.updatedAt() != null ? config.updatedAt() : Instant.now()));
         });
     lastKnownMtime = mtime;
+  }
+
+  private Instant currentResultsPublishedAt(String eventId) {
+    CfpEventConfig current = overrides.get(eventId);
+    return current != null ? current.resultsPublishedAt() : null;
+  }
+
+  private String currentResultsPublishedBy(String eventId) {
+    CfpEventConfig current = overrides.get(eventId);
+    return current != null ? current.resultsPublishedBy() : null;
+  }
+
+  private String currentAcceptedResultsMessage(String eventId) {
+    CfpEventConfig current = overrides.get(eventId);
+    return current != null ? current.acceptedResultsMessage() : null;
+  }
+
+  private String currentRejectedResultsMessage(String eventId) {
+    CfpEventConfig current = overrides.get(eventId);
+    return current != null ? current.rejectedResultsMessage() : null;
   }
 
   private static boolean isCurrentlyOpen(
@@ -181,6 +246,20 @@ public class CfpEventConfigService {
       throw new ValidationException("invalid_limit");
     }
     return requestedLimit;
+  }
+
+  private static String sanitizeText(String raw, int maxLength) {
+    if (raw == null) {
+      return null;
+    }
+    String normalized = raw.trim();
+    if (normalized.isEmpty()) {
+      return null;
+    }
+    if (normalized.length() > maxLength) {
+      normalized = normalized.substring(0, maxLength).trim();
+    }
+    return normalized.isEmpty() ? null : normalized;
   }
 
   private static String sanitizeEventId(String raw) {
@@ -239,7 +318,12 @@ public class CfpEventConfigService {
       Instant closesAt,
       int maxSubmissionsPerUserPerEvent,
       boolean testingModeEnabled,
-      boolean currentlyOpen) {}
+      boolean currentlyOpen,
+      boolean resultsPublished,
+      Instant resultsPublishedAt,
+      String resultsPublishedBy,
+      String acceptedResultsMessage,
+      String rejectedResultsMessage) {}
 
   public static class ValidationException extends RuntimeException {
     public ValidationException(String message) {

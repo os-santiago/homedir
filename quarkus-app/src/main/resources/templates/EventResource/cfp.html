@@ -508,6 +508,14 @@
     flex-wrap: wrap;
   }
 
+  .cfp-result-box {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(114, 255, 159, 0.35);
+    border-radius: var(--radius-sm);
+    background: rgba(114, 255, 159, 0.08);
+  }
+
   .cfp-role-chip {
     margin-left: 0.45rem;
     font-size: 0.72rem;
@@ -784,7 +792,9 @@
       presentationUploaded: "{i18n:events_cfp_presentation_uploaded}",
       presentationError: "{i18n:events_cfp_presentation_error}",
       presentationRequiresAccepted: "{i18n:events_cfp_presentation_requires_accepted}",
-      presentationPanelHint: "{i18n:events_cfp_presentation_panel_hint}"
+      presentationPanelHint: "{i18n:events_cfp_presentation_panel_hint}",
+      resultMessageLabel: "{i18n:events_cfp_result_message_label}",
+      resultPublishedLabel: "{i18n:events_cfp_result_published_label}"
     };
 
     const errorLabels = {
@@ -1202,6 +1212,25 @@
           summary.className = "cfp-meta-line";
           summary.textContent = item.summary;
           article.appendChild(summary);
+        }
+
+        if (item.result_message) {
+          const resultBox = document.createElement("div");
+          resultBox.className = "cfp-result-box";
+          const resultTitle = document.createElement("strong");
+          resultTitle.textContent = labels.resultMessageLabel;
+          resultBox.appendChild(resultTitle);
+          const resultText = document.createElement("p");
+          resultText.className = "cfp-meta-line";
+          resultText.style.marginTop = "0.35rem";
+          let messageText = String(item.result_message || "");
+          const publishedAt = formatDate(item.results_published_at);
+          if (publishedAt) {
+            messageText += " · " + labels.resultPublishedLabel + " " + publishedAt;
+          }
+          resultText.textContent = messageText;
+          resultBox.appendChild(resultText);
+          article.appendChild(resultBox);
         }
 
         const metaParts = [];

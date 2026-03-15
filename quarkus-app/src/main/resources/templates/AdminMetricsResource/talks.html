@@ -1,26 +1,40 @@
-{#include layout/base}
+{#include layout/main mainClass="admin-context-main"}
 {#title}Reporte charlas{/title}
-{#breadcrumbs}<a href="/private/admin">Admin</a><span class="sep">/</span><a href="/private/admin/metrics?event={event.id}&amp;range=all">Métricas</a><span class="sep">/</span><span>Charlas registradas</span>{/breadcrumbs}
-{#main}
-<section class="admin-metrics">
-  <h1 class="page-title">Charlas registradas - {event.title}</h1>
-  <table class="hd-table">
-    <thead>
-      <tr>
-        <th class="hd-table-head">Charla</th>
-        <th class="hd-table-head">Registros</th>
-      </tr>
-    </thead>
-    <tbody>
-    {#for row in rows}
-      <tr class="hd-table-row">
-        <td class="hd-table-cell"><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td>
-        <td class="hd-table-cell">{row.registrations}</td>
-      </tr>
-    {/for}
-    </tbody>
-  </table>
-  <a href="/private/admin/metrics?event={event.id}&amp;range=all" class="hd-btn hd-btn-secondary">Volver</a>
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading section-header hd-section-heading">
+        <p class="section-subtitle">Administración</p>
+        <h1>Charlas registradas - {event.title}</h1>
+      </div>
+      <div class="admin-shell-actions">
+        <a href="/private/admin/metrics?event={event.id}&amp;range=all" class="btn btn-secondary">Volver a métricas</a>
+      </div>
+    </div>
+  </div>
 </section>
-{/main}
+<div class="container admin-shell-stack">
+  <section class="admin-shell-panel">
+    <div class="admin-shell-table-wrap">
+      <table class="hd-table">
+        <thead>
+          <tr>
+            <th class="hd-table-head">Charla</th>
+            <th class="hd-table-head">Registros</th>
+          </tr>
+        </thead>
+        <tbody>
+        {#for row in rows}
+          <tr class="hd-table-row">
+            <td class="hd-table-cell"><a href="/private/admin/metrics/registrants?talk={row.id}">{row.name}</a></td>
+            <td class="hd-table-cell">{row.registrations}</td>
+          </tr>
+        {/for}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{/body}
 {/include}

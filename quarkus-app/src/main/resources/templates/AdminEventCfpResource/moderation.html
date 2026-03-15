@@ -1,4 +1,4 @@
-{#include layout/main}
+{#include layout/main mainClass="admin-context-main"}
 {#title}
 {i18n:events_cfp_admin_moderation_page_title(event.title)}
 {/title}
@@ -23,6 +23,13 @@
 </section>
 
 <div class="container">
+  <nav class="hd-profile-nav cfp-admin-subnav" aria-label="{i18n:events_cfp_admin_subnav_aria}">
+    <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-overview-panel">{i18n:events_cfp_admin_subnav_overview}</button>
+    <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-configuration-panel">{i18n:events_cfp_admin_subnav_configuration}</button>
+    <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-review-panel">{i18n:events_cfp_admin_subnav_review}</button>
+  </nav>
+
+  <section id="cfp-configuration-panel" data-cfp-admin-section hidden>
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
@@ -108,8 +115,35 @@
   <div class="card" style="margin-bottom: 1rem;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_queue_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_queue_desc}</p>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_results_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_results_desc}</p>
+      </div>
+    </div>
+    <div class="cfp-results-config-grid">
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_results_accept_message}</span>
+        <textarea id="cfpAcceptedResultsMessage" class="form-textarea" rows="3" maxlength="1200"></textarea>
+      </label>
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_results_reject_message}</span>
+        <textarea id="cfpRejectedResultsMessage" class="form-textarea" rows="3" maxlength="1200"></textarea>
+      </label>
+    </div>
+    <div class="action-group" style="margin-top: 0.75rem; gap: 0.5rem;">
+      <button id="cfpPublishResultsBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_results_publish}</button>
+    </div>
+    <p id="cfpResultsSummary" class="form-hint" style="margin-top: 0.6rem;"></p>
+    <p id="cfpResultsFeedback" class="form-hint" style="margin-top: 0.35rem;" hidden></p>
+  </div>
+
+  </section>
+
+  <section id="cfp-overview-panel" data-cfp-admin-section>
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_overview_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_overview_desc}</p>
       </div>
       <div class="action-group" style="gap: 0.5rem;">
         <button id="reloadCfpBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_queue_refresh}</button>
@@ -130,6 +164,38 @@
     </div>
     <div class="action-group" style="margin-top: 0.55rem;">
       <a href="/private/admin/insights" class="btn btn-secondary">{i18n:events_cfp_admin_insights_open}</a>
+    </div>
+  </div>
+  </section>
+
+  <section id="cfp-review-panel" data-cfp-admin-section hidden>
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_queue_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_review_desc}</p>
+      </div>
+      <div class="action-group" style="gap: 0.5rem;">
+        <button id="cfpGoOverviewBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_subnav_overview}</button>
+      </div>
+    </div>
+    <div class="cfp-review-search-grid">
+      <label class="form-hint cfp-review-search-field">
+        <span>{i18n:events_cfp_admin_filter_proposed_by}</span>
+        <input id="cfpFilterProposedBy" name="cfpFilterProposedBy" type="search" class="form-input" placeholder="{i18n:events_cfp_admin_filter_proposed_by_placeholder}">
+      </label>
+      <label class="form-hint cfp-review-search-field">
+        <span>{i18n:events_cfp_admin_filter_title}</span>
+        <input id="cfpFilterTitle" name="cfpFilterTitle" type="search" class="form-input" placeholder="{i18n:events_cfp_admin_filter_title_placeholder}">
+      </label>
+      <label class="form-hint cfp-review-search-field">
+        <span>{i18n:events_cfp_admin_filter_track}</span>
+        <input id="cfpFilterTrack" name="cfpFilterTrack" type="search" class="form-input" placeholder="{i18n:events_cfp_admin_filter_track_placeholder}">
+      </label>
+    </div>
+    <div class="cfp-toolbar-row" style="margin-top: 0.65rem;">
+      <button id="cfpApplyFiltersBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_filter_apply}</button>
+      <button id="cfpClearFiltersBtn" type="button" class="btn btn-ghost">{i18n:events_cfp_admin_filter_clear}</button>
     </div>
     <div class="cfp-toolbar-grid">
       <div class="cfp-toolbar-row">
@@ -155,24 +221,7 @@
   </div>
 
   <div id="cfpQueueList"></div>
-</div>
-
-<div id="cfpFullModal" class="cfp-modal" hidden>
-  <div class="cfp-modal-backdrop" data-modal-close></div>
-  <div class="cfp-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cfpFullModalTitle">
-    <div class="cfp-modal-header">
-      <h3 id="cfpFullModalTitle">{i18n:events_cfp_admin_modal_title}</h3>
-      <button id="cfpFullModalCloseBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_modal_close}</button>
-    </div>
-    <div class="cfp-modal-body">
-      <p id="cfpFullModalSummaryLabel" class="cfp-modal-label">{i18n:events_cfp_admin_modal_summary}</p>
-      <p id="cfpFullModalSummaryValue" class="cfp-modal-text"></p>
-      <p id="cfpFullModalAbstractLabel" class="cfp-modal-label">{i18n:events_cfp_admin_modal_abstract}</p>
-      <p id="cfpFullModalAbstractValue" class="cfp-modal-text"></p>
-      <p id="cfpFullModalLinksLabel" class="cfp-modal-label">{i18n:events_cfp_admin_modal_links}</p>
-      <ul id="cfpFullModalLinks" class="cfp-modal-links"></ul>
-    </div>
-  </div>
+  </section>
 </div>
 
 <style>
@@ -180,10 +229,31 @@
     gap: 0.45rem;
   }
 
+  .cfp-admin-subnav {
+    margin-bottom: 1rem;
+  }
+
+  [data-cfp-admin-section][hidden] {
+    display: none !important;
+  }
+
   .cfp-toolbar-grid {
     margin-top: 1rem;
     display: grid;
     gap: 0.65rem;
+  }
+
+  .cfp-review-search-grid {
+    margin-top: 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.55rem;
+  }
+
+  .cfp-review-search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
   }
 
   .cfp-insights-box {
@@ -232,6 +302,13 @@
     gap: 0.55rem;
   }
 
+  .cfp-results-config-grid {
+    margin-top: 0.85rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.65rem;
+  }
+
   .cfp-event-config-field {
     display: flex;
     flex-direction: column;
@@ -273,6 +350,13 @@
     border-radius: var(--radius-sm);
     padding: 0.9rem;
     background: rgba(255, 255, 255, 0.03);
+    height: 100%;
+  }
+
+  #cfpQueueList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 0.9rem;
   }
 
   .cfp-admin-card h3 {
@@ -290,28 +374,12 @@
     margin-top: 0.55rem;
   }
 
-  .cfp-admin-links {
-    margin: 0.5rem 0 0 0;
-    padding-left: 1rem;
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  .cfp-admin-links a {
-    word-break: break-word;
-  }
-
   .cfp-admin-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.75rem;
     align-items: center;
-  }
-
-  .cfp-admin-note {
-    width: 100%;
-    margin-top: 0.55rem;
   }
 
   .cfp-status-chip {
@@ -350,102 +418,6 @@
     background: rgba(255, 126, 126, 0.14);
   }
 
-  .cfp-rating-grid {
-    margin-top: 0.7rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.5rem;
-  }
-
-  .cfp-rating-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .cfp-rating-item label {
-    font-size: 0.75rem;
-    opacity: 0.85;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .cfp-rating-item select {
-    width: 100%;
-  }
-
-  .cfp-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 3200;
-    display: grid;
-    place-items: center;
-    padding: 1rem;
-  }
-
-  .cfp-modal[hidden] {
-    display: none;
-  }
-
-  .cfp-modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(6, 10, 22, 0.74);
-  }
-
-  .cfp-modal-dialog {
-    position: relative;
-    width: min(820px, 100%);
-    max-height: min(86vh, 760px);
-    overflow: auto;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: var(--radius-md);
-    background: rgba(10, 17, 34, 0.96);
-    box-shadow: 0 24px 56px rgba(3, 8, 20, 0.45);
-    padding: 0.95rem;
-  }
-
-  .cfp-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.8rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.13);
-    padding-bottom: 0.6rem;
-  }
-
-  .cfp-modal-header h3 {
-    margin: 0;
-  }
-
-  .cfp-modal-body {
-    padding-top: 0.7rem;
-  }
-
-  .cfp-modal-label {
-    margin: 0.7rem 0 0.35rem 0;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.8;
-  }
-
-  .cfp-modal-text {
-    margin: 0;
-    white-space: pre-wrap;
-    line-height: 1.5;
-  }
-
-  .cfp-modal-links {
-    margin: 0;
-    padding-left: 1rem;
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  .cfp-modal-links a {
-    word-break: break-word;
-  }
 </style>
 
 <script>
@@ -470,11 +442,24 @@
     const eventConfigClearBtn = document.getElementById("cfpEventConfigClearBtn");
     const eventConfigSummary = document.getElementById("cfpEventConfigSummary");
     const eventConfigFeedback = document.getElementById("cfpEventConfigFeedback");
+    const resultsMessageAccepted = document.getElementById("cfpAcceptedResultsMessage");
+    const resultsMessageRejected = document.getElementById("cfpRejectedResultsMessage");
+    const publishResultsBtn = document.getElementById("cfpPublishResultsBtn");
+    const resultsSummary = document.getElementById("cfpResultsSummary");
+    const resultsFeedback = document.getElementById("cfpResultsFeedback");
     const agendaNoticeToggle = document.getElementById("agendaNoticeToggle");
     const agendaNoticeSaveBtn = document.getElementById("agendaNoticeSaveBtn");
     const agendaNoticeFeedback = document.getElementById("agendaNoticeFeedback");
+    const cfpNavButtons = Array.from(document.querySelectorAll("[data-cfp-admin-nav]"));
+    const cfpSections = Array.from(document.querySelectorAll("[data-cfp-admin-section]"));
+    const cfpGoOverviewBtn = document.getElementById("cfpGoOverviewBtn");
     const filterButtons = Array.from(document.querySelectorAll(".cfp-filter-btn"));
     const sortButtons = Array.from(document.querySelectorAll(".cfp-sort-btn"));
+    const filterProposedByInput = document.getElementById("cfpFilterProposedBy");
+    const filterTitleInput = document.getElementById("cfpFilterTitle");
+    const filterTrackInput = document.getElementById("cfpFilterTrack");
+    const applyFiltersBtn = document.getElementById("cfpApplyFiltersBtn");
+    const clearFiltersBtn = document.getElementById("cfpClearFiltersBtn");
     const prevPageBtn = document.getElementById("cfpPrevPageBtn");
     const nextPageBtn = document.getElementById("cfpNextPageBtn");
     const pageInfo = document.getElementById("cfpPageInfo");
@@ -486,15 +471,6 @@
     const statWithdrawnEl = document.getElementById("cfpStatWithdrawn");
     const statsMetaEl = document.getElementById("cfpStatsMeta");
     const cfpInsightsSummaryEl = document.getElementById("cfpInsightsSummary");
-    const fullModal = document.getElementById("cfpFullModal");
-    const fullModalTitle = document.getElementById("cfpFullModalTitle");
-    const fullModalSummaryLabel = document.getElementById("cfpFullModalSummaryLabel");
-    const fullModalSummaryValue = document.getElementById("cfpFullModalSummaryValue");
-    const fullModalAbstractLabel = document.getElementById("cfpFullModalAbstractLabel");
-    const fullModalAbstractValue = document.getElementById("cfpFullModalAbstractValue");
-    const fullModalLinksLabel = document.getElementById("cfpFullModalLinksLabel");
-    const fullModalLinks = document.getElementById("cfpFullModalLinks");
-    const fullModalCloseBtn = document.getElementById("cfpFullModalCloseBtn");
     const i18n = {
       statusPending: "{i18n:events_cfp_status_pending}",
       statusUnderReview: "{i18n:events_cfp_status_under_review}",
@@ -510,21 +486,6 @@
       moderatedAt: "{i18n:events_cfp_admin_moderated_at}",
       by: "{i18n:events_cfp_admin_by}",
       notAvailable: "{i18n:events_cfp_admin_not_available}",
-      ratingTechnical: "{i18n:events_cfp_admin_rating_technical}",
-      ratingNarrative: "{i18n:events_cfp_admin_rating_narrative}",
-      ratingImpact: "{i18n:events_cfp_admin_rating_impact}",
-      moderationNotePlaceholder: "{i18n:events_cfp_admin_note_placeholder}",
-      staleSubmissionError: "{i18n:events_cfp_admin_error_stale_submission}",
-      rejectNoteRequiredError: "{i18n:events_cfp_admin_error_reject_note_required}",
-      updateStatusError: "{i18n:events_cfp_admin_error_update_status}",
-      saveRatingError: "{i18n:events_cfp_admin_error_save_rating}",
-      promoteError: "{i18n:events_cfp_admin_error_promote}",
-      saveRatingAction: "{i18n:events_cfp_admin_save_rating}",
-      actionUnderReview: "{i18n:events_cfp_admin_action_under_review}",
-      actionAccept: "{i18n:events_cfp_admin_action_accept}",
-      actionReject: "{i18n:events_cfp_admin_action_reject}",
-      actionPromote: "{i18n:events_cfp_admin_action_promote}",
-      promoteSuccessPrefix: "{i18n:events_cfp_admin_promote_success}",
       queueLoading: "{i18n:events_cfp_admin_queue_loading}",
       queueEmpty: "{i18n:events_cfp_admin_queue_empty}",
       queueLoadError: "{i18n:events_cfp_admin_queue_load_error}",
@@ -532,12 +493,7 @@
       lastUpdatePrefix: "{i18n:events_cfp_admin_last_update_prefix}",
       statsUnavailableValue: "{i18n:events_cfp_admin_not_available}",
       submissionNotAvailable: "{i18n:events_cfp_admin_submission_not_available}",
-      actionViewFull: "{i18n:events_cfp_admin_action_view_full}",
-      modalTitle: "{i18n:events_cfp_admin_modal_title}",
-      modalSummary: "{i18n:events_cfp_admin_modal_summary}",
-      modalAbstract: "{i18n:events_cfp_admin_modal_abstract}",
-      modalLinks: "{i18n:events_cfp_admin_modal_links}",
-      modalLinksEmpty: "{i18n:events_cfp_admin_modal_links_empty}",
+      actionOpenDetail: "{i18n:events_cfp_admin_action_open_detail}",
       panelistsTitle: "{i18n:events_cfp_panelists_title}",
       panelistsLinked: "{i18n:events_cfp_panelists_status_linked}",
       panelistsPending: "{i18n:events_cfp_panelists_status_pending}",
@@ -551,15 +507,46 @@
       insightsState: "{i18n:events_cfp_admin_insights_state}",
       insightsEvents: "{i18n:events_cfp_admin_insights_events}",
       insightsLastType: "{i18n:events_cfp_admin_insights_last_type}",
-      insightsLastUpdate: "{i18n:events_cfp_admin_insights_last_update}"
+      insightsLastUpdate: "{i18n:events_cfp_admin_insights_last_update}",
+      publicStatusLabel: "{i18n:events_cfp_admin_public_status_label}",
+      resultsPublished: "{i18n:events_cfp_admin_results_summary_published}",
+      resultsHidden: "{i18n:events_cfp_admin_results_summary_hidden}",
+      resultsAcceptCount: "{i18n:events_cfp_admin_results_summary_accept_count}",
+      resultsRejectCount: "{i18n:events_cfp_admin_results_summary_reject_count}",
+      resultsPublishedBy: "{i18n:events_cfp_admin_results_summary_by}",
+      resultsPublishSuccess: "{i18n:events_cfp_admin_results_published}",
+      resultsPublishError: "{i18n:events_cfp_admin_results_error}"
     };
     const pageSize = 20;
-    let activeStatus = "pending";
+    let activeStatus = "under_review";
     let activeSort = "created";
     let activeOffset = 0;
+    let activeProposedBy = "";
+    let activeTitle = "";
+    let activeTrack = "";
     let totalItems = 0;
     let hasMoreItems = false;
     let nextOffset = null;
+    let listRequestSequence = 0;
+    let currentEventConfigPayload = null;
+
+    function openCfpAdminSection(panelId, updateHash = true) {
+      if (!panelId) return;
+      const selectedSection = document.getElementById(panelId);
+      if (!selectedSection || !selectedSection.hasAttribute("data-cfp-admin-section")) return;
+      cfpSections.forEach((section) => {
+        section.hidden = section.id !== panelId;
+      });
+      cfpNavButtons.forEach((button) => {
+        const active = button.dataset.cfpAdminNav === panelId;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      if (updateHash && window.location.hash !== ("#" + panelId)) {
+        const search = window.location.search || "";
+        history.replaceState(null, "", window.location.pathname + search + "#" + panelId);
+      }
+    }
 
     const statusLabel = {
       pending: i18n.statusPending,
@@ -569,21 +556,106 @@
       withdrawn: i18n.statusWithdrawn
     };
 
-    function setActiveFilter(status) {
-      activeStatus = status;
-      activeOffset = 0;
+    function normalizeStatus(value) {
+      const raw = String(value || "").trim().toLowerCase();
+      return ["all", "pending", "under_review", "accepted", "rejected", "withdrawn"].includes(raw)
+        ? raw
+        : "under_review";
+    }
+
+    function normalizeSort(value) {
+      const raw = String(value || "").trim().toLowerCase();
+      return ["created", "updated", "score"].includes(raw) ? raw : "created";
+    }
+
+    function activeSearchParams() {
+      const params = new URLSearchParams();
+      if (activeStatus) params.set("status", activeStatus);
+      if (activeSort) params.set("sort", activeSort);
+      if (activeProposedBy) params.set("proposed_by", activeProposedBy);
+      if (activeTitle) params.set("title", activeTitle);
+      if (activeTrack) params.set("track", activeTrack);
+      if (activeOffset > 0) params.set("offset", String(activeOffset));
+      return params;
+    }
+
+    function syncModerationUrl() {
+      const params = activeSearchParams();
+      const query = params.toString();
+      const hash = window.location.hash || "#cfp-review-panel";
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname + (query ? "?" + query : "") + hash);
+    }
+
+    function applyControlsFromState() {
       filterButtons.forEach((button) => {
-        button.classList.toggle("is-active", button.dataset.status === status);
+        button.classList.toggle("is-active", button.dataset.status === activeStatus);
       });
+      sortButtons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.sort === activeSort);
+      });
+      if (filterProposedByInput) {
+        filterProposedByInput.value = activeProposedBy;
+      }
+      if (filterTitleInput) {
+        filterTitleInput.value = activeTitle;
+      }
+      if (filterTrackInput) {
+        filterTrackInput.value = activeTrack;
+      }
       refreshExportUrl();
     }
 
-    function setActiveSort(sort) {
-      activeSort = sort;
+    function restoreModerationStateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      activeStatus = normalizeStatus(params.get("status"));
+      activeSort = normalizeSort(params.get("sort"));
+      activeProposedBy = String(params.get("proposed_by") || "").trim();
+      activeTitle = String(params.get("title") || "").trim();
+      activeTrack = String(params.get("track") || "").trim();
+      const offsetRaw = Number.parseInt(String(params.get("offset") || "0"), 10);
+      activeOffset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? offsetRaw : 0;
+    }
+
+    function setActiveFilter(status) {
+      activeStatus = normalizeStatus(status);
       activeOffset = 0;
-      sortButtons.forEach((button) => {
-        button.classList.toggle("is-active", button.dataset.sort === sort);
-      });
+      applyControlsFromState();
+      syncModerationUrl();
+    }
+
+    function setActiveSort(sort) {
+      activeSort = normalizeSort(sort);
+      activeOffset = 0;
+      applyControlsFromState();
+      syncModerationUrl();
+    }
+
+    function setSearchFilters(filters) {
+      activeProposedBy = String(filters?.proposedBy || "").trim();
+      activeTitle = String(filters?.title || "").trim();
+      activeTrack = String(filters?.track || "").trim();
+      activeOffset = 0;
+      applyControlsFromState();
+      syncModerationUrl();
+    }
+
+    function setSearchFilters(filters) {
+      activeProposedBy = String(filters?.proposedBy || "").trim();
+      activeTitle = String(filters?.title || "").trim();
+      activeTrack = String(filters?.track || "").trim();
+      activeOffset = 0;
+      if (filterProposedByInput) {
+        filterProposedByInput.value = activeProposedBy;
+      }
+      if (filterTitleInput) {
+        filterTitleInput.value = activeTitle;
+      }
+      if (filterTrackInput) {
+        filterTrackInput.value = activeTrack;
+      }
       refreshExportUrl();
     }
 
@@ -592,6 +664,9 @@
       const params = new URLSearchParams();
       if (activeStatus) params.set("status", activeStatus);
       if (activeSort) params.set("sort", activeSort);
+      if (activeProposedBy) params.set("proposed_by", activeProposedBy);
+      if (activeTitle) params.set("title", activeTitle);
+      if (activeTrack) params.set("track", activeTrack);
       exportBtn.href = baseEndpoint + "/export.csv?" + params.toString();
     }
 
@@ -630,84 +705,6 @@
       return dt.toLocaleString();
     }
 
-    function sanitizeHttpUrl(value) {
-      if (!value) return null;
-      const raw = String(value).trim();
-      if (!raw) return null;
-      try {
-        const parsed = new URL(raw);
-        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-          return null;
-        }
-        return parsed.toString();
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function clearElement(element) {
-      while (element && element.firstChild) {
-        element.removeChild(element.firstChild);
-      }
-    }
-
-    function renderLinkList(container, links) {
-      clearElement(container);
-      const safeLinks = Array.isArray(links)
-        ? links.map(sanitizeHttpUrl).filter((value) => !!value)
-        : [];
-      if (!safeLinks.length) {
-        const empty = document.createElement("li");
-        empty.className = "form-hint";
-        empty.textContent = i18n.modalLinksEmpty;
-        container.appendChild(empty);
-        return;
-      }
-      safeLinks.forEach((href) => {
-        const item = document.createElement("li");
-        const anchor = document.createElement("a");
-        anchor.href = href;
-        anchor.target = "_blank";
-        anchor.rel = "noopener noreferrer";
-        anchor.textContent = href;
-        item.appendChild(anchor);
-        container.appendChild(item);
-      });
-    }
-
-    function closeFullModal() {
-      if (!fullModal) return;
-      fullModal.hidden = true;
-      document.body.style.removeProperty("overflow");
-    }
-
-    function openFullModal(item) {
-      if (!fullModal) return;
-      if (fullModalTitle) {
-        fullModalTitle.textContent = item.title || i18n.modalTitle;
-      }
-      if (fullModalSummaryLabel) {
-        fullModalSummaryLabel.textContent = i18n.modalSummary;
-      }
-      if (fullModalSummaryValue) {
-        fullModalSummaryValue.textContent = item.summary || i18n.submissionNotAvailable;
-      }
-      if (fullModalAbstractLabel) {
-        fullModalAbstractLabel.textContent = i18n.modalAbstract;
-      }
-      if (fullModalAbstractValue) {
-        fullModalAbstractValue.textContent = item.abstract_text || i18n.submissionNotAvailable;
-      }
-      if (fullModalLinksLabel) {
-        fullModalLinksLabel.textContent = i18n.modalLinks;
-      }
-      if (fullModalLinks) {
-        renderLinkList(fullModalLinks, item.links);
-      }
-      fullModal.hidden = false;
-      document.body.style.overflow = "hidden";
-    }
-
     function applyStats(payload) {
       if (!statTotalEl) return;
       statTotalEl.textContent = String(payload?.total ?? 0);
@@ -721,6 +718,9 @@
         statsMetaEl.textContent = latest
           ? i18n.lastUpdatePrefix + " " + latest
           : i18n.lastUpdatePrefix + " " + i18n.statsUnavailableValue;
+      }
+      if (currentEventConfigPayload) {
+        setResultsSummary(currentEventConfigPayload);
       }
     }
 
@@ -815,106 +815,6 @@
       }
     }
 
-    async function updateStatus(submissionId, nextStatus, noteField, expectedUpdatedAt) {
-      const note = noteField ? String(noteField.value || "").trim() : "";
-      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/status", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
-        body: JSON.stringify({
-          status: nextStatus,
-          note: note,
-          expected_updated_at: expectedUpdatedAt || null
-        })
-      });
-      if (!response.ok) {
-        let errorCode = "";
-        try {
-          const payload = await response.json();
-          if (payload && payload.error) {
-            errorCode = String(payload.error);
-          }
-        } catch (e) {
-        }
-        if (errorCode === "reject_note_required") {
-          throw new Error(i18n.rejectNoteRequiredError);
-        }
-        const detail = errorCode ? " (" + errorCode + ")" : "";
-        throw new Error(i18n.updateStatusError + detail);
-      }
-    }
-
-    async function updateRating(submissionId, rating, expectedUpdatedAt) {
-      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/rating", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
-        body: JSON.stringify(Object.assign({}, rating, { expected_updated_at: expectedUpdatedAt || null }))
-      });
-      if (!response.ok) {
-        let detail = "";
-        try {
-          const payload = await response.json();
-          if (payload && payload.error) {
-            detail = " (" + payload.error + ")";
-          }
-        } catch (e) {
-        }
-        throw new Error(i18n.saveRatingError + detail);
-      }
-      return response.json();
-    }
-
-    async function promoteSubmission(submissionId) {
-      const response = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/promote", {
-        method: "POST",
-        headers: { Accept: "application/json" }
-      });
-      if (!response.ok) {
-        let detail = "";
-        try {
-          const payload = await response.json();
-          if (payload && payload.error) {
-            detail = " (" + payload.error + ")";
-          }
-        } catch (e) {
-        }
-        throw new Error(i18n.promoteError + detail);
-      }
-      return response.json();
-    }
-
-    function buildRatingSelect(id, label, value) {
-      const wrap = document.createElement("div");
-      wrap.className = "cfp-rating-item";
-
-      const lbl = document.createElement("label");
-      lbl.setAttribute("for", id);
-      lbl.textContent = label;
-      wrap.appendChild(lbl);
-
-      const select = document.createElement("select");
-      select.className = "form-select";
-      select.id = id;
-      select.name = id;
-      for (let i = 0; i <= 5; i += 1) {
-        const opt = document.createElement("option");
-        opt.value = String(i);
-        opt.textContent = String(i);
-        if (Number(value) === i) {
-          opt.selected = true;
-        }
-        select.appendChild(opt);
-      }
-      wrap.appendChild(select);
-
-      return { wrap, select };
-    }
-
     function scoreLabel(item) {
       if (typeof item.rating_weighted === "number") {
         return i18n.scorePrefix + " " + item.rating_weighted.toFixed(2);
@@ -968,6 +868,14 @@
       chip.textContent = statusLabel[currentStatus] || currentStatus;
       chipWrap.appendChild(chip);
 
+      if (item.public_status && item.public_status !== currentStatus) {
+        const publicChip = document.createElement("span");
+        publicChip.className = "cfp-status-chip";
+        publicChip.textContent =
+          i18n.publicStatusLabel + " " + (statusLabel[item.public_status] || item.public_status);
+        chipWrap.appendChild(publicChip);
+      }
+
       const scoreChip = document.createElement("span");
       scoreChip.className = "cfp-status-chip cfp-score-chip";
       scoreChip.textContent = scoreLabel(item);
@@ -991,32 +899,6 @@
         summary.className = "cfp-admin-summary";
         summary.textContent = item.summary;
         article.appendChild(summary);
-      }
-
-      if (item.abstract_text) {
-        const abstractText = document.createElement("p");
-        abstractText.className = "cfp-admin-summary";
-        abstractText.textContent = item.abstract_text;
-        article.appendChild(abstractText);
-      }
-
-      const previewLinks = Array.isArray(item.links)
-        ? item.links.map(sanitizeHttpUrl).filter((value) => !!value).slice(0, 2)
-        : [];
-      if (previewLinks.length) {
-        const linksList = document.createElement("ul");
-        linksList.className = "cfp-admin-links";
-        previewLinks.forEach((href) => {
-          const entry = document.createElement("li");
-          const anchor = document.createElement("a");
-          anchor.href = href;
-          anchor.target = "_blank";
-          anchor.rel = "noopener noreferrer";
-          anchor.textContent = href;
-          entry.appendChild(anchor);
-          linksList.appendChild(entry);
-        });
-        article.appendChild(linksList);
       }
 
       if (Array.isArray(item.panelists) && item.panelists.length > 0) {
@@ -1049,122 +931,27 @@
         article.appendChild(presentationLine);
       }
 
-      const ratings = document.createElement("div");
-      ratings.className = "cfp-rating-grid";
-      const technical = buildRatingSelect("rating-tech-" + item.id, i18n.ratingTechnical, item.rating_technical_detail ?? 0);
-      const narrative = buildRatingSelect("rating-narrative-" + item.id, i18n.ratingNarrative, item.rating_narrative ?? 0);
-      const impact = buildRatingSelect("rating-impact-" + item.id, i18n.ratingImpact, item.rating_content_impact ?? 0);
-      ratings.appendChild(technical.wrap);
-      ratings.appendChild(narrative.wrap);
-      ratings.appendChild(impact.wrap);
-      article.appendChild(ratings);
-
-      const note = document.createElement("input");
-      note.type = "text";
-      note.className = "form-input cfp-admin-note";
-      note.placeholder = i18n.moderationNotePlaceholder;
-      note.id = "moderation-note-" + item.id;
-      note.name = note.id;
-      // Ensure persisted moderation notes are visible after refresh/reload.
-      note.value = item.moderation_note || "";
-      article.appendChild(note);
-
       const actions = document.createElement("div");
       actions.className = "cfp-admin-actions";
 
-      const viewFullBtn = document.createElement("button");
-      viewFullBtn.type = "button";
-      viewFullBtn.className = "btn btn-secondary";
-      viewFullBtn.textContent = i18n.actionViewFull;
-      viewFullBtn.addEventListener("click", () => {
-        openFullModal(item);
-      });
-      actions.appendChild(viewFullBtn);
-
-      function actionButton(label, targetStatus, variant) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = variant;
-        btn.textContent = label;
-        btn.addEventListener("click", async () => {
-          btn.disabled = true;
-          try {
-            await updateStatus(item.id, targetStatus, note, item.updated_at);
-            await loadList();
-          } catch (error) {
-            if ((error.message || "").includes("stale_submission")) {
-              window.alert(i18n.staleSubmissionError);
-            } else {
-              window.alert(error.message || i18n.updateStatusError);
-            }
-          } finally {
-            btn.disabled = false;
-          }
-        });
-        actions.appendChild(btn);
-      }
-
-      const saveRatingBtn = document.createElement("button");
-      saveRatingBtn.type = "button";
-      saveRatingBtn.className = "btn btn-secondary";
-      saveRatingBtn.textContent = i18n.saveRatingAction;
-      saveRatingBtn.addEventListener("click", async () => {
-        saveRatingBtn.disabled = true;
-        try {
-          const payload = await updateRating(item.id, {
-            technical_detail: Number(technical.select.value),
-            narrative: Number(narrative.select.value),
-            content_impact: Number(impact.select.value)
-          }, item.updated_at);
-          if (payload && payload.item) {
-            item.rating_weighted = payload.item.rating_weighted;
-            item.updated_at = payload.item.updated_at || item.updated_at;
-            item.moderated_at = payload.item.moderated_at || item.moderated_at;
-            item.moderated_by = payload.item.moderated_by || item.moderated_by;
-            scoreChip.textContent = scoreLabel(payload.item);
-            auditLine.textContent = submissionAuditLine(item);
-          }
-          await loadStats();
-        } catch (error) {
-          if ((error.message || "").includes("stale_submission")) {
-            window.alert(i18n.staleSubmissionError);
-          } else {
-            window.alert(error.message || i18n.saveRatingError);
-          }
-        } finally {
-          saveRatingBtn.disabled = false;
-        }
-      });
-      actions.appendChild(saveRatingBtn);
-
-      actionButton(i18n.actionUnderReview, "under_review", "btn btn-secondary");
-      actionButton(i18n.actionAccept, "accepted", "btn btn-primary");
-      actionButton(i18n.actionReject, "rejected", "btn btn-danger");
-      if (currentStatus === "accepted") {
-        const promoteBtn = document.createElement("button");
-        promoteBtn.type = "button";
-        promoteBtn.className = "btn btn-secondary";
-        promoteBtn.textContent = i18n.actionPromote;
-        promoteBtn.addEventListener("click", async () => {
-          promoteBtn.disabled = true;
-          try {
-            const payload = await promoteSubmission(item.id);
-            window.alert(i18n.promoteSuccessPrefix + " " + payload.speaker_id + " / " + payload.talk_id);
-          } catch (error) {
-            window.alert(error.message || i18n.promoteError);
-          } finally {
-            promoteBtn.disabled = false;
-          }
-        });
-        actions.appendChild(promoteBtn);
-      }
+      const detailLink = document.createElement("a");
+      detailLink.className = "btn btn-secondary";
+      const detailParams = activeSearchParams().toString();
+      detailLink.href =
+        "/private/admin/events/" + encodeURIComponent(eventId) + "/cfp/submissions/" + encodeURIComponent(item.id)
+        + (detailParams ? "?" + detailParams : "")
+        + "#cfp-review-panel";
+      detailLink.textContent = i18n.actionOpenDetail;
+      actions.appendChild(detailLink);
 
       article.appendChild(actions);
       return article;
     }
 
     async function loadList() {
+      const requestSequence = ++listRequestSequence;
       renderEmpty(i18n.queueLoading);
+      syncModerationUrl();
       try {
         const params = new URLSearchParams({
           status: activeStatus,
@@ -1172,6 +959,9 @@
           limit: String(pageSize),
           offset: String(activeOffset)
         });
+        if (activeProposedBy) params.set("proposed_by", activeProposedBy);
+        if (activeTitle) params.set("title", activeTitle);
+        if (activeTrack) params.set("track", activeTrack);
         const response = await fetch(baseEndpoint + "?" + params.toString(), {
           headers: { Accept: "application/json" }
         });
@@ -1179,6 +969,9 @@
           throw new Error(i18n.queueLoadGenericError);
         }
         const payload = await response.json();
+        if (requestSequence !== listRequestSequence) {
+          return;
+        }
         totalItems = Number.isFinite(Number(payload.total)) ? Number(payload.total) : 0;
         hasMoreItems = !!payload.has_more;
         nextOffset = Number.isFinite(Number(payload.next_offset)) ? Number(payload.next_offset) : null;
@@ -1200,6 +993,9 @@
         updateListPagination();
         loadStats();
       } catch (error) {
+        if (requestSequence !== listRequestSequence) {
+          return;
+        }
         totalItems = 0;
         hasMoreItems = false;
         nextOffset = null;
@@ -1220,6 +1016,13 @@
       eventConfigFeedback.hidden = false;
       eventConfigFeedback.textContent = message;
       eventConfigFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+    }
+
+    function showResultsFeedback(message, isError) {
+      if (!resultsFeedback) return;
+      resultsFeedback.hidden = false;
+      resultsFeedback.textContent = message;
+      resultsFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
     }
 
     function toLocalInputValue(isoValue) {
@@ -1271,7 +1074,32 @@
       eventConfigSummary.textContent = parts.join(" · ");
     }
 
+    function setResultsSummary(payload) {
+      if (!resultsSummary) {
+        return;
+      }
+      const effective = payload && payload.effective ? payload.effective : null;
+      if (!effective) {
+        resultsSummary.textContent = i18n.resultsHidden;
+        return;
+      }
+      const parts = [];
+      parts.push(effective.results_published ? i18n.resultsPublished : i18n.resultsHidden);
+      if (effective.results_published_at) {
+        parts.push(fmtDate(effective.results_published_at));
+      }
+      if (effective.results_published_by) {
+        parts.push(i18n.resultsPublishedBy + " " + effective.results_published_by);
+      }
+      const acceptedCount = Number.parseInt(String(statAcceptedEl?.textContent || "0"), 10) || 0;
+      const rejectedCount = Number.parseInt(String(statRejectedEl?.textContent || "0"), 10) || 0;
+      parts.push(i18n.resultsAcceptCount + " " + acceptedCount);
+      parts.push(i18n.resultsRejectCount + " " + rejectedCount);
+      resultsSummary.textContent = parts.join(" · ");
+    }
+
     function applyEventConfig(payload) {
+      currentEventConfigPayload = payload;
       const override = payload && payload.override ? payload.override : null;
       const effective = payload && payload.effective ? payload.effective : null;
       if (eventAcceptingToggle) {
@@ -1300,7 +1128,16 @@
           eventTestingOverride.value = "";
         }
       }
+      if (resultsMessageAccepted) {
+        resultsMessageAccepted.value =
+          effective && effective.accepted_results_message ? effective.accepted_results_message : "";
+      }
+      if (resultsMessageRejected) {
+        resultsMessageRejected.value =
+          effective && effective.rejected_results_message ? effective.rejected_results_message : "";
+      }
       setEventConfigSummary(payload);
+      setResultsSummary(payload);
     }
 
     async function loadEventConfig() {
@@ -1378,6 +1215,34 @@
         showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
       } finally {
         eventConfigClearBtn.disabled = false;
+      }
+    }
+
+    async function publishResults() {
+      if (!publishResultsBtn) return;
+      publishResultsBtn.disabled = true;
+      if (resultsFeedback) {
+        resultsFeedback.hidden = true;
+      }
+      try {
+        const response = await fetch(baseEndpoint + "/publish-results", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            accepted_message: resultsMessageAccepted ? resultsMessageAccepted.value : "",
+            rejected_message: resultsMessageRejected ? resultsMessageRejected.value : ""
+          })
+        });
+        if (!response.ok) {
+          showResultsFeedback(i18n.resultsPublishError, true);
+          return;
+        }
+        await Promise.all([loadEventConfig(), loadStats(), loadList()]);
+        showResultsFeedback(i18n.resultsPublishSuccess, false);
+      } catch (error) {
+        showResultsFeedback(i18n.resultsPublishError, true);
+      } finally {
+        publishResultsBtn.disabled = false;
       }
     }
 
@@ -1468,6 +1333,39 @@
       });
     });
 
+    applyFiltersBtn?.addEventListener("click", () => {
+      setSearchFilters({
+        proposedBy: filterProposedByInput ? filterProposedByInput.value : "",
+        title: filterTitleInput ? filterTitleInput.value : "",
+        track: filterTrackInput ? filterTrackInput.value : ""
+      });
+      loadList();
+    });
+    clearFiltersBtn?.addEventListener("click", () => {
+      setSearchFilters({ proposedBy: "", title: "", track: "" });
+      loadList();
+    });
+    [filterProposedByInput, filterTitleInput, filterTrackInput]
+      .filter((element) => !!element)
+      .forEach((element) => {
+        element.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") {
+            return;
+          }
+          event.preventDefault();
+          applyFiltersBtn?.click();
+        });
+      });
+
+    cfpNavButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        openCfpAdminSection(button.dataset.cfpAdminNav, true);
+      });
+    });
+    cfpGoOverviewBtn?.addEventListener("click", () => {
+      openCfpAdminSection("cfp-overview-panel", true);
+    });
+
     reloadBtn?.addEventListener("click", () => {
       loadList();
       loadCfpInsightsSummary();
@@ -1477,6 +1375,7 @@
         return;
       }
       activeOffset = Math.max(0, activeOffset - pageSize);
+      syncModerationUrl();
       loadList().then(() => listEl?.scrollIntoView({ behavior: "smooth", block: "start" }));
     });
     nextPageBtn?.addEventListener("click", () => {
@@ -1484,26 +1383,33 @@
         return;
       }
       activeOffset = Number.isFinite(nextOffset) ? nextOffset : (activeOffset + pageSize);
+      syncModerationUrl();
       loadList().then(() => listEl?.scrollIntoView({ behavior: "smooth", block: "start" }));
     });
     testingSaveBtn?.addEventListener("click", saveTestingConfig);
     eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
     eventConfigClearBtn?.addEventListener("click", clearEventConfig);
+    publishResultsBtn?.addEventListener("click", publishResults);
     agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
-    fullModalCloseBtn?.addEventListener("click", closeFullModal);
-    fullModal?.addEventListener("click", (event) => {
-      const target = event.target;
-      if (target && target instanceof HTMLElement && target.hasAttribute("data-modal-close")) {
-        closeFullModal();
+    restoreModerationStateFromUrl();
+    applyControlsFromState();
+    const initialPanelId = (() => {
+      const hash = (window.location.hash || "").replace("#", "").trim();
+      if (hash) {
+        const hashedSection = document.getElementById(hash);
+        if (hashedSection && hashedSection.hasAttribute("data-cfp-admin-section")) {
+          return hash;
+        }
+      }
+      return "cfp-overview-panel";
+    })();
+    openCfpAdminSection(initialPanelId, false);
+    window.addEventListener("hashchange", () => {
+      const hash = (window.location.hash || "").replace("#", "").trim();
+      if (hash) {
+        openCfpAdminSection(hash, false);
       }
     });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && fullModal && !fullModal.hidden) {
-        closeFullModal();
-      }
-    });
-    setActiveFilter(activeStatus);
-    setActiveSort(activeSort);
     loadTestingConfig();
     loadEventConfig();
     loadAgendaNoticeConfig();
