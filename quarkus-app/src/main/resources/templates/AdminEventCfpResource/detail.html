@@ -24,7 +24,13 @@
   <div class="card" style="margin-bottom: 1rem;">
     <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_detail_heading}</h2>
     <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_detail_desc}</p>
-    <p id="cfpDetailFeedback" class="form-hint" style="margin-top: 0.55rem;" hidden></p>
+    <div
+      id="cfpDetailFeedback"
+      class="hd-alert hd-alert-warning"
+      style="margin-top: 0.75rem;"
+      role="alert"
+      aria-live="assertive"
+      hidden></div>
   </div>
 
   <div id="cfpDetailShell" class="cfp-detail-layout" aria-live="polite">
@@ -155,6 +161,7 @@
       updateStatusError: "{i18n:events_cfp_admin_error_update_status}",
       saveRatingError: "{i18n:events_cfp_admin_error_save_rating}",
       promoteError: "{i18n:events_cfp_admin_error_promote}",
+      rejectNoteRequired: "{i18n:events_cfp_admin_error_reject_note_required}",
       reviewTitle: "{i18n:label_ratings}",
       reviewDesc: "{i18n:events_cfp_admin_queue_desc}",
       panelistsTitle: "{i18n:events_cfp_panelists_title}",
@@ -226,11 +233,36 @@
       return i18n.scoreNotAvailable;
     }
 
+    function notifyToast(message) {
+      if (!message) {
+        return;
+      }
+      if (typeof window.showToast === "function") {
+        window.showToast(message);
+      }
+    }
+
+    function mapApiErrorMessage(rawMessage, fallbackMessage) {
+      const message = String(rawMessage || "").trim();
+      if (!message) {
+        return fallbackMessage;
+      }
+      if (message === "reject_note_required") {
+        return i18n.rejectNoteRequired;
+      }
+      if (message === "stale_submission") {
+        return i18n.staleSubmissionError;
+      }
+      return message;
+    }
+
     function showFeedback(message, isError) {
       if (!feedback) return;
       feedback.hidden = false;
       feedback.textContent = message;
-      feedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+      feedback.classList.remove("hd-alert-danger", "hd-alert-warning", "hd-alert-success");
+      feedback.classList.add("hd-alert", isError ? "hd-alert-danger" : "hd-alert-success");
+      notifyToast(message);
     }
 
     async function updateStatus(targetStatus, noteValue, expectedUpdatedAt) {
@@ -424,8 +456,9 @@
         attachAction(label, className, async (event) => {
           const btn = event.currentTarget;
           btn.disabled = true;
+          const noteValue = note.value;
         try {
-            const payload = await updateStatus(targetStatus, note.value, currentItem.updated_at);
+            const payload = await updateStatus(targetStatus, noteValue, currentItem.updated_at);
             if (payload && payload.item) {
               currentItem = payload.item;
             }
@@ -433,7 +466,12 @@
             showFeedback(label, false);
             await loadDetail();
           } catch (error) {
-            showFeedback((error.message || "").includes("stale_submission") ? i18n.staleSubmissionError : (error.message || i18n.updateStatusError), true);
+            const message = mapApiErrorMessage(error.message, i18n.updateStatusError);
+            if (String(error.message || "").trim() === "reject_note_required") {
+              note.focus();
+              note.select?.();
+            }
+            showFeedback(message, true);
           } finally {
             btn.disabled = false;
           }
