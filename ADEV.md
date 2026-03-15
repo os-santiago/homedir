@@ -70,4 +70,5 @@
 6. En personalizaciones visuales por evento o contexto, aplicar overrides de color/branding solo dentro de ese alcance y preservar la identidad global del sitio fuera de ese contexto.
 7. Para backups y recuperacion ante desastre, validar restaurabilidad completa del servicio; no considerar suficiente un respaldo si no permite reconstruir el sitio con datos, artefactos y procedimiento probado.
 8. Mantener workstreams limpios: abrir rama dedicada desde una base estable, no mezclar cambios ajenos y revalidar cuando cambien flags, comandos o herramientas para conservar comparabilidad.
+9. En paginas multilenguaje, los tests deben fijar explicitamente el locale esperado y validar el contenido localizado correspondiente; no depender del idioma por defecto o de textos heredados.
 9. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.
