@@ -3368,6 +3368,99 @@ public interface AppMessages {
     @Message("linked community contributor profiles")
     String home_p0_metric_github_desc();
 
+    @Message("Welcome mission")
+    String home_p1_mission_eyebrow();
+
+    @Message("Get your first visible win")
+    String home_p1_mission_title();
+
+    @Message("Finish these three actions to activate your contributor setup and unlock the XP + HCoin already attached to each step.")
+    String home_p1_mission_intro();
+
+    @Message("{remainingXp} XP + {remainingHcoin} HCoin still available in this starter track")
+    String home_p1_mission_reward(int remainingXp, int remainingHcoin);
+
+    @Message("Starter mission completed")
+    String home_p1_mission_complete();
+
+    @Message("Bring your OSS contribution signal into HomeDir and strengthen your public profile.")
+    String home_p1_task_github_desc();
+
+    @Message("Appear in community spaces with the same identity you use in the OSSantiago Discord.")
+    String home_p1_task_discord_desc();
+
+    @Message("Teach the feed what matters to you and trigger your first community signal.")
+    String home_p1_task_vote_desc();
+
+    @Message("Open integrations")
+    String home_p1_task_connect_cta();
+
+    @Message("My HomeDir")
+    String home_p1_today_eyebrow();
+
+    @Message("Your next best moves")
+    String home_p1_today_title();
+
+    @Message("Use this short panel as your daily starting point: finish setup, review what changed, and spend your progress deliberately.")
+    String home_p1_today_intro();
+
+    @Message("Profile setup")
+    String home_p1_action_profile_title();
+
+    @Message("You still have account signals to connect before your profile is fully ready to share.")
+    String home_p1_action_profile_desc_incomplete();
+
+    @Message("Your account setup is in good shape. Review your profile and keep it ready to share.")
+    String home_p1_action_profile_desc_ready();
+
+    @Message("Open profile setup")
+    String home_p1_action_profile_cta();
+
+    @Message("Community Picks")
+    String home_p1_action_picks_title();
+
+    @Message("Your first vote is still pending. One quick pick review is enough to start your feed signal.")
+    String home_p1_action_picks_desc_start();
+
+    @Message("{count} fresh picks are waiting if you want a fast community check-in.")
+    String home_p1_action_picks_desc_ready(int count);
+
+    @Message("Open Community Picks")
+    String home_p1_action_picks_cta();
+
+    @Message("Events")
+    String home_p1_action_events_title();
+
+    @Message("{count} event entries are live right now. Use them as your next exploration step.")
+    String home_p1_action_events_desc_live(int count);
+
+    @Message("No upcoming events yet. Use the directory to review the event space and watch for updates.")
+    String home_p1_action_events_desc_empty();
+
+    @Message("Open Events")
+    String home_p1_action_events_cta();
+
+    @Message("Rewards catalog")
+    String home_p1_action_rewards_title();
+
+    @Message("You have {balance} HCoin and {catalogCount} rewards available to inspect or unlock next.")
+    String home_p1_action_rewards_desc(long balance, int catalogCount);
+
+    @Message("Open rewards")
+    String home_p1_action_rewards_cta();
+
+    @Message("No curated picks are visible yet. Open Community Picks to explore the feed and help shape what appears next.")
+    String home_p1_empty_social_desc();
+
+    @Message("Open Community Picks")
+    String home_p1_empty_social_cta();
+
+    @Message("No featured events are visible yet. Open the events directory to browse the current timeline and published agendas.")
+    String home_p1_empty_events_desc();
+
+    @Message("Open Events")
+    String home_p1_empty_events_cta();
+
     @Message("New / Hot")
     String home_new_hot_badge();
 
