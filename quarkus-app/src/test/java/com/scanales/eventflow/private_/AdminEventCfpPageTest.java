@@ -84,6 +84,7 @@ public class AdminEventCfpPageTest {
         .body(containsString("id=\"cfpDetailShell\""))
         .body(containsString("id=\"cfpDetailFeedback\""))
         .body(containsString("id=\"cfpBackToOverviewLink\""))
+        .body(containsString("Add a moderation note before rejecting this proposal."))
         .body(containsString("const submissionId = \"" + submission.id() + "\""));
   }
 
