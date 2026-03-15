@@ -12,13 +12,15 @@ public class HomePastEventsTest {
   @Test
   public void homeShowsCommunityCards() {
     given()
+        .header("Accept-Language", "es")
         .accept("text/html")
         .when()
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("Social"))
-        .body(containsString("Events"))
-        .body(containsString("Project"));
+        .body(containsString("<html lang=\"es\">"))
+        .body(containsString("Comunidad"))
+        .body(containsString("Eventos"))
+        .body(containsString("Proyecto"));
   }
 }

@@ -2,185 +2,195 @@
 {#title}{i18n:nav_home}{/title}
 {#body}
 <header class="public-header home-highlight-hero">
-  <div class="section-header hd-section-heading">
-    <p class="section-subtitle">{i18n:home_welcome_title}</p>
-    <h1 class="home-welcome-en">{i18n:home_welcome_en}</h1>
-  </div>
-  <p class="home-welcome-es">{i18n:home_welcome_es}</p>
-  <p class="home-highlights-intro">{i18n:home_highlights_intro}</p>
-  {#if !userAuthenticated}
-  <section class="section-card home-value-login" aria-label="{i18n:home_login_value_title}">
-    <div class="section-header hd-section-heading home-value-login-header">
-      <p class="section-subtitle">{i18n:home_login_value_eyebrow}</p>
-      <h2 class="page-title">{i18n:home_login_value_title}</h2>
-    </div>
-    <div class="home-value-login-grid">
-      <article class="home-value-login-card">
-        <p class="section-subtitle">{i18n:home_login_google_step}</p>
-        <h3>{i18n:home_login_google_title}</h3>
-        <p>{i18n:home_login_google_desc}</p>
-        <a href="/private/login-callback?redirect=/" class="btn-primary" data-login-return-current="true">
-          {i18n:home_login_google_cta}
-        </a>
-      </article>
-      <article class="home-value-login-card">
-        <p class="section-subtitle">{i18n:home_login_github_step}</p>
-        <h3>{i18n:home_login_github_title}</h3>
-        <p>{i18n:home_login_github_desc}</p>
-        <a href="/private/login-callback?redirect=/private/profile" class="btn-primary" data-login-return-current="true">
-          {i18n:home_login_github_cta}
-        </a>
-      </article>
-    </div>
-  </section>
-  {/if}
-  {#if userAuthenticated}
-  <section class="section-card home-today-panel" aria-label="{i18n:home_today_title}">
-    <div class="home-today-head">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_today_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_today_title}</h2>
+  <section class="section-card home-onboarding-shell" aria-label="{i18n:home_p0_shell_aria}">
+    <div class="home-onboarding-stage">
+      <div class="home-onboarding-copy">
+        <div class="section-header hd-section-heading">
+          <p class="section-subtitle">{i18n:home_p0_eyebrow}</p>
+          <h1 class="home-welcome-en">{i18n:home_p0_title}</h1>
+        </div>
+        <p class="home-welcome-es">{i18n:home_p0_subtitle}</p>
+        <p class="home-highlights-intro">
+          {#if userAuthenticated}{i18n:home_p0_intro_member}{#else}{i18n:home_p0_intro_guest}{/if}
+        </p>
+        <div class="home-onboarding-actions">
+          {#if userAuthenticated}
+          <a href="/private/profile" class="btn-primary">{i18n:home_p0_member_primary_cta}</a>
+          <a href="/comunidad/picks" class="btn-secondary">{i18n:home_p0_member_secondary_cta}</a>
+          {/if}
+          {#if !userAuthenticated}
+          <a href="/private/login-callback?redirect=/" class="btn-primary" data-login-return-current="true">
+            {i18n:home_p0_guest_primary_cta}
+          </a>
+          <a href="/comunidad/picks" class="btn-secondary">{i18n:home_p0_guest_secondary_cta}</a>
+          {/if}
+        </div>
       </div>
-      <span id="home-last-visit-chip" class="home-chip" data-i18n-first="{i18n:home_today_since_first}"
-        data-i18n-last-prefix="{i18n:home_today_since_last_prefix}">{i18n:home_today_since_first}</span>
+
+      {#if !userAuthenticated}
+      <aside class="home-hero-spotlight home-hero-spotlight-guest" aria-label="{i18n:home_login_value_title}">
+        <div class="section-header hd-section-heading home-value-login-header">
+          <p class="section-subtitle">{i18n:home_login_value_eyebrow}</p>
+          <h2 class="page-title">{i18n:home_login_value_title}</h2>
+        </div>
+        <div class="home-hero-spotlight-grid">
+          <article class="home-value-login-card">
+            <p class="section-subtitle">{i18n:home_login_google_step}</p>
+            <h3>{i18n:home_login_google_title}</h3>
+            <p>{i18n:home_login_google_desc}</p>
+          </article>
+          <article class="home-value-login-card">
+            <p class="section-subtitle">{i18n:home_login_github_step}</p>
+            <h3>{i18n:home_login_github_title}</h3>
+            <p>{i18n:home_login_github_desc}</p>
+          </article>
+        </div>
+        <div class="home-proof-inline">
+          <span class="home-chip">{homeBoardSummary.homedirUsers} {i18n:home_p0_chip_members}</span>
+          <span class="home-chip">{homeBoardSummary.githubUsers} {i18n:home_p0_chip_github}</span>
+          <span class="home-chip">{homeRewardsCatalogCount} {i18n:home_p0_chip_rewards}</span>
+        </div>
+      </aside>
+      {/if}
+
+      {#if userAuthenticated}
+      <aside class="home-hero-spotlight home-hero-spotlight-member" aria-label="{i18n:home_p0_progress_title}">
+        <div class="home-progress-card-top">
+          <span class="home-chip">{i18n:home_p0_progress_badge}</span>
+          <span id="home-last-visit-chip" class="home-chip" data-i18n-first="{i18n:home_today_since_first}"
+            data-i18n-last-prefix="{i18n:home_today_since_last_prefix}">{i18n:home_today_since_first}</span>
+        </div>
+        <div class="section-header hd-section-heading home-value-login-header">
+          <p class="section-subtitle">{i18n:home_p0_progress_eyebrow}</p>
+          <h2 class="page-title">{i18n:home_p0_progress_title}</h2>
+        </div>
+        <div class="home-progress-summary">
+          <strong>{i18n:home_p0_progress_level(userSession.level)}</strong>
+          <span>
+            {#if userSession.questClass}{userSession.questClass.displayName}{#else}{i18n:home_p0_progress_class_fallback}{/if}
+          </span>
+          <small>{i18n:home_p0_progress_xp(userSession.currentXp, userSession.nextLevelXp)}</small>
+        </div>
+        <div class="xp-bar-container home-progress-bar">
+          <div class="xp-bar-fill header-xp-bar-fill"
+            style="--xp-percent: {(userSession.currentXp / userSession.nextLevelXp) * 100}%;">
+          </div>
+        </div>
+        <div class="home-progress-grid">
+          <article class="home-progress-stat">
+            <span>{i18n:home_p0_progress_hcoin}</span>
+            <strong>{homeWalletBalance}</strong>
+          </article>
+          <article class="home-progress-stat">
+            <span>{i18n:home_p0_progress_collection}</span>
+            <strong>{homeInventoryCount}</strong>
+          </article>
+          <article class="home-progress-stat">
+            <span>{i18n:home_p0_progress_links}</span>
+            <strong>{homeLinkedSignals}</strong>
+          </article>
+          <article class="home-progress-stat">
+            <span>{i18n:home_p0_progress_starter}</span>
+            <strong>{homeStarterCompleted}/3</strong>
+          </article>
+        </div>
+      </aside>
+      {/if}
     </div>
-    <p class="home-pane-summary">{i18n:home_today_intro}</p>
-    <p class="home-pane-summary">
-      {i18n:home_today_account_status_prefix}
-      <strong>{i18n:home_today_account_status_homedir}</strong>
-      ·
-      <strong>{#if homeAccountHasGithub}{i18n:home_today_account_status_github_linked}{#else}{i18n:home_today_account_status_github_missing}{/if}</strong>
-      ·
-      <strong>{#if homeAccountHasDiscord}{i18n:home_today_account_status_discord_linked}{#else}{i18n:home_today_account_status_discord_missing}{/if}</strong>
-      ·
-      <a href="/private/profile">{i18n:home_today_account_status_cta}</a>
-    </p>
-    <p class="home-pane-summary">
-      <strong>{i18n:home_starter_track_title}</strong>
-      ·
-      {i18n:home_starter_track_progress(homeStarterCompleted)}
-      ·
-      {#if homeAccountHasGithub}{i18n:home_starter_task_github_done}{#else}{i18n:home_starter_task_github_todo}{/if}
-      ·
-      {#if homeAccountHasDiscord}{i18n:home_starter_task_discord_done}{#else}{i18n:home_starter_task_discord_todo}{/if}
-      ·
-      {#if homeStarterHasVote}{i18n:home_starter_task_vote_done}{#else}{i18n:home_starter_task_vote_todo}{/if}
-      ·
-      <a href="/comunidad/picks">{i18n:home_starter_track_picks_cta}</a>
-    </p>
-    <div class="home-top-metrics home-today-metrics">
-      <a href="/comunidad/picks" class="home-top-metric">
-        <span class="home-top-metric-head">
-          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">article</span>
-          <span class="home-chip">{i18n:home_today_card_picks_chip}</span>
-        </span>
-        <strong>{homeTodayFreshPicks}</strong>
-        <small>{i18n:home_today_card_picks_desc}</small>
-      </a>
-      <a href="/comunidad/propose" class="home-top-metric">
-        <span class="home-top-metric-head">
-          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">group</span>
-          <span class="home-chip">{i18n:home_today_card_members_chip}</span>
-        </span>
-        <strong>{homeTodayMemberPicks}</strong>
-        <small>{i18n:home_today_card_members_desc}</small>
-      </a>
-      <a href="/eventos" class="home-top-metric">
-        <span class="home-top-metric-head">
-          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
-          <span class="home-chip">{i18n:home_today_card_events_chip}</span>
-        </span>
-        <strong>{upcomingCount}</strong>
-        <small>{i18n:home_today_card_events_desc}</small>
-      </a>
-      <a href="/comunidad/lta" class="home-top-metric">
-        <span class="home-top-metric-head">
-          <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">bolt</span>
-          <span class="home-chip">{i18n:home_today_card_lta_chip}</span>
-        </span>
-        <strong>{homeTodayLtaThreads}</strong>
-        <small>{i18n:home_today_card_lta_desc}</small>
-      </a>
-    </div>
+
+    <section class="home-how-grid" aria-label="{i18n:home_p0_flow_title}">
+      <article class="home-how-card">
+        <span class="material-symbols-outlined" aria-hidden="true">login</span>
+        <h2>{i18n:home_p0_flow_step_one_title}</h2>
+        <p>{i18n:home_p0_flow_step_one_desc}</p>
+      </article>
+      <article class="home-how-card">
+        <span class="material-symbols-outlined" aria-hidden="true">hub</span>
+        <h2>{i18n:home_p0_flow_step_two_title}</h2>
+        <p>{i18n:home_p0_flow_step_two_desc}</p>
+      </article>
+      <article class="home-how-card">
+        <span class="material-symbols-outlined" aria-hidden="true">explore</span>
+        <h2>{i18n:home_p0_flow_step_three_title}</h2>
+        <p>{i18n:home_p0_flow_step_three_desc}</p>
+      </article>
+      <article class="home-how-card">
+        <span class="material-symbols-outlined" aria-hidden="true">token</span>
+        <h2>{i18n:home_p0_flow_step_four_title}</h2>
+        <p>{i18n:home_p0_flow_step_four_desc}</p>
+      </article>
+    </section>
   </section>
-  {/if}
-  <section class="home-new-hot" aria-label="{i18n:home_new_hot_title}">
-    <div class="home-new-hot-header">
-      <span class="home-chip home-new-hot-badge">{i18n:home_new_hot_badge}</span>
-      <h2 class="home-new-hot-title">{i18n:home_new_hot_title}</h2>
-    </div>
-    <div class="home-new-hot-grid">
-      <a href="/comunidad/picks" class="home-new-hot-card">
-        <img src="/img/home-new-hot-curated.svg" alt="{i18n:home_new_hot_card_curated_alt}" loading="lazy" width="160" height="90">
-        <div class="home-new-hot-copy">
-          <h3>{i18n:home_new_hot_card_curated_title}</h3>
-          <p>{i18n:home_new_hot_card_curated_desc}</p>
-        </div>
-      </a>
-      <a href="/eventos" class="home-new-hot-card">
-        <img src="/img/home-new-hot-events.svg" alt="{i18n:home_new_hot_card_events_alt}" loading="lazy" width="160" height="90">
-        <div class="home-new-hot-copy">
-          <h3>{i18n:home_new_hot_card_events_title}</h3>
-          <p>{i18n:home_new_hot_card_events_desc}</p>
-        </div>
-      </a>
-      <a href="/comunidad/lta" class="home-new-hot-card">
-        <img src="/img/home-new-hot-lta.svg" alt="{i18n:home_new_hot_card_lta_alt}" loading="lazy" width="160" height="90">
-        <div class="home-new-hot-copy">
-          <h3>{i18n:home_new_hot_card_lta_title}</h3>
-          <p>{i18n:home_new_hot_card_lta_desc}</p>
-        </div>
-      </a>
-      <a href="/private/profile/catalog" class="home-new-hot-card">
-        <img src="/img/home-new-hot-level.svg" alt="{i18n:home_new_hot_card_level_alt}" loading="lazy" width="160" height="90">
-        <div class="home-new-hot-copy">
-          <h3>{i18n:home_new_hot_card_level_title}</h3>
-          <p>{i18n:home_new_hot_card_level_desc}</p>
-        </div>
-      </a>
-    </div>
-  </section>
-  <section id="home-lta-preview-root" class="home-lta-preview" data-target-url="/comunidad/lta"
-    data-i18n-title="{i18n:home_lta_preview_title}"
-    data-i18n-subtitle="{i18n:home_lta_preview_subtitle}"
-    data-i18n-empty="{i18n:home_lta_preview_empty}"
-    data-i18n-open="{i18n:home_lta_preview_open}"
-    data-i18n-load-error="{i18n:home_lta_preview_error}">
-    <div class="home-lta-preview-header">
-      <span class="home-chip">{i18n:home_lightning_badge}</span>
-      <h2>{i18n:home_lta_preview_title}</h2>
-      <p>{i18n:home_lta_preview_subtitle}</p>
-    </div>
-    <div id="home-lta-preview-list" class="home-lta-preview-list" aria-live="polite"></div>
-    <div class="home-lta-preview-actions">
-      <a href="/comunidad/lta" class="btn-primary">{i18n:home_lta_preview_open}</a>
-    </div>
-  </section>
+
   <div class="home-top-metrics">
-    <a href="#home-social" class="home-top-metric">
+    {#if userAuthenticated}
+    <a href="/comunidad/picks" class="home-top-metric">
       <span class="home-top-metric-head">
         <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">article</span>
-        <span class="home-chip">{i18n:home_pill_social}</span>
+        <span class="home-chip">{i18n:home_today_card_picks_chip}</span>
       </span>
-      <strong>{socialHighlightsCount}</strong>
-      <small>{i18n:home_metric_updates}</small>
+      <strong>{homeTodayFreshPicks}</strong>
+      <small>{i18n:home_p0_metric_picks}</small>
     </a>
-    <a href="#home-events" class="home-top-metric">
+    <a href="/comunidad/lta" class="home-top-metric">
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">bolt</span>
+        <span class="home-chip">{i18n:home_today_card_lta_chip}</span>
+      </span>
+      <strong>{homeTodayLtaThreads}</strong>
+      <small>{i18n:home_p0_metric_threads}</small>
+    </a>
+    <a href="/eventos" class="home-top-metric">
       <span class="home-top-metric-head">
         <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
         <span class="home-chip">{i18n:home_pill_events}</span>
       </span>
       <strong>{upcomingCount}</strong>
-      <small>{i18n:home_metric_upcoming}</small>
+      <small>{i18n:home_p0_metric_events}</small>
     </a>
-    <a href="#home-project" class="home-top-metric">
+    <a href="/private/profile/catalog" class="home-top-metric">
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">redeem</span>
+        <span class="home-chip">{i18n:home_p0_progress_badge}</span>
+      </span>
+      <strong>{homeRewardsCatalogCount}</strong>
+      <small>{i18n:home_p0_metric_rewards}</small>
+    </a>
+    {/if}
+    {#if !userAuthenticated}
+    <a href="/comunidad/board" class="home-top-metric">
       <span class="home-top-metric-head">
         <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">groups</span>
-        <span class="home-chip">{i18n:home_pill_project}</span>
+        <span class="home-chip">{i18n:home_p0_metric_board_chip}</span>
       </span>
-      <strong>{projectContributorCount}</strong>
-      <small>{i18n:home_metric_contributors}</small>
+      <strong>{homeBoardSummary.homedirUsers}</strong>
+      <small>{i18n:home_p0_metric_board_desc}</small>
     </a>
+    <a href="/comunidad/board/github-users" class="home-top-metric">
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">hub</span>
+        <span class="home-chip">{i18n:home_p0_metric_github_chip}</span>
+      </span>
+      <strong>{homeBoardSummary.githubUsers}</strong>
+      <small>{i18n:home_p0_metric_github_desc}</small>
+    </a>
+    <a href="/eventos" class="home-top-metric">
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
+        <span class="home-chip">{i18n:home_pill_events}</span>
+      </span>
+      <strong>{upcomingCount}</strong>
+      <small>{i18n:home_p0_metric_events}</small>
+    </a>
+    <a href="/private/profile/catalog" class="home-top-metric">
+      <span class="home-top-metric-head">
+        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">token</span>
+        <span class="home-chip">{i18n:home_p0_chip_rewards}</span>
+      </span>
+      <strong>{homeRewardsCatalogCount}</strong>
+      <small>{i18n:home_p0_metric_rewards}</small>
+    </a>
+    {/if}
   </div>
 </header>
 
@@ -315,7 +325,6 @@
     </div>
   </article>
 </section>
-<script src="/js/home-lta-preview.js?v={app:version()}" defer></script>
 <script>
   (function () {
     const chip = document.getElementById("home-last-visit-chip");
