@@ -396,6 +396,13 @@ public class EconomyService {
     }
   }
 
+  public int previewGamificationReward(int xp) {
+    if (xp <= 0) {
+      return 0;
+    }
+    return Math.max(Math.max(1, minRewardHcoin), (int) Math.round(xp * xpToHcoinRatio));
+  }
+
   public EconomyMetrics metrics() {
     synchronized (stateLock) {
       refreshFromDisk(false);
