@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 import com.scanales.eventflow.cfp.CfpSubmission;
+import com.scanales.eventflow.cfp.CfpEventConfigService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Event;
@@ -28,6 +29,7 @@ public class PublicProfileResourceTest {
 
   @Inject UserProfileService userProfileService;
   @Inject EventService eventService;
+  @Inject CfpEventConfigService cfpEventConfigService;
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject VolunteerApplicationService volunteerApplicationService;
 
@@ -94,6 +96,11 @@ public class PublicProfileResourceTest {
                 List.of("public"),
                 List.of("https://example.com/public-cfp")));
     cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
+    cfpEventConfigService.publishResults(
+        CFP_EVENT_ID,
+        "admin@example.org",
+        "Welcome to the agenda",
+        "Thank you for submitting.");
     VolunteerApplication volunteerCreated =
         volunteerApplicationService.create(
             "public.user@example.com",

@@ -57,7 +57,7 @@ public class CfpSubmissionServiceTest {
                 java.util.List.of("https://example.org/slides")));
 
     assertNotNull(created.id());
-    assertEquals(CfpSubmissionStatus.PENDING, created.status());
+    assertEquals(CfpSubmissionStatus.UNDER_REVIEW, created.status());
     assertEquals("platform-engineering-idp", created.track());
 
     CfpSubmission persisted = persistenceService.loadCfpSubmissions().get(created.id());
@@ -853,8 +853,8 @@ public class CfpSubmissionServiceTest {
 
     CfpSubmissionService.EventStats stats = cfpSubmissionService.statsByEvent(EVENT_ID);
     assertEquals(3, stats.total());
-    assertEquals(1, stats.countsByStatus().get(CfpSubmissionStatus.PENDING));
-    assertEquals(1, stats.countsByStatus().get(CfpSubmissionStatus.UNDER_REVIEW));
+    assertEquals(0, stats.countsByStatus().get(CfpSubmissionStatus.PENDING));
+    assertEquals(2, stats.countsByStatus().get(CfpSubmissionStatus.UNDER_REVIEW));
     assertEquals(1, stats.countsByStatus().get(CfpSubmissionStatus.ACCEPTED));
     assertEquals(0, stats.countsByStatus().get(CfpSubmissionStatus.REJECTED));
     assertEquals(0, stats.countsByStatus().get(CfpSubmissionStatus.WITHDRAWN));
@@ -864,5 +864,60 @@ public class CfpSubmissionServiceTest {
         .max(Instant::compareTo)
         .orElse(null);
     assertEquals(maxUpdatedAt, stats.latestUpdatedAt());
+  }
+
+  @Test
+  void acceptedAndRejectedRemainUnderReviewUntilResultsArePublished() {
+    CfpSubmission accepted =
+        cfpSubmissionService.create(
+            "member-a@example.com",
+            "Member A",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Internal accepted",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    accepted =
+        cfpSubmissionService.updateStatus(
+            accepted.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "accepted internally");
+
+    CfpSubmission rejected =
+        cfpSubmissionService.create(
+            "member-b@example.com",
+            "Member B",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Internal rejected",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+    rejected =
+        cfpSubmissionService.updateStatus(
+            rejected.id(), CfpSubmissionStatus.REJECTED, "admin@example.org", "rejected internally");
+
+    assertEquals(CfpSubmissionStatus.UNDER_REVIEW, cfpSubmissionService.visibleStatus(accepted));
+    assertEquals(CfpSubmissionStatus.UNDER_REVIEW, cfpSubmissionService.visibleStatus(rejected));
+    assertEquals(null, cfpSubmissionService.resultMessage(accepted));
+
+    cfpEventConfigService.publishResults(
+        EVENT_ID, "admin@example.org", "Accepted message", "Rejected message");
+
+    assertEquals(CfpSubmissionStatus.ACCEPTED, cfpSubmissionService.visibleStatus(accepted));
+    assertEquals(CfpSubmissionStatus.REJECTED, cfpSubmissionService.visibleStatus(rejected));
+    assertEquals("Accepted message", cfpSubmissionService.resultMessage(accepted));
+    assertEquals("Rejected message", cfpSubmissionService.resultMessage(rejected));
   }
 }

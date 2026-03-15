@@ -112,6 +112,30 @@
     <p id="agendaNoticeFeedback" class="form-hint" style="margin-top: 0.6rem;" hidden></p>
   </div>
 
+  <div class="card" style="margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_results_title}</h2>
+        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_results_desc}</p>
+      </div>
+    </div>
+    <div class="cfp-results-config-grid">
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_results_accept_message}</span>
+        <textarea id="cfpAcceptedResultsMessage" class="form-textarea" rows="3" maxlength="1200"></textarea>
+      </label>
+      <label class="form-hint cfp-event-config-field">
+        <span>{i18n:events_cfp_admin_results_reject_message}</span>
+        <textarea id="cfpRejectedResultsMessage" class="form-textarea" rows="3" maxlength="1200"></textarea>
+      </label>
+    </div>
+    <div class="action-group" style="margin-top: 0.75rem; gap: 0.5rem;">
+      <button id="cfpPublishResultsBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_results_publish}</button>
+    </div>
+    <p id="cfpResultsSummary" class="form-hint" style="margin-top: 0.6rem;"></p>
+    <p id="cfpResultsFeedback" class="form-hint" style="margin-top: 0.35rem;" hidden></p>
+  </div>
+
   </section>
 
   <section id="cfp-overview-panel" data-cfp-admin-section>
@@ -278,6 +302,13 @@
     gap: 0.55rem;
   }
 
+  .cfp-results-config-grid {
+    margin-top: 0.85rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.65rem;
+  }
+
   .cfp-event-config-field {
     display: flex;
     flex-direction: column;
@@ -411,6 +442,11 @@
     const eventConfigClearBtn = document.getElementById("cfpEventConfigClearBtn");
     const eventConfigSummary = document.getElementById("cfpEventConfigSummary");
     const eventConfigFeedback = document.getElementById("cfpEventConfigFeedback");
+    const resultsMessageAccepted = document.getElementById("cfpAcceptedResultsMessage");
+    const resultsMessageRejected = document.getElementById("cfpRejectedResultsMessage");
+    const publishResultsBtn = document.getElementById("cfpPublishResultsBtn");
+    const resultsSummary = document.getElementById("cfpResultsSummary");
+    const resultsFeedback = document.getElementById("cfpResultsFeedback");
     const agendaNoticeToggle = document.getElementById("agendaNoticeToggle");
     const agendaNoticeSaveBtn = document.getElementById("agendaNoticeSaveBtn");
     const agendaNoticeFeedback = document.getElementById("agendaNoticeFeedback");
@@ -471,10 +507,18 @@
       insightsState: "{i18n:events_cfp_admin_insights_state}",
       insightsEvents: "{i18n:events_cfp_admin_insights_events}",
       insightsLastType: "{i18n:events_cfp_admin_insights_last_type}",
-      insightsLastUpdate: "{i18n:events_cfp_admin_insights_last_update}"
+      insightsLastUpdate: "{i18n:events_cfp_admin_insights_last_update}",
+      publicStatusLabel: "{i18n:events_cfp_admin_public_status_label}",
+      resultsPublished: "{i18n:events_cfp_admin_results_summary_published}",
+      resultsHidden: "{i18n:events_cfp_admin_results_summary_hidden}",
+      resultsAcceptCount: "{i18n:events_cfp_admin_results_summary_accept_count}",
+      resultsRejectCount: "{i18n:events_cfp_admin_results_summary_reject_count}",
+      resultsPublishedBy: "{i18n:events_cfp_admin_results_summary_by}",
+      resultsPublishSuccess: "{i18n:events_cfp_admin_results_published}",
+      resultsPublishError: "{i18n:events_cfp_admin_results_error}"
     };
     const pageSize = 20;
-    let activeStatus = "pending";
+    let activeStatus = "under_review";
     let activeSort = "created";
     let activeOffset = 0;
     let activeProposedBy = "";
@@ -484,6 +528,7 @@
     let hasMoreItems = false;
     let nextOffset = null;
     let listRequestSequence = 0;
+    let currentEventConfigPayload = null;
 
     function openCfpAdminSection(panelId, updateHash = true) {
       if (!panelId) return;
@@ -515,7 +560,7 @@
       const raw = String(value || "").trim().toLowerCase();
       return ["all", "pending", "under_review", "accepted", "rejected", "withdrawn"].includes(raw)
         ? raw
-        : "pending";
+        : "under_review";
     }
 
     function normalizeSort(value) {
@@ -674,6 +719,9 @@
           ? i18n.lastUpdatePrefix + " " + latest
           : i18n.lastUpdatePrefix + " " + i18n.statsUnavailableValue;
       }
+      if (currentEventConfigPayload) {
+        setResultsSummary(currentEventConfigPayload);
+      }
     }
 
     async function loadStats() {
@@ -820,6 +868,14 @@
       chip.textContent = statusLabel[currentStatus] || currentStatus;
       chipWrap.appendChild(chip);
 
+      if (item.public_status && item.public_status !== currentStatus) {
+        const publicChip = document.createElement("span");
+        publicChip.className = "cfp-status-chip";
+        publicChip.textContent =
+          i18n.publicStatusLabel + " " + (statusLabel[item.public_status] || item.public_status);
+        chipWrap.appendChild(publicChip);
+      }
+
       const scoreChip = document.createElement("span");
       scoreChip.className = "cfp-status-chip cfp-score-chip";
       scoreChip.textContent = scoreLabel(item);
@@ -962,6 +1018,13 @@
       eventConfigFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
     }
 
+    function showResultsFeedback(message, isError) {
+      if (!resultsFeedback) return;
+      resultsFeedback.hidden = false;
+      resultsFeedback.textContent = message;
+      resultsFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+    }
+
     function toLocalInputValue(isoValue) {
       if (!isoValue) {
         return "";
@@ -1011,7 +1074,32 @@
       eventConfigSummary.textContent = parts.join(" · ");
     }
 
+    function setResultsSummary(payload) {
+      if (!resultsSummary) {
+        return;
+      }
+      const effective = payload && payload.effective ? payload.effective : null;
+      if (!effective) {
+        resultsSummary.textContent = i18n.resultsHidden;
+        return;
+      }
+      const parts = [];
+      parts.push(effective.results_published ? i18n.resultsPublished : i18n.resultsHidden);
+      if (effective.results_published_at) {
+        parts.push(fmtDate(effective.results_published_at));
+      }
+      if (effective.results_published_by) {
+        parts.push(i18n.resultsPublishedBy + " " + effective.results_published_by);
+      }
+      const acceptedCount = Number.parseInt(String(statAcceptedEl?.textContent || "0"), 10) || 0;
+      const rejectedCount = Number.parseInt(String(statRejectedEl?.textContent || "0"), 10) || 0;
+      parts.push(i18n.resultsAcceptCount + " " + acceptedCount);
+      parts.push(i18n.resultsRejectCount + " " + rejectedCount);
+      resultsSummary.textContent = parts.join(" · ");
+    }
+
     function applyEventConfig(payload) {
+      currentEventConfigPayload = payload;
       const override = payload && payload.override ? payload.override : null;
       const effective = payload && payload.effective ? payload.effective : null;
       if (eventAcceptingToggle) {
@@ -1040,7 +1128,16 @@
           eventTestingOverride.value = "";
         }
       }
+      if (resultsMessageAccepted) {
+        resultsMessageAccepted.value =
+          effective && effective.accepted_results_message ? effective.accepted_results_message : "";
+      }
+      if (resultsMessageRejected) {
+        resultsMessageRejected.value =
+          effective && effective.rejected_results_message ? effective.rejected_results_message : "";
+      }
       setEventConfigSummary(payload);
+      setResultsSummary(payload);
     }
 
     async function loadEventConfig() {
@@ -1118,6 +1215,34 @@
         showEventConfigFeedback("{i18n:events_cfp_admin_event_config_error}", true);
       } finally {
         eventConfigClearBtn.disabled = false;
+      }
+    }
+
+    async function publishResults() {
+      if (!publishResultsBtn) return;
+      publishResultsBtn.disabled = true;
+      if (resultsFeedback) {
+        resultsFeedback.hidden = true;
+      }
+      try {
+        const response = await fetch(baseEndpoint + "/publish-results", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            accepted_message: resultsMessageAccepted ? resultsMessageAccepted.value : "",
+            rejected_message: resultsMessageRejected ? resultsMessageRejected.value : ""
+          })
+        });
+        if (!response.ok) {
+          showResultsFeedback(i18n.resultsPublishError, true);
+          return;
+        }
+        await Promise.all([loadEventConfig(), loadStats(), loadList()]);
+        showResultsFeedback(i18n.resultsPublishSuccess, false);
+      } catch (error) {
+        showResultsFeedback(i18n.resultsPublishError, true);
+      } finally {
+        publishResultsBtn.disabled = false;
       }
     }
 
@@ -1264,6 +1389,7 @@
     testingSaveBtn?.addEventListener("click", saveTestingConfig);
     eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
     eventConfigClearBtn?.addEventListener("click", clearEventConfig);
+    publishResultsBtn?.addEventListener("click", publishResults);
     agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
     restoreModerationStateFromUrl();
     applyControlsFromState();
