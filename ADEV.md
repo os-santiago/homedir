@@ -29,6 +29,7 @@
 20. Si el proyecto es multilenguaje, todo texto visible debe implementarse via archivos/bundles de idioma; evitar texto hardcoded de forma global en templates, JS, backend y mensajes UI.
 21. Override explicito permitido: si se solicita trabajar/ejecutar en modo "entrega por lotes" (o equivalente), se permiten multiples iteraciones atomicas dentro de un solo PR, con validaciones intermedias por etapa y un punto de restauracion para rollback completo del lote.
 22. Toda falla de PR, bloqueo de integracion o incidente generado por un cambio debe cerrarse incorporando el aprendizaje resultante en `ADEV.md` como regla o principio consolidado, evitando redundancia y duplicidad.
+23. Todo cambio que toque templates, copy visible, i18n, rutas publicas o vistas admin debe actualizar o crear pruebas del comportamiento afectado en la misma iteracion; no se permite dejar assertions heredadas contra UI anterior.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
@@ -52,6 +53,7 @@
 11. Activar auto-merge cuando los checks requeridos esten listos.
 12. Monitorear `PR Validation` y, cuando aplique a la iniciativa, el workflow manual de release/produccion correspondiente.
 13. Antes de solicitar merge, ejecutar validaciones locales enfocadas al alcance del cambio para reducir fallas en checks del PR y sostener objetivo de exito >95%.
+   - Si el cambio toca vistas renderizadas o contenido multilenguaje, incluir al menos build + pruebas dirigidas del recurso/pagina afectada con locale explicito cuando corresponda.
 14. Verificar en produccion:
     - HTTP 200 en `/`, `/comunidad`, `/eventos`, `/proyectos`
     - Comportamiento funcional del cambio
@@ -71,4 +73,5 @@
 7. Para backups y recuperacion ante desastre, validar restaurabilidad completa del servicio; no considerar suficiente un respaldo si no permite reconstruir el sitio con datos, artefactos y procedimiento probado.
 8. Mantener workstreams limpios: abrir rama dedicada desde una base estable, no mezclar cambios ajenos y revalidar cuando cambien flags, comandos o herramientas para conservar comparabilidad.
 9. En paginas multilenguaje, los tests deben fijar explicitamente el locale esperado y validar el contenido localizado correspondiente; no depender del idioma por defecto o de textos heredados.
-9. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.
+10. Cuando cambie la narrativa, jerarquia o copy de una vista, revisar tambien pruebas hermanas del mismo recurso para evitar dejar expectations antiguas que solo fallan en CI.
+11. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.

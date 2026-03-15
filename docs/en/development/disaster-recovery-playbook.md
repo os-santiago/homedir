@@ -48,6 +48,7 @@ For attack-time first-level containment (before full DR), use:
 ```bash
 /usr/local/bin/homedir-dr-backup.sh \
   --age-recipient <AGE_PUBLIC_RECIPIENT> \
+  --retain-count 28 \
   --output-dir /var/backups/homedir-dr
 ```
 
@@ -55,6 +56,7 @@ Outputs:
 - encrypted archive (`.tar.gz.age`)
 - integrity file (`.sha256`)
 - metadata file (`.metadata.json`)
+- automatic pruning of older backup sets beyond `--retain-count` (`28` by default)
 
 ## Recovery execution (one command)
 

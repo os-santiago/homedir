@@ -11,7 +11,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-ir-first-level.sh` – first-level incident response (`status`, `snapshot`, `shield-on`, `recover`, `shield-off`) for attacks/DoS.
 - `scripts/homedir-security-hardening.sh` – hardening baseline automation (`audit`, `apply`) for VPS + runtime controls.
 - `scripts/homedir-cfp-traffic-guard.sh` – monitors CFP/community critical routes for 429/5xx/timeouts and triggers alerts on threshold breaches.
-- `scripts/homedir-dr-backup.sh` – creates an encrypted DR backup artifact (`tar.gz.age`) + sha256 + metadata.
+- `scripts/homedir-dr-backup.sh` – creates an encrypted DR backup artifact (`tar.gz.age`) + sha256 + metadata, with retention-based rotation.
 - `scripts/homedir-dr-recover.sh` – one-command disaster recovery orchestrator for a pre-provisioned VM.
 - `scripts/homedir-dr-restore.py` – safe archive extractor used by DR recovery (blocks path traversal/symlinks).
 - `scripts/homedir-secrets-rotate.sh` – rotates internal runtime secrets with backup + optional service restart.
@@ -97,6 +97,7 @@ Generate encrypted backups regularly and store them in your secure backup locati
 ```bash
 /usr/local/bin/homedir-dr-backup.sh \
   --age-recipient <AGE_PUBLIC_RECIPIENT> \
+  --retain-count 28 \
   --output-dir /var/backups/homedir-dr
 ```
 
@@ -104,6 +105,7 @@ Outputs:
 - `*.tar.gz.age` encrypted backup artifact
 - `*.sha256` integrity file
 - `*.metadata.json` non-sensitive metadata
+- keeps only the newest `--retain-count` backup sets after a successful run (`28` by default, suitable for a 6-hour schedule with 7 days of history)
 
 ## DR recovery flow (pre-provisioned VM)
 
