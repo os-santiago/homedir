@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.scanales.eventflow.challenges.ChallengeProgress;
+import com.scanales.eventflow.challenges.ChallengeStateSnapshot;
 import com.scanales.eventflow.community.CommunityLightningStateSnapshot;
 import com.scanales.eventflow.community.CommunityLightningThread;
 import com.scanales.eventflow.cfp.CfpSubmission;
@@ -155,6 +157,34 @@ public class PersistenceServiceTest {
     assertEquals(1, loaded.get().threads().size());
     assertEquals("thread-1", loaded.get().threads().get("thread-1").id());
     assertTrue(service.communityLightningStateLastModifiedMillis() > 0);
+  }
+
+  @Test
+  void challengeStatePersistsAndLoads() {
+    service = newService();
+
+    ChallengeProgress progress =
+        new ChallengeProgress(
+            "community-scout",
+            Map.of("community_vote", 2, "board_profile_open", 1),
+            Instant.parse("2026-03-16T00:00:00Z"),
+            Instant.parse("2026-03-16T01:00:00Z"),
+            null,
+            null);
+    ChallengeStateSnapshot snapshot =
+        new ChallengeStateSnapshot(
+            ChallengeStateSnapshot.SCHEMA_VERSION,
+            Instant.parse("2026-03-16T01:00:00Z"),
+            Map.of("member@example.com", java.util.List.of(progress)));
+
+    service.saveChallengeStateSync(snapshot);
+
+    ChallengeStateSnapshot loaded = service.loadChallengeState().orElseThrow();
+    assertEquals(1, loaded.progressByUser().size());
+    assertEquals(
+        "community-scout",
+        loaded.progressByUser().get("member@example.com").getFirst().challengeId());
+    assertTrue(service.challengeStateLastModifiedMillis() > 0);
   }
 
   @Test

@@ -11,6 +11,7 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.Speaker;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.SystemError;
+import com.scanales.eventflow.challenges.ChallengeStateSnapshot;
 import com.scanales.eventflow.community.CommunitySubmission;
 import com.scanales.eventflow.community.CommunityLightningStateSnapshot;
 import com.scanales.eventflow.economy.EconomyStateSnapshot;
@@ -114,6 +115,7 @@ public class PersistenceService {
   private Path profilesFile;
   private Path systemErrorsFile;
   private Path economyStateFile;
+  private Path challengeStateFile;
   private Path communitySubmissionsFile;
   private Path communityLightningStateFile;
   private Path cfpSubmissionsFile;
@@ -212,6 +214,7 @@ public class PersistenceService {
     profilesFile = dataDir.resolve("user-profiles.json");
     systemErrorsFile = dataDir.resolve("system-errors.json");
     economyStateFile = dataDir.resolve("economy-state.json");
+    challengeStateFile = dataDir.resolve("challenge-state.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
     communityLightningStateFile = dataDir.resolve("community").resolve("lightning").resolve("state.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
@@ -387,6 +390,41 @@ public class PersistenceService {
   /** Absolute path for economy state file. */
   public String economyStatePath() {
     return economyStateFile == null ? null : economyStateFile.toAbsolutePath().toString();
+  }
+
+  /** Persists challenge state asynchronously. */
+  public void saveChallengeState(ChallengeStateSnapshot state) {
+    scheduleWrite(challengeStateFile, state == null ? ChallengeStateSnapshot.empty() : state);
+  }
+
+  /** Persists challenge state synchronously. */
+  public void saveChallengeStateSync(ChallengeStateSnapshot state) {
+    writeSync(challengeStateFile, state == null ? ChallengeStateSnapshot.empty() : state);
+  }
+
+  /** Loads challenge state from disk if present. */
+  public java.util.Optional<ChallengeStateSnapshot> loadChallengeState() {
+    if (challengeStateFile == null || !Files.exists(challengeStateFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(mapper.readValue(challengeStateFile.toFile(), ChallengeStateSnapshot.class));
+    } catch (IOException e) {
+      LOG.error("Failed to read " + challengeStateFile.toAbsolutePath(), e);
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Last modified timestamp for challenge state file, or -1 when unavailable. */
+  public long challengeStateLastModifiedMillis() {
+    try {
+      if (challengeStateFile == null || !Files.exists(challengeStateFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(challengeStateFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
   }
 
   /** Persists community submissions asynchronously. */
