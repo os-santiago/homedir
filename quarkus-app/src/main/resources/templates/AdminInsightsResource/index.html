@@ -3,12 +3,12 @@
 {#body}
 <section class="page-header">
   <div class="container">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
-      <div>
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading">
         <p class="section-subtitle">{i18n:admin_insights_subtitle}</p>
         <h1 class="page-title">{i18n:admin_insights_heading}</h1>
       </div>
-      <div class="action-group">
+      <div class="action-group admin-shell-actions">
         <a href="/private/admin" class="btn btn-secondary">{i18n:admin_insights_back_to_panel}</a>
       </div>
     </div>
@@ -136,56 +136,10 @@
      data-no-filtered-initiatives="{i18n:admin_insights_js_no_filtered_initiatives}"
      style="display:none"></div>
 <div class="container">
-  <div class="action-group" style="margin-top:0.8rem;">
+  <div class="action-group admin-shell-actions admin-shell-margin-top-md">
     <button id="insightsLoadMoreBtn" type="button" class="btn btn-secondary">{i18n:admin_insights_js_load_more}</button>
   </div>
 </div>
-
-<style>
-  .insights-initiatives-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    margin: 0.55rem 0 0.75rem 0;
-  }
-
-  .insights-initiatives-search {
-    flex: 1 1 260px;
-    min-width: 220px;
-  }
-
-  .insights-initiatives-state {
-    flex: 0 0 190px;
-    min-width: 160px;
-  }
-
-  .insights-initiatives-sort {
-    flex: 0 0 190px;
-    min-width: 160px;
-  }
-
-  .insights-initiatives-window {
-    flex: 0 0 180px;
-    min-width: 150px;
-  }
-
-  .insights-initiatives-count {
-    margin: 0;
-    white-space: nowrap;
-  }
-
-  .insights-event-presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .insights-event-preset {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.55rem;
-  }
-</style>
 
 <script>
   (() => {

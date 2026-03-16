@@ -3,13 +3,13 @@
 {#body}
 <section class="page-header">
   <div class="container">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
-      <div>
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading">
         <p class="section-subtitle">{i18n:admin_observability_subtitle}</p>
         <h1 class="page-title">{i18n:admin_observability_heading}</h1>
-        <p class="form-hint" style="margin-top:0.45rem;max-width:72ch;">{i18n:admin_observability_intro}</p>
+        <p class="form-hint admin-shell-hint-tight">{i18n:admin_observability_intro}</p>
       </div>
-      <div class="action-group">
+      <div class="action-group admin-shell-actions">
         <a href="/private/admin" class="btn btn-secondary">{i18n:admin_observability_back_to_panel}</a>
         <button id="observabilityRefreshBtn" type="button" class="btn btn-secondary">{i18n:admin_observability_refresh}</button>
       </div>
@@ -115,190 +115,6 @@
      data-high="{i18n:admin_observability_js_severity_high}"
      data-watch="{i18n:admin_observability_js_severity_watch}"
      style="display:none"></div>
-
-<style>
-  .admin-observability-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .admin-observability-card {
-    min-width: 0;
-    min-height: 100%;
-  }
-
-  .admin-observability-card--full {
-    grid-column: 1 / -1;
-  }
-
-  .admin-observability-card--split {
-    grid-column: span 1;
-  }
-
-  .admin-observability-card-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 0.7rem;
-  }
-
-  .admin-observability-summary {
-    display: grid;
-    gap: 0.85rem;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  }
-
-  .admin-observability-kpi {
-    padding: 0.9rem 1rem;
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(10, 14, 24, 0.7);
-  }
-
-  .admin-observability-kpi-label {
-    display: block;
-    font-size: 0.82rem;
-    opacity: 0.82;
-  }
-
-  .admin-observability-kpi-value {
-    display: block;
-    margin-top: 0.3rem;
-    font-size: 1.6rem;
-    font-weight: 700;
-  }
-
-  .admin-observability-kpi-note {
-    display: block;
-    margin-top: 0.3rem;
-    font-size: 0.82rem;
-    opacity: 0.72;
-  }
-
-  .admin-observability-heatmap-grid {
-    display: grid;
-    gap: 0.55rem;
-  }
-
-  .admin-observability-heatmap-header,
-  .admin-observability-heatmap-row {
-    display: grid;
-    grid-template-columns: minmax(120px, 160px) repeat(24, minmax(12px, 1fr)) minmax(84px, 110px);
-    gap: 0.3rem;
-    align-items: center;
-  }
-
-  .admin-observability-heatmap-hour {
-    font-size: 0.68rem;
-    opacity: 0.7;
-    text-align: center;
-  }
-
-  .admin-observability-heatmap-label {
-    font-size: 0.9rem;
-    font-weight: 700;
-  }
-
-  .admin-observability-heatmap-total {
-    text-align: right;
-    font-size: 0.82rem;
-    opacity: 0.82;
-  }
-
-  .admin-observability-cell {
-    height: 18px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    transition: background-color 120ms ease;
-  }
-
-  .admin-observability-cell.level-1 { background: rgba(64, 169, 255, 0.18); }
-  .admin-observability-cell.level-2 { background: rgba(64, 169, 255, 0.35); }
-  .admin-observability-cell.level-3 { background: rgba(64, 169, 255, 0.56); }
-  .admin-observability-cell.level-4 { background: rgba(64, 169, 255, 0.82); }
-
-  .admin-observability-list {
-    display: grid;
-    gap: 0.7rem;
-    margin-top: 0.8rem;
-  }
-
-  .admin-observability-item {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.9rem;
-    padding: 0.85rem 0.95rem;
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(10, 14, 24, 0.64);
-  }
-
-  .admin-observability-item-copy {
-    display: grid;
-    gap: 0.2rem;
-  }
-
-  .admin-observability-item-copy small {
-    opacity: 0.72;
-  }
-
-  .admin-observability-item-meta {
-    text-align: right;
-    white-space: nowrap;
-    font-size: 0.86rem;
-  }
-
-  .admin-observability-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 64px;
-    padding: 0.2rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .admin-observability-badge.high {
-    background: rgba(255, 114, 94, 0.16);
-    color: #ffb4a4;
-  }
-
-  .admin-observability-badge.watch {
-    background: rgba(255, 205, 87, 0.16);
-    color: #ffe19b;
-  }
-
-  .admin-observability-delivery {
-    display: grid;
-    gap: 0.85rem;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    margin-top: 0.8rem;
-  }
-
-  @media (max-width: 920px) {
-    .admin-observability-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .admin-observability-card--full,
-    .admin-observability-card--split {
-      grid-column: auto;
-    }
-
-    .admin-observability-heatmap-header,
-    .admin-observability-heatmap-row {
-      grid-template-columns: minmax(100px, 140px) repeat(12, minmax(16px, 1fr)) minmax(70px, 88px);
-    }
-
-    .admin-observability-heatmap-header .admin-observability-heatmap-hour:nth-child(n + 14),
-    .admin-observability-heatmap-row .admin-observability-cell:nth-child(n + 14):nth-child(-n + 25) {
-      display: none;
-    }
-  }
-</style>
 
 <script>
   (() => {
