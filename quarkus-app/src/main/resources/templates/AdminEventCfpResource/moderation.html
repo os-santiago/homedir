@@ -5,9 +5,9 @@
 {#body}
 <section class="page-header">
   <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div>
-        <p class="section-subtitle" style="margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem;">CFP</p>
+    <div class="admin-shell-header-row">
+      <div class="admin-shell-heading">
+        <p class="section-subtitle">CFP</p>
         <h1 class="page-title">{i18n:events_cfp_admin_moderation_heading}</h1>
         <p class="section-subtitle">{i18n:events_cfp_admin_event_label(event.title)}</p>
       </div>
@@ -30,28 +30,28 @@
   </nav>
 
   <section id="cfp-configuration-panel" data-cfp-admin-section hidden>
-  <div class="card" style="margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_testing_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_testing_desc}</p>
+        <h2 class="card-title">{i18n:events_cfp_admin_testing_title}</h2>
+        <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_testing_desc}</p>
       </div>
-      <div class="action-group" style="gap: 0.5rem;">
-        <label class="form-hint" style="display: inline-flex; align-items: center; gap: 0.45rem; margin: 0;">
+      <div class="action-group admin-shell-actions-tight">
+        <label class="form-hint admin-shell-inline-toggle">
           <input id="cfpTestingToggle" type="checkbox" style="transform: translateY(1px);">
           <span>{i18n:events_cfp_admin_testing_toggle_label}</span>
         </label>
         <button id="cfpTestingSaveBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_testing_save}</button>
       </div>
     </div>
-    <p id="cfpTestingFeedback" class="form-hint" style="margin-top: 0.6rem;" hidden></p>
+    <p id="cfpTestingFeedback" class="form-hint admin-shell-feedback" hidden></p>
   </div>
 
-  <div class="card" style="margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_event_config_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_event_config_desc}</p>
+        <h2 class="card-title">{i18n:events_cfp_admin_event_config_title}</h2>
+        <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_event_config_desc}</p>
       </div>
     </div>
     <div class="cfp-event-config-grid">
@@ -87,36 +87,36 @@
         </select>
       </label>
     </div>
-    <div class="action-group" style="margin-top: 0.75rem; gap: 0.5rem;">
+    <div class="action-group admin-shell-actions-tight admin-shell-margin-top-md">
       <button id="cfpEventConfigSaveBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_event_config_save}</button>
       <button id="cfpEventConfigClearBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_event_config_clear}</button>
     </div>
-    <p id="cfpEventConfigSummary" class="form-hint" style="margin-top: 0.6rem;"></p>
-    <p id="cfpEventConfigFeedback" class="form-hint" style="margin-top: 0.35rem;" hidden></p>
+    <p id="cfpEventConfigSummary" class="form-hint admin-shell-feedback"></p>
+    <p id="cfpEventConfigFeedback" class="form-hint admin-shell-hint-tight" hidden></p>
   </div>
 
-  <div class="card" style="margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_agenda_admin_proposed_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_agenda_admin_proposed_desc}</p>
+        <h2 class="card-title">{i18n:events_agenda_admin_proposed_title}</h2>
+        <p class="form-hint admin-shell-hint-tight">{i18n:events_agenda_admin_proposed_desc}</p>
       </div>
-      <div class="action-group" style="gap: 0.5rem;">
-        <label class="form-hint" style="display: inline-flex; align-items: center; gap: 0.45rem; margin: 0;">
+      <div class="action-group admin-shell-actions-tight">
+        <label class="form-hint admin-shell-inline-toggle">
           <input id="agendaNoticeToggle" type="checkbox" style="transform: translateY(1px);">
           <span>{i18n:events_agenda_admin_proposed_toggle_label}</span>
         </label>
         <button id="agendaNoticeSaveBtn" type="button" class="btn btn-secondary">{i18n:events_agenda_admin_proposed_save}</button>
       </div>
     </div>
-    <p id="agendaNoticeFeedback" class="form-hint" style="margin-top: 0.6rem;" hidden></p>
+    <p id="agendaNoticeFeedback" class="form-hint admin-shell-feedback" hidden></p>
   </div>
 
-  <div class="card" style="margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_results_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_results_desc}</p>
+        <h2 class="card-title">{i18n:events_cfp_admin_results_title}</h2>
+        <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_results_desc}</p>
       </div>
     </div>
     <div class="cfp-results-config-grid">
@@ -129,23 +129,23 @@
         <textarea id="cfpRejectedResultsMessage" class="form-textarea" rows="3" maxlength="1200"></textarea>
       </label>
     </div>
-    <div class="action-group" style="margin-top: 0.75rem; gap: 0.5rem;">
+    <div class="action-group admin-shell-actions-tight admin-shell-margin-top-md">
       <button id="cfpPublishResultsBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_results_publish}</button>
     </div>
-    <p id="cfpResultsSummary" class="form-hint" style="margin-top: 0.6rem;"></p>
-    <p id="cfpResultsFeedback" class="form-hint" style="margin-top: 0.35rem;" hidden></p>
+    <p id="cfpResultsSummary" class="form-hint admin-shell-feedback"></p>
+    <p id="cfpResultsFeedback" class="form-hint admin-shell-hint-tight" hidden></p>
   </div>
 
   </section>
 
   <section id="cfp-overview-panel" data-cfp-admin-section>
-  <div class="card" style="margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_overview_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_overview_desc}</p>
+        <h2 class="card-title">{i18n:events_cfp_admin_overview_title}</h2>
+        <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_overview_desc}</p>
       </div>
-      <div class="action-group" style="gap: 0.5rem;">
+      <div class="action-group admin-shell-actions-tight">
         <button id="reloadCfpBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_queue_refresh}</button>
         <a id="exportCsvBtn" href="#" class="btn btn-secondary">{i18n:events_cfp_admin_queue_export}</a>
       </div>
@@ -158,24 +158,24 @@
       <div class="cfp-stats-item"><span>{i18n:events_cfp_status_rejected}</span><strong id="cfpStatRejected">-</strong></div>
       <div class="cfp-stats-item"><span>{i18n:events_cfp_status_withdrawn}</span><strong id="cfpStatWithdrawn">-</strong></div>
     </div>
-    <p id="cfpStatsMeta" class="form-hint" style="margin: 0.5rem 0 0 0;">{i18n:events_cfp_admin_last_update_prefix} {i18n:events_cfp_admin_not_available}</p>
+    <p id="cfpStatsMeta" class="form-hint admin-shell-kpi-meta">{i18n:events_cfp_admin_last_update_prefix} {i18n:events_cfp_admin_not_available}</p>
     <div class="cfp-insights-box" id="cfpInsightsSummary">
       {i18n:events_cfp_admin_insights_loading}
     </div>
-    <div class="action-group" style="margin-top: 0.55rem;">
+    <div class="action-group admin-shell-margin-top-sm">
       <a href="/private/admin/insights" class="btn btn-secondary">{i18n:events_cfp_admin_insights_open}</a>
     </div>
   </div>
   </section>
 
   <section id="cfp-review-panel" data-cfp-admin-section hidden>
-  <div class="card" style="margin-bottom: 1rem;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
       <div>
-        <h2 class="card-title" style="margin: 0;">{i18n:events_cfp_admin_queue_title}</h2>
-        <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_cfp_admin_review_desc}</p>
+        <h2 class="card-title">{i18n:events_cfp_admin_queue_title}</h2>
+        <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_review_desc}</p>
       </div>
-      <div class="action-group" style="gap: 0.5rem;">
+      <div class="action-group admin-shell-actions-tight">
         <button id="cfpGoOverviewBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_subnav_overview}</button>
       </div>
     </div>
@@ -193,7 +193,7 @@
         <input id="cfpFilterTrack" name="cfpFilterTrack" type="search" class="form-input" placeholder="{i18n:events_cfp_admin_filter_track_placeholder}">
       </label>
     </div>
-    <div class="cfp-toolbar-row" style="margin-top: 0.65rem;">
+    <div class="cfp-toolbar-row admin-shell-margin-top-sm">
       <button id="cfpApplyFiltersBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_filter_apply}</button>
       <button id="cfpClearFiltersBtn" type="button" class="btn btn-ghost">{i18n:events_cfp_admin_filter_clear}</button>
     </div>
@@ -223,202 +223,6 @@
   <div id="cfpQueueList"></div>
   </section>
 </div>
-
-<style>
-  .admin-nav-strip {
-    gap: 0.45rem;
-  }
-
-  .cfp-admin-subnav {
-    margin-bottom: 1rem;
-  }
-
-  [data-cfp-admin-section][hidden] {
-    display: none !important;
-  }
-
-  .cfp-toolbar-grid {
-    margin-top: 1rem;
-    display: grid;
-    gap: 0.65rem;
-  }
-
-  .cfp-review-search-grid {
-    margin-top: 0.9rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 0.55rem;
-  }
-
-  .cfp-review-search-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .cfp-insights-box {
-    margin-top: 0.6rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.02);
-    padding: 0.55rem 0.65rem;
-    font-size: 0.84rem;
-    line-height: 1.42;
-  }
-
-  .cfp-stats-grid {
-    margin-top: 0.8rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-    gap: 0.5rem;
-  }
-
-  .cfp-stats-item {
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.03);
-    padding: 0.5rem 0.6rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .cfp-stats-item span {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    opacity: 0.78;
-  }
-
-  .cfp-stats-item strong {
-    font-size: 1rem;
-    line-height: 1.1;
-  }
-
-  .cfp-event-config-grid {
-    margin-top: 0.85rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.55rem;
-  }
-
-  .cfp-results-config-grid {
-    margin-top: 0.85rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 0.65rem;
-  }
-
-  .cfp-event-config-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .cfp-inline-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-
-  .cfp-toolbar-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.45rem;
-  }
-
-  .cfp-pagination-row {
-    margin-top: 0.55rem;
-  }
-
-  .cfp-page-info {
-    margin: 0;
-    min-width: 108px;
-    text-align: center;
-  }
-
-  .cfp-filter-btn.is-active,
-  .cfp-sort-btn.is-active {
-    border-color: rgba(255, 215, 0, 0.7);
-    background: rgba(255, 215, 0, 0.12);
-  }
-
-  .cfp-admin-card {
-    margin-bottom: 0.9rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: var(--radius-sm);
-    padding: 0.9rem;
-    background: rgba(255, 255, 255, 0.03);
-    height: 100%;
-  }
-
-  #cfpQueueList {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 0.9rem;
-  }
-
-  .cfp-admin-card h3 {
-    margin: 0;
-    font-size: 1.1rem;
-  }
-
-  .cfp-admin-meta {
-    font-size: 0.82rem;
-    opacity: 0.8;
-    margin-top: 0.3rem;
-  }
-
-  .cfp-admin-summary {
-    margin-top: 0.55rem;
-  }
-
-  .cfp-admin-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    align-items: center;
-  }
-
-  .cfp-status-chip {
-    display: inline-flex;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 0.15rem 0.55rem;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .cfp-score-chip {
-    border-color: rgba(120, 185, 255, 0.7);
-    background: rgba(120, 185, 255, 0.14);
-    margin-left: 0.35rem;
-  }
-
-  .cfp-status-chip--pending {
-    border-color: rgba(255, 215, 0, 0.7);
-    background: rgba(255, 215, 0, 0.14);
-  }
-
-  .cfp-status-chip--under_review {
-    border-color: rgba(120, 185, 255, 0.7);
-    background: rgba(120, 185, 255, 0.14);
-  }
-
-  .cfp-status-chip--accepted {
-    border-color: rgba(114, 255, 159, 0.7);
-    background: rgba(114, 255, 159, 0.14);
-  }
-
-  .cfp-status-chip--rejected {
-    border-color: rgba(255, 126, 126, 0.75);
-    background: rgba(255, 126, 126, 0.14);
-  }
-
-</style>
 
 <script>
   (() => {
