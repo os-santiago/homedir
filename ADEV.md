@@ -30,6 +30,7 @@
 21. Override explicito permitido: si se solicita trabajar/ejecutar en modo "entrega por lotes" (o equivalente), se permiten multiples iteraciones atomicas dentro de un solo PR, con validaciones intermedias por etapa y un punto de restauracion para rollback completo del lote.
 22. Toda falla de PR, bloqueo de integracion o incidente generado por un cambio debe cerrarse incorporando el aprendizaje resultante en `ADEV.md` como regla o principio consolidado, evitando redundancia y duplicidad.
 23. Todo cambio que toque templates, copy visible, i18n, rutas publicas o vistas admin debe actualizar o crear pruebas del comportamiento afectado en la misma iteracion; no se permite dejar assertions heredadas contra UI anterior.
+24. Antes de abrir un PR, revisar cambios nuevos contra patrones comunes de CodeQL del repo (logs con input/path, redirects, auth/session, persistencia y URLs derivadas de input); sanitizar o encapsular esos casos en la misma iteracion, no despues del fallo en CI.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
@@ -75,3 +76,4 @@
 9. En paginas multilenguaje, los tests deben fijar explicitamente el locale esperado y validar el contenido localizado correspondiente; no depender del idioma por defecto o de textos heredados.
 10. Cuando cambie la narrativa, jerarquia o copy de una vista, revisar tambien pruebas hermanas del mismo recurso para evitar dejar expectations antiguas que solo fallan en CI.
 11. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.
+12. Si un cambio introduce nuevos logs sobre rutas, identificadores o valores derivados de input/estado, registrar solo etiquetas sanitizadas y no rutas absolutas ni valores crudos; considerar esta revision como preflight obligatorio de CodeQL.

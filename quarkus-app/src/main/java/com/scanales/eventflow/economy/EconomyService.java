@@ -396,6 +396,67 @@ public class EconomyService {
     }
   }
 
+  public RewardResult rewardChallengeCompletion(String userId, String challengeId, int rewardHcoin) {
+    String normalizedUserId = normalizeUserId(userId);
+    String normalizedChallengeId =
+        challengeId == null ? null : challengeId.trim().toLowerCase(Locale.ROOT);
+    if (normalizedUserId == null || normalizedChallengeId == null || normalizedChallengeId.isBlank()) {
+      return RewardResult.notAwarded();
+    }
+    int rewardAmount = Math.max(0, rewardHcoin);
+    if (rewardAmount <= 0) {
+      return RewardResult.notAwarded();
+    }
+    String reference = "challenge:" + normalizedChallengeId;
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      List<EconomyTransaction> history = loadFullTransactions();
+      boolean alreadyAwarded =
+          history.stream()
+              .anyMatch(
+                  tx ->
+                      normalizedUserId.equals(tx.userId())
+                          && tx.type() == EconomyTransactionType.REWARD
+                          && reference.equals(safeText(tx.reference(), "")));
+      if (alreadyAwarded) {
+        return RewardResult.notAwarded();
+      }
+      if (persistenceService.isLowDiskSpace()) {
+        guardrail("low_disk_space", normalizedUserId, "persistent storage low disk space");
+      }
+      if (history.size() >= Math.max(1, transactionsPersistedMax)) {
+        guardrail("transaction_history_limit_reached", normalizedUserId, "max persisted transactions reached");
+      }
+      Map<String, EconomyWallet> walletCopy = new LinkedHashMap<>(wallets);
+      if (!walletCopy.containsKey(normalizedUserId) && walletCopy.size() >= Math.max(1, memoryMaxUsers)) {
+        guardrail("memory_user_limit_reached", normalizedUserId, "max users in memory reached");
+      }
+
+      Instant now = Instant.now();
+      EconomyWallet currentWallet = walletCopy.getOrDefault(normalizedUserId, zeroWallet(normalizedUserId));
+      long updatedBalance = currentWallet.balanceHcoin() + rewardAmount;
+      walletCopy.put(normalizedUserId, new EconomyWallet(normalizedUserId, updatedBalance, now));
+
+      history.add(
+          0,
+          new EconomyTransaction(
+              UUID.randomUUID().toString(),
+              normalizedUserId,
+              EconomyTransactionType.REWARD,
+              null,
+              "Challenge reward: " + normalizedChallengeId,
+              rewardAmount,
+              updatedBalance,
+              now,
+              reference));
+      EconomyStateSnapshot candidate = toSnapshot(walletCopy, inventoryByUser, history, now);
+      enforceStorageBudget(candidate, normalizedUserId);
+      persistSync(candidate);
+      applySnapshot(candidate);
+      return new RewardResult(true, rewardAmount, updatedBalance, now);
+    }
+  }
+
   public int previewGamificationReward(int xp) {
     if (xp <= 0) {
       return 0;

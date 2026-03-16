@@ -2,6 +2,7 @@ package com.scanales.eventflow.service;
 
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.challenges.ChallengeService;
 import com.scanales.eventflow.economy.EconomyService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -16,6 +17,7 @@ public class GamificationService {
 
   @Inject UserProfileService userProfiles;
   @Inject EconomyService economyService;
+  @Inject ChallengeService challengeService;
 
   public boolean award(String userId, GamificationActivity activity) {
     return award(userId, activity, null);
@@ -55,6 +57,11 @@ public class GamificationService {
       LOG.warnf("gamification_reward_blocked user=%s code=%s", profile.getUserId(), e.getMessage());
     } catch (Exception e) {
       LOG.warnf(e, "gamification_reward_failed user=%s", profile.getUserId());
+    }
+    try {
+      challengeService.recordActivity(profile.getUserId(), activity);
+    } catch (Exception e) {
+      LOG.warnf(e, "challenge_progress_failed user=%s activity=%s", profile.getUserId(), activity.key());
     }
     return true;
   }
