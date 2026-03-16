@@ -3710,6 +3710,121 @@ footer {
   font-weight: 700;
 }
 
+.home-gamification-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.home-gamification-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+}
+
+.home-class-focus,
+.home-reward-spotlight {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.home-class-focus strong,
+.home-reward-spotlight strong {
+  font-size: 1rem;
+}
+
+.home-class-focus p,
+.home-reward-spotlight p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.45;
+}
+
+.home-class-focus-empty {
+  border-style: dashed;
+}
+
+.home-class-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.home-class-row {
+  display: grid;
+  gap: 0.34rem;
+  padding: 0.6rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.home-class-row.is-dominant {
+  border-color: rgba(255, 216, 77, 0.44);
+  box-shadow: inset 0 0 0 1px rgba(255, 216, 77, 0.12);
+}
+
+.home-class-row-head,
+.home-class-row-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.home-class-row-head {
+  align-items: baseline;
+}
+
+.home-class-row-label {
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.home-class-row-emoji {
+  font-size: 1rem;
+}
+
+.home-class-row-head small {
+  color: rgba(255, 255, 255, 0.72);
+  text-align: right;
+}
+
+.home-class-row-bar {
+  height: 8px;
+}
+
+.home-reward-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.home-reward-summary-item {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.home-reward-summary-item span {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.72);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.home-reward-summary-item strong {
+  font-size: 1.1rem;
+}
+
+.home-gamification-actions {
+  margin-top: 0;
+}
+
 .home-panorama-grid {
   align-items: stretch;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4406,7 +4521,9 @@ footer {
   .home-how-grid,
   .home-progress-grid,
   .home-member-command-grid,
-  .home-member-actions-grid {
+  .home-member-actions-grid,
+  .home-gamification-grid,
+  .home-reward-summary-grid {
     grid-template-columns: 1fr;
   }
 

@@ -10,6 +10,8 @@ import com.scanales.eventflow.economy.EconomyService;
 import com.scanales.eventflow.economy.EconomyWallet;
 import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
+import com.scanales.eventflow.model.QuestClass;
+import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.GithubService;
@@ -32,8 +34,13 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import org.jboss.logging.Logger;
 
 @Path("/")
@@ -86,6 +93,7 @@ public class PublicPagesResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
     var currentUserId = currentUserId();
+    var currentSession = userSessionService.getCurrentSession();
     currentUserId.ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
@@ -113,14 +121,13 @@ public class PublicPagesResource {
     long homeStarterVoteCount =
         currentUserId.map(communityVoteService::countVotesByUser).orElse(0L);
     boolean homeStarterHasVote = homeStarterVoteCount > 0L;
+    Optional<UserProfile> currentProfile = currentUserId.flatMap(userProfileService::find);
     boolean homeAccountHasGithub =
-        currentUserId
-            .flatMap(userProfileService::find)
+        currentProfile
             .map(profile -> profile.getGithub() != null && profile.hasGithub())
             .orElse(false);
     boolean homeAccountHasDiscord =
-        currentUserId
-            .flatMap(userProfileService::find)
+        currentProfile
             .map(profile -> profile.getDiscord() != null && profile.hasDiscord())
             .orElse(false);
     int homeStarterRemainingXp =
@@ -134,6 +141,31 @@ public class PublicPagesResource {
     int homeInventoryCount =
         currentUserId.map(userId -> economyService.listInventory(userId, 20, 0).size()).orElse(0);
     int homeRewardsCatalogCount = economyService.listCatalog().size();
+    List<HomeClassProgress> homeClassProgress =
+        buildHomeClassProgress(currentProfile.orElse(null), currentSession.currentXp());
+    HomeClassProgress homeDominantClass =
+        homeClassProgress.stream()
+            .filter(progress -> progress.xp() > 0)
+            .max(Comparator.comparingInt(HomeClassProgress::xp).thenComparing(HomeClassProgress::value))
+            .orElse(null);
+    List<EconomyService.CatalogOffer> homeCatalogOffers =
+        currentUserId.map(economyService::listCatalogForUser).orElse(List.of());
+    int homeUnlockedRewardCount =
+        (int)
+            homeCatalogOffers.stream()
+                .filter(offer -> offer.remainingStock() > 0 && offer.unlocked())
+                .count();
+    int homeAffordableRewardCount =
+        (int)
+            homeCatalogOffers.stream()
+                .filter(
+                    offer ->
+                        offer.remainingStock() > 0
+                            && offer.unlocked()
+                            && offer.priceHcoin() <= homeWalletBalance)
+                .count();
+    HomeRewardSpotlight homeRewardSpotlight =
+        chooseRewardSpotlight(homeCatalogOffers, homeWalletBalance);
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -162,6 +194,11 @@ public class PublicPagesResource {
             .data("homeWalletBalance", homeWalletBalance)
             .data("homeInventoryCount", homeInventoryCount)
             .data("homeRewardsCatalogCount", homeRewardsCatalogCount)
+            .data("homeClassProgress", homeClassProgress)
+            .data("homeDominantClass", homeDominantClass)
+            .data("homeUnlockedRewardCount", homeUnlockedRewardCount)
+            .data("homeAffordableRewardCount", homeAffordableRewardCount)
+            .data("homeRewardSpotlight", homeRewardSpotlight)
             .data("homeBoardSummary", boardSummary)
             .data("noLoginModal", true),
         "home",
@@ -294,4 +331,111 @@ public class PublicPagesResource {
     }
     return total;
   }
+
+  private List<HomeClassProgress> buildHomeClassProgress(UserProfile profile, int fallbackXp) {
+    EnumMap<QuestClass, Integer> xpMap = new EnumMap<>(QuestClass.class);
+    if (profile != null && profile.getClassXp() != null) {
+      xpMap.putAll(profile.getClassXp());
+    }
+    int total = xpMap.values().stream().mapToInt(value -> Math.max(0, value)).sum();
+    if (total <= 0 && fallbackXp > 0) {
+      QuestClass legacyClass =
+          profile != null && profile.getDominantQuestClass() != null
+              ? profile.getDominantQuestClass()
+              : QuestClass.ENGINEER;
+      xpMap.put(legacyClass, fallbackXp);
+      total = fallbackXp;
+    }
+    QuestClass dominant =
+        xpMap.entrySet().stream()
+            .filter(entry -> entry.getKey() != null && entry.getValue() != null && entry.getValue() > 0)
+            .max(Map.Entry.<QuestClass, Integer>comparingByValue().thenComparing(entry -> entry.getKey().name()))
+            .map(Map.Entry::getKey)
+            .orElse(null);
+    final int totalXp = total;
+    final QuestClass dominantClass = dominant;
+    return Arrays.stream(QuestClass.values())
+        .map(
+            questClass -> {
+              int xp = Math.max(0, xpMap.getOrDefault(questClass, 0));
+              int sharePercent = totalXp <= 0 ? 0 : (int) Math.round((xp * 100.0d) / totalXp);
+              return new HomeClassProgress(
+                  questClass.name(),
+                  questClass.getDisplayName(),
+                  questClass.getEmoji(),
+                  xp,
+                  sharePercent,
+                  questClass == dominantClass && xp > 0);
+            })
+        .toList();
+  }
+
+  private HomeRewardSpotlight chooseRewardSpotlight(
+      List<EconomyService.CatalogOffer> offers, long walletBalance) {
+    if (offers == null || offers.isEmpty()) {
+      return null;
+    }
+    List<EconomyService.CatalogOffer> withStock =
+        offers.stream().filter(offer -> offer.remainingStock() > 0).toList();
+    if (withStock.isEmpty()) {
+      return null;
+    }
+    Comparator<EconomyService.CatalogOffer> unlockedComparator =
+        Comparator.comparingInt(EconomyService.CatalogOffer::priceHcoin).thenComparing(EconomyService.CatalogOffer::id);
+    Optional<EconomyService.CatalogOffer> affordable =
+        withStock.stream()
+            .filter(offer -> offer.unlocked() && offer.priceHcoin() <= walletBalance)
+            .min(unlockedComparator);
+    if (affordable.isPresent()) {
+      return toRewardSpotlight(affordable.get(), walletBalance);
+    }
+    Optional<EconomyService.CatalogOffer> unlocked =
+        withStock.stream().filter(EconomyService.CatalogOffer::unlocked).min(unlockedComparator);
+    if (unlocked.isPresent()) {
+      return toRewardSpotlight(unlocked.get(), walletBalance);
+    }
+    return withStock.stream()
+        .filter(offer -> !offer.unlocked())
+        .min(
+            Comparator.comparingInt(EconomyService.CatalogOffer::requiredLevel)
+                .thenComparingInt(EconomyService.CatalogOffer::requiredTotalXp)
+                .thenComparingInt(EconomyService.CatalogOffer::requiredClassXp)
+                .thenComparingInt(EconomyService.CatalogOffer::priceHcoin))
+        .map(offer -> toRewardSpotlight(offer, walletBalance))
+        .orElse(null);
+  }
+
+  private HomeRewardSpotlight toRewardSpotlight(EconomyService.CatalogOffer offer, long walletBalance) {
+    String requiredClassName = null;
+    if (offer.requiredClass() != null) {
+      QuestClass questClass = QuestClass.fromValue(offer.requiredClass());
+      requiredClassName = questClass != null ? questClass.getDisplayName() : offer.requiredClass();
+    }
+    return new HomeRewardSpotlight(
+        offer.id(),
+        offer.name(),
+        offer.priceHcoin(),
+        offer.unlocked(),
+        offer.unlocked() && offer.priceHcoin() <= walletBalance,
+        Math.max(0, offer.priceHcoin() - (int) Math.min(Integer.MAX_VALUE, walletBalance)),
+        offer.requiredLevel(),
+        offer.requiredTotalXp(),
+        requiredClassName,
+        offer.requiredClassXp());
+  }
+
+  private record HomeClassProgress(
+      String value, String className, String emoji, int xp, int sharePercent, boolean dominant) {}
+
+  private record HomeRewardSpotlight(
+      String id,
+      String name,
+      int priceHcoin,
+      boolean unlocked,
+      boolean affordable,
+      int missingHcoin,
+      int requiredLevel,
+      int requiredTotalXp,
+      String requiredClassName,
+      int requiredClassXp) {}
 }
