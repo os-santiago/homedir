@@ -365,7 +365,7 @@ public class PersistenceService {
     try {
       return java.util.Optional.ofNullable(mapper.readValue(economyStateFile.toFile(), EconomyStateSnapshot.class));
     } catch (IOException e) {
-      LOG.error("Failed to read " + economyStateFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(economyStateFile));
       return java.util.Optional.empty();
     }
   }
@@ -410,7 +410,7 @@ public class PersistenceService {
     try {
       return java.util.Optional.ofNullable(mapper.readValue(challengeStateFile.toFile(), ChallengeStateSnapshot.class));
     } catch (IOException e) {
-      LOG.error("Failed to read " + challengeStateFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(challengeStateFile));
       return java.util.Optional.empty();
     }
   }
@@ -478,7 +478,7 @@ public class PersistenceService {
       return java.util.Optional.ofNullable(
           mapper.readValue(communityLightningStateFile.toFile(), CommunityLightningStateSnapshot.class));
     } catch (IOException e) {
-      LOG.error("Failed to read " + communityLightningStateFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(communityLightningStateFile));
       return java.util.Optional.empty();
     }
   }
@@ -523,7 +523,7 @@ public class PersistenceService {
     try {
       return java.util.Optional.ofNullable(mapper.readValue(cfpConfigFile.toFile(), CfpConfig.class));
     } catch (IOException e) {
-      LOG.error("Failed to read " + cfpConfigFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(cfpConfigFile));
       return java.util.Optional.empty();
     }
   }
@@ -558,7 +558,7 @@ public class PersistenceService {
       }
       return new java.util.LinkedHashMap<>(data);
     } catch (IOException e) {
-      LOG.error("Failed to read " + cfpEventConfigFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(cfpEventConfigFile));
       return Map.of();
     }
   }
@@ -603,7 +603,7 @@ public class PersistenceService {
       }
       return new java.util.LinkedHashMap<>(data);
     } catch (IOException e) {
-      LOG.error("Failed to read " + volunteerSubmissionsFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(volunteerSubmissionsFile));
       return Map.of();
     }
   }
@@ -633,7 +633,7 @@ public class PersistenceService {
       }
       return new java.util.LinkedHashMap<>(data);
     } catch (IOException e) {
-      LOG.error("Failed to read " + volunteerEventConfigFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(volunteerEventConfigFile));
       return Map.of();
     }
   }
@@ -673,7 +673,7 @@ public class PersistenceService {
       }
       return new java.util.LinkedHashMap<>(data);
     } catch (IOException e) {
-      LOG.error("Failed to read " + volunteerLoungeFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(volunteerLoungeFile));
       return Map.of();
     }
   }
@@ -706,7 +706,7 @@ public class PersistenceService {
       return java.util.Optional.ofNullable(
           mapper.readValue(eventOperationsStateFile.toFile(), EventOperationsStateSnapshot.class));
     } catch (IOException e) {
-      LOG.error("Failed to read " + eventOperationsStateFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(eventOperationsStateFile));
       return java.util.Optional.empty();
     }
   }
@@ -732,7 +732,7 @@ public class PersistenceService {
       return java.util.Optional.ofNullable(
           mapper.readValue(agendaProposalConfigFile.toFile(), AgendaProposalConfig.class));
     } catch (IOException e) {
-      LOG.error("Failed to read " + agendaProposalConfigFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(agendaProposalConfigFile));
       return java.util.Optional.empty();
     }
   }
@@ -1193,7 +1193,7 @@ public class PersistenceService {
     } catch (RejectedExecutionException e) {
       queueDropped.incrementAndGet();
       lastError = "queue_full";
-      LOG.warn("Persistence queue full - dropping write for " + file.getFileName());
+      LOG.warnf("Persistence queue full - dropping write for %s", safePathLabel(file));
     }
   }
 
@@ -1203,7 +1203,7 @@ public class PersistenceService {
     // (preventing stale retries).
     AtomicLong currentCounter = fileVersions.get(file);
     if (currentCounter != null && currentCounter.get() > version) {
-      LOG.debugf("Skipping stale write for %s (v%d < v%d)", file.getFileName(), version, currentCounter.get());
+      LOG.debugf("Skipping stale write for %s (v%d < v%d)", safePathLabel(file), version, currentCounter.get());
       return;
     }
 
@@ -1215,7 +1215,7 @@ public class PersistenceService {
         LOG.errorf(
             "Low disk space after %d attempts - dropping write for %s (v%d)",
             attempt,
-            file.getFileName(),
+            safePathLabel(file),
             version);
       } else {
         writesRetries.incrementAndGet();
@@ -1223,7 +1223,7 @@ public class PersistenceService {
         LOG.warnf(
             "Low disk space on attempt %d for %s (v%d), retrying in %dms",
             attempt,
-            file.getFileName(),
+            safePathLabel(file),
             version,
             backoffMillis);
         scheduleRetry(file, data, version, attempt + 1, backoffMillis * 2);
@@ -1248,7 +1248,7 @@ public class PersistenceService {
         recordWriteSuccess(file, bytes, durationMs);
         LOG.infof(
             "Persisted %s at %s (v%d, bytes=%d, durationMs=%d)",
-            file.getFileName(),
+            safePathLabel(file),
             java.time.Instant.now(),
             version,
             bytes,
@@ -1309,7 +1309,7 @@ public class PersistenceService {
         recordWriteSuccess(file, bytes, durationMs);
         LOG.infof(
             "Persisted %s at %s (sync, bytes=%d, durationMs=%d)",
-            file.getFileName(),
+            safePathLabel(file),
             java.time.Instant.now(),
             bytes,
             durationMs);
@@ -1602,7 +1602,7 @@ public class PersistenceService {
           snapshot.missingChecksum() ? ", checksum_missing" : "");
       return new ConcurrentHashMap<>(snapshot.submissions());
     } catch (IOException e) {
-      LOG.error("Failed to read " + cfpSubmissionsFile.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(cfpSubmissionsFile));
       quarantineCorruptedCfpPrimary();
       Map<String, CfpSubmission> walRecovered = recoverCfpFromWal("primary_corrupted");
       if (walRecovered != null) {
@@ -1955,17 +1955,29 @@ public class PersistenceService {
 
   private <T> Map<String, T> read(Path file, TypeReference<Map<String, T>> type) {
     if (!Files.exists(file)) {
-      LOG.infof("No persistence file %s found - starting empty", file.toAbsolutePath());
+      LOG.infof("No persistence file %s found - starting empty", safePathLabel(file));
       return new ConcurrentHashMap<>();
     }
     try {
       Map<String, T> data = mapper.readValue(file.toFile(), type);
-      LOG.infof("Loaded %d entries from %s", data.size(), file.toAbsolutePath());
+      LOG.infof("Loaded %d entries from %s", data.size(), safePathLabel(file));
       return new ConcurrentHashMap<>(data);
     } catch (IOException e) {
-      LOG.error("Failed to read " + file.toAbsolutePath(), e);
+      LOG.errorf(e, "Failed to read %s", safePathLabel(file));
       return new ConcurrentHashMap<>();
     }
+  }
+
+  private static String safePathLabel(Path file) {
+    if (file == null || file.getFileName() == null) {
+      return "unknown-file";
+    }
+    String raw = file.getFileName().toString();
+    String sanitized = raw.replace('\r', '_').replace('\n', '_').replace('\t', '_').trim();
+    if (sanitized.isBlank()) {
+      return "unknown-file";
+    }
+    return sanitized.length() > 120 ? sanitized.substring(0, 120) : sanitized;
   }
 
   private void checkDiskSpace() {

@@ -59,7 +59,7 @@ public class GamificationService {
       LOG.warnf(e, "gamification_reward_failed user=%s", profile.getUserId());
     }
     try {
-      challengeService.recordActivity(profile.getUserId(), activity, reference);
+      challengeService.recordActivity(profile.getUserId(), activity);
     } catch (Exception e) {
       LOG.warnf(e, "challenge_progress_failed user=%s activity=%s", profile.getUserId(), activity.key());
     }

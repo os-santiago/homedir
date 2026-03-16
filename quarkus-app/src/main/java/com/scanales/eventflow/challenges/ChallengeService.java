@@ -41,7 +41,7 @@ public class ChallengeService {
     return ChallengeCatalog.definitions();
   }
 
-  public ChallengeActivityResult recordActivity(String userId, GamificationActivity activity, String reference) {
+  public ChallengeActivityResult recordActivity(String userId, GamificationActivity activity) {
     String normalizedUserId = normalizeUserId(userId);
     if (normalizedUserId == null || activity == null) {
       return ChallengeActivityResult.empty();
