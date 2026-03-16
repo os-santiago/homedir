@@ -12,6 +12,8 @@ import com.scanales.eventflow.model.Event;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.UserProfile;
+import com.scanales.eventflow.notifications.Notification;
+import com.scanales.eventflow.notifications.NotificationService;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
 import com.scanales.eventflow.service.GithubService;
@@ -88,6 +90,9 @@ public class PublicPagesResource {
   @Inject
   UserProfileService userProfileService;
 
+  @Inject
+  NotificationService notificationService;
+
   @GET
   public TemplateInstance home(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
@@ -141,6 +146,13 @@ public class PublicPagesResource {
     int homeInventoryCount =
         currentUserId.map(userId -> economyService.listInventory(userId, 20, 0).size()).orElse(0);
     int homeRewardsCatalogCount = economyService.listCatalog().size();
+    NotificationService.NotificationPage homeNotificationPage =
+        currentUserId
+            .map(userId -> notificationService.listPage(userId, "all", null, 3))
+            .orElse(new NotificationService.NotificationPage(List.of(), null, 0L));
+    int homeUnreadNotifications = toIntSafely(homeNotificationPage.unreadCount());
+    List<HomeNotificationPreview> homeNotificationPreview =
+        homeNotificationPage.items().stream().limit(2).map(this::toHomeNotificationPreview).toList();
     List<HomeClassProgress> homeClassProgress =
         buildHomeClassProgress(currentProfile.orElse(null), currentSession.currentXp());
     HomeClassProgress homeDominantClass =
@@ -194,6 +206,8 @@ public class PublicPagesResource {
             .data("homeWalletBalance", homeWalletBalance)
             .data("homeInventoryCount", homeInventoryCount)
             .data("homeRewardsCatalogCount", homeRewardsCatalogCount)
+            .data("homeUnreadNotifications", homeUnreadNotifications)
+            .data("homeNotificationPreview", homeNotificationPreview)
             .data("homeClassProgress", homeClassProgress)
             .data("homeDominantClass", homeDominantClass)
             .data("homeUnlockedRewardCount", homeUnlockedRewardCount)
@@ -424,6 +438,18 @@ public class PublicPagesResource {
         offer.requiredClassXp());
   }
 
+  private HomeNotificationPreview toHomeNotificationPreview(Notification notification) {
+    String title =
+        notification.title != null && !notification.title.isBlank()
+            ? notification.title
+            : notification.type != null ? notification.type.name() : "";
+    String message = notification.message != null ? notification.message.trim() : "";
+    if (message.length() > 120) {
+      message = message.substring(0, 117) + "...";
+    }
+    return new HomeNotificationPreview(title, message);
+  }
+
   private record HomeClassProgress(
       String value, String className, String emoji, int xp, int sharePercent, boolean dominant) {}
 
@@ -438,4 +464,6 @@ public class PublicPagesResource {
       int requiredTotalXp,
       String requiredClassName,
       int requiredClassXp) {}
+
+  private record HomeNotificationPreview(String title, String message) {}
 }

@@ -3825,6 +3825,108 @@ footer {
   margin-top: 0;
 }
 
+.home-return-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.home-return-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+}
+
+.home-return-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.home-return-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.home-return-signal,
+.home-return-empty,
+.home-notification-preview-item,
+.home-loop-item {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.home-return-signal strong,
+.home-return-notification-top strong,
+.home-return-empty strong,
+.home-notification-preview-item strong,
+.home-loop-item strong {
+  font-size: 1rem;
+}
+
+.home-return-signal p,
+.home-return-empty p,
+.home-notification-preview-item p,
+.home-loop-item p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.45;
+}
+
+.home-return-notification-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.home-return-empty {
+  justify-items: start;
+}
+
+.home-return-empty .material-symbols-outlined,
+.home-loop-item .material-symbols-outlined {
+  color: #98f5ff;
+}
+
+.home-notification-preview-list,
+.home-loop-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.home-loop-item {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+  text-decoration: none;
+  color: #ffffff;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.home-loop-item:hover,
+.home-loop-item:focus-visible {
+  border-color: rgba(255, 216, 77, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(255, 216, 77, 0.14);
+}
+
+.home-loop-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  margin-bottom: 0.16rem;
+}
+
+.home-return-actions {
+  margin-top: 0;
+}
+
 .home-panorama-grid {
   align-items: stretch;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4499,7 +4601,8 @@ footer {
   }
 
   .home-member-command-grid,
-  .home-member-actions-grid {
+  .home-member-actions-grid,
+  .home-return-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -4523,6 +4626,8 @@ footer {
   .home-member-command-grid,
   .home-member-actions-grid,
   .home-gamification-grid,
+  .home-return-grid,
+  .home-return-signal-grid,
   .home-reward-summary-grid {
     grid-template-columns: 1fr;
   }

@@ -367,6 +367,134 @@
       </div>
     </article>
   </section>
+
+  <section class="home-return-grid" aria-label="{i18n:home_p3_loop_title}">
+    <article class="section-card home-return-card">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_today_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_today_title}</h2>
+      </div>
+      <p class="home-member-card-copy">{i18n:home_today_intro}</p>
+      <div class="home-return-status">
+        <span class="home-chip">{i18n:home_today_account_status_homedir}</span>
+        <span class="home-chip">{#if homeAccountHasGithub}{i18n:home_today_account_status_github_linked}{#else}{i18n:home_today_account_status_github_missing}{/if}</span>
+        <span class="home-chip">{#if homeAccountHasDiscord}{i18n:home_today_account_status_discord_linked}{#else}{i18n:home_today_account_status_discord_missing}{/if}</span>
+      </div>
+      <div class="home-return-signal-grid">
+        <article class="home-return-signal">
+          <span class="home-chip">{i18n:home_today_card_picks_chip}</span>
+          <strong>{homeTodayFreshPicks}</strong>
+          <p>{i18n:home_today_card_picks_desc}</p>
+        </article>
+        <article class="home-return-signal">
+          <span class="home-chip">{i18n:home_today_card_members_chip}</span>
+          <strong>{homeTodayMemberPicks}</strong>
+          <p>{i18n:home_today_card_members_desc}</p>
+        </article>
+        <article class="home-return-signal">
+          <span class="home-chip">{i18n:home_today_card_lta_chip}</span>
+          <strong>{homeTodayLtaThreads}</strong>
+          <p>{i18n:home_today_card_lta_desc}</p>
+        </article>
+        <article class="home-return-signal">
+          <span class="home-chip">{i18n:home_today_card_events_chip}</span>
+          <strong>{upcomingCount}</strong>
+          <p>{i18n:home_today_card_events_desc}</p>
+        </article>
+      </div>
+      <div class="home-onboarding-actions home-return-actions">
+        <a href="/private/profile#integrations-panel" class="btn-secondary">{i18n:home_today_account_status_cta}</a>
+      </div>
+    </article>
+
+    <article class="section-card home-return-card">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_p3_notifications_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_p3_notifications_title}</h2>
+      </div>
+      <p class="home-member-card-copy">{i18n:home_p3_notifications_intro}</p>
+      <div class="home-return-notification-top">
+        <span class="home-chip">{i18n:home_p3_notifications_unread_chip(homeUnreadNotifications)}</span>
+        <strong>{#if homeUnreadNotifications > 0}{i18n:home_p3_notifications_state_waiting}{#else}{i18n:home_p3_notifications_state_clear}{/if}</strong>
+      </div>
+      {#if homeNotificationPreview.isEmpty()}
+      <article class="home-return-empty">
+        <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+        <strong>{i18n:home_p3_notifications_empty_title}</strong>
+        <p>{i18n:home_p3_notifications_empty_desc}</p>
+      </article>
+      {#else}
+      <div class="home-notification-preview-list" role="list">
+        {#for notification in homeNotificationPreview}
+        <article class="home-notification-preview-item" role="listitem">
+          <strong>{notification.title}</strong>
+          <p>{notification.message}</p>
+        </article>
+        {/for}
+      </div>
+      {/if}
+      <div class="home-onboarding-actions home-return-actions">
+        <a href="/notifications/center" class="btn-primary">{i18n:home_p3_notifications_cta}</a>
+      </div>
+    </article>
+
+    <article class="section-card home-return-card">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_p3_loop_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_p3_loop_title}</h2>
+      </div>
+      <p class="home-member-card-copy">{i18n:home_p3_loop_intro}</p>
+      <div class="home-loop-list" role="list">
+        <a href="/comunidad/picks" class="home-loop-item" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">article</span>
+          <div>
+            <div class="home-loop-item-head">
+              <strong>{i18n:home_p3_loop_action_picks_title}</strong>
+              <span class="home-chip">{i18n:home_p3_loop_xp_chip(5)}</span>
+            </div>
+            <p>{#if !homeStarterHasVote}{i18n:home_p3_loop_action_picks_desc_start}{#else if homeTodayFreshPicks > 0}{i18n:home_p3_loop_action_picks_desc_ready(homeTodayFreshPicks)}{#else}{i18n:home_p3_loop_action_picks_desc_quiet}{/if}</p>
+            <span class="home-member-action-cta">{i18n:home_p3_loop_action_picks_cta}</span>
+          </div>
+        </a>
+        <a href="/notifications/center" class="home-loop-item" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+          <div>
+            <div class="home-loop-item-head">
+              <strong>{i18n:home_p3_loop_action_notifications_title}</strong>
+              <span class="home-chip">{i18n:home_p3_loop_xp_chip(4)}</span>
+            </div>
+            <p>{#if homeUnreadNotifications > 0}{i18n:home_p3_loop_action_notifications_desc_unread(homeUnreadNotifications)}{#else}{i18n:home_p3_loop_action_notifications_desc_clear}{/if}</p>
+            <span class="home-member-action-cta">{i18n:home_p3_loop_action_notifications_cta}</span>
+          </div>
+        </a>
+        {#if upcomingCount > 0}
+        <a href="/eventos" class="home-loop-item" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">event</span>
+          <div>
+            <div class="home-loop-item-head">
+              <strong>{i18n:home_p3_loop_action_events_title}</strong>
+              <span class="home-chip">{i18n:home_p3_loop_xp_chip(4)}</span>
+            </div>
+            <p>{i18n:home_p3_loop_action_events_desc_live(upcomingCount)}</p>
+            <span class="home-member-action-cta">{i18n:home_p3_loop_action_events_cta}</span>
+          </div>
+        </a>
+        {#else}
+        <a href="/comunidad/lta" class="home-loop-item" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">bolt</span>
+          <div>
+            <div class="home-loop-item-head">
+              <strong>{i18n:home_p3_loop_action_lta_title}</strong>
+              <span class="home-chip">{i18n:home_p3_loop_xp_chip(3)}</span>
+            </div>
+            <p>{#if homeTodayLtaThreads > 0}{i18n:home_p3_loop_action_lta_desc(homeTodayLtaThreads)}{#else}{i18n:home_p3_loop_action_lta_desc_quiet}{/if}</p>
+            <span class="home-member-action-cta">{i18n:home_p3_loop_action_lta_cta}</span>
+          </div>
+        </a>
+        {/if}
+      </div>
+    </article>
+  </section>
   {/if}
 </header>
 

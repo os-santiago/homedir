@@ -3536,6 +3536,93 @@ public interface AppMessages {
     @Message("Open wallet and collection")
     String home_p2_rewards_wallet_cta();
 
+    @Message("Notification pulse")
+    String home_p3_notifications_eyebrow();
+
+    @Message("What needs your attention")
+    String home_p3_notifications_title();
+
+    @Message("Use this space as the shortest way to notice changes that matter to your profile, events, and community flow.")
+    String home_p3_notifications_intro();
+
+    @Message("{count} unread")
+    String home_p3_notifications_unread_chip(int count);
+
+    @Message("Signals waiting")
+    String home_p3_notifications_state_waiting();
+
+    @Message("All clear for now")
+    String home_p3_notifications_state_clear();
+
+    @Message("Your notification center is ready")
+    String home_p3_notifications_empty_title();
+
+    @Message("Event updates, CFP news, and community signals will appear here as soon as they start moving.")
+    String home_p3_notifications_empty_desc();
+
+    @Message("Open notifications center")
+    String home_p3_notifications_cta();
+
+    @Message("Daily loop")
+    String home_p3_loop_eyebrow();
+
+    @Message("A short return routine")
+    String home_p3_loop_title();
+
+    @Message("Three quick actions are enough to understand what moved today and keep your profile momentum growing on purpose.")
+    String home_p3_loop_intro();
+
+    @Message("+{xp} XP")
+    String home_p3_loop_xp_chip(int xp);
+
+    @Message("Review Community Picks")
+    String home_p3_loop_action_picks_title();
+
+    @Message("Your first vote is still pending. Start there to teach the feed what matters to you.")
+    String home_p3_loop_action_picks_desc_start();
+
+    @Message("{count} fresh picks are ready right now if you want a fast community scan.")
+    String home_p3_loop_action_picks_desc_ready(int count);
+
+    @Message("No new picks landed in the last 24h, but one quick review still keeps your feed signal intentional.")
+    String home_p3_loop_action_picks_desc_quiet();
+
+    @Message("Open Community Picks")
+    String home_p3_loop_action_picks_cta();
+
+    @Message("Check your notifications")
+    String home_p3_loop_action_notifications_title();
+
+    @Message("{count} unread signals are waiting for review in your notification center.")
+    String home_p3_loop_action_notifications_desc_unread(int count);
+
+    @Message("No unread notifications right now. A quick check still keeps you synced with new changes.")
+    String home_p3_loop_action_notifications_desc_clear();
+
+    @Message("Open notifications center")
+    String home_p3_loop_action_notifications_cta();
+
+    @Message("Scan the live event space")
+    String home_p3_loop_action_events_title();
+
+    @Message("{count} event entries are currently visible. Review the agenda space before something changes.")
+    String home_p3_loop_action_events_desc_live(int count);
+
+    @Message("Open Events")
+    String home_p3_loop_action_events_cta();
+
+    @Message("Visit Lightning Threads Arena")
+    String home_p3_loop_action_lta_title();
+
+    @Message("{count} fresh lightning threads are visible right now. Use LTA for a quick community pulse.")
+    String home_p3_loop_action_lta_desc(int count);
+
+    @Message("No fresh lightning threads landed in the last 24h. Open LTA and set the next quick pulse yourself.")
+    String home_p3_loop_action_lta_desc_quiet();
+
+    @Message("Open LTA")
+    String home_p3_loop_action_lta_cta();
+
     @Message("New / Hot")
     String home_new_hot_badge();
 
