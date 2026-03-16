@@ -3461,6 +3461,81 @@ public interface AppMessages {
     @Message("Open Events")
     String home_p1_empty_events_cta();
 
+    @Message("Profile momentum")
+    String home_p2_progress_eyebrow();
+
+    @Message("Class momentum")
+    String home_p2_progress_title();
+
+    @Message("See where your activity is really accumulating so your profile feels intentional, not random.")
+    String home_p2_progress_intro();
+
+    @Message("Most active class")
+    String home_p2_progress_focus_chip();
+
+    @Message("{className} is leading with {xp} XP and {sharePercent}% of your visible momentum.")
+    String home_p2_progress_focus(String className, int xp, int sharePercent);
+
+    @Message("No class momentum yet")
+    String home_p2_progress_empty_title();
+
+    @Message("Your class map will start filling as soon as you vote, connect signals, and move through the community.")
+    String home_p2_progress_empty_desc();
+
+    @Message("{xp} XP · {sharePercent}% of your profile momentum")
+    String home_p2_progress_meter(int xp, int sharePercent);
+
+    @Message("Reward runway")
+    String home_p2_rewards_eyebrow();
+
+    @Message("What your HCoin can unlock next")
+    String home_p2_rewards_title();
+
+    @Message("Use this panel to decide whether you should keep saving, buy the next reward, or push your profile into a new tier.")
+    String home_p2_rewards_intro();
+
+    @Message("Ready now")
+    String home_p2_rewards_state_ready();
+
+    @Message("Save for next")
+    String home_p2_rewards_state_save();
+
+    @Message("Next unlock")
+    String home_p2_rewards_state_unlock();
+
+    @Message("This reward is already unlocked. It costs {priceHcoin} HCoin and you currently hold {balanceHcoin}.")
+    String home_p2_rewards_ready_desc(int priceHcoin, long balanceHcoin);
+
+    @Message("You only need {missingHcoin} more HCoin to unlock this reward.")
+    String home_p2_rewards_save_desc(int missingHcoin);
+
+    @Message("Reach level {requiredLevel} to unlock this reward.")
+    String home_p2_rewards_locked_level_desc(int requiredLevel);
+
+    @Message("Reach {requiredTotalXp} total XP to unlock this reward.")
+    String home_p2_rewards_locked_total_desc(int requiredTotalXp);
+
+    @Message("Build {requiredClassXp} XP in {requiredClassName} to unlock this reward.")
+    String home_p2_rewards_locked_class_desc(String requiredClassName, int requiredClassXp);
+
+    @Message("HCoin balance")
+    String home_p2_rewards_wallet_label();
+
+    @Message("Unlocked rewards")
+    String home_p2_rewards_ready_label();
+
+    @Message("Affordable now")
+    String home_p2_rewards_affordable_label();
+
+    @Message("Collection items")
+    String home_p2_rewards_collection_label();
+
+    @Message("Open rewards catalog")
+    String home_p2_rewards_catalog_cta();
+
+    @Message("Open wallet and collection")
+    String home_p2_rewards_wallet_cta();
+
     @Message("New / Hot")
     String home_new_hot_badge();
 
