@@ -1,5 +1,6 @@
 package com.scanales.eventflow.private_;
 
+import com.scanales.eventflow.challenges.ChallengeService;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
@@ -26,6 +27,8 @@ import com.scanales.eventflow.security.RedirectSanitizer;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.qute.i18n.Localized;
+import io.quarkus.qute.i18n.MessageBundles;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -59,6 +62,7 @@ import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 @Path("/private/profile")
 public class ProfileResource {
@@ -188,6 +192,54 @@ public class ProfileResource {
   public record VolunteerEventItem(String eventId, String eventTitle, String applyUrl) {
   }
 
+  public record ChallengeOverview(
+      int total, int completed, int inProgress, int ready, int totalRewardHcoin) {
+  }
+
+  public record ChallengeProfileCard(
+      String id,
+      int rewardHcoin,
+      int completedSteps,
+      int totalSteps,
+      int progressPercent,
+      String state,
+      String actionUrl,
+      boolean completed,
+      String title,
+      String description,
+      String ctaLabel,
+      String statusLabel,
+      String rewardLabel,
+      String progressLabel) {
+  }
+
+  public record ChallengeCopy(
+      String eyebrow,
+      String title,
+      String intro,
+      String homeCta,
+      String total,
+      String completed,
+      String inProgress,
+      String ready,
+      String rewards,
+      String progressLabel,
+      String progressPercent,
+      String statusCompleted,
+      String statusInProgress,
+      String statusReady,
+      String rewardHcoinPattern,
+      String progressStepsPattern,
+      String communityScoutTitle,
+      String communityScoutDesc,
+      String communityScoutCta,
+      String eventExplorerTitle,
+      String eventExplorerDesc,
+      String eventExplorerCta,
+      String openSourceIdentityTitle,
+      String openSourceIdentityDesc,
+      String openSourceIdentityCta) {}
+
   @Inject
   EventService eventService;
   @Inject
@@ -205,8 +257,6 @@ public class ProfileResource {
   @Inject
   GamificationService gamificationService;
   @Inject
-  AppMessages messages;
-  @Inject
   CfpSubmissionService cfpSubmissionService;
   @Inject
   CfpEventConfigService cfpEventConfigService;
@@ -214,6 +264,8 @@ public class ProfileResource {
   VolunteerApplicationService volunteerApplicationService;
   @Inject
   VolunteerEventConfigService volunteerEventConfigService;
+  @Inject
+  ChallengeService challengeService;
 
   @GET
   @Authenticated
@@ -243,6 +295,9 @@ public class ProfileResource {
     }
 
     final String finalLang = resolveLanguage(localeCookie, email);
+    AppMessages localizedMessages =
+        MessageBundles.get(AppMessages.class, Localized.Literal.of(finalLang));
+    ChallengeCopy challengeCopy = challengeCopy(finalLang);
 
     var groups = getEventGroupsForUser(email);
     var info = userSchedule.getTalkDetailsForUser(email);
@@ -265,10 +320,10 @@ public class ProfileResource {
         PaginationGuardrails.nextWindow(
             resumeHistoryLimit, RESUME_HISTORY_STEP, RESUME_HISTORY_MAX_WINDOW);
     java.util.List<ClassProgress> classProgress = buildClassProgress(userProfile, questProfile.currentXp);
-    DominantClassSummary dominantClassSummary = resolveDominantClassSummary(classProgress);
+    DominantClassSummary dominantClassSummary = resolveDominantClassSummary(classProgress, localizedMessages);
     QuestClass dominantClass = dominantClassSummary.questClass();
     String dominantClassMessage = dominantClassSummary.message();
-    java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap();
+    java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap(localizedMessages);
     java.util.Set<String> cfpUserIds = currentUserIds(email, sub);
     CfpSubmissionService.MineStats cfpVisibleMineStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
     CfpOverview cfpOverview = new CfpOverview(
@@ -304,6 +359,23 @@ public class ProfileResource {
             .map(this::toVolunteerApplicationItem)
             .toList();
     java.util.List<VolunteerEventItem> volunteerOpenEvents = listVolunteerOpenEvents();
+    java.util.List<ChallengeProfileCard> profileChallenges =
+        challengeService.listProgressForUser(email).stream()
+            .map(card -> toChallengeProfileCard(card, challengeCopy))
+            .toList();
+    int challengeCompleted = (int) profileChallenges.stream().filter(ChallengeProfileCard::completed).count();
+    int challengeInProgress =
+        (int)
+            profileChallenges.stream()
+                .filter(card -> !card.completed() && card.completedSteps() > 0)
+                .count();
+    ChallengeOverview challengeOverview =
+        new ChallengeOverview(
+            profileChallenges.size(),
+            challengeCompleted,
+            challengeInProgress,
+            Math.max(0, profileChallenges.size() - challengeCompleted - challengeInProgress),
+            profileChallenges.stream().mapToInt(ChallengeProfileCard::rewardHcoin).sum());
 
     int questProgressPercent = 0;
     if (questProfile.nextLevelXp > 0) {
@@ -360,7 +432,7 @@ public class ProfileResource {
         publicProfileHandle,
         cfpTimeline,
         finalLang,
-        messages,
+        localizedMessages,
         ogTitle,
         ogDescription)
         .data("cfpOverview", cfpOverview)
@@ -372,6 +444,9 @@ public class ProfileResource {
         .data("volunteerOverview", volunteerOverview)
         .data("volunteerRecentApplications", volunteerRecentApplications)
         .data("volunteerOpenEvents", volunteerOpenEvents)
+        .data("challengeOverview", challengeOverview)
+        .data("profileChallenges", profileChallenges)
+        .data("challengeCopy", challengeCopy)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
@@ -387,7 +462,9 @@ public class ProfileResource {
     }
     String finalLang = resolveLanguage(localeCookie, email);
     String initial = name.isBlank() ? "U" : name.substring(0, 1).toUpperCase(Locale.ROOT);
-    return Templates.catalog(name, finalLang, messages)
+    AppMessages localizedMessages =
+        MessageBundles.get(AppMessages.class, Localized.Literal.of(finalLang));
+    return Templates.catalog(name, finalLang, localizedMessages)
         .data("userAuthenticated", true)
         .data("userName", name)
         .data("userInitial", initial)
@@ -719,7 +796,8 @@ public class ProfileResource {
         .toList();
   }
 
-  private DominantClassSummary resolveDominantClassSummary(java.util.List<ClassProgress> classProgress) {
+  private DominantClassSummary resolveDominantClassSummary(
+      java.util.List<ClassProgress> classProgress, AppMessages i18n) {
     if (classProgress == null || classProgress.isEmpty()) {
       return new DominantClassSummary(null, null);
     }
@@ -744,48 +822,48 @@ public class ProfileResource {
         if (hybrid) {
           return new DominantClassSummary(
               primaryClass,
-              messages.profile_dominant_class_hybrid(primary.displayName(), secondary.displayName()));
+              i18n.profile_dominant_class_hybrid(primary.displayName(), secondary.displayName()));
         }
       }
     }
-    return new DominantClassSummary(primaryClass, messages.profile_dominant_class(primary.displayName()));
+    return new DominantClassSummary(primaryClass, i18n.profile_dominant_class(primary.displayName()));
   }
 
-  private java.util.List<ActivityClassMapping> buildActivityClassMap() {
+  private java.util.List<ActivityClassMapping> buildActivityClassMap(AppMessages i18n) {
     return java.util.List.of(
         new ActivityClassMapping(
-            messages.profile_activity_category_curation(),
-            messages.profile_activity_examples_curation(),
+            i18n.profile_activity_category_curation(),
+            i18n.profile_activity_examples_curation(),
             QuestClass.SCIENTIST.getDisplayName(),
             "/comunidad?view=featured"),
         new ActivityClassMapping(
-            messages.profile_activity_category_lta(),
-            messages.profile_activity_examples_lta(),
-            messages.profile_activity_class_lta(),
+            i18n.profile_activity_category_lta(),
+            i18n.profile_activity_examples_lta(),
+            i18n.profile_activity_class_lta(),
             "/comunidad/lta"),
         new ActivityClassMapping(
-            messages.profile_activity_category_members(),
-            messages.profile_activity_examples_members(),
+            i18n.profile_activity_category_members(),
+            i18n.profile_activity_examples_members(),
             QuestClass.SCIENTIST.getDisplayName(),
             "/comunidad/board"),
         new ActivityClassMapping(
-            messages.profile_activity_category_events(),
-            messages.profile_activity_examples_events(),
+            i18n.profile_activity_category_events(),
+            i18n.profile_activity_examples_events(),
             QuestClass.WARRIOR.getDisplayName(),
             "/eventos"),
         new ActivityClassMapping(
-            messages.profile_activity_category_project(),
-            messages.profile_activity_examples_project(),
+            i18n.profile_activity_category_project(),
+            i18n.profile_activity_examples_project(),
             QuestClass.ENGINEER.getDisplayName(),
             "/proyectos"),
         new ActivityClassMapping(
-            messages.profile_activity_category_notifications(),
-            messages.profile_activity_examples_notifications(),
+            i18n.profile_activity_category_notifications(),
+            i18n.profile_activity_examples_notifications(),
             QuestClass.WARRIOR.getDisplayName(),
             "/notifications/center"),
         new ActivityClassMapping(
-            messages.profile_activity_category_connect(),
-            messages.profile_activity_examples_connect(),
+            i18n.profile_activity_category_connect(),
+            i18n.profile_activity_examples_connect(),
             QuestClass.MAGE.getDisplayName(),
             "/private/profile"));
   }
@@ -954,6 +1032,132 @@ public class ProfileResource {
                     event.getTitle() != null ? event.getTitle() : event.getId(),
                     "/event/" + event.getId() + "/volunteers"))
         .toList();
+  }
+
+  private ChallengeProfileCard toChallengeProfileCard(
+      ChallengeService.ChallengeProgressCard card, ChallengeCopy copy) {
+    int totalSteps = Math.max(0, card.totalSteps());
+    int completedSteps = Math.max(0, Math.min(card.completedSteps(), totalSteps));
+    int progressPercent =
+        totalSteps <= 0 ? 0 : (int) Math.round((completedSteps * 100.0d) / (double) totalSteps);
+    String state =
+        card.completed()
+            ? "completed"
+            : completedSteps > 0 ? "in_progress" : "ready";
+    String statusLabel =
+        switch (state) {
+          case "completed" -> copy.statusCompleted();
+          case "in_progress" -> copy.statusInProgress();
+          default -> copy.statusReady();
+        };
+    return new ChallengeProfileCard(
+        card.id(),
+        Math.max(0, card.rewardHcoin()),
+        completedSteps,
+        totalSteps,
+        Math.max(0, Math.min(100, progressPercent)),
+        state,
+        challengeActionUrl(card.id()),
+        card.completed(),
+        challengeTitle(card.id(), copy),
+        challengeDescription(card.id(), copy),
+        challengeCta(card.id(), copy),
+        statusLabel,
+        formatNamed(copy.rewardHcoinPattern(), "reward", Math.max(0, card.rewardHcoin())),
+        formatNamed(
+            copy.progressStepsPattern(),
+            "completed",
+            completedSteps,
+            "total",
+            totalSteps));
+  }
+
+  private ChallengeCopy challengeCopy(String language) {
+    ResourceBundle bundle = localizedChallengeBundle(language);
+    return new ChallengeCopy(
+        bundleText(bundle, "profile_challenges_eyebrow"),
+        bundleText(bundle, "profile_challenges_title"),
+        bundleText(bundle, "profile_challenges_intro"),
+        bundleText(bundle, "profile_challenges_home_cta"),
+        bundleText(bundle, "profile_challenges_total"),
+        bundleText(bundle, "profile_challenges_completed"),
+        bundleText(bundle, "profile_challenges_in_progress"),
+        bundleText(bundle, "profile_challenges_ready"),
+        bundleText(bundle, "profile_challenges_rewards"),
+        bundleText(bundle, "profile_challenges_progress_label"),
+        bundleText(bundle, "profile_challenges_progress_percent"),
+        bundleText(bundle, "challenge_status_completed"),
+        bundleText(bundle, "challenge_status_in_progress"),
+        bundleText(bundle, "challenge_status_ready"),
+        bundleText(bundle, "challenge_reward_hcoin"),
+        bundleText(bundle, "challenge_progress_steps"),
+        bundleText(bundle, "challenge_community_scout_title"),
+        bundleText(bundle, "challenge_community_scout_desc"),
+        bundleText(bundle, "challenge_community_scout_cta"),
+        bundleText(bundle, "challenge_event_explorer_title"),
+        bundleText(bundle, "challenge_event_explorer_desc"),
+        bundleText(bundle, "challenge_event_explorer_cta"),
+        bundleText(bundle, "challenge_open_source_identity_title"),
+        bundleText(bundle, "challenge_open_source_identity_desc"),
+        bundleText(bundle, "challenge_open_source_identity_cta"));
+  }
+
+  private String bundleText(ResourceBundle bundle, String key) {
+    return bundle.containsKey(key) ? bundle.getString(key) : key;
+  }
+
+  private ResourceBundle localizedChallengeBundle(String language) {
+    Locale bundleLocale = "es".equalsIgnoreCase(language) ? Locale.forLanguageTag("es") : Locale.ROOT;
+    return ResourceBundle.getBundle("i18n", bundleLocale);
+  }
+
+  private String formatNamed(String pattern, Object... keyValues) {
+    String formatted = pattern;
+    for (int i = 0; i + 1 < keyValues.length; i += 2) {
+      String key = String.valueOf(keyValues[i]);
+      String value = String.valueOf(keyValues[i + 1]);
+      formatted = formatted.replace("{" + key + "}", value);
+    }
+    return formatted;
+  }
+
+  private String challengeTitle(String challengeId, ChallengeCopy copy) {
+    return switch (challengeId) {
+      case "community-scout" -> copy.communityScoutTitle();
+      case "event-explorer" -> copy.eventExplorerTitle();
+      case "open-source-identity" -> copy.openSourceIdentityTitle();
+      default -> challengeId;
+    };
+  }
+
+  private String challengeDescription(String challengeId, ChallengeCopy copy) {
+    return switch (challengeId) {
+      case "community-scout" -> copy.communityScoutDesc();
+      case "event-explorer" -> copy.eventExplorerDesc();
+      case "open-source-identity" -> copy.openSourceIdentityDesc();
+      default -> challengeId;
+    };
+  }
+
+  private String challengeCta(String challengeId, ChallengeCopy copy) {
+    return switch (challengeId) {
+      case "community-scout" -> copy.communityScoutCta();
+      case "event-explorer" -> copy.eventExplorerCta();
+      case "open-source-identity" -> copy.openSourceIdentityCta();
+      default -> copy.homeCta();
+    };
+  }
+
+  private String challengeActionUrl(String challengeId) {
+    if (challengeId == null || challengeId.isBlank()) {
+      return "/private/profile#challenges-panel";
+    }
+    return switch (challengeId) {
+      case "community-scout" -> "/comunidad/picks";
+      case "event-explorer" -> "/eventos";
+      case "open-source-identity" -> "/private/profile#integrations-panel";
+      default -> "/private/profile#challenges-panel";
+    };
   }
 
   private java.util.Set<String> currentUserIds(String email, String sub) {

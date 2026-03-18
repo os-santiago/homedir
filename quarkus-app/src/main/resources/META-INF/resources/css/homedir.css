@@ -4708,6 +4708,83 @@ footer {
   margin-top: 0;
 }
 
+.home-challenges-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.home-challenges-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.home-challenges-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.home-challenges-summary-item,
+.home-challenge-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.home-challenges-summary-item span {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.72);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.home-challenges-summary-item strong {
+  font-size: 1.2rem;
+}
+
+.home-challenge-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.home-challenge-card {
+  align-content: start;
+}
+
+.home-challenge-cta {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hd-challenge-list {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.hd-challenge-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.hd-challenge-card-header {
+  margin-bottom: 0;
+}
+
+.hd-challenge-progress-bar {
+  margin-top: -0.1rem;
+}
+
+.hd-grid-details-challenge {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .home-return-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5451,6 +5528,10 @@ footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .home-challenge-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .home-new-hot-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -5506,6 +5587,8 @@ footer {
 
   .home-how-grid,
   .home-progress-grid,
+  .home-challenges-summary-grid,
+  .home-challenge-card-grid,
   .home-member-command-grid,
   .home-member-actions-grid,
   .home-gamification-grid,
@@ -5517,6 +5600,10 @@ footer {
 
   .home-member-checklist-item {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .hd-grid-details-challenge {
+    grid-template-columns: 1fr;
   }
 
   .home-member-checklist-item .btn-secondary {
