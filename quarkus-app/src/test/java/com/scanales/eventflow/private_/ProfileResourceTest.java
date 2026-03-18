@@ -4,9 +4,11 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.scanales.eventflow.challenges.ChallengeService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.community.CommunityBoardService;
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.service.EventService;
@@ -38,6 +40,7 @@ public class ProfileResourceTest {
   @Inject EventService eventService;
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject VolunteerApplicationService volunteerApplicationService;
+  @Inject ChallengeService challengeService;
 
   @Inject SecurityIdentity securityIdentity;
 
@@ -47,6 +50,7 @@ public class ProfileResourceTest {
   @BeforeEach
   void setup() throws Exception {
     userSchedule.reset();
+    challengeService.resetForTests();
     cfpSubmissionService.clearAllForTests();
     volunteerApplicationService.clearAllForTests();
     eventService.saveEvent(new Event(CFP_EVENT_ID, "Profile CFP Event", "CFP profile integration test"));
@@ -81,6 +85,19 @@ public class ProfileResourceTest {
         "admin@example.org",
         "Great fit",
         volunteerCreated.updatedAt());
+    userProfiles.linkGithub(
+        currentUserEmail(),
+        "Current User",
+        currentUserEmail(),
+        new UserProfile.GithubAccount(
+            "current-user",
+            "https://github.com/current-user",
+            "https://avatars.githubusercontent.com/u/101",
+            "101",
+            Instant.now()));
+    challengeService.recordActivity(currentUserEmail(), GamificationActivity.COMMUNITY_VOTE);
+    challengeService.recordActivity(currentUserEmail(), GamificationActivity.EVENT_VIEW);
+    challengeService.recordActivity(currentUserEmail(), GamificationActivity.AGENDA_VIEW);
     Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.createDirectories(discordFile.getParent());
     Files.writeString(
@@ -385,6 +402,24 @@ public class ProfileResourceTest {
         .body(containsString("Call for Papers"))
         .body(containsString("Profile CFP Talk"))
         .body(containsString("/event/" + CFP_EVENT_ID + "/cfp#my-proposals"));
+  }
+
+  @Test
+  public void profileShowsChallengesPanelAndProgress() {
+    userProfiles.updateLocale(currentUserEmail(), "en");
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("data-profile-nav=\"challenges-panel\""))
+        .body(containsString("My challenges"))
+        .body(containsString("Community Scout"))
+        .body(containsString("Event Explorer"))
+        .body(containsString("Open Source Identity"))
+        .body(containsString("Explore Events"))
+        .body(containsString("Open Community Picks"));
   }
 
   @Test
