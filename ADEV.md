@@ -31,6 +31,9 @@
 22. Toda falla de PR, bloqueo de integracion o incidente generado por un cambio debe cerrarse incorporando el aprendizaje resultante en `ADEV.md` como regla o principio consolidado, evitando redundancia y duplicidad.
 23. Todo cambio que toque templates, copy visible, i18n, rutas publicas o vistas admin debe actualizar o crear pruebas del comportamiento afectado en la misma iteracion; no se permite dejar assertions heredadas contra UI anterior.
 24. Antes de abrir un PR, revisar cambios nuevos contra patrones comunes de CodeQL del repo (logs con input/path, redirects, auth/session, persistencia y URLs derivadas de input); sanitizar o encapsular esos casos en la misma iteracion, no despues del fallo en CI.
+25. Para automatizaciones de marketing y publicacion social, el rollout es obligatorio en 3 etapas: borradores internos/sin publicacion -> aprobacion o programacion controlada -> autopublicacion por canal solo tras validacion en produccion.
+26. El marketing automatizado solo puede usar datos reales y verificables del producto (releases, metrics, insights, eventos, comunidad, challenges); no inventar cifras, hitos ni claims.
+27. Toda integracion de publicacion a redes debe operar con secretos gestionados fuera del repo, deduplicacion de mensajes, rate limit por canal y kill switch global antes de habilitar cualquier scheduler productivo.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
@@ -78,3 +81,4 @@
 11. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.
 12. Si un cambio introduce nuevos logs sobre rutas, identificadores o valores derivados de input/estado, registrar solo etiquetas sanitizadas y no rutas absolutas ni valores crudos; considerar esta revision como preflight obligatorio de CodeQL.
 13. Cuando se invoquen servicios compartidos que ya escriben campos al log, tratar esos campos como sinks indirectos de CodeQL: usar identificadores constantes o previamente sanitizados para atributos auxiliares como `talkId`, nombres de archivo, labels o keys visibles en logging interno.
+14. En marketing social, primero validar borradores internos y tono/claims en una vista privada antes de enlazar canales externos; LinkedIn/X u otras redes con mayor riesgo reputacional deben permanecer en modo aprobacion explicita hasta comprobar calidad sostenida.

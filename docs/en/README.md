@@ -55,6 +55,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Event Discovery & Registration](features/event-discovery-registration.md)
 - [Google Sign-In](features/google-sign-in.md)
 - [Import Events](features/import-events.md)
+- [Campaigns Module](features/campaigns.md)
 - [Metrics](features/metrics.md)
 - [Notifications](features/notifications.md)
 - [Supply Chain Security](features/supply-chain-security.md)

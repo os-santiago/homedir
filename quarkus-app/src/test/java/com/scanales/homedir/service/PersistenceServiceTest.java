@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scanales.homedir.challenges.ChallengeProgress;
 import com.scanales.homedir.challenges.ChallengeStateSnapshot;
+import com.scanales.homedir.campaigns.CampaignDraftState;
+import com.scanales.homedir.campaigns.CampaignStateSnapshot;
 import com.scanales.homedir.community.CommunityLightningStateSnapshot;
 import com.scanales.homedir.community.CommunityLightningThread;
 import com.scanales.homedir.cfp.CfpSubmission;
@@ -185,6 +187,31 @@ public class PersistenceServiceTest {
         "community-scout",
         loaded.progressByUser().get("member@example.com").getFirst().challengeId());
     assertTrue(service.challengeStateLastModifiedMillis() > 0);
+  }
+
+  @Test
+  void campaignStatePersistsAndLoads() {
+    service = newService();
+
+    CampaignStateSnapshot snapshot =
+        new CampaignStateSnapshot(
+            CampaignStateSnapshot.SCHEMA_VERSION,
+            Instant.parse("2026-03-19T13:00:00Z"),
+            java.util.List.of(
+                new CampaignDraftState(
+                    "product-pulse",
+                    "product_pulse",
+                    Instant.parse("2026-03-19T13:00:00Z"),
+                    Map.of("version", "3.489.0"),
+                    java.util.List.of("discord", "linkedin"),
+                    true)));
+
+    service.saveCampaignStateSync(snapshot);
+
+    CampaignStateSnapshot loaded = service.loadCampaignState().orElseThrow();
+    assertEquals(1, loaded.drafts().size());
+    assertEquals("product_pulse", loaded.drafts().getFirst().kind());
+    assertTrue(service.campaignStateLastModifiedMillis() > 0);
   }
 
   @Test

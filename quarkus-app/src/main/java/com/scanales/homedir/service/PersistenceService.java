@@ -12,6 +12,7 @@ import com.scanales.homedir.model.Speaker;
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.model.SystemError;
 import com.scanales.homedir.challenges.ChallengeStateSnapshot;
+import com.scanales.homedir.campaigns.CampaignStateSnapshot;
 import com.scanales.homedir.community.CommunitySubmission;
 import com.scanales.homedir.community.CommunityLightningStateSnapshot;
 import com.scanales.homedir.economy.EconomyStateSnapshot;
@@ -116,6 +117,7 @@ public class PersistenceService {
   private Path systemErrorsFile;
   private Path economyStateFile;
   private Path challengeStateFile;
+  private Path campaignStateFile;
   private Path communitySubmissionsFile;
   private Path communityLightningStateFile;
   private Path cfpSubmissionsFile;
@@ -215,6 +217,7 @@ public class PersistenceService {
     systemErrorsFile = dataDir.resolve("system-errors.json");
     economyStateFile = dataDir.resolve("economy-state.json");
     challengeStateFile = dataDir.resolve("challenge-state.json");
+    campaignStateFile = dataDir.resolve("campaign-state.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
     communityLightningStateFile = dataDir.resolve("community").resolve("lightning").resolve("state.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
@@ -422,6 +425,41 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(challengeStateFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Persists campaign state asynchronously. */
+  public void saveCampaignState(CampaignStateSnapshot state) {
+    scheduleWrite(campaignStateFile, state == null ? CampaignStateSnapshot.empty() : state);
+  }
+
+  /** Persists campaign state synchronously. */
+  public void saveCampaignStateSync(CampaignStateSnapshot state) {
+    writeSync(campaignStateFile, state == null ? CampaignStateSnapshot.empty() : state);
+  }
+
+  /** Loads campaign state from disk if present. */
+  public java.util.Optional<CampaignStateSnapshot> loadCampaignState() {
+    if (campaignStateFile == null || !Files.exists(campaignStateFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(mapper.readValue(campaignStateFile.toFile(), CampaignStateSnapshot.class));
+    } catch (IOException e) {
+      LOG.errorf(e, "Failed to read %s", logFileLabel(campaignStateFile));
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Last modified timestamp for campaign state file, or -1 when unavailable. */
+  public long campaignStateLastModifiedMillis() {
+    try {
+      if (campaignStateFile == null || !Files.exists(campaignStateFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(campaignStateFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }
