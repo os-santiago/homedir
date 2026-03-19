@@ -19,11 +19,26 @@
   </div>
 </section>
 
-{#if refreshed}
-  <div class="container admin-shell-margin-bottom-md">
+<div class="container admin-shell-margin-bottom-md">
+  {#if refreshed}
     <div class="hd-alert hd-alert-success">{copy.refreshed}</div>
-  </div>
-{/if}
+  {/if}
+  {#if updatedAction == 'approved'}
+    <div class="hd-alert hd-alert-success">{copy.updatedApproved}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if updatedAction == 'reset'}
+    <div class="hd-alert hd-alert-success">{copy.updatedReset}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if updatedAction == 'scheduled'}
+    <div class="hd-alert hd-alert-success">{copy.updatedScheduled}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if updatedAction == 'unscheduled'}
+    <div class="hd-alert hd-alert-success">{copy.updatedUnscheduled}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if errorCode == 'invalid_schedule'}
+    <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
+  {/if}
+</div>
 
 <div class="container">
   <div class="admin-shell-stack">
@@ -52,49 +67,136 @@
       </div>
     </section>
 
-    <section class="page-grid campaigns-admin-grid">
-      {#if view.drafts.isEmpty}
+    <section class="admin-shell-panel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.subtitle}</p>
+          <h2>{copy.queueIntro}</h2>
+        </div>
+      </div>
+      <div class="campaigns-admin-grid">
         <article class="section-card admin-shell-panel">
-          <p class="admin-shell-empty">{copy.emptyState}</p>
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.reviewQueueTitle}</p>
+              <h2>{copy.reviewQueueTitle}</h2>
+            </div>
+          </div>
+          <div class="campaigns-admin-list">
+            {#for draft in view.drafts}
+              {#if draft.workflowStateCode == 'draft'}
+                <article class="campaigns-admin-item">
+                  <div class="admin-shell-card-header">
+                    <div>
+                      <p class="section-subtitle">{draft.kindLabel}</p>
+                      <h3>{draft.title}</h3>
+                    </div>
+                    <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
+                  </div>
+                  <p>{draft.body}</p>
+                  <div class="campaigns-admin-list">
+                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
+                  </div>
+                  <div class="action-group admin-shell-actions">
+                    <form action="/private/admin/campaigns/{draft.id}/approve" method="post">
+                      <button type="submit" class="btn btn-primary">{copy.approveLabel}</button>
+                    </form>
+                  </div>
+                </article>
+              {/if}
+            {/for}
+          </div>
         </article>
-      {#else}
-        {#for draft in view.drafts}
-          <article class="section-card admin-shell-panel">
-            <div class="admin-shell-card-header">
-              <div>
-                <p class="section-subtitle">{draft.kindLabel}</p>
-                <h2>{draft.title}</h2>
-              </div>
-              <span class="admin-observability-badge watch">{draft.modeLabel}</span>
+
+        <article class="section-card admin-shell-panel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.approvedQueueTitle}</p>
+              <h2>{copy.approvedQueueTitle}</h2>
             </div>
-            <p>{draft.body}</p>
-            <div class="campaigns-admin-list">
-              <article class="campaigns-admin-item">
-                <strong>{copy.channelsLabel}</strong>
-                <span>
-                  {#for channel in draft.suggestedChannels}
-                    {channel}{#if channel_hasNext}, {/if}
-                  {/for}
-                </span>
-              </article>
-              <article class="campaigns-admin-item">
-                <strong>{copy.evidenceLabel}</strong>
-                <span>
-                  {#for item in draft.evidence}
-                    {item}{#if item_hasNext} · {/if}
-                  {/for}
-                </span>
-              </article>
-              <article class="campaigns-admin-item">
-                <strong>{copy.ctaLabel}</strong>
-                <a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">
-                  {draft.ctaLabel}
-                </a>
-              </article>
+          </div>
+          <div class="campaigns-admin-list">
+            {#for draft in view.drafts}
+              {#if draft.workflowStateCode == 'approved'}
+                <article class="campaigns-admin-item">
+                  <div class="admin-shell-card-header">
+                    <div>
+                      <p class="section-subtitle">{draft.kindLabel}</p>
+                      <h3>{draft.title}</h3>
+                    </div>
+                    <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
+                  </div>
+                  <p>{draft.body}</p>
+                  <div class="campaigns-admin-list">
+                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
+                  </div>
+                  <div class="action-group admin-shell-actions">
+                    <form action="/private/admin/campaigns/{draft.id}/schedule" method="post">
+                      <label class="sr-only" for="schedule-{draft.id}">{copy.scheduleForLabel}</label>
+                      <input id="schedule-{draft.id}" class="hd-input" type="datetime-local" name="scheduledFor" />
+                      <button type="submit" class="btn btn-secondary">{copy.scheduleLabel}</button>
+                    </form>
+                    <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
+                      <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
+                    </form>
+                  </div>
+                </article>
+              {/if}
+            {/for}
+          </div>
+        </article>
+
+        <article class="section-card admin-shell-panel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.scheduledQueueTitle}</p>
+              <h2>{copy.scheduledQueueTitle}</h2>
             </div>
-          </article>
-        {/for}
-      {/if}
+          </div>
+          <div class="campaigns-admin-list">
+            {#for draft in view.drafts}
+              {#if draft.workflowStateCode == 'scheduled'}
+                <article class="campaigns-admin-item">
+                  <div class="admin-shell-card-header">
+                    <div>
+                      <p class="section-subtitle">{draft.kindLabel}</p>
+                      <h3>{draft.title}</h3>
+                    </div>
+                    <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
+                  </div>
+                  <p>{draft.body}</p>
+                  <div class="campaigns-admin-list">
+                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
+                  </div>
+                  <div class="action-group admin-shell-actions">
+                    <form action="/private/admin/campaigns/{draft.id}/unschedule" method="post">
+                      <button type="submit" class="btn btn-secondary">{copy.unscheduleLabel}</button>
+                    </form>
+                    <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
+                      <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
+                    </form>
+                  </div>
+                </article>
+              {/if}
+            {/for}
+          </div>
+        </article>
+      </div>
     </section>
   </div>
 </div>

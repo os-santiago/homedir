@@ -9,7 +9,7 @@ public record CampaignStateSnapshot(
     @JsonProperty("generated_at") Instant generatedAt,
     @JsonProperty("drafts") List<CampaignDraftState> drafts) {
 
-  public static final int SCHEMA_VERSION = 1;
+  public static final int SCHEMA_VERSION = 2;
 
   public CampaignStateSnapshot {
     drafts = drafts == null ? List.of() : List.copyOf(drafts);

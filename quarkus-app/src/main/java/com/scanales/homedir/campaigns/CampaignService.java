@@ -17,11 +17,14 @@ import jakarta.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -84,6 +87,83 @@ public class CampaignService {
     }
   }
 
+  public CampaignStateSnapshot approveDraft(String draftId, String actor) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      currentState = mutateDraftState(draftId, source -> {
+        Instant now = Instant.now();
+        return source.withWorkflow(
+            CampaignWorkflowState.APPROVED,
+            now,
+            safe(actor),
+            null,
+            now,
+            source.sourceAvailable());
+      });
+      persistenceService.saveCampaignState(currentState);
+      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      recordWorkflowChange("CAMPAIGN_DRAFT_APPROVED", draftId);
+      return currentState;
+    }
+  }
+
+  public CampaignStateSnapshot resetDraft(String draftId) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      currentState = mutateDraftState(draftId, source -> source.withWorkflow(
+          CampaignWorkflowState.DRAFT,
+          null,
+          "",
+          null,
+          Instant.now(),
+          source.sourceAvailable()));
+      persistenceService.saveCampaignState(currentState);
+      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      recordWorkflowChange("CAMPAIGN_DRAFT_RESET", draftId);
+      return currentState;
+    }
+  }
+
+  public CampaignStateSnapshot scheduleDraft(String draftId, LocalDateTime scheduledLocal, String actor) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      Instant scheduledFor = scheduledLocal.atZone(ZoneId.systemDefault()).toInstant();
+      currentState = mutateDraftState(draftId, source -> {
+        Instant now = Instant.now();
+        Instant approvedAt = source.approvedAt() != null ? source.approvedAt() : now;
+        String approvedBy = source.approvedBy().isBlank() ? safe(actor) : source.approvedBy();
+        return source.withWorkflow(
+            CampaignWorkflowState.SCHEDULED,
+            approvedAt,
+            approvedBy,
+            scheduledFor,
+            now,
+            source.sourceAvailable());
+      });
+      persistenceService.saveCampaignState(currentState);
+      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      recordWorkflowChange("CAMPAIGN_DRAFT_SCHEDULED", draftId);
+      return currentState;
+    }
+  }
+
+  public CampaignStateSnapshot unscheduleDraft(String draftId) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      currentState = mutateDraftState(draftId, source -> source.withWorkflow(
+          CampaignWorkflowState.APPROVED,
+          source.approvedAt(),
+          source.approvedBy(),
+          null,
+          Instant.now(),
+          source.sourceAvailable()));
+      persistenceService.saveCampaignState(currentState);
+      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      recordWorkflowChange("CAMPAIGN_DRAFT_UNSCHEDULED", draftId);
+      return currentState;
+    }
+  }
+
   public CampaignPreviewSnapshot preview(String localeCode) {
     CampaignStateSnapshot snapshot = currentState();
     ResourceBundle bundle = localizedBundle(localeCode);
@@ -93,8 +173,12 @@ public class CampaignService {
   }
 
   private CampaignStateSnapshot generateAndPersist(String source) {
+    CampaignStateSnapshot previous = currentState == null ? CampaignStateSnapshot.empty() : currentState;
     CampaignStateSnapshot snapshot =
-        new CampaignStateSnapshot(CampaignStateSnapshot.SCHEMA_VERSION, Instant.now(), buildDrafts());
+        new CampaignStateSnapshot(
+            CampaignStateSnapshot.SCHEMA_VERSION,
+            Instant.now(),
+            mergeDrafts(previous.drafts(), buildDrafts()));
     currentState = snapshot;
     persistenceService.saveCampaignState(snapshot);
     lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
@@ -121,6 +205,12 @@ public class CampaignService {
                 "prodSuccess7d", formatPct(insights.productionSuccessRatePctLast7Days()),
                 "challengeCompleted", String.valueOf(metrics.getOrDefault("funnel:challenge_completed", 0L))),
             List.of("discord", "bluesky", "mastodon", "linkedin"),
+            true,
+            CampaignWorkflowState.DRAFT,
+            null,
+            "",
+            null,
+            now,
             true));
 
     challengeService.trendingChallenges(Duration.ofDays(7), 1).stream().findFirst().ifPresent(
@@ -137,6 +227,12 @@ public class CampaignService {
                       "rewardHcoin", String.valueOf(definition != null ? definition.rewardHcoin() : 0),
                       "completions", String.valueOf(Math.max(0, trend.completions()))),
                   List.of("linkedin", "discord", "bluesky"),
+                  true,
+                  CampaignWorkflowState.DRAFT,
+                  null,
+                  "",
+                  null,
+                  now,
                   true));
         });
 
@@ -153,6 +249,12 @@ public class CampaignService {
                         "source", safe(item.source()),
                         "publishedAt", item.publishedAt() != null ? item.publishedAt().atZone(ZoneOffset.UTC).toLocalDate().toString() : ""),
                     List.of("discord", "bluesky", "mastodon", "linkedin"),
+                    true,
+                    CampaignWorkflowState.DRAFT,
+                    null,
+                    "",
+                    null,
+                    now,
                     true)));
 
     nextUpcomingEvent().ifPresent(
@@ -169,10 +271,59 @@ public class CampaignService {
                         "eventType", safe(event.getType() != null ? event.getType().name() : "OTHER"),
                         "eventUrl", "/event/" + safe(event.getId())),
                     List.of("discord", "linkedin", "bluesky", "mastodon"),
+                    true,
+                    CampaignWorkflowState.DRAFT,
+                    null,
+                    "",
+                    null,
+                    now,
                     true)));
 
     drafts.sort(Comparator.comparing(CampaignDraftState::kind).thenComparing(CampaignDraftState::id));
     return List.copyOf(drafts);
+  }
+
+  private List<CampaignDraftState> mergeDrafts(List<CampaignDraftState> previousDrafts, List<CampaignDraftState> freshDrafts) {
+    Map<String, CampaignDraftState> previousById = new LinkedHashMap<>();
+    for (CampaignDraftState previous : previousDrafts) {
+      previousById.put(previous.id(), previous);
+    }
+    Map<String, CampaignDraftState> merged = new LinkedHashMap<>();
+    for (CampaignDraftState fresh : freshDrafts) {
+      CampaignDraftState previous = previousById.remove(fresh.id());
+      if (previous == null) {
+        merged.put(fresh.id(), fresh);
+        continue;
+      }
+      merged.put(
+          fresh.id(),
+          fresh.withWorkflow(
+              previous.workflowState(),
+              previous.approvedAt(),
+              previous.approvedBy(),
+              previous.scheduledFor(),
+              previous.updatedAt() != null ? previous.updatedAt() : fresh.updatedAt(),
+              true));
+    }
+    for (CampaignDraftState leftover : previousById.values()) {
+      if (leftover.workflowState() != CampaignWorkflowState.DRAFT) {
+        merged.put(
+            leftover.id(),
+            leftover.withWorkflow(
+                leftover.workflowState(),
+                leftover.approvedAt(),
+                leftover.approvedBy(),
+                leftover.scheduledFor(),
+                leftover.updatedAt(),
+                false));
+      }
+    }
+    return merged.values().stream()
+        .sorted(
+            Comparator.comparing(CampaignDraftState::workflowState)
+                .thenComparing(CampaignDraftState::kind)
+                .thenComparing(CampaignDraftState::id))
+        .toList();
   }
 
   private Optional<Event> nextUpcomingEvent() {
@@ -186,6 +337,10 @@ public class CampaignService {
 
   private CampaignPreviewCard toPreview(CampaignDraftState draft, ResourceBundle bundle, Locale locale) {
     String kindLabel = bundleText(bundle, "campaigns_kind_" + draft.kind());
+    String workflowLabel = bundleText(bundle, "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT));
+    String sourceStatusLabel =
+        bundleText(bundle, draft.sourceAvailable() ? "campaigns_admin_source_live" : "campaigns_admin_source_stale");
+    String scheduledLabel = draft.scheduledFor() == null ? "—" : localizedDateTime(draft.scheduledFor(), locale);
     return switch (draft.kind()) {
       case KIND_PRODUCT_PULSE -> new CampaignPreviewCard(
           draft.id(),
@@ -204,7 +359,11 @@ public class CampaignService {
               named(bundle, "campaigns_product_pulse_evidence_1", Map.of("prSuccess7d", value(draft, "prSuccess7d"))),
               named(bundle, "campaigns_product_pulse_evidence_2", Map.of("prodSuccess7d", value(draft, "prodSuccess7d"))),
               named(bundle, "campaigns_product_pulse_evidence_3", Map.of("challengeCompleted", value(draft, "challengeCompleted")))),
-          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"));
+          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
+          draft.workflowState().name().toLowerCase(Locale.ROOT),
+          workflowLabel,
+          sourceStatusLabel,
+          scheduledLabel);
       case KIND_CHALLENGE_SPOTLIGHT -> {
         String challengeTitle = bundleText(bundle, value(draft, "challengeTitleKey"));
         yield new CampaignPreviewCard(
@@ -218,7 +377,11 @@ public class CampaignService {
             List.of(
                 named(bundle, "campaigns_challenge_evidence_1", Map.of("completions", value(draft, "completions"))),
                 named(bundle, "campaigns_challenge_evidence_2", Map.of("rewardHcoin", value(draft, "rewardHcoin")))),
-            bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"));
+            bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
+            draft.workflowState().name().toLowerCase(Locale.ROOT),
+            workflowLabel,
+            sourceStatusLabel,
+            scheduledLabel);
       }
       case KIND_COMMUNITY_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
@@ -231,7 +394,11 @@ public class CampaignService {
           List.of(
               named(bundle, "campaigns_community_evidence_1", Map.of("source", value(draft, "source"))),
               named(bundle, "campaigns_community_evidence_2", Map.of("publishedAt", localizedDate(value(draft, "publishedAt"), locale)))),
-          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"));
+          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
+          draft.workflowState().name().toLowerCase(Locale.ROOT),
+          workflowLabel,
+          sourceStatusLabel,
+          scheduledLabel);
       case KIND_EVENT_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -243,7 +410,11 @@ public class CampaignService {
           List.of(
               named(bundle, "campaigns_event_evidence_1", Map.of("eventDate", localizedDate(value(draft, "eventDate"), locale))),
               named(bundle, "campaigns_event_evidence_2", Map.of("eventType", humanizeEnum(value(draft, "eventType"))))),
-          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"));
+          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
+          draft.workflowState().name().toLowerCase(Locale.ROOT),
+          workflowLabel,
+          sourceStatusLabel,
+          scheduledLabel);
       default -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -253,7 +424,11 @@ public class CampaignService {
           "/private/admin",
           localizedChannels(bundle, draft.suggestedChannels()),
           List.of(),
-          bundleText(bundle, "campaigns_admin_draft_only"));
+          bundleText(bundle, "campaigns_admin_draft_only"),
+          draft.workflowState().name().toLowerCase(Locale.ROOT),
+          workflowLabel,
+          sourceStatusLabel,
+          scheduledLabel);
     };
   }
 
@@ -289,6 +464,31 @@ public class CampaignService {
     } catch (Exception e) {
       LOG.warn("campaigns_insights_refresh_failed", e);
     }
+  }
+
+  private void recordWorkflowChange(String eventType, String draftId) {
+    try {
+      insightsLedgerService.append(
+          MARKETING_INITIATIVE_ID,
+          eventType,
+          Map.of(
+              "module", "campaigns",
+              "draftId", safe(draftId)));
+    } catch (IllegalStateException e) {
+      LOG.debug("campaigns_insights_disabled");
+    } catch (Exception e) {
+      LOG.warn("campaigns_insights_workflow_failed", e);
+    }
+  }
+
+  private CampaignStateSnapshot mutateDraftState(String draftId, java.util.function.Function<CampaignDraftState, CampaignDraftState> mutator) {
+    List<CampaignDraftState> drafts = currentState.drafts().stream().map(item -> {
+      if (item.id().equals(draftId)) {
+        return mutator.apply(item);
+      }
+      return item;
+    }).toList();
+    return new CampaignStateSnapshot(CampaignStateSnapshot.SCHEMA_VERSION, currentState.generatedAt(), drafts);
   }
 
   private DevelopmentInsightsStatus safeInsightsStatus() {
@@ -412,6 +612,16 @@ public class CampaignService {
     }
   }
 
+  private static String localizedDateTime(Instant value, Locale locale) {
+    if (value == null) {
+      return "—";
+    }
+    return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+        .withLocale(locale)
+        .withZone(ZoneId.systemDefault())
+        .format(value);
+  }
+
   public record CampaignPreviewSnapshot(Instant generatedAt, List<CampaignPreviewCard> drafts) {}
 
   public record CampaignPreviewCard(
@@ -423,5 +633,9 @@ public class CampaignService {
       String ctaUrl,
       List<String> suggestedChannels,
       List<String> evidence,
-      String modeLabel) {}
+      String modeLabel,
+      String workflowStateCode,
+      String workflowLabel,
+      String sourceStatusLabel,
+      String scheduledForLabel) {}
 }

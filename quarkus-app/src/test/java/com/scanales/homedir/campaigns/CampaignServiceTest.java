@@ -1,6 +1,7 @@
 package com.scanales.homedir.campaigns;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.TestDataDir;
@@ -16,6 +17,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,5 +65,44 @@ class CampaignServiceTest {
     assertTrue(snapshot.drafts().stream().anyMatch(item -> "product_pulse".equals(item.kind())));
     assertTrue(snapshot.drafts().stream().anyMatch(item -> "event_spotlight".equals(item.kind())));
     assertTrue(preview.drafts().stream().anyMatch(item -> item.title().contains("HomeDir")));
+  }
+
+  @Test
+  void approvalAndScheduleSurviveDraftRefresh() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    CampaignStateSnapshot approved = campaignService.currentState();
+    CampaignDraftState approvedDraft =
+        approved.drafts().stream().filter(item -> item.id().equals(target.id())).findFirst().orElseThrow();
+    assertTrue(approvedDraft.workflowState() == CampaignWorkflowState.APPROVED);
+    assertNotNull(approvedDraft.approvedAt());
+
+    LocalDateTime nextHour = LocalDateTime.now().plusHours(1).truncatedTo(ChronoUnit.MINUTES);
+    campaignService.scheduleDraft(target.id(), nextHour, "sergio.canales.e@gmail.com");
+    CampaignStateSnapshot refreshed = campaignService.refreshDrafts();
+    CampaignDraftState scheduledDraft =
+        refreshed.drafts().stream().filter(item -> item.id().equals(target.id())).findFirst().orElseThrow();
+
+    assertTrue(scheduledDraft.workflowState() == CampaignWorkflowState.SCHEDULED);
+    assertNotNull(scheduledDraft.scheduledFor());
+    assertTrue("sergio.canales.e@gmail.com".equals(scheduledDraft.approvedBy()));
   }
 }
