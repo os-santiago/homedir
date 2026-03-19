@@ -34,6 +34,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsRefreshBtn\""))
         .body(containsString("id=\"campaignsPublishNowBtn\""))
         .body(containsString("id=\"campaignsSummaryPanel\""))
+        .body(containsString("id=\"campaignsCadencePanel\""))
         .body(containsString("id=\"campaignsLinkedinPanel\""))
         .body(containsString("campaigns-admin-grid"))
         .body(containsString("campaigns-admin-list"))
