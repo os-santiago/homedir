@@ -17,13 +17,11 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-@TestSecurity(
-    user = "member@example.com",
-    roles = {"user"})
 class HomeMemberOnboardingTest {
 
   @Inject UserProfileService userProfileService;
@@ -34,22 +32,12 @@ class HomeMemberOnboardingTest {
   @BeforeEach
   void setup() {
     challengeService.resetForTests();
-    userProfileService.upsert("member@example.com", "Member Example", "member@example.com");
-    userProfileService.addXp("member@example.com", 140, "home-test", QuestClass.MAGE);
-    userProfileService.addXp("member@example.com", 80, "home-test", QuestClass.ENGINEER);
-    userProfileService.linkGithub(
-        "member@example.com",
-        "Member Example",
-        "member@example.com",
-        new UserProfile.GithubAccount(
-            "member-example",
-            "https://github.com/member-example",
-            "https://avatars.githubusercontent.com/u/100",
-            "100",
-            java.time.Instant.now()));
-    challengeService.recordActivity("member@example.com", GamificationActivity.COMMUNITY_VOTE);
-    challengeService.recordActivity("member@example.com", GamificationActivity.COMMUNITY_BOARD_MEMBERS_VIEW);
-    economyService.rewardFromGamification("member@example.com", "home-test", 600, "home-test");
+    seedHomeMember("member-en@example.com");
+    seedHomeMember("member-es@example.com");
+    userProfileService.upsert("trend-peer@example.com", "Trend Peer", "trend-peer@example.com");
+    challengeService.recordActivity("trend-peer@example.com", GamificationActivity.EVENT_VIEW);
+    challengeService.recordActivity("trend-peer@example.com", GamificationActivity.AGENDA_VIEW);
+    challengeService.recordActivity("trend-peer@example.com", GamificationActivity.TALK_VIEW);
     notificationService.reset();
     NotificationConfig.enabled = true;
     NotificationConfig.maxQueueSize = 10_000;
@@ -57,13 +45,34 @@ class HomeMemberOnboardingTest {
     NotificationConfig.userCap = 100;
     NotificationConfig.globalCap = 1_000;
     NotificationConfig.dedupeWindow = Duration.ofMinutes(30);
-    notificationService.enqueue(notification("CFP shortlist updated", "Your proposal moved to the next review step."));
-    notificationService.enqueue(notification("Volunteer lounge opened", "Accepted volunteers can already coordinate inside the event space."));
+    notificationService.enqueue(
+        notification(
+            "member-en@example.com",
+            "CFP shortlist updated",
+            "Your proposal moved to the next review step."));
+    notificationService.enqueue(
+        notification(
+            "member-en@example.com",
+            "Volunteer lounge opened",
+            "Accepted volunteers can already coordinate inside the event space."));
+    notificationService.enqueue(
+        notification(
+            "member-es@example.com",
+            "CFP shortlist updated",
+            "Your proposal moved to the next review step."));
+    notificationService.enqueue(
+        notification(
+            "member-es@example.com",
+            "Volunteer lounge opened",
+            "Accepted volunteers can already coordinate inside the event space."));
   }
 
   @Test
+  @TestSecurity(
+      user = "member-en@example.com",
+      roles = {"user"})
   void homeShowsStarterMissionAndPersonalizedActionsForAuthenticatedMember() {
-    userProfileService.updateLocale("member@example.com", "en");
+    userProfileService.updateLocale("member-en@example.com", "en");
     given()
         .header("Accept-Language", "en")
         .accept("text/html")
@@ -72,8 +81,8 @@ class HomeMemberOnboardingTest {
         .then()
         .statusCode(200)
         .body(containsString("Get your first visible win"))
-        .body(containsString("Link GitHub"))
-        .body(containsString("Link Discord"))
+        .body(containsString("GitHub linked"))
+        .body(containsString("Discord linked"))
         .body(containsString("Vote one Community Pick"))
         .body(containsString("Your next best moves"))
         .body(containsString("Profile setup"))
@@ -87,6 +96,11 @@ class HomeMemberOnboardingTest {
         .body(containsString("Your community today"))
         .body(containsString("What needs your attention"))
         .body(containsString("A short return routine"))
+        .body(containsString("What the community is completing"))
+        .body(containsString("Community Scout"))
+        .body(containsString("Your verified pace"))
+        .body(containsString("Rank #1"))
+        .body(containsString("Open Source Identity"))
         .body(containsString("CFP shortlist updated"))
         .body(containsString("Check your notifications"))
         .body(containsString("Mage is leading"))
@@ -94,8 +108,11 @@ class HomeMemberOnboardingTest {
   }
 
   @Test
+  @TestSecurity(
+      user = "member-es@example.com",
+      roles = {"user"})
   void homeShowsGamificationPanelsInSpanishForAuthenticatedMember() {
-    userProfileService.updateLocale("member@example.com", "es");
+    userProfileService.updateLocale("member-es@example.com", "es");
     given()
         .header("Accept-Language", "es")
         .accept("text/html")
@@ -113,12 +130,47 @@ class HomeMemberOnboardingTest {
         .body(containsString("Tu comunidad hoy"))
         .body(containsString("Lo que necesita tu atención"))
         .body(containsString("Una rutina corta de regreso"))
+        .body(containsString("Lo que la comunidad está completando"))
+        .body(containsString("Tu ritmo verificado"))
+        .body(containsString("Rango #"))
         .body(containsString("2 sin leer"));
   }
 
-  private Notification notification(String title, String message) {
+  private void seedHomeMember(String userId) {
+    userProfileService.upsert(userId, "Member Example", userId);
+    userProfileService.addXp(userId, 140, "home-test", QuestClass.MAGE);
+    userProfileService.addXp(userId, 80, "home-test", QuestClass.ENGINEER);
+    userProfileService.linkGithub(
+        userId,
+        "Member Example",
+        userId,
+        new UserProfile.GithubAccount(
+            "member-example",
+            "https://github.com/member-example",
+            "https://avatars.githubusercontent.com/u/100",
+            "100",
+            Instant.now()));
+    userProfileService.linkDiscord(
+        userId,
+        "Member Example",
+        userId,
+        new UserProfile.DiscordAccount(
+            "member-example",
+            "member-example",
+            "https://discord.com/users/member-example",
+            "https://cdn.discordapp.com/embed/avatars/1.png",
+            Instant.now()));
+    challengeService.recordActivity(userId, GamificationActivity.COMMUNITY_VOTE);
+    challengeService.recordActivity(userId, GamificationActivity.COMMUNITY_VOTE);
+    challengeService.recordActivity(userId, GamificationActivity.COMMUNITY_VOTE);
+    challengeService.recordActivity(userId, GamificationActivity.COMMUNITY_BOARD_MEMBERS_VIEW);
+    challengeService.recordActivity(userId, GamificationActivity.BOARD_PROFILE_OPEN);
+    economyService.rewardFromGamification(userId, "home-test", 600, "home-test");
+  }
+
+  private Notification notification(String userId, String title, String message) {
     Notification notification = new Notification();
-    notification.userId = "member@example.com";
+    notification.userId = userId;
     notification.type = NotificationType.SOCIAL;
     notification.talkId = title.toLowerCase().replace(' ', '-');
     notification.title = title;

@@ -77,3 +77,4 @@
 10. Cuando cambie la narrativa, jerarquia o copy de una vista, revisar tambien pruebas hermanas del mismo recurso para evitar dejar expectations antiguas que solo fallan en CI.
 11. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.
 12. Si un cambio introduce nuevos logs sobre rutas, identificadores o valores derivados de input/estado, registrar solo etiquetas sanitizadas y no rutas absolutas ni valores crudos; considerar esta revision como preflight obligatorio de CodeQL.
+13. Cuando se invoquen servicios compartidos que ya escriben campos al log, tratar esos campos como sinks indirectos de CodeQL: usar identificadores constantes o previamente sanitizados para atributos auxiliares como `talkId`, nombres de archivo, labels o keys visibles en logging interno.

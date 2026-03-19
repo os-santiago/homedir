@@ -103,7 +103,6 @@ public class PublicPagesResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
     String resolvedLocale = TemplateLocaleUtil.resolve(localeCookie, headers);
-    HomeChallengesCopy homeChallengesCopy = homeChallengesCopy(resolvedLocale);
     var currentUserId = currentUserId();
     var currentSession = userSessionService.getCurrentSession();
     currentUserId.ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
@@ -134,6 +133,13 @@ public class PublicPagesResource {
         currentUserId.map(communityVoteService::countVotesByUser).orElse(0L);
     boolean homeStarterHasVote = homeStarterVoteCount > 0L;
     Optional<UserProfile> currentProfile = currentUserId.flatMap(userProfileService::find);
+    String homeExperienceLocale =
+        currentProfile
+            .map(UserProfile::getPreferredLocale)
+            .filter(locale -> locale != null && !locale.isBlank())
+            .orElse(resolvedLocale);
+    HomeChallengesCopy homeChallengesCopy = homeChallengesCopy(homeExperienceLocale);
+    HomeChallengeLoopCopy homeChallengeLoopCopy = homeChallengeLoopCopy(homeExperienceLocale);
     boolean homeAccountHasGithub =
         currentProfile
             .map(profile -> profile.getGithub() != null && profile.hasGithub())
@@ -199,6 +205,15 @@ public class PublicPagesResource {
                 .filter(card -> !card.completed() && card.completedSteps() > 0)
                 .count();
     int homeChallengesReady = Math.max(0, homeChallengeCards.size() - homeChallengesCompleted - homeChallengesInProgress);
+    List<HomeChallengeTrend> homeTrendingChallenges =
+        challengeService.trendingChallenges(Duration.ofDays(7), 3).stream()
+            .map(trend -> toHomeChallengeTrend(trend, homeChallengesCopy, homeChallengeLoopCopy))
+            .toList();
+    HomeChallengeLeaderboard homeChallengeLeaderboard =
+        currentUserId
+            .map(challengeService::leaderboardForUser)
+            .map(rank -> toHomeChallengeLeaderboard(rank, homeChallengeLoopCopy))
+            .orElse(new HomeChallengeLeaderboard(0, 0, 0, null, homeChallengeLoopCopy.leaderboardEmptyTitle(), homeChallengeLoopCopy.leaderboardEmptyDesc()));
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -239,6 +254,9 @@ public class PublicPagesResource {
             .data("homeChallengesInProgress", homeChallengesInProgress)
             .data("homeChallengesReady", homeChallengesReady)
             .data("homeChallengesCopy", homeChallengesCopy)
+            .data("homeChallengeLoopCopy", homeChallengeLoopCopy)
+            .data("homeTrendingChallenges", homeTrendingChallenges)
+            .data("homeChallengeLeaderboard", homeChallengeLeaderboard)
             .data("homeBoardSummary", boardSummary)
             .data("noLoginModal", true),
         "home",
@@ -514,6 +532,38 @@ public class PublicPagesResource {
             totalSteps));
   }
 
+  private HomeChallengeTrend toHomeChallengeTrend(
+      ChallengeService.ChallengeTrend trend,
+      HomeChallengesCopy challengeCopy,
+      HomeChallengeLoopCopy loopCopy) {
+    return new HomeChallengeTrend(
+        trend.challengeId(),
+        challengeTitle(trend.challengeId(), challengeCopy),
+        formatNamed(loopCopy.trendingCountPattern(), "count", trend.completions()),
+        formatNamed(loopCopy.rewardPattern(), "reward", Math.max(0, trend.rewardHcoin())),
+        "/private/profile#challenges-panel");
+  }
+
+  private HomeChallengeLeaderboard toHomeChallengeLeaderboard(
+      ChallengeService.ChallengeLeaderboard leaderboard, HomeChallengeLoopCopy copy) {
+    if (leaderboard == null || leaderboard.rank() <= 0 || leaderboard.completedChallenges() <= 0) {
+      return new HomeChallengeLeaderboard(
+          0,
+          0,
+          0,
+          null,
+          copy.leaderboardEmptyTitle(),
+          copy.leaderboardEmptyDesc());
+    }
+    return new HomeChallengeLeaderboard(
+        leaderboard.rank(),
+        leaderboard.activeMembers(),
+        leaderboard.completedChallenges(),
+        formatNamed(copy.leaderboardRankPattern(), "rank", leaderboard.rank()),
+        formatNamed(copy.leaderboardSummaryPattern(), "completed", leaderboard.completedChallenges()),
+        formatNamed(copy.leaderboardPopulationPattern(), "active", leaderboard.activeMembers()));
+  }
+
   private HomeChallengesCopy homeChallengesCopy(String localeCode) {
     ResourceBundle bundle = localizedChallengeBundle(localeCode);
     return new HomeChallengesCopy(
@@ -540,12 +590,36 @@ public class PublicPagesResource {
         bundleText(bundle, "challenge_open_source_identity_cta"));
   }
 
+  private HomeChallengeLoopCopy homeChallengeLoopCopy(String localeCode) {
+    ResourceBundle bundle = localizedChallengeBundle(localeCode);
+    return new HomeChallengeLoopCopy(
+        bundleText(bundle, "home_p4_trending_eyebrow"),
+        bundleText(bundle, "home_p4_trending_title"),
+        bundleText(bundle, "home_p4_trending_intro"),
+        bundleText(bundle, "home_p4_trending_empty_title"),
+        bundleText(bundle, "home_p4_trending_empty_desc"),
+        bundleText(bundle, "home_p4_trending_count"),
+        bundleText(bundle, "home_p4_trending_cta"),
+        bundleText(bundle, "home_p4_leaderboard_eyebrow"),
+        bundleText(bundle, "home_p4_leaderboard_title"),
+        bundleText(bundle, "home_p4_leaderboard_intro"),
+        bundleText(bundle, "home_p4_leaderboard_empty_title"),
+        bundleText(bundle, "home_p4_leaderboard_empty_desc"),
+        bundleText(bundle, "home_p4_leaderboard_rank"),
+        bundleText(bundle, "home_p4_leaderboard_summary"),
+        bundleText(bundle, "home_p4_leaderboard_population"),
+        bundleText(bundle, "home_p4_leaderboard_cta"),
+        bundleText(bundle, "challenge_reward_hcoin"));
+  }
+
   private String bundleText(ResourceBundle bundle, String key) {
     return bundle.containsKey(key) ? bundle.getString(key) : key;
   }
 
   private ResourceBundle localizedChallengeBundle(String localeCode) {
-    Locale bundleLocale = "es".equalsIgnoreCase(localeCode) ? Locale.forLanguageTag("es") : Locale.ROOT;
+    String normalized = localeCode == null ? "" : localeCode.trim().toLowerCase(Locale.ROOT);
+    Locale bundleLocale =
+        normalized.startsWith("es") ? Locale.forLanguageTag("es") : Locale.ROOT;
     return ResourceBundle.getBundle("i18n", bundleLocale);
   }
 
@@ -638,6 +712,25 @@ public class PublicPagesResource {
       String openSourceIdentityDesc,
       String openSourceIdentityCta) {}
 
+  private record HomeChallengeLoopCopy(
+      String trendingEyebrow,
+      String trendingTitle,
+      String trendingIntro,
+      String trendingEmptyTitle,
+      String trendingEmptyDesc,
+      String trendingCountPattern,
+      String trendingCta,
+      String leaderboardEyebrow,
+      String leaderboardTitle,
+      String leaderboardIntro,
+      String leaderboardEmptyTitle,
+      String leaderboardEmptyDesc,
+      String leaderboardRankPattern,
+      String leaderboardSummaryPattern,
+      String leaderboardPopulationPattern,
+      String leaderboardCta,
+      String rewardPattern) {}
+
   private record HomeChallengeCard(
       String id,
       int completedSteps,
@@ -653,4 +746,15 @@ public class PublicPagesResource {
       String statusLabel,
       String rewardLabel,
       String progressLabel) {}
+
+  private record HomeChallengeTrend(
+      String id, String title, String countLabel, String rewardLabel, String actionUrl) {}
+
+  private record HomeChallengeLeaderboard(
+      int rank,
+      int activeMembers,
+      int completedChallenges,
+      String rankLabel,
+      String summaryLabel,
+      String populationLabel) {}
 }
