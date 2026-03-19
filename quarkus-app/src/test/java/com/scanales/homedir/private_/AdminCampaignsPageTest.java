@@ -37,6 +37,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsQueueHealthPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))
+        .body(containsString("id=\"campaignsAuditTrailPanel\""))
         .body(containsString("id=\"campaignsPreviewPackPanel\""))
         .body(containsString("id=\"campaignsAttributionPanel\""))
         .body(containsString("id=\"campaignsLinkedinPanel\""))

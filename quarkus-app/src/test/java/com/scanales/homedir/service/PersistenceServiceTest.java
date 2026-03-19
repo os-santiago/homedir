@@ -214,7 +214,17 @@ public class PersistenceServiceTest {
                     true,
                     Map.of("discord", Instant.parse("2026-03-19T13:10:00Z")),
                     Instant.parse("2026-03-19T13:10:00Z"),
-                    "published")));
+                    "published")),
+            java.util.List.of(
+                new com.scanales.homedir.campaigns.CampaignActivityEntry(
+                    Instant.parse("2026-03-19T13:10:00Z"),
+                    "product-pulse",
+                    "product_pulse",
+                    "approved",
+                    "publish.channel",
+                    "discord",
+                    "published",
+                    "system")));
 
     service.saveCampaignStateSync(snapshot);
 
@@ -223,6 +233,7 @@ public class PersistenceServiceTest {
     assertEquals("product_pulse", loaded.drafts().getFirst().kind());
     assertEquals(CampaignWorkflowState.APPROVED, loaded.drafts().getFirst().workflowState());
     assertTrue(loaded.drafts().getFirst().publishedChannels().containsKey("discord"));
+    assertEquals(1, loaded.activity().size());
     assertTrue(service.campaignStateLastModifiedMillis() > 0);
   }
 
