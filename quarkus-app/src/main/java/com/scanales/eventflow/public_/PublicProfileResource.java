@@ -1,14 +1,15 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.challenges.ChallengeService;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
-import com.scanales.eventflow.model.CommunityMember;
 import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.model.QuestProfile;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.config.AppMessages;
+import com.scanales.eventflow.model.CommunityMember;
 import com.scanales.eventflow.service.CommunityService;
 import com.scanales.eventflow.service.EventService;
 import com.scanales.eventflow.service.GamificationService;
@@ -31,20 +32,29 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 @Path("/u")
 public class PublicProfileResource {
     private static final int DOMINANT_HYBRID_MARGIN_XP = 5;
     private static final int DOMINANT_HYBRID_MARGIN_PERCENT = 12;
+    private static final DateTimeFormatter SHARE_DATE_FORMAT =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC);
 
     @Inject
     Template publicProfile;
+
+    @Inject
+    Template publicChallenge;
 
     @Inject
     CommunityService communityService;
@@ -78,6 +88,9 @@ public class PublicProfileResource {
     @Inject
     EconomyService economyService;
 
+    @Inject
+    ChallengeService challengeService;
+
     @GET
     @Path("/{username}")
     @Produces(MediaType.TEXT_HTML)
@@ -93,6 +106,7 @@ public class PublicProfileResource {
         if (resolvedOpt.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        String resolvedLocaleCode = TemplateLocaleUtil.resolve(localeCookie, null);
         ResolvedPublicProfile resolved = resolvedOpt.get();
         metrics.recordFunnelStep("profile.public.open");
         currentUserId()
@@ -122,6 +136,8 @@ public class PublicProfileResource {
         boolean hasDiscord = resolved.discordHandle() != null || resolved.discordProfileUrl() != null;
         java.util.Set<String> cfpUserIds = resolveCfpUserIds(profile, resolved.userId());
         boolean hasProfileGlow = hasInventoryItem(cfpUserIds, "profile-glow");
+        List<PublicChallengeItem> completedChallenges =
+            buildPublicChallenges(cfpUserIds, resolved.canonicalUsername(), resolvedLocaleCode);
         CfpSubmissionService.MineStats cfpStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
         int cfpAcceptedCount = cfpStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
         List<PublicCfpItem> cfpRecentAccepted =
@@ -177,6 +193,7 @@ public class PublicProfileResource {
                 .data("speakerActive", speakerActive)
                 .data("volunteerSelectedCount", volunteerSelectedCount)
                 .data("volunteerRecentSelected", volunteerRecentSelected)
+                .data("completedChallenges", completedChallenges)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")
                 .data("ogDescription", "Check out @" + resolved.canonicalUsername() + " and their community activity.")
                 .data(
@@ -187,6 +204,65 @@ public class PublicProfileResource {
                         + questProfile.level),
             localeCookie))
             .build();
+    }
+
+    @GET
+    @Path("/{username}/challenges/{challengeId}")
+    @Produces(MediaType.TEXT_HTML)
+    public Response getPublicChallenge(
+        @PathParam("username") String username,
+        @PathParam("challengeId") String challengeId,
+        @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+        String requested = normalizeId(username);
+        String requestedChallengeId = normalizeId(challengeId);
+        if (requested == null || requestedChallengeId == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Optional<ResolvedPublicProfile> resolvedOpt = resolveProfile(requested);
+        if (resolvedOpt.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        String resolvedLocaleCode = TemplateLocaleUtil.resolve(localeCookie, null);
+        ResolvedPublicProfile resolved = resolvedOpt.get();
+        List<PublicChallengeItem> completedChallenges =
+            buildPublicChallenges(resolveCfpUserIds(userProfileService.find(resolved.userId()).orElse(null), resolved.userId()),
+                resolved.canonicalUsername(),
+                resolvedLocaleCode);
+        PublicChallengeItem challenge =
+            completedChallenges.stream()
+                .filter(item -> requestedChallengeId.equals(item.id()))
+                .findFirst()
+                .orElse(null);
+        if (challenge == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        metrics.recordFunnelStep("challenge.public.open");
+        currentUserId()
+            .ifPresent(
+                viewer -> gamificationService.award(
+                    viewer, GamificationActivity.PUBLIC_PROFILE_VIEW, resolved.canonicalUsername() + ":" + challenge.id()));
+
+        return Response.ok(TemplateLocaleUtil.apply(
+            publicChallenge
+                .data("pageTitle", challenge.title() + " · " + resolved.displayName())
+                .data("profilePath", "/u/" + resolved.canonicalUsername())
+                .data("username", resolved.canonicalUsername())
+                .data("displayName", resolved.displayName())
+                .data("avatarUrl", resolved.avatarUrl())
+                .data("questClass", challenge.className())
+                .data("questClassEmoji", challenge.classEmoji())
+                .data("challenge", challenge)
+                .data("ogTitle", challenge.title() + " · " + resolved.displayName())
+                .data("ogDescription", challenge.shareDescription())
+                .data(
+                    "ogImage",
+                    "https://og.scanales.com/api/og?title="
+                        + encodeUrlPart(challenge.title())
+                        + "&subtitle="
+                        + encodeUrlPart(resolved.displayName() + " · " + challenge.rewardLabel())),
+            localeCookie)).build();
     }
 
     private List<PublicClassProgress> buildClassProgress(UserProfile profile, int fallbackXp) {
@@ -249,6 +325,147 @@ public class PublicProfileResource {
             }
         }
         return new DominantClassSummary(primaryClass, messages.profile_dominant_class(primary.className()));
+    }
+
+    private List<PublicChallengeItem> buildPublicChallenges(
+        java.util.Set<String> userIds, String canonicalUsername, String localeCode) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+        PublicChallengeCopy copy = publicChallengeCopy(localeCode);
+        java.util.Map<String, PublicChallengeItem> byId = new java.util.LinkedHashMap<>();
+        for (String userId : userIds) {
+            for (ChallengeService.ChallengeProgressCard card : challengeService.listProgressForUser(userId)) {
+                if (card == null || !card.completed() || card.id() == null || card.id().isBlank()) {
+                    continue;
+                }
+                PublicChallengeItem candidate = toPublicChallengeItem(card, canonicalUsername, copy);
+                PublicChallengeItem existing = byId.get(candidate.id());
+                if (existing == null || isAfter(candidate.completedAt(), existing.completedAt())) {
+                    byId.put(candidate.id(), candidate);
+                }
+            }
+        }
+        return byId.values().stream()
+            .sorted(java.util.Comparator.comparing(PublicChallengeItem::completedAt, java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+            .toList();
+    }
+
+    private PublicChallengeItem toPublicChallengeItem(
+        ChallengeService.ChallengeProgressCard card, String canonicalUsername, PublicChallengeCopy copy) {
+        int totalSteps = Math.max(0, card.totalSteps());
+        int completedSteps = Math.max(0, Math.min(card.completedSteps(), totalSteps));
+        int progressPercent =
+            totalSteps <= 0 ? 0 : (int) Math.round((completedSteps * 100.0d) / (double) totalSteps);
+        String title = challengeTitle(card.id(), copy);
+        String description = challengeDescription(card.id(), copy);
+        String rewardLabel = formatNamed(copy.rewardHcoinPattern(), "reward", Math.max(0, card.rewardHcoin()));
+        String progressLabel =
+            formatNamed(copy.progressStepsPattern(), "completed", completedSteps, "total", totalSteps);
+        String sharePath = "/u/" + canonicalUsername + "/challenges/" + card.id();
+        String completedOn =
+            card.completedAt() == null
+                ? copy.completedLabel()
+                : copy.completedOnPrefix() + " " + SHARE_DATE_FORMAT.format(card.completedAt());
+        return new PublicChallengeItem(
+            card.id(),
+            title,
+            description,
+            rewardLabel,
+            progressLabel,
+            completedOn,
+            card.completedAt(),
+            sharePath,
+            "/u/" + canonicalUsername,
+            challengeClassName(card.id()),
+            challengeClassEmoji(card.id()),
+            formatNamed(copy.shareDescriptionPattern(), "title", title, "reward", rewardLabel));
+    }
+
+    private PublicChallengeCopy publicChallengeCopy(String localeCode) {
+        ResourceBundle bundle = localizedChallengeBundle(localeCode);
+        return new PublicChallengeCopy(
+            bundleText(bundle, "challenge_reward_hcoin"),
+            bundleText(bundle, "challenge_progress_steps"),
+            bundleText(bundle, "challenge_community_scout_title"),
+            bundleText(bundle, "challenge_community_scout_desc"),
+            bundleText(bundle, "challenge_event_explorer_title"),
+            bundleText(bundle, "challenge_event_explorer_desc"),
+            bundleText(bundle, "challenge_open_source_identity_title"),
+            bundleText(bundle, "challenge_open_source_identity_desc"),
+            bundleText(bundle, "public_profile_challenges_completed_on"),
+            bundleText(bundle, "public_profile_challenge_share_description"));
+    }
+
+    private ResourceBundle localizedChallengeBundle(String localeCode) {
+        Locale bundleLocale = "es".equalsIgnoreCase(localeCode) ? Locale.forLanguageTag("es") : Locale.ROOT;
+        return ResourceBundle.getBundle("i18n", bundleLocale);
+    }
+
+    private String bundleText(ResourceBundle bundle, String key) {
+        return bundle.containsKey(key) ? bundle.getString(key) : key;
+    }
+
+    private String formatNamed(String pattern, Object... keyValues) {
+        String formatted = pattern;
+        for (int i = 0; i + 1 < keyValues.length; i += 2) {
+            String key = String.valueOf(keyValues[i]);
+            String value = String.valueOf(keyValues[i + 1]);
+            formatted = formatted.replace("{" + key + "}", value);
+        }
+        return formatted;
+    }
+
+    private String challengeTitle(String challengeId, PublicChallengeCopy copy) {
+        return switch (challengeId) {
+            case "community-scout" -> copy.communityScoutTitle();
+            case "event-explorer" -> copy.eventExplorerTitle();
+            case "open-source-identity" -> copy.openSourceIdentityTitle();
+            default -> challengeId;
+        };
+    }
+
+    private String challengeDescription(String challengeId, PublicChallengeCopy copy) {
+        return switch (challengeId) {
+            case "community-scout" -> copy.communityScoutDesc();
+            case "event-explorer" -> copy.eventExplorerDesc();
+            case "open-source-identity" -> copy.openSourceIdentityDesc();
+            default -> challengeId;
+        };
+    }
+
+    private String challengeClassName(String challengeId) {
+        QuestClass questClass = challengeClass(challengeId);
+        return questClass != null ? questClass.getDisplayName() : "";
+    }
+
+    private String challengeClassEmoji(String challengeId) {
+        QuestClass questClass = challengeClass(challengeId);
+        return questClass != null ? questClass.getEmoji() : "🌱";
+    }
+
+    private QuestClass challengeClass(String challengeId) {
+        return switch (challengeId) {
+            case "community-scout" -> QuestClass.SCIENTIST;
+            case "event-explorer" -> QuestClass.ENGINEER;
+            case "open-source-identity" -> QuestClass.MAGE;
+            default -> null;
+        };
+    }
+
+    private boolean isAfter(java.time.Instant left, java.time.Instant right) {
+        if (left == null) {
+            return false;
+        }
+        if (right == null) {
+            return true;
+        }
+        return left.isAfter(right);
+    }
+
+    private String encodeUrlPart(String value) {
+        String normalized = value == null ? "" : value;
+        return URLEncoder.encode(normalized, StandardCharsets.UTF_8);
     }
 
     private Optional<ResolvedPublicProfile> resolveProfile(String requestedUsername) {
@@ -500,5 +717,36 @@ public class PublicProfileResource {
     }
 
     private record PublicVolunteerItem(String eventTitle, String eventUrl, String eventId) {
+    }
+
+    private record PublicChallengeCopy(
+        String rewardHcoinPattern,
+        String progressStepsPattern,
+        String communityScoutTitle,
+        String communityScoutDesc,
+        String eventExplorerTitle,
+        String eventExplorerDesc,
+        String openSourceIdentityTitle,
+        String openSourceIdentityDesc,
+        String completedOnPrefix,
+        String shareDescriptionPattern) {
+        String completedLabel() {
+            return completedOnPrefix;
+        }
+    }
+
+    private record PublicChallengeItem(
+        String id,
+        String title,
+        String description,
+        String rewardLabel,
+        String progressLabel,
+        String completedLabel,
+        java.time.Instant completedAt,
+        String sharePath,
+        String profilePath,
+        String className,
+        String classEmoji,
+        String shareDescription) {
     }
 }
