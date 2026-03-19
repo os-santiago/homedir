@@ -12,6 +12,7 @@ Resumen:
 - LinkedIn queda implementado como handoff asistido: copy manual + confirmación desde admin, sin autopublicación.
 - Campaigns ya expone observabilidad operativa con resumen de colas, actividad reciente y visibilidad de handoffs pendientes.
 - Campaigns ahora recomienda ventanas de envío usando patrones reales de actividad de HomeDir antes de programar borradores.
+- Campaigns ahora expone preview packs internos por canal para revisar el copy final antes de aprobar o programar.
 - El rollout obligatorio es:
   - borradores internos
   - aprobacion/programacion
