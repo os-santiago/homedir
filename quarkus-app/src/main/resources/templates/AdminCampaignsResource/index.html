@@ -35,6 +35,9 @@
   {#if updatedAction == 'unscheduled'}
     <div class="hd-alert hd-alert-success">{copy.updatedUnscheduled}: <code>{updatedDraft}</code></div>
   {/if}
+  {#if updatedAction == 'publishscan'}
+    <div class="hd-alert hd-alert-success">{copy.updatedPublishScan}</div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
   {/if}
@@ -70,6 +73,27 @@
     <section class="admin-shell-panel">
       <div class="admin-shell-card-header">
         <div>
+          <p class="section-subtitle">{copy.publisherStatusLabel}</p>
+          <h2>{copy.publisherIntro}</h2>
+        </div>
+        <div class="action-group admin-shell-actions">
+          <form action="/private/admin/campaigns/publish-now" method="post">
+            <button type="submit" class="btn btn-secondary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
+          </form>
+        </div>
+      </div>
+      <div class="campaigns-admin-list">
+        <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{view.publisherStatus.globalEnabled}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{view.publisherStatus.dryRun}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherChannelLabel}</strong><span>{view.publisherStatus.channelEnabled}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherWebhookLabel}</strong><span>{view.publisherStatus.webhookConfigured}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{view.publisherStatus.minInterval}</span></article>
+      </div>
+    </section>
+
+    <section class="admin-shell-panel">
+      <div class="admin-shell-card-header">
+        <div>
           <p class="section-subtitle">{copy.subtitle}</p>
           <h2>{copy.queueIntro}</h2>
         </div>
@@ -98,6 +122,8 @@
                     <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
@@ -136,6 +162,8 @@
                     <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
@@ -179,6 +207,8 @@
                     <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
@@ -187,6 +217,46 @@
                     <form action="/private/admin/campaigns/{draft.id}/unschedule" method="post">
                       <button type="submit" class="btn btn-secondary">{copy.unscheduleLabel}</button>
                     </form>
+                    <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
+                      <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
+                    </form>
+                  </div>
+                </article>
+              {/if}
+            {/for}
+          </div>
+        </article>
+
+        <article class="section-card admin-shell-panel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.publishedQueueTitle}</p>
+              <h2>{copy.publishedQueueTitle}</h2>
+            </div>
+          </div>
+          <div class="campaigns-admin-list">
+            {#for draft in view.drafts}
+              {#if draft.workflowStateCode == 'published'}
+                <article class="campaigns-admin-item">
+                  <div class="admin-shell-card-header">
+                    <div>
+                      <p class="section-subtitle">{draft.kindLabel}</p>
+                      <h3>{draft.title}</h3>
+                    </div>
+                    <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
+                  </div>
+                  <p>{draft.body}</p>
+                  <div class="campaigns-admin-list">
+                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
+                  </div>
+                  <div class="action-group admin-shell-actions">
                     <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
                       <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
                     </form>
