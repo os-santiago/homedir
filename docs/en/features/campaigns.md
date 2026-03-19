@@ -52,5 +52,6 @@ same ADEV discipline used to build the platform itself.
 - Iteration 1 foundation: enabled
 - Iteration 2 controlled approval/scheduling: enabled (internal admin flow only)
 - Iteration 3 Discord publisher: implemented behind explicit config, dry-run, dedupe, and rate-limit guardrails
+- Bluesky and Mastodon publishers: implemented behind explicit config, dry-run, dedupe, and rate-limit guardrails
 - Public posting: not enabled
 - Scheduler-driven external publication: available only when publisher config is enabled
