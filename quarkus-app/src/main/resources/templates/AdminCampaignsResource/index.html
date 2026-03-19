@@ -48,7 +48,7 @@
 
 <div class="container">
   <div class="admin-shell-stack">
-    <div class="admin-observability-two-up">
+    <div class="campaigns-admin-grid">
       <section class="admin-shell-panel" id="campaignsSummaryPanel">
         <div class="admin-shell-card-header">
           <div>
@@ -76,7 +76,60 @@
           <article class="campaigns-admin-item"><strong>{copy.summaryLastPublishedLabel}</strong><span>{view.summary.lastPublishedAtLabel}</span></article>
         </div>
       </section>
+
+      <section class="admin-shell-panel" id="campaignsQueueHealthPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.queueHealthTitle}</p>
+            <h2>{copy.queueHealthIntro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.queueHealth.statusCode}">{view.queueHealth.statusLabel}</span>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthStatusLabel}</strong><span>{view.queueHealth.statusLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthAttentionLabel}</strong><span>{view.queueHealth.attentionCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleDraftsLabel}</strong><span>{view.queueHealth.staleDraftCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleApprovedLabel}</strong><span>{view.queueHealth.staleApprovedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthOverdueScheduledLabel}</strong><span>{view.queueHealth.overdueScheduledCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthBlockedLabel}</strong><span>{view.queueHealth.blockedPublicationCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthLinkedinLabel}</strong><span>{view.queueHealth.staleLinkedinCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.queueHealthEvaluatedLabel}</strong><span>{view.queueHealth.evaluatedAtLabel}</span></article>
+        </div>
+      </section>
     </div>
+
+    <section class="admin-shell-panel" id="campaignsQueueRiskPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.queueRisksTitle}</p>
+          <h2>{copy.queueRisksIntro}</h2>
+        </div>
+      </div>
+      <div class="campaigns-admin-list">
+        {#if view.queueRisks.isEmpty}
+          <article class="campaigns-admin-item">
+            <strong>{copy.queueRisksEmptyLabel}</strong>
+          </article>
+        {/if}
+        {#for item in view.queueRisks}
+          <article class="campaigns-admin-item">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{item.kindLabel}</p>
+                <h3>{item.title}</h3>
+              </div>
+              <span class="admin-observability-badge {item.badgeClass}">{item.workflowLabel}</span>
+            </div>
+            <div class="campaigns-admin-list">
+              <article class="campaigns-admin-item"><strong>{item.riskLabel}</strong><span>{item.recommendationLabel}</span></article>
+              <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{item.workflowLabel}</span></article>
+              <article class="campaigns-admin-item"><strong>{copy.queueRiskAgeLabel}</strong><span>{item.ageLabel}</span></article>
+              <article class="campaigns-admin-item"><strong>{copy.queueRiskActionLabel}</strong><a href="#campaign-draft-{item.draftId}" class="btn btn-secondary campaigns-admin-cta">{copy.queueRiskActionLabel}</a></article>
+            </div>
+          </article>
+        {/for}
+      </div>
+    </section>
 
     <section class="admin-shell-panel" id="campaignsCadencePanel">
       <div class="admin-shell-card-header">
@@ -305,7 +358,7 @@
           <div class="campaigns-admin-list">
             {#for draft in view.drafts}
               {#if draft.workflowStateCode == 'draft'}
-                <article class="campaigns-admin-item">
+                <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
                   <div class="admin-shell-card-header">
                     <div>
                       <p class="section-subtitle">{draft.kindLabel}</p>
@@ -346,7 +399,7 @@
           <div class="campaigns-admin-list">
             {#for draft in view.drafts}
               {#if draft.workflowStateCode == 'approved'}
-                <article class="campaigns-admin-item">
+                <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
                   <div class="admin-shell-card-header">
                     <div>
                       <p class="section-subtitle">{draft.kindLabel}</p>
@@ -392,7 +445,7 @@
           <div class="campaigns-admin-list">
             {#for draft in view.drafts}
               {#if draft.workflowStateCode == 'scheduled'}
-                <article class="campaigns-admin-item">
+                <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
                   <div class="admin-shell-card-header">
                     <div>
                       <p class="section-subtitle">{draft.kindLabel}</p>
