@@ -13,6 +13,7 @@ import com.scanales.homedir.challenges.ChallengeProgress;
 import com.scanales.homedir.challenges.ChallengeStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignDraftState;
 import com.scanales.homedir.campaigns.CampaignStateSnapshot;
+import com.scanales.homedir.campaigns.CampaignWorkflowState;
 import com.scanales.homedir.community.CommunityLightningStateSnapshot;
 import com.scanales.homedir.community.CommunityLightningThread;
 import com.scanales.homedir.cfp.CfpSubmission;
@@ -204,6 +205,12 @@ public class PersistenceServiceTest {
                     Instant.parse("2026-03-19T13:00:00Z"),
                     Map.of("version", "3.489.0"),
                     java.util.List.of("discord", "linkedin"),
+                    true,
+                    CampaignWorkflowState.APPROVED,
+                    Instant.parse("2026-03-19T13:05:00Z"),
+                    "sergio.canales.e@gmail.com",
+                    null,
+                    Instant.parse("2026-03-19T13:05:00Z"),
                     true)));
 
     service.saveCampaignStateSync(snapshot);
@@ -211,6 +218,7 @@ public class PersistenceServiceTest {
     CampaignStateSnapshot loaded = service.loadCampaignState().orElseThrow();
     assertEquals(1, loaded.drafts().size());
     assertEquals("product_pulse", loaded.drafts().getFirst().kind());
+    assertEquals(CampaignWorkflowState.APPROVED, loaded.drafts().getFirst().workflowState());
     assertTrue(service.campaignStateLastModifiedMillis() > 0);
   }
 

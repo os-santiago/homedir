@@ -50,5 +50,6 @@ same ADEV discipline used to build the platform itself.
 ## Current Status
 
 - Iteration 1 foundation: enabled
+- Iteration 2 controlled approval/scheduling: enabled (internal admin flow only)
 - Public posting: not enabled
 - Scheduler-driven external publication: not enabled

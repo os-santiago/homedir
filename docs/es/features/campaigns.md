@@ -6,6 +6,7 @@ Resumen:
 
 - `Campaigns` sera el modulo interno de operaciones de marketing de HomeDir.
 - Su funcion inicial es generar borradores internos a partir de datos reales del producto.
+- El flujo interno actual ya permite revisar, aprobar y programar borradores sin publicar a canales externos.
 - El rollout obligatorio es:
   - borradores internos
   - aprobacion/programacion
