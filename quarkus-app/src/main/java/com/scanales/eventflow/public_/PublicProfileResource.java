@@ -355,8 +355,6 @@ public class PublicProfileResource {
         ChallengeService.ChallengeProgressCard card, String canonicalUsername, PublicChallengeCopy copy) {
         int totalSteps = Math.max(0, card.totalSteps());
         int completedSteps = Math.max(0, Math.min(card.completedSteps(), totalSteps));
-        int progressPercent =
-            totalSteps <= 0 ? 0 : (int) Math.round((completedSteps * 100.0d) / (double) totalSteps);
         String title = challengeTitle(card.id(), copy);
         String description = challengeDescription(card.id(), copy);
         String rewardLabel = formatNamed(copy.rewardHcoinPattern(), "reward", Math.max(0, card.rewardHcoin()));

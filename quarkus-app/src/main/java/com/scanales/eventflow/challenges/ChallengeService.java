@@ -283,9 +283,9 @@ public class ChallengeService {
           rewardedIds = List.of(definition.id());
         }
       } catch (EconomyService.CapacityException e) {
-        LOG.warnf("challenge_reward_blocked user=%s challenge=%s code=%s", userId, definition.id(), e.getMessage());
+        LOG.warnf("challenge_reward_blocked code=%s", safeLogCode(e.getMessage()));
       } catch (Exception e) {
-        LOG.warnf(e, "challenge_reward_failed user=%s challenge=%s", userId, definition.id());
+        LOG.warn("challenge_reward_failed", e);
       }
     }
 
@@ -315,6 +315,18 @@ public class ChallengeService {
     }
     String normalized = userId.trim().toLowerCase(Locale.ROOT);
     return normalized.isBlank() ? null : normalized;
+  }
+
+  private static String safeLogCode(String value) {
+    if (value == null || value.isBlank()) {
+      return "unknown";
+    }
+    String normalized =
+        value
+            .trim()
+            .toLowerCase(Locale.ROOT)
+            .replaceAll("[^a-z0-9._-]", "_");
+    return normalized.isBlank() ? "unknown" : normalized;
   }
 
   public record ChallengeActivityResult(List<String> completedChallengeIds, List<String> rewardedChallengeIds) {
