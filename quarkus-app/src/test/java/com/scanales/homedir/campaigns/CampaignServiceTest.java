@@ -35,6 +35,8 @@ class CampaignServiceTest {
   @Inject UserProfileService userProfileService;
   @Inject GamificationService gamificationService;
   @InjectMock CampaignDiscordPublisherService discordPublisherService;
+  @InjectMock CampaignBlueskyPublisherService blueskyPublisherService;
+  @InjectMock CampaignMastodonPublisherService mastodonPublisherService;
 
   @BeforeEach
   void setUp() {
@@ -42,13 +44,16 @@ class CampaignServiceTest {
     eventService.reset();
     when(discordPublisherService.status())
         .thenReturn(
-            new CampaignDiscordPublisherService.DiscordPublisherStatus(
-                false,
-                true,
-                false,
-                false,
-                Duration.ofMinutes(15)));
+            new CampaignPublisherStatus("discord", false, true, false, false, Duration.ofMinutes(15)));
     when(discordPublisherService.effectiveMinInterval()).thenReturn(Duration.ofMinutes(15));
+    when(blueskyPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("bluesky", false, true, false, false, Duration.ofMinutes(15)));
+    when(blueskyPublisherService.effectiveMinInterval()).thenReturn(Duration.ofMinutes(15));
+    when(mastodonPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("mastodon", false, true, false, false, Duration.ofMinutes(15)));
+    when(mastodonPublisherService.effectiveMinInterval()).thenReturn(Duration.ofMinutes(15));
   }
 
   @Test
@@ -145,18 +150,10 @@ class CampaignServiceTest {
     campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
     when(discordPublisherService.status())
         .thenReturn(
-            new CampaignDiscordPublisherService.DiscordPublisherStatus(
-                true,
-                false,
-                true,
-                true,
-                Duration.ofMinutes(15)));
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
-            CampaignDiscordPublisherService.PublishResult.published(
-                "discord",
-                Instant.parse("2026-03-19T14:40:00Z"),
-                "published"));
+            CampaignPublishResult.published("discord", Instant.parse("2026-03-19T14:40:00Z"), "published"));
 
     CampaignStateSnapshot published = campaignService.publishScheduledNow();
     CampaignDraftState publishedDraft =
@@ -165,5 +162,53 @@ class CampaignServiceTest {
     assertTrue(publishedDraft.workflowState() == CampaignWorkflowState.PUBLISHED);
     assertTrue(publishedDraft.publishedChannels().containsKey("discord"));
     assertTrue("published".equals(publishedDraft.lastPublishOutcome()));
+  }
+
+  @Test
+  void publishedDraftCanContinuePublishingPendingChannels() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(30), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignPublishResult.published("discord", Instant.parse("2026-03-19T14:40:00Z"), "published"));
+    campaignService.publishScheduledNow();
+
+    when(blueskyPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("bluesky", true, false, true, true, Duration.ZERO));
+    when(blueskyPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignPublishResult.published(
+                "bluesky", Instant.parse("2026-03-19T14:45:00Z"), "published_bluesky"));
+
+    CampaignStateSnapshot republished = campaignService.publishScheduledNow();
+    CampaignDraftState republishedDraft =
+        republished.drafts().stream().filter(item -> item.id().equals(target.id())).findFirst().orElseThrow();
+
+    assertTrue(republishedDraft.publishedChannels().containsKey("discord"));
+    assertTrue(republishedDraft.publishedChannels().containsKey("bluesky"));
+    assertTrue("published_bluesky".equals(republishedDraft.lastPublishOutcome()));
   }
 }

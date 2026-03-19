@@ -247,7 +247,7 @@ public class AdminCampaignsResource {
       String publisherGlobalLabel,
       String publisherDryRunLabel,
       String publisherChannelLabel,
-      String publisherWebhookLabel,
+      String publisherConfiguredLabel,
       String publisherRateLimitLabel,
       String publisherRunLabel,
       String approveLabel,

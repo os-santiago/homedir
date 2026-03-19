@@ -83,11 +83,18 @@
         </div>
       </div>
       <div class="campaigns-admin-list">
-        <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{view.publisherStatus.globalEnabled}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{view.publisherStatus.dryRun}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherChannelLabel}</strong><span>{view.publisherStatus.channelEnabled}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherWebhookLabel}</strong><span>{view.publisherStatus.webhookConfigured}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{view.publisherStatus.minInterval}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{view.globalPublishingEnabled}</span></article>
+        {#for status in view.publisherStatuses}
+          <article class="campaigns-admin-item">
+            <strong>{status.channelLabel}</strong>
+            <span>
+              {copy.publisherChannelLabel}: {status.channelEnabled}
+              · {copy.publisherConfiguredLabel}: {status.configured}
+              · {copy.publisherDryRunLabel}: {status.dryRun}
+              · {copy.publisherRateLimitLabel}: {status.minIntervalLabel}
+            </span>
+          </article>
+        {/for}
       </div>
     </section>
 
