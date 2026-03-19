@@ -3356,6 +3356,54 @@ public interface AppMessages {
     @Message("rewards available to unlock")
     String home_p0_metric_rewards();
 
+    @Message("Now live")
+    String home_awareness_eyebrow();
+
+    @Message("What changed in HomeDir")
+    String home_awareness_title();
+
+    @Message("The landing stays focused, but the product now has stronger loops across profile, community, and event participation.")
+    String home_awareness_intro();
+
+    @Message("Open Community Picks")
+    String home_awareness_cta();
+
+    @Message("Challenges + shareable proof")
+    String home_awareness_card_challenges_title();
+
+    @Message("Complete short verified routes, gain XP and HCoin, and unlock public cards worth sharing.")
+    String home_awareness_card_challenges_desc();
+
+    @Message("Open challenges")
+    String home_awareness_card_challenges_cta();
+
+    @Message("Fresh community picks")
+    String home_awareness_card_picks_title();
+
+    @Message("{count} recent curated signals are already live across AI, platform engineering, cloud native, and security.")
+    String home_awareness_card_picks_desc(int count);
+
+    @Message("Review picks")
+    String home_awareness_card_picks_cta();
+
+    @Message("Event participation flows")
+    String home_awareness_card_events_title();
+
+    @Message("CFP, volunteers, agenda, and event coordination now live as one connected experience.")
+    String home_awareness_card_events_desc();
+
+    @Message("Open events")
+    String home_awareness_card_events_cta();
+
+    @Message("Public developer identity")
+    String home_awareness_card_identity_title();
+
+    @Message("{memberCount} HomeDir members can already build a visible profile with linked community signals.")
+    String home_awareness_card_identity_desc(int memberCount);
+
+    @Message("Explore profiles")
+    String home_awareness_card_identity_cta();
+
     @Message("Community Board")
     String home_p0_metric_board_chip();
 
