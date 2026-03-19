@@ -12,6 +12,7 @@ import com.scanales.homedir.model.EventType;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
+import com.scanales.homedir.service.PersistenceService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -35,6 +36,7 @@ class CampaignServiceTest {
   @Inject EventService eventService;
   @Inject UserProfileService userProfileService;
   @Inject GamificationService gamificationService;
+  @Inject PersistenceService persistenceService;
   @InjectMock CampaignDiscordPublisherService discordPublisherService;
   @InjectMock CampaignBlueskyPublisherService blueskyPublisherService;
   @InjectMock CampaignMastodonPublisherService mastodonPublisherService;
@@ -282,5 +284,80 @@ class CampaignServiceTest {
         preview.linkedinHandoffs().stream()
             .anyMatch(item -> item.draftId().equals(target.id()) && item.completed()));
     assertTrue(preview.summary().linkedinCompletedCount() >= 1);
+  }
+
+  @Test
+  void queueHealthFlagsStaleAndOverdueDrafts() {
+    Instant now = Instant.now();
+    CampaignStateSnapshot snapshot =
+        new CampaignStateSnapshot(
+            CampaignStateSnapshot.SCHEMA_VERSION,
+            now,
+            java.util.List.of(
+                new CampaignDraftState(
+                    "draft-stale",
+                    "product_pulse",
+                    now.minus(3, ChronoUnit.DAYS),
+                    java.util.Map.of("version", "3.498.0"),
+                    java.util.List.of("discord", "linkedin"),
+                    true,
+                    CampaignWorkflowState.DRAFT,
+                    null,
+                    "",
+                    null,
+                    now.minus(2, ChronoUnit.DAYS),
+                    true,
+                    java.util.Map.of(),
+                    null,
+                    ""),
+                new CampaignDraftState(
+                    "approved-stale",
+                    "community_spotlight",
+                    now.minus(2, ChronoUnit.DAYS),
+                    java.util.Map.of("title", "Community refresh", "source", "internet", "publishedAt", LocalDate.now().toString()),
+                    java.util.List.of("discord"),
+                    true,
+                    CampaignWorkflowState.APPROVED,
+                    now.minus(30, ChronoUnit.HOURS),
+                    "sergio.canales.e@gmail.com",
+                    null,
+                    now.minus(30, ChronoUnit.HOURS),
+                    true,
+                    java.util.Map.of(),
+                    null,
+                    ""),
+                new CampaignDraftState(
+                    "scheduled-overdue",
+                    "event_spotlight",
+                    now.minus(2, ChronoUnit.DAYS),
+                    java.util.Map.of(
+                        "eventTitle", "DevOpsDays Santiago 2026",
+                        "eventType", EventType.CONFERENCE.name(),
+                        "eventDate", LocalDate.now().plusDays(10).toString(),
+                        "eventUrl", "/event/devopsdays-santiago-2026"),
+                    java.util.List.of("discord", "linkedin"),
+                    true,
+                    CampaignWorkflowState.SCHEDULED,
+                    now.minus(3, ChronoUnit.HOURS),
+                    "sergio.canales.e@gmail.com",
+                    now.minus(2, ChronoUnit.HOURS),
+                    now.minus(2, ChronoUnit.HOURS),
+                    true,
+                    java.util.Map.of(),
+                    null,
+                    "")));
+    persistenceService.saveCampaignStateSync(snapshot);
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertEquals("high", preview.queueHealth().statusCode());
+    assertEquals(1, preview.queueHealth().staleDraftCount());
+    assertEquals(1, preview.queueHealth().staleApprovedCount());
+    assertEquals(1, preview.queueHealth().overdueScheduledCount());
+    assertEquals(1, preview.queueHealth().blockedPublicationCount());
+    assertFalse(preview.queueRisks().isEmpty());
+    assertTrue(
+        preview.queueRisks().stream()
+            .anyMatch(item -> "scheduled-overdue".equals(item.draftId()) && "high".equals(item.badgeClass())));
   }
 }

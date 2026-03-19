@@ -42,6 +42,10 @@ public class CampaignService {
   private static final String KIND_CHALLENGE_SPOTLIGHT = "challenge_spotlight";
   private static final String KIND_COMMUNITY_SPOTLIGHT = "community_spotlight";
   private static final String KIND_EVENT_SPOTLIGHT = "event_spotlight";
+  private static final Duration STALE_DRAFT_WINDOW = Duration.ofHours(24);
+  private static final Duration STALE_APPROVED_WINDOW = Duration.ofHours(24);
+  private static final Duration OVERDUE_SCHEDULE_WINDOW = Duration.ofMinutes(30);
+  private static final Duration STALE_LINKEDIN_HANDOFF_WINDOW = Duration.ofHours(24);
 
   @Inject PersistenceService persistenceService;
   @Inject UsageMetricsService usageMetricsService;
@@ -232,8 +236,7 @@ public class CampaignService {
             })
             .toList();
     List<CampaignPublisherPreviewStatus> publisherStatuses =
-        List.of(discordPublisherService.status(), blueskyPublisherService.status(), mastodonPublisherService.status())
-            .stream()
+        publisherStatuses().stream()
             .map(status -> toPublisherStatus(status, bundle))
             .toList();
     boolean globalPublishingEnabled = publisherStatuses.stream().anyMatch(CampaignPublisherPreviewStatus::globalEnabled);
@@ -247,6 +250,8 @@ public class CampaignService {
         cadenceGuidance,
         List.copyOf(previewPacks),
         attributionSummary(snapshot, bundle),
+        queueHealth(snapshot, bundle, locale),
+        queueRisks(snapshot, bundle, locale),
         snapshot.drafts().stream()
             .filter(this::eligibleForLinkedinHandoff)
             .map(draft -> toLinkedinHandoff(draft, bundle, locale))
@@ -640,8 +645,7 @@ public class CampaignService {
     CampaignWorkflowState nextState = draft.workflowState();
     Instant lastAttemptAt = draft.lastPublishAttemptAt();
     String lastOutcome = draft.lastPublishOutcome();
-    for (CampaignPublisherStatus status :
-        List.of(discordPublisherService.status(), blueskyPublisherService.status(), mastodonPublisherService.status())) {
+    for (CampaignPublisherStatus status : publisherStatuses()) {
       if (!draft.suggestedChannels().contains(status.channel())) {
         continue;
       }
@@ -1180,6 +1184,213 @@ public class CampaignService {
             "evidence", String.join(" · ", preview.evidence())));
   }
 
+  private CampaignQueueHealth queueHealth(
+      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+    int staleDraftCount = 0;
+    int staleApprovedCount = 0;
+    int overdueScheduledCount = 0;
+    int blockedPublicationCount = 0;
+    int staleLinkedinCount = 0;
+    Instant now = Instant.now();
+    for (CampaignDraftState draft : snapshot.drafts()) {
+      Instant baseline = effectiveUpdatedAt(draft);
+      switch (draft.workflowState()) {
+        case DRAFT -> {
+          if (isOlderThan(baseline, now, STALE_DRAFT_WINDOW)) {
+            staleDraftCount++;
+          }
+        }
+        case APPROVED -> {
+          if (isOlderThan(baseline, now, STALE_APPROVED_WINDOW)) {
+            staleApprovedCount++;
+          }
+        }
+        case SCHEDULED -> {
+          if (isOverdue(draft, now)) {
+            overdueScheduledCount++;
+            if (isPublishBlocked(draft)) {
+              blockedPublicationCount++;
+            }
+          }
+        }
+        case PUBLISHED -> {
+          if (hasPendingLinkedinHandoff(draft)
+              && isOlderThan(baseline, now, STALE_LINKEDIN_HANDOFF_WINDOW)) {
+            staleLinkedinCount++;
+          }
+        }
+      }
+    }
+    int attentionCount =
+        staleDraftCount
+            + staleApprovedCount
+            + overdueScheduledCount
+            + blockedPublicationCount
+            + staleLinkedinCount;
+    String statusCode;
+    if (overdueScheduledCount > 0 || blockedPublicationCount > 0) {
+      statusCode = "high";
+    } else if (attentionCount > 0) {
+      statusCode = "watch";
+    } else {
+      statusCode = "healthy";
+    }
+    return new CampaignQueueHealth(
+        statusCode,
+        bundleText(bundle, "campaigns_admin_queue_health_status_" + statusCode),
+        attentionCount,
+        staleDraftCount,
+        staleApprovedCount,
+        overdueScheduledCount,
+        blockedPublicationCount,
+        staleLinkedinCount,
+        localizedDateTime(now, locale));
+  }
+
+  private List<CampaignQueueRiskItem> queueRisks(
+      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+    Instant now = Instant.now();
+    Map<String, String> cadenceByKind = new LinkedHashMap<>();
+    for (CampaignCadenceWindow window : cadenceGuidance(bundle).windowsByKind()) {
+      cadenceByKind.put(window.label(), window.slotLabel());
+    }
+    return snapshot.drafts().stream()
+        .map(draft -> toRiskItem(draft, bundle, locale, now, cadenceByKind))
+        .flatMap(Optional::stream)
+        .sorted(
+            Comparator.comparing(CampaignQueueRiskItem::severityRank)
+                .thenComparing(CampaignQueueRiskItem::referenceAt, Comparator.reverseOrder()))
+        .limit(8)
+        .toList();
+  }
+
+  private Optional<CampaignQueueRiskItem> toRiskItem(
+      CampaignDraftState draft,
+      ResourceBundle bundle,
+      Locale locale,
+      Instant now,
+      Map<String, String> cadenceByKind) {
+    String riskCode = null;
+    String badgeClass = null;
+    Instant referenceAt = effectiveUpdatedAt(draft);
+    if (draft.workflowState() == CampaignWorkflowState.SCHEDULED && isOverdue(draft, now)) {
+      referenceAt = draft.scheduledFor() != null ? draft.scheduledFor() : referenceAt;
+      if (isPublishBlocked(draft)) {
+        riskCode = "publish_blocked";
+        badgeClass = "high";
+      } else {
+        riskCode = "scheduled_overdue";
+        badgeClass = "high";
+      }
+    } else if (draft.workflowState() == CampaignWorkflowState.APPROVED
+        && isOlderThan(referenceAt, now, STALE_APPROVED_WINDOW)) {
+      riskCode = "approved_stale";
+      badgeClass = "watch";
+    } else if (draft.workflowState() == CampaignWorkflowState.DRAFT
+        && isOlderThan(referenceAt, now, STALE_DRAFT_WINDOW)) {
+      riskCode = "draft_stale";
+      badgeClass = "watch";
+    } else if (draft.workflowState() == CampaignWorkflowState.PUBLISHED
+        && hasPendingLinkedinHandoff(draft)
+        && isOlderThan(referenceAt, now, STALE_LINKEDIN_HANDOFF_WINDOW)) {
+      riskCode = "linkedin_pending";
+      badgeClass = "watch";
+    }
+    if (riskCode == null) {
+      return Optional.empty();
+    }
+    CampaignPreviewCard preview = toPreview(draft, bundle, locale, cadenceByKind);
+    return Optional.of(
+        new CampaignQueueRiskItem(
+            draft.id(),
+            preview.title(),
+            preview.kindLabel(),
+            preview.workflowLabel(),
+            bundleText(bundle, "campaigns_admin_queue_risk_" + riskCode),
+            bundleText(bundle, "campaigns_admin_queue_recommend_" + riskCode),
+            riskAgeLabel(draft, riskCode, now, bundle),
+            badgeClass,
+            "high".equals(badgeClass) ? 0 : 1,
+            referenceAt == null ? Instant.EPOCH : referenceAt));
+  }
+
+  private String riskAgeLabel(
+      CampaignDraftState draft, String riskCode, Instant now, ResourceBundle bundle) {
+    Instant referenceAt =
+        switch (riskCode) {
+          case "scheduled_overdue", "publish_blocked" ->
+              draft.scheduledFor() != null ? draft.scheduledFor() : effectiveUpdatedAt(draft);
+          default -> effectiveUpdatedAt(draft);
+        };
+    Duration age = referenceAt == null ? Duration.ZERO : Duration.between(referenceAt, now);
+    long hours = Math.max(0L, age.toHours());
+    long minutes = Math.max(0L, age.toMinutes());
+    if ("scheduled_overdue".equals(riskCode) || "publish_blocked".equals(riskCode)) {
+      return named(
+          bundle,
+          "campaigns_admin_queue_age_overdue",
+          Map.of("duration", humanDuration(hours, minutes)));
+    }
+    return named(
+        bundle,
+        "campaigns_admin_queue_age_updated",
+        Map.of("duration", humanDuration(hours, minutes)));
+  }
+
+  private String humanDuration(long hours, long minutes) {
+    if (hours >= 24) {
+      return (hours / 24) + "d";
+    }
+    if (hours > 0) {
+      return hours + "h";
+    }
+    return Math.max(1L, minutes) + "m";
+  }
+
+  private Instant effectiveUpdatedAt(CampaignDraftState draft) {
+    if (draft.updatedAt() != null) {
+      return draft.updatedAt();
+    }
+    if (draft.approvedAt() != null) {
+      return draft.approvedAt();
+    }
+    return draft.generatedAt();
+  }
+
+  private boolean isOlderThan(Instant baseline, Instant now, Duration threshold) {
+    return baseline != null && baseline.plus(threshold).isBefore(now);
+  }
+
+  private boolean isOverdue(CampaignDraftState draft, Instant now) {
+    return draft.scheduledFor() != null && draft.scheduledFor().plus(OVERDUE_SCHEDULE_WINDOW).isBefore(now);
+  }
+
+  private boolean isPublishBlocked(CampaignDraftState draft) {
+    boolean hasPendingAutomationChannel = false;
+    for (CampaignPublisherStatus status : publisherStatuses()) {
+      if (!draft.suggestedChannels().contains(status.channel())
+          || draft.publishedChannels().containsKey(status.channel())) {
+        continue;
+      }
+      hasPendingAutomationChannel = true;
+      if (status.globalEnabled() && status.channelEnabled() && status.configured()) {
+        return false;
+      }
+    }
+    return hasPendingAutomationChannel;
+  }
+
+  private boolean hasPendingLinkedinHandoff(CampaignDraftState draft) {
+    return eligibleForLinkedinHandoff(draft) && !draft.publishedChannels().containsKey("linkedin");
+  }
+
+  private List<CampaignPublisherStatus> publisherStatuses() {
+    return List.of(
+        discordPublisherService.status(),
+        blueskyPublisherService.status(),
+        mastodonPublisherService.status());
+  }
+
   private String absoluteUrl(String path) {
     String baseUrl = CampaignPublishMessageSupport.normalizeBaseUrl(publicBaseUrl, "https://homedir.opensourcesantiago.io");
     String normalizedPath = safe(path);
@@ -1205,6 +1416,8 @@ public class CampaignService {
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
       List<CampaignAttributionSummary> attribution,
+      CampaignQueueHealth queueHealth,
+      List<CampaignQueueRiskItem> queueRisks,
       List<CampaignLinkedinHandoff> linkedinHandoffs) {}
 
   public record CampaignPublisherPreviewStatus(
@@ -1287,6 +1500,29 @@ public class CampaignService {
       String channelCode,
       String channelLabel,
       String visitsLabel) {}
+
+  public record CampaignQueueHealth(
+      String statusCode,
+      String statusLabel,
+      int attentionCount,
+      int staleDraftCount,
+      int staleApprovedCount,
+      int overdueScheduledCount,
+      int blockedPublicationCount,
+      int staleLinkedinCount,
+      String evaluatedAtLabel) {}
+
+  public record CampaignQueueRiskItem(
+      String draftId,
+      String title,
+      String kindLabel,
+      String workflowLabel,
+      String riskLabel,
+      String recommendationLabel,
+      String ageLabel,
+      String badgeClass,
+      int severityRank,
+      Instant referenceAt) {}
 
   public record CampaignLinkedinHandoff(
       String draftId,
