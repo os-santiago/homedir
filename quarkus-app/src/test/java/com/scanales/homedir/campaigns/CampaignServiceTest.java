@@ -91,6 +91,10 @@ class CampaignServiceTest {
     assertTrue(preview.drafts().stream().anyMatch(item -> item.title().contains("HomeDir")));
     assertFalse(preview.cadenceGuidance().overallWindows().isEmpty());
     assertTrue(preview.drafts().stream().anyMatch(item -> !item.recommendedWindowLabel().isBlank()));
+    assertFalse(preview.previewPacks().isEmpty());
+    assertTrue(
+        preview.previewPacks().stream()
+            .anyMatch(pack -> pack.channels().stream().anyMatch(channel -> "discord".equals(channel.channelCode()))));
   }
 
   @Test

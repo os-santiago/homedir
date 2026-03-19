@@ -223,6 +223,14 @@ public class CampaignService {
         snapshot.drafts().stream()
             .map(item -> toPreview(item, bundle, locale, cadenceByKind))
             .toList();
+    List<CampaignPreviewPack> previewPacks =
+        snapshot.drafts().stream()
+            .map(draft -> {
+              CampaignPreviewCard preview =
+                  cards.stream().filter(item -> item.id().equals(draft.id())).findFirst().orElseThrow();
+              return toPreviewPack(draft, preview, bundle);
+            })
+            .toList();
     List<CampaignPublisherPreviewStatus> publisherStatuses =
         List.of(discordPublisherService.status(), blueskyPublisherService.status(), mastodonPublisherService.status())
             .stream()
@@ -237,6 +245,7 @@ public class CampaignService {
         summarize(snapshot, bundle, locale),
         recentActivity(snapshot, bundle, locale),
         cadenceGuidance,
+        List.copyOf(previewPacks),
         snapshot.drafts().stream()
             .filter(this::eligibleForLinkedinHandoff)
             .map(draft -> toLinkedinHandoff(draft, bundle, locale))
@@ -1024,6 +1033,88 @@ public class CampaignService {
         localizedDateTime(draft.publishedChannels().get("linkedin"), locale));
   }
 
+  private CampaignPreviewPack toPreviewPack(
+      CampaignDraftState draft, CampaignPreviewCard preview, ResourceBundle bundle) {
+    return new CampaignPreviewPack(
+        draft.id(),
+        preview.kindLabel(),
+        preview.title(),
+        preview.workflowLabel(),
+        preview.recommendedWindowLabel(),
+        preview.suggestedChannels().stream()
+            .map(channelLabel -> toChannelPreview(draft, preview, channelLabel, bundle))
+            .toList());
+  }
+
+  private CampaignChannelPreview toChannelPreview(
+      CampaignDraftState draft,
+      CampaignPreviewCard preview,
+      String channelLabel,
+      ResourceBundle bundle) {
+    String channelCode = channelCodeForLabel(bundle, channelLabel);
+    String headline = preview.title();
+    String message =
+        switch (channelCode) {
+          case "discord" -> discordMessage(preview);
+          case "bluesky" -> socialMessage(preview, bundle, true);
+          case "mastodon" -> socialMessage(preview, bundle, false);
+          case "linkedin" -> linkedinMessage(draft, preview, bundle);
+          default -> socialMessage(preview, bundle, false);
+        };
+    int charCount = message.length();
+    int limit =
+        switch (channelCode) {
+          case "bluesky" -> 300;
+          case "mastodon" -> 500;
+          case "linkedin" -> 3000;
+          default -> 2000;
+        };
+    String readinessKey;
+    if ("linkedin".equals(channelCode)) {
+      readinessKey = "campaigns_admin_preview_status_manual";
+    } else if (charCount > limit) {
+      readinessKey = "campaigns_admin_preview_status_trim";
+    } else {
+      readinessKey = "campaigns_admin_preview_status_ready";
+    }
+    return new CampaignChannelPreview(
+        channelCode,
+        channelLabel,
+        headline,
+        message,
+        named(bundle, "campaigns_admin_preview_length", Map.of("count", String.valueOf(charCount), "limit", String.valueOf(limit))),
+        bundleText(bundle, readinessKey));
+  }
+
+  private String channelCodeForLabel(ResourceBundle bundle, String channelLabel) {
+    for (String channel : List.of("discord", "bluesky", "mastodon", "linkedin")) {
+      if (bundleText(bundle, "campaigns_channel_" + channel).equals(channelLabel)) {
+        return channel;
+      }
+    }
+    return "";
+  }
+
+  private String discordMessage(CampaignPreviewCard preview) {
+    return safe(preview.title())
+        + "\n"
+        + safe(preview.body())
+        + "\n"
+        + safe(preview.ctaLabel())
+        + ": "
+        + absoluteUrl(preview.ctaUrl());
+  }
+
+  private String socialMessage(CampaignPreviewCard preview, ResourceBundle bundle, boolean compact) {
+    String separator = compact ? " — " : "\n";
+    String cta = safe(preview.ctaLabel()) + ": " + absoluteUrl(preview.ctaUrl());
+    String evidence =
+        preview.evidence().isEmpty()
+            ? ""
+            : separator + named(bundle, "campaigns_admin_preview_evidence", Map.of("evidence", String.join(" · ", preview.evidence())));
+    return safe(preview.title()) + separator + safe(preview.body()) + evidence + separator + cta;
+  }
+
   private String linkedinHeadline(String title, ResourceBundle bundle) {
     return named(bundle, "campaigns_admin_linkedin_headline", Map.of("title", safe(title)));
   }
@@ -1064,6 +1155,7 @@ public class CampaignService {
       CampaignOperationsSummary summary,
       List<CampaignRecentActivity> recentActivity,
       CampaignCadenceGuidance cadenceGuidance,
+      List<CampaignPreviewPack> previewPacks,
       List<CampaignLinkedinHandoff> linkedinHandoffs) {}
 
   public record CampaignPublisherPreviewStatus(
@@ -1117,6 +1209,22 @@ public class CampaignService {
       String label,
       String slotLabel,
       String detailLabel) {}
+
+  public record CampaignPreviewPack(
+      String draftId,
+      String kindLabel,
+      String title,
+      String workflowLabel,
+      String recommendedWindowLabel,
+      List<CampaignChannelPreview> channels) {}
+
+  public record CampaignChannelPreview(
+      String channelCode,
+      String channelLabel,
+      String headline,
+      String message,
+      String lengthLabel,
+      String readinessLabel) {}
 
   public record CampaignLinkedinHandoff(
       String draftId,
