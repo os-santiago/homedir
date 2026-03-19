@@ -56,6 +56,9 @@ public class CampaignService {
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "dev")
   String runtimeVersion;
 
+  @ConfigProperty(name = "app.public-url", defaultValue = "http://localhost:8080")
+  String publicBaseUrl;
+
   private final Object stateLock = new Object();
   private volatile CampaignStateSnapshot currentState = CampaignStateSnapshot.empty();
   private volatile long lastKnownStateMtime = Long.MIN_VALUE;
@@ -180,6 +183,33 @@ public class CampaignService {
     }
   }
 
+  public CampaignStateSnapshot markLinkedinPublished(String draftId, String actor) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      Instant now = Instant.now();
+      currentState =
+          mutateDraftState(
+              draftId,
+              source ->
+                  source.withManualChannelPublished(
+                      "linkedin",
+                      now,
+                      "published_linkedin_manual",
+                      now,
+                      safe(actor)));
+      persistenceService.saveCampaignState(currentState);
+      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      recordWorkflowChange("CAMPAIGN_LINKEDIN_HANDOFF_COMPLETED", draftId);
+      recordPublishInsight(
+          eventNameForChannel("linkedin", true),
+          draftId,
+          "manual_admin",
+          "linkedin",
+          "published_linkedin_manual");
+      return currentState;
+    }
+  }
+
   public CampaignPreviewSnapshot preview(String localeCode) {
     CampaignStateSnapshot snapshot = currentState();
     ResourceBundle bundle = localizedBundle(localeCode);
@@ -195,7 +225,13 @@ public class CampaignService {
         snapshot.generatedAt(),
         List.copyOf(cards),
         globalPublishingEnabled,
-        List.copyOf(publisherStatuses));
+        List.copyOf(publisherStatuses),
+        summarize(snapshot, bundle, locale),
+        recentActivity(snapshot, bundle, locale),
+        snapshot.drafts().stream()
+            .filter(this::eligibleForLinkedinHandoff)
+            .map(draft -> toLinkedinHandoff(draft, bundle, locale))
+            .toList());
   }
 
   private CampaignStateSnapshot generateAndPersist(String source) {
@@ -614,6 +650,7 @@ public class CampaignService {
       case "discord" -> "CAMPAIGN_PUBLISHED_DISCORD";
       case "bluesky" -> "CAMPAIGN_PUBLISHED_BLUESKY";
       case "mastodon" -> "CAMPAIGN_PUBLISHED_MASTODON";
+      case "linkedin" -> "CAMPAIGN_PUBLISHED_LINKEDIN";
       default -> "CAMPAIGN_PUBLISHED_CHANNEL";
     };
   }
@@ -789,11 +826,132 @@ public class CampaignService {
         String.valueOf(status.minInterval()));
   }
 
+  private CampaignOperationsSummary summarize(
+      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+    int draftCount = 0;
+    int approvedCount = 0;
+    int scheduledCount = 0;
+    int publishedCount = 0;
+    int linkedinPendingCount = 0;
+    int linkedinCompletedCount = 0;
+    Instant lastPublishedAt = null;
+    for (CampaignDraftState draft : snapshot.drafts()) {
+      switch (draft.workflowState()) {
+        case DRAFT -> draftCount++;
+        case APPROVED -> approvedCount++;
+        case SCHEDULED -> scheduledCount++;
+        case PUBLISHED -> publishedCount++;
+      }
+      if (eligibleForLinkedinHandoff(draft)) {
+        if (draft.publishedChannels().containsKey("linkedin")) {
+          linkedinCompletedCount++;
+        } else {
+          linkedinPendingCount++;
+        }
+      }
+      for (Instant publishedAt : draft.publishedChannels().values()) {
+        if (publishedAt != null && (lastPublishedAt == null || publishedAt.isAfter(lastPublishedAt))) {
+          lastPublishedAt = publishedAt;
+        }
+      }
+    }
+    return new CampaignOperationsSummary(
+        draftCount,
+        approvedCount,
+        scheduledCount,
+        publishedCount,
+        linkedinPendingCount,
+        linkedinCompletedCount,
+        localizedDateTime(lastPublishedAt, locale),
+        snapshot.drafts().size());
+  }
+
+  private List<CampaignRecentActivity> recentActivity(
+      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+    return snapshot.drafts().stream()
+        .sorted(
+            Comparator.comparing(CampaignDraftState::updatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(CampaignDraftState::generatedAt, Comparator.reverseOrder()))
+        .limit(6)
+        .map(
+            draft ->
+                new CampaignRecentActivity(
+                    toPreview(draft, bundle, locale).title(),
+                    bundleText(
+                        bundle,
+                        "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT)),
+                    draft.lastPublishOutcome().isBlank()
+                        ? bundleText(bundle, "campaigns_admin_recent_activity_updated")
+                        : bundleText(bundle, "campaigns_publish_outcome_" + draft.lastPublishOutcome()),
+                    localizedDateTime(
+                        draft.updatedAt() != null ? draft.updatedAt() : draft.generatedAt(), locale)))
+        .toList();
+  }
+
+  private boolean eligibleForLinkedinHandoff(CampaignDraftState draft) {
+    return draft != null
+        && draft.suggestedChannels().contains("linkedin")
+        && draft.workflowState() != CampaignWorkflowState.DRAFT;
+  }
+
+  private CampaignLinkedinHandoff toLinkedinHandoff(
+      CampaignDraftState draft, ResourceBundle bundle, Locale locale) {
+    CampaignPreviewCard preview = toPreview(draft, bundle, locale);
+    boolean completed = draft.publishedChannels().containsKey("linkedin");
+    return new CampaignLinkedinHandoff(
+        draft.id(),
+        preview.title(),
+        preview.workflowLabel(),
+        preview.body(),
+        preview.ctaLabel(),
+        absoluteUrl(preview.ctaUrl()),
+        linkedinHeadline(preview.title(), bundle),
+        linkedinMessage(draft, preview, bundle),
+        completed ? bundleText(bundle, "campaigns_admin_linkedin_done") : bundleText(bundle, "campaigns_admin_linkedin_pending"),
+        completed,
+        localizedDateTime(draft.publishedChannels().get("linkedin"), locale));
+  }
+
+  private String linkedinHeadline(String title, ResourceBundle bundle) {
+    return named(bundle, "campaigns_admin_linkedin_headline", Map.of("title", safe(title)));
+  }
+
+  private String linkedinMessage(
+      CampaignDraftState draft, CampaignPreviewCard preview, ResourceBundle bundle) {
+    return named(
+        bundle,
+        "campaigns_admin_linkedin_message",
+        Map.of(
+            "title", safe(preview.title()),
+            "body", safe(preview.body()),
+            "ctaLabel", safe(preview.ctaLabel()),
+            "ctaUrl", absoluteUrl(preview.ctaUrl()),
+            "evidence", String.join(" · ", preview.evidence())));
+  }
+
+  private String absoluteUrl(String path) {
+    String baseUrl = CampaignPublishMessageSupport.normalizeBaseUrl(publicBaseUrl, "https://homedir.opensourcesantiago.io");
+    String normalizedPath = safe(path);
+    if (normalizedPath.isBlank()) {
+      normalizedPath = "/about";
+    }
+    if (normalizedPath.startsWith("http://") || normalizedPath.startsWith("https://")) {
+      return normalizedPath;
+    }
+    if (!normalizedPath.startsWith("/")) {
+      normalizedPath = "/" + normalizedPath;
+    }
+    return baseUrl + normalizedPath;
+  }
+
   public record CampaignPreviewSnapshot(
       Instant generatedAt,
       List<CampaignPreviewCard> drafts,
       boolean globalPublishingEnabled,
-      List<CampaignPublisherPreviewStatus> publisherStatuses) {}
+      List<CampaignPublisherPreviewStatus> publisherStatuses,
+      CampaignOperationsSummary summary,
+      List<CampaignRecentActivity> recentActivity,
+      List<CampaignLinkedinHandoff> linkedinHandoffs) {}
 
   public record CampaignPublisherPreviewStatus(
       String channelCode,
@@ -820,4 +978,33 @@ public class CampaignService {
       String scheduledForLabel,
       String publishedChannelsLabel,
       String publisherOutcomeLabel) {}
+
+  public record CampaignOperationsSummary(
+      int draftCount,
+      int approvedCount,
+      int scheduledCount,
+      int publishedCount,
+      int linkedinPendingCount,
+      int linkedinCompletedCount,
+      String lastPublishedAtLabel,
+      int totalDraftCount) {}
+
+  public record CampaignRecentActivity(
+      String title,
+      String workflowLabel,
+      String activityLabel,
+      String timestampLabel) {}
+
+  public record CampaignLinkedinHandoff(
+      String draftId,
+      String title,
+      String workflowLabel,
+      String body,
+      String ctaLabel,
+      String landingUrl,
+      String headline,
+      String message,
+      String statusLabel,
+      boolean completed,
+      String publishedAtLabel) {}
 }

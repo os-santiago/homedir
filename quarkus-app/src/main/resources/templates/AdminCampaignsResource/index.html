@@ -38,6 +38,9 @@
   {#if updatedAction == 'publishscan'}
     <div class="hd-alert hd-alert-success">{copy.updatedPublishScan}</div>
   {/if}
+  {#if updatedAction == 'linkedin'}
+    <div class="hd-alert hd-alert-success">{copy.updatedLinkedin}: <code>{updatedDraft}</code></div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
   {/if}
@@ -45,16 +48,54 @@
 
 <div class="container">
   <div class="admin-shell-stack">
-    <section class="admin-shell-panel">
+    <div class="admin-observability-two-up">
+      <section class="admin-shell-panel" id="campaignsSummaryPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.generatedAt}</p>
+            <h2>{#if view.generatedAt}{view.generatedAt}{#else}—{/if}</h2>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-shell-panel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.summaryTitle}</p>
+            <h2>{copy.summaryIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.summaryTotalLabel}</strong><span>{view.summary.totalDraftCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.summaryDraftLabel}</strong><span>{view.summary.draftCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.summaryApprovedLabel}</strong><span>{view.summary.approvedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.summaryScheduledLabel}</strong><span>{view.summary.scheduledCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.summaryPublishedLabel}</strong><span>{view.summary.publishedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.summaryLinkedinPendingLabel}</strong><span>{view.summary.linkedinPendingCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.summaryLinkedinDoneLabel}</strong><span>{view.summary.linkedinCompletedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.summaryLastPublishedLabel}</strong><span>{view.summary.lastPublishedAtLabel}</span></article>
+        </div>
+      </section>
+    </div>
+
+    <section class="admin-shell-panel" id="campaignsRecentActivityPanel">
       <div class="admin-shell-card-header">
         <div>
-          <p class="section-subtitle">{copy.generatedAt}</p>
-          <h2>{#if view.generatedAt}{view.generatedAt}{#else}—{/if}</h2>
+          <p class="section-subtitle">{copy.recentActivityTitle}</p>
+          <h2>{copy.recentActivityIntro}</h2>
         </div>
+      </div>
+      <div class="campaigns-admin-list">
+        {#for item in view.recentActivity}
+          <article class="campaigns-admin-item">
+            <strong>{item.title}</strong>
+            <span>{item.workflowLabel} · {item.activityLabel} · {item.timestampLabel}</span>
+          </article>
+        {/for}
       </div>
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel" id="campaignsLinkedinPanel">
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.guardrailTitle}</p>
@@ -93,6 +134,47 @@
               · {copy.publisherDryRunLabel}: {status.dryRun}
               · {copy.publisherRateLimitLabel}: {status.minIntervalLabel}
             </span>
+          </article>
+        {/for}
+      </div>
+    </section>
+
+    <section class="admin-shell-panel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.linkedinTitle}</p>
+          <h2>{copy.linkedinIntro}</h2>
+        </div>
+      </div>
+      <div class="campaigns-admin-list">
+        {#if view.linkedinHandoffs.isEmpty}
+          <article class="campaigns-admin-item">
+            <strong>{copy.linkedinEmptyLabel}</strong>
+          </article>
+        {/if}
+        {#for handoff in view.linkedinHandoffs}
+          <article class="campaigns-admin-item">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{handoff.workflowLabel}</p>
+                <h3>{handoff.title}</h3>
+              </div>
+              <span class="admin-observability-badge watch">{handoff.statusLabel}</span>
+            </div>
+            <p>{handoff.body}</p>
+            <div class="campaigns-admin-list">
+              <article class="campaigns-admin-item"><strong>{copy.linkedinHeadlineLabel}</strong><span>{handoff.headline}</span></article>
+              <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{handoff.landingUrl}" class="btn btn-secondary campaigns-admin-cta">{handoff.ctaLabel}</a></article>
+              <article class="campaigns-admin-item"><strong>{copy.linkedinMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{handoff.message}</textarea></article>
+              <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{handoff.publishedAtLabel}</span></article>
+            </div>
+            {#if !handoff.completed}
+              <div class="action-group admin-shell-actions">
+                <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
+                  <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
+                </form>
+              </div>
+            {/if}
           </article>
         {/for}
       </div>

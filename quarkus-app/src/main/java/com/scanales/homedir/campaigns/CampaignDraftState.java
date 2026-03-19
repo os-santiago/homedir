@@ -78,4 +78,33 @@ public record CampaignDraftState(
         nextAttemptAt,
         nextOutcome);
   }
+
+  public CampaignDraftState withManualChannelPublished(
+      String channel,
+      Instant publishedAt,
+      String outcome,
+      Instant nextUpdatedAt,
+      String actor) {
+    Map<String, Instant> nextPublishedChannels = new java.util.LinkedHashMap<>(publishedChannels);
+    nextPublishedChannels.put(channel, publishedAt);
+    Instant nextApprovedAt = approvedAt == null ? publishedAt : approvedAt;
+    String nextApprovedBy =
+        (approvedBy == null || approvedBy.isBlank()) && actor != null ? actor.trim() : approvedBy;
+    return new CampaignDraftState(
+        id,
+        kind,
+        generatedAt,
+        metadata,
+        suggestedChannels,
+        approvalRequired,
+        CampaignWorkflowState.PUBLISHED,
+        nextApprovedAt,
+        nextApprovedBy,
+        scheduledFor,
+        nextUpdatedAt,
+        sourceAvailable,
+        nextPublishedChannels,
+        publishedAt,
+        outcome);
+  }
 }
