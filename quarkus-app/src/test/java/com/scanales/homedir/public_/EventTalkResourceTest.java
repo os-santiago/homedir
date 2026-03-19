@@ -1,0 +1,74 @@
+package com.scanales.homedir.public_;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
+
+import com.scanales.homedir.model.Event;
+import com.scanales.homedir.model.Scenario;
+import com.scanales.homedir.model.Talk;
+import com.scanales.homedir.service.EventService;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import java.time.LocalTime;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
+@QuarkusTest
+public class EventTalkResourceTest {
+
+  @Inject EventService eventService;
+
+  @AfterEach
+  public void cleanup() {
+    eventService.deleteEvent("e1");
+    eventService.deleteEvent("e2");
+  }
+
+  @Test
+  public void talkUsesEventSpecificContext() {
+    Event e1 = new Event("e1", "Evento A", "desc");
+    e1.setScenarios(List.of(new Scenario("sc1", "Sala A")));
+    Talk t1 = new Talk("s1-talk-1", "Charla");
+    t1.setLocation("sc1");
+    t1.setStartTime(LocalTime.of(10, 0));
+    t1.setDurationMinutes(30);
+    e1.getAgenda().add(t1);
+    eventService.saveEvent(e1);
+
+    Event e2 = new Event("e2", "Evento B", "desc");
+    e2.setScenarios(List.of(new Scenario("sc2", "Sala B")));
+    Talk t2 = new Talk("s1-talk-1", "Charla");
+    t2.setLocation("sc2");
+    t2.setStartTime(LocalTime.of(11, 0));
+    t2.setDurationMinutes(45);
+    e2.getAgenda().add(t2);
+    eventService.saveEvent(e2);
+
+    given()
+        .when()
+        .get("/event/e2/talk/s1-talk-1")
+        .then()
+        .statusCode(200)
+        .body(containsString("/event/e2/scenario/sc2"));
+  }
+
+  @Test
+  public void modernHyphenatedTalkIdUsesEventContext() {
+    Event event = new Event("e1", "Evento Moderno", "desc");
+    event.setScenarios(List.of(new Scenario("sc-modern", "Sala Moderna")));
+    Talk talk = new Talk("dod-2026-kubernetes-sre", "Modern Talk");
+    talk.setLocation("sc-modern");
+    talk.setStartTime(LocalTime.of(9, 0));
+    talk.setDurationMinutes(30);
+    event.getAgenda().add(talk);
+    eventService.saveEvent(event);
+
+    given()
+        .when()
+        .get("/event/e1/talk/dod-2026-kubernetes-sre")
+        .then()
+        .statusCode(200)
+        .body(containsString("/event/e1/scenario/sc-modern"));
+  }
+}

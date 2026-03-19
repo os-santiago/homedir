@@ -1,0 +1,76 @@
+package com.scanales.homedir.public_;
+
+import com.scanales.homedir.model.Scenario;
+import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.service.EventService;
+import com.scanales.homedir.service.GamificationService;
+import com.scanales.homedir.service.UsageMetricsService;
+import com.scanales.homedir.util.AdminUtils;
+import com.scanales.homedir.util.TemplateLocaleUtil;
+import io.quarkus.qute.CheckedTemplate;
+import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.PermitAll;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import java.util.Locale;
+import java.util.Optional;
+
+@Path("")
+public class ScenarioResource {
+
+  @CheckedTemplate
+  static class Templates {
+    static native TemplateInstance detail(
+        Scenario scenario,
+        com.scanales.homedir.model.Event event,
+        java.util.List<com.scanales.homedir.model.Talk> talks);
+  }
+
+  @Inject EventService eventService;
+
+  @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
+  @Inject SecurityIdentity identity;
+
+  @GET
+  @Path("/scenario/{id}")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance detail(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/scenario", headers, context);
+    currentUserId()
+        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id));
+    Scenario s = eventService.findScenario(id);
+    if (s == null) {
+      return TemplateLocaleUtil.apply(Templates.detail(null, null, java.util.List.of()), localeCookie);
+    }
+    var event = eventService.findEventByScenario(id);
+    var talks = eventService.findTalksForScenario(id);
+    metrics.recordStageVisit(id, event != null ? event.getTimezone() : null, headers, context);
+    return TemplateLocaleUtil.apply(Templates.detail(s, event, talks), localeCookie);
+  }
+
+  private Optional<String> currentUserId() {
+    if (identity == null || identity.isAnonymous()) {
+      return Optional.empty();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email != null && !email.isBlank()) {
+      return Optional.of(email.toLowerCase(Locale.ROOT));
+    }
+    String principal = identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    if (principal == null || principal.isBlank()) {
+      return Optional.empty();
+    }
+    return Optional.of(principal.toLowerCase(Locale.ROOT));
+  }
+}

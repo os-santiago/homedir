@@ -1,0 +1,36 @@
+package com.scanales.homedir.community;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
+
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
+import org.junit.jupiter.api.Test;
+
+@QuarkusTest
+public class CommunityModerationPageTest {
+
+  @Test
+  void moderationPageRendersForAnonymous() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/comunidad/moderation")
+        .then()
+        .statusCode(200)
+        .body(containsString("Moderation queue"))
+        .body(containsString("Only admins can moderate proposals."));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
+  void moderationQueueVisibleForAdmin() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/comunidad/moderation")
+        .then()
+        .statusCode(200)
+        .body(containsString("Moderation queue"));
+  }
+}
