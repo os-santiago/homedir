@@ -33,6 +33,8 @@ class AdminCampaignsPageTest {
         .statusCode(200)
         .body(containsString("id=\"campaignsRefreshBtn\""))
         .body(containsString("id=\"campaignsPublishNowBtn\""))
+        .body(containsString("id=\"campaignsSummaryPanel\""))
+        .body(containsString("id=\"campaignsLinkedinPanel\""))
         .body(containsString("campaigns-admin-grid"))
         .body(containsString("campaigns-admin-list"))
         .body(containsString("Bluesky"))
@@ -78,5 +80,35 @@ class AdminCampaignsPageTest {
         .statusCode(200)
         .body(containsString("/private/admin/campaigns/" + draftId + "/unschedule"))
         .body(containsString(draftId));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanConfirmLinkedinHandoff() {
+    String html =
+        given()
+            .when()
+            .get("/private/admin/campaigns")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+    Matcher matcher = Pattern.compile("/private/admin/campaigns/([^/]+)/approve").matcher(html);
+    assertTrue(matcher.find());
+    String draftId = matcher.group(1);
+
+    given()
+        .when()
+        .post("/private/admin/campaigns/" + draftId + "/approve")
+        .then()
+        .statusCode(200);
+
+    given()
+        .when()
+        .post("/private/admin/campaigns/" + draftId + "/mark-linkedin")
+        .then()
+        .statusCode(200)
+        .body(containsString(draftId))
+        .body(containsString("LinkedIn"));
   }
 }
