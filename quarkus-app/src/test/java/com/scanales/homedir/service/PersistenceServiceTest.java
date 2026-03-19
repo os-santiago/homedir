@@ -211,7 +211,10 @@ public class PersistenceServiceTest {
                     "sergio.canales.e@gmail.com",
                     null,
                     Instant.parse("2026-03-19T13:05:00Z"),
-                    true)));
+                    true,
+                    Map.of("discord", Instant.parse("2026-03-19T13:10:00Z")),
+                    Instant.parse("2026-03-19T13:10:00Z"),
+                    "published")));
 
     service.saveCampaignStateSync(snapshot);
 
@@ -219,6 +222,7 @@ public class PersistenceServiceTest {
     assertEquals(1, loaded.drafts().size());
     assertEquals("product_pulse", loaded.drafts().getFirst().kind());
     assertEquals(CampaignWorkflowState.APPROVED, loaded.drafts().getFirst().workflowState());
+    assertTrue(loaded.drafts().getFirst().publishedChannels().containsKey("discord"));
     assertTrue(service.campaignStateLastModifiedMillis() > 0);
   }
 

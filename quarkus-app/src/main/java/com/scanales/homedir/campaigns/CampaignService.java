@@ -49,6 +49,7 @@ public class CampaignService {
   @Inject CommunityContentService communityContentService;
   @Inject EventService eventService;
   @Inject ChallengeService challengeService;
+  @Inject CampaignDiscordPublisherService discordPublisherService;
 
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "dev")
   String runtimeVersion;
@@ -71,6 +72,13 @@ public class CampaignService {
   void scheduledRefresh() {
     synchronized (stateLock) {
       generateAndPersist("schedule");
+    }
+  }
+
+  @Scheduled(every = "{campaigns.publish.scan-interval:5m}")
+  void scheduledPublish() {
+    synchronized (stateLock) {
+      publishScheduledDrafts("schedule");
     }
   }
 
@@ -164,12 +172,18 @@ public class CampaignService {
     }
   }
 
+  public CampaignStateSnapshot publishScheduledNow() {
+    synchronized (stateLock) {
+      return publishScheduledDrafts("manual_admin");
+    }
+  }
+
   public CampaignPreviewSnapshot preview(String localeCode) {
     CampaignStateSnapshot snapshot = currentState();
     ResourceBundle bundle = localizedBundle(localeCode);
     Locale locale = bundle.getLocale() == null ? Locale.forLanguageTag("es") : bundle.getLocale();
     List<CampaignPreviewCard> cards = snapshot.drafts().stream().map(item -> toPreview(item, bundle, locale)).toList();
-    return new CampaignPreviewSnapshot(snapshot.generatedAt(), List.copyOf(cards));
+    return new CampaignPreviewSnapshot(snapshot.generatedAt(), List.copyOf(cards), discordPublisherService.status());
   }
 
   private CampaignStateSnapshot generateAndPersist(String source) {
@@ -211,7 +225,10 @@ public class CampaignService {
             "",
             null,
             now,
-            true));
+            true,
+            Map.of(),
+            null,
+            ""));
 
     challengeService.trendingChallenges(Duration.ofDays(7), 1).stream().findFirst().ifPresent(
         trend -> {
@@ -233,7 +250,10 @@ public class CampaignService {
                   "",
                   null,
                   now,
-                  true));
+                  true,
+                  Map.of(),
+                  null,
+                  ""));
         });
 
     communityContentService.listNew(1, 0).stream().findFirst().ifPresent(
@@ -255,7 +275,10 @@ public class CampaignService {
                     "",
                     null,
                     now,
-                    true)));
+                    true,
+                    Map.of(),
+                    null,
+                    "")));
 
     nextUpcomingEvent().ifPresent(
         event ->
@@ -277,7 +300,10 @@ public class CampaignService {
                     "",
                     null,
                     now,
-                    true)));
+                    true,
+                    Map.of(),
+                    null,
+                    "")));
 
     drafts.sort(Comparator.comparing(CampaignDraftState::kind).thenComparing(CampaignDraftState::id));
     return List.copyOf(drafts);
@@ -341,6 +367,18 @@ public class CampaignService {
     String sourceStatusLabel =
         bundleText(bundle, draft.sourceAvailable() ? "campaigns_admin_source_live" : "campaigns_admin_source_stale");
     String scheduledLabel = draft.scheduledFor() == null ? "—" : localizedDateTime(draft.scheduledFor(), locale);
+    String publisherOutcomeLabel =
+        draft.lastPublishOutcome().isBlank()
+            ? "—"
+            : bundleText(bundle, "campaigns_publish_outcome_" + draft.lastPublishOutcome());
+    String publishedChannelsLabel =
+        draft.publishedChannels().isEmpty()
+            ? "—"
+            : draft.publishedChannels().keySet().stream()
+                .map(channel -> bundleText(bundle, "campaigns_channel_" + channel))
+                .sorted()
+                .reduce((left, right) -> left + ", " + right)
+                .orElse("—");
     return switch (draft.kind()) {
       case KIND_PRODUCT_PULSE -> new CampaignPreviewCard(
           draft.id(),
@@ -363,7 +401,9 @@ public class CampaignService {
           draft.workflowState().name().toLowerCase(Locale.ROOT),
           workflowLabel,
           sourceStatusLabel,
-          scheduledLabel);
+          scheduledLabel,
+          publishedChannelsLabel,
+          publisherOutcomeLabel);
       case KIND_CHALLENGE_SPOTLIGHT -> {
         String challengeTitle = bundleText(bundle, value(draft, "challengeTitleKey"));
         yield new CampaignPreviewCard(
@@ -381,7 +421,9 @@ public class CampaignService {
             draft.workflowState().name().toLowerCase(Locale.ROOT),
             workflowLabel,
             sourceStatusLabel,
-            scheduledLabel);
+            scheduledLabel,
+            publishedChannelsLabel,
+            publisherOutcomeLabel);
       }
       case KIND_COMMUNITY_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
@@ -398,7 +440,9 @@ public class CampaignService {
           draft.workflowState().name().toLowerCase(Locale.ROOT),
           workflowLabel,
           sourceStatusLabel,
-          scheduledLabel);
+          scheduledLabel,
+          publishedChannelsLabel,
+          publisherOutcomeLabel);
       case KIND_EVENT_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -414,7 +458,9 @@ public class CampaignService {
           draft.workflowState().name().toLowerCase(Locale.ROOT),
           workflowLabel,
           sourceStatusLabel,
-          scheduledLabel);
+          scheduledLabel,
+          publishedChannelsLabel,
+          publisherOutcomeLabel);
       default -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -428,7 +474,9 @@ public class CampaignService {
           draft.workflowState().name().toLowerCase(Locale.ROOT),
           workflowLabel,
           sourceStatusLabel,
-          scheduledLabel);
+          scheduledLabel,
+          publishedChannelsLabel,
+          publisherOutcomeLabel);
     };
   }
 
@@ -478,6 +526,65 @@ public class CampaignService {
       LOG.debug("campaigns_insights_disabled");
     } catch (Exception e) {
       LOG.warn("campaigns_insights_workflow_failed", e);
+    }
+  }
+
+  private CampaignStateSnapshot publishScheduledDrafts(String source) {
+    refreshFromDisk(false);
+    Instant now = Instant.now();
+    List<CampaignDraftState> drafts = currentState.drafts().stream().map(draft -> publishIfDue(draft, now, source)).toList();
+    currentState = new CampaignStateSnapshot(CampaignStateSnapshot.SCHEMA_VERSION, currentState.generatedAt(), drafts);
+    persistenceService.saveCampaignState(currentState);
+    lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+    return currentState;
+  }
+
+  private CampaignDraftState publishIfDue(CampaignDraftState draft, Instant now, String source) {
+    if (draft.workflowState() != CampaignWorkflowState.SCHEDULED || draft.scheduledFor() == null) {
+      return draft;
+    }
+    if (draft.scheduledFor().isAfter(now)) {
+      return draft;
+    }
+    if (draft.publishedChannels().containsKey("discord")) {
+      return draft;
+    }
+    if (draft.lastPublishAttemptAt() != null
+        && draft.lastPublishAttemptAt().plus(discordPublisherService.effectiveMinInterval()).isAfter(now)) {
+      return draft;
+    }
+    CampaignDiscordPublisherService.PublishResult result = discordPublisherService.publish(draft);
+    Map<String, Instant> nextPublishedChannels = new LinkedHashMap<>(draft.publishedChannels());
+    CampaignWorkflowState nextState = draft.workflowState();
+    Instant publishedAt = null;
+    if (result.published()) {
+      publishedAt = result.publishedAt() != null ? result.publishedAt() : now;
+      nextPublishedChannels.put(result.channel(), publishedAt);
+      nextState = CampaignWorkflowState.PUBLISHED;
+      recordPublishInsight("CAMPAIGN_PUBLISHED_DISCORD", draft.id(), source, result.outcome());
+    } else if (result.skipped()) {
+      recordPublishInsight("CAMPAIGN_PUBLISH_SKIPPED", draft.id(), source, result.outcome());
+    } else {
+      recordPublishInsight("CAMPAIGN_PUBLISH_FAILED", draft.id(), source, result.outcome());
+    }
+    return draft.withPublishStatus(nextState, Map.copyOf(nextPublishedChannels), now, safe(result.outcome()), now);
+  }
+
+  private void recordPublishInsight(String eventType, String draftId, String source, String outcome) {
+    try {
+      insightsLedgerService.append(
+          MARKETING_INITIATIVE_ID,
+          eventType,
+          Map.of(
+              "module", "campaigns",
+              "draftId", safe(draftId),
+              "source", safe(source),
+              "channel", "discord",
+              "outcome", safe(outcome)));
+    } catch (IllegalStateException e) {
+      LOG.debug("campaigns_insights_disabled");
+    } catch (Exception e) {
+      LOG.warn("campaigns_insights_publish_failed", e);
     }
   }
 
@@ -622,7 +729,10 @@ public class CampaignService {
         .format(value);
   }
 
-  public record CampaignPreviewSnapshot(Instant generatedAt, List<CampaignPreviewCard> drafts) {}
+  public record CampaignPreviewSnapshot(
+      Instant generatedAt,
+      List<CampaignPreviewCard> drafts,
+      CampaignDiscordPublisherService.DiscordPublisherStatus publisherStatus) {}
 
   public record CampaignPreviewCard(
       String id,
@@ -637,5 +747,7 @@ public class CampaignService {
       String workflowStateCode,
       String workflowLabel,
       String sourceStatusLabel,
-      String scheduledForLabel) {}
+      String scheduledForLabel,
+      String publishedChannelsLabel,
+      String publisherOutcomeLabel) {}
 }

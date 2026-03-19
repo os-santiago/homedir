@@ -16,13 +16,18 @@ public record CampaignDraftState(
     String approvedBy,
     Instant scheduledFor,
     Instant updatedAt,
-    boolean sourceAvailable) {
+    boolean sourceAvailable,
+    Map<String, Instant> publishedChannels,
+    Instant lastPublishAttemptAt,
+    String lastPublishOutcome) {
 
   public CampaignDraftState {
     metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
     suggestedChannels = suggestedChannels == null ? List.of() : List.copyOf(suggestedChannels);
     workflowState = workflowState == null ? CampaignWorkflowState.DRAFT : workflowState;
     approvedBy = approvedBy == null ? "" : approvedBy.trim();
+    publishedChannels = publishedChannels == null ? Map.of() : Map.copyOf(publishedChannels);
+    lastPublishOutcome = lastPublishOutcome == null ? "" : lastPublishOutcome.trim();
   }
 
   public CampaignDraftState withWorkflow(
@@ -44,6 +49,33 @@ public record CampaignDraftState(
         nextApprovedBy,
         nextScheduledFor,
         nextUpdatedAt,
-        nextSourceAvailable);
+        nextSourceAvailable,
+        publishedChannels,
+        lastPublishAttemptAt,
+        lastPublishOutcome);
+  }
+
+  public CampaignDraftState withPublishStatus(
+      CampaignWorkflowState nextState,
+      Map<String, Instant> nextPublishedChannels,
+      Instant nextAttemptAt,
+      String nextOutcome,
+      Instant nextUpdatedAt) {
+    return new CampaignDraftState(
+        id,
+        kind,
+        generatedAt,
+        metadata,
+        suggestedChannels,
+        approvalRequired,
+        nextState,
+        approvedAt,
+        approvedBy,
+        scheduledFor,
+        nextUpdatedAt,
+        sourceAvailable,
+        nextPublishedChannels,
+        nextAttemptAt,
+        nextOutcome);
   }
 }

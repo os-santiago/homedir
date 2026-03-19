@@ -3,6 +3,7 @@ package com.scanales.homedir.campaigns;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import com.scanales.homedir.TestDataDir;
 import com.scanales.homedir.model.Event;
@@ -13,8 +14,11 @@ import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
 import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -30,11 +34,21 @@ class CampaignServiceTest {
   @Inject EventService eventService;
   @Inject UserProfileService userProfileService;
   @Inject GamificationService gamificationService;
+  @InjectMock CampaignDiscordPublisherService discordPublisherService;
 
   @BeforeEach
   void setUp() {
     usageMetricsService.reset();
     eventService.reset();
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignDiscordPublisherService.DiscordPublisherStatus(
+                false,
+                true,
+                false,
+                false,
+                Duration.ofMinutes(15)));
+    when(discordPublisherService.effectiveMinInterval()).thenReturn(Duration.ofMinutes(15));
   }
 
   @Test
@@ -104,5 +118,52 @@ class CampaignServiceTest {
     assertTrue(scheduledDraft.workflowState() == CampaignWorkflowState.SCHEDULED);
     assertNotNull(scheduledDraft.scheduledFor());
     assertTrue("sergio.canales.e@gmail.com".equals(scheduledDraft.approvedBy()));
+  }
+
+  @Test
+  void scheduledPublishMarksDraftAsPublishedWhenDiscordPublisherSucceeds() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignDiscordPublisherService.DiscordPublisherStatus(
+                true,
+                false,
+                true,
+                true,
+                Duration.ofMinutes(15)));
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignDiscordPublisherService.PublishResult.published(
+                "discord",
+                Instant.parse("2026-03-19T14:40:00Z"),
+                "published"));
+
+    CampaignStateSnapshot published = campaignService.publishScheduledNow();
+    CampaignDraftState publishedDraft =
+        published.drafts().stream().filter(item -> item.id().equals(target.id())).findFirst().orElseThrow();
+
+    assertTrue(publishedDraft.workflowState() == CampaignWorkflowState.PUBLISHED);
+    assertTrue(publishedDraft.publishedChannels().containsKey("discord"));
+    assertTrue("published".equals(publishedDraft.lastPublishOutcome()));
   }
 }

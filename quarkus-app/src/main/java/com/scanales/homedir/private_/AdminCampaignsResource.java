@@ -79,6 +79,17 @@ public class AdminCampaignsResource {
   }
 
   @POST
+  @Path("publish-now")
+  @Authenticated
+  public Response publishNow() {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    campaignService.publishScheduledNow();
+    return Response.seeOther(URI.create("/private/admin/campaigns?updated=publishscan")).build();
+  }
+
+  @POST
   @Path("{draftId}/approve")
   @Authenticated
   public Response approve(@PathParam("draftId") String draftId) {
@@ -145,6 +156,7 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_reset"),
         text(bundle, "campaigns_admin_updated_scheduled"),
         text(bundle, "campaigns_admin_updated_unscheduled"),
+        text(bundle, "campaigns_admin_updated_publishscan"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
         text(bundle, "campaigns_admin_generated_at"),
         text(bundle, "campaigns_admin_guardrail_title"),
@@ -158,6 +170,7 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_review_queue_title"),
         text(bundle, "campaigns_admin_approved_queue_title"),
         text(bundle, "campaigns_admin_scheduled_queue_title"),
+        text(bundle, "campaigns_admin_published_queue_title"),
         text(bundle, "campaigns_admin_queue_intro"),
         text(bundle, "campaigns_admin_channels"),
         text(bundle, "campaigns_admin_evidence"),
@@ -166,6 +179,15 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_workflow"),
         text(bundle, "campaigns_admin_source"),
         text(bundle, "campaigns_admin_schedule_for"),
+        text(bundle, "campaigns_admin_published_channels"),
+        text(bundle, "campaigns_admin_publisher_status"),
+        text(bundle, "campaigns_admin_publisher_intro"),
+        text(bundle, "campaigns_admin_publisher_global"),
+        text(bundle, "campaigns_admin_publisher_dry_run"),
+        text(bundle, "campaigns_admin_publisher_channel"),
+        text(bundle, "campaigns_admin_publisher_webhook"),
+        text(bundle, "campaigns_admin_publisher_rate_limit"),
+        text(bundle, "campaigns_admin_publisher_run"),
         text(bundle, "campaigns_admin_btn_approve"),
         text(bundle, "campaigns_admin_btn_reset"),
         text(bundle, "campaigns_admin_btn_schedule"),
@@ -200,6 +222,7 @@ public class AdminCampaignsResource {
       String updatedReset,
       String updatedScheduled,
       String updatedUnscheduled,
+      String updatedPublishScan,
       String invalidSchedule,
       String generatedAt,
       String guardrailTitle,
@@ -209,6 +232,7 @@ public class AdminCampaignsResource {
       String reviewQueueTitle,
       String approvedQueueTitle,
       String scheduledQueueTitle,
+      String publishedQueueTitle,
       String queueIntro,
       String channelsLabel,
       String evidenceLabel,
@@ -217,6 +241,15 @@ public class AdminCampaignsResource {
       String workflowLabel,
       String sourceLabel,
       String scheduleForLabel,
+      String publishedChannelsLabel,
+      String publisherStatusLabel,
+      String publisherIntro,
+      String publisherGlobalLabel,
+      String publisherDryRunLabel,
+      String publisherChannelLabel,
+      String publisherWebhookLabel,
+      String publisherRateLimitLabel,
+      String publisherRunLabel,
       String approveLabel,
       String resetLabel,
       String scheduleLabel,

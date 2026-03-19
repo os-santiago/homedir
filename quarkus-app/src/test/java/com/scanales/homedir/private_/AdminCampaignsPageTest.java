@@ -32,6 +32,7 @@ class AdminCampaignsPageTest {
         .then()
         .statusCode(200)
         .body(containsString("id=\"campaignsRefreshBtn\""))
+        .body(containsString("id=\"campaignsPublishNowBtn\""))
         .body(containsString("campaigns-admin-grid"))
         .body(containsString("campaigns-admin-list"))
         .body(containsString("/private/admin/campaigns/"));
