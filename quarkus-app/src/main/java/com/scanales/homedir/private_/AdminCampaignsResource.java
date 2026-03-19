@@ -141,6 +141,17 @@ public class AdminCampaignsResource {
     return redirectWithUpdate("unscheduled", draftId);
   }
 
+  @POST
+  @Path("{draftId}/mark-linkedin")
+  @Authenticated
+  public Response markLinkedin(@PathParam("draftId") String draftId) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    campaignService.markLinkedinPublished(draftId, identity.getPrincipal().getName());
+    return redirectWithUpdate("linkedin", draftId);
+  }
+
   private AdminCampaignsCopy localizedCopy(String localeCode) {
     Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
     ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
@@ -157,8 +168,30 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_scheduled"),
         text(bundle, "campaigns_admin_updated_unscheduled"),
         text(bundle, "campaigns_admin_updated_publishscan"),
+        text(bundle, "campaigns_admin_updated_linkedin"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
         text(bundle, "campaigns_admin_generated_at"),
+        text(bundle, "campaigns_admin_summary_title"),
+        text(bundle, "campaigns_admin_summary_intro"),
+        text(bundle, "campaigns_admin_summary_total"),
+        text(bundle, "campaigns_admin_summary_draft"),
+        text(bundle, "campaigns_admin_summary_approved"),
+        text(bundle, "campaigns_admin_summary_scheduled"),
+        text(bundle, "campaigns_admin_summary_published"),
+        text(bundle, "campaigns_admin_summary_linkedin_pending"),
+        text(bundle, "campaigns_admin_summary_linkedin_done"),
+        text(bundle, "campaigns_admin_summary_last_published"),
+        text(bundle, "campaigns_admin_recent_activity_title"),
+        text(bundle, "campaigns_admin_recent_activity_intro"),
+        text(bundle, "campaigns_admin_recent_activity_updated"),
+        text(bundle, "campaigns_admin_linkedin_title"),
+        text(bundle, "campaigns_admin_linkedin_intro"),
+        text(bundle, "campaigns_admin_linkedin_headline_label"),
+        text(bundle, "campaigns_admin_linkedin_message_label"),
+        text(bundle, "campaigns_admin_linkedin_landing_label"),
+        text(bundle, "campaigns_admin_linkedin_pending"),
+        text(bundle, "campaigns_admin_linkedin_done"),
+        text(bundle, "campaigns_admin_linkedin_empty"),
         text(bundle, "campaigns_admin_guardrail_title"),
         text(bundle, "campaigns_admin_guardrail_intro"),
         java.util.List.of(
@@ -191,7 +224,8 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_btn_approve"),
         text(bundle, "campaigns_admin_btn_reset"),
         text(bundle, "campaigns_admin_btn_schedule"),
-        text(bundle, "campaigns_admin_btn_unschedule"));
+        text(bundle, "campaigns_admin_btn_unschedule"),
+        text(bundle, "campaigns_admin_btn_mark_linkedin"));
   }
 
   private static String text(ResourceBundle bundle, String key) {
@@ -223,8 +257,30 @@ public class AdminCampaignsResource {
       String updatedScheduled,
       String updatedUnscheduled,
       String updatedPublishScan,
+      String updatedLinkedin,
       String invalidSchedule,
       String generatedAt,
+      String summaryTitle,
+      String summaryIntro,
+      String summaryTotalLabel,
+      String summaryDraftLabel,
+      String summaryApprovedLabel,
+      String summaryScheduledLabel,
+      String summaryPublishedLabel,
+      String summaryLinkedinPendingLabel,
+      String summaryLinkedinDoneLabel,
+      String summaryLastPublishedLabel,
+      String recentActivityTitle,
+      String recentActivityIntro,
+      String recentActivityUpdatedLabel,
+      String linkedinTitle,
+      String linkedinIntro,
+      String linkedinHeadlineLabel,
+      String linkedinMessageLabel,
+      String linkedinLandingLabel,
+      String linkedinPendingLabel,
+      String linkedinDoneLabel,
+      String linkedinEmptyLabel,
       String guardrailTitle,
       String guardrailIntro,
       java.util.List<String> guardrails,
@@ -253,5 +309,6 @@ public class AdminCampaignsResource {
       String approveLabel,
       String resetLabel,
       String scheduleLabel,
-      String unscheduleLabel) {}
+      String unscheduleLabel,
+      String markLinkedinLabel) {}
 }

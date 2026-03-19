@@ -3,6 +3,7 @@ package com.scanales.homedir.campaigns;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.scanales.homedir.TestDataDir;
@@ -42,6 +43,7 @@ class CampaignServiceTest {
   void setUp() {
     usageMetricsService.reset();
     eventService.reset();
+    campaignService.resetStateForTests();
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", false, true, false, false, Duration.ofMinutes(15)));
@@ -210,5 +212,41 @@ class CampaignServiceTest {
     assertTrue(republishedDraft.publishedChannels().containsKey("discord"));
     assertTrue(republishedDraft.publishedChannels().containsKey("bluesky"));
     assertTrue("published_bluesky".equals(republishedDraft.lastPublishOutcome()));
+  }
+
+  @Test
+  void manualLinkedinHandoffMarksDraftAsPublishedAndVisibleInPreview() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    CampaignStateSnapshot published = campaignService.markLinkedinPublished(target.id(), "sergio.canales.e@gmail.com");
+    CampaignDraftState publishedDraft =
+        published.drafts().stream().filter(item -> item.id().equals(target.id())).findFirst().orElseThrow();
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertEquals(CampaignWorkflowState.PUBLISHED, publishedDraft.workflowState());
+    assertTrue(publishedDraft.publishedChannels().containsKey("linkedin"));
+    assertEquals("published_linkedin_manual", publishedDraft.lastPublishOutcome());
+    assertTrue(
+        preview.linkedinHandoffs().stream()
+            .anyMatch(item -> item.draftId().equals(target.id()) && item.completed()));
+    assertTrue(preview.summary().linkedinCompletedCount() >= 1);
   }
 }
