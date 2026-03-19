@@ -1479,6 +1479,36 @@ footer {
   font-weight: 700;
 }
 
+.campaigns-admin-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.campaigns-admin-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.campaigns-admin-item {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.campaigns-admin-item strong {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.campaigns-admin-item span {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.campaigns-admin-cta {
+  justify-self: start;
+}
+
 .insights-initiatives-toolbar {
   display: flex;
   align-items: center;

@@ -1,0 +1,102 @@
+{#include layout/main mainClass="admin-context-main"}
+{#title}{copy.pageTitle}{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading">
+        <p class="section-subtitle">{copy.subtitle}</p>
+        <h1 class="page-title">{copy.heading}</h1>
+        <p class="form-hint admin-shell-hint-tight">{copy.intro}</p>
+      </div>
+      <div class="action-group admin-shell-actions">
+        <a href="/private/admin" class="btn btn-secondary">{copy.backToPanel}</a>
+        <form action="/private/admin/campaigns/refresh" method="post">
+          <button type="submit" class="btn btn-secondary" id="campaignsRefreshBtn">{copy.refresh}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{#if refreshed}
+  <div class="container admin-shell-margin-bottom-md">
+    <div class="hd-alert hd-alert-success">{copy.refreshed}</div>
+  </div>
+{/if}
+
+<div class="container">
+  <div class="admin-shell-stack">
+    <section class="admin-shell-panel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.generatedAt}</p>
+          <h2>{#if view.generatedAt}{view.generatedAt}{#else}—{/if}</h2>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-shell-panel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.guardrailTitle}</p>
+          <h2>{copy.guardrailIntro}</h2>
+        </div>
+      </div>
+      <div class="campaigns-admin-list">
+        {#for guardrail in copy.guardrails}
+          <article class="campaigns-admin-item">
+            <strong>{guardrail}</strong>
+          </article>
+        {/for}
+      </div>
+    </section>
+
+    <section class="page-grid campaigns-admin-grid">
+      {#if view.drafts.isEmpty}
+        <article class="section-card admin-shell-panel">
+          <p class="admin-shell-empty">{copy.emptyState}</p>
+        </article>
+      {#else}
+        {#for draft in view.drafts}
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{draft.kindLabel}</p>
+                <h2>{draft.title}</h2>
+              </div>
+              <span class="admin-observability-badge watch">{draft.modeLabel}</span>
+            </div>
+            <p>{draft.body}</p>
+            <div class="campaigns-admin-list">
+              <article class="campaigns-admin-item">
+                <strong>{copy.channelsLabel}</strong>
+                <span>
+                  {#for channel in draft.suggestedChannels}
+                    {channel}{#if channel_hasNext}, {/if}
+                  {/for}
+                </span>
+              </article>
+              <article class="campaigns-admin-item">
+                <strong>{copy.evidenceLabel}</strong>
+                <span>
+                  {#for item in draft.evidence}
+                    {item}{#if item_hasNext} · {/if}
+                  {/for}
+                </span>
+              </article>
+              <article class="campaigns-admin-item">
+                <strong>{copy.ctaLabel}</strong>
+                <a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">
+                  {draft.ctaLabel}
+                </a>
+              </article>
+            </div>
+          </article>
+        {/for}
+      {/if}
+    </section>
+  </div>
+</div>
+{/body}
+{/include}
