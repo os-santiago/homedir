@@ -32,6 +32,8 @@ class AdminMetricsFunnelRowsTest {
             Map.entry("funnel:volunteer.submission.status.selected", 11L),
             Map.entry("funnel:volunteer_lounge_post", 2L),
             Map.entry("funnel:volunteer.lounge.post", 22L),
+            Map.entry("funnel:challenge.started", 6L),
+            Map.entry("funnel:challenge.completed", 3L),
             Map.entry("funnel:board_profile_open", 9L));
 
     Map<String, Long> byId =
@@ -48,6 +50,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(4L, byId.get("volunteer_submit"));
     assertEquals(1L, byId.get("volunteer_selected"));
     assertEquals(2L, byId.get("volunteer_lounge_post"));
+    assertEquals(6L, byId.get("challenge_started"));
+    assertEquals(3L, byId.get("challenge_completed"));
     assertEquals(9L, byId.get("board_profile_open"));
 
     Map<String, String> conversions = conversionById(snap);
@@ -61,6 +65,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("36.4%", conversions.get("volunteer_submit"));
     assertEquals("9.1%", conversions.get("volunteer_selected"));
     assertEquals("18.2%", conversions.get("volunteer_lounge_post"));
+    assertEquals("54.5%", conversions.get("challenge_started"));
+    assertEquals("27.3%", conversions.get("challenge_completed"));
     assertEquals("81.8%", conversions.get("board_profile_open"));
   }
 
@@ -78,6 +84,8 @@ class AdminMetricsFunnelRowsTest {
             Map.entry("funnel:volunteer.submission.create", 2L),
             Map.entry("funnel:volunteer.submission.status.selected", 1L),
             Map.entry("funnel:volunteer.lounge.post", 4L),
+            Map.entry("funnel:challenge.started", 5L),
+            Map.entry("funnel:challenge.completed", 2L),
             Map.entry("funnel:board_profile_open", 2L));
 
     Map<String, Long> byId = rowsById(snap);
@@ -92,6 +100,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals(2L, byId.get("volunteer_submit"));
     assertEquals(1L, byId.get("volunteer_selected"));
     assertEquals(4L, byId.get("volunteer_lounge_post"));
+    assertEquals(5L, byId.get("challenge_started"));
+    assertEquals(2L, byId.get("challenge_completed"));
     assertEquals(2L, byId.get("board_profile_open"));
 
     Map<String, String> conversions = conversionById(snap);
@@ -105,6 +115,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("25.0%", conversions.get("volunteer_submit"));
     assertEquals("12.5%", conversions.get("volunteer_selected"));
     assertEquals("50.0%", conversions.get("volunteer_lounge_post"));
+    assertEquals("62.5%", conversions.get("challenge_started"));
+    assertEquals("25.0%", conversions.get("challenge_completed"));
     assertEquals("25.0%", conversions.get("board_profile_open"));
   }
 
@@ -119,6 +131,8 @@ class AdminMetricsFunnelRowsTest {
     assertEquals("—", conversions.get("volunteer_submit"));
     assertEquals("—", conversions.get("volunteer_selected"));
     assertEquals("—", conversions.get("volunteer_lounge_post"));
+    assertEquals("—", conversions.get("challenge_started"));
+    assertEquals("—", conversions.get("challenge_completed"));
   }
 
   private static Map<String, Long> rowsById(Map<String, Long> snap) {
