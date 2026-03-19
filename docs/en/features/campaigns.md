@@ -55,5 +55,6 @@ same ADEV discipline used to build the platform itself.
 - Bluesky and Mastodon publishers: implemented behind explicit config, dry-run, dedupe, and rate-limit guardrails
 - LinkedIn assisted handoff: implemented as manual copy prep + admin confirmation, without direct API publishing
 - Campaign admin observability: queue summary, recent activity, and pending LinkedIn handoff visibility enabled
+- Cadence guidance: Campaigns now recommends send windows from real HomeDir activity patterns before scheduling drafts
 - Public posting: not enabled
 - Scheduler-driven external publication: available only when publisher config is enabled

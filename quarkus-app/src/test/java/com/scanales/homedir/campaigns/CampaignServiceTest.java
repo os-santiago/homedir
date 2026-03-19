@@ -78,6 +78,9 @@ class CampaignServiceTest {
     gamificationService.award(userId, GamificationActivity.GITHUB_LINKED, "github");
     gamificationService.award(userId, GamificationActivity.DISCORD_LINKED, "discord");
     usageMetricsService.recordFunnelStep("challenge_completed");
+    usageMetricsService.recordPageView("/", "Mozilla/5.0");
+    usageMetricsService.recordPageView("/comunidad", "Mozilla/5.0");
+    usageMetricsService.recordPageView("/eventos", "Mozilla/5.0");
 
     CampaignStateSnapshot snapshot = campaignService.refreshDrafts();
     CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
@@ -86,6 +89,8 @@ class CampaignServiceTest {
     assertTrue(snapshot.drafts().stream().anyMatch(item -> "product_pulse".equals(item.kind())));
     assertTrue(snapshot.drafts().stream().anyMatch(item -> "event_spotlight".equals(item.kind())));
     assertTrue(preview.drafts().stream().anyMatch(item -> item.title().contains("HomeDir")));
+    assertFalse(preview.cadenceGuidance().overallWindows().isEmpty());
+    assertTrue(preview.drafts().stream().anyMatch(item -> !item.recommendedWindowLabel().isBlank()));
   }
 
   @Test

@@ -214,7 +214,15 @@ public class CampaignService {
     CampaignStateSnapshot snapshot = currentState();
     ResourceBundle bundle = localizedBundle(localeCode);
     Locale locale = bundle.getLocale() == null ? Locale.forLanguageTag("es") : bundle.getLocale();
-    List<CampaignPreviewCard> cards = snapshot.drafts().stream().map(item -> toPreview(item, bundle, locale)).toList();
+    CampaignCadenceGuidance cadenceGuidance = cadenceGuidance(bundle);
+    Map<String, String> cadenceByKind = new LinkedHashMap<>();
+    for (CampaignCadenceWindow window : cadenceGuidance.windowsByKind()) {
+      cadenceByKind.put(window.label(), window.slotLabel());
+    }
+    List<CampaignPreviewCard> cards =
+        snapshot.drafts().stream()
+            .map(item -> toPreview(item, bundle, locale, cadenceByKind))
+            .toList();
     List<CampaignPublisherPreviewStatus> publisherStatuses =
         List.of(discordPublisherService.status(), blueskyPublisherService.status(), mastodonPublisherService.status())
             .stream()
@@ -228,6 +236,7 @@ public class CampaignService {
         List.copyOf(publisherStatuses),
         summarize(snapshot, bundle, locale),
         recentActivity(snapshot, bundle, locale),
+        cadenceGuidance,
         snapshot.drafts().stream()
             .filter(this::eligibleForLinkedinHandoff)
             .map(draft -> toLinkedinHandoff(draft, bundle, locale))
@@ -417,7 +426,11 @@ public class CampaignService {
         .findFirst();
   }
 
-  private CampaignPreviewCard toPreview(CampaignDraftState draft, ResourceBundle bundle, Locale locale) {
+  private CampaignPreviewCard toPreview(
+      CampaignDraftState draft,
+      ResourceBundle bundle,
+      Locale locale,
+      Map<String, String> cadenceByKind) {
     String kindLabel = bundleText(bundle, "campaigns_kind_" + draft.kind());
     String workflowLabel = bundleText(bundle, "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT));
     String sourceStatusLabel =
@@ -435,6 +448,10 @@ public class CampaignService {
                 .sorted()
                 .reduce((left, right) -> left + ", " + right)
                 .orElse("—");
+    String recommendedWindowLabel =
+        cadenceByKind.getOrDefault(
+            bundleText(bundle, "campaigns_kind_" + draft.kind()),
+            bundleText(bundle, "campaigns_admin_cadence_no_window"));
     return switch (draft.kind()) {
       case KIND_PRODUCT_PULSE -> new CampaignPreviewCard(
           draft.id(),
@@ -459,7 +476,8 @@ public class CampaignService {
           sourceStatusLabel,
           scheduledLabel,
           publishedChannelsLabel,
-          publisherOutcomeLabel);
+          publisherOutcomeLabel,
+          recommendedWindowLabel);
       case KIND_CHALLENGE_SPOTLIGHT -> {
         String challengeTitle = bundleText(bundle, value(draft, "challengeTitleKey"));
         yield new CampaignPreviewCard(
@@ -479,7 +497,8 @@ public class CampaignService {
             sourceStatusLabel,
             scheduledLabel,
             publishedChannelsLabel,
-            publisherOutcomeLabel);
+            publisherOutcomeLabel,
+            recommendedWindowLabel);
       }
       case KIND_COMMUNITY_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
@@ -498,7 +517,8 @@ public class CampaignService {
           sourceStatusLabel,
           scheduledLabel,
           publishedChannelsLabel,
-          publisherOutcomeLabel);
+          publisherOutcomeLabel,
+          recommendedWindowLabel);
       case KIND_EVENT_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -516,7 +536,8 @@ public class CampaignService {
           sourceStatusLabel,
           scheduledLabel,
           publishedChannelsLabel,
-          publisherOutcomeLabel);
+          publisherOutcomeLabel,
+          recommendedWindowLabel);
       default -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -532,7 +553,8 @@ public class CampaignService {
           sourceStatusLabel,
           scheduledLabel,
           publishedChannelsLabel,
-          publisherOutcomeLabel);
+          publisherOutcomeLabel,
+          recommendedWindowLabel);
     };
   }
 
@@ -834,6 +856,80 @@ public class CampaignService {
         String.valueOf(status.minInterval()));
   }
 
+  private CampaignCadenceGuidance cadenceGuidance(ResourceBundle bundle) {
+    UsageMetricsService.ObservabilityWindow window = usageMetricsService.observabilityWindow(168);
+    List<CampaignCadenceWindow> overall =
+        bestWindows(
+            window,
+            List.of("home", "community", "events", "profile", "project"),
+            3,
+            bundle);
+    List<CampaignCadenceWindow> byKind =
+        List.of(
+            cadenceWindowForKind(KIND_PRODUCT_PULSE, bundle, window),
+            cadenceWindowForKind(KIND_CHALLENGE_SPOTLIGHT, bundle, window),
+            cadenceWindowForKind(KIND_COMMUNITY_SPOTLIGHT, bundle, window),
+            cadenceWindowForKind(KIND_EVENT_SPOTLIGHT, bundle, window));
+    return new CampaignCadenceGuidance(List.copyOf(overall), List.copyOf(byKind));
+  }
+
+  private CampaignCadenceWindow cadenceWindowForKind(
+      String kind, ResourceBundle bundle, UsageMetricsService.ObservabilityWindow window) {
+    List<CampaignCadenceWindow> best = bestWindows(window, preferredModulesForKind(kind), 1, bundle);
+    if (!best.isEmpty()) {
+      CampaignCadenceWindow top = best.get(0);
+      return new CampaignCadenceWindow(
+          bundleText(bundle, "campaigns_kind_" + kind), top.slotLabel(), top.detailLabel());
+    }
+    return new CampaignCadenceWindow(
+        bundleText(bundle, "campaigns_kind_" + kind),
+        bundleText(bundle, "campaigns_admin_cadence_no_window"),
+        bundleText(bundle, "campaigns_admin_cadence_no_window"));
+  }
+
+  private List<CampaignCadenceWindow> bestWindows(
+      UsageMetricsService.ObservabilityWindow window,
+      List<String> modules,
+      int limit,
+      ResourceBundle bundle) {
+    Map<String, Long> totalsBySlot = new LinkedHashMap<>();
+    for (UsageMetricsService.ObservabilitySeriesSnapshot row : window.modules()) {
+      if (!modules.contains(row.code())) {
+        continue;
+      }
+      List<Long> counts = row.counts();
+      for (int i = 0; i < counts.size() && i < window.hourLabels().size(); i++) {
+        totalsBySlot.merge(window.hourLabels().get(i), counts.get(i), Long::sum);
+      }
+    }
+    return totalsBySlot.entrySet().stream()
+        .filter(entry -> entry.getValue() > 0L)
+        .sorted(
+            Comparator.comparing(Map.Entry<String, Long>::getValue, Comparator.reverseOrder())
+                .thenComparing(Map.Entry::getKey))
+        .limit(limit)
+        .map(
+            entry ->
+                new CampaignCadenceWindow(
+                    "",
+                    named(bundle, "campaigns_admin_cadence_window_slot", Map.of("slot", entry.getKey())),
+                    named(
+                        bundle,
+                        "campaigns_admin_cadence_window_support",
+                        Map.of("score", String.valueOf(entry.getValue())))))
+        .toList();
+  }
+
+  private List<String> preferredModulesForKind(String kind) {
+    return switch (kind) {
+      case KIND_PRODUCT_PULSE -> List.of("home", "project", "profile");
+      case KIND_CHALLENGE_SPOTLIGHT -> List.of("community", "profile", "home");
+      case KIND_COMMUNITY_SPOTLIGHT -> List.of("community", "home");
+      case KIND_EVENT_SPOTLIGHT -> List.of("events", "community", "home");
+      default -> List.of("home", "community", "events");
+    };
+  }
+
   private CampaignOperationsSummary summarize(
       CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
     int draftCount = 0;
@@ -876,6 +972,10 @@ public class CampaignService {
 
   private List<CampaignRecentActivity> recentActivity(
       CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+    Map<String, String> cadenceByKind = new LinkedHashMap<>();
+    for (CampaignCadenceWindow window : cadenceGuidance(bundle).windowsByKind()) {
+      cadenceByKind.put(window.label(), window.slotLabel());
+    }
     return snapshot.drafts().stream()
         .sorted(
             Comparator.comparing(CampaignDraftState::updatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
@@ -884,7 +984,7 @@ public class CampaignService {
         .map(
             draft ->
                 new CampaignRecentActivity(
-                    toPreview(draft, bundle, locale).title(),
+                    toPreview(draft, bundle, locale, cadenceByKind).title(),
                     bundleText(
                         bundle,
                         "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT)),
@@ -904,7 +1004,11 @@ public class CampaignService {
 
   private CampaignLinkedinHandoff toLinkedinHandoff(
       CampaignDraftState draft, ResourceBundle bundle, Locale locale) {
-    CampaignPreviewCard preview = toPreview(draft, bundle, locale);
+    Map<String, String> cadenceByKind = new LinkedHashMap<>();
+    for (CampaignCadenceWindow window : cadenceGuidance(bundle).windowsByKind()) {
+      cadenceByKind.put(window.label(), window.slotLabel());
+    }
+    CampaignPreviewCard preview = toPreview(draft, bundle, locale, cadenceByKind);
     boolean completed = draft.publishedChannels().containsKey("linkedin");
     return new CampaignLinkedinHandoff(
         draft.id(),
@@ -959,6 +1063,7 @@ public class CampaignService {
       List<CampaignPublisherPreviewStatus> publisherStatuses,
       CampaignOperationsSummary summary,
       List<CampaignRecentActivity> recentActivity,
+      CampaignCadenceGuidance cadenceGuidance,
       List<CampaignLinkedinHandoff> linkedinHandoffs) {}
 
   public record CampaignPublisherPreviewStatus(
@@ -985,7 +1090,8 @@ public class CampaignService {
       String sourceStatusLabel,
       String scheduledForLabel,
       String publishedChannelsLabel,
-      String publisherOutcomeLabel) {}
+      String publisherOutcomeLabel,
+      String recommendedWindowLabel) {}
 
   public record CampaignOperationsSummary(
       int draftCount,
@@ -1002,6 +1108,15 @@ public class CampaignService {
       String workflowLabel,
       String activityLabel,
       String timestampLabel) {}
+
+  public record CampaignCadenceGuidance(
+      List<CampaignCadenceWindow> overallWindows,
+      List<CampaignCadenceWindow> windowsByKind) {}
+
+  public record CampaignCadenceWindow(
+      String label,
+      String slotLabel,
+      String detailLabel) {}
 
   public record CampaignLinkedinHandoff(
       String draftId,

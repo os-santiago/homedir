@@ -11,6 +11,7 @@ Resumen:
 - Bluesky y Mastodon quedan implementados como publishers adicionales, también protegidos por configuración explícita, dry-run y guardrails activos.
 - LinkedIn queda implementado como handoff asistido: copy manual + confirmación desde admin, sin autopublicación.
 - Campaigns ya expone observabilidad operativa con resumen de colas, actividad reciente y visibilidad de handoffs pendientes.
+- Campaigns ahora recomienda ventanas de envío usando patrones reales de actividad de HomeDir antes de programar borradores.
 - El rollout obligatorio es:
   - borradores internos
   - aprobacion/programacion
