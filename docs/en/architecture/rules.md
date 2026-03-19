@@ -1,10 +1,10 @@
 # Architecture Rules (V1 · Monorepo)
 
 ## layers (packages)
-- `io.eventflow.api… | … Web… `→ IU/Rest
-- `io.eventflow.app… | … Service… `→ application/orchestration
-- `io.eventflow.domain…` → Domain (entities/value/rules)
-- `io.eventflow.infra…` → Persistence / External clients
+- `io.homedir.api… | … Web… `→ IU/Rest
+- `io.homedir.app… | … Service… `→ application/orchestration
+- `io.homedir.domain…` → Domain (entities/value/rules)
+- `io.homedir.infra…` → Persistence / External clients
 
 ## Blockers
 1) Without cycles between packages.

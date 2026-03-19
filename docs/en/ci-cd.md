@@ -31,9 +31,9 @@ After merging to `main`:
 
 ```bash
 git fetch origin && git checkout main && git pull
-git tag -a v2.2.11 -m "EventFlow 2.2.11"
+git tag -a v2.2.11 -m "Homedir 2.2.11"
 git push origin v2.2.11
 
 # Optional GitHub Release
-gh release create v2.2.11 -F RELEASE_NOTES.md -t "EventFlow 2.2.11"
+gh release create v2.2.11 -F RELEASE_NOTES.md -t "Homedir 2.2.11"
 ```

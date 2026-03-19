@@ -1,0 +1,20 @@
+package io.homedir.notifications.rest;
+
+import io.quarkus.security.identity.SecurityIdentity;
+
+/** Helper to extract the authenticated user id. */
+public final class SecurityIdentityUser {
+  private SecurityIdentityUser() {}
+
+  public static String id(SecurityIdentity identity) {
+    if (identity == null || identity.isAnonymous()) {
+      return null;
+    }
+    Object emailAttr = identity.getAttribute("email");
+    String email = emailAttr != null ? emailAttr.toString() : null;
+    if (email == null && identity.getPrincipal() != null) {
+      email = identity.getPrincipal().getName();
+    }
+    return email;
+  }
+}

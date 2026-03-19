@@ -1,4 +1,4 @@
-# Opciones de persistencia – EventFlow
+# Opciones de persistencia – Homedir
 
 ## Opción A – Sidecar por pod
 ### Pros
@@ -13,7 +13,7 @@
 ## Opción B – Servicio centralizado
 ### Pros
 - Consistencia fuerte y control de concurrencia.
-- Escala de forma independiente de EventFlow.
+- Escala de forma independiente de Homedir.
 ### Contras
 - Añade una latencia de red.
 - Requiere alta disponibilidad.

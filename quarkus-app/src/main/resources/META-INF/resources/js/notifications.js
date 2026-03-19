@@ -146,7 +146,7 @@
     document.addEventListener('ef:notifs:changed', updateUnreadFromLocal);
   }
 
-  window.EventFlowNotifications = {
+  window.HomeDirNotifications = {
     accept(dto) {
       if (window.updateUnreadFromLocal) window.updateUnreadFromLocal();
       if (!manager) return;
@@ -164,6 +164,6 @@
   };
   window.__notifyDev__ = (partial = {}) => {
     const demo = Object.assign({ type: 'UPCOMING', title: 'Demo', message: 'Example', talkId: 'demo' }, partial);
-    window.EventFlowNotifications.accept(demo);
+    window.HomeDirNotifications.accept(demo);
   };
 })();

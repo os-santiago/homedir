@@ -1,8 +1,8 @@
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
-  name: eventflow-cert
-  namespace: eventflow
+  name: homedir-cert
+  namespace: homedir
 spec:
   domains:
-    - eventflow.opensourcesantiago.io
+    - homedir.opensourcesantiago.io

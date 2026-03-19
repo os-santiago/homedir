@@ -1,0 +1,109 @@
+package com.scanales.homedir.public_;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+
+import com.scanales.homedir.agenda.AgendaProposalConfigService;
+import com.scanales.homedir.model.Event;
+import com.scanales.homedir.model.Talk;
+import com.scanales.homedir.service.EventService;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import java.time.LocalTime;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+@QuarkusTest
+public class EventResourceMapLinkTest {
+
+  @Inject EventService eventService;
+  @Inject AgendaProposalConfigService agendaProposalConfigService;
+
+  private static final String EVENT_WITH_MAP = "map1";
+  private static final String EVENT_WITHOUT_MAP = "map2";
+  private static final String EVENT_WITH_TALK = "map3";
+
+  @BeforeEach
+  public void setup() {
+    agendaProposalConfigService.resetForTests();
+  }
+
+  @AfterEach
+  public void cleanup() {
+    eventService.deleteEvent(EVENT_WITH_MAP);
+    eventService.deleteEvent(EVENT_WITHOUT_MAP);
+    eventService.deleteEvent(EVENT_WITH_TALK);
+  }
+
+  @Test
+  public void showsMapLinkWhenConfigured() {
+    Event event = new Event(EVENT_WITH_MAP, "Evento con mapa", "desc");
+    event.setMapUrl("https://example.com/map");
+    eventService.saveEvent(event);
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/event/" + EVENT_WITH_MAP)
+        .then()
+        .statusCode(200)
+        .body(containsString("View venue map"))
+        .body(containsString("https://example.com/map"));
+  }
+
+  @Test
+  public void hidesMapLinkWhenMissing() {
+    Event event = new Event(EVENT_WITHOUT_MAP, "Evento sin mapa", "desc");
+    eventService.saveEvent(event);
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/event/" + EVENT_WITHOUT_MAP)
+        .then()
+        .statusCode(200)
+        .body(not(containsString("View venue map")));
+  }
+
+  @Test
+  public void eventDetailTalkLinksUseCanonicalTalkRoute() {
+    Event event = new Event(EVENT_WITH_TALK, "Evento con charla", "desc");
+    Talk talk = new Talk("talk-canonical-1", "Talk canonical route");
+    talk.setLocation("main-stage");
+    talk.setStartTime(LocalTime.of(9, 0));
+    talk.setDurationMinutes(30);
+    event.getAgenda().add(talk);
+    eventService.saveEvent(event);
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/event/" + EVENT_WITH_TALK)
+        .then()
+        .statusCode(200)
+        .body(containsString("/talk/talk-canonical-1"));
+  }
+
+  @Test
+  public void eventAgendaShowsProposedNoticeWhenEnabled() {
+    Event event = new Event("map4", "Event with agenda notice", "desc");
+    Talk talk = new Talk("talk-proposed-notice", "Category: Sample");
+    talk.setLocation("main-stage");
+    talk.setStartTime(LocalTime.of(9, 0));
+    talk.setDurationMinutes(30);
+    event.getAgenda().add(talk);
+    eventService.saveEvent(event);
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/event/map4")
+        .then()
+        .statusCode(200)
+        .body(containsString("Proposed agenda categories"));
+
+    eventService.deleteEvent("map4");
+  }
+}

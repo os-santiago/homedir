@@ -11,7 +11,7 @@ import java.net.URI;
 
 /**
  * Legacy page backed by a cookie based login. It now responds on "/legacy" so that the application
- * home page can be provided by EventFlow.
+ * home page can be provided by Homedir.
  */
 @Path("/legacy")
 public class PrivatePageResource {

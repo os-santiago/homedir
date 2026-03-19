@@ -30,8 +30,8 @@
           const unread = parseInt(localStorage.getItem(unreadKey) || '0', 10) + 1;
           localStorage.setItem(unreadKey, String(unread));
         } catch (e) {}
-        if (window.EventFlowNotifications && window.EventFlowNotifications.accept) {
-          window.EventFlowNotifications.accept(msg);
+        if (window.HomeDirNotifications && window.HomeDirNotifications.accept) {
+          window.HomeDirNotifications.accept(msg);
         }
         if (window.__EF_GLOBAL_NOTIF_ACCEPT__) {
           window.__EF_GLOBAL_NOTIF_ACCEPT__(msg);
