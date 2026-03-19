@@ -272,6 +272,57 @@
     </article>
   </section>
 
+  <section class="section-card home-challenges-shell" aria-label="{homeChallengesCopy.title}">
+    <div class="home-challenges-header">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{homeChallengesCopy.eyebrow}</p>
+        <h2 class="page-title">{homeChallengesCopy.title}</h2>
+      </div>
+      <div class="home-onboarding-actions">
+        <a href="/private/profile#challenges-panel" class="btn-secondary">{homeChallengesCopy.defaultCta}</a>
+      </div>
+    </div>
+    <p class="home-member-card-copy">{homeChallengesCopy.intro}</p>
+    <div class="home-challenges-summary-grid">
+      <article class="home-challenges-summary-item">
+        <span>{homeChallengesCopy.summaryCompleted}</span>
+        <strong>{homeChallengesCompleted}/{homeChallengeCards.size}</strong>
+      </article>
+      <article class="home-challenges-summary-item">
+        <span>{homeChallengesCopy.summaryInProgress}</span>
+        <strong>{homeChallengesInProgress}</strong>
+      </article>
+      <article class="home-challenges-summary-item">
+        <span>{homeChallengesCopy.summaryReady}</span>
+        <strong>{homeChallengesReady}</strong>
+      </article>
+    </div>
+    <div class="home-challenge-card-grid" role="list">
+      {#for challenge in homeChallengeCards}
+      <article class="home-challenge-card" role="listitem">
+        <div class="home-card-top">
+          <span class="home-chip">
+            {challenge.statusLabel}
+          </span>
+          <span class="home-source">{challenge.rewardLabel}</span>
+        </div>
+        <h3 class="home-pane-title">{challenge.title}</h3>
+        <p class="home-pane-summary">{challenge.description}</p>
+        <div class="xp-bar-container home-class-row-bar">
+          <div class="xp-bar-fill header-xp-bar-fill" style="--xp-percent: {challenge.progressPercent}%;"></div>
+        </div>
+        <div class="home-loop-item-head">
+          <strong>{challenge.progressLabel}</strong>
+          <span class="home-chip">{challenge.progressPercent}%</span>
+        </div>
+        <a href="{challenge.actionUrl}" class="home-member-action-cta home-challenge-cta">
+          {challenge.ctaLabel}
+        </a>
+      </article>
+      {/for}
+    </div>
+  </section>
+
   <section class="home-gamification-grid" aria-label="{i18n:home_p2_progress_title}">
     <article class="section-card home-gamification-card">
       <div class="section-header hd-section-heading">

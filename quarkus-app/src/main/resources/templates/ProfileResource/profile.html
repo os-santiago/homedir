@@ -28,6 +28,7 @@
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="overview-panel">{i18n:profile_eyebrow}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="integrations-panel">{i18n:section_integrations}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="resume-panel">{i18n:section_resume}</button>
+            <button type="button" class="hd-profile-nav-btn" data-profile-nav="challenges-panel">{challengeCopy.title}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="cfp-panel">{i18n:profile_cfp_title}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="speaker-panel">{i18n:profile_speaker_title}</button>
             <button type="button" class="hd-profile-nav-btn" data-profile-nav="volunteer-panel">{i18n:profile_volunteers_title}</button>
@@ -267,6 +268,73 @@
                 </div>
             </div>
 
+        </section>
+
+        <section class="hd-panel centered" id="challenges-panel" data-profile-section="challenges">
+            <div class="hd-dashboard-header">
+                <div>
+                    <p class="hd-eyebrow">{challengeCopy.eyebrow}</p>
+                    <h2 class="hd-panel-title">{challengeCopy.title}</h2>
+                    <p class="hd-page-intro">{challengeCopy.intro}</p>
+                </div>
+                <div class="hd-panel-actions">
+                    <a class="hd-btn hd-btn-secondary" href="/">{challengeCopy.homeCta}</a>
+                </div>
+            </div>
+
+            <div class="hd-grid-details">
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{challengeCopy.total}</span>
+                    <span class="hd-detail-value">{challengeOverview.total}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{challengeCopy.completed}</span>
+                    <span class="hd-detail-value">{challengeOverview.completed}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{challengeCopy.inProgress}</span>
+                    <span class="hd-detail-value">{challengeOverview.inProgress}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{challengeCopy.ready}</span>
+                    <span class="hd-detail-value">{challengeOverview.ready}</span>
+                </div>
+                <div class="hd-detail-item">
+                    <span class="hd-detail-label">{challengeCopy.rewards}</span>
+                    <span class="hd-detail-value">{challengeOverview.totalRewardHcoin} HCoin</span>
+                </div>
+            </div>
+
+            <div class="hd-challenge-list" role="list">
+                {#for challenge in profileChallenges}
+                <article class="hd-card hd-challenge-card" role="listitem">
+                    <div class="hd-dashboard-header hd-challenge-card-header">
+                        <div>
+                            <div class="hd-profile-spotlight-chips">
+                                <span class="hd-economy-chip">{challenge.statusLabel}</span>
+                                <span class="hd-economy-chip">{challenge.rewardLabel}</span>
+                            </div>
+                            <h3 class="hd-section-subtitle">{challenge.title}</h3>
+                            <p class="hd-page-intro">{challenge.description}</p>
+                        </div>
+                        <a class="hd-btn hd-btn-secondary" href="{challenge.actionUrl}">{challenge.ctaLabel}</a>
+                    </div>
+                    <div class="progress-bar-container hd-challenge-progress-bar">
+                        <div class="progress-bar-fill js-progress-fill" data-progress="{challenge.progressPercent}"></div>
+                    </div>
+                    <div class="hd-grid-details hd-grid-details-challenge">
+                        <div class="hd-detail-item">
+                            <span class="hd-detail-label">{challengeCopy.progressLabel}</span>
+                            <span class="hd-detail-value">{challenge.progressLabel}</span>
+                        </div>
+                        <div class="hd-detail-item">
+                            <span class="hd-detail-label">{challengeCopy.progressPercent}</span>
+                            <span class="hd-detail-value">{challenge.progressPercent}%</span>
+                        </div>
+                    </div>
+                </article>
+                {/for}
+            </div>
         </section>
 
         <section class="hd-panel centered" id="cfp-panel" data-profile-section="cfp">

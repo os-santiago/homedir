@@ -1,5 +1,6 @@
 package com.scanales.eventflow.public_;
 
+import com.scanales.eventflow.challenges.ChallengeService;
 import com.scanales.eventflow.community.CommunityContentItem;
 import com.scanales.eventflow.community.CommunityContentService;
 import com.scanales.eventflow.community.CommunityBoardService;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import org.jboss.logging.Logger;
 
 @Path("/")
@@ -93,10 +95,15 @@ public class PublicPagesResource {
   @Inject
   NotificationService notificationService;
 
+  @Inject
+  ChallengeService challengeService;
+
   @GET
   public TemplateInstance home(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
+    String resolvedLocale = TemplateLocaleUtil.resolve(localeCookie, headers);
+    HomeChallengesCopy homeChallengesCopy = homeChallengesCopy(resolvedLocale);
     var currentUserId = currentUserId();
     var currentSession = userSessionService.getCurrentSession();
     currentUserId.ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
@@ -178,6 +185,20 @@ public class PublicPagesResource {
                 .count();
     HomeRewardSpotlight homeRewardSpotlight =
         chooseRewardSpotlight(homeCatalogOffers, homeWalletBalance);
+    List<HomeChallengeCard> homeChallengeCards =
+        currentUserId
+            .map(challengeService::listProgressForUser)
+            .orElse(List.of())
+            .stream()
+            .map(card -> toHomeChallengeCard(card, homeChallengesCopy))
+            .toList();
+    int homeChallengesCompleted = (int) homeChallengeCards.stream().filter(HomeChallengeCard::completed).count();
+    int homeChallengesInProgress =
+        (int)
+            homeChallengeCards.stream()
+                .filter(card -> !card.completed() && card.completedSteps() > 0)
+                .count();
+    int homeChallengesReady = Math.max(0, homeChallengeCards.size() - homeChallengesCompleted - homeChallengesInProgress);
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -213,10 +234,15 @@ public class PublicPagesResource {
             .data("homeUnlockedRewardCount", homeUnlockedRewardCount)
             .data("homeAffordableRewardCount", homeAffordableRewardCount)
             .data("homeRewardSpotlight", homeRewardSpotlight)
+            .data("homeChallengeCards", homeChallengeCards)
+            .data("homeChallengesCompleted", homeChallengesCompleted)
+            .data("homeChallengesInProgress", homeChallengesInProgress)
+            .data("homeChallengesReady", homeChallengesReady)
+            .data("homeChallengesCopy", homeChallengesCopy)
             .data("homeBoardSummary", boardSummary)
             .data("noLoginModal", true),
         "home",
-        localeCookie,
+        resolvedLocale,
         headers);
   }
 
@@ -450,6 +476,128 @@ public class PublicPagesResource {
     return new HomeNotificationPreview(title, message);
   }
 
+  private HomeChallengeCard toHomeChallengeCard(
+      ChallengeService.ChallengeProgressCard card, HomeChallengesCopy copy) {
+    int totalSteps = Math.max(0, card.totalSteps());
+    int completedSteps = Math.max(0, Math.min(card.completedSteps(), totalSteps));
+    int progressPercent =
+        totalSteps <= 0 ? 0 : (int) Math.round((completedSteps * 100.0d) / (double) totalSteps);
+    String state =
+        card.completed()
+            ? "completed"
+            : completedSteps > 0 ? "in_progress" : "ready";
+    String statusLabel =
+        switch (state) {
+          case "completed" -> copy.statusCompleted();
+          case "in_progress" -> copy.statusInProgress();
+          default -> copy.statusReady();
+        };
+    return new HomeChallengeCard(
+        card.id(),
+        completedSteps,
+        totalSteps,
+        Math.max(0, card.rewardHcoin()),
+        card.completed(),
+        Math.max(0, Math.min(100, progressPercent)),
+        state,
+        challengeActionUrl(card.id()),
+        challengeTitle(card.id(), copy),
+        challengeDescription(card.id(), copy),
+        challengeCta(card.id(), copy),
+        statusLabel,
+        formatNamed(copy.rewardHcoinPattern(), "reward", Math.max(0, card.rewardHcoin())),
+        formatNamed(
+            copy.progressStepsPattern(),
+            "completed",
+            completedSteps,
+            "total",
+            totalSteps));
+  }
+
+  private HomeChallengesCopy homeChallengesCopy(String localeCode) {
+    ResourceBundle bundle = localizedChallengeBundle(localeCode);
+    return new HomeChallengesCopy(
+        bundleText(bundle, "home_challenges_eyebrow"),
+        bundleText(bundle, "home_challenges_title"),
+        bundleText(bundle, "home_challenges_intro"),
+        bundleText(bundle, "home_challenges_cta"),
+        bundleText(bundle, "home_challenges_summary_completed"),
+        bundleText(bundle, "home_challenges_summary_in_progress"),
+        bundleText(bundle, "home_challenges_summary_ready"),
+        bundleText(bundle, "challenge_status_completed"),
+        bundleText(bundle, "challenge_status_in_progress"),
+        bundleText(bundle, "challenge_status_ready"),
+        bundleText(bundle, "challenge_reward_hcoin"),
+        bundleText(bundle, "challenge_progress_steps"),
+        bundleText(bundle, "challenge_community_scout_title"),
+        bundleText(bundle, "challenge_community_scout_desc"),
+        bundleText(bundle, "challenge_community_scout_cta"),
+        bundleText(bundle, "challenge_event_explorer_title"),
+        bundleText(bundle, "challenge_event_explorer_desc"),
+        bundleText(bundle, "challenge_event_explorer_cta"),
+        bundleText(bundle, "challenge_open_source_identity_title"),
+        bundleText(bundle, "challenge_open_source_identity_desc"),
+        bundleText(bundle, "challenge_open_source_identity_cta"));
+  }
+
+  private String bundleText(ResourceBundle bundle, String key) {
+    return bundle.containsKey(key) ? bundle.getString(key) : key;
+  }
+
+  private ResourceBundle localizedChallengeBundle(String localeCode) {
+    Locale bundleLocale = "es".equalsIgnoreCase(localeCode) ? Locale.forLanguageTag("es") : Locale.ROOT;
+    return ResourceBundle.getBundle("i18n", bundleLocale);
+  }
+
+  private String formatNamed(String pattern, Object... keyValues) {
+    String formatted = pattern;
+    for (int i = 0; i + 1 < keyValues.length; i += 2) {
+      String key = String.valueOf(keyValues[i]);
+      String value = String.valueOf(keyValues[i + 1]);
+      formatted = formatted.replace("{" + key + "}", value);
+    }
+    return formatted;
+  }
+
+  private String challengeTitle(String challengeId, HomeChallengesCopy copy) {
+    return switch (challengeId) {
+      case "community-scout" -> copy.communityScoutTitle();
+      case "event-explorer" -> copy.eventExplorerTitle();
+      case "open-source-identity" -> copy.openSourceIdentityTitle();
+      default -> challengeId;
+    };
+  }
+
+  private String challengeDescription(String challengeId, HomeChallengesCopy copy) {
+    return switch (challengeId) {
+      case "community-scout" -> copy.communityScoutDesc();
+      case "event-explorer" -> copy.eventExplorerDesc();
+      case "open-source-identity" -> copy.openSourceIdentityDesc();
+      default -> challengeId;
+    };
+  }
+
+  private String challengeCta(String challengeId, HomeChallengesCopy copy) {
+    return switch (challengeId) {
+      case "community-scout" -> copy.communityScoutCta();
+      case "event-explorer" -> copy.eventExplorerCta();
+      case "open-source-identity" -> copy.openSourceIdentityCta();
+      default -> copy.defaultCta();
+    };
+  }
+
+  private String challengeActionUrl(String challengeId) {
+    if (challengeId == null || challengeId.isBlank()) {
+      return "/private/profile#challenges-panel";
+    }
+    return switch (challengeId) {
+      case "community-scout" -> "/comunidad/picks";
+      case "event-explorer" -> "/eventos";
+      case "open-source-identity" -> "/private/profile#integrations-panel";
+      default -> "/private/profile#challenges-panel";
+    };
+  }
+
   private record HomeClassProgress(
       String value, String className, String emoji, int xp, int sharePercent, boolean dominant) {}
 
@@ -466,4 +614,43 @@ public class PublicPagesResource {
       int requiredClassXp) {}
 
   private record HomeNotificationPreview(String title, String message) {}
+
+  private record HomeChallengesCopy(
+      String eyebrow,
+      String title,
+      String intro,
+      String defaultCta,
+      String summaryCompleted,
+      String summaryInProgress,
+      String summaryReady,
+      String statusCompleted,
+      String statusInProgress,
+      String statusReady,
+      String rewardHcoinPattern,
+      String progressStepsPattern,
+      String communityScoutTitle,
+      String communityScoutDesc,
+      String communityScoutCta,
+      String eventExplorerTitle,
+      String eventExplorerDesc,
+      String eventExplorerCta,
+      String openSourceIdentityTitle,
+      String openSourceIdentityDesc,
+      String openSourceIdentityCta) {}
+
+  private record HomeChallengeCard(
+      String id,
+      int completedSteps,
+      int totalSteps,
+      int rewardHcoin,
+      boolean completed,
+      int progressPercent,
+      String state,
+      String actionUrl,
+      String title,
+      String description,
+      String ctaLabel,
+      String statusLabel,
+      String rewardLabel,
+      String progressLabel) {}
 }
