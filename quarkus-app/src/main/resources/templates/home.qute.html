@@ -193,6 +193,53 @@
     {/if}
   </div>
 
+  <section class="section-card home-member-card" aria-label="{i18n:home_awareness_title}">
+    <div class="home-challenges-header">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_awareness_eyebrow}</p>
+        <h2 class="page-title">{i18n:home_awareness_title}</h2>
+      </div>
+      <div class="home-onboarding-actions">
+        <a href="/comunidad/picks" class="btn-secondary">{i18n:home_awareness_cta}</a>
+      </div>
+    </div>
+    <p class="home-member-card-copy">{i18n:home_awareness_intro}</p>
+    <div class="home-member-actions-grid" role="list">
+      {#if userAuthenticated}
+      <a href="/private/profile#challenges-panel" class="home-member-action-card" role="listitem">
+      {#else}
+      <a href="/private/login-callback?redirect=/private/profile" class="home-member-action-card" role="listitem" data-login-return-current="true">
+      {/if}
+        <span class="material-symbols-outlined" aria-hidden="true">military_tech</span>
+        <strong>{i18n:home_awareness_card_challenges_title}</strong>
+        <p>{i18n:home_awareness_card_challenges_desc}</p>
+        <span class="home-member-action-cta">{i18n:home_awareness_card_challenges_cta}</span>
+      </a>
+      <a href="/comunidad/picks" class="home-member-action-card" role="listitem">
+        <span class="material-symbols-outlined" aria-hidden="true">article</span>
+        <strong>{i18n:home_awareness_card_picks_title}</strong>
+        <p>{i18n:home_awareness_card_picks_desc(homeTodayFreshPicks)}</p>
+        <span class="home-member-action-cta">{i18n:home_awareness_card_picks_cta}</span>
+      </a>
+      <a href="/eventos" class="home-member-action-card" role="listitem">
+        <span class="material-symbols-outlined" aria-hidden="true">event</span>
+        <strong>{i18n:home_awareness_card_events_title}</strong>
+        <p>{i18n:home_awareness_card_events_desc}</p>
+        <span class="home-member-action-cta">{i18n:home_awareness_card_events_cta}</span>
+      </a>
+      {#if userAuthenticated}
+      <a href="/private/profile" class="home-member-action-card" role="listitem">
+      {#else}
+      <a href="/comunidad/board" class="home-member-action-card" role="listitem">
+      {/if}
+        <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+        <strong>{i18n:home_awareness_card_identity_title}</strong>
+        <p>{i18n:home_awareness_card_identity_desc(homeBoardSummary.homedirUsers)}</p>
+        <span class="home-member-action-cta">{i18n:home_awareness_card_identity_cta}</span>
+      </a>
+    </div>
+  </section>
+
   {#if userAuthenticated}
   <section class="home-member-command-grid" aria-label="{i18n:home_p1_mission_title}">
     <article class="section-card home-member-card">
