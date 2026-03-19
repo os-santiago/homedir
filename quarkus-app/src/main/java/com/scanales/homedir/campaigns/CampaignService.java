@@ -24,12 +24,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -243,6 +245,10 @@ public class CampaignService {
   }
 
   public CampaignPreviewSnapshot preview(String localeCode) {
+    return preview(localeCode, CampaignAdminFilters.empty());
+  }
+
+  public CampaignPreviewSnapshot preview(String localeCode, CampaignAdminFilters filters) {
     CampaignStateSnapshot snapshot = currentState();
     ResourceBundle bundle = localizedBundle(localeCode);
     Locale locale = bundle.getLocale() == null ? Locale.forLanguageTag("es") : bundle.getLocale();
@@ -251,12 +257,15 @@ public class CampaignService {
     for (CampaignCadenceWindow window : cadenceGuidance.windowsByKind()) {
       cadenceByKind.put(window.label(), window.slotLabel());
     }
+    CampaignAdminFilters normalizedFilters = filters == null ? CampaignAdminFilters.empty() : filters;
+    List<CampaignDraftState> visibleDrafts =
+        filterDrafts(snapshot.drafts(), normalizedFilters, bundle, locale, cadenceByKind);
     List<CampaignPreviewCard> cards =
-        snapshot.drafts().stream()
+        visibleDrafts.stream()
             .map(item -> toPreview(item, bundle, locale, cadenceByKind))
             .toList();
     List<CampaignPreviewPack> previewPacks =
-        snapshot.drafts().stream()
+        visibleDrafts.stream()
             .map(draft -> {
               CampaignPreviewCard preview =
                   cards.stream().filter(item -> item.id().equals(draft.id())).findFirst().orElseThrow();
@@ -274,14 +283,14 @@ public class CampaignService {
         globalPublishingEnabled,
         List.copyOf(publisherStatuses),
         summarize(snapshot, bundle, locale),
-        recentActivity(snapshot, bundle, locale),
+        recentActivity(visibleDrafts, bundle, locale),
         cadenceGuidance,
         List.copyOf(previewPacks),
-        attributionSummary(snapshot, bundle),
+        attributionSummary(visibleDrafts, bundle),
         queueHealth(snapshot, bundle, locale),
-        queueRisks(snapshot, bundle, locale),
-        auditTrail(snapshot, bundle, locale),
-        snapshot.drafts().stream()
+        queueRisks(visibleDrafts, bundle, locale),
+        auditTrail(snapshot, visibleDrafts, normalizedFilters, bundle, locale),
+        visibleDrafts.stream()
             .filter(this::eligibleForLinkedinHandoff)
             .map(draft -> toLinkedinHandoff(draft, bundle, locale))
             .toList());
@@ -1118,13 +1127,68 @@ public class CampaignService {
         snapshot.drafts().size());
   }
 
+  private List<CampaignDraftState> filterDrafts(
+      List<CampaignDraftState> drafts,
+      CampaignAdminFilters filters,
+      ResourceBundle bundle,
+      Locale locale,
+      Map<String, String> cadenceByKind) {
+    if (filters == null || !filters.hasAny()) {
+      return List.copyOf(drafts);
+    }
+    return drafts.stream()
+        .filter(draft -> matchesDraftFilters(draft, filters, bundle, locale, cadenceByKind))
+        .toList();
+  }
+
+  private boolean matchesDraftFilters(
+      CampaignDraftState draft,
+      CampaignAdminFilters filters,
+      ResourceBundle bundle,
+      Locale locale,
+      Map<String, String> cadenceByKind) {
+    if (filters == null) {
+      return true;
+    }
+    if (!filters.workflow().isBlank()
+        && !draft.workflowState().name().equalsIgnoreCase(filters.workflow())) {
+      return false;
+    }
+    if (!filters.kind().isBlank() && !draft.kind().equalsIgnoreCase(filters.kind())) {
+      return false;
+    }
+    if (!filters.channel().isBlank()
+        && !draft.suggestedChannels().contains(filters.channel())
+        && !draft.publishedChannels().containsKey(filters.channel())) {
+      return false;
+    }
+    if (filters.query().isBlank()) {
+      return true;
+    }
+    CampaignPreviewCard preview = toPreview(draft, bundle, locale, cadenceByKind);
+    String haystack =
+        String.join(
+            "\n",
+            draft.id(),
+            draft.kind(),
+            preview.title(),
+            preview.body(),
+            preview.ctaLabel(),
+            String.join(" ", preview.evidence()));
+    return normalizeSearch(haystack).contains(normalizeSearch(filters.query()));
+  }
+
+  private String normalizeSearch(String raw) {
+    return raw == null ? "" : raw.toLowerCase(Locale.ROOT).trim();
+  }
+
   private List<CampaignRecentActivity> recentActivity(
-      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+      List<CampaignDraftState> drafts, ResourceBundle bundle, Locale locale) {
     Map<String, String> cadenceByKind = new LinkedHashMap<>();
     for (CampaignCadenceWindow window : cadenceGuidance(bundle).windowsByKind()) {
       cadenceByKind.put(window.label(), window.slotLabel());
     }
-    return snapshot.drafts().stream()
+    return drafts.stream()
         .sorted(
             Comparator.comparing(CampaignDraftState::updatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(CampaignDraftState::generatedAt, Comparator.reverseOrder()))
@@ -1258,10 +1322,10 @@ public class CampaignService {
   }
 
   private List<CampaignAttributionSummary> attributionSummary(
-      CampaignStateSnapshot snapshot, ResourceBundle bundle) {
+      List<CampaignDraftState> drafts, ResourceBundle bundle) {
     Map<String, Long> metrics = usageMetricsService.snapshot();
     List<CampaignAttributionSummary> rows = new ArrayList<>();
-    for (CampaignDraftState draft : snapshot.drafts()) {
+    for (CampaignDraftState draft : drafts) {
       List<CampaignAttributionChannel> channels = new ArrayList<>();
       long total = 0L;
       for (String channel : List.of("discord", "bluesky", "mastodon", "linkedin")) {
@@ -1382,13 +1446,13 @@ public class CampaignService {
   }
 
   private List<CampaignQueueRiskItem> queueRisks(
-      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+      List<CampaignDraftState> drafts, ResourceBundle bundle, Locale locale) {
     Instant now = Instant.now();
     Map<String, String> cadenceByKind = new LinkedHashMap<>();
     for (CampaignCadenceWindow window : cadenceGuidance(bundle).windowsByKind()) {
       cadenceByKind.put(window.label(), window.slotLabel());
     }
-    return snapshot.drafts().stream()
+    return drafts.stream()
         .map(draft -> toRiskItem(draft, bundle, locale, now, cadenceByKind))
         .flatMap(Optional::stream)
         .sorted(
@@ -1526,8 +1590,17 @@ public class CampaignService {
   }
 
   private List<CampaignAuditTrailEntry> auditTrail(
-      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+      CampaignStateSnapshot snapshot,
+      List<CampaignDraftState> visibleDrafts,
+      CampaignAdminFilters filters,
+      ResourceBundle bundle,
+      Locale locale) {
+    Set<String> visibleIds = new HashSet<>();
+    for (CampaignDraftState draft : visibleDrafts) {
+      visibleIds.add(draft.id());
+    }
     return snapshot.activity().stream()
+        .filter(item -> matchesAuditFilters(item, visibleIds, filters))
         .sorted(
             Comparator.comparing(
                 CampaignActivityEntry::timestamp,
@@ -1535,6 +1608,17 @@ public class CampaignService {
         .limit(18)
         .map(item -> toAuditTrailEntry(item, bundle, locale))
         .toList();
+  }
+
+  private boolean matchesAuditFilters(
+      CampaignActivityEntry item, Set<String> visibleDraftIds, CampaignAdminFilters filters) {
+    if (filters == null || !filters.hasAny()) {
+      return true;
+    }
+    if (item.draftId().isBlank()) {
+      return false;
+    }
+    return visibleDraftIds.contains(item.draftId());
   }
 
   private CampaignAuditTrailEntry toAuditTrailEntry(
@@ -1616,6 +1700,19 @@ public class CampaignService {
       List<CampaignQueueRiskItem> queueRisks,
       List<CampaignAuditTrailEntry> auditTrail,
       List<CampaignLinkedinHandoff> linkedinHandoffs) {}
+
+  public record CampaignAdminFilters(String query, String workflow, String kind, String channel) {
+    public static CampaignAdminFilters empty() {
+      return new CampaignAdminFilters("", "", "", "");
+    }
+
+    public boolean hasAny() {
+      return !(query == null || query.isBlank())
+          || !(workflow == null || workflow.isBlank())
+          || !(kind == null || kind.isBlank())
+          || !(channel == null || channel.isBlank());
+    }
+  }
 
   public record CampaignPublisherPreviewStatus(
       String channelCode,

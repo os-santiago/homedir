@@ -332,6 +332,42 @@ class CampaignServiceTest {
   }
 
   @Test
+  void previewCanFilterCampaignDraftsAndAuditTrail() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "DevOpsDays Santiago 2026",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+
+    CampaignService.CampaignPreviewSnapshot preview =
+        campaignService.preview(
+            "es",
+            new CampaignService.CampaignAdminFilters(
+                "DevOpsDays", "approved", "event_spotlight", "linkedin"));
+
+    assertEquals(1, preview.drafts().size());
+    assertEquals(target.id(), preview.drafts().getFirst().id());
+    assertTrue(preview.drafts().stream().allMatch(item -> "approved".equals(item.workflowStateCode())));
+    assertFalse(preview.auditTrail().isEmpty());
+    assertTrue(preview.auditTrail().stream().allMatch(item -> target.id().equals(item.draftId())));
+  }
+
+  @Test
   void queueHealthFlagsStaleAndOverdueDrafts() {
     Instant now = Instant.now();
     CampaignStateSnapshot snapshot =

@@ -5,10 +5,12 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.TestDataDir;
+import com.scanales.homedir.campaigns.CampaignService;
 import jakarta.ws.rs.core.MediaType;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import jakarta.inject.Inject;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,8 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 @QuarkusTestResource(TestDataDir.class)
 class AdminCampaignsPageTest {
+
+  @Inject CampaignService campaignService;
 
   @Test
   @TestSecurity(user = "alice")
@@ -32,6 +36,7 @@ class AdminCampaignsPageTest {
         .then()
         .statusCode(200)
         .body(containsString("id=\"campaignsRefreshBtn\""))
+        .body(containsString("id=\"campaignsFilterPanel\""))
         .body(containsString("id=\"campaignsPublishNowBtn\""))
         .body(containsString("id=\"campaignsSummaryPanel\""))
         .body(containsString("id=\"campaignsQueueHealthPanel\""))
@@ -48,6 +53,26 @@ class AdminCampaignsPageTest {
         .body(containsString("LinkedIn"))
         .body(containsString("utm_source=campaigns"))
         .body(containsString("/private/admin/campaigns/"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanFilterCampaignsPage() {
+    given()
+        .queryParam("q", "HomeDir")
+        .queryParam("kind", "product_pulse")
+        .queryParam("workflow", "draft")
+        .queryParam("channel", "linkedin")
+        .when()
+        .get("/private/admin/campaigns")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsFilterPanel\""))
+        .body(containsString("value=\"HomeDir\""))
+        .body(containsString("option value=\"product_pulse\" selected"))
+        .body(containsString("option value=\"draft\" selected"))
+        .body(containsString("option value=\"linkedin\" selected"))
+        .body(containsString("HomeDir"));
   }
 
   @Test
@@ -92,9 +117,13 @@ class AdminCampaignsPageTest {
 
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
-  void adminCanConfirmLinkedinHandoff() {
+  void adminActionsPreserveActiveFilters() {
     String html =
         given()
+            .queryParam("q", "HomeDir")
+            .queryParam("kind", "product_pulse")
+            .queryParam("workflow", "draft")
+            .queryParam("channel", "linkedin")
             .when()
             .get("/private/admin/campaigns")
             .then()
@@ -106,12 +135,33 @@ class AdminCampaignsPageTest {
     String draftId = matcher.group(1);
 
     given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("q", "HomeDir")
+        .formParam("kind", "product_pulse")
+        .formParam("workflow", "draft")
+        .formParam("channel", "linkedin")
         .when()
         .post("/private/admin/campaigns/" + draftId + "/approve")
         .then()
-        .statusCode(200);
+        .statusCode(200)
+        .body(containsString("value=\"HomeDir\""))
+        .body(containsString("option value=\"product_pulse\" selected"))
+        .body(containsString("option value=\"draft\" selected"))
+        .body(containsString("option value=\"linkedin\" selected"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanConfirmLinkedinHandoff() {
+    String draftId = campaignService.preview("es").drafts().getFirst().id();
+    campaignService.approveDraft(draftId, "sergio.canales.e@gmail.com");
 
     given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("q", "HomeDir")
+        .formParam("kind", "product_pulse")
+        .formParam("workflow", "draft")
+        .formParam("channel", "linkedin")
         .when()
         .post("/private/admin/campaigns/" + draftId + "/mark-linkedin")
         .then()
