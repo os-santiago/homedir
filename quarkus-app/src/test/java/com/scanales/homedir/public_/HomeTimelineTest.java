@@ -21,6 +21,8 @@ public class HomeTimelineTest {
         .body(containsString("HomeDir"))
         .body(containsString("HomeDir: build, learn, and level up with your community."))
         .body(containsString("How HomeDir works"))
+        .body(containsString("What changed in HomeDir"))
+        .body(containsString("Challenges + shareable proof"))
         .body(containsString("Turn login into visible impact"))
         .body(containsString("Community"))
         .body(containsString("Events"))
@@ -54,6 +56,8 @@ public class HomeTimelineTest {
         .body(containsString("HomeDir"))
         .body(containsString("HomeDir: construye, aprende y sube de nivel con tu comunidad."))
         .body(containsString("Cómo funciona HomeDir"))
+        .body(containsString("Qué cambió en HomeDir"))
+        .body(containsString("Challenges + prueba compartible"))
         .body(containsString("Comunidad"))
         .body(containsString("Eventos"));
   }

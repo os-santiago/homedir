@@ -1,0 +1,13 @@
+id: "058de6102fc9"
+title: "Securing Production Debugging in Kubernetes"
+url: "https://kubernetes.io/blog/2026/03/18/securing-production-debugging-in-kubernetes/"
+summary: "During production debugging, the fastest route is often broad access such as cluster-admin (a ClusterRole that grants administrator-level access), shared bastions/jump boxes, or long-lived SSH keys. It works in the moment, but it comes with two common problems: auditing becomes difficult, and temporary exceptions ha..."
+source: "kubernetes.io"
+published_at: "2026-03-18T18:00:00Z"
+created_at: "2026-03-19T09:39:04Z"
+media_type: "article_blog"
+tags:
+  - "security"
+  - "cloud-native"
+  - "platform-engineering"
+  - "community-curated"

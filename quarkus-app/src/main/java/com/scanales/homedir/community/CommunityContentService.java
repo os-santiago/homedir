@@ -5,12 +5,16 @@ import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +35,9 @@ public class CommunityContentService {
   private static final Logger LOG = Logger.getLogger(CommunityContentService.class);
   private static final int MAX_LIMIT = PaginationGuardrails.MAX_PAGE_LIMIT;
   private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
+  static final String BUNDLED_SEED_ROOT = "community-seed/";
+  static final String BUNDLED_SEED_INDEX = BUNDLED_SEED_ROOT + "index.txt";
+  static final String MANAGED_SEED_MANIFEST = ".bundled-seed-manifest";
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
@@ -174,10 +181,18 @@ public class CommunityContentService {
     Set<String> urls = new HashSet<>();
     List<CommunityContentItem> items = new ArrayList<>();
     try {
+      if (starterContentEnabled) {
+        SeedSyncResult seedSync = syncBundledSeedContent(dir, bundledSeedClassLoader());
+        LOG.infov(
+            "Bundled community seed synced total={0} written={1} removed={2}",
+            seedSync.totalFiles(),
+            seedSync.writtenFiles(),
+            seedSync.removedFiles());
+      }
       if (!Files.exists(dir)) {
-        LOG.warnf("Community content directory does not exist: %s", dir.toAbsolutePath());
+        LOG.warn("Community content directory is not available after seed sync");
       } else if (!Files.isDirectory(dir)) {
-        LOG.warnf("Community content path is not a directory: %s", dir.toAbsolutePath());
+        LOG.warn("Community content path is not a directory");
       } else {
         try (var stream = Files.list(dir)) {
           List<Path> files =
@@ -282,6 +297,108 @@ public class CommunityContentService {
     return starterContentEnabled && snapshot != null && snapshot.items().isEmpty();
   }
 
+  private static ClassLoader bundledSeedClassLoader() {
+    ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
+    return contextLoader != null ? contextLoader : CommunityContentService.class.getClassLoader();
+  }
+
+  static SeedSyncResult syncBundledSeedContent(Path contentDir, ClassLoader classLoader)
+      throws IOException {
+    Files.createDirectories(contentDir);
+    List<String> indexedFiles = readBundledSeedIndex(classLoader);
+    Set<String> currentFiles = new HashSet<>(indexedFiles);
+    Set<String> previousFiles = readManagedSeedManifest(contentDir);
+    int writtenFiles = 0;
+    int removedFiles = 0;
+
+    for (String fileName : indexedFiles) {
+      byte[] bundledBytes = readBundledSeedResource(classLoader, fileName);
+      Path target = managedSeedTarget(contentDir, fileName);
+      if (!Files.exists(target) || !Arrays.equals(Files.readAllBytes(target), bundledBytes)) {
+        Files.write(
+            target,
+            bundledBytes,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING,
+            StandardOpenOption.WRITE);
+        writtenFiles++;
+      }
+    }
+
+    for (String previousFile : previousFiles) {
+      if (currentFiles.contains(previousFile)) {
+        continue;
+      }
+      Path target = managedSeedTarget(contentDir, previousFile);
+      if (Files.exists(target) && Files.isRegularFile(target)) {
+        Files.delete(target);
+        removedFiles++;
+      }
+    }
+
+    writeManagedSeedManifest(contentDir, indexedFiles);
+    return new SeedSyncResult(indexedFiles.size(), writtenFiles, removedFiles);
+  }
+
+  static List<String> readBundledSeedIndex(ClassLoader classLoader) throws IOException {
+    try (InputStream stream = classLoader.getResourceAsStream(BUNDLED_SEED_INDEX)) {
+      if (stream == null) {
+        return List.of();
+      }
+      return new String(stream.readAllBytes())
+          .lines()
+          .map(String::trim)
+          .filter(line -> !line.isBlank())
+          .distinct()
+          .toList();
+    }
+  }
+
+  private static byte[] readBundledSeedResource(ClassLoader classLoader, String fileName)
+      throws IOException {
+    try (InputStream stream = classLoader.getResourceAsStream(BUNDLED_SEED_ROOT + fileName)) {
+      if (stream == null) {
+        throw new IOException("Missing bundled community seed resource");
+      }
+      return stream.readAllBytes();
+    }
+  }
+
+  private static Set<String> readManagedSeedManifest(Path contentDir) throws IOException {
+    Path manifest = contentDir.resolve(MANAGED_SEED_MANIFEST);
+    if (!Files.exists(manifest)) {
+      return Set.of();
+    }
+    return Files.readAllLines(manifest).stream()
+        .map(String::trim)
+        .filter(line -> !line.isBlank())
+        .collect(java.util.stream.Collectors.toCollection(HashSet::new));
+  }
+
+  private static void writeManagedSeedManifest(Path contentDir, List<String> indexedFiles)
+      throws IOException {
+    Path manifest = contentDir.resolve(MANAGED_SEED_MANIFEST);
+    String body = String.join(System.lineSeparator(), indexedFiles);
+    String normalizedBody = body.isBlank() ? "" : body + System.lineSeparator();
+    Files.writeString(
+        manifest,
+        normalizedBody,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING,
+        StandardOpenOption.WRITE);
+  }
+
+  private static Path managedSeedTarget(Path contentDir, String fileName) {
+    String normalized = fileName == null ? "" : fileName.trim();
+    if (normalized.isBlank()
+        || normalized.contains("/")
+        || normalized.contains("\\")
+        || !(normalized.endsWith(".yml") || normalized.endsWith(".yaml"))) {
+      throw new IllegalArgumentException("Invalid bundled community seed file");
+    }
+    return contentDir.resolve(normalized).normalize();
+  }
+
   private static List<CommunityContentItem> buildStarterItems() {
     Instant now = Instant.now();
     return List.of(
@@ -335,4 +452,6 @@ public class CommunityContentService {
       return new CacheSnapshot(List.of(), Map.of(), Set.of(), null, 0L, 0, 0);
     }
   }
+
+  record SeedSyncResult(int totalFiles, int writtenFiles, int removedFiles) {}
 }
