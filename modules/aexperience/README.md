@@ -1,8 +1,8 @@
-# Módulo Experimental de Experiencia Aumentada (EventFlow3)
+# Módulo Experimental de Experiencia Aumentada (Homedir)
 
 ## Propósito
 
-El módulo de Experiencia Aumentada de EventFlow3 es una iniciativa experimental orientada a explorar nuevas formas de interacción entre usuarios y plataformas en Homedir. Su objetivo es validar cómo la inteligencia artificial, la personalización dinámica y la navegación basada en intención pueden mejorar la experiencia digital sin comprometer la estabilidad del producto principal.
+El módulo de Experiencia Aumentada de Homedir es una iniciativa experimental orientada a explorar nuevas formas de interacción entre usuarios y plataformas en Homedir. Su objetivo es validar cómo la inteligencia artificial, la personalización dinámica y la navegación basada en intención pueden mejorar la experiencia digital sin comprometer la estabilidad del producto principal.
 
 ## Producto: Navia
 

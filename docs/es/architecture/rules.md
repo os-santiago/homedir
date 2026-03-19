@@ -1,10 +1,10 @@
 # Reglas de arquitectura (v1 · monorepo)
 
 ## Capas (paquetes)
-- `io.eventflow.api… | …web…` → UI/REST
-- `io.eventflow.app… | …service…` → aplicación/orquestación
-- `io.eventflow.domain…` → dominio (entidades/valor/reglas)
-- `io.eventflow.infra…` → persistencia / clientes externos
+- `io.homedir.api… | …web…` → UI/REST
+- `io.homedir.app… | …service…` → aplicación/orquestación
+- `io.homedir.domain…` → dominio (entidades/valor/reglas)
+- `io.homedir.infra…` → persistencia / clientes externos
 
 ## Reglas bloqueantes
 1) Sin ciclos entre paquetes.

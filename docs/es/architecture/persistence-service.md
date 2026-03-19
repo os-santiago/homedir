@@ -1,6 +1,6 @@
 # Servicio de persistencia centralizado
 
-La solución implementada expone un servicio HTTP dedicado a almacenar y recuperar el estado de EventFlow.
+La solución implementada expone un servicio HTTP dedicado a almacenar y recuperar el estado de Homedir.
 
 ## Endpoints
 - `GET /state/{key}`: obtiene el estado asociado a `key`.
@@ -18,4 +18,4 @@ Se ofrecen locks optimistas y pesimistas. Los clientes pueden solicitar un lock 
 Todas las mutaciones se registran en un WAL. En caso de fallo, el servicio puede reproducir las entradas para restaurar el estado. El WAL también sirve como fuente para replicación.
 
 ## Eventos
-Cuando cambia el estado, el servicio publica un evento `state.updated`. Esto permite que otros componentes de EventFlow reaccionen a la modificación y mantengan caches o vistas materializadas.
+Cuando cambia el estado, el servicio publica un evento `state.updated`. Esto permite que otros componentes de Homedir reaccionen a la modificación y mantengan caches o vistas materializadas.

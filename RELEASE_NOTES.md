@@ -20,7 +20,7 @@
 - `CommunityBoardResourceTest`
 - Result: `19 tests, 0 failures`.
 
-## EventFlow 2.2.3
+## Homedir 2.2.3
 
 **Resumen**
 - Canonicaliza el `redirect_uri` de GitHub para que siempre apunte a `/auth/post-login` y mueve la lógica a `GithubLinkService`, evitando diferencias entre entornos y el callback registrado.
@@ -33,10 +33,10 @@
 - Deploy workflow (tag `fix/deploy-logging`) publica el digest, loguea el estado de podman y usa las variables de entorno requeridas sin tocar `URI`s desde el recurso.
 
 **Container**
-- `quay.io/sergio_canales_e/eventflow:2.2.3` (alias)
+- `quay.io/sergio_canales_e/homedir:2.2.3` (alias)
 - Despliegue por digest siempre que sea posible; el pipeline lo registra en el artefacto `pr-image-ref`.
 
-## EventFlow 2.2.2
+## Homedir 2.2.2
 
 **Resumen**
 - Correcciones menores y mejoras de documentación.
@@ -47,5 +47,5 @@
 - Ver CHANGELOG para lista completa.
 
 **Container**
-- `quay.io/sergio_canales_e/eventflow:2.2.2` (alias)
+- `quay.io/sergio_canales_e/homedir:2.2.2` (alias)
 - Despliegue por digest recomendado (CD actual lo aplica).

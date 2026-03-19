@@ -1,6 +1,6 @@
 # Historia de usuario — "Confianza de extremo a extremo"
 
-Soy Elena, encargada de DevOps. Cada vez que publicamos una versión, EventFlow genera SBOMs y firma las imágenes del contenedor. La pipeline escanea dependencias y me alerta si aparece una vulnerabilidad.
+Soy Elena, encargada de DevOps. Cada vez que publicamos una versión, Homedir genera SBOMs y firma las imágenes del contenedor. La pipeline escanea dependencias y me alerta si aparece una vulnerabilidad.
 
 Desde un panel puedo ver los reportes y compartirlos con auditorías externas. Sé exactamente qué librería usamos y qué versión.
 

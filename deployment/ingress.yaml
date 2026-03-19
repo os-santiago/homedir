@@ -1,22 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: eventflow
-  namespace: eventflow
+  name: homedir
+  namespace: homedir
   annotations:
     kubernetes.io/ingress.class: gce
-    networking.gke.io/static-ip: "eventflow"
-    networking.gke.io/managed-certificates: eventflow-cert
+    networking.gke.io/static-ip: "homedir"
+    networking.gke.io/managed-certificates: homedir-cert
 spec:
   ingressClassName: gce
   rules:
-    - host: eventflow.opensourcesantiago.io
+    - host: homedir.opensourcesantiago.io
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: eventflow
+                name: homedir
                 port:
                   number: 8080

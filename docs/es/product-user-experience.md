@@ -1,6 +1,6 @@
-# Experiencia de Usuario — ¿Por qué EventFlow es para mí?
+# Experiencia de Usuario — ¿Por qué Homedir es para mí?
 
-EventFlow me ayuda a planificar y disfrutar eventos sin fricciones. Estas historias muestran cómo se vive cada funcionalidad:
+Homedir me ayuda a planificar y disfrutar eventos sin fricciones. Estas historias muestran cómo se vive cada funcionalidad:
 
 - [Explorar y registrar charlas a mi ritmo](features/event-discovery-registration.md)
 - [Entrar con mi cuenta Google en segundos](features/google-sign-in.md)

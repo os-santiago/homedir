@@ -1,6 +1,6 @@
 # Historia de usuario — "Explorar y registrar charlas a mi ritmo"
 
-Soy Javier. Desde mi laptop entro a EventFlow y veo de un vistazo las pistas y charlas disponibles. Marco como favoritas las que me interesan y mi agenda personal se actualiza al instante.
+Soy Javier. Desde mi laptop entro a Homedir y veo de un vistazo las pistas y charlas disponibles. Marco como favoritas las que me interesan y mi agenda personal se actualiza al instante.
 
 Mientras navego puedo filtrar por tema, horario o ponente, y cada charla tiene su tarjeta con descripción, sala y un botón para sumarla o quitarla de mi lista. En móvil la vista se adapta y puedo reorganizar mi día con un pulgar.
 
