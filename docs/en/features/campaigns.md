@@ -56,5 +56,6 @@ same ADEV discipline used to build the platform itself.
 - LinkedIn assisted handoff: implemented as manual copy prep + admin confirmation, without direct API publishing
 - Campaign admin observability: queue summary, recent activity, and pending LinkedIn handoff visibility enabled
 - Cadence guidance: Campaigns now recommends send windows from real HomeDir activity patterns before scheduling drafts
+- Channel-ready preview packs: internal per-channel copy previews are now available before approval or scheduling
 - Public posting: not enabled
 - Scheduler-driven external publication: available only when publisher config is enabled

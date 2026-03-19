@@ -35,11 +35,13 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsPublishNowBtn\""))
         .body(containsString("id=\"campaignsSummaryPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))
+        .body(containsString("id=\"campaignsPreviewPackPanel\""))
         .body(containsString("id=\"campaignsLinkedinPanel\""))
         .body(containsString("campaigns-admin-grid"))
         .body(containsString("campaigns-admin-list"))
         .body(containsString("Bluesky"))
         .body(containsString("Mastodon"))
+        .body(containsString("LinkedIn"))
         .body(containsString("/private/admin/campaigns/"));
   }
 

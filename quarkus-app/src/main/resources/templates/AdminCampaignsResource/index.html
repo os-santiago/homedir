@@ -124,6 +124,48 @@
       </div>
     </section>
 
+    <section class="admin-shell-panel" id="campaignsPreviewPackPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.previewPacksTitle}</p>
+          <h2>{copy.previewPacksIntro}</h2>
+        </div>
+      </div>
+      <div class="campaigns-admin-list">
+        {#for pack in view.previewPacks}
+          <article class="campaigns-admin-item">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{pack.kindLabel}</p>
+                <h3>{pack.title}</h3>
+              </div>
+              <span class="admin-observability-badge watch">{pack.workflowLabel}</span>
+            </div>
+            <p>{copy.bestWindowLabel}: {pack.recommendedWindowLabel}</p>
+            <div class="campaigns-admin-grid">
+              {#for channel in pack.channels}
+                <article class="section-card admin-shell-panel">
+                  <div class="admin-shell-card-header">
+                    <div>
+                      <p class="section-subtitle">{channel.channelLabel}</p>
+                      <h4>{channel.headline}</h4>
+                    </div>
+                    <span class="admin-observability-badge">{channel.readinessLabel}</span>
+                  </div>
+                  <div class="campaigns-admin-list">
+                    <article class="campaigns-admin-item"><strong>{copy.previewHeadlineLabel}</strong><span>{channel.headline}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.previewStatusLabel}</strong><span>{channel.readinessLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
+                  </div>
+                </article>
+              {/for}
+            </div>
+          </article>
+        {/for}
+      </div>
+    </section>
+
     <section class="admin-shell-panel" id="campaignsLinkedinPanel">
       <div class="admin-shell-card-header">
         <div>
