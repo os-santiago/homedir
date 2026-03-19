@@ -312,6 +312,14 @@ public class UsageMetricsService {
     String ua = headers.getHeaderString("User-Agent");
     String sessionId = context.session() != null ? context.session().id() : null;
     recordPageView(route, sessionId, ua);
+    if (context != null) {
+      String source = context.request().getParam("utm_source");
+      String channel = context.request().getParam("utm_medium");
+      String draftId = context.request().getParam("utm_content");
+      if ("campaigns".equalsIgnoreCase(source)) {
+        recordCampaignLandingVisit(channel, draftId);
+      }
+    }
   }
 
   public void recordPageView(String route, String sessionId, String ua) {
@@ -527,6 +535,18 @@ public class UsageMetricsService {
     recordObservabilityAction(normalized);
   }
 
+  public void recordCampaignLandingVisit(String channel, String draftId) {
+    String safeChannel = sanitizeCampaignToken(channel);
+    String safeDraftId = sanitizeCampaignToken(draftId);
+    if (safeChannel == null || safeDraftId == null) {
+      incrementDiscard("funnel_invalid");
+      return;
+    }
+    recordFunnelStep("campaign.visit");
+    recordFunnelStep("campaign.visit." + safeChannel);
+    recordFunnelStep("campaign.visit." + safeChannel + "." + safeDraftId);
+  }
+
   /** Records a refresh attempt for the admin metrics dashboard. */
   public void recordRefresh(boolean ok, long durationMs) {
     increment("refresh.count");
@@ -632,6 +652,27 @@ public class UsageMetricsService {
       }
     }
     if (safe.length() == 0 || safe.length() > 80) {
+      return null;
+    }
+    return safe.toString();
+  }
+
+  private static String sanitizeCampaignToken(String token) {
+    if (token == null || token.isBlank()) {
+      return null;
+    }
+    String normalized = token.trim().toLowerCase();
+    StringBuilder safe = new StringBuilder(normalized.length());
+    for (int i = 0; i < normalized.length(); i++) {
+      char c = normalized.charAt(i);
+      if ((c >= 'a' && c <= 'z')
+          || (c >= '0' && c <= '9')
+          || c == '-'
+          || c == '_') {
+        safe.append(c);
+      }
+    }
+    if (safe.length() == 0 || safe.length() > 64) {
       return null;
     }
     return safe.toString();

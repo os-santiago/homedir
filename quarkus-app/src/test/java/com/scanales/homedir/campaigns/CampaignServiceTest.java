@@ -95,6 +95,31 @@ class CampaignServiceTest {
     assertTrue(
         preview.previewPacks().stream()
             .anyMatch(pack -> pack.channels().stream().anyMatch(channel -> "discord".equals(channel.channelCode()))));
+    assertTrue(
+        preview.previewPacks().stream()
+            .anyMatch(pack -> pack.channels().stream().anyMatch(channel -> channel.landingUrl().contains("utm_source=campaigns"))));
+  }
+
+  @Test
+  void attributionSummaryIncludesDraftRows() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    campaignService.refreshDrafts();
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertTrue(
+        preview.attribution().stream()
+            .anyMatch(row -> "product-pulse".equals(row.draftId()) && row.kindLabel() != null));
   }
 
   @Test

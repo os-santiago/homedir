@@ -1,9 +1,12 @@
 package com.scanales.homedir.campaigns;
 
 final class CampaignPublishMessageSupport {
+  private static final String DEFAULT_BASE_URL = "https://homedir.opensourcesantiago.io";
+  private static final String DEFAULT_CAMPAIGN = "homedir-campaigns";
+
   private CampaignPublishMessageSupport() {}
 
-  static String messageFor(CampaignDraftState draft) {
+  static String messageFor(CampaignDraftState draft, String channel) {
     String title = safe(draft.metadata().get("eventTitle"));
     if (title.isBlank()) {
       title = safe(draft.metadata().get("title"));
@@ -11,16 +14,30 @@ final class CampaignPublishMessageSupport {
     if (title.isBlank()) {
       title = safe(draft.id());
     }
-    String ctaUrl = safe(draft.metadata().get("eventUrl"));
-    if (ctaUrl.isBlank()) {
-      ctaUrl = "/about";
-    }
     return "**HomeDir Campaign**\n"
         + title
         + "\n"
         + "Track the latest verified progress inside HomeDir.\n"
-        + "https://homedir.opensourcesantiago.io"
-        + ctaUrl;
+        + trackedUrl(draft, channel);
+  }
+
+  static String trackedUrl(CampaignDraftState draft, String channel) {
+    String path = safe(draft.metadata().get("eventUrl"));
+    if (path.isBlank()) {
+      path = "/about";
+    }
+    if (!path.startsWith("/")) {
+      path = "/" + path;
+    }
+    return DEFAULT_BASE_URL
+        + path
+        + (path.contains("?") ? "&" : "?")
+        + "utm_source=campaigns&utm_medium="
+        + sanitizeToken(channel, "internal")
+        + "&utm_campaign="
+        + DEFAULT_CAMPAIGN
+        + "&utm_content="
+        + sanitizeToken(draft.id(), "draft");
   }
 
   static String safe(String raw) {
@@ -51,5 +68,23 @@ final class CampaignPublishMessageSupport {
       normalized = normalized.substring(0, normalized.length() - 1);
     }
     return normalized;
+  }
+
+  private static String sanitizeToken(String value, String fallback) {
+    String normalized = safe(value).toLowerCase();
+    if (normalized.isBlank()) {
+      return fallback;
+    }
+    StringBuilder safe = new StringBuilder(normalized.length());
+    for (int i = 0; i < normalized.length(); i++) {
+      char c = normalized.charAt(i);
+      if ((c >= 'a' && c <= 'z')
+          || (c >= '0' && c <= '9')
+          || c == '-'
+          || c == '_') {
+        safe.append(c);
+      }
+    }
+    return safe.isEmpty() ? fallback : safe.toString();
   }
 }

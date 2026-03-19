@@ -66,7 +66,7 @@ public class CampaignDiscordPublisherService {
     try {
       String payload =
           "{\"content\":\""
-              + CampaignPublishMessageSupport.escapeJson(CampaignPublishMessageSupport.messageFor(draft))
+              + CampaignPublishMessageSupport.escapeJson(CampaignPublishMessageSupport.messageFor(draft, CHANNEL))
               + "\"}";
       HttpRequest request =
           HttpRequest.newBuilder()

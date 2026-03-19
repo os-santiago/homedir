@@ -154,10 +154,46 @@
                   </div>
                   <div class="campaigns-admin-list">
                     <article class="campaigns-admin-item"><strong>{copy.previewHeadlineLabel}</strong><span>{channel.headline}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.previewLandingLabel}</strong><span>{channel.landingUrl}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.previewStatusLabel}</strong><span>{channel.readinessLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
                   </div>
+                </article>
+              {/for}
+            </div>
+          </article>
+        {/for}
+      </div>
+    </section>
+
+    <section class="admin-shell-panel" id="campaignsAttributionPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.attributionTitle}</p>
+          <h2>{copy.attributionIntro}</h2>
+        </div>
+      </div>
+      <div class="campaigns-admin-list">
+        {#if view.attribution.isEmpty}
+          <article class="campaigns-admin-item">
+            <strong>{copy.attributionEmptyLabel}</strong>
+          </article>
+        {/if}
+        {#for item in view.attribution}
+          <article class="campaigns-admin-item">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{item.kindLabel}</p>
+                <h3>{item.title}</h3>
+              </div>
+              <span class="admin-observability-badge">{copy.attributionTotalLabel}: {item.totalVisits}</span>
+            </div>
+            <div class="campaigns-admin-list">
+              {#for channel in item.channels}
+                <article class="campaigns-admin-item">
+                  <strong>{channel.channelLabel}</strong>
+                  <span>{channel.visitsLabel}</span>
                 </article>
               {/for}
             </div>

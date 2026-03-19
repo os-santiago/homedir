@@ -57,5 +57,6 @@ same ADEV discipline used to build the platform itself.
 - Campaign admin observability: queue summary, recent activity, and pending LinkedIn handoff visibility enabled
 - Cadence guidance: Campaigns now recommends send windows from real HomeDir activity patterns before scheduling drafts
 - Channel-ready preview packs: internal per-channel copy previews are now available before approval or scheduling
+- Campaign attribution: tracked landing URLs and internal visit summaries are now available in admin
 - Public posting: not enabled
 - Scheduler-driven external publication: available only when publisher config is enabled

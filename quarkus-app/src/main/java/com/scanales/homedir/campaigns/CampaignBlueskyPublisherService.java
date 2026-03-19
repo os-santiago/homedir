@@ -110,7 +110,7 @@ public class CampaignBlueskyPublisherService {
 
       String message =
           CampaignPublishMessageSupport.truncate(
-              CampaignPublishMessageSupport.messageFor(draft), 280);
+              CampaignPublishMessageSupport.messageFor(draft, CHANNEL), 280);
       String recordJson =
           "{\"repo\":\""
               + CampaignPublishMessageSupport.escapeJson(did)
