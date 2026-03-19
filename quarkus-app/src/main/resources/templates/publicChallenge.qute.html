@@ -1,0 +1,94 @@
+{#include layout/main activePage="community"}
+{#title}{pageTitle}{/title}
+
+{#body}
+<link rel="stylesheet" href="/css/wrapped.css">
+
+<div class="wrapped-body-container">
+    <div class="wrapped-container wrapped-share-container">
+        <header class="wrapped-header wrapped-share-header">
+            <a href="{profilePath}" class="wrapped-back-link">{i18n:public_profile_challenge_back}</a>
+            <div class="wrapped-avatar-container">
+                {#if avatarUrl}
+                <img src="{avatarUrl}" alt="{displayName}" class="wrapped-avatar">
+                {#else}
+                <div class="wrapped-avatar wrapped-avatar-fallback">{displayName.substring(0,1)}</div>
+                {/if}
+                <div class="wrapped-rank-badge">{questClass}</div>
+            </div>
+            <p class="wrapped-subtitle">{questClassEmoji} {i18n:public_profile_challenge_share_eyebrow}</p>
+            <h1 class="wrapped-title">{challenge.title}</h1>
+            <p class="wrapped-subtext wrapped-share-intro">{challenge.description}</p>
+        </header>
+
+        <section class="wrapped-card wrapped-card-full wrapped-share-card">
+            <div class="wrapped-share-card-top">
+                <div>
+                    <span class="wrapped-stat-label">{i18n:public_profile_challenge_share_title}</span>
+                    <h2 class="wrapped-share-owner">{displayName}</h2>
+                </div>
+                <div class="wrapped-meta-row">
+                    <span class="wrapped-badge-pill">{challenge.classEmoji} {challenge.className}</span>
+                    <span class="wrapped-badge-pill">{challenge.rewardLabel}</span>
+                    <span class="wrapped-badge-pill">{challenge.progressLabel}</span>
+                </div>
+            </div>
+            <p class="wrapped-subtext">{challenge.completedLabel}</p>
+            <div class="wrapped-action-row wrapped-share-actions">
+                <button type="button" class="wrapped-btn-primary js-copy-link" data-copy-link="{challenge.sharePath}">
+                    {i18n:public_profile_challenges_copy}
+                </button>
+                <button type="button" class="wrapped-btn-secondary js-linkedin-share" data-share-link="{challenge.sharePath}">
+                    {i18n:public_profile_challenges_linkedin}
+                </button>
+                <a href="{profilePath}" class="wrapped-btn-secondary">{i18n:public_profile_challenge_open_profile}</a>
+            </div>
+        </section>
+    </div>
+</div>
+<script>
+    (() => {
+        const copyText = '{i18n:public_profile_challenges_copy}';
+        const copiedText = '{i18n:public_profile_challenges_copied}';
+        const copyFailedText = '{i18n:public_profile_challenges_copy_failed}';
+
+        document.querySelectorAll('.js-copy-link').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const relativePath = button.dataset.copyLink || '';
+                const absoluteUrl = new URL(relativePath, window.location.origin).toString();
+                try {
+                    if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(absoluteUrl);
+                    } else {
+                        const input = document.createElement('input');
+                        input.value = absoluteUrl;
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand('copy');
+                        input.remove();
+                    }
+                    button.textContent = copiedText;
+                    window.setTimeout(() => {
+                        button.textContent = copyText;
+                    }, 1600);
+                } catch (error) {
+                    button.textContent = copyFailedText;
+                    window.setTimeout(() => {
+                        button.textContent = copyText;
+                    }, 2000);
+                }
+            });
+        });
+
+        document.querySelectorAll('.js-linkedin-share').forEach((button) => {
+            button.addEventListener('click', () => {
+                const relativePath = button.dataset.shareLink || '';
+                const absoluteUrl = new URL(relativePath, window.location.origin).toString();
+                const shareUrl = new URL('https://www.linkedin.com/sharing/share-offsite/');
+                shareUrl.searchParams.set('url', absoluteUrl);
+                window.open(shareUrl.toString(), '_blank', 'noopener,noreferrer');
+            });
+        });
+    })();
+</script>
+{/body}

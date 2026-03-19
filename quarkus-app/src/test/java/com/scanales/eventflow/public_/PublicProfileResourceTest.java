@@ -3,11 +3,13 @@ package com.scanales.eventflow.public_;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
+import com.scanales.eventflow.challenges.ChallengeService;
 import com.scanales.eventflow.cfp.CfpSubmission;
 import com.scanales.eventflow.cfp.CfpEventConfigService;
 import com.scanales.eventflow.cfp.CfpSubmissionService;
 import com.scanales.eventflow.cfp.CfpSubmissionStatus;
 import com.scanales.eventflow.model.Event;
+import com.scanales.eventflow.model.GamificationActivity;
 import com.scanales.eventflow.model.UserProfile;
 import com.scanales.eventflow.model.QuestClass;
 import com.scanales.eventflow.service.EventService;
@@ -32,6 +34,7 @@ public class PublicProfileResourceTest {
   @Inject CfpEventConfigService cfpEventConfigService;
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject VolunteerApplicationService volunteerApplicationService;
+  @Inject ChallengeService challengeService;
 
   private static final String CFP_EVENT_ID = "public-cfp-event";
   private static final String VOLUNTEER_EVENT_ID = "public-volunteer-event";
@@ -40,6 +43,7 @@ public class PublicProfileResourceTest {
   void setup() {
     cfpSubmissionService.clearAllForTests();
     volunteerApplicationService.clearAllForTests();
+    challengeService.resetForTests();
     eventService.saveEvent(new Event(CFP_EVENT_ID, "Public CFP Event", "Public CFP profile view test"));
     eventService.saveEvent(new Event(VOLUNTEER_EVENT_ID, "Public Volunteer Event", "Public volunteer profile view test"));
     userProfileService.linkGithub(
@@ -116,6 +120,13 @@ public class PublicProfileResourceTest {
         "admin",
         "selected",
         volunteerCreated.updatedAt());
+
+    challengeService.recordActivity("public.user@example.com", GamificationActivity.COMMUNITY_VOTE);
+    challengeService.recordActivity("public.user@example.com", GamificationActivity.COMMUNITY_VOTE);
+    challengeService.recordActivity("public.user@example.com", GamificationActivity.COMMUNITY_VOTE);
+    challengeService.recordActivity(
+        "public.user@example.com", GamificationActivity.COMMUNITY_BOARD_MEMBERS_VIEW);
+    challengeService.recordActivity("public.user@example.com", GamificationActivity.BOARD_PROFILE_OPEN);
   }
 
   @Test
@@ -135,9 +146,37 @@ public class PublicProfileResourceTest {
         .body(containsString("Public CFP Event"))
         .body(containsString("Volunteer track record"))
         .body(containsString("Public Volunteer Event"))
+        .body(containsString("Completed challenges"))
+        .body(containsString("Community Scout"))
+        .body(containsString("Open challenge card"))
         .body(containsString("Class progression"))
         .body(containsString("Activities completed"))
         .body(containsString("Scientist"));
+  }
+
+  @Test
+  void completedChallengeHasPublicShareCard() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/u/public-user/challenges/community-scout")
+        .then()
+        .statusCode(200)
+        .body(containsString("Community Scout"))
+        .body(containsString("Verified challenge completion"))
+        .body(containsString("Copy public link"))
+        .body(containsString("Share on LinkedIn"))
+        .body(containsString("Public User"));
+  }
+
+  @Test
+  void incompleteChallengeShareCardIsNotPublic() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/u/public-user/challenges/event-explorer")
+        .then()
+        .statusCode(404);
   }
 
   @Test

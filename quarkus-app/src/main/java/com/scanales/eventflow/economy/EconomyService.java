@@ -713,7 +713,7 @@ public class EconomyService {
     alertHistory.put(code, now);
     String message = "Economy guardrail triggered: " + safeText(code, "unknown");
     systemErrorService.logError("WARN", "EconomyService", message + " (" + safeText(detail, "-") + ")", null, userId);
-    LOG.warnf("economy_guardrail_triggered code=%s user=%s detail=%s", code, userId, detail);
+    LOG.warnf("economy_guardrail_triggered code=%s", safeLogCode(code));
     if (!globalNotificationService.isResolvable()) {
       return;
     }
@@ -794,6 +794,18 @@ public class EconomyService {
       return fallback;
     }
     return value;
+  }
+
+  private static String safeLogCode(String value) {
+    if (value == null || value.isBlank()) {
+      return "unknown";
+    }
+    String normalized =
+        value
+            .trim()
+            .toLowerCase(Locale.ROOT)
+            .replaceAll("[^a-z0-9._-]", "_");
+    return normalized.isBlank() ? "unknown" : normalized;
   }
 
   public record CatalogOffer(

@@ -104,6 +104,30 @@
   color: black;
 }
 
+.wrapped-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.wrapped-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 215, 0, 0.4);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
 .wrapped-item-title {
   color: var(--text-primary);
 }
@@ -251,12 +275,103 @@
   grid-column: 1 / -1;
 }
 
+.wrapped-list-item-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.wrapped-challenge-summary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.wrapped-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wrapped-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.wrapped-share-container {
+  max-width: 760px;
+}
+
+.wrapped-share-header {
+  margin-bottom: 2rem;
+}
+
+.wrapped-share-intro {
+  max-width: 640px;
+  margin: 0.75rem auto 0;
+}
+
+.wrapped-share-card {
+  gap: 1rem;
+}
+
+.wrapped-share-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.wrapped-share-owner {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+}
+
+.wrapped-share-actions {
+  justify-content: flex-start;
+}
+
+.wrapped-back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.wrapped-back-link:hover {
+  color: var(--text-primary);
+}
+
 .wrapped-stat-label {
   color: var(--text-secondary);
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  .wrapped-challenge-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .wrapped-action-row,
+  .wrapped-share-actions {
+    width: 100%;
+  }
+
+  .wrapped-btn-primary,
+  .wrapped-btn-secondary {
+    width: 100%;
+  }
 }
 
 .wrapped-stat-value {

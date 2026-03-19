@@ -4701,6 +4701,39 @@ public interface AppMessages {
     @Message("Discord connected")
     String public_profile_discord_badge();
 
+    @Message("Completed challenges")
+    String public_profile_challenges_title();
+
+    @Message("No public challenge cards completed yet.")
+    String public_profile_challenges_empty();
+
+    @Message("Open challenge card")
+    String public_profile_challenges_open();
+
+    @Message("Copy public link")
+    String public_profile_challenges_copy();
+
+    @Message("Copied")
+    String public_profile_challenges_copied();
+
+    @Message("Copy failed")
+    String public_profile_challenges_copy_failed();
+
+    @Message("Share on LinkedIn")
+    String public_profile_challenges_linkedin();
+
+    @Message("Back to public profile")
+    String public_profile_challenge_back();
+
+    @Message("Open public profile")
+    String public_profile_challenge_open_profile();
+
+    @Message("Shareable challenge card")
+    String public_profile_challenge_share_eyebrow();
+
+    @Message("Verified challenge completion")
+    String public_profile_challenge_share_title();
+
     @Message("Unnamed member")
     String community_board_unnamed_member();
 
