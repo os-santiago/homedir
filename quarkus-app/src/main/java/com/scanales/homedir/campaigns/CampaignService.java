@@ -246,6 +246,7 @@ public class CampaignService {
         recentActivity(snapshot, bundle, locale),
         cadenceGuidance,
         List.copyOf(previewPacks),
+        attributionSummary(snapshot, bundle),
         snapshot.drafts().stream()
             .filter(this::eligibleForLinkedinHandoff)
             .map(draft -> toLinkedinHandoff(draft, bundle, locale))
@@ -1025,9 +1026,9 @@ public class CampaignService {
         preview.workflowLabel(),
         preview.body(),
         preview.ctaLabel(),
-        absoluteUrl(preview.ctaUrl()),
+        CampaignPublishMessageSupport.trackedUrl(draft, "linkedin"),
         linkedinHeadline(preview.title(), bundle),
-        linkedinMessage(draft, preview, bundle),
+        linkedinMessage(draft, preview, bundle, CampaignPublishMessageSupport.trackedUrl(draft, "linkedin")),
         completed ? bundleText(bundle, "campaigns_admin_linkedin_done") : bundleText(bundle, "campaigns_admin_linkedin_pending"),
         completed,
         localizedDateTime(draft.publishedChannels().get("linkedin"), locale));
@@ -1052,14 +1053,15 @@ public class CampaignService {
       String channelLabel,
       ResourceBundle bundle) {
     String channelCode = channelCodeForLabel(bundle, channelLabel);
+    String landingUrl = CampaignPublishMessageSupport.trackedUrl(draft, channelCode);
     String headline = preview.title();
     String message =
         switch (channelCode) {
-          case "discord" -> discordMessage(preview);
-          case "bluesky" -> socialMessage(preview, bundle, true);
-          case "mastodon" -> socialMessage(preview, bundle, false);
-          case "linkedin" -> linkedinMessage(draft, preview, bundle);
-          default -> socialMessage(preview, bundle, false);
+          case "discord" -> discordMessage(preview, landingUrl);
+          case "bluesky" -> socialMessage(preview, bundle, true, landingUrl);
+          case "mastodon" -> socialMessage(preview, bundle, false, landingUrl);
+          case "linkedin" -> linkedinMessage(draft, preview, bundle, landingUrl);
+          default -> socialMessage(preview, bundle, false, landingUrl);
         };
     int charCount = message.length();
     int limit =
@@ -1082,6 +1084,7 @@ public class CampaignService {
         channelLabel,
         headline,
         message,
+        landingUrl,
         named(bundle, "campaigns_admin_preview_length", Map.of("count", String.valueOf(charCount), "limit", String.valueOf(limit))),
         bundleText(bundle, readinessKey));
   }
@@ -1095,19 +1098,20 @@ public class CampaignService {
     return "";
   }
 
-  private String discordMessage(CampaignPreviewCard preview) {
+  private String discordMessage(CampaignPreviewCard preview, String landingUrl) {
     return safe(preview.title())
         + "\n"
         + safe(preview.body())
         + "\n"
         + safe(preview.ctaLabel())
         + ": "
-        + absoluteUrl(preview.ctaUrl());
+        + safe(landingUrl);
   }
 
-  private String socialMessage(CampaignPreviewCard preview, ResourceBundle bundle, boolean compact) {
+  private String socialMessage(
+      CampaignPreviewCard preview, ResourceBundle bundle, boolean compact, String landingUrl) {
     String separator = compact ? " — " : "\n";
-    String cta = safe(preview.ctaLabel()) + ": " + absoluteUrl(preview.ctaUrl());
+    String cta = safe(preview.ctaLabel()) + ": " + safe(landingUrl);
     String evidence =
         preview.evidence().isEmpty()
             ? ""
@@ -1115,12 +1119,56 @@ public class CampaignService {
     return safe(preview.title()) + separator + safe(preview.body()) + evidence + separator + cta;
   }
 
+  private List<CampaignAttributionSummary> attributionSummary(
+      CampaignStateSnapshot snapshot, ResourceBundle bundle) {
+    Map<String, Long> metrics = usageMetricsService.snapshot();
+    List<CampaignAttributionSummary> rows = new ArrayList<>();
+    for (CampaignDraftState draft : snapshot.drafts()) {
+      List<CampaignAttributionChannel> channels = new ArrayList<>();
+      long total = 0L;
+      for (String channel : List.of("discord", "bluesky", "mastodon", "linkedin")) {
+        long visits = metrics.getOrDefault("funnel:campaign.visit." + channel + "." + draft.id(), 0L);
+        total += visits;
+        if (visits > 0L) {
+          channels.add(
+              new CampaignAttributionChannel(
+                  channel,
+                  bundleText(bundle, "campaigns_channel_" + channel),
+                  String.valueOf(visits)));
+        }
+      }
+      rows.add(
+          new CampaignAttributionSummary(
+              draft.id(),
+              bundleText(bundle, "campaigns_kind_" + draft.kind()),
+              titleForAttribution(draft, bundle),
+              String.valueOf(total),
+              List.copyOf(channels)));
+    }
+    rows.sort(Comparator.comparingLong((CampaignAttributionSummary row) -> Long.parseLong(row.totalVisits())).reversed());
+    return List.copyOf(rows);
+  }
+
+  private String titleForAttribution(CampaignDraftState draft, ResourceBundle bundle) {
+    return switch (draft.kind()) {
+      case KIND_PRODUCT_PULSE -> named(bundle, "campaigns_product_pulse_title", Map.of("version", value(draft, "version")));
+      case KIND_CHALLENGE_SPOTLIGHT ->
+          named(
+              bundle,
+              "campaigns_challenge_title",
+              Map.of("challengeTitle", bundleText(bundle, value(draft, "challengeTitleKey"))));
+      case KIND_COMMUNITY_SPOTLIGHT -> named(bundle, "campaigns_community_title", Map.of("title", value(draft, "title")));
+      case KIND_EVENT_SPOTLIGHT -> named(bundle, "campaigns_event_title", Map.of("eventTitle", value(draft, "eventTitle")));
+      default -> draft.id();
+    };
+  }
+
   private String linkedinHeadline(String title, ResourceBundle bundle) {
     return named(bundle, "campaigns_admin_linkedin_headline", Map.of("title", safe(title)));
   }
 
   private String linkedinMessage(
-      CampaignDraftState draft, CampaignPreviewCard preview, ResourceBundle bundle) {
+      CampaignDraftState draft, CampaignPreviewCard preview, ResourceBundle bundle, String landingUrl) {
     return named(
         bundle,
         "campaigns_admin_linkedin_message",
@@ -1128,7 +1176,7 @@ public class CampaignService {
             "title", safe(preview.title()),
             "body", safe(preview.body()),
             "ctaLabel", safe(preview.ctaLabel()),
-            "ctaUrl", absoluteUrl(preview.ctaUrl()),
+            "ctaUrl", safe(landingUrl),
             "evidence", String.join(" · ", preview.evidence())));
   }
 
@@ -1156,6 +1204,7 @@ public class CampaignService {
       List<CampaignRecentActivity> recentActivity,
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
+      List<CampaignAttributionSummary> attribution,
       List<CampaignLinkedinHandoff> linkedinHandoffs) {}
 
   public record CampaignPublisherPreviewStatus(
@@ -1223,8 +1272,21 @@ public class CampaignService {
       String channelLabel,
       String headline,
       String message,
+      String landingUrl,
       String lengthLabel,
       String readinessLabel) {}
+
+  public record CampaignAttributionSummary(
+      String draftId,
+      String kindLabel,
+      String title,
+      String totalVisits,
+      List<CampaignAttributionChannel> channels) {}
+
+  public record CampaignAttributionChannel(
+      String channelCode,
+      String channelLabel,
+      String visitsLabel) {}
 
   public record CampaignLinkedinHandoff(
       String draftId,

@@ -74,7 +74,7 @@ public class CampaignMastodonPublisherService {
           CampaignPublishMessageSupport.normalizeBaseUrl(baseUrl.orElse(""), "");
       String message =
           CampaignPublishMessageSupport.truncate(
-              CampaignPublishMessageSupport.messageFor(draft), 450);
+              CampaignPublishMessageSupport.messageFor(draft, CHANNEL), 450);
       HttpRequest request =
           HttpRequest.newBuilder()
               .uri(URI.create(endpoint + "/api/v1/statuses"))
