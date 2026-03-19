@@ -124,7 +124,7 @@ public class GamificationService {
     Notification notification = new Notification();
     notification.userId = profile.getUserId();
     notification.type = NotificationType.SOCIAL;
-    notification.talkId = "challenge-" + safeChallengeKey(challengeId);
+    notification.talkId = "challenge-completion";
     notification.title = bundleText(bundle, "challenge_notification_title");
     notification.message =
         formatNamed(
