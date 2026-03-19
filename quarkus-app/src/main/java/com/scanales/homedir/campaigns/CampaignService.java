@@ -234,6 +234,14 @@ public class CampaignService {
             .toList());
   }
 
+  void resetStateForTests() {
+    synchronized (stateLock) {
+      currentState = CampaignStateSnapshot.empty();
+      persistenceService.saveCampaignStateSync(currentState);
+      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+    }
+  }
+
   private CampaignStateSnapshot generateAndPersist(String source) {
     CampaignStateSnapshot previous = currentState == null ? CampaignStateSnapshot.empty() : currentState;
     CampaignStateSnapshot snapshot =

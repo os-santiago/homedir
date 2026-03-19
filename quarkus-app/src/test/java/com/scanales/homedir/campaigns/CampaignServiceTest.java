@@ -43,6 +43,7 @@ class CampaignServiceTest {
   void setUp() {
     usageMetricsService.reset();
     eventService.reset();
+    campaignService.resetStateForTests();
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", false, true, false, false, Duration.ofMinutes(15)));
