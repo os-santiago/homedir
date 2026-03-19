@@ -287,6 +287,51 @@ class CampaignServiceTest {
   }
 
   @Test
+  void auditTrailCapturesWorkflowAndPublishingEvents() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    campaignService.scheduleDraft(
+        target.id(),
+        LocalDateTime.now().minusMinutes(10),
+        "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignPublishResult.published("discord", Instant.parse("2026-03-19T20:00:00Z"), "published"));
+
+    campaignService.publishScheduledNow();
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertFalse(preview.auditTrail().isEmpty());
+    assertTrue(
+        preview.auditTrail().stream()
+            .anyMatch(item -> item.draftId().equals(target.id()) && item.eventLabel() != null));
+    assertTrue(
+        preview.auditTrail().stream()
+            .anyMatch(item -> item.channelLabel().contains("Discord")));
+  }
+
+  @Test
   void queueHealthFlagsStaleAndOverdueDrafts() {
     Instant now = Instant.now();
     CampaignStateSnapshot snapshot =
@@ -345,7 +390,8 @@ class CampaignServiceTest {
                     true,
                     java.util.Map.of(),
                     null,
-                    "")));
+                    "")),
+            java.util.List.of());
     persistenceService.saveCampaignStateSync(snapshot);
 
     CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");

@@ -46,6 +46,7 @@ public class CampaignService {
   private static final Duration STALE_APPROVED_WINDOW = Duration.ofHours(24);
   private static final Duration OVERDUE_SCHEDULE_WINDOW = Duration.ofMinutes(30);
   private static final Duration STALE_LINKEDIN_HANDOFF_WINDOW = Duration.ofHours(24);
+  private static final int MAX_ACTIVITY_ENTRIES = 120;
 
   @Inject PersistenceService persistenceService;
   @Inject UsageMetricsService usageMetricsService;
@@ -117,8 +118,11 @@ public class CampaignService {
             now,
             source.sourceAvailable());
       });
-      persistenceService.saveCampaignState(currentState);
-      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      currentState =
+          appendActivity(
+              currentState,
+              draftActivity(draftId, "workflow.approved", "", "", safe(actor), Instant.now()));
+      saveState(currentState);
       recordWorkflowChange("CAMPAIGN_DRAFT_APPROVED", draftId);
       return currentState;
     }
@@ -134,8 +138,11 @@ public class CampaignService {
           null,
           Instant.now(),
           source.sourceAvailable()));
-      persistenceService.saveCampaignState(currentState);
-      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      currentState =
+          appendActivity(
+              currentState,
+              draftActivity(draftId, "workflow.reset", "", "", "system", Instant.now()));
+      saveState(currentState);
       recordWorkflowChange("CAMPAIGN_DRAFT_RESET", draftId);
       return currentState;
     }
@@ -157,8 +164,17 @@ public class CampaignService {
             now,
             source.sourceAvailable());
       });
-      persistenceService.saveCampaignState(currentState);
-      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      currentState =
+          appendActivity(
+              currentState,
+              draftActivity(
+                  draftId,
+                  "workflow.scheduled",
+                  "",
+                  scheduledFor.toString(),
+                  safe(actor),
+                  Instant.now()));
+      saveState(currentState);
       recordWorkflowChange("CAMPAIGN_DRAFT_SCHEDULED", draftId);
       return currentState;
     }
@@ -174,8 +190,11 @@ public class CampaignService {
           null,
           Instant.now(),
           source.sourceAvailable()));
-      persistenceService.saveCampaignState(currentState);
-      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      currentState =
+          appendActivity(
+              currentState,
+              draftActivity(draftId, "workflow.unscheduled", "", "", "system", Instant.now()));
+      saveState(currentState);
       recordWorkflowChange("CAMPAIGN_DRAFT_UNSCHEDULED", draftId);
       return currentState;
     }
@@ -201,8 +220,17 @@ public class CampaignService {
                       "published_linkedin_manual",
                       now,
                       safe(actor)));
-      persistenceService.saveCampaignState(currentState);
-      lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      currentState =
+          appendActivity(
+              currentState,
+              draftActivity(
+                  draftId,
+                  "publish.linkedin.manual",
+                  "linkedin",
+                  "published_linkedin_manual",
+                  safe(actor),
+                  now));
+      saveState(currentState);
       recordWorkflowChange("CAMPAIGN_LINKEDIN_HANDOFF_COMPLETED", draftId);
       recordPublishInsight(
           eventNameForChannel("linkedin", true),
@@ -252,6 +280,7 @@ public class CampaignService {
         attributionSummary(snapshot, bundle),
         queueHealth(snapshot, bundle, locale),
         queueRisks(snapshot, bundle, locale),
+        auditTrail(snapshot, bundle, locale),
         snapshot.drafts().stream()
             .filter(this::eligibleForLinkedinHandoff)
             .map(draft -> toLinkedinHandoff(draft, bundle, locale))
@@ -272,12 +301,23 @@ public class CampaignService {
         new CampaignStateSnapshot(
             CampaignStateSnapshot.SCHEMA_VERSION,
             Instant.now(),
-            mergeDrafts(previous.drafts(), buildDrafts()));
-    currentState = snapshot;
-    persistenceService.saveCampaignState(snapshot);
-    lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
-    recordInsightRefresh(snapshot, source);
-    return snapshot;
+            mergeDrafts(previous.drafts(), buildDrafts()),
+            previous.activity());
+    currentState =
+        appendActivity(
+            snapshot,
+            new CampaignActivityEntry(
+                Instant.now(),
+                "",
+                "",
+                "",
+                "system.refresh",
+                "",
+                safe(source),
+                "system"));
+    saveState(currentState);
+    recordInsightRefresh(currentState, source);
+    return currentState;
   }
 
   private List<CampaignDraftState> buildDrafts() {
@@ -625,26 +665,43 @@ public class CampaignService {
   private CampaignStateSnapshot publishScheduledDrafts(String source) {
     refreshFromDisk(false);
     Instant now = Instant.now();
-    List<CampaignDraftState> drafts = currentState.drafts().stream().map(draft -> publishIfDue(draft, now, source)).toList();
-    currentState = new CampaignStateSnapshot(CampaignStateSnapshot.SCHEMA_VERSION, currentState.generatedAt(), drafts);
-    persistenceService.saveCampaignState(currentState);
-    lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+    List<CampaignActivityEntry> activity = new ArrayList<>();
+    List<CampaignDraftState> drafts =
+        currentState.drafts().stream()
+            .map(
+                draft -> {
+                  PublishMutation mutation = publishIfDue(draft, now, source);
+                  activity.addAll(mutation.activity());
+                  return mutation.draft();
+                })
+            .toList();
+    currentState =
+        new CampaignStateSnapshot(
+            CampaignStateSnapshot.SCHEMA_VERSION,
+            currentState.generatedAt(),
+            drafts,
+            currentState.activity());
+    for (CampaignActivityEntry item : activity) {
+      currentState = appendActivity(currentState, item);
+    }
+    saveState(currentState);
     return currentState;
   }
 
-  private CampaignDraftState publishIfDue(CampaignDraftState draft, Instant now, String source) {
+  private PublishMutation publishIfDue(CampaignDraftState draft, Instant now, String source) {
     if ((draft.workflowState() != CampaignWorkflowState.SCHEDULED
             && draft.workflowState() != CampaignWorkflowState.PUBLISHED)
         || draft.scheduledFor() == null) {
-      return draft;
+      return new PublishMutation(draft, List.of());
     }
     if (draft.scheduledFor().isAfter(now)) {
-      return draft;
+      return new PublishMutation(draft, List.of());
     }
     Map<String, Instant> nextPublishedChannels = new LinkedHashMap<>(draft.publishedChannels());
     CampaignWorkflowState nextState = draft.workflowState();
     Instant lastAttemptAt = draft.lastPublishAttemptAt();
     String lastOutcome = draft.lastPublishOutcome();
+    List<CampaignActivityEntry> activity = new ArrayList<>();
     for (CampaignPublisherStatus status : publisherStatuses()) {
       if (!draft.suggestedChannels().contains(status.channel())) {
         continue;
@@ -663,18 +720,44 @@ public class CampaignService {
         nextPublishedChannels.put(result.channel(), publishedAt);
         nextState = CampaignWorkflowState.PUBLISHED;
         recordPublishInsight(eventNameForChannel(result.channel(), true), draft.id(), source, result.channel(), result.outcome());
+        activity.add(
+            draftActivity(
+                draft.id(),
+                "publish.channel",
+                result.channel(),
+                safe(result.outcome()),
+                "system",
+                publishedAt));
       } else if (result.skipped()) {
         recordPublishInsight("CAMPAIGN_PUBLISH_SKIPPED", draft.id(), source, result.channel(), result.outcome());
+        activity.add(
+            draftActivity(
+                draft.id(),
+                "publish.skipped",
+                result.channel(),
+                safe(result.outcome()),
+                "system",
+                now));
       } else {
         recordPublishInsight("CAMPAIGN_PUBLISH_FAILED", draft.id(), source, result.channel(), result.outcome());
+        activity.add(
+            draftActivity(
+                draft.id(),
+                "publish.failed",
+                result.channel(),
+                safe(result.outcome()),
+                "system",
+                now));
       }
     }
-    return draft.withPublishStatus(
-        nextState,
-        Map.copyOf(nextPublishedChannels),
-        lastAttemptAt,
-        lastOutcome,
-        now);
+    return new PublishMutation(
+        draft.withPublishStatus(
+            nextState,
+            Map.copyOf(nextPublishedChannels),
+            lastAttemptAt,
+            lastOutcome,
+            now),
+        List.copyOf(activity));
   }
 
   private CampaignPublishResult publishToChannel(String channel, CampaignDraftState draft) {
@@ -724,7 +807,58 @@ public class CampaignService {
       }
       return item;
     }).toList();
-    return new CampaignStateSnapshot(CampaignStateSnapshot.SCHEMA_VERSION, currentState.generatedAt(), drafts);
+    return new CampaignStateSnapshot(
+        CampaignStateSnapshot.SCHEMA_VERSION,
+        currentState.generatedAt(),
+        drafts,
+        currentState.activity());
+  }
+
+  private CampaignStateSnapshot appendActivity(
+      CampaignStateSnapshot snapshot, CampaignActivityEntry entry) {
+    if (entry == null) {
+      return snapshot;
+    }
+    List<CampaignActivityEntry> nextActivity = new ArrayList<>(snapshot.activity());
+    nextActivity.add(entry);
+    if (nextActivity.size() > MAX_ACTIVITY_ENTRIES) {
+      nextActivity = nextActivity.subList(nextActivity.size() - MAX_ACTIVITY_ENTRIES, nextActivity.size());
+    }
+    return new CampaignStateSnapshot(
+        CampaignStateSnapshot.SCHEMA_VERSION,
+        snapshot.generatedAt(),
+        snapshot.drafts(),
+        List.copyOf(nextActivity));
+  }
+
+  private void saveState(CampaignStateSnapshot snapshot) {
+    persistenceService.saveCampaignState(snapshot);
+    lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+  }
+
+  private CampaignActivityEntry draftActivity(
+      String draftId,
+      String eventCode,
+      String channel,
+      String outcome,
+      String actor,
+      Instant timestamp) {
+    CampaignDraftState draft =
+        currentState.drafts().stream().filter(item -> item.id().equals(draftId)).findFirst().orElse(null);
+    String kind = draft == null ? "" : safe(draft.kind());
+    String workflow =
+        draft == null || draft.workflowState() == null
+            ? ""
+            : draft.workflowState().name().toLowerCase(Locale.ROOT);
+    return new CampaignActivityEntry(
+        timestamp == null ? Instant.now() : timestamp,
+        safe(draftId),
+        kind,
+        workflow,
+        safe(eventCode),
+        safe(channel),
+        safe(outcome),
+        safe(actor));
   }
 
   private DevelopmentInsightsStatus safeInsightsStatus() {
@@ -1391,6 +1525,68 @@ public class CampaignService {
         mastodonPublisherService.status());
   }
 
+  private List<CampaignAuditTrailEntry> auditTrail(
+      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+    return snapshot.activity().stream()
+        .sorted(
+            Comparator.comparing(
+                CampaignActivityEntry::timestamp,
+                Comparator.nullsLast(Comparator.reverseOrder())))
+        .limit(18)
+        .map(item -> toAuditTrailEntry(item, bundle, locale))
+        .toList();
+  }
+
+  private CampaignAuditTrailEntry toAuditTrailEntry(
+      CampaignActivityEntry item, ResourceBundle bundle, Locale locale) {
+    String title =
+        item.draftId().isBlank()
+            ? bundleText(bundle, "campaigns_admin_audit_system")
+            : titleForDraftId(item.draftId(), bundle, locale);
+    String kindLabel =
+        item.kind().isBlank()
+            ? bundleText(bundle, "campaigns_admin_audit_system")
+            : bundleText(bundle, "campaigns_kind_" + item.kind());
+    String workflowLabel =
+        item.workflowState().isBlank()
+            ? bundleText(bundle, "campaigns_admin_audit_system")
+            : bundleText(bundle, "campaigns_workflow_" + item.workflowState());
+    String eventLabel =
+        item.eventCode().isBlank()
+            ? bundleText(bundle, "campaigns_admin_audit_system")
+            : bundleText(bundle, "campaigns_admin_audit_event_" + item.eventCode());
+    String channelLabel =
+        item.channel().isBlank()
+            ? "—"
+            : bundleText(bundle, "campaigns_channel_" + item.channel());
+    String outcomeLabel =
+        item.outcome().isBlank()
+            ? "—"
+            : bundleText(bundle, "campaigns_publish_outcome_" + item.outcome());
+    String actorLabel =
+        item.actor().isBlank() || "system".equals(item.actor())
+            ? bundleText(bundle, "campaigns_admin_audit_system")
+            : item.actor();
+    return new CampaignAuditTrailEntry(
+        item.draftId(),
+        title,
+        kindLabel,
+        workflowLabel,
+        eventLabel,
+        channelLabel,
+        outcomeLabel,
+        actorLabel,
+        localizedDateTime(item.timestamp(), locale));
+  }
+
+  private String titleForDraftId(String draftId, ResourceBundle bundle, Locale locale) {
+    return currentState.drafts().stream()
+        .filter(item -> item.id().equals(draftId))
+        .findFirst()
+        .map(draft -> toPreview(draft, bundle, locale, Map.of()).title())
+        .orElse(draftId);
+  }
+
   private String absoluteUrl(String path) {
     String baseUrl = CampaignPublishMessageSupport.normalizeBaseUrl(publicBaseUrl, "https://homedir.opensourcesantiago.io");
     String normalizedPath = safe(path);
@@ -1418,6 +1614,7 @@ public class CampaignService {
       List<CampaignAttributionSummary> attribution,
       CampaignQueueHealth queueHealth,
       List<CampaignQueueRiskItem> queueRisks,
+      List<CampaignAuditTrailEntry> auditTrail,
       List<CampaignLinkedinHandoff> linkedinHandoffs) {}
 
   public record CampaignPublisherPreviewStatus(
@@ -1523,6 +1720,19 @@ public class CampaignService {
       String badgeClass,
       int severityRank,
       Instant referenceAt) {}
+
+  public record CampaignAuditTrailEntry(
+      String draftId,
+      String title,
+      String kindLabel,
+      String workflowLabel,
+      String eventLabel,
+      String channelLabel,
+      String outcomeLabel,
+      String actorLabel,
+      String timestampLabel) {}
+
+  private record PublishMutation(CampaignDraftState draft, List<CampaignActivityEntry> activity) {}
 
   public record CampaignLinkedinHandoff(
       String draftId,
