@@ -837,6 +837,24 @@ public class AdminMetricsResource {
             volunteerLoungePost,
             funnelConversion(volunteerLoungePost, loginSuccess)));
 
+    long challengeStarted =
+        resolveFunnelCountWithPrefix(snap, "challenge.started", "challenge.started.");
+    rows.add(
+        new FunnelRow(
+            "challenge_started",
+            "Challenge started",
+            challengeStarted,
+            funnelConversion(challengeStarted, loginSuccess)));
+
+    long challengeCompleted =
+        resolveFunnelCountWithPrefix(snap, "challenge.completed", "challenge.completed.");
+    rows.add(
+        new FunnelRow(
+            "challenge_completed",
+            "Challenge completed",
+            challengeCompleted,
+            funnelConversion(challengeCompleted, loginSuccess)));
+
     long boardProfileOpen = resolveFunnelCount(snap, "board_profile_open");
     rows.add(
         new FunnelRow(
@@ -865,6 +883,19 @@ public class AdminMetricsResource {
       fallbackCount += snap.getOrDefault("funnel:" + alias, 0L);
     }
     return fallbackCount;
+  }
+
+  private static long resolveFunnelCountWithPrefix(
+      Map<String, Long> snap, String canonical, String prefixedCanonical) {
+    long canonicalCount = resolveFunnelCount(snap, canonical);
+    if (canonicalCount > 0L || prefixedCanonical == null || prefixedCanonical.isBlank()) {
+      return canonicalCount;
+    }
+    String prefix = "funnel:" + prefixedCanonical;
+    return snap.entrySet().stream()
+        .filter(entry -> entry.getKey() != null && entry.getKey().startsWith(prefix))
+        .mapToLong(Map.Entry::getValue)
+        .sum();
   }
 
   private String formatAge(long lastMillis) {

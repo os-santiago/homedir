@@ -8,6 +8,7 @@ import com.scanales.eventflow.service.UserProfileService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -49,12 +50,14 @@ public class ChallengeService {
     synchronized (stateLock) {
       refreshFromDisk(false);
       boolean changed = false;
+      List<String> started = new ArrayList<>();
       List<String> completed = new ArrayList<>();
       List<String> rewarded = new ArrayList<>();
       Map<String, ChallengeProgress> userState = userProgress(normalizedUserId);
 
       ChallengeMutation baseline = applyDerivedOpenSourceIdentity(normalizedUserId, userState);
       changed |= baseline.changed();
+      started.addAll(baseline.startedIds());
       completed.addAll(baseline.completedIds());
       rewarded.addAll(baseline.rewardedIds());
 
@@ -85,10 +88,14 @@ public class ChallengeService {
         }
         ChallengeMutation completion = ensureCompletionAndReward(normalizedUserId, definition, next, now);
         next = completion.progress();
+        if (progressChanged && current.startedAt() == null && next.startedAt() != null) {
+          started.add(definition.id());
+        }
         if (progressChanged || completion.changed()) {
           userState.put(definition.id(), next);
           changed = true;
         }
+        started.addAll(completion.startedIds());
         completed.addAll(completion.completedIds());
         rewarded.addAll(completion.rewardedIds());
       }
@@ -96,7 +103,8 @@ public class ChallengeService {
       if (changed) {
         persistAsync();
       }
-      return new ChallengeActivityResult(List.copyOf(completed), List.copyOf(rewarded));
+      return new ChallengeActivityResult(
+          List.copyOf(started), List.copyOf(completed), List.copyOf(rewarded));
     }
   }
 
@@ -144,6 +152,78 @@ public class ChallengeService {
       ChallengeStateSnapshot snapshot = ChallengeStateSnapshot.empty();
       persistenceService.saveChallengeStateSync(snapshot);
       lastKnownStateMtime = persistenceService.challengeStateLastModifiedMillis();
+    }
+  }
+
+  public List<ChallengeTrend> trendingChallenges(Duration window, int limit) {
+    int cappedLimit = Math.max(1, Math.min(limit, 10));
+    Instant cutoff =
+        (window == null || window.isNegative() || window.isZero())
+            ? Instant.EPOCH
+            : Instant.now().minus(window);
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      Map<String, Long> completionsByChallenge = new LinkedHashMap<>();
+      Map<String, Instant> latestCompletionByChallenge = new LinkedHashMap<>();
+      for (Map<String, ChallengeProgress> userState : progressByUser.values()) {
+        for (ChallengeProgress progress : userState.values()) {
+          if (progress == null || progress.challengeId() == null || progress.completedAt() == null) {
+            continue;
+          }
+          if (progress.completedAt().isBefore(cutoff)) {
+            continue;
+          }
+          completionsByChallenge.merge(progress.challengeId(), 1L, Long::sum);
+          latestCompletionByChallenge.merge(
+              progress.challengeId(), progress.completedAt(), (left, right) -> left.isAfter(right) ? left : right);
+        }
+      }
+      return completionsByChallenge.entrySet().stream()
+          .map(
+              entry -> {
+                ChallengeDefinition definition = ChallengeCatalog.find(entry.getKey());
+                return new ChallengeTrend(
+                    entry.getKey(),
+                    definition != null ? definition.rewardHcoin() : 0,
+                    entry.getValue(),
+                    latestCompletionByChallenge.get(entry.getKey()));
+              })
+          .sorted(
+              java.util.Comparator.comparingLong(ChallengeTrend::completions).reversed()
+                  .thenComparing(ChallengeTrend::latestCompletedAt, java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
+                  .thenComparing(ChallengeTrend::challengeId))
+          .limit(cappedLimit)
+          .toList();
+    }
+  }
+
+  public ChallengeLeaderboard leaderboardForUser(String userId) {
+    String normalizedUserId = normalizeUserId(userId);
+    if (normalizedUserId == null) {
+      return new ChallengeLeaderboard(0, 0, 0);
+    }
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      List<UserChallengeRank> ranking = progressByUser.entrySet().stream()
+          .map(entry -> new UserChallengeRank(entry.getKey(), completedCount(entry.getValue())))
+          .filter(entry -> entry.completedCount() > 0)
+          .sorted(
+              java.util.Comparator.comparingInt(UserChallengeRank::completedCount).reversed()
+                  .thenComparing(UserChallengeRank::userId))
+          .toList();
+      int completed = ranking.stream()
+          .filter(entry -> normalizedUserId.equals(entry.userId()))
+          .mapToInt(UserChallengeRank::completedCount)
+          .findFirst()
+          .orElse(0);
+      int rank = 0;
+      for (int i = 0; i < ranking.size(); i++) {
+        if (normalizedUserId.equals(ranking.get(i).userId())) {
+          rank = i + 1;
+          break;
+        }
+      }
+      return new ChallengeLeaderboard(rank, ranking.size(), completed);
     }
   }
 
@@ -229,6 +309,7 @@ public class ChallengeService {
     return new ChallengeMutation(
         changed || completion.changed(),
         next,
+        changed && current.startedAt() == null && next.startedAt() != null ? List.of(definition.id()) : List.of(),
         completion.completedIds(),
         completion.rewardedIds());
   }
@@ -289,7 +370,7 @@ public class ChallengeService {
       }
     }
 
-    return new ChallengeMutation(changed, next, completedIds, rewardedIds);
+    return new ChallengeMutation(changed, next, List.of(), completedIds, rewardedIds);
   }
 
   private static boolean isCompleted(ChallengeProgress progress, ChallengeDefinition definition) {
@@ -329,11 +410,17 @@ public class ChallengeService {
     return normalized.isBlank() ? "unknown" : normalized;
   }
 
-  public record ChallengeActivityResult(List<String> completedChallengeIds, List<String> rewardedChallengeIds) {
+  public record ChallengeActivityResult(
+      List<String> startedChallengeIds, List<String> completedChallengeIds, List<String> rewardedChallengeIds) {
     static ChallengeActivityResult empty() {
-      return new ChallengeActivityResult(List.of(), List.of());
+      return new ChallengeActivityResult(List.of(), List.of(), List.of());
     }
   }
+
+  public record ChallengeTrend(
+      String challengeId, int rewardHcoin, long completions, Instant latestCompletedAt) {}
+
+  public record ChallengeLeaderboard(int rank, int activeMembers, int completedChallenges) {}
 
   public record ChallengeProgressCard(
       String id,
@@ -354,10 +441,26 @@ public class ChallengeService {
   private record ChallengeMutation(
       boolean changed,
       ChallengeProgress progress,
+      List<String> startedIds,
       List<String> completedIds,
       List<String> rewardedIds) {
     static ChallengeMutation noChange(ChallengeProgress progress) {
-      return new ChallengeMutation(false, progress, List.of(), List.of());
+      return new ChallengeMutation(false, progress, List.of(), List.of(), List.of());
     }
   }
+
+  private static int completedCount(Map<String, ChallengeProgress> userState) {
+    if (userState == null || userState.isEmpty()) {
+      return 0;
+    }
+    int completed = 0;
+    for (ChallengeProgress progress : userState.values()) {
+      if (progress != null && progress.completedAt() != null) {
+        completed++;
+      }
+    }
+    return completed;
+  }
+
+  private record UserChallengeRank(String userId, int completedCount) {}
 }

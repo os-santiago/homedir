@@ -546,6 +546,67 @@
       </div>
     </article>
   </section>
+
+  <section class="home-return-grid" aria-label="{homeChallengeLoopCopy.trendingTitle}">
+    <article class="section-card home-return-card">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{homeChallengeLoopCopy.trendingEyebrow}</p>
+        <h2 class="page-title">{homeChallengeLoopCopy.trendingTitle}</h2>
+      </div>
+      <p class="home-member-card-copy">{homeChallengeLoopCopy.trendingIntro}</p>
+      {#if homeTrendingChallenges.isEmpty()}
+      <article class="home-return-empty">
+        <span class="material-symbols-outlined" aria-hidden="true">military_tech</span>
+        <strong>{homeChallengeLoopCopy.trendingEmptyTitle}</strong>
+        <p>{homeChallengeLoopCopy.trendingEmptyDesc}</p>
+      </article>
+      {#else}
+      <div class="home-loop-list" role="list">
+        {#for trend in homeTrendingChallenges}
+        <a href="{trend.actionUrl}" class="home-loop-item" role="listitem">
+          <span class="material-symbols-outlined" aria-hidden="true">local_fire_department</span>
+          <div>
+            <div class="home-loop-item-head">
+              <strong>{trend.title}</strong>
+              <span class="home-chip">{trend.rewardLabel}</span>
+            </div>
+            <p>{trend.countLabel}</p>
+            <span class="home-member-action-cta">{homeChallengeLoopCopy.trendingCta}</span>
+          </div>
+        </a>
+        {/for}
+      </div>
+      {/if}
+    </article>
+
+    <article class="section-card home-return-card">
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{homeChallengeLoopCopy.leaderboardEyebrow}</p>
+        <h2 class="page-title">{homeChallengeLoopCopy.leaderboardTitle}</h2>
+      </div>
+      <p class="home-member-card-copy">{homeChallengeLoopCopy.leaderboardIntro}</p>
+      {#if homeChallengeLeaderboard.rank > 0}
+      <div class="home-return-notification-top">
+        <span class="home-chip">{homeChallengeLeaderboard.rankLabel}</span>
+        <strong>{homeChallengeLeaderboard.summaryLabel}</strong>
+      </div>
+      <article class="home-return-signal">
+        <span class="home-chip">{homeChallengeLoopCopy.leaderboardTitle}</span>
+        <strong>{homeChallengeLeaderboard.populationLabel}</strong>
+        <p>{homeChallengeLoopCopy.leaderboardCta}</p>
+      </article>
+      {#else}
+      <article class="home-return-empty">
+        <span class="material-symbols-outlined" aria-hidden="true">emoji_events</span>
+        <strong>{homeChallengeLeaderboard.summaryLabel}</strong>
+        <p>{homeChallengeLeaderboard.populationLabel}</p>
+      </article>
+      {/if}
+      <div class="home-onboarding-actions home-return-actions">
+        <a href="/private/profile#challenges-panel" class="btn-secondary">{homeChallengeLoopCopy.leaderboardCta}</a>
+      </div>
+    </article>
+  </section>
   {/if}
 </header>
 
