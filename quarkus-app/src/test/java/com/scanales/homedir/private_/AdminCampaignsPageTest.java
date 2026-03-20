@@ -57,6 +57,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsBusinessPanel\""))
         .body(containsString("id=\"campaignsRolloutPanel\""))
         .body(containsString("id=\"campaignsRolloutAckBtn-discord\""))
+        .body(containsString("id=\"campaignsPilotRunbookPanel\""))
         .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))

@@ -363,6 +363,40 @@
           {/for}
         </div>
       </section>
+
+      <section class="admin-shell-panel" id="campaignsPilotRunbookPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.runbookTitle}</p>
+            <h2>{copy.runbookIntro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.pilotActivationRunbook.statusCode}">{view.pilotActivationRunbook.statusLabel}</span>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.runbookStatusLabel}</strong><span>{view.pilotActivationRunbook.statusLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.runbookCompletedLabel}</strong><span>{view.pilotActivationRunbook.completedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.runbookPendingLabel}</strong><span>{view.pilotActivationRunbook.pendingCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.runbookTargetLabel}</strong><span>{view.pilotActivationRunbook.targetChannelLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.runbookRecommendationLabel}</strong><span>{view.pilotActivationRunbook.recommendationLabel}</span></article>
+        </div>
+        <div class="campaigns-admin-list">
+          {#for step in view.pilotActivationRunbook.steps}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{copy.runbookStepStatusLabel}</p>
+                  <h3>{step.titleLabel}</h3>
+                </div>
+                <span class="admin-observability-badge {step.statusCode}">{step.statusLabel}</span>
+              </div>
+              <div class="campaigns-admin-list">
+                <article class="campaigns-admin-item"><strong>{copy.runbookStepStatusLabel}</strong><span>{step.statusLabel}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.runbookRecommendationLabel}</strong><span>{step.detailLabel}</span></article>
+              </div>
+            </article>
+          {/for}
+        </div>
+      </section>
     </div>
 
     <section class="admin-shell-panel" id="campaignsRecoveryPanel">

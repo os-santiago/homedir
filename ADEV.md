@@ -34,6 +34,18 @@
 25. Para automatizaciones de marketing y publicacion social, el rollout es obligatorio en 3 etapas: borradores internos/sin publicacion -> aprobacion o programacion controlada -> autopublicacion por canal solo tras validacion en produccion.
 26. El marketing automatizado solo puede usar datos reales y verificables del producto (releases, metrics, insights, eventos, comunidad, challenges); no inventar cifras, hitos ni claims.
 27. Toda integracion de publicacion a redes debe operar con secretos gestionados fuera del repo, deduplicacion de mensajes, rate limit por canal y kill switch global antes de habilitar cualquier scheduler productivo.
+28. Toda iteracion o lote debe cerrar con handoff actualizado en el workspace compartido y PR abierto o actualizado; no se considera trabajo completo si el estado queda solo en el chat o solo en el arbol local.
+29. El workspace compartido debe mantenerse consistente en cada checkpoint relevante:
+    - actualizar `LATEST.txt`
+    - agregar o actualizar `HANDOFF.md` y `state.json`
+    - anexar entrada en `SESSION-LOG.md`
+    - registrar decisiones durables en `DECISIONS.md` cuando apliquen
+30. Antes de pedir aprobacion, merge o paso a produccion, completar las tareas de calidad necesarias para sostener la metrica de exito de PRs:
+    - validaciones locales enfocadas al alcance
+    - pruebas afectadas por UI, i18n, backend y flujos operativos
+    - preflight de CodeQL y sanitizacion de riesgos conocidos
+    - documentacion/handoff/plan de verificacion en produccion actualizados
+31. El paso a produccion de un PR requiere esta secuencia minima: validacion local completa -> handoff compartido al dia -> PR actualizado -> aprobacion explicita -> merge/auto-merge -> verificacion en produccion.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
@@ -47,22 +59,24 @@
 7. Ejecutar validacion local rapida (build y pruebas criticas del cambio) en cada iteracion/etapa.
 8. Commit atomico.
 9. Push de rama.
-10. Crear PR con:
+10. Actualizar el workspace compartido con handoff consistente del estado actual antes de pedir revision o cambiar de asistente/sesion.
+11. Crear o actualizar PR con:
    - Summary
    - Why
    - Scope (in/out)
    - Validation
    - Production verification plan
    - Rollback plan
-11. Activar auto-merge cuando los checks requeridos esten listos.
-12. Monitorear `PR Validation` y, cuando aplique a la iniciativa, el workflow manual de release/produccion correspondiente.
-13. Antes de solicitar merge, ejecutar validaciones locales enfocadas al alcance del cambio para reducir fallas en checks del PR y sostener objetivo de exito >95%.
+12. Activar auto-merge cuando los checks requeridos esten listos y exista aprobacion explicita cuando la iniciativa lo requiera.
+13. Monitorear `PR Validation` y, cuando aplique a la iniciativa, el workflow manual de release/produccion correspondiente.
+14. Antes de solicitar merge o paso a produccion, ejecutar y dejar registradas las validaciones locales enfocadas al alcance del cambio para reducir fallas en checks del PR y sostener objetivo de exito >95%.
    - Si el cambio toca vistas renderizadas o contenido multilenguaje, incluir al menos build + pruebas dirigidas del recurso/pagina afectada con locale explicito cuando corresponda.
-14. Verificar en produccion:
+15. Tras aprobacion y merge, verificar en produccion:
     - HTTP 200 en `/`, `/comunidad`, `/eventos`, `/proyectos`
     - Comportamiento funcional del cambio
     - Sin errores criticos nuevos en consola de navegador
-15. Si falla produccion:
+16. Actualizar nuevamente el handoff compartido con resultado de merge/verificacion en produccion para que CLI, App y otros asistentes retomen desde el mismo estado.
+17. Si falla produccion:
     - detener iteraciones nuevas
     - revertir o rollback a version estable
     - abrir PR correctivo con causa raiz y prevencion

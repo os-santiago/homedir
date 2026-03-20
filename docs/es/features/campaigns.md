@@ -14,6 +14,7 @@ Resumen:
 - Campaigns ahora recomienda ventanas de envío usando patrones reales de actividad de HomeDir antes de programar borradores.
 - Campaigns ahora expone preview packs internos por canal para revisar el copy final antes de aprobar o programar.
 - Campaigns ahora expone URLs trazables y un resumen interno de visitas atribuidas por borrador.
+- Campaigns ahora expone un runbook de activación piloto para mover un canal seleccionado desde rollout protegido a activación piloto real.
 - El rollout obligatorio es:
   - borradores internos
   - aprobacion/programacion

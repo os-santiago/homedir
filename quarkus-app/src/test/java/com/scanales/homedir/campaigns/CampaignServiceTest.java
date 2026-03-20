@@ -232,6 +232,40 @@ class CampaignServiceTest {
   }
 
   @Test
+  void pilotActivationRunbookHighlightsNextPendingGuardrail() {
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPublishAutomationEnabled(true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
+    campaignService.setPilotLiveChannel("discord", "admin@example.com");
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertEquals("En progreso", preview.pilotActivationRunbook().statusLabel());
+    assertEquals("Discord", preview.pilotActivationRunbook().targetChannelLabel());
+    assertEquals(4, preview.pilotActivationRunbook().completedCount());
+    assertEquals(3, preview.pilotActivationRunbook().pendingCount());
+    assertEquals(
+        "Registra una confirmación explícita de go-live antes de la entrega real.",
+        preview.pilotActivationRunbook().recommendationLabel());
+    assertTrue(
+        preview.pilotActivationRunbook().steps().stream()
+            .anyMatch(
+                step ->
+                    "ack_go_live".equals(step.stepCode())
+                        && "Pendiente".equals(step.statusLabel())
+                        && !step.completed()));
+    assertTrue(
+        preview.pilotActivationRunbook().steps().stream()
+            .anyMatch(
+                step ->
+                    "select_pilot".equals(step.stepCode())
+                        && "Hecho".equals(step.statusLabel())
+                        && step.completed()));
+  }
+
+  @Test
   void approvalAndScheduleSurviveDraftRefresh() {
     Event event =
         new Event(
