@@ -153,6 +153,9 @@ class CampaignServiceTest {
     assertNotNull(approvedDraft.approvedAt());
 
     LocalDateTime nextHour = LocalDateTime.now().plusHours(1).truncatedTo(ChronoUnit.MINUTES);
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
     campaignService.scheduleDraft(target.id(), nextHour, "sergio.canales.e@gmail.com");
     CampaignStateSnapshot refreshed = campaignService.refreshDrafts();
     CampaignDraftState scheduledDraft =
@@ -185,10 +188,10 @@ class CampaignServiceTest {
             .orElseThrow();
 
     campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
-    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
             CampaignPublishResult.published("discord", Instant.parse("2026-03-19T14:40:00Z"), "published"));
@@ -224,10 +227,10 @@ class CampaignServiceTest {
             .orElseThrow();
 
     campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
-    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(30), "sergio.canales.e@gmail.com");
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(30), "sergio.canales.e@gmail.com");
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
             CampaignPublishResult.published("discord", Instant.parse("2026-03-19T14:40:00Z"), "published"));
@@ -327,11 +330,11 @@ class CampaignServiceTest {
             .orElseThrow();
 
     campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
-    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
-    campaignService.setPublishAutomationEnabled(false, "sergio.canales.e@gmail.com");
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
+    campaignService.setPublishAutomationEnabled(false, "sergio.canales.e@gmail.com");
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
             CampaignPublishResult.published("discord", Instant.parse("2026-03-19T14:40:00Z"), "published"));
@@ -342,6 +345,38 @@ class CampaignServiceTest {
 
     assertEquals(CampaignWorkflowState.PUBLISHED, publishedDraft.workflowState());
     assertTrue(publishedDraft.publishedChannels().containsKey("discord"));
+  }
+
+  @Test
+  void scheduleIsRejectedWhenNoAutomatedChannelIsReady() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalStateException.class,
+        () ->
+            campaignService.scheduleDraft(
+                target.id(),
+                LocalDateTime.now().plusHours(1).truncatedTo(ChronoUnit.MINUTES),
+                "sergio.canales.e@gmail.com"));
   }
 
   @Test
@@ -366,13 +401,13 @@ class CampaignServiceTest {
             .orElseThrow();
 
     campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
     campaignService.scheduleDraft(
         target.id(),
         LocalDateTime.now().minusMinutes(10),
         "sergio.canales.e@gmail.com");
-    when(discordPublisherService.status())
-        .thenReturn(
-            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
             CampaignPublishResult.published("discord", Instant.parse("2026-03-19T20:00:00Z"), "published"));

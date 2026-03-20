@@ -165,6 +165,11 @@ public class CampaignService {
   public CampaignStateSnapshot scheduleDraft(String draftId, LocalDateTime scheduledLocal, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
+      CampaignDraftState draft =
+          currentState.drafts().stream().filter(item -> item.id().equals(draftId)).findFirst().orElse(null);
+      if (draft == null || !scheduleReadiness(draft).ready()) {
+        throw new IllegalStateException("campaign_not_ready");
+      }
       Instant scheduledFor = scheduledLocal.atZone(ZoneId.systemDefault()).toInstant();
       currentState = mutateDraftState(draftId, source -> {
         Instant now = Instant.now();
@@ -435,6 +440,7 @@ public class CampaignService {
             List.copyOf(auditEntries),
             List.copyOf(risks),
             linkedinHandoff,
+            schedulingReadiness(selectedCard),
             selectedPreview.summary(),
             selectedPreview.queueHealth()));
   }
@@ -641,6 +647,7 @@ public class CampaignService {
       ResourceBundle bundle,
       Locale locale,
       Map<String, String> cadenceByKind) {
+    CampaignSchedulingReadiness readiness = scheduleReadiness(draft);
     String kindLabel = bundleText(bundle, "campaigns_kind_" + draft.kind());
     String workflowLabel = bundleText(bundle, "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT));
     String sourceStatusLabel =
@@ -662,6 +669,28 @@ public class CampaignService {
         cadenceByKind.getOrDefault(
             bundleText(bundle, "campaigns_kind_" + draft.kind()),
             bundleText(bundle, "campaigns_admin_cadence_no_window"));
+    String scheduleReadinessLabel =
+        bundleText(
+            bundle,
+            readiness.ready()
+                ? "campaigns_admin_schedule_readiness_ready"
+                : "campaigns_admin_schedule_readiness_blocked");
+    String scheduleReadinessDetailLabel =
+        readiness.ready()
+            ? named(
+                bundle,
+                "campaigns_admin_schedule_ready_channels",
+                Map.of(
+                    "channels",
+                    readiness.readyChannels().stream()
+                        .map(channel -> bundleText(bundle, "campaigns_channel_" + channel))
+                        .reduce((left, right) -> left + ", " + right)
+                        .orElse("—")))
+            : readiness.blockerCodes().stream()
+                .map(code -> bundleText(bundle, "campaigns_admin_schedule_blocker_" + code))
+                .distinct()
+                .reduce((left, right) -> left + " · " + right)
+                .orElse(bundleText(bundle, "campaigns_admin_schedule_blocker_none"));
     return switch (draft.kind()) {
       case KIND_PRODUCT_PULSE -> new CampaignPreviewCard(
           draft.id(),
@@ -687,7 +716,10 @@ public class CampaignService {
           scheduledLabel,
           publishedChannelsLabel,
           publisherOutcomeLabel,
-          recommendedWindowLabel);
+          recommendedWindowLabel,
+          readiness.ready(),
+          scheduleReadinessLabel,
+          scheduleReadinessDetailLabel);
       case KIND_CHALLENGE_SPOTLIGHT -> {
         String challengeTitle = bundleText(bundle, value(draft, "challengeTitleKey"));
         yield new CampaignPreviewCard(
@@ -708,7 +740,10 @@ public class CampaignService {
             scheduledLabel,
             publishedChannelsLabel,
             publisherOutcomeLabel,
-            recommendedWindowLabel);
+            recommendedWindowLabel,
+            readiness.ready(),
+            scheduleReadinessLabel,
+            scheduleReadinessDetailLabel);
       }
       case KIND_COMMUNITY_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
@@ -728,7 +763,10 @@ public class CampaignService {
           scheduledLabel,
           publishedChannelsLabel,
           publisherOutcomeLabel,
-          recommendedWindowLabel);
+          recommendedWindowLabel,
+          readiness.ready(),
+          scheduleReadinessLabel,
+          scheduleReadinessDetailLabel);
       case KIND_EVENT_SPOTLIGHT -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -747,7 +785,10 @@ public class CampaignService {
           scheduledLabel,
           publishedChannelsLabel,
           publisherOutcomeLabel,
-          recommendedWindowLabel);
+          recommendedWindowLabel,
+          readiness.ready(),
+          scheduleReadinessLabel,
+          scheduleReadinessDetailLabel);
       default -> new CampaignPreviewCard(
           draft.id(),
           kindLabel,
@@ -764,7 +805,10 @@ public class CampaignService {
           scheduledLabel,
           publishedChannelsLabel,
           publisherOutcomeLabel,
-          recommendedWindowLabel);
+          recommendedWindowLabel,
+          readiness.ready(),
+          scheduleReadinessLabel,
+          scheduleReadinessDetailLabel);
     };
   }
 
@@ -1687,6 +1731,10 @@ public class CampaignService {
         badgeClass = "high";
       }
     } else if (draft.workflowState() == CampaignWorkflowState.APPROVED
+        && !scheduleReadiness(draft).ready()) {
+      riskCode = "approved_blocked";
+      badgeClass = "watch";
+    } else if (draft.workflowState() == CampaignWorkflowState.APPROVED
         && isOlderThan(referenceAt, now, STALE_APPROVED_WINDOW)) {
       riskCode = "approved_stale";
       badgeClass = "watch";
@@ -1782,6 +1830,63 @@ public class CampaignService {
       }
     }
     return hasPendingAutomationChannel;
+  }
+
+  private CampaignSchedulingReadiness scheduleReadiness(CampaignDraftState draft) {
+    if (draft == null) {
+      return new CampaignSchedulingReadiness(false, List.of("none"), List.of());
+    }
+    List<String> blockerCodes = new ArrayList<>();
+    List<String> readyChannels = new ArrayList<>();
+    for (String channel : draft.suggestedChannels()) {
+      if ("linkedin".equals(channel)) {
+        continue;
+      }
+      String blocker = scheduleBlockerCode(channel);
+      if (blocker == null) {
+        readyChannels.add(channel);
+      } else {
+        blockerCodes.add(blocker);
+      }
+    }
+    return new CampaignSchedulingReadiness(!readyChannels.isEmpty(), List.copyOf(blockerCodes), List.copyOf(readyChannels));
+  }
+
+  private String scheduleBlockerCode(String channel) {
+    CampaignPublisherStatus rawStatus =
+        publisherStatuses().stream()
+            .filter(item -> item.channel().equals(channel))
+            .findFirst()
+            .orElse(null);
+    if (rawStatus == null) {
+      return "unsupported";
+    }
+    if (!rawStatus.globalEnabled()) {
+      return "global_disabled";
+    }
+    if (rawStatus.dryRun()) {
+      return "dry_run";
+    }
+    if (!rawStatus.configured()) {
+      return "not_configured";
+    }
+    if (!rawStatus.channelEnabled()) {
+      return "channel_disabled";
+    }
+    if (!currentOperationsState.publishAutomationEnabled()) {
+      return "publish_paused";
+    }
+    if (!currentOperationsState.isChannelAutomationEnabled(channel)) {
+      return "channel_paused";
+    }
+    return null;
+  }
+
+  private CampaignScheduleReadinessView schedulingReadiness(CampaignPreviewCard draft) {
+    return new CampaignScheduleReadinessView(
+        draft.scheduleReady(),
+        draft.scheduleReadinessLabel(),
+        draft.scheduleReadinessDetailLabel());
   }
 
   private boolean hasPendingLinkedinHandoff(CampaignDraftState draft) {
@@ -1988,7 +2093,16 @@ public class CampaignService {
       String scheduledForLabel,
       String publishedChannelsLabel,
       String publisherOutcomeLabel,
-      String recommendedWindowLabel) {}
+      String recommendedWindowLabel,
+      boolean scheduleReady,
+      String scheduleReadinessLabel,
+      String scheduleReadinessDetailLabel) {}
+
+  private record CampaignSchedulingReadiness(
+      boolean ready, List<String> blockerCodes, List<String> readyChannels) {}
+
+  public record CampaignScheduleReadinessView(
+      boolean ready, String label, String detailLabel) {}
 
   public record CampaignOperationsSummary(
       int draftCount,
@@ -2100,6 +2214,7 @@ public class CampaignService {
       List<CampaignAuditTrailEntry> auditTrail,
       List<CampaignQueueRiskItem> risks,
       CampaignLinkedinHandoff linkedinHandoff,
+      CampaignScheduleReadinessView readiness,
       CampaignOperationsSummary summary,
       CampaignQueueHealth queueHealth) {}
 }
