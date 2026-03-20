@@ -1,0 +1,32 @@
+## Summary
+- add a pilot decision gate in campaigns admin so a verified pilot can be explicitly approved or kept on hold
+- persist the pilot decision in campaign operations state and clear it whenever the pilot cycle is reset
+- document the new post-verification decision step in english and spanish campaigns docs
+
+## Why
+- verification alone was not enough to close the pilot cycle operationally
+- campaigns needed an explicit admin checkpoint before treating a verified pilot as a sustained guarded live path
+
+## Scope
+- in:
+  - campaign operations state persistence
+  - campaigns admin summary + actions for pilot decision
+  - targeted service, admin page and persistence tests
+  - campaigns docs
+- out:
+  - enabling public posting by default
+  - changing channel secrets or live publisher configuration
+
+## Validation
+- `.\mvnw.cmd -q -DskipTests compile`
+- `.\mvnw.cmd -q -DskipITs "-Dtest=com.scanales.homedir.campaigns.CampaignServiceTest,com.scanales.homedir.private_.AdminCampaignsPageTest,com.scanales.homedir.service.PersistenceServiceTest" test`
+
+## Production Verification Plan
+- confirm `/about` shows a build newer than the merge time for this PR
+- verify `200` on `/`, `/comunidad`, `/eventos`, `/proyectos`
+- verify `/private/admin/campaigns` shows the new pilot decision panel
+- verify a verified pilot exposes approve / hold / clear actions and the status copy is localized correctly
+
+## Rollback Plan
+- disable use of the new decision action in admin by reverting this PR if the new pilot decision state blocks the campaigns admin flow
+- confirm campaigns returns to the prior pilot verification-only behavior after rollback

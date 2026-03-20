@@ -59,6 +59,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsRolloutAckBtn-discord\""))
         .body(containsString("id=\"campaignsPilotRunbookPanel\""))
         .body(containsString("id=\"campaignsPilotVerificationPanel\""))
+        .body(containsString("id=\"campaignsPilotDecisionPanel\""))
         .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))
@@ -213,6 +214,27 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsPilotVerificationPanel\""))
         .body(containsString("campaignsPilotVerificationClearBtn"))
         .body(containsString("Verificado"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanRecordPilotDecision() {
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
+    campaignService.setPilotVerificationAcknowledged(true, "sergio.canales.e@gmail.com");
+
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("decision", "approved")
+        .when()
+        .post("/private/admin/campaigns/rollout/pilot/decision")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsPilotDecisionPanel\""))
+        .body(containsString("campaignsPilotDecisionApproveBtn"))
+        .body(containsString("campaignsPilotDecisionHoldBtn"))
+        .body(containsString("campaignsPilotDecisionClearBtn"))
+        .body(containsString("Aprobado"));
   }
 
   @Test

@@ -21,9 +21,12 @@ public record CampaignOperationsStateSnapshot(
     @JsonProperty("pilot_live_armed_by") String pilotLiveArmedBy,
     @JsonProperty("pilot_verification_acknowledged") boolean pilotVerificationAcknowledged,
     @JsonProperty("pilot_verification_acknowledged_at") Instant pilotVerificationAcknowledgedAt,
-    @JsonProperty("pilot_verification_acknowledged_by") String pilotVerificationAcknowledgedBy) {
+    @JsonProperty("pilot_verification_acknowledged_by") String pilotVerificationAcknowledgedBy,
+    @JsonProperty("pilot_decision") String pilotDecision,
+    @JsonProperty("pilot_decision_at") Instant pilotDecisionAt,
+    @JsonProperty("pilot_decision_by") String pilotDecisionBy) {
 
-  public static final int SCHEMA_VERSION = 2;
+  public static final int SCHEMA_VERSION = 3;
 
   public CampaignOperationsStateSnapshot {
     updatedBy = updatedBy == null ? "" : updatedBy.trim();
@@ -35,6 +38,8 @@ public record CampaignOperationsStateSnapshot(
     pilotLiveArmedBy = pilotLiveArmedBy == null ? "" : pilotLiveArmedBy.trim();
     pilotVerificationAcknowledgedBy =
         pilotVerificationAcknowledgedBy == null ? "" : pilotVerificationAcknowledgedBy.trim();
+    pilotDecision = pilotDecision == null ? "" : pilotDecision.trim().toLowerCase();
+    pilotDecisionBy = pilotDecisionBy == null ? "" : pilotDecisionBy.trim();
   }
 
   public static CampaignOperationsStateSnapshot empty() {
@@ -53,6 +58,9 @@ public record CampaignOperationsStateSnapshot(
         null,
         "",
         false,
+        null,
+        "",
+        "",
         null,
         "");
   }
@@ -103,7 +111,10 @@ public record CampaignOperationsStateSnapshot(
         pilotLiveArmedBy,
         pilotVerificationAcknowledged,
         pilotVerificationAcknowledgedAt,
-        pilotVerificationAcknowledgedBy);
+        pilotVerificationAcknowledgedBy,
+        pilotDecision,
+        pilotDecisionAt,
+        pilotDecisionBy);
   }
 
   public CampaignOperationsStateSnapshot withPublishAutomation(boolean enabled, String actor) {
@@ -123,7 +134,10 @@ public record CampaignOperationsStateSnapshot(
         pilotLiveArmedBy,
         pilotVerificationAcknowledged,
         pilotVerificationAcknowledgedAt,
-        pilotVerificationAcknowledgedBy);
+        pilotVerificationAcknowledgedBy,
+        pilotDecision,
+        pilotDecisionAt,
+        pilotDecisionBy);
   }
 
   public CampaignOperationsStateSnapshot withChannelAutomation(
@@ -148,7 +162,10 @@ public record CampaignOperationsStateSnapshot(
         pilotLiveArmedBy,
         pilotVerificationAcknowledged,
         pilotVerificationAcknowledgedAt,
-        pilotVerificationAcknowledgedBy);
+        pilotVerificationAcknowledgedBy,
+        pilotDecision,
+        pilotDecisionAt,
+        pilotDecisionBy);
   }
 
   public CampaignOperationsStateSnapshot withChannelGoLiveAcknowledgement(
@@ -174,7 +191,10 @@ public record CampaignOperationsStateSnapshot(
         pilotLiveArmedBy,
         pilotVerificationAcknowledged,
         pilotVerificationAcknowledgedAt,
-        pilotVerificationAcknowledgedBy);
+        pilotVerificationAcknowledgedBy,
+        pilotDecision,
+        pilotDecisionAt,
+        pilotDecisionBy);
   }
 
   public CampaignOperationsStateSnapshot withPilotLiveChannel(String channel, String actor) {
@@ -195,6 +215,9 @@ public record CampaignOperationsStateSnapshot(
         "",
         false,
         null,
+        "",
+        "",
+        null,
         "");
   }
 
@@ -214,6 +237,9 @@ public record CampaignOperationsStateSnapshot(
         armed && !pilotLiveChannel.isBlank() ? Instant.now() : null,
         armed && !pilotLiveChannel.isBlank() ? (actor == null ? "" : actor.trim()) : "",
         false,
+        null,
+        "",
+        "",
         null,
         "");
   }
@@ -236,6 +262,37 @@ public record CampaignOperationsStateSnapshot(
         pilotLiveArmedBy,
         acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed,
         acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed ? Instant.now() : null,
-        acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed ? (actor == null ? "" : actor.trim()) : "");
+        acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed ? (actor == null ? "" : actor.trim()) : "",
+        "",
+        null,
+        "");
+  }
+
+  public CampaignOperationsStateSnapshot withPilotDecision(String decision, String actor) {
+    String normalized = decision == null ? "" : decision.trim().toLowerCase();
+    if (!"approved".equals(normalized) && !"hold".equals(normalized)) {
+      normalized = "";
+    }
+    boolean eligible = !pilotLiveChannel.isBlank() && pilotLiveArmed && pilotVerificationAcknowledged;
+    return new CampaignOperationsStateSnapshot(
+        SCHEMA_VERSION,
+        Instant.now(),
+        actor == null ? "" : actor.trim(),
+        refreshAutomationEnabled,
+        publishAutomationEnabled,
+        channelAutomation,
+        channelGoLiveAcknowledgements,
+        pilotLiveChannel,
+        pilotLiveChannelUpdatedAt,
+        pilotLiveChannelUpdatedBy,
+        pilotLiveArmed,
+        pilotLiveArmedAt,
+        pilotLiveArmedBy,
+        pilotVerificationAcknowledged,
+        pilotVerificationAcknowledgedAt,
+        pilotVerificationAcknowledgedBy,
+        eligible ? normalized : "",
+        eligible && !normalized.isBlank() ? Instant.now() : null,
+        eligible && !normalized.isBlank() ? (actor == null ? "" : actor.trim()) : "");
   }
 }

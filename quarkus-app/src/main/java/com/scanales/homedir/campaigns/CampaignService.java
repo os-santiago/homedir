@@ -402,6 +402,44 @@ public class CampaignService {
     }
   }
 
+  public CampaignOperationsStateSnapshot setPilotDecision(String decision, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      String normalizedDecision = safe(decision).trim().toLowerCase();
+      if (!"approved".equals(normalizedDecision) && !"hold".equals(normalizedDecision)) {
+        normalizedDecision = "";
+      }
+      currentOperationsState = currentOperationsState.withPilotDecision(normalizedDecision, safe(actor));
+      saveOperationsState(currentOperationsState);
+      String activityCode =
+          switch (normalizedDecision) {
+            case "approved" -> "ops.pilot.decision.approve";
+            case "hold" -> "ops.pilot.decision.hold";
+            default -> "ops.pilot.decision.clear";
+          };
+      String outcome =
+          switch (normalizedDecision) {
+            case "approved" -> "approved";
+            case "hold" -> "hold";
+            default -> "cleared";
+          };
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  activityCode,
+                  currentOperationsState.pilotLiveChannel(),
+                  outcome,
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
+    }
+  }
+
   public CampaignStateSnapshot markLinkedinPublished(String draftId, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -566,6 +604,7 @@ public class CampaignService {
         rolloutChecklist,
         pilotActivationRunbook(rolloutChecklist, bundle),
         pilotVerificationSummary(snapshot.drafts(), bundle, locale),
+        pilotDecisionSummary(bundle, locale),
         recentActivity(visibleDrafts, bundle, locale),
         cadenceGuidance,
         List.copyOf(previewPacks),
@@ -2177,6 +2216,71 @@ public class CampaignService {
         canAcknowledge);
   }
 
+  private CampaignPilotDecisionSummary pilotDecisionSummary(ResourceBundle bundle, Locale locale) {
+    CampaignOperationsStateSnapshot operationsState = currentOperationsState();
+    String pilotChannel = operationsState.pilotLiveChannel();
+    String targetChannelLabel =
+        pilotChannel.isBlank()
+            ? bundleText(bundle, "campaigns_admin_rollout_pilot_none")
+            : bundleText(bundle, "campaigns_channel_" + pilotChannel);
+    boolean verified = operationsState.pilotVerificationAcknowledged();
+    String decision = operationsState.pilotDecision();
+    boolean hasDecision = !decision.isBlank();
+    boolean canDecide = !pilotChannel.isBlank() && operationsState.pilotLiveArmed() && verified;
+    String statusCode;
+    String statusKey;
+    String recommendationKey;
+    if (pilotChannel.isBlank()) {
+      statusCode = "danger";
+      statusKey = "campaigns_admin_pilot_decision_status_blocked";
+      recommendationKey = "campaigns_admin_pilot_decision_recommendation_select_pilot";
+    } else if (!operationsState.pilotLiveArmed()) {
+      statusCode = "watch";
+      statusKey = "campaigns_admin_pilot_decision_status_watch";
+      recommendationKey = "campaigns_admin_pilot_decision_recommendation_arm_pilot";
+    } else if (!verified) {
+      statusCode = "watch";
+      statusKey = "campaigns_admin_pilot_decision_status_watch";
+      recommendationKey = "campaigns_admin_pilot_decision_recommendation_verify";
+    } else if (!hasDecision) {
+      statusCode = "watch";
+      statusKey = "campaigns_admin_pilot_decision_status_watch";
+      recommendationKey = "campaigns_admin_pilot_decision_recommendation_record";
+    } else if ("approved".equals(decision)) {
+      statusCode = "good";
+      statusKey = "campaigns_admin_pilot_decision_status_ready";
+      recommendationKey = "campaigns_admin_pilot_decision_recommendation_approved";
+    } else {
+      statusCode = "danger";
+      statusKey = "campaigns_admin_pilot_decision_status_hold";
+      recommendationKey = "campaigns_admin_pilot_decision_recommendation_hold";
+    }
+    String decisionLabel =
+        switch (decision) {
+          case "approved" -> bundleText(bundle, "campaigns_admin_pilot_decision_approved");
+          case "hold" -> bundleText(bundle, "campaigns_admin_pilot_decision_hold");
+          default -> bundleText(bundle, "campaigns_admin_pilot_decision_pending");
+        };
+    return new CampaignPilotDecisionSummary(
+        statusCode,
+        bundleText(bundle, statusKey),
+        targetChannelLabel,
+        verified
+            ? bundleText(bundle, "campaigns_admin_pilot_verification_verified")
+            : bundleText(bundle, "campaigns_admin_pilot_verification_pending"),
+        decisionLabel,
+        operationsState.pilotDecisionAt() == null
+            ? "—"
+            : localizedDateTime(operationsState.pilotDecisionAt(), locale),
+        operationsState.pilotDecisionBy().isBlank() ? "—" : operationsState.pilotDecisionBy(),
+        bundleText(bundle, recommendationKey),
+        "approved".equals(decision),
+        "hold".equals(decision),
+        hasDecision,
+        canDecide,
+        hasDecision);
+  }
+
   private CampaignRolloutChannel toRolloutChannel(
       CampaignPublisherStatus status,
       CampaignOperationsStateSnapshot operationsState,
@@ -2928,6 +3032,7 @@ public class CampaignService {
       CampaignRolloutChecklist rolloutChecklist,
       CampaignPilotActivationRunbook pilotActivationRunbook,
       CampaignPilotVerificationSummary pilotVerificationSummary,
+      CampaignPilotDecisionSummary pilotDecisionSummary,
       List<CampaignRecentActivity> recentActivity,
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
@@ -3081,6 +3186,21 @@ public class CampaignService {
       String recommendationLabel,
       boolean acknowledged,
       boolean canAcknowledge) {}
+
+  public record CampaignPilotDecisionSummary(
+      String statusCode,
+      String statusLabel,
+      String targetChannelLabel,
+      String verificationLabel,
+      String decisionLabel,
+      String decidedAtLabel,
+      String decidedByLabel,
+      String recommendationLabel,
+      boolean approved,
+      boolean hold,
+      boolean hasDecision,
+      boolean canDecide,
+      boolean canClear) {}
 
   public record CampaignRolloutChannel(
       String channelCode,
