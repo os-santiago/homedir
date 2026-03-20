@@ -379,6 +379,41 @@ public class AdminCampaignsResource {
         "detail".equalsIgnoreCase(returnTo));
   }
 
+  @POST
+  @Path("{draftId}/retry-channel/{channelCode}")
+  @Authenticated
+  public Response retryChannel(
+      @PathParam("draftId") String draftId,
+      @PathParam("channelCode") String channelCode,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
+    String normalizedChannel = normalizeAutomationChannel(channelCode);
+    if (normalizedChannel.isBlank() || "linkedin".equals(normalizedChannel)) {
+      return redirectWithError("invalid_channel", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+    }
+    try {
+      campaignService.retryChannel(draftId, normalizedChannel, identity.getPrincipal().getName());
+      return redirectWithUpdate(
+          "retried",
+          draftId,
+          filters,
+          null,
+          null,
+          "detail".equalsIgnoreCase(returnTo));
+    } catch (IllegalArgumentException e) {
+      return redirectWithError("invalid_channel", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+    } catch (IllegalStateException e) {
+      return redirectWithError("retry_not_ready", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+    }
+  }
+
   private AdminCampaignsCopy localizedCopy(String localeCode) {
     Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
     ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
@@ -418,11 +453,13 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_unscheduled"),
         text(bundle, "campaigns_admin_updated_publishscan"),
         text(bundle, "campaigns_admin_updated_linkedin"),
+        text(bundle, "campaigns_admin_updated_retry"),
         text(bundle, "campaigns_admin_updated_refresh_automation"),
         text(bundle, "campaigns_admin_updated_publish_automation"),
         text(bundle, "campaigns_admin_updated_channel_automation"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
         text(bundle, "campaigns_admin_error_not_ready"),
+        text(bundle, "campaigns_admin_error_retry_not_ready"),
         text(bundle, "campaigns_admin_error_invalid_channel"),
         text(bundle, "campaigns_admin_generated_at"),
         text(bundle, "campaigns_admin_summary_title"),
@@ -532,7 +569,8 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_btn_reset"),
         text(bundle, "campaigns_admin_btn_schedule"),
         text(bundle, "campaigns_admin_btn_unschedule"),
-        text(bundle, "campaigns_admin_btn_mark_linkedin"));
+        text(bundle, "campaigns_admin_btn_mark_linkedin"),
+        text(bundle, "campaigns_admin_btn_retry_channel"));
   }
 
   private static String text(ResourceBundle bundle, String key) {
@@ -756,11 +794,13 @@ public class AdminCampaignsResource {
       String updatedUnscheduled,
       String updatedPublishScan,
       String updatedLinkedin,
+      String updatedRetry,
       String updatedRefreshAutomation,
       String updatedPublishAutomation,
       String updatedChannelAutomation,
       String invalidSchedule,
       String notReady,
+      String retryNotReady,
       String invalidChannel,
       String generatedAt,
       String summaryTitle,
@@ -866,5 +906,6 @@ public class AdminCampaignsResource {
       String resetLabel,
       String scheduleLabel,
       String unscheduleLabel,
-      String markLinkedinLabel) {}
+      String markLinkedinLabel,
+      String retryChannelLabel) {}
 }

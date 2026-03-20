@@ -425,6 +425,86 @@ class CampaignServiceTest {
   }
 
   @Test
+  void manualChannelRetryPublishesPendingChannelWhenReady() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignDraftState target =
+        campaignService.refreshDrafts().drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(10), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignPublishResult.published("discord", Instant.parse("2026-03-19T20:00:00Z"), "published"));
+    campaignService.publishScheduledNow();
+
+    when(blueskyPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("bluesky", true, false, true, true, Duration.ZERO));
+    when(blueskyPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignPublishResult.published(
+                "bluesky", Instant.parse("2026-03-19T20:05:00Z"), "published_bluesky"));
+
+    CampaignDraftState retried =
+        campaignService.retryChannel(target.id(), "bluesky", "sergio.canales.e@gmail.com")
+            .drafts().stream()
+            .filter(item -> item.id().equals(target.id()))
+            .findFirst()
+            .orElseThrow();
+
+    assertTrue(retried.publishedChannels().containsKey("bluesky"));
+    assertEquals("published_bluesky", retried.lastPublishOutcome());
+  }
+
+  @Test
+  void manualChannelRetryIsRejectedWhenChannelIsNotReady() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignDraftState target =
+        campaignService.refreshDrafts().drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(10), "sergio.canales.e@gmail.com");
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalStateException.class,
+        () -> campaignService.retryChannel(target.id(), "bluesky", "sergio.canales.e@gmail.com"));
+  }
+
+  @Test
   void previewCanFilterCampaignDraftsAndAuditTrail() {
     Event event =
         new Event(

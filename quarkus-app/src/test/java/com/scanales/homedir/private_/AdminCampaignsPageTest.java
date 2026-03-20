@@ -151,6 +151,22 @@ class AdminCampaignsPageTest {
 
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminShowsRetryBlockedMessageWhenChannelRetryIsNotReady() {
+    String draftId = campaignService.preview("es").drafts().getFirst().id();
+
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("returnTo", "detail")
+        .when()
+        .post("/private/admin/campaigns/" + draftId + "/retry-channel/discord")
+        .then()
+        .statusCode(200)
+        .body(containsString(draftId))
+        .body(containsString("todavía no se puede reintentar"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminActionsPreserveActiveFilters() {
     String draftId = campaignService.preview("es").drafts().getFirst().id();
 

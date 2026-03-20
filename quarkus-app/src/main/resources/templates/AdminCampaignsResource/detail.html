@@ -32,11 +32,17 @@
   {#if updatedAction == 'linkedin'}
     <div class="hd-alert hd-alert-success">{copy.updatedLinkedin}: <code>{draftId}</code></div>
   {/if}
+  {#if updatedAction == 'retried'}
+    <div class="hd-alert hd-alert-success">{copy.updatedRetry}: <code>{draftId}</code></div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{draftId}</code></div>
   {/if}
   {#if errorCode == 'not_ready'}
     <div class="hd-alert hd-alert-danger">{copy.notReady}: <code>{draftId}</code></div>
+  {/if}
+  {#if errorCode == 'retry_not_ready'}
+    <div class="hd-alert hd-alert-danger">{copy.retryNotReady}: <code>{draftId}</code></div>
   {/if}
   {#if errorCode == 'not_found'}
     <div class="hd-alert hd-alert-danger">{copy.detailNotFoundLabel}</div>
@@ -140,6 +146,18 @@
               <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
               <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
             </div>
+            {#if (detail.draft.workflowStateCode == 'scheduled' || detail.draft.workflowStateCode == 'published') && channel.channelCode != 'linkedin'}
+              <div class="action-group admin-shell-actions">
+                <form action="/private/admin/campaigns/{draftId}/retry-channel/{channel.channelCode}" method="post">
+                  <input type="hidden" name="q" value="{filters.query}" />
+                  <input type="hidden" name="workflow" value="{filters.workflow}" />
+                  <input type="hidden" name="kind" value="{filters.kind}" />
+                  <input type="hidden" name="channel" value="{filters.channel}" />
+                  <input type="hidden" name="returnTo" value="detail" />
+                  <button id="campaignRetryChannelBtn-{channel.channelCode}" type="submit" class="btn btn-secondary" {#if channel.published || !channel.retryReady}disabled aria-disabled="true"{/if}>{copy.retryChannelLabel}</button>
+                </form>
+              </div>
+            {/if}
           </article>
         {/for}
       </div>
