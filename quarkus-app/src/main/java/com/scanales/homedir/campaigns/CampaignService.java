@@ -455,6 +455,7 @@ public class CampaignService {
             .map(status -> toPublisherStatus(status, bundle))
             .toList();
     boolean globalPublishingEnabled = publisherStatuses.stream().anyMatch(CampaignPublisherPreviewStatus::globalEnabled);
+    List<CampaignAttributionSummary> attribution = attributionSummary(visibleDrafts, bundle);
     return new CampaignPreviewSnapshot(
         snapshot.generatedAt(),
         List.copyOf(cards),
@@ -462,10 +463,11 @@ public class CampaignService {
         operationsStatus(operationsState, bundle, locale),
         List.copyOf(publisherStatuses),
         summarize(snapshot, bundle, locale),
+        businessDashboard(cards, attribution, bundle),
         recentActivity(visibleDrafts, bundle, locale),
         cadenceGuidance,
         List.copyOf(previewPacks),
-        attributionSummary(visibleDrafts, bundle),
+        List.copyOf(attribution),
         publishRecoverySummary(snapshot, bundle, locale),
         publishRecoveryItems(visibleDrafts, bundle, locale),
         queueHealth(snapshot, bundle, locale),
@@ -1694,6 +1696,82 @@ public class CampaignService {
     return List.copyOf(rows);
   }
 
+  private CampaignBusinessDashboard businessDashboard(
+      List<CampaignPreviewCard> cards,
+      List<CampaignAttributionSummary> attribution,
+      ResourceBundle bundle) {
+    Map<String, CampaignPreviewCard> cardsById = new LinkedHashMap<>();
+    for (CampaignPreviewCard card : cards) {
+      cardsById.put(card.id(), card);
+    }
+    long totalVisits = 0L;
+    int draftsWithTraffic = 0;
+    Map<String, Long> channelTotals = new LinkedHashMap<>();
+    List<CampaignBusinessHighlight> highlights = new ArrayList<>();
+    CampaignAttributionSummary topDraft = null;
+    for (CampaignAttributionSummary item : attribution) {
+      long rowTotal = parseMetricCount(item.totalVisits());
+      totalVisits += rowTotal;
+      if (rowTotal > 0L) {
+        draftsWithTraffic++;
+        if (topDraft == null) {
+          topDraft = item;
+        }
+        for (CampaignAttributionChannel channel : item.channels()) {
+          channelTotals.merge(channel.channelLabel(), parseMetricCount(channel.visitsLabel()), Long::sum);
+        }
+        CampaignPreviewCard card = cardsById.get(item.draftId());
+        highlights.add(
+            new CampaignBusinessHighlight(
+                item.draftId(),
+                item.title(),
+                item.kindLabel(),
+                card == null ? bundleText(bundle, "campaigns_admin_business_none") : safe(card.workflowLabel()),
+                item.totalVisits(),
+                dominantChannelLabel(item.channels(), bundle)));
+      }
+    }
+    highlights.sort(
+        Comparator.comparingLong((CampaignBusinessHighlight item) -> parseMetricCount(item.totalVisitsLabel()))
+            .reversed());
+    String bestChannelLabel =
+        channelTotals.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse(bundleText(bundle, "campaigns_admin_business_none"));
+    String topDraftTitle = topDraft == null ? bundleText(bundle, "campaigns_admin_business_none") : topDraft.title();
+    String topDraftId = topDraft == null ? "" : topDraft.draftId();
+    long averageVisits = draftsWithTraffic == 0 ? 0L : Math.round((double) totalVisits / draftsWithTraffic);
+    return new CampaignBusinessDashboard(
+        String.valueOf(totalVisits),
+        draftsWithTraffic,
+        String.valueOf(averageVisits),
+        bestChannelLabel,
+        topDraftTitle,
+        topDraftId,
+        topDraft != null,
+        List.copyOf(highlights.stream().limit(3).toList()));
+  }
+
+  private long parseMetricCount(String value) {
+    if (value == null || value.isBlank()) {
+      return 0L;
+    }
+    try {
+      return Long.parseLong(value.trim());
+    } catch (NumberFormatException ignored) {
+      return 0L;
+    }
+  }
+
+  private String dominantChannelLabel(
+      List<CampaignAttributionChannel> channels, ResourceBundle bundle) {
+    return channels.stream()
+        .max(Comparator.comparingLong(channel -> parseMetricCount(channel.visitsLabel())))
+        .map(CampaignAttributionChannel::channelLabel)
+        .orElse(bundleText(bundle, "campaigns_admin_business_none"));
+  }
+
   private String titleForAttribution(CampaignDraftState draft, ResourceBundle bundle) {
     return switch (draft.kind()) {
       case KIND_PRODUCT_PULSE -> named(bundle, "campaigns_product_pulse_title", Map.of("version", value(draft, "version")));
@@ -2352,6 +2430,7 @@ public class CampaignService {
       CampaignAutomationStatus automation,
       List<CampaignPublisherPreviewStatus> publisherStatuses,
       CampaignOperationsSummary summary,
+      CampaignBusinessDashboard businessDashboard,
       List<CampaignRecentActivity> recentActivity,
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
@@ -2438,6 +2517,24 @@ public class CampaignService {
       int linkedinCompletedCount,
       String lastPublishedAtLabel,
       int totalDraftCount) {}
+
+  public record CampaignBusinessDashboard(
+      String totalVisitsLabel,
+      int draftsWithTrafficCount,
+      String averageVisitsLabel,
+      String bestChannelLabel,
+      String topDraftLabel,
+      String topDraftId,
+      boolean hasTopDraft,
+      List<CampaignBusinessHighlight> highlights) {}
+
+  public record CampaignBusinessHighlight(
+      String draftId,
+      String title,
+      String kindLabel,
+      String workflowLabel,
+      String totalVisitsLabel,
+      String bestChannelLabel) {}
 
   public record CampaignRecentActivity(
       String title,
