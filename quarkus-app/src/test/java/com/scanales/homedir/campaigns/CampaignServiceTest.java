@@ -197,6 +197,30 @@ class CampaignServiceTest {
   }
 
   @Test
+  void pilotLiveChannelRestrictsAutomatedReadinessToSingleChannel() {
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    when(blueskyPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("bluesky", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPublishAutomationEnabled(true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("bluesky", true, "admin@example.com");
+    campaignService.setPilotLiveChannel("discord", "admin@example.com");
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertEquals("Discord", preview.rolloutChecklist().pilotChannelLabel());
+    assertTrue(
+        preview.rolloutChecklist().channels().stream()
+            .anyMatch(item -> "discord".equals(item.channelCode()) && item.pilotLive() && item.ready()));
+    assertTrue(
+        preview.rolloutChecklist().channels().stream()
+            .anyMatch(item -> "bluesky".equals(item.channelCode()) && !item.pilotLive() && !item.ready()));
+  }
+
+  @Test
   void approvalAndScheduleSurviveDraftRefresh() {
     Event event =
         new Event(

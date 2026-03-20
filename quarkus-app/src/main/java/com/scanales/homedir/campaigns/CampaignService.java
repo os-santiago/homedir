@@ -333,6 +333,29 @@ public class CampaignService {
     }
   }
 
+  public CampaignOperationsStateSnapshot setPilotLiveChannel(String channel, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      String normalizedChannel = safeChannel(channel);
+      currentOperationsState = currentOperationsState.withPilotLiveChannel(normalizedChannel, safe(actor));
+      saveOperationsState(currentOperationsState);
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  normalizedChannel.isBlank() ? "ops.pilot.clear" : "ops.pilot.set",
+                  normalizedChannel,
+                  normalizedChannel.isBlank() ? "cleared" : "selected",
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
+    }
+  }
+
   public CampaignStateSnapshot markLinkedinPublished(String draftId, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -1827,6 +1850,15 @@ public class CampaignService {
         blockedCount,
         dryRunCount,
         acknowledgedCount,
+        operationsState.pilotLiveChannel().isBlank()
+            ? bundleText(bundle, "campaigns_admin_rollout_pilot_none")
+            : bundleText(bundle, "campaigns_channel_" + operationsState.pilotLiveChannel()),
+        operationsState.pilotLiveChannelUpdatedAt() == null
+            ? "—"
+            : localizedDateTime(operationsState.pilotLiveChannelUpdatedAt(), locale),
+        operationsState.pilotLiveChannelUpdatedBy().isBlank()
+            ? "—"
+            : operationsState.pilotLiveChannelUpdatedBy(),
         localizedDateTime(Instant.now(), locale),
         List.copyOf(channels));
   }
@@ -1876,6 +1908,7 @@ public class CampaignService {
             : bundleText(bundle, "campaigns_admin_rollout_ack_pending"),
         goLiveAck.acknowledgedAt() == null ? "—" : localizedDateTime(goLiveAck.acknowledgedAt(), locale),
         goLiveAck.acknowledgedBy().isBlank() ? "—" : goLiveAck.acknowledgedBy(),
+        operationsState.hasPilotLiveChannel() && operationsState.isPilotLiveChannel(status.channel()),
         status.globalEnabled(),
         status.channelEnabled(),
         status.configured(),
@@ -2414,6 +2447,9 @@ public class CampaignService {
     if (!currentOperationsState.isChannelAutomationEnabled(channel)) {
       return "channel_paused";
     }
+    if (currentOperationsState.hasPilotLiveChannel() && !currentOperationsState.isPilotLiveChannel(channel)) {
+      return "pilot_locked";
+    }
     return null;
   }
 
@@ -2450,7 +2486,10 @@ public class CampaignService {
         status.globalEnabled()
             && (!respectPublishAutomation || operationsState.publishAutomationEnabled());
     boolean channelEnabled =
-        status.channelEnabled() && operationsState.isChannelAutomationEnabled(status.channel());
+        status.channelEnabled()
+            && operationsState.isChannelAutomationEnabled(status.channel())
+            && (!operationsState.hasPilotLiveChannel()
+                || operationsState.isPilotLiveChannel(status.channel()));
     return new CampaignPublisherStatus(
         status.channel(),
         globalEnabled,
@@ -2678,6 +2717,9 @@ public class CampaignService {
       int blockedCount,
       int dryRunCount,
       int acknowledgedCount,
+      String pilotChannelLabel,
+      String pilotUpdatedAtLabel,
+      String pilotUpdatedByLabel,
       String evaluatedAtLabel,
       List<CampaignRolloutChannel> channels) {}
 
@@ -2692,6 +2734,7 @@ public class CampaignService {
       String acknowledgementLabel,
       String acknowledgedAtLabel,
       String acknowledgedByLabel,
+      boolean pilotLive,
       boolean globalEnabled,
       boolean channelEnabled,
       boolean configured,
