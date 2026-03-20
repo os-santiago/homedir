@@ -180,6 +180,84 @@ public class AdminCampaignsResource {
   }
 
   @POST
+  @Path("automation/refresh")
+  @Authenticated
+  public Response updateRefreshAutomation(
+      @FormParam("enabled") String enabled,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    campaignService.setRefreshAutomationEnabled(
+        "true".equalsIgnoreCase(enabled), identity.getPrincipal().getName());
+    return redirectWithUpdate(
+        "refreshautomation",
+        "refresh",
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
+  @Path("automation/publish")
+  @Authenticated
+  public Response updatePublishAutomation(
+      @FormParam("enabled") String enabled,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    campaignService.setPublishAutomationEnabled(
+        "true".equalsIgnoreCase(enabled), identity.getPrincipal().getName());
+    return redirectWithUpdate(
+        "publishautomation",
+        "publish",
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
+  @Path("automation/channel/{channelCode}")
+  @Authenticated
+  public Response updateChannelAutomation(
+      @PathParam("channelCode") String channelCode,
+      @FormParam("enabled") String enabled,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    String normalizedChannel = normalizeAutomationChannel(channelCode);
+    if (normalizedChannel.isBlank()) {
+      return redirectWithError(
+          "invalid_channel",
+          channelCode,
+          AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+          false);
+    }
+    campaignService.setChannelAutomationEnabled(
+        normalizedChannel, "true".equalsIgnoreCase(enabled), identity.getPrincipal().getName());
+    return redirectWithUpdate(
+        "channelautomation",
+        normalizedChannel,
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
   @Path("{draftId}/approve")
   @Authenticated
   public Response approve(
@@ -338,7 +416,11 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_unscheduled"),
         text(bundle, "campaigns_admin_updated_publishscan"),
         text(bundle, "campaigns_admin_updated_linkedin"),
+        text(bundle, "campaigns_admin_updated_refresh_automation"),
+        text(bundle, "campaigns_admin_updated_publish_automation"),
+        text(bundle, "campaigns_admin_updated_channel_automation"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
+        text(bundle, "campaigns_admin_error_invalid_channel"),
         text(bundle, "campaigns_admin_generated_at"),
         text(bundle, "campaigns_admin_summary_title"),
         text(bundle, "campaigns_admin_summary_intro"),
@@ -425,11 +507,23 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_publisher_status"),
         text(bundle, "campaigns_admin_publisher_intro"),
         text(bundle, "campaigns_admin_publisher_global"),
+        text(bundle, "campaigns_admin_publisher_refresh_automation"),
+        text(bundle, "campaigns_admin_publisher_publish_automation"),
+        text(bundle, "campaigns_admin_publisher_runtime_channel"),
+        text(bundle, "campaigns_admin_publisher_effective"),
+        text(bundle, "campaigns_admin_publisher_updated"),
+        text(bundle, "campaigns_admin_publisher_updated_by"),
         text(bundle, "campaigns_admin_publisher_dry_run"),
         text(bundle, "campaigns_admin_publisher_channel"),
         text(bundle, "campaigns_admin_publisher_webhook"),
         text(bundle, "campaigns_admin_publisher_rate_limit"),
         text(bundle, "campaigns_admin_publisher_run"),
+        text(bundle, "campaigns_admin_btn_pause_refresh"),
+        text(bundle, "campaigns_admin_btn_resume_refresh"),
+        text(bundle, "campaigns_admin_btn_pause_publish"),
+        text(bundle, "campaigns_admin_btn_resume_publish"),
+        text(bundle, "campaigns_admin_btn_disable_channel_automation"),
+        text(bundle, "campaigns_admin_btn_enable_channel_automation"),
         text(bundle, "campaigns_admin_btn_approve"),
         text(bundle, "campaigns_admin_btn_reset"),
         text(bundle, "campaigns_admin_btn_schedule"),
@@ -534,6 +628,16 @@ public class AdminCampaignsResource {
 
   private static String safe(String raw) {
     return raw == null ? "" : raw.replaceAll("[^a-zA-Z0-9\\-_]", "");
+  }
+
+  private static String normalizeAutomationChannel(String raw) {
+    if (raw == null) {
+      return "";
+    }
+    return switch (raw.trim().toLowerCase(Locale.ROOT)) {
+      case "discord", "bluesky", "mastodon" -> raw.trim().toLowerCase(Locale.ROOT);
+      default -> "";
+    };
   }
 
   public record AdminFilterOption(String value, String label) {}
@@ -648,7 +752,11 @@ public class AdminCampaignsResource {
       String updatedUnscheduled,
       String updatedPublishScan,
       String updatedLinkedin,
+      String updatedRefreshAutomation,
+      String updatedPublishAutomation,
+      String updatedChannelAutomation,
       String invalidSchedule,
+      String invalidChannel,
       String generatedAt,
       String summaryTitle,
       String summaryIntro,
@@ -731,11 +839,23 @@ public class AdminCampaignsResource {
       String publisherStatusLabel,
       String publisherIntro,
       String publisherGlobalLabel,
+      String publisherRefreshAutomationLabel,
+      String publisherPublishAutomationLabel,
+      String publisherRuntimeChannelLabel,
+      String publisherEffectiveLabel,
+      String publisherUpdatedLabel,
+      String publisherUpdatedByLabel,
       String publisherDryRunLabel,
       String publisherChannelLabel,
       String publisherConfiguredLabel,
       String publisherRateLimitLabel,
       String publisherRunLabel,
+      String pauseRefreshLabel,
+      String resumeRefreshLabel,
+      String pausePublishLabel,
+      String resumePublishLabel,
+      String disableChannelAutomationLabel,
+      String enableChannelAutomationLabel,
       String approveLabel,
       String resetLabel,
       String scheduleLabel,

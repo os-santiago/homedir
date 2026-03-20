@@ -69,11 +69,15 @@ public class CampaignService {
   private final Object stateLock = new Object();
   private volatile CampaignStateSnapshot currentState = CampaignStateSnapshot.empty();
   private volatile long lastKnownStateMtime = Long.MIN_VALUE;
+  private volatile CampaignOperationsStateSnapshot currentOperationsState =
+      CampaignOperationsStateSnapshot.empty();
+  private volatile long lastKnownOperationsStateMtime = Long.MIN_VALUE;
 
   @PostConstruct
   void init() {
     synchronized (stateLock) {
       refreshFromDisk(true);
+      refreshOperationsFromDisk(true);
       if (currentState.drafts().isEmpty()) {
         generateAndPersist("startup");
       }
@@ -83,6 +87,10 @@ public class CampaignService {
   @Scheduled(every = "{campaigns.drafts.refresh-interval:6h}")
   void scheduledRefresh() {
     synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      if (!currentOperationsState.refreshAutomationEnabled()) {
+        return;
+      }
       generateAndPersist("schedule");
     }
   }
@@ -90,7 +98,11 @@ public class CampaignService {
   @Scheduled(every = "{campaigns.publish.scan-interval:5m}")
   void scheduledPublish() {
     synchronized (stateLock) {
-      publishScheduledDrafts("schedule");
+      refreshOperationsFromDisk(false);
+      if (!currentOperationsState.publishAutomationEnabled()) {
+        return;
+      }
+      publishScheduledDrafts("schedule", true);
     }
   }
 
@@ -204,7 +216,86 @@ public class CampaignService {
 
   public CampaignStateSnapshot publishScheduledNow() {
     synchronized (stateLock) {
-      return publishScheduledDrafts("manual_admin");
+      return publishScheduledDrafts("manual_admin", false);
+    }
+  }
+
+  public CampaignOperationsStateSnapshot currentOperationsState() {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      return currentOperationsState;
+    }
+  }
+
+  public CampaignOperationsStateSnapshot setRefreshAutomationEnabled(boolean enabled, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      currentOperationsState = currentOperationsState.withRefreshAutomation(enabled, safe(actor));
+      saveOperationsState(currentOperationsState);
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  enabled ? "ops.refresh.enabled" : "ops.refresh.disabled",
+                  "",
+                  enabled ? "enabled" : "disabled",
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
+    }
+  }
+
+  public CampaignOperationsStateSnapshot setPublishAutomationEnabled(boolean enabled, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      currentOperationsState = currentOperationsState.withPublishAutomation(enabled, safe(actor));
+      saveOperationsState(currentOperationsState);
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  enabled ? "ops.publish.enabled" : "ops.publish.disabled",
+                  "",
+                  enabled ? "enabled" : "disabled",
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
+    }
+  }
+
+  public CampaignOperationsStateSnapshot setChannelAutomationEnabled(
+      String channel, boolean enabled, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      String normalizedChannel = safeChannel(channel);
+      if (normalizedChannel.isBlank()) {
+        return currentOperationsState;
+      }
+      currentOperationsState =
+          currentOperationsState.withChannelAutomation(normalizedChannel, enabled, safe(actor));
+      saveOperationsState(currentOperationsState);
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  enabled ? "ops.channel.enabled" : "ops.channel.disabled",
+                  normalizedChannel,
+                  enabled ? "enabled" : "disabled",
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
     }
   }
 
@@ -250,6 +341,7 @@ public class CampaignService {
 
   public CampaignPreviewSnapshot preview(String localeCode, CampaignAdminFilters filters) {
     CampaignStateSnapshot snapshot = currentState();
+    CampaignOperationsStateSnapshot operationsState = currentOperationsState();
     ResourceBundle bundle = localizedBundle(localeCode);
     Locale locale = bundle.getLocale() == null ? Locale.forLanguageTag("es") : bundle.getLocale();
     CampaignCadenceGuidance cadenceGuidance = cadenceGuidance(bundle);
@@ -273,7 +365,7 @@ public class CampaignService {
             })
             .toList();
     List<CampaignPublisherPreviewStatus> publisherStatuses =
-        publisherStatuses().stream()
+        effectivePublisherStatuses(false).stream()
             .map(status -> toPublisherStatus(status, bundle))
             .toList();
     boolean globalPublishingEnabled = publisherStatuses.stream().anyMatch(CampaignPublisherPreviewStatus::globalEnabled);
@@ -281,6 +373,7 @@ public class CampaignService {
         snapshot.generatedAt(),
         List.copyOf(cards),
         globalPublishingEnabled,
+        operationsStatus(operationsState, bundle, locale),
         List.copyOf(publisherStatuses),
         summarize(snapshot, bundle, locale),
         recentActivity(visibleDrafts, bundle, locale),
@@ -346,11 +439,14 @@ public class CampaignService {
             selectedPreview.queueHealth()));
   }
 
-  void resetStateForTests() {
+  public void resetStateForTests() {
     synchronized (stateLock) {
       currentState = CampaignStateSnapshot.empty();
       persistenceService.saveCampaignStateSync(currentState);
       lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
+      currentOperationsState = CampaignOperationsStateSnapshot.empty();
+      persistenceService.saveCampaignOperationsStateSync(currentOperationsState);
+      lastKnownOperationsStateMtime = persistenceService.campaignOperationsStateLastModifiedMillis();
     }
   }
 
@@ -685,6 +781,18 @@ public class CampaignService {
     lastKnownStateMtime = diskMtime;
   }
 
+  private void refreshOperationsFromDisk(boolean force) {
+    long diskMtime = persistenceService.campaignOperationsStateLastModifiedMillis();
+    if (!force && diskMtime == lastKnownOperationsStateMtime) {
+      return;
+    }
+    currentOperationsState =
+        persistenceService
+            .loadCampaignOperationsState()
+            .orElse(CampaignOperationsStateSnapshot.empty());
+    lastKnownOperationsStateMtime = diskMtime;
+  }
+
   private void recordInsightRefresh(CampaignStateSnapshot snapshot, String source) {
     try {
       insightsLedgerService.startInitiative(
@@ -721,15 +829,16 @@ public class CampaignService {
     }
   }
 
-  private CampaignStateSnapshot publishScheduledDrafts(String source) {
+  private CampaignStateSnapshot publishScheduledDrafts(String source, boolean respectPublishAutomation) {
     refreshFromDisk(false);
+    refreshOperationsFromDisk(false);
     Instant now = Instant.now();
     List<CampaignActivityEntry> activity = new ArrayList<>();
     List<CampaignDraftState> drafts =
         currentState.drafts().stream()
             .map(
                 draft -> {
-                  PublishMutation mutation = publishIfDue(draft, now, source);
+                  PublishMutation mutation = publishIfDue(draft, now, source, respectPublishAutomation);
                   activity.addAll(mutation.activity());
                   return mutation.draft();
                 })
@@ -747,7 +856,8 @@ public class CampaignService {
     return currentState;
   }
 
-  private PublishMutation publishIfDue(CampaignDraftState draft, Instant now, String source) {
+  private PublishMutation publishIfDue(
+      CampaignDraftState draft, Instant now, String source, boolean respectPublishAutomation) {
     if ((draft.workflowState() != CampaignWorkflowState.SCHEDULED
             && draft.workflowState() != CampaignWorkflowState.PUBLISHED)
         || draft.scheduledFor() == null) {
@@ -761,7 +871,7 @@ public class CampaignService {
     Instant lastAttemptAt = draft.lastPublishAttemptAt();
     String lastOutcome = draft.lastPublishOutcome();
     List<CampaignActivityEntry> activity = new ArrayList<>();
-    for (CampaignPublisherStatus status : publisherStatuses()) {
+    for (CampaignPublisherStatus status : effectivePublisherStatuses(respectPublishAutomation)) {
       if (!draft.suggestedChannels().contains(status.channel())) {
         continue;
       }
@@ -1061,6 +1171,52 @@ public class CampaignService {
         status.channelEnabled(),
         status.configured(),
         String.valueOf(status.minInterval()));
+  }
+
+  private CampaignAutomationStatus operationsStatus(
+      CampaignOperationsStateSnapshot operationsState, ResourceBundle bundle, Locale locale) {
+    List<CampaignChannelAutomationStatus> channels =
+        publisherStatuses().stream()
+            .map(
+                status ->
+                    new CampaignChannelAutomationStatus(
+                        status.channel(),
+                        bundleText(bundle, "campaigns_channel_" + status.channel()),
+                        operationsState.isChannelAutomationEnabled(status.channel()),
+                        status.channelEnabled(),
+                        status.configured(),
+                        status.globalEnabled()
+                            && operationsState.publishAutomationEnabled()
+                            && status.channelEnabled()
+                            && operationsState.isChannelAutomationEnabled(status.channel())
+                            && status.configured()
+                            && !status.dryRun(),
+                        status.dryRun(),
+                        String.valueOf(status.minInterval())))
+            .toList();
+    String updatedBy =
+        operationsState.updatedBy().isBlank()
+            ? bundleText(bundle, "campaigns_admin_audit_system")
+            : operationsState.updatedBy();
+    return new CampaignAutomationStatus(
+        operationsState.refreshAutomationEnabled(),
+        operationsState.publishAutomationEnabled(),
+        localizedDateTime(operationsState.updatedAt(), locale),
+        updatedBy,
+        channels);
+  }
+
+  private void saveOperationsState(CampaignOperationsStateSnapshot snapshot) {
+    persistenceService.saveCampaignOperationsState(snapshot);
+    lastKnownOperationsStateMtime = persistenceService.campaignOperationsStateLastModifiedMillis();
+  }
+
+  private static String safeChannel(String value) {
+    String normalized = safe(value).toLowerCase(Locale.ROOT);
+    return switch (normalized) {
+      case "discord", "bluesky", "mastodon" -> normalized;
+      default -> "";
+    };
   }
 
   private CampaignCadenceGuidance cadenceGuidance(ResourceBundle bundle) {
@@ -1615,7 +1771,7 @@ public class CampaignService {
 
   private boolean isPublishBlocked(CampaignDraftState draft) {
     boolean hasPendingAutomationChannel = false;
-    for (CampaignPublisherStatus status : publisherStatuses()) {
+    for (CampaignPublisherStatus status : effectivePublisherStatuses(true)) {
       if (!draft.suggestedChannels().contains(status.channel())
           || draft.publishedChannels().containsKey(status.channel())) {
         continue;
@@ -1637,6 +1793,31 @@ public class CampaignService {
         discordPublisherService.status(),
         blueskyPublisherService.status(),
         mastodonPublisherService.status());
+  }
+
+  private List<CampaignPublisherStatus> effectivePublisherStatuses(boolean respectPublishAutomation) {
+    CampaignOperationsStateSnapshot operationsState = currentOperationsState();
+    return publisherStatuses().stream()
+        .map(status -> applyOperationsState(status, operationsState, respectPublishAutomation))
+        .toList();
+  }
+
+  private CampaignPublisherStatus applyOperationsState(
+      CampaignPublisherStatus status,
+      CampaignOperationsStateSnapshot operationsState,
+      boolean respectPublishAutomation) {
+    boolean globalEnabled =
+        status.globalEnabled()
+            && (!respectPublishAutomation || operationsState.publishAutomationEnabled());
+    boolean channelEnabled =
+        status.channelEnabled() && operationsState.isChannelAutomationEnabled(status.channel());
+    return new CampaignPublisherStatus(
+        status.channel(),
+        globalEnabled,
+        status.dryRun(),
+        channelEnabled,
+        status.configured(),
+        status.minInterval());
   }
 
   private List<CampaignAuditTrailEntry> auditTrail(
@@ -1740,6 +1921,7 @@ public class CampaignService {
       Instant generatedAt,
       List<CampaignPreviewCard> drafts,
       boolean globalPublishingEnabled,
+      CampaignAutomationStatus automation,
       List<CampaignPublisherPreviewStatus> publisherStatuses,
       CampaignOperationsSummary summary,
       List<CampaignRecentActivity> recentActivity,
@@ -1771,6 +1953,23 @@ public class CampaignService {
       boolean dryRun,
       boolean channelEnabled,
       boolean configured,
+      String minIntervalLabel) {}
+
+  public record CampaignAutomationStatus(
+      boolean refreshAutomationEnabled,
+      boolean publishAutomationEnabled,
+      String updatedAtLabel,
+      String updatedByLabel,
+      List<CampaignChannelAutomationStatus> channels) {}
+
+  public record CampaignChannelAutomationStatus(
+      String channelCode,
+      String channelLabel,
+      boolean automationEnabled,
+      boolean configEnabled,
+      boolean configured,
+      boolean effectiveEnabled,
+      boolean dryRun,
       String minIntervalLabel) {}
 
   public record CampaignPreviewCard(
