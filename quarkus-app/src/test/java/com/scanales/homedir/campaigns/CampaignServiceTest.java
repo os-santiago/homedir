@@ -164,6 +164,8 @@ class CampaignServiceTest {
     campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
     campaignService.setChannelAutomationEnabled("bluesky", true, "admin@example.com");
     campaignService.setChannelAutomationEnabled("mastodon", true, "admin@example.com");
+    campaignService.setPilotLiveChannel("discord", "admin@example.com");
+    campaignService.setPilotLiveArmed(true, "admin@example.com");
 
     CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
 
@@ -183,6 +185,8 @@ class CampaignServiceTest {
     campaignService.setPublishAutomationEnabled(true, "admin@example.com");
     campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
     campaignService.setChannelGoLiveAcknowledged("discord", true, "admin@example.com");
+    campaignService.setPilotLiveChannel("discord", "admin@example.com");
+    campaignService.setPilotLiveArmed(true, "admin@example.com");
 
     CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
 
@@ -208,13 +212,20 @@ class CampaignServiceTest {
     campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
     campaignService.setChannelAutomationEnabled("bluesky", true, "admin@example.com");
     campaignService.setPilotLiveChannel("discord", "admin@example.com");
+    campaignService.setPilotLiveArmed(true, "admin@example.com");
 
     CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
 
     assertEquals("Discord", preview.rolloutChecklist().pilotChannelLabel());
+    assertEquals("Armado", preview.rolloutChecklist().pilotActivationLabel());
     assertTrue(
         preview.rolloutChecklist().channels().stream()
-            .anyMatch(item -> "discord".equals(item.channelCode()) && item.pilotLive() && item.ready()));
+            .anyMatch(
+                item ->
+                    "discord".equals(item.channelCode())
+                        && item.pilotLive()
+                        && item.liveArmed()
+                        && item.ready()));
     assertTrue(
         preview.rolloutChecklist().channels().stream()
             .anyMatch(item -> "bluesky".equals(item.channelCode()) && !item.pilotLive() && !item.ready()));
@@ -252,6 +263,8 @@ class CampaignServiceTest {
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.scheduleDraft(target.id(), nextHour, "sergio.canales.e@gmail.com");
     CampaignStateSnapshot refreshed = campaignService.refreshDrafts();
     CampaignDraftState scheduledDraft =
@@ -287,6 +300,8 @@ class CampaignServiceTest {
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
@@ -326,6 +341,8 @@ class CampaignServiceTest {
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(30), "sergio.canales.e@gmail.com");
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
@@ -335,6 +352,8 @@ class CampaignServiceTest {
     when(blueskyPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("bluesky", true, false, true, true, Duration.ZERO));
+    campaignService.setPilotLiveChannel("bluesky", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     when(blueskyPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
             CampaignPublishResult.published(
@@ -429,6 +448,8 @@ class CampaignServiceTest {
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
     campaignService.setPublishAutomationEnabled(false, "sergio.canales.e@gmail.com");
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
@@ -500,6 +521,8 @@ class CampaignServiceTest {
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.scheduleDraft(
         target.id(),
         LocalDateTime.now().minusMinutes(10),
@@ -544,6 +567,8 @@ class CampaignServiceTest {
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(10), "sergio.canales.e@gmail.com");
     when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
@@ -553,6 +578,8 @@ class CampaignServiceTest {
     when(blueskyPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("bluesky", true, false, true, true, Duration.ZERO));
+    campaignService.setPilotLiveChannel("bluesky", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     when(blueskyPublisherService.publish(org.mockito.ArgumentMatchers.any()))
         .thenReturn(
             CampaignPublishResult.published(
@@ -593,11 +620,48 @@ class CampaignServiceTest {
     when(discordPublisherService.status())
         .thenReturn(
             new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(10), "sergio.canales.e@gmail.com");
 
     org.junit.jupiter.api.Assertions.assertThrows(
         IllegalStateException.class,
         () -> campaignService.retryChannel(target.id(), "bluesky", "sergio.canales.e@gmail.com"));
+  }
+
+  @Test
+  void scheduleIsRejectedWhenPilotLiveIsNotArmed() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignDraftState target =
+        campaignService.refreshDrafts().drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalStateException.class,
+        () ->
+            campaignService.scheduleDraft(
+                target.id(),
+                LocalDateTime.now().plusHours(1).truncatedTo(ChronoUnit.MINUTES),
+                "sergio.canales.e@gmail.com"));
   }
 
   @Test

@@ -66,6 +66,12 @@
   {#if updatedAction == 'pilotcleared'}
     <div class="hd-alert hd-alert-success">{copy.updatedPilotCleared}</div>
   {/if}
+  {#if updatedAction == 'pilotarmed'}
+    <div class="hd-alert hd-alert-success">{copy.updatedPilotArmed}</div>
+  {/if}
+  {#if updatedAction == 'pilotdisarmed'}
+    <div class="hd-alert hd-alert-success">{copy.updatedPilotDisarmed}</div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
   {/if}
@@ -276,6 +282,9 @@
           <article class="campaigns-admin-item"><strong>{copy.rolloutPilotLabel}</strong><span>{view.rolloutChecklist.pilotChannelLabel}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.rolloutPilotUpdatedAtLabel}</strong><span>{view.rolloutChecklist.pilotUpdatedAtLabel}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.rolloutPilotUpdatedByLabel}</strong><span>{view.rolloutChecklist.pilotUpdatedByLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutActivationLabel}</strong><span>{view.rolloutChecklist.pilotActivationLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutActivationUpdatedAtLabel}</strong><span>{view.rolloutChecklist.pilotActivationUpdatedAtLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutActivationUpdatedByLabel}</strong><span>{view.rolloutChecklist.pilotActivationUpdatedByLabel}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.rolloutEvaluatedLabel}</strong><span>{view.rolloutChecklist.evaluatedAtLabel}</span></article>
         </div>
         <div class="campaigns-admin-list">
@@ -298,6 +307,7 @@
                 <article class="campaigns-admin-item"><strong>{copy.rolloutAckByLabel}</strong><span>{item.acknowledgedByLabel}</span></article>
                 <article class="campaigns-admin-item"><strong>{copy.rolloutAckAtLabel}</strong><span>{item.acknowledgedAtLabel}</span></article>
                 <article class="campaigns-admin-item"><strong>{copy.rolloutPilotLabel}</strong><span>{#if item.pilotLive}{item.channelLabel}{#else}—{/if}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.rolloutActivationLabel}</strong><span>{#if item.liveArmed}{copy.rolloutActivationArmedLabel}{#else}{copy.rolloutActivationDisarmedLabel}{/if}</span></article>
                 <article class="campaigns-admin-item"><strong>{copy.rolloutRecommendationLabel}</strong><span>{item.recommendationLabel}</span></article>
               </div>
               <div class="action-group admin-shell-actions">
@@ -315,6 +325,23 @@
                   {/if}
                 </form>
                 {#if item.pilotLive}
+                  {#if item.liveArmed}
+                    <form action="/private/admin/campaigns/rollout/pilot/disarm" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
+                    </form>
+                  {#else}
+                    <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
+                    </form>
+                  {/if}
                   <form action="/private/admin/campaigns/rollout/pilot/clear" method="post">
                     <input type="hidden" name="q" value="{filters.query}" />
                     <input type="hidden" name="workflow" value="{filters.workflow}" />

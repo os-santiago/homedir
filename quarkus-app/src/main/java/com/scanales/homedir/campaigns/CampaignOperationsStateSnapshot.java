@@ -15,7 +15,10 @@ public record CampaignOperationsStateSnapshot(
         Map<String, CampaignGoLiveAck> channelGoLiveAcknowledgements,
     @JsonProperty("pilot_live_channel") String pilotLiveChannel,
     @JsonProperty("pilot_live_channel_updated_at") Instant pilotLiveChannelUpdatedAt,
-    @JsonProperty("pilot_live_channel_updated_by") String pilotLiveChannelUpdatedBy) {
+    @JsonProperty("pilot_live_channel_updated_by") String pilotLiveChannelUpdatedBy,
+    @JsonProperty("pilot_live_armed") boolean pilotLiveArmed,
+    @JsonProperty("pilot_live_armed_at") Instant pilotLiveArmedAt,
+    @JsonProperty("pilot_live_armed_by") String pilotLiveArmedBy) {
 
   public static final int SCHEMA_VERSION = 1;
 
@@ -26,11 +29,12 @@ public record CampaignOperationsStateSnapshot(
         channelGoLiveAcknowledgements == null ? Map.of() : Map.copyOf(channelGoLiveAcknowledgements);
     pilotLiveChannel = pilotLiveChannel == null ? "" : pilotLiveChannel.trim().toLowerCase();
     pilotLiveChannelUpdatedBy = pilotLiveChannelUpdatedBy == null ? "" : pilotLiveChannelUpdatedBy.trim();
+    pilotLiveArmedBy = pilotLiveArmedBy == null ? "" : pilotLiveArmedBy.trim();
   }
 
   public static CampaignOperationsStateSnapshot empty() {
     return new CampaignOperationsStateSnapshot(
-        SCHEMA_VERSION, Instant.now(), "system", true, true, Map.of(), Map.of(), "", null, "");
+        SCHEMA_VERSION, Instant.now(), "system", true, true, Map.of(), Map.of(), "", null, "", false, null, "");
   }
 
   public boolean isChannelAutomationEnabled(String channel) {
@@ -58,6 +62,10 @@ public record CampaignOperationsStateSnapshot(
     return pilotLiveChannel.equals(channel.trim().toLowerCase());
   }
 
+  public boolean isPilotLiveActive(String channel) {
+    return pilotLiveArmed && isPilotLiveChannel(channel);
+  }
+
   public CampaignOperationsStateSnapshot withRefreshAutomation(boolean enabled, String actor) {
     return new CampaignOperationsStateSnapshot(
         SCHEMA_VERSION,
@@ -69,7 +77,10 @@ public record CampaignOperationsStateSnapshot(
         channelGoLiveAcknowledgements,
         pilotLiveChannel,
         pilotLiveChannelUpdatedAt,
-        pilotLiveChannelUpdatedBy);
+        pilotLiveChannelUpdatedBy,
+        pilotLiveArmed,
+        pilotLiveArmedAt,
+        pilotLiveArmedBy);
   }
 
   public CampaignOperationsStateSnapshot withPublishAutomation(boolean enabled, String actor) {
@@ -83,7 +94,10 @@ public record CampaignOperationsStateSnapshot(
         channelGoLiveAcknowledgements,
         pilotLiveChannel,
         pilotLiveChannelUpdatedAt,
-        pilotLiveChannelUpdatedBy);
+        pilotLiveChannelUpdatedBy,
+        pilotLiveArmed,
+        pilotLiveArmedAt,
+        pilotLiveArmedBy);
   }
 
   public CampaignOperationsStateSnapshot withChannelAutomation(
@@ -102,7 +116,10 @@ public record CampaignOperationsStateSnapshot(
         channelGoLiveAcknowledgements,
         pilotLiveChannel,
         pilotLiveChannelUpdatedAt,
-        pilotLiveChannelUpdatedBy);
+        pilotLiveChannelUpdatedBy,
+        pilotLiveArmed,
+        pilotLiveArmedAt,
+        pilotLiveArmedBy);
   }
 
   public CampaignOperationsStateSnapshot withChannelGoLiveAcknowledgement(
@@ -122,7 +139,10 @@ public record CampaignOperationsStateSnapshot(
         next,
         pilotLiveChannel,
         pilotLiveChannelUpdatedAt,
-        pilotLiveChannelUpdatedBy);
+        pilotLiveChannelUpdatedBy,
+        pilotLiveArmed,
+        pilotLiveArmedAt,
+        pilotLiveArmedBy);
   }
 
   public CampaignOperationsStateSnapshot withPilotLiveChannel(String channel, String actor) {
@@ -137,6 +157,26 @@ public record CampaignOperationsStateSnapshot(
         channelGoLiveAcknowledgements,
         normalized,
         normalized.isBlank() ? null : Instant.now(),
-        normalized.isBlank() ? "" : (actor == null ? "" : actor.trim()));
+        normalized.isBlank() ? "" : (actor == null ? "" : actor.trim()),
+        false,
+        null,
+        "");
+  }
+
+  public CampaignOperationsStateSnapshot withPilotLiveArmed(boolean armed, String actor) {
+    return new CampaignOperationsStateSnapshot(
+        SCHEMA_VERSION,
+        Instant.now(),
+        actor == null ? "" : actor.trim(),
+        refreshAutomationEnabled,
+        publishAutomationEnabled,
+        channelAutomation,
+        channelGoLiveAcknowledgements,
+        pilotLiveChannel,
+        pilotLiveChannelUpdatedAt,
+        pilotLiveChannelUpdatedBy,
+        armed && !pilotLiveChannel.isBlank(),
+        armed && !pilotLiveChannel.isBlank() ? Instant.now() : null,
+        armed && !pilotLiveChannel.isBlank() ? (actor == null ? "" : actor.trim()) : "");
   }
 }

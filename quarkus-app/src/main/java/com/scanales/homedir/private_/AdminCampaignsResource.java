@@ -375,6 +375,48 @@ public class AdminCampaignsResource {
   }
 
   @POST
+  @Path("rollout/pilot/arm")
+  @Authenticated
+  public Response armPilotLiveChannel(
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    campaignService.setPilotLiveArmed(true, identity.getPrincipal().getName());
+    return redirectWithUpdate(
+        "pilotarmed",
+        "pilot",
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
+  @Path("rollout/pilot/disarm")
+  @Authenticated
+  public Response disarmPilotLiveChannel(
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    campaignService.setPilotLiveArmed(false, identity.getPrincipal().getName());
+    return redirectWithUpdate(
+        "pilotdisarmed",
+        "pilot",
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
   @Path("{draftId}/approve")
   @Authenticated
   public Response approve(
@@ -586,6 +628,8 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_rollout_ack"),
         text(bundle, "campaigns_admin_updated_pilot_selected"),
         text(bundle, "campaigns_admin_updated_pilot_cleared"),
+        text(bundle, "campaigns_admin_updated_pilot_armed"),
+        text(bundle, "campaigns_admin_updated_pilot_disarmed"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
         text(bundle, "campaigns_admin_error_not_ready"),
         text(bundle, "campaigns_admin_error_retry_not_ready"),
@@ -624,6 +668,11 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_rollout_pilot_label"),
         text(bundle, "campaigns_admin_rollout_pilot_updated_at_label"),
         text(bundle, "campaigns_admin_rollout_pilot_updated_by_label"),
+        text(bundle, "campaigns_admin_rollout_activation_label"),
+        text(bundle, "campaigns_admin_rollout_activation_updated_at_label"),
+        text(bundle, "campaigns_admin_rollout_activation_updated_by_label"),
+        text(bundle, "campaigns_admin_rollout_activation_armed"),
+        text(bundle, "campaigns_admin_rollout_activation_disarmed"),
         text(bundle, "campaigns_admin_rollout_evaluated_label"),
         text(bundle, "campaigns_admin_rollout_recommendation_label"),
         text(bundle, "campaigns_admin_rollout_ack_status_label"),
@@ -633,6 +682,8 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_rollout_clear_ack_action"),
         text(bundle, "campaigns_admin_rollout_select_pilot_action"),
         text(bundle, "campaigns_admin_rollout_clear_pilot_action"),
+        text(bundle, "campaigns_admin_rollout_arm_pilot_action"),
+        text(bundle, "campaigns_admin_rollout_disarm_pilot_action"),
         text(bundle, "campaigns_admin_queue_health_title"),
         text(bundle, "campaigns_admin_queue_health_intro"),
         text(bundle, "campaigns_admin_queue_health_status_label"),
@@ -1029,6 +1080,8 @@ public class AdminCampaignsResource {
       String updatedRolloutAck,
       String updatedPilotSelected,
       String updatedPilotCleared,
+      String updatedPilotArmed,
+      String updatedPilotDisarmed,
       String invalidSchedule,
       String notReady,
       String retryNotReady,
@@ -1067,6 +1120,11 @@ public class AdminCampaignsResource {
       String rolloutPilotLabel,
       String rolloutPilotUpdatedAtLabel,
       String rolloutPilotUpdatedByLabel,
+      String rolloutActivationLabel,
+      String rolloutActivationUpdatedAtLabel,
+      String rolloutActivationUpdatedByLabel,
+      String rolloutActivationArmedLabel,
+      String rolloutActivationDisarmedLabel,
       String rolloutEvaluatedLabel,
       String rolloutRecommendationLabel,
       String rolloutAckStatusLabel,
@@ -1076,6 +1134,8 @@ public class AdminCampaignsResource {
       String rolloutClearAckActionLabel,
       String rolloutSelectPilotActionLabel,
       String rolloutClearPilotActionLabel,
+      String rolloutArmPilotActionLabel,
+      String rolloutDisarmPilotActionLabel,
       String queueHealthTitle,
       String queueHealthIntro,
       String queueHealthStatusLabel,
