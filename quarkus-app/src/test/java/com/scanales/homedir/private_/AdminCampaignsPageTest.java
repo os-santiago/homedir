@@ -118,7 +118,7 @@ class AdminCampaignsPageTest {
 
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
-  void adminCanApproveAndScheduleCampaignDraft() {
+  void adminShowsNotReadyMessageWhenScheduleIsBlocked() {
     String html =
         given()
             .when()
@@ -145,15 +145,8 @@ class AdminCampaignsPageTest {
         .post("/private/admin/campaigns/" + draftId + "/schedule")
         .then()
         .statusCode(200)
-        .body(containsString(draftId));
-
-    given()
-        .when()
-        .get("/private/admin/campaigns")
-        .then()
-        .statusCode(200)
-        .body(containsString("/private/admin/campaigns/" + draftId + "/unschedule"))
-        .body(containsString(draftId));
+        .body(containsString(draftId))
+        .body(containsString("todavía no está listo"));
   }
 
   @Test

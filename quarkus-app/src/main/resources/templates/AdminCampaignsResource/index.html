@@ -57,6 +57,9 @@
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
   {/if}
+  {#if errorCode == 'not_ready'}
+    <div class="hd-alert hd-alert-danger">{copy.notReady}: <code>{updatedDraft}</code></div>
+  {/if}
   {#if errorCode == 'invalid_channel'}
     <div class="hd-alert hd-alert-danger">{copy.invalidChannel}: <code>{updatedDraft}</code></div>
   {/if}
@@ -546,6 +549,7 @@
                     <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.scheduleReadinessLabel}</strong><span>{draft.scheduleReadinessLabel} · {draft.scheduleReadinessDetailLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{draft.recommendedWindowLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
@@ -591,6 +595,7 @@
                     <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.scheduleReadinessLabel}</strong><span>{draft.scheduleReadinessLabel} · {draft.scheduleReadinessDetailLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{draft.recommendedWindowLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
@@ -603,7 +608,7 @@
                       <input type="hidden" name="kind" value="{filters.kind}" />
                       <input type="hidden" name="channel" value="{filters.channel}" />
                       <input id="schedule-{draft.id}" class="hd-input" type="datetime-local" name="scheduledFor" />
-                      <button type="submit" class="btn btn-secondary">{copy.scheduleLabel}</button>
+                      <button type="submit" class="btn btn-secondary" {#if !draft.scheduleReady}disabled aria-disabled="true"{/if}>{copy.scheduleLabel}</button>
                     </form>
                     <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
                       <input type="hidden" name="q" value="{filters.query}" />

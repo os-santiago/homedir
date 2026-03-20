@@ -35,6 +35,9 @@
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{draftId}</code></div>
   {/if}
+  {#if errorCode == 'not_ready'}
+    <div class="hd-alert hd-alert-danger">{copy.notReady}: <code>{draftId}</code></div>
+  {/if}
   {#if errorCode == 'not_found'}
     <div class="hd-alert hd-alert-danger">{copy.detailNotFoundLabel}</div>
   {/if}
@@ -56,6 +59,7 @@
         <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in detail.draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
         <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{detail.draft.publishedChannelsLabel}</span></article>
         <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{detail.draft.publisherOutcomeLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.scheduleReadinessLabel}</strong><span>{detail.readiness.label} · {detail.readiness.detailLabel}</span></article>
         <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{detail.draft.scheduledForLabel}</span></article>
         <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{detail.draft.recommendedWindowLabel}</span></article>
         <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{detail.draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{detail.draft.ctaLabel}</a></article>
@@ -80,7 +84,7 @@
             <input type="hidden" name="returnTo" value="detail" />
             <label class="sr-only" for="campaignDetailSchedule">{copy.scheduleForLabel}</label>
             <input id="campaignDetailSchedule" class="hd-input" type="datetime-local" name="scheduledFor" />
-            <button type="submit" class="btn btn-secondary">{copy.scheduleLabel}</button>
+            <button type="submit" class="btn btn-secondary" {#if !detail.readiness.ready}disabled aria-disabled="true"{/if}>{copy.scheduleLabel}</button>
           </form>
         {/if}
         {#if detail.draft.workflowStateCode == 'scheduled'}

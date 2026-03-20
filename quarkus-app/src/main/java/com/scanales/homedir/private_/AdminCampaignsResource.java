@@ -327,7 +327,9 @@ public class AdminCampaignsResource {
       return redirectWithUpdate(
           "scheduled", draftId, filters, null, null, "detail".equalsIgnoreCase(returnTo));
     } catch (Exception e) {
-      return redirectWithError("invalid_schedule", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+      String errorCode =
+          e instanceof IllegalStateException ? "not_ready" : "invalid_schedule";
+      return redirectWithError(errorCode, draftId, filters, "detail".equalsIgnoreCase(returnTo));
     }
   }
 
@@ -420,6 +422,7 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_publish_automation"),
         text(bundle, "campaigns_admin_updated_channel_automation"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
+        text(bundle, "campaigns_admin_error_not_ready"),
         text(bundle, "campaigns_admin_error_invalid_channel"),
         text(bundle, "campaigns_admin_generated_at"),
         text(bundle, "campaigns_admin_summary_title"),
@@ -501,6 +504,7 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_unknown_cta"),
         text(bundle, "campaigns_admin_workflow"),
         text(bundle, "campaigns_admin_source"),
+        text(bundle, "campaigns_admin_schedule_readiness"),
         text(bundle, "campaigns_admin_schedule_for"),
         text(bundle, "campaigns_admin_best_window"),
         text(bundle, "campaigns_admin_published_channels"),
@@ -756,6 +760,7 @@ public class AdminCampaignsResource {
       String updatedPublishAutomation,
       String updatedChannelAutomation,
       String invalidSchedule,
+      String notReady,
       String invalidChannel,
       String generatedAt,
       String summaryTitle,
@@ -833,6 +838,7 @@ public class AdminCampaignsResource {
       String unknownCtaLabel,
       String workflowLabel,
       String sourceLabel,
+      String scheduleReadinessLabel,
       String scheduleForLabel,
       String bestWindowLabel,
       String publishedChannelsLabel,
