@@ -58,5 +58,6 @@ same ADEV discipline used to build the platform itself.
 - Cadence guidance: Campaigns now recommends send windows from real HomeDir activity patterns before scheduling drafts
 - Channel-ready preview packs: internal per-channel copy previews are now available before approval or scheduling
 - Campaign attribution: tracked landing URLs and internal visit summaries are now available in admin
+- Pilot activation runbook: admin now shows an ordered checklist for moving one selected channel from guarded rollout to real pilot activation
 - Public posting: not enabled
 - Scheduler-driven external publication: available only when publisher config is enabled

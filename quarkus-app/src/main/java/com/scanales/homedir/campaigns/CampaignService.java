@@ -530,6 +530,7 @@ public class CampaignService {
             .toList();
     boolean globalPublishingEnabled = publisherStatuses.stream().anyMatch(CampaignPublisherPreviewStatus::globalEnabled);
     List<CampaignAttributionSummary> attribution = attributionSummary(visibleDrafts, bundle);
+    CampaignRolloutChecklist rolloutChecklist = rolloutChecklist(bundle, locale);
     return new CampaignPreviewSnapshot(
         snapshot.generatedAt(),
         List.copyOf(cards),
@@ -538,7 +539,8 @@ public class CampaignService {
         List.copyOf(publisherStatuses),
         summarize(snapshot, bundle, locale),
         businessDashboard(cards, attribution, bundle),
-        rolloutChecklist(bundle, locale),
+        rolloutChecklist,
+        pilotActivationRunbook(rolloutChecklist, bundle),
         recentActivity(visibleDrafts, bundle, locale),
         cadenceGuidance,
         List.copyOf(previewPacks),
@@ -1894,6 +1896,180 @@ public class CampaignService {
         List.copyOf(channels));
   }
 
+  private CampaignPilotActivationRunbook pilotActivationRunbook(
+      CampaignRolloutChecklist checklist, ResourceBundle bundle) {
+    CampaignRolloutChannel pilotChannel =
+        checklist.channels().stream().filter(CampaignRolloutChannel::pilotLive).findFirst().orElse(null);
+    String targetChannelLabel =
+        pilotChannel == null ? bundleText(bundle, "campaigns_admin_rollout_pilot_none") : pilotChannel.channelLabel();
+    List<CampaignPilotActivationStep> steps = new ArrayList<>();
+    steps.add(
+        new CampaignPilotActivationStep(
+            "select_pilot",
+            bundleText(bundle, "campaigns_admin_runbook_step_select_pilot_title"),
+            pilotChannel != null
+                ? named(
+                    bundle,
+                    "campaigns_admin_runbook_step_select_pilot_done",
+                    Map.of("channel", targetChannelLabel))
+                : bundleText(bundle, "campaigns_admin_runbook_step_select_pilot_pending"),
+            pilotChannel != null ? "good" : "danger",
+            pilotChannel != null
+                ? bundleText(bundle, "campaigns_admin_runbook_step_done")
+                : bundleText(bundle, "campaigns_admin_runbook_step_blocked"),
+            pilotChannel != null));
+    steps.add(
+        new CampaignPilotActivationStep(
+            "ack_go_live",
+            bundleText(bundle, "campaigns_admin_runbook_step_ack_title"),
+            pilotChannel == null
+                ? bundleText(bundle, "campaigns_admin_runbook_step_requires_pilot")
+                : pilotChannel.acknowledged()
+                    ? named(
+                        bundle,
+                        "campaigns_admin_runbook_step_ack_done",
+                        Map.of("channel", targetChannelLabel))
+                    : bundleText(bundle, "campaigns_admin_runbook_step_ack_pending"),
+            pilotChannel != null && pilotChannel.acknowledged()
+                ? "good"
+                : pilotChannel == null ? "danger" : "watch",
+            pilotChannel != null && pilotChannel.acknowledged()
+                ? bundleText(bundle, "campaigns_admin_runbook_step_done")
+                : pilotChannel == null
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_blocked")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_pending"),
+            pilotChannel != null && pilotChannel.acknowledged()));
+    steps.add(
+        new CampaignPilotActivationStep(
+            "enable_global_publish",
+            bundleText(bundle, "campaigns_admin_runbook_step_global_title"),
+            pilotChannel == null
+                ? bundleText(bundle, "campaigns_admin_runbook_step_requires_pilot")
+                : pilotChannel.globalEnabled()
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_global_done")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_global_pending"),
+            pilotChannel != null && pilotChannel.globalEnabled()
+                ? "good"
+                : pilotChannel == null ? "danger" : "watch",
+            pilotChannel != null && pilotChannel.globalEnabled()
+                ? bundleText(bundle, "campaigns_admin_runbook_step_done")
+                : pilotChannel == null
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_blocked")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_pending"),
+            pilotChannel != null && pilotChannel.globalEnabled()));
+    steps.add(
+        new CampaignPilotActivationStep(
+            "enable_pilot_channel",
+            bundleText(bundle, "campaigns_admin_runbook_step_channel_title"),
+            pilotChannel == null
+                ? bundleText(bundle, "campaigns_admin_runbook_step_requires_pilot")
+                : pilotChannel.channelEnabled()
+                    ? named(
+                        bundle,
+                        "campaigns_admin_runbook_step_channel_done",
+                        Map.of("channel", targetChannelLabel))
+                    : named(
+                        bundle,
+                        "campaigns_admin_runbook_step_channel_pending",
+                        Map.of("channel", targetChannelLabel)),
+            pilotChannel != null && pilotChannel.channelEnabled()
+                ? "good"
+                : pilotChannel == null ? "danger" : "watch",
+            pilotChannel != null && pilotChannel.channelEnabled()
+                ? bundleText(bundle, "campaigns_admin_runbook_step_done")
+                : pilotChannel == null
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_blocked")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_pending"),
+            pilotChannel != null && pilotChannel.channelEnabled()));
+    steps.add(
+        new CampaignPilotActivationStep(
+            "validate_config",
+            bundleText(bundle, "campaigns_admin_runbook_step_config_title"),
+            pilotChannel == null
+                ? bundleText(bundle, "campaigns_admin_runbook_step_requires_pilot")
+                : pilotChannel.configured()
+                    ? named(
+                        bundle,
+                        "campaigns_admin_runbook_step_config_done",
+                        Map.of("channel", targetChannelLabel))
+                    : named(
+                        bundle,
+                        "campaigns_admin_runbook_step_config_pending",
+                        Map.of("channel", targetChannelLabel)),
+            pilotChannel != null && pilotChannel.configured()
+                ? "good"
+                : pilotChannel == null ? "danger" : "danger",
+            pilotChannel != null && pilotChannel.configured()
+                ? bundleText(bundle, "campaigns_admin_runbook_step_done")
+                : bundleText(bundle, "campaigns_admin_runbook_step_blocked"),
+            pilotChannel != null && pilotChannel.configured()));
+    steps.add(
+        new CampaignPilotActivationStep(
+            "exit_dry_run",
+            bundleText(bundle, "campaigns_admin_runbook_step_dry_run_title"),
+            pilotChannel == null
+                ? bundleText(bundle, "campaigns_admin_runbook_step_requires_pilot")
+                : !pilotChannel.dryRun()
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_dry_run_done")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_dry_run_pending"),
+            pilotChannel != null && !pilotChannel.dryRun()
+                ? "good"
+                : pilotChannel == null ? "danger" : "watch",
+            pilotChannel != null && !pilotChannel.dryRun()
+                ? bundleText(bundle, "campaigns_admin_runbook_step_done")
+                : pilotChannel == null
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_blocked")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_pending"),
+            pilotChannel != null && !pilotChannel.dryRun()));
+    steps.add(
+        new CampaignPilotActivationStep(
+            "arm_live_gate",
+            bundleText(bundle, "campaigns_admin_runbook_step_arm_title"),
+            pilotChannel == null
+                ? bundleText(bundle, "campaigns_admin_runbook_step_requires_pilot")
+                : pilotChannel.liveArmed()
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_arm_done")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_arm_pending"),
+            pilotChannel != null && pilotChannel.liveArmed()
+                ? "good"
+                : pilotChannel == null ? "danger" : "watch",
+            pilotChannel != null && pilotChannel.liveArmed()
+                ? bundleText(bundle, "campaigns_admin_runbook_step_done")
+                : pilotChannel == null
+                    ? bundleText(bundle, "campaigns_admin_runbook_step_blocked")
+                    : bundleText(bundle, "campaigns_admin_runbook_step_pending"),
+            pilotChannel != null && pilotChannel.liveArmed()));
+    int completedCount = (int) steps.stream().filter(CampaignPilotActivationStep::completed).count();
+    String statusCode;
+    if (completedCount == steps.size()) {
+      statusCode = "good";
+    } else if (completedCount > 0) {
+      statusCode = "watch";
+    } else {
+      statusCode = "danger";
+    }
+    String recommendationLabel =
+        steps.stream()
+            .filter(step -> !step.completed())
+            .findFirst()
+            .map(CampaignPilotActivationStep::detailLabel)
+            .orElse(bundleText(bundle, "campaigns_admin_runbook_ready"));
+    return new CampaignPilotActivationRunbook(
+        statusCode,
+        bundleText(
+            bundle,
+            switch (statusCode) {
+              case "good" -> "campaigns_admin_runbook_status_ready";
+              case "watch" -> "campaigns_admin_runbook_status_in_progress";
+              default -> "campaigns_admin_runbook_status_blocked";
+            }),
+        completedCount,
+        steps.size() - completedCount,
+        targetChannelLabel,
+        recommendationLabel,
+        List.copyOf(steps));
+  }
+
   private CampaignRolloutChannel toRolloutChannel(
       CampaignPublisherStatus status,
       CampaignOperationsStateSnapshot operationsState,
@@ -2643,6 +2819,7 @@ public class CampaignService {
       CampaignOperationsSummary summary,
       CampaignBusinessDashboard businessDashboard,
       CampaignRolloutChecklist rolloutChecklist,
+      CampaignPilotActivationRunbook pilotActivationRunbook,
       List<CampaignRecentActivity> recentActivity,
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
@@ -2763,6 +2940,23 @@ public class CampaignService {
       String pilotActivationUpdatedByLabel,
       String evaluatedAtLabel,
       List<CampaignRolloutChannel> channels) {}
+
+  public record CampaignPilotActivationRunbook(
+      String statusCode,
+      String statusLabel,
+      int completedCount,
+      int pendingCount,
+      String targetChannelLabel,
+      String recommendationLabel,
+      List<CampaignPilotActivationStep> steps) {}
+
+  public record CampaignPilotActivationStep(
+      String stepCode,
+      String titleLabel,
+      String detailLabel,
+      String statusCode,
+      String statusLabel,
+      boolean completed) {}
 
   public record CampaignRolloutChannel(
       String channelCode,
