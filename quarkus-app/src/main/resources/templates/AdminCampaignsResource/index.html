@@ -57,6 +57,9 @@
   {#if updatedAction == 'channelautomation'}
     <div class="hd-alert hd-alert-success">{copy.updatedChannelAutomation}: <code>{updatedDraft}</code></div>
   {/if}
+  {#if updatedAction == 'rolloutack'}
+    <div class="hd-alert hd-alert-success">{copy.updatedRolloutAck}: <code>{updatedDraft}</code></div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
   {/if}
@@ -263,6 +266,7 @@
           <article class="campaigns-admin-item"><strong>{copy.rolloutReadyLabel}</strong><span>{view.rolloutChecklist.readyCount}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.rolloutBlockedLabel}</strong><span>{view.rolloutChecklist.blockedCount}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.rolloutDryRunLabel}</strong><span>{view.rolloutChecklist.dryRunCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutAcknowledgedLabel}</strong><span>{view.rolloutChecklist.acknowledgedCount}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.rolloutEvaluatedLabel}</strong><span>{view.rolloutChecklist.evaluatedAtLabel}</span></article>
         </div>
         <div class="campaigns-admin-list">
@@ -281,7 +285,25 @@
                 <article class="campaigns-admin-item"><strong>{copy.publisherConfiguredLabel}</strong><span>{item.configured}</span></article>
                 <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{item.dryRun}</span></article>
                 <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{item.minIntervalLabel}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.rolloutAckStatusLabel}</strong><span>{item.acknowledgementLabel}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.rolloutAckByLabel}</strong><span>{item.acknowledgedByLabel}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.rolloutAckAtLabel}</strong><span>{item.acknowledgedAtLabel}</span></article>
                 <article class="campaigns-admin-item"><strong>{copy.rolloutRecommendationLabel}</strong><span>{item.recommendationLabel}</span></article>
+              </div>
+              <div class="action-group admin-shell-actions">
+                <form action="/private/admin/campaigns/rollout/channel/{item.channelCode}/ack" method="post">
+                  <input type="hidden" name="q" value="{filters.query}" />
+                  <input type="hidden" name="workflow" value="{filters.workflow}" />
+                  <input type="hidden" name="kind" value="{filters.kind}" />
+                  <input type="hidden" name="channel" value="{filters.channel}" />
+                  {#if item.acknowledged}
+                    <input type="hidden" name="acknowledged" value="false" />
+                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutClearBtn-{item.channelCode}">{copy.rolloutClearAckActionLabel}</button>
+                  {#else}
+                    <input type="hidden" name="acknowledged" value="true" />
+                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutAckBtn-{item.channelCode}">{copy.rolloutAckActionLabel}</button>
+                  {/if}
+                </form>
               </div>
             </article>
           {/for}

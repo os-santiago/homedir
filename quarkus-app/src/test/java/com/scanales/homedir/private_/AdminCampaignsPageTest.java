@@ -56,6 +56,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsQueueHealthPanel\""))
         .body(containsString("id=\"campaignsBusinessPanel\""))
         .body(containsString("id=\"campaignsRolloutPanel\""))
+        .body(containsString("id=\"campaignsRolloutAckBtn-discord\""))
         .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))
@@ -143,6 +144,21 @@ class AdminCampaignsPageTest {
         .then()
         .statusCode(200)
         .body(containsString("campaignsEnableChannelBtn-discord"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanAcknowledgeChannelGoLiveReadiness() {
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("acknowledged", "true")
+        .when()
+        .post("/private/admin/campaigns/rollout/channel/discord/ack")
+        .then()
+        .statusCode(200)
+        .body(containsString("campaignsRolloutClearBtn-discord"))
+        .body(containsString("discord"))
+        .body(containsString("Confirmado"));
   }
 
   @Test

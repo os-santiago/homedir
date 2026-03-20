@@ -304,6 +304,35 @@ public class CampaignService {
     }
   }
 
+  public CampaignOperationsStateSnapshot setChannelGoLiveAcknowledged(
+      String channel, boolean acknowledged, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      String normalizedChannel = safeChannel(channel);
+      if (normalizedChannel.isBlank()) {
+        return currentOperationsState;
+      }
+      currentOperationsState =
+          currentOperationsState.withChannelGoLiveAcknowledgement(
+              normalizedChannel, acknowledged, safe(actor));
+      saveOperationsState(currentOperationsState);
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  acknowledged ? "ops.channel.golive.ack" : "ops.channel.golive.clear",
+                  normalizedChannel,
+                  acknowledged ? "acknowledged" : "cleared",
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
+    }
+  }
+
   public CampaignStateSnapshot markLinkedinPublished(String draftId, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -1755,13 +1784,15 @@ public class CampaignService {
   }
 
   private CampaignRolloutChecklist rolloutChecklist(ResourceBundle bundle, Locale locale) {
+    CampaignOperationsStateSnapshot operationsState = currentOperationsState();
     List<CampaignRolloutChannel> channels =
         effectivePublisherStatuses(true).stream()
-            .map(status -> toRolloutChannel(status, bundle))
+            .map(status -> toRolloutChannel(status, operationsState, bundle, locale))
             .toList();
     int readyCount = 0;
     int blockedCount = 0;
     int dryRunCount = 0;
+    int acknowledgedCount = 0;
     for (CampaignRolloutChannel channel : channels) {
       if (channel.ready()) {
         readyCount++;
@@ -1770,6 +1801,9 @@ public class CampaignService {
       }
       if (channel.dryRun()) {
         dryRunCount++;
+      }
+      if (channel.acknowledged()) {
+        acknowledgedCount++;
       }
     }
     String statusCode;
@@ -1792,14 +1826,19 @@ public class CampaignService {
         readyCount,
         blockedCount,
         dryRunCount,
+        acknowledgedCount,
         localizedDateTime(Instant.now(), locale),
         List.copyOf(channels));
   }
 
   private CampaignRolloutChannel toRolloutChannel(
-      CampaignPublisherStatus status, ResourceBundle bundle) {
+      CampaignPublisherStatus status,
+      CampaignOperationsStateSnapshot operationsState,
+      ResourceBundle bundle,
+      Locale locale) {
     boolean ready =
         status.globalEnabled() && status.channelEnabled() && status.configured() && !status.dryRun();
+    CampaignGoLiveAck goLiveAck = operationsState.goLiveAcknowledgement(status.channel());
     String stateCode;
     String recommendationKey;
     if (ready) {
@@ -1831,6 +1870,12 @@ public class CampaignService {
             }),
         bundleText(bundle, recommendationKey),
         ready,
+        goLiveAck.acknowledged(),
+        goLiveAck.acknowledged()
+            ? bundleText(bundle, "campaigns_admin_rollout_ack_acknowledged")
+            : bundleText(bundle, "campaigns_admin_rollout_ack_pending"),
+        goLiveAck.acknowledgedAt() == null ? "—" : localizedDateTime(goLiveAck.acknowledgedAt(), locale),
+        goLiveAck.acknowledgedBy().isBlank() ? "—" : goLiveAck.acknowledgedBy(),
         status.globalEnabled(),
         status.channelEnabled(),
         status.configured(),
@@ -2632,6 +2677,7 @@ public class CampaignService {
       int readyCount,
       int blockedCount,
       int dryRunCount,
+      int acknowledgedCount,
       String evaluatedAtLabel,
       List<CampaignRolloutChannel> channels) {}
 
@@ -2642,6 +2688,10 @@ public class CampaignService {
       String statusLabel,
       String recommendationLabel,
       boolean ready,
+      boolean acknowledged,
+      String acknowledgementLabel,
+      String acknowledgedAtLabel,
+      String acknowledgedByLabel,
       boolean globalEnabled,
       boolean channelEnabled,
       boolean configured,

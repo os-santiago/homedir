@@ -290,6 +290,40 @@ public class AdminCampaignsResource {
   }
 
   @POST
+  @Path("rollout/channel/{channelCode}/ack")
+  @Authenticated
+  public Response updateChannelGoLiveAcknowledgement(
+      @PathParam("channelCode") String channelCode,
+      @FormParam("acknowledged") String acknowledged,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    String normalizedChannel = normalizeAutomationChannel(channelCode);
+    if (normalizedChannel.isBlank()) {
+      return redirectWithError(
+          "invalid_channel",
+          channelCode,
+          AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+          false);
+    }
+    campaignService.setChannelGoLiveAcknowledged(
+        normalizedChannel,
+        "true".equalsIgnoreCase(acknowledged),
+        identity.getPrincipal().getName());
+    return redirectWithUpdate(
+        "rolloutack",
+        normalizedChannel,
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
   @Path("{draftId}/approve")
   @Authenticated
   public Response approve(
@@ -498,6 +532,7 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_refresh_automation"),
         text(bundle, "campaigns_admin_updated_publish_automation"),
         text(bundle, "campaigns_admin_updated_channel_automation"),
+        text(bundle, "campaigns_admin_updated_rollout_ack"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
         text(bundle, "campaigns_admin_error_not_ready"),
         text(bundle, "campaigns_admin_error_retry_not_ready"),
@@ -532,8 +567,14 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_rollout_ready_label"),
         text(bundle, "campaigns_admin_rollout_blocked_label"),
         text(bundle, "campaigns_admin_rollout_dry_run_label"),
+        text(bundle, "campaigns_admin_rollout_acknowledged_label"),
         text(bundle, "campaigns_admin_rollout_evaluated_label"),
         text(bundle, "campaigns_admin_rollout_recommendation_label"),
+        text(bundle, "campaigns_admin_rollout_ack_status_label"),
+        text(bundle, "campaigns_admin_rollout_ack_by_label"),
+        text(bundle, "campaigns_admin_rollout_ack_at_label"),
+        text(bundle, "campaigns_admin_rollout_ack_action"),
+        text(bundle, "campaigns_admin_rollout_clear_ack_action"),
         text(bundle, "campaigns_admin_queue_health_title"),
         text(bundle, "campaigns_admin_queue_health_intro"),
         text(bundle, "campaigns_admin_queue_health_status_label"),
@@ -927,6 +968,7 @@ public class AdminCampaignsResource {
       String updatedRefreshAutomation,
       String updatedPublishAutomation,
       String updatedChannelAutomation,
+      String updatedRolloutAck,
       String invalidSchedule,
       String notReady,
       String retryNotReady,
@@ -961,8 +1003,14 @@ public class AdminCampaignsResource {
       String rolloutReadyLabel,
       String rolloutBlockedLabel,
       String rolloutDryRunLabel,
+      String rolloutAcknowledgedLabel,
       String rolloutEvaluatedLabel,
       String rolloutRecommendationLabel,
+      String rolloutAckStatusLabel,
+      String rolloutAckByLabel,
+      String rolloutAckAtLabel,
+      String rolloutAckActionLabel,
+      String rolloutClearAckActionLabel,
       String queueHealthTitle,
       String queueHealthIntro,
       String queueHealthStatusLabel,
