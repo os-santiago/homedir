@@ -440,6 +440,35 @@ public class AdminCampaignsResource {
   }
 
   @POST
+  @Path("rollout/pilot/decision")
+  @Authenticated
+  public Response updatePilotDecision(
+      @FormParam("decision") String decision,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    String normalizedDecision = decision == null ? "" : decision.trim().toLowerCase(Locale.ROOT);
+    campaignService.setPilotDecision(normalizedDecision, identity.getPrincipal().getName());
+    String updatedAction =
+        switch (normalizedDecision) {
+          case "approved" -> "pilotapproved";
+          case "hold" -> "pilothold";
+          default -> "pilotdecisioncleared";
+        };
+    return redirectWithUpdate(
+        updatedAction,
+        "pilot",
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
   @Path("{draftId}/approve")
   @Authenticated
   public Response approve(
@@ -731,6 +760,23 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_pilot_verification_action_label"),
         text(bundle, "campaigns_admin_pilot_verification_mark_action"),
         text(bundle, "campaigns_admin_pilot_verification_clear_action"),
+        new PilotDecisionCopy(
+            text(bundle, "campaigns_admin_updated_pilot_approved"),
+            text(bundle, "campaigns_admin_updated_pilot_hold"),
+            text(bundle, "campaigns_admin_updated_pilot_decision_cleared"),
+            text(bundle, "campaigns_admin_pilot_decision_title"),
+            text(bundle, "campaigns_admin_pilot_decision_intro"),
+            text(bundle, "campaigns_admin_pilot_decision_status_label"),
+            text(bundle, "campaigns_admin_pilot_decision_target_label"),
+            text(bundle, "campaigns_admin_pilot_decision_verification_label"),
+            text(bundle, "campaigns_admin_pilot_decision_state_label"),
+            text(bundle, "campaigns_admin_pilot_decision_decided_at_label"),
+            text(bundle, "campaigns_admin_pilot_decision_decided_by_label"),
+            text(bundle, "campaigns_admin_pilot_decision_recommendation_label"),
+            text(bundle, "campaigns_admin_pilot_decision_action_label"),
+            text(bundle, "campaigns_admin_pilot_decision_approve_action"),
+            text(bundle, "campaigns_admin_pilot_decision_hold_action"),
+            text(bundle, "campaigns_admin_pilot_decision_clear_action")),
         text(bundle, "campaigns_admin_queue_health_title"),
         text(bundle, "campaigns_admin_queue_health_intro"),
         text(bundle, "campaigns_admin_queue_health_status_label"),
@@ -1207,6 +1253,7 @@ public class AdminCampaignsResource {
       String pilotVerificationActionLabel,
       String pilotVerificationMarkActionLabel,
       String pilotVerificationClearActionLabel,
+      PilotDecisionCopy pilotDecision,
       String queueHealthTitle,
       String queueHealthIntro,
       String queueHealthStatusLabel,
@@ -1315,4 +1362,22 @@ public class AdminCampaignsResource {
       String unscheduleLabel,
       String markLinkedinLabel,
       String retryChannelLabel) {}
+
+  public record PilotDecisionCopy(
+      String updatedApproved,
+      String updatedHold,
+      String updatedCleared,
+      String title,
+      String intro,
+      String statusLabel,
+      String targetLabel,
+      String verificationLabel,
+      String stateLabel,
+      String decidedAtLabel,
+      String decidedByLabel,
+      String recommendationLabel,
+      String actionLabel,
+      String approveActionLabel,
+      String holdActionLabel,
+      String clearActionLabel) {}
 }

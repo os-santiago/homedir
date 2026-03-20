@@ -315,6 +315,63 @@ class CampaignServiceTest {
   }
 
   @Test
+  void pilotDecisionSummaryRequiresVerificationAndTracksDecision() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(CampaignPublishResult.published("discord", Instant.now().plusSeconds(1), "published"));
+    campaignService.publishScheduledNow();
+
+    CampaignService.CampaignPreviewSnapshot unverifiedPreview = campaignService.preview("es");
+    assertEquals("Pendiente de decisión", unverifiedPreview.pilotDecisionSummary().statusLabel());
+    assertEquals("Pendiente de verificación", unverifiedPreview.pilotDecisionSummary().verificationLabel());
+    assertEquals("Sin decisión registrada", unverifiedPreview.pilotDecisionSummary().decisionLabel());
+    assertFalse(unverifiedPreview.pilotDecisionSummary().canDecide());
+
+    campaignService.setPilotVerificationAcknowledged(true, "sergio.canales.e@gmail.com");
+    CampaignService.CampaignPreviewSnapshot pendingPreview = campaignService.preview("es");
+    assertTrue(pendingPreview.pilotDecisionSummary().canDecide());
+    assertEquals("Sin decisión registrada", pendingPreview.pilotDecisionSummary().decisionLabel());
+
+    campaignService.setPilotDecision("approved", "sergio.canales.e@gmail.com");
+    CampaignService.CampaignPreviewSnapshot approvedPreview = campaignService.preview("es");
+    assertEquals("Aprobado", approvedPreview.pilotDecisionSummary().statusLabel());
+    assertEquals("Aprobado", approvedPreview.pilotDecisionSummary().decisionLabel());
+    assertEquals("sergio.canales.e@gmail.com", approvedPreview.pilotDecisionSummary().decidedByLabel());
+    assertTrue(approvedPreview.pilotDecisionSummary().approved());
+    assertTrue(approvedPreview.pilotDecisionSummary().canClear());
+
+    campaignService.setPilotVerificationAcknowledged(false, "sergio.canales.e@gmail.com");
+    CampaignService.CampaignPreviewSnapshot resetPreview = campaignService.preview("es");
+    assertEquals("Sin decisión registrada", resetPreview.pilotDecisionSummary().decisionLabel());
+    assertFalse(resetPreview.pilotDecisionSummary().hasDecision());
+  }
+
+  @Test
   void approvalAndScheduleSurviveDraftRefresh() {
     Event event =
         new Event(

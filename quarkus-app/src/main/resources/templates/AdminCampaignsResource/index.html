@@ -78,6 +78,15 @@
   {#if updatedAction == 'pilotverificationcleared'}
     <div class="hd-alert hd-alert-success">{copy.updatedPilotVerificationCleared}</div>
   {/if}
+  {#if updatedAction == 'pilotapproved'}
+    <div class="hd-alert hd-alert-success">{copy.pilotDecision.updatedApproved}</div>
+  {/if}
+  {#if updatedAction == 'pilothold'}
+    <div class="hd-alert hd-alert-success">{copy.pilotDecision.updatedHold}</div>
+  {/if}
+  {#if updatedAction == 'pilotdecisioncleared'}
+    <div class="hd-alert hd-alert-success">{copy.pilotDecision.updatedCleared}</div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
   {/if}
@@ -450,6 +459,55 @@
               <input type="hidden" name="channel" value="{filters.channel}" />
               <input type="hidden" name="acknowledged" value="true" />
               <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationBtn">{copy.pilotVerificationMarkActionLabel}</button>
+            </form>
+          {/if}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsPilotDecisionPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.pilotDecision.title}</p>
+            <h2>{copy.pilotDecision.intro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.pilotDecisionSummary.statusCode}">{view.pilotDecisionSummary.statusLabel}</span>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.statusLabel}</strong><span>{view.pilotDecisionSummary.statusLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.targetLabel}</strong><span>{view.pilotDecisionSummary.targetChannelLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.verificationLabel}</strong><span>{view.pilotDecisionSummary.verificationLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.stateLabel}</strong><span>{view.pilotDecisionSummary.decisionLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.decidedAtLabel}</strong><span>{view.pilotDecisionSummary.decidedAtLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.decidedByLabel}</strong><span>{view.pilotDecisionSummary.decidedByLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.recommendationLabel}</strong><span>{view.pilotDecisionSummary.recommendationLabel}</span></article>
+        </div>
+        <div class="action-group admin-shell-actions">
+          {#if view.pilotDecisionSummary.canDecide}
+            <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="decision" value="approved" />
+              <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionApproveBtn">{copy.pilotDecision.approveActionLabel}</button>
+            </form>
+            <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="decision" value="hold" />
+              <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionHoldBtn">{copy.pilotDecision.holdActionLabel}</button>
+            </form>
+          {/if}
+          {#if view.pilotDecisionSummary.canClear}
+            <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="decision" value="" />
+              <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionClearBtn">{copy.pilotDecision.clearActionLabel}</button>
             </form>
           {/if}
         </div>
