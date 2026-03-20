@@ -1,6 +1,7 @@
 package com.scanales.homedir.private_;
 
 import com.scanales.homedir.campaigns.CampaignService;
+import com.scanales.homedir.campaigns.CampaignWorkflowState;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
@@ -22,8 +23,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.ResourceBundle;
 import jakarta.ws.rs.core.UriBuilder;
 
@@ -43,7 +46,8 @@ public class AdminCampaignsResource {
         boolean refreshed,
         String updatedAction,
         String updatedDraft,
-        String errorCode);
+        String errorCode,
+        String updatedCount);
 
     static native TemplateInstance detail(
         AdminCampaignsCopy copy,
@@ -69,7 +73,8 @@ public class AdminCampaignsResource {
       @QueryParam("refreshed") String refreshed,
       @QueryParam("updated") String updated,
       @QueryParam("draft") String draftId,
-      @QueryParam("error") String errorCode) {
+      @QueryParam("error") String errorCode,
+      @QueryParam("count") String updatedCount) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -89,7 +94,8 @@ public class AdminCampaignsResource {
             "1".equals(refreshed),
             safe(updated),
             safe(draftId),
-            safe(errorCode));
+            safe(errorCode),
+            safe(updatedCount));
     return Response.ok(TemplateLocaleUtil.apply(template, localeCode, headers)).build();
   }
 
@@ -131,6 +137,32 @@ public class AdminCampaignsResource {
             safe(updated),
             safe(errorCode));
     return Response.ok(TemplateLocaleUtil.apply(template, localeCode, headers)).build();
+  }
+
+  @POST
+  @Path("bulk-action")
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Authenticated
+  public Response bulkAction(
+      @FormParam("action") String action,
+      @FormParam("draftIds") List<String> draftIds,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
+    if (draftIds == null || draftIds.stream().map(AdminCampaignsResource::safe).allMatch(String::isBlank)) {
+      return redirectWithError("bulk_no_selection", "", filters, false);
+    }
+    String normalizedAction = safe(action);
+    if (!Set.of("approve", "reset", "unschedule").contains(normalizedAction)) {
+      return redirectWithError("invalid_bulk_action", "", filters, false);
+    }
+    int changed = applyBulkAction(normalizedAction, draftIds, identity.getPrincipal().getName());
+    return redirectWithUpdate("bulk", "", filters, "count", String.valueOf(changed), false);
   }
 
   @POST
@@ -435,6 +467,15 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_filter_all"),
         text(bundle, "campaigns_admin_filter_apply"),
         text(bundle, "campaigns_admin_filter_clear"),
+        text(bundle, "campaigns_admin_bulk_title"),
+        text(bundle, "campaigns_admin_bulk_intro"),
+        text(bundle, "campaigns_admin_bulk_select_label"),
+        text(bundle, "campaigns_admin_bulk_action_label"),
+        text(bundle, "campaigns_admin_bulk_apply"),
+        text(bundle, "campaigns_admin_bulk_action_approve"),
+        text(bundle, "campaigns_admin_bulk_action_reset"),
+        text(bundle, "campaigns_admin_bulk_action_unschedule"),
+        text(bundle, "campaigns_admin_updated_bulk"),
         text(bundle, "campaigns_admin_filter_results"),
         text(bundle, "campaigns_admin_filter_empty"),
         text(bundle, "campaigns_admin_detail_back"),
@@ -460,6 +501,8 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_error_invalid_schedule"),
         text(bundle, "campaigns_admin_error_not_ready"),
         text(bundle, "campaigns_admin_error_retry_not_ready"),
+        text(bundle, "campaigns_admin_error_bulk_no_selection"),
+        text(bundle, "campaigns_admin_error_invalid_bulk_action"),
         text(bundle, "campaigns_admin_error_invalid_channel"),
         text(bundle, "campaigns_admin_generated_at"),
         text(bundle, "campaigns_admin_summary_title"),
@@ -575,6 +618,51 @@ public class AdminCampaignsResource {
 
   private static String text(ResourceBundle bundle, String key) {
     return bundle.containsKey(key) ? bundle.getString(key) : key;
+  }
+
+  private int applyBulkAction(String action, List<String> draftIds, String actor) {
+    Set<String> uniqueIds = new LinkedHashSet<>();
+    for (String draftId : draftIds) {
+      String safeDraftId = safe(draftId);
+      if (!safeDraftId.isBlank()) {
+        uniqueIds.add(safeDraftId);
+      }
+    }
+    int changed = 0;
+    for (String draftId : uniqueIds) {
+      CampaignService.CampaignPreviewCard draft =
+          campaignService.preview("es").drafts().stream()
+              .filter(item -> item.id().equals(draftId))
+              .findFirst()
+              .orElse(null);
+      if (draft == null) {
+        continue;
+      }
+      CampaignWorkflowState workflow = CampaignWorkflowState.valueOf(draft.workflowStateCode().toUpperCase(Locale.ROOT));
+      switch (action) {
+        case "approve" -> {
+          if (workflow == CampaignWorkflowState.DRAFT) {
+            campaignService.approveDraft(draftId, actor);
+            changed++;
+          }
+        }
+        case "reset" -> {
+          if (workflow == CampaignWorkflowState.APPROVED || workflow == CampaignWorkflowState.SCHEDULED) {
+            campaignService.resetDraft(draftId);
+            changed++;
+          }
+        }
+        case "unschedule" -> {
+          if (workflow == CampaignWorkflowState.SCHEDULED) {
+            campaignService.unscheduleDraft(draftId);
+            changed++;
+          }
+        }
+        default -> {
+        }
+      }
+    }
+    return changed;
   }
 
   private List<AdminFilterOption> workflowOptions(String localeCode) {
@@ -776,6 +864,15 @@ public class AdminCampaignsResource {
       String filterAllLabel,
       String filterApplyLabel,
       String filterClearLabel,
+      String bulkTitle,
+      String bulkIntro,
+      String bulkSelectLabel,
+      String bulkActionLabel,
+      String bulkApplyLabel,
+      String bulkApproveOption,
+      String bulkResetOption,
+      String bulkUnscheduleOption,
+      String updatedBulk,
       String filterResultsLabel,
       String filterEmptyLabel,
       String detailBackLabel,
@@ -801,6 +898,8 @@ public class AdminCampaignsResource {
       String invalidSchedule,
       String notReady,
       String retryNotReady,
+      String bulkNoSelection,
+      String invalidBulkAction,
       String invalidChannel,
       String generatedAt,
       String summaryTitle,

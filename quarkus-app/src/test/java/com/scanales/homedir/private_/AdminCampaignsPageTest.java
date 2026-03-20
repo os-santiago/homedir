@@ -44,6 +44,9 @@ class AdminCampaignsPageTest {
         .statusCode(200)
         .body(containsString("id=\"campaignsRefreshBtn\""))
         .body(containsString("id=\"campaignsFilterPanel\""))
+        .body(containsString("id=\"campaignsBulkPanel\""))
+        .body(containsString("id=\"campaignsBulkActionForm\""))
+        .body(containsString("id=\"campaignsBulkApplyBtn\""))
         .body(containsString("id=\"campaignsPublishNowBtn\""))
         .body(containsString("id=\"campaignsPauseRefreshBtn\""))
         .body(containsString("id=\"campaignsPausePublishBtn\""))
@@ -63,6 +66,43 @@ class AdminCampaignsPageTest {
         .body(containsString("LinkedIn"))
         .body(containsString("utm_source=campaigns"))
         .body(containsString("/private/admin/campaigns/"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanApproveDraftsInBulk() {
+    java.util.List<String> draftIds =
+        campaignService.preview("es").drafts().stream()
+            .filter(item -> "draft".equals(item.workflowStateCode()))
+            .limit(2)
+            .map(CampaignService.CampaignPreviewCard::id)
+            .toList();
+
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("action", "approve")
+        .formParam("draftIds", draftIds.toArray())
+        .when()
+        .post("/private/admin/campaigns/bulk-action")
+        .then()
+        .statusCode(200)
+        .body(containsString("Se aplicó la acción por lote"))
+        .body(containsString("<code>2</code>"))
+        .body(containsString(draftIds.getFirst()))
+        .body(containsString(draftIds.get(1)));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminShowsBulkSelectionErrorWhenNoDraftIsSelected() {
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("action", "approve")
+        .when()
+        .post("/private/admin/campaigns/bulk-action")
+        .then()
+        .statusCode(200)
+        .body(containsString("Selecciona al menos un borrador"));
   }
 
   @Test

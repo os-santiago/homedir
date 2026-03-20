@@ -42,6 +42,9 @@
   {#if updatedAction == 'publishscan'}
     <div class="hd-alert hd-alert-success">{copy.updatedPublishScan}</div>
   {/if}
+  {#if updatedAction == 'bulk'}
+    <div class="hd-alert hd-alert-success">{copy.updatedBulk}: <code>{updatedCount}</code></div>
+  {/if}
   {#if updatedAction == 'linkedin'}
     <div class="hd-alert hd-alert-success">{copy.updatedLinkedin}: <code>{updatedDraft}</code></div>
   {/if}
@@ -59,6 +62,12 @@
   {/if}
   {#if errorCode == 'not_ready'}
     <div class="hd-alert hd-alert-danger">{copy.notReady}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if errorCode == 'bulk_no_selection'}
+    <div class="hd-alert hd-alert-danger">{copy.bulkNoSelection}</div>
+  {/if}
+  {#if errorCode == 'invalid_bulk_action'}
+    <div class="hd-alert hd-alert-danger">{copy.invalidBulkAction}</div>
   {/if}
   {#if errorCode == 'invalid_channel'}
     <div class="hd-alert hd-alert-danger">{copy.invalidChannel}: <code>{updatedDraft}</code></div>
@@ -115,6 +124,35 @@
       {#if filters.activeCount > 0 && view.drafts.isEmpty}
         <div class="hd-alert hd-alert-warning">{copy.filterEmptyLabel}</div>
       {/if}
+    </section>
+
+    <section class="admin-shell-panel" id="campaignsBulkPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.bulkTitle}</p>
+          <h2>{copy.bulkIntro}</h2>
+        </div>
+      </div>
+      <form id="campaignsBulkActionForm" action="/private/admin/campaigns/bulk-action" method="post" class="admin-shell-toolbar">
+        <input type="hidden" name="q" value="{filters.query}" />
+        <input type="hidden" name="workflow" value="{filters.workflow}" />
+        <input type="hidden" name="kind" value="{filters.kind}" />
+        <input type="hidden" name="channel" value="{filters.channel}" />
+        <div class="admin-shell-toolbar-group">
+          <span class="form-hint">{copy.bulkSelectLabel}</span>
+        </div>
+        <div class="admin-shell-toolbar-group">
+          <label class="sr-only" for="campaignsBulkAction">{copy.bulkActionLabel}</label>
+          <select id="campaignsBulkAction" class="form-select" name="action">
+            <option value="approve">{copy.bulkApproveOption}</option>
+            <option value="reset">{copy.bulkResetOption}</option>
+            <option value="unschedule">{copy.bulkUnscheduleOption}</option>
+          </select>
+        </div>
+        <div class="admin-shell-toolbar-group">
+          <button id="campaignsBulkApplyBtn" type="submit" class="btn btn-secondary">{copy.bulkApplyLabel}</button>
+        </div>
+      </form>
     </section>
 
     <div class="campaigns-admin-grid">
@@ -536,6 +574,10 @@
                 <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
                   <div class="admin-shell-card-header">
                     <div>
+                      <label class="campaigns-admin-select">
+                        <input type="checkbox" name="draftIds" value="{draft.id}" form="campaignsBulkActionForm" />
+                        <span>{copy.bulkSelectLabel}</span>
+                      </label>
                       <p class="section-subtitle">{draft.kindLabel}</p>
                       <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
@@ -582,6 +624,10 @@
                 <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
                   <div class="admin-shell-card-header">
                     <div>
+                      <label class="campaigns-admin-select">
+                        <input type="checkbox" name="draftIds" value="{draft.id}" form="campaignsBulkActionForm" />
+                        <span>{copy.bulkSelectLabel}</span>
+                      </label>
                       <p class="section-subtitle">{draft.kindLabel}</p>
                       <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
@@ -637,6 +683,10 @@
                 <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
                   <div class="admin-shell-card-header">
                     <div>
+                      <label class="campaigns-admin-select">
+                        <input type="checkbox" name="draftIds" value="{draft.id}" form="campaignsBulkActionForm" />
+                        <span>{copy.bulkSelectLabel}</span>
+                      </label>
                       <p class="section-subtitle">{draft.kindLabel}</p>
                       <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
@@ -689,6 +739,10 @@
                 <article class="campaigns-admin-item">
                   <div class="admin-shell-card-header">
                     <div>
+                      <label class="campaigns-admin-select">
+                        <input type="checkbox" name="draftIds" value="{draft.id}" form="campaignsBulkActionForm" />
+                        <span>{copy.bulkSelectLabel}</span>
+                      </label>
                       <p class="section-subtitle">{draft.kindLabel}</p>
                       <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
