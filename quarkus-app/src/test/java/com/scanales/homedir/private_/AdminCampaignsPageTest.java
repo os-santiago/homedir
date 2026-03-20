@@ -118,21 +118,7 @@ class AdminCampaignsPageTest {
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminActionsPreserveActiveFilters() {
-    String html =
-        given()
-            .queryParam("q", "HomeDir")
-            .queryParam("kind", "product_pulse")
-            .queryParam("workflow", "draft")
-            .queryParam("channel", "linkedin")
-            .when()
-            .get("/private/admin/campaigns")
-            .then()
-            .statusCode(200)
-            .extract()
-            .asString();
-    Matcher matcher = Pattern.compile("/private/admin/campaigns/([^/]+)/approve").matcher(html);
-    assertTrue(matcher.find());
-    String draftId = matcher.group(1);
+    String draftId = campaignService.preview("es").drafts().getFirst().id();
 
     given()
         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -148,6 +134,51 @@ class AdminCampaignsPageTest {
         .body(containsString("option value=\"product_pulse\" selected"))
         .body(containsString("option value=\"draft\" selected"))
         .body(containsString("option value=\"linkedin\" selected"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanOpenCampaignDetailPageAndKeepFiltersInBackLink() {
+    String draftId = campaignService.preview("es").drafts().getFirst().id();
+
+    given()
+        .queryParam("q", "HomeDir")
+        .queryParam("kind", "product_pulse")
+        .queryParam("workflow", "draft")
+        .queryParam("channel", "linkedin")
+        .when()
+        .get("/private/admin/campaigns/" + draftId)
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignDetailOverviewPanel\""))
+        .body(containsString("id=\"campaignDetailPreviewPanel\""))
+        .body(containsString("id=\"campaignDetailAuditPanel\""))
+        .body(containsString("id=\"campaignDetailRiskPanel\""))
+        .body(
+            containsString(
+                "/private/admin/campaigns?q=HomeDir&amp;workflow=draft&amp;kind=product_pulse&amp;channel=linkedin"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void detailActionsPreserveFiltersAndStayOnDetail() {
+    String draftId = campaignService.preview("es").drafts().getFirst().id();
+
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("q", "HomeDir")
+        .formParam("kind", "product_pulse")
+        .formParam("workflow", "draft")
+        .formParam("channel", "linkedin")
+        .formParam("returnTo", "detail")
+        .when()
+        .post("/private/admin/campaigns/" + draftId + "/approve")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignDetailOverviewPanel\""))
+        .body(containsString("value=\"HomeDir\""))
+        .body(containsString("name=\"returnTo\" value=\"detail\""))
+        .body(containsString(draftId));
   }
 
   @Test

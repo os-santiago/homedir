@@ -1,0 +1,227 @@
+{#include layout/main mainClass="admin-context-main"}
+{#title}{copy.pageTitle}{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading">
+        <p class="section-subtitle">{detail.draft.kindLabel}</p>
+        <h1 class="page-title">{detail.draft.title}</h1>
+        <p class="form-hint admin-shell-hint-tight">{detail.draft.body}</p>
+      </div>
+      <div class="action-group admin-shell-actions">
+        <a href="/private/admin/campaigns{filters.querySuffix}" class="btn btn-secondary">{copy.detailBackLabel}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container admin-shell-margin-bottom-md">
+  {#if updatedAction == 'approved'}
+    <div class="hd-alert hd-alert-success">{copy.updatedApproved}: <code>{draftId}</code></div>
+  {/if}
+  {#if updatedAction == 'reset'}
+    <div class="hd-alert hd-alert-success">{copy.updatedReset}: <code>{draftId}</code></div>
+  {/if}
+  {#if updatedAction == 'scheduled'}
+    <div class="hd-alert hd-alert-success">{copy.updatedScheduled}: <code>{draftId}</code></div>
+  {/if}
+  {#if updatedAction == 'unscheduled'}
+    <div class="hd-alert hd-alert-success">{copy.updatedUnscheduled}: <code>{draftId}</code></div>
+  {/if}
+  {#if updatedAction == 'linkedin'}
+    <div class="hd-alert hd-alert-success">{copy.updatedLinkedin}: <code>{draftId}</code></div>
+  {/if}
+  {#if errorCode == 'invalid_schedule'}
+    <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{draftId}</code></div>
+  {/if}
+  {#if errorCode == 'not_found'}
+    <div class="hd-alert hd-alert-danger">{copy.detailNotFoundLabel}</div>
+  {/if}
+</div>
+
+<div class="container">
+  <div class="admin-shell-stack">
+    <section class="admin-shell-panel" id="campaignDetailOverviewPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.detailOverviewTitle}</p>
+          <h2>{detail.draft.workflowLabel}</h2>
+        </div>
+        <span class="admin-observability-badge watch">{detail.draft.sourceStatusLabel}</span>
+      </div>
+      <div class="campaigns-admin-list">
+        <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{detail.draft.workflowLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{detail.draft.sourceStatusLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in detail.draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{detail.draft.publishedChannelsLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{detail.draft.publisherOutcomeLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{detail.draft.scheduledForLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{detail.draft.recommendedWindowLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{detail.draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{detail.draft.ctaLabel}</a></article>
+      </div>
+      <div class="action-group admin-shell-actions">
+        {#if detail.draft.workflowStateCode == 'draft'}
+          <form action="/private/admin/campaigns/{draftId}/approve" method="post">
+            <input type="hidden" name="q" value="{filters.query}" />
+            <input type="hidden" name="workflow" value="{filters.workflow}" />
+            <input type="hidden" name="kind" value="{filters.kind}" />
+            <input type="hidden" name="channel" value="{filters.channel}" />
+            <input type="hidden" name="returnTo" value="detail" />
+            <button type="submit" class="btn btn-primary">{copy.approveLabel}</button>
+          </form>
+        {/if}
+        {#if detail.draft.workflowStateCode == 'approved'}
+          <form action="/private/admin/campaigns/{draftId}/schedule" method="post">
+            <input type="hidden" name="q" value="{filters.query}" />
+            <input type="hidden" name="workflow" value="{filters.workflow}" />
+            <input type="hidden" name="kind" value="{filters.kind}" />
+            <input type="hidden" name="channel" value="{filters.channel}" />
+            <input type="hidden" name="returnTo" value="detail" />
+            <label class="sr-only" for="campaignDetailSchedule">{copy.scheduleForLabel}</label>
+            <input id="campaignDetailSchedule" class="hd-input" type="datetime-local" name="scheduledFor" />
+            <button type="submit" class="btn btn-secondary">{copy.scheduleLabel}</button>
+          </form>
+        {/if}
+        {#if detail.draft.workflowStateCode == 'scheduled'}
+          <form action="/private/admin/campaigns/{draftId}/unschedule" method="post">
+            <input type="hidden" name="q" value="{filters.query}" />
+            <input type="hidden" name="workflow" value="{filters.workflow}" />
+            <input type="hidden" name="kind" value="{filters.kind}" />
+            <input type="hidden" name="channel" value="{filters.channel}" />
+            <input type="hidden" name="returnTo" value="detail" />
+            <button type="submit" class="btn btn-secondary">{copy.unscheduleLabel}</button>
+          </form>
+        {/if}
+        {#if detail.linkedinHandoff && !detail.linkedinHandoff.completed}
+          <form action="/private/admin/campaigns/{draftId}/mark-linkedin" method="post">
+            <input type="hidden" name="q" value="{filters.query}" />
+            <input type="hidden" name="workflow" value="{filters.workflow}" />
+            <input type="hidden" name="kind" value="{filters.kind}" />
+            <input type="hidden" name="channel" value="{filters.channel}" />
+            <input type="hidden" name="returnTo" value="detail" />
+            <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
+          </form>
+        {/if}
+        <form action="/private/admin/campaigns/{draftId}/reset" method="post">
+          <input type="hidden" name="q" value="{filters.query}" />
+          <input type="hidden" name="workflow" value="{filters.workflow}" />
+          <input type="hidden" name="kind" value="{filters.kind}" />
+          <input type="hidden" name="channel" value="{filters.channel}" />
+          <input type="hidden" name="returnTo" value="detail" />
+          <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="admin-shell-panel" id="campaignDetailPreviewPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.detailPreviewTitle}</p>
+          <h2>{detail.previewPack.title}</h2>
+        </div>
+      </div>
+      <div class="campaigns-admin-grid">
+        {#for channel in detail.previewPack.channels}
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{channel.channelLabel}</p>
+                <h3>{channel.headline}</h3>
+              </div>
+              <span class="admin-observability-badge watch">{channel.readinessLabel}</span>
+            </div>
+            <div class="campaigns-admin-list">
+              <article class="campaigns-admin-item"><strong>{copy.previewLandingLabel}</strong><span>{channel.landingUrl}</span></article>
+              <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
+              <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
+            </div>
+          </article>
+        {/for}
+      </div>
+    </section>
+
+    <div class="admin-observability-two-up">
+      <section class="admin-shell-panel" id="campaignDetailAttributionPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.detailAttributionTitle}</p>
+            <h2>{detail.draft.title}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if detail.attribution}
+            <article class="campaigns-admin-item"><strong>{copy.attributionTotalLabel}</strong><span>{detail.attribution.totalVisits}</span></article>
+            {#for channel in detail.attribution.channels}
+              <article class="campaigns-admin-item"><strong>{channel.channelLabel}</strong><span>{channel.visitsLabel}</span></article>
+            {/for}
+          {#else}
+            <article class="campaigns-admin-item"><strong>{copy.attributionEmptyLabel}</strong></article>
+          {/if}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignDetailLinkedinPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.detailLinkedinTitle}</p>
+            <h2>{#if detail.linkedinHandoff}{detail.linkedinHandoff.statusLabel}{#else}{copy.linkedinEmptyLabel}{/if}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if detail.linkedinHandoff}
+            <article class="campaigns-admin-item"><strong>{copy.linkedinHeadlineLabel}</strong><span>{detail.linkedinHandoff.headline}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{detail.linkedinHandoff.landingUrl}" class="btn btn-secondary campaigns-admin-cta">{detail.linkedinHandoff.ctaLabel}</a></article>
+            <article class="campaigns-admin-item"><strong>{copy.linkedinMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{detail.linkedinHandoff.message}</textarea></article>
+            <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{detail.linkedinHandoff.publishedAtLabel}</span></article>
+          {#else}
+            <article class="campaigns-admin-item"><strong>{copy.linkedinEmptyLabel}</strong></article>
+          {/if}
+        </div>
+      </section>
+    </div>
+
+    <div class="admin-observability-two-up">
+      <section class="admin-shell-panel" id="campaignDetailAuditPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.detailAuditTitle}</p>
+            <h2>{detail.draft.title}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if detail.auditTrail.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.detailEmptyAuditLabel}</strong></article>
+          {/if}
+          {#for item in detail.auditTrail}
+            <article class="campaigns-admin-item">
+              <strong>{item.eventLabel}</strong>
+              <span>{item.channelLabel} · {item.outcomeLabel} · {item.actorLabel} · {item.timestampLabel}</span>
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignDetailRiskPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.detailRisksTitle}</p>
+            <h2>{detail.queueHealth.statusLabel}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if detail.risks.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.detailEmptyRisksLabel}</strong></article>
+          {/if}
+          {#for item in detail.risks}
+            <article class="campaigns-admin-item">
+              <strong>{item.riskLabel}</strong>
+              <span>{item.recommendationLabel} · {item.ageLabel}</span>
+            </article>
+          {/for}
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{/body}

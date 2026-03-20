@@ -368,6 +368,47 @@ class CampaignServiceTest {
   }
 
   @Test
+  void detailCanResolveDraftOutsideCurrentFilterAndReturnRelatedPanels() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "DevOpsDays Santiago 2026",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+
+    CampaignService.CampaignDetailSnapshot detail =
+        campaignService
+            .detail(
+                "es",
+                target.id(),
+                new CampaignService.CampaignAdminFilters(
+                    "HomeDir", "draft", "product_pulse", "linkedin"))
+            .orElseThrow();
+
+    assertEquals(target.id(), detail.draft().id());
+    assertNotNull(detail.previewPack());
+    assertNotNull(detail.summary());
+    assertNotNull(detail.queueHealth());
+    assertTrue(
+        detail.previewPack().channels().stream()
+            .anyMatch(channel -> "linkedin".equals(channel.channelCode())));
+  }
+
+  @Test
   void queueHealthFlagsStaleAndOverdueDrafts() {
     Instant now = Instant.now();
     CampaignStateSnapshot snapshot =
