@@ -464,6 +464,7 @@ public class CampaignService {
         List.copyOf(publisherStatuses),
         summarize(snapshot, bundle, locale),
         businessDashboard(cards, attribution, bundle),
+        rolloutChecklist(bundle, locale),
         recentActivity(visibleDrafts, bundle, locale),
         cadenceGuidance,
         List.copyOf(previewPacks),
@@ -1753,6 +1754,94 @@ public class CampaignService {
         List.copyOf(highlights.stream().limit(3).toList()));
   }
 
+  private CampaignRolloutChecklist rolloutChecklist(ResourceBundle bundle, Locale locale) {
+    List<CampaignRolloutChannel> channels =
+        effectivePublisherStatuses(true).stream()
+            .map(status -> toRolloutChannel(status, bundle))
+            .toList();
+    int readyCount = 0;
+    int blockedCount = 0;
+    int dryRunCount = 0;
+    for (CampaignRolloutChannel channel : channels) {
+      if (channel.ready()) {
+        readyCount++;
+      } else {
+        blockedCount++;
+      }
+      if (channel.dryRun()) {
+        dryRunCount++;
+      }
+    }
+    String statusCode;
+    if (readyCount == channels.size() && !channels.isEmpty()) {
+      statusCode = "good";
+    } else if (readyCount > 0) {
+      statusCode = "watch";
+    } else {
+      statusCode = "danger";
+    }
+    return new CampaignRolloutChecklist(
+        statusCode,
+        bundleText(
+            bundle,
+            switch (statusCode) {
+              case "good" -> "campaigns_admin_rollout_status_ready";
+              case "watch" -> "campaigns_admin_rollout_status_watch";
+              default -> "campaigns_admin_rollout_status_blocked";
+            }),
+        readyCount,
+        blockedCount,
+        dryRunCount,
+        localizedDateTime(Instant.now(), locale),
+        List.copyOf(channels));
+  }
+
+  private CampaignRolloutChannel toRolloutChannel(
+      CampaignPublisherStatus status, ResourceBundle bundle) {
+    boolean ready =
+        status.globalEnabled() && status.channelEnabled() && status.configured() && !status.dryRun();
+    String stateCode;
+    String recommendationKey;
+    if (ready) {
+      stateCode = "good";
+      recommendationKey = "campaigns_admin_rollout_recommendation_ready";
+    } else if (!status.globalEnabled()) {
+      stateCode = "danger";
+      recommendationKey = "campaigns_admin_rollout_recommendation_enable_global";
+    } else if (!status.channelEnabled()) {
+      stateCode = "watch";
+      recommendationKey = "campaigns_admin_rollout_recommendation_enable_channel";
+    } else if (!status.configured()) {
+      stateCode = "danger";
+      recommendationKey = "campaigns_admin_rollout_recommendation_add_config";
+    } else {
+      stateCode = "watch";
+      recommendationKey = "campaigns_admin_rollout_recommendation_disable_dry_run";
+    }
+    return new CampaignRolloutChannel(
+        status.channel(),
+        bundleText(bundle, "campaigns_channel_" + status.channel()),
+        stateCode,
+        bundleText(
+            bundle,
+            switch (stateCode) {
+              case "good" -> "campaigns_admin_rollout_status_ready";
+              case "watch" -> "campaigns_admin_rollout_status_watch";
+              default -> "campaigns_admin_rollout_status_blocked";
+            }),
+        bundleText(bundle, recommendationKey),
+        ready,
+        status.globalEnabled(),
+        status.channelEnabled(),
+        status.configured(),
+        status.dryRun(),
+        status.minInterval().isZero()
+            ? bundleText(bundle, "campaigns_admin_cadence_no_window")
+            : humanDuration(
+                status.minInterval().toHours(),
+                status.minInterval().minusHours(status.minInterval().toHours()).toMinutes()));
+  }
+
   private long parseMetricCount(String value) {
     if (value == null || value.isBlank()) {
       return 0L;
@@ -2431,6 +2520,7 @@ public class CampaignService {
       List<CampaignPublisherPreviewStatus> publisherStatuses,
       CampaignOperationsSummary summary,
       CampaignBusinessDashboard businessDashboard,
+      CampaignRolloutChecklist rolloutChecklist,
       List<CampaignRecentActivity> recentActivity,
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
@@ -2535,6 +2625,28 @@ public class CampaignService {
       String workflowLabel,
       String totalVisitsLabel,
       String bestChannelLabel) {}
+
+  public record CampaignRolloutChecklist(
+      String statusCode,
+      String statusLabel,
+      int readyCount,
+      int blockedCount,
+      int dryRunCount,
+      String evaluatedAtLabel,
+      List<CampaignRolloutChannel> channels) {}
+
+  public record CampaignRolloutChannel(
+      String channelCode,
+      String channelLabel,
+      String statusCode,
+      String statusLabel,
+      String recommendationLabel,
+      boolean ready,
+      boolean globalEnabled,
+      boolean channelEnabled,
+      boolean configured,
+      boolean dryRun,
+      String minIntervalLabel) {}
 
   public record CampaignRecentActivity(
       String title,

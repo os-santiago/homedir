@@ -149,6 +149,33 @@ class CampaignServiceTest {
   }
 
   @Test
+  void rolloutChecklistReflectsEffectivePublisherReadiness() {
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    when(blueskyPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("bluesky", true, true, true, true, Duration.ofMinutes(15)));
+    when(mastodonPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("mastodon", true, false, true, false, Duration.ofMinutes(15)));
+
+    campaignService.setPublishAutomationEnabled(true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("bluesky", true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("mastodon", true, "admin@example.com");
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertEquals(1, preview.rolloutChecklist().readyCount());
+    assertEquals(2, preview.rolloutChecklist().blockedCount());
+    assertEquals(1, preview.rolloutChecklist().dryRunCount());
+    assertTrue(
+        preview.rolloutChecklist().channels().stream()
+            .anyMatch(item -> "discord".equals(item.channelCode()) && item.ready()));
+  }
+
+  @Test
   void approvalAndScheduleSurviveDraftRefresh() {
     Event event =
         new Event(

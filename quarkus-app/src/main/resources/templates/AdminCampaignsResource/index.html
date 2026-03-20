@@ -249,6 +249,44 @@
           {/for}
         </div>
       </section>
+
+      <section class="admin-shell-panel" id="campaignsRolloutPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.rolloutTitle}</p>
+            <h2>{copy.rolloutIntro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.rolloutChecklist.statusCode}">{view.rolloutChecklist.statusLabel}</span>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.rolloutStatusLabel}</strong><span>{view.rolloutChecklist.statusLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutReadyLabel}</strong><span>{view.rolloutChecklist.readyCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutBlockedLabel}</strong><span>{view.rolloutChecklist.blockedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutDryRunLabel}</strong><span>{view.rolloutChecklist.dryRunCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutEvaluatedLabel}</strong><span>{view.rolloutChecklist.evaluatedAtLabel}</span></article>
+        </div>
+        <div class="campaigns-admin-list">
+          {#for item in view.rolloutChecklist.channels}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{copy.publisherChannelLabel}</p>
+                  <h3>{item.channelLabel}</h3>
+                </div>
+                <span class="admin-observability-badge {item.statusCode}">{item.statusLabel}</span>
+              </div>
+              <div class="campaigns-admin-list">
+                <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{item.globalEnabled}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherEffectiveLabel}</strong><span>{item.channelEnabled}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherConfiguredLabel}</strong><span>{item.configured}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{item.dryRun}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{item.minIntervalLabel}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.rolloutRecommendationLabel}</strong><span>{item.recommendationLabel}</span></article>
+              </div>
+            </article>
+          {/for}
+        </div>
+      </section>
     </div>
 
     <section class="admin-shell-panel" id="campaignsRecoveryPanel">
