@@ -1,0 +1,31 @@
+## Summary
+- update official GitHub Actions workflows to supported action majors to reduce runtime/deprecation warnings
+- keep third-party actions unchanged and limit the scope to workflow runtime hardening
+- record the operational lesson in `ADEV.md`
+
+## Why
+- repeated workflow runtime warnings are delivery-path debt and hurt the release quality signal
+- this lot reduces avoidable CI/CD noise before enabling more campaign automation in production
+
+## Scope
+### In
+- `.github/workflows/**` updates for official `actions/*` and `github/codeql-action/*`
+- `ADEV.md` lesson for workflow/runtime deprecation handling
+
+### Out
+- no business logic changes
+- no campaign feature changes
+- no third-party action replacement
+
+## Validation
+- `python -c "import pathlib, yaml; [yaml.safe_load(pathlib.Path(p).read_text(encoding='utf-8')) for p in pathlib.Path(r'C:\Users\sergi\git\homedir\.github\workflows').glob('*.yml')]; print('YAML_OK')"`
+- `rg -n "actions/checkout@v[34]|actions/setup-java@v[34]|actions/upload-artifact@v3|actions/setup-python@v5|github/codeql-action/.+@v3" .github/workflows`
+- `git diff --check`
+
+## Production Verification Plan
+- confirm PR checks are green
+- after merge, confirm release pipeline runs without the previous Node runtime warning trend
+- smoke `/about` and key public routes remain healthy after deployment
+
+## Rollback Plan
+- revert this PR to restore previous workflow versions if any workflow behavior regresses

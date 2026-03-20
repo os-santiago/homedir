@@ -1,0 +1,31 @@
+## Summary
+- persist go-live acknowledgements per automated campaign channel
+- expose actor/timestamp/status controls in the rollout readiness panel
+- keep scheduling/publishing logic unchanged and limit the lot to operational traceability
+
+## Why
+- channel enablement still lacked an explicit operator acknowledgement trail
+- this closes the last missing control before real campaign activation by channel
+
+## Scope
+### In
+- campaign operations persistence for go-live acknowledgements
+- admin actions to acknowledge or clear readiness per channel
+- localized admin copy and tests for service, page and persistence
+
+### Out
+- no public site changes
+- no publisher behavior changes
+- no automatic activation of any social channel
+
+## Validation
+- `cd quarkus-app && .\\mvnw.cmd -q -DskipTests compile`
+- `cd quarkus-app && .\\mvnw.cmd -q -DskipITs "-Dtest=com.scanales.homedir.campaigns.CampaignServiceTest,com.scanales.homedir.private_.AdminCampaignsPageTest,com.scanales.homedir.service.PersistenceServiceTest" test`
+
+## Production Verification Plan
+- confirm PR checks are green
+- after merge, verify `/private/admin/campaigns` renders the rollout acknowledgement controls
+- confirm `/about` and key public routes still return `200`
+
+## Rollback Plan
+- revert this PR to remove acknowledgement state and admin controls if rollout tracking regresses

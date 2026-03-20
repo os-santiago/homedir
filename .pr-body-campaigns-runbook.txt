@@ -1,0 +1,34 @@
+## Summary
+- add a pilot activation runbook to `/private/admin/campaigns`
+- derive the next missing rollout guardrail from current pilot/live state
+- harden `ADEV.md` so every iteration closes with shared handoff, PR update, and explicit quality gates before prod
+
+## Why
+- the pending Campaigns workstream still needed an operational bridge between guarded rollout state and a real single-channel pilot
+- the shared workspace and PR discipline now have to be mandatory, not implicit, to keep CLI/App continuity and protect PR success metrics
+
+## Scope
+### In
+- pilot activation runbook computed from rollout state
+- admin panel for ordered activation steps and recommended next action
+- i18n, tests, and Campaigns docs updates
+- ADEV process update for mandatory handoff, PR, and pre-prod quality gates
+
+### Out
+- no new public pages
+- no new live channel enabled by default
+- no secret or infrastructure changes
+
+## Validation
+- `cd quarkus-app && .\\mvnw.cmd -q -DskipTests compile`
+- `cd quarkus-app && .\\mvnw.cmd -q -DskipITs "-Dtest=com.scanales.homedir.campaigns.CampaignServiceTest,com.scanales.homedir.private_.AdminCampaignsPageTest" test`
+
+## Production Verification Plan
+- confirm the PR checks stay green
+- verify `/private/admin/campaigns` renders the pilot activation runbook and ordered steps correctly
+- confirm the existing pilot live gate still blocks real publication until all rollout guardrails are satisfied
+- after merge, validate `/about`, `/`, `/comunidad`, `/eventos`, and `/proyectos`
+
+## Rollback Plan
+- revert this PR to remove the runbook panel and restore the previous admin rollout view
+- if needed, keep the branch handoff record and open a corrective PR before continuing new Campaigns iterations

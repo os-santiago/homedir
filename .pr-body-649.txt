@@ -1,0 +1,32 @@
+## Summary
+- add a persistent pilot live channel for campaigns rollout
+- restrict automated readiness to the selected pilot channel only
+- expose pilot controls and audit context in `/private/admin/campaigns`
+
+## Why
+- real campaign activation should start with one explicit pilot channel, not broad multi-channel enablement
+- this keeps rollout controlled and observable before full production enablement
+
+## Scope
+### In
+- campaign operations state for pilot live channel selection
+- admin actions to select or clear the pilot channel
+- schedule/readiness logic aligned to the pilot lock
+- tests for service, admin page and persistence
+
+### Out
+- no public site changes
+- no secret changes
+- no automatic external publishing activation
+
+## Validation
+- `cd quarkus-app && .\\mvnw.cmd -q -DskipTests compile`
+- `cd quarkus-app && .\\mvnw.cmd -q -DskipITs "-Dtest=com.scanales.homedir.campaigns.CampaignServiceTest,com.scanales.homedir.private_.AdminCampaignsPageTest,com.scanales.homedir.service.PersistenceServiceTest" test`
+
+## Production Verification Plan
+- confirm PR checks are green
+- after merge, verify `/private/admin/campaigns` shows pilot controls in rollout readiness
+- verify `/about` and key public routes remain healthy after deployment
+
+## Rollback Plan
+- revert this PR to remove pilot lock and restore current multi-channel readiness behavior
