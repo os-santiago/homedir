@@ -340,6 +340,87 @@ public class CampaignService {
     }
   }
 
+  public CampaignStateSnapshot retryChannel(String draftId, String channel, String actor) {
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      refreshOperationsFromDisk(false);
+      String normalizedChannel = safeChannel(channel);
+      CampaignDraftState draft =
+          currentState.drafts().stream()
+              .filter(item -> item.id().equals(draftId))
+              .findFirst()
+              .orElse(null);
+      if (draft == null || normalizedChannel.isBlank() || "linkedin".equals(normalizedChannel)) {
+        throw new IllegalArgumentException("campaign_invalid_channel");
+      }
+      if (!isManualRetryAllowed(draft, normalizedChannel, Instant.now())) {
+        throw new IllegalStateException("campaign_retry_not_ready");
+      }
+      CampaignPublisherStatus status =
+          effectivePublisherStatuses(false).stream()
+              .filter(item -> item.channel().equals(normalizedChannel))
+              .findFirst()
+              .orElse(null);
+      if (status == null
+          || !status.globalEnabled()
+          || status.dryRun()
+          || !status.channelEnabled()
+          || !status.configured()) {
+        throw new IllegalStateException("campaign_retry_not_ready");
+      }
+      Instant now = Instant.now();
+      CampaignPublishResult result = publishToChannel(normalizedChannel, draft);
+      Map<String, Instant> nextPublishedChannels = new LinkedHashMap<>(draft.publishedChannels());
+      CampaignWorkflowState nextState = draft.workflowState();
+      Instant activityAt = now;
+      if (result.published()) {
+        Instant publishedAt = result.publishedAt() != null ? result.publishedAt() : now;
+        nextPublishedChannels.put(result.channel(), publishedAt);
+        nextState = CampaignWorkflowState.PUBLISHED;
+        activityAt = publishedAt;
+        recordPublishInsight(
+            eventNameForChannel(result.channel(), true),
+            draftId,
+            "manual_retry",
+            result.channel(),
+            result.outcome());
+      } else {
+        recordPublishInsight(
+            result.skipped() ? "CAMPAIGN_PUBLISH_SKIPPED" : "CAMPAIGN_PUBLISH_FAILED",
+            draftId,
+            "manual_retry",
+            result.channel(),
+            result.outcome());
+      }
+      CampaignWorkflowState nextWorkflowState = nextState;
+      Map<String, Instant> updatedPublishedChannels = Map.copyOf(nextPublishedChannels);
+      String outcome = safe(result.outcome());
+      String eventCode = result.published()
+          ? "publish.channel.retry"
+          : (result.skipped() ? "publish.retry.skipped" : "publish.retry.failed");
+      currentState =
+          appendActivity(
+              mutateDraftState(
+                  draftId,
+                  source ->
+                      source.withPublishStatus(
+                          nextWorkflowState,
+                          updatedPublishedChannels,
+                          now,
+                          outcome,
+                          now)),
+              draftActivity(
+                  draftId,
+                  eventCode,
+                  result.channel(),
+                  outcome,
+                  safe(actor),
+                  activityAt));
+      saveState(currentState);
+      return currentState;
+    }
+  }
+
   public CampaignPreviewSnapshot preview(String localeCode) {
     return preview(localeCode, CampaignAdminFilters.empty());
   }
@@ -1531,6 +1612,8 @@ public class CampaignService {
     } else {
       readinessKey = "campaigns_admin_preview_status_ready";
     }
+    boolean published = draft.publishedChannels().containsKey(channelCode);
+    boolean retryReady = isManualRetryAllowed(draft, channelCode, Instant.now());
     return new CampaignChannelPreview(
         channelCode,
         channelLabel,
@@ -1538,7 +1621,9 @@ public class CampaignService {
         message,
         landingUrl,
         named(bundle, "campaigns_admin_preview_length", Map.of("count", String.valueOf(charCount), "limit", String.valueOf(limit))),
-        bundleText(bundle, readinessKey));
+        bundleText(bundle, readinessKey),
+        published,
+        retryReady);
   }
 
   private String channelCodeForLabel(ResourceBundle bundle, String channelLabel) {
@@ -1830,6 +1915,19 @@ public class CampaignService {
       }
     }
     return hasPendingAutomationChannel;
+  }
+
+  private boolean isManualRetryAllowed(CampaignDraftState draft, String channel, Instant now) {
+    if (draft == null || channel == null || channel.isBlank()) {
+      return false;
+    }
+    if ((draft.workflowState() != CampaignWorkflowState.SCHEDULED
+            && draft.workflowState() != CampaignWorkflowState.PUBLISHED)
+        || draft.scheduledFor() == null
+        || draft.scheduledFor().isAfter(now)) {
+      return false;
+    }
+    return draft.suggestedChannels().contains(channel) && !draft.publishedChannels().containsKey(channel);
   }
 
   private CampaignSchedulingReadiness scheduleReadiness(CampaignDraftState draft) {
@@ -2144,7 +2242,9 @@ public class CampaignService {
       String message,
       String landingUrl,
       String lengthLabel,
-      String readinessLabel) {}
+      String readinessLabel,
+      boolean published,
+      boolean retryReady) {}
 
   public record CampaignAttributionSummary(
       String draftId,
