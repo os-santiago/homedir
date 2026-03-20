@@ -12,6 +12,10 @@
       <div class="action-group admin-shell-actions">
         <a href="/private/admin" class="btn btn-secondary">{copy.backToPanel}</a>
         <form action="/private/admin/campaigns/refresh" method="post">
+          <input type="hidden" name="q" value="{filters.query}" />
+          <input type="hidden" name="workflow" value="{filters.workflow}" />
+          <input type="hidden" name="kind" value="{filters.kind}" />
+          <input type="hidden" name="channel" value="{filters.channel}" />
           <button type="submit" class="btn btn-secondary" id="campaignsRefreshBtn">{copy.refresh}</button>
         </form>
       </div>
@@ -48,6 +52,56 @@
 
 <div class="container">
   <div class="admin-shell-stack">
+    <section class="admin-shell-panel" id="campaignsFilterPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.filtersTitle}</p>
+          <h2>{copy.filtersIntro}</h2>
+        </div>
+        <span class="admin-observability-badge watch">{copy.filterResultsLabel}: {view.drafts.size}</span>
+      </div>
+      <form action="/private/admin/campaigns" method="get" class="admin-shell-toolbar">
+        <div class="admin-shell-toolbar-group">
+          <label class="sr-only" for="campaignsFilterQuery">{copy.filterQueryLabel}</label>
+          <input id="campaignsFilterQuery" class="form-input" type="search" name="q" value="{filters.query}" placeholder="{copy.filterQueryPlaceholder}" />
+        </div>
+        <div class="admin-shell-toolbar-group">
+          <label class="sr-only" for="campaignsFilterWorkflow">{copy.filterWorkflowLabel}</label>
+          <select id="campaignsFilterWorkflow" class="form-select" name="workflow">
+            <option value="">{copy.filterAllLabel}</option>
+            {#for option in workflowOptions}
+              <option value="{option.value}" {#if filters.workflow == option.value}selected{/if}>{option.label}</option>
+            {/for}
+          </select>
+        </div>
+        <div class="admin-shell-toolbar-group">
+          <label class="sr-only" for="campaignsFilterKind">{copy.filterKindLabel}</label>
+          <select id="campaignsFilterKind" class="form-select" name="kind">
+            <option value="">{copy.filterAllLabel}</option>
+            {#for option in kindOptions}
+              <option value="{option.value}" {#if filters.kind == option.value}selected{/if}>{option.label}</option>
+            {/for}
+          </select>
+        </div>
+        <div class="admin-shell-toolbar-group">
+          <label class="sr-only" for="campaignsFilterChannel">{copy.filterChannelLabel}</label>
+          <select id="campaignsFilterChannel" class="form-select" name="channel">
+            <option value="">{copy.filterAllLabel}</option>
+            {#for option in channelOptions}
+              <option value="{option.value}" {#if filters.channel == option.value}selected{/if}>{option.label}</option>
+            {/for}
+          </select>
+        </div>
+        <div class="admin-shell-toolbar-group">
+          <button type="submit" class="btn btn-secondary">{copy.filterApplyLabel}</button>
+          <a href="/private/admin/campaigns" class="btn btn-secondary">{copy.filterClearLabel}</a>
+        </div>
+      </form>
+      {#if filters.activeCount > 0 && view.drafts.isEmpty}
+        <div class="hd-alert hd-alert-warning">{copy.filterEmptyLabel}</div>
+      {/if}
+    </section>
+
     <div class="campaigns-admin-grid">
       <section class="admin-shell-panel" id="campaignsSummaryPanel">
         <div class="admin-shell-card-header">
@@ -313,6 +367,10 @@
         </div>
         <div class="action-group admin-shell-actions">
           <form action="/private/admin/campaigns/publish-now" method="post">
+            <input type="hidden" name="q" value="{filters.query}" />
+            <input type="hidden" name="workflow" value="{filters.workflow}" />
+            <input type="hidden" name="kind" value="{filters.kind}" />
+            <input type="hidden" name="channel" value="{filters.channel}" />
             <button type="submit" class="btn btn-secondary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
           </form>
         </div>
@@ -365,6 +423,10 @@
             {#if !handoff.completed}
               <div class="action-group admin-shell-actions">
                 <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
+                  <input type="hidden" name="q" value="{filters.query}" />
+                  <input type="hidden" name="workflow" value="{filters.workflow}" />
+                  <input type="hidden" name="kind" value="{filters.kind}" />
+                  <input type="hidden" name="channel" value="{filters.channel}" />
                   <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
                 </form>
               </div>
@@ -414,6 +476,10 @@
                   </div>
                   <div class="action-group admin-shell-actions">
                     <form action="/private/admin/campaigns/{draft.id}/approve" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
                       <button type="submit" class="btn btn-primary">{copy.approveLabel}</button>
                     </form>
                   </div>
@@ -456,10 +522,18 @@
                   <div class="action-group admin-shell-actions">
                     <form action="/private/admin/campaigns/{draft.id}/schedule" method="post">
                       <label class="sr-only" for="schedule-{draft.id}">{copy.scheduleForLabel}</label>
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
                       <input id="schedule-{draft.id}" class="hd-input" type="datetime-local" name="scheduledFor" />
                       <button type="submit" class="btn btn-secondary">{copy.scheduleLabel}</button>
                     </form>
                     <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
                       <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
                     </form>
                   </div>
@@ -501,9 +575,17 @@
                   </div>
                   <div class="action-group admin-shell-actions">
                     <form action="/private/admin/campaigns/{draft.id}/unschedule" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
                       <button type="submit" class="btn btn-secondary">{copy.unscheduleLabel}</button>
                     </form>
                     <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
                       <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
                     </form>
                   </div>
@@ -545,6 +627,10 @@
                   </div>
                   <div class="action-group admin-shell-actions">
                     <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
                       <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
                     </form>
                   </div>
