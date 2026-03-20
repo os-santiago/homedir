@@ -356,6 +356,28 @@ public class CampaignService {
     }
   }
 
+  public CampaignOperationsStateSnapshot setPilotLiveArmed(boolean armed, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      currentOperationsState = currentOperationsState.withPilotLiveArmed(armed, safe(actor));
+      saveOperationsState(currentOperationsState);
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  armed ? "ops.pilot.arm" : "ops.pilot.disarm",
+                  currentOperationsState.pilotLiveChannel(),
+                  armed ? "armed" : "disarmed",
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
+    }
+  }
+
   public CampaignStateSnapshot markLinkedinPublished(String draftId, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -1859,6 +1881,15 @@ public class CampaignService {
         operationsState.pilotLiveChannelUpdatedBy().isBlank()
             ? "—"
             : operationsState.pilotLiveChannelUpdatedBy(),
+        operationsState.pilotLiveArmed()
+            ? bundleText(bundle, "campaigns_admin_rollout_activation_armed")
+            : bundleText(bundle, "campaigns_admin_rollout_activation_disarmed"),
+        operationsState.pilotLiveArmedAt() == null
+            ? "—"
+            : localizedDateTime(operationsState.pilotLiveArmedAt(), locale),
+        operationsState.pilotLiveArmedBy().isBlank()
+            ? "—"
+            : operationsState.pilotLiveArmedBy(),
         localizedDateTime(Instant.now(), locale),
         List.copyOf(channels));
   }
@@ -1909,6 +1940,7 @@ public class CampaignService {
         goLiveAck.acknowledgedAt() == null ? "—" : localizedDateTime(goLiveAck.acknowledgedAt(), locale),
         goLiveAck.acknowledgedBy().isBlank() ? "—" : goLiveAck.acknowledgedBy(),
         operationsState.hasPilotLiveChannel() && operationsState.isPilotLiveChannel(status.channel()),
+        operationsState.isPilotLiveActive(status.channel()),
         status.globalEnabled(),
         status.channelEnabled(),
         status.configured(),
@@ -2444,11 +2476,17 @@ public class CampaignService {
     if (!currentOperationsState.publishAutomationEnabled()) {
       return "publish_paused";
     }
+    if (!currentOperationsState.hasPilotLiveChannel()) {
+      return "pilot_not_selected";
+    }
     if (!currentOperationsState.isChannelAutomationEnabled(channel)) {
       return "channel_paused";
     }
     if (currentOperationsState.hasPilotLiveChannel() && !currentOperationsState.isPilotLiveChannel(channel)) {
       return "pilot_locked";
+    }
+    if (!currentOperationsState.isPilotLiveActive(channel)) {
+      return "pilot_gate_closed";
     }
     return null;
   }
@@ -2488,8 +2526,8 @@ public class CampaignService {
     boolean channelEnabled =
         status.channelEnabled()
             && operationsState.isChannelAutomationEnabled(status.channel())
-            && (!operationsState.hasPilotLiveChannel()
-                || operationsState.isPilotLiveChannel(status.channel()));
+            && operationsState.hasPilotLiveChannel()
+            && operationsState.isPilotLiveActive(status.channel());
     return new CampaignPublisherStatus(
         status.channel(),
         globalEnabled,
@@ -2720,6 +2758,9 @@ public class CampaignService {
       String pilotChannelLabel,
       String pilotUpdatedAtLabel,
       String pilotUpdatedByLabel,
+      String pilotActivationLabel,
+      String pilotActivationUpdatedAtLabel,
+      String pilotActivationUpdatedByLabel,
       String evaluatedAtLabel,
       List<CampaignRolloutChannel> channels) {}
 
@@ -2735,6 +2776,7 @@ public class CampaignService {
       String acknowledgedAtLabel,
       String acknowledgedByLabel,
       boolean pilotLive,
+      boolean liveArmed,
       boolean globalEnabled,
       boolean channelEnabled,
       boolean configured,

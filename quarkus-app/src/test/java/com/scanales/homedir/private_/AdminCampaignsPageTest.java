@@ -57,7 +57,6 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsBusinessPanel\""))
         .body(containsString("id=\"campaignsRolloutPanel\""))
         .body(containsString("id=\"campaignsRolloutAckBtn-discord\""))
-        .body(containsString("id=\"campaignsPilotSelectBtn-discord\""))
         .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))
@@ -174,6 +173,27 @@ class AdminCampaignsPageTest {
         .body(containsString("campaignsPilotClearBtn"))
         .body(containsString("Discord"))
         .body(containsString("canal piloto"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanArmPilotLiveChannel() {
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .when()
+        .post("/private/admin/campaigns/rollout/pilot/discord/select")
+        .then()
+        .statusCode(200);
+
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .when()
+        .post("/private/admin/campaigns/rollout/pilot/arm")
+        .then()
+        .statusCode(200)
+        .body(containsString("campaignsPilotDisarmBtn"))
+        .body(containsString("Discord"))
+        .body(containsString("Armado"));
   }
 
   @Test
