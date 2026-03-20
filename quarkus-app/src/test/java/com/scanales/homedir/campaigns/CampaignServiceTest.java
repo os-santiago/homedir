@@ -287,6 +287,64 @@ class CampaignServiceTest {
   }
 
   @Test
+  void automationControlsPersistInPreviewAndCanDisableChannels() {
+    campaignService.setRefreshAutomationEnabled(false, "sergio.canales.e@gmail.com");
+    campaignService.setPublishAutomationEnabled(false, "sergio.canales.e@gmail.com");
+    campaignService.setChannelAutomationEnabled("discord", false, "sergio.canales.e@gmail.com");
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertFalse(preview.automation().refreshAutomationEnabled());
+    assertFalse(preview.automation().publishAutomationEnabled());
+    assertTrue(
+        preview.automation().channels().stream()
+            .anyMatch(
+                item ->
+                    "discord".equals(item.channelCode())
+                        && !item.automationEnabled()
+                        && !item.effectiveEnabled()));
+  }
+
+  @Test
+  void manualPublishCanBypassGlobalPublishAutomationPause() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
+    campaignService.setPublishAutomationEnabled(false, "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignPublishResult.published("discord", Instant.parse("2026-03-19T14:40:00Z"), "published"));
+
+    CampaignStateSnapshot published = campaignService.publishScheduledNow();
+    CampaignDraftState publishedDraft =
+        published.drafts().stream().filter(item -> item.id().equals(target.id())).findFirst().orElseThrow();
+
+    assertEquals(CampaignWorkflowState.PUBLISHED, publishedDraft.workflowState());
+    assertTrue(publishedDraft.publishedChannels().containsKey("discord"));
+  }
+
+  @Test
   void auditTrailCapturesWorkflowAndPublishingEvents() {
     Event event =
         new Event(

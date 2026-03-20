@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scanales.homedir.challenges.ChallengeProgress;
 import com.scanales.homedir.challenges.ChallengeStateSnapshot;
+import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignDraftState;
 import com.scanales.homedir.campaigns.CampaignStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignWorkflowState;
@@ -235,6 +236,29 @@ public class PersistenceServiceTest {
     assertTrue(loaded.drafts().getFirst().publishedChannels().containsKey("discord"));
     assertEquals(1, loaded.activity().size());
     assertTrue(service.campaignStateLastModifiedMillis() > 0);
+  }
+
+  @Test
+  void campaignOperationsStatePersistsAndLoads() {
+    service = newService();
+
+    CampaignOperationsStateSnapshot snapshot =
+        new CampaignOperationsStateSnapshot(
+            CampaignOperationsStateSnapshot.SCHEMA_VERSION,
+            Instant.parse("2026-03-19T13:15:00Z"),
+            "sergio.canales.e@gmail.com",
+            false,
+            true,
+            Map.of("discord", false, "bluesky", true));
+
+    service.saveCampaignOperationsStateSync(snapshot);
+
+    CampaignOperationsStateSnapshot loaded = service.loadCampaignOperationsState().orElseThrow();
+    assertFalse(loaded.refreshAutomationEnabled());
+    assertTrue(loaded.publishAutomationEnabled());
+    assertEquals("sergio.canales.e@gmail.com", loaded.updatedBy());
+    assertEquals(Boolean.FALSE, loaded.channelAutomation().get("discord"));
+    assertTrue(service.campaignOperationsStateLastModifiedMillis() > 0);
   }
 
   @Test

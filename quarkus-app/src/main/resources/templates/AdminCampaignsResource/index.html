@@ -45,8 +45,20 @@
   {#if updatedAction == 'linkedin'}
     <div class="hd-alert hd-alert-success">{copy.updatedLinkedin}: <code>{updatedDraft}</code></div>
   {/if}
+  {#if updatedAction == 'refreshautomation'}
+    <div class="hd-alert hd-alert-success">{copy.updatedRefreshAutomation}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if updatedAction == 'publishautomation'}
+    <div class="hd-alert hd-alert-success">{copy.updatedPublishAutomation}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if updatedAction == 'channelautomation'}
+    <div class="hd-alert hd-alert-success">{copy.updatedChannelAutomation}: <code>{updatedDraft}</code></div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if errorCode == 'invalid_channel'}
+    <div class="hd-alert hd-alert-danger">{copy.invalidChannel}: <code>{updatedDraft}</code></div>
   {/if}
 </div>
 
@@ -376,15 +388,79 @@
         </div>
       </div>
       <div class="campaigns-admin-list">
+        <article class="campaigns-admin-item"><strong>{copy.publisherRefreshAutomationLabel}</strong><span>{view.automation.refreshAutomationEnabled}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherPublishAutomationLabel}</strong><span>{view.automation.publishAutomationEnabled}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedLabel}</strong><span>{view.automation.updatedAtLabel}</span></article>
+        <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedByLabel}</strong><span>{view.automation.updatedByLabel}</span></article>
         <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{view.globalPublishingEnabled}</span></article>
+        <article class="campaigns-admin-item">
+          <strong>{copy.publisherRefreshAutomationLabel}</strong>
+          <span>
+            <form action="/private/admin/campaigns/automation/refresh" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              {#if view.automation.refreshAutomationEnabled}
+                <input type="hidden" name="enabled" value="false" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPauseRefreshBtn">{copy.pauseRefreshLabel}</button>
+              {#else}
+                <input type="hidden" name="enabled" value="true" />
+                <button type="submit" class="btn btn-secondary" id="campaignsResumeRefreshBtn">{copy.resumeRefreshLabel}</button>
+              {/if}
+            </form>
+          </span>
+        </article>
+        <article class="campaigns-admin-item">
+          <strong>{copy.publisherPublishAutomationLabel}</strong>
+          <span>
+            <form action="/private/admin/campaigns/automation/publish" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              {#if view.automation.publishAutomationEnabled}
+                <input type="hidden" name="enabled" value="false" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPausePublishBtn">{copy.pausePublishLabel}</button>
+              {#else}
+                <input type="hidden" name="enabled" value="true" />
+                <button type="submit" class="btn btn-secondary" id="campaignsResumePublishBtn">{copy.resumePublishLabel}</button>
+              {/if}
+            </form>
+          </span>
+        </article>
         {#for status in view.publisherStatuses}
           <article class="campaigns-admin-item">
             <strong>{status.channelLabel}</strong>
             <span>
               {copy.publisherChannelLabel}: {status.channelEnabled}
+              · {copy.publisherRuntimeChannelLabel}: {#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.automationEnabled}{/if}{/for}
+              · {copy.publisherEffectiveLabel}: {#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.effectiveEnabled}{/if}{/for}
               · {copy.publisherConfiguredLabel}: {status.configured}
               · {copy.publisherDryRunLabel}: {status.dryRun}
               · {copy.publisherRateLimitLabel}: {status.minIntervalLabel}
+            </span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{status.channelLabel}</strong>
+            <span>
+              <form action="/private/admin/campaigns/automation/channel/{status.channelCode}" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                {#for channelState in view.automation.channels}
+                  {#if channelState.channelCode == status.channelCode}
+                    {#if channelState.automationEnabled}
+                      <input type="hidden" name="enabled" value="false" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsDisableChannelBtn-{status.channelCode}">{copy.disableChannelAutomationLabel}</button>
+                    {#else}
+                      <input type="hidden" name="enabled" value="true" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsEnableChannelBtn-{status.channelCode}">{copy.enableChannelAutomationLabel}</button>
+                    {/if}
+                  {/if}
+                {/for}
+              </form>
             </span>
           </article>
         {/for}

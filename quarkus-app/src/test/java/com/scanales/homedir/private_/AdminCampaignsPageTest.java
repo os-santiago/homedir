@@ -13,6 +13,7 @@ import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -20,6 +21,12 @@ import org.junit.jupiter.api.Test;
 class AdminCampaignsPageTest {
 
   @Inject CampaignService campaignService;
+
+  @BeforeEach
+  void resetCampaignState() {
+    campaignService.resetStateForTests();
+    campaignService.refreshDrafts();
+  }
 
   @Test
   @TestSecurity(user = "alice")
@@ -38,6 +45,9 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsRefreshBtn\""))
         .body(containsString("id=\"campaignsFilterPanel\""))
         .body(containsString("id=\"campaignsPublishNowBtn\""))
+        .body(containsString("id=\"campaignsPauseRefreshBtn\""))
+        .body(containsString("id=\"campaignsPausePublishBtn\""))
+        .body(containsString("id=\"campaignsDisableChannelBtn-discord\""))
         .body(containsString("id=\"campaignsSummaryPanel\""))
         .body(containsString("id=\"campaignsQueueHealthPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
@@ -53,6 +63,37 @@ class AdminCampaignsPageTest {
         .body(containsString("LinkedIn"))
         .body(containsString("utm_source=campaigns"))
         .body(containsString("/private/admin/campaigns/"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanToggleCampaignAutomationControls() {
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("enabled", "false")
+        .when()
+        .post("/private/admin/campaigns/automation/refresh")
+        .then()
+        .statusCode(200)
+        .body(containsString("campaignsResumeRefreshBtn"));
+
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("enabled", "false")
+        .when()
+        .post("/private/admin/campaigns/automation/publish")
+        .then()
+        .statusCode(200)
+        .body(containsString("campaignsResumePublishBtn"));
+
+    given()
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .formParam("enabled", "false")
+        .when()
+        .post("/private/admin/campaigns/automation/channel/discord")
+        .then()
+        .statusCode(200)
+        .body(containsString("campaignsEnableChannelBtn-discord"));
   }
 
   @Test
