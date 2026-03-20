@@ -296,6 +296,56 @@ public class CampaignService {
             .toList());
   }
 
+  public Optional<CampaignDetailSnapshot> detail(
+      String localeCode, String draftId, CampaignAdminFilters filters) {
+    CampaignPreviewSnapshot preview = preview(localeCode, filters);
+    Optional<CampaignPreviewCard> card =
+        preview.drafts().stream().filter(item -> item.id().equals(draftId)).findFirst();
+    if (card.isEmpty()) {
+      CampaignPreviewSnapshot fullPreview = preview(localeCode, CampaignAdminFilters.empty());
+      card = fullPreview.drafts().stream().filter(item -> item.id().equals(draftId)).findFirst();
+      if (card.isEmpty()) {
+        return Optional.empty();
+      }
+      preview = fullPreview;
+    }
+    CampaignPreviewSnapshot selectedPreview = preview;
+    CampaignPreviewCard selectedCard = card.orElseThrow();
+    CampaignPreviewPack pack =
+        selectedPreview.previewPacks().stream()
+            .filter(item -> item.draftId().equals(draftId))
+            .findFirst()
+            .orElse(null);
+    CampaignAttributionSummary attribution =
+        selectedPreview.attribution().stream()
+            .filter(item -> item.draftId().equals(draftId))
+            .findFirst()
+            .orElse(null);
+    CampaignLinkedinHandoff linkedinHandoff =
+        selectedPreview.linkedinHandoffs().stream()
+            .filter(item -> item.draftId().equals(draftId))
+            .findFirst()
+            .orElse(null);
+    List<CampaignQueueRiskItem> risks =
+        selectedPreview.queueRisks().stream()
+            .filter(item -> item.draftId().equals(draftId))
+            .toList();
+    List<CampaignAuditTrailEntry> auditEntries =
+        selectedPreview.auditTrail().stream()
+            .filter(item -> item.draftId().equals(draftId))
+            .toList();
+    return Optional.of(
+        new CampaignDetailSnapshot(
+            selectedCard,
+            pack,
+            attribution,
+            List.copyOf(auditEntries),
+            List.copyOf(risks),
+            linkedinHandoff,
+            selectedPreview.summary(),
+            selectedPreview.queueHealth()));
+  }
+
   void resetStateForTests() {
     synchronized (stateLock) {
       currentState = CampaignStateSnapshot.empty();
@@ -1843,4 +1893,14 @@ public class CampaignService {
       String statusLabel,
       boolean completed,
       String publishedAtLabel) {}
+
+  public record CampaignDetailSnapshot(
+      CampaignPreviewCard draft,
+      CampaignPreviewPack previewPack,
+      CampaignAttributionSummary attribution,
+      List<CampaignAuditTrailEntry> auditTrail,
+      List<CampaignQueueRiskItem> risks,
+      CampaignLinkedinHandoff linkedinHandoff,
+      CampaignOperationsSummary summary,
+      CampaignQueueHealth queueHealth) {}
 }

@@ -178,7 +178,7 @@
               <article class="campaigns-admin-item"><strong>{item.riskLabel}</strong><span>{item.recommendationLabel}</span></article>
               <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{item.workflowLabel}</span></article>
               <article class="campaigns-admin-item"><strong>{copy.queueRiskAgeLabel}</strong><span>{item.ageLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.queueRiskActionLabel}</strong><a href="#campaign-draft-{item.draftId}" class="btn btn-secondary campaigns-admin-cta">{copy.queueRiskActionLabel}</a></article>
+              <article class="campaigns-admin-item"><strong>{copy.queueRiskActionLabel}</strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{copy.queueRiskActionLabel}</a></article>
             </div>
           </article>
         {/for}
@@ -249,7 +249,7 @@
             <div class="admin-shell-card-header">
               <div>
                 <p class="section-subtitle">{item.kindLabel}</p>
-                <h3>{item.title}</h3>
+                <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></h3>
               </div>
               <span class="admin-observability-badge watch">{item.workflowLabel}</span>
             </div>
@@ -458,7 +458,7 @@
                   <div class="admin-shell-card-header">
                     <div>
                       <p class="section-subtitle">{draft.kindLabel}</p>
-                      <h3>{draft.title}</h3>
+                      <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
                     <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
                   </div>
@@ -503,7 +503,7 @@
                   <div class="admin-shell-card-header">
                     <div>
                       <p class="section-subtitle">{draft.kindLabel}</p>
-                      <h3>{draft.title}</h3>
+                      <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
                     <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
                   </div>
@@ -557,7 +557,7 @@
                   <div class="admin-shell-card-header">
                     <div>
                       <p class="section-subtitle">{draft.kindLabel}</p>
-                      <h3>{draft.title}</h3>
+                      <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
                     <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
                   </div>
@@ -609,7 +609,7 @@
                   <div class="admin-shell-card-header">
                     <div>
                       <p class="section-subtitle">{draft.kindLabel}</p>
-                      <h3>{draft.title}</h3>
+                      <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
                     <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
                   </div>

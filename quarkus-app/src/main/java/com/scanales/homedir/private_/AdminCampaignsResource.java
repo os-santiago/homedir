@@ -44,6 +44,14 @@ public class AdminCampaignsResource {
         String updatedAction,
         String updatedDraft,
         String errorCode);
+
+    static native TemplateInstance detail(
+        AdminCampaignsCopy copy,
+        AdminCampaignFilters filters,
+        CampaignService.CampaignDetailSnapshot detail,
+        String draftId,
+        String updatedAction,
+        String errorCode);
   }
 
   @Inject SecurityIdentity identity;
@@ -85,6 +93,46 @@ public class AdminCampaignsResource {
     return Response.ok(TemplateLocaleUtil.apply(template, localeCode, headers)).build();
   }
 
+  @GET
+  @Path("{draftId}")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response detail(
+      @PathParam("draftId") String draftId,
+      @Context HttpHeaders headers,
+      @QueryParam("q") String query,
+      @QueryParam("workflow") String workflow,
+      @QueryParam("kind") String kind,
+      @QueryParam("channel") String channel,
+      @QueryParam("updated") String updated,
+      @QueryParam("error") String errorCode) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    String localeCode = TemplateLocaleUtil.resolve(null, headers);
+    AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
+    CampaignService.CampaignDetailSnapshot detail =
+        campaignService
+            .detail(
+                localeCode,
+                draftId,
+                new CampaignService.CampaignAdminFilters(
+                    filters.query(), filters.workflow(), filters.kind(), filters.channel()))
+            .orElse(null);
+    if (detail == null) {
+      return Response.seeOther(redirectWithErrorUri("not_found", draftId, filters)).build();
+    }
+    TemplateInstance template =
+        Templates.detail(
+            localizedCopy(localeCode),
+            filters,
+            detail,
+            safe(draftId),
+            safe(updated),
+            safe(errorCode));
+    return Response.ok(TemplateLocaleUtil.apply(template, localeCode, headers)).build();
+  }
+
   @POST
   @Path("refresh")
   @Authenticated
@@ -92,12 +140,20 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo,
+      @FormParam("currentDraft") String currentDraft) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.refreshDrafts();
-    return redirectWithUpdate("refresh", "", AdminCampaignFilters.sanitize(query, workflow, kind, channel), "refreshed", "1");
+    return redirectWithUpdate(
+        "refresh",
+        safe(currentDraft),
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        "refreshed",
+        "1",
+        "detail".equalsIgnoreCase(returnTo));
   }
 
   @POST
@@ -107,13 +163,20 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo,
+      @FormParam("currentDraft") String currentDraft) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.publishScheduledNow();
     return redirectWithUpdate(
-        "publishscan", "", AdminCampaignFilters.sanitize(query, workflow, kind, channel), null, null);
+        "publishscan",
+        safe(currentDraft),
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        "detail".equalsIgnoreCase(returnTo));
   }
 
   @POST
@@ -124,12 +187,19 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.approveDraft(draftId, identity.getPrincipal().getName());
-    return redirectWithUpdate("approved", draftId, AdminCampaignFilters.sanitize(query, workflow, kind, channel), null, null);
+    return redirectWithUpdate(
+        "approved",
+        draftId,
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        "detail".equalsIgnoreCase(returnTo));
   }
 
   @POST
@@ -140,12 +210,19 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.resetDraft(draftId);
-    return redirectWithUpdate("reset", draftId, AdminCampaignFilters.sanitize(query, workflow, kind, channel), null, null);
+    return redirectWithUpdate(
+        "reset",
+        draftId,
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        "detail".equalsIgnoreCase(returnTo));
   }
 
   @POST
@@ -158,19 +235,21 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
     if (scheduledFor == null || scheduledFor.isBlank()) {
-      return redirectWithError("invalid_schedule", draftId, filters);
+      return redirectWithError("invalid_schedule", draftId, filters, "detail".equalsIgnoreCase(returnTo));
     }
     try {
       campaignService.scheduleDraft(draftId, LocalDateTime.parse(scheduledFor), identity.getPrincipal().getName());
-      return redirectWithUpdate("scheduled", draftId, filters, null, null);
+      return redirectWithUpdate(
+          "scheduled", draftId, filters, null, null, "detail".equalsIgnoreCase(returnTo));
     } catch (Exception e) {
-      return redirectWithError("invalid_schedule", draftId, filters);
+      return redirectWithError("invalid_schedule", draftId, filters, "detail".equalsIgnoreCase(returnTo));
     }
   }
 
@@ -182,12 +261,19 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.unscheduleDraft(draftId);
-    return redirectWithUpdate("unscheduled", draftId, AdminCampaignFilters.sanitize(query, workflow, kind, channel), null, null);
+    return redirectWithUpdate(
+        "unscheduled",
+        draftId,
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        "detail".equalsIgnoreCase(returnTo));
   }
 
   @POST
@@ -198,12 +284,19 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.markLinkedinPublished(draftId, identity.getPrincipal().getName());
-    return redirectWithUpdate("linkedin", draftId, AdminCampaignFilters.sanitize(query, workflow, kind, channel), null, null);
+    return redirectWithUpdate(
+        "linkedin",
+        draftId,
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        "detail".equalsIgnoreCase(returnTo));
   }
 
   private AdminCampaignsCopy localizedCopy(String localeCode) {
@@ -229,6 +322,16 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_filter_clear"),
         text(bundle, "campaigns_admin_filter_results"),
         text(bundle, "campaigns_admin_filter_empty"),
+        text(bundle, "campaigns_admin_detail_back"),
+        text(bundle, "campaigns_admin_detail_overview"),
+        text(bundle, "campaigns_admin_detail_preview"),
+        text(bundle, "campaigns_admin_detail_attribution"),
+        text(bundle, "campaigns_admin_detail_audit"),
+        text(bundle, "campaigns_admin_detail_risks"),
+        text(bundle, "campaigns_admin_detail_linkedin"),
+        text(bundle, "campaigns_admin_detail_empty_audit"),
+        text(bundle, "campaigns_admin_detail_empty_risks"),
+        text(bundle, "campaigns_admin_detail_not_found"),
         text(bundle, "campaigns_admin_updated_approved"),
         text(bundle, "campaigns_admin_updated_reset"),
         text(bundle, "campaigns_admin_updated_scheduled"),
@@ -370,10 +473,10 @@ public class AdminCampaignsResource {
       String draftId,
       AdminCampaignFilters filters,
       String extraKey,
-      String extraValue) {
-    UriBuilder builder =
-        UriBuilder.fromPath("/private/admin/campaigns")
-            .queryParam("updated", safe(update));
+      String extraValue,
+      boolean detailView) {
+    UriBuilder builder = redirectUri(detailView, draftId);
+    builder.queryParam("updated", safe(update));
     if (!safe(draftId).isBlank()) {
       builder.queryParam("draft", safe(draftId));
     }
@@ -384,15 +487,31 @@ public class AdminCampaignsResource {
     return Response.seeOther(builder.build()).build();
   }
 
-  private Response redirectWithError(String error, String draftId, AdminCampaignFilters filters) {
-    UriBuilder builder =
-        UriBuilder.fromPath("/private/admin/campaigns")
-            .queryParam("error", safe(error));
+  private Response redirectWithError(
+      String error, String draftId, AdminCampaignFilters filters, boolean detailView) {
+    return Response.seeOther(redirectWithErrorUri(error, draftId, filters, detailView)).build();
+  }
+
+  private URI redirectWithErrorUri(String error, String draftId, AdminCampaignFilters filters) {
+    return redirectWithErrorUri(error, draftId, filters, false);
+  }
+
+  private URI redirectWithErrorUri(
+      String error, String draftId, AdminCampaignFilters filters, boolean detailView) {
+    UriBuilder builder = redirectUri(detailView, draftId);
     if (!safe(draftId).isBlank()) {
       builder.queryParam("draft", safe(draftId));
     }
+    builder.queryParam("error", safe(error));
     appendFilters(builder, filters);
-    return Response.seeOther(builder.build()).build();
+    return builder.build();
+  }
+
+  private UriBuilder redirectUri(boolean detailView, String draftId) {
+    if (detailView && draftId != null && !draftId.isBlank()) {
+      return UriBuilder.fromPath("/private/admin/campaigns/{draftId}").resolveTemplate("draftId", safe(draftId));
+    }
+    return UriBuilder.fromPath("/private/admin/campaigns");
   }
 
   private void appendFilters(UriBuilder builder, AdminCampaignFilters filters) {
@@ -453,6 +572,29 @@ public class AdminCampaignsResource {
           normalizedQuery, normalizedWorkflow, normalizedKind, normalizedChannel, active);
     }
 
+    public String querySuffix() {
+      StringBuilder builder = new StringBuilder();
+      appendParam(builder, "q", query);
+      appendParam(builder, "workflow", workflow);
+      appendParam(builder, "kind", kind);
+      appendParam(builder, "channel", channel);
+      return builder.toString();
+    }
+
+    private static void appendParam(StringBuilder builder, String key, String value) {
+      if (value == null || value.isBlank()) {
+        return;
+      }
+      builder.append(builder.isEmpty() ? "?" : "&")
+          .append(key)
+          .append("=")
+          .append(encode(value));
+    }
+
+    private static String encode(String value) {
+      return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     private static String sanitizeQuery(String raw) {
       if (raw == null) {
         return "";
@@ -490,6 +632,16 @@ public class AdminCampaignsResource {
       String filterClearLabel,
       String filterResultsLabel,
       String filterEmptyLabel,
+      String detailBackLabel,
+      String detailOverviewTitle,
+      String detailPreviewTitle,
+      String detailAttributionTitle,
+      String detailAuditTitle,
+      String detailRisksTitle,
+      String detailLinkedinTitle,
+      String detailEmptyAuditLabel,
+      String detailEmptyRisksLabel,
+      String detailNotFoundLabel,
       String updatedApproved,
       String updatedReset,
       String updatedScheduled,
