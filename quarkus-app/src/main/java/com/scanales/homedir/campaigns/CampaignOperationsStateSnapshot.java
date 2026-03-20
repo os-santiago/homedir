@@ -12,7 +12,10 @@ public record CampaignOperationsStateSnapshot(
     @JsonProperty("publish_automation_enabled") boolean publishAutomationEnabled,
     @JsonProperty("channel_automation") Map<String, Boolean> channelAutomation,
     @JsonProperty("channel_go_live_acknowledgements")
-        Map<String, CampaignGoLiveAck> channelGoLiveAcknowledgements) {
+        Map<String, CampaignGoLiveAck> channelGoLiveAcknowledgements,
+    @JsonProperty("pilot_live_channel") String pilotLiveChannel,
+    @JsonProperty("pilot_live_channel_updated_at") Instant pilotLiveChannelUpdatedAt,
+    @JsonProperty("pilot_live_channel_updated_by") String pilotLiveChannelUpdatedBy) {
 
   public static final int SCHEMA_VERSION = 1;
 
@@ -21,11 +24,13 @@ public record CampaignOperationsStateSnapshot(
     channelAutomation = channelAutomation == null ? Map.of() : Map.copyOf(channelAutomation);
     channelGoLiveAcknowledgements =
         channelGoLiveAcknowledgements == null ? Map.of() : Map.copyOf(channelGoLiveAcknowledgements);
+    pilotLiveChannel = pilotLiveChannel == null ? "" : pilotLiveChannel.trim().toLowerCase();
+    pilotLiveChannelUpdatedBy = pilotLiveChannelUpdatedBy == null ? "" : pilotLiveChannelUpdatedBy.trim();
   }
 
   public static CampaignOperationsStateSnapshot empty() {
     return new CampaignOperationsStateSnapshot(
-        SCHEMA_VERSION, Instant.now(), "system", true, true, Map.of(), Map.of());
+        SCHEMA_VERSION, Instant.now(), "system", true, true, Map.of(), Map.of(), "", null, "");
   }
 
   public boolean isChannelAutomationEnabled(String channel) {
@@ -42,6 +47,17 @@ public record CampaignOperationsStateSnapshot(
     return channelGoLiveAcknowledgements.getOrDefault(channel.trim().toLowerCase(), CampaignGoLiveAck.empty());
   }
 
+  public boolean hasPilotLiveChannel() {
+    return !pilotLiveChannel.isBlank();
+  }
+
+  public boolean isPilotLiveChannel(String channel) {
+    if (!hasPilotLiveChannel() || channel == null || channel.isBlank()) {
+      return !hasPilotLiveChannel();
+    }
+    return pilotLiveChannel.equals(channel.trim().toLowerCase());
+  }
+
   public CampaignOperationsStateSnapshot withRefreshAutomation(boolean enabled, String actor) {
     return new CampaignOperationsStateSnapshot(
         SCHEMA_VERSION,
@@ -50,7 +66,10 @@ public record CampaignOperationsStateSnapshot(
         enabled,
         publishAutomationEnabled,
         channelAutomation,
-        channelGoLiveAcknowledgements);
+        channelGoLiveAcknowledgements,
+        pilotLiveChannel,
+        pilotLiveChannelUpdatedAt,
+        pilotLiveChannelUpdatedBy);
   }
 
   public CampaignOperationsStateSnapshot withPublishAutomation(boolean enabled, String actor) {
@@ -61,7 +80,10 @@ public record CampaignOperationsStateSnapshot(
         refreshAutomationEnabled,
         enabled,
         channelAutomation,
-        channelGoLiveAcknowledgements);
+        channelGoLiveAcknowledgements,
+        pilotLiveChannel,
+        pilotLiveChannelUpdatedAt,
+        pilotLiveChannelUpdatedBy);
   }
 
   public CampaignOperationsStateSnapshot withChannelAutomation(
@@ -77,7 +99,10 @@ public record CampaignOperationsStateSnapshot(
         refreshAutomationEnabled,
         publishAutomationEnabled,
         next,
-        channelGoLiveAcknowledgements);
+        channelGoLiveAcknowledgements,
+        pilotLiveChannel,
+        pilotLiveChannelUpdatedAt,
+        pilotLiveChannelUpdatedBy);
   }
 
   public CampaignOperationsStateSnapshot withChannelGoLiveAcknowledgement(
@@ -94,6 +119,24 @@ public record CampaignOperationsStateSnapshot(
         refreshAutomationEnabled,
         publishAutomationEnabled,
         channelAutomation,
-        next);
+        next,
+        pilotLiveChannel,
+        pilotLiveChannelUpdatedAt,
+        pilotLiveChannelUpdatedBy);
+  }
+
+  public CampaignOperationsStateSnapshot withPilotLiveChannel(String channel, String actor) {
+    String normalized = channel == null ? "" : channel.trim().toLowerCase();
+    return new CampaignOperationsStateSnapshot(
+        SCHEMA_VERSION,
+        Instant.now(),
+        actor == null ? "" : actor.trim(),
+        refreshAutomationEnabled,
+        publishAutomationEnabled,
+        channelAutomation,
+        channelGoLiveAcknowledgements,
+        normalized,
+        normalized.isBlank() ? null : Instant.now(),
+        normalized.isBlank() ? "" : (actor == null ? "" : actor.trim()));
   }
 }
