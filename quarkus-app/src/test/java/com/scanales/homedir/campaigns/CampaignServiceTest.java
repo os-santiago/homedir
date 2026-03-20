@@ -266,6 +266,55 @@ class CampaignServiceTest {
   }
 
   @Test
+  void pilotVerificationSummaryTracksLivePublishAndAcknowledgement() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignStateSnapshot initial = campaignService.refreshDrafts();
+    CampaignDraftState target =
+        initial.drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(1), "sergio.canales.e@gmail.com");
+    Instant publishInstant = Instant.now().plusSeconds(1);
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(CampaignPublishResult.published("discord", publishInstant, "published"));
+    campaignService.publishScheduledNow();
+
+    CampaignService.CampaignPreviewSnapshot pendingPreview = campaignService.preview("es");
+    assertEquals("Pendiente de verificación", pendingPreview.pilotVerificationSummary().statusLabel());
+    assertEquals("Discord", pendingPreview.pilotVerificationSummary().targetChannelLabel());
+    assertEquals(1, pendingPreview.pilotVerificationSummary().publishedCount());
+    assertTrue(pendingPreview.pilotVerificationSummary().canAcknowledge());
+
+    campaignService.setPilotVerificationAcknowledged(true, "sergio.canales.e@gmail.com");
+    CampaignService.CampaignPreviewSnapshot verifiedPreview = campaignService.preview("es");
+
+    assertEquals("Verificado", verifiedPreview.pilotVerificationSummary().statusLabel());
+    assertEquals("Verificado", verifiedPreview.pilotVerificationSummary().verificationLabel());
+    assertEquals("sergio.canales.e@gmail.com", verifiedPreview.pilotVerificationSummary().acknowledgedByLabel());
+    assertFalse(verifiedPreview.pilotVerificationSummary().canAcknowledge());
+    assertTrue(verifiedPreview.pilotVerificationSummary().acknowledged());
+  }
+
+  @Test
   void approvalAndScheduleSurviveDraftRefresh() {
     Event event =
         new Event(

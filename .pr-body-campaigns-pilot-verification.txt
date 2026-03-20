@@ -1,0 +1,11 @@
+## Summary
+- add a pilot verification summary panel to campaigns admin after the first live pilot publish
+- persist pilot verification acknowledgement in campaign operations state and reset it when the pilot channel or arming state changes
+- document the new post-publish verification step in english and spanish campaigns docs
+
+## Validation
+- `.\mvnw.cmd -q -DskipTests compile`
+- `.\mvnw.cmd -q -DskipITs "-Dtest=com.scanales.homedir.campaigns.CampaignServiceTest,com.scanales.homedir.private_.AdminCampaignsPageTest,com.scanales.homedir.service.PersistenceServiceTest" test`
+
+## Risks
+- the verification summary depends on publish timestamps being in the active pilot cycle, so cycle reset behavior is covered in tests but should be monitored in prod after the first real pilot publish

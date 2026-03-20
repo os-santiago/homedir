@@ -417,6 +417,29 @@ public class AdminCampaignsResource {
   }
 
   @POST
+  @Path("rollout/pilot/verify")
+  @Authenticated
+  public Response updatePilotVerification(
+      @FormParam("acknowledged") String acknowledged,
+      @FormParam("q") String query,
+      @FormParam("workflow") String workflow,
+      @FormParam("kind") String kind,
+      @FormParam("channel") String channel) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    boolean nextAcknowledged = "true".equalsIgnoreCase(acknowledged);
+    campaignService.setPilotVerificationAcknowledged(nextAcknowledged, identity.getPrincipal().getName());
+    return redirectWithUpdate(
+        nextAcknowledged ? "pilotverified" : "pilotverificationcleared",
+        "pilot",
+        AdminCampaignFilters.sanitize(query, workflow, kind, channel),
+        null,
+        null,
+        false);
+  }
+
+  @POST
   @Path("{draftId}/approve")
   @Authenticated
   public Response approve(
@@ -630,6 +653,8 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_pilot_cleared"),
         text(bundle, "campaigns_admin_updated_pilot_armed"),
         text(bundle, "campaigns_admin_updated_pilot_disarmed"),
+        text(bundle, "campaigns_admin_updated_pilot_verified"),
+        text(bundle, "campaigns_admin_updated_pilot_verification_cleared"),
         text(bundle, "campaigns_admin_error_invalid_schedule"),
         text(bundle, "campaigns_admin_error_not_ready"),
         text(bundle, "campaigns_admin_error_retry_not_ready"),
@@ -692,6 +717,20 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_runbook_target_label"),
         text(bundle, "campaigns_admin_runbook_recommendation_label"),
         text(bundle, "campaigns_admin_runbook_step_status_label"),
+        text(bundle, "campaigns_admin_pilot_verification_title"),
+        text(bundle, "campaigns_admin_pilot_verification_intro"),
+        text(bundle, "campaigns_admin_pilot_verification_status_label"),
+        text(bundle, "campaigns_admin_pilot_verification_target_label"),
+        text(bundle, "campaigns_admin_pilot_verification_state_label"),
+        text(bundle, "campaigns_admin_pilot_verification_published_count_label"),
+        text(bundle, "campaigns_admin_pilot_verification_last_published_at_label"),
+        text(bundle, "campaigns_admin_pilot_verification_last_draft_label"),
+        text(bundle, "campaigns_admin_pilot_verification_acknowledged_at_label"),
+        text(bundle, "campaigns_admin_pilot_verification_acknowledged_by_label"),
+        text(bundle, "campaigns_admin_pilot_verification_recommendation_label"),
+        text(bundle, "campaigns_admin_pilot_verification_action_label"),
+        text(bundle, "campaigns_admin_pilot_verification_mark_action"),
+        text(bundle, "campaigns_admin_pilot_verification_clear_action"),
         text(bundle, "campaigns_admin_queue_health_title"),
         text(bundle, "campaigns_admin_queue_health_intro"),
         text(bundle, "campaigns_admin_queue_health_status_label"),
@@ -1090,6 +1129,8 @@ public class AdminCampaignsResource {
       String updatedPilotCleared,
       String updatedPilotArmed,
       String updatedPilotDisarmed,
+      String updatedPilotVerified,
+      String updatedPilotVerificationCleared,
       String invalidSchedule,
       String notReady,
       String retryNotReady,
@@ -1152,6 +1193,20 @@ public class AdminCampaignsResource {
       String runbookTargetLabel,
       String runbookRecommendationLabel,
       String runbookStepStatusLabel,
+      String pilotVerificationTitle,
+      String pilotVerificationIntro,
+      String pilotVerificationStatusLabel,
+      String pilotVerificationTargetLabel,
+      String pilotVerificationStateLabel,
+      String pilotVerificationPublishedCountLabel,
+      String pilotVerificationLastPublishedAtLabel,
+      String pilotVerificationLastDraftLabel,
+      String pilotVerificationAcknowledgedAtLabel,
+      String pilotVerificationAcknowledgedByLabel,
+      String pilotVerificationRecommendationLabel,
+      String pilotVerificationActionLabel,
+      String pilotVerificationMarkActionLabel,
+      String pilotVerificationClearActionLabel,
       String queueHealthTitle,
       String queueHealthIntro,
       String queueHealthStatusLabel,

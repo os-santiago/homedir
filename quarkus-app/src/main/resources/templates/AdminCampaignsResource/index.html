@@ -72,6 +72,12 @@
   {#if updatedAction == 'pilotdisarmed'}
     <div class="hd-alert hd-alert-success">{copy.updatedPilotDisarmed}</div>
   {/if}
+  {#if updatedAction == 'pilotverified'}
+    <div class="hd-alert hd-alert-success">{copy.updatedPilotVerified}</div>
+  {/if}
+  {#if updatedAction == 'pilotverificationcleared'}
+    <div class="hd-alert hd-alert-success">{copy.updatedPilotVerificationCleared}</div>
+  {/if}
   {#if errorCode == 'invalid_schedule'}
     <div class="hd-alert hd-alert-danger">{copy.invalidSchedule}: <code>{updatedDraft}</code></div>
   {/if}
@@ -395,6 +401,57 @@
               </div>
             </article>
           {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsPilotVerificationPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.pilotVerificationTitle}</p>
+            <h2>{copy.pilotVerificationIntro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.pilotVerificationSummary.statusCode}">{view.pilotVerificationSummary.statusLabel}</span>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationStatusLabel}</strong><span>{view.pilotVerificationSummary.statusLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationTargetLabel}</strong><span>{view.pilotVerificationSummary.targetChannelLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationStateLabel}</strong><span>{view.pilotVerificationSummary.verificationLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationPublishedCountLabel}</strong><span>{view.pilotVerificationSummary.publishedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationLastPublishedAtLabel}</strong><span>{view.pilotVerificationSummary.lastPublishedAtLabel}</span></article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.pilotVerificationLastDraftLabel}</strong>
+            <span>
+              {#if view.pilotVerificationSummary.hasLastPublishedDraft}
+                <a href="/private/admin/campaigns/{view.pilotVerificationSummary.lastPublishedDraftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{view.pilotVerificationSummary.lastPublishedDraftLabel}</a>
+              {#else}
+                {view.pilotVerificationSummary.lastPublishedDraftLabel}
+              {/if}
+            </span>
+          </article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationAcknowledgedAtLabel}</strong><span>{view.pilotVerificationSummary.acknowledgedAtLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationAcknowledgedByLabel}</strong><span>{view.pilotVerificationSummary.acknowledgedByLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationRecommendationLabel}</strong><span>{view.pilotVerificationSummary.recommendationLabel}</span></article>
+        </div>
+        <div class="action-group admin-shell-actions">
+          {#if view.pilotVerificationSummary.acknowledged}
+            <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="acknowledged" value="false" />
+              <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationClearBtn">{copy.pilotVerificationClearActionLabel}</button>
+            </form>
+          {#else if view.pilotVerificationSummary.canAcknowledge}
+            <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="acknowledged" value="true" />
+              <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationBtn">{copy.pilotVerificationMarkActionLabel}</button>
+            </form>
+          {/if}
         </div>
       </section>
     </div>
