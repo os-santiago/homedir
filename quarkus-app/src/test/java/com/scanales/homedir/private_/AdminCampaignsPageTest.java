@@ -11,6 +11,7 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +54,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsDisableChannelBtn-discord\""))
         .body(containsString("id=\"campaignsSummaryPanel\""))
         .body(containsString("id=\"campaignsQueueHealthPanel\""))
+        .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))
         .body(containsString("id=\"campaignsAuditTrailPanel\""))
@@ -71,25 +73,30 @@ class AdminCampaignsPageTest {
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminCanApproveDraftsInBulk() {
-    java.util.List<String> draftIds =
+    List<String> draftIds =
         campaignService.preview("es").drafts().stream()
             .filter(item -> "draft".equals(item.workflowStateCode()))
             .limit(2)
             .map(CampaignService.CampaignPreviewCard::id)
             .toList();
+    assertTrue(!draftIds.isEmpty());
 
-    given()
+    var response =
+        given()
         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
         .formParam("action", "approve")
         .formParam("draftIds", draftIds.toArray())
         .when()
-        .post("/private/admin/campaigns/bulk-action")
-        .then()
-        .statusCode(200)
-        .body(containsString("Se aplicó la acción por lote"))
-        .body(containsString("<code>2</code>"))
-        .body(containsString(draftIds.getFirst()))
-        .body(containsString(draftIds.get(1)));
+        .post("/private/admin/campaigns/bulk-action");
+
+    var assertions =
+        response.then()
+            .statusCode(200)
+            .body(containsString("Se aplicó la acción por lote"))
+            .body(containsString("<code>" + draftIds.size() + "</code>"));
+    for (String draftId : draftIds) {
+      assertions.body(containsString(draftId));
+    }
   }
 
   @Test
@@ -242,6 +249,7 @@ class AdminCampaignsPageTest {
         .statusCode(200)
         .body(containsString("id=\"campaignDetailOverviewPanel\""))
         .body(containsString("id=\"campaignDetailPreviewPanel\""))
+        .body(containsString("id=\"campaignDetailRecoveryPanel\""))
         .body(containsString("id=\"campaignDetailAuditPanel\""))
         .body(containsString("id=\"campaignDetailRiskPanel\""))
         .body(

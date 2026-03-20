@@ -203,6 +203,35 @@
       </section>
     </div>
 
+    <section class="admin-shell-panel" id="campaignDetailRecoveryPanel">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{copy.recoveryTitle}</p>
+          <h2>{detail.recoverySummary.statusLabel}</h2>
+        </div>
+      </div>
+      <div class="admin-observability-two-up">
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.recoveryActionableLabel}</strong><span>{detail.recoverySummary.actionableCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.recoveryRetryableLabel}</strong><span>{detail.recoverySummary.retryableCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.recoveryBlockedLabel}</strong><span>{detail.recoverySummary.blockedCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.recoveryManualLabel}</strong><span>{detail.recoverySummary.manualCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.recoveryEvaluatedLabel}</strong><span>{detail.recoverySummary.evaluatedAtLabel}</span></article>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if detail.recoveryItems.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.recoveryEmptyLabel}</strong></article>
+          {/if}
+          {#for item in detail.recoveryItems}
+            <article class="campaigns-admin-item">
+              <strong>{item.stateLabel} · {item.channelLabel}</strong>
+              <span>{item.outcomeLabel} · {item.recommendationLabel} · {item.ageLabel}</span>
+            </article>
+          {/for}
+        </div>
+      </div>
+    </section>
+
     <div class="admin-observability-two-up">
       <section class="admin-shell-panel" id="campaignDetailAuditPanel">
         <div class="admin-shell-card-header">

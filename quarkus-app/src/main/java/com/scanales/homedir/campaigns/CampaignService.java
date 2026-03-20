@@ -466,6 +466,8 @@ public class CampaignService {
         cadenceGuidance,
         List.copyOf(previewPacks),
         attributionSummary(visibleDrafts, bundle),
+        publishRecoverySummary(snapshot, bundle, locale),
+        publishRecoveryItems(visibleDrafts, bundle, locale),
         queueHealth(snapshot, bundle, locale),
         queueRisks(visibleDrafts, bundle, locale),
         auditTrail(snapshot, visibleDrafts, normalizedFilters, bundle, locale),
@@ -509,6 +511,10 @@ public class CampaignService {
         selectedPreview.queueRisks().stream()
             .filter(item -> item.draftId().equals(draftId))
             .toList();
+    List<CampaignPublishRecoveryItem> recoveryItems =
+        selectedPreview.recoveryItems().stream()
+            .filter(item -> item.draftId().equals(draftId))
+            .toList();
     List<CampaignAuditTrailEntry> auditEntries =
         selectedPreview.auditTrail().stream()
             .filter(item -> item.draftId().equals(draftId))
@@ -519,9 +525,11 @@ public class CampaignService {
             pack,
             attribution,
             List.copyOf(auditEntries),
+            List.copyOf(recoveryItems),
             List.copyOf(risks),
             linkedinHandoff,
             schedulingReadiness(selectedCard),
+            selectedPreview.recoverySummary(),
             selectedPreview.summary(),
             selectedPreview.queueHealth()));
   }
@@ -1780,6 +1788,223 @@ public class CampaignService {
         localizedDateTime(now, locale));
   }
 
+  private CampaignPublishRecoverySummary publishRecoverySummary(
+      CampaignStateSnapshot snapshot, ResourceBundle bundle, Locale locale) {
+    int retryableCount = 0;
+    int blockedCount = 0;
+    int manualCount = 0;
+    Instant now = Instant.now();
+    for (CampaignDraftState draft : snapshot.drafts()) {
+      PublishRecoveryDescriptor descriptor = publishRecoveryDescriptor(draft, bundle, locale, now);
+      if (descriptor == null) {
+        continue;
+      }
+      switch (descriptor.stateCode()) {
+        case "retryable" -> retryableCount++;
+        case "blocked" -> blockedCount++;
+        case "manual" -> manualCount++;
+        default -> {
+        }
+      }
+    }
+    int totalActionable = retryableCount + blockedCount + manualCount;
+    String statusCode;
+    if (retryableCount > 0) {
+      statusCode = "high";
+    } else if (blockedCount > 0 || manualCount > 0) {
+      statusCode = "watch";
+    } else {
+      statusCode = "healthy";
+    }
+    return new CampaignPublishRecoverySummary(
+        statusCode,
+        bundleText(bundle, "campaigns_admin_recovery_status_" + statusCode),
+        totalActionable,
+        retryableCount,
+        blockedCount,
+        manualCount,
+        localizedDateTime(now, locale));
+  }
+
+  private List<CampaignPublishRecoveryItem> publishRecoveryItems(
+      List<CampaignDraftState> drafts, ResourceBundle bundle, Locale locale) {
+    Instant now = Instant.now();
+    Map<String, String> cadenceByKind = new LinkedHashMap<>();
+    for (CampaignCadenceWindow window : cadenceGuidance(bundle).windowsByKind()) {
+      cadenceByKind.put(window.label(), window.slotLabel());
+    }
+    return drafts.stream()
+        .map(draft -> toPublishRecoveryItem(draft, bundle, locale, now, cadenceByKind))
+        .flatMap(Optional::stream)
+        .sorted(
+            Comparator.comparing(CampaignPublishRecoveryItem::severityRank)
+                .thenComparing(CampaignPublishRecoveryItem::referenceAt, Comparator.reverseOrder()))
+        .limit(8)
+        .toList();
+  }
+
+  private Optional<CampaignPublishRecoveryItem> toPublishRecoveryItem(
+      CampaignDraftState draft,
+      ResourceBundle bundle,
+      Locale locale,
+      Instant now,
+      Map<String, String> cadenceByKind) {
+    PublishRecoveryDescriptor descriptor = publishRecoveryDescriptor(draft, bundle, locale, now);
+    if (descriptor == null) {
+      return Optional.empty();
+    }
+    CampaignPreviewCard preview = toPreview(draft, bundle, locale, cadenceByKind);
+    return Optional.of(
+        new CampaignPublishRecoveryItem(
+            draft.id(),
+            preview.title(),
+            preview.kindLabel(),
+            preview.workflowLabel(),
+            descriptor.channelLabel(),
+            descriptor.outcomeLabel(),
+            descriptor.stateCode(),
+            descriptor.stateLabel(),
+            descriptor.recommendationLabel(),
+            descriptor.actionLabel(),
+            descriptor.ageLabel(),
+            descriptor.badgeClass(),
+            descriptor.severityRank(),
+            descriptor.referenceAt()));
+  }
+
+  private PublishRecoveryDescriptor publishRecoveryDescriptor(
+      CampaignDraftState draft, ResourceBundle bundle, Locale locale, Instant now) {
+    if (draft == null) {
+      return null;
+    }
+    String channel = unresolvedAutomationChannel(draft);
+    String outcomeCode = safeRecoveryOutcome(draft.lastPublishOutcome());
+    if (outcomeCode.isBlank()
+        && draft.workflowState() == CampaignWorkflowState.SCHEDULED
+        && isOverdue(draft, now)
+        && channel != null) {
+      outcomeCode = scheduleBlockerCode(channel);
+    }
+    if (outcomeCode.isBlank()) {
+      return null;
+    }
+    String normalizedCode = normalizeRecoveryCode(outcomeCode);
+    String stateCode = recoveryStateCode(normalizedCode);
+    if (stateCode.isBlank()) {
+      return null;
+    }
+    Instant referenceAt = publishReferenceAt(draft);
+    String channelLabel =
+        channel == null ? bundleText(bundle, "campaigns_admin_filter_all") : bundleText(bundle, "campaigns_channel_" + channel);
+    return new PublishRecoveryDescriptor(
+        normalizedCode,
+        stateCode,
+        bundleText(bundle, "campaigns_admin_recovery_state_" + stateCode),
+        channelLabel,
+        bundleText(bundle, "campaigns_publish_outcome_" + normalizedCode),
+        recoveryRecommendation(bundle, stateCode, channelLabel),
+        recoveryAction(bundle, stateCode),
+        recoveryBadgeClass(stateCode),
+        "retryable".equals(stateCode) ? 0 : ("blocked".equals(stateCode) ? 1 : 2),
+        recoveryAgeLabel(referenceAt, now, bundle),
+        referenceAt);
+  }
+
+  private String safeRecoveryOutcome(String outcomeCode) {
+    return outcomeCode == null ? "" : outcomeCode.trim();
+  }
+
+  private String normalizeRecoveryCode(String outcomeCode) {
+    if (outcomeCode == null || outcomeCode.isBlank()) {
+      return "";
+    }
+    if (outcomeCode.endsWith("_failed")) {
+      return "publish_failed";
+    }
+    if (outcomeCode.endsWith("_error")) {
+      return "publish_error";
+    }
+    if (outcomeCode.endsWith("_not_configured")) {
+      return "not_configured";
+    }
+    if (outcomeCode.endsWith("_disabled")) {
+      return "channel_disabled";
+    }
+    if ("dry_run".equals(outcomeCode)
+        || "global_disabled".equals(outcomeCode)
+        || "publish_paused".equals(outcomeCode)
+        || "channel_paused".equals(outcomeCode)
+        || "channel_not_supported".equals(outcomeCode)) {
+      return outcomeCode;
+    }
+    if ("unsupported".equals(outcomeCode)) {
+      return "channel_not_supported";
+    }
+    return "";
+  }
+
+  private String recoveryStateCode(String normalizedCode) {
+    return switch (normalizedCode) {
+      case "publish_failed", "publish_error" -> "retryable";
+      case "global_disabled", "not_configured", "channel_disabled", "publish_paused", "channel_paused", "channel_not_supported", "unsupported" ->
+          "blocked";
+      case "dry_run" -> "manual";
+      default -> "";
+    };
+  }
+
+  private String recoveryRecommendation(ResourceBundle bundle, String stateCode, String channelLabel) {
+    return named(
+        bundle,
+        "campaigns_admin_recovery_recommend_" + stateCode,
+        Map.of("channel", safe(channelLabel)));
+  }
+
+  private String recoveryAction(ResourceBundle bundle, String stateCode) {
+    return bundleText(bundle, "campaigns_admin_recovery_action_" + stateCode);
+  }
+
+  private String recoveryBadgeClass(String stateCode) {
+    return switch (stateCode) {
+      case "retryable" -> "high";
+      case "blocked", "manual" -> "watch";
+      default -> "healthy";
+    };
+  }
+
+  private Instant publishReferenceAt(CampaignDraftState draft) {
+    if (draft.lastPublishAttemptAt() != null) {
+      return draft.lastPublishAttemptAt();
+    }
+    if (draft.scheduledFor() != null) {
+      return draft.scheduledFor();
+    }
+    return effectiveUpdatedAt(draft);
+  }
+
+  private String recoveryAgeLabel(Instant referenceAt, Instant now, ResourceBundle bundle) {
+    Duration age = referenceAt == null ? Duration.ZERO : Duration.between(referenceAt, now);
+    long hours = Math.max(0L, age.toHours());
+    long minutes = Math.max(0L, age.toMinutes());
+    return named(
+        bundle,
+        "campaigns_admin_recovery_age",
+        Map.of("duration", humanDuration(hours, minutes)));
+  }
+
+  private String unresolvedAutomationChannel(CampaignDraftState draft) {
+    if (draft == null) {
+      return null;
+    }
+    for (String channel : draft.suggestedChannels()) {
+      if ("linkedin".equals(channel) || draft.publishedChannels().containsKey(channel)) {
+        continue;
+      }
+      return channel;
+    }
+    return null;
+  }
+
   private List<CampaignQueueRiskItem> queueRisks(
       List<CampaignDraftState> drafts, ResourceBundle bundle, Locale locale) {
     Instant now = Instant.now();
@@ -2131,6 +2356,8 @@ public class CampaignService {
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
       List<CampaignAttributionSummary> attribution,
+      CampaignPublishRecoverySummary recoverySummary,
+      List<CampaignPublishRecoveryItem> recoveryItems,
       CampaignQueueHealth queueHealth,
       List<CampaignQueueRiskItem> queueRisks,
       List<CampaignAuditTrailEntry> auditTrail,
@@ -2258,6 +2485,31 @@ public class CampaignService {
       String channelLabel,
       String visitsLabel) {}
 
+  public record CampaignPublishRecoverySummary(
+      String statusCode,
+      String statusLabel,
+      int actionableCount,
+      int retryableCount,
+      int blockedCount,
+      int manualCount,
+      String evaluatedAtLabel) {}
+
+  public record CampaignPublishRecoveryItem(
+      String draftId,
+      String title,
+      String kindLabel,
+      String workflowLabel,
+      String channelLabel,
+      String outcomeLabel,
+      String stateCode,
+      String stateLabel,
+      String recommendationLabel,
+      String actionLabel,
+      String ageLabel,
+      String badgeClass,
+      int severityRank,
+      Instant referenceAt) {}
+
   public record CampaignQueueHealth(
       String statusCode,
       String statusLabel,
@@ -2312,9 +2564,24 @@ public class CampaignService {
       CampaignPreviewPack previewPack,
       CampaignAttributionSummary attribution,
       List<CampaignAuditTrailEntry> auditTrail,
+      List<CampaignPublishRecoveryItem> recoveryItems,
       List<CampaignQueueRiskItem> risks,
       CampaignLinkedinHandoff linkedinHandoff,
       CampaignScheduleReadinessView readiness,
+      CampaignPublishRecoverySummary recoverySummary,
       CampaignOperationsSummary summary,
       CampaignQueueHealth queueHealth) {}
+
+  private record PublishRecoveryDescriptor(
+      String outcomeCode,
+      String stateCode,
+      String stateLabel,
+      String channelLabel,
+      String outcomeLabel,
+      String recommendationLabel,
+      String actionLabel,
+      String badgeClass,
+      int severityRank,
+      String ageLabel,
+      Instant referenceAt) {}
 }
