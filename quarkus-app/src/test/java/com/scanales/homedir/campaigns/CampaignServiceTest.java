@@ -656,4 +656,95 @@ class CampaignServiceTest {
         preview.queueRisks().stream()
             .anyMatch(item -> "scheduled-overdue".equals(item.draftId()) && "high".equals(item.badgeClass())));
   }
+
+  @Test
+  void publishRecoveryClassifiesRetryableBlockedAndManualDrafts() {
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    when(blueskyPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("bluesky", true, true, true, true, Duration.ofMinutes(15)));
+    when(mastodonPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("mastodon", false, false, true, false, Duration.ofMinutes(15)));
+
+    Instant now = Instant.now();
+    CampaignStateSnapshot snapshot =
+        new CampaignStateSnapshot(
+            CampaignStateSnapshot.SCHEMA_VERSION,
+            now,
+            java.util.List.of(
+                new CampaignDraftState(
+                    "retry-draft",
+                    "product_pulse",
+                    now.minus(2, ChronoUnit.DAYS),
+                    java.util.Map.of("version", "3.505.0"),
+                    java.util.List.of("discord"),
+                    true,
+                    CampaignWorkflowState.SCHEDULED,
+                    now.minus(4, ChronoUnit.HOURS),
+                    "sergio.canales.e@gmail.com",
+                    now.minus(3, ChronoUnit.HOURS),
+                    now.minus(30, ChronoUnit.MINUTES),
+                    true,
+                    java.util.Map.of(),
+                    now.minus(20, ChronoUnit.MINUTES),
+                    "discord_failed"),
+                new CampaignDraftState(
+                    "blocked-draft",
+                    "community_spotlight",
+                    now.minus(2, ChronoUnit.DAYS),
+                    java.util.Map.of("title", "Community refresh", "source", "internet", "publishedAt", LocalDate.now().toString()),
+                    java.util.List.of("mastodon"),
+                    true,
+                    CampaignWorkflowState.SCHEDULED,
+                    now.minus(5, ChronoUnit.HOURS),
+                    "sergio.canales.e@gmail.com",
+                    now.minus(4, ChronoUnit.HOURS),
+                    now.minus(4, ChronoUnit.HOURS),
+                    true,
+                    java.util.Map.of(),
+                    null,
+                    ""),
+                new CampaignDraftState(
+                    "manual-draft",
+                    "event_spotlight",
+                    now.minus(2, ChronoUnit.DAYS),
+                    java.util.Map.of(
+                        "eventTitle", "DevOpsDays Santiago 2026",
+                        "eventType", EventType.CONFERENCE.name(),
+                        "eventDate", LocalDate.now().plusDays(10).toString(),
+                        "eventUrl", "/event/devopsdays-santiago-2026"),
+                    java.util.List.of("bluesky"),
+                    true,
+                    CampaignWorkflowState.SCHEDULED,
+                    now.minus(5, ChronoUnit.HOURS),
+                    "sergio.canales.e@gmail.com",
+                    now.minus(4, ChronoUnit.HOURS),
+                    now.minus(4, ChronoUnit.HOURS),
+                    true,
+                    java.util.Map.of(),
+                    null,
+                    "")),
+            java.util.List.of());
+    persistenceService.saveCampaignStateSync(snapshot);
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertEquals("high", preview.recoverySummary().statusCode());
+    assertEquals(3, preview.recoverySummary().actionableCount());
+    assertEquals(1, preview.recoverySummary().retryableCount());
+    assertEquals(1, preview.recoverySummary().blockedCount());
+    assertEquals(1, preview.recoverySummary().manualCount());
+    assertTrue(
+        preview.recoveryItems().stream()
+            .anyMatch(item -> "retry-draft".equals(item.draftId()) && "retryable".equals(item.stateCode())));
+    assertTrue(
+        preview.recoveryItems().stream()
+            .anyMatch(item -> "blocked-draft".equals(item.draftId()) && "blocked".equals(item.stateCode())));
+    assertTrue(
+        preview.recoveryItems().stream()
+            .anyMatch(item -> "manual-draft".equals(item.draftId()) && "manual".equals(item.stateCode())));
+  }
 }
