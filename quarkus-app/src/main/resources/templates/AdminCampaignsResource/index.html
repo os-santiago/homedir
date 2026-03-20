@@ -203,6 +203,52 @@
           <article class="campaigns-admin-item"><strong>{copy.queueHealthEvaluatedLabel}</strong><span>{view.queueHealth.evaluatedAtLabel}</span></article>
         </div>
       </section>
+
+      <section class="admin-shell-panel" id="campaignsBusinessPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.businessTitle}</p>
+            <h2>{copy.businessIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.businessTotalVisitsLabel}</strong><span>{view.businessDashboard.totalVisitsLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.businessDraftsWithTrafficLabel}</strong><span>{view.businessDashboard.draftsWithTrafficCount}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.businessAverageVisitsLabel}</strong><span>{view.businessDashboard.averageVisitsLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.businessBestChannelLabel}</strong><span>{view.businessDashboard.bestChannelLabel}</span></article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.businessTopDraftLabel}</strong>
+            <span>
+              {#if view.businessDashboard.hasTopDraft}
+                <a href="/private/admin/campaigns/{view.businessDashboard.topDraftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{view.businessDashboard.topDraftLabel}</a>
+              {#else}
+                {view.businessDashboard.topDraftLabel}
+              {/if}
+            </span>
+          </article>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.businessHighlightsLabel}</strong></article>
+          {#if view.businessDashboard.highlights.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.businessNoneLabel}</strong></article>
+          {/if}
+          {#for item in view.businessDashboard.highlights}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{item.kindLabel}</p>
+                  <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></h3>
+                </div>
+                <span class="admin-observability-badge">{copy.businessVisitsLabel}: {item.totalVisitsLabel}</span>
+              </div>
+              <div class="campaigns-admin-list">
+                <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{item.workflowLabel}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.businessDominantChannelLabel}</strong><span>{item.bestChannelLabel}</span></article>
+              </div>
+            </article>
+          {/for}
+        </div>
+      </section>
     </div>
 
     <section class="admin-shell-panel" id="campaignsRecoveryPanel">

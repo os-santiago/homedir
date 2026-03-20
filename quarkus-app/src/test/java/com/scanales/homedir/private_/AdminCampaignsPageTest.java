@@ -54,6 +54,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsDisableChannelBtn-discord\""))
         .body(containsString("id=\"campaignsSummaryPanel\""))
         .body(containsString("id=\"campaignsQueueHealthPanel\""))
+        .body(containsString("id=\"campaignsBusinessPanel\""))
         .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))

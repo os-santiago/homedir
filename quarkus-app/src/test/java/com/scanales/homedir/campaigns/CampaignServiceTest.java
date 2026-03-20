@@ -125,6 +125,30 @@ class CampaignServiceTest {
   }
 
   @Test
+  void businessDashboardIsExposedInPreview() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    campaignService.refreshDrafts();
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertNotNull(preview.businessDashboard());
+    assertNotNull(preview.businessDashboard().totalVisitsLabel());
+    assertNotNull(preview.businessDashboard().averageVisitsLabel());
+    assertNotNull(preview.businessDashboard().bestChannelLabel());
+    assertNotNull(preview.businessDashboard().topDraftLabel());
+  }
+
+  @Test
   void approvalAndScheduleSurviveDraftRefresh() {
     Event event =
         new Event(
