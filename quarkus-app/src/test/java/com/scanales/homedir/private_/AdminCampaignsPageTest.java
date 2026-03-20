@@ -58,6 +58,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsRolloutPanel\""))
         .body(containsString("id=\"campaignsRolloutAckBtn-discord\""))
         .body(containsString("id=\"campaignsPilotRunbookPanel\""))
+        .body(containsString("id=\"campaignsPilotVerificationPanel\""))
         .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsQueueRiskPanel\""))
         .body(containsString("id=\"campaignsCadencePanel\""))
@@ -195,6 +196,23 @@ class AdminCampaignsPageTest {
         .body(containsString("campaignsPilotDisarmBtn"))
         .body(containsString("Discord"))
         .body(containsString("Armado"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminShowsPilotVerificationControls() {
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
+    campaignService.setPilotVerificationAcknowledged(true, "sergio.canales.e@gmail.com");
+
+    given()
+        .when()
+        .get("/private/admin/campaigns")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsPilotVerificationPanel\""))
+        .body(containsString("campaignsPilotVerificationClearBtn"))
+        .body(containsString("Verificado"));
   }
 
   @Test

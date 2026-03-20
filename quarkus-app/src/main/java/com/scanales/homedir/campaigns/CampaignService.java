@@ -378,6 +378,30 @@ public class CampaignService {
     }
   }
 
+  public CampaignOperationsStateSnapshot setPilotVerificationAcknowledged(
+      boolean acknowledged, String actor) {
+    synchronized (stateLock) {
+      refreshOperationsFromDisk(false);
+      currentOperationsState =
+          currentOperationsState.withPilotVerificationAcknowledged(acknowledged, safe(actor));
+      saveOperationsState(currentOperationsState);
+      currentState =
+          appendActivity(
+              currentState,
+              new CampaignActivityEntry(
+                  Instant.now(),
+                  "",
+                  "",
+                  "",
+                  acknowledged ? "ops.pilot.verify" : "ops.pilot.verify.clear",
+                  currentOperationsState.pilotLiveChannel(),
+                  acknowledged ? "verified" : "cleared",
+                  safe(actor)));
+      saveState(currentState);
+      return currentOperationsState;
+    }
+  }
+
   public CampaignStateSnapshot markLinkedinPublished(String draftId, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -541,6 +565,7 @@ public class CampaignService {
         businessDashboard(cards, attribution, bundle),
         rolloutChecklist,
         pilotActivationRunbook(rolloutChecklist, bundle),
+        pilotVerificationSummary(snapshot.drafts(), bundle, locale),
         recentActivity(visibleDrafts, bundle, locale),
         cadenceGuidance,
         List.copyOf(previewPacks),
@@ -2070,6 +2095,88 @@ public class CampaignService {
         List.copyOf(steps));
   }
 
+  private CampaignPilotVerificationSummary pilotVerificationSummary(
+      List<CampaignDraftState> drafts, ResourceBundle bundle, Locale locale) {
+    CampaignOperationsStateSnapshot operationsState = currentOperationsState();
+    String pilotChannel = operationsState.pilotLiveChannel();
+    String targetChannelLabel =
+        pilotChannel.isBlank()
+            ? bundleText(bundle, "campaigns_admin_rollout_pilot_none")
+            : bundleText(bundle, "campaigns_channel_" + pilotChannel);
+    Instant cycleStart =
+        operationsState.pilotLiveArmedAt() != null
+            ? operationsState.pilotLiveArmedAt()
+            : operationsState.pilotLiveChannelUpdatedAt();
+    List<CampaignDraftState> pilotPublishedDrafts =
+        pilotChannel.isBlank()
+            ? List.of()
+            : drafts.stream()
+                .filter(
+                    draft -> {
+                      Instant publishedAt = draft.publishedChannels().get(pilotChannel);
+                      return publishedAt != null && (cycleStart == null || !publishedAt.isBefore(cycleStart));
+                    })
+                .sorted(
+                    Comparator.comparing(
+                            (CampaignDraftState draft) -> draft.publishedChannels().get(pilotChannel),
+                            Comparator.reverseOrder())
+                        .thenComparing(CampaignDraftState::id))
+                .toList();
+    CampaignDraftState latestDraft = pilotPublishedDrafts.isEmpty() ? null : pilotPublishedDrafts.getFirst();
+    Instant latestPublishedAt =
+        latestDraft == null ? null : latestDraft.publishedChannels().get(pilotChannel);
+    boolean acknowledged = operationsState.pilotVerificationAcknowledged();
+    boolean canAcknowledge =
+        !pilotChannel.isBlank() && operationsState.pilotLiveArmed() && latestDraft != null && !acknowledged;
+    String statusCode;
+    String statusKey;
+    String recommendationKey;
+    if (pilotChannel.isBlank()) {
+      statusCode = "danger";
+      statusKey = "campaigns_admin_pilot_verification_status_blocked";
+      recommendationKey = "campaigns_admin_pilot_verification_recommendation_select_pilot";
+    } else if (!operationsState.pilotLiveArmed()) {
+      statusCode = "watch";
+      statusKey = "campaigns_admin_pilot_verification_status_watch";
+      recommendationKey = "campaigns_admin_pilot_verification_recommendation_arm_pilot";
+    } else if (latestDraft == null) {
+      statusCode = "watch";
+      statusKey = "campaigns_admin_pilot_verification_status_watch";
+      recommendationKey = "campaigns_admin_pilot_verification_recommendation_wait_publish";
+    } else if (!acknowledged) {
+      statusCode = "watch";
+      statusKey = "campaigns_admin_pilot_verification_status_watch";
+      recommendationKey = "campaigns_admin_pilot_verification_recommendation_acknowledge";
+    } else {
+      statusCode = "good";
+      statusKey = "campaigns_admin_pilot_verification_status_ready";
+      recommendationKey = "campaigns_admin_pilot_verification_recommendation_verified";
+    }
+    return new CampaignPilotVerificationSummary(
+        statusCode,
+        bundleText(bundle, statusKey),
+        targetChannelLabel,
+        acknowledged
+            ? bundleText(bundle, "campaigns_admin_pilot_verification_verified")
+            : bundleText(bundle, "campaigns_admin_pilot_verification_pending"),
+        pilotPublishedDrafts.size(),
+        latestPublishedAt == null ? "—" : localizedDateTime(latestPublishedAt, locale),
+        latestDraft == null
+            ? bundleText(bundle, "campaigns_admin_pilot_verification_no_publish")
+            : titleForAttribution(latestDraft, bundle),
+        latestDraft == null ? "" : latestDraft.id(),
+        latestDraft != null,
+        operationsState.pilotVerificationAcknowledgedAt() == null
+            ? "—"
+            : localizedDateTime(operationsState.pilotVerificationAcknowledgedAt(), locale),
+        operationsState.pilotVerificationAcknowledgedBy().isBlank()
+            ? "—"
+            : operationsState.pilotVerificationAcknowledgedBy(),
+        bundleText(bundle, recommendationKey),
+        acknowledged,
+        canAcknowledge);
+  }
+
   private CampaignRolloutChannel toRolloutChannel(
       CampaignPublisherStatus status,
       CampaignOperationsStateSnapshot operationsState,
@@ -2820,6 +2927,7 @@ public class CampaignService {
       CampaignBusinessDashboard businessDashboard,
       CampaignRolloutChecklist rolloutChecklist,
       CampaignPilotActivationRunbook pilotActivationRunbook,
+      CampaignPilotVerificationSummary pilotVerificationSummary,
       List<CampaignRecentActivity> recentActivity,
       CampaignCadenceGuidance cadenceGuidance,
       List<CampaignPreviewPack> previewPacks,
@@ -2957,6 +3065,22 @@ public class CampaignService {
       String statusCode,
       String statusLabel,
       boolean completed) {}
+
+  public record CampaignPilotVerificationSummary(
+      String statusCode,
+      String statusLabel,
+      String targetChannelLabel,
+      String verificationLabel,
+      int publishedCount,
+      String lastPublishedAtLabel,
+      String lastPublishedDraftLabel,
+      String lastPublishedDraftId,
+      boolean hasLastPublishedDraft,
+      String acknowledgedAtLabel,
+      String acknowledgedByLabel,
+      String recommendationLabel,
+      boolean acknowledged,
+      boolean canAcknowledge) {}
 
   public record CampaignRolloutChannel(
       String channelCode,

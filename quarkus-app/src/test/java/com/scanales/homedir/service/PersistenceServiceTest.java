@@ -256,6 +256,9 @@ public class PersistenceServiceTest {
             "sergio.canales.e@gmail.com",
             true,
             Instant.parse("2026-03-19T13:35:00Z"),
+            "sergio.canales.e@gmail.com",
+            true,
+            Instant.parse("2026-03-19T13:40:00Z"),
             "sergio.canales.e@gmail.com");
 
     service.saveCampaignOperationsStateSync(snapshot);
@@ -269,6 +272,8 @@ public class PersistenceServiceTest {
     assertEquals("discord", loaded.pilotLiveChannel());
     assertTrue(loaded.pilotLiveArmed());
     assertEquals("sergio.canales.e@gmail.com", loaded.pilotLiveArmedBy());
+    assertTrue(loaded.pilotVerificationAcknowledged());
+    assertEquals("sergio.canales.e@gmail.com", loaded.pilotVerificationAcknowledgedBy());
     assertTrue(service.campaignOperationsStateLastModifiedMillis() > 0);
   }
 
