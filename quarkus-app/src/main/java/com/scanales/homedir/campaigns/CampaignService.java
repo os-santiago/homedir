@@ -1900,6 +1900,11 @@ public class CampaignService {
         effectivePublisherStatuses(true).stream()
             .map(status -> toRolloutChannel(status, operationsState, bundle, locale))
             .toList();
+    CampaignRolloutChannel pilotChannel =
+        channels.stream()
+            .filter(channel -> channel.channelCode().equals(operationsState.pilotLiveChannel()))
+            .findFirst()
+            .orElse(null);
     int readyCount = 0;
     int blockedCount = 0;
     int dryRunCount = 0;
@@ -1917,13 +1922,42 @@ public class CampaignService {
         acknowledgedCount++;
       }
     }
+    String pilotDecision = operationsState.pilotDecision();
+    boolean pilotReady = pilotChannel != null && pilotChannel.ready();
+    String recommendationKey;
     String statusCode;
-    if (readyCount == channels.size() && !channels.isEmpty()) {
+    if ("hold".equals(pilotDecision)) {
+      statusCode = "danger";
+      recommendationKey = "campaigns_admin_rollout_recommendation_pilot_hold";
+    } else if ("approved".equals(pilotDecision) && pilotReady) {
       statusCode = "good";
-    } else if (readyCount > 0) {
+      recommendationKey = "campaigns_admin_rollout_recommendation_pilot_approved";
+    } else if (operationsState.pilotLiveChannel().isBlank()) {
+      statusCode = readyCount > 0 ? "watch" : "danger";
+      recommendationKey = "campaigns_admin_rollout_recommendation_select_pilot";
+    } else if (!operationsState.pilotLiveArmed()) {
       statusCode = "watch";
+      recommendationKey = "campaigns_admin_rollout_recommendation_arm_pilot";
+    } else if (!operationsState.pilotVerificationAcknowledged()) {
+      statusCode = "watch";
+      recommendationKey = "campaigns_admin_rollout_recommendation_verify_pilot";
+    } else if (pilotDecision.isBlank()) {
+      statusCode = "watch";
+      recommendationKey = "campaigns_admin_rollout_recommendation_record_pilot_decision";
+    } else if (pilotChannel != null) {
+      statusCode = pilotChannel.statusCode();
+      recommendationKey =
+          switch (pilotChannel.statusCode()) {
+            case "good" -> "campaigns_admin_rollout_recommendation_ready";
+            case "watch" ->
+                pilotReady
+                    ? "campaigns_admin_rollout_recommendation_record_pilot_decision"
+                    : "campaigns_admin_rollout_recommendation_enable_channel";
+            default -> "campaigns_admin_rollout_recommendation_enable_global";
+          };
     } else {
       statusCode = "danger";
+      recommendationKey = "campaigns_admin_rollout_recommendation_select_pilot";
     }
     return new CampaignRolloutChecklist(
         statusCode,
@@ -1956,6 +1990,14 @@ public class CampaignService {
         operationsState.pilotLiveArmedBy().isBlank()
             ? "—"
             : operationsState.pilotLiveArmedBy(),
+        pilotDecision.isBlank()
+            ? bundleText(bundle, "campaigns_admin_pilot_decision_pending")
+            : bundleText(bundle, "campaigns_admin_pilot_decision_" + pilotDecision),
+        operationsState.pilotDecisionAt() == null
+            ? "—"
+            : localizedDateTime(operationsState.pilotDecisionAt(), locale),
+        operationsState.pilotDecisionBy().isBlank() ? "—" : operationsState.pilotDecisionBy(),
+        bundleText(bundle, recommendationKey),
         localizedDateTime(Instant.now(), locale),
         List.copyOf(channels));
   }
@@ -2289,6 +2331,9 @@ public class CampaignService {
     boolean ready =
         status.globalEnabled() && status.channelEnabled() && status.configured() && !status.dryRun();
     CampaignGoLiveAck goLiveAck = operationsState.goLiveAcknowledgement(status.channel());
+    boolean pilotChannel = operationsState.hasPilotLiveChannel() && operationsState.isPilotLiveChannel(status.channel());
+    boolean pilotVerified = pilotChannel && operationsState.pilotVerificationAcknowledged();
+    String pilotDecision = pilotChannel ? operationsState.pilotDecision() : "";
     String stateCode;
     String recommendationKey;
     if (ready) {
@@ -2306,6 +2351,21 @@ public class CampaignService {
     } else {
       stateCode = "watch";
       recommendationKey = "campaigns_admin_rollout_recommendation_disable_dry_run";
+    }
+    if (ready && pilotChannel) {
+      if (!pilotVerified) {
+        stateCode = "watch";
+        recommendationKey = "campaigns_admin_rollout_recommendation_verify_pilot";
+      } else if (pilotDecision.isBlank()) {
+        stateCode = "watch";
+        recommendationKey = "campaigns_admin_rollout_recommendation_record_pilot_decision";
+      } else if ("hold".equals(pilotDecision)) {
+        stateCode = "danger";
+        recommendationKey = "campaigns_admin_rollout_recommendation_pilot_hold";
+      } else if ("approved".equals(pilotDecision)) {
+        stateCode = "good";
+        recommendationKey = "campaigns_admin_rollout_recommendation_pilot_approved";
+      }
     }
     return new CampaignRolloutChannel(
         status.channel(),
@@ -2326,7 +2386,7 @@ public class CampaignService {
             : bundleText(bundle, "campaigns_admin_rollout_ack_pending"),
         goLiveAck.acknowledgedAt() == null ? "—" : localizedDateTime(goLiveAck.acknowledgedAt(), locale),
         goLiveAck.acknowledgedBy().isBlank() ? "—" : goLiveAck.acknowledgedBy(),
-        operationsState.hasPilotLiveChannel() && operationsState.isPilotLiveChannel(status.channel()),
+        pilotChannel,
         operationsState.isPilotLiveActive(status.channel()),
         status.globalEnabled(),
         status.channelEnabled(),
@@ -3151,6 +3211,10 @@ public class CampaignService {
       String pilotActivationLabel,
       String pilotActivationUpdatedAtLabel,
       String pilotActivationUpdatedByLabel,
+      String pilotDecisionLabel,
+      String pilotDecisionUpdatedAtLabel,
+      String pilotDecisionUpdatedByLabel,
+      String recommendationLabel,
       String evaluatedAtLabel,
       List<CampaignRolloutChannel> channels) {}
 

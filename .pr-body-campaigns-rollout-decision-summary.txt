@@ -1,0 +1,8 @@
+## Summary
+- surface the pilot decision directly in the main Campaigns rollout readiness summary
+- derive the rollout next-step recommendation from the pilot lifecycle instead of showing only technical readiness
+- document the new rollout decision summary behavior in english and spanish docs
+
+## Testing
+- `.\mvnw.cmd -q -DskipTests compile`
+- `.\mvnw.cmd -q -DskipITs "-Dtest=com.scanales.homedir.campaigns.CampaignServiceTest,com.scanales.homedir.private_.AdminCampaignsPageTest" test`

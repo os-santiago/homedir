@@ -201,6 +201,50 @@ class CampaignServiceTest {
   }
 
   @Test
+  void rolloutChecklistSurfacesPilotDecisionRecommendation() {
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPublishAutomationEnabled(true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
+    campaignService.setPilotLiveChannel("discord", "admin@example.com");
+    campaignService.setPilotLiveArmed(true, "admin@example.com");
+    campaignService.setPilotVerificationAcknowledged(true, "admin@example.com");
+
+    CampaignService.CampaignPreviewSnapshot pendingPreview = campaignService.preview("es");
+
+    assertEquals("Sin decisión registrada", pendingPreview.rolloutChecklist().pilotDecisionLabel());
+    assertEquals(
+        "Registra una decisión de aprobado u hold para el canal piloto verificado.",
+        pendingPreview.rolloutChecklist().recommendationLabel());
+    assertTrue(
+        pendingPreview.rolloutChecklist().channels().stream()
+            .anyMatch(
+                item ->
+                    "discord".equals(item.channelCode())
+                        && "Registra una decisión de aprobado u hold para el canal piloto verificado."
+                            .equals(item.recommendationLabel())));
+
+    campaignService.setPilotDecision("approved", "admin@example.com");
+    CampaignService.CampaignPreviewSnapshot approvedPreview = campaignService.preview("es");
+
+    assertEquals("Aprobado", approvedPreview.rolloutChecklist().pilotDecisionLabel());
+    assertEquals("Listo", approvedPreview.rolloutChecklist().statusLabel());
+    assertEquals(
+        "El canal piloto quedó aprobado para operación live sostenida con guardrails.",
+        approvedPreview.rolloutChecklist().recommendationLabel());
+
+    campaignService.setPilotDecision("hold", "admin@example.com");
+    CampaignService.CampaignPreviewSnapshot holdPreview = campaignService.preview("es");
+
+    assertEquals("En hold", holdPreview.rolloutChecklist().pilotDecisionLabel());
+    assertEquals("Bloqueado", holdPreview.rolloutChecklist().statusLabel());
+    assertEquals(
+        "El canal piloto está en hold hasta resolver los temas de seguimiento.",
+        holdPreview.rolloutChecklist().recommendationLabel());
+  }
+
+  @Test
   void pilotLiveChannelRestrictsAutomatedReadinessToSingleChannel() {
     when(discordPublisherService.status())
         .thenReturn(

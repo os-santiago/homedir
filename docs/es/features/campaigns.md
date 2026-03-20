@@ -17,6 +17,7 @@ Resumen:
 - Campaigns ahora expone un runbook de activación piloto para mover un canal seleccionado desde rollout protegido a activación piloto real.
 - Campaigns ahora registra la verificación del piloto live y resume las primeras entregas reales del ciclo piloto actual.
 - Campaigns ahora registra la decisión operativa del piloto verificado para dejarlo aprobado o en hold.
+- El panel principal de rollout ahora refleja la decisión actual del piloto y el siguiente movimiento recomendado.
 - El rollout obligatorio es:
   - borradores internos
   - aprobacion/programacion
