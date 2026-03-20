@@ -61,5 +61,6 @@ same ADEV discipline used to build the platform itself.
 - Pilot activation runbook: admin now shows an ordered checklist for moving one selected channel from guarded rollout to real pilot activation
 - Pilot verification journal: admin now tracks the first real pilot deliveries and records when the live pilot cycle has been reviewed
 - Pilot decision gate: admin now records whether a verified pilot is approved for sustained guarded operation or kept on hold
+- Rollout decision summary: the main rollout readiness panel now reflects the current pilot decision and recommended next move
 - Public posting: not enabled
 - Scheduler-driven external publication: available only when publisher config is enabled

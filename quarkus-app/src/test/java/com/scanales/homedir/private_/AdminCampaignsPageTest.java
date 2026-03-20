@@ -239,6 +239,28 @@ class AdminCampaignsPageTest {
 
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminShowsApprovedPilotDecisionInRolloutSummary() {
+    campaignService.setPublishAutomationEnabled(true, "sergio.canales.e@gmail.com");
+    campaignService.setChannelAutomationEnabled("discord", true, "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
+    campaignService.setPilotVerificationAcknowledged(true, "sergio.canales.e@gmail.com");
+    campaignService.setPilotDecision("approved", "sergio.canales.e@gmail.com");
+
+    given()
+        .when()
+        .get("/private/admin/campaigns")
+        .then()
+        .statusCode(200)
+        .body(containsString("Decisión actual"))
+        .body(containsString("Aprobado"))
+        .body(
+            containsString(
+                "Habilita publicación global y automatización de publicación antes del rollout."));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminCanFilterCampaignsPage() {
     given()
         .queryParam("q", "HomeDir")
