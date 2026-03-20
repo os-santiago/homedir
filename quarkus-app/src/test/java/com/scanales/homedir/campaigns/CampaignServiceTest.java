@@ -176,6 +176,27 @@ class CampaignServiceTest {
   }
 
   @Test
+  void rolloutChecklistTracksGoLiveAcknowledgements() {
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPublishAutomationEnabled(true, "admin@example.com");
+    campaignService.setChannelAutomationEnabled("discord", true, "admin@example.com");
+    campaignService.setChannelGoLiveAcknowledged("discord", true, "admin@example.com");
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertEquals(1, preview.rolloutChecklist().acknowledgedCount());
+    assertTrue(
+        preview.rolloutChecklist().channels().stream()
+            .anyMatch(
+                item ->
+                    "discord".equals(item.channelCode())
+                        && item.acknowledged()
+                        && "admin@example.com".equals(item.acknowledgedByLabel())));
+  }
+
+  @Test
   void approvalAndScheduleSurviveDraftRefresh() {
     Event event =
         new Event(

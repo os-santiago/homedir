@@ -249,7 +249,8 @@ public class PersistenceServiceTest {
             "sergio.canales.e@gmail.com",
             false,
             true,
-            Map.of("discord", false, "bluesky", true));
+            Map.of("discord", false, "bluesky", true),
+            Map.of("discord", new com.scanales.homedir.campaigns.CampaignGoLiveAck(true, Instant.parse("2026-03-19T13:20:00Z"), "sergio.canales.e@gmail.com")));
 
     service.saveCampaignOperationsStateSync(snapshot);
 
@@ -258,6 +259,7 @@ public class PersistenceServiceTest {
     assertTrue(loaded.publishAutomationEnabled());
     assertEquals("sergio.canales.e@gmail.com", loaded.updatedBy());
     assertEquals(Boolean.FALSE, loaded.channelAutomation().get("discord"));
+    assertTrue(loaded.goLiveAcknowledgement("discord").acknowledged());
     assertTrue(service.campaignOperationsStateLastModifiedMillis() > 0);
   }
 
