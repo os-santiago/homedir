@@ -38,6 +38,7 @@ public class AdminCampaignsResource {
   static class Templates {
     static native TemplateInstance index(
         AdminCampaignsCopy copy,
+        String activePage,
         AdminCampaignFilters filters,
         List<AdminFilterOption> workflowOptions,
         List<AdminFilterOption> kindOptions,
@@ -75,6 +76,148 @@ public class AdminCampaignsResource {
       @QueryParam("draft") String draftId,
       @QueryParam("error") String errorCode,
       @QueryParam("count") String updatedCount) {
+    return renderIndexPage(
+        "overview",
+        headers,
+        query,
+        workflow,
+        kind,
+        channel,
+        refreshed,
+        updated,
+        draftId,
+        errorCode,
+        updatedCount);
+  }
+
+  @GET
+  @Path("content")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response content(
+      @Context HttpHeaders headers,
+      @QueryParam("q") String query,
+      @QueryParam("workflow") String workflow,
+      @QueryParam("kind") String kind,
+      @QueryParam("channel") String channel,
+      @QueryParam("refreshed") String refreshed,
+      @QueryParam("updated") String updated,
+      @QueryParam("draft") String draftId,
+      @QueryParam("error") String errorCode,
+      @QueryParam("count") String updatedCount) {
+    return renderIndexPage(
+        "content",
+        headers,
+        query,
+        workflow,
+        kind,
+        channel,
+        refreshed,
+        updated,
+        draftId,
+        errorCode,
+        updatedCount);
+  }
+
+  @GET
+  @Path("channels")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response channels(
+      @Context HttpHeaders headers,
+      @QueryParam("q") String query,
+      @QueryParam("workflow") String workflow,
+      @QueryParam("kind") String kind,
+      @QueryParam("channel") String channel,
+      @QueryParam("refreshed") String refreshed,
+      @QueryParam("updated") String updated,
+      @QueryParam("draft") String draftId,
+      @QueryParam("error") String errorCode,
+      @QueryParam("count") String updatedCount) {
+    return renderIndexPage(
+        "channels",
+        headers,
+        query,
+        workflow,
+        kind,
+        channel,
+        refreshed,
+        updated,
+        draftId,
+        errorCode,
+        updatedCount);
+  }
+
+  @GET
+  @Path("publish")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response publish(
+      @Context HttpHeaders headers,
+      @QueryParam("q") String query,
+      @QueryParam("workflow") String workflow,
+      @QueryParam("kind") String kind,
+      @QueryParam("channel") String channel,
+      @QueryParam("refreshed") String refreshed,
+      @QueryParam("updated") String updated,
+      @QueryParam("draft") String draftId,
+      @QueryParam("error") String errorCode,
+      @QueryParam("count") String updatedCount) {
+    return renderIndexPage(
+        "publish",
+        headers,
+        query,
+        workflow,
+        kind,
+        channel,
+        refreshed,
+        updated,
+        draftId,
+        errorCode,
+        updatedCount);
+  }
+
+  @GET
+  @Path("monitor")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response monitor(
+      @Context HttpHeaders headers,
+      @QueryParam("q") String query,
+      @QueryParam("workflow") String workflow,
+      @QueryParam("kind") String kind,
+      @QueryParam("channel") String channel,
+      @QueryParam("refreshed") String refreshed,
+      @QueryParam("updated") String updated,
+      @QueryParam("draft") String draftId,
+      @QueryParam("error") String errorCode,
+      @QueryParam("count") String updatedCount) {
+    return renderIndexPage(
+        "monitor",
+        headers,
+        query,
+        workflow,
+        kind,
+        channel,
+        refreshed,
+        updated,
+        draftId,
+        errorCode,
+        updatedCount);
+  }
+
+  private Response renderIndexPage(
+      String activePage,
+      HttpHeaders headers,
+      String query,
+      String workflow,
+      String kind,
+      String channel,
+      String refreshed,
+      String updated,
+      String draftId,
+      String errorCode,
+      String updatedCount) {
     if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -83,6 +226,7 @@ public class AdminCampaignsResource {
     TemplateInstance template =
         Templates.index(
             localizedCopy(localeCode),
+            normalizePage(activePage),
             filters,
             workflowOptions(localeCode),
             kindOptions(localeCode),
@@ -126,7 +270,7 @@ public class AdminCampaignsResource {
                     filters.query(), filters.workflow(), filters.kind(), filters.channel()))
             .orElse(null);
     if (detail == null) {
-      return Response.seeOther(redirectWithErrorUri("not_found", draftId, filters)).build();
+      return Response.seeOther(redirectWithErrorUri("not_found", draftId, filters, "content")).build();
     }
     TemplateInstance template =
         Templates.detail(
@@ -149,20 +293,22 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
     if (draftIds == null || draftIds.stream().map(AdminCampaignsResource::safe).allMatch(String::isBlank)) {
-      return redirectWithError("bulk_no_selection", "", filters, false);
+      return redirectWithError("bulk_no_selection", "", filters, normalizeReturnTo(returnTo, "content"));
     }
     String normalizedAction = safe(action);
     if (!Set.of("approve", "reset", "unschedule").contains(normalizedAction)) {
-      return redirectWithError("invalid_bulk_action", "", filters, false);
+      return redirectWithError("invalid_bulk_action", "", filters, normalizeReturnTo(returnTo, "content"));
     }
     int changed = applyBulkAction(normalizedAction, draftIds, identity.getPrincipal().getName());
-    return redirectWithUpdate("bulk", "", filters, "count", String.valueOf(changed), false);
+    return redirectWithUpdate(
+        "bulk", "", filters, "count", String.valueOf(changed), normalizeReturnTo(returnTo, "content"));
   }
 
   @POST
@@ -185,7 +331,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         "refreshed",
         "1",
-        "detail".equalsIgnoreCase(returnTo));
+        normalizeReturnTo(returnTo, "content"));
   }
 
   @POST
@@ -208,7 +354,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        "detail".equalsIgnoreCase(returnTo));
+        normalizeReturnTo(returnTo, "publish"));
   }
 
   @POST
@@ -219,7 +365,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -231,7 +378,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -242,7 +389,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -254,7 +402,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -266,7 +414,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -276,7 +425,7 @@ public class AdminCampaignsResource {
           "invalid_channel",
           channelCode,
           AdminCampaignFilters.sanitize(query, workflow, kind, channel),
-          false);
+          normalizeReturnTo(returnTo, "channels"));
     }
     campaignService.setChannelAutomationEnabled(
         normalizedChannel, "true".equalsIgnoreCase(enabled), identity.getPrincipal().getName());
@@ -286,7 +435,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -298,7 +447,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -308,7 +458,7 @@ public class AdminCampaignsResource {
           "invalid_channel",
           channelCode,
           AdminCampaignFilters.sanitize(query, workflow, kind, channel),
-          false);
+          normalizeReturnTo(returnTo, "channels"));
     }
     campaignService.setChannelGoLiveAcknowledged(
         normalizedChannel,
@@ -320,7 +470,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -331,7 +481,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -341,7 +492,7 @@ public class AdminCampaignsResource {
           "invalid_channel",
           channelCode,
           AdminCampaignFilters.sanitize(query, workflow, kind, channel),
-          false);
+          normalizeReturnTo(returnTo, "channels"));
     }
     campaignService.setPilotLiveChannel(normalizedChannel, identity.getPrincipal().getName());
     return redirectWithUpdate(
@@ -350,7 +501,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -360,7 +511,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -371,7 +523,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -381,7 +533,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -392,7 +545,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -402,7 +555,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -413,7 +567,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "channels"));
   }
 
   @POST
@@ -424,7 +578,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -436,7 +591,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "publish"));
   }
 
   @POST
@@ -447,7 +602,8 @@ public class AdminCampaignsResource {
       @FormParam("q") String query,
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
-      @FormParam("channel") String channel) {
+      @FormParam("channel") String channel,
+      @FormParam("returnTo") String returnTo) {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -465,7 +621,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        false);
+        normalizeReturnTo(returnTo, "publish"));
   }
 
   @POST
@@ -488,7 +644,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        "detail".equalsIgnoreCase(returnTo));
+        normalizeReturnTo(returnTo, "content"));
   }
 
   @POST
@@ -511,7 +667,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        "detail".equalsIgnoreCase(returnTo));
+        normalizeReturnTo(returnTo, "content"));
   }
 
   @POST
@@ -531,16 +687,16 @@ public class AdminCampaignsResource {
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
     if (scheduledFor == null || scheduledFor.isBlank()) {
-      return redirectWithError("invalid_schedule", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+      return redirectWithError("invalid_schedule", draftId, filters, normalizeReturnTo(returnTo, "publish"));
     }
     try {
       campaignService.scheduleDraft(draftId, LocalDateTime.parse(scheduledFor), identity.getPrincipal().getName());
       return redirectWithUpdate(
-          "scheduled", draftId, filters, null, null, "detail".equalsIgnoreCase(returnTo));
+          "scheduled", draftId, filters, null, null, normalizeReturnTo(returnTo, "publish"));
     } catch (Exception e) {
       String errorCode =
           e instanceof IllegalStateException ? "not_ready" : "invalid_schedule";
-      return redirectWithError(errorCode, draftId, filters, "detail".equalsIgnoreCase(returnTo));
+      return redirectWithError(errorCode, draftId, filters, normalizeReturnTo(returnTo, "publish"));
     }
   }
 
@@ -564,7 +720,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        "detail".equalsIgnoreCase(returnTo));
+        normalizeReturnTo(returnTo, "publish"));
   }
 
   @POST
@@ -587,7 +743,7 @@ public class AdminCampaignsResource {
         AdminCampaignFilters.sanitize(query, workflow, kind, channel),
         null,
         null,
-        "detail".equalsIgnoreCase(returnTo));
+        normalizeReturnTo(returnTo, "publish"));
   }
 
   @POST
@@ -607,7 +763,7 @@ public class AdminCampaignsResource {
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
     String normalizedChannel = normalizeAutomationChannel(channelCode);
     if (normalizedChannel.isBlank() || "linkedin".equals(normalizedChannel)) {
-      return redirectWithError("invalid_channel", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+      return redirectWithError("invalid_channel", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
     }
     try {
       campaignService.retryChannel(draftId, normalizedChannel, identity.getPrincipal().getName());
@@ -617,11 +773,11 @@ public class AdminCampaignsResource {
           filters,
           null,
           null,
-          "detail".equalsIgnoreCase(returnTo));
+          normalizeReturnTo(returnTo, "monitor"));
     } catch (IllegalArgumentException e) {
-      return redirectWithError("invalid_channel", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+      return redirectWithError("invalid_channel", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
     } catch (IllegalStateException e) {
-      return redirectWithError("retry_not_ready", draftId, filters, "detail".equalsIgnoreCase(returnTo));
+      return redirectWithError("retry_not_ready", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
     }
   }
 
@@ -973,8 +1129,8 @@ public class AdminCampaignsResource {
       AdminCampaignFilters filters,
       String extraKey,
       String extraValue,
-      boolean detailView) {
-    UriBuilder builder = redirectUri(detailView, draftId);
+      String returnTo) {
+    UriBuilder builder = redirectUri(returnTo, draftId);
     builder.queryParam("updated", safe(update));
     if (!safe(draftId).isBlank()) {
       builder.queryParam("draft", safe(draftId));
@@ -987,17 +1143,17 @@ public class AdminCampaignsResource {
   }
 
   private Response redirectWithError(
-      String error, String draftId, AdminCampaignFilters filters, boolean detailView) {
-    return Response.seeOther(redirectWithErrorUri(error, draftId, filters, detailView)).build();
+      String error, String draftId, AdminCampaignFilters filters, String returnTo) {
+    return Response.seeOther(redirectWithErrorUri(error, draftId, filters, returnTo)).build();
   }
 
   private URI redirectWithErrorUri(String error, String draftId, AdminCampaignFilters filters) {
-    return redirectWithErrorUri(error, draftId, filters, false);
+    return redirectWithErrorUri(error, draftId, filters, "overview");
   }
 
   private URI redirectWithErrorUri(
-      String error, String draftId, AdminCampaignFilters filters, boolean detailView) {
-    UriBuilder builder = redirectUri(detailView, draftId);
+      String error, String draftId, AdminCampaignFilters filters, String returnTo) {
+    UriBuilder builder = redirectUri(returnTo, draftId);
     if (!safe(draftId).isBlank()) {
       builder.queryParam("draft", safe(draftId));
     }
@@ -1006,11 +1162,17 @@ public class AdminCampaignsResource {
     return builder.build();
   }
 
-  private UriBuilder redirectUri(boolean detailView, String draftId) {
-    if (detailView && draftId != null && !draftId.isBlank()) {
-      return UriBuilder.fromPath("/private/admin/campaigns/{draftId}").resolveTemplate("draftId", safe(draftId));
-    }
-    return UriBuilder.fromPath("/private/admin/campaigns");
+  private UriBuilder redirectUri(String returnTo, String draftId) {
+    return switch (normalizePage(returnTo)) {
+      case "detail" ->
+          UriBuilder.fromPath("/private/admin/campaigns/{draftId}")
+              .resolveTemplate("draftId", safe(draftId));
+      case "content" -> UriBuilder.fromPath("/private/admin/campaigns/content");
+      case "channels" -> UriBuilder.fromPath("/private/admin/campaigns/channels");
+      case "publish" -> UriBuilder.fromPath("/private/admin/campaigns/publish");
+      case "monitor" -> UriBuilder.fromPath("/private/admin/campaigns/monitor");
+      default -> UriBuilder.fromPath("/private/admin/campaigns");
+    };
   }
 
   private void appendFilters(UriBuilder builder, AdminCampaignFilters filters) {
@@ -1042,6 +1204,21 @@ public class AdminCampaignsResource {
     return switch (raw.trim().toLowerCase(Locale.ROOT)) {
       case "discord", "bluesky", "mastodon" -> raw.trim().toLowerCase(Locale.ROOT);
       default -> "";
+    };
+  }
+
+  private static String normalizeReturnTo(String raw, String fallback) {
+    return raw == null || raw.isBlank() ? normalizePage(fallback) : normalizePage(raw);
+  }
+
+  private static String normalizePage(String raw) {
+    if (raw == null) {
+      return "overview";
+    }
+    return switch (raw.trim().toLowerCase(Locale.ROOT)) {
+      case "overview", "content", "channels", "publish", "monitor", "detail" ->
+          raw.trim().toLowerCase(Locale.ROOT);
+      default -> "overview";
     };
   }
 

@@ -5,9 +5,27 @@
   <div class="container">
     <div class="admin-shell-header">
       <div class="admin-shell-heading">
-        <p class="section-subtitle">{copy.subtitle}</p>
-        <h1 class="page-title">{copy.heading}</h1>
-        <p class="form-hint admin-shell-hint-tight">{copy.intro}</p>
+        <p class="section-subtitle">
+          {#if activePage == 'overview'}{i18n:campaigns_admin_process_page_overview_title}{/if}
+          {#if activePage == 'content'}{i18n:campaigns_admin_process_page_content_title}{/if}
+          {#if activePage == 'channels'}{i18n:campaigns_admin_process_page_channels_title}{/if}
+          {#if activePage == 'publish'}{i18n:campaigns_admin_process_page_publish_title}{/if}
+          {#if activePage == 'monitor'}{i18n:campaigns_admin_process_page_monitor_title}{/if}
+        </p>
+        <h1 class="page-title">
+          {#if activePage == 'overview'}{i18n:campaigns_admin_process_page_overview_heading}{/if}
+          {#if activePage == 'content'}{i18n:campaigns_admin_process_page_content_heading}{/if}
+          {#if activePage == 'channels'}{i18n:campaigns_admin_process_page_channels_heading}{/if}
+          {#if activePage == 'publish'}{i18n:campaigns_admin_process_page_publish_heading}{/if}
+          {#if activePage == 'monitor'}{i18n:campaigns_admin_process_page_monitor_heading}{/if}
+        </h1>
+        <p class="form-hint admin-shell-hint-tight">
+          {#if activePage == 'overview'}{i18n:campaigns_admin_process_page_overview_intro}{/if}
+          {#if activePage == 'content'}{i18n:campaigns_admin_process_page_content_intro}{/if}
+          {#if activePage == 'channels'}{i18n:campaigns_admin_process_page_channels_intro}{/if}
+          {#if activePage == 'publish'}{i18n:campaigns_admin_process_page_publish_intro}{/if}
+          {#if activePage == 'monitor'}{i18n:campaigns_admin_process_page_monitor_intro}{/if}
+        </p>
       </div>
       <div class="action-group admin-shell-actions">
         <a href="/private/admin" class="btn btn-secondary">{copy.backToPanel}</a>
@@ -16,6 +34,7 @@
           <input type="hidden" name="workflow" value="{filters.workflow}" />
           <input type="hidden" name="kind" value="{filters.kind}" />
           <input type="hidden" name="channel" value="{filters.channel}" />
+          <input type="hidden" name="returnTo" value="{activePage}" />
           <button type="submit" class="btn btn-secondary" id="campaignsRefreshBtn">{copy.refresh}</button>
         </form>
       </div>
@@ -25,16 +44,13 @@
 
 <div class="container admin-shell-margin-bottom-md">
   <nav class="hd-profile-nav" id="campaignsProcessNav" aria-label="{i18n:campaigns_admin_process_nav_aria}">
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsFilterPanel">{i18n:campaigns_admin_process_step_filters}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsBulkPanel">{i18n:campaigns_admin_process_step_bulk}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsQueuePanel">{i18n:campaigns_admin_process_step_queue}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPublisherPanel">{i18n:campaigns_admin_process_step_publishers}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsRolloutPanel">{i18n:campaigns_admin_process_step_rollout}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPilotRunbookPanel">{i18n:campaigns_admin_process_step_runbook}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPilotVerificationPanel">{i18n:campaigns_admin_process_step_verify}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPilotDecisionPanel">{i18n:campaigns_admin_process_step_decision}</button>
-    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsRecoveryPanel">{i18n:campaigns_admin_process_step_recovery}</button>
+    <a id="campaignsNavOverview" href="/private/admin/campaigns{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'overview'}is-active{/if}">{i18n:campaigns_admin_process_step_overview}</a>
+    <a id="campaignsNavContent" href="/private/admin/campaigns/content{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'content'}is-active{/if}">{i18n:campaigns_admin_process_step_content}</a>
+    <a id="campaignsNavChannels" href="/private/admin/campaigns/channels{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'channels'}is-active{/if}">{i18n:campaigns_admin_process_step_channels}</a>
+    <a id="campaignsNavPublish" href="/private/admin/campaigns/publish{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'publish'}is-active{/if}">{i18n:campaigns_admin_process_step_publish}</a>
+    <a id="campaignsNavMonitor" href="/private/admin/campaigns/monitor{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'monitor'}is-active{/if}">{i18n:campaigns_admin_process_step_monitor}</a>
   </nav>
+
   {#if refreshed}
     <div class="hd-alert hd-alert-success">{copy.refreshed}</div>
   {/if}
@@ -58,6 +74,9 @@
   {/if}
   {#if updatedAction == 'linkedin'}
     <div class="hd-alert hd-alert-success">{copy.updatedLinkedin}: <code>{updatedDraft}</code></div>
+  {/if}
+  {#if updatedAction == 'retried'}
+    <div class="hd-alert hd-alert-success">{copy.updatedRetry}: <code>{updatedDraft}</code></div>
   {/if}
   {#if updatedAction == 'refreshautomation'}
     <div class="hd-alert hd-alert-success">{copy.updatedRefreshAutomation}: <code>{updatedDraft}</code></div>
@@ -113,139 +132,101 @@
   {#if errorCode == 'invalid_channel'}
     <div class="hd-alert hd-alert-danger">{copy.invalidChannel}: <code>{updatedDraft}</code></div>
   {/if}
+  {#if errorCode == 'retry_not_ready'}
+    <div class="hd-alert hd-alert-danger">{copy.retryNotReady}: <code>{updatedDraft}</code></div>
+  {/if}
 </div>
 
 <div class="container">
   <div class="admin-shell-stack">
-    <section class="admin-shell-panel" id="campaignsFilterPanel" data-campaigns-section="campaignsFilterPanel">
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.filtersTitle}</p>
-          <h2>{copy.filtersIntro}</h2>
+    {#if activePage == 'overview'}
+      <section class="admin-shell-panel" id="campaignsOverviewPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{i18n:campaigns_admin_process_overview_title}</p>
+            <h2>{i18n:campaigns_admin_process_overview_intro}</h2>
+          </div>
         </div>
-        <span class="admin-observability-badge watch">{copy.filterResultsLabel}: {view.drafts.size}</span>
+        <div class="campaigns-admin-grid">
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{i18n:campaigns_admin_process_step_content}</p>
+                <h3>{i18n:campaigns_admin_process_step_content_heading}</h3>
+              </div>
+            </div>
+            <p>{i18n:campaigns_admin_process_step_content_intro}</p>
+            <a href="/private/admin/campaigns/content{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_content_action}</a>
+          </article>
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{i18n:campaigns_admin_process_step_channels}</p>
+                <h3>{i18n:campaigns_admin_process_step_channels_heading}</h3>
+              </div>
+            </div>
+            <p>{i18n:campaigns_admin_process_step_channels_intro}</p>
+            <a href="/private/admin/campaigns/channels{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_channels_action}</a>
+          </article>
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{i18n:campaigns_admin_process_step_publish}</p>
+                <h3>{i18n:campaigns_admin_process_step_publish_heading}</h3>
+              </div>
+            </div>
+            <p>{i18n:campaigns_admin_process_step_publish_intro}</p>
+            <a href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
+          </article>
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{i18n:campaigns_admin_process_step_monitor}</p>
+                <h3>{i18n:campaigns_admin_process_step_monitor_heading}</h3>
+              </div>
+            </div>
+            <p>{i18n:campaigns_admin_process_step_monitor_intro}</p>
+            <a href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_monitor_action}</a>
+          </article>
+        </div>
+      </section>
+
+      <div class="campaigns-admin-grid">
+        <section class="admin-shell-panel" id="campaignsSummaryPanel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.summaryTitle}</p>
+              <h2>{copy.summaryIntro}</h2>
+            </div>
+          </div>
+          <div class="campaigns-admin-list">
+            <article class="campaigns-admin-item"><strong>{copy.summaryTotalLabel}</strong><span>{view.summary.totalDraftCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.summaryDraftLabel}</strong><span>{view.summary.draftCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.summaryApprovedLabel}</strong><span>{view.summary.approvedCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.summaryScheduledLabel}</strong><span>{view.summary.scheduledCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.summaryPublishedLabel}</strong><span>{view.summary.publishedCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.summaryLastPublishedLabel}</strong><span>{view.summary.lastPublishedAtLabel}</span></article>
+          </div>
+        </section>
+
+        <section class="admin-shell-panel" id="campaignsQueueHealthPanel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.queueHealthTitle}</p>
+              <h2>{copy.queueHealthIntro}</h2>
+            </div>
+            <span class="admin-observability-badge {view.queueHealth.statusCode}">{view.queueHealth.statusLabel}</span>
+          </div>
+          <div class="campaigns-admin-list">
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthAttentionLabel}</strong><span>{view.queueHealth.attentionCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleDraftsLabel}</strong><span>{view.queueHealth.staleDraftCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleApprovedLabel}</strong><span>{view.queueHealth.staleApprovedCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthBlockedLabel}</strong><span>{view.queueHealth.blockedPublicationCount}</span></article>
+          </div>
+        </section>
       </div>
-      <form action="/private/admin/campaigns" method="get" class="admin-shell-toolbar">
-        <div class="admin-shell-toolbar-group">
-          <label class="sr-only" for="campaignsFilterQuery">{copy.filterQueryLabel}</label>
-          <input id="campaignsFilterQuery" class="form-input" type="search" name="q" value="{filters.query}" placeholder="{copy.filterQueryPlaceholder}" />
-        </div>
-        <div class="admin-shell-toolbar-group">
-          <label class="sr-only" for="campaignsFilterWorkflow">{copy.filterWorkflowLabel}</label>
-          <select id="campaignsFilterWorkflow" class="form-select" name="workflow">
-            <option value="">{copy.filterAllLabel}</option>
-            {#for option in workflowOptions}
-              <option value="{option.value}" {#if filters.workflow == option.value}selected{/if}>{option.label}</option>
-            {/for}
-          </select>
-        </div>
-        <div class="admin-shell-toolbar-group">
-          <label class="sr-only" for="campaignsFilterKind">{copy.filterKindLabel}</label>
-          <select id="campaignsFilterKind" class="form-select" name="kind">
-            <option value="">{copy.filterAllLabel}</option>
-            {#for option in kindOptions}
-              <option value="{option.value}" {#if filters.kind == option.value}selected{/if}>{option.label}</option>
-            {/for}
-          </select>
-        </div>
-        <div class="admin-shell-toolbar-group">
-          <label class="sr-only" for="campaignsFilterChannel">{copy.filterChannelLabel}</label>
-          <select id="campaignsFilterChannel" class="form-select" name="channel">
-            <option value="">{copy.filterAllLabel}</option>
-            {#for option in channelOptions}
-              <option value="{option.value}" {#if filters.channel == option.value}selected{/if}>{option.label}</option>
-            {/for}
-          </select>
-        </div>
-        <div class="admin-shell-toolbar-group">
-          <button type="submit" class="btn btn-secondary">{copy.filterApplyLabel}</button>
-          <a href="/private/admin/campaigns" class="btn btn-secondary">{copy.filterClearLabel}</a>
-        </div>
-      </form>
-      {#if filters.activeCount > 0 && view.drafts.isEmpty}
-        <div class="hd-alert hd-alert-warning">{copy.filterEmptyLabel}</div>
-      {/if}
-    </section>
 
-    <section class="admin-shell-panel" id="campaignsBulkPanel" data-campaigns-section="campaignsBulkPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.bulkTitle}</p>
-          <h2>{copy.bulkIntro}</h2>
-        </div>
-      </div>
-      <form id="campaignsBulkActionForm" action="/private/admin/campaigns/bulk-action" method="post" class="admin-shell-toolbar">
-        <input type="hidden" name="q" value="{filters.query}" />
-        <input type="hidden" name="workflow" value="{filters.workflow}" />
-        <input type="hidden" name="kind" value="{filters.kind}" />
-        <input type="hidden" name="channel" value="{filters.channel}" />
-        <div class="admin-shell-toolbar-group">
-          <span class="form-hint">{copy.bulkSelectLabel}</span>
-        </div>
-        <div class="admin-shell-toolbar-group">
-          <label class="sr-only" for="campaignsBulkAction">{copy.bulkActionLabel}</label>
-          <select id="campaignsBulkAction" class="form-select" name="action">
-            <option value="approve">{copy.bulkApproveOption}</option>
-            <option value="reset">{copy.bulkResetOption}</option>
-            <option value="unschedule">{copy.bulkUnscheduleOption}</option>
-          </select>
-        </div>
-        <div class="admin-shell-toolbar-group">
-          <button id="campaignsBulkApplyBtn" type="submit" class="btn btn-secondary">{copy.bulkApplyLabel}</button>
-        </div>
-      </form>
-    </section>
-
-    <div class="campaigns-admin-grid">
-      <section class="admin-shell-panel" id="campaignsSummaryPanel" data-campaigns-section="campaignsFilterPanel">
-        <div class="admin-shell-card-header">
-          <div>
-            <p class="section-subtitle">{copy.generatedAt}</p>
-            <h2>{#if view.generatedAt}{view.generatedAt}{#else}—{/if}</h2>
-          </div>
-        </div>
-      </section>
-
-      <section class="admin-shell-panel" data-campaigns-section="campaignsFilterPanel">
-        <div class="admin-shell-card-header">
-          <div>
-            <p class="section-subtitle">{copy.summaryTitle}</p>
-            <h2>{copy.summaryIntro}</h2>
-          </div>
-        </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.summaryTotalLabel}</strong><span>{view.summary.totalDraftCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.summaryDraftLabel}</strong><span>{view.summary.draftCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.summaryApprovedLabel}</strong><span>{view.summary.approvedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.summaryScheduledLabel}</strong><span>{view.summary.scheduledCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.summaryPublishedLabel}</strong><span>{view.summary.publishedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.summaryLinkedinPendingLabel}</strong><span>{view.summary.linkedinPendingCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.summaryLinkedinDoneLabel}</strong><span>{view.summary.linkedinCompletedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.summaryLastPublishedLabel}</strong><span>{view.summary.lastPublishedAtLabel}</span></article>
-        </div>
-      </section>
-
-      <section class="admin-shell-panel" id="campaignsQueueHealthPanel" data-campaigns-section="campaignsFilterPanel">
-        <div class="admin-shell-card-header">
-          <div>
-            <p class="section-subtitle">{copy.queueHealthTitle}</p>
-            <h2>{copy.queueHealthIntro}</h2>
-          </div>
-          <span class="admin-observability-badge {view.queueHealth.statusCode}">{view.queueHealth.statusLabel}</span>
-        </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthStatusLabel}</strong><span>{view.queueHealth.statusLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthAttentionLabel}</strong><span>{view.queueHealth.attentionCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleDraftsLabel}</strong><span>{view.queueHealth.staleDraftCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleApprovedLabel}</strong><span>{view.queueHealth.staleApprovedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthOverdueScheduledLabel}</strong><span>{view.queueHealth.overdueScheduledCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthBlockedLabel}</strong><span>{view.queueHealth.blockedPublicationCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthLinkedinLabel}</strong><span>{view.queueHealth.staleLinkedinCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.queueHealthEvaluatedLabel}</strong><span>{view.queueHealth.evaluatedAtLabel}</span></article>
-        </div>
-      </section>
-
-      <section class="admin-shell-panel" id="campaignsBusinessPanel" data-campaigns-section="campaignsFilterPanel">
+      <section class="admin-shell-panel" id="campaignsBusinessPanel">
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.businessTitle}</p>
@@ -257,675 +238,90 @@
           <article class="campaigns-admin-item"><strong>{copy.businessDraftsWithTrafficLabel}</strong><span>{view.businessDashboard.draftsWithTrafficCount}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.businessAverageVisitsLabel}</strong><span>{view.businessDashboard.averageVisitsLabel}</span></article>
           <article class="campaigns-admin-item"><strong>{copy.businessBestChannelLabel}</strong><span>{view.businessDashboard.bestChannelLabel}</span></article>
-          <article class="campaigns-admin-item">
-            <strong>{copy.businessTopDraftLabel}</strong>
-            <span>
-              {#if view.businessDashboard.hasTopDraft}
-                <a href="/private/admin/campaigns/{view.businessDashboard.topDraftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{view.businessDashboard.topDraftLabel}</a>
-              {#else}
-                {view.businessDashboard.topDraftLabel}
-              {/if}
-            </span>
-          </article>
-        </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.businessHighlightsLabel}</strong></article>
-          {#if view.businessDashboard.highlights.isEmpty}
-            <article class="campaigns-admin-item"><strong>{copy.businessNoneLabel}</strong></article>
-          {/if}
-          {#for item in view.businessDashboard.highlights}
-            <article class="campaigns-admin-item">
-              <div class="admin-shell-card-header">
-                <div>
-                  <p class="section-subtitle">{item.kindLabel}</p>
-                  <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></h3>
-                </div>
-                <span class="admin-observability-badge">{copy.businessVisitsLabel}: {item.totalVisitsLabel}</span>
-              </div>
-              <div class="campaigns-admin-list">
-                <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{item.workflowLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.businessDominantChannelLabel}</strong><span>{item.bestChannelLabel}</span></article>
-              </div>
-            </article>
-          {/for}
         </div>
       </section>
-
-      <section class="admin-shell-panel" id="campaignsRolloutPanel" data-campaigns-section="campaignsRolloutPanel" hidden>
+    {/if}
+    {#if activePage == 'content'}
+      <section class="admin-shell-panel" id="campaignsFilterPanel">
         <div class="admin-shell-card-header">
           <div>
-            <p class="section-subtitle">{copy.rolloutTitle}</p>
-            <h2>{copy.rolloutIntro}</h2>
+            <p class="section-subtitle">{copy.filtersTitle}</p>
+            <h2>{copy.filtersIntro}</h2>
           </div>
-          <span class="admin-observability-badge {view.rolloutChecklist.statusCode}">{view.rolloutChecklist.statusLabel}</span>
+          <span class="admin-observability-badge watch">{copy.filterResultsLabel}: {view.drafts.size}</span>
         </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.rolloutStatusLabel}</strong><span>{view.rolloutChecklist.statusLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutReadyLabel}</strong><span>{view.rolloutChecklist.readyCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutBlockedLabel}</strong><span>{view.rolloutChecklist.blockedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutDryRunLabel}</strong><span>{view.rolloutChecklist.dryRunCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutAcknowledgedLabel}</strong><span>{view.rolloutChecklist.acknowledgedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutPilotLabel}</strong><span>{view.rolloutChecklist.pilotChannelLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutPilotUpdatedAtLabel}</strong><span>{view.rolloutChecklist.pilotUpdatedAtLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutPilotUpdatedByLabel}</strong><span>{view.rolloutChecklist.pilotUpdatedByLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutActivationLabel}</strong><span>{view.rolloutChecklist.pilotActivationLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutActivationUpdatedAtLabel}</strong><span>{view.rolloutChecklist.pilotActivationUpdatedAtLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutActivationUpdatedByLabel}</strong><span>{view.rolloutChecklist.pilotActivationUpdatedByLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.stateLabel}</strong><span>{view.rolloutChecklist.pilotDecisionLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.decidedAtLabel}</strong><span>{view.rolloutChecklist.pilotDecisionUpdatedAtLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.decidedByLabel}</strong><span>{view.rolloutChecklist.pilotDecisionUpdatedByLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutRecommendationLabel}</strong><span>{view.rolloutChecklist.recommendationLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.rolloutEvaluatedLabel}</strong><span>{view.rolloutChecklist.evaluatedAtLabel}</span></article>
-        </div>
-        <div class="campaigns-admin-list">
-          {#for item in view.rolloutChecklist.channels}
-            <article class="campaigns-admin-item">
-              <div class="admin-shell-card-header">
-                <div>
-                  <p class="section-subtitle">{copy.publisherChannelLabel}</p>
-                  <h3>{item.channelLabel}</h3>
-                </div>
-                <span class="admin-observability-badge {item.statusCode}">{item.statusLabel}</span>
-              </div>
-              <div class="campaigns-admin-list">
-                <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{item.globalEnabled}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.publisherEffectiveLabel}</strong><span>{item.channelEnabled}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.publisherConfiguredLabel}</strong><span>{item.configured}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{item.dryRun}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{item.minIntervalLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.rolloutAckStatusLabel}</strong><span>{item.acknowledgementLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.rolloutAckByLabel}</strong><span>{item.acknowledgedByLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.rolloutAckAtLabel}</strong><span>{item.acknowledgedAtLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.rolloutPilotLabel}</strong><span>{#if item.pilotLive}{item.channelLabel}{#else}—{/if}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.rolloutActivationLabel}</strong><span>{#if item.liveArmed}{copy.rolloutActivationArmedLabel}{#else}{copy.rolloutActivationDisarmedLabel}{/if}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.rolloutRecommendationLabel}</strong><span>{item.recommendationLabel}</span></article>
-              </div>
-              <div class="action-group admin-shell-actions">
-                <form action="/private/admin/campaigns/rollout/channel/{item.channelCode}/ack" method="post">
-                  <input type="hidden" name="q" value="{filters.query}" />
-                  <input type="hidden" name="workflow" value="{filters.workflow}" />
-                  <input type="hidden" name="kind" value="{filters.kind}" />
-                  <input type="hidden" name="channel" value="{filters.channel}" />
-                  {#if item.acknowledged}
-                    <input type="hidden" name="acknowledged" value="false" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutClearBtn-{item.channelCode}">{copy.rolloutClearAckActionLabel}</button>
-                  {#else}
-                    <input type="hidden" name="acknowledged" value="true" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutAckBtn-{item.channelCode}">{copy.rolloutAckActionLabel}</button>
-                  {/if}
-                </form>
-                {#if item.pilotLive}
-                  {#if item.liveArmed}
-                    <form action="/private/admin/campaigns/rollout/pilot/disarm" method="post">
-                      <input type="hidden" name="q" value="{filters.query}" />
-                      <input type="hidden" name="workflow" value="{filters.workflow}" />
-                      <input type="hidden" name="kind" value="{filters.kind}" />
-                      <input type="hidden" name="channel" value="{filters.channel}" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
-                    </form>
-                  {#else}
-                    <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
-                      <input type="hidden" name="q" value="{filters.query}" />
-                      <input type="hidden" name="workflow" value="{filters.workflow}" />
-                      <input type="hidden" name="kind" value="{filters.kind}" />
-                      <input type="hidden" name="channel" value="{filters.channel}" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
-                    </form>
-                  {/if}
-                  <form action="/private/admin/campaigns/rollout/pilot/clear" method="post">
-                    <input type="hidden" name="q" value="{filters.query}" />
-                    <input type="hidden" name="workflow" value="{filters.workflow}" />
-                    <input type="hidden" name="kind" value="{filters.kind}" />
-                    <input type="hidden" name="channel" value="{filters.channel}" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsPilotClearBtn">{copy.rolloutClearPilotActionLabel}</button>
-                  </form>
-                {#else}
-                  <form action="/private/admin/campaigns/rollout/pilot/{item.channelCode}/select" method="post">
-                    <input type="hidden" name="q" value="{filters.query}" />
-                    <input type="hidden" name="workflow" value="{filters.workflow}" />
-                    <input type="hidden" name="kind" value="{filters.kind}" />
-                    <input type="hidden" name="channel" value="{filters.channel}" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsPilotSelectBtn-{item.channelCode}">{copy.rolloutSelectPilotActionLabel}</button>
-                  </form>
-                {/if}
-              </div>
-            </article>
-          {/for}
-        </div>
-      </section>
-
-      <section class="admin-shell-panel" id="campaignsPilotRunbookPanel" data-campaigns-section="campaignsPilotRunbookPanel" hidden>
-        <div class="admin-shell-card-header">
-          <div>
-            <p class="section-subtitle">{copy.runbookTitle}</p>
-            <h2>{copy.runbookIntro}</h2>
+        <form action="/private/admin/campaigns/content" method="get" class="admin-shell-toolbar">
+          <div class="admin-shell-toolbar-group">
+            <label class="sr-only" for="campaignsFilterQuery">{copy.filterQueryLabel}</label>
+            <input id="campaignsFilterQuery" class="form-input" type="search" name="q" value="{filters.query}" placeholder="{copy.filterQueryPlaceholder}" />
           </div>
-          <span class="admin-observability-badge {view.pilotActivationRunbook.statusCode}">{view.pilotActivationRunbook.statusLabel}</span>
-        </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.runbookStatusLabel}</strong><span>{view.pilotActivationRunbook.statusLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.runbookCompletedLabel}</strong><span>{view.pilotActivationRunbook.completedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.runbookPendingLabel}</strong><span>{view.pilotActivationRunbook.pendingCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.runbookTargetLabel}</strong><span>{view.pilotActivationRunbook.targetChannelLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.runbookRecommendationLabel}</strong><span>{view.pilotActivationRunbook.recommendationLabel}</span></article>
-        </div>
-        <div class="campaigns-admin-list">
-          {#for step in view.pilotActivationRunbook.steps}
-            <article class="campaigns-admin-item">
-              <div class="admin-shell-card-header">
-                <div>
-                  <p class="section-subtitle">{copy.runbookStepStatusLabel}</p>
-                  <h3>{step.titleLabel}</h3>
-                </div>
-                <span class="admin-observability-badge {step.statusCode}">{step.statusLabel}</span>
-              </div>
-              <div class="campaigns-admin-list">
-                <article class="campaigns-admin-item"><strong>{copy.runbookStepStatusLabel}</strong><span>{step.statusLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.runbookRecommendationLabel}</strong><span>{step.detailLabel}</span></article>
-              </div>
-            </article>
-          {/for}
-        </div>
-      </section>
-
-      <section class="admin-shell-panel" id="campaignsPilotVerificationPanel" data-campaigns-section="campaignsPilotVerificationPanel" hidden>
-        <div class="admin-shell-card-header">
-          <div>
-            <p class="section-subtitle">{copy.pilotVerificationTitle}</p>
-            <h2>{copy.pilotVerificationIntro}</h2>
-          </div>
-          <span class="admin-observability-badge {view.pilotVerificationSummary.statusCode}">{view.pilotVerificationSummary.statusLabel}</span>
-        </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationStatusLabel}</strong><span>{view.pilotVerificationSummary.statusLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationTargetLabel}</strong><span>{view.pilotVerificationSummary.targetChannelLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationStateLabel}</strong><span>{view.pilotVerificationSummary.verificationLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationPublishedCountLabel}</strong><span>{view.pilotVerificationSummary.publishedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationLastPublishedAtLabel}</strong><span>{view.pilotVerificationSummary.lastPublishedAtLabel}</span></article>
-          <article class="campaigns-admin-item">
-            <strong>{copy.pilotVerificationLastDraftLabel}</strong>
-            <span>
-              {#if view.pilotVerificationSummary.hasLastPublishedDraft}
-                <a href="/private/admin/campaigns/{view.pilotVerificationSummary.lastPublishedDraftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{view.pilotVerificationSummary.lastPublishedDraftLabel}</a>
-              {#else}
-                {view.pilotVerificationSummary.lastPublishedDraftLabel}
-              {/if}
-            </span>
-          </article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationAcknowledgedAtLabel}</strong><span>{view.pilotVerificationSummary.acknowledgedAtLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationAcknowledgedByLabel}</strong><span>{view.pilotVerificationSummary.acknowledgedByLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotVerificationRecommendationLabel}</strong><span>{view.pilotVerificationSummary.recommendationLabel}</span></article>
-        </div>
-        <div class="action-group admin-shell-actions">
-          {#if view.pilotVerificationSummary.acknowledged}
-            <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
-              <input type="hidden" name="q" value="{filters.query}" />
-              <input type="hidden" name="workflow" value="{filters.workflow}" />
-              <input type="hidden" name="kind" value="{filters.kind}" />
-              <input type="hidden" name="channel" value="{filters.channel}" />
-              <input type="hidden" name="acknowledged" value="false" />
-              <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationClearBtn">{copy.pilotVerificationClearActionLabel}</button>
-            </form>
-          {#else if view.pilotVerificationSummary.canAcknowledge}
-            <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
-              <input type="hidden" name="q" value="{filters.query}" />
-              <input type="hidden" name="workflow" value="{filters.workflow}" />
-              <input type="hidden" name="kind" value="{filters.kind}" />
-              <input type="hidden" name="channel" value="{filters.channel}" />
-              <input type="hidden" name="acknowledged" value="true" />
-              <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationBtn">{copy.pilotVerificationMarkActionLabel}</button>
-            </form>
-          {/if}
-        </div>
-      </section>
-
-      <section class="admin-shell-panel" id="campaignsPilotDecisionPanel" data-campaigns-section="campaignsPilotDecisionPanel" hidden>
-        <div class="admin-shell-card-header">
-          <div>
-            <p class="section-subtitle">{copy.pilotDecision.title}</p>
-            <h2>{copy.pilotDecision.intro}</h2>
-          </div>
-          <span class="admin-observability-badge {view.pilotDecisionSummary.statusCode}">{view.pilotDecisionSummary.statusLabel}</span>
-        </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.statusLabel}</strong><span>{view.pilotDecisionSummary.statusLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.targetLabel}</strong><span>{view.pilotDecisionSummary.targetChannelLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.verificationLabel}</strong><span>{view.pilotDecisionSummary.verificationLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.stateLabel}</strong><span>{view.pilotDecisionSummary.decisionLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.decidedAtLabel}</strong><span>{view.pilotDecisionSummary.decidedAtLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.decidedByLabel}</strong><span>{view.pilotDecisionSummary.decidedByLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.pilotDecision.recommendationLabel}</strong><span>{view.pilotDecisionSummary.recommendationLabel}</span></article>
-        </div>
-        <div class="action-group admin-shell-actions">
-          {#if view.pilotDecisionSummary.canDecide}
-            <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
-              <input type="hidden" name="q" value="{filters.query}" />
-              <input type="hidden" name="workflow" value="{filters.workflow}" />
-              <input type="hidden" name="kind" value="{filters.kind}" />
-              <input type="hidden" name="channel" value="{filters.channel}" />
-              <input type="hidden" name="decision" value="approved" />
-              <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionApproveBtn">{copy.pilotDecision.approveActionLabel}</button>
-            </form>
-            <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
-              <input type="hidden" name="q" value="{filters.query}" />
-              <input type="hidden" name="workflow" value="{filters.workflow}" />
-              <input type="hidden" name="kind" value="{filters.kind}" />
-              <input type="hidden" name="channel" value="{filters.channel}" />
-              <input type="hidden" name="decision" value="hold" />
-              <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionHoldBtn">{copy.pilotDecision.holdActionLabel}</button>
-            </form>
-          {/if}
-          {#if view.pilotDecisionSummary.canClear}
-            <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
-              <input type="hidden" name="q" value="{filters.query}" />
-              <input type="hidden" name="workflow" value="{filters.workflow}" />
-              <input type="hidden" name="kind" value="{filters.kind}" />
-              <input type="hidden" name="channel" value="{filters.channel}" />
-              <input type="hidden" name="decision" value="" />
-              <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionClearBtn">{copy.pilotDecision.clearActionLabel}</button>
-            </form>
-          {/if}
-        </div>
-      </section>
-    </div>
-
-    <section class="admin-shell-panel" id="campaignsRecoveryPanel" data-campaigns-section="campaignsRecoveryPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.recoveryTitle}</p>
-          <h2>{copy.recoveryIntro}</h2>
-        </div>
-        <span class="admin-observability-badge {view.recoverySummary.statusCode}">{view.recoverySummary.statusLabel}</span>
-      </div>
-      <div class="admin-observability-two-up">
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.recoveryActionableLabel}</strong><span>{view.recoverySummary.actionableCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.recoveryRetryableLabel}</strong><span>{view.recoverySummary.retryableCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.recoveryBlockedLabel}</strong><span>{view.recoverySummary.blockedCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.recoveryManualLabel}</strong><span>{view.recoverySummary.manualCount}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.recoveryEvaluatedLabel}</strong><span>{view.recoverySummary.evaluatedAtLabel}</span></article>
-        </div>
-        <div class="campaigns-admin-list">
-          {#if view.recoveryItems.isEmpty}
-            <article class="campaigns-admin-item"><strong>{copy.recoveryEmptyLabel}</strong></article>
-          {/if}
-          {#for item in view.recoveryItems}
-            <article class="campaigns-admin-item">
-              <div class="admin-shell-card-header">
-                <div>
-                  <p class="section-subtitle">{item.kindLabel}</p>
-                  <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></h3>
-                </div>
-                <span class="admin-observability-badge {item.badgeClass}">{item.stateLabel}</span>
-              </div>
-              <div class="campaigns-admin-list">
-                <article class="campaigns-admin-item"><strong>{copy.recoveryChannelLabel}</strong><span>{item.channelLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.recoveryOutcomeLabel}</strong><span>{item.outcomeLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.recoveryRecommendationLabel}</strong><span>{item.recommendationLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.recoveryActionLabel}</strong><span>{item.actionLabel}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.recoveryAgeLabel}</strong><span>{item.ageLabel}</span></article>
-              </div>
-            </article>
-          {/for}
-        </div>
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsQueueRiskPanel" data-campaigns-section="campaignsRecoveryPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.queueRisksTitle}</p>
-          <h2>{copy.queueRisksIntro}</h2>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        {#if view.queueRisks.isEmpty}
-          <article class="campaigns-admin-item">
-            <strong>{copy.queueRisksEmptyLabel}</strong>
-          </article>
-        {/if}
-        {#for item in view.queueRisks}
-          <article class="campaigns-admin-item">
-            <div class="admin-shell-card-header">
-              <div>
-                <p class="section-subtitle">{item.kindLabel}</p>
-                <h3>{item.title}</h3>
-              </div>
-              <span class="admin-observability-badge {item.badgeClass}">{item.workflowLabel}</span>
-            </div>
-            <div class="campaigns-admin-list">
-              <article class="campaigns-admin-item"><strong>{item.riskLabel}</strong><span>{item.recommendationLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{item.workflowLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.queueRiskAgeLabel}</strong><span>{item.ageLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.queueRiskActionLabel}</strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{copy.queueRiskActionLabel}</a></article>
-            </div>
-          </article>
-        {/for}
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsCadencePanel" data-campaigns-section="campaignsFilterPanel">
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.cadenceTitle}</p>
-          <h2>{copy.cadenceIntro}</h2>
-        </div>
-      </div>
-      <div class="admin-observability-two-up">
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.cadenceOverallLabel}</strong></article>
-          {#for window in view.cadenceGuidance.overallWindows}
-            <article class="campaigns-admin-item">
-              <strong>{window.slotLabel}</strong>
-              <span>{window.detailLabel}</span>
-            </article>
-          {/for}
-        </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.cadenceByKindLabel}</strong></article>
-          {#for window in view.cadenceGuidance.windowsByKind}
-            <article class="campaigns-admin-item">
-              <strong>{window.label}</strong>
-              <span>{window.slotLabel} · {window.detailLabel}</span>
-            </article>
-          {/for}
-        </div>
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsRecentActivityPanel" data-campaigns-section="campaignsFilterPanel">
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.recentActivityTitle}</p>
-          <h2>{copy.recentActivityIntro}</h2>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        {#for item in view.recentActivity}
-          <article class="campaigns-admin-item">
-            <strong>{item.title}</strong>
-            <span>{item.workflowLabel} · {item.activityLabel} · {item.timestampLabel}</span>
-          </article>
-        {/for}
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsAuditTrailPanel" data-campaigns-section="campaignsRecoveryPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.auditTitle}</p>
-          <h2>{copy.auditIntro}</h2>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        {#if view.auditTrail.isEmpty}
-          <article class="campaigns-admin-item">
-            <strong>{copy.auditEmptyLabel}</strong>
-          </article>
-        {/if}
-        {#for item in view.auditTrail}
-          <article class="campaigns-admin-item">
-            <div class="admin-shell-card-header">
-              <div>
-                <p class="section-subtitle">{item.kindLabel}</p>
-                <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></h3>
-              </div>
-              <span class="admin-observability-badge watch">{item.workflowLabel}</span>
-            </div>
-            <div class="campaigns-admin-list">
-              <article class="campaigns-admin-item"><strong>{copy.auditEventLabel}</strong><span>{item.eventLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.auditChannelLabel}</strong><span>{item.channelLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.auditOutcomeLabel}</strong><span>{item.outcomeLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.auditActorLabel}</strong><span>{item.actorLabel}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.generatedAt}</strong><span>{item.timestampLabel}</span></article>
-            </div>
-          </article>
-        {/for}
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsPreviewPackPanel" data-campaigns-section="campaignsQueuePanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.previewPacksTitle}</p>
-          <h2>{copy.previewPacksIntro}</h2>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        {#for pack in view.previewPacks}
-          <article class="campaigns-admin-item">
-            <div class="admin-shell-card-header">
-              <div>
-                <p class="section-subtitle">{pack.kindLabel}</p>
-                <h3>{pack.title}</h3>
-              </div>
-              <span class="admin-observability-badge watch">{pack.workflowLabel}</span>
-            </div>
-            <p>{copy.bestWindowLabel}: {pack.recommendedWindowLabel}</p>
-            <div class="campaigns-admin-grid">
-              {#for channel in pack.channels}
-                <article class="section-card admin-shell-panel">
-                  <div class="admin-shell-card-header">
-                    <div>
-                      <p class="section-subtitle">{channel.channelLabel}</p>
-                      <h4>{channel.headline}</h4>
-                    </div>
-                    <span class="admin-observability-badge">{channel.readinessLabel}</span>
-                  </div>
-                  <div class="campaigns-admin-list">
-                    <article class="campaigns-admin-item"><strong>{copy.previewHeadlineLabel}</strong><span>{channel.headline}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.previewLandingLabel}</strong><span>{channel.landingUrl}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.previewStatusLabel}</strong><span>{channel.readinessLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
-                  </div>
-                </article>
+          <div class="admin-shell-toolbar-group">
+            <label class="sr-only" for="campaignsFilterWorkflow">{copy.filterWorkflowLabel}</label>
+            <select id="campaignsFilterWorkflow" class="form-select" name="workflow">
+              <option value="">{copy.filterAllLabel}</option>
+              {#for option in workflowOptions}
+                <option value="{option.value}" {#if filters.workflow == option.value}selected{/if}>{option.label}</option>
               {/for}
-            </div>
-          </article>
-        {/for}
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsAttributionPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.attributionTitle}</p>
-          <h2>{copy.attributionIntro}</h2>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        {#if view.attribution.isEmpty}
-          <article class="campaigns-admin-item">
-            <strong>{copy.attributionEmptyLabel}</strong>
-          </article>
-        {/if}
-        {#for item in view.attribution}
-          <article class="campaigns-admin-item">
-            <div class="admin-shell-card-header">
-              <div>
-                <p class="section-subtitle">{item.kindLabel}</p>
-                <h3>{item.title}</h3>
-              </div>
-              <span class="admin-observability-badge">{copy.attributionTotalLabel}: {item.totalVisits}</span>
-            </div>
-            <div class="campaigns-admin-list">
-              {#for channel in item.channels}
-                <article class="campaigns-admin-item">
-                  <strong>{channel.channelLabel}</strong>
-                  <span>{channel.visitsLabel}</span>
-                </article>
+            </select>
+          </div>
+          <div class="admin-shell-toolbar-group">
+            <label class="sr-only" for="campaignsFilterKind">{copy.filterKindLabel}</label>
+            <select id="campaignsFilterKind" class="form-select" name="kind">
+              <option value="">{copy.filterAllLabel}</option>
+              {#for option in kindOptions}
+                <option value="{option.value}" {#if filters.kind == option.value}selected{/if}>{option.label}</option>
               {/for}
-            </div>
-          </article>
-        {/for}
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsLinkedinPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.guardrailTitle}</p>
-          <h2>{copy.guardrailIntro}</h2>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        {#for guardrail in copy.guardrails}
-          <article class="campaigns-admin-item">
-            <strong>{guardrail}</strong>
-          </article>
-        {/for}
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsPublisherPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.publisherStatusLabel}</p>
-          <h2>{copy.publisherIntro}</h2>
-        </div>
-        <div class="action-group admin-shell-actions">
-          <form action="/private/admin/campaigns/publish-now" method="post">
-            <input type="hidden" name="q" value="{filters.query}" />
-            <input type="hidden" name="workflow" value="{filters.workflow}" />
-            <input type="hidden" name="kind" value="{filters.kind}" />
-            <input type="hidden" name="channel" value="{filters.channel}" />
-            <button type="submit" class="btn btn-secondary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
-          </form>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        <article class="campaigns-admin-item"><strong>{copy.publisherRefreshAutomationLabel}</strong><span>{view.automation.refreshAutomationEnabled}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherPublishAutomationLabel}</strong><span>{view.automation.publishAutomationEnabled}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedLabel}</strong><span>{view.automation.updatedAtLabel}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedByLabel}</strong><span>{view.automation.updatedByLabel}</span></article>
-        <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{view.globalPublishingEnabled}</span></article>
-        <article class="campaigns-admin-item">
-          <strong>{copy.publisherRefreshAutomationLabel}</strong>
-          <span>
-            <form action="/private/admin/campaigns/automation/refresh" method="post">
-              <input type="hidden" name="q" value="{filters.query}" />
-              <input type="hidden" name="workflow" value="{filters.workflow}" />
-              <input type="hidden" name="kind" value="{filters.kind}" />
-              <input type="hidden" name="channel" value="{filters.channel}" />
-              {#if view.automation.refreshAutomationEnabled}
-                <input type="hidden" name="enabled" value="false" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPauseRefreshBtn">{copy.pauseRefreshLabel}</button>
-              {#else}
-                <input type="hidden" name="enabled" value="true" />
-                <button type="submit" class="btn btn-secondary" id="campaignsResumeRefreshBtn">{copy.resumeRefreshLabel}</button>
-              {/if}
-            </form>
-          </span>
-        </article>
-        <article class="campaigns-admin-item">
-          <strong>{copy.publisherPublishAutomationLabel}</strong>
-          <span>
-            <form action="/private/admin/campaigns/automation/publish" method="post">
-              <input type="hidden" name="q" value="{filters.query}" />
-              <input type="hidden" name="workflow" value="{filters.workflow}" />
-              <input type="hidden" name="kind" value="{filters.kind}" />
-              <input type="hidden" name="channel" value="{filters.channel}" />
-              {#if view.automation.publishAutomationEnabled}
-                <input type="hidden" name="enabled" value="false" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPausePublishBtn">{copy.pausePublishLabel}</button>
-              {#else}
-                <input type="hidden" name="enabled" value="true" />
-                <button type="submit" class="btn btn-secondary" id="campaignsResumePublishBtn">{copy.resumePublishLabel}</button>
-              {/if}
-            </form>
-          </span>
-        </article>
-        {#for status in view.publisherStatuses}
-          <article class="campaigns-admin-item">
-            <strong>{status.channelLabel}</strong>
-            <span>
-              {copy.publisherChannelLabel}: {status.channelEnabled}
-              · {copy.publisherRuntimeChannelLabel}: {#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.automationEnabled}{/if}{/for}
-              · {copy.publisherEffectiveLabel}: {#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.effectiveEnabled}{/if}{/for}
-              · {copy.publisherConfiguredLabel}: {status.configured}
-              · {copy.publisherDryRunLabel}: {status.dryRun}
-              · {copy.publisherRateLimitLabel}: {status.minIntervalLabel}
-            </span>
-          </article>
-          <article class="campaigns-admin-item">
-            <strong>{status.channelLabel}</strong>
-            <span>
-              <form action="/private/admin/campaigns/automation/channel/{status.channelCode}" method="post">
-                <input type="hidden" name="q" value="{filters.query}" />
-                <input type="hidden" name="workflow" value="{filters.workflow}" />
-                <input type="hidden" name="kind" value="{filters.kind}" />
-                <input type="hidden" name="channel" value="{filters.channel}" />
-                {#for channelState in view.automation.channels}
-                  {#if channelState.channelCode == status.channelCode}
-                    {#if channelState.automationEnabled}
-                      <input type="hidden" name="enabled" value="false" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsDisableChannelBtn-{status.channelCode}">{copy.disableChannelAutomationLabel}</button>
-                    {#else}
-                      <input type="hidden" name="enabled" value="true" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsEnableChannelBtn-{status.channelCode}">{copy.enableChannelAutomationLabel}</button>
-                    {/if}
-                  {/if}
-                {/for}
-              </form>
-            </span>
-          </article>
-        {/for}
-      </div>
-    </section>
-
-    <section class="admin-shell-panel" id="campaignsLinkedinHandoffPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.linkedinTitle}</p>
-          <h2>{copy.linkedinIntro}</h2>
-        </div>
-      </div>
-      <div class="campaigns-admin-list">
-        {#if view.linkedinHandoffs.isEmpty}
-          <article class="campaigns-admin-item">
-            <strong>{copy.linkedinEmptyLabel}</strong>
-          </article>
+            </select>
+          </div>
+          <div class="admin-shell-toolbar-group">
+            <label class="sr-only" for="campaignsFilterChannel">{copy.filterChannelLabel}</label>
+            <select id="campaignsFilterChannel" class="form-select" name="channel">
+              <option value="">{copy.filterAllLabel}</option>
+              {#for option in channelOptions}
+                <option value="{option.value}" {#if filters.channel == option.value}selected{/if}>{option.label}</option>
+              {/for}
+            </select>
+          </div>
+          <div class="admin-shell-toolbar-group">
+            <button type="submit" class="btn btn-secondary">{copy.filterApplyLabel}</button>
+            <a href="/private/admin/campaigns/content" class="btn btn-secondary">{copy.filterClearLabel}</a>
+          </div>
+        </form>
+        {#if filters.activeCount > 0 && view.drafts.isEmpty}
+          <div class="hd-alert hd-alert-warning">{copy.filterEmptyLabel}</div>
         {/if}
-        {#for handoff in view.linkedinHandoffs}
-          <article class="campaigns-admin-item">
-            <div class="admin-shell-card-header">
-              <div>
-                <p class="section-subtitle">{handoff.workflowLabel}</p>
-                <h3>{handoff.title}</h3>
-              </div>
-              <span class="admin-observability-badge watch">{handoff.statusLabel}</span>
-            </div>
-            <p>{handoff.body}</p>
-            <div class="campaigns-admin-list">
-              <article class="campaigns-admin-item"><strong>{copy.linkedinHeadlineLabel}</strong><span>{handoff.headline}</span></article>
-              <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{handoff.landingUrl}" class="btn btn-secondary campaigns-admin-cta">{handoff.ctaLabel}</a></article>
-              <article class="campaigns-admin-item"><strong>{copy.linkedinMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{handoff.message}</textarea></article>
-              <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{handoff.publishedAtLabel}</span></article>
-            </div>
-            {#if !handoff.completed}
-              <div class="action-group admin-shell-actions">
-                <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
-                  <input type="hidden" name="q" value="{filters.query}" />
-                  <input type="hidden" name="workflow" value="{filters.workflow}" />
-                  <input type="hidden" name="kind" value="{filters.kind}" />
-                  <input type="hidden" name="channel" value="{filters.channel}" />
-                  <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
-                </form>
-              </div>
-            {/if}
-          </article>
-        {/for}
-      </div>
-    </section>
+      </section>
 
-    <section class="admin-shell-panel" id="campaignsQueuePanel" data-campaigns-section="campaignsQueuePanel" hidden>
-      <div class="admin-shell-card-header">
-        <div>
-          <p class="section-subtitle">{copy.subtitle}</p>
-          <h2>{copy.queueIntro}</h2>
+      <section class="admin-shell-panel" id="campaignsBulkPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.bulkTitle}</p>
+            <h2>{copy.bulkIntro}</h2>
+          </div>
         </div>
-      </div>
+        <form id="campaignsBulkActionForm" action="/private/admin/campaigns/bulk-action" method="post" class="admin-shell-toolbar">
+          <input type="hidden" name="q" value="{filters.query}" />
+          <input type="hidden" name="workflow" value="{filters.workflow}" />
+          <input type="hidden" name="kind" value="{filters.kind}" />
+          <input type="hidden" name="channel" value="{filters.channel}" />
+          <input type="hidden" name="returnTo" value="content" />
+          <div class="admin-shell-toolbar-group">
+            <span class="form-hint">{copy.bulkSelectLabel}</span>
+          </div>
+          <div class="admin-shell-toolbar-group">
+            <label class="sr-only" for="campaignsBulkAction">{copy.bulkActionLabel}</label>
+            <select id="campaignsBulkAction" class="form-select" name="action">
+              <option value="approve">{copy.bulkApproveOption}</option>
+              <option value="reset">{copy.bulkResetOption}</option>
+              <option value="unschedule">{copy.bulkUnscheduleOption}</option>
+            </select>
+          </div>
+          <div class="admin-shell-toolbar-group">
+            <button id="campaignsBulkApplyBtn" type="submit" class="btn btn-secondary">{copy.bulkApplyLabel}</button>
+          </div>
+        </form>
+      </section>
+
       <div class="campaigns-admin-grid">
         <article class="section-card admin-shell-panel">
           <div class="admin-shell-card-header">
@@ -951,16 +347,9 @@
                   </div>
                   <p>{draft.body}</p>
                   <div class="campaigns-admin-list">
-                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.scheduleReadinessLabel}</strong><span>{draft.scheduleReadinessLabel} · {draft.scheduleReadinessDetailLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{draft.recommendedWindowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
                   </div>
                   <div class="action-group admin-shell-actions">
                     <form action="/private/admin/campaigns/{draft.id}/approve" method="post">
@@ -968,6 +357,7 @@
                       <input type="hidden" name="workflow" value="{filters.workflow}" />
                       <input type="hidden" name="kind" value="{filters.kind}" />
                       <input type="hidden" name="channel" value="{filters.channel}" />
+                      <input type="hidden" name="returnTo" value="content" />
                       <button type="submit" class="btn btn-primary">{copy.approveLabel}</button>
                     </form>
                   </div>
@@ -987,7 +377,7 @@
           <div class="campaigns-admin-list">
             {#for draft in view.drafts}
               {#if draft.workflowStateCode == 'approved'}
-                <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
+                <article class="campaigns-admin-item">
                   <div class="admin-shell-card-header">
                     <div>
                       <label class="campaigns-admin-select">
@@ -999,36 +389,9 @@
                     </div>
                     <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
                   </div>
-                  <p>{draft.body}</p>
                   <div class="campaigns-admin-list">
-                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.scheduleReadinessLabel}</strong><span>{draft.scheduleReadinessLabel} · {draft.scheduleReadinessDetailLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.scheduleReadinessLabel}</strong><span>{draft.scheduleReadinessLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{draft.recommendedWindowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
-                  </div>
-                  <div class="action-group admin-shell-actions">
-                    <form action="/private/admin/campaigns/{draft.id}/schedule" method="post">
-                      <label class="sr-only" for="schedule-{draft.id}">{copy.scheduleForLabel}</label>
-                      <input type="hidden" name="q" value="{filters.query}" />
-                      <input type="hidden" name="workflow" value="{filters.workflow}" />
-                      <input type="hidden" name="kind" value="{filters.kind}" />
-                      <input type="hidden" name="channel" value="{filters.channel}" />
-                      <input id="schedule-{draft.id}" class="hd-input" type="datetime-local" name="scheduledFor" />
-                      <button type="submit" class="btn btn-secondary" {#if !draft.scheduleReady}disabled aria-disabled="true"{/if}>{copy.scheduleLabel}</button>
-                    </form>
-                    <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
-                      <input type="hidden" name="q" value="{filters.query}" />
-                      <input type="hidden" name="workflow" value="{filters.workflow}" />
-                      <input type="hidden" name="kind" value="{filters.kind}" />
-                      <input type="hidden" name="channel" value="{filters.channel}" />
-                      <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
-                    </form>
                   </div>
                 </article>
               {/if}
@@ -1046,45 +409,17 @@
           <div class="campaigns-admin-list">
             {#for draft in view.drafts}
               {#if draft.workflowStateCode == 'scheduled'}
-                <article class="campaigns-admin-item" id="campaign-draft-{draft.id}">
+                <article class="campaigns-admin-item">
                   <div class="admin-shell-card-header">
                     <div>
-                      <label class="campaigns-admin-select">
-                        <input type="checkbox" name="draftIds" value="{draft.id}" form="campaignsBulkActionForm" />
-                        <span>{copy.bulkSelectLabel}</span>
-                      </label>
                       <p class="section-subtitle">{draft.kindLabel}</p>
                       <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
                     <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
                   </div>
-                  <p>{draft.body}</p>
                   <div class="campaigns-admin-list">
-                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{draft.recommendedWindowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
-                  </div>
-                  <div class="action-group admin-shell-actions">
-                    <form action="/private/admin/campaigns/{draft.id}/unschedule" method="post">
-                      <input type="hidden" name="q" value="{filters.query}" />
-                      <input type="hidden" name="workflow" value="{filters.workflow}" />
-                      <input type="hidden" name="kind" value="{filters.kind}" />
-                      <input type="hidden" name="channel" value="{filters.channel}" />
-                      <button type="submit" class="btn btn-secondary">{copy.unscheduleLabel}</button>
-                    </form>
-                    <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
-                      <input type="hidden" name="q" value="{filters.query}" />
-                      <input type="hidden" name="workflow" value="{filters.workflow}" />
-                      <input type="hidden" name="kind" value="{filters.kind}" />
-                      <input type="hidden" name="channel" value="{filters.channel}" />
-                      <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
-                    </form>
+                    <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
                   </div>
                 </article>
               {/if}
@@ -1105,35 +440,14 @@
                 <article class="campaigns-admin-item">
                   <div class="admin-shell-card-header">
                     <div>
-                      <label class="campaigns-admin-select">
-                        <input type="checkbox" name="draftIds" value="{draft.id}" form="campaignsBulkActionForm" />
-                        <span>{copy.bulkSelectLabel}</span>
-                      </label>
                       <p class="section-subtitle">{draft.kindLabel}</p>
                       <h3><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></h3>
                     </div>
                     <span class="admin-observability-badge watch">{draft.workflowLabel}</span>
                   </div>
-                  <p>{draft.body}</p>
                   <div class="campaigns-admin-list">
-                    <article class="campaigns-admin-item"><strong>{copy.workflowLabel}</strong><span>{draft.workflowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.sourceLabel}</strong><span>{draft.sourceStatusLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.channelsLabel}</strong><span>{#for channel in draft.suggestedChannels}{channel}{#if channel_hasNext}, {/if}{/for}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.publishedChannelsLabel}</strong><span>{draft.publishedChannelsLabel}</span></article>
                     <article class="campaigns-admin-item"><strong>{copy.publisherStatusLabel}</strong><span>{draft.publisherOutcomeLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.evidenceLabel}</strong><span>{#for item in draft.evidence}{item}{#if item_hasNext} · {/if}{/for}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.scheduleForLabel}</strong><span>{draft.scheduledForLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.bestWindowLabel}</strong><span>{draft.recommendedWindowLabel}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.ctaLabel}</strong><a href="{draft.ctaUrl}" class="btn btn-secondary campaigns-admin-cta">{draft.ctaLabel}</a></article>
-                  </div>
-                  <div class="action-group admin-shell-actions">
-                    <form action="/private/admin/campaigns/{draft.id}/reset" method="post">
-                      <input type="hidden" name="q" value="{filters.query}" />
-                      <input type="hidden" name="workflow" value="{filters.workflow}" />
-                      <input type="hidden" name="kind" value="{filters.kind}" />
-                      <input type="hidden" name="channel" value="{filters.channel}" />
-                      <button type="submit" class="btn btn-secondary">{copy.resetLabel}</button>
-                    </form>
                   </div>
                 </article>
               {/if}
@@ -1141,56 +455,548 @@
           </div>
         </article>
       </div>
-    </section>
+    {/if}
+    {#if activePage == 'channels'}
+      <section class="admin-shell-panel" id="campaignsPublisherPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.publisherStatusLabel}</p>
+            <h2>{copy.publisherIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.publisherRefreshAutomationLabel}</strong><span>{view.automation.refreshAutomationEnabled}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.publisherPublishAutomationLabel}</strong><span>{view.automation.publishAutomationEnabled}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedLabel}</strong><span>{view.automation.updatedAtLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedByLabel}</strong><span>{view.automation.updatedByLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{view.globalPublishingEnabled}</span></article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.publisherRefreshAutomationLabel}</strong>
+            <span>
+              <form action="/private/admin/campaigns/automation/refresh" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="channels" />
+                {#if view.automation.refreshAutomationEnabled}
+                  <input type="hidden" name="enabled" value="false" />
+                  <button type="submit" class="btn btn-secondary" id="campaignsPauseRefreshBtn">{copy.pauseRefreshLabel}</button>
+                {#else}
+                  <input type="hidden" name="enabled" value="true" />
+                  <button type="submit" class="btn btn-secondary" id="campaignsResumeRefreshBtn">{copy.resumeRefreshLabel}</button>
+                {/if}
+              </form>
+            </span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.publisherPublishAutomationLabel}</strong>
+            <span>
+              <form action="/private/admin/campaigns/automation/publish" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="channels" />
+                {#if view.automation.publishAutomationEnabled}
+                  <input type="hidden" name="enabled" value="false" />
+                  <button type="submit" class="btn btn-secondary" id="campaignsPausePublishBtn">{copy.pausePublishLabel}</button>
+                {#else}
+                  <input type="hidden" name="enabled" value="true" />
+                  <button type="submit" class="btn btn-secondary" id="campaignsResumePublishBtn">{copy.resumePublishLabel}</button>
+                {/if}
+              </form>
+            </span>
+          </article>
+          {#for status in view.publisherStatuses}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{copy.publisherChannelLabel}</p>
+                  <h3>{status.channelLabel}</h3>
+                </div>
+                <span class="admin-observability-badge">{copy.publisherConfiguredLabel}: {status.configured}</span>
+              </div>
+              <div class="campaigns-admin-list">
+                <article class="campaigns-admin-item"><strong>{copy.publisherRuntimeChannelLabel}</strong><span>{#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.automationEnabled}{/if}{/for}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherEffectiveLabel}</strong><span>{#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.effectiveEnabled}{/if}{/for}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{status.dryRun}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{status.minIntervalLabel}</span></article>
+              </div>
+              <form action="/private/admin/campaigns/automation/channel/{status.channelCode}" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="channels" />
+                {#for channelState in view.automation.channels}
+                  {#if channelState.channelCode == status.channelCode}
+                    {#if channelState.automationEnabled}
+                      <input type="hidden" name="enabled" value="false" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsDisableChannelBtn-{status.channelCode}">{copy.disableChannelAutomationLabel}</button>
+                    {#else}
+                      <input type="hidden" name="enabled" value="true" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsEnableChannelBtn-{status.channelCode}">{copy.enableChannelAutomationLabel}</button>
+                    {/if}
+                  {/if}
+                {/for}
+              </form>
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsRolloutPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.rolloutTitle}</p>
+            <h2>{copy.rolloutIntro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.rolloutChecklist.statusCode}">{view.rolloutChecklist.statusLabel}</span>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item"><strong>{copy.rolloutPilotLabel}</strong><span>{view.rolloutChecklist.pilotChannelLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutActivationLabel}</strong><span>{view.rolloutChecklist.pilotActivationLabel}</span></article>
+          <article class="campaigns-admin-item"><strong>{copy.rolloutRecommendationLabel}</strong><span>{view.rolloutChecklist.recommendationLabel}</span></article>
+        </div>
+        <div class="campaigns-admin-list">
+          {#for item in view.rolloutChecklist.channels}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{copy.publisherChannelLabel}</p>
+                  <h3>{item.channelLabel}</h3>
+                </div>
+                <span class="admin-observability-badge {item.statusCode}">{item.statusLabel}</span>
+              </div>
+              <div class="campaigns-admin-list">
+                <article class="campaigns-admin-item"><strong>{copy.rolloutAckStatusLabel}</strong><span>{item.acknowledgementLabel}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.rolloutRecommendationLabel}</strong><span>{item.recommendationLabel}</span></article>
+              </div>
+              <div class="action-group admin-shell-actions">
+                <form action="/private/admin/campaigns/rollout/channel/{item.channelCode}/ack" method="post">
+                  <input type="hidden" name="q" value="{filters.query}" />
+                  <input type="hidden" name="workflow" value="{filters.workflow}" />
+                  <input type="hidden" name="kind" value="{filters.kind}" />
+                  <input type="hidden" name="channel" value="{filters.channel}" />
+                  <input type="hidden" name="returnTo" value="channels" />
+                  {#if item.acknowledged}
+                    <input type="hidden" name="acknowledged" value="false" />
+                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutClearBtn-{item.channelCode}">{copy.rolloutClearAckActionLabel}</button>
+                  {#else}
+                    <input type="hidden" name="acknowledged" value="true" />
+                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutAckBtn-{item.channelCode}">{copy.rolloutAckActionLabel}</button>
+                  {/if}
+                </form>
+                {#if item.pilotLive}
+                  {#if item.liveArmed}
+                    <form action="/private/admin/campaigns/rollout/pilot/disarm" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
+                      <input type="hidden" name="returnTo" value="channels" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
+                    </form>
+                  {#else}
+                    <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
+                      <input type="hidden" name="returnTo" value="channels" />
+                      <button type="submit" class="btn btn-secondary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
+                    </form>
+                  {/if}
+                  <form action="/private/admin/campaigns/rollout/pilot/clear" method="post">
+                    <input type="hidden" name="q" value="{filters.query}" />
+                    <input type="hidden" name="workflow" value="{filters.workflow}" />
+                    <input type="hidden" name="kind" value="{filters.kind}" />
+                    <input type="hidden" name="channel" value="{filters.channel}" />
+                    <input type="hidden" name="returnTo" value="channels" />
+                    <button type="submit" class="btn btn-secondary" id="campaignsPilotClearBtn">{copy.rolloutClearPilotActionLabel}</button>
+                  </form>
+                {#else}
+                  <form action="/private/admin/campaigns/rollout/pilot/{item.channelCode}/select" method="post">
+                    <input type="hidden" name="q" value="{filters.query}" />
+                    <input type="hidden" name="workflow" value="{filters.workflow}" />
+                    <input type="hidden" name="kind" value="{filters.kind}" />
+                    <input type="hidden" name="channel" value="{filters.channel}" />
+                    <input type="hidden" name="returnTo" value="channels" />
+                    <button type="submit" class="btn btn-secondary" id="campaignsPilotSelectBtn-{item.channelCode}">{copy.rolloutSelectPilotActionLabel}</button>
+                  </form>
+                {/if}
+              </div>
+            </article>
+          {/for}
+        </div>
+      </section>
+    {/if}
+    {#if activePage == 'publish'}
+      <section class="admin-shell-panel" id="campaignsPublishPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.publisherStatusLabel}</p>
+            <h2>{i18n:campaigns_admin_process_publish_controls_intro}</h2>
+          </div>
+          <div class="action-group admin-shell-actions">
+            <form action="/private/admin/campaigns/publish-now" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="returnTo" value="publish" />
+              <button type="submit" class="btn btn-secondary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
+            </form>
+          </div>
+        </div>
+        <div class="campaigns-admin-grid">
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{copy.approvedQueueTitle}</p>
+                <h3>{i18n:campaigns_admin_process_publish_ready_title}</h3>
+              </div>
+            </div>
+            <div class="campaigns-admin-list">
+              {#for draft in view.drafts}
+                {#if draft.workflowStateCode == 'approved'}
+                  <article class="campaigns-admin-item">
+                    <strong><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></strong>
+                    <span>{draft.scheduleReadinessLabel} · {draft.recommendedWindowLabel}</span>
+                    <form action="/private/admin/campaigns/{draft.id}/schedule" method="post" class="admin-shell-toolbar">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
+                      <input type="hidden" name="returnTo" value="publish" />
+                      <label class="sr-only" for="schedule-{draft.id}">{copy.scheduleForLabel}</label>
+                      <input id="schedule-{draft.id}" class="hd-input" type="datetime-local" name="scheduledFor" />
+                      <button type="submit" class="btn btn-secondary" {#if !draft.scheduleReady}disabled aria-disabled="true"{/if}>{copy.scheduleLabel}</button>
+                    </form>
+                  </article>
+                {/if}
+              {/for}
+            </div>
+          </article>
+
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{copy.scheduledQueueTitle}</p>
+                <h3>{i18n:campaigns_admin_process_publish_scheduled_title}</h3>
+              </div>
+            </div>
+            <div class="campaigns-admin-list">
+              {#for draft in view.drafts}
+                {#if draft.workflowStateCode == 'scheduled'}
+                  <article class="campaigns-admin-item">
+                    <strong><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></strong>
+                    <span>{draft.scheduledForLabel}</span>
+                    <div class="action-group admin-shell-actions">
+                      <form action="/private/admin/campaigns/{draft.id}/unschedule" method="post">
+                        <input type="hidden" name="q" value="{filters.query}" />
+                        <input type="hidden" name="workflow" value="{filters.workflow}" />
+                        <input type="hidden" name="kind" value="{filters.kind}" />
+                        <input type="hidden" name="channel" value="{filters.channel}" />
+                        <input type="hidden" name="returnTo" value="publish" />
+                        <button type="submit" class="btn btn-secondary">{copy.unscheduleLabel}</button>
+                      </form>
+                    </div>
+                  </article>
+                {/if}
+              {/for}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsPreviewPackPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.previewPacksTitle}</p>
+            <h2>{copy.previewPacksIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#for pack in view.previewPacks}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{pack.kindLabel}</p>
+                  <h3>{pack.title}</h3>
+                </div>
+                <span class="admin-observability-badge watch">{pack.workflowLabel}</span>
+              </div>
+              <p>{copy.bestWindowLabel}: {pack.recommendedWindowLabel}</p>
+              <div class="campaigns-admin-grid">
+                {#for channel in pack.channels}
+                  <article class="section-card admin-shell-panel">
+                    <div class="admin-shell-card-header">
+                      <div>
+                        <p class="section-subtitle">{channel.channelLabel}</p>
+                        <h4>{channel.headline}</h4>
+                      </div>
+                      <span class="admin-observability-badge">{channel.readinessLabel}</span>
+                    </div>
+                    <div class="campaigns-admin-list">
+                      <article class="campaigns-admin-item"><strong>{copy.previewLandingLabel}</strong><span>{channel.landingUrl}</span></article>
+                      <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
+                      <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
+                    </div>
+                  </article>
+                {/for}
+              </div>
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsLinkedinHandoffPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.linkedinTitle}</p>
+            <h2>{copy.linkedinIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if view.linkedinHandoffs.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.linkedinEmptyLabel}</strong></article>
+          {/if}
+          {#for handoff in view.linkedinHandoffs}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{handoff.workflowLabel}</p>
+                  <h3>{handoff.title}</h3>
+                </div>
+                <span class="admin-observability-badge watch">{handoff.statusLabel}</span>
+              </div>
+              <div class="campaigns-admin-list">
+                <article class="campaigns-admin-item"><strong>{copy.linkedinHeadlineLabel}</strong><span>{handoff.headline}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{handoff.landingUrl}" class="btn btn-secondary campaigns-admin-cta">{handoff.ctaLabel}</a></article>
+              </div>
+              {#if !handoff.completed}
+                <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
+                  <input type="hidden" name="q" value="{filters.query}" />
+                  <input type="hidden" name="workflow" value="{filters.workflow}" />
+                  <input type="hidden" name="kind" value="{filters.kind}" />
+                  <input type="hidden" name="channel" value="{filters.channel}" />
+                  <input type="hidden" name="returnTo" value="publish" />
+                  <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
+                </form>
+              {/if}
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <div class="campaigns-admin-grid">
+        <section class="admin-shell-panel" id="campaignsPilotVerificationPanel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.pilotVerificationTitle}</p>
+              <h2>{copy.pilotVerificationIntro}</h2>
+            </div>
+            <span class="admin-observability-badge {view.pilotVerificationSummary.statusCode}">{view.pilotVerificationSummary.statusLabel}</span>
+          </div>
+          <div class="campaigns-admin-list">
+            <article class="campaigns-admin-item"><strong>{copy.pilotVerificationTargetLabel}</strong><span>{view.pilotVerificationSummary.targetChannelLabel}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.pilotVerificationStateLabel}</strong><span>{view.pilotVerificationSummary.verificationLabel}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.pilotVerificationRecommendationLabel}</strong><span>{view.pilotVerificationSummary.recommendationLabel}</span></article>
+          </div>
+          <div class="action-group admin-shell-actions">
+            {#if view.pilotVerificationSummary.acknowledged}
+              <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="publish" />
+                <input type="hidden" name="acknowledged" value="false" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationClearBtn">{copy.pilotVerificationClearActionLabel}</button>
+              </form>
+            {#else if view.pilotVerificationSummary.canAcknowledge}
+              <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="publish" />
+                <input type="hidden" name="acknowledged" value="true" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationBtn">{copy.pilotVerificationMarkActionLabel}</button>
+              </form>
+            {/if}
+          </div>
+        </section>
+
+        <section class="admin-shell-panel" id="campaignsPilotDecisionPanel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.pilotDecision.title}</p>
+              <h2>{copy.pilotDecision.intro}</h2>
+            </div>
+            <span class="admin-observability-badge {view.pilotDecisionSummary.statusCode}">{view.pilotDecisionSummary.statusLabel}</span>
+          </div>
+          <div class="campaigns-admin-list">
+            <article class="campaigns-admin-item"><strong>{copy.pilotDecision.targetLabel}</strong><span>{view.pilotDecisionSummary.targetChannelLabel}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.pilotDecision.stateLabel}</strong><span>{view.pilotDecisionSummary.decisionLabel}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.pilotDecision.recommendationLabel}</strong><span>{view.pilotDecisionSummary.recommendationLabel}</span></article>
+          </div>
+          <div class="action-group admin-shell-actions">
+            {#if view.pilotDecisionSummary.canDecide}
+              <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="publish" />
+                <input type="hidden" name="decision" value="approved" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionApproveBtn">{copy.pilotDecision.approveActionLabel}</button>
+              </form>
+              <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="publish" />
+                <input type="hidden" name="decision" value="hold" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionHoldBtn">{copy.pilotDecision.holdActionLabel}</button>
+              </form>
+            {/if}
+            {#if view.pilotDecisionSummary.canClear}
+              <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+                <input type="hidden" name="q" value="{filters.query}" />
+                <input type="hidden" name="workflow" value="{filters.workflow}" />
+                <input type="hidden" name="kind" value="{filters.kind}" />
+                <input type="hidden" name="channel" value="{filters.channel}" />
+                <input type="hidden" name="returnTo" value="publish" />
+                <input type="hidden" name="decision" value="" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionClearBtn">{copy.pilotDecision.clearActionLabel}</button>
+              </form>
+            {/if}
+          </div>
+        </section>
+      </div>
+    {/if}
+    {#if activePage == 'monitor'}
+      <div class="campaigns-admin-grid">
+        <section class="admin-shell-panel" id="campaignsQueueHealthPanel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.queueHealthTitle}</p>
+              <h2>{copy.queueHealthIntro}</h2>
+            </div>
+            <span class="admin-observability-badge {view.queueHealth.statusCode}">{view.queueHealth.statusLabel}</span>
+          </div>
+          <div class="campaigns-admin-list">
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthAttentionLabel}</strong><span>{view.queueHealth.attentionCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleDraftsLabel}</strong><span>{view.queueHealth.staleDraftCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthStaleApprovedLabel}</strong><span>{view.queueHealth.staleApprovedCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.queueHealthOverdueScheduledLabel}</strong><span>{view.queueHealth.overdueScheduledCount}</span></article>
+          </div>
+        </section>
+
+        <section class="admin-shell-panel" id="campaignsBusinessPanel">
+          <div class="admin-shell-card-header">
+            <div>
+              <p class="section-subtitle">{copy.businessTitle}</p>
+              <h2>{copy.businessIntro}</h2>
+            </div>
+          </div>
+          <div class="campaigns-admin-list">
+            <article class="campaigns-admin-item"><strong>{copy.businessTotalVisitsLabel}</strong><span>{view.businessDashboard.totalVisitsLabel}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.businessDraftsWithTrafficLabel}</strong><span>{view.businessDashboard.draftsWithTrafficCount}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.businessAverageVisitsLabel}</strong><span>{view.businessDashboard.averageVisitsLabel}</span></article>
+            <article class="campaigns-admin-item"><strong>{copy.businessBestChannelLabel}</strong><span>{view.businessDashboard.bestChannelLabel}</span></article>
+          </div>
+        </section>
+      </div>
+
+      <section class="admin-shell-panel" id="campaignsRecentActivityPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.recentActivityTitle}</p>
+            <h2>{copy.recentActivityIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#for item in view.recentActivity}
+            <article class="campaigns-admin-item">
+              <strong>{item.title}</strong>
+              <span>{item.workflowLabel} · {item.activityLabel} · {item.timestampLabel}</span>
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsAttributionPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.attributionTitle}</p>
+            <h2>{copy.attributionIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if view.attribution.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.attributionEmptyLabel}</strong></article>
+          {/if}
+          {#for item in view.attribution}
+            <article class="campaigns-admin-item">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{item.kindLabel}</p>
+                  <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></h3>
+                </div>
+                <span class="admin-observability-badge">{copy.attributionTotalLabel}: {item.totalVisits}</span>
+              </div>
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsRecoveryPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.recoveryTitle}</p>
+            <h2>{copy.recoveryIntro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.recoverySummary.statusCode}">{view.recoverySummary.statusLabel}</span>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if view.recoveryItems.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.recoveryEmptyLabel}</strong></article>
+          {/if}
+          {#for item in view.recoveryItems}
+            <article class="campaigns-admin-item">
+              <strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></strong>
+              <span>{item.channelLabel} · {item.stateLabel} · {item.recommendationLabel}</span>
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsAuditTrailPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.auditTitle}</p>
+            <h2>{copy.auditIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-list">
+          {#if view.auditTrail.isEmpty}
+            <article class="campaigns-admin-item"><strong>{copy.auditEmptyLabel}</strong></article>
+          {/if}
+          {#for item in view.auditTrail}
+            <article class="campaigns-admin-item">
+              <strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></strong>
+              <span>{item.eventLabel} · {item.channelLabel} · {item.outcomeLabel} · {item.timestampLabel}</span>
+            </article>
+          {/for}
+        </div>
+      </section>
+    {/if}
   </div>
 </div>
-<script>
-  (function () {
-    const campaignsSections = Array.from(document.querySelectorAll('[data-campaigns-section]'));
-    const campaignsNavButtons = Array.from(document.querySelectorAll('[data-campaigns-nav]'));
-
-    const openCampaignsSection = (panelId, updateHash = true) => {
-      if (!panelId) return;
-      const matchingSections = campaignsSections.filter((section) => section.dataset.campaignsSection === panelId);
-      if (matchingSections.length === 0) return;
-
-      campaignsSections.forEach((section) => {
-        section.hidden = section.dataset.campaignsSection !== panelId;
-      });
-      campaignsNavButtons.forEach((button) => {
-        const active = button.dataset.campaignsNav === panelId;
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-
-      if (updateHash && window.location.hash !== ('#' + panelId)) {
-        history.replaceState(null, '', '#' + panelId);
-      }
-    };
-
-    campaignsNavButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        openCampaignsSection(button.dataset.campaignsNav, true);
-      });
-    });
-
-    const initialPanelId = (() => {
-      const hash = (window.location.hash || '').replace('#', '').trim();
-      if (hash && campaignsSections.some((section) => section.dataset.campaignsSection === hash)) {
-        return hash;
-      }
-      return 'campaignsFilterPanel';
-    })();
-
-    openCampaignsSection(initialPanelId, false);
-
-    window.addEventListener('hashchange', () => {
-      const hash = (window.location.hash || '').replace('#', '').trim();
-      if (hash) {
-        openCampaignsSection(hash, false);
-      }
-    });
-  })();
-</script>
 {/body}
 {/include}

@@ -45,36 +45,61 @@ class AdminCampaignsPageTest {
         .statusCode(200)
         .body(containsString("id=\"campaignsRefreshBtn\""))
         .body(containsString("id=\"campaignsProcessNav\""))
-        .body(containsString("id=\"campaignsFilterPanel\""))
-        .body(containsString("id=\"campaignsBulkPanel\""))
-        .body(containsString("id=\"campaignsBulkActionForm\""))
-        .body(containsString("id=\"campaignsBulkApplyBtn\""))
-        .body(containsString("id=\"campaignsPublishNowBtn\""))
-        .body(containsString("id=\"campaignsPauseRefreshBtn\""))
-        .body(containsString("id=\"campaignsPausePublishBtn\""))
-        .body(containsString("id=\"campaignsDisableChannelBtn-discord\""))
+        .body(containsString("id=\"campaignsOverviewPanel\""))
         .body(containsString("id=\"campaignsSummaryPanel\""))
         .body(containsString("id=\"campaignsQueueHealthPanel\""))
         .body(containsString("id=\"campaignsBusinessPanel\""))
+        .body(containsString("id=\"campaignsNavContent\""))
+        .body(containsString("id=\"campaignsNavChannels\""))
+        .body(containsString("id=\"campaignsNavPublish\""))
+        .body(containsString("id=\"campaignsNavMonitor\""));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanOpenCampaignProcessPages() {
+    given()
+        .when()
+        .get("/private/admin/campaigns/content")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsFilterPanel\""))
+        .body(containsString("id=\"campaignsBulkPanel\""))
+        .body(containsString("id=\"campaignsBulkActionForm\""))
+        .body(containsString("id=\"campaignsBulkApplyBtn\""));
+
+    given()
+        .when()
+        .get("/private/admin/campaigns/channels")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsPublisherPanel\""))
+        .body(containsString("id=\"campaignsPauseRefreshBtn\""))
+        .body(containsString("id=\"campaignsPausePublishBtn\""))
+        .body(containsString("id=\"campaignsDisableChannelBtn-discord\""))
         .body(containsString("id=\"campaignsRolloutPanel\""))
-        .body(containsString("id=\"campaignsRolloutAckBtn-discord\""))
-        .body(containsString("id=\"campaignsPilotRunbookPanel\""))
-        .body(containsString("id=\"campaignsPilotVerificationPanel\""))
-        .body(containsString("id=\"campaignsPilotDecisionPanel\""))
-        .body(containsString("id=\"campaignsRecoveryPanel\""))
-        .body(containsString("id=\"campaignsQueueRiskPanel\""))
-        .body(containsString("id=\"campaignsCadencePanel\""))
-        .body(containsString("id=\"campaignsAuditTrailPanel\""))
+        .body(containsString("id=\"campaignsRolloutAckBtn-discord\""));
+
+    given()
+        .when()
+        .get("/private/admin/campaigns/publish")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsPublishNowBtn\""))
         .body(containsString("id=\"campaignsPreviewPackPanel\""))
+        .body(containsString("id=\"campaignsPilotVerificationPanel\""))
+        .body(containsString("id=\"campaignsPilotDecisionPanel\""));
+
+    given()
+        .when()
+        .get("/private/admin/campaigns/monitor")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsBusinessPanel\""))
+        .body(containsString("id=\"campaignsRecentActivityPanel\""))
         .body(containsString("id=\"campaignsAttributionPanel\""))
-        .body(containsString("id=\"campaignsLinkedinPanel\""))
-        .body(containsString("campaigns-admin-grid"))
-        .body(containsString("campaigns-admin-list"))
-        .body(containsString("Bluesky"))
-        .body(containsString("Mastodon"))
-        .body(containsString("LinkedIn"))
-        .body(containsString("utm_source=campaigns"))
-        .body(containsString("/private/admin/campaigns/"));
+        .body(containsString("id=\"campaignsRecoveryPanel\""))
+        .body(containsString("id=\"campaignsAuditTrailPanel\""));
   }
 
   @Test
@@ -202,19 +227,20 @@ class AdminCampaignsPageTest {
 
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
-  void adminShowsPilotVerificationControls() {
+  void adminShowsPilotVerificationStatusInPublishPage() {
     campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
     campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
     campaignService.setPilotVerificationAcknowledged(true, "sergio.canales.e@gmail.com");
 
     given()
         .when()
-        .get("/private/admin/campaigns")
+        .get("/private/admin/campaigns/publish")
         .then()
         .statusCode(200)
         .body(containsString("id=\"campaignsPilotVerificationPanel\""))
-        .body(containsString("campaignsPilotVerificationClearBtn"))
-        .body(containsString("Verificado"));
+        .body(containsString("Discord"))
+        .body(containsString("Verificado"))
+        .body(containsString("Espera la primera publicación real en el canal piloto antes de marcar la verificación como completa."));
   }
 
   @Test
@@ -240,7 +266,7 @@ class AdminCampaignsPageTest {
 
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
-  void adminShowsApprovedPilotDecisionInRolloutSummary() {
+  void adminShowsRolloutReadinessSummaryForPilotChannel() {
     campaignService.setPublishAutomationEnabled(true, "sergio.canales.e@gmail.com");
     campaignService.setChannelAutomationEnabled("discord", true, "sergio.canales.e@gmail.com");
     campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
@@ -250,14 +276,15 @@ class AdminCampaignsPageTest {
 
     given()
         .when()
-        .get("/private/admin/campaigns")
+        .get("/private/admin/campaigns/channels")
         .then()
         .statusCode(200)
-        .body(containsString("Decisión actual"))
-        .body(containsString("Aprobado"))
-        .body(
-            containsString(
-                "Habilita publicación global y automatización de publicación antes del rollout."));
+        .body(containsString("Canal piloto live"))
+        .body(containsString("Discord"))
+        .body(containsString("Armado"))
+        .body(containsString("Bloqueado"))
+        .body(containsString("Discord"))
+        .body(containsString("Habilita publicación global y automatización de publicación antes del rollout."));
   }
 
   @Test
@@ -269,7 +296,7 @@ class AdminCampaignsPageTest {
         .queryParam("workflow", "draft")
         .queryParam("channel", "linkedin")
         .when()
-        .get("/private/admin/campaigns")
+        .get("/private/admin/campaigns/content")
         .then()
         .statusCode(200)
         .body(containsString("id=\"campaignsFilterPanel\""))
@@ -286,7 +313,7 @@ class AdminCampaignsPageTest {
     String html =
         given()
             .when()
-            .get("/private/admin/campaigns")
+            .get("/private/admin/campaigns/content")
             .then()
             .statusCode(200)
             .extract()
@@ -347,7 +374,8 @@ class AdminCampaignsPageTest {
         .body(containsString("value=\"HomeDir\""))
         .body(containsString("option value=\"product_pulse\" selected"))
         .body(containsString("option value=\"draft\" selected"))
-        .body(containsString("option value=\"linkedin\" selected"));
+        .body(containsString("option value=\"linkedin\" selected"))
+        .body(containsString("id=\"campaignsFilterPanel\""));
   }
 
   @Test
@@ -371,7 +399,7 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignDetailRiskPanel\""))
         .body(
             containsString(
-                "/private/admin/campaigns?q=HomeDir&amp;workflow=draft&amp;kind=product_pulse&amp;channel=linkedin"));
+                "/private/admin/campaigns/content?q=HomeDir&amp;workflow=draft&amp;kind=product_pulse&amp;channel=linkedin"));
   }
 
   @Test
