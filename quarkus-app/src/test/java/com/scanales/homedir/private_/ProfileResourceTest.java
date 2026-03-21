@@ -437,6 +437,34 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void profileShowsHeaderGithubLinkUsingSupportedStartRouteWhenAccountIsNotLinked() {
+    UserProfile profile = userProfiles.find(currentUserEmail()).orElseThrow();
+    profile.setGithub(null);
+    userProfiles.update(profile);
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("/private/github/start?redirect=/private/profile"))
+        .body(not(containsString("/private/github/connect")));
+  }
+
+  @Test
+  public void legacyGithubConnectRouteRedirectsInsteadOfReturningNotFound() {
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/private/github/connect")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/private/profile?githubConfig=missing"));
+  }
+
+  @Test
   public void economyCatalogPageLoadsWithPreviewAnchors() {
     given()
         .when()
