@@ -4980,6 +4980,117 @@ public interface AppMessages {
     @Message("Recovery")
     String campaigns_admin_process_step_recovery();
 
+    @Message("Overview")
+    String campaigns_admin_process_step_overview();
+
+    @Message("Content")
+    String campaigns_admin_process_step_content();
+
+    @Message("Channels")
+    String campaigns_admin_process_step_channels();
+
+    @Message("Publish")
+    String campaigns_admin_process_step_publish();
+
+    @Message("Monitor")
+    String campaigns_admin_process_step_monitor();
+
+    @Message("Campaign workflow")
+    String campaigns_admin_process_page_overview_title();
+
+    @Message("Run campaigns in four clear steps")
+    String campaigns_admin_process_page_overview_heading();
+
+    @Message("Start here if you only want to publish a platform update or product novelty without navigating the full operational depth.")
+    String campaigns_admin_process_page_overview_intro();
+
+    @Message("Step 1")
+    String campaigns_admin_process_page_content_title();
+
+    @Message("Select the content to publish")
+    String campaigns_admin_process_page_content_heading();
+
+    @Message("Review the available drafts, filter them, and keep only the items you want to move into publication.")
+    String campaigns_admin_process_page_content_intro();
+
+    @Message("Step 2")
+    String campaigns_admin_process_page_channels_title();
+
+    @Message("Choose the publication channel")
+    String campaigns_admin_process_page_channels_heading();
+
+    @Message("Enable only the channels you want to use and prepare the pilot channel before publishing.")
+    String campaigns_admin_process_page_channels_intro();
+
+    @Message("Step 3")
+    String campaigns_admin_process_page_publish_title();
+
+    @Message("Prepare and publish")
+    String campaigns_admin_process_page_publish_heading();
+
+    @Message("Review the final message pack, schedule the selected draft, and trigger the publish scan when the channel is ready.")
+    String campaigns_admin_process_page_publish_intro();
+
+    @Message("Step 4")
+    String campaigns_admin_process_page_monitor_title();
+
+    @Message("Monitor results and recover issues")
+    String campaigns_admin_process_page_monitor_heading();
+
+    @Message("Track visits, audit events, and any publication issue without mixing that context with draft selection.")
+    String campaigns_admin_process_page_monitor_intro();
+
+    @Message("Suggested path")
+    String campaigns_admin_process_overview_title();
+
+    @Message("Follow the sequence below to publish a HomeDir update with the least possible friction.")
+    String campaigns_admin_process_overview_intro();
+
+    @Message("Pick what you want to communicate")
+    String campaigns_admin_process_step_content_heading();
+
+    @Message("Choose one of the existing drafts or narrow the queue with filters until only the message you want to publish remains.")
+    String campaigns_admin_process_step_content_intro();
+
+    @Message("Open content")
+    String campaigns_admin_process_step_content_action();
+
+    @Message("Decide where it will go")
+    String campaigns_admin_process_step_channels_heading();
+
+    @Message("Review the available channels, keep only the channel you will use, and confirm the pilot if needed.")
+    String campaigns_admin_process_step_channels_intro();
+
+    @Message("Open channels")
+    String campaigns_admin_process_step_channels_action();
+
+    @Message("Prepare the final send")
+    String campaigns_admin_process_step_publish_heading();
+
+    @Message("Inspect the message preview, schedule the draft, and run publication only when the channel is ready.")
+    String campaigns_admin_process_step_publish_intro();
+
+    @Message("Open publish")
+    String campaigns_admin_process_step_publish_action();
+
+    @Message("Check what happened after sending")
+    String campaigns_admin_process_step_monitor_heading();
+
+    @Message("Use the monitoring page to review traffic, audit trail, and any recovery action after publication.")
+    String campaigns_admin_process_step_monitor_intro();
+
+    @Message("Open monitor")
+    String campaigns_admin_process_step_monitor_action();
+
+    @Message("Use this page only for the final publication step: schedule, preview, publish, and confirm manual LinkedIn handoffs.")
+    String campaigns_admin_process_publish_controls_intro();
+
+    @Message("Approved drafts ready to schedule")
+    String campaigns_admin_process_publish_ready_title();
+
+    @Message("Scheduled drafts waiting for publication")
+    String campaigns_admin_process_publish_scheduled_title();
+
     @Message("Development Insights · Homedir")
     String admin_insights_title();
 
