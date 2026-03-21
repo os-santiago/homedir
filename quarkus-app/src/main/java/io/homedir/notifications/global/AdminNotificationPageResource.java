@@ -19,7 +19,7 @@ public class AdminNotificationPageResource {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  @RolesAllowed("admin")
+  @RolesAllowed({"admin", "admin-view"})
   public TemplateInstance page() {
     return Templates.notifications();
   }

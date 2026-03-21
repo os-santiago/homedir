@@ -75,7 +75,7 @@ public class AdminCampaignsResource {
       @QueryParam("draft") String draftId,
       @QueryParam("error") String errorCode,
       @QueryParam("count") String updatedCount) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String localeCode = TemplateLocaleUtil.resolve(null, headers);
@@ -112,7 +112,7 @@ public class AdminCampaignsResource {
       @QueryParam("channel") String channel,
       @QueryParam("updated") String updated,
       @QueryParam("error") String errorCode) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String localeCode = TemplateLocaleUtil.resolve(null, headers);
@@ -150,7 +150,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
@@ -175,7 +175,7 @@ public class AdminCampaignsResource {
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo,
       @FormParam("currentDraft") String currentDraft) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.refreshDrafts();
@@ -198,7 +198,7 @@ public class AdminCampaignsResource {
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo,
       @FormParam("currentDraft") String currentDraft) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.publishScheduledNow();
@@ -220,7 +220,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.setRefreshAutomationEnabled(
@@ -243,7 +243,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.setPublishAutomationEnabled(
@@ -267,7 +267,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String normalizedChannel = normalizeAutomationChannel(channelCode);
@@ -299,7 +299,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String normalizedChannel = normalizeAutomationChannel(channelCode);
@@ -332,7 +332,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String normalizedChannel = normalizeAutomationChannel(channelCode);
@@ -361,7 +361,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.setPilotLiveChannel("", identity.getPrincipal().getName());
@@ -382,7 +382,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.setPilotLiveArmed(true, identity.getPrincipal().getName());
@@ -403,7 +403,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.setPilotLiveArmed(false, identity.getPrincipal().getName());
@@ -425,7 +425,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     boolean nextAcknowledged = "true".equalsIgnoreCase(acknowledged);
@@ -448,7 +448,7 @@ public class AdminCampaignsResource {
       @FormParam("workflow") String workflow,
       @FormParam("kind") String kind,
       @FormParam("channel") String channel) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String normalizedDecision = decision == null ? "" : decision.trim().toLowerCase(Locale.ROOT);
@@ -478,7 +478,7 @@ public class AdminCampaignsResource {
       @FormParam("kind") String kind,
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.approveDraft(draftId, identity.getPrincipal().getName());
@@ -501,7 +501,7 @@ public class AdminCampaignsResource {
       @FormParam("kind") String kind,
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.resetDraft(draftId);
@@ -526,7 +526,7 @@ public class AdminCampaignsResource {
       @FormParam("kind") String kind,
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
@@ -554,7 +554,7 @@ public class AdminCampaignsResource {
       @FormParam("kind") String kind,
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.unscheduleDraft(draftId);
@@ -577,7 +577,7 @@ public class AdminCampaignsResource {
       @FormParam("kind") String kind,
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     campaignService.markLinkedinPublished(draftId, identity.getPrincipal().getName());
@@ -601,7 +601,7 @@ public class AdminCampaignsResource {
       @FormParam("kind") String kind,
       @FormParam("channel") String channel,
       @FormParam("returnTo") String returnTo) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);

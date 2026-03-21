@@ -39,7 +39,7 @@ public class AdminCapacityResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response show() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     CapacityService.Status status = capacity.evaluate();

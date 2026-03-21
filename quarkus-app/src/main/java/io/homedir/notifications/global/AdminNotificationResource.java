@@ -12,7 +12,6 @@ import java.util.UUID;
 @Path("/admin/api/notifications")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@RolesAllowed({"admin"})
 public class AdminNotificationResource {
   private static final int DEFAULT_LIMIT = 50;
   private static final int MAX_LIMIT = 200;
@@ -21,6 +20,7 @@ public class AdminNotificationResource {
 
   @POST
   @Path("/broadcast")
+  @RolesAllowed("admin")
   public Response broadcast(GlobalNotification dto) {
     if (dto == null || dto.title == null || dto.message == null) {
       return Response.status(Response.Status.BAD_REQUEST).build();
@@ -38,12 +38,14 @@ public class AdminNotificationResource {
 
   @GET
   @Path("/latest")
+  @RolesAllowed({"admin", "admin-view"})
   public Response latest(@QueryParam("limit") @DefaultValue("50") int limit) {
     int normalizedLimit = PaginationGuardrails.clampLimit(limit, DEFAULT_LIMIT, MAX_LIMIT);
     return Response.ok(service.latest(normalizedLimit)).build();
   }
 
   @DELETE
+  @RolesAllowed("admin")
   public Response clear() {
     service.clearAll();
     return Response.noContent().build();
@@ -51,6 +53,7 @@ public class AdminNotificationResource {
 
   @DELETE
   @Path("/{id}")
+  @RolesAllowed("admin")
   public Response delete(@PathParam("id") String id) {
     boolean removed = service.removeById(id);
     return removed ? Response.noContent().build() : Response.status(404).build();
