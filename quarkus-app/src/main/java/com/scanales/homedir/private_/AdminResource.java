@@ -34,9 +34,12 @@ public class AdminResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response admin() {
-    String email = AdminUtils.getClaim(identity, "email");
-    if (email == null || !AdminUtils.getAdminList().contains(email)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    String email = AdminUtils.getClaim(identity, "email");
+    if (email == null) {
+      email = identity.getPrincipal().getName();
     }
     String name = AdminUtils.getClaim(identity, "name");
     if (name == null) {
@@ -50,7 +53,7 @@ public class AdminResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response guide() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(Templates.guide()).build();
@@ -67,7 +70,7 @@ public class AdminResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response errors() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(Templates.errors(systemErrorService.findAllErrors())).build();
@@ -77,7 +80,7 @@ public class AdminResource {
   @Path("errors/resolve/{id}")
   @Authenticated
   public Response resolveError(String id) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     systemErrorService.resolve(id);

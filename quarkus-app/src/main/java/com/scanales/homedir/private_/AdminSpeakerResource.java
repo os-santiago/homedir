@@ -34,15 +34,19 @@ public class AdminSpeakerResource {
 
   @Inject SpeakerService speakerService;
 
-  private boolean isAdmin() {
-    return AdminUtils.isAdmin(identity);
+  private boolean canViewAdminBackoffice() {
+    return AdminUtils.canViewAdminBackoffice(identity);
+  }
+
+  private boolean canManageAdminBackoffice() {
+    return AdminUtils.canManageAdminBackoffice(identity);
   }
 
   @GET
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response list(@QueryParam("msg") String message) {
-    if (!isAdmin()) {
+    if (!canViewAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     var speakers = speakerService.listSpeakers();
@@ -60,7 +64,7 @@ public class AdminSpeakerResource {
       @FormParam("twitter") String twitter,
       @FormParam("linkedin") String linkedin,
       @FormParam("instagram") String instagram) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Speaker sp;
@@ -97,7 +101,7 @@ public class AdminSpeakerResource {
   @Path("{id}/delete")
   @Authenticated
   public Response delete(@PathParam("id") String id) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     speakerService.deleteSpeaker(id);
@@ -116,7 +120,7 @@ public class AdminSpeakerResource {
       @FormParam("description") String description,
       @FormParam("duration") int duration,
       @FormParam("coSpeakerId") String coSpeakerId) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
@@ -151,7 +155,7 @@ public class AdminSpeakerResource {
   @Authenticated
   public Response deleteTalk(
       @PathParam("speakerId") String speakerId, @PathParam("talkId") String talkId) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     speakerService.deleteTalk(speakerId, talkId);

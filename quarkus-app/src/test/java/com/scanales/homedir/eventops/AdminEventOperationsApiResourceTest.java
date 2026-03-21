@@ -128,7 +128,7 @@ class AdminEventOperationsApiResourceTest {
         .get("/api/private/admin/events/" + EVENT_ID + "/ops/staff")
         .then()
         .statusCode(403)
-        .body("error", equalTo("admin_required"));
+        .body("error", equalTo("admin_view_required"));
   }
 
   @Test
@@ -169,4 +169,3 @@ class AdminEventOperationsApiResourceTest {
         .body("error", equalTo("invalid_shift_window"));
   }
 }
-

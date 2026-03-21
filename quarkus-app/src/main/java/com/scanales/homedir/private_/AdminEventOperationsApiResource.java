@@ -41,7 +41,7 @@ public class AdminEventOperationsApiResource {
   public Response listStaff(
       @PathParam("eventId") String eventId,
       @QueryParam("include_inactive") Boolean includeInactive) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceView();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -57,7 +57,7 @@ public class AdminEventOperationsApiResource {
       @PathParam("eventId") String eventId,
       @PathParam("userId") String userId,
       UpsertStaffRequest request) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceManage();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -88,7 +88,7 @@ public class AdminEventOperationsApiResource {
   public Response listSpaces(
       @PathParam("eventId") String eventId,
       @QueryParam("include_inactive") Boolean includeInactive) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceView();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -104,7 +104,7 @@ public class AdminEventOperationsApiResource {
       @PathParam("eventId") String eventId,
       @PathParam("spaceId") String spaceId,
       UpsertSpaceRequest request) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceManage();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -129,7 +129,7 @@ public class AdminEventOperationsApiResource {
   @GET
   @Path("/spaces/{spaceId}/shifts")
   public Response listSpaceShifts(@PathParam("eventId") String eventId, @PathParam("spaceId") String spaceId) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceView();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -143,7 +143,7 @@ public class AdminEventOperationsApiResource {
       @PathParam("eventId") String eventId,
       @PathParam("spaceId") String spaceId,
       CreateShiftRequest request) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceManage();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -167,7 +167,7 @@ public class AdminEventOperationsApiResource {
   @Path("/activities")
   public Response listActivities(
       @PathParam("eventId") String eventId, @QueryParam("visibility") String visibilityRaw) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceView();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -187,7 +187,7 @@ public class AdminEventOperationsApiResource {
       @PathParam("eventId") String eventId,
       @PathParam("activityId") String activityId,
       UpsertActivityRequest request) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceManage();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -218,7 +218,7 @@ public class AdminEventOperationsApiResource {
       @PathParam("eventId") String eventId,
       @QueryParam("visibility") String visibilityRaw,
       @QueryParam("include_inactive_staff") Boolean includeInactiveStaff) {
-    Response unauthorized = enforceAdmin();
+    Response unauthorized = enforceView();
     if (unauthorized != null) {
       return unauthorized;
     }
@@ -243,8 +243,15 @@ public class AdminEventOperationsApiResource {
     }
   }
 
-  private Response enforceAdmin() {
-    if (!AdminUtils.isAdmin(identity)) {
+  private Response enforceView() {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_view_required")).build();
+    }
+    return null;
+  }
+
+  private Response enforceManage() {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
     return null;
@@ -301,4 +308,3 @@ public class AdminEventOperationsApiResource {
       List<EventSpaceResponsibleShift> shifts,
       List<EventSpaceActivity> activities) {}
 }
-

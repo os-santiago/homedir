@@ -26,7 +26,7 @@ public class AdminObservabilityApiResource {
   @GET
   @Path("dashboard")
   public Response dashboard(@QueryParam("hours") @DefaultValue("24") int hours) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     int safeHours = Math.max(6, Math.min(hours, 72));

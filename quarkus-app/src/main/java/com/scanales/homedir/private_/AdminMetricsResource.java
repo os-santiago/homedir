@@ -195,7 +195,7 @@ public class AdminMetricsResource {
       @QueryParam("scenarioSort") String scenarioSort,
       @QueryParam("scenarioDir") String scenarioDir,
       @QueryParam("ctaQ") String ctaQ) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     MetricsData data = buildData(range, eventId, stageId, speakerId);
@@ -264,7 +264,7 @@ public class AdminMetricsResource {
   @Authenticated
   @Produces(MediaType.APPLICATION_JSON)
   public Response persistence() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Map<String, Object> stats = new HashMap<>();
@@ -285,7 +285,7 @@ public class AdminMetricsResource {
       @QueryParam("event") String eventId,
       @QueryParam("stage") String stageId,
       @QueryParam("speaker") String speakerId) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     long start = System.currentTimeMillis();
@@ -310,7 +310,7 @@ public class AdminMetricsResource {
   @Authenticated
   @Produces(MediaType.APPLICATION_JSON)
   public Response filters(@QueryParam("event") String eventId) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     List<Scenario> stages = eventId != null && !eventId.isBlank()
@@ -349,7 +349,7 @@ public class AdminMetricsResource {
   @Authenticated
   @Produces(MediaType.APPLICATION_JSON)
   public Response health() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(metrics.getHealth()).build();
@@ -360,7 +360,7 @@ public class AdminMetricsResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response guide() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(Templates.guide()).build();
@@ -379,7 +379,7 @@ public class AdminMetricsResource {
       @QueryParam("q") String query,
       @QueryParam("sort") String sort,
       @QueryParam("dir") String dir) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String tableName = (table == null || table.isBlank()) ? "talks" : table;
@@ -450,7 +450,7 @@ public class AdminMetricsResource {
   @Authenticated
   @Produces(MediaType.APPLICATION_JSON)
   public Response downloadData() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     try {
@@ -472,7 +472,7 @@ public class AdminMetricsResource {
   @Path("reset")
   @Authenticated
   public Response resetData() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     metrics.reset();
@@ -484,7 +484,7 @@ public class AdminMetricsResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response talksReport(@QueryParam("event") String eventId) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (eventId == null || eventId.isBlank()) {
@@ -513,7 +513,7 @@ public class AdminMetricsResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response registrations() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Map<String, List<UsageMetricsService.Registrant>> regs = metrics.getRegistrations();
@@ -547,7 +547,7 @@ public class AdminMetricsResource {
       @QueryParam("size") @DefaultValue("100") int size,
       @QueryParam("name") String name,
       @QueryParam("email") String email) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (talkId == null || talkId.isBlank()) {
