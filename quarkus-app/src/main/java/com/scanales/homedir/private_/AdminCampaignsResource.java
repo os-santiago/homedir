@@ -223,6 +223,15 @@ public class AdminCampaignsResource {
     }
     String localeCode = TemplateLocaleUtil.resolve(null, headers);
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
+    CampaignService.CampaignAdminFilters previewFilters =
+        "content".equals(activePage)
+            ? new CampaignService.CampaignAdminFilters(
+                filters.query(),
+                CampaignWorkflowState.DRAFT.name().toLowerCase(Locale.ROOT),
+                filters.kind(),
+                filters.channel())
+            : new CampaignService.CampaignAdminFilters(
+                filters.query(), filters.workflow(), filters.kind(), filters.channel());
     TemplateInstance template =
         Templates.index(
             localizedCopy(localeCode),
@@ -231,10 +240,7 @@ public class AdminCampaignsResource {
             workflowOptions(localeCode),
             kindOptions(localeCode),
             channelOptions(localeCode),
-            campaignService.preview(
-                localeCode,
-                new CampaignService.CampaignAdminFilters(
-                    filters.query(), filters.workflow(), filters.kind(), filters.channel())),
+            campaignService.preview(localeCode, previewFilters),
             "1".equals(refreshed),
             safe(updated),
             safe(draftId),
@@ -813,6 +819,15 @@ public class AdminCampaignsResource {
         text(bundle, "campaigns_admin_updated_bulk"),
         text(bundle, "campaigns_admin_filter_results"),
         text(bundle, "campaigns_admin_filter_empty"),
+        text(bundle, "campaigns_admin_content_start_title"),
+        text(bundle, "campaigns_admin_content_start_intro"),
+        text(bundle, "campaigns_admin_content_picker_title"),
+        text(bundle, "campaigns_admin_content_picker_intro"),
+        text(bundle, "campaigns_admin_content_select_action"),
+        text(bundle, "campaigns_admin_content_review_action"),
+        text(bundle, "campaigns_admin_content_next_title"),
+        text(bundle, "campaigns_admin_content_next_intro"),
+        text(bundle, "campaigns_admin_content_queue_empty"),
         text(bundle, "campaigns_admin_detail_back"),
         text(bundle, "campaigns_admin_detail_overview"),
         text(bundle, "campaigns_admin_detail_preview"),
@@ -1327,6 +1342,15 @@ public class AdminCampaignsResource {
       String updatedBulk,
       String filterResultsLabel,
       String filterEmptyLabel,
+      String contentStartTitle,
+      String contentStartIntro,
+      String contentPickerTitle,
+      String contentPickerIntro,
+      String contentSelectAction,
+      String contentReviewAction,
+      String contentNextTitle,
+      String contentNextIntro,
+      String contentQueueEmptyLabel,
       String detailBackLabel,
       String detailOverviewTitle,
       String detailPreviewTitle,

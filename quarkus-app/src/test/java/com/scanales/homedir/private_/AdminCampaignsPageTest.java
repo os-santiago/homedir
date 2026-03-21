@@ -63,10 +63,10 @@ class AdminCampaignsPageTest {
         .get("/private/admin/campaigns/content")
         .then()
         .statusCode(200)
+        .body(containsString("id=\"campaignsContentStartPanel\""))
         .body(containsString("id=\"campaignsFilterPanel\""))
-        .body(containsString("id=\"campaignsBulkPanel\""))
-        .body(containsString("id=\"campaignsBulkActionForm\""))
-        .body(containsString("id=\"campaignsBulkApplyBtn\""));
+        .body(containsString("id=\"campaignsContentPickerPanel\""))
+        .body(containsString("id=\"campaignsContentNextPanel\""));
 
     given()
         .when()
@@ -126,9 +126,6 @@ class AdminCampaignsPageTest {
             .statusCode(200)
             .body(containsString("Se aplicó la acción por lote"))
             .body(containsString("<code>" + draftIds.size() + "</code>"));
-    for (String draftId : draftIds) {
-      assertions.body(containsString(draftId));
-    }
   }
 
   @Test
@@ -302,7 +299,6 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsFilterPanel\""))
         .body(containsString("value=\"HomeDir\""))
         .body(containsString("option value=\"product_pulse\" selected"))
-        .body(containsString("option value=\"draft\" selected"))
         .body(containsString("option value=\"linkedin\" selected"))
         .body(containsString("HomeDir"));
   }
@@ -373,9 +369,9 @@ class AdminCampaignsPageTest {
         .statusCode(200)
         .body(containsString("value=\"HomeDir\""))
         .body(containsString("option value=\"product_pulse\" selected"))
-        .body(containsString("option value=\"draft\" selected"))
         .body(containsString("option value=\"linkedin\" selected"))
-        .body(containsString("id=\"campaignsFilterPanel\""));
+        .body(containsString("id=\"campaignsFilterPanel\""))
+        .body(containsString("id=\"campaignsContentPickerPanel\""));
   }
 
   @Test

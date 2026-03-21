@@ -1512,6 +1512,28 @@ footer {
   justify-self: start;
 }
 
+.campaigns-content-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr);
+}
+
+.campaigns-content-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.campaigns-content-card {
+  gap: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .campaigns-content-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .insights-initiatives-toolbar {
   display: flex;
   align-items: center;
