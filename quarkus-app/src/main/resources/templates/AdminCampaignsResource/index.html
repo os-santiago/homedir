@@ -24,6 +24,17 @@
 </section>
 
 <div class="container admin-shell-margin-bottom-md">
+  <nav class="hd-profile-nav" id="campaignsProcessNav" aria-label="{i18n:campaigns_admin_process_nav_aria}">
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsFilterPanel">{i18n:campaigns_admin_process_step_filters}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsBulkPanel">{i18n:campaigns_admin_process_step_bulk}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsQueuePanel">{i18n:campaigns_admin_process_step_queue}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPublisherPanel">{i18n:campaigns_admin_process_step_publishers}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsRolloutPanel">{i18n:campaigns_admin_process_step_rollout}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPilotRunbookPanel">{i18n:campaigns_admin_process_step_runbook}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPilotVerificationPanel">{i18n:campaigns_admin_process_step_verify}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsPilotDecisionPanel">{i18n:campaigns_admin_process_step_decision}</button>
+    <button type="button" class="hd-profile-nav-btn" data-campaigns-nav="campaignsRecoveryPanel">{i18n:campaigns_admin_process_step_recovery}</button>
+  </nav>
   {#if refreshed}
     <div class="hd-alert hd-alert-success">{copy.refreshed}</div>
   {/if}
@@ -106,7 +117,7 @@
 
 <div class="container">
   <div class="admin-shell-stack">
-    <section class="admin-shell-panel" id="campaignsFilterPanel">
+    <section class="admin-shell-panel" id="campaignsFilterPanel" data-campaigns-section="campaignsFilterPanel">
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.filtersTitle}</p>
@@ -156,7 +167,7 @@
       {/if}
     </section>
 
-    <section class="admin-shell-panel" id="campaignsBulkPanel">
+    <section class="admin-shell-panel" id="campaignsBulkPanel" data-campaigns-section="campaignsBulkPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.bulkTitle}</p>
@@ -186,7 +197,7 @@
     </section>
 
     <div class="campaigns-admin-grid">
-      <section class="admin-shell-panel" id="campaignsSummaryPanel">
+      <section class="admin-shell-panel" id="campaignsSummaryPanel" data-campaigns-section="campaignsFilterPanel">
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.generatedAt}</p>
@@ -195,7 +206,7 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel">
+      <section class="admin-shell-panel" data-campaigns-section="campaignsFilterPanel">
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.summaryTitle}</p>
@@ -214,7 +225,7 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsQueueHealthPanel">
+      <section class="admin-shell-panel" id="campaignsQueueHealthPanel" data-campaigns-section="campaignsFilterPanel">
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.queueHealthTitle}</p>
@@ -234,7 +245,7 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsBusinessPanel">
+      <section class="admin-shell-panel" id="campaignsBusinessPanel" data-campaigns-section="campaignsFilterPanel">
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.businessTitle}</p>
@@ -280,7 +291,7 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsRolloutPanel">
+      <section class="admin-shell-panel" id="campaignsRolloutPanel" data-campaigns-section="campaignsRolloutPanel" hidden>
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.rolloutTitle}</p>
@@ -383,7 +394,7 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsPilotRunbookPanel">
+      <section class="admin-shell-panel" id="campaignsPilotRunbookPanel" data-campaigns-section="campaignsPilotRunbookPanel" hidden>
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.runbookTitle}</p>
@@ -417,7 +428,7 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsPilotVerificationPanel">
+      <section class="admin-shell-panel" id="campaignsPilotVerificationPanel" data-campaigns-section="campaignsPilotVerificationPanel" hidden>
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.pilotVerificationTitle}</p>
@@ -468,7 +479,7 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsPilotDecisionPanel">
+      <section class="admin-shell-panel" id="campaignsPilotDecisionPanel" data-campaigns-section="campaignsPilotDecisionPanel" hidden>
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.pilotDecision.title}</p>
@@ -518,7 +529,7 @@
       </section>
     </div>
 
-    <section class="admin-shell-panel" id="campaignsRecoveryPanel">
+    <section class="admin-shell-panel" id="campaignsRecoveryPanel" data-campaigns-section="campaignsRecoveryPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.recoveryTitle}</p>
@@ -560,7 +571,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel" id="campaignsQueueRiskPanel">
+    <section class="admin-shell-panel" id="campaignsQueueRiskPanel" data-campaigns-section="campaignsRecoveryPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.queueRisksTitle}</p>
@@ -593,7 +604,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel" id="campaignsCadencePanel">
+    <section class="admin-shell-panel" id="campaignsCadencePanel" data-campaigns-section="campaignsFilterPanel">
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.cadenceTitle}</p>
@@ -622,7 +633,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel" id="campaignsRecentActivityPanel">
+    <section class="admin-shell-panel" id="campaignsRecentActivityPanel" data-campaigns-section="campaignsFilterPanel">
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.recentActivityTitle}</p>
@@ -639,7 +650,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel" id="campaignsAuditTrailPanel">
+    <section class="admin-shell-panel" id="campaignsAuditTrailPanel" data-campaigns-section="campaignsRecoveryPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.auditTitle}</p>
@@ -673,7 +684,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel" id="campaignsPreviewPackPanel">
+    <section class="admin-shell-panel" id="campaignsPreviewPackPanel" data-campaigns-section="campaignsQueuePanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.previewPacksTitle}</p>
@@ -716,7 +727,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel" id="campaignsAttributionPanel">
+    <section class="admin-shell-panel" id="campaignsAttributionPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.attributionTitle}</p>
@@ -751,7 +762,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel" id="campaignsLinkedinPanel">
+    <section class="admin-shell-panel" id="campaignsLinkedinPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.guardrailTitle}</p>
@@ -767,7 +778,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel" id="campaignsPublisherPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.publisherStatusLabel}</p>
@@ -863,7 +874,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel" id="campaignsLinkedinHandoffPanel" data-campaigns-section="campaignsPublisherPanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.linkedinTitle}</p>
@@ -908,7 +919,7 @@
       </div>
     </section>
 
-    <section class="admin-shell-panel">
+    <section class="admin-shell-panel" id="campaignsQueuePanel" data-campaigns-section="campaignsQueuePanel" hidden>
       <div class="admin-shell-card-header">
         <div>
           <p class="section-subtitle">{copy.subtitle}</p>
@@ -1133,5 +1144,53 @@
     </section>
   </div>
 </div>
+<script>
+  (function () {
+    const campaignsSections = Array.from(document.querySelectorAll('[data-campaigns-section]'));
+    const campaignsNavButtons = Array.from(document.querySelectorAll('[data-campaigns-nav]'));
+
+    const openCampaignsSection = (panelId, updateHash = true) => {
+      if (!panelId) return;
+      const matchingSections = campaignsSections.filter((section) => section.dataset.campaignsSection === panelId);
+      if (matchingSections.length === 0) return;
+
+      campaignsSections.forEach((section) => {
+        section.hidden = section.dataset.campaignsSection !== panelId;
+      });
+      campaignsNavButtons.forEach((button) => {
+        const active = button.dataset.campaignsNav === panelId;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      if (updateHash && window.location.hash !== ('#' + panelId)) {
+        history.replaceState(null, '', '#' + panelId);
+      }
+    };
+
+    campaignsNavButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        openCampaignsSection(button.dataset.campaignsNav, true);
+      });
+    });
+
+    const initialPanelId = (() => {
+      const hash = (window.location.hash || '').replace('#', '').trim();
+      if (hash && campaignsSections.some((section) => section.dataset.campaignsSection === hash)) {
+        return hash;
+      }
+      return 'campaignsFilterPanel';
+    })();
+
+    openCampaignsSection(initialPanelId, false);
+
+    window.addEventListener('hashchange', () => {
+      const hash = (window.location.hash || '').replace('#', '').trim();
+      if (hash) {
+        openCampaignsSection(hash, false);
+      }
+    });
+  })();
+</script>
 {/body}
 {/include}

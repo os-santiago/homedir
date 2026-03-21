@@ -103,6 +103,13 @@
         </div>
         <p class="admin-hub-card-desc">{i18n:admin_hub_coordination_desc}</p>
         <nav class="admin-hub-actions" aria-label="{i18n:admin_hub_coordination_nav_aria}">
+            <a href="/private/admin/campaigns" class="admin-hub-action">
+                <span class="material-symbols-outlined" aria-hidden="true">campaign</span>
+                <span class="admin-hub-action-copy">
+                    <strong>{i18n:admin_hub_action_campaigns_title}</strong>
+                    <small>{i18n:admin_hub_action_campaigns_desc}</small>
+                </span>
+            </a>
             <a href="/admin/notifications" class="admin-hub-action">
                 <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
                 <span class="admin-hub-action-copy">
@@ -152,6 +159,10 @@
             <a href="/private/admin/insights" class="btn btn-secondary admin-hub-shortcut-btn" role="listitem">
                 <span class="material-symbols-outlined" aria-hidden="true">insights</span>
                 {i18n:admin_hub_action_insights_title}
+            </a>
+            <a href="/private/admin/campaigns" class="btn btn-secondary admin-hub-shortcut-btn" role="listitem">
+                <span class="material-symbols-outlined" aria-hidden="true">campaign</span>
+                {i18n:admin_hub_action_campaigns_title}
             </a>
         </div>
     </article>

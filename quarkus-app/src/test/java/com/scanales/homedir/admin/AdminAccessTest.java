@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.SecurityAttribute;
 import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 
@@ -44,4 +45,22 @@ public class AdminAccessTest {
         .body(containsString("id=\"insightsInitiativesWindow\""))
         .body(containsString("id=\"insightsInitiativesCount\""));
   }
+
+  @Test
+  @TestSecurity(
+      user = "sergio.canales.e@gmail.com",
+      attributes = {
+        @SecurityAttribute(key = "email", value = "sergio.canales.e@gmail.com"),
+        @SecurityAttribute(key = "name", value = "Sergio Canales")
+      })
+  public void adminHubShowsCampaignsAccess() {
+    given()
+        .when()
+        .get("/private/admin")
+        .then()
+        .statusCode(200)
+        .body(containsString("/private/admin/campaigns"))
+        .body(containsString("campaign"));
+  }
+
 }

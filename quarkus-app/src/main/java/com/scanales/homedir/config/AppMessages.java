@@ -4938,11 +4938,47 @@ public interface AppMessages {
     @Message("Open operating guide and workflow checklist.")
     String admin_hub_action_guide_desc();
 
+    @Message("Campaigns")
+    String admin_hub_action_campaigns_title();
+
+    @Message("Run the marketing workflow from drafts to guarded rollout.")
+    String admin_hub_action_campaigns_desc();
+
     @Message("Quick access")
     String admin_hub_shortcuts_title();
 
     @Message("High-frequency actions with large hit areas for keyboard and touch navigation.")
     String admin_hub_shortcuts_desc();
+
+    @Message("Campaign process menu")
+    String campaigns_admin_process_nav_aria();
+
+    @Message("Filters")
+    String campaigns_admin_process_step_filters();
+
+    @Message("Bulk")
+    String campaigns_admin_process_step_bulk();
+
+    @Message("Queue")
+    String campaigns_admin_process_step_queue();
+
+    @Message("Publishers")
+    String campaigns_admin_process_step_publishers();
+
+    @Message("Rollout")
+    String campaigns_admin_process_step_rollout();
+
+    @Message("Runbook")
+    String campaigns_admin_process_step_runbook();
+
+    @Message("Verification")
+    String campaigns_admin_process_step_verify();
+
+    @Message("Decision")
+    String campaigns_admin_process_step_decision();
+
+    @Message("Recovery")
+    String campaigns_admin_process_step_recovery();
 
     @Message("Development Insights · Homedir")
     String admin_insights_title();
