@@ -1195,11 +1195,14 @@ footer {
 
 .hd-profile-nav-btn {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
   background: rgba(8, 14, 18, 0.75);
   color: inherit;
+  text-decoration: none;
   font-size: 0.82rem;
   line-height: 1.2;
   cursor: pointer;

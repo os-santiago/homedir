@@ -44,6 +44,7 @@ class AdminCampaignsPageTest {
         .then()
         .statusCode(200)
         .body(containsString("id=\"campaignsRefreshBtn\""))
+        .body(containsString("id=\"campaignsProcessNav\""))
         .body(containsString("id=\"campaignsFilterPanel\""))
         .body(containsString("id=\"campaignsBulkPanel\""))
         .body(containsString("id=\"campaignsBulkActionForm\""))
