@@ -1528,6 +1528,21 @@ footer {
   gap: 0.8rem;
 }
 
+.campaigns-channel-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.campaigns-channel-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.campaigns-channel-card {
+  gap: 0.8rem;
+}
+
 @media (max-width: 900px) {
   .campaigns-content-layout {
     grid-template-columns: 1fr;
