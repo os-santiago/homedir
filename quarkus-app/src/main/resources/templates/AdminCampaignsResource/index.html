@@ -392,92 +392,199 @@
       </div>
     {/if}
     {#if activePage == 'channels'}
+      <section class="admin-shell-panel" id="campaignsChannelsStartPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{i18n:campaigns_admin_process_step_channels}</p>
+            <h2>{i18n:campaigns_admin_process_page_channels_intro}</h2>
+          </div>
+          <span class="admin-observability-badge {view.rolloutChecklist.statusCode}">{view.rolloutChecklist.statusLabel}</span>
+        </div>
+        <div class="campaigns-content-grid">
+          <article class="campaigns-admin-item">
+            <strong>{copy.rolloutPilotLabel}</strong>
+            <span>{view.rolloutChecklist.pilotChannelLabel}</span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.rolloutActivationLabel}</strong>
+            <span>{view.rolloutChecklist.pilotActivationLabel}</span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.rolloutRecommendationLabel}</strong>
+            <span>{view.rolloutChecklist.recommendationLabel}</span>
+          </article>
+        </div>
+      </section>
+
       <section class="admin-shell-panel" id="campaignsPublisherPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.publisherChannelLabel}</p>
+            <h2>{i18n:campaigns_admin_process_step_channels_intro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-channel-grid">
+          {#for status in view.publisherStatuses}
+            <article class="campaigns-admin-item campaigns-channel-card">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{copy.publisherChannelLabel}</p>
+                  <h3>{status.channelLabel}</h3>
+                </div>
+                <span class="admin-observability-badge">
+                  {#for item in view.rolloutChecklist.channels}
+                    {#if item.channelCode == status.channelCode}{item.statusLabel}{/if}
+                  {/for}
+                </span>
+              </div>
+              <div class="campaigns-admin-list">
+                <article class="campaigns-admin-item"><strong>{copy.publisherConfiguredLabel}</strong><span>{status.configured}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherEffectiveLabel}</strong><span>{#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.effectiveEnabled}{/if}{/for}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{status.dryRun}</span></article>
+                <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{status.minIntervalLabel}</span></article>
+                <article class="campaigns-admin-item">
+                  <strong>{copy.rolloutRecommendationLabel}</strong>
+                  <span>
+                    {#for item in view.rolloutChecklist.channels}
+                      {#if item.channelCode == status.channelCode}{item.recommendationLabel}{/if}
+                    {/for}
+                  </span>
+                </article>
+              </div>
+              <div class="action-group admin-shell-actions">
+                {#for item in view.rolloutChecklist.channels}
+                  {#if item.channelCode == status.channelCode}
+                    {#if item.pilotLive}
+                      <span class="admin-observability-badge watch">{copy.rolloutPilotLabel}</span>
+                      {#if item.liveArmed}
+                        <form action="/private/admin/campaigns/rollout/pilot/disarm" method="post">
+                          <input type="hidden" name="q" value="{filters.query}" />
+                          <input type="hidden" name="workflow" value="{filters.workflow}" />
+                          <input type="hidden" name="kind" value="{filters.kind}" />
+                          <input type="hidden" name="channel" value="{filters.channel}" />
+                          <input type="hidden" name="returnTo" value="channels" />
+                          <button type="submit" class="btn btn-primary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
+                        </form>
+                      {#else}
+                        <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
+                          <input type="hidden" name="q" value="{filters.query}" />
+                          <input type="hidden" name="workflow" value="{filters.workflow}" />
+                          <input type="hidden" name="kind" value="{filters.kind}" />
+                          <input type="hidden" name="channel" value="{filters.channel}" />
+                          <input type="hidden" name="returnTo" value="channels" />
+                          <button type="submit" class="btn btn-primary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
+                        </form>
+                      {/if}
+                    {#else}
+                      <form action="/private/admin/campaigns/rollout/pilot/{item.channelCode}/select" method="post">
+                        <input type="hidden" name="q" value="{filters.query}" />
+                        <input type="hidden" name="workflow" value="{filters.workflow}" />
+                        <input type="hidden" name="kind" value="{filters.kind}" />
+                        <input type="hidden" name="channel" value="{filters.channel}" />
+                        <input type="hidden" name="returnTo" value="channels" />
+                        <button type="submit" class="btn btn-primary" id="campaignsChooseChannelBtn-{status.channelCode}">{copy.rolloutSelectPilotActionLabel}</button>
+                      </form>
+                    {/if}
+                  {/if}
+                {/for}
+                <form action="/private/admin/campaigns/automation/channel/{status.channelCode}" method="post">
+                  <input type="hidden" name="q" value="{filters.query}" />
+                  <input type="hidden" name="workflow" value="{filters.workflow}" />
+                  <input type="hidden" name="kind" value="{filters.kind}" />
+                  <input type="hidden" name="channel" value="{filters.channel}" />
+                  <input type="hidden" name="returnTo" value="channels" />
+                  {#for channelState in view.automation.channels}
+                    {#if channelState.channelCode == status.channelCode}
+                      {#if channelState.automationEnabled}
+                        <input type="hidden" name="enabled" value="false" />
+                        <button type="submit" class="btn btn-secondary" id="campaignsDisableChannelBtn-{status.channelCode}">{copy.disableChannelAutomationLabel}</button>
+                      {#else}
+                        <input type="hidden" name="enabled" value="true" />
+                        <button type="submit" class="btn btn-secondary" id="campaignsEnableChannelBtn-{status.channelCode}">{copy.enableChannelAutomationLabel}</button>
+                      {/if}
+                    {/if}
+                  {/for}
+                </form>
+              </div>
+            </article>
+          {/for}
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsChannelsNextPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{i18n:campaigns_admin_process_step_publish}</p>
+            <h2>{i18n:campaigns_admin_process_step_publish_intro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-content-grid">
+          <article class="campaigns-admin-item">
+            <strong>{copy.rolloutPilotLabel}</strong>
+            <span>{view.rolloutChecklist.pilotChannelLabel}</span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.rolloutReadyLabel}</strong>
+            <span>{view.rolloutChecklist.readyCount}</span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.rolloutBlockedLabel}</strong>
+            <span>{view.rolloutChecklist.blockedCount}</span>
+          </article>
+        </div>
+        <div class="campaigns-admin-list">
+          <article class="campaigns-admin-item">
+            <strong>{i18n:campaigns_admin_process_step_publish}</strong>
+            <span>{i18n:campaigns_admin_process_step_publish_intro}</span>
+            <a id="campaignsChannelsNextPublishBtn" href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="admin-shell-panel" id="campaignsChannelAdvancedPanel">
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.publisherStatusLabel}</p>
             <h2>{copy.publisherIntro}</h2>
           </div>
         </div>
-        <div class="campaigns-admin-list">
-          <article class="campaigns-admin-item"><strong>{copy.publisherRefreshAutomationLabel}</strong><span>{view.automation.refreshAutomationEnabled}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.publisherPublishAutomationLabel}</strong><span>{view.automation.publishAutomationEnabled}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedLabel}</strong><span>{view.automation.updatedAtLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.publisherUpdatedByLabel}</strong><span>{view.automation.updatedByLabel}</span></article>
-          <article class="campaigns-admin-item"><strong>{copy.publisherGlobalLabel}</strong><span>{view.globalPublishingEnabled}</span></article>
+        <div class="campaigns-channel-layout">
           <article class="campaigns-admin-item">
             <strong>{copy.publisherRefreshAutomationLabel}</strong>
-            <span>
-              <form action="/private/admin/campaigns/automation/refresh" method="post">
-                <input type="hidden" name="q" value="{filters.query}" />
-                <input type="hidden" name="workflow" value="{filters.workflow}" />
-                <input type="hidden" name="kind" value="{filters.kind}" />
-                <input type="hidden" name="channel" value="{filters.channel}" />
-                <input type="hidden" name="returnTo" value="channels" />
-                {#if view.automation.refreshAutomationEnabled}
-                  <input type="hidden" name="enabled" value="false" />
-                  <button type="submit" class="btn btn-secondary" id="campaignsPauseRefreshBtn">{copy.pauseRefreshLabel}</button>
-                {#else}
-                  <input type="hidden" name="enabled" value="true" />
-                  <button type="submit" class="btn btn-secondary" id="campaignsResumeRefreshBtn">{copy.resumeRefreshLabel}</button>
-                {/if}
-              </form>
-            </span>
+            <span>{view.automation.refreshAutomationEnabled}</span>
+            <form action="/private/admin/campaigns/automation/refresh" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="returnTo" value="channels" />
+              {#if view.automation.refreshAutomationEnabled}
+                <input type="hidden" name="enabled" value="false" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPauseRefreshBtn">{copy.pauseRefreshLabel}</button>
+              {#else}
+                <input type="hidden" name="enabled" value="true" />
+                <button type="submit" class="btn btn-secondary" id="campaignsResumeRefreshBtn">{copy.resumeRefreshLabel}</button>
+              {/if}
+            </form>
           </article>
           <article class="campaigns-admin-item">
             <strong>{copy.publisherPublishAutomationLabel}</strong>
-            <span>
-              <form action="/private/admin/campaigns/automation/publish" method="post">
-                <input type="hidden" name="q" value="{filters.query}" />
-                <input type="hidden" name="workflow" value="{filters.workflow}" />
-                <input type="hidden" name="kind" value="{filters.kind}" />
-                <input type="hidden" name="channel" value="{filters.channel}" />
-                <input type="hidden" name="returnTo" value="channels" />
-                {#if view.automation.publishAutomationEnabled}
-                  <input type="hidden" name="enabled" value="false" />
-                  <button type="submit" class="btn btn-secondary" id="campaignsPausePublishBtn">{copy.pausePublishLabel}</button>
-                {#else}
-                  <input type="hidden" name="enabled" value="true" />
-                  <button type="submit" class="btn btn-secondary" id="campaignsResumePublishBtn">{copy.resumePublishLabel}</button>
-                {/if}
-              </form>
-            </span>
+            <span>{view.automation.publishAutomationEnabled}</span>
+            <form action="/private/admin/campaigns/automation/publish" method="post">
+              <input type="hidden" name="q" value="{filters.query}" />
+              <input type="hidden" name="workflow" value="{filters.workflow}" />
+              <input type="hidden" name="kind" value="{filters.kind}" />
+              <input type="hidden" name="channel" value="{filters.channel}" />
+              <input type="hidden" name="returnTo" value="channels" />
+              {#if view.automation.publishAutomationEnabled}
+                <input type="hidden" name="enabled" value="false" />
+                <button type="submit" class="btn btn-secondary" id="campaignsPausePublishBtn">{copy.pausePublishLabel}</button>
+              {#else}
+                <input type="hidden" name="enabled" value="true" />
+                <button type="submit" class="btn btn-secondary" id="campaignsResumePublishBtn">{copy.resumePublishLabel}</button>
+              {/if}
+            </form>
           </article>
-          {#for status in view.publisherStatuses}
-            <article class="campaigns-admin-item">
-              <div class="admin-shell-card-header">
-                <div>
-                  <p class="section-subtitle">{copy.publisherChannelLabel}</p>
-                  <h3>{status.channelLabel}</h3>
-                </div>
-                <span class="admin-observability-badge">{copy.publisherConfiguredLabel}: {status.configured}</span>
-              </div>
-              <div class="campaigns-admin-list">
-                <article class="campaigns-admin-item"><strong>{copy.publisherRuntimeChannelLabel}</strong><span>{#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.automationEnabled}{/if}{/for}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.publisherEffectiveLabel}</strong><span>{#for channelState in view.automation.channels}{#if channelState.channelCode == status.channelCode}{channelState.effectiveEnabled}{/if}{/for}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.publisherDryRunLabel}</strong><span>{status.dryRun}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.publisherRateLimitLabel}</strong><span>{status.minIntervalLabel}</span></article>
-              </div>
-              <form action="/private/admin/campaigns/automation/channel/{status.channelCode}" method="post">
-                <input type="hidden" name="q" value="{filters.query}" />
-                <input type="hidden" name="workflow" value="{filters.workflow}" />
-                <input type="hidden" name="kind" value="{filters.kind}" />
-                <input type="hidden" name="channel" value="{filters.channel}" />
-                <input type="hidden" name="returnTo" value="channels" />
-                {#for channelState in view.automation.channels}
-                  {#if channelState.channelCode == status.channelCode}
-                    {#if channelState.automationEnabled}
-                      <input type="hidden" name="enabled" value="false" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsDisableChannelBtn-{status.channelCode}">{copy.disableChannelAutomationLabel}</button>
-                    {#else}
-                      <input type="hidden" name="enabled" value="true" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsEnableChannelBtn-{status.channelCode}">{copy.enableChannelAutomationLabel}</button>
-                    {/if}
-                  {/if}
-                {/for}
-              </form>
-            </article>
-          {/for}
         </div>
       </section>
 
