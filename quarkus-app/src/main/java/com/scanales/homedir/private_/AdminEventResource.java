@@ -57,8 +57,12 @@ public class AdminEventResource {
   @Inject
   ObjectMapper objectMapper;
 
-  private boolean isAdmin() {
-    return AdminUtils.isAdmin(identity);
+  private boolean canViewAdminBackoffice() {
+    return AdminUtils.canViewAdminBackoffice(identity);
+  }
+
+  private boolean canManageAdminBackoffice() {
+    return AdminUtils.canManageAdminBackoffice(identity);
   }
 
   @GET
@@ -66,7 +70,7 @@ public class AdminEventResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response listEvents(@QueryParam("msg") String message) {
-    if (!isAdmin()) {
+    if (!canViewAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     var events = eventService.listEvents();
@@ -78,7 +82,7 @@ public class AdminEventResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response create(@QueryParam("msg") String message) {
-    if (!isAdmin()) {
+    if (!canViewAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(
@@ -91,7 +95,7 @@ public class AdminEventResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response edit(@PathParam("id") String id, @QueryParam("msg") String message) {
-    if (!isAdmin()) {
+    if (!canViewAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Event event = eventService.getEvent(id);
@@ -124,7 +128,7 @@ public class AdminEventResource {
       @FormParam("themeAccentColor") String themeAccentColor,
       @FormParam("themeSurfaceColor") String themeSurfaceColor,
       @FormParam("themeTextColor") String themeTextColor) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     var now = java.time.LocalDateTime.now();
@@ -174,7 +178,7 @@ public class AdminEventResource {
       @FormParam("themeAccentColor") String themeAccentColor,
       @FormParam("themeSurfaceColor") String themeSurfaceColor,
       @FormParam("themeTextColor") String themeTextColor) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Event event = eventService.getEvent(id);
@@ -207,7 +211,7 @@ public class AdminEventResource {
   @Path("{id}/delete")
   @Authenticated
   public Response deleteEvent(@PathParam("id") String id) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     eventService.deleteEvent(id);
@@ -225,7 +229,7 @@ public class AdminEventResource {
       @FormParam("name") String name,
       @FormParam("features") String features,
       @FormParam("location") String location) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (scenarioId == null || scenarioId.isBlank()) {
@@ -247,7 +251,7 @@ public class AdminEventResource {
   @Authenticated
   public Response deleteScenario(
       @PathParam("id") String eventId, @PathParam("scenarioId") String scenarioId) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     eventService.deleteScenario(eventId, scenarioId);
@@ -267,7 +271,7 @@ public class AdminEventResource {
       @FormParam("startTime") String startTime,
       @FormParam("day") int day,
       @HeaderParam("X-Request-ID") String requestId) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     String reqId = requestId == null || requestId.isBlank()
@@ -372,7 +376,7 @@ public class AdminEventResource {
   @Path("{id}/talk/{talkId}/delete")
   @Authenticated
   public Response deleteTalk(@PathParam("id") String eventId, @PathParam("talkId") String talkId) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     eventService.deleteTalk(eventId, talkId);
@@ -392,7 +396,7 @@ public class AdminEventResource {
       @FormParam("location") String location,
       @FormParam("startTime") String startTime,
       @FormParam("day") int day) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Event event = eventService.getEvent(eventId);
@@ -458,7 +462,7 @@ public class AdminEventResource {
   @Authenticated
   public Response deleteBreak(
       @PathParam("id") String eventId, @PathParam("breakId") String breakId) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     eventService.deleteTalk(eventId, breakId);
@@ -473,7 +477,7 @@ public class AdminEventResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_HTML)
   public Response importEvent(@FormParam("file") FileUpload file) {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (file == null) {

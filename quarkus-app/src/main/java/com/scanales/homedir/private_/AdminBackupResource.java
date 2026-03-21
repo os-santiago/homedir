@@ -61,15 +61,19 @@ public class AdminBackupResource {
   private static final Logger LOG = Logger.getLogger(AdminBackupResource.class);
   private static final Pattern BACKUP_VERSION = Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
 
-  private boolean isAdmin() {
-    return AdminUtils.isAdmin(identity);
+  private boolean canViewAdminBackoffice() {
+    return AdminUtils.canViewAdminBackoffice(identity);
+  }
+
+  private boolean canManageAdminBackoffice() {
+    return AdminUtils.canManageAdminBackoffice(identity);
   }
 
   @GET
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response index(@QueryParam("msg") String message) {
-    if (!isAdmin()) {
+    if (!canViewAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(Templates.index(message)).build();
@@ -80,7 +84,7 @@ public class AdminBackupResource {
   @Authenticated
   @Produces("application/zip")
   public Response download() {
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     try {
@@ -113,7 +117,7 @@ public class AdminBackupResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public Response upload(@FormParam("file") FileUpload file) {
     String redirect = "/private/admin/backup";
-    if (!isAdmin()) {
+    if (!canManageAdminBackoffice()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (file == null || file.size() == 0) {
@@ -188,4 +192,3 @@ public class AdminBackupResource {
     return Paths.get(resolved);
   }
 }
-

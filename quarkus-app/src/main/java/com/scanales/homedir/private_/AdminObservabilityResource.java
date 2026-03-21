@@ -27,7 +27,7 @@ public class AdminObservabilityResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response index() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(Templates.index()).build();

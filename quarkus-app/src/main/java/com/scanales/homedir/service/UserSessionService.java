@@ -84,7 +84,7 @@ public class UserSessionService {
             communityMember = communityService.findByGithub(githubLogin).isPresent();
         }
 
-        boolean isAdmin = com.scanales.homedir.util.AdminUtils.isAdmin(identity);
+        boolean isAdmin = com.scanales.homedir.util.AdminUtils.canViewAdminBackoffice(identity);
 
         int level = questService.calculateLevel(currentXp);
         int nextLevelXp = questService.getXpForLevel(level + 1);

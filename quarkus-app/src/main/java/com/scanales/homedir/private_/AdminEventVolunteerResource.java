@@ -30,7 +30,7 @@ public class AdminEventVolunteerResource {
   @Authenticated
   @Produces(MediaType.TEXT_HTML)
   public Response moderation(@PathParam("id") String eventId) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     Event event = eventService.getEvent(eventId);

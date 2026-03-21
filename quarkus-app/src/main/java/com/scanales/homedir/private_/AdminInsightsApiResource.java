@@ -46,7 +46,7 @@ public class AdminInsightsApiResource {
   @GET
   @Path("status")
   public Response status() {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(insightsLedger.status()).build();
@@ -57,7 +57,7 @@ public class AdminInsightsApiResource {
   public Response initiatives(
       @QueryParam("limit") @DefaultValue("50") int limit,
       @QueryParam("offset") @DefaultValue("0") int offset) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     int safeLimit = Math.max(1, Math.min(limit, 200));
@@ -71,7 +71,7 @@ public class AdminInsightsApiResource {
   public Response exportInitiativesCsv(
       @QueryParam("limit") @DefaultValue("2000") int limit,
       @QueryParam("offset") @DefaultValue("0") int offset) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     int safeLimit = Math.max(1, Math.min(limit, 10000));
@@ -87,7 +87,7 @@ public class AdminInsightsApiResource {
   @POST
   @Path("initiatives/start")
   public Response startInitiative(StartInitiativeRequest request) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (request == null) {
@@ -114,7 +114,7 @@ public class AdminInsightsApiResource {
   @POST
   @Path("events")
   public Response appendEvent(AppendEventRequest request) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!AdminUtils.canManageAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     if (request == null) {
