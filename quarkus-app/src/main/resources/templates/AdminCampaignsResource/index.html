@@ -11,6 +11,7 @@
           {#if activePage == 'channels'}{i18n:campaigns_admin_process_page_channels_title}{/if}
           {#if activePage == 'publish'}{i18n:campaigns_admin_process_page_publish_title}{/if}
           {#if activePage == 'monitor'}{i18n:campaigns_admin_process_page_monitor_title}{/if}
+          {#if activePage == 'board'}{i18n:campaigns_admin_process_page_board_title}{/if}
         </p>
         <h1 class="page-title">
           {#if activePage == 'overview'}{i18n:campaigns_admin_process_page_overview_heading}{/if}
@@ -18,6 +19,7 @@
           {#if activePage == 'channels'}{i18n:campaigns_admin_process_page_channels_heading}{/if}
           {#if activePage == 'publish'}{i18n:campaigns_admin_process_page_publish_heading}{/if}
           {#if activePage == 'monitor'}{i18n:campaigns_admin_process_page_monitor_heading}{/if}
+          {#if activePage == 'board'}{i18n:campaigns_admin_process_page_board_heading}{/if}
         </h1>
         <p class="form-hint admin-shell-hint-tight">
           {#if activePage == 'overview'}{i18n:campaigns_admin_process_page_overview_intro}{/if}
@@ -25,6 +27,7 @@
           {#if activePage == 'channels'}{i18n:campaigns_admin_process_page_channels_intro}{/if}
           {#if activePage == 'publish'}{i18n:campaigns_admin_process_page_publish_intro}{/if}
           {#if activePage == 'monitor'}{i18n:campaigns_admin_process_page_monitor_intro}{/if}
+          {#if activePage == 'board'}{i18n:campaigns_admin_process_page_board_intro}{/if}
         </p>
       </div>
       <div class="action-group admin-shell-actions">
@@ -49,6 +52,7 @@
     <a id="campaignsNavChannels" href="/private/admin/campaigns/channels{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'channels'}is-active{/if}">{i18n:campaigns_admin_process_step_channels}</a>
     <a id="campaignsNavPublish" href="/private/admin/campaigns/publish{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'publish'}is-active{/if}">{i18n:campaigns_admin_process_step_publish}</a>
     <a id="campaignsNavMonitor" href="/private/admin/campaigns/monitor{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'monitor'}is-active{/if}">{i18n:campaigns_admin_process_step_monitor}</a>
+    <a id="campaignsNavBoard" href="/private/admin/campaigns/board{filters.querySuffix}" class="hd-profile-nav-btn {#if activePage == 'board'}is-active{/if}">{i18n:campaigns_admin_process_step_board}</a>
   </nav>
 
   {#if refreshed}
@@ -187,6 +191,16 @@
             </div>
             <p>{i18n:campaigns_admin_process_step_monitor_intro}</p>
             <a href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_monitor_action}</a>
+          </article>
+          <article class="section-card admin-shell-panel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{i18n:campaigns_admin_process_step_board}</p>
+                <h3>{i18n:campaigns_admin_board_title}</h3>
+              </div>
+            </div>
+            <p>{i18n:campaigns_admin_board_intro}</p>
+            <a href="/private/admin/campaigns/board{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_board}</a>
           </article>
         </div>
       </section>
@@ -1088,6 +1102,52 @@
               <strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></strong>
               <span>{item.eventLabel} · {item.channelLabel} · {item.outcomeLabel} · {item.timestampLabel}</span>
             </article>
+          {/for}
+        </div>
+      </section>
+    {/if}
+    {#if activePage == 'board'}
+      <section class="admin-shell-panel" id="campaignsBoardPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{i18n:campaigns_admin_board_title}</p>
+            <h2>{i18n:campaigns_admin_board_intro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-board">
+          {#for column in boardColumns}
+            <section class="campaigns-board-column" id="campaignsBoardColumn-{column.code}">
+              <div class="admin-shell-card-header">
+                <div>
+                  <p class="section-subtitle">{column.label}</p>
+                  <h3>{column.hint}</h3>
+                </div>
+                <span class="admin-observability-badge">{column.cards.size}</span>
+              </div>
+              <div class="campaigns-board-cards">
+                {#if column.cards.isEmpty}
+                  <article class="campaigns-board-card">
+                    <p class="form-hint">{i18n:campaigns_admin_board_empty}</p>
+                  </article>
+                {/if}
+                {#for card in column.cards}
+                  <article class="campaigns-board-card">
+                    <div class="admin-shell-card-header">
+                      <div>
+                        <p class="section-subtitle">{card.kindLabel}</p>
+                        <h4>{card.title}</h4>
+                      </div>
+                      <span class="admin-observability-badge {card.badgeClass}">{card.statusLabel}</span>
+                    </div>
+                    <p class="form-hint">{card.contextLabel}</p>
+                    {#if card.noteLabel}
+                      <p class="form-hint">{card.noteLabel}</p>
+                    {/if}
+                    <a href="{card.href}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_board_card_open}</a>
+                  </article>
+                {/for}
+              </div>
+            </section>
           {/for}
         </div>
       </section>

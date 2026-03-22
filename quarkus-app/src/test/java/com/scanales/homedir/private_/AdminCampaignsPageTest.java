@@ -52,7 +52,8 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsNavContent\""))
         .body(containsString("id=\"campaignsNavChannels\""))
         .body(containsString("id=\"campaignsNavPublish\""))
-        .body(containsString("id=\"campaignsNavMonitor\""));
+        .body(containsString("id=\"campaignsNavMonitor\""))
+        .body(containsString("id=\"campaignsNavBoard\""));
   }
 
   @Test
@@ -111,6 +112,19 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsAttributionPanel\""))
         .body(containsString("id=\"campaignsRecoveryPanel\""))
         .body(containsString("id=\"campaignsAuditTrailPanel\""));
+
+    given()
+        .when()
+        .get("/private/admin/campaigns/board")
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"campaignsBoardPanel\""))
+        .body(containsString("id=\"campaignsBoardColumn-draft\""))
+        .body(containsString("id=\"campaignsBoardColumn-approved\""))
+        .body(containsString("id=\"campaignsBoardColumn-ready\""))
+        .body(containsString("id=\"campaignsBoardColumn-scheduled\""))
+        .body(containsString("id=\"campaignsBoardColumn-issues\""))
+        .body(containsString("id=\"campaignsBoardColumn-published\""));
   }
 
   @Test

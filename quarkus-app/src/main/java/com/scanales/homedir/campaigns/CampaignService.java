@@ -66,6 +66,9 @@ public class CampaignService {
   @ConfigProperty(name = "app.public-url", defaultValue = "http://localhost:8080")
   String publicBaseUrl;
 
+  @ConfigProperty(name = "campaigns.publish.duplicate-window", defaultValue = "PT72H")
+  Duration duplicateWindow;
+
   private final Object stateLock = new Object();
   private volatile CampaignStateSnapshot currentState = CampaignStateSnapshot.empty();
   private volatile long lastKnownStateMtime = Long.MIN_VALUE;
@@ -165,14 +168,14 @@ public class CampaignService {
   public CampaignStateSnapshot scheduleDraft(String draftId, LocalDateTime scheduledLocal, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
+      Instant now = Instant.now();
       CampaignDraftState draft =
           currentState.drafts().stream().filter(item -> item.id().equals(draftId)).findFirst().orElse(null);
-      if (draft == null || !scheduleReadiness(draft).ready()) {
+      if (draft == null || !scheduleReadiness(draft, now).ready()) {
         throw new IllegalStateException("campaign_not_ready");
       }
       Instant scheduledFor = scheduledLocal.atZone(ZoneId.systemDefault()).toInstant();
       currentState = mutateDraftState(draftId, source -> {
-        Instant now = Instant.now();
         Instant approvedAt = source.approvedAt() != null ? source.approvedAt() : now;
         String approvedBy = source.approvedBy().isBlank() ? safe(actor) : source.approvedBy();
         return source.withWorkflow(
@@ -492,6 +495,18 @@ public class CampaignService {
       if (!isManualRetryAllowed(draft, normalizedChannel, Instant.now())) {
         throw new IllegalStateException("campaign_retry_not_ready");
       }
+      Instant now = Instant.now();
+      String guardrailCode =
+          publishGuardrailCode(
+              draft,
+              normalizedChannel,
+              now,
+              true,
+              recentPublishedAtByChannel(currentState.drafts()),
+              recentPublishedFingerprintsByChannel(currentState.drafts(), now));
+      if (guardrailCode != null) {
+        throw new IllegalStateException("campaign_retry_not_ready");
+      }
       CampaignPublisherStatus status =
           effectivePublisherStatuses(false).stream()
               .filter(item -> item.channel().equals(normalizedChannel))
@@ -504,7 +519,6 @@ public class CampaignService {
           || !status.configured()) {
         throw new IllegalStateException("campaign_retry_not_ready");
       }
-      Instant now = Instant.now();
       CampaignPublishResult result = publishToChannel(normalizedChannel, draft);
       Map<String, Instant> nextPublishedChannels = new LinkedHashMap<>(draft.publishedChannels());
       CampaignWorkflowState nextState = draft.workflowState();
@@ -879,7 +893,7 @@ public class CampaignService {
       ResourceBundle bundle,
       Locale locale,
       Map<String, String> cadenceByKind) {
-    CampaignSchedulingReadiness readiness = scheduleReadiness(draft);
+    CampaignSchedulingReadiness readiness = scheduleReadiness(draft, Instant.now());
     String kindLabel = bundleText(bundle, "campaigns_kind_" + draft.kind());
     String workflowLabel = bundleText(bundle, "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT));
     String sourceStatusLabel =
@@ -1110,11 +1124,21 @@ public class CampaignService {
     refreshOperationsFromDisk(false);
     Instant now = Instant.now();
     List<CampaignActivityEntry> activity = new ArrayList<>();
+    Map<String, Instant> channelPublishes = recentPublishedAtByChannel(currentState.drafts());
+    Map<String, Map<String, Instant>> recentFingerprints =
+        recentPublishedFingerprintsByChannel(currentState.drafts(), now);
     List<CampaignDraftState> drafts =
         currentState.drafts().stream()
             .map(
                 draft -> {
-                  PublishMutation mutation = publishIfDue(draft, now, source, respectPublishAutomation);
+                  PublishMutation mutation =
+                      publishIfDue(
+                          draft,
+                          now,
+                          source,
+                          respectPublishAutomation,
+                          channelPublishes,
+                          recentFingerprints);
                   activity.addAll(mutation.activity());
                   return mutation.draft();
                 })
@@ -1133,7 +1157,12 @@ public class CampaignService {
   }
 
   private PublishMutation publishIfDue(
-      CampaignDraftState draft, Instant now, String source, boolean respectPublishAutomation) {
+      CampaignDraftState draft,
+      Instant now,
+      String source,
+      boolean respectPublishAutomation,
+      Map<String, Instant> channelPublishes,
+      Map<String, Map<String, Instant>> recentFingerprints) {
     if ((draft.workflowState() != CampaignWorkflowState.SCHEDULED
             && draft.workflowState() != CampaignWorkflowState.PUBLISHED)
         || draft.scheduledFor() == null) {
@@ -1154,6 +1183,28 @@ public class CampaignService {
       if (nextPublishedChannels.containsKey(status.channel())) {
         continue;
       }
+      String guardrailCode =
+          publishGuardrailCode(
+              draft,
+              status.channel(),
+              now,
+              respectPublishAutomation,
+              channelPublishes,
+              recentFingerprints);
+      if (guardrailCode != null) {
+        lastAttemptAt = now;
+        lastOutcome = guardrailCode;
+        recordPublishInsight("CAMPAIGN_PUBLISH_SKIPPED", draft.id(), source, status.channel(), guardrailCode);
+        activity.add(
+            draftActivity(
+                draft.id(),
+                "publish.skipped",
+                status.channel(),
+                guardrailCode,
+                "system",
+                now));
+        continue;
+      }
       if (lastAttemptAt != null && lastAttemptAt.plus(status.minInterval()).isAfter(now)) {
         continue;
       }
@@ -1163,6 +1214,8 @@ public class CampaignService {
       if (result.published()) {
         Instant publishedAt = result.publishedAt() != null ? result.publishedAt() : now;
         nextPublishedChannels.put(result.channel(), publishedAt);
+        channelPublishes.put(result.channel(), publishedAt);
+        registerPublishedFingerprint(recentFingerprints, draft, result.channel(), publishedAt);
         nextState = CampaignWorkflowState.PUBLISHED;
         recordPublishInsight(eventNameForChannel(result.channel(), true), draft.id(), source, result.channel(), result.outcome());
         activity.add(
@@ -2607,7 +2660,15 @@ public class CampaignService {
         && draft.workflowState() == CampaignWorkflowState.SCHEDULED
         && isOverdue(draft, now)
         && channel != null) {
-      outcomeCode = safeRecoveryOutcome(scheduleBlockerCode(channel));
+      outcomeCode =
+          safeRecoveryOutcome(
+              scheduleBlockerCode(
+                  draft,
+                  channel,
+                  now,
+                  true,
+                  recentPublishedAtByChannel(currentState.drafts()),
+                  recentPublishedFingerprintsByChannel(currentState.drafts(), now)));
     }
     if (outcomeCode.isBlank()) {
       return null;
@@ -2658,7 +2719,12 @@ public class CampaignService {
         || "global_disabled".equals(outcomeCode)
         || "publish_paused".equals(outcomeCode)
         || "channel_paused".equals(outcomeCode)
-        || "channel_not_supported".equals(outcomeCode)) {
+        || "channel_not_supported".equals(outcomeCode)
+        || "pilot_locked".equals(outcomeCode)
+        || "pilot_not_selected".equals(outcomeCode)
+        || "pilot_gate_closed".equals(outcomeCode)
+        || "channel_cooldown".equals(outcomeCode)
+        || "duplicate_recent".equals(outcomeCode)) {
       return outcomeCode;
     }
     if ("unsupported".equals(outcomeCode)) {
@@ -2670,7 +2736,7 @@ public class CampaignService {
   private String recoveryStateCode(String normalizedCode) {
     return switch (normalizedCode) {
       case "publish_failed", "publish_error" -> "retryable";
-      case "global_disabled", "not_configured", "channel_disabled", "publish_paused", "channel_paused", "channel_not_supported", "unsupported" ->
+      case "global_disabled", "not_configured", "channel_disabled", "publish_paused", "channel_paused", "channel_not_supported", "unsupported", "pilot_locked", "pilot_not_selected", "pilot_gate_closed", "channel_cooldown", "duplicate_recent" ->
           "blocked";
       case "dry_run" -> "manual";
       default -> "";
@@ -2765,7 +2831,7 @@ public class CampaignService {
         badgeClass = "high";
       }
     } else if (draft.workflowState() == CampaignWorkflowState.APPROVED
-        && !scheduleReadiness(draft).ready()) {
+        && !scheduleReadiness(draft, now).ready()) {
       riskCode = "approved_blocked";
       badgeClass = "watch";
     } else if (draft.workflowState() == CampaignWorkflowState.APPROVED
@@ -2879,17 +2945,27 @@ public class CampaignService {
     return draft.suggestedChannels().contains(channel) && !draft.publishedChannels().containsKey(channel);
   }
 
-  private CampaignSchedulingReadiness scheduleReadiness(CampaignDraftState draft) {
+  private CampaignSchedulingReadiness scheduleReadiness(CampaignDraftState draft, Instant now) {
     if (draft == null) {
       return new CampaignSchedulingReadiness(false, List.of("none"), List.of());
     }
     List<String> blockerCodes = new ArrayList<>();
     List<String> readyChannels = new ArrayList<>();
+    Map<String, Instant> channelPublishes = recentPublishedAtByChannel(currentState.drafts());
+    Map<String, Map<String, Instant>> recentFingerprints =
+        recentPublishedFingerprintsByChannel(currentState.drafts(), now);
     for (String channel : draft.suggestedChannels()) {
       if ("linkedin".equals(channel)) {
         continue;
       }
-      String blocker = scheduleBlockerCode(channel);
+      String blocker =
+          scheduleBlockerCode(
+              draft,
+              channel,
+              now,
+              true,
+              channelPublishes,
+              recentFingerprints);
       if (blocker == null) {
         readyChannels.add(channel);
       } else {
@@ -2899,7 +2975,13 @@ public class CampaignService {
     return new CampaignSchedulingReadiness(!readyChannels.isEmpty(), List.copyOf(blockerCodes), List.copyOf(readyChannels));
   }
 
-  private String scheduleBlockerCode(String channel) {
+  private String scheduleBlockerCode(
+      CampaignDraftState draft,
+      String channel,
+      Instant now,
+      boolean respectPublishAutomation,
+      Map<String, Instant> channelPublishes,
+      Map<String, Map<String, Instant>> recentFingerprints) {
     CampaignPublisherStatus rawStatus =
         publisherStatuses().stream()
             .filter(item -> item.channel().equals(channel))
@@ -2935,7 +3017,13 @@ public class CampaignService {
     if (!currentOperationsState.isPilotLiveActive(channel)) {
       return "pilot_gate_closed";
     }
-    return null;
+    return publishGuardrailCode(
+        draft,
+        channel,
+        now,
+        respectPublishAutomation,
+        channelPublishes,
+        recentFingerprints);
   }
 
   private CampaignScheduleReadinessView schedulingReadiness(CampaignPreviewCard draft) {
@@ -2982,6 +3070,113 @@ public class CampaignService {
         channelEnabled,
         status.configured(),
         status.minInterval());
+  }
+
+  private String publishGuardrailCode(
+      CampaignDraftState draft,
+      String channel,
+      Instant now,
+      boolean respectPublishAutomation,
+      Map<String, Instant> channelPublishes,
+      Map<String, Map<String, Instant>> recentFingerprints) {
+    CampaignPublisherStatus rawStatus =
+        publisherStatuses().stream()
+            .filter(item -> item.channel().equals(channel))
+            .findFirst()
+            .orElse(null);
+    if (rawStatus == null) {
+      return "unsupported";
+    }
+    CampaignPublisherStatus effectiveStatus =
+        applyOperationsState(rawStatus, currentOperationsState(), respectPublishAutomation);
+    if (!effectiveStatus.globalEnabled()
+        || effectiveStatus.dryRun()
+        || !effectiveStatus.channelEnabled()
+        || !effectiveStatus.configured()) {
+      return null;
+    }
+    Instant lastPublishedAt = channelPublishes.get(channel);
+    if (lastPublishedAt != null && lastPublishedAt.plus(rawStatus.minInterval()).isAfter(now)) {
+      return "channel_cooldown";
+    }
+    String signature = CampaignPublishMessageSupport.dedupeSignature(draft, channel);
+    if (signature.isBlank()) {
+      return null;
+    }
+    Instant duplicatePublishedAt =
+        recentFingerprints.getOrDefault(channel, Map.of()).get(signature);
+    if (duplicatePublishedAt != null
+        && duplicatePublishedAt.plus(effectiveDuplicateWindow()).isAfter(now)) {
+      return "duplicate_recent";
+    }
+    return null;
+  }
+
+  private Map<String, Instant> recentPublishedAtByChannel(List<CampaignDraftState> drafts) {
+    Map<String, Instant> channelPublishes = new LinkedHashMap<>();
+    for (CampaignDraftState draft : drafts) {
+      if (draft == null) {
+        continue;
+      }
+      for (Map.Entry<String, Instant> entry : draft.publishedChannels().entrySet()) {
+        if (entry.getKey() == null || entry.getKey().isBlank() || entry.getValue() == null) {
+          continue;
+        }
+        Instant existing = channelPublishes.get(entry.getKey());
+        if (existing == null || entry.getValue().isAfter(existing)) {
+          channelPublishes.put(entry.getKey(), entry.getValue());
+        }
+      }
+    }
+    return channelPublishes;
+  }
+
+  private Map<String, Map<String, Instant>> recentPublishedFingerprintsByChannel(
+      List<CampaignDraftState> drafts, Instant now) {
+    Map<String, Map<String, Instant>> fingerprints = new LinkedHashMap<>();
+    Duration window = effectiveDuplicateWindow();
+    for (CampaignDraftState draft : drafts) {
+      if (draft == null) {
+        continue;
+      }
+      for (Map.Entry<String, Instant> entry : draft.publishedChannels().entrySet()) {
+        if (entry.getKey() == null
+            || entry.getKey().isBlank()
+            || entry.getValue() == null
+            || entry.getValue().plus(window).isBefore(now)) {
+          continue;
+        }
+        registerPublishedFingerprint(fingerprints, draft, entry.getKey(), entry.getValue());
+      }
+    }
+    return fingerprints;
+  }
+
+  private void registerPublishedFingerprint(
+      Map<String, Map<String, Instant>> fingerprints,
+      CampaignDraftState draft,
+      String channel,
+      Instant publishedAt) {
+    if (draft == null || channel == null || channel.isBlank() || publishedAt == null) {
+      return;
+    }
+    String signature = CampaignPublishMessageSupport.dedupeSignature(draft, channel);
+    if (signature.isBlank()) {
+      return;
+    }
+    Map<String, Instant> channelFingerprints =
+        fingerprints.computeIfAbsent(channel, ignored -> new LinkedHashMap<>());
+    Instant existing = channelFingerprints.get(signature);
+    if (existing == null || publishedAt.isAfter(existing)) {
+      channelFingerprints.put(signature, publishedAt);
+    }
+  }
+
+  private Duration effectiveDuplicateWindow() {
+    if (duplicateWindow == null || duplicateWindow.isZero() || duplicateWindow.isNegative()) {
+      return Duration.ofHours(72);
+    }
+    return duplicateWindow;
   }
 
   private List<CampaignAuditTrailEntry> auditTrail(
