@@ -1091,4 +1091,41 @@ class CampaignServiceTest {
         preview.recoveryItems().stream()
             .anyMatch(item -> "manual-draft".equals(item.draftId()) && "manual".equals(item.stateCode())));
   }
+
+  @Test
+  void previewDoesNotFailForScheduledOverdueDraftWhenChannelIsReady() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignDraftState target =
+        campaignService.refreshDrafts().drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPublishAutomationEnabled(true, "sergio.canales.e@gmail.com");
+    campaignService.setChannelAutomationEnabled("discord", true, "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
+    campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(10), "sergio.canales.e@gmail.com");
+
+    CampaignService.CampaignPreviewSnapshot preview = campaignService.preview("es");
+
+    assertNotNull(preview);
+    assertTrue(preview.drafts().stream().anyMatch(item -> target.id().equals(item.id())));
+    assertTrue(preview.recoveryItems().stream().noneMatch(item -> target.id().equals(item.draftId())));
+  }
 }

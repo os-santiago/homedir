@@ -2607,7 +2607,7 @@ public class CampaignService {
         && draft.workflowState() == CampaignWorkflowState.SCHEDULED
         && isOverdue(draft, now)
         && channel != null) {
-      outcomeCode = scheduleBlockerCode(channel);
+      outcomeCode = safeRecoveryOutcome(scheduleBlockerCode(channel));
     }
     if (outcomeCode.isBlank()) {
       return null;
