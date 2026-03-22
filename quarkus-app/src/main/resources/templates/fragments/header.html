@@ -108,7 +108,7 @@
         {/if}
 
         {#if !userSession.githubLinked}
-        <a href="/private/github/connect" class="dropdown-item header-dropdown-item header-dropdown-item-connect">
+        <a href="/private/github/start?redirect=/private/profile" class="dropdown-item header-dropdown-item header-dropdown-item-connect">
           <span class="material-symbols-outlined">link</span> {i18n:nav_connect_github}
         </a>
         {#else}
@@ -148,5 +148,4 @@
   {i18n:header_system_degraded}
 </div>
 {/if}
-
 
