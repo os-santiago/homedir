@@ -21,6 +21,13 @@ public class GithubLinkResource {
   GithubLinkService service;
 
   @GET
+  @Path("connect")
+  @Produces(MediaType.TEXT_HTML)
+  public Response connect(@QueryParam("redirect") String redirect) {
+    return service.start(identity, redirect);
+  }
+
+  @GET
   @Path("start")
   @Produces(MediaType.TEXT_HTML)
   public Response start(@QueryParam("redirect") String redirect) {
