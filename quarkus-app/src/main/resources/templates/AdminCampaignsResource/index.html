@@ -675,6 +675,30 @@
       </section>
     {/if}
     {#if activePage == 'publish'}
+      <section class="admin-shell-panel" id="campaignsPublishStartPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{i18n:campaigns_admin_process_step_publish}</p>
+            <h2>{i18n:campaigns_admin_process_page_publish_intro}</h2>
+          </div>
+          <span class="admin-observability-badge watch">{copy.rolloutPilotLabel}: {view.rolloutChecklist.pilotChannelLabel}</span>
+        </div>
+        <div class="campaigns-content-grid">
+          <article class="campaigns-admin-item">
+            <strong>{copy.summaryApprovedLabel}</strong>
+            <span>{view.summary.approvedCount}</span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.summaryScheduledLabel}</strong>
+            <span>{view.summary.scheduledCount}</span>
+          </article>
+          <article class="campaigns-admin-item">
+            <strong>{copy.rolloutRecommendationLabel}</strong>
+            <span>{view.rolloutChecklist.recommendationLabel}</span>
+          </article>
+        </div>
+      </section>
+
       <section class="admin-shell-panel" id="campaignsPublishPanel">
         <div class="admin-shell-card-header">
           <div>
@@ -688,7 +712,7 @@
               <input type="hidden" name="kind" value="{filters.kind}" />
               <input type="hidden" name="channel" value="{filters.channel}" />
               <input type="hidden" name="returnTo" value="publish" />
-              <button type="submit" class="btn btn-secondary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
+              <button type="submit" class="btn btn-primary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
             </form>
           </div>
         </div>
@@ -753,88 +777,117 @@
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsPreviewPackPanel">
+      <section class="admin-shell-panel" id="campaignsPublishSupportPanel">
         <div class="admin-shell-card-header">
           <div>
             <p class="section-subtitle">{copy.previewPacksTitle}</p>
             <h2>{copy.previewPacksIntro}</h2>
           </div>
         </div>
-        <div class="campaigns-admin-list">
-          {#for pack in view.previewPacks}
-            <article class="campaigns-admin-item">
-              <div class="admin-shell-card-header">
-                <div>
-                  <p class="section-subtitle">{pack.kindLabel}</p>
-                  <h3>{pack.title}</h3>
-                </div>
-                <span class="admin-observability-badge watch">{pack.workflowLabel}</span>
-              </div>
-              <p>{copy.bestWindowLabel}: {pack.recommendedWindowLabel}</p>
-              <div class="campaigns-admin-grid">
-                {#for channel in pack.channels}
-                  <article class="section-card admin-shell-panel">
-                    <div class="admin-shell-card-header">
-                      <div>
-                        <p class="section-subtitle">{channel.channelLabel}</p>
-                        <h4>{channel.headline}</h4>
-                      </div>
-                      <span class="admin-observability-badge">{channel.readinessLabel}</span>
+        <div class="campaigns-admin-grid">
+          <section class="admin-shell-panel" id="campaignsPreviewPackPanel">
+            <div class="campaigns-admin-list">
+              {#for pack in view.previewPacks}
+                <article class="campaigns-admin-item">
+                  <div class="admin-shell-card-header">
+                    <div>
+                      <p class="section-subtitle">{pack.kindLabel}</p>
+                      <h3>{pack.title}</h3>
                     </div>
-                    <div class="campaigns-admin-list">
-                      <article class="campaigns-admin-item"><strong>{copy.previewLandingLabel}</strong><span>{channel.landingUrl}</span></article>
-                      <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
-                      <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
-                    </div>
-                  </article>
-                {/for}
+                    <span class="admin-observability-badge watch">{pack.workflowLabel}</span>
+                  </div>
+                  <p>{copy.bestWindowLabel}: {pack.recommendedWindowLabel}</p>
+                  <div class="campaigns-admin-grid">
+                    {#for channel in pack.channels}
+                      <article class="section-card admin-shell-panel">
+                        <div class="admin-shell-card-header">
+                          <div>
+                            <p class="section-subtitle">{channel.channelLabel}</p>
+                            <h4>{channel.headline}</h4>
+                          </div>
+                          <span class="admin-observability-badge">{channel.readinessLabel}</span>
+                        </div>
+                        <div class="campaigns-admin-list">
+                          <article class="campaigns-admin-item"><strong>{copy.previewLandingLabel}</strong><span>{channel.landingUrl}</span></article>
+                          <article class="campaigns-admin-item"><strong>{copy.previewLengthLabel}</strong><span>{channel.lengthLabel}</span></article>
+                          <article class="campaigns-admin-item"><strong>{copy.previewMessageLabel}</strong><textarea class="hd-input" rows="6" readonly>{channel.message}</textarea></article>
+                        </div>
+                      </article>
+                    {/for}
+                  </div>
+                </article>
+              {/for}
+            </div>
+          </section>
+
+          <section class="admin-shell-panel" id="campaignsLinkedinHandoffPanel">
+            <div class="admin-shell-card-header">
+              <div>
+                <p class="section-subtitle">{copy.linkedinTitle}</p>
+                <h2>{copy.linkedinIntro}</h2>
               </div>
-            </article>
-          {/for}
+            </div>
+            <div class="campaigns-admin-list">
+              {#if view.linkedinHandoffs.isEmpty}
+                <article class="campaigns-admin-item"><strong>{copy.linkedinEmptyLabel}</strong></article>
+              {/if}
+              {#for handoff in view.linkedinHandoffs}
+                <article class="campaigns-admin-item">
+                  <div class="admin-shell-card-header">
+                    <div>
+                      <p class="section-subtitle">{handoff.workflowLabel}</p>
+                      <h3>{handoff.title}</h3>
+                    </div>
+                    <span class="admin-observability-badge watch">{handoff.statusLabel}</span>
+                  </div>
+                  <div class="campaigns-admin-list">
+                    <article class="campaigns-admin-item"><strong>{copy.linkedinHeadlineLabel}</strong><span>{handoff.headline}</span></article>
+                    <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{handoff.landingUrl}" class="btn btn-secondary campaigns-admin-cta">{handoff.ctaLabel}</a></article>
+                  </div>
+                  {#if !handoff.completed}
+                    <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
+                      <input type="hidden" name="q" value="{filters.query}" />
+                      <input type="hidden" name="workflow" value="{filters.workflow}" />
+                      <input type="hidden" name="kind" value="{filters.kind}" />
+                      <input type="hidden" name="channel" value="{filters.channel}" />
+                      <input type="hidden" name="returnTo" value="publish" />
+                      <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
+                    </form>
+                  {/if}
+                </article>
+              {/for}
+            </div>
+          </section>
         </div>
       </section>
 
-      <section class="admin-shell-panel" id="campaignsLinkedinHandoffPanel">
+      <section class="admin-shell-panel" id="campaignsPublishFollowupPanel">
         <div class="admin-shell-card-header">
           <div>
-            <p class="section-subtitle">{copy.linkedinTitle}</p>
-            <h2>{copy.linkedinIntro}</h2>
+            <p class="section-subtitle">{i18n:campaigns_admin_process_step_monitor}</p>
+            <h2>{copy.recentActivityTitle}</h2>
+          </div>
+          <div class="action-group admin-shell-actions">
+            <a href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn-secondary" id="campaignsPublishMonitorLink">{i18n:campaigns_admin_process_step_monitor}</a>
           </div>
         </div>
         <div class="campaigns-admin-list">
-          {#if view.linkedinHandoffs.isEmpty}
-            <article class="campaigns-admin-item"><strong>{copy.linkedinEmptyLabel}</strong></article>
-          {/if}
-          {#for handoff in view.linkedinHandoffs}
-            <article class="campaigns-admin-item">
-              <div class="admin-shell-card-header">
-                <div>
-                  <p class="section-subtitle">{handoff.workflowLabel}</p>
-                  <h3>{handoff.title}</h3>
-                </div>
-                <span class="admin-observability-badge watch">{handoff.statusLabel}</span>
-              </div>
-              <div class="campaigns-admin-list">
-                <article class="campaigns-admin-item"><strong>{copy.linkedinHeadlineLabel}</strong><span>{handoff.headline}</span></article>
-                <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{handoff.landingUrl}" class="btn btn-secondary campaigns-admin-cta">{handoff.ctaLabel}</a></article>
-              </div>
-              {#if !handoff.completed}
-                <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
-                  <input type="hidden" name="q" value="{filters.query}" />
-                  <input type="hidden" name="workflow" value="{filters.workflow}" />
-                  <input type="hidden" name="kind" value="{filters.kind}" />
-                  <input type="hidden" name="channel" value="{filters.channel}" />
-                  <input type="hidden" name="returnTo" value="publish" />
-                  <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
-                </form>
-              {/if}
-            </article>
-          {/for}
+          <article class="campaigns-admin-item">
+            <strong>{copy.recentActivityIntro}</strong>
+            <span>{copy.attributionIntro}</span>
+          </article>
         </div>
       </section>
 
-      <div class="campaigns-admin-grid">
-        <section class="admin-shell-panel" id="campaignsPilotVerificationPanel">
+      <section class="admin-shell-panel" id="campaignsPublishAdvancedPanel">
+        <div class="admin-shell-card-header">
+          <div>
+            <p class="section-subtitle">{copy.rolloutTitle}</p>
+            <h2>{copy.rolloutIntro}</h2>
+          </div>
+        </div>
+        <div class="campaigns-admin-grid">
+          <section class="admin-shell-panel" id="campaignsPilotVerificationPanel">
           <div class="admin-shell-card-header">
             <div>
               <p class="section-subtitle">{copy.pilotVerificationTitle}</p>
@@ -870,9 +923,9 @@
               </form>
             {/if}
           </div>
-        </section>
+          </section>
 
-        <section class="admin-shell-panel" id="campaignsPilotDecisionPanel">
+          <section class="admin-shell-panel" id="campaignsPilotDecisionPanel">
           <div class="admin-shell-card-header">
             <div>
               <p class="section-subtitle">{copy.pilotDecision.title}</p>
@@ -918,8 +971,9 @@
               </form>
             {/if}
           </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      </section>
     {/if}
     {#if activePage == 'monitor'}
       <div class="campaigns-admin-grid">

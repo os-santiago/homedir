@@ -89,8 +89,15 @@ class AdminCampaignsPageTest {
         .get("/private/admin/campaigns/publish")
         .then()
         .statusCode(200)
+        .body(containsString("id=\"campaignsPublishStartPanel\""))
+        .body(containsString("id=\"campaignsPublishPanel\""))
         .body(containsString("id=\"campaignsPublishNowBtn\""))
+        .body(containsString("id=\"campaignsPublishSupportPanel\""))
         .body(containsString("id=\"campaignsPreviewPackPanel\""))
+        .body(containsString("id=\"campaignsLinkedinHandoffPanel\""))
+        .body(containsString("id=\"campaignsPublishFollowupPanel\""))
+        .body(containsString("id=\"campaignsPublishMonitorLink\""))
+        .body(containsString("id=\"campaignsPublishAdvancedPanel\""))
         .body(containsString("id=\"campaignsPilotVerificationPanel\""))
         .body(containsString("id=\"campaignsPilotDecisionPanel\""));
 
