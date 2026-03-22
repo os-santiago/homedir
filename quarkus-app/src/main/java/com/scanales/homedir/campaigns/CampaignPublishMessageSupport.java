@@ -7,18 +7,27 @@ final class CampaignPublishMessageSupport {
   private CampaignPublishMessageSupport() {}
 
   static String messageFor(CampaignDraftState draft, String channel) {
-    String title = safe(draft.metadata().get("eventTitle"));
-    if (title.isBlank()) {
-      title = safe(draft.metadata().get("title"));
-    }
-    if (title.isBlank()) {
-      title = safe(draft.id());
-    }
     return "**HomeDir Campaign**\n"
-        + title
+        + editorialTitle(draft)
         + "\n"
         + "Track the latest verified progress inside HomeDir.\n"
         + trackedUrl(draft, channel);
+  }
+
+  static String dedupeSignature(CampaignDraftState draft, String channel) {
+    String path = safe(draft.metadata().get("eventUrl"));
+    if (path.isBlank()) {
+      path = "/about";
+    }
+    if (!path.startsWith("/")) {
+      path = "/" + path;
+    }
+    return sanitizeForSignature(channel)
+        + "|"
+        + sanitizeForSignature(editorialTitle(draft))
+        + "|"
+        + sanitizeForSignature(path)
+        + "|track-the-latest-verified-progress-inside-homedir";
   }
 
   static String trackedUrl(CampaignDraftState draft, String channel) {
@@ -68,6 +77,21 @@ final class CampaignPublishMessageSupport {
       normalized = normalized.substring(0, normalized.length() - 1);
     }
     return normalized;
+  }
+
+  private static String editorialTitle(CampaignDraftState draft) {
+    String title = safe(draft.metadata().get("eventTitle"));
+    if (title.isBlank()) {
+      title = safe(draft.metadata().get("title"));
+    }
+    if (title.isBlank()) {
+      title = safe(draft.id());
+    }
+    return title;
+  }
+
+  private static String sanitizeForSignature(String value) {
+    return safe(value).toLowerCase().replaceAll("\\s+", " ");
   }
 
   private static String sanitizeToken(String value, String fallback) {

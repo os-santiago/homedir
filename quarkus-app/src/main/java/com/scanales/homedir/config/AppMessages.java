@@ -4995,6 +4995,9 @@ public interface AppMessages {
     @Message("Monitor")
     String campaigns_admin_process_step_monitor();
 
+    @Message("Board")
+    String campaigns_admin_process_step_board();
+
     @Message("Campaign workflow")
     String campaigns_admin_process_page_overview_title();
 
@@ -5040,6 +5043,15 @@ public interface AppMessages {
     @Message("Track visits, audit events, and any publication issue without mixing that context with draft selection.")
     String campaigns_admin_process_page_monitor_intro();
 
+    @Message("Board")
+    String campaigns_admin_process_page_board_title();
+
+    @Message("See every campaign moving through the flow")
+    String campaigns_admin_process_page_board_heading();
+
+    @Message("Use the board when you want one visual dashboard for draft, ready, scheduled, published, and blocked campaigns.")
+    String campaigns_admin_process_page_board_intro();
+
     @Message("Suggested path")
     String campaigns_admin_process_overview_title();
 
@@ -5081,6 +5093,18 @@ public interface AppMessages {
 
     @Message("Open monitor")
     String campaigns_admin_process_step_monitor_action();
+
+    @Message("Campaign board")
+    String campaigns_admin_board_title();
+
+    @Message("Track the state of each campaign at a glance and open the detail page only when you need to act.")
+    String campaigns_admin_board_intro();
+
+    @Message("No campaigns in this column right now.")
+    String campaigns_admin_board_empty();
+
+    @Message("Open detail")
+    String campaigns_admin_board_card_open();
 
     @Message("Use this page only for the final publication step: schedule, preview, publish, and confirm manual LinkedIn handoffs.")
     String campaigns_admin_process_publish_controls_intro();

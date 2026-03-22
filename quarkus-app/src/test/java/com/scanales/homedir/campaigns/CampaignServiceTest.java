@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scanales.homedir.TestDataDir;
@@ -24,6 +26,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -498,6 +502,110 @@ class CampaignServiceTest {
     assertTrue(publishedDraft.workflowState() == CampaignWorkflowState.PUBLISHED);
     assertTrue(publishedDraft.publishedChannels().containsKey("discord"));
     assertTrue("published".equals(publishedDraft.lastPublishOutcome()));
+  }
+
+  @Test
+  void publishScheduledNowBlocksSecondDueDraftOnSameChannelWithinCooldown() {
+    Event firstEvent =
+        new Event(
+            "campaign-event-a",
+            "Campaign Event A",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    firstEvent.setDate(LocalDate.now().plusDays(10));
+    firstEvent.setType(EventType.CONFERENCE);
+    eventService.saveEvent(firstEvent);
+
+    List<CampaignDraftState> targets =
+        campaignService.refreshDrafts().drafts().stream()
+            .filter(item -> item.suggestedChannels().contains("discord"))
+            .limit(2)
+            .toList();
+
+    assertEquals(2, targets.size());
+
+    when(discordPublisherService.status())
+        .thenReturn(
+            new CampaignPublisherStatus("discord", true, false, true, true, Duration.ofMinutes(15)));
+    campaignService.setPilotLiveChannel("discord", "sergio.canales.e@gmail.com");
+    campaignService.setPilotLiveArmed(true, "sergio.canales.e@gmail.com");
+
+    for (CampaignDraftState target : targets) {
+      campaignService.approveDraft(target.id(), "sergio.canales.e@gmail.com");
+      campaignService.scheduleDraft(target.id(), LocalDateTime.now().minusMinutes(2), "sergio.canales.e@gmail.com");
+    }
+
+    when(discordPublisherService.publish(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+            CampaignPublishResult.published(
+                "discord", Instant.now().plusSeconds(5), "published"));
+
+    CampaignStateSnapshot snapshot = campaignService.publishScheduledNow();
+
+    long publishedCount =
+        snapshot.drafts().stream()
+            .filter(draft -> draft.publishedChannels().containsKey("discord"))
+            .count();
+    long cooldownCount =
+        snapshot.drafts().stream()
+            .filter(draft -> "channel_cooldown".equals(draft.lastPublishOutcome()))
+            .count();
+
+    assertEquals(1L, publishedCount);
+    assertEquals(1L, cooldownCount);
+    verify(discordPublisherService, times(1)).publish(org.mockito.ArgumentMatchers.any());
+  }
+
+  @Test
+  void dedupeSignatureIgnoresTrackingDraftIdForEquivalentMessages() {
+    Event event =
+        new Event(
+            "campaign-event",
+            "Campaign Event",
+            "Launch touchpoint",
+            1,
+            LocalDateTime.now(),
+            "admin@example.com");
+    event.setDate(LocalDate.now().plusDays(10));
+    event.setType(EventType.CONFERENCE);
+    eventService.saveEvent(event);
+
+    CampaignDraftState baseDraft =
+        campaignService.refreshDrafts().drafts().stream()
+            .filter(item -> "event_spotlight".equals(item.kind()))
+            .findFirst()
+            .orElseThrow();
+
+    Instant now = Instant.now();
+    CampaignDraftState duplicateDraft =
+        new CampaignDraftState(
+            "event-duplicate",
+            baseDraft.kind(),
+            baseDraft.generatedAt(),
+            baseDraft.metadata(),
+            baseDraft.suggestedChannels(),
+            baseDraft.approvalRequired(),
+            CampaignWorkflowState.APPROVED,
+            now,
+            "sergio.canales.e@gmail.com",
+            null,
+            now,
+            baseDraft.sourceAvailable(),
+            Map.of(),
+            null,
+            "");
+
+    String originalSignature = CampaignPublishMessageSupport.dedupeSignature(baseDraft, "discord");
+    String duplicateSignature = CampaignPublishMessageSupport.dedupeSignature(duplicateDraft, "discord");
+    String originalMessage = CampaignPublishMessageSupport.messageFor(baseDraft, "discord");
+    String duplicateMessage = CampaignPublishMessageSupport.messageFor(duplicateDraft, "discord");
+
+    assertEquals(originalSignature, duplicateSignature);
+    assertFalse(originalMessage.equals(duplicateMessage));
+    assertTrue(originalMessage.contains("utm_content=" + baseDraft.id()));
+    assertTrue(duplicateMessage.contains("utm_content=" + duplicateDraft.id()));
   }
 
   @Test

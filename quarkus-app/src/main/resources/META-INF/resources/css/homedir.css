@@ -1543,6 +1543,37 @@ footer {
   gap: 0.8rem;
 }
 
+.campaigns-board {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: start;
+}
+
+.campaigns-board-column {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+  min-width: 0;
+}
+
+.campaigns-board-cards {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.campaigns-board-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
 @media (max-width: 900px) {
   .campaigns-content-layout {
     grid-template-columns: 1fr;

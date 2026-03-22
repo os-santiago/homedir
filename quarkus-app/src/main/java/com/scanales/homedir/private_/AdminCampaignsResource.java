@@ -23,12 +23,14 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.ResourceBundle;
 import jakarta.ws.rs.core.UriBuilder;
+import java.util.function.Predicate;
 
 /** Hidden admin surface for internal marketing campaign drafts. */
 @Path("/private/admin/campaigns")
@@ -44,6 +46,7 @@ public class AdminCampaignsResource {
         List<AdminFilterOption> kindOptions,
         List<AdminFilterOption> channelOptions,
         CampaignService.CampaignPreviewSnapshot view,
+        List<AdminCampaignBoardColumn> boardColumns,
         boolean refreshed,
         String updatedAction,
         String updatedDraft,
@@ -206,6 +209,35 @@ public class AdminCampaignsResource {
         updatedCount);
   }
 
+  @GET
+  @Path("board")
+  @Authenticated
+  @Produces(MediaType.TEXT_HTML)
+  public Response board(
+      @Context HttpHeaders headers,
+      @QueryParam("q") String query,
+      @QueryParam("workflow") String workflow,
+      @QueryParam("kind") String kind,
+      @QueryParam("channel") String channel,
+      @QueryParam("refreshed") String refreshed,
+      @QueryParam("updated") String updated,
+      @QueryParam("draft") String draftId,
+      @QueryParam("error") String errorCode,
+      @QueryParam("count") String updatedCount) {
+    return renderIndexPage(
+        "board",
+        headers,
+        query,
+        workflow,
+        kind,
+        channel,
+        refreshed,
+        updated,
+        draftId,
+        errorCode,
+        updatedCount);
+  }
+
   private Response renderIndexPage(
       String activePage,
       HttpHeaders headers,
@@ -232,6 +264,7 @@ public class AdminCampaignsResource {
                 filters.channel())
             : new CampaignService.CampaignAdminFilters(
                 filters.query(), filters.workflow(), filters.kind(), filters.channel());
+    CampaignService.CampaignPreviewSnapshot view = campaignService.preview(localeCode, previewFilters);
     TemplateInstance template =
         Templates.index(
             localizedCopy(localeCode),
@@ -240,7 +273,8 @@ public class AdminCampaignsResource {
             workflowOptions(localeCode),
             kindOptions(localeCode),
             channelOptions(localeCode),
-            campaignService.preview(localeCode, previewFilters),
+            view,
+            boardColumns(localeCode, view, filters),
             "1".equals(refreshed),
             safe(updated),
             safe(draftId),
@@ -1186,6 +1220,7 @@ public class AdminCampaignsResource {
       case "channels" -> UriBuilder.fromPath("/private/admin/campaigns/channels");
       case "publish" -> UriBuilder.fromPath("/private/admin/campaigns/publish");
       case "monitor" -> UriBuilder.fromPath("/private/admin/campaigns/monitor");
+      case "board" -> UriBuilder.fromPath("/private/admin/campaigns/board");
       default -> UriBuilder.fromPath("/private/admin/campaigns");
     };
   }
@@ -1231,13 +1266,145 @@ public class AdminCampaignsResource {
       return "overview";
     }
     return switch (raw.trim().toLowerCase(Locale.ROOT)) {
-      case "overview", "content", "channels", "publish", "monitor", "detail" ->
+      case "overview", "content", "channels", "publish", "monitor", "board", "detail" ->
           raw.trim().toLowerCase(Locale.ROOT);
       default -> "overview";
     };
   }
 
+  private List<AdminCampaignBoardColumn> boardColumns(
+      String localeCode,
+      CampaignService.CampaignPreviewSnapshot view,
+      AdminCampaignFilters filters) {
+    Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
+    ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
+    Set<String> issueDraftIds = new LinkedHashSet<>();
+    for (CampaignService.CampaignPublishRecoveryItem item : view.recoveryItems()) {
+      issueDraftIds.add(item.draftId());
+    }
+    return List.of(
+        new AdminCampaignBoardColumn(
+            "draft",
+            text(bundle, "campaigns_admin_board_column_draft"),
+            text(bundle, "campaigns_admin_board_column_draft_hint"),
+            boardDraftCards(view.drafts(), filters, issueDraftIds, draft -> "draft".equals(draft.workflowStateCode()), "watch")),
+        new AdminCampaignBoardColumn(
+            "approved",
+            text(bundle, "campaigns_admin_board_column_approved"),
+            text(bundle, "campaigns_admin_board_column_approved_hint"),
+            boardDraftCards(
+                view.drafts(),
+                filters,
+                issueDraftIds,
+                draft -> "approved".equals(draft.workflowStateCode()) && !draft.scheduleReady(),
+                "watch")),
+        new AdminCampaignBoardColumn(
+            "ready",
+            text(bundle, "campaigns_admin_board_column_ready"),
+            text(bundle, "campaigns_admin_board_column_ready_hint"),
+            boardDraftCards(
+                view.drafts(),
+                filters,
+                issueDraftIds,
+                draft -> "approved".equals(draft.workflowStateCode()) && draft.scheduleReady(),
+                "healthy")),
+        new AdminCampaignBoardColumn(
+            "scheduled",
+            text(bundle, "campaigns_admin_board_column_scheduled"),
+            text(bundle, "campaigns_admin_board_column_scheduled_hint"),
+            boardDraftCards(
+                view.drafts(),
+                filters,
+                issueDraftIds,
+                draft -> "scheduled".equals(draft.workflowStateCode()) && !issueDraftIds.contains(draft.id()),
+                "watch")),
+        new AdminCampaignBoardColumn(
+            "issues",
+            text(bundle, "campaigns_admin_board_column_issues"),
+            text(bundle, "campaigns_admin_board_column_issues_hint"),
+            boardIssueCards(view.recoveryItems(), filters)),
+        new AdminCampaignBoardColumn(
+            "published",
+            text(bundle, "campaigns_admin_board_column_published"),
+            text(bundle, "campaigns_admin_board_column_published_hint"),
+            boardDraftCards(view.drafts(), filters, issueDraftIds, draft -> "published".equals(draft.workflowStateCode()), "healthy")));
+  }
+
+  private List<AdminCampaignBoardCard> boardDraftCards(
+      List<CampaignService.CampaignPreviewCard> drafts,
+      AdminCampaignFilters filters,
+      Set<String> issueDraftIds,
+      Predicate<CampaignService.CampaignPreviewCard> matcher,
+      String badgeClass) {
+    List<AdminCampaignBoardCard> cards = new ArrayList<>();
+    for (CampaignService.CampaignPreviewCard draft : drafts) {
+      if (!matcher.test(draft)) {
+        continue;
+      }
+      String contextLabel = draft.scheduleReady() ? draft.scheduleReadinessDetailLabel() : draft.scheduledForLabel();
+      if (contextLabel == null || contextLabel.isBlank() || "—".equals(contextLabel)) {
+        contextLabel = draft.publishedChannelsLabel();
+      }
+      if (contextLabel == null || contextLabel.isBlank() || "—".equals(contextLabel)) {
+        contextLabel = draft.sourceStatusLabel();
+      }
+      String noteLabel = issueDraftIds.contains(draft.id()) ? draft.publisherOutcomeLabel() : "";
+      cards.add(
+          new AdminCampaignBoardCard(
+              draft.id(),
+              draft.title(),
+              draft.kindLabel(),
+              draft.workflowLabel(),
+              contextLabel,
+              noteLabel,
+              detailHref(draft.id(), filters, "board"),
+              badgeClass));
+    }
+    return cards;
+  }
+
+  private List<AdminCampaignBoardCard> boardIssueCards(
+      List<CampaignService.CampaignPublishRecoveryItem> recoveryItems,
+      AdminCampaignFilters filters) {
+    List<AdminCampaignBoardCard> cards = new ArrayList<>();
+    for (CampaignService.CampaignPublishRecoveryItem item : recoveryItems) {
+      cards.add(
+          new AdminCampaignBoardCard(
+              item.draftId(),
+              item.title(),
+              item.kindLabel(),
+              item.stateLabel(),
+              item.channelLabel(),
+              item.outcomeLabel(),
+              detailHref(item.draftId(), filters, "board"),
+              item.badgeClass()));
+    }
+    return cards;
+  }
+
+  private String detailHref(String draftId, AdminCampaignFilters filters, String returnTo) {
+    UriBuilder builder =
+        UriBuilder.fromPath("/private/admin/campaigns/{draftId}")
+            .resolveTemplate("draftId", safe(draftId))
+            .queryParam("returnTo", normalizePage(returnTo));
+    appendFilters(builder, filters);
+    return builder.build().toString();
+  }
+
   public record AdminFilterOption(String value, String label) {}
+
+  public record AdminCampaignBoardColumn(
+      String code, String label, String hint, List<AdminCampaignBoardCard> cards) {}
+
+  public record AdminCampaignBoardCard(
+      String draftId,
+      String title,
+      String kindLabel,
+      String statusLabel,
+      String contextLabel,
+      String noteLabel,
+      String href,
+      String badgeClass) {}
 
   public record AdminCampaignFilters(
       String query, String workflow, String kind, String channel, int activeCount) {
