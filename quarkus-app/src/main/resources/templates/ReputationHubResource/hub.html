@@ -178,7 +178,7 @@
         </article>
 
         <article class="hub-panel">
-          <h2>{i18n:reputation_hub_how_title}</h2>
+          <h2><a class="hub-how-link" href="/comunidad/reputation-hub/how">{i18n:reputation_hub_how_title}</a></h2>
           <ul class="hub-how-list">
             <li>
               <strong>{i18n:reputation_hub_how_meaning_title}</strong>
@@ -243,6 +243,12 @@
     .hub-panel h2 {
       margin: 0 0 0.75rem;
       font-size: 1.02rem;
+    }
+
+    .hub-how-link {
+      color: #fff;
+      text-decoration: underline;
+      text-underline-offset: 2px;
     }
 
     .hub-list,

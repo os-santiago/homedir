@@ -33,6 +33,8 @@ public class ReputationHubResource {
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance hub(ReputationHubService.HubSnapshot hub);
+
+    static native TemplateInstance how();
   }
 
   @GET
@@ -57,6 +59,41 @@ public class ReputationHubResource {
     ReputationHubService.HubSnapshot hub = reputationHubService.snapshot(10);
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.hub(hub), localeCookie)
+            .data("activePage", "comunidad")
+            .data("mainClass", "community-ultra-lite")
+            .data("noLoginModal", true)
+            .data("activeCommunitySubmenu", "reputation-hub")
+            .data("userAuthenticated", authenticated)
+            .data("isAdmin", admin)
+            .data("showReputationHub", showReputationHub)
+            .data("currentUserId", currentUserId.orElse(null))
+            .data("userName", userName)
+            .data("userInitial", initialFrom(userName));
+    return Response.ok(template).build();
+  }
+
+  @GET
+  @Path("/how")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public Response how(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
+    if (!flags.engineEnabled() || !flags.hubUiEnabled()) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    metrics.recordPageView("/comunidad/reputation-hub/how", headers, context);
+    Optional<String> currentUserId = currentUserId();
+    currentUserId.ifPresent(
+        userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
+    String userName = currentUserName().orElse(null);
+    boolean authenticated = isAuthenticated();
+    boolean admin = AdminUtils.isAdmin(identity);
+    boolean showReputationHub = flags.hubUiEnabled() && (admin || flags.hubNavPublicEnabled());
+    TemplateInstance template =
+        TemplateLocaleUtil.apply(Templates.how(), localeCookie)
             .data("activePage", "comunidad")
             .data("mainClass", "community-ultra-lite")
             .data("noLoginModal", true)

@@ -95,6 +95,7 @@ class ReputationHubResourceTest {
         .body(containsString("Rising members"))
         .body(containsString("Recognized contributions"))
         .body(containsString("How reputation works"))
+        .body(containsString("href=\"/comunidad/reputation-hub/how\""))
         .body(containsString("hub-user-one"))
         .body(containsString("hub-user-two"))
         .body(containsString("Community recommended"))
@@ -118,6 +119,40 @@ class ReputationHubResourceTest {
         .body(containsString("hub-user-one"))
         .body(containsString("hub-user-two"))
         .body(containsString("Recomendado por la comunidad"));
+  }
+
+  @Test
+  void reputationHubHowPageRendersInEnglish() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/comunidad/reputation-hub/how")
+        .then()
+        .statusCode(200)
+        .body(containsString("How reputation works"))
+        .body(containsString("Top strengths"))
+        .body(containsString("Participation"))
+        .body(containsString("Contribution"))
+        .body(containsString("Recognition"))
+        .body(containsString("Consistency"))
+        .body(containsString("href=\"/comunidad/reputation-hub\""));
+  }
+
+  @Test
+  void reputationHubHowPageRendersInSpanish() {
+    given()
+        .header("Accept-Language", "es")
+        .when()
+        .get("/comunidad/reputation-hub/how")
+        .then()
+        .statusCode(200)
+        .body(containsString("Cómo funciona la reputación"))
+        .body(containsString("Fortalezas principales"))
+        .body(containsString("Participación"))
+        .body(containsString("Contribución"))
+        .body(containsString("Reconocimiento"))
+        .body(containsString("Consistencia"))
+        .body(containsString("href=\"/comunidad/reputation-hub\""));
   }
 
   @Test
