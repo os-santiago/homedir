@@ -202,7 +202,9 @@ public class CommunityBoardResource {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
     String name = currentUserName().orElse(null);
-    boolean showReputationHub = isAdmin && reputationFeatureFlags.snapshot().hubUiEnabled();
+    ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
+    boolean showReputationHub =
+        flags.hubUiEnabled() && (isAdmin || flags.hubNavPublicEnabled());
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")

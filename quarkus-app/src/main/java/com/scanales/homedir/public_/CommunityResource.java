@@ -102,7 +102,9 @@ public class CommunityResource {
       io.vertx.ext.web.RoutingContext context) {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
-    boolean showReputationHub = isAdmin && reputationFeatureFlags.snapshot().hubUiEnabled();
+    ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
+    boolean showReputationHub =
+        flags.hubUiEnabled() && (isAdmin || flags.hubNavPublicEnabled());
     String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);

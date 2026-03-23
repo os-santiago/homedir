@@ -12,6 +12,9 @@ public class ReputationFeatureFlags {
   @ConfigProperty(name = "reputation.hub.ui.enabled", defaultValue = "false")
   boolean hubUiEnabled;
 
+  @ConfigProperty(name = "reputation.hub.nav.public.enabled", defaultValue = "false")
+  boolean hubNavPublicEnabled;
+
   @ConfigProperty(name = "reputation.recognition.enabled", defaultValue = "false")
   boolean recognitionEnabled;
 
@@ -23,12 +26,18 @@ public class ReputationFeatureFlags {
 
   public Flags snapshot() {
     return new Flags(
-        engineEnabled, hubUiEnabled, recognitionEnabled, shadowReadEnabled, profileSummaryEnabled);
+        engineEnabled,
+        hubUiEnabled,
+        hubNavPublicEnabled,
+        recognitionEnabled,
+        shadowReadEnabled,
+        profileSummaryEnabled);
   }
 
   public record Flags(
       boolean engineEnabled,
       boolean hubUiEnabled,
+      boolean hubNavPublicEnabled,
       boolean recognitionEnabled,
       boolean shadowReadEnabled,
       boolean profileSummaryEnabled) {}
