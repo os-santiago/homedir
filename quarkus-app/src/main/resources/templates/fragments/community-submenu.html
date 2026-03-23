@@ -1,6 +1,7 @@
 {@ String activeCommunitySubmenu = "main"}
 {@ boolean isAdmin = false}
 {@ boolean showReputationHub = false}
+{@ boolean showCommunityBoard = true}
 <nav class="community-submenu" aria-label="{i18n:community_submenu_aria_label}">
   <a href="/comunidad/lta" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'lta'}community-submenu-link-active{/if}">
     <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">bolt</span>
@@ -14,10 +15,12 @@
     <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">edit_note</span>
     <span class="community-submenu-label">{i18n:community_submenu_propose}</span>
   </a>
+  {#if showCommunityBoard}
   <a href="/comunidad/board" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'board'}community-submenu-link-active{/if}">
     <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">groups</span>
     <span class="community-submenu-label">{i18n:community_submenu_board}</span>
   </a>
+  {/if}
   {#if showReputationHub}
   <a href="/comunidad/reputation-hub" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'reputation-hub'}community-submenu-link-active{/if}">
     <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">workspace_premium</span>

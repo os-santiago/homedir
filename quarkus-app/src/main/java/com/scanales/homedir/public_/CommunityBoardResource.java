@@ -209,10 +209,7 @@ public class CommunityBoardResource {
 
   private boolean shouldRedirectToReputationHub() {
     ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
-    if (!flags.engineEnabled() || !flags.hubUiEnabled() || !flags.hubPrimaryEnabled()) {
-      return false;
-    }
-    return AdminUtils.isAdmin(identity) || flags.hubNavPublicEnabled();
+    return isCommunityBoardReplaced(flags);
   }
 
   private Response redirectToReputationHub() {
@@ -227,6 +224,7 @@ public class CommunityBoardResource {
     ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
     boolean showReputationHub =
         flags.hubUiEnabled() && (isAdmin || flags.hubNavPublicEnabled());
+    boolean showCommunityBoard = !isCommunityBoardReplaced(flags);
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
@@ -235,8 +233,19 @@ public class CommunityBoardResource {
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
         .data("showReputationHub", showReputationHub)
+        .data("showCommunityBoard", showCommunityBoard)
         .data("userName", name)
         .data("userInitial", initialFrom(name));
+  }
+
+  private boolean isCommunityBoardReplaced(ReputationFeatureFlags.Flags flags) {
+    if (flags == null) {
+      return false;
+    }
+    if (!flags.engineEnabled() || !flags.hubUiEnabled() || !flags.hubPrimaryEnabled()) {
+      return false;
+    }
+    return AdminUtils.isAdmin(identity) || flags.hubNavPublicEnabled();
   }
 
   private int normalizeLimit(Integer ignoredLimitParam) {

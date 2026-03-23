@@ -2,6 +2,7 @@ package com.scanales.homedir.community;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 import com.scanales.homedir.TestDataDir;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -55,5 +56,27 @@ class CommunityBoardPrimarySwitchTest {
         .then()
         .statusCode(303)
         .header("Location", containsString("/comunidad/reputation-hub"));
+  }
+
+  @Test
+  void communityMenuHidesBoardLinkWhenPrimarySwitchIsEnabled() {
+    englishRequest()
+        .when()
+        .get("/comunidad")
+        .then()
+        .statusCode(200)
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
+        .body(not(containsString("href=\"/comunidad/board\"")));
+  }
+
+  @Test
+  void reputationHubMenuHidesBoardLinkWhenPrimarySwitchIsEnabled() {
+    englishRequest()
+        .when()
+        .get("/comunidad/reputation-hub")
+        .then()
+        .statusCode(200)
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
+        .body(not(containsString("href=\"/comunidad/board\"")));
   }
 }

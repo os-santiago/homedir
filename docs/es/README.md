@@ -44,6 +44,7 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Codex Optimization Notes (stub)](development/codex-optimization-notes.md)
 - [Production-Safe Delivery Playbook (stub)](development/production-safe-delivery-playbook.md)
 - [Release Stage Gates (stub)](development/release-stage-gates.md)
+- [Reputation Hub Primary Switch Runbook (espejo)](development/reputation-hub-primary-switch-runbook.md)
 
 ## Contexto AI
 

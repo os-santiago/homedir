@@ -57,6 +57,7 @@ public class ReputationHubResource {
     boolean admin = AdminUtils.isAdmin(identity);
     boolean showReputationHub = flags.hubUiEnabled() && (admin || flags.hubNavPublicEnabled());
     boolean showHubMigrationBanner = flags.hubPrimaryEnabled();
+    boolean showCommunityBoard = !isCommunityBoardReplaced(flags, admin);
     ReputationHubService.HubSnapshot hub = reputationHubService.snapshot(10);
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.hub(hub), localeCookie)
@@ -67,6 +68,7 @@ public class ReputationHubResource {
             .data("userAuthenticated", authenticated)
             .data("isAdmin", admin)
             .data("showReputationHub", showReputationHub)
+            .data("showCommunityBoard", showCommunityBoard)
             .data("showHubMigrationBanner", showHubMigrationBanner)
             .data("currentUserId", currentUserId.orElse(null))
             .data("userName", userName)
@@ -95,6 +97,7 @@ public class ReputationHubResource {
     boolean admin = AdminUtils.isAdmin(identity);
     boolean showReputationHub = flags.hubUiEnabled() && (admin || flags.hubNavPublicEnabled());
     boolean showHubMigrationBanner = flags.hubPrimaryEnabled();
+    boolean showCommunityBoard = !isCommunityBoardReplaced(flags, admin);
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.how(), localeCookie)
             .data("activePage", "comunidad")
@@ -104,11 +107,22 @@ public class ReputationHubResource {
             .data("userAuthenticated", authenticated)
             .data("isAdmin", admin)
             .data("showReputationHub", showReputationHub)
+            .data("showCommunityBoard", showCommunityBoard)
             .data("showHubMigrationBanner", showHubMigrationBanner)
             .data("currentUserId", currentUserId.orElse(null))
             .data("userName", userName)
             .data("userInitial", initialFrom(userName));
     return Response.ok(template).build();
+  }
+
+  private boolean isCommunityBoardReplaced(ReputationFeatureFlags.Flags flags, boolean isAdmin) {
+    if (flags == null) {
+      return false;
+    }
+    if (!flags.engineEnabled() || !flags.hubUiEnabled() || !flags.hubPrimaryEnabled()) {
+      return false;
+    }
+    return isAdmin || flags.hubNavPublicEnabled();
   }
 
   private boolean isAuthenticated() {
