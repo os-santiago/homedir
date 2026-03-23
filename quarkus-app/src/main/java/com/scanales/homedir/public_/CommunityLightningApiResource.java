@@ -5,6 +5,7 @@ import com.scanales.homedir.community.CommunityLightningComment;
 import com.scanales.homedir.community.CommunityLightningService;
 import com.scanales.homedir.community.CommunityLightningThread;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.reputation.ReputationEngineService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
@@ -36,6 +37,7 @@ public class CommunityLightningApiResource {
   @Inject CommunityLightningService lightningService;
   @Inject UsageMetricsService metrics;
   @Inject GamificationService gamificationService;
+  @Inject ReputationEngineService reputationEngineService;
   @Inject SecurityIdentity identity;
 
   @GET
@@ -100,6 +102,7 @@ public class CommunityLightningApiResource {
       metrics.recordFunnelStep("community.lightning.thread.create");
       metrics.recordFunnelStep("community_lightning_post");
       gamificationService.award(userId.get(), GamificationActivity.LTA_THREAD_CREATE);
+      reputationEngineService.trackContentPublished(userId.get(), result.item().id());
       ThreadItemResponse item =
           toThreadItem(result.item(), List.of(), userId.get(), null, null, Map.of());
       return Response.status(Response.Status.CREATED)

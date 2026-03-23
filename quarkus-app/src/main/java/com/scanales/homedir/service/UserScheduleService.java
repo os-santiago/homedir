@@ -1,6 +1,7 @@
 package com.scanales.homedir.service;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import com.scanales.homedir.reputation.ReputationEngineService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -63,6 +64,7 @@ public class UserScheduleService {
   @Inject PersistenceService persistence;
 
   @Inject CapacityService capacity;
+  @Inject ReputationEngineService reputationEngineService;
 
   private int activeYear;
 
@@ -108,6 +110,9 @@ public class UserScheduleService {
     LOG.infov("addTalk(user={0}, talk={1}, result={2})", email, talkId, added ? "added" : "exists");
     if (added) {
       persistence.saveUserSchedules(activeYear, schedules);
+      if (reputationEngineService != null) {
+        reputationEngineService.trackEventAttended(email, talkId);
+      }
     }
     return added;
   }

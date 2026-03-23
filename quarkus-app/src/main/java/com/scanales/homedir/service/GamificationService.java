@@ -7,6 +7,7 @@ import com.scanales.homedir.economy.EconomyService;
 import com.scanales.homedir.notifications.Notification;
 import com.scanales.homedir.notifications.NotificationService;
 import com.scanales.homedir.notifications.NotificationType;
+import com.scanales.homedir.reputation.ReputationEngineService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ public class GamificationService {
   @Inject ChallengeService challengeService;
   @Inject NotificationService notificationService;
   @Inject UsageMetricsService metrics;
+  @Inject ReputationEngineService reputationEngineService;
 
   public boolean award(String userId, GamificationActivity activity) {
     return award(userId, activity, null);
@@ -81,6 +83,7 @@ public class GamificationService {
                 challengeId -> {
                   metrics.recordFunnelStep("challenge.completed");
                   metrics.recordFunnelStep("challenge.completed." + challengeId);
+                  reputationEngineService.trackQuestCompleted(profile.getUserId(), challengeId);
                   enqueueChallengeCompletionNotification(profile, challengeId);
                 });
       }

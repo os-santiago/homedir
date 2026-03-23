@@ -11,6 +11,7 @@ import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.Speaker;
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.model.SystemError;
+import com.scanales.homedir.reputation.ReputationStateSnapshot;
 import com.scanales.homedir.challenges.ChallengeStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignStateSnapshot;
@@ -118,6 +119,7 @@ public class PersistenceService {
   private Path systemErrorsFile;
   private Path economyStateFile;
   private Path challengeStateFile;
+  private Path reputationStateFile;
   private Path campaignStateFile;
   private Path campaignOperationsStateFile;
   private Path communitySubmissionsFile;
@@ -219,6 +221,7 @@ public class PersistenceService {
     systemErrorsFile = dataDir.resolve("system-errors.json");
     economyStateFile = dataDir.resolve("economy-state.json");
     challengeStateFile = dataDir.resolve("challenge-state.json");
+    reputationStateFile = dataDir.resolve("reputation-state.json");
     campaignStateFile = dataDir.resolve("campaign-state.json");
     campaignOperationsStateFile = dataDir.resolve("campaign-operations-state.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
@@ -428,6 +431,42 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(challengeStateFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Persists reputation engine state asynchronously. */
+  public void saveReputationState(ReputationStateSnapshot state) {
+    scheduleWrite(reputationStateFile, state == null ? ReputationStateSnapshot.empty() : state);
+  }
+
+  /** Persists reputation engine state synchronously. */
+  public void saveReputationStateSync(ReputationStateSnapshot state) {
+    writeSync(reputationStateFile, state == null ? ReputationStateSnapshot.empty() : state);
+  }
+
+  /** Loads reputation engine state from disk if present. */
+  public java.util.Optional<ReputationStateSnapshot> loadReputationState() {
+    if (reputationStateFile == null || !Files.exists(reputationStateFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(
+          mapper.readValue(reputationStateFile.toFile(), ReputationStateSnapshot.class));
+    } catch (IOException e) {
+      LOG.errorf(e, "Failed to read %s", logFileLabel(reputationStateFile));
+      return java.util.Optional.empty();
+    }
+  }
+
+  /** Last modified timestamp for reputation state file, or -1 when unavailable. */
+  public long reputationStateLastModifiedMillis() {
+    try {
+      if (reputationStateFile == null || !Files.exists(reputationStateFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(reputationStateFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }
@@ -2070,6 +2109,9 @@ public class PersistenceService {
     }
     if (file.equals(challengeStateFile)) {
       return "challenge-state.json";
+    }
+    if (file.equals(reputationStateFile)) {
+      return "reputation-state.json";
     }
     if (file.equals(communitySubmissionsFile)) {
       return "community-submissions.json";
