@@ -16,6 +16,7 @@ import com.scanales.homedir.eventops.EventStaffRole;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.Speaker;
 import com.scanales.homedir.model.Talk;
+import com.scanales.homedir.reputation.ReputationEngineService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.PersistenceService;
 import com.scanales.homedir.service.SpeakerService;
@@ -71,6 +72,7 @@ public class CfpSubmissionApiResource {
   @Inject SecurityIdentity identity;
   @Inject EventOperationsService eventOperationsService;
   @Inject UserProfileService userProfileService;
+  @Inject ReputationEngineService reputationEngineService;
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
@@ -1131,6 +1133,8 @@ public class CfpSubmissionApiResource {
         EventStaffRole.SPEAKER,
         "cfp_acceptance",
         true);
+    reputationEngineService.trackEventSpeaker(
+        submission.proposerUserId(), submission.id(), submission.eventId());
     if (submission.panelists() == null) {
       return;
     }
@@ -1145,6 +1149,10 @@ public class CfpSubmissionApiResource {
           EventStaffRole.SPEAKER,
           "cfp_panelist",
           true);
+      reputationEngineService.trackEventSpeaker(
+          panelist.userId(),
+          submission.id() + ":panelist:" + panelist.userId(),
+          submission.eventId());
     }
   }
 
