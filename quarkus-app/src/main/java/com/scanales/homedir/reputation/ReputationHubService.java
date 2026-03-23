@@ -82,6 +82,7 @@ public class ReputationHubService {
         .filter(Objects::nonNull)
         .filter(event -> event.actorUserId() != null && !event.actorUserId().isBlank())
         .filter(event -> event.weightBase() > 0)
+        .filter(this::isRecognitionEvent)
         .sorted(
             Comparator.comparing(
                     ReputationEventRecord::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
@@ -94,7 +95,7 @@ public class ReputationHubService {
             event -> {
               MemberProjection member = resolveMember(event.actorUserId());
               return new RecognizedContribution(
-                  recognitionLabel(event.weightBase()),
+                  recognitionLabel(event),
                   recognitionEventKey(event.eventType()),
                   member.displayName(),
                   member.profilePath(),
@@ -103,6 +104,22 @@ public class ReputationHubService {
                   event.createdAt());
             })
         .toList();
+  }
+
+  private boolean isRecognitionEvent(ReputationEventRecord event) {
+    if (event == null) {
+      return false;
+    }
+    String eventType = normalize(event.eventType());
+    String validationType = normalize(event.validationType());
+    if ("recommended".equals(validationType)
+        || "helpful".equals(validationType)
+        || "standout".equals(validationType)) {
+      return true;
+    }
+    return "content_recommended".equals(eventType)
+        || "peer_help_acknowledged".equals(eventType)
+        || "contribution_highlighted".equals(eventType);
   }
 
   private MemberProjection resolveMember(String userId) {
@@ -130,7 +147,14 @@ public class ReputationHubService {
     return new MemberProjection(displayName, handle, avatarUrl, profilePath);
   }
 
-  private static String recognitionLabel(int weight) {
+  private static String recognitionLabel(ReputationEventRecord event) {
+    String validationType = normalize(event != null ? event.validationType() : null);
+    if ("recommended".equals(validationType)
+        || "helpful".equals(validationType)
+        || "standout".equals(validationType)) {
+      return validationType;
+    }
+    int weight = event == null ? 0 : event.weightBase();
     if (weight >= 15) {
       return "standout";
     }

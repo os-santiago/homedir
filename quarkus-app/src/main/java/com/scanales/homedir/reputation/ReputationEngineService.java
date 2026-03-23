@@ -54,6 +54,30 @@ public class ReputationEngineService {
     return recordEvent("content_published", userId, "community_content", contentId, null, null);
   }
 
+  public boolean trackRecognition(
+      String eventType,
+      String targetUserId,
+      String sourceObjectType,
+      String sourceObjectId,
+      String validatorUserId,
+      String validationType) {
+    String normalizedValidator = normalizeUserId(validatorUserId);
+    String normalizedValidationType = sanitizeToken(validationType);
+    String scopeId = null;
+    if (normalizedValidator != null && normalizedValidationType != null) {
+      scopeId = normalizedValidator + ":" + normalizedValidationType;
+    }
+    return recordEvent(
+        eventType,
+        targetUserId,
+        sourceObjectType,
+        sourceObjectId,
+        "recognition",
+        scopeId,
+        normalizedValidator,
+        normalizedValidationType);
+  }
+
   public EngineSnapshot snapshot() {
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -138,6 +162,19 @@ public class ReputationEngineService {
       String sourceObjectId,
       String scopeType,
       String scopeId) {
+    return recordEvent(
+        eventType, userId, sourceObjectType, sourceObjectId, scopeType, scopeId, null, null);
+  }
+
+  private boolean recordEvent(
+      String eventType,
+      String userId,
+      String sourceObjectType,
+      String sourceObjectId,
+      String scopeType,
+      String scopeId,
+      String validatedByUserId,
+      String validationType) {
     if (!featureFlags.snapshot().engineEnabled()) {
       return false;
     }
@@ -178,8 +215,8 @@ public class ReputationEngineService {
               normalizedSourceType,
               normalizedSourceId,
               Instant.now(),
-              null,
-              null,
+              normalizeUserId(validatedByUserId),
+              sanitizeToken(validationType),
               sanitizeToken(scopeType),
               sanitizeValue(scopeId));
       eventsById.put(event.eventId(), event);
