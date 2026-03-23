@@ -16,6 +16,7 @@ import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.QuestService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
+import com.scanales.homedir.reputation.ReputationProfileSummaryService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
 import com.scanales.homedir.volunteers.VolunteerApplication;
@@ -90,6 +91,8 @@ public class PublicProfileResource {
 
     @Inject
     ChallengeService challengeService;
+    @Inject
+    ReputationProfileSummaryService reputationProfileSummaryService;
 
     @GET
     @Path("/{username}")
@@ -138,6 +141,8 @@ public class PublicProfileResource {
         boolean hasProfileGlow = hasInventoryItem(cfpUserIds, "profile-glow");
         List<PublicChallengeItem> completedChallenges =
             buildPublicChallenges(cfpUserIds, resolved.canonicalUsername(), resolvedLocaleCode);
+        ReputationProfileSummaryService.PublicProfileSummary reputationSummary =
+            reputationProfileSummaryService.summaryForUser(resolved.userId()).orElse(null);
         CfpSubmissionService.MineStats cfpStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
         int cfpAcceptedCount = cfpStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
         List<PublicCfpItem> cfpRecentAccepted =
@@ -194,6 +199,7 @@ public class PublicProfileResource {
                 .data("volunteerSelectedCount", volunteerSelectedCount)
                 .data("volunteerRecentSelected", volunteerRecentSelected)
                 .data("completedChallenges", completedChallenges)
+                .data("reputationSummary", reputationSummary)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")
                 .data("ogDescription", "Check out @" + resolved.canonicalUsername() + " and their community activity.")
                 .data(

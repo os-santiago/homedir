@@ -5610,4 +5610,94 @@ public interface AppMessages {
     @Message("No initiatives match the current filter.")
     String admin_insights_js_no_filtered_initiatives();
 
+    @Message("Reputation snapshot")
+    String public_profile_reputation_title();
+
+    @Message("Meaningful participation converted into visible profile signals.")
+    String public_profile_reputation_intro();
+
+    @Message("State")
+    String public_profile_reputation_state_label();
+
+    @Message("Emerging")
+    String public_profile_reputation_state_emerging();
+
+    @Message("Active")
+    String public_profile_reputation_state_active();
+
+    @Message("Recognized")
+    String public_profile_reputation_state_recognized();
+
+    @Message("Trusted")
+    String public_profile_reputation_state_trusted();
+
+    @Message("Impactful")
+    String public_profile_reputation_state_impactful();
+
+    @Message("This month: Top {rank}")
+    String public_profile_reputation_monthly_rank(long rank);
+
+    @Message("Reputation score: {score}")
+    String public_profile_reputation_total_score(long score);
+
+    @Message("Known for")
+    String public_profile_reputation_known_for();
+
+    @Message("Community contributor")
+    String public_profile_reputation_known_for_contributor();
+
+    @Message("Top strengths")
+    String public_profile_reputation_top_strengths();
+
+    @Message("No strengths identified yet.")
+    String public_profile_reputation_top_strengths_empty();
+
+    @Message("Participation")
+    String public_profile_reputation_strength_participation();
+
+    @Message("Contribution")
+    String public_profile_reputation_strength_contribution();
+
+    @Message("Recognition")
+    String public_profile_reputation_strength_recognition();
+
+    @Message("Consistency")
+    String public_profile_reputation_strength_consistency();
+
+    @Message("Badges preview")
+    String public_profile_reputation_badges_preview();
+
+    @Message("No badges unlocked yet.")
+    String public_profile_reputation_badges_empty();
+
+    @Message("Rising Member")
+    String public_profile_reputation_badge_rising_member();
+
+    @Message("Consistent Contributor")
+    String public_profile_reputation_badge_consistent_contributor();
+
+    @Message("Helpful Voice")
+    String public_profile_reputation_badge_helpful_voice();
+
+    @Message("Recognized Builder")
+    String public_profile_reputation_badge_recognized_builder();
+
+    @Message("Active Learner")
+    String public_profile_reputation_badge_active_learner();
+
+    @Message("Community Supporter")
+    String public_profile_reputation_badge_community_supporter();
+
+    @Message("Latest milestone")
+    String public_profile_reputation_latest_milestone();
+
+    @Message("Weekly growth +{value}")
+    String public_profile_reputation_milestone_rising(long value);
+
+    @Message("Monthly momentum {value}")
+    String public_profile_reputation_milestone_monthly(long value);
+
+    @Message("Meaningful score {value}")
+    String public_profile_reputation_milestone_total(long value);
+
 }

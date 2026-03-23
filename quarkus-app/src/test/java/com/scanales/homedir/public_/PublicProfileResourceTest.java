@@ -2,6 +2,7 @@ package com.scanales.homedir.public_;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 import com.scanales.homedir.challenges.ChallengeService;
 import com.scanales.homedir.cfp.CfpSubmission;
@@ -196,6 +197,17 @@ public class PublicProfileResourceTest {
   @Test
   void unknownProfileReturnsNotFound() {
     given().header("Accept-Language", "en").when().get("/u/does-not-exist").then().statusCode(404);
+  }
+
+  @Test
+  void reputationSummaryIsHiddenWhenFlagIsDisabled() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/u/public-user")
+        .then()
+        .statusCode(200)
+        .body(not(containsString("Reputation snapshot")));
   }
 
   private static String homedirMemberId(String identitySeed) {
