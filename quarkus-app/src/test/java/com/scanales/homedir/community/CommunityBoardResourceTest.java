@@ -2,6 +2,7 @@ package com.scanales.homedir.community;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
 import com.scanales.homedir.model.UserProfile;
@@ -67,7 +68,8 @@ public class CommunityBoardResourceTest {
         .body(containsString("Guild members: 1"))
         .body(containsString("Listed profiles: 1"))
         .body(containsString("Linked profiles: "))
-        .body(containsString("Coverage: "));
+        .body(containsString("Coverage: "))
+        .body(not(containsString("/comunidad/reputation-hub")));
   }
 
   @Test
@@ -79,7 +81,8 @@ public class CommunityBoardResourceTest {
         .statusCode(200)
         .body(containsString("board-user"))
         .body(containsString("/u/board-user"))
-        .body(containsString("Copy profile link"));
+        .body(containsString("Copy profile link"))
+        .body(not(containsString("/comunidad/reputation-hub")));
   }
 
   @Test

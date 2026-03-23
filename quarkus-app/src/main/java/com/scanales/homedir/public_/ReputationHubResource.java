@@ -53,6 +53,7 @@ public class ReputationHubResource {
     String userName = currentUserName().orElse(null);
     boolean authenticated = isAuthenticated();
     boolean admin = AdminUtils.isAdmin(identity);
+    boolean showReputationHub = flags.hubUiEnabled() && (admin || flags.hubNavPublicEnabled());
     ReputationHubService.HubSnapshot hub = reputationHubService.snapshot(10);
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.hub(hub), localeCookie)
@@ -62,7 +63,7 @@ public class ReputationHubResource {
             .data("activeCommunitySubmenu", "reputation-hub")
             .data("userAuthenticated", authenticated)
             .data("isAdmin", admin)
-            .data("showReputationHub", admin)
+            .data("showReputationHub", showReputationHub)
             .data("currentUserId", currentUserId.orElse(null))
             .data("userName", userName)
             .data("userInitial", initialFrom(userName));
