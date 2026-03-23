@@ -9,10 +9,15 @@ import json
 import os
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Any
+
+RETRYABLE_HTTP_CODES = {429, 500, 502, 503, 504}
+MAX_API_ATTEMPTS = 4
+BASE_RETRY_SECONDS = 1.5
 
 
 def utc_now() -> dt.datetime:
@@ -44,6 +49,17 @@ def read_token() -> str:
     raise RuntimeError("Missing GH_TOKEN/GITHUB_TOKEN and unable to read `gh auth token`.")
 
 
+def _retry_delay_seconds(attempt: int, retry_after: str | None) -> float:
+    if retry_after:
+        try:
+            retry_value = float(retry_after)
+            if retry_value > 0:
+                return retry_value
+        except ValueError:
+            pass
+    return BASE_RETRY_SECONDS * (2 ** max(0, attempt - 1))
+
+
 def api_get_json(url: str, token: str) -> dict[str, Any]:
     req = urllib.request.Request(
         url,
@@ -54,12 +70,41 @@ def api_get_json(url: str, token: str) -> dict[str, Any]:
             "User-Agent": "homedir-pipeline-health",
         },
     )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"GitHub API error {exc.code} for {url}: {body}") from exc
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_API_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            retry_after = exc.headers.get("Retry-After") if exc.headers else None
+            should_retry = exc.code in RETRYABLE_HTTP_CODES and attempt < MAX_API_ATTEMPTS
+            if should_retry:
+                delay = _retry_delay_seconds(attempt, retry_after)
+                print(
+                    f"[pipeline-health] transient GitHub API error {exc.code} for {url}; "
+                    f"retry {attempt}/{MAX_API_ATTEMPTS} in {delay:.1f}s",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                last_error = RuntimeError(f"GitHub API error {exc.code} for {url}: {body}")
+                continue
+            raise RuntimeError(f"GitHub API error {exc.code} for {url}: {body}") from exc
+        except urllib.error.URLError as exc:
+            if attempt < MAX_API_ATTEMPTS:
+                delay = _retry_delay_seconds(attempt, None)
+                print(
+                    f"[pipeline-health] network error for {url}: {exc}; "
+                    f"retry {attempt}/{MAX_API_ATTEMPTS} in {delay:.1f}s",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                last_error = RuntimeError(f"Network error for {url}: {exc}")
+                continue
+            raise RuntimeError(f"Network error for {url}: {exc}") from exc
+    if last_error:
+        raise last_error
+    raise RuntimeError(f"Unable to fetch GitHub API response for {url}")
 
 
 def fetch_recent_runs(repo: str, workflow_file: str, token: str, days: int) -> list[dict[str, Any]]:
@@ -72,7 +117,15 @@ def fetch_recent_runs(repo: str, workflow_file: str, token: str, days: int) -> l
             f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_ref}/runs"
             f"?per_page=100&page={page}"
         )
-        data = api_get_json(url, token)
+        try:
+            data = api_get_json(url, token)
+        except RuntimeError as exc:
+            print(
+                f"[pipeline-health] warning: unable to fetch workflow runs for "
+                f"{workflow_file} page {page}: {exc}",
+                file=sys.stderr,
+            )
+            break
         batch = data.get("workflow_runs", [])
         if not batch:
             break
