@@ -96,6 +96,7 @@ class ReputationHubResourceTest {
         .body(containsString("Recognized contributions"))
         .body(containsString("How reputation works"))
         .body(containsString("href=\"/comunidad/reputation-hub/how\""))
+        .body(not(containsString("Community Board now lives in Reputation Hub")))
         .body(containsString("hub-user-one"))
         .body(containsString("hub-user-two"))
         .body(containsString("Community recommended"))
