@@ -56,6 +56,7 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Login con Google](features/google-sign-in.md)
 - [Importacion de eventos](features/import-events.md)
 - [Campaigns Module (stub)](features/campaigns.md)
+- [Reputation Hub Roadmap (espejo)](features/reputation-hub-roadmap.md)
 - [Metricas](features/metrics.md)
 - [Notificaciones](features/notifications.md)
 - [Seguridad de cadena de suministro](features/supply-chain-security.md)

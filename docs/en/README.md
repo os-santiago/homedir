@@ -56,6 +56,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Google Sign-In](features/google-sign-in.md)
 - [Import Events](features/import-events.md)
 - [Campaigns Module](features/campaigns.md)
+- [Reputation Hub Roadmap](features/reputation-hub-roadmap.md)
 - [Metrics](features/metrics.md)
 - [Notifications](features/notifications.md)
 - [Supply Chain Security](features/supply-chain-security.md)
