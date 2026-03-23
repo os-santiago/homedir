@@ -56,6 +56,14 @@ If any condition is false, `Community Board` remains the fallback.
 - `/comunidad/board` and `/comunidad/board/{group}` redirect to `/comunidad/reputation-hub` for eligible audience.
 - Community submenu does not show a conflicting `Community Board` link when replacement gate is active.
 - Hub pages render leaderboards and recognized contributions without template errors.
+- Prefer automated smoke command for repeatability:
+  - `scripts/reputation-hub-smoke.sh https://homedir.opensourcesantiago.io primary-on`
+
+## Baseline Smoke Automation (Before Switch)
+
+When rollout flags are still OFF, run:
+
+- `scripts/reputation-hub-smoke.sh https://homedir.opensourcesantiago.io baseline-off`
 
 ## Leaderboard Sanity
 
