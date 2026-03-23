@@ -47,8 +47,9 @@ public class ReputationHubResource {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
     metrics.recordPageView("/comunidad/reputation-hub", headers, context);
-    currentUserId()
-        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
+    Optional<String> currentUserId = currentUserId();
+    currentUserId.ifPresent(
+        userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
     String userName = currentUserName().orElse(null);
     boolean authenticated = isAuthenticated();
     boolean admin = AdminUtils.isAdmin(identity);
@@ -62,6 +63,7 @@ public class ReputationHubResource {
             .data("userAuthenticated", authenticated)
             .data("isAdmin", admin)
             .data("showReputationHub", admin)
+            .data("currentUserId", currentUserId.orElse(null))
             .data("userName", userName)
             .data("userInitial", initialFrom(userName));
     return Response.ok(template).build();

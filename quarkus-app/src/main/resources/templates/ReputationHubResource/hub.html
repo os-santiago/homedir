@@ -1,3 +1,5 @@
+{@ boolean userAuthenticated = false}
+{@ String currentUserId = ""}
 {#include layout/main activePage="comunidad" noLoginModal=true}
 {#title}{i18n:reputation_hub_page_title}{/title}
 {#body}
@@ -107,6 +109,20 @@
       <div class="hub-secondary-grid">
         <article class="hub-panel">
           <h2>{i18n:reputation_hub_recognized_title}</h2>
+          {#if !userAuthenticated}
+            <p class="hub-recognition-hint">{i18n:reputation_hub_recognize_signin_hint}</p>
+          {/if}
+          <div
+            class="hub-recognition-messages"
+            data-success="{i18n:reputation_hub_recognize_success}"
+            data-generic-error="{i18n:reputation_hub_recognize_error_generic}"
+            data-self-error="{i18n:reputation_hub_recognize_error_self}"
+            data-daily-error="{i18n:reputation_hub_recognize_error_daily_limit}"
+            data-cooldown-error="{i18n:reputation_hub_recognize_error_cooldown}"
+            data-disabled-error="{i18n:reputation_hub_recognize_error_disabled}"
+            data-invalid-error="{i18n:reputation_hub_recognize_error_invalid}"
+            data-duplicate-error="{i18n:reputation_hub_recognize_error_duplicate}"
+            hidden></div>
           <ul class="hub-recognition-list">
             {#for item in hub.recognizedContributions}
               <li class="hub-recognition-item">
@@ -119,6 +135,9 @@
                 </span>
                 <span class="hub-recognition-action">
                   {#switch item.eventKey}
+                    {#case 'content_recommended'}{i18n:reputation_hub_event_content_recommended}{/case}
+                    {#case 'peer_help_acknowledged'}{i18n:reputation_hub_event_peer_help_acknowledged}{/case}
+                    {#case 'contribution_highlighted'}{i18n:reputation_hub_event_contribution_highlighted}{/case}
                     {#case 'content_published'}{i18n:reputation_hub_event_content_published}{/case}
                     {#case 'event_speaker'}{i18n:reputation_hub_event_event_speaker}{/case}
                     {#case 'quest_completed'}{i18n:reputation_hub_event_quest_completed}{/case}
@@ -127,6 +146,30 @@
                   {/switch}
                 </span>
                 <span class="hub-recognition-by">{i18n:reputation_hub_by(item.displayName)}</span>
+                {#if userAuthenticated}
+                  {#if currentUserId != item.userId}
+                    {#if item.sourceObjectType}
+                      {#if item.sourceObjectId}
+                        <div
+                          class="hub-recognition-actions"
+                          data-recognition-target="{item.userId}"
+                          data-source-object-type="{item.sourceObjectType}"
+                          data-source-object-id="{item.sourceObjectId}">
+                          <button class="hub-recognition-btn" type="button" data-recognition-type="recommended">
+                            {i18n:reputation_hub_recognize_recommended}
+                          </button>
+                          <button class="hub-recognition-btn" type="button" data-recognition-type="helpful">
+                            {i18n:reputation_hub_recognize_helpful}
+                          </button>
+                          <button class="hub-recognition-btn" type="button" data-recognition-type="standout">
+                            {i18n:reputation_hub_recognize_standout}
+                          </button>
+                          <span class="hub-recognition-feedback" aria-live="polite"></span>
+                        </div>
+                      {/if}
+                    {/if}
+                  {/if}
+                {/if}
               </li>
             {#else}
               <li class="hub-empty">{i18n:reputation_hub_recognized_empty}</li>
@@ -212,12 +255,22 @@
       gap: 0.55rem;
     }
 
-    .hub-list-item,
-    .hub-recognition-item {
+    .hub-list-item {
       display: grid;
       gap: 0.55rem;
       align-items: center;
       grid-template-columns: auto auto 1fr auto;
+      background: rgba(0, 0, 0, 0.26);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+    }
+
+    .hub-recognition-item {
+      display: grid;
+      gap: 0.55rem;
+      align-items: center;
+      grid-template-columns: auto 1fr auto;
       background: rgba(0, 0, 0, 0.26);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
@@ -279,6 +332,49 @@
       opacity: 0.88;
     }
 
+    .hub-recognition-hint {
+      margin: -0.25rem 0 0.75rem;
+      opacity: 0.85;
+      font-size: 0.82rem;
+    }
+
+    .hub-recognition-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .hub-recognition-btn {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      padding: 0.18rem 0.58rem;
+      cursor: pointer;
+    }
+
+    .hub-recognition-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .hub-recognition-feedback {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      min-height: 1rem;
+    }
+
+    .hub-recognition-feedback.is-ok {
+      color: #bbf7d0;
+    }
+
+    .hub-recognition-feedback.is-error {
+      color: #fecaca;
+    }
+
     .hub-how-list strong {
       display: block;
       margin-bottom: 0.12rem;
@@ -310,7 +406,119 @@
       .hub-avatar {
         display: none;
       }
+
+      .hub-recognition-item {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
+  {#if userAuthenticated}
+    <script>
+      (() => {
+        const i18nNode = document.querySelector('.hub-recognition-messages');
+        if (!i18nNode) {
+          return;
+        }
+        const msgs = {
+          success: i18nNode.dataset.success || '',
+          genericError: i18nNode.dataset.genericError || '',
+          selfError: i18nNode.dataset.selfError || '',
+          dailyError: i18nNode.dataset.dailyError || '',
+          cooldownError: i18nNode.dataset.cooldownError || '',
+          disabledError: i18nNode.dataset.disabledError || '',
+          invalidError: i18nNode.dataset.invalidError || '',
+          duplicateError: i18nNode.dataset.duplicateError || '',
+        };
+
+        const reasonToMessage = (reason) => {
+          switch (reason) {
+            case 'recognition_self_not_allowed':
+              return msgs.selfError;
+            case 'recognition_daily_limit_reached':
+              return msgs.dailyError;
+            case 'recognition_cooldown_active':
+              return msgs.cooldownError;
+            case 'recognition_disabled':
+              return msgs.disabledError;
+            case 'recognition_invalid_payload':
+              return msgs.invalidError;
+            case 'recognition_already_recorded':
+              return msgs.duplicateError;
+            default:
+              return msgs.genericError;
+          }
+        };
+
+        const setFeedback = (actions, text, ok) => {
+          const feedback = actions.querySelector('.hub-recognition-feedback');
+          if (!feedback) {
+            return;
+          }
+          feedback.textContent = text || '';
+          feedback.classList.toggle('is-ok', ok);
+          feedback.classList.toggle('is-error', !ok);
+        };
+
+        const lockButtons = (actions, locked) => {
+          actions.querySelectorAll('.hub-recognition-btn').forEach((button) => {
+            button.disabled = locked;
+          });
+        };
+
+        document.addEventListener('click', async (event) => {
+          const button = event.target.closest('.hub-recognition-btn');
+          if (!button) {
+            return;
+          }
+          const actions = button.closest('.hub-recognition-actions');
+          if (!actions) {
+            return;
+          }
+          const targetUserId = actions.dataset.recognitionTarget;
+          const sourceObjectType = actions.dataset.sourceObjectType;
+          const sourceObjectId = actions.dataset.sourceObjectId;
+          const recognitionType = button.dataset.recognitionType;
+
+          if (!targetUserId || !sourceObjectType || !sourceObjectId || !recognitionType) {
+            setFeedback(actions, msgs.invalidError, false);
+            return;
+          }
+
+          setFeedback(actions, '', true);
+          lockButtons(actions, true);
+          try {
+            const response = await fetch('/api/community/reputation/recognitions', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                target_user_id: targetUserId,
+                source_object_type: sourceObjectType,
+                source_object_id: sourceObjectId,
+                recognition_type: recognitionType,
+              }),
+            });
+            let payload = {};
+            try {
+              payload = await response.json();
+            } catch (_ignored) {
+              payload = {};
+            }
+            if (response.ok) {
+              setFeedback(actions, msgs.success, true);
+              return;
+            }
+            setFeedback(actions, reasonToMessage(payload.error), false);
+          } catch (_err) {
+            setFeedback(actions, msgs.genericError, false);
+          } finally {
+            lockButtons(actions, false);
+          }
+        });
+      })();
+    </script>
+  {/if}
 {/body}
 {/include}

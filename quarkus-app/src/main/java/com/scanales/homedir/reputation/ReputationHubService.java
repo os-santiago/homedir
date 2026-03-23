@@ -95,11 +95,13 @@ public class ReputationHubService {
             event -> {
               MemberProjection member = resolveMember(event.actorUserId());
               return new RecognizedContribution(
+                  event.actorUserId(),
                   recognitionLabel(event),
                   recognitionEventKey(event.eventType()),
                   member.displayName(),
                   member.profilePath(),
                   member.avatarUrl(),
+                  event.sourceObjectType(),
                   event.sourceObjectId(),
                   event.createdAt());
             })
@@ -169,6 +171,9 @@ public class ReputationHubService {
       return "activity_signal";
     }
     return switch (eventType) {
+      case "content_recommended" -> "content_recommended";
+      case "peer_help_acknowledged" -> "peer_help_acknowledged";
+      case "contribution_highlighted" -> "contribution_highlighted";
       case "content_published" -> "content_published";
       case "event_speaker" -> "event_speaker";
       case "quest_completed" -> "quest_completed";
@@ -218,11 +223,13 @@ public class ReputationHubService {
       long score) {}
 
   public record RecognizedContribution(
+      String userId,
       String recognitionLabel,
       String eventKey,
       String displayName,
       String profilePath,
       String avatarUrl,
+      String sourceObjectType,
       String sourceObjectId,
       Instant occurredAt) {}
 }
