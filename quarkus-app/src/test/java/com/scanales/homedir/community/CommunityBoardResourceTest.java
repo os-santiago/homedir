@@ -169,8 +169,25 @@ public class CommunityBoardResourceTest {
   }
 
   @Test
+  void englishCommunityReputationHubHowAliasRedirectsToLocalizedPath() {
+    englishRequest()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/community/reputation-hub/how")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/reputation-hub/how"));
+  }
+
+  @Test
   void reputationHubReturnsNotFoundWhenHubUiFlagIsDisabled() {
     englishRequest().when().get("/comunidad/reputation-hub").then().statusCode(404);
+  }
+
+  @Test
+  void reputationHubHowReturnsNotFoundWhenHubUiFlagIsDisabled() {
+    englishRequest().when().get("/comunidad/reputation-hub/how").then().statusCode(404);
   }
 
   @Test

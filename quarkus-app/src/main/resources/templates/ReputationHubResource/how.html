@@ -1,0 +1,125 @@
+{#include layout/main activePage="comunidad" noLoginModal=true}
+{#title}{i18n:reputation_hub_how_title}{/title}
+{#body}
+  <header class="page-header events-page-header">
+    <div class="section-header hd-section-heading">
+      <p class="section-subtitle">{i18n:reputation_hub_subtitle}</p>
+      <h1>{i18n:reputation_hub_how_title}</h1>
+    </div>
+    <p class="section-subtitle">{i18n:reputation_hub_intro}</p>
+  </header>
+  {#include fragments/community-submenu.html /}
+
+  <section class="page-grid">
+    <div class="section-card events-full-width hub-how-shell">
+      <div class="hub-how-grid">
+        <article class="hub-how-panel">
+          <h2>{i18n:reputation_hub_how_title}</h2>
+          <ul class="hub-how-list">
+            <li>
+              <strong>{i18n:reputation_hub_how_meaning_title}</strong>
+              <p>{i18n:reputation_hub_how_meaning_desc}</p>
+            </li>
+            <li>
+              <strong>{i18n:reputation_hub_how_consistency_title}</strong>
+              <p>{i18n:reputation_hub_how_consistency_desc}</p>
+            </li>
+            <li>
+              <strong>{i18n:reputation_hub_how_quality_title}</strong>
+              <p>{i18n:reputation_hub_how_quality_desc}</p>
+            </li>
+          </ul>
+        </article>
+
+        <article class="hub-how-panel">
+          <h2>{i18n:public_profile_reputation_top_strengths}</h2>
+          <ul class="hub-how-list">
+            <li>
+              <strong>{i18n:public_profile_reputation_strength_participation}</strong>
+              <p>{i18n:reputation_hub_how_consistency_desc}</p>
+            </li>
+            <li>
+              <strong>{i18n:public_profile_reputation_strength_contribution}</strong>
+              <p>{i18n:reputation_hub_how_meaning_desc}</p>
+            </li>
+            <li>
+              <strong>{i18n:public_profile_reputation_strength_recognition}</strong>
+              <p>{i18n:reputation_hub_how_quality_desc}</p>
+            </li>
+            <li>
+              <strong>{i18n:public_profile_reputation_strength_consistency}</strong>
+              <p>{i18n:reputation_hub_how_consistency_desc}</p>
+            </li>
+          </ul>
+        </article>
+      </div>
+
+      <a class="hub-how-back" href="/comunidad/reputation-hub">{i18n:reputation_hub_page_title}</a>
+    </div>
+  </section>
+
+  <style>
+    .hub-how-shell,
+    .hub-how-shell:hover {
+      transform: none;
+      animation: none;
+      cursor: default;
+    }
+
+    .hub-how-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .hub-how-panel {
+      border: 2px solid rgba(255, 255, 255, 0.32);
+      border-radius: 10px;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .hub-how-panel h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.02rem;
+    }
+
+    .hub-how-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .hub-how-list strong {
+      display: block;
+      margin-bottom: 0.12rem;
+    }
+
+    .hub-how-list p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 0.86rem;
+    }
+
+    .hub-how-back {
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      border-radius: 999px;
+      padding: 0.34rem 0.74rem;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    @media (max-width: 980px) {
+      .hub-how-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{/body}
+{/include}
