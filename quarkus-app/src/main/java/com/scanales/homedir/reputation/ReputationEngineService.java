@@ -4,11 +4,15 @@ import com.scanales.homedir.service.PersistenceService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /** Hidden write-path engine for phase-1 Reputation Hub rollout. */
@@ -57,6 +61,64 @@ public class ReputationEngineService {
           System.currentTimeMillis(),
           Map.copyOf(eventsById),
           Map.copyOf(aggregatesByUser));
+    }
+  }
+
+  public UserExplainability explainUser(String userId, int limit) {
+    String normalizedUserId = normalizeUserId(userId);
+    int safeLimit = Math.max(1, Math.min(limit, 50));
+    if (normalizedUserId == null) {
+      return new UserExplainability(normalizedUserId, null, List.of(), 0L);
+    }
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      UserReputationAggregate aggregate = aggregatesByUser.get(normalizedUserId);
+      List<ExplainabilityEvent> events = new ArrayList<>();
+      for (ReputationEventRecord event : eventsById.values()) {
+        if (event == null || !normalizedUserId.equals(event.actorUserId())) {
+          continue;
+        }
+        events.add(toExplainabilityEvent(event));
+      }
+      events.sort(
+          Comparator.comparing(
+                  ExplainabilityEvent::occurredAt, Comparator.nullsLast(Comparator.reverseOrder()))
+              .thenComparing(ExplainabilityEvent::eventId, Comparator.nullsLast(String::compareTo)));
+      if (events.size() > safeLimit) {
+        events = events.subList(0, safeLimit);
+      }
+      return new UserExplainability(
+          normalizedUserId,
+          aggregate,
+          List.copyOf(events),
+          eventCountByUser(normalizedUserId));
+    }
+  }
+
+  public Diagnostics diagnostics(int topLimit) {
+    int safeTopLimit = Math.max(1, Math.min(topLimit, 20));
+    synchronized (stateLock) {
+      refreshFromDisk(false);
+      Map<String, Long> eventTypeCounts = new LinkedHashMap<>();
+      for (ReputationEventRecord event : eventsById.values()) {
+        if (event == null || event.eventType() == null) {
+          continue;
+        }
+        eventTypeCounts.merge(event.eventType(), 1L, Long::sum);
+      }
+      List<EventTypeCount> topEventTypes =
+          eventTypeCounts.entrySet().stream()
+              .sorted(
+                  Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder())
+                      .thenComparing(Map.Entry::getKey))
+              .limit(safeTopLimit)
+              .map(entry -> new EventTypeCount(entry.getKey(), entry.getValue()))
+              .toList();
+      return new Diagnostics(
+          System.currentTimeMillis(),
+          eventsById.size(),
+          aggregatesByUser.size(),
+          List.copyOf(topEventTypes));
     }
   }
 
@@ -249,6 +311,62 @@ public class ReputationEngineService {
       long generatedAtMillis,
       Map<String, ReputationEventRecord> eventsById,
       Map<String, UserReputationAggregate> aggregatesByUser) {}
+
+  public record UserExplainability(
+      String userId,
+      UserReputationAggregate aggregate,
+      List<ExplainabilityEvent> recentEvents,
+      long eventCount) {}
+
+  public record ExplainabilityEvent(
+      String eventId,
+      String eventType,
+      String dimension,
+      String impactBand,
+      String sourceObjectType,
+      String sourceObjectId,
+      Instant occurredAt,
+      String reason) {}
+
+  public record Diagnostics(
+      long generatedAtMillis, long totalEvents, long totalUsers, List<EventTypeCount> topEventTypes) {}
+
+  public record EventTypeCount(String eventType, long count) {}
+
+  private ExplainabilityEvent toExplainabilityEvent(ReputationEventRecord event) {
+    ReputationEventTaxonomy.EventDefinition definition =
+        ReputationEventTaxonomy.find(event.eventType()).orElse(null);
+    String reason =
+        definition != null && definition.rationale() != null && !definition.rationale().isBlank()
+            ? definition.rationale()
+            : "Meaningful contribution signal recorded.";
+    return new ExplainabilityEvent(
+        event.eventId(),
+        event.eventType(),
+        event.dimension() == null ? null : event.dimension().name().toLowerCase(Locale.ROOT),
+        impactBand(event.weightBase()),
+        event.sourceObjectType(),
+        event.sourceObjectId(),
+        event.createdAt(),
+        reason);
+  }
+
+  private long eventCountByUser(String userId) {
+    return eventsById.values().stream()
+        .filter(Objects::nonNull)
+        .filter(event -> userId.equals(event.actorUserId()))
+        .count();
+  }
+
+  private static String impactBand(int weightBase) {
+    if (weightBase >= 15) {
+      return "high";
+    }
+    if (weightBase >= 10) {
+      return "medium";
+    }
+    return "low";
+  }
 
   private static final class MutableAggregate {
     long totalScore;
