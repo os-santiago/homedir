@@ -61,6 +61,90 @@
                 </div>
             </div>
 
+            {#if reputationSummary??}
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
+                <span class="wrapped-stat-label">{i18n:public_profile_reputation_title}</span>
+                <p class="wrapped-subtext">{i18n:public_profile_reputation_intro}</p>
+                <div class="wrapped-meta-row">
+                    <span class="wrapped-badge-pill">
+                        {i18n:public_profile_reputation_state_label}:
+                        {#switch reputationSummary.reputationState}
+                        {#case 'emerging'}{i18n:public_profile_reputation_state_emerging}{/case}
+                        {#case 'active'}{i18n:public_profile_reputation_state_active}{/case}
+                        {#case 'recognized'}{i18n:public_profile_reputation_state_recognized}{/case}
+                        {#case 'trusted'}{i18n:public_profile_reputation_state_trusted}{/case}
+                        {#case 'impactful'}{i18n:public_profile_reputation_state_impactful}{/case}
+                        {#else}{i18n:public_profile_reputation_state_active}{/else}
+                        {/switch}
+                    </span>
+                    <span class="wrapped-badge-pill">{i18n:public_profile_reputation_monthly_rank(reputationSummary.monthlyRank)}</span>
+                    <span class="wrapped-badge-pill">{i18n:public_profile_reputation_total_score(reputationSummary.totalScore)}</span>
+                </div>
+                <div class="wrapped-list-container">
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{i18n:public_profile_reputation_known_for}</span>
+                        <span class="wrapped-item-xp">
+                            {#switch reputationSummary.knownFor}
+                            {#case 'participation'}{i18n:public_profile_reputation_strength_participation}{/case}
+                            {#case 'contribution'}{i18n:public_profile_reputation_strength_contribution}{/case}
+                            {#case 'recognition'}{i18n:public_profile_reputation_strength_recognition}{/case}
+                            {#case 'consistency'}{i18n:public_profile_reputation_strength_consistency}{/case}
+                            {#else}{i18n:public_profile_reputation_known_for_contributor}{/else}
+                            {/switch}
+                        </span>
+                    </div>
+                    <div class="wrapped-list-item wrapped-list-item-stack">
+                        <span class="wrapped-item-title">{i18n:public_profile_reputation_top_strengths}</span>
+                        <div class="wrapped-meta-row">
+                            {#for strength in reputationSummary.topStrengths}
+                            <span class="wrapped-badge-pill">
+                                {#switch strength}
+                                {#case 'participation'}{i18n:public_profile_reputation_strength_participation}{/case}
+                                {#case 'contribution'}{i18n:public_profile_reputation_strength_contribution}{/case}
+                                {#case 'recognition'}{i18n:public_profile_reputation_strength_recognition}{/case}
+                                {#case 'consistency'}{i18n:public_profile_reputation_strength_consistency}{/case}
+                                {#else}{i18n:public_profile_reputation_known_for_contributor}{/else}
+                                {/switch}
+                            </span>
+                            {#else}
+                            <span class="wrapped-empty-msg">{i18n:public_profile_reputation_top_strengths_empty}</span>
+                            {/for}
+                        </div>
+                    </div>
+                    <div class="wrapped-list-item wrapped-list-item-stack">
+                        <span class="wrapped-item-title">{i18n:public_profile_reputation_badges_preview}</span>
+                        <div class="wrapped-meta-row">
+                            {#for badge in reputationSummary.badgesPreview}
+                            <span class="wrapped-badge-pill">
+                                {#switch badge}
+                                {#case 'rising_member'}{i18n:public_profile_reputation_badge_rising_member}{/case}
+                                {#case 'consistent_contributor'}{i18n:public_profile_reputation_badge_consistent_contributor}{/case}
+                                {#case 'helpful_voice'}{i18n:public_profile_reputation_badge_helpful_voice}{/case}
+                                {#case 'recognized_builder'}{i18n:public_profile_reputation_badge_recognized_builder}{/case}
+                                {#case 'active_learner'}{i18n:public_profile_reputation_badge_active_learner}{/case}
+                                {#case 'community_supporter'}{i18n:public_profile_reputation_badge_community_supporter}{/case}
+                                {#else}{badge}{/else}
+                                {/switch}
+                            </span>
+                            {#else}
+                            <span class="wrapped-empty-msg">{i18n:public_profile_reputation_badges_empty}</span>
+                            {/for}
+                        </div>
+                    </div>
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{i18n:public_profile_reputation_latest_milestone}</span>
+                        <span class="wrapped-item-xp">
+                            {#switch reputationSummary.milestone.type}
+                            {#case 'rising_delta'}{i18n:public_profile_reputation_milestone_rising(reputationSummary.milestone.value)}{/case}
+                            {#case 'monthly_score'}{i18n:public_profile_reputation_milestone_monthly(reputationSummary.milestone.value)}{/case}
+                            {#else}{i18n:public_profile_reputation_milestone_total(reputationSummary.milestone.value)}{/else}
+                            {/switch}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {/if}
+
             <!-- Card 2: Activities Completed -->
             <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_activity_count_title}</span>

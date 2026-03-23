@@ -18,10 +18,18 @@ public class ReputationFeatureFlags {
   @ConfigProperty(name = "reputation.shadow.read.enabled", defaultValue = "false")
   boolean shadowReadEnabled;
 
+  @ConfigProperty(name = "reputation.profile.summary.enabled", defaultValue = "false")
+  boolean profileSummaryEnabled;
+
   public Flags snapshot() {
-    return new Flags(engineEnabled, hubUiEnabled, recognitionEnabled, shadowReadEnabled);
+    return new Flags(
+        engineEnabled, hubUiEnabled, recognitionEnabled, shadowReadEnabled, profileSummaryEnabled);
   }
 
   public record Flags(
-      boolean engineEnabled, boolean hubUiEnabled, boolean recognitionEnabled, boolean shadowReadEnabled) {}
+      boolean engineEnabled,
+      boolean hubUiEnabled,
+      boolean recognitionEnabled,
+      boolean shadowReadEnabled,
+      boolean profileSummaryEnabled) {}
 }

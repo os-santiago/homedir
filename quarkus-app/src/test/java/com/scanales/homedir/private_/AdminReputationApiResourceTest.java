@@ -67,6 +67,7 @@ class AdminReputationApiResourceTest {
     assertFalse((Boolean) flags.get("hubUiEnabled"));
     assertFalse((Boolean) flags.get("recognitionEnabled"));
     assertFalse((Boolean) flags.get("shadowReadEnabled"));
+    assertFalse((Boolean) flags.get("profileSummaryEnabled"));
     assertTrue(((Number) payload.get("communityBoardViews")).longValue() >= 2L);
     assertTrue(((Number) payload.get("profileViews")).longValue() >= 1L);
     assertTrue(((Number) payload.get("publicProfileOpens")).longValue() >= 1L);
