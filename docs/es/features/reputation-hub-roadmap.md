@@ -104,6 +104,8 @@ Gate:
 - `Reputation Hub` pasa a entrada principal
 - `Community Board` queda deprecado con redirect compatible
 - mensaje de onboarding del cambio
+- runbook de promocion y rollback:
+  - [Reputation Hub Primary Switch Runbook (espejo)](../development/reputation-hub-primary-switch-runbook.md)
 
 Gate:
 

@@ -44,6 +44,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Security Hardening Baseline](development/security-hardening-baseline.md)
 - [Production-Safe Delivery Playbook](development/production-safe-delivery-playbook.md)
 - [Release Stage Gates](development/release-stage-gates.md)
+- [Reputation Hub Primary Switch Runbook](development/reputation-hub-primary-switch-runbook.md)
 
 ## AI Context
 

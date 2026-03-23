@@ -228,6 +228,7 @@ Make `Reputation Hub` the primary replacement while preserving emergency fallbac
   - smoke checks
   - leaderboard sanity checks
   - recognition abuse checks
+  - reference: [Reputation Hub Primary Switch Runbook](../development/reputation-hub-primary-switch-runbook.md)
 
 ## Exit gate
 
