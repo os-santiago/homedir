@@ -280,7 +280,10 @@ public class ProfileResource {
       @jakarta.ws.rs.QueryParam("speakerError") String speakerError,
       @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub,
       @jakarta.ws.rs.QueryParam("historyLimit") Integer historyLimitParam,
-      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @Context HttpHeaders headers,
+      @Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/private/profile", headers, context);
     String email = getEmail();
     String name = getClaim("name");
     if (name == null) {
