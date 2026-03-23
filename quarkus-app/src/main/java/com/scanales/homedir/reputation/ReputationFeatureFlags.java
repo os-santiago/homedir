@@ -15,6 +15,9 @@ public class ReputationFeatureFlags {
   @ConfigProperty(name = "reputation.hub.nav.public.enabled", defaultValue = "false")
   boolean hubNavPublicEnabled;
 
+  @ConfigProperty(name = "reputation.hub.primary.enabled", defaultValue = "false")
+  boolean hubPrimaryEnabled;
+
   @ConfigProperty(name = "reputation.recognition.enabled", defaultValue = "false")
   boolean recognitionEnabled;
 
@@ -29,6 +32,7 @@ public class ReputationFeatureFlags {
         engineEnabled,
         hubUiEnabled,
         hubNavPublicEnabled,
+        hubPrimaryEnabled,
         recognitionEnabled,
         shadowReadEnabled,
         profileSummaryEnabled);
@@ -38,6 +42,7 @@ public class ReputationFeatureFlags {
       boolean engineEnabled,
       boolean hubUiEnabled,
       boolean hubNavPublicEnabled,
+      boolean hubPrimaryEnabled,
       boolean recognitionEnabled,
       boolean shadowReadEnabled,
       boolean profileSummaryEnabled) {}

@@ -25,6 +25,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -100,10 +102,13 @@ public class CommunityBoardResource {
   @GET
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance board(
+  public Response board(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    if (shouldRedirectToReputationHub()) {
+      return redirectToReputationHub();
+    }
     metrics.recordPageView("/comunidad/board", headers, context);
     currentUserId()
         .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
@@ -126,14 +131,14 @@ public class CommunityBoardResource {
             boardIdentity.homedirSearchUrl(),
             boardIdentity.githubSearchUrl(),
             boardIdentity.discordSearchUrl());
-    return withLayoutData(template, "board", localeCookie);
+    return Response.ok(withLayoutData(template, "board", localeCookie)).build();
   }
 
   @GET
   @Path("/{group}")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance detail(
+  public Response detail(
       @PathParam("group") String groupPath,
       @QueryParam("q") String query,
       @QueryParam("limit") Integer limitParam,
@@ -142,6 +147,9 @@ public class CommunityBoardResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    if (shouldRedirectToReputationHub()) {
+      return redirectToReputationHub();
+    }
     CommunityBoardGroup group =
         CommunityBoardGroup.fromPath(groupPath).orElseThrow(() -> new NotFoundException("group_not_found"));
     metrics.recordPageView("/comunidad/board/" + group.path(), headers, context);
@@ -193,8 +201,22 @@ public class CommunityBoardResource {
             boardIdentity.publicProfilePath(),
             boardIdentity.searchUrlFor(group),
             slice.items());
-    return withLayoutData(template, "board", localeCookie)
-        .data("ultraLiteMode", group == CommunityBoardGroup.DISCORD_USERS);
+    return Response.ok(
+            withLayoutData(template, "board", localeCookie)
+                .data("ultraLiteMode", group == CommunityBoardGroup.DISCORD_USERS))
+        .build();
+  }
+
+  private boolean shouldRedirectToReputationHub() {
+    ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
+    if (!flags.engineEnabled() || !flags.hubUiEnabled() || !flags.hubPrimaryEnabled()) {
+      return false;
+    }
+    return AdminUtils.isAdmin(identity) || flags.hubNavPublicEnabled();
+  }
+
+  private Response redirectToReputationHub() {
+    return Response.seeOther(URI.create("/comunidad/reputation-hub")).build();
   }
 
   private TemplateInstance withLayoutData(
