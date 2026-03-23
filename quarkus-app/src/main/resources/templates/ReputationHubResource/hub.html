@@ -1,0 +1,316 @@
+{#include layout/main activePage="comunidad" noLoginModal=true}
+{#title}{i18n:reputation_hub_page_title}{/title}
+{#body}
+  <header class="page-header events-page-header">
+    <div class="section-header hd-section-heading">
+      <p class="section-subtitle">{i18n:reputation_hub_subtitle}</p>
+      <h1>{i18n:reputation_hub_heading}</h1>
+    </div>
+    <p class="section-subtitle">{i18n:reputation_hub_intro}</p>
+  </header>
+  {#include fragments/community-submenu.html /}
+
+  <section class="page-grid">
+    <div class="section-card events-full-width hub-shell">
+      <div class="hub-hero-grid">
+        <article class="hub-hero-card">
+          <p class="section-subtitle">{i18n:reputation_hub_hero_contributors}</p>
+          <h2>{hub.contributors}</h2>
+        </article>
+        <article class="hub-hero-card">
+          <p class="section-subtitle">{i18n:reputation_hub_hero_events}</p>
+          <h2>{hub.eventsCaptured}</h2>
+        </article>
+        <article class="hub-hero-card">
+          <p class="section-subtitle">{i18n:reputation_hub_hero_updated}</p>
+          <h2>{hub.generatedAtLabel}</h2>
+        </article>
+      </div>
+
+      <div class="hub-leaderboards-grid">
+        <article class="hub-panel">
+          <h2>{i18n:reputation_hub_weekly_title}</h2>
+          <ol class="hub-list">
+            {#for entry in hub.weeklyLeaderboard}
+              <li class="hub-list-item">
+                <span class="hub-rank">#{entry.rank}</span>
+                {#if entry.avatarUrl}
+                  <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                {/if}
+                <div class="hub-member">
+                  {#if entry.profilePath}
+                    <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                  {#else}
+                    <span>{entry.displayName}</span>
+                  {/if}
+                  {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
+                </div>
+                <span class="hub-score">{i18n:reputation_hub_score(entry.score)}</span>
+              </li>
+            {#else}
+              <li class="hub-empty">{i18n:reputation_hub_empty}</li>
+            {/for}
+          </ol>
+        </article>
+
+        <article class="hub-panel">
+          <h2>{i18n:reputation_hub_monthly_title}</h2>
+          <ol class="hub-list">
+            {#for entry in hub.monthlyLeaderboard}
+              <li class="hub-list-item">
+                <span class="hub-rank">#{entry.rank}</span>
+                {#if entry.avatarUrl}
+                  <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                {/if}
+                <div class="hub-member">
+                  {#if entry.profilePath}
+                    <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                  {#else}
+                    <span>{entry.displayName}</span>
+                  {/if}
+                  {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
+                </div>
+                <span class="hub-score">{i18n:reputation_hub_score(entry.score)}</span>
+              </li>
+            {#else}
+              <li class="hub-empty">{i18n:reputation_hub_empty}</li>
+            {/for}
+          </ol>
+        </article>
+
+        <article class="hub-panel">
+          <h2>{i18n:reputation_hub_rising_title}</h2>
+          <ol class="hub-list">
+            {#for entry in hub.risingLeaderboard}
+              <li class="hub-list-item">
+                <span class="hub-rank">#{entry.rank}</span>
+                {#if entry.avatarUrl}
+                  <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                {/if}
+                <div class="hub-member">
+                  {#if entry.profilePath}
+                    <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                  {#else}
+                    <span>{entry.displayName}</span>
+                  {/if}
+                  {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
+                </div>
+                <span class="hub-score">{i18n:reputation_hub_growth(entry.score)}</span>
+              </li>
+            {#else}
+              <li class="hub-empty">{i18n:reputation_hub_empty}</li>
+            {/for}
+          </ol>
+        </article>
+      </div>
+
+      <div class="hub-secondary-grid">
+        <article class="hub-panel">
+          <h2>{i18n:reputation_hub_recognized_title}</h2>
+          <ul class="hub-recognition-list">
+            {#for item in hub.recognizedContributions}
+              <li class="hub-recognition-item">
+                <span class="hub-chip">
+                  {#switch item.recognitionLabel}
+                    {#case 'recommended'}{i18n:reputation_hub_recognition_recommended}{/case}
+                    {#case 'helpful'}{i18n:reputation_hub_recognition_helpful}{/case}
+                    {#else}{i18n:reputation_hub_recognition_standout}{/else}
+                  {/switch}
+                </span>
+                <span class="hub-recognition-action">
+                  {#switch item.eventKey}
+                    {#case 'content_published'}{i18n:reputation_hub_event_content_published}{/case}
+                    {#case 'event_speaker'}{i18n:reputation_hub_event_event_speaker}{/case}
+                    {#case 'quest_completed'}{i18n:reputation_hub_event_quest_completed}{/case}
+                    {#case 'event_attended'}{i18n:reputation_hub_event_event_attended}{/case}
+                    {#else}{i18n:reputation_hub_event_activity_signal}{/else}
+                  {/switch}
+                </span>
+                <span class="hub-recognition-by">{i18n:reputation_hub_by(item.displayName)}</span>
+              </li>
+            {#else}
+              <li class="hub-empty">{i18n:reputation_hub_recognized_empty}</li>
+            {/for}
+          </ul>
+        </article>
+
+        <article class="hub-panel">
+          <h2>{i18n:reputation_hub_how_title}</h2>
+          <ul class="hub-how-list">
+            <li>
+              <strong>{i18n:reputation_hub_how_meaning_title}</strong>
+              <p>{i18n:reputation_hub_how_meaning_desc}</p>
+            </li>
+            <li>
+              <strong>{i18n:reputation_hub_how_consistency_title}</strong>
+              <p>{i18n:reputation_hub_how_consistency_desc}</p>
+            </li>
+            <li>
+              <strong>{i18n:reputation_hub_how_quality_title}</strong>
+              <p>{i18n:reputation_hub_how_quality_desc}</p>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .hub-shell,
+    .hub-shell:hover {
+      transform: none;
+      animation: none;
+      cursor: default;
+    }
+
+    .hub-hero-grid,
+    .hub-leaderboards-grid,
+    .hub-secondary-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .hub-hero-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .hub-leaderboards-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .hub-secondary-grid {
+      grid-template-columns: 1.4fr 1fr;
+      margin-bottom: 0;
+    }
+
+    .hub-hero-card,
+    .hub-panel {
+      border: 2px solid rgba(255, 255, 255, 0.32);
+      border-radius: 10px;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .hub-hero-card h2 {
+      margin: 0.2rem 0 0;
+      font-size: 1.4rem;
+    }
+
+    .hub-panel h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.02rem;
+    }
+
+    .hub-list,
+    .hub-recognition-list,
+    .hub-how-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .hub-list-item,
+    .hub-recognition-item {
+      display: grid;
+      gap: 0.55rem;
+      align-items: center;
+      grid-template-columns: auto auto 1fr auto;
+      background: rgba(0, 0, 0, 0.26);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+    }
+
+    .hub-rank {
+      font-weight: 700;
+      min-width: 1.7rem;
+    }
+
+    .hub-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      object-fit: cover;
+    }
+
+    .hub-member {
+      display: grid;
+      gap: 0.15rem;
+      min-width: 0;
+    }
+
+    .hub-member-link {
+      color: #fff;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .hub-handle {
+      opacity: 0.78;
+      font-size: 0.8rem;
+    }
+
+    .hub-score {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .hub-chip {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      padding: 0.1rem 0.48rem;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      justify-self: start;
+    }
+
+    .hub-recognition-action {
+      font-weight: 600;
+    }
+
+    .hub-recognition-by {
+      opacity: 0.88;
+    }
+
+    .hub-how-list strong {
+      display: block;
+      margin-bottom: 0.12rem;
+    }
+
+    .hub-how-list p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 0.86rem;
+    }
+
+    .hub-empty {
+      opacity: 0.82;
+      font-size: 0.86rem;
+      padding: 0.3rem 0;
+    }
+
+    @media (max-width: 980px) {
+      .hub-hero-grid,
+      .hub-leaderboards-grid,
+      .hub-secondary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hub-list-item {
+        grid-template-columns: auto 1fr auto;
+      }
+
+      .hub-avatar {
+        display: none;
+      }
+    }
+  </style>
+{/body}
+{/include}

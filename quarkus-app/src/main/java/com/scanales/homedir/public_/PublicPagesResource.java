@@ -295,6 +295,12 @@ public class PublicPagesResource {
   }
 
   @GET
+  @Path("/community/reputation-hub")
+  public Response communityReputationHub() {
+    return Response.seeOther(URI.create("/comunidad/reputation-hub")).build();
+  }
+
+  @GET
   @Path("/projects")
   public Response projects() {
     return Response.seeOther(URI.create("/proyectos")).build();

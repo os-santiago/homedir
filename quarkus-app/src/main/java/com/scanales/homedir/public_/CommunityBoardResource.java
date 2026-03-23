@@ -5,6 +5,7 @@ import com.scanales.homedir.community.CommunityBoardMemberView;
 import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.reputation.ReputationFeatureFlags;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
@@ -48,6 +49,7 @@ public class CommunityBoardResource {
   @Inject GamificationService gamificationService;
   @Inject UsageMetricsService metrics;
   @Inject UserProfileService userProfiles;
+  @Inject ReputationFeatureFlags reputationFeatureFlags;
 
   @CheckedTemplate
   static class Templates {
@@ -198,13 +200,17 @@ public class CommunityBoardResource {
   private TemplateInstance withLayoutData(
       TemplateInstance template, String activeCommunitySubmenu, String localeCookie) {
     boolean authenticated = isAuthenticated();
+    boolean isAdmin = AdminUtils.isAdmin(identity);
     String name = currentUserName().orElse(null);
+    boolean showReputationHub = isAdmin && reputationFeatureFlags.snapshot().hubUiEnabled();
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
         .data("noLoginModal", true)
         .data("activeCommunitySubmenu", activeCommunitySubmenu)
         .data("userAuthenticated", authenticated)
+        .data("isAdmin", isAdmin)
+        .data("showReputationHub", showReputationHub)
         .data("userName", name)
         .data("userInitial", initialFrom(name));
   }
