@@ -66,6 +66,7 @@ class AdminReputationApiResourceTest {
     assertFalse((Boolean) flags.get("engineEnabled"));
     assertFalse((Boolean) flags.get("hubUiEnabled"));
     assertFalse((Boolean) flags.get("recognitionEnabled"));
+    assertFalse((Boolean) flags.get("shadowReadEnabled"));
     assertTrue(((Number) payload.get("communityBoardViews")).longValue() >= 2L);
     assertTrue(((Number) payload.get("profileViews")).longValue() >= 1L);
     assertTrue(((Number) payload.get("publicProfileOpens")).longValue() >= 1L);
@@ -76,5 +77,12 @@ class AdminReputationApiResourceTest {
     List<Map<String, Object>> taxonomy = (List<Map<String, Object>>) payload.get("taxonomy");
     assertTrue(taxonomy.stream().anyMatch(row -> "quest_completed".equals(row.get("eventType"))));
     assertTrue(taxonomy.stream().anyMatch(row -> "content_recommended".equals(row.get("eventType"))));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminGetsConflictWhenPhase2ShadowReadIsDisabled() {
+    given().when().get("/api/private/admin/reputation/phase2/diagnostics").then().statusCode(409);
+    given().when().get("/api/private/admin/reputation/phase2/user/alice@example.com").then().statusCode(409);
   }
 }
