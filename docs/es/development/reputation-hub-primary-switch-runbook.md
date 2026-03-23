@@ -20,6 +20,8 @@ Usar cuando se cambie `reputation.hub.primary.enabled` en produccion.
    - redirect de `/comunidad/board` hacia Hub para audiencia elegible
    - submenu sin link conflictivo a Board cuando replacement gate este activo
    - leaderboards y recognized contributions visibles sin errores
+   - ejecutar smoke automatizado:
+     - `scripts/reputation-hub-smoke.sh https://homedir.opensourcesantiago.io primary-on`
 7. Validar anti-abuso basico de reconocimiento:
    - self-recognition => `400 recognition_self_not_allowed`
    - repeticion inmediata => `429 recognition_cooldown_active` o `recognition_already_recorded`
@@ -40,3 +42,7 @@ Usar cuando se cambie `reputation.hub.primary.enabled` en produccion.
 - resultado smoke antes/despues
 - muestra de diagnostico `phase2/diagnostics`
 - decision final: mantener switch o rollback
+
+## Smoke baseline (flags OFF)
+
+- `scripts/reputation-hub-smoke.sh https://homedir.opensourcesantiago.io baseline-off`
