@@ -2,6 +2,7 @@ package com.scanales.homedir.public_;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.TestDataDir;
@@ -12,6 +13,7 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.Map;
@@ -69,6 +71,14 @@ class ReputationHubResourceTest {
 
     assertTrue(reputationEngineService.trackQuestCompleted("hub.user.two@example.com", "quest-b"));
     assertTrue(reputationEngineService.trackEventAttended("hub.user.two@example.com", "talk-b"));
+    assertTrue(
+        reputationEngineService.trackRecognition(
+            "content_recommended",
+            "hub.user.two@example.com",
+            "community_content",
+            "thread-rec-1",
+            "validator@example.com",
+            "recommended"));
   }
 
   @Test
@@ -86,7 +96,9 @@ class ReputationHubResourceTest {
         .body(containsString("Recognized contributions"))
         .body(containsString("How reputation works"))
         .body(containsString("hub-user-one"))
-        .body(containsString("hub-user-two"));
+        .body(containsString("hub-user-two"))
+        .body(containsString("Community recommended"))
+        .body(not(containsString("data-recognition-target=\"hub.user.two@example.com\"")));
   }
 
   @Test
@@ -104,6 +116,21 @@ class ReputationHubResourceTest {
         .body(containsString("Contribuciones reconocidas"))
         .body(containsString("Cómo funciona la reputación"))
         .body(containsString("hub-user-one"))
-        .body(containsString("hub-user-two"));
+        .body(containsString("hub-user-two"))
+        .body(containsString("Recomendado por la comunidad"));
+  }
+
+  @Test
+  @TestSecurity(user = "validator@example.com")
+  void reputationHubShowsRecognitionActionsWhenUserIsAuthenticated() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/comunidad/reputation-hub")
+        .then()
+        .statusCode(200)
+        .body(containsString("hub-recognition-actions"))
+        .body(containsString("data-recognition-target=\"hub.user.two@example.com\""))
+        .body(containsString("data-recognition-type=\"recommended\""));
   }
 }

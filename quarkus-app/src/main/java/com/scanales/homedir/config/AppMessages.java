@@ -5757,6 +5757,51 @@ public interface AppMessages {
     @Message("Standout")
     String reputation_hub_recognition_standout();
 
+    @Message("Sign in to recognize community contributions.")
+    String reputation_hub_recognize_signin_hint();
+
+    @Message("Recommend")
+    String reputation_hub_recognize_recommended();
+
+    @Message("Helpful")
+    String reputation_hub_recognize_helpful();
+
+    @Message("Standout")
+    String reputation_hub_recognize_standout();
+
+    @Message("Recognition recorded.")
+    String reputation_hub_recognize_success();
+
+    @Message("Could not submit recognition right now.")
+    String reputation_hub_recognize_error_generic();
+
+    @Message("You cannot recognize your own contribution.")
+    String reputation_hub_recognize_error_self();
+
+    @Message("You reached today's recognition limit.")
+    String reputation_hub_recognize_error_daily_limit();
+
+    @Message("This contribution is on cooldown. Try again later.")
+    String reputation_hub_recognize_error_cooldown();
+
+    @Message("Recognition is temporarily disabled.")
+    String reputation_hub_recognize_error_disabled();
+
+    @Message("Recognition request is invalid.")
+    String reputation_hub_recognize_error_invalid();
+
+    @Message("This recognition was already submitted recently.")
+    String reputation_hub_recognize_error_duplicate();
+
+    @Message("Community recommended")
+    String reputation_hub_event_content_recommended();
+
+    @Message("Peer help acknowledged")
+    String reputation_hub_event_peer_help_acknowledged();
+
+    @Message("Contribution highlighted")
+    String reputation_hub_event_contribution_highlighted();
+
     @Message("Published content")
     String reputation_hub_event_content_published();
 
