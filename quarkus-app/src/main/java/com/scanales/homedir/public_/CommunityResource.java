@@ -3,6 +3,7 @@ package com.scanales.homedir.public_;
 import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.community.CommunityContentMedia;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.reputation.ReputationFeatureFlags;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
@@ -35,6 +36,8 @@ public class CommunityResource {
   UsageMetricsService metrics;
   @Inject
   GamificationService gamificationService;
+  @Inject
+  ReputationFeatureFlags reputationFeatureFlags;
 
   @CheckedTemplate
   static class Templates {
@@ -99,6 +102,7 @@ public class CommunityResource {
       io.vertx.ext.web.RoutingContext context) {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
+    boolean showReputationHub = isAdmin && reputationFeatureFlags.snapshot().hubUiEnabled();
     String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
@@ -136,6 +140,7 @@ public class CommunityResource {
         .data("initialMedia", initialMedia)
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
+        .data("showReputationHub", showReputationHub)
         .data("discordOnlineUsers", discordOnlineUsers)
         .data("userName", currentUserName().orElse(null))
         .data("userInitial", initialFrom(currentUserName().orElse(null)));

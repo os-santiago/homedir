@@ -2394,6 +2394,9 @@ public interface AppMessages {
     @Message("Community Board")
     String community_submenu_board();
 
+    @Message("Reputation Hub")
+    String community_submenu_reputation_hub();
+
     @Message("Moderation")
     String community_submenu_moderation();
 
@@ -5699,5 +5702,98 @@ public interface AppMessages {
 
     @Message("Meaningful score {value}")
     String public_profile_reputation_milestone_total(long value);
+
+    @Message("Reputation Hub")
+    String reputation_hub_page_title();
+
+    @Message("Community reputation")
+    String reputation_hub_subtitle();
+
+    @Message("Reputation Hub")
+    String reputation_hub_heading();
+
+    @Message("Track who is creating meaningful momentum in the community right now.")
+    String reputation_hub_intro();
+
+    @Message("Active contributors")
+    String reputation_hub_hero_contributors();
+
+    @Message("Events captured")
+    String reputation_hub_hero_events();
+
+    @Message("Last refresh")
+    String reputation_hub_hero_updated();
+
+    @Message("Weekly leaderboard")
+    String reputation_hub_weekly_title();
+
+    @Message("Monthly leaderboard")
+    String reputation_hub_monthly_title();
+
+    @Message("Rising members")
+    String reputation_hub_rising_title();
+
+    @Message("Recognized contributions")
+    String reputation_hub_recognized_title();
+
+    @Message("How reputation works")
+    String reputation_hub_how_title();
+
+    @Message("No reputation data yet for this view.")
+    String reputation_hub_empty();
+
+    @Message("Score {score}")
+    String reputation_hub_score(long score);
+
+    @Message("Growth +{score}")
+    String reputation_hub_growth(long score);
+
+    @Message("Recommended")
+    String reputation_hub_recognition_recommended();
+
+    @Message("Helpful")
+    String reputation_hub_recognition_helpful();
+
+    @Message("Standout")
+    String reputation_hub_recognition_standout();
+
+    @Message("Published content")
+    String reputation_hub_event_content_published();
+
+    @Message("Speaker contribution")
+    String reputation_hub_event_event_speaker();
+
+    @Message("Quest completed")
+    String reputation_hub_event_quest_completed();
+
+    @Message("Event attended")
+    String reputation_hub_event_event_attended();
+
+    @Message("Meaningful activity signal")
+    String reputation_hub_event_activity_signal();
+
+    @Message("by {name}")
+    String reputation_hub_by(String name);
+
+    @Message("No recognized contributions yet.")
+    String reputation_hub_recognized_empty();
+
+    @Message("Meaning over volume")
+    String reputation_hub_how_meaning_title();
+
+    @Message("High-impact contributions weigh more than repetitive low-value actions.")
+    String reputation_hub_how_meaning_desc();
+
+    @Message("Consistency matters")
+    String reputation_hub_how_consistency_title();
+
+    @Message("Weekly and monthly windows reward sustained participation, not only history.")
+    String reputation_hub_how_consistency_desc();
+
+    @Message("Recognition is contextual")
+    String reputation_hub_how_quality_title();
+
+    @Message("Community and system signals combine to surface useful contributions.")
+    String reputation_hub_how_quality_desc();
 
 }

@@ -154,6 +154,23 @@ public class CommunityBoardResourceTest {
   }
 
   @Test
+  void englishCommunityReputationHubAliasRedirectsToLocalizedPath() {
+    englishRequest()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/community/reputation-hub")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/reputation-hub"));
+  }
+
+  @Test
+  void reputationHubReturnsNotFoundWhenHubUiFlagIsDisabled() {
+    englishRequest().when().get("/comunidad/reputation-hub").then().statusCode(404);
+  }
+
+  @Test
   void memberSharePageRenders() {
     englishRequest()
         .redirects()
@@ -335,4 +352,3 @@ public class CommunityBoardResourceTest {
         .body(containsString("Discord User"));
   }
 }
-
