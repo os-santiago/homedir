@@ -6,6 +6,7 @@ import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.service.GamificationService;
+import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.PaginationGuardrails;
@@ -21,6 +22,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -44,6 +46,7 @@ public class CommunityBoardResource {
   @Inject CommunityBoardService boardService;
   @Inject AppMessages messages;
   @Inject GamificationService gamificationService;
+  @Inject UsageMetricsService metrics;
   @Inject UserProfileService userProfiles;
 
   @CheckedTemplate
@@ -95,7 +98,11 @@ public class CommunityBoardResource {
   @GET
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance board(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+  public TemplateInstance board(
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/comunidad/board", headers, context);
     currentUserId()
         .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
     var summary = boardService.summary();
@@ -130,9 +137,12 @@ public class CommunityBoardResource {
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam,
       @QueryParam("member") String highlightedMember,
-      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     CommunityBoardGroup group =
         CommunityBoardGroup.fromPath(groupPath).orElseThrow(() -> new NotFoundException("group_not_found"));
+    metrics.recordPageView("/comunidad/board/" + group.path(), headers, context);
     currentUserId()
         .ifPresent(
             userId ->
