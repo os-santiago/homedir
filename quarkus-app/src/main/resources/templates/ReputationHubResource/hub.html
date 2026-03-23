@@ -1,5 +1,6 @@
 {@ boolean userAuthenticated = false}
 {@ String currentUserId = ""}
+{@ boolean showHubMigrationBanner = false}
 {#include layout/main activePage="comunidad" noLoginModal=true}
 {#title}{i18n:reputation_hub_page_title}{/title}
 {#body}
@@ -11,6 +12,13 @@
     <p class="section-subtitle">{i18n:reputation_hub_intro}</p>
   </header>
   {#include fragments/community-submenu.html /}
+  {#if showHubMigrationBanner}
+    <article class="hub-migration-banner">
+      <span class="hub-migration-badge">{i18n:reputation_hub_migration_badge}</span>
+      <h2>{i18n:reputation_hub_migration_title}</h2>
+      <p>{i18n:reputation_hub_migration_desc}</p>
+    </article>
+  {/if}
 
   <section class="page-grid">
     <div class="section-card events-full-width hub-shell">
@@ -243,6 +251,35 @@
     .hub-panel h2 {
       margin: 0 0 0.75rem;
       font-size: 1.02rem;
+    }
+
+    .hub-migration-banner {
+      margin: 0 0 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      background: rgba(15, 23, 42, 0.52);
+    }
+
+    .hub-migration-banner h2 {
+      margin: 0.3rem 0 0.25rem;
+      font-size: 1rem;
+    }
+
+    .hub-migration-banner p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 0.86rem;
+    }
+
+    .hub-migration-badge {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      padding: 0.1rem 0.48rem;
+      font-size: 0.72rem;
+      white-space: nowrap;
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .hub-how-link {

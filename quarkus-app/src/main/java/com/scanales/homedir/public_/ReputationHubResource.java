@@ -56,6 +56,7 @@ public class ReputationHubResource {
     boolean authenticated = isAuthenticated();
     boolean admin = AdminUtils.isAdmin(identity);
     boolean showReputationHub = flags.hubUiEnabled() && (admin || flags.hubNavPublicEnabled());
+    boolean showHubMigrationBanner = flags.hubPrimaryEnabled();
     ReputationHubService.HubSnapshot hub = reputationHubService.snapshot(10);
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.hub(hub), localeCookie)
@@ -66,6 +67,7 @@ public class ReputationHubResource {
             .data("userAuthenticated", authenticated)
             .data("isAdmin", admin)
             .data("showReputationHub", showReputationHub)
+            .data("showHubMigrationBanner", showHubMigrationBanner)
             .data("currentUserId", currentUserId.orElse(null))
             .data("userName", userName)
             .data("userInitial", initialFrom(userName));
@@ -92,6 +94,7 @@ public class ReputationHubResource {
     boolean authenticated = isAuthenticated();
     boolean admin = AdminUtils.isAdmin(identity);
     boolean showReputationHub = flags.hubUiEnabled() && (admin || flags.hubNavPublicEnabled());
+    boolean showHubMigrationBanner = flags.hubPrimaryEnabled();
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.how(), localeCookie)
             .data("activePage", "comunidad")
@@ -101,6 +104,7 @@ public class ReputationHubResource {
             .data("userAuthenticated", authenticated)
             .data("isAdmin", admin)
             .data("showReputationHub", showReputationHub)
+            .data("showHubMigrationBanner", showHubMigrationBanner)
             .data("currentUserId", currentUserId.orElse(null))
             .data("userName", userName)
             .data("userInitial", initialFrom(userName));

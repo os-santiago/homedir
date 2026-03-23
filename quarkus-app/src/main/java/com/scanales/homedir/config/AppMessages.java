@@ -5715,6 +5715,15 @@ public interface AppMessages {
     @Message("Track who is creating meaningful momentum in the community right now.")
     String reputation_hub_intro();
 
+    @Message("Community update")
+    String reputation_hub_migration_badge();
+
+    @Message("Community Board now lives in Reputation Hub")
+    String reputation_hub_migration_title();
+
+    @Message("Legacy board links redirect here while we complete the transition.")
+    String reputation_hub_migration_desc();
+
     @Message("Active contributors")
     String reputation_hub_hero_contributors();
 
