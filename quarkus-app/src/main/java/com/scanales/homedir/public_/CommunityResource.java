@@ -105,6 +105,7 @@ public class CommunityResource {
     ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
     boolean showReputationHub =
         flags.hubUiEnabled() && (isAdmin || flags.hubNavPublicEnabled());
+    boolean showCommunityBoard = !isCommunityBoardReplaced(flags, isAdmin);
     String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
@@ -143,9 +144,20 @@ public class CommunityResource {
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
         .data("showReputationHub", showReputationHub)
+        .data("showCommunityBoard", showCommunityBoard)
         .data("discordOnlineUsers", discordOnlineUsers)
         .data("userName", currentUserName().orElse(null))
         .data("userInitial", initialFrom(currentUserName().orElse(null)));
+  }
+
+  private boolean isCommunityBoardReplaced(ReputationFeatureFlags.Flags flags, boolean isAdmin) {
+    if (flags == null) {
+      return false;
+    }
+    if (!flags.engineEnabled() || !flags.hubUiEnabled() || !flags.hubPrimaryEnabled()) {
+      return false;
+    }
+    return isAdmin || flags.hubNavPublicEnabled();
   }
 
   private String resolveDefaultSubmenu(String viewParam, String filterParam, String mediaParam) {
