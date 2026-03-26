@@ -58,6 +58,7 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Importacion de eventos](features/import-events.md)
 - [Campaigns Module (stub)](features/campaigns.md)
 - [Reputation Hub Roadmap (espejo)](features/reputation-hub-roadmap.md)
+- [Reputation Hub: estado de estabilidad y mejoras UX (espejo)](features/reputation-hub-stability-and-ux-update.md)
 - [Metricas](features/metrics.md)
 - [Notificaciones](features/notifications.md)
 - [Seguridad de cadena de suministro](features/supply-chain-security.md)

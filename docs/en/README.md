@@ -58,6 +58,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Import Events](features/import-events.md)
 - [Campaigns Module](features/campaigns.md)
 - [Reputation Hub Roadmap](features/reputation-hub-roadmap.md)
+- [Reputation Hub Stability and UX Update](features/reputation-hub-stability-and-ux-update.md)
 - [Metrics](features/metrics.md)
 - [Notifications](features/notifications.md)
 - [Supply Chain Security](features/supply-chain-security.md)
