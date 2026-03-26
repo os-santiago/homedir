@@ -49,7 +49,8 @@ public class ReputationRecognitionService {
     if (isDailyLimitReached(snapshot.eventsById(), validator)) {
       return RecognitionResult.rateLimited("recognition_daily_limit_reached");
     }
-    if (isCooldownActive(snapshot.eventsById(), validator, target, sourceId, type.apiValue())) {
+    if (isCooldownActive(
+        snapshot.eventsById(), validator, target, sourceType, sourceId, type.apiValue())) {
       return RecognitionResult.rateLimited("recognition_cooldown_active");
     }
 
@@ -73,6 +74,7 @@ public class ReputationRecognitionService {
             .filter(Objects::nonNull)
             .filter(event -> validatorUserId.equals(normalizeUser(event.validatedByUserId())))
             .filter(event -> isRecognitionType(event.validationType()))
+            .filter(event -> event.createdAt() != null)
             .filter(event -> !event.createdAt().isBefore(dayStart))
             .count();
     return count >= dailyLimit;
@@ -82,6 +84,7 @@ public class ReputationRecognitionService {
       Map<String, ReputationEventRecord> eventsById,
       String validatorUserId,
       String targetUserId,
+      String sourceObjectType,
       String sourceObjectId,
       String recognitionType) {
     if (eventsById == null || eventsById.isEmpty() || cooldownSeconds <= 0L) {
@@ -92,8 +95,10 @@ public class ReputationRecognitionService {
         .filter(Objects::nonNull)
         .filter(event -> validatorUserId.equals(normalizeUser(event.validatedByUserId())))
         .filter(event -> targetUserId.equals(normalizeUser(event.actorUserId())))
+        .filter(event -> sourceObjectType.equals(sanitizeToken(event.sourceObjectType())))
         .filter(event -> sourceObjectId.equals(sanitizeValue(event.sourceObjectId())))
         .filter(event -> recognitionType.equals(sanitizeToken(event.validationType())))
+        .filter(event -> event.createdAt() != null)
         .filter(event -> !event.createdAt().isBefore(threshold))
         .findFirst()
         .isPresent();
