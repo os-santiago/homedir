@@ -1,6 +1,9 @@
 {@ boolean showHubMigrationBanner = false}
 {#include layout/main activePage="comunidad" noLoginModal=true}
 {#title}{i18n:reputation_hub_how_title}{/title}
+{#head}
+  <link rel="stylesheet" href="/css/reputation-hub.css?v={app:version()}" />
+{/head}
 {#body}
   <header class="page-header events-page-header">
     <div class="section-header hd-section-heading">
@@ -66,97 +69,5 @@
     </div>
   </section>
 
-  <style>
-    .hub-how-shell,
-    .hub-how-shell:hover {
-      transform: none;
-      animation: none;
-      cursor: default;
-    }
-
-    .hub-how-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .hub-how-panel {
-      border: 2px solid rgba(255, 255, 255, 0.32);
-      border-radius: 10px;
-      padding: 1rem;
-      background: rgba(0, 0, 0, 0.3);
-    }
-
-    .hub-how-panel h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1.02rem;
-    }
-
-    .hub-migration-banner {
-      margin: 0 0 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.34);
-      border-radius: 10px;
-      padding: 0.75rem 0.9rem;
-      background: rgba(15, 23, 42, 0.52);
-    }
-
-    .hub-migration-banner h2 {
-      margin: 0.3rem 0 0.25rem;
-      font-size: 1rem;
-    }
-
-    .hub-migration-banner p {
-      margin: 0;
-      opacity: 0.9;
-      font-size: 0.86rem;
-    }
-
-    .hub-migration-badge {
-      display: inline-block;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.34);
-      padding: 0.1rem 0.48rem;
-      font-size: 0.72rem;
-      white-space: nowrap;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .hub-how-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 0.55rem;
-    }
-
-    .hub-how-list strong {
-      display: block;
-      margin-bottom: 0.12rem;
-    }
-
-    .hub-how-list p {
-      margin: 0;
-      opacity: 0.9;
-      font-size: 0.86rem;
-    }
-
-    .hub-how-back {
-      display: inline-block;
-      border: 1px solid rgba(255, 255, 255, 0.34);
-      border-radius: 999px;
-      padding: 0.34rem 0.74rem;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    @media (max-width: 980px) {
-      .hub-how-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 {/body}
 {/include}

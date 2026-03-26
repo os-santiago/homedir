@@ -79,12 +79,24 @@ public class PublicExperienceSmokeTest {
   void criticalCssAssetsReturnSuccess() {
     given().when().get("/css/homedir.css").then().statusCode(200).body(not(isEmptyOrNullString()));
     given().when().get("/css/retro-theme.css").then().statusCode(200).body(not(isEmptyOrNullString()));
+    given()
+        .when()
+        .get("/css/reputation-hub.css")
+        .then()
+        .statusCode(200)
+        .body(not(isEmptyOrNullString()));
   }
 
   @Test
   void criticalJavascriptAssetsReturnSuccess() {
     given().when().get("/js/homedir.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given().when().get("/js/app.js").then().statusCode(200).body(not(isEmptyOrNullString()));
+    given()
+        .when()
+        .get("/js/reputation-recognition.js")
+        .then()
+        .statusCode(200)
+        .body(not(isEmptyOrNullString()));
   }
 
   private String fetchHtmlWithBudget(String path, int budgetBytes) {

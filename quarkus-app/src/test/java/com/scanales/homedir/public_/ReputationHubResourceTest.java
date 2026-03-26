@@ -96,6 +96,7 @@ class ReputationHubResourceTest {
         .body(containsString("Recognized contributions"))
         .body(containsString("How reputation works"))
         .body(containsString("href=\"/comunidad/reputation-hub/how\""))
+        .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("href=\"/comunidad/board\""))
         .body(not(containsString("Community Board now lives in Reputation Hub")))
         .body(containsString("hub-user-one"))
@@ -118,6 +119,7 @@ class ReputationHubResourceTest {
         .body(containsString("Miembros en ascenso"))
         .body(containsString("Contribuciones reconocidas"))
         .body(containsString("Cómo funciona la reputación"))
+        .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("hub-user-one"))
         .body(containsString("hub-user-two"))
         .body(containsString("Recomendado por la comunidad"));
@@ -137,6 +139,7 @@ class ReputationHubResourceTest {
         .body(containsString("Contribution"))
         .body(containsString("Recognition"))
         .body(containsString("Consistency"))
+        .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("href=\"/comunidad/board\""))
         .body(containsString("href=\"/comunidad/reputation-hub\""));
   }
@@ -155,6 +158,7 @@ class ReputationHubResourceTest {
         .body(containsString("Contribución"))
         .body(containsString("Reconocimiento"))
         .body(containsString("Consistencia"))
+        .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("href=\"/comunidad/reputation-hub\""));
   }
 
@@ -169,6 +173,7 @@ class ReputationHubResourceTest {
         .statusCode(200)
         .body(containsString("hub-recognition-actions"))
         .body(containsString("data-recognition-target=\"hub.user.two@example.com\""))
-        .body(containsString("data-recognition-type=\"recommended\""));
+        .body(containsString("data-recognition-type=\"recommended\""))
+        .body(containsString("/js/reputation-recognition.js?v="));
   }
 }
