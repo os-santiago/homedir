@@ -174,6 +174,44 @@ class ReputationRecognitionApiResourceTest {
 
   @Test
   @TestSecurity(user = "validator@example.com")
+  void recognitionCooldownIsScopedBySourceObjectType() {
+    given()
+        .contentType("application/json")
+        .body(
+            Map.of(
+                "target_user_id",
+                "target.one@example.com",
+                "source_object_type",
+                "community_content",
+                "source_object_id",
+                "shared-id",
+                "recognition_type",
+                "helpful"))
+        .when()
+        .post("/api/community/reputation/recognitions")
+        .then()
+        .statusCode(200);
+
+    given()
+        .contentType("application/json")
+        .body(
+            Map.of(
+                "target_user_id",
+                "target.one@example.com",
+                "source_object_type",
+                "cfp_submission",
+                "source_object_id",
+                "shared-id",
+                "recognition_type",
+                "helpful"))
+        .when()
+        .post("/api/community/reputation/recognitions")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  @TestSecurity(user = "validator@example.com")
   void recognitionEnforcesDailyLimit() {
     given()
         .contentType("application/json")
