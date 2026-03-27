@@ -5,6 +5,7 @@ import com.scanales.homedir.reputation.ReputationShadowReadService;
 import com.scanales.homedir.reputation.ReputationWebVitalsHistoryService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -27,11 +28,16 @@ import java.util.Set;
 @Authenticated
 @Produces(MediaType.APPLICATION_JSON)
 public class AdminReputationApiResource {
-  private static final long GA_MIN_ROUTE_SAMPLES = 20L;
-  private static final long GA_MIN_STABLE_WINDOWS = 3L;
-  private static final long GA_MIN_ROUTE_PAGE_VIEWS = 10L;
-
   @Inject SecurityIdentity identity;
+
+  @ConfigProperty(name = "reputation.ga.min-route-samples", defaultValue = "20")
+  long gaMinRouteSamples;
+
+  @ConfigProperty(name = "reputation.ga.min-stable-windows", defaultValue = "3")
+  long gaMinStableWindows;
+
+  @ConfigProperty(name = "reputation.ga.min-route-page-views", defaultValue = "10")
+  long gaMinRoutePageViews;
 
   @Inject ReputationPhase0BaselineService baselineService;
   @Inject ReputationShadowReadService shadowReadService;
@@ -110,7 +116,7 @@ public class AdminReputationApiResource {
     payload.put(
         "traffic",
         Map.of(
-            "minRoutePageViews", GA_MIN_ROUTE_PAGE_VIEWS,
+            "minRoutePageViews", gaMinRoutePageViews,
             "routes",
                 Map.of(
                     "hub", hubPageViews,
@@ -281,11 +287,11 @@ public class AdminReputationApiResource {
     ReputationWebVitalsHistoryService.RouteStability howStability = stabilityForRoute(trend, "how");
 
     List<String> blockers = new ArrayList<>();
-    if (hubAssessment.samples() < GA_MIN_ROUTE_SAMPLES || howAssessment.samples() < GA_MIN_ROUTE_SAMPLES) {
+    if (hubAssessment.samples() < gaMinRouteSamples || howAssessment.samples() < gaMinRouteSamples) {
       blockers.add("insufficient_samples");
     }
 
-    if (hubPageViews < GA_MIN_ROUTE_PAGE_VIEWS || howPageViews < GA_MIN_ROUTE_PAGE_VIEWS) {
+    if (hubPageViews < gaMinRoutePageViews || howPageViews < gaMinRoutePageViews) {
       blockers.add("insufficient_live_traffic");
     }
 
@@ -293,8 +299,8 @@ public class AdminReputationApiResource {
       blockers.add("stale_window_data");
     }
 
-    if (hubStability.consecutiveNonWorsening() < GA_MIN_STABLE_WINDOWS
-        || howStability.consecutiveNonWorsening() < GA_MIN_STABLE_WINDOWS) {
+    if (hubStability.consecutiveNonWorsening() < gaMinStableWindows
+        || howStability.consecutiveNonWorsening() < gaMinStableWindows) {
       blockers.add("insufficient_stability_windows");
     }
 
@@ -310,8 +316,9 @@ public class AdminReputationApiResource {
     String status = blockers.isEmpty() ? "ready" : "not_ready";
     return Map.of(
         "status", status,
-        "minRouteSamples", GA_MIN_ROUTE_SAMPLES,
-        "minStableWindows", GA_MIN_STABLE_WINDOWS,
+        "minRouteSamples", gaMinRouteSamples,
+        "minStableWindows", gaMinStableWindows,
+        "minRoutePageViews", gaMinRoutePageViews,
         "snapshotRecorded", trend != null && trend.snapshotRecorded(),
         "blockers", List.copyOf(blockers),
         "stability",
