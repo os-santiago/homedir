@@ -187,6 +187,22 @@ class AdminReputationApiResourceTest {
     assertTrue(blockers.contains("critical_route_status"));
     assertTrue(blockers.contains("active_worsening_trend"));
     assertFalse(blockers.contains("stale_window_data"));
+
+    @SuppressWarnings("unchecked")
+    List<String> recommendedActions = (List<String>) gaReadiness.get("recommendedActions");
+    assertTrue(recommendedActions.contains("collect_more_webvitals_samples"));
+    assertTrue(recommendedActions.contains("increase_hub_route_adoption"));
+    assertTrue(recommendedActions.contains("observe_more_stable_windows"));
+    assertTrue(recommendedActions.contains("improve_critical_route_performance"));
+    assertTrue(recommendedActions.contains("triage_worsening_route"));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
+    assertTrue(blockerDetails.containsKey("insufficient_samples"));
+    assertTrue(blockerDetails.containsKey("insufficient_live_traffic"));
+    assertTrue(blockerDetails.containsKey("insufficient_stability_windows"));
+    assertTrue(blockerDetails.containsKey("critical_route_status"));
+    assertTrue(blockerDetails.containsKey("active_worsening_trend"));
   }
 
   @Test
@@ -240,6 +256,12 @@ class AdminReputationApiResourceTest {
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.isEmpty());
+    @SuppressWarnings("unchecked")
+    List<String> recommendedActions = (List<String>) gaReadiness.get("recommendedActions");
+    assertTrue(recommendedActions.isEmpty());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
+    assertTrue(blockerDetails.isEmpty());
 
     @SuppressWarnings("unchecked")
     Map<String, Object> gaRoutes = (Map<String, Object>) gaReadiness.get("routes");
@@ -329,5 +351,11 @@ class AdminReputationApiResourceTest {
     List<String> blockers = (List<String>) gaReadinessStale.get("blockers");
     assertTrue(blockers.contains("stale_window_data"));
     assertFalse(blockers.contains("insufficient_live_traffic"));
+    @SuppressWarnings("unchecked")
+    List<String> recommendedActions = (List<String>) gaReadinessStale.get("recommendedActions");
+    assertTrue(recommendedActions.contains("verify_web_vitals_ingestion"));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> blockerDetails = (Map<String, Object>) gaReadinessStale.get("blockerDetails");
+    assertTrue(blockerDetails.containsKey("stale_window_data"));
   }
 }

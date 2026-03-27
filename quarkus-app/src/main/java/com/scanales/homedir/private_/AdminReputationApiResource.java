@@ -19,6 +19,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -287,30 +289,81 @@ public class AdminReputationApiResource {
     ReputationWebVitalsHistoryService.RouteStability howStability = stabilityForRoute(trend, "how");
 
     List<String> blockers = new ArrayList<>();
+    Map<String, Object> blockerDetails = new LinkedHashMap<>();
+    Set<String> recommendedActionSet = new LinkedHashSet<>();
+
     if (hubAssessment.samples() < gaMinRouteSamples || howAssessment.samples() < gaMinRouteSamples) {
       blockers.add("insufficient_samples");
+      blockerDetails.put(
+          "insufficient_samples",
+          Map.of(
+              "required", gaMinRouteSamples,
+              "routes",
+                  Map.of(
+                      "hub", hubAssessment.samples(),
+                      "how", howAssessment.samples())));
+      recommendedActionSet.add("collect_more_webvitals_samples");
     }
 
     if (hubPageViews < gaMinRoutePageViews || howPageViews < gaMinRoutePageViews) {
       blockers.add("insufficient_live_traffic");
+      blockerDetails.put(
+          "insufficient_live_traffic",
+          Map.of(
+              "required", gaMinRoutePageViews,
+              "routes",
+                  Map.of(
+                      "hub", hubPageViews,
+                      "how", howPageViews)));
+      recommendedActionSet.add("increase_hub_route_adoption");
     }
 
     if (trend == null || !trend.snapshotRecorded()) {
       blockers.add("stale_window_data");
+      blockerDetails.put(
+          "stale_window_data",
+          Map.of(
+              "snapshotRecorded", trend != null && trend.snapshotRecorded()));
+      recommendedActionSet.add("verify_web_vitals_ingestion");
     }
 
     if (hubStability.consecutiveNonWorsening() < gaMinStableWindows
         || howStability.consecutiveNonWorsening() < gaMinStableWindows) {
       blockers.add("insufficient_stability_windows");
+      blockerDetails.put(
+          "insufficient_stability_windows",
+          Map.of(
+              "required", gaMinStableWindows,
+              "routes",
+                  Map.of(
+                      "hub", hubStability.consecutiveNonWorsening(),
+                      "how", howStability.consecutiveNonWorsening())));
+      recommendedActionSet.add("observe_more_stable_windows");
     }
 
     Set<String> criticalStatuses = Set.of("critical");
     if (criticalStatuses.contains(hubAssessment.status()) || criticalStatuses.contains(howAssessment.status())) {
       blockers.add("critical_route_status");
+      blockerDetails.put(
+          "critical_route_status",
+          Map.of(
+              "routes",
+                  Map.of(
+                      "hub", hubAssessment.status(),
+                      "how", howAssessment.status())));
+      recommendedActionSet.add("improve_critical_route_performance");
     }
 
     if ("worsening".equals(hubTrendStatus) || "worsening".equals(howTrendStatus)) {
       blockers.add("active_worsening_trend");
+      blockerDetails.put(
+          "active_worsening_trend",
+          Map.of(
+              "routes",
+                  Map.of(
+                      "hub", hubTrendStatus,
+                      "how", howTrendStatus)));
+      recommendedActionSet.add("triage_worsening_route");
     }
 
     String status = blockers.isEmpty() ? "ready" : "not_ready";
@@ -321,6 +374,8 @@ public class AdminReputationApiResource {
         "minRoutePageViews", gaMinRoutePageViews,
         "snapshotRecorded", trend != null && trend.snapshotRecorded(),
         "blockers", List.copyOf(blockers),
+        "recommendedActions", List.copyOf(recommendedActionSet),
+        "blockerDetails", Map.copyOf(blockerDetails),
         "stability",
             Map.of(
                 "hub",
