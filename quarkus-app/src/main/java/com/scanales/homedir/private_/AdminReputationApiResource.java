@@ -19,6 +19,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +40,15 @@ public class AdminReputationApiResource {
 
   @ConfigProperty(name = "reputation.ga.min-route-page-views", defaultValue = "10")
   long gaMinRoutePageViews;
+
+  @ConfigProperty(name = "reputation.ga.min-public-profile-opens", defaultValue = "5")
+  long gaMinPublicProfileOpens;
+
+  @ConfigProperty(name = "reputation.ga.min-board-profile-opens", defaultValue = "5")
+  long gaMinBoardProfileOpens;
+
+  @ConfigProperty(name = "reputation.ga.min-feedback-signals", defaultValue = "5")
+  long gaMinFeedbackSignals;
 
   @Inject ReputationPhase0BaselineService baselineService;
   @Inject ReputationShadowReadService shadowReadService;
@@ -100,6 +111,10 @@ public class AdminReputationApiResource {
     long hubPageViews = pageViews(snapshot, "/comunidad/reputation-hub", "/community/reputation-hub");
     long howPageViews =
         pageViews(snapshot, "/comunidad/reputation-hub/how", "/community/reputation-hub/how");
+    long publicProfileOpens =
+        maxCounter(snapshot, "funnel:profile.public.open", "funnel:profile_public_open");
+    long boardProfileOpens = snapshot.getOrDefault("funnel:board_profile_open", 0L);
+    long feedbackSignals = maxCounter(snapshot, "funnel:community_vote", "funnel:community.vote");
     ReputationWebVitalsHistoryService.TrendWindow trend =
         webVitalsHistoryService.recordAndTrend(
             Map.of(
@@ -121,6 +136,19 @@ public class AdminReputationApiResource {
                 Map.of(
                     "hub", hubPageViews,
                     "how", howPageViews)));
+    payload.put(
+        "activityLoop",
+        Map.of(
+            "minimums",
+                Map.of(
+                    "publicProfileOpens", gaMinPublicProfileOpens,
+                    "boardProfileOpens", gaMinBoardProfileOpens,
+                    "feedbackSignals", gaMinFeedbackSignals),
+            "current",
+                Map.of(
+                    "publicProfileOpens", publicProfileOpens,
+                    "boardProfileOpens", boardProfileOpens,
+                    "feedbackSignals", feedbackSignals)));
     payload.put(
         "routes",
         Map.of(
@@ -151,8 +179,24 @@ public class AdminReputationApiResource {
                     "how", trendPayload(trend.routes().get("how")))));
     payload.put(
         "gaReadiness",
-        gaReadinessPayload(hubAssessment, howAssessment, hubPageViews, howPageViews, trend));
+        gaReadinessPayload(
+            hubAssessment,
+            howAssessment,
+            hubPageViews,
+            howPageViews,
+            publicProfileOpens,
+            boardProfileOpens,
+            feedbackSignals,
+            trend));
     return Response.ok(payload).build();
+  }
+
+  private long maxCounter(Map<String, Long> snapshot, String... keys) {
+    long best = 0L;
+    for (String key : keys) {
+      best = Math.max(best, snapshot.getOrDefault(key, 0L));
+    }
+    return best;
   }
 
   private long pageViews(Map<String, Long> snapshot, String... routes) {
@@ -280,6 +324,9 @@ public class AdminReputationApiResource {
       RouteAssessment howAssessment,
       long hubPageViews,
       long howPageViews,
+      long publicProfileOpens,
+      long boardProfileOpens,
+      long feedbackSignals,
       ReputationWebVitalsHistoryService.TrendWindow trend) {
     String hubTrendStatus = trendStatus(trend, "hub");
     String howTrendStatus = trendStatus(trend, "how");
@@ -287,64 +334,149 @@ public class AdminReputationApiResource {
     ReputationWebVitalsHistoryService.RouteStability howStability = stabilityForRoute(trend, "how");
 
     List<String> blockers = new ArrayList<>();
+    Map<String, Object> blockerDetails = new LinkedHashMap<>();
+    Set<String> recommendedActionSet = new LinkedHashSet<>();
+
     if (hubAssessment.samples() < gaMinRouteSamples || howAssessment.samples() < gaMinRouteSamples) {
       blockers.add("insufficient_samples");
+      blockerDetails.put(
+          "insufficient_samples",
+          Map.of(
+              "required", gaMinRouteSamples,
+              "routes",
+                  Map.of(
+                      "hub", hubAssessment.samples(),
+                      "how", howAssessment.samples())));
+      recommendedActionSet.add("collect_more_webvitals_samples");
     }
 
     if (hubPageViews < gaMinRoutePageViews || howPageViews < gaMinRoutePageViews) {
       blockers.add("insufficient_live_traffic");
+      blockerDetails.put(
+          "insufficient_live_traffic",
+          Map.of(
+              "required", gaMinRoutePageViews,
+              "routes",
+                  Map.of(
+                      "hub", hubPageViews,
+                      "how", howPageViews)));
+      recommendedActionSet.add("increase_hub_route_adoption");
+    }
+
+    if (publicProfileOpens < gaMinPublicProfileOpens
+        || boardProfileOpens < gaMinBoardProfileOpens
+        || feedbackSignals < gaMinFeedbackSignals) {
+      blockers.add("insufficient_activity_loop_signals");
+      blockerDetails.put(
+          "insufficient_activity_loop_signals",
+          Map.of(
+              "required",
+                  Map.of(
+                      "publicProfileOpens", gaMinPublicProfileOpens,
+                      "boardProfileOpens", gaMinBoardProfileOpens,
+                      "feedbackSignals", gaMinFeedbackSignals),
+              "current",
+                  Map.of(
+                      "publicProfileOpens", publicProfileOpens,
+                      "boardProfileOpens", boardProfileOpens,
+                      "feedbackSignals", feedbackSignals)));
+      recommendedActionSet.add("drive_profile_feedback_cycle");
     }
 
     if (trend == null || !trend.snapshotRecorded()) {
       blockers.add("stale_window_data");
+      blockerDetails.put(
+          "stale_window_data",
+          Map.of(
+              "snapshotRecorded", trend != null && trend.snapshotRecorded()));
+      recommendedActionSet.add("verify_web_vitals_ingestion");
     }
 
     if (hubStability.consecutiveNonWorsening() < gaMinStableWindows
         || howStability.consecutiveNonWorsening() < gaMinStableWindows) {
       blockers.add("insufficient_stability_windows");
+      blockerDetails.put(
+          "insufficient_stability_windows",
+          Map.of(
+              "required", gaMinStableWindows,
+              "routes",
+                  Map.of(
+                      "hub", hubStability.consecutiveNonWorsening(),
+                      "how", howStability.consecutiveNonWorsening())));
+      recommendedActionSet.add("observe_more_stable_windows");
     }
 
     Set<String> criticalStatuses = Set.of("critical");
     if (criticalStatuses.contains(hubAssessment.status()) || criticalStatuses.contains(howAssessment.status())) {
       blockers.add("critical_route_status");
+      blockerDetails.put(
+          "critical_route_status",
+          Map.of(
+              "routes",
+                  Map.of(
+                      "hub", hubAssessment.status(),
+                      "how", howAssessment.status())));
+      recommendedActionSet.add("improve_critical_route_performance");
     }
 
     if ("worsening".equals(hubTrendStatus) || "worsening".equals(howTrendStatus)) {
       blockers.add("active_worsening_trend");
+      blockerDetails.put(
+          "active_worsening_trend",
+          Map.of(
+              "routes",
+                  Map.of(
+                      "hub", hubTrendStatus,
+                      "how", howTrendStatus)));
+      recommendedActionSet.add("triage_worsening_route");
     }
 
     String status = blockers.isEmpty() ? "ready" : "not_ready";
-    return Map.of(
-        "status", status,
-        "minRouteSamples", gaMinRouteSamples,
-        "minStableWindows", gaMinStableWindows,
-        "minRoutePageViews", gaMinRoutePageViews,
-        "snapshotRecorded", trend != null && trend.snapshotRecorded(),
-        "blockers", List.copyOf(blockers),
+    Map<String, Object> payload = new LinkedHashMap<>();
+    payload.put("status", status);
+    payload.put("minRouteSamples", gaMinRouteSamples);
+    payload.put("minStableWindows", gaMinStableWindows);
+    payload.put("minRoutePageViews", gaMinRoutePageViews);
+    payload.put("minPublicProfileOpens", gaMinPublicProfileOpens);
+    payload.put("minBoardProfileOpens", gaMinBoardProfileOpens);
+    payload.put("minFeedbackSignals", gaMinFeedbackSignals);
+    payload.put("snapshotRecorded", trend != null && trend.snapshotRecorded());
+    payload.put("blockers", List.copyOf(blockers));
+    payload.put("recommendedActions", List.copyOf(recommendedActionSet));
+    payload.put("blockerDetails", Map.copyOf(blockerDetails));
+    payload.put(
+        "activityLoop",
+        Map.of(
+            "publicProfileOpens", publicProfileOpens,
+            "boardProfileOpens", boardProfileOpens,
+            "feedbackSignals", feedbackSignals));
+    payload.put(
         "stability",
-            Map.of(
-                "hub",
-                    Map.of(
-                        "observedWindows", hubStability.observedWindows(),
-                        "consecutiveNonWorsening", hubStability.consecutiveNonWorsening()),
-                "how",
-                    Map.of(
-                        "observedWindows", howStability.observedWindows(),
-                        "consecutiveNonWorsening", howStability.consecutiveNonWorsening())),
+        Map.of(
+            "hub",
+                Map.of(
+                    "observedWindows", hubStability.observedWindows(),
+                    "consecutiveNonWorsening", hubStability.consecutiveNonWorsening()),
+            "how",
+                Map.of(
+                    "observedWindows", howStability.observedWindows(),
+                    "consecutiveNonWorsening", howStability.consecutiveNonWorsening())));
+    payload.put(
         "routes",
-            Map.of(
-                "hub",
-                    Map.of(
-                        "samples", hubAssessment.samples(),
-                        "livePageViews", hubPageViews,
-                        "assessmentStatus", hubAssessment.status(),
-                        "trendStatus", hubTrendStatus),
-                "how",
-                    Map.of(
-                        "samples", howAssessment.samples(),
-                        "livePageViews", howPageViews,
-                        "assessmentStatus", howAssessment.status(),
-                        "trendStatus", howTrendStatus)));
+        Map.of(
+            "hub",
+                Map.of(
+                    "samples", hubAssessment.samples(),
+                    "livePageViews", hubPageViews,
+                    "assessmentStatus", hubAssessment.status(),
+                    "trendStatus", hubTrendStatus),
+            "how",
+                Map.of(
+                    "samples", howAssessment.samples(),
+                    "livePageViews", howPageViews,
+                    "assessmentStatus", howAssessment.status(),
+                    "trendStatus", howTrendStatus)));
+    return Map.copyOf(payload);
   }
 
   private String trendStatus(ReputationWebVitalsHistoryService.TrendWindow trend, String route) {
