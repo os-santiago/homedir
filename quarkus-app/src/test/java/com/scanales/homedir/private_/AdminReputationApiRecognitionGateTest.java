@@ -56,28 +56,33 @@ class AdminReputationApiRecognitionGateTest {
     assertEquals("not_ready", gaReadiness.get("status"));
     assertEquals(true, gaReadiness.get("recognitionGateEnabled"));
     assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
+    assertEquals(3L, ((Number) gaReadiness.get("minRecognitionValidators")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionSignals")).longValue());
+    assertEquals(0L, ((Number) gaReadiness.get("recognitionValidators")).longValue());
     assertEquals("insufficient_recognition_signals", gaReadiness.get("primaryBlocker"));
     assertEquals("increase_peer_recognition_activity", gaReadiness.get("primaryAction"));
 
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.contains("insufficient_recognition_signals"));
+    assertTrue(blockers.contains("insufficient_recognition_validators"));
 
     @SuppressWarnings("unchecked")
     List<String> recommendedActions = (List<String>) gaReadiness.get("recommendedActions");
     assertTrue(recommendedActions.contains("increase_peer_recognition_activity"));
+    assertTrue(recommendedActions.contains("expand_recognition_validator_pool"));
 
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
     assertTrue(blockerDetails.containsKey("insufficient_recognition_signals"));
+    assertTrue(blockerDetails.containsKey("insufficient_recognition_validators"));
   }
 
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void recognitionGateClearsWhenSignalsReachThreshold() {
     prepareStableReadinessBaseline();
-    seedRecognitionSignals(5);
+    seedRecognitionSignals(5, 5);
     recordHealthyWebVitalsPair();
 
     Map<String, Object> payload = requestWebVitals();
@@ -87,13 +92,40 @@ class AdminReputationApiRecognitionGateTest {
     assertEquals("ready", gaReadiness.get("status"));
     assertEquals(true, gaReadiness.get("recognitionGateEnabled"));
     assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
+    assertEquals(3L, ((Number) gaReadiness.get("minRecognitionValidators")).longValue());
     assertTrue(((Number) gaReadiness.get("recognitionSignals")).longValue() >= 5L);
+    assertTrue(((Number) gaReadiness.get("recognitionValidators")).longValue() >= 3L);
     assertEquals("none", gaReadiness.get("primaryBlocker"));
     assertEquals("none", gaReadiness.get("primaryAction"));
 
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertFalse(blockers.contains("insufficient_recognition_signals"));
+    assertFalse(blockers.contains("insufficient_recognition_validators"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void recognitionGateBlocksWhenValidatorsAreNotDiverse() {
+    prepareStableReadinessBaseline();
+    seedRecognitionSignals(5, 1);
+    recordHealthyWebVitalsPair();
+
+    Map<String, Object> payload = requestWebVitals();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
+
+    assertEquals("not_ready", gaReadiness.get("status"));
+    assertEquals(true, gaReadiness.get("recognitionGateEnabled"));
+    assertTrue(((Number) gaReadiness.get("recognitionSignals")).longValue() >= 5L);
+    assertTrue(((Number) gaReadiness.get("recognitionValidators")).longValue() < 3L);
+    assertEquals("insufficient_recognition_validators", gaReadiness.get("primaryBlocker"));
+    assertEquals("expand_recognition_validator_pool", gaReadiness.get("primaryAction"));
+
+    @SuppressWarnings("unchecked")
+    List<String> blockers = (List<String>) gaReadiness.get("blockers");
+    assertFalse(blockers.contains("insufficient_recognition_signals"));
+    assertTrue(blockers.contains("insufficient_recognition_validators"));
   }
 
   private Map<String, Object> prepareStableReadinessBaseline() {
@@ -124,15 +156,17 @@ class AdminReputationApiRecognitionGateTest {
         .getMap("$");
   }
 
-  private void seedRecognitionSignals(int count) {
+  private void seedRecognitionSignals(int count, int validatorPoolSize) {
+    int safePoolSize = Math.max(1, validatorPoolSize);
     for (int i = 0; i < count; i++) {
+      String validator = "validator.user." + (i % safePoolSize) + "@example.com";
       boolean tracked =
           reputationEngineService.trackRecognition(
               "content_recommended",
               "target.user." + i + "@example.com",
               "community_content",
               "recognition-source-" + i,
-              "validator.user@example.com",
+              validator,
               "recommended");
       assertTrue(tracked);
     }

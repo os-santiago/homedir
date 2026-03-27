@@ -46,6 +46,7 @@ Measured validation on HEAD:
   - no self-recognition
   - cooldown and duplicate controls
   - daily quota controls
+- GA readiness now verifies recognition diversity in-window (minimum unique validators), not just raw recognition volume.
 
 ## Remaining work to call GA stable
 
