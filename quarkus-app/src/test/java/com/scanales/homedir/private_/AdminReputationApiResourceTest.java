@@ -167,9 +167,11 @@ class AdminReputationApiResourceTest {
     Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
     assertEquals("not_ready", gaReadiness.get("status"));
     assertEquals(20L, ((Number) gaReadiness.get("minRouteSamples")).longValue());
+    assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.contains("insufficient_samples"));
+    assertTrue(blockers.contains("insufficient_stability_windows"));
     assertTrue(blockers.contains("critical_route_status"));
     assertTrue(blockers.contains("active_worsening_trend"));
   }
@@ -178,17 +180,6 @@ class AdminReputationApiResourceTest {
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminGaReadinessIsReadyWhenRoutesAreHealthyAndStable() {
     for (int i = 0; i < 22; i++) {
-      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
-      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
-      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
-      usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
-      usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
-      usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
-    }
-
-    given().when().get("/api/private/admin/reputation/web-vitals").then().statusCode(200);
-
-    for (int i = 0; i < 2; i++) {
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
@@ -207,9 +198,28 @@ class AdminReputationApiResourceTest {
             .jsonPath()
             .getMap("$");
 
+    for (int i = 0; i < 3; i++) {
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
+      payload =
+          given()
+              .when()
+              .get("/api/private/admin/reputation/web-vitals")
+              .then()
+              .statusCode(200)
+              .extract()
+              .jsonPath()
+              .getMap("$");
+    }
+
     @SuppressWarnings("unchecked")
     Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
     assertEquals("ready", gaReadiness.get("status"));
+    assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.isEmpty());
@@ -224,5 +234,16 @@ class AdminReputationApiResourceTest {
     assertEquals("healthy", howGa.get("assessmentStatus"));
     assertEquals("improving", hubGa.get("trendStatus"));
     assertEquals("improving", howGa.get("trendStatus"));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> stability = (Map<String, Object>) gaReadiness.get("stability");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> hubStability = (Map<String, Object>) stability.get("hub");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> howStability = (Map<String, Object>) stability.get("how");
+    assertTrue(((Number) hubStability.get("observedWindows")).longValue() >= 3L);
+    assertTrue(((Number) howStability.get("observedWindows")).longValue() >= 3L);
+    assertTrue(((Number) hubStability.get("consecutiveNonWorsening")).longValue() >= 3L);
+    assertTrue(((Number) howStability.get("consecutiveNonWorsening")).longValue() >= 3L);
   }
 }

@@ -24,18 +24,57 @@ public class ReputationWebVitalsHistoryService {
       last = current;
     }
 
-    Snapshot previous = snapshots.size() > 1 ? snapshots.get(snapshots.size() - 2) : null;
-    if (previous == null) {
-      Map<String, RouteTrend> insufficient =
-          Map.of("hub", RouteTrend.insufficient(), "how", RouteTrend.insufficient());
-      return new TrendWindow(snapshots.size(), insufficient);
-    }
-
+    List<RouteTrend> hubHistory = trendHistory("hub");
+    List<RouteTrend> howHistory = trendHistory("how");
     Map<String, RouteTrend> trends =
         Map.of(
-            "hub", computeTrend(previous.routes().get("hub"), last.routes().get("hub")),
-            "how", computeTrend(previous.routes().get("how"), last.routes().get("how")));
-    return new TrendWindow(snapshots.size(), trends);
+            "hub", latestTrend(hubHistory),
+            "how", latestTrend(howHistory));
+    Map<String, RouteStability> stability =
+        Map.of(
+            "hub", computeStability(hubHistory),
+            "how", computeStability(howHistory));
+    return new TrendWindow(snapshots.size(), trends, stability);
+  }
+
+  private List<RouteTrend> trendHistory(String route) {
+    List<RouteTrend> history = new ArrayList<>();
+    if (snapshots.size() <= 1) {
+      return history;
+    }
+    for (int i = 1; i < snapshots.size(); i++) {
+      RouteTotals previous = snapshots.get(i - 1).routes().get(route);
+      RouteTotals current = snapshots.get(i).routes().get(route);
+      history.add(computeTrend(previous, current));
+    }
+    return history;
+  }
+
+  private RouteTrend latestTrend(List<RouteTrend> history) {
+    if (history.isEmpty()) {
+      return RouteTrend.insufficient();
+    }
+    return history.get(history.size() - 1);
+  }
+
+  private RouteStability computeStability(List<RouteTrend> history) {
+    if (history.isEmpty()) {
+      return RouteStability.insufficient();
+    }
+    int observed = 0;
+    int consecutiveNonWorsening = 0;
+    for (int i = history.size() - 1; i >= 0; i--) {
+      RouteTrend trend = history.get(i);
+      if (trend.samplesDelta() <= 0L) {
+        continue;
+      }
+      observed++;
+      if ("worsening".equals(trend.status())) {
+        break;
+      }
+      consecutiveNonWorsening++;
+    }
+    return new RouteStability(observed, consecutiveNonWorsening);
   }
 
   private void trimToMax() {
@@ -117,7 +156,14 @@ public class ReputationWebVitalsHistoryService {
 
   public record Snapshot(long capturedAtMillis, Map<String, RouteTotals> routes) {}
 
-  public record TrendWindow(long windowSize, Map<String, RouteTrend> routes) {}
+  public record TrendWindow(
+      long windowSize, Map<String, RouteTrend> routes, Map<String, RouteStability> stability) {}
+
+  public record RouteStability(long observedWindows, long consecutiveNonWorsening) {
+    static RouteStability insufficient() {
+      return new RouteStability(0L, 0L);
+    }
+  }
 
   public record RouteTrend(
       long samplesDelta,
