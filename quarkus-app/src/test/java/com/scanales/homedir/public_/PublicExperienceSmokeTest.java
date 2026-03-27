@@ -97,6 +97,12 @@ public class PublicExperienceSmokeTest {
         .then()
         .statusCode(200)
         .body(not(isEmptyOrNullString()));
+    given()
+        .when()
+        .get("/js/reputation-hub-vitals.js")
+        .then()
+        .statusCode(200)
+        .body(not(isEmptyOrNullString()));
   }
 
   private String fetchHtmlWithBudget(String path, int budgetBytes) {

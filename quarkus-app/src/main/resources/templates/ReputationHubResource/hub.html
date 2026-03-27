@@ -212,5 +212,7 @@
   {#if userAuthenticated}
     <script src="/js/reputation-recognition.js?v={app:version()}" defer></script>
   {/if}
+  <div data-reputation-vitals="hub" hidden></div>
+  <script src="/js/reputation-hub-vitals.js?v={app:version()}" defer></script>
 {/body}
 {/include}
