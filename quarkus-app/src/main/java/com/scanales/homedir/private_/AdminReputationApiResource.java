@@ -62,6 +62,12 @@ public class AdminReputationApiResource {
   @ConfigProperty(name = "reputation.ga.min-recognition-validators", defaultValue = "3")
   long gaMinRecognitionValidators;
 
+  @ConfigProperty(name = "reputation.ga.min-recognition-targets", defaultValue = "4")
+  long gaMinRecognitionTargets;
+
+  @ConfigProperty(name = "reputation.ga.max-recognition-validator-share-pct", defaultValue = "70")
+  long gaMaxRecognitionValidatorSharePct;
+
   @ConfigProperty(name = "reputation.ga.recognition-window-days", defaultValue = "7")
   long gaRecognitionWindowDays;
 
@@ -137,9 +143,12 @@ public class AdminReputationApiResource {
     RecognitionSignalStats recognitionStats =
         recognitionGateEnabled
             ? collectRecentRecognitionSignalStats(gaRecognitionWindowDays)
-            : new RecognitionSignalStats(0L, 0L);
+            : new RecognitionSignalStats(0L, 0L, 0L, 0L);
     long recognitionSignals = recognitionStats.signals();
     long recognitionValidators = recognitionStats.validators();
+    long recognitionTargets = recognitionStats.targets();
+    long recognitionValidatorSharePct = recognitionStats.topValidatorSharePct();
+    long maxRecognitionValidatorSharePct = normalizedValidatorShareLimitPct();
     ReputationWebVitalsHistoryService.TrendWindow trend =
         webVitalsHistoryService.recordAndTrend(
             Map.of(
@@ -181,11 +190,15 @@ public class AdminReputationApiResource {
             "minimums",
                 Map.of(
                     "recognitionSignals", gaMinRecognitionSignals,
-                    "recognitionValidators", gaMinRecognitionValidators),
+                    "recognitionValidators", gaMinRecognitionValidators,
+                    "recognitionTargets", gaMinRecognitionTargets,
+                    "maxValidatorSharePct", maxRecognitionValidatorSharePct),
             "current",
                 Map.of(
                     "recognitionSignals", recognitionSignals,
                     "recognitionValidators", recognitionValidators,
+                    "recognitionTargets", recognitionTargets,
+                    "topValidatorSharePct", recognitionValidatorSharePct,
                     "windowDays", Math.max(1L, gaRecognitionWindowDays))));
     payload.put(
         "routes",
@@ -228,6 +241,9 @@ public class AdminReputationApiResource {
             recognitionGateEnabled,
             recognitionSignals,
             recognitionValidators,
+            recognitionTargets,
+            recognitionValidatorSharePct,
+            maxRecognitionValidatorSharePct,
             trend));
     return Response.ok(payload).build();
   }
@@ -237,10 +253,12 @@ public class AdminReputationApiResource {
     Instant threshold = Instant.now().minus(Duration.ofDays(safeWindowDays));
     Map<String, ReputationEventRecord> eventsById = reputationEngineService.snapshot().eventsById();
     if (eventsById == null || eventsById.isEmpty()) {
-      return new RecognitionSignalStats(0L, 0L);
+      return new RecognitionSignalStats(0L, 0L, 0L, 0L);
     }
     long count = 0L;
     Set<String> validators = new LinkedHashSet<>();
+    Set<String> targets = new LinkedHashSet<>();
+    Map<String, Long> perValidatorCounts = new HashMap<>();
     for (ReputationEventRecord event : eventsById.values()) {
       if (event == null || event.createdAt() == null) {
         continue;
@@ -250,13 +268,22 @@ public class AdminReputationApiResource {
       }
       if (isRecognitionSignal(event)) {
         count++;
+        String target = normalizeUser(event.actorUserId());
+        if (target != null) {
+          targets.add(target);
+        }
         String validator = normalizeUser(event.validatedByUserId());
         if (validator != null) {
           validators.add(validator);
+          perValidatorCounts.merge(validator, 1L, Long::sum);
         }
       }
     }
-    return new RecognitionSignalStats(count, validators.size());
+    long topValidatorCount =
+        perValidatorCounts.values().stream().mapToLong(Long::longValue).max().orElse(0L);
+    long topValidatorSharePct =
+        count <= 0L ? 0L : Math.round((double) topValidatorCount * 100d / (double) count);
+    return new RecognitionSignalStats(count, validators.size(), targets.size(), topValidatorSharePct);
   }
 
   private boolean isRecognitionSignal(ReputationEventRecord event) {
@@ -288,6 +315,13 @@ public class AdminReputationApiResource {
       return null;
     }
     return raw.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private long normalizedValidatorShareLimitPct() {
+    if (gaMaxRecognitionValidatorSharePct <= 0L) {
+      return 100L;
+    }
+    return Math.min(100L, gaMaxRecognitionValidatorSharePct);
   }
 
   private long maxCounter(Map<String, Long> snapshot, String... keys) {
@@ -429,6 +463,9 @@ public class AdminReputationApiResource {
       boolean recognitionGateEnabled,
       long recognitionSignals,
       long recognitionValidators,
+      long recognitionTargets,
+      long recognitionValidatorSharePct,
+      long maxRecognitionValidatorSharePct,
       ReputationWebVitalsHistoryService.TrendWindow trend) {
     String hubTrendStatus = trendStatus(trend, "hub");
     String howTrendStatus = trendStatus(trend, "how");
@@ -528,6 +565,39 @@ public class AdminReputationApiResource {
           "expand_recognition_validator_pool");
     }
 
+    if (recognitionGateEnabled && recognitionSignals > 0L && recognitionTargets < gaMinRecognitionTargets) {
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "insufficient_recognition_targets",
+          "insufficient_recognition_targets",
+          Map.of(
+              "required", gaMinRecognitionTargets,
+              "current", recognitionTargets,
+              "windowDays", Math.max(1L, gaRecognitionWindowDays)),
+          "broaden_recognition_reach");
+    }
+
+    if (recognitionGateEnabled
+        && recognitionSignals > 0L
+        && recognitionValidators >= gaMinRecognitionValidators
+        && recognitionValidatorSharePct > maxRecognitionValidatorSharePct) {
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "high_recognition_validator_concentration",
+          "high_recognition_validator_concentration",
+          Map.of(
+              "requiredMaxPct", maxRecognitionValidatorSharePct,
+              "currentPct", recognitionValidatorSharePct,
+              "windowDays", Math.max(1L, gaRecognitionWindowDays)),
+          "distribute_recognition_activity");
+    }
+
     if (trend == null || !trend.snapshotRecorded()) {
       registerBlocker(
           blockers,
@@ -611,10 +681,14 @@ public class AdminReputationApiResource {
     payload.put("minFeedbackSignals", gaMinFeedbackSignals);
     payload.put("minRecognitionSignals", gaMinRecognitionSignals);
     payload.put("minRecognitionValidators", gaMinRecognitionValidators);
+    payload.put("minRecognitionTargets", gaMinRecognitionTargets);
+    payload.put("maxRecognitionValidatorSharePct", maxRecognitionValidatorSharePct);
     payload.put("recognitionWindowDays", Math.max(1L, gaRecognitionWindowDays));
     payload.put("recognitionGateEnabled", recognitionGateEnabled);
     payload.put("recognitionSignals", recognitionSignals);
     payload.put("recognitionValidators", recognitionValidators);
+    payload.put("recognitionTargets", recognitionTargets);
+    payload.put("recognitionValidatorSharePct", recognitionValidatorSharePct);
     payload.put("snapshotRecorded", trend != null && trend.snapshotRecorded());
     payload.put("blockers", orderedBlockers);
     payload.put("primaryBlocker", primaryBlocker);
@@ -633,6 +707,8 @@ public class AdminReputationApiResource {
         Map.of(
             "recognitionSignals", recognitionSignals,
             "recognitionValidators", recognitionValidators,
+            "recognitionTargets", recognitionTargets,
+            "topValidatorSharePct", recognitionValidatorSharePct,
             "windowDays", Math.max(1L, gaRecognitionWindowDays),
             "enabled", recognitionGateEnabled));
     payload.put(
@@ -723,6 +799,8 @@ public class AdminReputationApiResource {
       case "insufficient_live_traffic" -> 70;
       case "insufficient_recognition_signals" -> 65;
       case "insufficient_recognition_validators" -> 64;
+      case "high_recognition_validator_concentration" -> 63;
+      case "insufficient_recognition_targets" -> 62;
       case "insufficient_activity_loop_signals" -> 60;
       case "insufficient_stability_windows" -> 50;
       case "insufficient_samples" -> 40;
@@ -761,5 +839,6 @@ public class AdminReputationApiResource {
   private record RouteAssessment(
       String route, long samples, int lcpScore, int inpScore, int overallScore, String status) {}
 
-  private record RecognitionSignalStats(long signals, long validators) {}
+  private record RecognitionSignalStats(
+      long signals, long validators, long targets, long topValidatorSharePct) {}
 }
