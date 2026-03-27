@@ -59,6 +59,9 @@ public class AdminReputationApiResource {
   @ConfigProperty(name = "reputation.ga.min-recognition-signals", defaultValue = "5")
   long gaMinRecognitionSignals;
 
+  @ConfigProperty(name = "reputation.ga.min-recognition-validators", defaultValue = "3")
+  long gaMinRecognitionValidators;
+
   @ConfigProperty(name = "reputation.ga.recognition-window-days", defaultValue = "7")
   long gaRecognitionWindowDays;
 
@@ -131,8 +134,12 @@ public class AdminReputationApiResource {
     long feedbackSignals = maxCounter(snapshot, "funnel:community_vote", "funnel:community.vote");
     ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
     boolean recognitionGateEnabled = flags.engineEnabled() && flags.recognitionEnabled();
-    long recognitionSignals =
-        recognitionGateEnabled ? countRecentRecognitionSignals(gaRecognitionWindowDays) : 0L;
+    RecognitionSignalStats recognitionStats =
+        recognitionGateEnabled
+            ? collectRecentRecognitionSignalStats(gaRecognitionWindowDays)
+            : new RecognitionSignalStats(0L, 0L);
+    long recognitionSignals = recognitionStats.signals();
+    long recognitionValidators = recognitionStats.validators();
     ReputationWebVitalsHistoryService.TrendWindow trend =
         webVitalsHistoryService.recordAndTrend(
             Map.of(
@@ -171,10 +178,14 @@ public class AdminReputationApiResource {
         "recognitionLoop",
         Map.of(
             "enabled", recognitionGateEnabled,
-            "minimums", Map.of("recognitionSignals", gaMinRecognitionSignals),
+            "minimums",
+                Map.of(
+                    "recognitionSignals", gaMinRecognitionSignals,
+                    "recognitionValidators", gaMinRecognitionValidators),
             "current",
                 Map.of(
                     "recognitionSignals", recognitionSignals,
+                    "recognitionValidators", recognitionValidators,
                     "windowDays", Math.max(1L, gaRecognitionWindowDays))));
     payload.put(
         "routes",
@@ -216,18 +227,20 @@ public class AdminReputationApiResource {
             feedbackSignals,
             recognitionGateEnabled,
             recognitionSignals,
+            recognitionValidators,
             trend));
     return Response.ok(payload).build();
   }
 
-  private long countRecentRecognitionSignals(long windowDays) {
+  private RecognitionSignalStats collectRecentRecognitionSignalStats(long windowDays) {
     long safeWindowDays = Math.max(1L, windowDays);
     Instant threshold = Instant.now().minus(Duration.ofDays(safeWindowDays));
     Map<String, ReputationEventRecord> eventsById = reputationEngineService.snapshot().eventsById();
     if (eventsById == null || eventsById.isEmpty()) {
-      return 0L;
+      return new RecognitionSignalStats(0L, 0L);
     }
     long count = 0L;
+    Set<String> validators = new LinkedHashSet<>();
     for (ReputationEventRecord event : eventsById.values()) {
       if (event == null || event.createdAt() == null) {
         continue;
@@ -237,9 +250,13 @@ public class AdminReputationApiResource {
       }
       if (isRecognitionSignal(event)) {
         count++;
+        String validator = normalizeUser(event.validatedByUserId());
+        if (validator != null) {
+          validators.add(validator);
+        }
       }
     }
-    return count;
+    return new RecognitionSignalStats(count, validators.size());
   }
 
   private boolean isRecognitionSignal(ReputationEventRecord event) {
@@ -264,6 +281,13 @@ public class AdminReputationApiResource {
     }
     String normalized = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._:-]", "_");
     return normalized.isBlank() ? null : normalized;
+  }
+
+  private String normalizeUser(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return null;
+    }
+    return raw.trim().toLowerCase(Locale.ROOT);
   }
 
   private long maxCounter(Map<String, Long> snapshot, String... keys) {
@@ -404,6 +428,7 @@ public class AdminReputationApiResource {
       long feedbackSignals,
       boolean recognitionGateEnabled,
       long recognitionSignals,
+      long recognitionValidators,
       ReputationWebVitalsHistoryService.TrendWindow trend) {
     String hubTrendStatus = trendStatus(trend, "hub");
     String howTrendStatus = trendStatus(trend, "how");
@@ -488,6 +513,21 @@ public class AdminReputationApiResource {
           "increase_peer_recognition_activity");
     }
 
+    if (recognitionGateEnabled && recognitionValidators < gaMinRecognitionValidators) {
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "insufficient_recognition_validators",
+          "insufficient_recognition_validators",
+          Map.of(
+              "required", gaMinRecognitionValidators,
+              "current", recognitionValidators,
+              "windowDays", Math.max(1L, gaRecognitionWindowDays)),
+          "expand_recognition_validator_pool");
+    }
+
     if (trend == null || !trend.snapshotRecorded()) {
       registerBlocker(
           blockers,
@@ -570,9 +610,11 @@ public class AdminReputationApiResource {
     payload.put("minBoardProfileOpens", gaMinBoardProfileOpens);
     payload.put("minFeedbackSignals", gaMinFeedbackSignals);
     payload.put("minRecognitionSignals", gaMinRecognitionSignals);
+    payload.put("minRecognitionValidators", gaMinRecognitionValidators);
     payload.put("recognitionWindowDays", Math.max(1L, gaRecognitionWindowDays));
     payload.put("recognitionGateEnabled", recognitionGateEnabled);
     payload.put("recognitionSignals", recognitionSignals);
+    payload.put("recognitionValidators", recognitionValidators);
     payload.put("snapshotRecorded", trend != null && trend.snapshotRecorded());
     payload.put("blockers", orderedBlockers);
     payload.put("primaryBlocker", primaryBlocker);
@@ -590,6 +632,7 @@ public class AdminReputationApiResource {
         "recognitionLoop",
         Map.of(
             "recognitionSignals", recognitionSignals,
+            "recognitionValidators", recognitionValidators,
             "windowDays", Math.max(1L, gaRecognitionWindowDays),
             "enabled", recognitionGateEnabled));
     payload.put(
@@ -679,6 +722,7 @@ public class AdminReputationApiResource {
       case "active_worsening_trend" -> 80;
       case "insufficient_live_traffic" -> 70;
       case "insufficient_recognition_signals" -> 65;
+      case "insufficient_recognition_validators" -> 64;
       case "insufficient_activity_loop_signals" -> 60;
       case "insufficient_stability_windows" -> 50;
       case "insufficient_samples" -> 40;
@@ -716,4 +760,6 @@ public class AdminReputationApiResource {
 
   private record RouteAssessment(
       String route, long samples, int lcpScore, int inpScore, int overallScore, String status) {}
+
+  private record RecognitionSignalStats(long signals, long validators) {}
 }
