@@ -46,6 +46,19 @@ class AdminReputationApiResourceTest {
     }
   }
 
+  private void seedActivityLoopSignals(
+      int publicProfileOpens, int boardProfileOpens, int feedbackSignals) {
+    for (int i = 0; i < publicProfileOpens; i++) {
+      usageMetricsService.recordFunnelStep("profile.public.open");
+    }
+    for (int i = 0; i < boardProfileOpens; i++) {
+      usageMetricsService.recordFunnelStep("board_profile_open");
+    }
+    for (int i = 0; i < feedbackSignals; i++) {
+      usageMetricsService.recordFunnelStep("community_vote");
+    }
+  }
+
   @Test
   @TestSecurity(user = "alice")
   void nonAdminCannotAccessPhase0() {
@@ -178,11 +191,15 @@ class AdminReputationApiResourceTest {
     assertEquals(20L, ((Number) gaReadiness.get("minRouteSamples")).longValue());
     assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
     assertEquals(10L, ((Number) gaReadiness.get("minRoutePageViews")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minPublicProfileOpens")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minBoardProfileOpens")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minFeedbackSignals")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.contains("insufficient_samples"));
     assertTrue(blockers.contains("insufficient_live_traffic"));
+    assertTrue(blockers.contains("insufficient_activity_loop_signals"));
     assertTrue(blockers.contains("insufficient_stability_windows"));
     assertTrue(blockers.contains("critical_route_status"));
     assertTrue(blockers.contains("active_worsening_trend"));
@@ -192,6 +209,7 @@ class AdminReputationApiResourceTest {
     List<String> recommendedActions = (List<String>) gaReadiness.get("recommendedActions");
     assertTrue(recommendedActions.contains("collect_more_webvitals_samples"));
     assertTrue(recommendedActions.contains("increase_hub_route_adoption"));
+    assertTrue(recommendedActions.contains("drive_profile_feedback_cycle"));
     assertTrue(recommendedActions.contains("observe_more_stable_windows"));
     assertTrue(recommendedActions.contains("improve_critical_route_performance"));
     assertTrue(recommendedActions.contains("triage_worsening_route"));
@@ -200,6 +218,7 @@ class AdminReputationApiResourceTest {
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
     assertTrue(blockerDetails.containsKey("insufficient_samples"));
     assertTrue(blockerDetails.containsKey("insufficient_live_traffic"));
+    assertTrue(blockerDetails.containsKey("insufficient_activity_loop_signals"));
     assertTrue(blockerDetails.containsKey("insufficient_stability_windows"));
     assertTrue(blockerDetails.containsKey("critical_route_status"));
     assertTrue(blockerDetails.containsKey("active_worsening_trend"));
@@ -209,6 +228,7 @@ class AdminReputationApiResourceTest {
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminGaReadinessIsReadyWhenRoutesAreHealthyAndStable() {
     seedLiveTraffic(12, 12);
+    seedActivityLoopSignals(6, 6, 6);
 
     for (int i = 0; i < 22; i++) {
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
@@ -252,6 +272,9 @@ class AdminReputationApiResourceTest {
     assertEquals("ready", gaReadiness.get("status"));
     assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
     assertEquals(10L, ((Number) gaReadiness.get("minRoutePageViews")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minPublicProfileOpens")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minBoardProfileOpens")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minFeedbackSignals")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
@@ -262,6 +285,12 @@ class AdminReputationApiResourceTest {
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
     assertTrue(blockerDetails.isEmpty());
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> activityLoop = (Map<String, Object>) gaReadiness.get("activityLoop");
+    assertTrue(((Number) activityLoop.get("publicProfileOpens")).longValue() >= 5L);
+    assertTrue(((Number) activityLoop.get("boardProfileOpens")).longValue() >= 5L);
+    assertTrue(((Number) activityLoop.get("feedbackSignals")).longValue() >= 5L);
 
     @SuppressWarnings("unchecked")
     Map<String, Object> gaRoutes = (Map<String, Object>) gaReadiness.get("routes");
@@ -290,6 +319,7 @@ class AdminReputationApiResourceTest {
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminGaReadinessBlocksWhenSnapshotIsStale() {
     seedLiveTraffic(12, 12);
+    seedActivityLoopSignals(6, 6, 6);
 
     for (int i = 0; i < 22; i++) {
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
@@ -351,9 +381,11 @@ class AdminReputationApiResourceTest {
     List<String> blockers = (List<String>) gaReadinessStale.get("blockers");
     assertTrue(blockers.contains("stale_window_data"));
     assertFalse(blockers.contains("insufficient_live_traffic"));
+    assertFalse(blockers.contains("insufficient_activity_loop_signals"));
     @SuppressWarnings("unchecked")
     List<String> recommendedActions = (List<String>) gaReadinessStale.get("recommendedActions");
     assertTrue(recommendedActions.contains("verify_web_vitals_ingestion"));
+    assertFalse(recommendedActions.contains("drive_profile_feedback_cycle"));
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadinessStale.get("blockerDetails");
     assertTrue(blockerDetails.containsKey("stale_window_data"));
