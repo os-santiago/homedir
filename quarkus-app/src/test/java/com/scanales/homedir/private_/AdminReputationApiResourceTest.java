@@ -195,6 +195,8 @@ class AdminReputationApiResourceTest {
     assertEquals(5L, ((Number) gaReadiness.get("minBoardProfileOpens")).longValue());
     assertEquals(5L, ((Number) gaReadiness.get("minFeedbackSignals")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
+    assertEquals("critical_route_status", gaReadiness.get("primaryBlocker"));
+    assertEquals("improve_critical_route_performance", gaReadiness.get("primaryAction"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.contains("insufficient_samples"));
@@ -222,6 +224,12 @@ class AdminReputationApiResourceTest {
     assertTrue(blockerDetails.containsKey("insufficient_stability_windows"));
     assertTrue(blockerDetails.containsKey("critical_route_status"));
     assertTrue(blockerDetails.containsKey("active_worsening_trend"));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> actionPlan = (List<Map<String, Object>>) gaReadiness.get("actionPlan");
+    assertFalse(actionPlan.isEmpty());
+    assertEquals("critical_route_status", actionPlan.get(0).get("blocker"));
+    assertEquals("improve_critical_route_performance", actionPlan.get(0).get("action"));
   }
 
   @Test
@@ -276,12 +284,17 @@ class AdminReputationApiResourceTest {
     assertEquals(5L, ((Number) gaReadiness.get("minBoardProfileOpens")).longValue());
     assertEquals(5L, ((Number) gaReadiness.get("minFeedbackSignals")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
+    assertEquals("none", gaReadiness.get("primaryBlocker"));
+    assertEquals("none", gaReadiness.get("primaryAction"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.isEmpty());
     @SuppressWarnings("unchecked")
     List<String> recommendedActions = (List<String>) gaReadiness.get("recommendedActions");
     assertTrue(recommendedActions.isEmpty());
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> actionPlan = (List<Map<String, Object>>) gaReadiness.get("actionPlan");
+    assertTrue(actionPlan.isEmpty());
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
     assertTrue(blockerDetails.isEmpty());
@@ -377,6 +390,8 @@ class AdminReputationApiResourceTest {
     Map<String, Object> gaReadinessStale = (Map<String, Object>) payload.get("gaReadiness");
     assertEquals("not_ready", gaReadinessStale.get("status"));
     assertEquals(false, gaReadinessStale.get("snapshotRecorded"));
+    assertEquals("stale_window_data", gaReadinessStale.get("primaryBlocker"));
+    assertEquals("verify_web_vitals_ingestion", gaReadinessStale.get("primaryAction"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadinessStale.get("blockers");
     assertTrue(blockers.contains("stale_window_data"));
@@ -389,5 +404,10 @@ class AdminReputationApiResourceTest {
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadinessStale.get("blockerDetails");
     assertTrue(blockerDetails.containsKey("stale_window_data"));
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> actionPlan = (List<Map<String, Object>>) gaReadinessStale.get("actionPlan");
+    assertFalse(actionPlan.isEmpty());
+    assertEquals("stale_window_data", actionPlan.get(0).get("blocker"));
+    assertEquals("verify_web_vitals_ingestion", actionPlan.get(0).get("action"));
   }
 }

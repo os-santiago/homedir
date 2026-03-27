@@ -336,38 +336,51 @@ public class AdminReputationApiResource {
     List<String> blockers = new ArrayList<>();
     Map<String, Object> blockerDetails = new LinkedHashMap<>();
     Set<String> recommendedActionSet = new LinkedHashSet<>();
+    Map<String, String> blockerToAction = new LinkedHashMap<>();
 
     if (hubAssessment.samples() < gaMinRouteSamples || howAssessment.samples() < gaMinRouteSamples) {
-      blockers.add("insufficient_samples");
-      blockerDetails.put(
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "insufficient_samples",
           "insufficient_samples",
           Map.of(
               "required", gaMinRouteSamples,
               "routes",
                   Map.of(
                       "hub", hubAssessment.samples(),
-                      "how", howAssessment.samples())));
-      recommendedActionSet.add("collect_more_webvitals_samples");
+                      "how", howAssessment.samples())),
+          "collect_more_webvitals_samples");
     }
 
     if (hubPageViews < gaMinRoutePageViews || howPageViews < gaMinRoutePageViews) {
-      blockers.add("insufficient_live_traffic");
-      blockerDetails.put(
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "insufficient_live_traffic",
           "insufficient_live_traffic",
           Map.of(
               "required", gaMinRoutePageViews,
               "routes",
                   Map.of(
                       "hub", hubPageViews,
-                      "how", howPageViews)));
-      recommendedActionSet.add("increase_hub_route_adoption");
+                      "how", howPageViews)),
+          "increase_hub_route_adoption");
     }
 
     if (publicProfileOpens < gaMinPublicProfileOpens
         || boardProfileOpens < gaMinBoardProfileOpens
         || feedbackSignals < gaMinFeedbackSignals) {
-      blockers.add("insufficient_activity_loop_signals");
-      blockerDetails.put(
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "insufficient_activity_loop_signals",
           "insufficient_activity_loop_signals",
           Map.of(
               "required",
@@ -379,59 +392,83 @@ public class AdminReputationApiResource {
                   Map.of(
                       "publicProfileOpens", publicProfileOpens,
                       "boardProfileOpens", boardProfileOpens,
-                      "feedbackSignals", feedbackSignals)));
-      recommendedActionSet.add("drive_profile_feedback_cycle");
+                      "feedbackSignals", feedbackSignals)),
+          "drive_profile_feedback_cycle");
     }
 
     if (trend == null || !trend.snapshotRecorded()) {
-      blockers.add("stale_window_data");
-      blockerDetails.put(
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "stale_window_data",
           "stale_window_data",
           Map.of(
-              "snapshotRecorded", trend != null && trend.snapshotRecorded()));
-      recommendedActionSet.add("verify_web_vitals_ingestion");
+              "snapshotRecorded", trend != null && trend.snapshotRecorded()),
+          "verify_web_vitals_ingestion");
     }
 
     if (hubStability.consecutiveNonWorsening() < gaMinStableWindows
         || howStability.consecutiveNonWorsening() < gaMinStableWindows) {
-      blockers.add("insufficient_stability_windows");
-      blockerDetails.put(
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "insufficient_stability_windows",
           "insufficient_stability_windows",
           Map.of(
               "required", gaMinStableWindows,
               "routes",
                   Map.of(
                       "hub", hubStability.consecutiveNonWorsening(),
-                      "how", howStability.consecutiveNonWorsening())));
-      recommendedActionSet.add("observe_more_stable_windows");
+                      "how", howStability.consecutiveNonWorsening())),
+          "observe_more_stable_windows");
     }
 
     Set<String> criticalStatuses = Set.of("critical");
     if (criticalStatuses.contains(hubAssessment.status()) || criticalStatuses.contains(howAssessment.status())) {
-      blockers.add("critical_route_status");
-      blockerDetails.put(
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "critical_route_status",
           "critical_route_status",
           Map.of(
               "routes",
                   Map.of(
                       "hub", hubAssessment.status(),
-                      "how", howAssessment.status())));
-      recommendedActionSet.add("improve_critical_route_performance");
+                      "how", howAssessment.status())),
+          "improve_critical_route_performance");
     }
 
     if ("worsening".equals(hubTrendStatus) || "worsening".equals(howTrendStatus)) {
-      blockers.add("active_worsening_trend");
-      blockerDetails.put(
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "active_worsening_trend",
           "active_worsening_trend",
           Map.of(
               "routes",
                   Map.of(
                       "hub", hubTrendStatus,
-                      "how", howTrendStatus)));
-      recommendedActionSet.add("triage_worsening_route");
+                      "how", howTrendStatus)),
+          "triage_worsening_route");
     }
 
-    String status = blockers.isEmpty() ? "ready" : "not_ready";
+    List<String> orderedBlockers = orderedBlockers(blockers);
+    List<String> orderedRecommendedActions = orderedRecommendedActions(orderedBlockers, blockerToAction);
+    List<Map<String, Object>> actionPlan = buildActionPlan(orderedBlockers, blockerToAction);
+    String primaryBlocker = orderedBlockers.isEmpty() ? "none" : orderedBlockers.get(0);
+    String primaryAction =
+        orderedBlockers.isEmpty()
+            ? "none"
+            : blockerToAction.getOrDefault(primaryBlocker, "investigate_blocker");
+    String status = orderedBlockers.isEmpty() ? "ready" : "not_ready";
     Map<String, Object> payload = new LinkedHashMap<>();
     payload.put("status", status);
     payload.put("minRouteSamples", gaMinRouteSamples);
@@ -441,8 +478,11 @@ public class AdminReputationApiResource {
     payload.put("minBoardProfileOpens", gaMinBoardProfileOpens);
     payload.put("minFeedbackSignals", gaMinFeedbackSignals);
     payload.put("snapshotRecorded", trend != null && trend.snapshotRecorded());
-    payload.put("blockers", List.copyOf(blockers));
-    payload.put("recommendedActions", List.copyOf(recommendedActionSet));
+    payload.put("blockers", orderedBlockers);
+    payload.put("primaryBlocker", primaryBlocker);
+    payload.put("primaryAction", primaryAction);
+    payload.put("recommendedActions", orderedRecommendedActions);
+    payload.put("actionPlan", actionPlan);
     payload.put("blockerDetails", Map.copyOf(blockerDetails));
     payload.put(
         "activityLoop",
@@ -477,6 +517,70 @@ public class AdminReputationApiResource {
                     "assessmentStatus", howAssessment.status(),
                     "trendStatus", howTrendStatus)));
     return Map.copyOf(payload);
+  }
+
+  private void registerBlocker(
+      List<String> blockers,
+      Map<String, Object> blockerDetails,
+      Set<String> recommendedActionSet,
+      Map<String, String> blockerToAction,
+      String blocker,
+      String detailKey,
+      Map<String, Object> details,
+      String action) {
+    blockers.add(blocker);
+    blockerDetails.put(detailKey, details);
+    recommendedActionSet.add(action);
+    blockerToAction.put(blocker, action);
+  }
+
+  private List<String> orderedBlockers(List<String> blockers) {
+    List<String> ordered = new ArrayList<>(blockers);
+    ordered.sort(Comparator.comparingInt(this::blockerPriority).reversed().thenComparing(String::compareTo));
+    return List.copyOf(ordered);
+  }
+
+  private List<String> orderedRecommendedActions(
+      List<String> orderedBlockers, Map<String, String> blockerToAction) {
+    List<String> actions = new ArrayList<>();
+    Set<String> seen = new LinkedHashSet<>();
+    for (String blocker : orderedBlockers) {
+      String action = blockerToAction.getOrDefault(blocker, "investigate_blocker");
+      if (seen.add(action)) {
+        actions.add(action);
+      }
+    }
+    return List.copyOf(actions);
+  }
+
+  private List<Map<String, Object>> buildActionPlan(
+      List<String> orderedBlockers, Map<String, String> blockerToAction) {
+    List<Map<String, Object>> plan = new ArrayList<>();
+    for (String blocker : orderedBlockers) {
+      plan.add(
+          Map.of(
+              "blocker", blocker,
+              "priority", blockerPriority(blocker),
+              "action", blockerToAction.getOrDefault(blocker, "investigate_blocker"),
+              "status", "pending"));
+    }
+    return List.copyOf(plan);
+  }
+
+  private int blockerPriority(String blocker) {
+    if (blocker == null) {
+      return 0;
+    }
+    return switch (blocker) {
+      case "stale_window_data" -> 100;
+      case "critical_route_status" -> 90;
+      case "active_worsening_trend" -> 80;
+      case "insufficient_live_traffic" -> 70;
+      case "insufficient_activity_loop_signals" -> 60;
+      case "insufficient_stability_windows" -> 50;
+      case "insufficient_samples" -> 40;
+      default -> 10;
+    };
   }
 
   private String trendStatus(ReputationWebVitalsHistoryService.TrendWindow trend, String route) {
