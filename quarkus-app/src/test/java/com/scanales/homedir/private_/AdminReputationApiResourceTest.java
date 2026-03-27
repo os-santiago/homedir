@@ -177,6 +177,7 @@ class AdminReputationApiResourceTest {
     assertEquals("not_ready", gaReadiness.get("status"));
     assertEquals(20L, ((Number) gaReadiness.get("minRouteSamples")).longValue());
     assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
+    assertEquals(10L, ((Number) gaReadiness.get("minRoutePageViews")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
@@ -234,6 +235,7 @@ class AdminReputationApiResourceTest {
     Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
     assertEquals("ready", gaReadiness.get("status"));
     assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
+    assertEquals(10L, ((Number) gaReadiness.get("minRoutePageViews")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
