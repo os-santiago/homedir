@@ -14,7 +14,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Hidden admin API for phase-0 Reputation Hub baseline and taxonomy checks. */
@@ -80,11 +83,14 @@ public class AdminReputationApiResource {
     Map<String, Long> snapshot = usageMetricsService.snapshot();
     RouteWebVitals hub = summarizeRoute(snapshot, "hub");
     RouteWebVitals how = summarizeRoute(snapshot, "how");
+    RouteAssessment hubAssessment = assessRoute("hub", hub);
+    RouteAssessment howAssessment = assessRoute("how", how);
 
     long totalSamples = hub.samples() + how.samples();
     Map<String, Object> payload = new HashMap<>();
     payload.put("generatedAt", System.currentTimeMillis());
     payload.put("totalSamples", totalSamples);
+    payload.put("nextFocusRoute", nextFocusRoute(hubAssessment, howAssessment));
     payload.put(
         "routes",
         Map.of(
@@ -100,6 +106,11 @@ public class AdminReputationApiResource {
                 "devices", how.devices(),
                 "lcp", how.lcp(),
                 "inp", how.inp())));
+    payload.put(
+        "assessments",
+        Map.of(
+            "hub", assessmentPayload(hubAssessment),
+            "how", assessmentPayload(howAssessment)));
     return Response.ok(payload).build();
   }
 
@@ -120,6 +131,87 @@ public class AdminReputationApiResource {
     return Map.copyOf(values);
   }
 
+  private RouteAssessment assessRoute(String route, RouteWebVitals vitals) {
+    MetricAssessment lcp = assessMetric(vitals.lcp());
+    MetricAssessment inp = assessMetric(vitals.inp());
+
+    int scoreCount = 0;
+    int scoreSum = 0;
+    if (lcp.score() >= 0) {
+      scoreCount++;
+      scoreSum += lcp.score();
+    }
+    if (inp.score() >= 0) {
+      scoreCount++;
+      scoreSum += inp.score();
+    }
+    int overallScore = scoreCount == 0 ? -1 : Math.round((float) scoreSum / scoreCount);
+    String status = mergeStatus(lcp.status(), inp.status());
+    return new RouteAssessment(route, vitals.samples(), lcp.score(), inp.score(), overallScore, status);
+  }
+
+  private MetricAssessment assessMetric(Map<String, Long> buckets) {
+    long good = buckets.getOrDefault("good", 0L);
+    long needs = buckets.getOrDefault("needs_improvement", 0L);
+    long poor = buckets.getOrDefault("poor", 0L);
+    long total = good + needs + poor;
+    if (total <= 0) {
+      return new MetricAssessment(-1, "unknown");
+    }
+    long weighted = good * 100L + needs * 60L + poor * 20L;
+    int score = Math.toIntExact(Math.round((double) weighted / (double) total));
+    String status;
+    if (poor * 5L >= total || score < 55) {
+      status = "critical";
+    } else if (poor * 10L >= total || score < 75 || needs * 3L >= total) {
+      status = "watch";
+    } else {
+      status = "healthy";
+    }
+    return new MetricAssessment(score, status);
+  }
+
+  private String mergeStatus(String first, String second) {
+    if ("critical".equals(first) || "critical".equals(second)) {
+      return "critical";
+    }
+    if ("watch".equals(first) || "watch".equals(second)) {
+      return "watch";
+    }
+    if ("healthy".equals(first) && "healthy".equals(second)) {
+      return "healthy";
+    }
+    return "unknown";
+  }
+
+  private String nextFocusRoute(RouteAssessment... assessments) {
+    List<RouteAssessment> withSamples = new ArrayList<>();
+    for (RouteAssessment assessment : assessments) {
+      if (assessment != null && assessment.samples() > 0 && assessment.overallScore() >= 0) {
+        withSamples.add(assessment);
+      }
+    }
+    if (withSamples.isEmpty()) {
+      return "none";
+    }
+    withSamples.sort(Comparator.comparingInt(RouteAssessment::overallScore));
+    return withSamples.get(0).route();
+  }
+
+  private Map<String, Object> assessmentPayload(RouteAssessment assessment) {
+    return Map.of(
+        "samples", assessment.samples(),
+        "lcpScore", assessment.lcpScore(),
+        "inpScore", assessment.inpScore(),
+        "overallScore", assessment.overallScore(),
+        "status", assessment.status());
+  }
+
   private record RouteWebVitals(
       long samples, Map<String, Long> devices, Map<String, Long> lcp, Map<String, Long> inp) {}
+
+  private record MetricAssessment(int score, String status) {}
+
+  private record RouteAssessment(
+      String route, long samples, int lcpScore, int inpScore, int overallScore, String status) {}
 }
