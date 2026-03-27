@@ -51,6 +51,7 @@ Validacion medida en HEAD:
   - controles de cooldown y duplicados
   - control de cupo diario
 - La lectura GA ahora valida diversidad de reconocimiento en ventana (minimo de validadores unicos), no solo volumen bruto de reconocimientos.
+- La lectura GA ahora tambien aplica umbral maximo de concentracion por validador en los reconocimientos de la ventana.
 
 ## Pendiente para declarar GA estable
 
