@@ -1,5 +1,8 @@
 package com.scanales.homedir.private_;
 
+import com.scanales.homedir.reputation.ReputationEngineService;
+import com.scanales.homedir.reputation.ReputationEventRecord;
+import com.scanales.homedir.reputation.ReputationFeatureFlags;
 import com.scanales.homedir.reputation.ReputationPhase0BaselineService;
 import com.scanales.homedir.reputation.ReputationShadowReadService;
 import com.scanales.homedir.reputation.ReputationWebVitalsHistoryService;
@@ -16,12 +19,15 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +56,15 @@ public class AdminReputationApiResource {
   @ConfigProperty(name = "reputation.ga.min-feedback-signals", defaultValue = "5")
   long gaMinFeedbackSignals;
 
+  @ConfigProperty(name = "reputation.ga.min-recognition-signals", defaultValue = "5")
+  long gaMinRecognitionSignals;
+
+  @ConfigProperty(name = "reputation.ga.recognition-window-days", defaultValue = "7")
+  long gaRecognitionWindowDays;
+
   @Inject ReputationPhase0BaselineService baselineService;
+  @Inject ReputationFeatureFlags reputationFeatureFlags;
+  @Inject ReputationEngineService reputationEngineService;
   @Inject ReputationShadowReadService shadowReadService;
   @Inject ReputationWebVitalsHistoryService webVitalsHistoryService;
   @Inject UsageMetricsService usageMetricsService;
@@ -115,6 +129,10 @@ public class AdminReputationApiResource {
         maxCounter(snapshot, "funnel:profile.public.open", "funnel:profile_public_open");
     long boardProfileOpens = snapshot.getOrDefault("funnel:board_profile_open", 0L);
     long feedbackSignals = maxCounter(snapshot, "funnel:community_vote", "funnel:community.vote");
+    ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
+    boolean recognitionGateEnabled = flags.engineEnabled() && flags.recognitionEnabled();
+    long recognitionSignals =
+        recognitionGateEnabled ? countRecentRecognitionSignals(gaRecognitionWindowDays) : 0L;
     ReputationWebVitalsHistoryService.TrendWindow trend =
         webVitalsHistoryService.recordAndTrend(
             Map.of(
@@ -141,14 +159,23 @@ public class AdminReputationApiResource {
         Map.of(
             "minimums",
                 Map.of(
-                    "publicProfileOpens", gaMinPublicProfileOpens,
-                    "boardProfileOpens", gaMinBoardProfileOpens,
-                    "feedbackSignals", gaMinFeedbackSignals),
+                "publicProfileOpens", gaMinPublicProfileOpens,
+                "boardProfileOpens", gaMinBoardProfileOpens,
+                "feedbackSignals", gaMinFeedbackSignals),
             "current",
                 Map.of(
                     "publicProfileOpens", publicProfileOpens,
                     "boardProfileOpens", boardProfileOpens,
                     "feedbackSignals", feedbackSignals)));
+    payload.put(
+        "recognitionLoop",
+        Map.of(
+            "enabled", recognitionGateEnabled,
+            "minimums", Map.of("recognitionSignals", gaMinRecognitionSignals),
+            "current",
+                Map.of(
+                    "recognitionSignals", recognitionSignals,
+                    "windowDays", Math.max(1L, gaRecognitionWindowDays))));
     payload.put(
         "routes",
         Map.of(
@@ -187,8 +214,56 @@ public class AdminReputationApiResource {
             publicProfileOpens,
             boardProfileOpens,
             feedbackSignals,
+            recognitionGateEnabled,
+            recognitionSignals,
             trend));
     return Response.ok(payload).build();
+  }
+
+  private long countRecentRecognitionSignals(long windowDays) {
+    long safeWindowDays = Math.max(1L, windowDays);
+    Instant threshold = Instant.now().minus(Duration.ofDays(safeWindowDays));
+    Map<String, ReputationEventRecord> eventsById = reputationEngineService.snapshot().eventsById();
+    if (eventsById == null || eventsById.isEmpty()) {
+      return 0L;
+    }
+    long count = 0L;
+    for (ReputationEventRecord event : eventsById.values()) {
+      if (event == null || event.createdAt() == null) {
+        continue;
+      }
+      if (event.createdAt().isBefore(threshold)) {
+        continue;
+      }
+      if (isRecognitionSignal(event)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  private boolean isRecognitionSignal(ReputationEventRecord event) {
+    if (event == null) {
+      return false;
+    }
+    String validationType = normalizeToken(event.validationType());
+    if ("recommended".equals(validationType)
+        || "helpful".equals(validationType)
+        || "standout".equals(validationType)) {
+      return true;
+    }
+    String eventType = normalizeToken(event.eventType());
+    return "content_recommended".equals(eventType)
+        || "peer_help_acknowledged".equals(eventType)
+        || "contribution_highlighted".equals(eventType);
+  }
+
+  private String normalizeToken(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return null;
+    }
+    String normalized = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._:-]", "_");
+    return normalized.isBlank() ? null : normalized;
   }
 
   private long maxCounter(Map<String, Long> snapshot, String... keys) {
@@ -327,6 +402,8 @@ public class AdminReputationApiResource {
       long publicProfileOpens,
       long boardProfileOpens,
       long feedbackSignals,
+      boolean recognitionGateEnabled,
+      long recognitionSignals,
       ReputationWebVitalsHistoryService.TrendWindow trend) {
     String hubTrendStatus = trendStatus(trend, "hub");
     String howTrendStatus = trendStatus(trend, "how");
@@ -394,6 +471,21 @@ public class AdminReputationApiResource {
                       "boardProfileOpens", boardProfileOpens,
                       "feedbackSignals", feedbackSignals)),
           "drive_profile_feedback_cycle");
+    }
+
+    if (recognitionGateEnabled && recognitionSignals < gaMinRecognitionSignals) {
+      registerBlocker(
+          blockers,
+          blockerDetails,
+          recommendedActionSet,
+          blockerToAction,
+          "insufficient_recognition_signals",
+          "insufficient_recognition_signals",
+          Map.of(
+              "required", gaMinRecognitionSignals,
+              "current", recognitionSignals,
+              "windowDays", Math.max(1L, gaRecognitionWindowDays)),
+          "increase_peer_recognition_activity");
     }
 
     if (trend == null || !trend.snapshotRecorded()) {
@@ -477,6 +569,10 @@ public class AdminReputationApiResource {
     payload.put("minPublicProfileOpens", gaMinPublicProfileOpens);
     payload.put("minBoardProfileOpens", gaMinBoardProfileOpens);
     payload.put("minFeedbackSignals", gaMinFeedbackSignals);
+    payload.put("minRecognitionSignals", gaMinRecognitionSignals);
+    payload.put("recognitionWindowDays", Math.max(1L, gaRecognitionWindowDays));
+    payload.put("recognitionGateEnabled", recognitionGateEnabled);
+    payload.put("recognitionSignals", recognitionSignals);
     payload.put("snapshotRecorded", trend != null && trend.snapshotRecorded());
     payload.put("blockers", orderedBlockers);
     payload.put("primaryBlocker", primaryBlocker);
@@ -490,6 +586,12 @@ public class AdminReputationApiResource {
             "publicProfileOpens", publicProfileOpens,
             "boardProfileOpens", boardProfileOpens,
             "feedbackSignals", feedbackSignals));
+    payload.put(
+        "recognitionLoop",
+        Map.of(
+            "recognitionSignals", recognitionSignals,
+            "windowDays", Math.max(1L, gaRecognitionWindowDays),
+            "enabled", recognitionGateEnabled));
     payload.put(
         "stability",
         Map.of(
@@ -576,6 +678,7 @@ public class AdminReputationApiResource {
       case "critical_route_status" -> 90;
       case "active_worsening_trend" -> 80;
       case "insufficient_live_traffic" -> 70;
+      case "insufficient_recognition_signals" -> 65;
       case "insufficient_activity_loop_signals" -> 60;
       case "insufficient_stability_windows" -> 50;
       case "insufficient_samples" -> 40;

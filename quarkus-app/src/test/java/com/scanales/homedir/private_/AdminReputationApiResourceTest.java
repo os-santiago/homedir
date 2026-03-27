@@ -194,6 +194,10 @@ class AdminReputationApiResourceTest {
     assertEquals(5L, ((Number) gaReadiness.get("minPublicProfileOpens")).longValue());
     assertEquals(5L, ((Number) gaReadiness.get("minBoardProfileOpens")).longValue());
     assertEquals(5L, ((Number) gaReadiness.get("minFeedbackSignals")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
+    assertEquals(7L, ((Number) gaReadiness.get("recognitionWindowDays")).longValue());
+    assertEquals(false, gaReadiness.get("recognitionGateEnabled"));
+    assertEquals(0L, ((Number) gaReadiness.get("recognitionSignals")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     assertEquals("critical_route_status", gaReadiness.get("primaryBlocker"));
     assertEquals("improve_critical_route_performance", gaReadiness.get("primaryAction"));
@@ -205,6 +209,7 @@ class AdminReputationApiResourceTest {
     assertTrue(blockers.contains("insufficient_stability_windows"));
     assertTrue(blockers.contains("critical_route_status"));
     assertTrue(blockers.contains("active_worsening_trend"));
+    assertFalse(blockers.contains("insufficient_recognition_signals"));
     assertFalse(blockers.contains("stale_window_data"));
 
     @SuppressWarnings("unchecked")
@@ -215,6 +220,7 @@ class AdminReputationApiResourceTest {
     assertTrue(recommendedActions.contains("observe_more_stable_windows"));
     assertTrue(recommendedActions.contains("improve_critical_route_performance"));
     assertTrue(recommendedActions.contains("triage_worsening_route"));
+    assertFalse(recommendedActions.contains("increase_peer_recognition_activity"));
 
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
@@ -224,6 +230,7 @@ class AdminReputationApiResourceTest {
     assertTrue(blockerDetails.containsKey("insufficient_stability_windows"));
     assertTrue(blockerDetails.containsKey("critical_route_status"));
     assertTrue(blockerDetails.containsKey("active_worsening_trend"));
+    assertFalse(blockerDetails.containsKey("insufficient_recognition_signals"));
 
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> actionPlan = (List<Map<String, Object>>) gaReadiness.get("actionPlan");
@@ -283,6 +290,10 @@ class AdminReputationApiResourceTest {
     assertEquals(5L, ((Number) gaReadiness.get("minPublicProfileOpens")).longValue());
     assertEquals(5L, ((Number) gaReadiness.get("minBoardProfileOpens")).longValue());
     assertEquals(5L, ((Number) gaReadiness.get("minFeedbackSignals")).longValue());
+    assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
+    assertEquals(7L, ((Number) gaReadiness.get("recognitionWindowDays")).longValue());
+    assertEquals(false, gaReadiness.get("recognitionGateEnabled"));
+    assertEquals(0L, ((Number) gaReadiness.get("recognitionSignals")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     assertEquals("none", gaReadiness.get("primaryBlocker"));
     assertEquals("none", gaReadiness.get("primaryAction"));
@@ -390,6 +401,8 @@ class AdminReputationApiResourceTest {
     Map<String, Object> gaReadinessStale = (Map<String, Object>) payload.get("gaReadiness");
     assertEquals("not_ready", gaReadinessStale.get("status"));
     assertEquals(false, gaReadinessStale.get("snapshotRecorded"));
+    assertEquals(false, gaReadinessStale.get("recognitionGateEnabled"));
+    assertEquals(0L, ((Number) gaReadinessStale.get("recognitionSignals")).longValue());
     assertEquals("stale_window_data", gaReadinessStale.get("primaryBlocker"));
     assertEquals("verify_web_vitals_ingestion", gaReadinessStale.get("primaryAction"));
     @SuppressWarnings("unchecked")
@@ -397,10 +410,12 @@ class AdminReputationApiResourceTest {
     assertTrue(blockers.contains("stale_window_data"));
     assertFalse(blockers.contains("insufficient_live_traffic"));
     assertFalse(blockers.contains("insufficient_activity_loop_signals"));
+    assertFalse(blockers.contains("insufficient_recognition_signals"));
     @SuppressWarnings("unchecked")
     List<String> recommendedActions = (List<String>) gaReadinessStale.get("recommendedActions");
     assertTrue(recommendedActions.contains("verify_web_vitals_ingestion"));
     assertFalse(recommendedActions.contains("drive_profile_feedback_cycle"));
+    assertFalse(recommendedActions.contains("increase_peer_recognition_activity"));
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadinessStale.get("blockerDetails");
     assertTrue(blockerDetails.containsKey("stale_window_data"));
