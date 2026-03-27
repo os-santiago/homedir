@@ -28,6 +28,7 @@ import java.util.Set;
 @Produces(MediaType.APPLICATION_JSON)
 public class AdminReputationApiResource {
   private static final long GA_MIN_ROUTE_SAMPLES = 20L;
+  private static final long GA_MIN_STABLE_WINDOWS = 3L;
 
   @Inject SecurityIdentity identity;
 
@@ -252,10 +253,17 @@ public class AdminReputationApiResource {
       ReputationWebVitalsHistoryService.TrendWindow trend) {
     String hubTrendStatus = trendStatus(trend, "hub");
     String howTrendStatus = trendStatus(trend, "how");
+    ReputationWebVitalsHistoryService.RouteStability hubStability = stabilityForRoute(trend, "hub");
+    ReputationWebVitalsHistoryService.RouteStability howStability = stabilityForRoute(trend, "how");
 
     List<String> blockers = new ArrayList<>();
     if (hubAssessment.samples() < GA_MIN_ROUTE_SAMPLES || howAssessment.samples() < GA_MIN_ROUTE_SAMPLES) {
       blockers.add("insufficient_samples");
+    }
+
+    if (hubStability.consecutiveNonWorsening() < GA_MIN_STABLE_WINDOWS
+        || howStability.consecutiveNonWorsening() < GA_MIN_STABLE_WINDOWS) {
+      blockers.add("insufficient_stability_windows");
     }
 
     Set<String> criticalStatuses = Set.of("critical");
@@ -271,7 +279,18 @@ public class AdminReputationApiResource {
     return Map.of(
         "status", status,
         "minRouteSamples", GA_MIN_ROUTE_SAMPLES,
+        "minStableWindows", GA_MIN_STABLE_WINDOWS,
         "blockers", List.copyOf(blockers),
+        "stability",
+            Map.of(
+                "hub",
+                    Map.of(
+                        "observedWindows", hubStability.observedWindows(),
+                        "consecutiveNonWorsening", hubStability.consecutiveNonWorsening()),
+                "how",
+                    Map.of(
+                        "observedWindows", howStability.observedWindows(),
+                        "consecutiveNonWorsening", howStability.consecutiveNonWorsening())),
         "routes",
             Map.of(
                 "hub",
@@ -295,6 +314,18 @@ public class AdminReputationApiResource {
       return "insufficient_data";
     }
     return routeTrend.status();
+  }
+
+  private ReputationWebVitalsHistoryService.RouteStability stabilityForRoute(
+      ReputationWebVitalsHistoryService.TrendWindow trend, String route) {
+    if (trend == null || trend.stability() == null) {
+      return new ReputationWebVitalsHistoryService.RouteStability(0L, 0L);
+    }
+    ReputationWebVitalsHistoryService.RouteStability routeStability = trend.stability().get(route);
+    if (routeStability == null) {
+      return new ReputationWebVitalsHistoryService.RouteStability(0L, 0L);
+    }
+    return routeStability;
   }
 
   private record RouteWebVitals(
