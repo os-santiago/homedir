@@ -18,10 +18,12 @@ public class ReputationWebVitalsHistoryService {
   public synchronized TrendWindow recordAndTrend(Map<String, RouteTotals> routes) {
     Snapshot current = new Snapshot(System.currentTimeMillis(), deepCopy(routes));
     Snapshot last = snapshots.isEmpty() ? null : snapshots.get(snapshots.size() - 1);
+    boolean snapshotRecorded = false;
     if (last == null || !sameTotals(last.routes(), current.routes())) {
       snapshots.add(current);
       trimToMax();
       last = current;
+      snapshotRecorded = true;
     }
 
     List<RouteTrend> hubHistory = trendHistory("hub");
@@ -34,7 +36,7 @@ public class ReputationWebVitalsHistoryService {
         Map.of(
             "hub", computeStability(hubHistory),
             "how", computeStability(howHistory));
-    return new TrendWindow(snapshots.size(), trends, stability);
+    return new TrendWindow(snapshots.size(), trends, stability, snapshotRecorded);
   }
 
   private List<RouteTrend> trendHistory(String route) {
@@ -157,7 +159,10 @@ public class ReputationWebVitalsHistoryService {
   public record Snapshot(long capturedAtMillis, Map<String, RouteTotals> routes) {}
 
   public record TrendWindow(
-      long windowSize, Map<String, RouteTrend> routes, Map<String, RouteStability> stability) {}
+      long windowSize,
+      Map<String, RouteTrend> routes,
+      Map<String, RouteStability> stability,
+      boolean snapshotRecorded) {}
 
   public record RouteStability(long observedWindows, long consecutiveNonWorsening) {
     static RouteStability insufficient() {

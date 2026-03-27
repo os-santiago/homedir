@@ -168,12 +168,14 @@ class AdminReputationApiResourceTest {
     assertEquals("not_ready", gaReadiness.get("status"));
     assertEquals(20L, ((Number) gaReadiness.get("minRouteSamples")).longValue());
     assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
+    assertEquals(true, gaReadiness.get("snapshotRecorded"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.contains("insufficient_samples"));
     assertTrue(blockers.contains("insufficient_stability_windows"));
     assertTrue(blockers.contains("critical_route_status"));
     assertTrue(blockers.contains("active_worsening_trend"));
+    assertFalse(blockers.contains("stale_window_data"));
   }
 
   @Test
@@ -220,6 +222,7 @@ class AdminReputationApiResourceTest {
     Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
     assertEquals("ready", gaReadiness.get("status"));
     assertEquals(3L, ((Number) gaReadiness.get("minStableWindows")).longValue());
+    assertEquals(true, gaReadiness.get("snapshotRecorded"));
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.isEmpty());
@@ -245,5 +248,69 @@ class AdminReputationApiResourceTest {
     assertTrue(((Number) howStability.get("observedWindows")).longValue() >= 3L);
     assertTrue(((Number) hubStability.get("consecutiveNonWorsening")).longValue() >= 3L);
     assertTrue(((Number) howStability.get("consecutiveNonWorsening")).longValue() >= 3L);
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminGaReadinessBlocksWhenSnapshotIsStale() {
+    for (int i = 0; i < 22; i++) {
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
+    }
+
+    Map<String, Object> payload =
+        given()
+            .when()
+            .get("/api/private/admin/reputation/web-vitals")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
+            .getMap("$");
+
+    for (int i = 0; i < 3; i++) {
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
+      payload =
+          given()
+              .when()
+              .get("/api/private/admin/reputation/web-vitals")
+              .then()
+              .statusCode(200)
+              .extract()
+              .jsonPath()
+              .getMap("$");
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> gaReadinessReady = (Map<String, Object>) payload.get("gaReadiness");
+    assertEquals("ready", gaReadinessReady.get("status"));
+    assertEquals(true, gaReadinessReady.get("snapshotRecorded"));
+
+    payload =
+        given()
+            .when()
+            .get("/api/private/admin/reputation/web-vitals")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
+            .getMap("$");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> gaReadinessStale = (Map<String, Object>) payload.get("gaReadiness");
+    assertEquals("not_ready", gaReadinessStale.get("status"));
+    assertEquals(false, gaReadinessStale.get("snapshotRecorded"));
+    @SuppressWarnings("unchecked")
+    List<String> blockers = (List<String>) gaReadinessStale.get("blockers");
+    assertTrue(blockers.contains("stale_window_data"));
   }
 }
