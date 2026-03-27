@@ -2,6 +2,7 @@ package com.scanales.homedir.private_;
 
 import com.scanales.homedir.reputation.ReputationPhase0BaselineService;
 import com.scanales.homedir.reputation.ReputationShadowReadService;
+import com.scanales.homedir.reputation.ReputationWebVitalsHistoryService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
 import io.quarkus.security.Authenticated;
@@ -30,6 +31,7 @@ public class AdminReputationApiResource {
 
   @Inject ReputationPhase0BaselineService baselineService;
   @Inject ReputationShadowReadService shadowReadService;
+  @Inject ReputationWebVitalsHistoryService webVitalsHistoryService;
   @Inject UsageMetricsService usageMetricsService;
 
   @GET
@@ -85,6 +87,13 @@ public class AdminReputationApiResource {
     RouteWebVitals how = summarizeRoute(snapshot, "how");
     RouteAssessment hubAssessment = assessRoute("hub", hub);
     RouteAssessment howAssessment = assessRoute("how", how);
+    ReputationWebVitalsHistoryService.TrendWindow trend =
+        webVitalsHistoryService.recordAndTrend(
+            Map.of(
+                "hub", new ReputationWebVitalsHistoryService.RouteTotals(hub.samples(), hub.lcp(), hub.inp()),
+                "how",
+                    new ReputationWebVitalsHistoryService.RouteTotals(
+                        how.samples(), how.lcp(), how.inp())));
 
     long totalSamples = hub.samples() + how.samples();
     Map<String, Object> payload = new HashMap<>();
@@ -111,6 +120,14 @@ public class AdminReputationApiResource {
         Map.of(
             "hub", assessmentPayload(hubAssessment),
             "how", assessmentPayload(howAssessment)));
+    payload.put(
+        "trend",
+        Map.of(
+            "windowSize", trend.windowSize(),
+            "routes",
+                Map.of(
+                    "hub", trendPayload(trend.routes().get("hub")),
+                    "how", trendPayload(trend.routes().get("how")))));
     return Response.ok(payload).build();
   }
 
@@ -205,6 +222,25 @@ public class AdminReputationApiResource {
         "inpScore", assessment.inpScore(),
         "overallScore", assessment.overallScore(),
         "status", assessment.status());
+  }
+
+  private Map<String, Object> trendPayload(ReputationWebVitalsHistoryService.RouteTrend trend) {
+    if (trend == null) {
+      return Map.of(
+          "samplesDelta", 0L,
+          "lcpPoorDelta", 0L,
+          "lcpNeedsDelta", 0L,
+          "inpPoorDelta", 0L,
+          "inpNeedsDelta", 0L,
+          "status", "insufficient_data");
+    }
+    return Map.of(
+        "samplesDelta", trend.samplesDelta(),
+        "lcpPoorDelta", trend.lcpPoorDelta(),
+        "lcpNeedsDelta", trend.lcpNeedsDelta(),
+        "inpPoorDelta", trend.inpPoorDelta(),
+        "inpNeedsDelta", trend.inpNeedsDelta(),
+        "status", trend.status());
   }
 
   private record RouteWebVitals(

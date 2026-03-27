@@ -101,6 +101,16 @@ class AdminReputationApiResourceTest {
     usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
     usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
 
+    given().when().get("/api/private/admin/reputation/web-vitals").then().statusCode(200);
+
+    usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
+    usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.poor");
+    usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.poor");
+
+    usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
+    usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
+    usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
+
     Map<String, Object> payload =
         given()
             .when()
@@ -138,5 +148,18 @@ class AdminReputationApiResourceTest {
     assertTrue(((Number) hubAssessment.get("overallScore")).intValue() < 60);
     assertTrue("critical".equals(hubAssessment.get("status")));
     assertTrue(((Number) howAssessment.get("overallScore")).intValue() >= 90);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> trend = (Map<String, Object>) payload.get("trend");
+    assertTrue(((Number) trend.get("windowSize")).longValue() >= 2L);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> trendRoutes = (Map<String, Object>) trend.get("routes");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> hubTrend = (Map<String, Object>) trendRoutes.get("hub");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> howTrend = (Map<String, Object>) trendRoutes.get("how");
+    assertTrue(((Number) hubTrend.get("samplesDelta")).longValue() >= 1L);
+    assertTrue("worsening".equals(hubTrend.get("status")));
+    assertTrue("improving".equals(howTrend.get("status")));
   }
 }
