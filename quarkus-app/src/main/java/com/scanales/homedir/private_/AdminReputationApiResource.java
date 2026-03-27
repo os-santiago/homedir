@@ -2,6 +2,7 @@ package com.scanales.homedir.private_;
 
 import com.scanales.homedir.reputation.ReputationPhase0BaselineService;
 import com.scanales.homedir.reputation.ReputationShadowReadService;
+import com.scanales.homedir.reputation.ReputationWebVitalsHistoryService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
 import io.quarkus.security.Authenticated;
@@ -19,17 +20,20 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Hidden admin API for phase-0 Reputation Hub baseline and taxonomy checks. */
 @Path("/api/private/admin/reputation")
 @Authenticated
 @Produces(MediaType.APPLICATION_JSON)
 public class AdminReputationApiResource {
+  private static final long GA_MIN_ROUTE_SAMPLES = 20L;
 
   @Inject SecurityIdentity identity;
 
   @Inject ReputationPhase0BaselineService baselineService;
   @Inject ReputationShadowReadService shadowReadService;
+  @Inject ReputationWebVitalsHistoryService webVitalsHistoryService;
   @Inject UsageMetricsService usageMetricsService;
 
   @GET
@@ -85,6 +89,13 @@ public class AdminReputationApiResource {
     RouteWebVitals how = summarizeRoute(snapshot, "how");
     RouteAssessment hubAssessment = assessRoute("hub", hub);
     RouteAssessment howAssessment = assessRoute("how", how);
+    ReputationWebVitalsHistoryService.TrendWindow trend =
+        webVitalsHistoryService.recordAndTrend(
+            Map.of(
+                "hub", new ReputationWebVitalsHistoryService.RouteTotals(hub.samples(), hub.lcp(), hub.inp()),
+                "how",
+                    new ReputationWebVitalsHistoryService.RouteTotals(
+                        how.samples(), how.lcp(), how.inp())));
 
     long totalSamples = hub.samples() + how.samples();
     Map<String, Object> payload = new HashMap<>();
@@ -111,6 +122,15 @@ public class AdminReputationApiResource {
         Map.of(
             "hub", assessmentPayload(hubAssessment),
             "how", assessmentPayload(howAssessment)));
+    payload.put(
+        "trend",
+        Map.of(
+            "windowSize", trend.windowSize(),
+            "routes",
+                Map.of(
+                    "hub", trendPayload(trend.routes().get("hub")),
+                    "how", trendPayload(trend.routes().get("how")))));
+    payload.put("gaReadiness", gaReadinessPayload(hubAssessment, howAssessment, trend));
     return Response.ok(payload).build();
   }
 
@@ -205,6 +225,76 @@ public class AdminReputationApiResource {
         "inpScore", assessment.inpScore(),
         "overallScore", assessment.overallScore(),
         "status", assessment.status());
+  }
+
+  private Map<String, Object> trendPayload(ReputationWebVitalsHistoryService.RouteTrend trend) {
+    if (trend == null) {
+      return Map.of(
+          "samplesDelta", 0L,
+          "lcpPoorDelta", 0L,
+          "lcpNeedsDelta", 0L,
+          "inpPoorDelta", 0L,
+          "inpNeedsDelta", 0L,
+          "status", "insufficient_data");
+    }
+    return Map.of(
+        "samplesDelta", trend.samplesDelta(),
+        "lcpPoorDelta", trend.lcpPoorDelta(),
+        "lcpNeedsDelta", trend.lcpNeedsDelta(),
+        "inpPoorDelta", trend.inpPoorDelta(),
+        "inpNeedsDelta", trend.inpNeedsDelta(),
+        "status", trend.status());
+  }
+
+  private Map<String, Object> gaReadinessPayload(
+      RouteAssessment hubAssessment,
+      RouteAssessment howAssessment,
+      ReputationWebVitalsHistoryService.TrendWindow trend) {
+    String hubTrendStatus = trendStatus(trend, "hub");
+    String howTrendStatus = trendStatus(trend, "how");
+
+    List<String> blockers = new ArrayList<>();
+    if (hubAssessment.samples() < GA_MIN_ROUTE_SAMPLES || howAssessment.samples() < GA_MIN_ROUTE_SAMPLES) {
+      blockers.add("insufficient_samples");
+    }
+
+    Set<String> criticalStatuses = Set.of("critical");
+    if (criticalStatuses.contains(hubAssessment.status()) || criticalStatuses.contains(howAssessment.status())) {
+      blockers.add("critical_route_status");
+    }
+
+    if ("worsening".equals(hubTrendStatus) || "worsening".equals(howTrendStatus)) {
+      blockers.add("active_worsening_trend");
+    }
+
+    String status = blockers.isEmpty() ? "ready" : "not_ready";
+    return Map.of(
+        "status", status,
+        "minRouteSamples", GA_MIN_ROUTE_SAMPLES,
+        "blockers", List.copyOf(blockers),
+        "routes",
+            Map.of(
+                "hub",
+                    Map.of(
+                        "samples", hubAssessment.samples(),
+                        "assessmentStatus", hubAssessment.status(),
+                        "trendStatus", hubTrendStatus),
+                "how",
+                    Map.of(
+                        "samples", howAssessment.samples(),
+                        "assessmentStatus", howAssessment.status(),
+                        "trendStatus", howTrendStatus)));
+  }
+
+  private String trendStatus(ReputationWebVitalsHistoryService.TrendWindow trend, String route) {
+    if (trend == null || trend.routes() == null) {
+      return "insufficient_data";
+    }
+    ReputationWebVitalsHistoryService.RouteTrend routeTrend = trend.routes().get(route);
+    if (routeTrend == null) {
+      return "insufficient_data";
+    }
+    return routeTrend.status();
   }
 
   private record RouteWebVitals(
