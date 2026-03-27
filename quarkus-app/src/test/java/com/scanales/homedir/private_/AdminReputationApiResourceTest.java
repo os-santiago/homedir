@@ -37,6 +37,15 @@ class AdminReputationApiResourceTest {
     usageMetricsService.reset();
   }
 
+  private void seedLiveTraffic(int hubViews, int howViews) {
+    for (int i = 0; i < hubViews; i++) {
+      usageMetricsService.recordPageView("/comunidad/reputation-hub", "Mozilla/5.0");
+    }
+    for (int i = 0; i < howViews; i++) {
+      usageMetricsService.recordPageView("/comunidad/reputation-hub/how", "Mozilla/5.0");
+    }
+  }
+
   @Test
   @TestSecurity(user = "alice")
   void nonAdminCannotAccessPhase0() {
@@ -172,6 +181,7 @@ class AdminReputationApiResourceTest {
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.contains("insufficient_samples"));
+    assertTrue(blockers.contains("insufficient_live_traffic"));
     assertTrue(blockers.contains("insufficient_stability_windows"));
     assertTrue(blockers.contains("critical_route_status"));
     assertTrue(blockers.contains("active_worsening_trend"));
@@ -181,6 +191,8 @@ class AdminReputationApiResourceTest {
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminGaReadinessIsReadyWhenRoutesAreHealthyAndStable() {
+    seedLiveTraffic(12, 12);
+
     for (int i = 0; i < 22; i++) {
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
@@ -253,6 +265,8 @@ class AdminReputationApiResourceTest {
   @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   void adminGaReadinessBlocksWhenSnapshotIsStale() {
+    seedLiveTraffic(12, 12);
+
     for (int i = 0; i < 22; i++) {
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
       usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
@@ -312,5 +326,6 @@ class AdminReputationApiResourceTest {
     @SuppressWarnings("unchecked")
     List<String> blockers = (List<String>) gaReadinessStale.get("blockers");
     assertTrue(blockers.contains("stale_window_data"));
+    assertFalse(blockers.contains("insufficient_live_traffic"));
   }
 }

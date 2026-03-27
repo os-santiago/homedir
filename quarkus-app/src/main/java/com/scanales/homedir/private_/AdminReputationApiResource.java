@@ -29,6 +29,7 @@ import java.util.Set;
 public class AdminReputationApiResource {
   private static final long GA_MIN_ROUTE_SAMPLES = 20L;
   private static final long GA_MIN_STABLE_WINDOWS = 3L;
+  private static final long GA_MIN_ROUTE_PAGE_VIEWS = 10L;
 
   @Inject SecurityIdentity identity;
 
@@ -90,6 +91,9 @@ public class AdminReputationApiResource {
     RouteWebVitals how = summarizeRoute(snapshot, "how");
     RouteAssessment hubAssessment = assessRoute("hub", hub);
     RouteAssessment howAssessment = assessRoute("how", how);
+    long hubPageViews = pageViews(snapshot, "/comunidad/reputation-hub", "/community/reputation-hub");
+    long howPageViews =
+        pageViews(snapshot, "/comunidad/reputation-hub/how", "/community/reputation-hub/how");
     ReputationWebVitalsHistoryService.TrendWindow trend =
         webVitalsHistoryService.recordAndTrend(
             Map.of(
@@ -103,6 +107,14 @@ public class AdminReputationApiResource {
     payload.put("generatedAt", System.currentTimeMillis());
     payload.put("totalSamples", totalSamples);
     payload.put("nextFocusRoute", nextFocusRoute(hubAssessment, howAssessment));
+    payload.put(
+        "traffic",
+        Map.of(
+            "minRoutePageViews", GA_MIN_ROUTE_PAGE_VIEWS,
+            "routes",
+                Map.of(
+                    "hub", hubPageViews,
+                    "how", howPageViews)));
     payload.put(
         "routes",
         Map.of(
@@ -131,8 +143,18 @@ public class AdminReputationApiResource {
                 Map.of(
                     "hub", trendPayload(trend.routes().get("hub")),
                     "how", trendPayload(trend.routes().get("how")))));
-    payload.put("gaReadiness", gaReadinessPayload(hubAssessment, howAssessment, trend));
+    payload.put(
+        "gaReadiness",
+        gaReadinessPayload(hubAssessment, howAssessment, hubPageViews, howPageViews, trend));
     return Response.ok(payload).build();
+  }
+
+  private long pageViews(Map<String, Long> snapshot, String... routes) {
+    long total = 0L;
+    for (String route : routes) {
+      total += snapshot.getOrDefault("page_view:" + route, 0L);
+    }
+    return total;
   }
 
   private RouteWebVitals summarizeRoute(Map<String, Long> snapshot, String route) {
@@ -250,6 +272,8 @@ public class AdminReputationApiResource {
   private Map<String, Object> gaReadinessPayload(
       RouteAssessment hubAssessment,
       RouteAssessment howAssessment,
+      long hubPageViews,
+      long howPageViews,
       ReputationWebVitalsHistoryService.TrendWindow trend) {
     String hubTrendStatus = trendStatus(trend, "hub");
     String howTrendStatus = trendStatus(trend, "how");
@@ -259,6 +283,10 @@ public class AdminReputationApiResource {
     List<String> blockers = new ArrayList<>();
     if (hubAssessment.samples() < GA_MIN_ROUTE_SAMPLES || howAssessment.samples() < GA_MIN_ROUTE_SAMPLES) {
       blockers.add("insufficient_samples");
+    }
+
+    if (hubPageViews < GA_MIN_ROUTE_PAGE_VIEWS || howPageViews < GA_MIN_ROUTE_PAGE_VIEWS) {
+      blockers.add("insufficient_live_traffic");
     }
 
     if (trend == null || !trend.snapshotRecorded()) {
@@ -301,11 +329,13 @@ public class AdminReputationApiResource {
                 "hub",
                     Map.of(
                         "samples", hubAssessment.samples(),
+                        "livePageViews", hubPageViews,
                         "assessmentStatus", hubAssessment.status(),
                         "trendStatus", hubTrendStatus),
                 "how",
                     Map.of(
                         "samples", howAssessment.samples(),
+                        "livePageViews", howPageViews,
                         "assessmentStatus", howAssessment.status(),
                         "trendStatus", howTrendStatus)));
   }
