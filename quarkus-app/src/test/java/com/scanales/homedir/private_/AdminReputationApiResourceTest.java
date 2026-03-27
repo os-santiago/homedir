@@ -127,5 +127,16 @@ class AdminReputationApiResourceTest {
     Map<String, Object> howLcp = (Map<String, Object>) how.get("lcp");
     assertTrue(((Number) hubInp.get("poor")).longValue() >= 1L);
     assertTrue(((Number) howLcp.get("good")).longValue() >= 1L);
+
+    assertTrue("hub".equals(payload.get("nextFocusRoute")));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> assessments = (Map<String, Object>) payload.get("assessments");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> hubAssessment = (Map<String, Object>) assessments.get("hub");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> howAssessment = (Map<String, Object>) assessments.get("how");
+    assertTrue(((Number) hubAssessment.get("overallScore")).intValue() < 60);
+    assertTrue("critical".equals(hubAssessment.get("status")));
+    assertTrue(((Number) howAssessment.get("overallScore")).intValue() >= 90);
   }
 }
