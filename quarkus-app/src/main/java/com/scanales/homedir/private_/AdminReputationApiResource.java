@@ -261,6 +261,10 @@ public class AdminReputationApiResource {
       blockers.add("insufficient_samples");
     }
 
+    if (trend == null || !trend.snapshotRecorded()) {
+      blockers.add("stale_window_data");
+    }
+
     if (hubStability.consecutiveNonWorsening() < GA_MIN_STABLE_WINDOWS
         || howStability.consecutiveNonWorsening() < GA_MIN_STABLE_WINDOWS) {
       blockers.add("insufficient_stability_windows");
@@ -280,6 +284,7 @@ public class AdminReputationApiResource {
         "status", status,
         "minRouteSamples", GA_MIN_ROUTE_SAMPLES,
         "minStableWindows", GA_MIN_STABLE_WINDOWS,
+        "snapshotRecorded", trend != null && trend.snapshotRecorded(),
         "blockers", List.copyOf(blockers),
         "stability",
             Map.of(
