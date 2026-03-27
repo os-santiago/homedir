@@ -4947,6 +4947,12 @@ public interface AppMessages {
     @Message("Run the marketing workflow from drafts to guarded rollout.")
     String admin_hub_action_campaigns_desc();
 
+    @Message("Reputation GA")
+    String admin_hub_action_reputation_title();
+
+    @Message("Rollout evidence, readiness blockers, and closing signals for Reputation Hub.")
+    String admin_hub_action_reputation_desc();
+
     @Message("Quick access")
     String admin_hub_shortcuts_title();
 
@@ -5117,6 +5123,153 @@ public interface AppMessages {
 
     @Message("Scheduled drafts waiting for publication")
     String campaigns_admin_process_publish_scheduled_title();
+
+    @Message("Reputation GA · Admin · Homedir")
+    String admin_reputation_page_title();
+
+    @Message("Reputation rollout")
+    String admin_reputation_subtitle();
+
+    @Message("Close the remaining evidence for Reputation Hub")
+    String admin_reputation_heading();
+
+    @Message("Review GA readiness, route health, recognition evidence, and the remaining pre-GA checklist from one admin page.")
+    String admin_reputation_intro();
+
+    @Message("Back to admin hub")
+    String admin_reputation_back_to_panel();
+
+    @Message("Refresh")
+    String admin_reputation_refresh();
+
+    @Message("Loading Reputation GA evidence...")
+    String admin_reputation_loading();
+
+    @Message("GA readiness snapshot")
+    String admin_reputation_summary_title();
+
+    @Message("Current gate status, primary blocker, and the next focus route.")
+    String admin_reputation_summary_desc();
+
+    @Message("Blockers and action order")
+    String admin_reputation_blockers_title();
+
+    @Message("Use this list to close the most important blocker first instead of reading every raw metric.")
+    String admin_reputation_blockers_desc();
+
+    @Message("Pre-GA closure checklist")
+    String admin_reputation_checklist_title();
+
+    @Message("What still needs evidence before Reputation Hub can be called stable pre-GA.")
+    String admin_reputation_checklist_desc();
+
+    @Message("Route health")
+    String admin_reputation_routes_title();
+
+    @Message("Server-side samples, live traffic, assessment, and trend for the hub routes.")
+    String admin_reputation_routes_desc();
+
+    @Message("Activity loop evidence")
+    String admin_reputation_activity_title();
+
+    @Message("Signals that prove users move between profile, board, and feedback loops.")
+    String admin_reputation_activity_desc();
+
+    @Message("Recognition evidence")
+    String admin_reputation_recognition_title();
+
+    @Message("Recognition quality signals used to keep the rollout fair and credible.")
+    String admin_reputation_recognition_desc();
+
+    @Message("Could not load Reputation GA evidence right now.")
+    String admin_reputation_js_request_failed();
+
+    @Message("Ready")
+    String admin_reputation_js_status_ready();
+
+    @Message("Not ready")
+    String admin_reputation_js_status_not_ready();
+
+    @Message("No blockers right now.")
+    String admin_reputation_js_blockers_none();
+
+    @Message("No action required.")
+    String admin_reputation_js_actions_none();
+
+    @Message("Hub")
+    String admin_reputation_js_route_hub();
+
+    @Message("How it works")
+    String admin_reputation_js_route_how();
+
+    @Message("Healthy")
+    String admin_reputation_js_healthy();
+
+    @Message("Watch")
+    String admin_reputation_js_warning();
+
+    @Message("Critical")
+    String admin_reputation_js_critical();
+
+    @Message("Improving")
+    String admin_reputation_js_improving();
+
+    @Message("Worsening")
+    String admin_reputation_js_worsening();
+
+    @Message("Flat")
+    String admin_reputation_js_flat();
+
+    @Message("Unknown")
+    String admin_reputation_js_unknown();
+
+    @Message("Manual follow-up pending")
+    String admin_reputation_js_manual_pending();
+
+    @Message("Evidence available")
+    String admin_reputation_js_evidence_ok();
+
+    @Message("Focus route")
+    String admin_reputation_js_focus_route();
+
+    @Message("Primary blocker")
+    String admin_reputation_js_primary_blocker();
+
+    @Message("Primary action")
+    String admin_reputation_js_primary_action();
+
+    @Message("Snapshot")
+    String admin_reputation_js_snapshot();
+
+    @Message("Samples")
+    String admin_reputation_js_route_samples();
+
+    @Message("Live views")
+    String admin_reputation_js_route_views();
+
+    @Message("Assessment")
+    String admin_reputation_js_route_assessment();
+
+    @Message("Trend")
+    String admin_reputation_js_route_trend();
+
+    @Message("Current")
+    String admin_reputation_js_loop_current();
+
+    @Message("Required")
+    String admin_reputation_js_loop_required();
+
+    @Message("Collect p95/p99 server evidence")
+    String admin_reputation_js_check_p95();
+
+    @Message("Keep web-vitals snapshot fresh")
+    String admin_reputation_js_check_vitals();
+
+    @Message("Hold weekly and monthly leaderboard cycles without rollback")
+    String admin_reputation_js_check_weekly();
+
+    @Message("Keep two release windows green")
+    String admin_reputation_js_check_releases();
 
     @Message("Development Insights · Homedir")
     String admin_insights_title();
