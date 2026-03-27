@@ -57,9 +57,11 @@ class AdminReputationApiRecognitionGateTest {
     assertEquals(true, gaReadiness.get("recognitionGateEnabled"));
     assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
     assertEquals(3L, ((Number) gaReadiness.get("minRecognitionValidators")).longValue());
+    assertEquals(4L, ((Number) gaReadiness.get("minRecognitionTargets")).longValue());
     assertEquals(70L, ((Number) gaReadiness.get("maxRecognitionValidatorSharePct")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionSignals")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionValidators")).longValue());
+    assertEquals(0L, ((Number) gaReadiness.get("recognitionTargets")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionValidatorSharePct")).longValue());
     assertEquals("insufficient_recognition_signals", gaReadiness.get("primaryBlocker"));
     assertEquals("increase_peer_recognition_activity", gaReadiness.get("primaryAction"));
@@ -68,17 +70,20 @@ class AdminReputationApiRecognitionGateTest {
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertTrue(blockers.contains("insufficient_recognition_signals"));
     assertTrue(blockers.contains("insufficient_recognition_validators"));
+    assertFalse(blockers.contains("insufficient_recognition_targets"));
     assertFalse(blockers.contains("high_recognition_validator_concentration"));
 
     @SuppressWarnings("unchecked")
     List<String> recommendedActions = (List<String>) gaReadiness.get("recommendedActions");
     assertTrue(recommendedActions.contains("increase_peer_recognition_activity"));
     assertTrue(recommendedActions.contains("expand_recognition_validator_pool"));
+    assertFalse(recommendedActions.contains("broaden_recognition_reach"));
 
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadiness.get("blockerDetails");
     assertTrue(blockerDetails.containsKey("insufficient_recognition_signals"));
     assertTrue(blockerDetails.containsKey("insufficient_recognition_validators"));
+    assertFalse(blockerDetails.containsKey("insufficient_recognition_targets"));
   }
 
   @Test
@@ -96,9 +101,11 @@ class AdminReputationApiRecognitionGateTest {
     assertEquals(true, gaReadiness.get("recognitionGateEnabled"));
     assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
     assertEquals(3L, ((Number) gaReadiness.get("minRecognitionValidators")).longValue());
+    assertEquals(4L, ((Number) gaReadiness.get("minRecognitionTargets")).longValue());
     assertEquals(70L, ((Number) gaReadiness.get("maxRecognitionValidatorSharePct")).longValue());
     assertTrue(((Number) gaReadiness.get("recognitionSignals")).longValue() >= 5L);
     assertTrue(((Number) gaReadiness.get("recognitionValidators")).longValue() >= 3L);
+    assertTrue(((Number) gaReadiness.get("recognitionTargets")).longValue() >= 4L);
     assertTrue(((Number) gaReadiness.get("recognitionValidatorSharePct")).longValue() <= 70L);
     assertEquals("none", gaReadiness.get("primaryBlocker"));
     assertEquals("none", gaReadiness.get("primaryAction"));
@@ -107,6 +114,7 @@ class AdminReputationApiRecognitionGateTest {
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertFalse(blockers.contains("insufficient_recognition_signals"));
     assertFalse(blockers.contains("insufficient_recognition_validators"));
+    assertFalse(blockers.contains("insufficient_recognition_targets"));
     assertFalse(blockers.contains("high_recognition_validator_concentration"));
   }
 
@@ -132,6 +140,34 @@ class AdminReputationApiRecognitionGateTest {
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertFalse(blockers.contains("insufficient_recognition_signals"));
     assertTrue(blockers.contains("insufficient_recognition_validators"));
+    assertFalse(blockers.contains("insufficient_recognition_targets"));
+    assertFalse(blockers.contains("high_recognition_validator_concentration"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void recognitionGateBlocksWhenTargetsAreNotDiverse() {
+    prepareStableReadinessBaseline();
+    seedRecognitionSignalsToSingleTarget(8, 4);
+    recordHealthyWebVitalsPair();
+
+    Map<String, Object> payload = requestWebVitals();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
+
+    assertEquals("not_ready", gaReadiness.get("status"));
+    assertEquals(true, gaReadiness.get("recognitionGateEnabled"));
+    assertTrue(((Number) gaReadiness.get("recognitionSignals")).longValue() >= 8L);
+    assertTrue(((Number) gaReadiness.get("recognitionValidators")).longValue() >= 3L);
+    assertTrue(((Number) gaReadiness.get("recognitionTargets")).longValue() < 4L);
+    assertEquals("insufficient_recognition_targets", gaReadiness.get("primaryBlocker"));
+    assertEquals("broaden_recognition_reach", gaReadiness.get("primaryAction"));
+
+    @SuppressWarnings("unchecked")
+    List<String> blockers = (List<String>) gaReadiness.get("blockers");
+    assertFalse(blockers.contains("insufficient_recognition_signals"));
+    assertFalse(blockers.contains("insufficient_recognition_validators"));
+    assertTrue(blockers.contains("insufficient_recognition_targets"));
     assertFalse(blockers.contains("high_recognition_validator_concentration"));
   }
 
@@ -168,6 +204,7 @@ class AdminReputationApiRecognitionGateTest {
     List<String> blockers = (List<String>) gaReadiness.get("blockers");
     assertFalse(blockers.contains("insufficient_recognition_signals"));
     assertFalse(blockers.contains("insufficient_recognition_validators"));
+    assertFalse(blockers.contains("insufficient_recognition_targets"));
     assertTrue(blockers.contains("high_recognition_validator_concentration"));
   }
 
@@ -227,6 +264,22 @@ class AdminReputationApiRecognitionGateTest {
               "community_content",
               "recognition-custom-source-" + i,
               validators[i],
+              "recommended");
+      assertTrue(tracked);
+    }
+  }
+
+  private void seedRecognitionSignalsToSingleTarget(int count, int validatorPoolSize) {
+    int safePoolSize = Math.max(1, validatorPoolSize);
+    for (int i = 0; i < count; i++) {
+      String validator = "validator.target-diversity." + (i % safePoolSize) + "@example.com";
+      boolean tracked =
+          reputationEngineService.trackRecognition(
+              "content_recommended",
+              "target.user.repeated@example.com",
+              "community_content",
+              "recognition-single-target-source-" + i,
+              validator,
               "recommended");
       assertTrue(tracked);
     }

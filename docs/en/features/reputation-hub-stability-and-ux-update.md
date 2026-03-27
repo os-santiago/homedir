@@ -48,6 +48,7 @@ Measured validation on HEAD:
   - daily quota controls
 - GA readiness now verifies recognition diversity in-window (minimum unique validators), not just raw recognition volume.
 - GA readiness now also enforces a max validator-concentration threshold for in-window recognitions.
+- GA readiness now also requires minimum diversity of recognized targets in-window.
 
 ## Remaining work to call GA stable
 
