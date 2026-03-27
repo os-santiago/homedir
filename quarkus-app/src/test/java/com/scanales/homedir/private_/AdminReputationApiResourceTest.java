@@ -1,6 +1,7 @@
 package com.scanales.homedir.private_;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -161,5 +162,67 @@ class AdminReputationApiResourceTest {
     assertTrue(((Number) hubTrend.get("samplesDelta")).longValue() >= 1L);
     assertTrue("worsening".equals(hubTrend.get("status")));
     assertTrue("improving".equals(howTrend.get("status")));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
+    assertEquals("not_ready", gaReadiness.get("status"));
+    assertEquals(20L, ((Number) gaReadiness.get("minRouteSamples")).longValue());
+    @SuppressWarnings("unchecked")
+    List<String> blockers = (List<String>) gaReadiness.get("blockers");
+    assertTrue(blockers.contains("insufficient_samples"));
+    assertTrue(blockers.contains("critical_route_status"));
+    assertTrue(blockers.contains("active_worsening_trend"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminGaReadinessIsReadyWhenRoutesAreHealthyAndStable() {
+    for (int i = 0; i < 22; i++) {
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
+    }
+
+    given().when().get("/api/private/admin/reputation/web-vitals").then().statusCode(200);
+
+    for (int i = 0; i < 2; i++) {
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
+      usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
+    }
+
+    Map<String, Object> payload =
+        given()
+            .when()
+            .get("/api/private/admin/reputation/web-vitals")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
+            .getMap("$");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> gaReadiness = (Map<String, Object>) payload.get("gaReadiness");
+    assertEquals("ready", gaReadiness.get("status"));
+    @SuppressWarnings("unchecked")
+    List<String> blockers = (List<String>) gaReadiness.get("blockers");
+    assertTrue(blockers.isEmpty());
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> gaRoutes = (Map<String, Object>) gaReadiness.get("routes");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> hubGa = (Map<String, Object>) gaRoutes.get("hub");
+    @SuppressWarnings("unchecked")
+    Map<String, Object> howGa = (Map<String, Object>) gaRoutes.get("how");
+    assertEquals("healthy", hubGa.get("assessmentStatus"));
+    assertEquals("healthy", howGa.get("assessmentStatus"));
+    assertEquals("improving", hubGa.get("trendStatus"));
+    assertEquals("improving", howGa.get("trendStatus"));
   }
 }
