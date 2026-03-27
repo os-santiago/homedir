@@ -197,12 +197,14 @@ class AdminReputationApiResourceTest {
     assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
     assertEquals(3L, ((Number) gaReadiness.get("minRecognitionValidators")).longValue());
     assertEquals(4L, ((Number) gaReadiness.get("minRecognitionTargets")).longValue());
+    assertEquals(4L, ((Number) gaReadiness.get("minRecognitionSources")).longValue());
     assertEquals(70L, ((Number) gaReadiness.get("maxRecognitionValidatorSharePct")).longValue());
     assertEquals(7L, ((Number) gaReadiness.get("recognitionWindowDays")).longValue());
     assertEquals(false, gaReadiness.get("recognitionGateEnabled"));
     assertEquals(0L, ((Number) gaReadiness.get("recognitionSignals")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionValidators")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionTargets")).longValue());
+    assertEquals(0L, ((Number) gaReadiness.get("recognitionSources")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionValidatorSharePct")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     assertEquals("critical_route_status", gaReadiness.get("primaryBlocker"));
@@ -218,6 +220,7 @@ class AdminReputationApiResourceTest {
     assertFalse(blockers.contains("insufficient_recognition_signals"));
     assertFalse(blockers.contains("insufficient_recognition_validators"));
     assertFalse(blockers.contains("insufficient_recognition_targets"));
+    assertFalse(blockers.contains("insufficient_recognition_sources"));
     assertFalse(blockers.contains("high_recognition_validator_concentration"));
     assertFalse(blockers.contains("stale_window_data"));
 
@@ -232,6 +235,7 @@ class AdminReputationApiResourceTest {
     assertFalse(recommendedActions.contains("increase_peer_recognition_activity"));
     assertFalse(recommendedActions.contains("expand_recognition_validator_pool"));
     assertFalse(recommendedActions.contains("broaden_recognition_reach"));
+    assertFalse(recommendedActions.contains("diversify_recognition_sources"));
     assertFalse(recommendedActions.contains("distribute_recognition_activity"));
 
     @SuppressWarnings("unchecked")
@@ -245,6 +249,7 @@ class AdminReputationApiResourceTest {
     assertFalse(blockerDetails.containsKey("insufficient_recognition_signals"));
     assertFalse(blockerDetails.containsKey("insufficient_recognition_validators"));
     assertFalse(blockerDetails.containsKey("insufficient_recognition_targets"));
+    assertFalse(blockerDetails.containsKey("insufficient_recognition_sources"));
     assertFalse(blockerDetails.containsKey("high_recognition_validator_concentration"));
 
     @SuppressWarnings("unchecked")
@@ -308,12 +313,14 @@ class AdminReputationApiResourceTest {
     assertEquals(5L, ((Number) gaReadiness.get("minRecognitionSignals")).longValue());
     assertEquals(3L, ((Number) gaReadiness.get("minRecognitionValidators")).longValue());
     assertEquals(4L, ((Number) gaReadiness.get("minRecognitionTargets")).longValue());
+    assertEquals(4L, ((Number) gaReadiness.get("minRecognitionSources")).longValue());
     assertEquals(70L, ((Number) gaReadiness.get("maxRecognitionValidatorSharePct")).longValue());
     assertEquals(7L, ((Number) gaReadiness.get("recognitionWindowDays")).longValue());
     assertEquals(false, gaReadiness.get("recognitionGateEnabled"));
     assertEquals(0L, ((Number) gaReadiness.get("recognitionSignals")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionValidators")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionTargets")).longValue());
+    assertEquals(0L, ((Number) gaReadiness.get("recognitionSources")).longValue());
     assertEquals(0L, ((Number) gaReadiness.get("recognitionValidatorSharePct")).longValue());
     assertEquals(true, gaReadiness.get("snapshotRecorded"));
     assertEquals("none", gaReadiness.get("primaryBlocker"));
@@ -426,6 +433,7 @@ class AdminReputationApiResourceTest {
     assertEquals(0L, ((Number) gaReadinessStale.get("recognitionSignals")).longValue());
     assertEquals(0L, ((Number) gaReadinessStale.get("recognitionValidators")).longValue());
     assertEquals(0L, ((Number) gaReadinessStale.get("recognitionTargets")).longValue());
+    assertEquals(0L, ((Number) gaReadinessStale.get("recognitionSources")).longValue());
     assertEquals(0L, ((Number) gaReadinessStale.get("recognitionValidatorSharePct")).longValue());
     assertEquals("stale_window_data", gaReadinessStale.get("primaryBlocker"));
     assertEquals("verify_web_vitals_ingestion", gaReadinessStale.get("primaryAction"));
@@ -437,6 +445,7 @@ class AdminReputationApiResourceTest {
     assertFalse(blockers.contains("insufficient_recognition_signals"));
     assertFalse(blockers.contains("insufficient_recognition_validators"));
     assertFalse(blockers.contains("insufficient_recognition_targets"));
+    assertFalse(blockers.contains("insufficient_recognition_sources"));
     assertFalse(blockers.contains("high_recognition_validator_concentration"));
     @SuppressWarnings("unchecked")
     List<String> recommendedActions = (List<String>) gaReadinessStale.get("recommendedActions");
@@ -445,12 +454,14 @@ class AdminReputationApiResourceTest {
     assertFalse(recommendedActions.contains("increase_peer_recognition_activity"));
     assertFalse(recommendedActions.contains("expand_recognition_validator_pool"));
     assertFalse(recommendedActions.contains("broaden_recognition_reach"));
+    assertFalse(recommendedActions.contains("diversify_recognition_sources"));
     assertFalse(recommendedActions.contains("distribute_recognition_activity"));
     @SuppressWarnings("unchecked")
     Map<String, Object> blockerDetails = (Map<String, Object>) gaReadinessStale.get("blockerDetails");
     assertTrue(blockerDetails.containsKey("stale_window_data"));
     assertFalse(blockerDetails.containsKey("insufficient_recognition_validators"));
     assertFalse(blockerDetails.containsKey("insufficient_recognition_targets"));
+    assertFalse(blockerDetails.containsKey("insufficient_recognition_sources"));
     assertFalse(blockerDetails.containsKey("high_recognition_validator_concentration"));
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> actionPlan = (List<Map<String, Object>>) gaReadinessStale.get("actionPlan");
