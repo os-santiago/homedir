@@ -16,7 +16,8 @@ if [[ "${AUTO_DEPLOY_ENABLED,,}" != "true" ]]; then
   exit 0
 fi
 
-IMAGE_REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
+PRIMARY_IMAGE_REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
+IMAGE_REPOSITORIES="${IMAGE_REPOSITORIES:-${PRIMARY_IMAGE_REPO} ghcr.io/os-santiago/homedir}"
 UPDATE_SCRIPT="${UPDATE_SCRIPT:-/usr/local/bin/homedir-update.sh}"
 ALERT_SCRIPT="${ALERT_SCRIPT:-/usr/local/bin/homedir-discord-alert.sh}"
 AUTO_LOGFILE="${AUTO_DEPLOY_LOGFILE:-/var/log/homedir-auto-deploy.log}"
@@ -38,68 +39,70 @@ notify_alert() {
   fi
 }
 
-if [[ ! "$IMAGE_REPO" =~ ^quay\.io/([^/]+)/([^/:]+)$ ]]; then
-  log "invalid IMAGE_REPO format: ${IMAGE_REPO}"
-  notify_alert "FAIL" \
-    "Auto-deploy configuration error" \
-    "Invalid IMAGE_REPO format" \
-    "IMAGE_REPO=${IMAGE_REPO}"
-  exit 1
-fi
-
-repo_namespace="${BASH_REMATCH[1]}"
-repo_name="${BASH_REMATCH[2]}"
-
 resolved_tag_info="$(
-  python3 - "$repo_namespace" "$repo_name" "$AUTO_DEPLOY_TAG_LIMIT" "$AUTO_DEPLOY_TIMEOUT_SECONDS" <<'PY'
+  python3 - "$AUTO_DEPLOY_TAG_LIMIT" "$AUTO_DEPLOY_TIMEOUT_SECONDS" <<'PY'
 import json
+import os
 import re
 import sys
 import urllib.request
 
-namespace, repo, limit_raw, timeout_raw = sys.argv[1:5]
+limit_raw, timeout_raw = sys.argv[1:3]
 limit = max(1, min(int(limit_raw), 500))
 timeout = max(5, min(int(timeout_raw), 60))
-
-url = (
-    f"https://quay.io/api/v1/repository/{namespace}/{repo}/tag/"
-    f"?onlyActiveTags=true&limit={limit}&page=1"
-)
-with urllib.request.urlopen(url, timeout=timeout) as resp:
-    payload = json.load(resp)
 
 semver = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)$")
 best_key = None
 best_tag = ""
-best_digest = ""
+best_repo = ""
 
-for tag in payload.get("tags", []):
-    entry = tag or {}
-    name = entry.get("name", "").strip()
-    if not name or name == "latest":
+for raw_repo in os.environ.get("IMAGE_REPOSITORIES", "").replace(",", " ").split():
+    repo = raw_repo.strip()
+    if not repo:
         continue
-    match = semver.fullmatch(name)
-    if not match:
-        continue
-    key = tuple(int(part) for part in match.groups())
-    if best_key is None or key > best_key:
-        best_key = key
-        best_tag = name[1:] if name.startswith("v") else name
-        best_digest = (entry.get("manifest_digest") or "").strip()
+    if repo.startswith("quay.io/"):
+        parts = repo.split("/", 2)
+        if len(parts) != 3:
+            continue
+        url = (
+            f"https://quay.io/api/v1/repository/{parts[1]}/{parts[2]}/tag/"
+            f"?onlyActiveTags=true&limit={limit}&page=1"
+        )
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            payload = json.load(resp)
+        tag_names = [((tag or {}).get("name") or "").strip() for tag in payload.get("tags", [])]
+    else:
+        url = f"https://{repo.split('/', 1)[0]}/v2/{repo.split('/', 1)[1]}/tags/list?n={limit}"
+        request = urllib.request.Request(url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(request, timeout=timeout) as resp:
+            payload = json.load(resp)
+        tag_names = [str(tag).strip() for tag in payload.get("tags", [])]
 
-print(f"{best_tag} {best_digest}".strip(), end="")
+    for name in tag_names:
+        if not name or name == "latest":
+            continue
+        match = semver.fullmatch(name)
+        if not match:
+            continue
+        key = tuple(int(part) for part in match.groups())
+        if best_key is None or key > best_key:
+            best_key = key
+            best_tag = name[1:] if name.startswith("v") else name
+            best_repo = repo
+
+print(f"{best_repo} {best_tag}".strip(), end="")
 PY
 )"
 
-latest_tag="$(awk '{print $1}' <<<"$resolved_tag_info")"
-latest_digest="$(awk '{print $2}' <<<"$resolved_tag_info")"
+latest_repo="$(awk '{print $1}' <<<"$resolved_tag_info")"
+latest_tag="$(awk '{print $2}' <<<"$resolved_tag_info")"
 
 if [[ -z "${latest_tag:-}" ]]; then
-  log "no semver tag resolved for repo=${IMAGE_REPO}"
+  log "no semver tag resolved for repos=${IMAGE_REPOSITORIES}"
   notify_alert "WARN" \
     "Auto-deploy warning" \
-    "No semver tag resolved from registry" \
-    "repo=${IMAGE_REPO}"
+    "No semver tag resolved from configured registries" \
+    "repos=${IMAGE_REPOSITORIES}"
   exit 1
 fi
 
@@ -114,21 +117,16 @@ if [[ -n "${current_image_id:-}" ]]; then
   current_digest="$(podman image inspect "$current_image_id" --format '{{.Digest}}' 2>/dev/null || true)"
 fi
 
-if [[ -n "${latest_digest:-}" && -n "${current_digest:-}" && "${latest_digest}" == "${current_digest}" ]]; then
-  log "up-to-date digest=${current_digest} current_tag=${current_tag:-none} latest_tag=${latest_tag}"
-  exit 0
-fi
-
 if [[ "${current_tag:-}" == "$latest_tag" ]]; then
-  log "up-to-date current_tag=${current_tag}"
+  log "up-to-date current_tag=${current_tag} latest_repo=${latest_repo}"
   exit 0
 fi
 
-log "detected new tag current_tag=${current_tag:-none} latest_tag=${latest_tag}"
+log "detected new tag current_tag=${current_tag:-none} latest_tag=${latest_tag} latest_repo=${latest_repo}"
 notify_alert "WARN" \
   "Auto-deploy triggered fallback" \
   "New image tag detected by polling fallback" \
-  "current=${current_tag:-none} latest=${latest_tag}"
+  "current=${current_tag:-none} latest=${latest_tag} repo=${latest_repo}"
 if DEPLOY_TRIGGER=auto-deploy "$UPDATE_SCRIPT" "$latest_tag"; then
   log "auto-deploy success tag=${latest_tag}"
   notify_alert "RECOVERY" \

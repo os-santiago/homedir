@@ -22,8 +22,8 @@ if [[ "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
   TAG="${TAG#v}"
 fi
 
-REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
-IMAGE="${REPO}:${TAG}"
+PRIMARY_REPO="${IMAGE_REPO:-quay.io/sergio_canales_e/homedir}"
+IMAGE_REPOSITORIES="${IMAGE_REPOSITORIES:-${PRIMARY_REPO} ghcr.io/os-santiago/homedir}"
 LOGFILE="${LOGFILE:-/var/log/homedir-update.log}"
 CONTAINER="${CONTAINER_NAME:-homedir}"
 DEPLOY_TRIGGER="${DEPLOY_TRIGGER:-manual}"
@@ -94,6 +94,39 @@ file_env_overrides() {
   printf '%s\0' "${args[@]}"
 }
 
+resolve_candidate_repositories() {
+  local raw="${IMAGE_REPOSITORIES:-}"
+  local repo
+  local -a resolved=()
+  raw="${raw//,/ }"
+  for repo in $raw; do
+    [[ -n "${repo}" ]] || continue
+    if [[ ! " ${resolved[*]} " =~ [[:space:]]${repo//\//\\/}[[:space:]] ]]; then
+      resolved+=("${repo}")
+    fi
+  done
+  if [[ ${#resolved[@]} -eq 0 ]]; then
+    resolved=("${PRIMARY_REPO}")
+  fi
+  printf '%s\0' "${resolved[@]}"
+}
+
+pull_target_image() {
+  local repo image
+  local -a candidate_repos
+  mapfile -d '' -t candidate_repos < <(resolve_candidate_repositories)
+  for repo in "${candidate_repos[@]}"; do
+    image="${repo}:${TAG}"
+    log "attempting pull image=${image}"
+    if podman pull "$image" >>"$LOGFILE" 2>&1; then
+      printf '%s' "$image"
+      return 0
+    fi
+    log "pull failed image=${image}"
+  done
+  return 1
+}
+
 prepare_community_storage() {
   local base="${HOMEDIR_DATA_DIR%/}/community"
   local content_dir="${base}/content"
@@ -162,6 +195,7 @@ validate_runtime_baseline
 if [[ "$RAW_TAG" != "$TAG" ]]; then
   log "normalized incoming tag raw=${RAW_TAG} normalized=${TAG}"
 fi
+log "candidate image repositories=${IMAGE_REPOSITORIES}"
 log "runtime data dir configured as ${HOMEDIR_DATA_DIR} (volume=${DATA_VOLUME})"
 log "runtime limits memory=${CONTAINER_MEMORY_LIMIT:-none} cpus=${CONTAINER_CPU_LIMIT:-none} pids=${CONTAINER_PIDS_LIMIT:-none}"
 prepare_community_storage
@@ -178,11 +212,12 @@ if podman container exists "$CONTAINER" >/dev/null 2>&1; then
   fi
 fi
 
-if ! podman pull "$IMAGE" >>"$LOGFILE" 2>&1; then
-  log "failed to pull ${IMAGE}"
+IMAGE="$(pull_target_image || true)"
+if [[ -z "${IMAGE:-}" ]]; then
+  log "failed to pull tag=${TAG} from candidate repositories"
   notify_alert "FAIL" \
     "HomeDir deploy failed (${DEPLOY_TRIGGER})" \
-    "Image pull failed for ${IMAGE}" \
+    "Image pull failed across configured registries" \
     "tag=${TAG}"
   exit 1
 fi
