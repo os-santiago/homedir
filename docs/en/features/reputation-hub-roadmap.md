@@ -224,11 +224,7 @@ Make `Reputation Hub` the primary replacement while preserving emergency fallbac
 - replace `Community Board` nav entry with `Reputation Hub`
 - deprecate board route with compatibility redirect
 - onboarding banner/message to explain change
-- production runbook:
-  - smoke checks
-  - leaderboard sanity checks
-  - recognition abuse checks
-  - reference: [Reputation Hub Primary Switch Runbook](../development/reputation-hub-primary-switch-runbook.md)
+  - production verification handled by the SDLC delivery playbook, not by an in-product admin module
 
 ## Exit gate
 
