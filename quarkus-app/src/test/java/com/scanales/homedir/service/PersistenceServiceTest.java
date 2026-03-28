@@ -17,6 +17,7 @@ import com.scanales.homedir.campaigns.CampaignStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignWorkflowState;
 import com.scanales.homedir.community.CommunityLightningStateSnapshot;
 import com.scanales.homedir.community.CommunityLightningThread;
+import com.scanales.homedir.reputation.ReputationGaObservationJournalSnapshot;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
 import com.scanales.homedir.model.Event;
@@ -189,6 +190,38 @@ public class PersistenceServiceTest {
         "community-scout",
         loaded.progressByUser().get("member@example.com").getFirst().challengeId());
     assertTrue(service.challengeStateLastModifiedMillis() > 0);
+  }
+
+  @Test
+  void reputationGaObservationJournalPersistsAndLoads() {
+    service = newService();
+
+    ReputationGaObservationJournalSnapshot snapshot =
+        new ReputationGaObservationJournalSnapshot(
+            ReputationGaObservationJournalSnapshot.SCHEMA_VERSION,
+            Instant.parse("2026-03-28T12:00:00Z"),
+            "sergio.canales.e@gmail.com",
+            true,
+            Instant.parse("2026-03-28T12:00:00Z"),
+            "sergio.canales.e@gmail.com",
+            false,
+            null,
+            "",
+            true,
+            Instant.parse("2026-03-28T12:05:00Z"),
+            "sergio.canales.e@gmail.com",
+            false,
+            null,
+            "");
+
+    service.saveReputationGaObservationJournalSync(snapshot);
+
+    ReputationGaObservationJournalSnapshot loaded =
+        service.loadReputationGaObservationJournal().orElseThrow();
+    assertTrue(loaded.weeklyCycleObserved());
+    assertTrue(loaded.releaseWindowOneObserved());
+    assertFalse(loaded.monthlyCycleObserved());
+    assertEquals(2L, loaded.completedChecks());
   }
 
   @Test

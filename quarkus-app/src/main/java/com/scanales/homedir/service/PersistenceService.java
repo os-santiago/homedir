@@ -12,6 +12,7 @@ import com.scanales.homedir.model.Speaker;
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.model.SystemError;
 import com.scanales.homedir.reputation.ReputationStateSnapshot;
+import com.scanales.homedir.reputation.ReputationGaObservationJournalSnapshot;
 import com.scanales.homedir.challenges.ChallengeStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignStateSnapshot;
@@ -120,6 +121,7 @@ public class PersistenceService {
   private Path economyStateFile;
   private Path challengeStateFile;
   private Path reputationStateFile;
+  private Path reputationGaObservationJournalFile;
   private Path campaignStateFile;
   private Path campaignOperationsStateFile;
   private Path communitySubmissionsFile;
@@ -222,6 +224,7 @@ public class PersistenceService {
     economyStateFile = dataDir.resolve("economy-state.json");
     challengeStateFile = dataDir.resolve("challenge-state.json");
     reputationStateFile = dataDir.resolve("reputation-state.json");
+    reputationGaObservationJournalFile = dataDir.resolve("reputation-ga-observation-journal.json");
     campaignStateFile = dataDir.resolve("campaign-state.json");
     campaignOperationsStateFile = dataDir.resolve("campaign-operations-state.json");
     communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
@@ -469,6 +472,36 @@ public class PersistenceService {
       return Files.getLastModifiedTime(reputationStateFile).toMillis();
     } catch (IOException e) {
       return -1L;
+    }
+  }
+
+  /** Persists reputation GA observation journal asynchronously. */
+  public void saveReputationGaObservationJournal(ReputationGaObservationJournalSnapshot state) {
+    scheduleWrite(
+        reputationGaObservationJournalFile,
+        state == null ? ReputationGaObservationJournalSnapshot.empty() : state);
+  }
+
+  /** Persists reputation GA observation journal synchronously. */
+  public void saveReputationGaObservationJournalSync(ReputationGaObservationJournalSnapshot state) {
+    writeSync(
+        reputationGaObservationJournalFile,
+        state == null ? ReputationGaObservationJournalSnapshot.empty() : state);
+  }
+
+  /** Loads reputation GA observation journal from disk if present. */
+  public java.util.Optional<ReputationGaObservationJournalSnapshot> loadReputationGaObservationJournal() {
+    if (reputationGaObservationJournalFile == null || !Files.exists(reputationGaObservationJournalFile)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.ofNullable(
+          mapper.readValue(
+              reputationGaObservationJournalFile.toFile(),
+              ReputationGaObservationJournalSnapshot.class));
+    } catch (IOException e) {
+      LOG.errorf(e, "Failed to read %s", logFileLabel(reputationGaObservationJournalFile));
+      return java.util.Optional.empty();
     }
   }
 
