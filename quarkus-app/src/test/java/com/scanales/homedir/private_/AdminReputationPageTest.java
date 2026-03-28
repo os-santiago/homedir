@@ -33,6 +33,7 @@ class AdminReputationPageTest {
         .body(containsString("id=\"reputationDecision\""))
         .body(containsString("id=\"reputationMeasurement\""))
         .body(containsString("id=\"reputationCloseout\""))
+        .body(containsString("id=\"reputationObservationJournal\""))
         .body(containsString("id=\"reputationSummary\""))
         .body(containsString("id=\"reputationChecklist\""))
         .body(containsString("data-check-p95"))
@@ -40,5 +41,17 @@ class AdminReputationPageTest {
         .body(containsString("data-closeout-runtime"))
         .body(containsString("data-rollout-stage"))
         .body(containsString("/api/private/admin/reputation/web-vitals"));
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void adminCanAcknowledgeCloseoutCheck() {
+    given()
+        .redirects().follow(false)
+        .formParam("returnTo", "/private/admin/reputation")
+        .when()
+        .post("/private/admin/reputation/closeout-check/hold_weekly_cycle/ack")
+        .then()
+        .statusCode(303);
   }
 }

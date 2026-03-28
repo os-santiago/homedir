@@ -5168,6 +5168,25 @@ public interface AppMessages {
 
     @Message("Combine rollout recommendation, runtime context, and manual checks before calling GA.")
     String admin_reputation_closeout_desc();
+
+    @Message("Observation journal")
+    String admin_reputation_observation_title();
+
+    @Message("Track the weekly, monthly, and release-window evidence still needed before GA.")
+    String admin_reputation_observation_desc();
+
+    @Message("Mark weekly cycle")
+    String admin_reputation_observation_weekly_ack();
+
+    @Message("Mark monthly cycle")
+    String admin_reputation_observation_monthly_ack();
+
+    @Message("Mark release window 1")
+    String admin_reputation_observation_release_one_ack();
+
+    @Message("Mark release window 2")
+    String admin_reputation_observation_release_two_ack();
+
     @Message("Blockers and action order")
     String admin_reputation_blockers_title();
 
@@ -5368,6 +5387,22 @@ public interface AppMessages {
 
     @Message("Observe")
     String admin_reputation_js_closeout_check_observe();
+
+    @Message("Done")
+    String admin_reputation_js_closeout_check_done();
+
+    @Message("Updated")
+    String admin_reputation_js_observation_updated();
+
+    @Message("Completed")
+    String admin_reputation_js_observation_completed();
+
+    @Message("Updated by")
+    String admin_reputation_js_observation_updated_by();
+
+    @Message("Clear")
+    String admin_reputation_js_observation_clear();
+
     @Message("Development Insights · Homedir")
     String admin_insights_title();
 
