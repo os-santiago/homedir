@@ -257,6 +257,17 @@ class AdminReputationApiResourceTest {
     assertFalse(actionPlan.isEmpty());
     assertEquals("critical_route_status", actionPlan.get(0).get("blocker"));
     assertEquals("improve_critical_route_performance", actionPlan.get(0).get("action"));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> rollout = (Map<String, Object>) payload.get("rollout");
+    assertEquals("disabled", rollout.get("stage"));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> decisionPack = (Map<String, Object>) payload.get("decisionPack");
+    assertEquals("blocked", decisionPack.get("status"));
+    assertEquals(false, decisionPack.get("automatedReady"));
+    assertEquals("disabled", decisionPack.get("rolloutStage"));
+    assertEquals("hold_rollout", decisionPack.get("recommendation"));
+    assertEquals(3, ((Number) decisionPack.get("pendingManualChecksCount")).intValue());
   }
 
   @Test
@@ -365,6 +376,17 @@ class AdminReputationApiResourceTest {
     assertTrue(((Number) howStability.get("observedWindows")).longValue() >= 3L);
     assertTrue(((Number) hubStability.get("consecutiveNonWorsening")).longValue() >= 3L);
     assertTrue(((Number) howStability.get("consecutiveNonWorsening")).longValue() >= 3L);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> rollout = (Map<String, Object>) payload.get("rollout");
+    assertEquals("disabled", rollout.get("stage"));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> decisionPack = (Map<String, Object>) payload.get("decisionPack");
+    assertEquals("ready", decisionPack.get("status"));
+    assertEquals(true, decisionPack.get("automatedReady"));
+    assertEquals("disabled", decisionPack.get("rolloutStage"));
+    assertEquals("enable_public_nav", decisionPack.get("recommendation"));
+    assertEquals(3, ((Number) decisionPack.get("pendingManualChecksCount")).intValue());
   }
 
   @Test

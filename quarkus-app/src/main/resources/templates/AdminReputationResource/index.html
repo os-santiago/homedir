@@ -31,6 +31,17 @@
       </div>
     </article>
 
+    <article class="section-card admin-reputation-card admin-reputation-card--full">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{i18n:admin_reputation_decision_desc}</p>
+          <h2>{i18n:admin_reputation_decision_title}</h2>
+        </div>
+      </div>
+      <div id="reputationDecision" class="admin-reputation-summary">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
     <article class="section-card admin-reputation-card admin-reputation-card--split">
       <p class="section-subtitle">{i18n:admin_reputation_blockers_desc}</p>
       <h2>{i18n:admin_reputation_blockers_title}</h2>
@@ -104,11 +115,26 @@
      data-check-vitals="{i18n:admin_reputation_js_check_vitals}"
      data-check-weekly="{i18n:admin_reputation_js_check_weekly}"
      data-check-releases="{i18n:admin_reputation_js_check_releases}"
+     data-decision-status-blocked="{i18n:admin_reputation_js_decision_status_blocked}"
+     data-decision-status-ready="{i18n:admin_reputation_js_decision_status_ready}"
+     data-decision-status-observe="{i18n:admin_reputation_js_decision_status_observe}"
+     data-rollout-disabled="{i18n:admin_reputation_js_rollout_disabled}"
+     data-rollout-hidden-beta="{i18n:admin_reputation_js_rollout_hidden_beta}"
+     data-rollout-public-beta="{i18n:admin_reputation_js_rollout_public_beta}"
+     data-rollout-primary-on="{i18n:admin_reputation_js_rollout_primary_on}"
+     data-recommendation-hold-rollout="{i18n:admin_reputation_js_recommendation_hold_rollout}"
+     data-recommendation-enable-public-nav="{i18n:admin_reputation_js_recommendation_enable_public_nav}"
+     data-recommendation-ready-for-primary-switch="{i18n:admin_reputation_js_recommendation_ready_for_primary_switch}"
+     data-recommendation-observe-primary-window="{i18n:admin_reputation_js_recommendation_observe_primary_window}"
+     data-rollout-stage="{i18n:admin_reputation_js_rollout_stage}"
+     data-automated-readiness="{i18n:admin_reputation_js_automated_readiness}"
+     data-manual-pending-count="{i18n:admin_reputation_js_manual_pending_count}"
      style="display:none"></div>
 
 <script>
   (() => {
     const summaryEl = document.getElementById('reputationSummary');
+    const decisionEl = document.getElementById('reputationDecision');
     const blockersEl = document.getElementById('reputationBlockers');
     const checklistEl = document.getElementById('reputationChecklist');
     const routesEl = document.getElementById('reputationRoutes');
@@ -172,6 +198,51 @@
         '</article>';
     }
 
+    function decisionStatusLabel(value) {
+      if (value === 'blocked') return i18n.decisionStatusBlocked || 'Blocked';
+      if (value === 'ready') return i18n.decisionStatusReady || 'Ready';
+      if (value === 'observe') return i18n.decisionStatusObserve || 'Observe';
+      return value || i18n.unknown || 'Unknown';
+    }
+
+    function rolloutStageLabel(value) {
+      if (value === 'disabled') return i18n.rolloutDisabled || 'Disabled';
+      if (value === 'hidden_beta') return i18n.rolloutHiddenBeta || 'Hidden beta';
+      if (value === 'public_beta') return i18n.rolloutPublicBeta || 'Public beta';
+      if (value === 'primary_on') return i18n.rolloutPrimaryOn || 'Primary on';
+      return value || i18n.unknown || 'Unknown';
+    }
+
+    function recommendationLabel(value) {
+      if (value === 'hold_rollout') return i18n.recommendationHoldRollout || 'Hold rollout';
+      if (value === 'enable_public_nav') return i18n.recommendationEnablePublicNav || 'Enable public nav';
+      if (value === 'ready_for_primary_switch') return i18n.recommendationReadyForPrimarySwitch || 'Ready for primary switch';
+      if (value === 'observe_primary_window') return i18n.recommendationObservePrimaryWindow || 'Observe primary window';
+      return value || i18n.unknown || 'Unknown';
+    }
+
+    function renderDecision(data) {
+      const decision = data.decisionPack || {};
+      decisionEl.innerHTML =
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.snapshot || 'Snapshot') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(decisionStatusLabel(decision.status)) + '</strong>' +
+          '<span class="admin-observability-badge ' + badgeClass(decision.status === 'observe' ? 'warning' : decision.status === 'ready' ? 'healthy' : 'critical') + '">' + escapeHtml(decisionStatusLabel(decision.status)) + '</span>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.rolloutStage || 'Rollout stage') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(rolloutStageLabel(decision.rolloutStage)) + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.primaryAction || 'Primary action') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(recommendationLabel(decision.recommendation)) + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.manualPendingCount || 'Manual pending count') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(decision.pendingManualChecksCount ?? '0') + '</strong>' +
+          '<small class="admin-reputation-kpi-label">' + escapeHtml(i18n.automatedReadiness || 'Automated readiness') + ': ' + escapeHtml(decision.automatedReady ? (i18n.evidenceOk || 'Evidence available') : (i18n.statusNotReady || 'Not ready')) + '</small>' +
+        '</article>';
+    }
     function renderBlockers(data) {
       const ga = data.gaReadiness || {};
       const blockers = Array.isArray(ga.blockers) ? ga.blockers : [];
@@ -260,6 +331,7 @@
           throw new Error(payload.message || i18n.requestFailed || 'Request failed');
         }
         renderSummary(payload);
+        renderDecision(payload);
         renderBlockers(payload);
         renderChecklist(payload);
         renderRoutes(payload);
@@ -278,6 +350,7 @@
       } catch (error) {
         const message = error && error.message ? error.message : (i18n.requestFailed || 'Request failed');
         summaryEl.innerHTML = '<p class="form-hint" style="color:var(--color-danger, #ff8b8b);">' + escapeHtml(message) + '</p>';
+        decisionEl.innerHTML = '';
         blockersEl.innerHTML = '';
         checklistEl.innerHTML = '';
         routesEl.innerHTML = '';
