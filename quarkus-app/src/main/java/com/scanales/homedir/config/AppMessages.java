@@ -5151,6 +5151,12 @@ public interface AppMessages {
     @Message("Current gate status, primary blocker, and the next focus route.")
     String admin_reputation_summary_desc();
 
+    @Message("Decision pack")
+    String admin_reputation_decision_title();
+
+    @Message("Turn the current evidence and rollout flags into one clear next move for the operator.")
+    String admin_reputation_decision_desc();
+
     @Message("Blockers and action order")
     String admin_reputation_blockers_title();
 
@@ -5270,6 +5276,48 @@ public interface AppMessages {
 
     @Message("Keep two release windows green")
     String admin_reputation_js_check_releases();
+
+    @Message("Blocked")
+    String admin_reputation_js_decision_status_blocked();
+
+    @Message("Ready to move")
+    String admin_reputation_js_decision_status_ready();
+
+    @Message("Observe")
+    String admin_reputation_js_decision_status_observe();
+
+    @Message("Disabled")
+    String admin_reputation_js_rollout_disabled();
+
+    @Message("Hidden beta")
+    String admin_reputation_js_rollout_hidden_beta();
+
+    @Message("Public beta")
+    String admin_reputation_js_rollout_public_beta();
+
+    @Message("Primary switch on")
+    String admin_reputation_js_rollout_primary_on();
+
+    @Message("Hold rollout")
+    String admin_reputation_js_recommendation_hold_rollout();
+
+    @Message("Enable public navigation")
+    String admin_reputation_js_recommendation_enable_public_nav();
+
+    @Message("Ready for primary switch")
+    String admin_reputation_js_recommendation_ready_for_primary_switch();
+
+    @Message("Observe primary switch window")
+    String admin_reputation_js_recommendation_observe_primary_window();
+
+    @Message("Rollout stage")
+    String admin_reputation_js_rollout_stage();
+
+    @Message("Automated readiness")
+    String admin_reputation_js_automated_readiness();
+
+    @Message("Manual pending count")
+    String admin_reputation_js_manual_pending_count();
 
     @Message("Development Insights · Homedir")
     String admin_insights_title();

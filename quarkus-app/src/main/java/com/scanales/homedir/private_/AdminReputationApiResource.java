@@ -234,8 +234,7 @@ public class AdminReputationApiResource {
                 Map.of(
                     "hub", trendPayload(trend.routes().get("hub")),
                     "how", trendPayload(trend.routes().get("how")))));
-    payload.put(
-        "gaReadiness",
+    Map<String, Object> gaReadiness =
         gaReadinessPayload(
             hubAssessment,
             howAssessment,
@@ -251,8 +250,68 @@ public class AdminReputationApiResource {
             recognitionSources,
             recognitionValidatorSharePct,
             maxRecognitionValidatorSharePct,
-            trend));
+            trend);
+    payload.put("gaReadiness", gaReadiness);
+    payload.put("rollout", rolloutPayload(flags));
+    payload.put("decisionPack", decisionPackPayload(flags, gaReadiness));
     return Response.ok(payload).build();
+  }
+
+  private Map<String, Object> rolloutPayload(ReputationFeatureFlags.Flags flags) {
+    String stage = rolloutStage(flags);
+    return Map.of(
+        "engineEnabled", flags.engineEnabled(),
+        "hubUiEnabled", flags.hubUiEnabled(),
+        "hubNavPublicEnabled", flags.hubNavPublicEnabled(),
+        "hubPrimaryEnabled", flags.hubPrimaryEnabled(),
+        "recognitionEnabled", flags.recognitionEnabled(),
+        "stage", stage);
+  }
+
+  private Map<String, Object> decisionPackPayload(
+      ReputationFeatureFlags.Flags flags, Map<String, Object> gaReadiness) {
+    String gaStatus = String.valueOf(gaReadiness.getOrDefault("status", "not_ready"));
+    boolean automatedReady = "ready".equals(gaStatus);
+    String rolloutStage = rolloutStage(flags);
+    List<String> pendingManualChecks =
+        List.of("hold_weekly_cycle", "hold_monthly_cycle", "sustain_release_windows");
+
+    String status;
+    String recommendation;
+    if (!automatedReady) {
+      status = "blocked";
+      recommendation = "hold_rollout";
+    } else if (!flags.hubNavPublicEnabled()) {
+      status = "ready";
+      recommendation = "enable_public_nav";
+    } else if (!flags.hubPrimaryEnabled()) {
+      status = "ready";
+      recommendation = "ready_for_primary_switch";
+    } else {
+      status = "observe";
+      recommendation = "observe_primary_window";
+    }
+
+    return Map.of(
+        "status", status,
+        "automatedReady", automatedReady,
+        "rolloutStage", rolloutStage,
+        "recommendation", recommendation,
+        "pendingManualChecks", pendingManualChecks,
+        "pendingManualChecksCount", pendingManualChecks.size());
+  }
+
+  private String rolloutStage(ReputationFeatureFlags.Flags flags) {
+    if (!flags.engineEnabled() || !flags.hubUiEnabled()) {
+      return "disabled";
+    }
+    if (flags.hubPrimaryEnabled()) {
+      return "primary_on";
+    }
+    if (flags.hubNavPublicEnabled()) {
+      return "public_beta";
+    }
+    return "hidden_beta";
   }
 
   private RecognitionSignalStats collectRecentRecognitionSignalStats(long windowDays) {
