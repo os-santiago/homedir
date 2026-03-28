@@ -32,10 +32,12 @@ class AdminReputationPageTest {
         .body(containsString("Close the remaining evidence for Reputation Hub"))
         .body(containsString("id=\"reputationDecision\""))
         .body(containsString("id=\"reputationMeasurement\""))
+        .body(containsString("id=\"reputationCloseout\""))
         .body(containsString("id=\"reputationSummary\""))
         .body(containsString("id=\"reputationChecklist\""))
         .body(containsString("data-check-p95"))
         .body(containsString("data-measurement-status"))
+        .body(containsString("data-closeout-runtime"))
         .body(containsString("data-rollout-stage"))
         .body(containsString("/api/private/admin/reputation/web-vitals"));
   }
