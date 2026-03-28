@@ -32,11 +32,51 @@ public class ReputationHubService {
         aggregates.size(),
         engineSnapshot.eventsById().size(),
         viewerGuidance,
+        featuredStandings(engineSnapshot, safeLimit),
         categoryLeaderboards(engineSnapshot, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::weeklyScore, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::monthlyScore, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::risingDelta, safeLimit),
         recognizedContributions(engineSnapshot.eventsById(), safeLimit));
+  }
+
+  private List<FeaturedStanding> featuredStandings(
+      ReputationEngineService.EngineSnapshot snapshot, int limit) {
+    List<CategoryLeaderboard> categories = categoryLeaderboards(snapshot, limit);
+    Map<String, List<LeaderboardEntry>> byCategory =
+        categories.stream()
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    CategoryLeaderboard::categoryKey,
+                    CategoryLeaderboard::entries,
+                    (left, right) -> left,
+                    java.util.LinkedHashMap::new));
+    java.util.ArrayList<FeaturedStanding> out = new java.util.ArrayList<>();
+    addFeaturedStanding(out, "builders", "month", firstEntry(byCategory.get("builders")));
+    addFeaturedStanding(out, "helpers", "month", firstEntry(byCategory.get("helpers")));
+    addFeaturedStanding(out, "learners", "month", firstEntry(byCategory.get("learners")));
+    addFeaturedStanding(out, "speakers", "month", firstEntry(byCategory.get("speakers")));
+    addFeaturedStanding(
+        out,
+        "rising",
+        "week",
+        firstEntry(leaderboard(snapshot.aggregatesByUser(), UserReputationAggregate::risingDelta, limit)));
+    return List.copyOf(out);
+  }
+
+  private static LeaderboardEntry firstEntry(List<LeaderboardEntry> entries) {
+    if (entries == null || entries.isEmpty()) {
+      return null;
+    }
+    return entries.getFirst();
+  }
+
+  private static void addFeaturedStanding(
+      List<FeaturedStanding> out, String cardKey, String periodKey, LeaderboardEntry leader) {
+    if (out == null || cardKey == null || cardKey.isBlank() || leader == null) {
+      return;
+    }
+    out.add(new FeaturedStanding(cardKey, periodKey, leader));
   }
 
   private GrowthGuidance growthGuidance(
@@ -298,6 +338,7 @@ public class ReputationHubService {
       int contributors,
       int eventsCaptured,
       GrowthGuidance viewerGuidance,
+      List<FeaturedStanding> featuredStandings,
       List<CategoryLeaderboard> categoryLeaderboards,
       List<LeaderboardEntry> weeklyLeaderboard,
       List<LeaderboardEntry> monthlyLeaderboard,
@@ -308,6 +349,8 @@ public class ReputationHubService {
       String roleKey, String focusDimension, long monthlyScore, long risingDelta) {}
 
   public record CategoryLeaderboard(String categoryKey, List<LeaderboardEntry> entries) {}
+
+  public record FeaturedStanding(String cardKey, String periodKey, LeaderboardEntry leader) {}
 
   public record LeaderboardEntry(
       int rank,
