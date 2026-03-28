@@ -5994,6 +5994,33 @@ public interface AppMessages {
     @Message("Consistency")
     String public_profile_reputation_strength_consistency();
 
+    @Message("Active placements")
+    String public_profile_reputation_active_placements();
+
+    @Message("No active placements yet.")
+    String public_profile_reputation_active_placements_empty();
+
+    @Message("Top {rank} Builder this month")
+    String public_profile_reputation_placement_category_builder(long rank);
+
+    @Message("Top {rank} Helper this month")
+    String public_profile_reputation_placement_category_helper(long rank);
+
+    @Message("Top {rank} Learner this month")
+    String public_profile_reputation_placement_category_learner(long rank);
+
+    @Message("Top {rank} Speaker this month")
+    String public_profile_reputation_placement_category_speaker(long rank);
+
+    @Message("This week: Top {rank}")
+    String public_profile_reputation_placement_weekly(long rank);
+
+    @Message("Rising this week: Top {rank}")
+    String public_profile_reputation_placement_rising(long rank);
+
+    @Message("This month: Top {rank}")
+    String public_profile_reputation_placement_monthly(long rank);
+
     @Message("Badges preview")
     String public_profile_reputation_badges_preview();
 

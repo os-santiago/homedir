@@ -35,12 +35,15 @@ public class ReputationProfileSummaryService {
 
     List<String> topStrengths = topStrengths(aggregate.scoresByDimension());
     String reputationRole = reputationRole(snapshot, normalizedUserId, aggregate);
+    List<Placement> activePlacements =
+        activePlacements(snapshot, normalizedUserId, aggregate, reputationRole);
     return Optional.of(
         new PublicProfileSummary(
             normalizedUserId,
             reputationState(aggregate.totalScore()),
             aggregate.totalScore(),
             monthlyRank(snapshot.aggregatesByUser(), normalizedUserId),
+            List.copyOf(activePlacements),
             List.copyOf(topStrengths),
             List.copyOf(badgesPreview(aggregate)),
             topStrengths.isEmpty() ? "contributor" : topStrengths.get(0),
@@ -48,19 +51,109 @@ public class ReputationProfileSummaryService {
             latestMilestone(aggregate)));
   }
 
+  private static List<Placement> activePlacements(
+      ReputationEngineService.EngineSnapshot snapshot,
+      String userId,
+      UserReputationAggregate aggregate,
+      String reputationRole) {
+    if (snapshot == null || snapshot.aggregatesByUser() == null || aggregate == null) {
+      return List.of();
+    }
+
+    List<Placement> placements = new ArrayList<>();
+
+    String categoryKey = categoryKeyForRole(reputationRole);
+    if (categoryKey != null) {
+      long categoryRank =
+          switch (categoryKey) {
+            case "builders" ->
+                rankBy(
+                    snapshot.aggregatesByUser(),
+                    userId,
+                    row -> score(row, "contribution"),
+                    UserReputationAggregate::monthlyScore);
+            case "helpers" ->
+                rankBy(
+                    snapshot.aggregatesByUser(),
+                    userId,
+                    row -> score(row, "recognition"),
+                    UserReputationAggregate::monthlyScore);
+            case "learners" ->
+                rankBy(
+                    snapshot.aggregatesByUser(),
+                    userId,
+                    row -> score(row, "participation") + score(row, "consistency"),
+                    UserReputationAggregate::monthlyScore);
+            case "speakers" ->
+                rankBy(
+                    snapshot.aggregatesByUser(),
+                    userId,
+                    row -> speakerScore(snapshot, row.userId()),
+                    UserReputationAggregate::monthlyScore);
+            default -> 0L;
+          };
+      if (categoryRank > 0 && categoryRank <= 10) {
+        placements.add(new Placement("category", categoryRank, categoryKey));
+      }
+    }
+
+    long weeklyRank =
+        rankBy(
+            snapshot.aggregatesByUser(),
+            userId,
+            UserReputationAggregate::weeklyScore,
+            UserReputationAggregate::totalScore);
+    if (weeklyRank > 0 && weeklyRank <= 10) {
+      placements.add(new Placement("weekly", weeklyRank, null));
+    }
+
+    if (aggregate.risingDelta() > 0L) {
+      long risingRank =
+          rankBy(
+              snapshot.aggregatesByUser(),
+              userId,
+              UserReputationAggregate::risingDelta,
+              UserReputationAggregate::totalScore);
+      if (risingRank > 0 && risingRank <= 10) {
+        placements.add(new Placement("rising", risingRank, null));
+      }
+    }
+
+    if (placements.isEmpty() && aggregate.monthlyScore() > 0L) {
+      long monthlyRank = monthlyRank(snapshot.aggregatesByUser(), userId);
+      if (monthlyRank > 0 && monthlyRank <= 10) {
+        placements.add(new Placement("monthly", monthlyRank, null));
+      }
+    }
+
+    return placements.size() > 3 ? List.copyOf(placements.subList(0, 3)) : List.copyOf(placements);
+  }
+
   private static long monthlyRank(
       Map<String, UserReputationAggregate> aggregatesByUser, String userId) {
+    return rankBy(
+        aggregatesByUser,
+        userId,
+        UserReputationAggregate::monthlyScore,
+        UserReputationAggregate::totalScore);
+  }
+
+  private static long rankBy(
+      Map<String, UserReputationAggregate> aggregatesByUser,
+      String userId,
+      java.util.function.ToLongFunction<UserReputationAggregate> scoreExtractor,
+      java.util.function.ToLongFunction<UserReputationAggregate> tieBreaker) {
     if (aggregatesByUser == null || aggregatesByUser.isEmpty()) {
       return 1L;
     }
     List<UserReputationAggregate> ordered =
         aggregatesByUser.values().stream()
             .filter(Objects::nonNull)
+            .filter(aggregate -> scoreExtractor.applyAsLong(aggregate) > 0L)
             .sorted(
-                Comparator.comparingLong(UserReputationAggregate::monthlyScore)
+                Comparator.comparingLong(scoreExtractor)
                     .reversed()
-                    .thenComparing(
-                        Comparator.comparingLong(UserReputationAggregate::totalScore).reversed())
+                    .thenComparing(Comparator.comparingLong(tieBreaker).reversed())
                     .thenComparing(UserReputationAggregate::userId, Comparator.nullsLast(String::compareTo)))
             .toList();
     for (int i = 0; i < ordered.size(); i++) {
@@ -211,16 +304,32 @@ public class ReputationProfileSummaryService {
     return raw.trim().toLowerCase(Locale.ROOT);
   }
 
+  private static String categoryKeyForRole(String reputationRole) {
+    if (reputationRole == null || reputationRole.isBlank()) {
+      return null;
+    }
+    return switch (reputationRole) {
+      case "builder" -> "builders";
+      case "helper" -> "helpers";
+      case "learner" -> "learners";
+      case "speaker" -> "speakers";
+      default -> null;
+    };
+  }
+
   public record PublicProfileSummary(
       String userId,
       String reputationState,
       long totalScore,
       long monthlyRank,
+      List<Placement> activePlacements,
       List<String> topStrengths,
       List<String> badgesPreview,
       String knownFor,
       String reputationRole,
       Milestone milestone) {}
+
+  public record Placement(String type, long rank, String categoryKey) {}
 
   public record Milestone(String type, long value) {}
 }

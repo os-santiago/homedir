@@ -149,6 +149,48 @@
                         </div>
                     </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
+                        <span class="wrapped-item-title">{#if localeCode == 'es'}Posicionamiento activo{#else}Active placements{/if}</span>
+                        <div class="wrapped-meta-row">
+                            {#for placement in reputationSummary.activePlacements}
+                            <span class="wrapped-badge-pill">
+                                {#if localeCode == 'es'}
+                                    {#switch placement.type}
+                                    {#case 'category'}
+                                        {#switch placement.categoryKey}
+                                        {#case 'builders'}Top {placement.rank} Builder este mes{/case}
+                                        {#case 'helpers'}Top {placement.rank} Helper este mes{/case}
+                                        {#case 'learners'}Top {placement.rank} Aprendiz este mes{/case}
+                                        {#case 'speakers'}Top {placement.rank} Speaker este mes{/case}
+                                        {#else}Este mes: Top {placement.rank}{/else}
+                                        {/switch}
+                                    {/case}
+                                    {#case 'weekly'}Esta semana: Top {placement.rank}{/case}
+                                    {#case 'rising'}En ascenso esta semana: Top {placement.rank}{/case}
+                                    {#else}Este mes: Top {placement.rank}{/else}
+                                    {/switch}
+                                {#else}
+                                    {#switch placement.type}
+                                    {#case 'category'}
+                                        {#switch placement.categoryKey}
+                                        {#case 'builders'}Top {placement.rank} Builder this month{/case}
+                                        {#case 'helpers'}Top {placement.rank} Helper this month{/case}
+                                        {#case 'learners'}Top {placement.rank} Learner this month{/case}
+                                        {#case 'speakers'}Top {placement.rank} Speaker this month{/case}
+                                        {#else}This month: Top {placement.rank}{/else}
+                                        {/switch}
+                                    {/case}
+                                    {#case 'weekly'}This week: Top {placement.rank}{/case}
+                                    {#case 'rising'}Rising this week: Top {placement.rank}{/case}
+                                    {#else}This month: Top {placement.rank}{/else}
+                                    {/switch}
+                                {/if}
+                            </span>
+                            {#else}
+                            <span class="wrapped-empty-msg">{#if localeCode == 'es'}Aún no hay posicionamientos activos.{#else}No active placements yet.{/if}</span>
+                            {/for}
+                        </div>
+                    </div>
+                    <div class="wrapped-list-item wrapped-list-item-stack">
                         <span class="wrapped-item-title">{#if localeCode == 'es'}Cómo crecer desde aquí{#else}How to grow from here{/if}</span>
                         <p class="wrapped-subtext">
                             {#if localeCode == 'es'}
