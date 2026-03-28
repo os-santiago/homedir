@@ -115,26 +115,80 @@ jobs:
         working-directory: quarkus-app
         run: ./mvnw package -B -Drevision=${{ steps.release_meta.outputs.new_version }} -DskipTests
 
+      - name: Resolve registry image names
+        id: registry_meta
+        env:
+          PRIMARY_IMAGE: ${{ vars.REGISTRY }}/${{ vars.IMAGE_NAME }}
+          IMAGE_NAME_INPUT: ${{ vars.IMAGE_NAME }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          owner_lower="$(echo "${REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          image_name_lower="$(echo "${IMAGE_NAME_INPUT}" | tr '[:upper:]' '[:lower:]')"
+          ghcr_image="ghcr.io/${owner_lower}/${image_name_lower}"
+          echo "primary_image=${PRIMARY_IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "ghcr_image=${ghcr_image}" >> "$GITHUB_OUTPUT"
+
       - name: Login to Quay.io
-        uses: docker/login-action@v3
-        with:
-          registry: quay.io
-          username: ${{ vars.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+        env:
+          QUAY_USERNAME: ${{ vars.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${QUAY_USERNAME:-}" ] || [ -z "${QUAY_PASSWORD:-}" ]; then
+            echo "::warning::Quay credentials not configured; primary registry push will be skipped."
+            exit 0
+          fi
+          printf '%s' "$QUAY_PASSWORD" | docker login quay.io -u "$QUAY_USERNAME" --password-stdin
+
+      - name: Login to GitHub Container Registry
+        env:
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
       - name: Build and Push Docker Image
         working-directory: quarkus-app
         env:
-          IMAGE_NAME: ${{ vars.REGISTRY }}/${{ vars.IMAGE_NAME }}
+          PRIMARY_IMAGE: ${{ steps.registry_meta.outputs.primary_image }}
+          GHCR_IMAGE: ${{ steps.registry_meta.outputs.ghcr_image }}
+          QUAY_USERNAME: ${{ vars.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
           TAG: ${{ steps.release_meta.outputs.new_version }}
         run: |
           set -euo pipefail
           docker build -f src/main/docker/Dockerfile.jvm \
-            -t $IMAGE_NAME:latest \
-            -t $IMAGE_NAME:$TAG .
+            -t $PRIMARY_IMAGE:latest \
+            -t $PRIMARY_IMAGE:$TAG \
+            -t $GHCR_IMAGE:latest \
+            -t $GHCR_IMAGE:$TAG .
 
-          RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $IMAGE_NAME:$TAG
-          RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $IMAGE_NAME:latest
+          primary_push_ok="false"
+          if [ -n "${QUAY_USERNAME:-}" ] && [ -n "${QUAY_PASSWORD:-}" ]; then
+            if RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $PRIMARY_IMAGE:$TAG \
+              && RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $PRIMARY_IMAGE:latest; then
+              primary_push_ok="true"
+            else
+              echo "::warning::Primary registry push failed for ${PRIMARY_IMAGE}; continuing with GHCR fallback."
+            fi
+          else
+            echo "::warning::Skipping primary registry push because Quay credentials are not configured."
+          fi
+
+          ghcr_push_ok="false"
+          if RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $GHCR_IMAGE:$TAG \
+            && RETRY_ATTEMPTS=3 RETRY_SLEEP_SECONDS=10 ../scripts/ci/retry.sh docker push $GHCR_IMAGE:latest; then
+            ghcr_push_ok="true"
+          else
+            echo "::warning::GHCR push failed for ${GHCR_IMAGE}."
+          fi
+
+          if [ "$primary_push_ok" != "true" ] && [ "$ghcr_push_ok" != "true" ]; then
+            echo "::error::No registry push succeeded."
+            exit 1
+          fi
 
       - name: Create release tag
         id: tag_version
