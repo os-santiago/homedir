@@ -6096,6 +6096,18 @@ public interface AppMessages {
     @Message("Rising members")
     String reputation_hub_rising_title();
 
+    @Message("Current reputation leaders")
+    String reputation_hub_featured_title();
+
+    @Message("A quick read of who is leading each meaningful path right now.")
+    String reputation_hub_featured_desc();
+
+    @Message("This week")
+    String reputation_hub_period_week();
+
+    @Message("This month")
+    String reputation_hub_period_month();
+
     @Message("Recognized contributions")
     String reputation_hub_recognized_title();
 

@@ -41,6 +41,63 @@
         </article>
       </div>
 
+      <article class="hub-panel">
+        <h2>{#if resolvedLocaleCode == 'es'}Líderes reputacionales actuales{#else}Current reputation leaders{/if}</h2>
+        <p class="hub-panel-intro">
+          {#if resolvedLocaleCode == 'es'}
+            Una lectura rápida de quién lidera cada camino valioso ahora mismo.
+          {#else}
+            A quick read of who is leading each meaningful path right now.
+          {/if}
+        </p>
+        <div class="hub-specializations-grid">
+          {#for standing in hub.featuredStandings}
+            <article class="hub-panel">
+              <p class="section-subtitle">
+                {#if standing.periodKey == 'week'}
+                  {#if resolvedLocaleCode == 'es'}Esta semana{#else}This week{/if}
+                {#else}
+                  {#if resolvedLocaleCode == 'es'}Este mes{#else}This month{/if}
+                {/if}
+              </p>
+              <h3>
+                {#switch standing.cardKey}
+                  {#case 'builders'}{i18n:reputation_hub_category_builders_title}{/case}
+                  {#case 'helpers'}{i18n:reputation_hub_category_helpers_title}{/case}
+                  {#case 'learners'}{i18n:reputation_hub_category_learners_title}{/case}
+                  {#case 'speakers'}{i18n:reputation_hub_category_speakers_title}{/case}
+                  {#case 'rising'}{i18n:reputation_hub_rising_title}{/case}
+                  {#else}{i18n:reputation_hub_weekly_title}{/else}
+                {/switch}
+              </h3>
+              <div class="hub-list-item">
+                <span class="hub-rank">#{standing.leader.rank}</span>
+                {#if standing.leader.avatarUrl}
+                  <img class="hub-avatar" src="{standing.leader.avatarUrl}" alt="{standing.leader.displayName}"/>
+                {/if}
+                <div class="hub-member">
+                  {#if standing.leader.profilePath}
+                    <a href="{standing.leader.profilePath}" class="hub-member-link">{standing.leader.displayName}</a>
+                  {#else}
+                    <span>{standing.leader.displayName}</span>
+                  {/if}
+                  {#if standing.leader.handle}<span class="hub-handle">{standing.leader.handle}</span>{/if}
+                </div>
+                <span class="hub-score">
+                  {#if standing.cardKey == 'rising'}
+                    {i18n:reputation_hub_growth(standing.leader.score)}
+                  {#else}
+                    {i18n:reputation_hub_score(standing.leader.score)}
+                  {/if}
+                </span>
+              </div>
+            </article>
+          {#else}
+            <p class="hub-empty">{i18n:reputation_hub_empty}</p>
+          {/for}
+        </div>
+      </article>
+
       <div class="hub-specializations-grid">
         {#for category in hub.categoryLeaderboards}
           <article class="hub-panel">
