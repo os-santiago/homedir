@@ -87,7 +87,7 @@ public class ReputationProfileSummaryService {
         .toList();
   }
 
-  private static String normalizeDimension(String raw) {
+  static String normalizeDimension(String raw) {
     if (raw == null || raw.isBlank()) {
       return null;
     }
@@ -128,7 +128,7 @@ public class ReputationProfileSummaryService {
     return List.copyOf(badges);
   }
 
-  private static String reputationRole(
+  static String reputationRole(
       ReputationEngineService.EngineSnapshot snapshot,
       String userId,
       UserReputationAggregate aggregate) {
