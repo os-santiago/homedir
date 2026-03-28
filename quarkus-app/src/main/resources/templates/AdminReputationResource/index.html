@@ -66,6 +66,36 @@
         <p class="form-hint">{i18n:admin_reputation_loading}</p>
       </div>
     </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--full">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{i18n:admin_reputation_observation_desc}</p>
+          <h2>{i18n:admin_reputation_observation_title}</h2>
+        </div>
+      </div>
+      <div id="reputationObservationJournal" class="admin-reputation-list">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+      <div class="action-group admin-shell-actions admin-reputation-observation-actions">
+        <form method="post" action="/private/admin/reputation/closeout-check/hold_weekly_cycle/ack">
+          <input type="hidden" name="returnTo" value="/private/admin/reputation">
+          <button type="submit" class="btn btn-secondary">{i18n:admin_reputation_observation_weekly_ack}</button>
+        </form>
+        <form method="post" action="/private/admin/reputation/closeout-check/hold_monthly_cycle/ack">
+          <input type="hidden" name="returnTo" value="/private/admin/reputation">
+          <button type="submit" class="btn btn-secondary">{i18n:admin_reputation_observation_monthly_ack}</button>
+        </form>
+        <form method="post" action="/private/admin/reputation/closeout-check/release_window_one/ack">
+          <input type="hidden" name="returnTo" value="/private/admin/reputation">
+          <button type="submit" class="btn btn-secondary">{i18n:admin_reputation_observation_release_one_ack}</button>
+        </form>
+        <form method="post" action="/private/admin/reputation/closeout-check/release_window_two/ack">
+          <input type="hidden" name="returnTo" value="/private/admin/reputation">
+          <button type="submit" class="btn btn-secondary">{i18n:admin_reputation_observation_release_two_ack}</button>
+        </form>
+      </div>
+    </article>
     <article class="section-card admin-reputation-card admin-reputation-card--split">
       <p class="section-subtitle">{i18n:admin_reputation_blockers_desc}</p>
       <h2>{i18n:admin_reputation_blockers_title}</h2>
@@ -166,6 +196,11 @@
      data-closeout-pending-checks="{i18n:admin_reputation_js_closeout_pending_checks}"
      data-closeout-check-pending="{i18n:admin_reputation_js_closeout_check_pending}"
      data-closeout-check-observe="{i18n:admin_reputation_js_closeout_check_observe}"
+     data-closeout-check-done="{i18n:admin_reputation_js_closeout_check_done}"
+     data-observation-updated="{i18n:admin_reputation_js_observation_updated}"
+     data-observation-completed="{i18n:admin_reputation_js_observation_completed}"
+     data-observation-updated-by="{i18n:admin_reputation_js_observation_updated_by}"
+     data-observation-clear="{i18n:admin_reputation_js_observation_clear}"
      style="display:none"></div>
 
 <script>
@@ -174,6 +209,7 @@
     const decisionEl = document.getElementById('reputationDecision');
     const measurementEl = document.getElementById('reputationMeasurement');
     const closeoutEl = document.getElementById('reputationCloseout');
+    const observationEl = document.getElementById('reputationObservationJournal');
     const blockersEl = document.getElementById('reputationBlockers');
     const checklistEl = document.getElementById('reputationChecklist');
     const routesEl = document.getElementById('reputationRoutes');
@@ -320,6 +356,7 @@
     function closeoutCheckStatusLabel(value) {
       if (value === 'pending') return i18n.closeoutCheckPending || 'Pending';
       if (value === 'observe') return i18n.closeoutCheckObserve || 'Observe';
+      if (value === 'done') return i18n.closeoutCheckDone || 'Done';
       return value || i18n.unknown || 'Unknown';
     }
 
@@ -351,10 +388,42 @@
               '<small>' + escapeHtml(item.evidenceKey || 'evidence') + '</small>' +
             '</div>' +
             '<div class="admin-observability-item-meta">' +
-              '<span class="admin-observability-badge ' + badgeClass(item.status === 'observe' ? 'warning' : 'critical') + '">' + escapeHtml(closeoutCheckStatusLabel(item.status)) + '</span>' +
+              '<span class="admin-observability-badge ' + badgeClass(item.status === 'done' ? 'ready' : (item.status === 'observe' ? 'warning' : 'critical')) + '">' + escapeHtml(closeoutCheckStatusLabel(item.status)) + '</span>' +
             '</div>' +
           '</article>'
         ).join(''));
+    }
+
+    function renderObservationJournal(data) {
+      const journal = data.observationJournal || {};
+      observationEl.innerHTML =
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.observationCompleted || 'Completed') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(String(journal.completedChecks ?? 0) + '/' + String(journal.totalChecks ?? 0)) + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.observationUpdated || 'Updated') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(journal.updatedAt || '—') + '</strong>' +
+          '<small class="admin-reputation-kpi-label">' + escapeHtml(i18n.observationUpdatedBy || 'Updated by') + ': ' + escapeHtml(journal.updatedBy || '—') + '</small>' +
+        '</article>' +
+        ((journal.checks || []).map((item) =>
+          '<article class="admin-observability-item">' +
+            '<div class="admin-observability-item-copy">' +
+              '<strong>' + escapeHtml(item.code || 'check') + '</strong>' +
+              '<small>' + escapeHtml(item.evidenceKey || 'evidence') + '</small>' +
+              '<small>' + escapeHtml(item.observedAt || '—') + '</small>' +
+            '</div>' +
+            '<div class="admin-observability-item-meta">' +
+              '<span class="admin-observability-badge ' + badgeClass(item.observed ? 'ready' : 'warning') + '">' + escapeHtml(item.observed ? (i18n.closeoutCheckDone || 'Done') : (i18n.manualPending || 'Pending')) + '</span>' +
+              (item.observed
+                ? '<form method="post" action="/private/admin/reputation/closeout-check/' + encodeURIComponent(item.code) + '/clear">' +
+                    '<input type="hidden" name="returnTo" value="/private/admin/reputation">' +
+                    '<button type="submit" class="btn btn-secondary">' + escapeHtml(i18n.observationClear || 'Clear') + '</button>' +
+                  '</form>'
+                : '') +
+            '</div>' +
+          '</article>'
+        )).join('');
     }
     function renderBlockers(data) {
       const ga = data.gaReadiness || {};
@@ -380,11 +449,17 @@
 
     function renderChecklist(data) {
       const ga = data.gaReadiness || {};
+      const journal = data.observationJournal || {};
+      const checks = Array.isArray(journal.checks) ? journal.checks : [];
+      const hasObserved = (code) => {
+        const item = checks.find((entry) => entry.code === code);
+        return item && item.observed === true;
+      };
       const items = [
         { label: i18n.checkP95 || 'Collect p95/p99 server evidence', done: ga.status === 'ready' },
         { label: i18n.checkVitals || 'Keep web-vitals snapshot fresh', done: ga.snapshotRecorded === true },
-        { label: i18n.checkWeekly || 'Hold weekly and monthly leaderboard cycles without rollback', done: false },
-        { label: i18n.checkReleases || 'Keep two release windows green', done: false }
+        { label: i18n.checkWeekly || 'Hold weekly and monthly leaderboard cycles without rollback', done: hasObserved('hold_weekly_cycle') && hasObserved('hold_monthly_cycle') },
+        { label: i18n.checkReleases || 'Keep two release windows green', done: hasObserved('release_window_one') && hasObserved('release_window_two') }
       ];
       checklistEl.innerHTML = items.map((item) =>
         '<article class="admin-observability-item">' +
@@ -447,6 +522,7 @@
         renderDecision(payload);
         renderMeasurement(payload);
         renderCloseout(payload);
+        renderObservationJournal(payload);
         renderBlockers(payload);
         renderChecklist(payload);
         renderRoutes(payload);
@@ -468,6 +544,7 @@
         decisionEl.innerHTML = '';
         measurementEl.innerHTML = '';
         closeoutEl.innerHTML = '';
+        observationEl.innerHTML = '';
         blockersEl.innerHTML = '';
         checklistEl.innerHTML = '';
         routesEl.innerHTML = '';

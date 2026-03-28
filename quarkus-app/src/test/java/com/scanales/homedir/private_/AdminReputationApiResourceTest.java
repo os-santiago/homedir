@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.TestDataDir;
+import com.scanales.homedir.reputation.ReputationGaObservationJournalService;
 import com.scanales.homedir.service.UsageMetricsService;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -31,10 +32,15 @@ class AdminReputationApiResourceTest {
   }
 
   @Inject UsageMetricsService usageMetricsService;
+  @Inject ReputationGaObservationJournalService observationJournalService;
 
   @BeforeEach
   void setUp() {
     usageMetricsService.reset();
+    observationJournalService.clear("hold_weekly_cycle", "test");
+    observationJournalService.clear("hold_monthly_cycle", "test");
+    observationJournalService.clear("release_window_one", "test");
+    observationJournalService.clear("release_window_two", "test");
   }
 
   private void seedLiveTraffic(int hubViews, int howViews) {
@@ -407,6 +413,10 @@ class AdminReputationApiResourceTest {
     assertEquals("enable_public_nav", closeoutPack.get("recommendation"));
     assertEquals("disabled", closeoutPack.get("rolloutStage"));
     assertEquals(2L, ((Number) closeoutPack.get("pendingChecks")).longValue());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> observationJournal = (Map<String, Object>) payload.get("observationJournal");
+    assertEquals(0L, ((Number) observationJournal.get("completedChecks")).longValue());
+    assertEquals(4L, ((Number) observationJournal.get("totalChecks")).longValue());
   }
 
   @Test
@@ -520,5 +530,47 @@ class AdminReputationApiResourceTest {
     Map<String, Object> closeoutPack = (Map<String, Object>) payload.get("closeoutPack");
     assertEquals("hold_rollout", closeoutPack.get("recommendation"));
     assertEquals(3L, ((Number) closeoutPack.get("pendingChecks")).longValue());
+  }
+
+  @Test
+  @TestSecurity(user = "sergio.canales.e@gmail.com")
+  void closeoutPackReflectsObservedJournalChecks() {
+    seedLiveTraffic(12, 12);
+    seedActivityLoopSignals(6, 6, 6);
+
+    for (int i = 0; i < 4; i++) {
+      for (int sample = 0; sample < 22; sample++) {
+        usageMetricsService.recordFunnelStep("reputation.hub.webvitals.sample");
+        usageMetricsService.recordFunnelStep("reputation.hub.webvitals.lcp.good");
+        usageMetricsService.recordFunnelStep("reputation.hub.webvitals.inp.good");
+        usageMetricsService.recordFunnelStep("reputation.how.webvitals.sample");
+        usageMetricsService.recordFunnelStep("reputation.how.webvitals.lcp.good");
+        usageMetricsService.recordFunnelStep("reputation.how.webvitals.inp.good");
+      }
+      given().when().get("/api/private/admin/reputation/web-vitals").then().statusCode(200);
+    }
+
+    observationJournalService.acknowledge("hold_weekly_cycle", "sergio.canales.e@gmail.com");
+    observationJournalService.acknowledge("hold_monthly_cycle", "sergio.canales.e@gmail.com");
+    observationJournalService.acknowledge("release_window_one", "sergio.canales.e@gmail.com");
+    observationJournalService.acknowledge("release_window_two", "sergio.canales.e@gmail.com");
+
+    Map<String, Object> payload =
+        given()
+            .when()
+            .get("/api/private/admin/reputation/web-vitals")
+            .then()
+            .statusCode(200)
+            .extract()
+            .jsonPath()
+            .getMap("$");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> closeoutPack = (Map<String, Object>) payload.get("closeoutPack");
+    assertEquals(0L, ((Number) closeoutPack.get("pendingChecks")).longValue());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> progress = (Map<String, Object>) closeoutPack.get("observationProgress");
+    assertEquals(4L, ((Number) progress.get("completedChecks")).longValue());
+    assertEquals(2L, ((Number) progress.get("releaseWindowsCompleted")).longValue());
   }
 }

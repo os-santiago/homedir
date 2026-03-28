@@ -3,6 +3,8 @@ package com.scanales.homedir.private_;
 import com.scanales.homedir.reputation.ReputationEngineService;
 import com.scanales.homedir.reputation.ReputationEventRecord;
 import com.scanales.homedir.reputation.ReputationFeatureFlags;
+import com.scanales.homedir.reputation.ReputationGaObservationJournalService;
+import com.scanales.homedir.reputation.ReputationGaObservationJournalSnapshot;
 import com.scanales.homedir.reputation.ReputationPhase0BaselineService;
 import com.scanales.homedir.reputation.ReputationShadowReadService;
 import com.scanales.homedir.reputation.ReputationWebVitalsHistoryService;
@@ -80,6 +82,7 @@ public class AdminReputationApiResource {
 
   @Inject ReputationPhase0BaselineService baselineService;
   @Inject ReputationFeatureFlags reputationFeatureFlags;
+  @Inject ReputationGaObservationJournalService reputationGaObservationJournalService;
   @Inject ReputationEngineService reputationEngineService;
   @Inject ReputationShadowReadService shadowReadService;
   @Inject ReputationWebVitalsHistoryService webVitalsHistoryService;
@@ -268,6 +271,7 @@ public class AdminReputationApiResource {
     payload.put("rollout", rolloutPayload(flags));
     payload.put("decisionPack", decisionPackPayload(flags, gaReadiness));
     payload.put("runtime", runtimePayload());
+    payload.put("observationJournal", observationJournalPayload());
     payload.put("closeoutPack", closeoutPackPayload(flags, gaReadiness));
     return Response.ok(payload).build();
   }
@@ -374,19 +378,22 @@ public class AdminReputationApiResource {
     String recommendation = String.valueOf(decisionPack.getOrDefault("recommendation", "hold_rollout"));
     boolean automatedReady = Boolean.TRUE.equals(decisionPack.get("automatedReady"));
     String rolloutStage = String.valueOf(decisionPack.getOrDefault("rolloutStage", "disabled"));
+    ReputationGaObservationJournalSnapshot journal = reputationGaObservationJournalService.snapshot();
     List<Map<String, Object>> manualChecks =
         List.of(
             closeoutCheck(
                 "hold_weekly_cycle",
-                flags.hubPrimaryEnabled() ? "observe" : "pending",
+                journal.weeklyCycleObserved() ? "done" : (flags.hubPrimaryEnabled() ? "observe" : "pending"),
                 "weekly_leaderboard_cycle"),
             closeoutCheck(
                 "hold_monthly_cycle",
-                flags.hubPrimaryEnabled() ? "observe" : "pending",
+                journal.monthlyCycleObserved() ? "done" : (flags.hubPrimaryEnabled() ? "observe" : "pending"),
                 "monthly_leaderboard_cycle"),
             closeoutCheck(
                 "sustain_release_windows",
-                automatedReady ? "observe" : "pending",
+                journal.releaseWindowOneObserved() && journal.releaseWindowTwoObserved()
+                    ? "done"
+                    : (automatedReady ? "observe" : "pending"),
                 "two_green_release_windows"));
     long pendingChecks =
         manualChecks.stream()
@@ -398,11 +405,65 @@ public class AdminReputationApiResource {
         "automatedReady", automatedReady,
         "manualChecks", manualChecks,
         "pendingChecks", pendingChecks,
+        "observationProgress",
+            Map.of(
+                "completedChecks", journal.completedChecks(),
+                "totalChecks", 4L,
+                "releaseWindowsCompleted",
+                    (journal.releaseWindowOneObserved() ? 1L : 0L)
+                        + (journal.releaseWindowTwoObserved() ? 1L : 0L)),
         "runtime", runtimePayload());
   }
 
   private Map<String, Object> closeoutCheck(String code, String status, String evidenceKey) {
     return Map.of("code", code, "status", status, "evidenceKey", evidenceKey);
+  }
+
+  private Map<String, Object> observationJournalPayload() {
+    ReputationGaObservationJournalSnapshot journal = reputationGaObservationJournalService.snapshot();
+    List<Map<String, Object>> checks =
+        List.of(
+            observationCheck(
+                "hold_weekly_cycle",
+                "weekly_leaderboard_cycle",
+                journal.weeklyCycleObserved(),
+                journal.weeklyCycleObservedAt(),
+                journal.weeklyCycleObservedBy()),
+            observationCheck(
+                "hold_monthly_cycle",
+                "monthly_leaderboard_cycle",
+                journal.monthlyCycleObserved(),
+                journal.monthlyCycleObservedAt(),
+                journal.monthlyCycleObservedBy()),
+            observationCheck(
+                "release_window_one",
+                "release_window_one",
+                journal.releaseWindowOneObserved(),
+                journal.releaseWindowOneObservedAt(),
+                journal.releaseWindowOneObservedBy()),
+            observationCheck(
+                "release_window_two",
+                "release_window_two",
+                journal.releaseWindowTwoObserved(),
+                journal.releaseWindowTwoObservedAt(),
+                journal.releaseWindowTwoObservedBy()));
+    return Map.of(
+        "updatedAt", journal.updatedAt(),
+        "updatedBy", journal.updatedBy(),
+        "completedChecks", journal.completedChecks(),
+        "totalChecks", 4L,
+        "checks", checks);
+  }
+
+  private Map<String, Object> observationCheck(
+      String code, String evidenceKey, boolean observed, Instant observedAt, String observedBy) {
+    Map<String, Object> payload = new LinkedHashMap<>();
+    payload.put("code", code);
+    payload.put("evidenceKey", evidenceKey);
+    payload.put("observed", observed);
+    payload.put("observedAt", observedAt);
+    payload.put("observedBy", observedBy == null ? "" : observedBy);
+    return payload;
   }
 
   private Map<String, Object> runtimePayload() {
