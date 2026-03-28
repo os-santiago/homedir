@@ -1482,6 +1482,76 @@ footer {
   font-weight: 700;
 }
 
+.admin-reputation-grid {
+  gap: 1rem;
+}
+
+.admin-reputation-card {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.admin-reputation-card--full {
+  grid-column: 1 / -1;
+}
+
+.admin-reputation-summary {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.admin-reputation-kpi {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.admin-reputation-kpi-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.admin-reputation-kpi-value {
+  font-size: 1.2rem;
+  font-family: var(--font-display);
+}
+
+.admin-reputation-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-reputation-routes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.admin-reputation-route-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.admin-reputation-route-card h3 {
+  margin: 0;
+}
+
+.admin-reputation-route-metrics {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+}
+
 .campaigns-admin-grid {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
@@ -2151,6 +2221,10 @@ footer {
 
 @media (max-width: 900px) {
   .admin-observability-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-reputation-routes {
     grid-template-columns: 1fr;
   }
 

@@ -1,0 +1,294 @@
+{#include layout/main mainClass="admin-context-main"}
+{#title}{i18n:admin_reputation_page_title}{/title}
+{#body}
+<section class="page-header">
+  <div class="container">
+    <div class="admin-shell-header">
+      <div class="admin-shell-heading">
+        <p class="section-subtitle">{i18n:admin_reputation_subtitle}</p>
+        <h1 class="page-title">{i18n:admin_reputation_heading}</h1>
+        <p class="form-hint admin-shell-hint-tight">{i18n:admin_reputation_intro}</p>
+      </div>
+      <div class="action-group admin-shell-actions">
+        <a href="/private/admin" class="btn btn-secondary">{i18n:admin_reputation_back_to_panel}</a>
+        <button id="reputationRefreshBtn" type="button" class="btn btn-secondary">{i18n:admin_reputation_refresh}</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="page-grid admin-reputation-grid">
+    <article class="section-card admin-reputation-card admin-reputation-card--full">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{i18n:admin_reputation_summary_desc}</p>
+          <h2>{i18n:admin_reputation_summary_title}</h2>
+        </div>
+      </div>
+      <div id="reputationSummary" class="admin-reputation-summary">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--split">
+      <p class="section-subtitle">{i18n:admin_reputation_blockers_desc}</p>
+      <h2>{i18n:admin_reputation_blockers_title}</h2>
+      <div id="reputationBlockers" class="admin-reputation-list">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--split">
+      <p class="section-subtitle">{i18n:admin_reputation_checklist_desc}</p>
+      <h2>{i18n:admin_reputation_checklist_title}</h2>
+      <div id="reputationChecklist" class="admin-reputation-list">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--full">
+      <p class="section-subtitle">{i18n:admin_reputation_routes_desc}</p>
+      <h2>{i18n:admin_reputation_routes_title}</h2>
+      <div id="reputationRoutes" class="admin-reputation-routes">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--split">
+      <p class="section-subtitle">{i18n:admin_reputation_activity_desc}</p>
+      <h2>{i18n:admin_reputation_activity_title}</h2>
+      <div id="reputationActivity" class="admin-reputation-list">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--split">
+      <p class="section-subtitle">{i18n:admin_reputation_recognition_desc}</p>
+      <h2>{i18n:admin_reputation_recognition_title}</h2>
+      <div id="reputationRecognition" class="admin-reputation-list">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
+  </div>
+</div>
+
+<div id="reputationI18n"
+     data-request-failed="{i18n:admin_reputation_js_request_failed}"
+     data-status-ready="{i18n:admin_reputation_js_status_ready}"
+     data-status-not-ready="{i18n:admin_reputation_js_status_not_ready}"
+     data-blockers-none="{i18n:admin_reputation_js_blockers_none}"
+     data-actions-none="{i18n:admin_reputation_js_actions_none}"
+     data-route-hub="{i18n:admin_reputation_js_route_hub}"
+     data-route-how="{i18n:admin_reputation_js_route_how}"
+     data-healthy="{i18n:admin_reputation_js_healthy}"
+     data-warning="{i18n:admin_reputation_js_warning}"
+     data-critical="{i18n:admin_reputation_js_critical}"
+     data-improving="{i18n:admin_reputation_js_improving}"
+     data-worsening="{i18n:admin_reputation_js_worsening}"
+     data-flat="{i18n:admin_reputation_js_flat}"
+     data-unknown="{i18n:admin_reputation_js_unknown}"
+     data-manual-pending="{i18n:admin_reputation_js_manual_pending}"
+     data-evidence-ok="{i18n:admin_reputation_js_evidence_ok}"
+     data-focus-route="{i18n:admin_reputation_js_focus_route}"
+     data-primary-blocker="{i18n:admin_reputation_js_primary_blocker}"
+     data-primary-action="{i18n:admin_reputation_js_primary_action}"
+     data-snapshot="{i18n:admin_reputation_js_snapshot}"
+     data-route-samples="{i18n:admin_reputation_js_route_samples}"
+     data-route-views="{i18n:admin_reputation_js_route_views}"
+     data-route-assessment="{i18n:admin_reputation_js_route_assessment}"
+     data-route-trend="{i18n:admin_reputation_js_route_trend}"
+     data-loop-current="{i18n:admin_reputation_js_loop_current}"
+     data-loop-required="{i18n:admin_reputation_js_loop_required}"
+     data-check-p95="{i18n:admin_reputation_js_check_p95}"
+     data-check-vitals="{i18n:admin_reputation_js_check_vitals}"
+     data-check-weekly="{i18n:admin_reputation_js_check_weekly}"
+     data-check-releases="{i18n:admin_reputation_js_check_releases}"
+     style="display:none"></div>
+
+<script>
+  (() => {
+    const summaryEl = document.getElementById('reputationSummary');
+    const blockersEl = document.getElementById('reputationBlockers');
+    const checklistEl = document.getElementById('reputationChecklist');
+    const routesEl = document.getElementById('reputationRoutes');
+    const activityEl = document.getElementById('reputationActivity');
+    const recognitionEl = document.getElementById('reputationRecognition');
+    const refreshBtn = document.getElementById('reputationRefreshBtn');
+    const i18n = document.getElementById('reputationI18n')?.dataset || {};
+
+    function statusLabel(value) {
+      if (value === 'ready') return i18n.statusReady || 'Ready';
+      if (value === 'not_ready') return i18n.statusNotReady || 'Not ready';
+      return value || i18n.unknown || 'Unknown';
+    }
+
+    function metricLabel(value) {
+      if (value === 'healthy') return i18n.healthy || 'Healthy';
+      if (value === 'warning') return i18n.warning || 'Watch';
+      if (value === 'critical') return i18n.critical || 'Critical';
+      if (value === 'improving') return i18n.improving || 'Improving';
+      if (value === 'worsening') return i18n.worsening || 'Worsening';
+      if (value === 'flat') return i18n.flat || 'Flat';
+      return value || i18n.unknown || 'Unknown';
+    }
+
+    function badgeClass(value) {
+      if (value === 'ready' || value === 'healthy' || value === 'improving') return 'level-healthy';
+      if (value === 'warning' || value === 'flat') return 'watch';
+      return 'high';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderSummary(data) {
+      const ga = data.gaReadiness || {};
+      const blocker = ga.primaryBlocker || 'none';
+      const action = ga.primaryAction || 'none';
+      summaryEl.innerHTML =
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.snapshot || 'Snapshot') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(statusLabel(ga.status)) + '</strong>' +
+          '<span class="admin-observability-badge ' + badgeClass(ga.status) + '">' + escapeHtml(statusLabel(ga.status)) + '</span>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.primaryBlocker || 'Primary blocker') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(blocker) + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.primaryAction || 'Primary action') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(action) + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.focusRoute || 'Focus route') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(data.nextFocusRoute || '—') + '</strong>' +
+        '</article>';
+    }
+
+    function renderBlockers(data) {
+      const ga = data.gaReadiness || {};
+      const blockers = Array.isArray(ga.blockers) ? ga.blockers : [];
+      const actions = Array.isArray(ga.actionPlan) ? ga.actionPlan : [];
+      if (blockers.length === 0) {
+        blockersEl.innerHTML = '<p class="form-hint">' + escapeHtml(i18n.blockersNone || 'No blockers right now.') + '</p>';
+        return;
+      }
+      blockersEl.innerHTML = blockers.map((blocker, index) => {
+        const action = actions[index]?.action || (i18n.actionsNone || 'No action');
+        return '<article class="admin-observability-item">' +
+          '<div class="admin-observability-item-copy">' +
+            '<strong>' + escapeHtml(blocker) + '</strong>' +
+            '<small>' + escapeHtml(action) + '</small>' +
+          '</div>' +
+          '<div class="admin-observability-item-meta">' +
+            '<span class="admin-observability-badge high">' + (index === 0 ? 'P1' : 'P' + (index + 1)) + '</span>' +
+          '</div>' +
+        '</article>';
+      }).join('');
+    }
+
+    function renderChecklist(data) {
+      const ga = data.gaReadiness || {};
+      const items = [
+        { label: i18n.checkP95 || 'Collect p95/p99 server evidence', done: ga.status === 'ready' },
+        { label: i18n.checkVitals || 'Keep web-vitals snapshot fresh', done: ga.snapshotRecorded === true },
+        { label: i18n.checkWeekly || 'Hold weekly and monthly leaderboard cycles without rollback', done: false },
+        { label: i18n.checkReleases || 'Keep two release windows green', done: false }
+      ];
+      checklistEl.innerHTML = items.map((item) =>
+        '<article class="admin-observability-item">' +
+          '<div class="admin-observability-item-copy">' +
+            '<strong>' + escapeHtml(item.label) + '</strong>' +
+            '<small>' + escapeHtml(item.done ? (i18n.evidenceOk || 'Evidence available') : (i18n.manualPending || 'Manual follow-up pending')) + '</small>' +
+          '</div>' +
+          '<div class="admin-observability-item-meta">' +
+            '<span class="admin-observability-badge ' + (item.done ? 'level-healthy' : 'watch') + '">' + escapeHtml(item.done ? (i18n.evidenceOk || 'OK') : (i18n.manualPending || 'Pending')) + '</span>' +
+          '</div>' +
+        '</article>'
+      ).join('');
+    }
+
+    function routeName(code) {
+      return code === 'hub' ? (i18n.routeHub || 'Hub') : (i18n.routeHow || 'How it works');
+    }
+
+    function renderRoutes(data) {
+      const routes = (data.gaReadiness && data.gaReadiness.routes) || {};
+      routesEl.innerHTML = ['hub', 'how'].map((code) => {
+        const route = routes[code] || {};
+        return '<article class="admin-reputation-route-card">' +
+          '<div class="admin-shell-card-header">' +
+            '<div><h3>' + escapeHtml(routeName(code)) + '</h3></div>' +
+            '<span class="admin-observability-badge ' + badgeClass(route.assessmentStatus) + '">' + escapeHtml(metricLabel(route.assessmentStatus)) + '</span>' +
+          '</div>' +
+          '<div class="admin-reputation-route-metrics">' +
+            '<span><strong>' + escapeHtml(i18n.routeSamples || 'Samples') + ':</strong> ' + escapeHtml(route.samples ?? '0') + '</span>' +
+            '<span><strong>' + escapeHtml(i18n.routeViews || 'Live views') + ':</strong> ' + escapeHtml(route.livePageViews ?? '0') + '</span>' +
+            '<span><strong>' + escapeHtml(i18n.routeAssessment || 'Assessment') + ':</strong> ' + escapeHtml(metricLabel(route.assessmentStatus)) + '</span>' +
+            '<span><strong>' + escapeHtml(i18n.routeTrend || 'Trend') + ':</strong> ' + escapeHtml(metricLabel(route.trendStatus)) + '</span>' +
+          '</div>' +
+        '</article>';
+      }).join('');
+    }
+
+    function renderLoop(el, current, required) {
+      el.innerHTML = Object.keys(required || {}).map((key) => {
+        return '<article class="admin-observability-item">' +
+          '<div class="admin-observability-item-copy">' +
+            '<strong>' + escapeHtml(key) + '</strong>' +
+            '<small>' + escapeHtml(i18n.loopCurrent || 'Current') + ': ' + escapeHtml(current?.[key] ?? '0') + '</small>' +
+          '</div>' +
+          '<div class="admin-observability-item-meta">' +
+            '<strong>' + escapeHtml(i18n.loopRequired || 'Required') + ': ' + escapeHtml(required[key]) + '</strong>' +
+          '</div>' +
+        '</article>';
+      }).join('');
+    }
+
+    async function loadSnapshot() {
+      try {
+        const response = await fetch('/api/private/admin/reputation/web-vitals', { headers: { Accept: 'application/json' } });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.message || i18n.requestFailed || 'Request failed');
+        }
+        renderSummary(payload);
+        renderBlockers(payload);
+        renderChecklist(payload);
+        renderRoutes(payload);
+        renderLoop(activityEl, payload.activityLoop?.current || payload.gaReadiness?.activityLoop, payload.activityLoop?.minimums || {
+          publicProfileOpens: payload.gaReadiness?.minPublicProfileOpens,
+          boardProfileOpens: payload.gaReadiness?.minBoardProfileOpens,
+          feedbackSignals: payload.gaReadiness?.minFeedbackSignals
+        });
+        renderLoop(recognitionEl, payload.recognitionLoop?.current || payload.gaReadiness?.recognitionLoop, payload.recognitionLoop?.minimums || {
+          recognitionSignals: payload.gaReadiness?.minRecognitionSignals,
+          recognitionValidators: payload.gaReadiness?.minRecognitionValidators,
+          recognitionTargets: payload.gaReadiness?.minRecognitionTargets,
+          recognitionSources: payload.gaReadiness?.minRecognitionSources,
+          maxValidatorSharePct: payload.gaReadiness?.maxRecognitionValidatorSharePct
+        });
+      } catch (error) {
+        const message = error && error.message ? error.message : (i18n.requestFailed || 'Request failed');
+        summaryEl.innerHTML = '<p class="form-hint" style="color:var(--color-danger, #ff8b8b);">' + escapeHtml(message) + '</p>';
+        blockersEl.innerHTML = '';
+        checklistEl.innerHTML = '';
+        routesEl.innerHTML = '';
+        activityEl.innerHTML = '';
+        recognitionEl.innerHTML = '';
+      }
+    }
+
+    refreshBtn?.addEventListener('click', loadSnapshot);
+    loadSnapshot();
+  })();
+</script>
+{/body}
+{/include}
