@@ -5162,6 +5162,12 @@ public interface AppMessages {
 
     @Message("Check whether the current GA evidence is fresh enough to support a release decision.")
     String admin_reputation_measurement_desc();
+
+    @Message("GA closeout pack")
+    String admin_reputation_closeout_title();
+
+    @Message("Combine rollout recommendation, runtime context, and manual checks before calling GA.")
+    String admin_reputation_closeout_desc();
     @Message("Blockers and action order")
     String admin_reputation_blockers_title();
 
@@ -5344,6 +5350,24 @@ public interface AppMessages {
 
     @Message("Captured windows")
     String admin_reputation_js_measurement_window_size();
+
+    @Message("Runtime")
+    String admin_reputation_js_closeout_runtime();
+
+    @Message("Commit")
+    String admin_reputation_js_closeout_commit();
+
+    @Message("Build time")
+    String admin_reputation_js_closeout_build_time();
+
+    @Message("Pending checks")
+    String admin_reputation_js_closeout_pending_checks();
+
+    @Message("Pending")
+    String admin_reputation_js_closeout_check_pending();
+
+    @Message("Observe")
+    String admin_reputation_js_closeout_check_observe();
     @Message("Development Insights · Homedir")
     String admin_insights_title();
 

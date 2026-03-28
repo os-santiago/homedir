@@ -9,6 +9,7 @@ import com.scanales.homedir.reputation.ReputationWebVitalsHistoryService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.config.ConfigProvider;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -24,12 +25,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.io.IOException;
+import java.io.InputStream;
 
 /** Hidden admin API for phase-0 Reputation Hub baseline and taxonomy checks. */
 @Path("/api/private/admin/reputation")
@@ -263,6 +267,8 @@ public class AdminReputationApiResource {
     payload.put("gaReadiness", gaReadiness);
     payload.put("rollout", rolloutPayload(flags));
     payload.put("decisionPack", decisionPackPayload(flags, gaReadiness));
+    payload.put("runtime", runtimePayload());
+    payload.put("closeoutPack", closeoutPackPayload(flags, gaReadiness));
     return Response.ok(payload).build();
   }
 
@@ -360,6 +366,65 @@ public class AdminReputationApiResource {
         "recommendation", recommendation,
         "pendingManualChecks", pendingManualChecks,
         "pendingManualChecksCount", pendingManualChecks.size());
+  }
+
+  private Map<String, Object> closeoutPackPayload(
+      ReputationFeatureFlags.Flags flags, Map<String, Object> gaReadiness) {
+    Map<String, Object> decisionPack = decisionPackPayload(flags, gaReadiness);
+    String recommendation = String.valueOf(decisionPack.getOrDefault("recommendation", "hold_rollout"));
+    boolean automatedReady = Boolean.TRUE.equals(decisionPack.get("automatedReady"));
+    String rolloutStage = String.valueOf(decisionPack.getOrDefault("rolloutStage", "disabled"));
+    List<Map<String, Object>> manualChecks =
+        List.of(
+            closeoutCheck(
+                "hold_weekly_cycle",
+                flags.hubPrimaryEnabled() ? "observe" : "pending",
+                "weekly_leaderboard_cycle"),
+            closeoutCheck(
+                "hold_monthly_cycle",
+                flags.hubPrimaryEnabled() ? "observe" : "pending",
+                "monthly_leaderboard_cycle"),
+            closeoutCheck(
+                "sustain_release_windows",
+                automatedReady ? "observe" : "pending",
+                "two_green_release_windows"));
+    long pendingChecks =
+        manualChecks.stream()
+            .filter(item -> "pending".equals(item.get("status")))
+            .count();
+    return Map.of(
+        "recommendation", recommendation,
+        "rolloutStage", rolloutStage,
+        "automatedReady", automatedReady,
+        "manualChecks", manualChecks,
+        "pendingChecks", pendingChecks,
+        "runtime", runtimePayload());
+  }
+
+  private Map<String, Object> closeoutCheck(String code, String status, String evidenceKey) {
+    return Map.of("code", code, "status", status, "evidenceKey", evidenceKey);
+  }
+
+  private Map<String, Object> runtimePayload() {
+    String version =
+        ConfigProvider.getConfig()
+            .getOptionalValue("quarkus.application.version", String.class)
+            .orElse("unknown");
+    String environment =
+        ConfigProvider.getConfig().getOptionalValue("quarkus.profile", String.class).orElse("dev");
+    Properties gitProps = new Properties();
+    try (InputStream is = getClass().getResourceAsStream("/git.properties")) {
+      if (is != null) {
+        gitProps.load(is);
+      }
+    } catch (IOException ignored) {
+      // Ignore; this is diagnostic metadata only.
+    }
+    return Map.of(
+        "version", version,
+        "commitId", gitProps.getProperty("git.commit.id.abbrev", "dev"),
+        "buildTime", gitProps.getProperty("git.build.time", "now"),
+        "environment", environment);
   }
 
   private String rolloutStage(ReputationFeatureFlags.Flags flags) {

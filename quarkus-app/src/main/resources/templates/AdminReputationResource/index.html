@@ -54,6 +54,18 @@
         <p class="form-hint">{i18n:admin_reputation_loading}</p>
       </div>
     </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--full">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{i18n:admin_reputation_closeout_desc}</p>
+          <h2>{i18n:admin_reputation_closeout_title}</h2>
+        </div>
+      </div>
+      <div id="reputationCloseout" class="admin-reputation-summary">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
     <article class="section-card admin-reputation-card admin-reputation-card--split">
       <p class="section-subtitle">{i18n:admin_reputation_blockers_desc}</p>
       <h2>{i18n:admin_reputation_blockers_title}</h2>
@@ -148,6 +160,12 @@
      data-measurement-age="{i18n:admin_reputation_js_measurement_age}"
      data-measurement-ready-routes="{i18n:admin_reputation_js_measurement_ready_routes}"
      data-measurement-window-size="{i18n:admin_reputation_js_measurement_window_size}"
+     data-closeout-runtime="{i18n:admin_reputation_js_closeout_runtime}"
+     data-closeout-commit="{i18n:admin_reputation_js_closeout_commit}"
+     data-closeout-build-time="{i18n:admin_reputation_js_closeout_build_time}"
+     data-closeout-pending-checks="{i18n:admin_reputation_js_closeout_pending_checks}"
+     data-closeout-check-pending="{i18n:admin_reputation_js_closeout_check_pending}"
+     data-closeout-check-observe="{i18n:admin_reputation_js_closeout_check_observe}"
      style="display:none"></div>
 
 <script>
@@ -155,6 +173,7 @@
     const summaryEl = document.getElementById('reputationSummary');
     const decisionEl = document.getElementById('reputationDecision');
     const measurementEl = document.getElementById('reputationMeasurement');
+    const closeoutEl = document.getElementById('reputationCloseout');
     const blockersEl = document.getElementById('reputationBlockers');
     const checklistEl = document.getElementById('reputationChecklist');
     const routesEl = document.getElementById('reputationRoutes');
@@ -297,6 +316,46 @@
           '<strong class="admin-reputation-kpi-value">' + escapeHtml(measurement.windowSize ?? '0') + '</strong>' +
         '</article>';
     }
+
+    function closeoutCheckStatusLabel(value) {
+      if (value === 'pending') return i18n.closeoutCheckPending || 'Pending';
+      if (value === 'observe') return i18n.closeoutCheckObserve || 'Observe';
+      return value || i18n.unknown || 'Unknown';
+    }
+
+    function renderCloseout(data) {
+      const closeout = data.closeoutPack || {};
+      const runtime = closeout.runtime || {};
+      closeoutEl.innerHTML =
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.closeoutRuntime || 'Runtime') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(runtime.version || 'unknown') + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.closeoutCommit || 'Commit') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(runtime.commitId || 'dev') + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.closeoutBuildTime || 'Build time') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(runtime.buildTime || 'now') + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.closeoutPendingChecks || 'Pending checks') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(closeout.pendingChecks ?? '0') + '</strong>' +
+          '<small class="admin-reputation-kpi-label">' + escapeHtml(recommendationLabel(closeout.recommendation)) + '</small>' +
+        '</article>' +
+        ((closeout.manualChecks || []).map((item) =>
+          '<article class="admin-observability-item">' +
+            '<div class="admin-observability-item-copy">' +
+              '<strong>' + escapeHtml(item.code || 'check') + '</strong>' +
+              '<small>' + escapeHtml(item.evidenceKey || 'evidence') + '</small>' +
+            '</div>' +
+            '<div class="admin-observability-item-meta">' +
+              '<span class="admin-observability-badge ' + badgeClass(item.status === 'observe' ? 'warning' : 'critical') + '">' + escapeHtml(closeoutCheckStatusLabel(item.status)) + '</span>' +
+            '</div>' +
+          '</article>'
+        ).join(''));
+    }
     function renderBlockers(data) {
       const ga = data.gaReadiness || {};
       const blockers = Array.isArray(ga.blockers) ? ga.blockers : [];
@@ -387,6 +446,7 @@
         renderSummary(payload);
         renderDecision(payload);
         renderMeasurement(payload);
+        renderCloseout(payload);
         renderBlockers(payload);
         renderChecklist(payload);
         renderRoutes(payload);
@@ -407,6 +467,7 @@
         summaryEl.innerHTML = '<p class="form-hint" style="color:var(--color-danger, #ff8b8b);">' + escapeHtml(message) + '</p>';
         decisionEl.innerHTML = '';
         measurementEl.innerHTML = '';
+        closeoutEl.innerHTML = '';
         blockersEl.innerHTML = '';
         checklistEl.innerHTML = '';
         routesEl.innerHTML = '';

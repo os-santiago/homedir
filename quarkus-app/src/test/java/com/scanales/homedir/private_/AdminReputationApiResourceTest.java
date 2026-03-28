@@ -268,6 +268,15 @@ class AdminReputationApiResourceTest {
     assertEquals("disabled", decisionPack.get("rolloutStage"));
     assertEquals("hold_rollout", decisionPack.get("recommendation"));
     assertEquals(3, ((Number) decisionPack.get("pendingManualChecksCount")).intValue());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> closeoutPack = (Map<String, Object>) payload.get("closeoutPack");
+    assertEquals("hold_rollout", closeoutPack.get("recommendation"));
+    assertEquals("disabled", closeoutPack.get("rolloutStage"));
+    assertEquals(3L, ((Number) closeoutPack.get("pendingChecks")).longValue());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> runtime = (Map<String, Object>) closeoutPack.get("runtime");
+    assertTrue(runtime.containsKey("version"));
+    assertTrue(runtime.containsKey("commitId"));
   }
 
   @Test
@@ -393,6 +402,11 @@ class AdminReputationApiResourceTest {
     assertEquals("disabled", decisionPack.get("rolloutStage"));
     assertEquals("enable_public_nav", decisionPack.get("recommendation"));
     assertEquals(3, ((Number) decisionPack.get("pendingManualChecksCount")).intValue());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> closeoutPack = (Map<String, Object>) payload.get("closeoutPack");
+    assertEquals("enable_public_nav", closeoutPack.get("recommendation"));
+    assertEquals("disabled", closeoutPack.get("rolloutStage"));
+    assertEquals(2L, ((Number) closeoutPack.get("pendingChecks")).longValue());
   }
 
   @Test
@@ -502,5 +516,9 @@ class AdminReputationApiResourceTest {
     assertEquals(false, measurement.get("snapshotRecorded"));
     assertEquals(2L, ((Number) measurement.get("readyRoutes")).longValue());
     assertEquals(2L, ((Number) measurement.get("totalRoutes")).longValue());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> closeoutPack = (Map<String, Object>) payload.get("closeoutPack");
+    assertEquals("hold_rollout", closeoutPack.get("recommendation"));
+    assertEquals(3L, ((Number) closeoutPack.get("pendingChecks")).longValue());
   }
 }
