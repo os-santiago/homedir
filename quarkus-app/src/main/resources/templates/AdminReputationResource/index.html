@@ -42,6 +42,18 @@
         <p class="form-hint">{i18n:admin_reputation_loading}</p>
       </div>
     </article>
+
+    <article class="section-card admin-reputation-card admin-reputation-card--full">
+      <div class="admin-shell-card-header">
+        <div>
+          <p class="section-subtitle">{i18n:admin_reputation_measurement_desc}</p>
+          <h2>{i18n:admin_reputation_measurement_title}</h2>
+        </div>
+      </div>
+      <div id="reputationMeasurement" class="admin-reputation-summary">
+        <p class="form-hint">{i18n:admin_reputation_loading}</p>
+      </div>
+    </article>
     <article class="section-card admin-reputation-card admin-reputation-card--split">
       <p class="section-subtitle">{i18n:admin_reputation_blockers_desc}</p>
       <h2>{i18n:admin_reputation_blockers_title}</h2>
@@ -129,12 +141,20 @@
      data-rollout-stage="{i18n:admin_reputation_js_rollout_stage}"
      data-automated-readiness="{i18n:admin_reputation_js_automated_readiness}"
      data-manual-pending-count="{i18n:admin_reputation_js_manual_pending_count}"
+     data-measurement-fresh="{i18n:admin_reputation_js_measurement_fresh}"
+     data-measurement-stale="{i18n:admin_reputation_js_measurement_stale}"
+     data-measurement-missing="{i18n:admin_reputation_js_measurement_missing}"
+     data-measurement-status="{i18n:admin_reputation_js_measurement_status}"
+     data-measurement-age="{i18n:admin_reputation_js_measurement_age}"
+     data-measurement-ready-routes="{i18n:admin_reputation_js_measurement_ready_routes}"
+     data-measurement-window-size="{i18n:admin_reputation_js_measurement_window_size}"
      style="display:none"></div>
 
 <script>
   (() => {
     const summaryEl = document.getElementById('reputationSummary');
     const decisionEl = document.getElementById('reputationDecision');
+    const measurementEl = document.getElementById('reputationMeasurement');
     const blockersEl = document.getElementById('reputationBlockers');
     const checklistEl = document.getElementById('reputationChecklist');
     const routesEl = document.getElementById('reputationRoutes');
@@ -221,6 +241,13 @@
       return value || i18n.unknown || 'Unknown';
     }
 
+    function measurementStatusLabel(value) {
+      if (value === 'fresh') return i18n.measurementFresh || 'Fresh';
+      if (value === 'stale') return i18n.measurementStale || 'Stale';
+      if (value === 'missing') return i18n.measurementMissing || 'Missing';
+      return value || i18n.unknown || 'Unknown';
+    }
+
     function renderDecision(data) {
       const decision = data.decisionPack || {};
       decisionEl.innerHTML =
@@ -241,6 +268,33 @@
           '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.manualPendingCount || 'Manual pending count') + '</span>' +
           '<strong class="admin-reputation-kpi-value">' + escapeHtml(decision.pendingManualChecksCount ?? '0') + '</strong>' +
           '<small class="admin-reputation-kpi-label">' + escapeHtml(i18n.automatedReadiness || 'Automated readiness') + ': ' + escapeHtml(decision.automatedReady ? (i18n.evidenceOk || 'Evidence available') : (i18n.statusNotReady || 'Not ready')) + '</small>' +
+        '</article>';
+    }
+
+    function renderMeasurement(data) {
+      const measurement = data.measurement || {};
+      const freshnessStatus = measurement.freshnessStatus || 'missing';
+      const badgeTone = freshnessStatus === 'fresh' ? 'healthy' : freshnessStatus === 'stale' ? 'warning' : 'critical';
+      const ageValue = Number.isFinite(measurement.snapshotAgeMinutes) && measurement.snapshotAgeMinutes >= 0
+        ? String(measurement.snapshotAgeMinutes)
+        : '—';
+      measurementEl.innerHTML =
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.measurementStatus || 'Measurement status') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(measurementStatusLabel(freshnessStatus)) + '</strong>' +
+          '<span class="admin-observability-badge ' + badgeClass(badgeTone) + '">' + escapeHtml(measurementStatusLabel(freshnessStatus)) + '</span>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.measurementAge || 'Snapshot age (min)') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(ageValue) + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.measurementReadyRoutes || 'Ready routes') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(String(measurement.readyRoutes ?? 0) + '/' + String(measurement.totalRoutes ?? 0)) + '</strong>' +
+        '</article>' +
+        '<article class="admin-reputation-kpi">' +
+          '<span class="admin-reputation-kpi-label">' + escapeHtml(i18n.measurementWindowSize || 'Captured windows') + '</span>' +
+          '<strong class="admin-reputation-kpi-value">' + escapeHtml(measurement.windowSize ?? '0') + '</strong>' +
         '</article>';
     }
     function renderBlockers(data) {
@@ -332,6 +386,7 @@
         }
         renderSummary(payload);
         renderDecision(payload);
+        renderMeasurement(payload);
         renderBlockers(payload);
         renderChecklist(payload);
         renderRoutes(payload);
@@ -351,6 +406,7 @@
         const message = error && error.message ? error.message : (i18n.requestFailed || 'Request failed');
         summaryEl.innerHTML = '<p class="form-hint" style="color:var(--color-danger, #ff8b8b);">' + escapeHtml(message) + '</p>';
         decisionEl.innerHTML = '';
+        measurementEl.innerHTML = '';
         blockersEl.innerHTML = '';
         checklistEl.innerHTML = '';
         routesEl.innerHTML = '';
