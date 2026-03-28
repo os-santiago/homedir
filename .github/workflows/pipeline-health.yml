@@ -59,7 +59,7 @@ jobs:
           echo "::warning::Pipeline health below threshold in last 14 days (PR=${{ steps.health.outputs.pr_success_rate }}%, Release=${{ steps.health.outputs.release_success_rate }}%)."
 
       - name: Upload report artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pipeline-health-report
           path: |
