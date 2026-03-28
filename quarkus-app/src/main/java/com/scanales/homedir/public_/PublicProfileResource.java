@@ -99,7 +99,8 @@ public class PublicProfileResource {
     @Produces(MediaType.TEXT_HTML)
     public Response getPublicProfile(
         @PathParam("username") String username,
-        @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+        @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+        @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
         String requested = normalizeId(username);
         if (requested == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -109,7 +110,7 @@ public class PublicProfileResource {
         if (resolvedOpt.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        String resolvedLocaleCode = TemplateLocaleUtil.resolve(localeCookie, null);
+        String resolvedLocaleCode = TemplateLocaleUtil.resolve(localeCookie, headers);
         ResolvedPublicProfile resolved = resolvedOpt.get();
         metrics.recordFunnelStep("profile.public.open");
         currentUserId()
@@ -170,6 +171,7 @@ public class PublicProfileResource {
             publicProfile
                 .data("pageTitle", resolved.displayName() + " (@" + resolved.canonicalUsername() + ")")
                 .data("username", resolved.canonicalUsername())
+                .data("localeCode", resolvedLocaleCode)
                 .data("displayName", resolved.displayName())
                 .data("avatarUrl", resolved.avatarUrl())
                 .data("level", questProfile.level)
@@ -208,7 +210,8 @@ public class PublicProfileResource {
                         + resolved.canonicalUsername()
                         + "&subtitle=Level "
                         + questProfile.level),
-            localeCookie))
+            localeCookie,
+            headers))
             .build();
     }
 

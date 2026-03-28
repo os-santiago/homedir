@@ -34,6 +34,7 @@ public class ReputationProfileSummaryService {
     }
 
     List<String> topStrengths = topStrengths(aggregate.scoresByDimension());
+    String reputationRole = reputationRole(snapshot, normalizedUserId, aggregate);
     return Optional.of(
         new PublicProfileSummary(
             normalizedUserId,
@@ -43,6 +44,7 @@ public class ReputationProfileSummaryService {
             List.copyOf(topStrengths),
             List.copyOf(badgesPreview(aggregate)),
             topStrengths.isEmpty() ? "contributor" : topStrengths.get(0),
+            reputationRole,
             latestMilestone(aggregate)));
   }
 
@@ -126,6 +128,46 @@ public class ReputationProfileSummaryService {
     return List.copyOf(badges);
   }
 
+  private static String reputationRole(
+      ReputationEngineService.EngineSnapshot snapshot,
+      String userId,
+      UserReputationAggregate aggregate) {
+    long participation = score(aggregate, "participation");
+    long contribution = score(aggregate, "contribution");
+    long recognition = score(aggregate, "recognition");
+    long consistency = score(aggregate, "consistency");
+    long speakerScore = speakerScore(snapshot, userId);
+
+    if (speakerScore >= 14L) {
+      return "speaker";
+    }
+    if (recognition >= 20L && recognition >= contribution) {
+      return "helper";
+    }
+    if (contribution >= 25L) {
+      return "builder";
+    }
+    if (participation + consistency >= 20L) {
+      return "learner";
+    }
+    if (aggregate.monthlyScore() >= 35L || consistency >= 8L) {
+      return "consistent_contributor";
+    }
+    return "contributor";
+  }
+
+  private static long speakerScore(ReputationEngineService.EngineSnapshot snapshot, String userId) {
+    if (snapshot == null || snapshot.eventsById() == null || userId == null || userId.isBlank()) {
+      return 0L;
+    }
+    return snapshot.eventsById().values().stream()
+        .filter(Objects::nonNull)
+        .filter(event -> userId.equals(event.actorUserId()))
+        .filter(event -> "event_speaker".equals(event.eventType()))
+        .mapToLong(ReputationEventRecord::weightBase)
+        .sum();
+  }
+
   private static long score(UserReputationAggregate aggregate, String dimension) {
     if (aggregate == null
         || aggregate.scoresByDimension() == null
@@ -177,6 +219,7 @@ public class ReputationProfileSummaryService {
       List<String> topStrengths,
       List<String> badgesPreview,
       String knownFor,
+      String reputationRole,
       Milestone milestone) {}
 
   public record Milestone(String type, long value) {}

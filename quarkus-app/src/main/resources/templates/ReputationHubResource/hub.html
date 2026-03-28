@@ -40,6 +40,52 @@
         </article>
       </div>
 
+      <div class="hub-specializations-grid">
+        {#for category in hub.categoryLeaderboards}
+          <article class="hub-panel">
+            <h2>
+              {#switch category.categoryKey}
+                {#case 'builders'}{i18n:reputation_hub_category_builders_title}{/case}
+                {#case 'helpers'}{i18n:reputation_hub_category_helpers_title}{/case}
+                {#case 'learners'}{i18n:reputation_hub_category_learners_title}{/case}
+                {#case 'speakers'}{i18n:reputation_hub_category_speakers_title}{/case}
+                {#else}{i18n:reputation_hub_category_builders_title}{/else}
+              {/switch}
+            </h2>
+            <p class="hub-panel-intro">
+              {#switch category.categoryKey}
+                {#case 'builders'}{i18n:reputation_hub_category_builders_desc}{/case}
+                {#case 'helpers'}{i18n:reputation_hub_category_helpers_desc}{/case}
+                {#case 'learners'}{i18n:reputation_hub_category_learners_desc}{/case}
+                {#case 'speakers'}{i18n:reputation_hub_category_speakers_desc}{/case}
+                {#else}{i18n:reputation_hub_category_builders_desc}{/else}
+              {/switch}
+            </p>
+            <ol class="hub-list">
+              {#for entry in category.entries}
+                <li class="hub-list-item">
+                  <span class="hub-rank">#{entry.rank}</span>
+                  {#if entry.avatarUrl}
+                    <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                  {/if}
+                  <div class="hub-member">
+                    {#if entry.profilePath}
+                      <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                    {#else}
+                      <span>{entry.displayName}</span>
+                    {/if}
+                    {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
+                  </div>
+                  <span class="hub-score">{i18n:reputation_hub_score(entry.score)}</span>
+                </li>
+              {#else}
+                <li class="hub-empty">{i18n:reputation_hub_empty}</li>
+              {/for}
+            </ol>
+          </article>
+        {/for}
+      </div>
+
       <div class="hub-leaderboards-grid">
         <article class="hub-panel">
           <h2>{i18n:reputation_hub_weekly_title}</h2>
