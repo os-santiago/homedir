@@ -42,7 +42,6 @@
         <p class="form-hint">{i18n:admin_reputation_loading}</p>
       </div>
     </article>
-
     <article class="section-card admin-reputation-card admin-reputation-card--split">
       <p class="section-subtitle">{i18n:admin_reputation_blockers_desc}</p>
       <h2>{i18n:admin_reputation_blockers_title}</h2>
@@ -244,7 +243,6 @@
           '<small class="admin-reputation-kpi-label">' + escapeHtml(i18n.automatedReadiness || 'Automated readiness') + ': ' + escapeHtml(decision.automatedReady ? (i18n.evidenceOk || 'Evidence available') : (i18n.statusNotReady || 'Not ready')) + '</small>' +
         '</article>';
     }
-
     function renderBlockers(data) {
       const ga = data.gaReadiness || {};
       const blockers = Array.isArray(ga.blockers) ? ga.blockers : [];

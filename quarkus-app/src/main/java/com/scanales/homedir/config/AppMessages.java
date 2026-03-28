@@ -5156,7 +5156,6 @@ public interface AppMessages {
 
     @Message("Turn the current evidence and rollout flags into one clear next move for the operator.")
     String admin_reputation_decision_desc();
-
     @Message("Blockers and action order")
     String admin_reputation_blockers_title();
 
@@ -5318,7 +5317,6 @@ public interface AppMessages {
 
     @Message("Manual pending count")
     String admin_reputation_js_manual_pending_count();
-
     @Message("Development Insights · Homedir")
     String admin_insights_title();
 
