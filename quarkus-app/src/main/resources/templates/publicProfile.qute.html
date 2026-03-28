@@ -93,6 +93,43 @@
                             {/switch}
                         </span>
                     </div>
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{#if localeCode == 'es'}Ruta reputacional{#else}Reputation path{/if}</span>
+                        <span class="wrapped-item-xp">
+                            {#switch reputationSummary.reputationRole}
+                            {#case 'builder'}{i18n:public_profile_reputation_role_builder}{/case}
+                            {#case 'helper'}{i18n:public_profile_reputation_role_helper}{/case}
+                            {#case 'learner'}{i18n:public_profile_reputation_role_learner}{/case}
+                            {#case 'speaker'}{i18n:public_profile_reputation_role_speaker}{/case}
+                            {#case 'consistent_contributor'}{i18n:public_profile_reputation_role_consistent_contributor}{/case}
+                            {#else}{i18n:public_profile_reputation_role_contributor}{/else}
+                            {/switch}
+                        </span>
+                    </div>
+                    <div class="wrapped-list-item wrapped-list-item-stack">
+                        <span class="wrapped-item-title">{#if localeCode == 'es'}Narrativa pública{#else}Public narrative{/if}</span>
+                        <span class="wrapped-subtext">
+                            {#if localeCode == 'es'}
+                                {#switch reputationSummary.reputationRole}
+                                {#case 'builder'}Reconocido por construir y publicar contribuciones útiles dentro de HomeDir.{/case}
+                                {#case 'helper'}Reconocido por ayudar a otras personas y ganarse la confianza de la comunidad.{/case}
+                                {#case 'learner'}Reconocido por aparecer con constancia y convertir exploración en progreso visible.{/case}
+                                {#case 'speaker'}Reconocido por compartir ideas en público y aportar como speaker.{/case}
+                                {#case 'consistent_contributor'}Reconocido por sostener impulso en los ciclos semanales y mensuales de la comunidad.{/case}
+                                {#else}Reconocido por aportar de forma significativa en distintas iniciativas de la comunidad.{/else}
+                                {/switch}
+                            {#else}
+                                {#switch reputationSummary.reputationRole}
+                                {#case 'builder'}Known for building and shipping useful contributions across HomeDir.{/case}
+                                {#case 'helper'}Known for helping others and earning community trust through recognition.{/case}
+                                {#case 'learner'}Known for showing up consistently and turning exploration into progress.{/case}
+                                {#case 'speaker'}Known for sharing ideas publicly and contributing as a speaker.{/case}
+                                {#case 'consistent_contributor'}Known for sustained momentum across weekly and monthly community cycles.{/case}
+                                {#else}Known for contributing meaningfully across community initiatives.{/else}
+                                {/switch}
+                            {/if}
+                        </span>
+                    </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
                         <span class="wrapped-item-title">{i18n:public_profile_reputation_top_strengths}</span>
                         <div class="wrapped-meta-row">

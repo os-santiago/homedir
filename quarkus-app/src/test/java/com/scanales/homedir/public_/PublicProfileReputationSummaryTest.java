@@ -69,6 +69,9 @@ class PublicProfileReputationSummaryTest {
         .body(containsString("This month: Top 1"))
         .body(containsString("Known for"))
         .body(containsString("Contribution"))
+        .body(containsString("Reputation path"))
+        .body(containsString("Speaker"))
+        .body(containsString("sharing ideas publicly and contributing as a speaker"))
         .body(containsString("Rising Member"))
         .body(containsString("Weekly growth +42"));
   }
@@ -85,6 +88,9 @@ class PublicProfileReputationSummaryTest {
         .body(containsString("Este mes: Top 1"))
         .body(containsString("Conocido por"))
         .body(containsString("Contribución"))
+        .body(containsString("Ruta reputacional"))
+        .body(containsString("Speaker"))
+        .body(containsString("compartir ideas en público y aportar como speaker"))
         .body(containsString("Miembro en ascenso"))
         .body(containsString("Crecimiento semanal +42"));
   }

@@ -5934,6 +5934,48 @@ public interface AppMessages {
     @Message("Community contributor")
     String public_profile_reputation_known_for_contributor();
 
+    @Message("Reputation path")
+    String public_profile_reputation_role();
+
+    @Message("Builder")
+    String public_profile_reputation_role_builder();
+
+    @Message("Helper")
+    String public_profile_reputation_role_helper();
+
+    @Message("Learner")
+    String public_profile_reputation_role_learner();
+
+    @Message("Speaker")
+    String public_profile_reputation_role_speaker();
+
+    @Message("Consistent contributor")
+    String public_profile_reputation_role_consistent_contributor();
+
+    @Message("Community contributor")
+    String public_profile_reputation_role_contributor();
+
+    @Message("Known for")
+    String public_profile_reputation_narrative();
+
+    @Message("Known for building and shipping useful contributions across HomeDir.")
+    String public_profile_reputation_narrative_builder();
+
+    @Message("Known for helping others and earning community trust through recognition.")
+    String public_profile_reputation_narrative_helper();
+
+    @Message("Known for showing up consistently and turning exploration into progress.")
+    String public_profile_reputation_narrative_learner();
+
+    @Message("Known for sharing ideas publicly and contributing as a speaker.")
+    String public_profile_reputation_narrative_speaker();
+
+    @Message("Known for sustained momentum across weekly and monthly community cycles.")
+    String public_profile_reputation_narrative_consistent_contributor();
+
+    @Message("Known for contributing meaningfully across community initiatives.")
+    String public_profile_reputation_narrative_contributor();
+
     @Message("Top strengths")
     String public_profile_reputation_top_strengths();
 
@@ -6029,6 +6071,30 @@ public interface AppMessages {
 
     @Message("Recognized contributions")
     String reputation_hub_recognized_title();
+
+    @Message("Builders")
+    String reputation_hub_category_builders_title();
+
+    @Message("Members shipping useful content and visible contributions.")
+    String reputation_hub_category_builders_desc();
+
+    @Message("Helpers")
+    String reputation_hub_category_helpers_title();
+
+    @Message("Members recognized for useful help and trusted community signals.")
+    String reputation_hub_category_helpers_desc();
+
+    @Message("Learners")
+    String reputation_hub_category_learners_title();
+
+    @Message("Members building momentum through exploration, attendance, and consistency.")
+    String reputation_hub_category_learners_desc();
+
+    @Message("Speakers")
+    String reputation_hub_category_speakers_title();
+
+    @Message("Members contributing publicly through CFPs and accepted talks.")
+    String reputation_hub_category_speakers_desc();
 
     @Message("How reputation works")
     String reputation_hub_how_title();

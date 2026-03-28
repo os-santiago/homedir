@@ -30,10 +30,42 @@ public class ReputationHubService {
         HUB_SYNC_TIME_FMT.format(Instant.ofEpochMilli(engineSnapshot.generatedAtMillis())),
         aggregates.size(),
         engineSnapshot.eventsById().size(),
+        categoryLeaderboards(engineSnapshot, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::weeklyScore, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::monthlyScore, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::risingDelta, safeLimit),
         recognizedContributions(engineSnapshot.eventsById(), safeLimit));
+  }
+
+  private List<CategoryLeaderboard> categoryLeaderboards(
+      ReputationEngineService.EngineSnapshot snapshot, int limit) {
+    if (snapshot == null || snapshot.aggregatesByUser() == null || snapshot.aggregatesByUser().isEmpty()) {
+      return List.of();
+    }
+    return List.of(
+        new CategoryLeaderboard(
+            "builders",
+            leaderboard(
+                snapshot.aggregatesByUser(),
+                aggregate -> scoreByDimension(aggregate, "contribution"),
+                limit)),
+        new CategoryLeaderboard(
+            "helpers",
+            leaderboard(
+                snapshot.aggregatesByUser(),
+                aggregate -> scoreByDimension(aggregate, "recognition"),
+                limit)),
+        new CategoryLeaderboard(
+            "learners",
+            leaderboard(
+                snapshot.aggregatesByUser(),
+                aggregate ->
+                    scoreByDimension(aggregate, "participation")
+                        + scoreByDimension(aggregate, "consistency"),
+                limit)),
+        new CategoryLeaderboard(
+            "speakers",
+            leaderboard(snapshot.aggregatesByUser(), aggregate -> speakerScore(snapshot, aggregate), limit)));
   }
 
   private List<LeaderboardEntry> leaderboard(
@@ -201,6 +233,33 @@ public class ReputationHubService {
     return raw.trim().toLowerCase(java.util.Locale.ROOT);
   }
 
+  private static long scoreByDimension(UserReputationAggregate aggregate, String dimension) {
+    if (aggregate == null
+        || aggregate.scoresByDimension() == null
+        || dimension == null
+        || dimension.isBlank()) {
+      return 0L;
+    }
+    return Math.max(0L, aggregate.scoresByDimension().getOrDefault(dimension, 0L));
+  }
+
+  private static long speakerScore(
+      ReputationEngineService.EngineSnapshot snapshot, UserReputationAggregate aggregate) {
+    if (snapshot == null
+        || snapshot.eventsById() == null
+        || aggregate == null
+        || aggregate.userId() == null
+        || aggregate.userId().isBlank()) {
+      return 0L;
+    }
+    return snapshot.eventsById().values().stream()
+        .filter(Objects::nonNull)
+        .filter(event -> aggregate.userId().equals(event.actorUserId()))
+        .filter(event -> "event_speaker".equals(event.eventType()))
+        .mapToLong(ReputationEventRecord::weightBase)
+        .sum();
+  }
+
   private record MemberProjection(
       String displayName, String handle, String avatarUrl, String profilePath) {}
 
@@ -208,10 +267,13 @@ public class ReputationHubService {
       String generatedAtLabel,
       int contributors,
       int eventsCaptured,
+      List<CategoryLeaderboard> categoryLeaderboards,
       List<LeaderboardEntry> weeklyLeaderboard,
       List<LeaderboardEntry> monthlyLeaderboard,
       List<LeaderboardEntry> risingLeaderboard,
       List<RecognizedContribution> recognizedContributions) {}
+
+  public record CategoryLeaderboard(String categoryKey, List<LeaderboardEntry> entries) {}
 
   public record LeaderboardEntry(
       int rank,

@@ -8,6 +8,7 @@
 }
 
 .hub-hero-grid,
+.hub-specializations-grid,
 .hub-leaderboards-grid,
 .hub-secondary-grid,
 .hub-how-grid {
@@ -19,6 +20,10 @@
 .hub-hero-grid,
 .hub-leaderboards-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hub-specializations-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .hub-secondary-grid {
@@ -48,6 +53,12 @@
 .hub-how-panel h2 {
   margin: 0 0 0.75rem;
   font-size: 1.02rem;
+}
+
+.hub-panel-intro {
+  margin: -0.3rem 0 0.75rem;
+  opacity: 0.88;
+  font-size: 0.84rem;
 }
 
 .hub-migration-banner {
@@ -243,6 +254,7 @@
 
 @media (max-width: 980px) {
   .hub-hero-grid,
+  .hub-specializations-grid,
   .hub-leaderboards-grid,
   .hub-secondary-grid,
   .hub-how-grid {
