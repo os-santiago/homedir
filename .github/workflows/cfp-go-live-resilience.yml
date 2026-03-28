@@ -356,7 +356,7 @@ jobs:
             --max-timeouts "${{ inputs.max_timeouts }}"
 
       - name: Upload probe artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cfp-go-live-probe
           path: cfp-probe-report.txt
