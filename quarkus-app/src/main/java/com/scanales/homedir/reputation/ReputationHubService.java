@@ -22,19 +22,49 @@ public class ReputationHubService {
   @Inject ReputationEngineService reputationEngineService;
   @Inject UserProfileService userProfileService;
 
-  public HubSnapshot snapshot(int limit) {
+  public HubSnapshot snapshot(int limit, String viewerUserId) {
     int safeLimit = Math.max(3, Math.min(limit, 25));
     ReputationEngineService.EngineSnapshot engineSnapshot = reputationEngineService.snapshot();
     Map<String, UserReputationAggregate> aggregates = engineSnapshot.aggregatesByUser();
+    GrowthGuidance viewerGuidance = growthGuidance(engineSnapshot, normalize(viewerUserId));
     return new HubSnapshot(
         HUB_SYNC_TIME_FMT.format(Instant.ofEpochMilli(engineSnapshot.generatedAtMillis())),
         aggregates.size(),
         engineSnapshot.eventsById().size(),
+        viewerGuidance,
         categoryLeaderboards(engineSnapshot, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::weeklyScore, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::monthlyScore, safeLimit),
         leaderboard(aggregates, UserReputationAggregate::risingDelta, safeLimit),
         recognizedContributions(engineSnapshot.eventsById(), safeLimit));
+  }
+
+  private GrowthGuidance growthGuidance(
+      ReputationEngineService.EngineSnapshot snapshot, String viewerUserId) {
+    if (snapshot == null
+        || snapshot.aggregatesByUser() == null
+        || viewerUserId == null
+        || viewerUserId.isBlank()) {
+      return null;
+    }
+    UserReputationAggregate aggregate = snapshot.aggregatesByUser().get(viewerUserId);
+    if (aggregate == null || aggregate.totalScore() <= 0L) {
+      return new GrowthGuidance("starter", "participation", 0L, 0L);
+    }
+    String role = ReputationProfileSummaryService.reputationRole(snapshot, viewerUserId, aggregate);
+    String focusDimension = aggregate.scoresByDimension() == null
+        ? "participation"
+        : aggregate.scoresByDimension().entrySet().stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue() > 0L)
+            .sorted(
+                Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder())
+                    .thenComparing(Map.Entry::getKey))
+            .map(Map.Entry::getKey)
+            .map(ReputationProfileSummaryService::normalizeDimension)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse("participation");
+    return new GrowthGuidance(role, focusDimension, aggregate.monthlyScore(), aggregate.risingDelta());
   }
 
   private List<CategoryLeaderboard> categoryLeaderboards(
@@ -267,11 +297,15 @@ public class ReputationHubService {
       String generatedAtLabel,
       int contributors,
       int eventsCaptured,
+      GrowthGuidance viewerGuidance,
       List<CategoryLeaderboard> categoryLeaderboards,
       List<LeaderboardEntry> weeklyLeaderboard,
       List<LeaderboardEntry> monthlyLeaderboard,
       List<LeaderboardEntry> risingLeaderboard,
       List<RecognizedContribution> recognizedContributions) {}
+
+  public record GrowthGuidance(
+      String roleKey, String focusDimension, long monthlyScore, long risingDelta) {}
 
   public record CategoryLeaderboard(String categoryKey, List<LeaderboardEntry> entries) {}
 

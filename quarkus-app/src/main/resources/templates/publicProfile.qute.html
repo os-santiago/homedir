@@ -145,8 +145,32 @@
                             </span>
                             {#else}
                             <span class="wrapped-empty-msg">{i18n:public_profile_reputation_top_strengths_empty}</span>
-                            {/for}
+                        {/for}
                         </div>
+                    </div>
+                    <div class="wrapped-list-item wrapped-list-item-stack">
+                        <span class="wrapped-item-title">{#if localeCode == 'es'}Cómo crecer desde aquí{#else}How to grow from here{/if}</span>
+                        <p class="wrapped-subtext">
+                            {#if localeCode == 'es'}
+                                {#switch reputationSummary.reputationRole}
+                                {#case 'builder'}Publica una nueva contribución útil y busca reconocimiento de la comunidad para reforzar tu camino builder.{/case}
+                                {#case 'helper'}Reconoce aportes valiosos, responde con contexto útil y mantén señales de confianza cada semana.{/case}
+                                {#case 'learner'}Completa quests, asiste a eventos y convierte exploración constante en progreso visible dentro del hub.{/case}
+                                {#case 'speaker'}Usa nuevas charlas y CFPs como ancla, luego amplía tu huella con contribuciones y reconocimiento.{/case}
+                                {#case 'consistent_contributor'}Sostén presencia semanal con acciones de valor real para convertir constancia en confianza visible.{/case}
+                                {#else}Combina participación, contribución y reconocimiento para construir una reputación más clara y visible.{/else}
+                                {/switch}
+                            {#else}
+                                {#switch reputationSummary.reputationRole}
+                                {#case 'builder'}Publish one new useful contribution and then seek community recognition to reinforce your builder path.{/case}
+                                {#case 'helper'}Recognize valuable work, respond with useful context, and keep trust signals active each week.{/case}
+                                {#case 'learner'}Complete quests, join events, and turn steady exploration into visible progress inside the hub.{/case}
+                                {#case 'speaker'}Use new talks and CFP activity as anchors, then widen your footprint with contributions and recognition.{/case}
+                                {#case 'consistent_contributor'}Keep showing up weekly with high-value actions so consistency becomes visible trust.{/case}
+                                {#else}Blend participation, contribution, and recognition to build a clearer public reputation.{/else}
+                                {/switch}
+                            {/if}
+                        </p>
                     </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
                         <span class="wrapped-item-title">{i18n:public_profile_reputation_badges_preview}</span>

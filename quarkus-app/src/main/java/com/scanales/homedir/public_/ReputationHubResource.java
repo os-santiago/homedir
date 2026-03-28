@@ -58,7 +58,8 @@ public class ReputationHubResource {
     boolean showReputationHub = flags.hubUiEnabled() && (admin || flags.hubNavPublicEnabled());
     boolean showHubMigrationBanner = flags.hubPrimaryEnabled();
     boolean showCommunityBoard = !isCommunityBoardReplaced(flags, admin);
-    ReputationHubService.HubSnapshot hub = reputationHubService.snapshot(10);
+    ReputationHubService.HubSnapshot hub =
+        reputationHubService.snapshot(10, currentUserId.orElse(null));
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.hub(hub), localeCookie)
             .data("activePage", "comunidad")

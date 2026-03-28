@@ -72,6 +72,8 @@ class PublicProfileReputationSummaryTest {
         .body(containsString("Reputation path"))
         .body(containsString("Speaker"))
         .body(containsString("sharing ideas publicly and contributing as a speaker"))
+        .body(containsString("How to grow from here"))
+        .body(containsString("Use new talks and CFP activity as anchors"))
         .body(containsString("Rising Member"))
         .body(containsString("Weekly growth +42"));
   }
@@ -91,6 +93,8 @@ class PublicProfileReputationSummaryTest {
         .body(containsString("Ruta reputacional"))
         .body(containsString("Speaker"))
         .body(containsString("compartir ideas en público y aportar como speaker"))
+        .body(containsString("Cómo crecer desde aquí"))
+        .body(containsString("Usa nuevas charlas y CFPs como ancla"))
         .body(containsString("Miembro en ascenso"))
         .body(containsString("Crecimiento semanal +42"));
   }

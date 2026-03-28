@@ -1,6 +1,7 @@
 {@ boolean userAuthenticated = false}
 {@ String currentUserId = ""}
 {@ boolean showHubMigrationBanner = false}
+{@ String resolvedLocaleCode = 'es'}
 {#include layout/main activePage="comunidad" noLoginModal=true}
 {#title}{i18n:reputation_hub_page_title}{/title}
 {#head}
@@ -164,6 +165,118 @@
       </div>
 
       <div class="hub-secondary-grid">
+        <article class="hub-panel">
+          <h2>{#if resolvedLocaleCode == 'es'}Cómo crecer desde aquí{#else}How to grow from here{/if}</h2>
+          <p class="hub-panel-intro">
+            {#if hub.viewerGuidance??}
+              {#if resolvedLocaleCode == 'es'}
+                Tu especialización actual ya muestra un patrón. Usa estas señales para decidir tu siguiente aporte significativo.
+              {#else}
+                Your current specialization already shows a pattern. Use these signals to decide your next meaningful contribution.
+              {/if}
+            {#else}
+              {#if resolvedLocaleCode == 'es'}
+                Empieza con señales simples y consistentes para construir tu primera huella reputacional.
+              {#else}
+                Start with simple, steady signals to build your first reputation footprint.
+              {/if}
+            {/if}
+          </p>
+          <ul class="hub-how-list">
+            {#if hub.viewerGuidance??}
+              <li>
+                <strong>{#if resolvedLocaleCode == 'es'}En qué enfocarte{#else}What to focus on{/if}</strong>
+                <p>
+                  {#if resolvedLocaleCode == 'es'}
+                    {#switch hub.viewerGuidance.focusDimension}
+                      {#case 'participation'}Aumenta presencia significativa asistiendo a eventos y completando quests con continuidad.{/case}
+                      {#case 'contribution'}Convierte tu impulso en aportes visibles: publica contenido útil, comparte recursos y construye cosas que otros puedan usar.{/case}
+                      {#case 'recognition'}Busca validación contextual: ayuda a otras personas, reconoce aportes valiosos y prioriza acciones que generen confianza.{/case}
+                      {#case 'consistency'}Sostén ritmo semanal. La reputación sube más por continuidad visible que por picos aislados.{/case}
+                      {#else}Aumenta presencia significativa asistiendo a eventos y completando quests con continuidad.{/else}
+                    {/switch}
+                  {#else}
+                    {#switch hub.viewerGuidance.focusDimension}
+                      {#case 'participation'}Increase meaningful presence by joining events and completing quests with continuity.{/case}
+                      {#case 'contribution'}Turn your momentum into visible contributions: publish useful content, share resources, and build things others can use.{/case}
+                      {#case 'recognition'}Seek contextual validation: help other people, recognize valuable work, and prioritize actions that build trust.{/case}
+                      {#case 'consistency'}Keep a weekly rhythm. Reputation rises more from visible continuity than isolated spikes.{/case}
+                      {#else}Increase meaningful presence by joining events and completing quests with continuity.{/else}
+                    {/switch}
+                  {/if}
+                </p>
+              </li>
+              <li>
+                <strong>{#if resolvedLocaleCode == 'es'}Siguiente mejor movimiento{#else}Next best move{/if}</strong>
+                <p>
+                  {#if resolvedLocaleCode == 'es'}
+                    {#switch hub.viewerGuidance.roleKey}
+                      {#case 'builder'}Publica una nueva contribución útil y luego busca reconocimiento comunitario para reforzar tu trayectoria builder.{/case}
+                      {#case 'helper'}Responde con ayuda contextual y mantén señales de reconocimiento útiles cada semana para consolidar confianza.{/case}
+                      {#case 'learner'}Usa eventos y quests como loop corto: aprende algo, vuelve y deja una señal visible de progreso.{/case}
+                      {#case 'speaker'}Usa tus charlas y CFPs como base, pero acompáñalos con contribuciones o reconocimiento para ganar amplitud reputacional.{/case}
+                      {#case 'consistent_contributor'}Sostén ritmo mensual con acciones pequeñas pero valiosas: aparecer y aportar importa más que un pico aislado.{/case}
+                      {#case 'starter'}Asiste a un evento, completa una quest o publica un recurso útil para desbloquear tu primer patrón reputacional.{/case}
+                      {#else}Combina participación, contribución y reconocimiento para hacer más clara tu especialización dentro del hub.{/else}
+                    {/switch}
+                  {#else}
+                    {#switch hub.viewerGuidance.roleKey}
+                      {#case 'builder'}Publish one new useful contribution and then seek community recognition to reinforce your builder trajectory.{/case}
+                      {#case 'helper'}Respond with contextual help and keep useful recognition signals active each week to build trust.{/case}
+                      {#case 'learner'}Use events and quests as a short loop: learn something, come back, and leave one visible signal of progress.{/case}
+                      {#case 'speaker'}Use talks and CFPs as your base, but pair them with contributions or recognition to widen your reputation footprint.{/case}
+                      {#case 'consistent_contributor'}Hold a monthly rhythm with small but real actions: showing up and contributing matters more than one spike.{/case}
+                      {#case 'starter'}Join an event, complete a quest, or publish one useful resource to unlock your first reputation pattern.{/case}
+                      {#else}Blend participation, contribution, and recognition to make your specialization clearer inside the hub.{/else}
+                    {/switch}
+                  {/if}
+                </p>
+              </li>
+              <li>
+                <strong>{#if resolvedLocaleCode == 'es'}Señal actual{#else}Current signal{/if}</strong>
+                <p>
+                  {#if resolvedLocaleCode == 'es'}
+                    Impulso mensual {hub.viewerGuidance.monthlyScore} · crecimiento reciente +{hub.viewerGuidance.risingDelta}
+                  {#else}
+                    Monthly momentum {hub.viewerGuidance.monthlyScore} · recent growth +{hub.viewerGuidance.risingDelta}
+                  {/if}
+                </p>
+              </li>
+            {#else}
+              <li>
+                <strong>{#if resolvedLocaleCode == 'es'}En qué enfocarte{#else}What to focus on{/if}</strong>
+                <p>
+                  {#if resolvedLocaleCode == 'es'}
+                    Empieza participando en la comunidad y acumulando las primeras señales válidas de actividad.
+                  {#else}
+                    Start by participating in the community and collecting your first valid activity signals.
+                  {/if}
+                </p>
+              </li>
+              <li>
+                <strong>{#if resolvedLocaleCode == 'es'}Siguiente mejor movimiento{#else}Next best move{/if}</strong>
+                <p>
+                  {#if resolvedLocaleCode == 'es'}
+                    Asiste a un evento, completa una quest o publica un recurso útil para desbloquear tu primer patrón reputacional.
+                  {#else}
+                    Join an event, complete a quest, or publish one useful resource to unlock your first reputation pattern.
+                  {/if}
+                </p>
+              </li>
+              <li>
+                <strong>{#if resolvedLocaleCode == 'es'}Señal actual{#else}Current signal{/if}</strong>
+                <p>
+                  {#if resolvedLocaleCode == 'es'}
+                    Aún no hay impulso suficiente para una lectura personalizada. Empieza con una acción visible esta semana.
+                  {#else}
+                    There is not enough momentum yet for a personalized read. Start with one visible action this week.
+                  {/if}
+                </p>
+              </li>
+            {/if}
+          </ul>
+        </article>
+
         <article class="hub-panel">
           <h2>{i18n:reputation_hub_recognized_title}</h2>
           {#if !userAuthenticated}
