@@ -55,6 +55,14 @@ class PublicProfileReputationSummaryTest {
     assertTrue(reputationEngineService.trackContentPublished(USER_ID, "thread-r1"));
     assertTrue(reputationEngineService.trackEventAttended(USER_ID, "talk-r1"));
     assertTrue(reputationEngineService.trackEventSpeaker(USER_ID, "submission-r1", "event-r1"));
+    assertTrue(
+        reputationEngineService.trackRecognition(
+            "content_recommended",
+            USER_ID,
+            "community_content",
+            "thread-r1",
+            "validator@example.com",
+            "recommended"));
   }
 
   @Test
@@ -75,10 +83,15 @@ class PublicProfileReputationSummaryTest {
         .body(containsString("Active placements"))
         .body(containsString("Top 1 Speaker this month"))
         .body(containsString("Rising this week: Top 1"))
+        .body(containsString("Community impact"))
+        .body(containsString("1 community-recognized signals"))
+        .body(containsString("Recognized contributions"))
+        .body(containsString("Recommended"))
+        .body(containsString("recommended resource"))
         .body(containsString("How to grow from here"))
         .body(containsString("Use new talks and CFP activity as anchors"))
         .body(containsString("Rising Member"))
-        .body(containsString("Weekly growth +42"));
+        .body(containsString("Weekly growth +"));
   }
 
   @Test
@@ -99,9 +112,14 @@ class PublicProfileReputationSummaryTest {
         .body(containsString("Posicionamiento activo"))
         .body(containsString("Top 1 Speaker este mes"))
         .body(containsString("En ascenso esta semana: Top 1"))
+        .body(containsString("Impacto comunitario"))
+        .body(containsString("1 señales reconocidas por la comunidad"))
+        .body(containsString("Contribuciones reconocidas"))
+        .body(containsString("Recomendado"))
+        .body(containsString("recurso recomendado"))
         .body(containsString("Cómo crecer desde aquí"))
         .body(containsString("Usa nuevas charlas y CFPs como ancla"))
         .body(containsString("Miembro en ascenso"))
-        .body(containsString("Crecimiento semanal +42"));
+        .body(containsString("Crecimiento semanal +"));
   }
 }

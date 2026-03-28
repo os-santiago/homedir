@@ -37,6 +37,7 @@ public class ReputationProfileSummaryService {
     String reputationRole = reputationRole(snapshot, normalizedUserId, aggregate);
     List<Placement> activePlacements =
         activePlacements(snapshot, normalizedUserId, aggregate, reputationRole);
+    List<RecognizedSignal> recognizedSignals = recognizedSignals(snapshot, normalizedUserId);
     return Optional.of(
         new PublicProfileSummary(
             normalizedUserId,
@@ -46,9 +47,80 @@ public class ReputationProfileSummaryService {
             List.copyOf(activePlacements),
             List.copyOf(topStrengths),
             List.copyOf(badgesPreview(aggregate)),
+            recognizedSignals.size(),
+            List.copyOf(recognizedSignals),
             topStrengths.isEmpty() ? "contributor" : topStrengths.get(0),
             reputationRole,
             latestMilestone(aggregate)));
+  }
+
+  private static List<RecognizedSignal> recognizedSignals(
+      ReputationEngineService.EngineSnapshot snapshot, String userId) {
+    if (snapshot == null || snapshot.eventsById() == null || userId == null || userId.isBlank()) {
+      return List.of();
+    }
+    return snapshot.eventsById().values().stream()
+        .filter(Objects::nonNull)
+        .filter(event -> userId.equals(event.actorUserId()))
+        .filter(ReputationProfileSummaryService::isRecognitionEvent)
+        .sorted(
+            Comparator.comparing(
+                    ReputationEventRecord::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(
+                    Comparator.comparingInt(ReputationEventRecord::weightBase).reversed())
+                .thenComparing(
+                    ReputationEventRecord::eventId, Comparator.nullsLast(String::compareTo)))
+        .limit(3)
+        .map(
+            event ->
+                new RecognizedSignal(
+                    recognitionLabel(event), recognitionEventKey(event.eventType())))
+        .toList();
+  }
+
+  private static boolean isRecognitionEvent(ReputationEventRecord event) {
+    if (event == null) {
+      return false;
+    }
+    String eventType = normalize(event.eventType());
+    String validationType = normalize(event.validationType());
+    if ("recommended".equals(validationType)
+        || "helpful".equals(validationType)
+        || "standout".equals(validationType)) {
+      return true;
+    }
+    return "content_recommended".equals(eventType)
+        || "peer_help_acknowledged".equals(eventType)
+        || "contribution_highlighted".equals(eventType);
+  }
+
+  private static String recognitionLabel(ReputationEventRecord event) {
+    String validationType = normalize(event != null ? event.validationType() : null);
+    if ("recommended".equals(validationType)
+        || "helpful".equals(validationType)
+        || "standout".equals(validationType)) {
+      return validationType;
+    }
+    int weight = event == null ? 0 : event.weightBase();
+    if (weight >= 15) {
+      return "standout";
+    }
+    if (weight >= 10) {
+      return "recommended";
+    }
+    return "helpful";
+  }
+
+  private static String recognitionEventKey(String eventType) {
+    if (eventType == null || eventType.isBlank()) {
+      return "activity_signal";
+    }
+    return switch (eventType) {
+      case "content_recommended" -> "content_recommended";
+      case "peer_help_acknowledged" -> "peer_help_acknowledged";
+      case "contribution_highlighted" -> "contribution_highlighted";
+      default -> "activity_signal";
+    };
   }
 
   private static List<Placement> activePlacements(
@@ -325,11 +397,15 @@ public class ReputationProfileSummaryService {
       List<Placement> activePlacements,
       List<String> topStrengths,
       List<String> badgesPreview,
+      int recognizedSignalsCount,
+      List<RecognizedSignal> recognizedSignals,
       String knownFor,
       String reputationRole,
       Milestone milestone) {}
 
   public record Placement(String type, long rank, String categoryKey) {}
+
+  public record RecognizedSignal(String recognitionLabel, String eventKey) {}
 
   public record Milestone(String type, long value) {}
 }

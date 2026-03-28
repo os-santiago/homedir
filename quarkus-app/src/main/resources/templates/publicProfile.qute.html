@@ -130,6 +130,16 @@
                             {/if}
                         </span>
                     </div>
+                    <div class="wrapped-list-item">
+                        <span class="wrapped-item-title">{#if localeCode == 'es'}Impacto comunitario{#else}Community impact{/if}</span>
+                        <span class="wrapped-item-xp">
+                            {#if localeCode == 'es'}
+                                {reputationSummary.recognizedSignalsCount} señales reconocidas por la comunidad
+                            {#else}
+                                {reputationSummary.recognizedSignalsCount} community-recognized signals
+                            {/if}
+                        </span>
+                    </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
                         <span class="wrapped-item-title">{i18n:public_profile_reputation_top_strengths}</span>
                         <div class="wrapped-meta-row">
@@ -187,6 +197,44 @@
                             </span>
                             {#else}
                             <span class="wrapped-empty-msg">{#if localeCode == 'es'}Aún no hay posicionamientos activos.{#else}No active placements yet.{/if}</span>
+                            {/for}
+                        </div>
+                    </div>
+                    <div class="wrapped-list-item wrapped-list-item-stack">
+                        <span class="wrapped-item-title">{#if localeCode == 'es'}Contribuciones reconocidas{#else}Recognized contributions{/if}</span>
+                        <div class="wrapped-meta-row">
+                            {#for signal in reputationSummary.recognizedSignals}
+                            <span class="wrapped-badge-pill">
+                                {#if localeCode == 'es'}
+                                    {#switch signal.recognitionLabel}
+                                    {#case 'recommended'}Recomendado{/case}
+                                    {#case 'helpful'}Útil{/case}
+                                    {#else}Destacado{/else}
+                                    {/switch}
+                                    ·
+                                    {#switch signal.eventKey}
+                                    {#case 'content_recommended'}recurso recomendado{/case}
+                                    {#case 'peer_help_acknowledged'}ayuda reconocida{/case}
+                                    {#case 'contribution_highlighted'}aporte destacado{/case}
+                                    {#else}señal comunitaria{/else}
+                                    {/switch}
+                                {#else}
+                                    {#switch signal.recognitionLabel}
+                                    {#case 'recommended'}Recommended{/case}
+                                    {#case 'helpful'}Helpful{/case}
+                                    {#else}Standout{/else}
+                                    {/switch}
+                                    ·
+                                    {#switch signal.eventKey}
+                                    {#case 'content_recommended'}recommended resource{/case}
+                                    {#case 'peer_help_acknowledged'}recognized help{/case}
+                                    {#case 'contribution_highlighted'}highlighted contribution{/case}
+                                    {#else}community signal{/else}
+                                    {/switch}
+                                {/if}
+                            </span>
+                            {#else}
+                            <span class="wrapped-empty-msg">{#if localeCode == 'es'}Aún no hay contribuciones reconocidas.{#else}No recognized contributions yet.{/if}</span>
                             {/for}
                         </div>
                     </div>
