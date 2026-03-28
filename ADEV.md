@@ -52,6 +52,8 @@
     - verificar que el merge a `main` se realizo correctamente
     - eliminar la rama origen del PR en remoto y local cuando ya no sea necesaria
     - actualizar el handoff compartido con el estado post-merge y la limpieza realizada
+35. La calidad de PRs, gates de release y validaciones de paso a produccion pertenecen al SDLC y a la operacion de entrega, no al producto user-facing: resolverlos con validaciones locales, ramas feature, CI/CD, runbooks y handoff compartido; no crear dashboards, checks o consolas dentro de Homedir salvo requerimiento explicito y separado del roadmap de producto.
+36. Si existe un PRD o roadmap de producto vigente, las iteraciones deben priorizar valor visible para usuarios finales y evitar desviar alcance hacia tooling interno, evidencia de release o capas operativas que no sean parte del producto acordado.
 
 ## Flujo Operativo
 1. Sincronizar con `origin/main`.
@@ -77,6 +79,7 @@
 13. Monitorear `PR Validation` y, cuando aplique a la iniciativa, el workflow manual de release/produccion correspondiente.
 14. Antes de solicitar merge o paso a produccion, ejecutar y dejar registradas las validaciones locales enfocadas al alcance del cambio para reducir fallas en checks del PR y sostener objetivo de exito >95%.
    - Si el cambio toca vistas renderizadas o contenido multilenguaje, incluir al menos build + pruebas dirigidas del recurso/pagina afectada con locale explicito cuando corresponda.
+   - Si aparece una necesidad de quality gate, readiness o release evidence, resolverla fuera del producto: scripts, CI, docs operativas, handoff compartido o runbooks del SDLC.
 15. Tras aprobacion y merge, verificar en produccion:
     - HTTP 200 en `/`, `/comunidad`, `/eventos`, `/proyectos`
     - Comportamiento funcional del cambio
@@ -105,3 +108,4 @@
 14. Si los workflows o checks empiezan a emitir warnings de runtime/deprecacion, tratarlos como deuda operativa prioritaria: actualizar primero las acciones oficiales a majors soportados y validar la cadena CI/CD antes de seguir agregando nuevas capacidades.
 14. En marketing social, primero validar borradores internos y tono/claims en una vista privada antes de enlazar canales externos; LinkedIn/X u otras redes con mayor riesgo reputacional deben permanecer en modo aprobacion explicita hasta comprobar calidad sostenida.
 15. Cuando una vista admin o publica derive resúmenes/estados desde códigos opcionales (fallbacks de scheduling, recovery, readiness o similares), re-sanitizar el valor después de cada asignación derivada y cubrir el estado productivo exacto en tests para evitar `NullPointerException` por llamar `.isBlank()` o normalizaciones sobre `null`.
+16. No convertir necesidades de estabilizacion de PRs, pasos a produccion o seguimiento de rollout en funcionalidades del producto salvo que exista requerimiento explicito de negocio; por defecto, esas necesidades se resuelven en el SDLC y no deben competir con el roadmap funcional.

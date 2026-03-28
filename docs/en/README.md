@@ -44,7 +44,6 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Security Hardening Baseline](development/security-hardening-baseline.md)
 - [Production-Safe Delivery Playbook](development/production-safe-delivery-playbook.md)
 - [Release Stage Gates](development/release-stage-gates.md)
-- [Reputation Hub Primary Switch Runbook](development/reputation-hub-primary-switch-runbook.md)
 
 ## AI Context
 
@@ -58,7 +57,6 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Import Events](features/import-events.md)
 - [Campaigns Module](features/campaigns.md)
 - [Reputation Hub Roadmap](features/reputation-hub-roadmap.md)
-- [Reputation Hub Stability and UX Update](features/reputation-hub-stability-and-ux-update.md)
 - [Metrics](features/metrics.md)
 - [Notifications](features/notifications.md)
 - [Supply Chain Security](features/supply-chain-security.md)

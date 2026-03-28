@@ -105,7 +105,7 @@ Gate:
 - `Community Board` queda deprecado con redirect compatible
 - mensaje de onboarding del cambio
 - runbook de promocion y rollback:
-  - [Reputation Hub Primary Switch Runbook (espejo)](../development/reputation-hub-primary-switch-runbook.md)
+  - la verificacion en produccion se resuelve desde el playbook de entrega del SDLC, no desde un modulo admin dentro del producto
 
 Gate:
 
