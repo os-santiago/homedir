@@ -36,7 +36,8 @@ public class ReputationWebVitalsHistoryService {
         Map.of(
             "hub", computeStability(hubHistory),
             "how", computeStability(howHistory));
-    return new TrendWindow(snapshots.size(), trends, stability, snapshotRecorded);
+    long latestCapturedAtMillis = last == null ? 0L : last.capturedAtMillis();
+    return new TrendWindow(snapshots.size(), trends, stability, snapshotRecorded, latestCapturedAtMillis);
   }
 
   private List<RouteTrend> trendHistory(String route) {
@@ -162,7 +163,8 @@ public class ReputationWebVitalsHistoryService {
       long windowSize,
       Map<String, RouteTrend> routes,
       Map<String, RouteStability> stability,
-      boolean snapshotRecorded) {}
+      boolean snapshotRecorded,
+      long latestCapturedAtMillis) {}
 
   public record RouteStability(long observedWindows, long consecutiveNonWorsening) {
     static RouteStability insufficient() {

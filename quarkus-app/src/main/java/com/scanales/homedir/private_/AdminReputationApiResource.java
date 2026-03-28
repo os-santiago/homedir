@@ -234,6 +234,15 @@ public class AdminReputationApiResource {
                 Map.of(
                     "hub", trendPayload(trend.routes().get("hub")),
                     "how", trendPayload(trend.routes().get("how")))));
+    payload.put(
+        "measurement",
+        measurementPayload(
+            hubAssessment,
+            howAssessment,
+            hubPageViews,
+            howPageViews,
+            trend,
+            totalSamples));
     Map<String, Object> gaReadiness =
         gaReadinessPayload(
             hubAssessment,
@@ -255,6 +264,58 @@ public class AdminReputationApiResource {
     payload.put("rollout", rolloutPayload(flags));
     payload.put("decisionPack", decisionPackPayload(flags, gaReadiness));
     return Response.ok(payload).build();
+  }
+
+  private Map<String, Object> measurementPayload(
+      RouteAssessment hubAssessment,
+      RouteAssessment howAssessment,
+      long hubPageViews,
+      long howPageViews,
+      ReputationWebVitalsHistoryService.TrendWindow trend,
+      long totalSamples) {
+    long latestCapturedAtMillis = trend.latestCapturedAtMillis();
+    long snapshotAgeMinutes =
+        latestCapturedAtMillis <= 0L
+            ? -1L
+            : Duration.between(Instant.ofEpochMilli(latestCapturedAtMillis), Instant.now()).toMinutes();
+    String freshnessStatus =
+        latestCapturedAtMillis <= 0L
+            ? "missing"
+            : (trend.snapshotRecorded() ? "fresh" : "stale");
+    Map<String, Object> routeCoverage =
+        Map.of(
+            "hub",
+            routeCoveragePayload(hubAssessment, hubPageViews),
+            "how",
+            routeCoveragePayload(howAssessment, howPageViews));
+    long readyRoutes =
+        routeCoverage.values().stream()
+            .map(Map.class::cast)
+            .filter(route -> Boolean.TRUE.equals(route.get("ready")))
+            .count();
+    return Map.of(
+        "freshnessStatus", freshnessStatus,
+        "snapshotRecorded", trend.snapshotRecorded(),
+        "latestCapturedAtMillis", latestCapturedAtMillis,
+        "snapshotAgeMinutes", snapshotAgeMinutes,
+        "windowSize", trend.windowSize(),
+        "totalSamples", totalSamples,
+        "readyRoutes", readyRoutes,
+        "totalRoutes", routeCoverage.size(),
+        "routes", routeCoverage);
+  }
+
+  private Map<String, Object> routeCoveragePayload(RouteAssessment assessment, long livePageViews) {
+    boolean samplesReady = assessment.samples() >= gaMinRouteSamples;
+    boolean trafficReady = livePageViews >= gaMinRoutePageViews;
+    boolean ready = samplesReady && trafficReady && !"critical".equals(assessment.status());
+    return Map.of(
+        "ready", ready,
+        "samplesReady", samplesReady,
+        "trafficReady", trafficReady,
+        "assessmentStatus", assessment.status(),
+        "samples", assessment.samples(),
+        "livePageViews", livePageViews);
   }
 
   private Map<String, Object> rolloutPayload(ReputationFeatureFlags.Flags flags) {

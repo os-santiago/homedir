@@ -5156,6 +5156,12 @@ public interface AppMessages {
 
     @Message("Turn the current evidence and rollout flags into one clear next move for the operator.")
     String admin_reputation_decision_desc();
+
+    @Message("Measurement freshness")
+    String admin_reputation_measurement_title();
+
+    @Message("Check whether the current GA evidence is fresh enough to support a release decision.")
+    String admin_reputation_measurement_desc();
     @Message("Blockers and action order")
     String admin_reputation_blockers_title();
 
@@ -5317,6 +5323,27 @@ public interface AppMessages {
 
     @Message("Manual pending count")
     String admin_reputation_js_manual_pending_count();
+
+    @Message("Fresh")
+    String admin_reputation_js_measurement_fresh();
+
+    @Message("Stale")
+    String admin_reputation_js_measurement_stale();
+
+    @Message("Missing")
+    String admin_reputation_js_measurement_missing();
+
+    @Message("Measurement status")
+    String admin_reputation_js_measurement_status();
+
+    @Message("Snapshot age (min)")
+    String admin_reputation_js_measurement_age();
+
+    @Message("Ready routes")
+    String admin_reputation_js_measurement_ready_routes();
+
+    @Message("Captured windows")
+    String admin_reputation_js_measurement_window_size();
     @Message("Development Insights · Homedir")
     String admin_insights_title();
 

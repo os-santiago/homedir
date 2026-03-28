@@ -381,6 +381,12 @@ class AdminReputationApiResourceTest {
     Map<String, Object> rollout = (Map<String, Object>) payload.get("rollout");
     assertEquals("disabled", rollout.get("stage"));
     @SuppressWarnings("unchecked")
+    Map<String, Object> measurement = (Map<String, Object>) payload.get("measurement");
+    assertEquals("fresh", measurement.get("freshnessStatus"));
+    assertEquals(true, measurement.get("snapshotRecorded"));
+    assertEquals(2L, ((Number) measurement.get("readyRoutes")).longValue());
+    assertEquals(2L, ((Number) measurement.get("totalRoutes")).longValue());
+    @SuppressWarnings("unchecked")
     Map<String, Object> decisionPack = (Map<String, Object>) payload.get("decisionPack");
     assertEquals("ready", decisionPack.get("status"));
     assertEquals(true, decisionPack.get("automatedReady"));
@@ -490,5 +496,11 @@ class AdminReputationApiResourceTest {
     assertFalse(actionPlan.isEmpty());
     assertEquals("stale_window_data", actionPlan.get(0).get("blocker"));
     assertEquals("verify_web_vitals_ingestion", actionPlan.get(0).get("action"));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> measurement = (Map<String, Object>) payload.get("measurement");
+    assertEquals("stale", measurement.get("freshnessStatus"));
+    assertEquals(false, measurement.get("snapshotRecorded"));
+    assertEquals(2L, ((Number) measurement.get("readyRoutes")).longValue());
+    assertEquals(2L, ((Number) measurement.get("totalRoutes")).longValue());
   }
 }
