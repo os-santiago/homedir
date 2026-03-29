@@ -1,10 +1,10 @@
-### Summary
-Problem → Solution
+## Overview
+Problem -> Solution (Direct & Clear)
 
-### Checks
-- [ ] Closes #<issue> / Refs INC-<id>
-- [ ] CI green (build + tests + linters)
-- [ ] SBOM generated (Maven) & image SBOM (Syft)
-- [ ] Image scanned (Grype) — thresholds respected
-- [ ] Rollout/feature flags notes if applicable
-- [ ] Docs updated (README/SECURITY) if needed
+## Key Changes
+- List principal changes here
+
+## Checklist
+- [ ] Tested locally and everything looks good
+- [ ] Closes #<issue_number>
+- [ ] No regressions introduced
