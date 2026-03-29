@@ -20,7 +20,19 @@ buildNumber.properties
 
 # Logs and reports
 *.log
+failed_log*.txt
+run_status*.txt
+test_log*.txt
+compile_log.txt
 reports/
+
+# Debug and temporary files
+cookies.txt
+_tmp_fetch.py
+*_debug.html
+error.html
+runs.json
+
 
 # Common build outputs
 dist/

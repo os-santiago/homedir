@@ -1,1 +1,0 @@
-completed	failure	Merge pull request #156 from os-santiago/fix/profile-template-retry	Release Pipeline	main	push	20188997545	1m10s	2025-12-13T07:43:35Z
