@@ -1,11 +1,22 @@
-## Description
-Briefly describe the problem you aren't solving and the solution you are proposing.
+## Summary
+Briefly describe the problem and the solution.
 
-## Verification
-<!-- If any test fails, explain the reason for the error. -->
-- [ ] Local preflight executed (`./scripts/ci/pr_preflight.sh`)
-- [ ] Ran tests (mvn test) - Pass / Fail (Count: )
-- [ ] Source compiles and package created (mvn package)
+## Why
+Rationale behind this change.
 
-## Notes
-Optional notes.
+## Scope
+- In: What is being changed.
+- Out: What is out of scope.
+
+## Validation
+- [ ] Local build and tests passed.
+- [ ] UI/UX verification (if applicable).
+- [ ] CodeQL/Sanitization preflight (Rule #24).
+
+## Production Plan
+- Verification: How to verify in production (Rule #15).
+- Rollback: How to revert if needed.
+
+## Operational Status
+- [ ] auto-merge enabled (Rule #32).
+- [ ] Workspace synced (Rule #29).
