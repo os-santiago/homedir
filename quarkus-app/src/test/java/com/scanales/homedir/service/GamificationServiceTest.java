@@ -5,23 +5,46 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.challenges.ChallengeService;
+import com.scanales.homedir.TestDataDir;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.QuestClass;
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.notifications.NotificationService;
+import com.scanales.homedir.reputation.ReputationEngineService;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@QuarkusTestResource(TestDataDir.class)
+@TestProfile(GamificationServiceTest.ReputationEnabledProfile.class)
 public class GamificationServiceTest {
+
+  public static class ReputationEnabledProfile implements QuarkusTestProfile {
+    @Override
+    public Map<String, String> getConfigOverrides() {
+      return Map.of("reputation.engine.enabled", "true");
+    }
+  }
 
   @Inject GamificationService gamificationService;
   @Inject UserProfileService userProfileService;
   @Inject NotificationService notificationService;
   @Inject UsageMetricsService usageMetricsService;
   @Inject ChallengeService challengeService;
+  @Inject ReputationEngineService reputationEngineService;
+
+  @BeforeEach
+  void setUp() {
+    reputationEngineService.resetForTests();
+  }
 
   @Test
   void dailyCheckinAwardsXpOncePerDay() {
@@ -115,5 +138,28 @@ public class GamificationServiceTest {
     var counters = usageMetricsService.snapshot();
     assertEquals(1L, counters.getOrDefault("funnel:challenge.started", 0L));
     assertEquals(1L, counters.getOrDefault("funnel:challenge.started.open-source-identity", 0L));
+  }
+
+  @Test
+  void mappedSiteActivitiesWriteReputationEvents() {
+    String userId = "reputation.mapping@example.com";
+    reputationEngineService.resetForTests();
+
+    assertTrue(gamificationService.award(userId, GamificationActivity.COMMUNITY_VOTE, "pick-42"));
+    assertTrue(gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, "devopsdays:cfp"));
+    assertTrue(gamificationService.award(userId, GamificationActivity.PROJECT_VIEW, "homedir"));
+    assertTrue(gamificationService.award(userId, GamificationActivity.LTA_COMMENT_CREATE, "thread-1"));
+
+    ReputationEngineService.EngineSnapshot snapshot = reputationEngineService.snapshot();
+    UserProfile profile = userProfileService.find(userId).orElseThrow();
+    Set<String> eventTypes =
+        snapshot.eventsById().values().stream().map(event -> event.eventType()).collect(java.util.stream.Collectors.toSet());
+
+    assertTrue(eventTypes.contains("community_vote_cast"), eventTypes.toString());
+    assertTrue(eventTypes.contains("content_explored"), eventTypes.toString());
+    assertTrue(eventTypes.contains("discussion_participated"), eventTypes.toString());
+    assertTrue(snapshot.aggregatesByUser().containsKey(userId));
+    assertTrue(snapshot.aggregatesByUser().get(userId).totalScore() > 0L);
+    assertTrue(profile.getCurrentXp() > 0);
   }
 }
