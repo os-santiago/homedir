@@ -1,112 +1,58 @@
 # ADEV.md
 
-## Reglas Normativas Unicas
-1. Modo por defecto: cada iteracion debe salir en una rama dedicada y un unico PR atomico con objetivo claro.
-2. Todo cambio debe llegar por PR; no se permite push directo a `main`.
-3. Los commits deben ser atomicos y con `Conventional Commits`.
-4. No mezclar en el mismo PR: refactor + feature + cambios visuales + infraestructura.
-5. Mantener look and feel, estructura CSS y HTML del producto salvo instruccion explicita en contrario.
-6. Reutilizar y extender la capa de persistencia de Homedir; evitar servicios externos salvo requerimiento explicito.
-7. Minimizar impacto sobre APIs/servicios existentes y mantener compatibilidad hacia atras cuando aplique.
-8. Si otra persona/agente modifica archivos locales, no tocar los mismos archivos en paralelo.
-9. Resolver conflictos preservando mejoras validas de ambos lados; no perder mejoras por sobreescritura.
-10. Ejecutar validaciones antes de commit y no incluir archivos no relacionados en el PR.
-11. No avanzar a una nueva iteracion sin validar la anterior en produccion.
-12. CI obligatoria en verde antes de merge.
-13. El versionado y tagging se ejecuta en cadencia manual por iniciativa; no asumir tag por cada PR o cambio menor.
-14. La publicacion de releases se realiza en cadencia manual cuando una iniciativa o corte de version lo requiera; no por defecto tras cada PR.
-15. Al versionar, actualizar referencias de version en todo el repo (iniciando por `pom.xml` cuando aplique).
-16. Documentacion del repo debe mantenerse en estructura bilingue oficial:
-    - Canonico: `docs/en/**`
-    - Espejo: `docs/es/**` (traduccion o stub)
-    - Gateway: `docs/README.md`
-17. Todo resultado debe seguirse hasta verificacion de despliegue en produccion.
-18. Para nuevas funciones, endpoints o APIs, aplicar rollout incremental obligatorio en 3 iteraciones:
-    - Iteracion 1: introducir recurso nuevo oculto/sin consumo productivo.
-    - Iteracion 2: integrar consumo progresivo del recurso nuevo.
-    - Iteracion 3: retirar versiones legadas/deprecadas una vez validado en produccion.
-19. La calidad objetivo de entrega debe mantenerse sobre 95% de exito semanal (ultimos 7 dias) tanto en checks de PR como en pases a produccion; si baja, priorizar estabilizacion antes de nuevas features.
-20. Si el proyecto es multilenguaje, todo texto visible debe implementarse via archivos/bundles de idioma; evitar texto hardcoded de forma global en templates, JS, backend y mensajes UI.
-21. Override explicito permitido: si se solicita trabajar/ejecutar en modo "entrega por lotes" (o equivalente), se permiten multiples iteraciones atomicas dentro de un solo PR, con validaciones intermedias por etapa y un punto de restauracion para rollback completo del lote.
-22. Toda falla de PR, bloqueo de integracion o incidente generado por un cambio debe cerrarse incorporando el aprendizaje resultante en `ADEV.md` como regla o principio consolidado, evitando redundancia y duplicidad.
-23. Todo cambio que toque templates, copy visible, i18n, rutas publicas o vistas admin debe actualizar o crear pruebas del comportamiento afectado en la misma iteracion; no se permite dejar assertions heredadas contra UI anterior.
-24. Antes de abrir un PR, revisar cambios nuevos contra patrones comunes de CodeQL del repo (logs con input/path, redirects, auth/session, persistencia y URLs derivadas de input); sanitizar o encapsular esos casos en la misma iteracion, no despues del fallo en CI.
-25. Para automatizaciones de marketing y publicacion social, el rollout es obligatorio en 3 etapas: borradores internos/sin publicacion -> aprobacion o programacion controlada -> autopublicacion por canal solo tras validacion en produccion.
-26. El marketing automatizado solo puede usar datos reales y verificables del producto (releases, metrics, insights, eventos, comunidad, challenges); no inventar cifras, hitos ni claims.
-27. Toda integracion de publicacion a redes debe operar con secretos gestionados fuera del repo, deduplicacion de mensajes, rate limit por canal y kill switch global antes de habilitar cualquier scheduler productivo.
-28. Toda iteracion, lote u objetivo debe cerrar con handoff actualizado en el workspace compartido y con un PR abierto o actualizado; no se considera trabajo completo si el estado queda solo en el chat o solo en el arbol local.
-29. El workspace compartido debe mantenerse consistente en cada checkpoint relevante:
-    - actualizar `LATEST.txt`
-    - agregar o actualizar `HANDOFF.md` y `state.json`
-    - anexar entrada en `SESSION-LOG.md`
-    - registrar decisiones durables en `DECISIONS.md` cuando apliquen
-30. Antes de pedir aprobacion, merge o paso a produccion, completar las tareas de calidad necesarias para sostener la metrica de exito de PRs:
-    - validaciones locales enfocadas al alcance
-    - pruebas afectadas por UI, i18n, backend y flujos operativos
-    - preflight de CodeQL y sanitizacion de riesgos conocidos
-    - documentacion/handoff/plan de verificacion en produccion actualizados
-31. El paso a produccion de un PR requiere esta secuencia minima: validacion local completa -> handoff compartido al dia -> PR actualizado -> aprobacion explicita -> merge/auto-merge -> verificacion en produccion.
-32. Todo PR debe quedar configurado con `auto-merge`; no cerrar una iteracion dejando un PR manual sin esta configuracion, salvo bloqueo explicito documentado en el handoff y en el propio PR.
-33. Todo cambio debe finalizar en un PR al terminar una iteracion u objetivo; no dejar cambios completados solo en rama local, solo en handoff o acumulados sin PR de salida.
-34. Todo PR aprobado y mergeado a `main` debe cerrar con limpieza operativa:
-    - verificar que el merge a `main` se realizo correctamente
-    - eliminar la rama origen del PR en remoto y local cuando ya no sea necesaria
-    - actualizar el handoff compartido con el estado post-merge y la limpieza realizada
-35. La calidad de PRs, gates de release y validaciones de paso a produccion pertenecen al SDLC y a la operacion de entrega, no al producto user-facing: resolverlos con validaciones locales, ramas feature, CI/CD, runbooks y handoff compartido; no crear dashboards, checks o consolas dentro de Homedir salvo requerimiento explicito y separado del roadmap de producto.
-36. Si existe un PRD o roadmap de producto vigente, las iteraciones deben priorizar valor visible para usuarios finales y evitar desviar alcance hacia tooling interno, evidencia de release o capas operativas que no sean parte del producto acordado.
+Upstream source of truth: `https://github.com/scanalesespinoza/adev`
 
-## Flujo Operativo
-1. Sincronizar con `origin/main`.
-2. Crear rama corta con scope explicito (`feat/*`, `fix/*`, `hotfix/*`, `docs/*`, `chore/*`).
-3. Elegir modo de entrega:
-   - Default: 1 iteracion = 1 PR.
-   - "Entrega por lotes": varias iteraciones atomicas en 1 PR, solo si fue solicitado explicitamente.
-4. Implementar solo el alcance acordado para la iteracion (o para la etapa actual del lote).
-5. Para nuevas funciones/endpoints/APIs, ejecutar secuencia incremental: oculto/sin uso -> integrado/consumido -> limpieza legado/deprecado.
-6. En modo "entrega por lotes", crear punto de restauracion al inicio del lote (tag/commit de referencia) y mantener checkpoints por etapa.
-7. Ejecutar validacion local rapida (build y pruebas criticas del cambio) en cada iteracion/etapa.
-8. Commit atomico.
-9. Push de rama.
-10. Actualizar el workspace compartido con handoff consistente del estado actual antes de pedir revision o cambiar de asistente/sesion.
-11. Crear o actualizar PR con:
-   - Summary
-   - Why
-   - Scope (in/out)
-   - Validation
-   - Production verification plan
-   - Rollback plan
-12. Activar `auto-merge` en todos los PRs cuando los checks requeridos esten listos y exista aprobacion explicita cuando la iniciativa lo requiera.
-13. Monitorear `PR Validation` y, cuando aplique a la iniciativa, el workflow manual de release/produccion correspondiente.
-14. Antes de solicitar merge o paso a produccion, ejecutar y dejar registradas las validaciones locales enfocadas al alcance del cambio para reducir fallas en checks del PR y sostener objetivo de exito >95%.
-   - Si el cambio toca vistas renderizadas o contenido multilenguaje, incluir al menos build + pruebas dirigidas del recurso/pagina afectada con locale explicito cuando corresponda.
-   - Si aparece una necesidad de quality gate, readiness o release evidence, resolverla fuera del producto: scripts, CI, docs operativas, handoff compartido o runbooks del SDLC.
-15. Tras aprobacion y merge, verificar en produccion:
-    - HTTP 200 en `/`, `/comunidad`, `/eventos`, `/proyectos`
-    - Comportamiento funcional del cambio
-    - Sin errores criticos nuevos en consola de navegador
-16. Tras confirmar que el merge a `main` fue correcto, eliminar la rama origen del PR en remoto y local cuando ya no sea necesaria.
-17. Actualizar nuevamente el handoff compartido con resultado de merge/verificacion en produccion y limpieza de rama para que CLI, App y otros asistentes retomen desde el mismo estado.
-18. Si falla produccion:
-    - detener iteraciones nuevas
-    - revertir o rollback a version estable
-    - abrir PR correctivo con causa raiz y prevencion
+## Mission
+A-Dev is not a traditional writing project. This repository is the empirical codification of model- and agent-assisted software delivery, grounded in repeatable evidence from real execution.
 
-## Lecciones Operativas del Historial
-1. Si una regla, plantilla o automatizacion contradice el flujo real del repo, corregir primero la regla/documentacion antes de institucionalizar el error.
-2. Documentar y automatizar solo comandos, workflows y supuestos que esten respaldados por el repositorio o la operacion real; si falta contexto, dejarlo explicito como `TODO` en vez de inventarlo.
-3. Para scripts, operaciones y DR, no basta con validacion sintactica: ejecutar smoke tests reales en el entorno que importa y separar fallas del harness/quoting de fallas funcionales.
-4. Para rendimiento, trabajar con comparaciones "apples-to-apples" contra un baseline concreto, medir latencia/error/payload y declarar incertidumbre cuando falten fixtures, trazas o datos productivos.
-5. Priorizar siempre el fix de mayor apalancamiento demostrado por evidencia; evitar optimizaciones amplias o redisenos si aun no existe medicion que justifique el costo.
-6. En personalizaciones visuales por evento o contexto, aplicar overrides de color/branding solo dentro de ese alcance y preservar la identidad global del sitio fuera de ese contexto.
-7. Para backups y recuperacion ante desastre, validar restaurabilidad completa del servicio; no considerar suficiente un respaldo si no permite reconstruir el sitio con datos, artefactos y procedimiento probado.
-8. Mantener workstreams limpios: abrir rama dedicada desde una base estable, no mezclar cambios ajenos y revalidar cuando cambien flags, comandos o herramientas para conservar comparabilidad.
-9. En paginas multilenguaje, los tests deben fijar explicitamente el locale esperado y validar el contenido localizado correspondiente; no depender del idioma por defecto o de textos heredados.
-10. Cuando cambie la narrativa, jerarquia o copy de una vista, revisar tambien pruebas hermanas del mismo recurso para evitar dejar expectations antiguas que solo fallan en CI.
-11. Cuando una refactorizacion cambie el modelo de interaccion UI (por ejemplo, modal a pagina de detalle), actualizar en la misma iteracion las pruebas para validar el nuevo comportamiento observable y eliminar dependencias a markup legado.
-12. Si un cambio introduce nuevos logs sobre rutas, identificadores o valores derivados de input/estado, registrar solo etiquetas sanitizadas y no rutas absolutas ni valores crudos; considerar esta revision como preflight obligatorio de CodeQL.
-13. Cuando se invoquen servicios compartidos que ya escriben campos al log, tratar esos campos como sinks indirectos de CodeQL: usar identificadores constantes o previamente sanitizados para atributos auxiliares como `talkId`, nombres de archivo, labels o keys visibles en logging interno.
-14. Si los workflows o checks empiezan a emitir warnings de runtime/deprecacion, tratarlos como deuda operativa prioritaria: actualizar primero las acciones oficiales a majors soportados y validar la cadena CI/CD antes de seguir agregando nuevas capacidades.
-14. En marketing social, primero validar borradores internos y tono/claims en una vista privada antes de enlazar canales externos; LinkedIn/X u otras redes con mayor riesgo reputacional deben permanecer en modo aprobacion explicita hasta comprobar calidad sostenida.
-15. Cuando una vista admin o publica derive resúmenes/estados desde códigos opcionales (fallbacks de scheduling, recovery, readiness o similares), re-sanitizar el valor después de cada asignación derivada y cubrir el estado productivo exacto en tests para evitar `NullPointerException` por llamar `.isBlank()` o normalizaciones sobre `null`.
-16. No convertir necesidades de estabilizacion de PRs, pasos a produccion o seguimiento de rollout en funcionalidades del producto salvo que exista requerimiento explicito de negocio; por defecto, esas necesidades se resuelven en el SDLC y no deben competir con el roadmap funcional.
-17. Los releases productivos no deben depender de un solo container registry: mantener al menos un registry secundario operativo para push y pull, y asegurar que los scripts del VPS prueben ambos antes de declarar fallo de despliegue.
+## Non-Negotiable Rules
+1. Default mode: 1 stage = 1 dedicated branch + 1 atomic PR with a single clear objective.
+2. No direct push to `main`; every change lands through PR review and green checks.
+3. Use Conventional Commits and keep each commit atomic.
+4. Do not mix framework doctrine, manuscript expansion, starter-kit changes, release mechanics, and website polish in the same PR unless the user explicitly requests batch delivery.
+5. Prefer new canonical assets over broad rewrites of stable files when codifying new lessons.
+6. Every framework claim must map to a repository asset, validated release flow, or real operational evidence from Homedir.
+7. Every failure worth remembering must become one of: a guardrail, a case study, a checklist item, or a starter-kit update.
+8. English is the only valid language for committed repository content unless a bilingual mirror is explicitly required.
+9. If another person or agent is already changing a file locally, avoid parallel edits on that file unless coordination is explicit.
+10. Do not institutionalize guessed workflows. If the repository or evidence does not support a claim, mark it as a gap.
+11. Manual release cadence applies here too: do not assume every PR needs a tag or public release.
+12. Before commit, run the narrowest validation that proves the change is sound for its scope.
+13. If the user asks for batch delivery, multiple atomic iterations may live in one PR, but each stage still needs explicit validation and a rollback point.
+14. Any local branch that has already been merged into `main` must be deleted during cleanup; keep local branch state lean and remove merged work once it is no longer needed.
+
+## Stage Model
+### Stage 1: Canon
+- Convert Homedir evidence into canonical doctrine.
+- Favor evidence indexes, guardrails, and failure-derived case studies.
+
+### Stage 2: Productize the method
+- Improve starter-kit adoption paths, rituals, and reusable operating assets.
+- Make A-Dev portable beyond Homedir.
+
+### Stage 3: Authority and publishability
+- Expand the manuscript, proof packaging, and market positioning.
+- Strengthen external credibility without diluting the framework.
+
+## Operating Flow
+1. Sync with `origin/main` and open a dedicated branch.
+2. Define the exact scope for the current stage or PR.
+3. Implement only repository-grounded assets for that scope.
+4. Validate the changed surface.
+5. Commit atomically.
+6. Push the branch.
+7. Open a PR that includes: summary, why, scope in/out, validation, follow-up stage, and rollback notes if relevant.
+8. Do not advance to the next stage PR until the current one is reviewed and stable.
+9. After merge verification, delete local branches already merged into `main` as part of routine cleanup.
+
+## Evidence Rules
+1. Prefer proof chains of the form: incident -> decision -> guardrail -> reusable asset.
+2. When using Homedir as source material, extract the transferable principle; do not let project-specific detail replace doctrine.
+3. Case studies should show conflict, constraint, decision, evidence, and reusable lesson.
+4. Starter-kit assets should tell a practitioner what to do on day 0, in the first week, and before the first production release.
+5. Traceability matters here too: roadmap, doctrine, templates, and releases should agree with each other.
+
+## Editorial Positioning
+1. Homedir is the proving ground. A-Dev is the transferable system.
+2. The book should not depend on private chat context to make sense.
+3. The strongest material in this repository is not abstract optimism; it is disciplined learning under failure, delivery pressure, and verification.
