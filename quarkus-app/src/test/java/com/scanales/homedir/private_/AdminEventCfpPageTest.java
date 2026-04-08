@@ -55,7 +55,11 @@ public class AdminEventCfpPageTest {
         .body(containsString("id=\"cfpClearFiltersBtn\""))
         .body(containsString("data-cfp-admin-nav=\"cfp-overview-panel\""))
         .body(containsString("data-cfp-admin-nav=\"cfp-configuration-panel\""))
+        .body(containsString("data-cfp-admin-nav=\"cfp-reviewers-panel\""))
         .body(containsString("data-cfp-admin-nav=\"cfp-review-panel\""))
+        .body(containsString("id=\"cfpReviewerEmail\""))
+        .body(containsString("id=\"cfpReviewerAddBtn\""))
+        .body(containsString("id=\"cfpReviewerList\""))
         .body(containsString("Open detail"))
         .body(containsString("/cfp/submissions/"));
   }
@@ -124,6 +128,7 @@ public class AdminEventCfpPageTest {
         .body(containsString("/cfp/submissions"))
         .body(containsString("data-cfp-admin-nav=\"cfp-overview-panel\""))
         .body(containsString("data-cfp-admin-nav=\"cfp-review-panel\""))
+        .body(org.hamcrest.Matchers.not(containsString("data-cfp-admin-nav=\"cfp-reviewers-panel\"")))
         .body(containsString("const canManage = false"));
   }
 

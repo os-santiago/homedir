@@ -29,6 +29,7 @@
     <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-overview-panel">{i18n:events_cfp_admin_subnav_overview}</button>
     {#if canManage}
     <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-configuration-panel">{i18n:events_cfp_admin_subnav_configuration}</button>
+    <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-reviewers-panel">{i18n:events_cfp_admin_subnav_reviewers}</button>
     {/if}
     <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-review-panel">{i18n:events_cfp_admin_subnav_review}</button>
   </nav>
@@ -144,6 +145,46 @@
   </section>
   {/if}
 
+  {#if canManage}
+  <section id="cfp-reviewers-panel" data-cfp-admin-section hidden>
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
+      <div>
+        <h2 class="card-title">{i18n:events_cfp_admin_reviewers_title}</h2>
+        <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_reviewers_desc}</p>
+      </div>
+      <div class="action-group admin-shell-actions-tight">
+        <button id="cfpReviewerReloadBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_reviewers_reload}</button>
+      </div>
+    </div>
+    <div class="cfp-review-search-grid">
+      <label class="form-hint cfp-review-search-field">
+        <span>{i18n:events_cfp_admin_reviewers_email_label}</span>
+        <input
+          id="cfpReviewerEmail"
+          name="cfpReviewerEmail"
+          type="email"
+          class="form-input"
+          placeholder="{i18n:events_cfp_admin_reviewers_email_placeholder}">
+      </label>
+    </div>
+    <div class="action-group admin-shell-actions-tight admin-shell-margin-top-sm">
+      <button id="cfpReviewerAddBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_reviewers_add}</button>
+    </div>
+    <p id="cfpReviewerFeedback" class="form-hint admin-shell-feedback" hidden></p>
+  </div>
+
+  <div class="card admin-shell-margin-bottom-md">
+    <div class="admin-shell-card-header">
+      <div>
+        <h2 class="card-title">{i18n:events_cfp_admin_reviewers_list_title}</h2>
+      </div>
+    </div>
+    <div id="cfpReviewerList"></div>
+  </div>
+  </section>
+  {/if}
+
   <section id="cfp-overview-panel" data-cfp-admin-section>
   <div class="card admin-shell-margin-bottom-md">
     <div class="admin-shell-card-header">
@@ -235,6 +276,7 @@
     const eventId = "{event.id}";
     const canManage = {#if canManage}true{#else}false{/if};
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
+    const staffEndpoint = "/api/private/admin/events/" + encodeURIComponent(eventId) + "/ops/staff";
     const agendaConfigEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/agenda/config";
     const configEndpoint = baseEndpoint + "/config";
     const eventConfigEndpoint = baseEndpoint + "/event-config";
@@ -253,6 +295,11 @@
     const eventConfigClearBtn = document.getElementById("cfpEventConfigClearBtn");
     const eventConfigSummary = document.getElementById("cfpEventConfigSummary");
     const eventConfigFeedback = document.getElementById("cfpEventConfigFeedback");
+    const reviewerEmailInput = document.getElementById("cfpReviewerEmail");
+    const reviewerAddBtn = document.getElementById("cfpReviewerAddBtn");
+    const reviewerReloadBtn = document.getElementById("cfpReviewerReloadBtn");
+    const reviewerFeedback = document.getElementById("cfpReviewerFeedback");
+    const reviewerList = document.getElementById("cfpReviewerList");
     const resultsMessageAccepted = document.getElementById("cfpAcceptedResultsMessage");
     const resultsMessageRejected = document.getElementById("cfpRejectedResultsMessage");
     const publishResultsBtn = document.getElementById("cfpPublishResultsBtn");
@@ -326,7 +373,13 @@
       resultsRejectCount: "{i18n:events_cfp_admin_results_summary_reject_count}",
       resultsPublishedBy: "{i18n:events_cfp_admin_results_summary_by}",
       resultsPublishSuccess: "{i18n:events_cfp_admin_results_published}",
-      resultsPublishError: "{i18n:events_cfp_admin_results_error}"
+      resultsPublishError: "{i18n:events_cfp_admin_results_error}",
+      reviewerEmpty: "{i18n:events_cfp_admin_reviewers_empty}",
+      reviewerAdded: "{i18n:events_cfp_admin_reviewers_added}",
+      reviewerRemoved: "{i18n:events_cfp_admin_reviewers_removed}",
+      reviewerError: "{i18n:events_cfp_admin_reviewers_error}",
+      reviewerEmailRequired: "{i18n:events_cfp_admin_reviewers_email_required}",
+      reviewerRemove: "{i18n:events_cfp_admin_reviewers_remove}"
     };
     const pageSize = 20;
     let activeStatus = "under_review";
@@ -340,6 +393,7 @@
     let nextOffset = null;
     let listRequestSequence = 0;
     let currentEventConfigPayload = null;
+    let currentReviewerItems = [];
 
     function openCfpAdminSection(panelId, updateHash = true) {
       if (!panelId) return;
@@ -833,6 +887,157 @@
       eventConfigFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
     }
 
+    function showReviewerFeedback(message, isError) {
+      if (!reviewerFeedback) return;
+      reviewerFeedback.hidden = false;
+      reviewerFeedback.textContent = message;
+      reviewerFeedback.style.color = isError ? "var(--color-danger, #ff8b8b)" : "var(--color-accent, #ffd54f)";
+    }
+
+    function renderReviewerEmpty(message) {
+      if (!reviewerList) {
+        return;
+      }
+      reviewerList.innerHTML = "";
+      const empty = document.createElement("p");
+      empty.className = "form-hint";
+      empty.textContent = message;
+      reviewerList.appendChild(empty);
+    }
+
+    function buildReviewerCard(item) {
+      const article = document.createElement("article");
+      article.className = "cfp-admin-card";
+
+      const top = document.createElement("div");
+      top.style.display = "flex";
+      top.style.justifyContent = "space-between";
+      top.style.alignItems = "center";
+      top.style.gap = "0.6rem";
+      top.style.flexWrap = "wrap";
+
+      const title = document.createElement("h3");
+      title.textContent = item.user_name || item.user_id || i18n.notAvailable;
+      top.appendChild(title);
+
+      const chip = document.createElement("span");
+      chip.className = "cfp-status-chip";
+      chip.textContent = item.user_id || i18n.notAvailable;
+      top.appendChild(chip);
+      article.appendChild(top);
+
+      const meta = row(
+        (item.source || i18n.notAvailable)
+          + " · "
+          + i18n.updatedAt
+          + " "
+          + (fmtDate(item.updated_at) || i18n.notAvailable));
+      article.appendChild(meta);
+
+      const actions = document.createElement("div");
+      actions.className = "cfp-admin-actions";
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "btn btn-ghost";
+      removeBtn.textContent = i18n.reviewerRemove;
+      removeBtn.addEventListener("click", () => {
+        updateReviewer(item.user_id, false, item.user_name || null);
+      });
+      actions.appendChild(removeBtn);
+      article.appendChild(actions);
+      return article;
+    }
+
+    function renderReviewerList(items) {
+      currentReviewerItems = Array.isArray(items) ? items : [];
+      if (!reviewerList) {
+        return;
+      }
+      if (!currentReviewerItems.length) {
+        renderReviewerEmpty(i18n.reviewerEmpty);
+        return;
+      }
+      reviewerList.innerHTML = "";
+      currentReviewerItems.forEach((item) => {
+        reviewerList.appendChild(buildReviewerCard(item));
+      });
+    }
+
+    async function loadReviewers() {
+      if (!canManage || !reviewerList) {
+        return;
+      }
+      renderReviewerEmpty(i18n.queueLoading);
+      try {
+        const response = await fetch(staffEndpoint + "?include_inactive=true", {
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+          throw new Error(i18n.reviewerError);
+        }
+        const payload = await response.json();
+        const items = Array.isArray(payload && payload.items) ? payload.items : [];
+        const activeReviewers = items.filter((item) => item && item.role === "cfp-reviewer" && item.active);
+        renderReviewerList(activeReviewers);
+      } catch (error) {
+        renderReviewerEmpty(i18n.reviewerError);
+      }
+    }
+
+    async function updateReviewer(userId, active, userName) {
+      if (!canManage || !userId) {
+        return;
+      }
+      if (reviewerFeedback) {
+        reviewerFeedback.hidden = true;
+      }
+      if (reviewerAddBtn) {
+        reviewerAddBtn.disabled = true;
+      }
+      if (reviewerReloadBtn) {
+        reviewerReloadBtn.disabled = true;
+      }
+      try {
+        const response = await fetch(staffEndpoint + "/" + encodeURIComponent(userId), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            user_name: userName,
+            role: "cfp-reviewer",
+            source: "manual",
+            active: active
+          })
+        });
+        if (!response.ok) {
+          showReviewerFeedback(i18n.reviewerError, true);
+          return;
+        }
+        if (reviewerEmailInput && active) {
+          reviewerEmailInput.value = "";
+        }
+        await loadReviewers();
+        showReviewerFeedback(active ? i18n.reviewerAdded : i18n.reviewerRemoved, false);
+      } catch (error) {
+        showReviewerFeedback(i18n.reviewerError, true);
+      } finally {
+        if (reviewerAddBtn) {
+          reviewerAddBtn.disabled = false;
+        }
+        if (reviewerReloadBtn) {
+          reviewerReloadBtn.disabled = false;
+        }
+      }
+    }
+
+    function addReviewerFromInput() {
+      const email = String(reviewerEmailInput ? reviewerEmailInput.value : "").trim().toLowerCase();
+      if (!email) {
+        showReviewerFeedback(i18n.reviewerEmailRequired, true);
+        return;
+      }
+      updateReviewer(email, true, null);
+    }
+
     function showResultsFeedback(message, isError) {
       if (!resultsFeedback) return;
       resultsFeedback.hidden = false;
@@ -1207,6 +1412,15 @@
       eventConfigClearBtn?.addEventListener("click", clearEventConfig);
       publishResultsBtn?.addEventListener("click", publishResults);
       agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
+      reviewerAddBtn?.addEventListener("click", addReviewerFromInput);
+      reviewerReloadBtn?.addEventListener("click", loadReviewers);
+      reviewerEmailInput?.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") {
+          return;
+        }
+        event.preventDefault();
+        addReviewerFromInput();
+      });
     }
     restoreModerationStateFromUrl();
     applyControlsFromState();
@@ -1231,6 +1445,7 @@
       loadTestingConfig();
       loadEventConfig();
       loadAgendaNoticeConfig();
+      loadReviewers();
     }
     loadCfpInsightsSummary();
     loadList();
