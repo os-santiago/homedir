@@ -54,6 +54,91 @@ public class ReputationEngineService {
     return recordEvent("content_published", userId, "community_content", contentId, null, null);
   }
 
+  public boolean trackContentSubmitted(String userId, String sourceType, String sourceId) {
+    return recordEvent("content_submitted", userId, sourceType, sourceId, null, null);
+  }
+
+  public boolean trackContentExplored(String userId, String sourceType, String sourceId) {
+    return recordEvent("content_explored", userId, sourceType, sourceId, null, null);
+  }
+
+  public boolean trackCommunityVoteCast(String userId, String contentId) {
+    return recordEvent("community_vote_cast", userId, "community_content", contentId, null, null);
+  }
+
+  public boolean trackDiscussionParticipated(String userId, String sourceType, String sourceId) {
+    return recordEvent("discussion_participated", userId, sourceType, sourceId, null, null);
+  }
+
+  public boolean trackVolunteerEngaged(String userId, String sourceType, String sourceId) {
+    return recordEvent("volunteer_engaged", userId, sourceType, sourceId, null, null);
+  }
+
+  public boolean trackSessionFeedbackShared(String userId, String sessionId) {
+    return recordEvent("session_feedback_shared", userId, "session", sessionId, null, null);
+  }
+
+  public boolean trackStreakMilestone(String userId, String streakKey) {
+    return recordEvent("streak_milestone", userId, "streak", streakKey, null, null);
+  }
+
+  public boolean trackGamificationActivity(
+      String userId, com.scanales.homedir.model.GamificationActivity activity, String reference) {
+    if (activity == null) {
+      return false;
+    }
+    return switch (activity) {
+      case DAILY_CHECKIN -> trackStreakMilestone(userId, defaultReference(reference, "daily-checkin"));
+      case HOME_VIEW ->
+          trackContentExplored(userId, "home", defaultReference(reference, "home"));
+      case PROFILE_VIEW ->
+          trackContentExplored(userId, "profile", defaultReference(reference, "profile"));
+      case PUBLIC_PROFILE_VIEW ->
+          trackContentExplored(userId, "public_profile", defaultReference(reference, "public-profile"));
+      case COMMUNITY_MAIN_VIEW,
+          COMMUNITY_PICKS_VIEW,
+          COMMUNITY_PROPOSE_VIEW,
+          COMMUNITY_REVIEW,
+          COMMUNITY_BOARD_VIEW,
+          COMMUNITY_BOARD_MEMBERS_VIEW,
+          BOARD_PROFILE_OPEN ->
+          trackContentExplored(userId, "community", defaultReference(reference, activity.key()));
+      case LTA_VIEW ->
+          trackContentExplored(userId, "community_lightning", defaultReference(reference, "community-lightning"));
+      case COMMUNITY_VOTE -> trackCommunityVoteCast(userId, defaultReference(reference, "community-vote"));
+      case LTA_COMMENT_CREATE ->
+          trackDiscussionParticipated(userId, "community_lightning_comment", defaultReference(reference, "comment"));
+      case LTA_REACTION ->
+          trackDiscussionParticipated(userId, "community_lightning_reaction", defaultReference(reference, "reaction"));
+      case COMMUNITY_SUBMISSION ->
+          trackContentSubmitted(userId, "community_submission", defaultReference(reference, "submission"));
+      case COMMUNITY_SUBMISSION_APPROVED ->
+          trackContentPublished(userId, defaultReference(reference, "community-submission-approved"));
+      case WARRIOR_EVENTS_EXPLORATION,
+          EVENT_DIRECTORY_VIEW,
+          EVENT_VIEW,
+          TALK_VIEW,
+          AGENDA_VIEW ->
+          trackContentExplored(userId, "events", defaultReference(reference, activity.key()));
+      case VOLUNTEER_VIEW ->
+          trackContentExplored(userId, "volunteer", defaultReference(reference, "volunteer"));
+      case PROJECT_VIEW ->
+          trackContentExplored(userId, "project", defaultReference(reference, "project"));
+      case NOTIFICATIONS_CENTER_VIEW ->
+          trackContentExplored(userId, "notifications", defaultReference(reference, "notifications"));
+      case CFP_SUBMIT ->
+          trackContentSubmitted(userId, "cfp_submission", defaultReference(reference, "cfp-submission"));
+      case VOLUNTEER_APPLY,
+          VOLUNTEER_SELECTED,
+          VOLUNTEER_LOUNGE_POST,
+          VOLUNTEER_WITHDRAW ->
+          trackVolunteerEngaged(userId, "volunteer", defaultReference(reference, activity.key()));
+      case SESSION_EVALUATION ->
+          trackSessionFeedbackShared(userId, defaultReference(reference, "session-evaluation"));
+      default -> false;
+    };
+  }
+
   public boolean trackRecognition(
       String eventType,
       String targetUserId,
@@ -342,6 +427,13 @@ public class ReputationEngineService {
       return null;
     }
     return raw.trim();
+  }
+
+  private static String defaultReference(String reference, String fallback) {
+    if (reference != null && !reference.isBlank()) {
+      return reference.trim();
+    }
+    return fallback;
   }
 
   public record EngineSnapshot(
