@@ -5,6 +5,7 @@ import java.util.Optional;
 
 public enum EventStaffRole {
   ORGANIZER("organizer"),
+  CFP_REVIEWER("cfp-reviewer"),
   SPEAKER("speaker"),
   VOLUNTEER("volunteer"),
   PRODUCTION("production"),

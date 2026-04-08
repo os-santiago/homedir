@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.scanales.homedir.eventops.EventOperationsService;
+import com.scanales.homedir.eventops.EventStaffRole;
 import com.scanales.homedir.insights.DevelopmentInsightsLedgerService;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.service.EventService;
@@ -29,6 +31,7 @@ public class CfpSubmissionApiResourceTest {
   @Inject EventService eventService;
   @Inject SpeakerService speakerService;
   @Inject DevelopmentInsightsLedgerService insightsLedger;
+  @Inject EventOperationsService eventOperationsService;
 
   @BeforeEach
   void setup() {
@@ -36,6 +39,7 @@ public class CfpSubmissionApiResourceTest {
     cfpEventConfigService.resetForTests();
     speakerService.reset();
     eventService.reset();
+    eventOperationsService.clearAllForTests();
     eventService.saveEvent(new Event(EVENT_ID, "CFP API Event", "desc"));
   }
 
@@ -618,6 +622,68 @@ public class CfpSubmissionApiResourceTest {
         .accept("application/json")
         .when()
         .get("/api/events/" + EVENT_ID + "/cfp/submissions/stats")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("admin_required"));
+  }
+
+  @Test
+  @TestSecurity(user = "reviewer@example.com")
+  void reviewerCanReadModerationQueueButCannotMutate() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Talk title",
+                "Summary",
+                "Long abstract",
+                "beginner",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of("devops"),
+                List.of()));
+    eventOperationsService.upsertStaff(
+        EVENT_ID,
+        "reviewer@example.com",
+        "Reviewer",
+        EventStaffRole.CFP_REVIEWER,
+        "manual",
+        true);
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions?limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("items", hasSize(1))
+        .body("items[0].id", equalTo(created.id()));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id())
+        .then()
+        .statusCode(200)
+        .body("item.id", equalTo(created.id()));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get("/api/events/" + EVENT_ID + "/cfp/submissions/stats")
+        .then()
+        .statusCode(200)
+        .body("total", equalTo(1));
+
+    given()
+        .contentType("application/json")
+        .body("{\"status\":\"accepted\",\"note\":\"ok\"}")
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/status")
         .then()
         .statusCode(403)
         .body("error", equalTo("admin_required"));

@@ -60,6 +60,7 @@ public class CfpSubmissionApiResource {
   private static final int DEFAULT_LIMIT = PaginationGuardrails.DEFAULT_PAGE_LIMIT;
   private static final int MAX_LIMIT = PaginationGuardrails.MAX_PAGE_LIMIT;
   private static final int MAX_OFFSET = PaginationGuardrails.MAX_OFFSET;
+  private static final Set<EventStaffRole> CFP_REVIEWER_ROLES = Set.of(EventStaffRole.CFP_REVIEWER);
 
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject CfpConfigService cfpConfigService;
@@ -421,7 +422,7 @@ public class CfpSubmissionApiResource {
   @Path("/stats")
   @Authenticated
   public Response stats(@PathParam("eventId") String eventId) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!canReviewCfp(eventId)) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
     CfpSubmissionService.EventStats stats = cfpSubmissionService.statsByEvent(eventId);
@@ -448,7 +449,7 @@ public class CfpSubmissionApiResource {
       @QueryParam("track") String track,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!canReviewCfp(eventId)) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
     Optional<CfpSubmissionStatus> statusFilter = parseStatusFilter(status);
@@ -481,7 +482,7 @@ public class CfpSubmissionApiResource {
   @Authenticated
   public Response getSubmissionDetail(
       @PathParam("eventId") String eventId, @PathParam("id") String id) {
-    if (!AdminUtils.isAdmin(identity)) {
+    if (!canReviewCfp(eventId)) {
       return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
     }
     Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
@@ -1018,6 +1019,13 @@ public class CfpSubmissionApiResource {
       return Optional.of(name);
     }
     return currentUserId();
+  }
+
+  private boolean canReviewCfp(String eventId) {
+    if (AdminUtils.isAdmin(identity)) {
+      return true;
+    }
+    return eventOperationsService.hasStaffRole(eventId, currentUserIds(), CFP_REVIEWER_ROLES, true);
   }
 
   private static Optional<CfpSubmissionStatus> parseStatusFilter(String status) {

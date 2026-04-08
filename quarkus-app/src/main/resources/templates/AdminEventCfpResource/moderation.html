@@ -14,8 +14,10 @@
       <div class="action-group admin-nav-strip">
         <a href="/private/admin" class="btn btn-secondary">{i18n:nav_admin_panel}</a>
         <a href="/private/admin/events" class="btn btn-secondary">{i18n:nav_events}</a>
+        {#if canManage}
         <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
         <a href="/private/admin/events/{event.id}/volunteers" class="btn btn-secondary">{i18n:events_volunteers_open_cta}</a>
+        {/if}
         <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
       </div>
     </div>
@@ -25,10 +27,13 @@
 <div class="container">
   <nav class="hd-profile-nav cfp-admin-subnav" aria-label="{i18n:events_cfp_admin_subnav_aria}">
     <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-overview-panel">{i18n:events_cfp_admin_subnav_overview}</button>
+    {#if canManage}
     <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-configuration-panel">{i18n:events_cfp_admin_subnav_configuration}</button>
+    {/if}
     <button type="button" class="hd-profile-nav-btn" data-cfp-admin-nav="cfp-review-panel">{i18n:events_cfp_admin_subnav_review}</button>
   </nav>
 
+  {#if canManage}
   <section id="cfp-configuration-panel" data-cfp-admin-section hidden>
   <div class="card admin-shell-margin-bottom-md">
     <div class="admin-shell-card-header">
@@ -137,6 +142,7 @@
   </div>
 
   </section>
+  {/if}
 
   <section id="cfp-overview-panel" data-cfp-admin-section>
   <div class="card admin-shell-margin-bottom-md">
@@ -227,6 +233,7 @@
 <script>
   (() => {
     const eventId = "{event.id}";
+    const canManage = {#if canManage}true{#else}false{/if};
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const agendaConfigEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/agenda/config";
     const configEndpoint = baseEndpoint + "/config";
@@ -465,6 +472,10 @@
 
     function refreshExportUrl() {
       if (!exportBtn) return;
+      if (!canManage) {
+        exportBtn.removeAttribute("href");
+        return;
+      }
       const params = new URLSearchParams();
       if (activeStatus) params.set("status", activeStatus);
       if (activeSort) params.set("sort", activeSort);
@@ -945,7 +956,7 @@
     }
 
     async function loadEventConfig() {
-      if (!eventConfigSummary) {
+      if (!canManage || !eventConfigSummary) {
         return;
       }
       try {
@@ -962,7 +973,7 @@
     }
 
     async function saveEventConfig() {
-      if (!eventConfigSaveBtn) return;
+      if (!canManage || !eventConfigSaveBtn) return;
       eventConfigSaveBtn.disabled = true;
       if (eventConfigFeedback) {
         eventConfigFeedback.hidden = true;
@@ -999,7 +1010,7 @@
     }
 
     async function clearEventConfig() {
-      if (!eventConfigClearBtn) return;
+      if (!canManage || !eventConfigClearBtn) return;
       eventConfigClearBtn.disabled = true;
       if (eventConfigFeedback) {
         eventConfigFeedback.hidden = true;
@@ -1023,7 +1034,7 @@
     }
 
     async function publishResults() {
-      if (!publishResultsBtn) return;
+      if (!canManage || !publishResultsBtn) return;
       publishResultsBtn.disabled = true;
       if (resultsFeedback) {
         resultsFeedback.hidden = true;
@@ -1058,7 +1069,7 @@
     }
 
     async function loadTestingConfig() {
-      if (!testingToggle) return;
+      if (!canManage || !testingToggle) return;
       try {
         const response = await fetch(configEndpoint, { headers: { Accept: "application/json" } });
         if (!response.ok) return;
@@ -1069,7 +1080,7 @@
     }
 
     async function saveTestingConfig() {
-      if (!testingToggle || !testingSaveBtn) return;
+      if (!canManage || !testingToggle || !testingSaveBtn) return;
       testingSaveBtn.disabled = true;
       try {
         const response = await fetch(configEndpoint, {
@@ -1090,7 +1101,7 @@
     }
 
     async function loadAgendaNoticeConfig() {
-      if (!agendaNoticeToggle) return;
+      if (!canManage || !agendaNoticeToggle) return;
       try {
         const response = await fetch(agendaConfigEndpoint, { headers: { Accept: "application/json" } });
         if (!response.ok) return;
@@ -1101,7 +1112,7 @@
     }
 
     async function saveAgendaNoticeConfig() {
-      if (!agendaNoticeToggle || !agendaNoticeSaveBtn) return;
+      if (!canManage || !agendaNoticeToggle || !agendaNoticeSaveBtn) return;
       agendaNoticeSaveBtn.disabled = true;
       try {
         const response = await fetch(agendaConfigEndpoint, {
@@ -1190,11 +1201,13 @@
       syncModerationUrl();
       loadList().then(() => listEl?.scrollIntoView({ behavior: "smooth", block: "start" }));
     });
-    testingSaveBtn?.addEventListener("click", saveTestingConfig);
-    eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
-    eventConfigClearBtn?.addEventListener("click", clearEventConfig);
-    publishResultsBtn?.addEventListener("click", publishResults);
-    agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
+    if (canManage) {
+      testingSaveBtn?.addEventListener("click", saveTestingConfig);
+      eventConfigSaveBtn?.addEventListener("click", saveEventConfig);
+      eventConfigClearBtn?.addEventListener("click", clearEventConfig);
+      publishResultsBtn?.addEventListener("click", publishResults);
+      agendaNoticeSaveBtn?.addEventListener("click", saveAgendaNoticeConfig);
+    }
     restoreModerationStateFromUrl();
     applyControlsFromState();
     const initialPanelId = (() => {
@@ -1214,9 +1227,11 @@
         openCfpAdminSection(hash, false);
       }
     });
-    loadTestingConfig();
-    loadEventConfig();
-    loadAgendaNoticeConfig();
+    if (canManage) {
+      loadTestingConfig();
+      loadEventConfig();
+      loadAgendaNoticeConfig();
+    }
     loadCfpInsightsSummary();
     loadList();
   })();
