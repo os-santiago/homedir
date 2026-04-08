@@ -16,10 +16,16 @@ class ReputationEventTaxonomyTest {
     assertTrue(ReputationEventTaxonomy.find("event_attended").isPresent());
     assertTrue(ReputationEventTaxonomy.find("event_speaker").isPresent());
     assertTrue(ReputationEventTaxonomy.find("content_published").isPresent());
+    assertTrue(ReputationEventTaxonomy.find("content_submitted").isPresent());
     assertTrue(ReputationEventTaxonomy.find("content_recommended").isPresent());
+    assertTrue(ReputationEventTaxonomy.find("community_vote_cast").isPresent());
     assertTrue(ReputationEventTaxonomy.find("streak_milestone").isPresent());
+    assertTrue(ReputationEventTaxonomy.find("content_explored").isPresent());
+    assertTrue(ReputationEventTaxonomy.find("discussion_participated").isPresent());
     assertTrue(ReputationEventTaxonomy.find("contribution_highlighted").isPresent());
     assertTrue(ReputationEventTaxonomy.find("peer_help_acknowledged").isPresent());
+    assertTrue(ReputationEventTaxonomy.find("volunteer_engaged").isPresent());
+    assertTrue(ReputationEventTaxonomy.find("session_feedback_shared").isPresent());
   }
 
   @Test
