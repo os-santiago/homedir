@@ -4,6 +4,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 import com.scanales.homedir.cfp.CfpSubmissionService;
+import com.scanales.homedir.eventops.EventOperationsService;
+import com.scanales.homedir.eventops.EventStaffRole;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.service.EventService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -19,12 +21,15 @@ public class AdminEventCfpPageTest {
   @Inject EventService eventService;
 
   @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject EventOperationsService eventOperationsService;
 
   private static final String EVENT_ID = "cfp-admin-page-event";
 
   @AfterEach
   void cleanup() {
     eventService.deleteEvent(EVENT_ID);
+    cfpSubmissionService.clearAllForTests();
+    eventOperationsService.clearAllForTests();
   }
 
   @Test
@@ -96,6 +101,68 @@ public class AdminEventCfpPageTest {
     eventService.saveEvent(new Event(EVENT_ID, "CFP Admin Event", "desc"));
 
     given().when().get("/private/admin/events/" + EVENT_ID + "/cfp").then().statusCode(403);
+  }
+
+  @Test
+  @TestSecurity(user = "reviewer@example.org")
+  void reviewerCanOpenModerationPageInReadOnlyMode() {
+    eventService.saveEvent(new Event(EVENT_ID, "CFP Admin Event", "desc"));
+    eventOperationsService.upsertStaff(
+        EVENT_ID,
+        "reviewer@example.org",
+        "Reviewer",
+        EventStaffRole.CFP_REVIEWER,
+        "manual",
+        true);
+
+    given()
+        .when()
+        .get("/private/admin/events/" + EVENT_ID + "/cfp")
+        .then()
+        .statusCode(200)
+        .body(containsString("/api/events/"))
+        .body(containsString("/cfp/submissions"))
+        .body(containsString("data-cfp-admin-nav=\"cfp-overview-panel\""))
+        .body(containsString("data-cfp-admin-nav=\"cfp-review-panel\""))
+        .body(containsString("const canManage = false"));
+  }
+
+  @Test
+  @TestSecurity(user = "reviewer@example.org")
+  void reviewerCanOpenSubmissionDetailPageInReadOnlyMode() {
+    eventService.saveEvent(new Event(EVENT_ID, "CFP Admin Event", "desc"));
+    eventOperationsService.upsertStaff(
+        EVENT_ID,
+        "reviewer@example.org",
+        "Reviewer",
+        EventStaffRole.CFP_REVIEWER,
+        "manual",
+        true);
+    var submission =
+        cfpSubmissionService.create(
+            "speaker@example.org",
+            "Speaker",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Observability as product signal",
+                "Short summary",
+                "Longer proposal detail for the admin page.",
+                "advanced",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of("https://example.org/talk")));
+
+    given()
+        .when()
+        .get("/private/admin/events/" + EVENT_ID + "/cfp/submissions/" + submission.id())
+        .then()
+        .statusCode(200)
+        .body(containsString("id=\"cfpDetailShell\""))
+        .body(containsString("const submissionId = \"" + submission.id() + "\""))
+        .body(containsString("const canManage = false"));
   }
 
   @Test

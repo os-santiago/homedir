@@ -13,7 +13,9 @@
       </div>
       <div class="action-group admin-nav-strip">
         <a id="cfpBackToOverviewLink" href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_back_overview}</a>
+        {#if canManage}
         <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
+        {/if}
         <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
       </div>
     </div>
@@ -178,6 +180,7 @@
   (() => {
     const eventId = "{event.id}";
     const submissionId = "{submissionId}";
+    const canManage = {#if canManage}true{#else}false{/if};
     const baseEndpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const shell = document.getElementById("cfpDetailShell");
     const feedback = document.getElementById("cfpDetailFeedback");
@@ -540,6 +543,14 @@
 
       const note = document.getElementById("cfpModerationNote");
       const actions = document.getElementById("cfpDetailActions");
+
+      if (!canManage) {
+        technical.select.disabled = true;
+        narrative.select.disabled = true;
+        impact.select.disabled = true;
+        note.disabled = true;
+        return;
+      }
 
       function attachAction(label, className, handler) {
         const btn = document.createElement("button");

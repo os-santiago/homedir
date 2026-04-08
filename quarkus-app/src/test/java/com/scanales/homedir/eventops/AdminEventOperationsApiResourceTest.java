@@ -120,6 +120,28 @@ class AdminEventOperationsApiResourceTest {
   }
 
   @Test
+  @TestSecurity(user = "admin@example.org")
+  void adminCanAssignCfpReviewerRole() {
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "user_name":"Reviewer One",
+              "role":"cfp-reviewer",
+              "source":"manual",
+              "active":true
+            }
+            """)
+        .when()
+        .put("/api/private/admin/events/" + EVENT_ID + "/ops/staff/reviewer@example.com")
+        .then()
+        .statusCode(200)
+        .body("item.role", equalTo("cfp-reviewer"))
+        .body("item.active", equalTo(true));
+  }
+
+  @Test
   @TestSecurity(user = "member@example.com")
   void nonAdminCannotAccessAdminOpsEndpoints() {
     given()
