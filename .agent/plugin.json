@@ -1,0 +1,8 @@
+{
+  "name": "Homedir Companion",
+  "description": "Expert agent for the Homedir Quarkus/Go platform. Automation for PRs, native builds, and VPS operations.",
+  "version": "1.0.0",
+  "skills": [
+    "homedir_expert"
+  ]
+}

@@ -90,6 +90,12 @@ public class GamificationService {
     } catch (Exception e) {
       LOG.warnf(e, "challenge_progress_failed user=%s activity=%s", profile.getUserId(), activity.key());
     }
+    try {
+      reputationEngineService.trackGamificationActivity(
+          profile.getUserId(), activity, normalizeReputationReference(activity, reference));
+    } catch (Exception e) {
+      LOG.warnf(e, "reputation_activity_failed user=%s activity=%s", profile.getUserId(), activity.key());
+    }
     return true;
   }
 
@@ -176,5 +182,48 @@ public class GamificationService {
       return "challenge";
     }
     return challengeId.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]", "-");
+  }
+
+  private static String normalizeReputationReference(GamificationActivity activity, String reference) {
+    if (reference != null && !reference.isBlank()) {
+      return reference.trim();
+    }
+    return switch (activity) {
+      case HOME_VIEW -> "home";
+      case PROFILE_VIEW -> "profile";
+      case PUBLIC_PROFILE_VIEW -> "public-profile";
+      case GITHUB_LINKED -> "github";
+      case DISCORD_LINKED -> "discord";
+      case COMMUNITY_MAIN_VIEW -> "community";
+      case COMMUNITY_PICKS_VIEW -> "community-picks";
+      case COMMUNITY_PROPOSE_VIEW -> "community-propose";
+      case LTA_VIEW -> "community-lightning";
+      case LTA_THREAD_CREATE -> "lightning-thread";
+      case LTA_COMMENT_CREATE -> "lightning-comment";
+      case LTA_REACTION -> "lightning-reaction";
+      case COMMUNITY_BOARD_VIEW -> "reputation-hub";
+      case COMMUNITY_BOARD_MEMBERS_VIEW -> "reputation-members";
+      case COMMUNITY_VOTE -> "community-vote";
+      case COMMUNITY_REVIEW -> "community-feed";
+      case COMMUNITY_SUBMISSION -> "community-submission";
+      case COMMUNITY_SUBMISSION_APPROVED -> "community-submission-approved";
+      case WARRIOR_EVENTS_EXPLORATION -> "events";
+      case EVENT_DIRECTORY_VIEW -> "events-directory";
+      case EVENT_VIEW -> "event";
+      case VOLUNTEER_VIEW -> "volunteer";
+      case PROJECT_VIEW -> "project";
+      case BOARD_PROFILE_OPEN -> "community-member";
+      case NOTIFICATIONS_CENTER_VIEW -> "notifications";
+      case TALK_VIEW -> "talk";
+      case AGENDA_VIEW -> "agenda";
+      case CFP_SUBMIT -> "cfp-submission";
+      case CFP_ACCEPTED -> "cfp-accepted";
+      case VOLUNTEER_APPLY -> "volunteer-apply";
+      case VOLUNTEER_SELECTED -> "volunteer-selected";
+      case VOLUNTEER_LOUNGE_POST -> "volunteer-lounge";
+      case VOLUNTEER_WITHDRAW -> "volunteer-withdraw";
+      case SESSION_EVALUATION -> "session-evaluation";
+      default -> activity.key();
+    };
   }
 }

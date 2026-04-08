@@ -62,17 +62,52 @@ public final class ReputationEventTaxonomy {
                 "funnel:community_lightning_post"),
             "Publishing useful content increases contributor footprint."),
         new EventDefinition(
+            "content_submitted",
+            ReputationDimension.CONTRIBUTION,
+            8,
+            List.of(
+                "funnel:community.submission.create",
+                "funnel:community_propose_submit",
+                "funnel:cfp.submission.create",
+                "funnel:volunteer.submission.create"),
+            "Submitting content or participation proposals should count as contribution intent."),
+        new EventDefinition(
             "content_recommended",
             ReputationDimension.RECOGNITION,
             15,
             List.of("funnel:community.vote.recommended", "funnel:community.vote.must_see"),
             "Peer recommendation should weigh more than raw volume."),
         new EventDefinition(
+            "community_vote_cast",
+            ReputationDimension.PARTICIPATION,
+            4,
+            List.of("funnel:community.vote", "funnel:community_vote"),
+            "Curating community content is a lightweight but meaningful participation signal."),
+        new EventDefinition(
             "streak_milestone",
             ReputationDimension.CONSISTENCY,
             8,
             List.of("gamification:daily_checkin"),
             "Sustained cadence adds consistency, bounded to avoid farming."),
+        new EventDefinition(
+            "content_explored",
+            ReputationDimension.PARTICIPATION,
+            3,
+            List.of(
+                "gamification:community_review",
+                "gamification:agenda_view",
+                "gamification:project_view",
+                "gamification:public_profile_view"),
+            "Exploring meaningful content surfaces should count as lightweight participation."),
+        new EventDefinition(
+            "discussion_participated",
+            ReputationDimension.CONTRIBUTION,
+            6,
+            List.of(
+                "funnel:community.lightning.comment.create",
+                "funnel:community_lightning_comment",
+                "funnel:volunteer.lounge.post"),
+            "Joining ongoing discussions should count as contribution, not just passive browsing."),
         new EventDefinition(
             "contribution_highlighted",
             ReputationDimension.RECOGNITION,
@@ -84,7 +119,19 @@ public final class ReputationEventTaxonomy {
             ReputationDimension.RECOGNITION,
             16,
             List.of("funnel:volunteer_lounge_post", "volunteer.lounge.announcement"),
-            "Useful help acknowledged by peers should boost trusted reputation."));
+            "Useful help acknowledged by peers should boost trusted reputation."),
+        new EventDefinition(
+            "volunteer_engaged",
+            ReputationDimension.PARTICIPATION,
+            9,
+            List.of("funnel:volunteer_submit", "funnel:volunteer_selected"),
+            "Volunteering for community operations is a meaningful participation signal."),
+        new EventDefinition(
+            "session_feedback_shared",
+            ReputationDimension.CONTRIBUTION,
+            7,
+            List.of("gamification:session_evaluation"),
+            "Sharing session feedback contributes learning signals back into the community."));
   }
 
   private static Map<String, EventDefinition> indexByEventType(List<EventDefinition> definitions) {
