@@ -1342,6 +1342,9 @@ public interface AppMessages {
     @Message("Configuration")
     String events_cfp_admin_subnav_configuration();
 
+    @Message("Reviewers")
+    String events_cfp_admin_subnav_reviewers();
+
     @Message("Review queue")
     String events_cfp_admin_subnav_review();
 
@@ -1353,6 +1356,45 @@ public interface AppMessages {
 
     @Message("Filter, sort, and open each proposal detail from the review queue.")
     String events_cfp_admin_review_desc();
+
+    @Message("CFP reviewers")
+    String events_cfp_admin_reviewers_title();
+
+    @Message("Add or remove event-scoped reviewers by email so they can read the CFP queue without full Homedir admin access.")
+    String events_cfp_admin_reviewers_desc();
+
+    @Message("Reviewer email")
+    String events_cfp_admin_reviewers_email_label();
+
+    @Message("reviewer@example.org")
+    String events_cfp_admin_reviewers_email_placeholder();
+
+    @Message("Add reviewer")
+    String events_cfp_admin_reviewers_add();
+
+    @Message("Reload reviewers")
+    String events_cfp_admin_reviewers_reload();
+
+    @Message("No CFP reviewers assigned yet.")
+    String events_cfp_admin_reviewers_empty();
+
+    @Message("Assigned reviewers")
+    String events_cfp_admin_reviewers_list_title();
+
+    @Message("Added as CFP reviewer.")
+    String events_cfp_admin_reviewers_added();
+
+    @Message("Reviewer access removed.")
+    String events_cfp_admin_reviewers_removed();
+
+    @Message("Could not update CFP reviewers right now.")
+    String events_cfp_admin_reviewers_error();
+
+    @Message("Email is required.")
+    String events_cfp_admin_reviewers_email_required();
+
+    @Message("Remove")
+    String events_cfp_admin_reviewers_remove();
 
     @Message("Proposal queue")
     String events_cfp_admin_queue_title();
