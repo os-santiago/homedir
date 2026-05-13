@@ -1,823 +1,106 @@
 {#include layout/main activePage="home" mainClass="homedir-main-home" noLoginModal=true}
 {#title}{i18n:nav_home}{/title}
 {#body}
-<header class="public-header home-highlight-hero">
-  <section class="section-card home-onboarding-shell" aria-label="{i18n:home_p0_shell_aria}">
-    <div class="home-onboarding-stage">
-      <div class="home-onboarding-copy">
-        <div class="section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:home_p0_eyebrow}</p>
-          <h1 class="home-welcome-en">{i18n:home_p0_title}</h1>
-        </div>
-        <p class="home-welcome-es">{i18n:home_p0_subtitle}</p>
-        <p class="home-highlights-intro">
-          {#if userAuthenticated}{i18n:home_p0_intro_member}{#else}{i18n:home_p0_intro_guest}{/if}
-        </p>
-        <div class="home-onboarding-actions">
-          {#if userAuthenticated}
-          <a href="/private/profile" class="btn-primary">{i18n:home_p0_member_primary_cta}</a>
-          <a href="/comunidad/picks" class="btn-secondary">{i18n:home_p0_member_secondary_cta}</a>
-          {/if}
-          {#if !userAuthenticated}
-          <a href="/private/login-callback?redirect=/" class="btn-primary" data-login-return-current="true">
-            {i18n:home_p0_guest_primary_cta}
-          </a>
-          <a href="/comunidad/picks" class="btn-secondary">{i18n:home_p0_guest_secondary_cta}</a>
-          {/if}
-        </div>
-      </div>
-
-      {#if !userAuthenticated}
-      <aside class="home-hero-spotlight home-hero-spotlight-guest" aria-label="{i18n:home_login_value_title}">
-        <div class="section-header hd-section-heading home-value-login-header">
-          <p class="section-subtitle">{i18n:home_login_value_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_login_value_title}</h2>
-        </div>
-        <div class="home-hero-spotlight-grid">
-          <article class="home-value-login-card">
-            <p class="section-subtitle">{i18n:home_login_google_step}</p>
-            <h3>{i18n:home_login_google_title}</h3>
-            <p>{i18n:home_login_google_desc}</p>
-          </article>
-          <article class="home-value-login-card">
-            <p class="section-subtitle">{i18n:home_login_github_step}</p>
-            <h3>{i18n:home_login_github_title}</h3>
-            <p>{i18n:home_login_github_desc}</p>
-          </article>
-        </div>
-        <div class="home-proof-inline">
-          <span class="home-chip">{homeBoardSummary.homedirUsers} {i18n:home_p0_chip_members}</span>
-          <span class="home-chip">{homeBoardSummary.githubUsers} {i18n:home_p0_chip_github}</span>
-          <span class="home-chip">{homeRewardsCatalogCount} {i18n:home_p0_chip_rewards}</span>
-        </div>
-      </aside>
-      {/if}
-
-      {#if userAuthenticated}
-      <aside class="home-hero-spotlight home-hero-spotlight-member" aria-label="{i18n:home_p0_progress_title}">
-        <div class="home-progress-card-top">
-          <span class="home-chip">{i18n:home_p0_progress_badge}</span>
-          <span id="home-last-visit-chip" class="home-chip" data-i18n-first="{i18n:home_today_since_first}"
-            data-i18n-last-prefix="{i18n:home_today_since_last_prefix}">{i18n:home_today_since_first}</span>
-        </div>
-        <div class="section-header hd-section-heading home-value-login-header">
-          <p class="section-subtitle">{i18n:home_p0_progress_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_p0_progress_title}</h2>
-        </div>
-        <div class="home-progress-summary">
-          <strong>{i18n:home_p0_progress_level(userSession.level)}</strong>
-          <span>
-            {#if userSession.questClass}{userSession.questClass.displayName}{#else}{i18n:home_p0_progress_class_fallback}{/if}
-          </span>
-          <small>{i18n:home_p0_progress_xp(userSession.currentXp, userSession.nextLevelXp)}</small>
-        </div>
-        <div class="xp-bar-container home-progress-bar">
-          <div class="xp-bar-fill header-xp-bar-fill"
-            style="--xp-percent: {(userSession.currentXp / userSession.nextLevelXp) * 100}%;">
-          </div>
-        </div>
-        <div class="home-progress-grid">
-          <article class="home-progress-stat">
-            <span>{i18n:home_p0_progress_hcoin}</span>
-            <strong>{homeWalletBalance}</strong>
-          </article>
-          <article class="home-progress-stat">
-            <span>{i18n:home_p0_progress_collection}</span>
-            <strong>{homeInventoryCount}</strong>
-          </article>
-          <article class="home-progress-stat">
-            <span>{i18n:home_p0_progress_links}</span>
-            <strong>{homeLinkedSignals}</strong>
-          </article>
-          <article class="home-progress-stat">
-            <span>{i18n:home_p0_progress_starter}</span>
-            <strong>{homeStarterCompleted}/3</strong>
-          </article>
-        </div>
-      </aside>
-      {/if}
-    </div>
-
-    <section class="home-how-grid" aria-label="{i18n:home_p0_flow_title}">
-      <article class="home-how-card">
-        <span class="material-symbols-outlined" aria-hidden="true">login</span>
-        <h2>{i18n:home_p0_flow_step_one_title}</h2>
-        <p>{i18n:home_p0_flow_step_one_desc}</p>
-      </article>
-      <article class="home-how-card">
-        <span class="material-symbols-outlined" aria-hidden="true">hub</span>
-        <h2>{i18n:home_p0_flow_step_two_title}</h2>
-        <p>{i18n:home_p0_flow_step_two_desc}</p>
-      </article>
-      <article class="home-how-card">
-        <span class="material-symbols-outlined" aria-hidden="true">explore</span>
-        <h2>{i18n:home_p0_flow_step_three_title}</h2>
-        <p>{i18n:home_p0_flow_step_three_desc}</p>
-      </article>
-      <article class="home-how-card">
-        <span class="material-symbols-outlined" aria-hidden="true">token</span>
-        <h2>{i18n:home_p0_flow_step_four_title}</h2>
-        <p>{i18n:home_p0_flow_step_four_desc}</p>
-      </article>
-    </section>
-  </section>
-
-  <div class="home-top-metrics">
-    {#if userAuthenticated}
-    <a href="/comunidad/picks" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">article</span>
-        <span class="home-chip">{i18n:home_today_card_picks_chip}</span>
-      </span>
-      <strong>{homeTodayFreshPicks}</strong>
-      <small>{i18n:home_p0_metric_picks}</small>
-    </a>
-    <a href="/comunidad/lta" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">bolt</span>
-        <span class="home-chip">{i18n:home_today_card_lta_chip}</span>
-      </span>
-      <strong>{homeTodayLtaThreads}</strong>
-      <small>{i18n:home_p0_metric_threads}</small>
-    </a>
-    <a href="/eventos" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
-        <span class="home-chip">{i18n:home_pill_events}</span>
-      </span>
-      <strong>{upcomingCount}</strong>
-      <small>{i18n:home_p0_metric_events}</small>
-    </a>
-    <a href="/private/profile/catalog" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">redeem</span>
-        <span class="home-chip">{i18n:home_p0_progress_badge}</span>
-      </span>
-      <strong>{homeRewardsCatalogCount}</strong>
-      <small>{i18n:home_p0_metric_rewards}</small>
-    </a>
-    {/if}
-    {#if !userAuthenticated}
-    <a href="/comunidad/board" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">groups</span>
-        <span class="home-chip">{i18n:home_p0_metric_board_chip}</span>
-      </span>
-      <strong>{homeBoardSummary.homedirUsers}</strong>
-      <small>{i18n:home_p0_metric_board_desc}</small>
-    </a>
-    <a href="/comunidad/board/github-users" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">hub</span>
-        <span class="home-chip">{i18n:home_p0_metric_github_chip}</span>
-      </span>
-      <strong>{homeBoardSummary.githubUsers}</strong>
-      <small>{i18n:home_p0_metric_github_desc}</small>
-    </a>
-    <a href="/eventos" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">event</span>
-        <span class="home-chip">{i18n:home_pill_events}</span>
-      </span>
-      <strong>{upcomingCount}</strong>
-      <small>{i18n:home_p0_metric_events}</small>
-    </a>
-    <a href="/private/profile/catalog" class="home-top-metric">
-      <span class="home-top-metric-head">
-        <span class="material-symbols-outlined home-top-metric-icon" aria-hidden="true">token</span>
-        <span class="home-chip">{i18n:home_p0_chip_rewards}</span>
-      </span>
-      <strong>{homeRewardsCatalogCount}</strong>
-      <small>{i18n:home_p0_metric_rewards}</small>
-    </a>
-    {/if}
-  </div>
-
-  <section class="section-card home-member-card" aria-label="{i18n:home_awareness_title}">
-    <div class="home-challenges-header">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_awareness_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_awareness_title}</h2>
-      </div>
-      <div class="home-onboarding-actions">
-        <a href="/comunidad/picks" class="btn-secondary">{i18n:home_awareness_cta}</a>
+<header class="public-header home-priority-shell" aria-label="{i18n:home_priority_aria}">
+  <section class="home-priority-hero">
+    <div class="home-priority-hero-copy">
+      <p class="section-subtitle">{i18n:home_priority_eyebrow}</p>
+      <h1>{i18n:home_priority_title}</h1>
+      <p>{i18n:home_priority_intro}</p>
+      <div class="home-priority-actions">
+        <a href="/event/devopsdays-santiago-2026" class="btn-primary">{i18n:home_priority_primary_cta}</a>
+        <a href="/comunidad/picks" class="btn-secondary">{i18n:home_priority_secondary_cta}</a>
       </div>
     </div>
-    <p class="home-member-card-copy">{i18n:home_awareness_intro}</p>
-    <div class="home-member-actions-grid" role="list">
-      {#if userAuthenticated}
-      <a href="/private/profile#challenges-panel" class="home-member-action-card" role="listitem">
-      {#else}
-      <a href="/private/login-callback?redirect=/private/profile" class="home-member-action-card" role="listitem" data-login-return-current="true">
-      {/if}
-        <span class="material-symbols-outlined" aria-hidden="true">military_tech</span>
-        <strong>{i18n:home_awareness_card_challenges_title}</strong>
-        <p>{i18n:home_awareness_card_challenges_desc}</p>
-        <span class="home-member-action-cta">{i18n:home_awareness_card_challenges_cta}</span>
-      </a>
-      <a href="/comunidad/picks" class="home-member-action-card" role="listitem">
-        <span class="material-symbols-outlined" aria-hidden="true">article</span>
-        <strong>{i18n:home_awareness_card_picks_title}</strong>
-        <p>{i18n:home_awareness_card_picks_desc(homeTodayFreshPicks)}</p>
-        <span class="home-member-action-cta">{i18n:home_awareness_card_picks_cta}</span>
-      </a>
-      <a href="/eventos" class="home-member-action-card" role="listitem">
-        <span class="material-symbols-outlined" aria-hidden="true">event</span>
-        <strong>{i18n:home_awareness_card_events_title}</strong>
-        <p>{i18n:home_awareness_card_events_desc}</p>
-        <span class="home-member-action-cta">{i18n:home_awareness_card_events_cta}</span>
-      </a>
-      {#if userAuthenticated}
-      <a href="/private/profile" class="home-member-action-card" role="listitem">
-      {#else}
-      <a href="/comunidad/board" class="home-member-action-card" role="listitem">
-      {/if}
-        <span class="material-symbols-outlined" aria-hidden="true">badge</span>
-        <strong>{i18n:home_awareness_card_identity_title}</strong>
-        <p>{i18n:home_awareness_card_identity_desc(homeBoardSummary.homedirUsers)}</p>
-        <span class="home-member-action-cta">{i18n:home_awareness_card_identity_cta}</span>
-      </a>
-    </div>
+    <aside class="home-priority-spotlight" aria-label="{i18n:home_priority_events_title}">
+      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">event</span>
+      <p class="section-subtitle">{i18n:home_priority_events_eyebrow}</p>
+      <h2>{i18n:home_priority_events_title}</h2>
+      <p>{i18n:home_priority_events_desc}</p>
+      <div class="home-priority-actions">
+        <a href="/event/devopsdays-santiago-2026" class="btn-primary">{i18n:home_priority_events_cta}</a>
+        <a href="/eventos" class="btn-secondary">{i18n:home_priority_events_secondary}</a>
+      </div>
+    </aside>
   </section>
-
-  {#if userAuthenticated}
-  <section class="home-member-command-grid" aria-label="{i18n:home_p1_mission_title}">
-    <article class="section-card home-member-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_p1_mission_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_p1_mission_title}</h2>
-      </div>
-      <p class="home-member-card-copy">{i18n:home_p1_mission_intro}</p>
-      <div class="home-member-reward-strip">
-        {#if homeStarterAllDone}
-        <span class="home-chip">{i18n:home_p1_mission_complete}</span>
-        {#else}
-        <span class="home-chip">{i18n:home_starter_track_progress(homeStarterCompleted)}</span>
-        <strong>{i18n:home_p1_mission_reward(homeStarterRemainingXp, homeStarterRemainingHcoin)}</strong>
-        {/if}
-      </div>
-      <div class="home-member-checklist" role="list">
-        <article class="home-member-checklist-item {#if homeAccountHasGithub}is-complete{/if}" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">{#if homeAccountHasGithub}check_circle{#else}radio_button_unchecked{/if}</span>
-          <div>
-            <strong>{#if homeAccountHasGithub}{i18n:home_starter_task_github_done}{#else}{i18n:home_starter_task_github_todo}{/if}</strong>
-            <p>{i18n:home_p1_task_github_desc}</p>
-          </div>
-          <a href="/private/profile#integrations-panel" class="btn-secondary">{i18n:home_p1_task_connect_cta}</a>
-        </article>
-        <article class="home-member-checklist-item {#if homeAccountHasDiscord}is-complete{/if}" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">{#if homeAccountHasDiscord}check_circle{#else}radio_button_unchecked{/if}</span>
-          <div>
-            <strong>{#if homeAccountHasDiscord}{i18n:home_starter_task_discord_done}{#else}{i18n:home_starter_task_discord_todo}{/if}</strong>
-            <p>{i18n:home_p1_task_discord_desc}</p>
-          </div>
-          <a href="/private/profile#integrations-panel" class="btn-secondary">{i18n:home_p1_task_connect_cta}</a>
-        </article>
-        <article class="home-member-checklist-item {#if homeStarterHasVote}is-complete{/if}" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">{#if homeStarterHasVote}check_circle{#else}radio_button_unchecked{/if}</span>
-          <div>
-            <strong>{#if homeStarterHasVote}{i18n:home_starter_task_vote_done}{#else}{i18n:home_starter_task_vote_todo}{/if}</strong>
-            <p>{i18n:home_p1_task_vote_desc}</p>
-          </div>
-          <a href="/comunidad/picks" class="btn-secondary">{i18n:home_starter_track_picks_cta}</a>
-        </article>
-      </div>
-    </article>
-
-    <article class="section-card home-member-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_p1_today_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_p1_today_title}</h2>
-      </div>
-      <p class="home-member-card-copy">{i18n:home_p1_today_intro}</p>
-      <div class="home-member-actions-grid">
-        <a href="/private/profile#integrations-panel" class="home-member-action-card">
-          <span class="material-symbols-outlined" aria-hidden="true">manage_accounts</span>
-          <strong>{i18n:home_p1_action_profile_title}</strong>
-          <p>{#if homeLinkedSignals < 3}{i18n:home_p1_action_profile_desc_incomplete}{#else}{i18n:home_p1_action_profile_desc_ready}{/if}</p>
-          <span class="home-member-action-cta">{i18n:home_p1_action_profile_cta}</span>
-        </a>
-        <a href="/comunidad/picks" class="home-member-action-card">
-          <span class="material-symbols-outlined" aria-hidden="true">article</span>
-          <strong>{i18n:home_p1_action_picks_title}</strong>
-          <p>{#if homeStarterHasVote}{i18n:home_p1_action_picks_desc_ready(homeTodayFreshPicks)}{#else}{i18n:home_p1_action_picks_desc_start}{/if}</p>
-          <span class="home-member-action-cta">{i18n:home_p1_action_picks_cta}</span>
-        </a>
-        <a href="/eventos" class="home-member-action-card">
-          <span class="material-symbols-outlined" aria-hidden="true">event</span>
-          <strong>{i18n:home_p1_action_events_title}</strong>
-          <p>{#if upcomingCount > 0}{i18n:home_p1_action_events_desc_live(upcomingCount)}{#else}{i18n:home_p1_action_events_desc_empty}{/if}</p>
-          <span class="home-member-action-cta">{i18n:home_p1_action_events_cta}</span>
-        </a>
-        <a href="/private/profile/catalog" class="home-member-action-card">
-          <span class="material-symbols-outlined" aria-hidden="true">redeem</span>
-          <strong>{i18n:home_p1_action_rewards_title}</strong>
-          <p>{i18n:home_p1_action_rewards_desc(homeWalletBalance, homeRewardsCatalogCount)}</p>
-          <span class="home-member-action-cta">{i18n:home_p1_action_rewards_cta}</span>
-        </a>
-      </div>
-    </article>
-  </section>
-
-  <section class="section-card home-challenges-shell" aria-label="{homeChallengesCopy.title}">
-    <div class="home-challenges-header">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{homeChallengesCopy.eyebrow}</p>
-        <h2 class="page-title">{homeChallengesCopy.title}</h2>
-      </div>
-      <div class="home-onboarding-actions">
-        <a href="/private/profile#challenges-panel" class="btn-secondary">{homeChallengesCopy.defaultCta}</a>
-      </div>
-    </div>
-    <p class="home-member-card-copy">{homeChallengesCopy.intro}</p>
-    <div class="home-challenges-summary-grid">
-      <article class="home-challenges-summary-item">
-        <span>{homeChallengesCopy.summaryCompleted}</span>
-        <strong>{homeChallengesCompleted}/{homeChallengeCards.size}</strong>
-      </article>
-      <article class="home-challenges-summary-item">
-        <span>{homeChallengesCopy.summaryInProgress}</span>
-        <strong>{homeChallengesInProgress}</strong>
-      </article>
-      <article class="home-challenges-summary-item">
-        <span>{homeChallengesCopy.summaryReady}</span>
-        <strong>{homeChallengesReady}</strong>
-      </article>
-    </div>
-    <div class="home-challenge-card-grid" role="list">
-      {#for challenge in homeChallengeCards}
-      <article class="home-challenge-card" role="listitem">
-        <div class="home-card-top">
-          <span class="home-chip">
-            {challenge.statusLabel}
-          </span>
-          <span class="home-source">{challenge.rewardLabel}</span>
-        </div>
-        <h3 class="home-pane-title">{challenge.title}</h3>
-        <p class="home-pane-summary">{challenge.description}</p>
-        <div class="xp-bar-container home-class-row-bar">
-          <div class="xp-bar-fill header-xp-bar-fill" style="--xp-percent: {challenge.progressPercent}%;"></div>
-        </div>
-        <div class="home-loop-item-head">
-          <strong>{challenge.progressLabel}</strong>
-          <span class="home-chip">{challenge.progressPercent}%</span>
-        </div>
-        <a href="{challenge.actionUrl}" class="home-member-action-cta home-challenge-cta">
-          {challenge.ctaLabel}
-        </a>
-      </article>
-      {/for}
-    </div>
-  </section>
-
-  <section class="home-gamification-grid" aria-label="{i18n:home_p2_progress_title}">
-    <article class="section-card home-gamification-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_p2_progress_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_p2_progress_title}</h2>
-      </div>
-      <p class="home-member-card-copy">{i18n:home_p2_progress_intro}</p>
-      {#if homeDominantClass}
-      <div class="home-class-focus">
-        <span class="home-chip">{i18n:home_p2_progress_focus_chip}</span>
-        <strong>{homeDominantClass.emoji} {homeDominantClass.className}</strong>
-        <p>{i18n:home_p2_progress_focus(homeDominantClass.className, homeDominantClass.xp, homeDominantClass.sharePercent)}</p>
-      </div>
-      {#else}
-      <div class="home-class-focus home-class-focus-empty">
-        <span class="home-chip">{i18n:home_p2_progress_focus_chip}</span>
-        <strong>{i18n:home_p2_progress_empty_title}</strong>
-        <p>{i18n:home_p2_progress_empty_desc}</p>
-      </div>
-      {/if}
-      <div class="home-class-list" role="list">
-        {#for classItem in homeClassProgress}
-        <article class="home-class-row {#if classItem.dominant}is-dominant{/if}" role="listitem">
-          <div class="home-class-row-head">
-            <div class="home-class-row-label">
-              <span class="home-class-row-emoji" aria-hidden="true">{classItem.emoji}</span>
-              <strong>{classItem.className}</strong>
-            </div>
-            <small>{i18n:home_p2_progress_meter(classItem.xp, classItem.sharePercent)}</small>
-          </div>
-          <div class="xp-bar-container home-class-row-bar">
-            <div class="xp-bar-fill header-xp-bar-fill" style="--xp-percent: {classItem.sharePercent}%;"></div>
-          </div>
-        </article>
-        {/for}
-      </div>
-    </article>
-
-    <article class="section-card home-gamification-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_p2_rewards_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_p2_rewards_title}</h2>
-      </div>
-      <p class="home-member-card-copy">{i18n:home_p2_rewards_intro}</p>
-      {#if homeRewardSpotlight}
-      <div class="home-reward-spotlight">
-        <span class="home-chip">
-          {#if homeRewardSpotlight.affordable}
-          {i18n:home_p2_rewards_state_ready}
-          {#else if homeRewardSpotlight.unlocked}
-          {i18n:home_p2_rewards_state_save}
-          {#else}
-          {i18n:home_p2_rewards_state_unlock}
-          {/if}
-        </span>
-        <strong>{homeRewardSpotlight.name}</strong>
-        <p>
-          {#if homeRewardSpotlight.affordable}
-          {i18n:home_p2_rewards_ready_desc(homeRewardSpotlight.priceHcoin, homeWalletBalance)}
-          {#else if homeRewardSpotlight.unlocked}
-          {i18n:home_p2_rewards_save_desc(homeRewardSpotlight.missingHcoin)}
-          {#else if homeRewardSpotlight.requiredClassName}
-          {i18n:home_p2_rewards_locked_class_desc(homeRewardSpotlight.requiredClassName, homeRewardSpotlight.requiredClassXp)}
-          {#else if homeRewardSpotlight.requiredTotalXp > 0}
-          {i18n:home_p2_rewards_locked_total_desc(homeRewardSpotlight.requiredTotalXp)}
-          {#else}
-          {i18n:home_p2_rewards_locked_level_desc(homeRewardSpotlight.requiredLevel)}
-          {/if}
-        </p>
-      </div>
-      {/if}
-      <div class="home-reward-summary-grid">
-        <article class="home-reward-summary-item">
-          <span>{i18n:home_p2_rewards_wallet_label}</span>
-          <strong>{homeWalletBalance}</strong>
-        </article>
-        <article class="home-reward-summary-item">
-          <span>{i18n:home_p2_rewards_ready_label}</span>
-          <strong>{homeUnlockedRewardCount}</strong>
-        </article>
-        <article class="home-reward-summary-item">
-          <span>{i18n:home_p2_rewards_affordable_label}</span>
-          <strong>{homeAffordableRewardCount}</strong>
-        </article>
-        <article class="home-reward-summary-item">
-          <span>{i18n:home_p2_rewards_collection_label}</span>
-          <strong>{homeInventoryCount}</strong>
-        </article>
-      </div>
-      <div class="home-onboarding-actions home-gamification-actions">
-        <a href="/private/profile/catalog" class="btn-primary">{i18n:home_p2_rewards_catalog_cta}</a>
-        <a href="/private/profile#economy-panel" class="btn-secondary">{i18n:home_p2_rewards_wallet_cta}</a>
-      </div>
-    </article>
-  </section>
-
-  <section class="home-return-grid" aria-label="{i18n:home_p3_loop_title}">
-    <article class="section-card home-return-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_today_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_today_title}</h2>
-      </div>
-      <p class="home-member-card-copy">{i18n:home_today_intro}</p>
-      <div class="home-return-status">
-        <span class="home-chip">{i18n:home_today_account_status_homedir}</span>
-        <span class="home-chip">{#if homeAccountHasGithub}{i18n:home_today_account_status_github_linked}{#else}{i18n:home_today_account_status_github_missing}{/if}</span>
-        <span class="home-chip">{#if homeAccountHasDiscord}{i18n:home_today_account_status_discord_linked}{#else}{i18n:home_today_account_status_discord_missing}{/if}</span>
-      </div>
-      <div class="home-return-signal-grid">
-        <article class="home-return-signal">
-          <span class="home-chip">{i18n:home_today_card_picks_chip}</span>
-          <strong>{homeTodayFreshPicks}</strong>
-          <p>{i18n:home_today_card_picks_desc}</p>
-        </article>
-        <article class="home-return-signal">
-          <span class="home-chip">{i18n:home_today_card_members_chip}</span>
-          <strong>{homeTodayMemberPicks}</strong>
-          <p>{i18n:home_today_card_members_desc}</p>
-        </article>
-        <article class="home-return-signal">
-          <span class="home-chip">{i18n:home_today_card_lta_chip}</span>
-          <strong>{homeTodayLtaThreads}</strong>
-          <p>{i18n:home_today_card_lta_desc}</p>
-        </article>
-        <article class="home-return-signal">
-          <span class="home-chip">{i18n:home_today_card_events_chip}</span>
-          <strong>{upcomingCount}</strong>
-          <p>{i18n:home_today_card_events_desc}</p>
-        </article>
-      </div>
-      <div class="home-onboarding-actions home-return-actions">
-        <a href="/private/profile#integrations-panel" class="btn-secondary">{i18n:home_today_account_status_cta}</a>
-      </div>
-    </article>
-
-    <article class="section-card home-return-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_p3_notifications_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_p3_notifications_title}</h2>
-      </div>
-      <p class="home-member-card-copy">{i18n:home_p3_notifications_intro}</p>
-      <div class="home-return-notification-top">
-        <span class="home-chip">{i18n:home_p3_notifications_unread_chip(homeUnreadNotifications)}</span>
-        <strong>{#if homeUnreadNotifications > 0}{i18n:home_p3_notifications_state_waiting}{#else}{i18n:home_p3_notifications_state_clear}{/if}</strong>
-      </div>
-      {#if homeNotificationPreview.isEmpty()}
-      <article class="home-return-empty">
-        <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
-        <strong>{i18n:home_p3_notifications_empty_title}</strong>
-        <p>{i18n:home_p3_notifications_empty_desc}</p>
-      </article>
-      {#else}
-      <div class="home-notification-preview-list" role="list">
-        {#for notification in homeNotificationPreview}
-        <article class="home-notification-preview-item" role="listitem">
-          <strong>{notification.title}</strong>
-          <p>{notification.message}</p>
-        </article>
-        {/for}
-      </div>
-      {/if}
-      <div class="home-onboarding-actions home-return-actions">
-        <a href="/notifications/center" class="btn-primary">{i18n:home_p3_notifications_cta}</a>
-      </div>
-    </article>
-
-    <article class="section-card home-return-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_p3_loop_eyebrow}</p>
-        <h2 class="page-title">{i18n:home_p3_loop_title}</h2>
-      </div>
-      <p class="home-member-card-copy">{i18n:home_p3_loop_intro}</p>
-      <div class="home-loop-list" role="list">
-        <a href="/comunidad/picks" class="home-loop-item" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">article</span>
-          <div>
-            <div class="home-loop-item-head">
-              <strong>{i18n:home_p3_loop_action_picks_title}</strong>
-              <span class="home-chip">{i18n:home_p3_loop_xp_chip(5)}</span>
-            </div>
-            <p>{#if !homeStarterHasVote}{i18n:home_p3_loop_action_picks_desc_start}{#else if homeTodayFreshPicks > 0}{i18n:home_p3_loop_action_picks_desc_ready(homeTodayFreshPicks)}{#else}{i18n:home_p3_loop_action_picks_desc_quiet}{/if}</p>
-            <span class="home-member-action-cta">{i18n:home_p3_loop_action_picks_cta}</span>
-          </div>
-        </a>
-        <a href="/notifications/center" class="home-loop-item" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
-          <div>
-            <div class="home-loop-item-head">
-              <strong>{i18n:home_p3_loop_action_notifications_title}</strong>
-              <span class="home-chip">{i18n:home_p3_loop_xp_chip(4)}</span>
-            </div>
-            <p>{#if homeUnreadNotifications > 0}{i18n:home_p3_loop_action_notifications_desc_unread(homeUnreadNotifications)}{#else}{i18n:home_p3_loop_action_notifications_desc_clear}{/if}</p>
-            <span class="home-member-action-cta">{i18n:home_p3_loop_action_notifications_cta}</span>
-          </div>
-        </a>
-        {#if upcomingCount > 0}
-        <a href="/eventos" class="home-loop-item" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">event</span>
-          <div>
-            <div class="home-loop-item-head">
-              <strong>{i18n:home_p3_loop_action_events_title}</strong>
-              <span class="home-chip">{i18n:home_p3_loop_xp_chip(4)}</span>
-            </div>
-            <p>{i18n:home_p3_loop_action_events_desc_live(upcomingCount)}</p>
-            <span class="home-member-action-cta">{i18n:home_p3_loop_action_events_cta}</span>
-          </div>
-        </a>
-        {#else}
-        <a href="/comunidad/lta" class="home-loop-item" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">bolt</span>
-          <div>
-            <div class="home-loop-item-head">
-              <strong>{i18n:home_p3_loop_action_lta_title}</strong>
-              <span class="home-chip">{i18n:home_p3_loop_xp_chip(3)}</span>
-            </div>
-            <p>{#if homeTodayLtaThreads > 0}{i18n:home_p3_loop_action_lta_desc(homeTodayLtaThreads)}{#else}{i18n:home_p3_loop_action_lta_desc_quiet}{/if}</p>
-            <span class="home-member-action-cta">{i18n:home_p3_loop_action_lta_cta}</span>
-          </div>
-        </a>
-        {/if}
-      </div>
-    </article>
-  </section>
-
-  <section class="home-return-grid" aria-label="{homeChallengeLoopCopy.trendingTitle}">
-    <article class="section-card home-return-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{homeChallengeLoopCopy.trendingEyebrow}</p>
-        <h2 class="page-title">{homeChallengeLoopCopy.trendingTitle}</h2>
-      </div>
-      <p class="home-member-card-copy">{homeChallengeLoopCopy.trendingIntro}</p>
-      {#if homeTrendingChallenges.isEmpty()}
-      <article class="home-return-empty">
-        <span class="material-symbols-outlined" aria-hidden="true">military_tech</span>
-        <strong>{homeChallengeLoopCopy.trendingEmptyTitle}</strong>
-        <p>{homeChallengeLoopCopy.trendingEmptyDesc}</p>
-      </article>
-      {#else}
-      <div class="home-loop-list" role="list">
-        {#for trend in homeTrendingChallenges}
-        <a href="{trend.actionUrl}" class="home-loop-item" role="listitem">
-          <span class="material-symbols-outlined" aria-hidden="true">local_fire_department</span>
-          <div>
-            <div class="home-loop-item-head">
-              <strong>{trend.title}</strong>
-              <span class="home-chip">{trend.rewardLabel}</span>
-            </div>
-            <p>{trend.countLabel}</p>
-            <span class="home-member-action-cta">{homeChallengeLoopCopy.trendingCta}</span>
-          </div>
-        </a>
-        {/for}
-      </div>
-      {/if}
-    </article>
-
-    <article class="section-card home-return-card">
-      <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{homeChallengeLoopCopy.leaderboardEyebrow}</p>
-        <h2 class="page-title">{homeChallengeLoopCopy.leaderboardTitle}</h2>
-      </div>
-      <p class="home-member-card-copy">{homeChallengeLoopCopy.leaderboardIntro}</p>
-      {#if homeChallengeLeaderboard.rank > 0}
-      <div class="home-return-notification-top">
-        <span class="home-chip">{homeChallengeLeaderboard.rankLabel}</span>
-        <strong>{homeChallengeLeaderboard.summaryLabel}</strong>
-      </div>
-      <article class="home-return-signal">
-        <span class="home-chip">{homeChallengeLoopCopy.leaderboardTitle}</span>
-        <strong>{homeChallengeLeaderboard.populationLabel}</strong>
-        <p>{homeChallengeLoopCopy.leaderboardCta}</p>
-      </article>
-      {#else}
-      <article class="home-return-empty">
-        <span class="material-symbols-outlined" aria-hidden="true">emoji_events</span>
-        <strong>{homeChallengeLeaderboard.summaryLabel}</strong>
-        <p>{homeChallengeLeaderboard.populationLabel}</p>
-      </article>
-      {/if}
-      <div class="home-onboarding-actions home-return-actions">
-        <a href="/private/profile#challenges-panel" class="btn-secondary">{homeChallengeLoopCopy.leaderboardCta}</a>
-      </div>
-    </article>
-  </section>
-  {/if}
 </header>
 
-<section class="page-grid home-panorama-grid">
-  <article class="section-card home-pane" id="home-social">
-    <div class="home-pane-header">
-      <div class="home-pane-header-main">
-        <span class="home-pane-identity home-pane-identity-social" aria-hidden="true">
-          <span class="material-symbols-outlined">article</span>
-        </span>
-        <div class="section-header home-pane-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:home_social_highlights_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_social_highlights_title}</h2>
-        </div>
+<section class="home-priority-grid" aria-label="{i18n:home_priority_grid_aria}">
+  <article class="section-card home-priority-card home-priority-card-event">
+    <div class="home-priority-card-head">
+      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">campaign</span>
+      <div>
+        <p class="section-subtitle">{i18n:home_priority_events_eyebrow}</p>
+        <h2>{i18n:home_priority_events_title}</h2>
       </div>
-      <a href="/comunidad/picks" class="btn-primary">{i18n:home_btn_open_social}</a>
     </div>
+    <p>{i18n:home_priority_events_desc}</p>
+    <a href="/event/devopsdays-santiago-2026" class="home-priority-link">{i18n:home_priority_events_cta}</a>
+  </article>
+
+  <article class="section-card home-priority-card">
+    <div class="home-priority-card-head">
+      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">groups</span>
+      <div>
+        <p class="section-subtitle">{i18n:home_priority_community_eyebrow}</p>
+        <h2>{i18n:home_priority_community_title}</h2>
+      </div>
+    </div>
+    <p>{i18n:home_priority_community_desc}</p>
     {#if socialHighlights.isEmpty()}
-    <article class="home-highlight-empty">
-      <span class="material-symbols-outlined">rss_feed</span>
-      <p>{i18n:home_p1_empty_social_desc}</p>
-      <a href="/comunidad/picks" class="btn-secondary">{i18n:home_p1_empty_social_cta}</a>
-    </article>
+    <p class="home-priority-empty">{i18n:home_priority_community_empty}</p>
     {#else}
-    <div class="home-pane-list">
+    <div class="home-priority-news-list">
       {#for item in socialHighlights}
-      <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="home-pane-item">
-        <div class="home-card-top">
-          <span class="home-chip">{i18n:home_pill_social}</span>
-          <span class="home-source">{item.source}</span>
-        </div>
-        <h3 class="home-pane-title">{item.title}</h3>
-        <p class="home-pane-summary">{item.summary}</p>
+      <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="home-priority-news-item">
+        <span>{item.source}</span>
+        <strong>{item.title}</strong>
       </a>
       {/for}
     </div>
     {/if}
+    <a href="/comunidad/picks" class="home-priority-link">{i18n:home_priority_community_cta}</a>
   </article>
 
-  <article class="section-card home-pane" id="home-events">
-    <div class="home-pane-header">
-      <div class="home-pane-header-main">
-        <span class="home-pane-identity home-pane-identity-events">
-          {#if !popularEvents.isEmpty() && app:validUrl(popularEvents[0].logoUrl)}
-          <img src="{popularEvents[0].logoUrl}" alt="{popularEvents[0].title}" loading="lazy"
-            class="home-pane-identity-avatar">
-          {#else}
-          <span class="material-symbols-outlined" aria-hidden="true">event</span>
-          {/if}
-        </span>
-        <div class="section-header home-pane-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:home_events_highlights_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_events_highlights_title}</h2>
-        </div>
+  <article class="section-card home-priority-card home-priority-card-collaboration">
+    <div class="home-priority-card-head">
+      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">handshake</span>
+      <div>
+        <p class="section-subtitle">{i18n:home_priority_collab_eyebrow}</p>
+        <h2>{i18n:home_priority_collab_title}</h2>
       </div>
-      <a href="/eventos" class="btn-primary">{i18n:home_btn_open_events}</a>
     </div>
-    {#if popularEvents.isEmpty()}
-    <article class="home-highlight-empty">
-      <span class="material-symbols-outlined">event_busy</span>
-      <p>{i18n:home_p1_empty_events_desc}</p>
-      <a href="/eventos" class="btn-secondary">{i18n:home_p1_empty_events_cta}</a>
-    </article>
-    {#else}
-    <div class="home-pane-list">
-      {#for event in popularEvents}
-      <a href="/event/{event.id}" class="home-pane-item home-event-item">
-        <div class="home-card-top">
-          <span class="home-chip">{i18n:home_pill_events}</span>
-          <span class="home-source">{event.formattedDate ?: i18n.home_event_date_tba}</span>
-        </div>
-        <div class="home-event-content">
-          <span class="home-event-avatar-shell">
-            {#if app:validUrl(event.logoUrl)}
-            <img src="{event.logoUrl}" alt="{event.title}" loading="lazy" class="home-event-avatar">
-            {#else}
-            <span class="material-symbols-outlined home-event-avatar-fallback" aria-hidden="true">event</span>
-            {/if}
-          </span>
-          <div class="home-event-text">
-            <h3 class="home-pane-title">{event.title}</h3>
-            <p class="home-pane-summary">{event.descriptionSummary ?: i18n.home_event_desc_default}</p>
-          </div>
-        </div>
+    <p>{i18n:home_priority_collab_desc}</p>
+    <div class="home-collaboration-list">
+      <a href="/event/devopsdays-santiago-2026/cfp" class="home-collaboration-item">
+        <strong>{i18n:home_priority_cfp_title}</strong>
+        <span>{i18n:home_priority_cfp_desc}</span>
       </a>
-      {/for}
-    </div>
-    {/if}
-  </article>
-
-  <article class="section-card home-pane" id="home-project">
-    <div class="home-pane-header">
-      <div class="home-pane-header-main">
-        <span class="home-pane-identity home-pane-identity-project" aria-hidden="true">
-          <span class="material-symbols-outlined">groups</span>
-        </span>
-        <div class="section-header home-pane-section-header hd-section-heading">
-          <p class="section-subtitle">{i18n:home_project_highlights_eyebrow}</p>
-          <h2 class="page-title">{i18n:home_project_highlights_title}</h2>
-        </div>
-      </div>
-      <a href="/proyectos" class="btn-primary">{i18n:home_btn_open_project}</a>
-    </div>
-
-    <div class="home-project-brief">
-      <p><span>{i18n:home_project_release_label}</span><strong>v{app:version()}</strong></p>
-      <p><span>{i18n:home_project_commit_label}</span><strong>{app:gitCommit()}</strong></p>
-      <p><span>{i18n:home_metric_contributors}</span><strong>{projectContributorCount}</strong></p>
-      <p><span>{i18n:home_project_total_contributions}</span><strong>{projectContributionTotal}</strong></p>
-    </div>
-
-    {#if projectHighlights.isEmpty()}
-    <p class="home-pane-summary">{i18n:home_project_no_data}</p>
-    {#else}
-    <div class="home-contributor-grid home-contributor-grid-compact">
-      {#for contributor in projectHighlights}
-      <a href="{contributor.htmlUrl}" target="_blank" rel="noopener noreferrer" class="home-contributor-card"
-        title="{contributor.login}">
-        <span class="home-contributor-avatar-shell">
-          <img src="{contributor.avatarUrl}" alt="{contributor.login}" loading="lazy" class="home-contributor-avatar">
-        </span>
-        <span class="home-contributor-login">{contributor.login}</span>
-        <span class="home-contributor-meta">{contributor.contributions} {i18n:home_project_contribs_unit}</span>
+      <a href="/event/devopsdays-santiago-2026/volunteers" class="home-collaboration-item">
+        <strong>{i18n:home_priority_volunteers_title}</strong>
+        <span>{i18n:home_priority_volunteers_desc}</span>
       </a>
-      {/for}
-    </div>
-    {/if}
-
-    <div class="home-project-actions-row">
-      <a href="/proyectos" class="btn-primary">{i18n:home_btn_explore_tracks}</a>
-      <a href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener noreferrer" class="btn-primary">
-        {i18n:home_btn_view_repo}
+      <a href="/event/devopsdays-santiago-2026" class="home-collaboration-item">
+        <strong>{i18n:home_priority_sponsors_title}</strong>
+        <span>{i18n:home_priority_sponsors_desc}</span>
       </a>
     </div>
   </article>
 </section>
-<script>
-  (function () {
-    const chip = document.getElementById("home-last-visit-chip");
-    if (!chip || typeof window === "undefined" || !window.localStorage) {
-      return;
-    }
-    const key = "homedir.lastVisitAt";
-    const now = Date.now();
-    const previous = Number(window.localStorage.getItem(key) || 0);
-    const firstLabel = chip.dataset.i18nFirst || chip.textContent || "";
-    const prefix = chip.dataset.i18nLastPrefix || "Last visit";
-    if (!previous || Number.isNaN(previous) || previous <= 0 || previous >= now) {
-      chip.textContent = firstLabel;
-    } else {
-      const diffMs = now - previous;
-      const minutes = Math.max(1, Math.floor(diffMs / 60000));
-      if (minutes < 60) {
-        chip.textContent = prefix + ": " + minutes + "m";
-      } else if (minutes < 1440) {
-        const hours = Math.floor(minutes / 60);
-        chip.textContent = prefix + ": " + hours + "h";
-      } else {
-        const days = Math.floor(minutes / 1440);
-        chip.textContent = prefix + ": " + days + "d";
-      }
-    }
-    window.localStorage.setItem(key, String(now));
-  })();
-</script>
+
+<section class="home-priority-status" aria-label="{i18n:home_priority_status_aria}">
+  <a href="/eventos" class="home-priority-status-item">
+    <strong>{upcomingCount}</strong>
+    <span>{i18n:home_priority_status_events}</span>
+  </a>
+  <a href="/comunidad/picks" class="home-priority-status-item">
+    <strong>{homeTodayFreshPicks}</strong>
+    <span>{i18n:home_priority_status_news}</span>
+  </a>
+  <a href="/comunidad/reputation-hub" class="home-priority-status-item">
+    <strong>{homeBoardSummary.homedirUsers}</strong>
+    <span>{i18n:home_priority_status_members}</span>
+  </a>
+</section>
 {/body}
 {/include}
