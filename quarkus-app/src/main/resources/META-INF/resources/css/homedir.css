@@ -1097,6 +1097,35 @@ footer {
   max-width: 100%;
 }
 
+.admin-event-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.admin-event-action-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.admin-event-action {
+  flex: 0 0 8.25rem;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.admin-event-action .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .admin-shell-stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));

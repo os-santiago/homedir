@@ -61,15 +61,22 @@
                             style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: rgba(255,255,255,0.1);">{ev.typeLabel}</span>
                     </td>
                     <td class="u-p-2">
-                        <div style="display: flex; gap: 0.5rem;">
-                            <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary"
-                                style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Editar</a>
-                            <a href="/private/admin/metrics?event={ev.id}&amp;range=all" class="btn btn-ghost"
-                                style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Métricas</a>
+                        <div class="admin-event-actions">
+                            <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary admin-event-action">
+                                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                                <span>Editar</span>
+                            </a>
+                            <a href="/private/admin/metrics?event={ev.id}&amp;range=all"
+                                class="btn btn-ghost admin-event-action">
+                                <span class="material-symbols-outlined" aria-hidden="true">analytics</span>
+                                <span>Métricas</span>
+                            </a>
                             <form method="post" action="/private/admin/events/{ev.id}/delete"
-                                class="needs-confirm inline-form">
-                                <button type="submit" class="btn btn-danger"
-                                    style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Eliminar</button>
+                                class="needs-confirm inline-form admin-event-action-form">
+                                <button type="submit" class="btn btn-danger admin-event-action">
+                                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                                    <span>Eliminar</span>
+                                </button>
                             </form>
                         </div>
                     </td>
