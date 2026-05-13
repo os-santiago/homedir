@@ -158,22 +158,42 @@ Nuevo Evento · Homedir
           <div class="form-group">
             <label for="themePrimaryColor" class="form-label">Color principal</label>
             <input id="themePrimaryColor" name="themePrimaryColor" type="color"
-              value="{event.resolvedThemePrimaryColor}" class="form-input">
+              value="{event.resolvedThemePrimaryColor}" class="form-input" data-color-input="primary">
+            <div class="event-palette-preview-item">
+              <span class="event-palette-swatch" data-color-preview="primary"
+                style="background: {event.resolvedThemePrimaryColor};"></span>
+              <span class="event-palette-value" data-color-value="primary">{event.resolvedThemePrimaryColor}</span>
+            </div>
           </div>
           <div class="form-group">
             <label for="themeAccentColor" class="form-label">Color acento</label>
             <input id="themeAccentColor" name="themeAccentColor" type="color"
-              value="{event.resolvedThemeAccentColor}" class="form-input">
+              value="{event.resolvedThemeAccentColor}" class="form-input" data-color-input="accent">
+            <div class="event-palette-preview-item">
+              <span class="event-palette-swatch" data-color-preview="accent"
+                style="background: {event.resolvedThemeAccentColor};"></span>
+              <span class="event-palette-value" data-color-value="accent">{event.resolvedThemeAccentColor}</span>
+            </div>
           </div>
           <div class="form-group">
             <label for="themeSurfaceColor" class="form-label">Color superficie</label>
             <input id="themeSurfaceColor" name="themeSurfaceColor" type="color"
-              value="{event.resolvedThemeSurfaceColor}" class="form-input">
+              value="{event.resolvedThemeSurfaceColor}" class="form-input" data-color-input="surface">
+            <div class="event-palette-preview-item">
+              <span class="event-palette-swatch" data-color-preview="surface"
+                style="background: {event.resolvedThemeSurfaceColor};"></span>
+              <span class="event-palette-value" data-color-value="surface">{event.resolvedThemeSurfaceColor}</span>
+            </div>
           </div>
           <div class="form-group">
             <label for="themeTextColor" class="form-label">Color texto</label>
             <input id="themeTextColor" name="themeTextColor" type="color"
-              value="{event.resolvedThemeTextColor}" class="form-input">
+              value="{event.resolvedThemeTextColor}" class="form-input" data-color-input="text">
+            <div class="event-palette-preview-item">
+              <span class="event-palette-swatch" data-color-preview="text"
+                style="background: {event.resolvedThemeTextColor};"></span>
+              <span class="event-palette-value" data-color-value="text">{event.resolvedThemeTextColor}</span>
+            </div>
           </div>
         </div>
       </fieldset>
@@ -189,7 +209,7 @@ Nuevo Evento · Homedir
     {#for sc in event.scenarios}
     <div
       style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
-      <form method="post" action="/private/admin/events/{event.id}/scenario">
+      <form id="scenario-form-{sc.id}" method="post" action="/private/admin/events/{event.id}/scenario">
         <input type="hidden" name="scenarioId" value="{sc.id}">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{sc.id}"
@@ -201,14 +221,14 @@ Nuevo Evento · Homedir
           <div class="form-group"><label class="form-label">Ubicación</label><input name="location"
               value="{sc.location}" placeholder="Ubicación" class="form-input"></div>
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-secondary">Guardar</button>
-        </div>
       </form>
-      <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete"
-        class="needs-confirm form-actions" style="margin-top: 0;">
-        <button type="submit" class="btn btn-danger">Eliminar</button>
-      </form>
+      <div class="event-edit-item-actions">
+        <button type="submit" class="btn btn-secondary" form="scenario-form-{sc.id}">Guardar</button>
+        <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete"
+          class="needs-confirm inline-form event-edit-delete-form">
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
     </div>
     {/for}
     <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
@@ -233,7 +253,7 @@ Nuevo Evento · Homedir
     {#if !t.break}
     <div
       style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
-      <form method="post" action="/private/admin/events/{event.id}/talk">
+      <form id="talk-form-{t.id}" method="post" action="/private/admin/events/{event.id}/talk">
         <input type="hidden" name="talkId" value="{t.id}">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{t.id}" disabled>
@@ -261,14 +281,14 @@ Nuevo Evento · Homedir
             </select>
           </div>
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-secondary">Guardar</button>
-        </div>
       </form>
-      <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete"
-        class="needs-confirm inline-form form-actions" style="margin-top: 0;">
-        <button type="submit" class="btn btn-danger">Eliminar</button>
-      </form>
+      <div class="event-edit-item-actions">
+        <button type="submit" class="btn btn-secondary" form="talk-form-{t.id}">Guardar</button>
+        <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete"
+          class="needs-confirm inline-form event-edit-delete-form">
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
     </div>
     {/if}
     {/for}
@@ -327,7 +347,7 @@ Nuevo Evento · Homedir
     {#if t.break}
     <div
       style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
-      <form method="post" action="/private/admin/events/{event.id}/break">
+      <form id="break-form-{t.id}" method="post" action="/private/admin/events/{event.id}/break">
         <input type="hidden" name="breakId" value="{t.id}">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{t.id}" disabled>
@@ -355,14 +375,14 @@ Nuevo Evento · Homedir
             </select>
           </div>
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-secondary">Guardar</button>
-        </div>
       </form>
-      <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete"
-        class="needs-confirm inline-form form-actions" style="margin-top: 0;">
-        <button type="submit" class="btn btn-danger">Eliminar</button>
-      </form>
+      <div class="event-edit-item-actions">
+        <button type="submit" class="btn btn-secondary" form="break-form-{t.id}">Guardar</button>
+        <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete"
+          class="needs-confirm inline-form event-edit-delete-form">
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
     </div>
     {/if}
     {/for}
@@ -444,6 +464,19 @@ Nuevo Evento · Homedir
       speakerSelect.addEventListener('change', filterTalks);
       filterTalks();
     }
+
+    document.querySelectorAll('[data-color-input]').forEach(input => {
+      const key = input.dataset.colorInput;
+      const swatch = document.querySelector('[data-color-preview="' + key + '"]');
+      const value = document.querySelector('[data-color-value="' + key + '"]');
+      function syncColorPreview() {
+        if (swatch) swatch.style.background = input.value;
+        if (value) value.textContent = input.value;
+      }
+      input.addEventListener('input', syncColorPreview);
+      input.addEventListener('change', syncColorPreview);
+      syncColorPreview();
+    });
   })();
 </script>
 {/body}
