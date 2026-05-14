@@ -19,14 +19,13 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("HomeDir: build, learn, and level up with your community."))
-        .body(containsString("How HomeDir works"))
-        .body(containsString("What changed in HomeDir"))
-        .body(containsString("Challenges + shareable proof"))
-        .body(containsString("Turn login into visible impact"))
-        .body(containsString("Community"))
-        .body(containsString("Events"))
-        .body(containsString("Project"));
+        .body(containsString("HomeDir focuses on events, community news, and collaboration."))
+        .body(containsString("DevOpsDays Santiago is the first HomeDir priority."))
+        .body(containsString("Community and local event news"))
+        .body(containsString("Choose how to collaborate"))
+        .body(containsString("DevOpsDays Santiago Call for Papers"))
+        .body(containsString("/event/devopsdays-santiago-2026/cfp"))
+        .body(containsString("/event/devopsdays-santiago-2026/volunteers"));
   }
 
   @Test
@@ -54,12 +53,13 @@ public class HomeTimelineTest {
         .body(containsString("<html lang=\"es\">"))
         .body(containsString(">Inicio</a>"))
         .body(containsString("HomeDir"))
-        .body(containsString("HomeDir: construye, aprende y sube de nivel con tu comunidad."))
-        .body(containsString("Cómo funciona HomeDir"))
-        .body(containsString("Qué cambió en HomeDir"))
-        .body(containsString("Challenges + prueba compartible"))
-        .body(containsString("Comunidad"))
-        .body(containsString("Eventos"));
+        .body(containsString("HomeDir se enfoca en eventos, noticias de comunidad y colaboración."))
+        .body(containsString("DevOpsDays Santiago es la primera prioridad de HomeDir."))
+        .body(containsString("Noticias de comunidad y eventos locales"))
+        .body(containsString("Elige cómo colaborar"))
+        .body(containsString("DevOpsDays Santiago Call for Papers"))
+        .body(containsString("/event/devopsdays-santiago-2026/cfp"))
+        .body(containsString("/event/devopsdays-santiago-2026/volunteers"));
   }
 
   @Test

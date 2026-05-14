@@ -21,6 +21,7 @@ public class HomePastEventsTest {
         .body(containsString("<html lang=\"es\">"))
         .body(containsString("Comunidad"))
         .body(containsString("Eventos"))
-        .body(containsString("Proyecto"));
+        .body(containsString("Colaboración"))
+        .body(containsString("DevOpsDays Santiago Call for Volunteers"));
   }
 }

@@ -3959,6 +3959,96 @@ public interface AppMessages {
     @Message("Top contributors")
     String home_project_top_contributors();
 
+    @Message("HomeDir priorities")
+    String home_priority_aria();
+
+    @Message("Start here")
+    String home_priority_eyebrow();
+
+    @Message("HomeDir focuses on events, community news, and collaboration.")
+    String home_priority_title();
+
+    @Message("Choose the path that matches what you need today: follow DevOpsDays Santiago, read local and regional community updates, or contribute through the open calls.")
+    String home_priority_intro();
+
+    @Message("Open DevOpsDays Santiago")
+    String home_priority_primary_cta();
+
+    @Message("Read community news")
+    String home_priority_secondary_cta();
+
+    @Message("Priority paths")
+    String home_priority_grid_aria();
+
+    @Message("Events")
+    String home_priority_events_eyebrow();
+
+    @Message("DevOpsDays Santiago is the first HomeDir priority.")
+    String home_priority_events_title();
+
+    @Message("Start with the next community event and use HomeDir as the operating space for agenda, CFP, volunteers, and event updates.")
+    String home_priority_events_desc();
+
+    @Message("Open event")
+    String home_priority_events_cta();
+
+    @Message("Browse all events")
+    String home_priority_events_secondary();
+
+    @Message("Community")
+    String home_priority_community_eyebrow();
+
+    @Message("Community and local event news")
+    String home_priority_community_title();
+
+    @Message("Follow curated news about community building, regional events, DevRel, open source, and local ecosystem activity.")
+    String home_priority_community_desc();
+
+    @Message("No community news is visible yet. Open Community Picks to browse the current feed.")
+    String home_priority_community_empty();
+
+    @Message("Open Community Picks")
+    String home_priority_community_cta();
+
+    @Message("Collaboration")
+    String home_priority_collab_eyebrow();
+
+    @Message("Choose how to collaborate")
+    String home_priority_collab_title();
+
+    @Message("Pick one contribution path for DevOpsDays Santiago. Each path leads directly to the relevant action.")
+    String home_priority_collab_desc();
+
+    @Message("DevOpsDays Santiago Call for Papers")
+    String home_priority_cfp_title();
+
+    @Message("Submit a talk proposal for the event program.")
+    String home_priority_cfp_desc();
+
+    @Message("DevOpsDays Santiago Call for Volunteers")
+    String home_priority_volunteers_title();
+
+    @Message("Join the volunteer team and help operate the event.")
+    String home_priority_volunteers_desc();
+
+    @Message("DevOpsDays Santiago Call for Sponsors")
+    String home_priority_sponsors_title();
+
+    @Message("Explore sponsorship interest from the event page while the sponsor flow is prepared.")
+    String home_priority_sponsors_desc();
+
+    @Message("HomeDir live signals")
+    String home_priority_status_aria();
+
+    @Message("upcoming events")
+    String home_priority_status_events();
+
+    @Message("new community items today")
+    String home_priority_status_news();
+
+    @Message("community members")
+    String home_priority_status_members();
+
     @Message("No contributor data available at the moment.")
     String home_project_no_data();
 
