@@ -1159,6 +1159,63 @@ public interface AppMessages {
     @Message("CFP official status notice")
     String events_cfp_live_aria();
 
+    @Message("Open")
+    String events_cfp_live_stage_cfp_badge();
+
+    @Message("Call for Papers is officially open")
+    String events_cfp_live_stage_cfp_title();
+
+    @Message("Submit your proposal and follow moderation updates from this page.")
+    String events_cfp_live_stage_cfp_desc();
+
+    @Message("Evaluation")
+    String events_cfp_live_stage_evaluation_badge();
+
+    @Message("Call for Papers is now under evaluation")
+    String events_cfp_live_stage_evaluation_title();
+
+    @Message("Submissions are closed while the organizing team reviews proposals and prepares the next round of updates.")
+    String events_cfp_live_stage_evaluation_desc();
+
+    @Message("Results")
+    String events_cfp_live_stage_results_badge();
+
+    @Message("The review results are being prepared")
+    String events_cfp_live_stage_results_title();
+
+    @Message("The team is consolidating decisions and will publish results as soon as they are ready.")
+    String events_cfp_live_stage_results_desc();
+
+    @Message("Presentations")
+    String events_cfp_live_stage_presentations_badge();
+
+    @Message("Selected talks are moving into presentation prep")
+    String events_cfp_live_stage_presentations_title();
+
+    @Message("Review the selected talks and stay tuned for final delivery guidance and slide deadlines.")
+    String events_cfp_live_stage_presentations_desc();
+
+    @Message("Event")
+    String events_cfp_live_stage_event_badge();
+
+    @Message("The event is now live")
+    String events_cfp_live_stage_event_title();
+
+    @Message("Follow the event agenda and use the CFP page as a reference point for what was selected.")
+    String events_cfp_live_stage_event_desc();
+
+    @Message("The CFP submission window has ended, so the form is locked.")
+    String events_cfp_form_locked_desc();
+
+    @Message("Looking for sponsorship options?")
+    String events_cfp_sponsors_title();
+
+    @Message("Visit the official sponsorship page for {eventTitle} to review the available opportunities.")
+    String events_cfp_sponsors_desc(String eventTitle);
+
+    @Message("Go to sponsorship page")
+    String events_cfp_sponsors_cta();
+
     @Message("CFP timeline")
     String events_cfp_timeline_title();
 
