@@ -114,10 +114,37 @@
   <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
   {#if !cfpTestingModeEnabled}
   <div id="cfpLiveBanner" class="cfp-live-banner" role="note" aria-label="{i18n:events_cfp_live_aria}" hidden>
-    <span class="cfp-live-badge">{i18n:events_cfp_live_badge}</span>
+    <span class="cfp-live-badge">{#if cfpTimeline && cfpTimeline.activeStage}
+      {#switch cfpTimeline.activeStage.key}
+      {#case 'cfp'}{i18n:events_cfp_live_stage_cfp_badge}{/case}
+      {#case 'evaluation'}{i18n:events_cfp_live_stage_evaluation_badge}{/case}
+      {#case 'results'}{i18n:events_cfp_live_stage_results_badge}{/case}
+      {#case 'presentations'}{i18n:events_cfp_live_stage_presentations_badge}{/case}
+      {#case 'event'}{i18n:events_cfp_live_stage_event_badge}{/case}
+      {#else}{i18n:events_cfp_live_badge}{/else}
+      {/switch}
+    {#else}{i18n:events_cfp_live_badge}{/if}</span>
     <div>
-      <p class="cfp-live-title">{i18n:events_cfp_live_title}</p>
-      <p class="cfp-live-desc">{i18n:events_cfp_live_desc}</p>
+      <p class="cfp-live-title">{#if cfpTimeline && cfpTimeline.activeStage}
+        {#switch cfpTimeline.activeStage.key}
+        {#case 'cfp'}{i18n:events_cfp_live_stage_cfp_title}{/case}
+        {#case 'evaluation'}{i18n:events_cfp_live_stage_evaluation_title}{/case}
+        {#case 'results'}{i18n:events_cfp_live_stage_results_title}{/case}
+        {#case 'presentations'}{i18n:events_cfp_live_stage_presentations_title}{/case}
+        {#case 'event'}{i18n:events_cfp_live_stage_event_title}{/case}
+        {#else}{i18n:events_cfp_live_title}{/else}
+        {/switch}
+      {#else}{i18n:events_cfp_live_title}{/if}</p>
+      <p class="cfp-live-desc">{#if cfpTimeline && cfpTimeline.activeStage}
+        {#switch cfpTimeline.activeStage.key}
+        {#case 'cfp'}{i18n:events_cfp_live_stage_cfp_desc}{/case}
+        {#case 'evaluation'}{i18n:events_cfp_live_stage_evaluation_desc}{/case}
+        {#case 'results'}{i18n:events_cfp_live_stage_results_desc}{/case}
+        {#case 'presentations'}{i18n:events_cfp_live_stage_presentations_desc}{/case}
+        {#case 'event'}{i18n:events_cfp_live_stage_event_desc}{/case}
+        {#else}{i18n:events_cfp_live_desc}{/else}
+        {/switch}
+      {#else}{i18n:events_cfp_live_desc}{/if}</p>
     </div>
   </div>
   {/if}
@@ -151,6 +178,14 @@
 </section>
 {/if}
 
+<section class="section-card" style="grid-column: 1 / -1;">
+  <h2 style="margin-top: 0;">{i18n:events_cfp_sponsors_title}</h2>
+  <p class="section-subtitle">{i18n:events_cfp_sponsors_desc}</p>
+  <a href="https://santiago.devopsdayschile.cl/patrocinio" target="_blank" rel="noopener noreferrer" class="btn-primary">
+    {i18n:events_cfp_sponsors_cta}
+  </a>
+</section>
+
 <section class="page-grid">
   <div class="cfp-view-switch" style="grid-column: 1 / -1;">
     <button id="cfpShowNewBtn" type="button" class="btn login-btn-nav cfp-view-btn is-active">{i18n:events_cfp_tab_new_proposal}</button>
@@ -172,7 +207,11 @@
     {/if}
 
     {#if userAuthenticated}
+    {#if !cfpTimeline || !cfpTimeline.cfpWindowOpen}
+    <p class="cfp-locked-message" role="status">{i18n:events_cfp_form_locked_desc}</p>
+    {/if}
     <form id="cfpForm" data-user-scope="{userName}">
+      <fieldset class="cfp-form-fieldset" {#if !cfpTimeline || !cfpTimeline.cfpWindowOpen}disabled aria-disabled="true"{/if}>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
         <div class="form-group" style="grid-column: 1 / -1;">
           <label class="form-label" for="cfpTitle">{i18n:events_cfp_form_title}</label>
@@ -242,6 +281,7 @@
       </div>
       <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
       <p id="cfpAvailabilityHint" class="form-hint cfp-quota-hint"></p>
+      </fieldset>
     </form>
     <p id="cfpFeedback" class="form-hint cfp-feedback" role="status" aria-live="polite" hidden></p>
     {#else}
@@ -762,7 +802,7 @@
     let mineOffset = 0;
     let mineHasMore = false;
     let submitInFlight = false;
-    let cfpCurrentlyOpen = true;
+    let cfpCurrentlyOpen = {#if cfpTimeline && cfpTimeline.cfpWindowOpen}true{#else}false{/if};
 
     const labels = {
       pending: "{i18n:events_cfp_status_pending}",

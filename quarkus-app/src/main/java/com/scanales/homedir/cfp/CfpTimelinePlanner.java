@@ -119,12 +119,17 @@ public final class CfpTimelinePlanner {
             formatWithoutYear(eventEnd, safeLocale),
             isActive(nowDate, eventStart, eventEnd)));
 
+    CfpTimelineStageView activeStage =
+        stages.stream().filter(CfpTimelineStageView::active).findFirst().orElse(null);
+
     return Optional.of(
         new CfpTimelineView(
             event.getId(),
             event.getTitle(),
             formatWithYear(cfpOpen, safeLocale),
             formatWithYear(eventEnd, safeLocale),
+            activeStage != null && "cfp".equals(activeStage.key()),
+            activeStage,
             stages));
   }
 
