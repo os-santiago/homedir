@@ -7,6 +7,8 @@ public record CfpTimelineView(
     String eventTitle,
     String fromLabel,
     String toLabel,
+    boolean cfpWindowOpen,
+    CfpTimelineStageView activeStage,
     List<CfpTimelineStageView> stages) {
 }
 
