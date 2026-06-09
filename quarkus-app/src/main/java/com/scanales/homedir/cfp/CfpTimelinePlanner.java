@@ -3,7 +3,6 @@ package com.scanales.homedir.cfp;
 import com.scanales.homedir.model.Event;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,48 +40,62 @@ public final class CfpTimelinePlanner {
     int timelineEventDays = Math.max(1, Math.min(2, event.getDays() > 0 ? event.getDays() : 2));
     LocalDate eventEnd = eventStart.plusDays(timelineEventDays - 1L);
 
-    int eventYear = eventStart.getYear();
-    LocalDate evaluationStart = LocalDate.of(eventYear, Month.JUNE, 8);
-    LocalDate evaluationEnd = LocalDate.of(eventYear, Month.JULY, 8);
-    LocalDate resultsDate = LocalDate.of(eventYear, Month.JULY, 15);
-    LocalDate presentationsDeadline = LocalDate.of(eventYear, Month.AUGUST, 25);
-
     LocalDate cfpClose = toLocalDate(cfpClosesAt, zone);
     if (cfpClose == null) {
-      cfpClose = evaluationStart;
+      cfpClose = eventStart.minusDays(Math.max(45L, timelineEventDays * 2L));
     }
-    if (cfpClose.isAfter(evaluationStart)) {
-      cfpClose = evaluationStart;
+    if (!cfpClose.isBefore(eventStart)) {
+      cfpClose = eventStart.minusDays(1L);
     }
 
     LocalDate cfpOpen = toLocalDate(cfpOpensAt, zone);
     if (cfpOpen == null) {
-      cfpOpen = cfpClose.minusMonths(2L);
+      cfpOpen = cfpClose.minusDays(Math.max(45L, timelineEventDays * 2L));
     }
     if (cfpOpen.isAfter(cfpClose)) {
       cfpOpen = cfpClose;
     }
 
-    if (resultsDate.isAfter(eventStart)) {
-      resultsDate = eventStart;
+    long leadDays = Math.max(1L, ChronoUnit.DAYS.between(cfpClose, eventStart));
+
+    LocalDate evaluationStart = cfpClose.plusDays(1L);
+    long evaluationSpan = Math.max(7L, Math.min(30L, leadDays / 4L));
+    LocalDate evaluationEnd = evaluationStart.plusDays(evaluationSpan - 1L);
+    LocalDate evaluationCap = eventStart.minusDays(21L);
+    if (evaluationCap.isBefore(evaluationStart)) {
+      evaluationCap = evaluationStart;
     }
-    if (evaluationEnd.isAfter(resultsDate)) {
-      evaluationEnd = resultsDate;
-    }
-    if (evaluationStart.isAfter(evaluationEnd)) {
-      evaluationStart = evaluationEnd;
-    }
-    if (evaluationStart.isBefore(cfpClose)) {
-      evaluationStart = cfpClose;
+    if (evaluationEnd.isAfter(evaluationCap)) {
+      evaluationEnd = evaluationCap;
     }
     if (evaluationEnd.isBefore(evaluationStart)) {
       evaluationEnd = evaluationStart;
     }
+
+    long resultsGap = Math.max(1L, Math.min(14L, leadDays / 12L));
+    LocalDate resultsDate = evaluationEnd.plusDays(resultsGap);
+    LocalDate resultsCap = eventStart.minusDays(14L);
+    if (resultsCap.isBefore(evaluationEnd.plusDays(1L))) {
+      resultsCap = evaluationEnd.plusDays(1L);
+    }
+    if (resultsDate.isAfter(resultsCap)) {
+      resultsDate = resultsCap;
+    }
+    if (resultsDate.isBefore(evaluationEnd.plusDays(1L))) {
+      resultsDate = evaluationEnd.plusDays(1L);
+    }
+    if (resultsDate.isAfter(eventStart.minusDays(1L))) {
+      resultsDate = eventStart.minusDays(1L);
+    }
+
+    long presentationSpan = Math.max(7L, Math.min(21L, leadDays / 6L));
+    LocalDate presentationsDeadline = resultsDate.plusDays(presentationSpan);
+    LocalDate presentationsCap = eventStart.minusDays(1L);
+    if (presentationsDeadline.isAfter(presentationsCap)) {
+      presentationsDeadline = presentationsCap;
+    }
     if (presentationsDeadline.isBefore(resultsDate)) {
       presentationsDeadline = resultsDate;
-    }
-    if (presentationsDeadline.isAfter(eventStart)) {
-      presentationsDeadline = eventStart;
     }
 
     LocalDate nowDate = ZonedDateTime.ofInstant(now != null ? now : Instant.now(), zone).toLocalDate();
