@@ -4,7 +4,6 @@ import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -12,7 +11,7 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 
 @Provider
-@Priority(Priorities.APPLICATION - 100)
+@Priority(4500)
 public class ErrorPageExceptionMapper implements ExceptionMapper<WebApplicationException> {
 
     @Inject
