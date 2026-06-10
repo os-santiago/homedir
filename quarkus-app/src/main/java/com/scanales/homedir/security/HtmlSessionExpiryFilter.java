@@ -71,14 +71,18 @@ public class HtmlSessionExpiryFilter implements ContainerRequestFilter {
     if (id == null) {
       return true;
     }
-    JsonWebToken jwt = null;
-    if (id.getPrincipal() instanceof JsonWebToken jw) {
-      jwt = jw;
+    if (id.getPrincipal() instanceof JsonWebToken jwt) {
+      Long exp = jwt.getExpirationTime();
+      if (exp != null) {
+        return exp <= (System.currentTimeMillis() / 1000L);
+      }
     }
-    if (jwt == null) {
-      return false;
+    // Fallback para tokens no-JWT: intentar leer exp desde atributos
+    Object expAttr = id.getAttribute("exp");
+    if (expAttr instanceof Number n) {
+      return n.longValue() <= (System.currentTimeMillis() / 1000L);
     }
-    Long exp = jwt.getExpirationTime();
-    return exp != null && exp <= (System.currentTimeMillis() / 1000L);
+    // Sin informacion de expiracion, asumir no expirado
+    return false;
   }
 }
