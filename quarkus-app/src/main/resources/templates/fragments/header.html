@@ -91,7 +91,7 @@
             </div>
             <div class="xp-bar-container header-xp-bar-bg">
               <div class="xp-bar-fill header-xp-bar-fill"
-                style="--xp-percent: {(userSession.currentXp / userSession.nextLevelXp) * 100}%;">
+                style="--xp-percent: {userSession.nextLevelXp > 0 ? (userSession.currentXp / userSession.nextLevelXp) * 100 : 0}%;">
               </div>
             </div>
           </div>
