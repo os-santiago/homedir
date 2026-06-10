@@ -1,9 +1,9 @@
 <!-- Login Modal -->
-<div class="login-modal" id="loginModal">
+<div class="login-modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
     <div class="login-card">
         <button class="close-modal" id="closeLoginBtn" aria-label="{i18n:login_modal_close_aria}"><span
                 class="material-symbols-outlined">close</span></button>
-        <h2>{i18n:login_modal_title}</h2>
+        <h2 id="loginModalTitle">{i18n:login_modal_title}</h2>
         <p class="subtitle">{i18n:login_modal_subtitle}</p>
         <div class="login-buttons">
             <a href="/private/login-callback?redirect=/" class="login-btn btn-login-flex" id="googleLogin"
