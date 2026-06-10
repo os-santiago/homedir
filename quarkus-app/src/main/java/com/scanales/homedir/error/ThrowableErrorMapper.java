@@ -28,7 +28,12 @@ public class ThrowableErrorMapper implements ExceptionMapper<Throwable> {
         if (template == null) {
             return Response.status(statusCode).entity("Error " + statusCode).type(MediaType.TEXT_PLAIN).build();
         }
-        String html = template.render();
+        String html;
+        try {
+            html = template.render();
+        } catch (Exception ex) {
+            return Response.status(statusCode).entity("Error " + statusCode).type(MediaType.TEXT_PLAIN).build();
+        }
         return Response.status(statusCode).entity(html).type(MediaType.TEXT_HTML).build();
     }
 }
