@@ -60,7 +60,8 @@ public class AppTemplateExtensions {
     }
     String name = AdminUtils.getClaim(identity, "name");
     if (name == null || name.isBlank()) {
-      name = identity.getPrincipal().getName();
+      java.security.Principal principal = identity.getPrincipal();
+      name = principal != null ? principal.getName() : null;
     }
     return name;
   }
