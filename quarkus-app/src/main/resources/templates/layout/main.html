@@ -3,6 +3,8 @@
 {@ boolean noFooter = false}
 {@ boolean noCharacterSheet = false}
 {@ boolean noLoginModal = false}
+{@ boolean showBreadcrumbs = false}
+{@ boolean showToasts = false}
 {@ String activePage = ""}
 {@ String mainClass = ""}
 {@ boolean ultraLiteMode = false}
@@ -30,21 +32,23 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v={app:version()}" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v={app:version()}" />
   <link rel="icon" href="/favicon.ico?v={app:version()}" />
+  <link rel="manifest" href="/site.webmanifest?v={app:version()}" />
   <link rel="stylesheet" href="/styles.css?v={app:version()}" />
   <link rel="stylesheet" href="/css/retro-theme.css?v={app:version()}" />
   <link rel="stylesheet" href="/css/homedir.css?v={app:version()}" />
   <link rel="stylesheet" href="/css/notifications.css?v={app:version()}" />
+  <link rel="stylesheet" href="/css/print.css?v={app:version()}" media="print" />
   <!-- Open Graph / Social Sharing Defaults -->
   <meta property="og:site_name" content="HomeDir" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="{pageTitle ?: i18n.layout_default_og_title}" />
   <meta property="og:description"
     content="{pageDescription ?: i18n.layout_default_og_description}" />
-  <meta property="og:image" content="{pageImage ?: 'https://homedir.opensourcesantiago.io/images/og-default.png'}" />
+  <meta property="og:image" content="{pageImage ?: app:defaultOgImage()}" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="{pageTitle ?: i18n.layout_default_twitter_title}" />
   <meta name="twitter:description" content="{pageDescription ?: i18n.layout_default_twitter_description}" />
-  <meta name="twitter:image" content="{pageImage ?: 'https://homedir.opensourcesantiago.io/images/og-default.png'}" />
+  <meta name="twitter:image" content="{pageImage ?: app:defaultOgImage()}" />
 
 
   {#insert head}{/}
@@ -64,6 +68,10 @@
     {#include fragments/header /}
     {/if}
 
+    {#if showBreadcrumbs}
+    <nav class="breadcrumbs" aria-label="{i18n:layout_breadcrumbs_aria}">{#insert breadcrumbs}{/}</nav>
+    {/if}
+
     <main id="main-content" class="homedir-main {mainClass}" role="main">
       {#insert body}{/}
     </main>
@@ -77,6 +85,9 @@
 
   {#if noLoginModal != true}
   {#include fragments/login-modal.html/}
+  {/if}
+  {#if showToasts}
+  {#include fragments/toasts.qute.html/}
   {/if}
   <script src="/js/homedir.js?v={app:version()}"></script>
   <script>

@@ -43,7 +43,7 @@ public class NotificationConfig {
   // Iteration 6 operability
   public static boolean metricsEnabled = true;
   public static String logsLevel = "info";
-  public static String userHashSalt = "changeme";
+  public static String userHashSalt = null;
   public static String maxFileSize = "3MB";
   public static Duration maintenanceInterval = Duration.parse("PT30M");
   public static int backpressureQueueMax = 10000;

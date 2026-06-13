@@ -4569,6 +4569,9 @@ public interface AppMessages {
     @Message("Next")
     String now_box_status_next();
 
+    @Message("No active events right now.")
+    String now_box_empty();
+
     @Message("HomeDir - OSSantiago Community Platform")
     String layout_default_title();
 
@@ -6428,5 +6431,36 @@ public interface AppMessages {
 
     @Message("Community and system signals combine to surface useful contributions.")
     String reputation_hub_how_quality_desc();
+
+    // Error pages
+    @Message("Page Not Found")
+    String error_404_title();
+
+    @Message("404 — Page Not Found")
+    String error_404_heading();
+
+    @Message("The page you requested does not exist or has been moved.")
+    String error_404_message();
+
+    @Message("Access Denied")
+    String error_403_title();
+
+    @Message("403 — Access Denied")
+    String error_403_heading();
+
+    @Message("You do not have permission to access this page.")
+    String error_403_message();
+
+    @Message("Server Error")
+    String error_500_title();
+
+    @Message("500 — Internal Server Error")
+    String error_500_heading();
+
+    @Message("Something went wrong. Please try again later.")
+    String error_500_message();
+
+    @Message("Go to Home")
+    String error_go_home();
 
 }
