@@ -1,21 +1,26 @@
 (async function(){
   const listEl = document.getElementById('admin-list');
   const clearBtn = document.getElementById('clearAll');
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function(m) {
+      return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
+    });
+  }
   async function load(){
     const res = await fetch('/admin/api/notifications/latest?limit=50', { cache:'no-store' });
     if(!res.ok) return;
     const items = await res.json();
-    listEl.innerHTML = '';
+    listEl.textContent = '';
     items.forEach(n=>{
       const row = document.createElement('div');
       row.className = 'card row justify-between items-center';
       row.innerHTML = `
         <div class="grow">
-          <div class="font-medium">${n.title}</div>
-          <div class="text-sm text-muted-foreground">${n.message}</div>
-          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${n.type}${n.eventId? ' — '+n.eventId:''}</div>
+          <div class="font-medium">${esc(n.title)}</div>
+          <div class="text-sm text-muted-foreground">${esc(n.message)}</div>
+          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${esc(n.type)}${n.eventId? ' — '+esc(n.eventId):''}</div>
         </div>
-        <button class="btn-danger" data-id="${n.id}">Eliminar</button>`;
+        <button class="btn-danger" data-id="${esc(n.id)}">Eliminar</button>`;
       listEl.appendChild(row);
     });
   }
