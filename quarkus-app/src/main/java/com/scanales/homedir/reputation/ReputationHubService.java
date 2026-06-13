@@ -112,30 +112,59 @@ public class ReputationHubService {
     if (snapshot == null || snapshot.aggregatesByUser() == null || snapshot.aggregatesByUser().isEmpty()) {
       return List.of();
     }
-    return List.of(
-        new CategoryLeaderboard(
-            "builders",
-            leaderboard(
-                snapshot.aggregatesByUser(),
-                aggregate -> scoreByDimension(aggregate, "contribution"),
-                limit)),
-        new CategoryLeaderboard(
-            "helpers",
-            leaderboard(
-                snapshot.aggregatesByUser(),
-                aggregate -> scoreByDimension(aggregate, "recognition"),
-                limit)),
-        new CategoryLeaderboard(
-            "learners",
-            leaderboard(
-                snapshot.aggregatesByUser(),
-                aggregate ->
-                    scoreByDimension(aggregate, "participation")
-                        + scoreByDimension(aggregate, "consistency"),
-                limit)),
-        new CategoryLeaderboard(
-            "speakers",
-            leaderboard(snapshot.aggregatesByUser(), aggregate -> speakerScore(snapshot, aggregate), limit)));
+    java.util.ArrayList<CategoryLeaderboard> out = new java.util.ArrayList<>();
+    addCategoryLeaderboard(
+        out,
+        "builders",
+        leaderboard(
+            snapshot.aggregatesByUser(),
+            aggregate -> scoreByDimension(aggregate, "contribution"),
+            limit));
+    addCategoryLeaderboard(
+        out,
+        "helpers",
+        leaderboard(
+            snapshot.aggregatesByUser(),
+            aggregate -> helperScore(snapshot, aggregate),
+            limit));
+    addCategoryLeaderboard(
+        out,
+        "learners",
+        leaderboard(
+            snapshot.aggregatesByUser(),
+            aggregate ->
+                scoreByDimension(aggregate, "participation")
+                    + scoreByDimension(aggregate, "consistency"),
+            limit));
+    addCategoryLeaderboard(
+        out,
+        "speakers",
+        leaderboard(snapshot.aggregatesByUser(), aggregate -> speakerScore(snapshot, aggregate), limit));
+    return List.copyOf(out);
+  }
+
+  private static void addCategoryLeaderboard(
+      List<CategoryLeaderboard> out, String categoryKey, List<LeaderboardEntry> entries) {
+    if (out == null || categoryKey == null || categoryKey.isBlank() || entries == null || entries.isEmpty()) {
+      return;
+    }
+    out.add(new CategoryLeaderboard(categoryKey, entries));
+  }
+
+  private long helperScore(
+      ReputationEngineService.EngineSnapshot snapshot, UserReputationAggregate aggregate) {
+    if (snapshot == null || aggregate == null || snapshot.eventsById() == null) {
+      return 0L;
+    }
+    long recognition = scoreByDimension(aggregate, "recognition");
+    long volunteerSupport =
+        snapshot.eventsById().values().stream()
+            .filter(Objects::nonNull)
+            .filter(event -> aggregate.userId() != null && aggregate.userId().equals(event.actorUserId()))
+            .filter(event -> "volunteer_engaged".equals(event.eventType()))
+            .mapToLong(ReputationEventRecord::weightBase)
+            .sum();
+    return recognition + volunteerSupport;
   }
 
   private List<LeaderboardEntry> leaderboard(
