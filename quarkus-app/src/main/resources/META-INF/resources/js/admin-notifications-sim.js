@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultsTable = document.getElementById('results');
   const resultsBody = resultsTable.querySelector('tbody');
   const optin = document.getElementById('optin');
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function(m) {
+      return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
+    });
+  }
 
   // initialise opt-in state
   optin.checked = localStorage.getItem('ef_notif_test_optin') === '1';
@@ -31,10 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify(collectParams()),
     });
     const data = await resp.json();
-    resultsBody.innerHTML = '';
+    resultsBody.textContent = '';
     data.forEach(row => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="border px-2 py-1">${row.recipient || ''}</td><td class="border px-2 py-1">${row.message || ''}</td>`;
+      tr.innerHTML = `<td class="border px-2 py-1">${esc(row.recipient)}</td><td class="border px-2 py-1">${esc(row.message)}</td>`;
       resultsBody.appendChild(tr);
     });
     resultsTable.classList.remove('hidden');

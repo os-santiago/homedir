@@ -3,7 +3,9 @@ package io.homedir.notifications.global;
 import com.scanales.homedir.service.EventService;
 import io.homedir.time.AppClock;
 import io.homedir.time.SimulatedClock;
+import jakarta.annotation.PreDestroy;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -20,6 +22,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @RolesAllowed("admin")
+@ApplicationScoped
 public class NotificationSimulationResource {
 
   @Inject SimulatedClock simClock;
@@ -120,6 +123,19 @@ public class NotificationSimulationResource {
       return Response.ok(Map.of("enqueued", plan.size(), "test", testFlag)).build();
     } finally {
       simClock.clear();
+    }
+  }
+
+  @PreDestroy
+  void cleanup() {
+    scheduler.shutdown();
+    try {
+      if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+        scheduler.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      scheduler.shutdownNow();
+      Thread.currentThread().interrupt();
     }
   }
 }
