@@ -5791,6 +5791,12 @@ footer {
   content: none !important;
 }
 
+.now-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #a8c3df;
+}
+
 /* Normalize legacy card/list components to the same lightweight baseline used in Community. */
 .homedir-body.ultra-lite-mode .card,
 .homedir-body.ultra-lite-mode .card:hover,
