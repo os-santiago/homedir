@@ -90,9 +90,15 @@
               <span>{i18n:header_xp_progress(userSession.currentXp, userSession.nextLevelXp)}</span>
             </div>
             <div class="xp-bar-container header-xp-bar-bg">
+              {#if userSession.nextLevelXp > 0}
               <div class="xp-bar-fill header-xp-bar-fill"
                 style="--xp-percent: {(userSession.currentXp / userSession.nextLevelXp) * 100}%;">
               </div>
+              {#else}
+              <div class="xp-bar-fill header-xp-bar-fill"
+                style="--xp-percent: 0%;">
+              </div>
+              {/if}
             </div>
           </div>
         </div>
