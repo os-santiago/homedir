@@ -1,10 +1,10 @@
-{#if nowBox?.events?? && !nowBox.events.isEmpty()}
 <div class="box now-box">
   <div class="box-header">
     <h2>{i18n:now_box_title}</h2>
     <p class="muted">{i18n:now_box_subtitle}</p>
   </div>
 
+  {#if nowBox?.events?? && !nowBox.events.isEmpty()}
   <div class="now-grid">
     {#for e in nowBox.events}
     <section class="now-event">
@@ -51,5 +51,9 @@
     </section>
     {/for}
   </div>
+  {#else}
+  <div class="now-empty">
+    <p>{i18n:now_box_empty}</p>
+  </div>
+  {/if}
 </div>
-{/if}
