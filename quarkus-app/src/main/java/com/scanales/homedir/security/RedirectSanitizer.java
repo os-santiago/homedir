@@ -29,7 +29,12 @@ public final class RedirectSanitizer {
       if (uri.isAbsolute()) {
         return safeFallback;
       }
-      return candidate;
+      URI normalized = uri.normalize();
+      String resolvedPath = normalized.getPath();
+      if (resolvedPath == null || !resolvedPath.startsWith("/")) {
+        return safeFallback;
+      }
+      return normalized.toString();
     } catch (IllegalArgumentException ignored) {
       return safeFallback;
     }
