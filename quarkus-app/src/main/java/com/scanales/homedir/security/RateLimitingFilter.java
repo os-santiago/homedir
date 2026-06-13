@@ -106,6 +106,17 @@ public class RateLimitingFilter implements ContainerRequestFilter {
       defaultValue = "20")
   int communityContentAdaptiveMaxFingerprints;
 
+  @ConfigProperty(name = "rate.limit.trusted-proxies", defaultValue = "none")
+  String trustedProxies;
+
+  @ConfigProperty(name = "rate.limit.max-entries", defaultValue = "10000")
+  int maxCounterEntries;
+
+  @ConfigProperty(name = "rate.limit.cleanup-ttl-minutes", defaultValue = "5")
+  int cleanupTtlMinutes;
+
+
+
   @Inject
   @ConfigProperty(
       name = "rate.limit.api.community-content.adaptive.max-limit",
@@ -155,12 +166,14 @@ public class RateLimitingFilter implements ContainerRequestFilter {
           return new Counter(v.windowStartMs, v.count + 1);
         });
 
+    maybeCleanupCounters(now);
+
     if (now - c.windowStartMs < bucket.windowMs && c.count > effectiveLimit) {
       totalThrottled.incrementAndGet();
       throttledByBucket.computeIfAbsent(bucket.name, key -> new AtomicLong()).incrementAndGet();
       LOG.warnf(
-          "Rate limit exceeded bucket=%s client=%s path=%s count=%d limit=%d windowSeconds=%d",
-          bucket.name, clientKey, path, c.count, effectiveLimit, bucket.windowSeconds);
+          "Rate limit exceeded bucket=%s count=%d limit=%d windowSeconds=%d",
+          bucket.name, c.count, effectiveLimit, bucket.windowSeconds);
       ctx.abortWith(
           Response.status(429)
               .entity("Too many requests. Please retry later.")
@@ -234,19 +247,24 @@ public class RateLimitingFilter implements ContainerRequestFilter {
   }
 
   private String extractClientKey(ContainerRequestContext ctx) {
+    String remoteAddr = ctx.getHeaderString("X-Real-IP");
+    if (remoteAddr != null && !remoteAddr.isBlank() && isTrustedProxy()) {
+      return remoteAddr.trim();
+    }
     String xff = ctx.getHeaderString("X-Forwarded-For");
-    if (xff != null && !xff.isBlank()) {
+    if (xff != null && !xff.isBlank() && isTrustedProxy()) {
       return xff.split(",")[0].trim();
     }
     String cfConnectingIp = ctx.getHeaderString("CF-Connecting-IP");
-    if (cfConnectingIp != null && !cfConnectingIp.isBlank()) {
+    if (cfConnectingIp != null && !cfConnectingIp.isBlank() && isTrustedProxy()) {
       return cfConnectingIp.trim();
     }
-    String realIp = ctx.getHeaderString("X-Real-IP");
-    if (realIp != null && !realIp.isBlank()) {
-      return realIp.trim();
-    }
     return "unknown";
+  }
+
+  private boolean isTrustedProxy() {
+    if (trustedProxies == null || trustedProxies.isBlank() || "none".equals(trustedProxies)) return false;
+    return true;
   }
 
   private static final class Bucket {
@@ -346,6 +364,15 @@ public class RateLimitingFilter implements ContainerRequestFilter {
       }
     }
     return "";
+  }
+
+  private void maybeCleanupCounters(long now) {
+    if (counters.size() > maxCounterEntries) {
+      counters.entrySet().removeIf(e -> {
+        Counter c = e.getValue();
+        return now - c.windowStartMs > Duration.ofMinutes(cleanupTtlMinutes).toMillis();
+      });
+    }
   }
 
   private void maybeCleanupAdaptiveWindows(long now, long windowMs) {
