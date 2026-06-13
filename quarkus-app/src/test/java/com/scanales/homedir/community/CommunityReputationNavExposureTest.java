@@ -2,6 +2,7 @@ package com.scanales.homedir.community;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 import com.scanales.homedir.TestDataDir;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -39,8 +40,10 @@ class CommunityReputationNavExposureTest {
         .get("/comunidad")
         .then()
         .statusCode(200)
-        .body(containsString("href=\"/comunidad/reputation-hub\""))
-        .body(containsString("href=\"/comunidad/board\""));
+        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/picks\""))
+        .body(containsString("href=\"/comunidad/propose\""))
+        .body(not(containsString("/comunidad/lta")));
   }
 
   @Test
@@ -50,7 +53,21 @@ class CommunityReputationNavExposureTest {
         .get("/comunidad/board")
         .then()
         .statusCode(200)
-        .body(containsString("href=\"/comunidad/reputation-hub\""))
-        .body(containsString("href=\"/comunidad/board\""));
+        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/picks\""))
+        .body(containsString("href=\"/comunidad/propose\""))
+        .body(not(containsString("/comunidad/lta")));
+  }
+
+  @Test
+  void legacyLightningThreadsRedirectsToCommunityPicks() {
+    englishRequest()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/comunidad/lta")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/picks"));
   }
 }

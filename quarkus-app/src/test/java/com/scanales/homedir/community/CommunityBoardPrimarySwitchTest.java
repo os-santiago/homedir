@@ -65,7 +65,7 @@ class CommunityBoardPrimarySwitchTest {
         .get("/comunidad")
         .then()
         .statusCode(200)
-        .body(containsString("href=\"/comunidad/reputation-hub\""))
+        .body(containsString("href=\"/reputation-hub\""))
         .body(not(containsString("href=\"/comunidad/board\"")));
   }
 
@@ -76,7 +76,7 @@ class CommunityBoardPrimarySwitchTest {
         .get("/comunidad/reputation-hub")
         .then()
         .statusCode(200)
-        .body(containsString("href=\"/comunidad/reputation-hub\""))
+        .body(containsString("href=\"/reputation-hub\""))
         .body(not(containsString("href=\"/comunidad/board\"")));
   }
 }

@@ -58,7 +58,7 @@
   </url>
 
   <url>
-    <loc>{publicUrl}/comunidad/lta</loc>
+    <loc>{publicUrl}/reputation-hub</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
