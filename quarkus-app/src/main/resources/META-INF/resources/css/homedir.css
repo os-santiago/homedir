@@ -5589,10 +5589,13 @@ footer {
   line-height: 1.35;
 }
 
-.home-priority-news-item strong,
+.home-priority-news-item h3,
 .home-collaboration-item strong {
   min-width: 0;
   line-height: 1.25;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .home-priority-news-item:hover,
