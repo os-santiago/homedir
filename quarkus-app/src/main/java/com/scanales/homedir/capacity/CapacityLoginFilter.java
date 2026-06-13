@@ -29,7 +29,7 @@ public class CapacityLoginFilter implements ContainerRequestFilter {
       return;
     }
     String path = ctx.getUriInfo().getPath();
-    if (!path.startsWith("private")) {
+    if (!path.startsWith("/private")) {
       return;
     }
     String email = getEmail();
