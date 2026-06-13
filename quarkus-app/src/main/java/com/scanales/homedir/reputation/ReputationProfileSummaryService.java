@@ -148,7 +148,7 @@ public class ReputationProfileSummaryService {
                 rankBy(
                     snapshot.aggregatesByUser(),
                     userId,
-                    row -> score(row, "recognition"),
+                    row -> helperScore(snapshot, row),
                     UserReputationAggregate::monthlyScore);
             case "learners" ->
                 rankBy(
@@ -301,12 +301,13 @@ public class ReputationProfileSummaryService {
     long contribution = score(aggregate, "contribution");
     long recognition = score(aggregate, "recognition");
     long consistency = score(aggregate, "consistency");
+    long helperScore = helperScore(snapshot, aggregate);
     long speakerScore = speakerScore(snapshot, userId);
 
     if (speakerScore >= 14L) {
       return "speaker";
     }
-    if (recognition >= 20L && recognition >= contribution) {
+    if (helperScore >= 20L && helperScore >= contribution) {
       return "helper";
     }
     if (contribution >= 25L) {
@@ -341,6 +342,22 @@ public class ReputationProfileSummaryService {
       return 0L;
     }
     return Math.max(0L, aggregate.scoresByDimension().getOrDefault(dimension, 0L));
+  }
+
+  private static long helperScore(
+      ReputationEngineService.EngineSnapshot snapshot, UserReputationAggregate aggregate) {
+    if (snapshot == null || aggregate == null || snapshot.eventsById() == null) {
+      return 0L;
+    }
+    long recognition = score(aggregate, "recognition");
+    long volunteerSupport =
+        snapshot.eventsById().values().stream()
+            .filter(Objects::nonNull)
+            .filter(event -> aggregate.userId() != null && aggregate.userId().equals(event.actorUserId()))
+            .filter(event -> "volunteer_engaged".equals(event.eventType()))
+            .mapToLong(ReputationEventRecord::weightBase)
+            .sum();
+    return recognition + volunteerSupport;
   }
 
   private static String reputationState(long totalScore) {

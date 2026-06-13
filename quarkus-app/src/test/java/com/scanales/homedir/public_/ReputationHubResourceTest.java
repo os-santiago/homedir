@@ -72,6 +72,9 @@ class ReputationHubResourceTest {
     assertTrue(reputationEngineService.trackQuestCompleted("hub.user.two@example.com", "quest-b"));
     assertTrue(reputationEngineService.trackEventAttended("hub.user.two@example.com", "talk-b"));
     assertTrue(
+        reputationEngineService.trackVolunteerEngaged(
+            "hub.user.two@example.com", "volunteer", "volunteer-b"));
+    assertTrue(
         reputationEngineService.trackRecognition(
             "content_recommended",
             "hub.user.two@example.com",

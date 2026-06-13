@@ -34,6 +34,7 @@ class PublicProfileReputationSummaryTest {
   }
 
   private static final String USER_ID = "reputation.user@example.com";
+  private static final String HELPER_USER_ID = "helper.user@example.com";
 
   @Inject UserProfileService userProfileService;
   @Inject ReputationEngineService reputationEngineService;
@@ -63,6 +64,26 @@ class PublicProfileReputationSummaryTest {
             "thread-r1",
             "validator@example.com",
             "recommended"));
+
+    userProfileService.linkGithub(
+        HELPER_USER_ID,
+        "Helper User",
+        HELPER_USER_ID,
+        new UserProfile.GithubAccount(
+            "helper-user",
+            "https://github.com/helper-user",
+            "https://avatars.githubusercontent.com/u/9102",
+            "9102",
+            Instant.parse("2026-03-01T00:00:00Z")));
+    assertTrue(
+        reputationEngineService.trackVolunteerEngaged(
+            HELPER_USER_ID, "volunteer", "volunteer-r1"));
+    assertTrue(
+        reputationEngineService.trackVolunteerEngaged(
+            HELPER_USER_ID, "volunteer", "volunteer-r2"));
+    assertTrue(
+        reputationEngineService.trackVolunteerEngaged(
+            HELPER_USER_ID, "volunteer", "volunteer-r3"));
   }
 
   @Test
@@ -121,5 +142,18 @@ class PublicProfileReputationSummaryTest {
         .body(containsString("Usa nuevas charlas y CFPs como ancla"))
         .body(containsString("Miembro en ascenso"))
         .body(containsString("Crecimiento semanal +"));
+  }
+
+  @Test
+  void helperProfileRendersHelperRoleInEnglish() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/u/helper-user")
+        .then()
+        .statusCode(200)
+        .body(containsString("Known for helping others and earning community trust through recognition."))
+        .body(containsString("Top 1 Helper this month"))
+        .body(containsString("helper"));
   }
 }
