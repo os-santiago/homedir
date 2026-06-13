@@ -5692,7 +5692,7 @@ footer {
 }
 
 .community-submenu-link-emphasis {
-  border-color: rgba(255, 255, 255, 0.28);
+  border-color: rgba(var(--white-rgb), 0.28);
   background: linear-gradient(180deg, rgba(var(--black-rgb), 0.7), rgba(var(--black-rgb), 0.45));
   box-shadow:
     0 5px 0 rgba(var(--black-rgb), 0.36),
