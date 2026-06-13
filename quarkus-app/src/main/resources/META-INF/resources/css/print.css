@@ -1,0 +1,80 @@
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .floating-shapes,
+  .top-nav,
+  .hd-top-nav,
+  .alpha-banner,
+  .breadcrumbs,
+  footer,
+  .login-modal,
+  .skip-link,
+  .notifications-bell,
+  .header-locale-switcher,
+  .user-menu-container,
+  .home-priority-actions .btn-primary,
+  .home-priority-actions .btn-secondary,
+  .home-priority-link,
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  .close-modal,
+  .community-submenu,
+  .community-controls-panel,
+  .community-activation,
+  .community-personal-empty,
+  .community-activation-guest,
+  .community-skeleton,
+  .community-actions,
+  .home-priority-spotlight,
+  .home-priority-card-event,
+  .home-priority-card-collaboration,
+  .home-priority-status-item,
+  .now-box {
+    display: none !important;
+  }
+
+  .app-container {
+    max-width: 100%;
+    padding: 0;
+    background: none !important;
+  }
+
+  .homedir-main {
+    padding: 0;
+    background: none !important;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  .card, .section-card {
+    border: 1px solid #ccc !important;
+    background: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .page-header {
+    border-bottom: 2px solid #000;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+}
