@@ -327,13 +327,13 @@ public interface AppMessages {
     @Message("Vote picks, propose content, curate signal")
     String profile_activity_examples_curation();
 
-    @Message("Lightning Threads Arena")
+    @Message("Community Picks")
     String profile_activity_category_lta();
 
-    @Message("Post sharp statements, answer threads, and react to signal")
+    @Message("Vote curated picks, answer threads, and react to signal")
     String profile_activity_examples_lta();
 
-    @Message("Engineer · Warrior · Mage")
+    @Message("Curator · Scientist · Analyst")
     String profile_activity_class_lta();
 
     @Message("Community members and profiles")
@@ -2106,6 +2106,9 @@ public interface AppMessages {
     @Message("Events")
     String nav_events();
 
+    @Message("Reputation Hub")
+    String nav_reputation_hub();
+
     @Message("Project")
     String nav_projects();
 
@@ -2405,6 +2408,9 @@ public interface AppMessages {
 
     @Message("Open Lightning Threads Arena")
     String community_empty_cta_lta();
+
+    @Message("Open Community Picks")
+    String community_empty_cta_picks();
 
     @Message("Propose content")
     String community_empty_cta_propose();

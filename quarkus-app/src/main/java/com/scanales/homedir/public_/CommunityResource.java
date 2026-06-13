@@ -3,7 +3,6 @@ package com.scanales.homedir.public_;
 import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.community.CommunityContentMedia;
 import com.scanales.homedir.model.GamificationActivity;
-import com.scanales.homedir.reputation.ReputationFeatureFlags;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
@@ -36,8 +35,6 @@ public class CommunityResource {
   UsageMetricsService metrics;
   @Inject
   GamificationService gamificationService;
-  @Inject
-  ReputationFeatureFlags reputationFeatureFlags;
 
   @CheckedTemplate
   static class Templates {
@@ -62,23 +59,22 @@ public class CommunityResource {
   @Path("/lta")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance lta(
+  public Response lta(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", CommunityContentMedia.ALL, "lta", localeCookie, headers, context);
+    return Response.seeOther(URI.create("/comunidad/picks")).build();
   }
 
   @GET
   @Path("/moderation")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance moderation(
+  public Response moderation(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render(
-        "featured", "all", CommunityContentMedia.ALL, "moderation", localeCookie, headers, context);
+    return Response.seeOther(URI.create("/comunidad/propose")).build();
   }
 
   @GET
@@ -102,10 +98,6 @@ public class CommunityResource {
       io.vertx.ext.web.RoutingContext context) {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
-    ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
-    boolean showReputationHub =
-        flags.hubUiEnabled() && (isAdmin || flags.hubNavPublicEnabled());
-    boolean showCommunityBoard = !isCommunityBoardReplaced(flags, isAdmin);
     String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
@@ -115,14 +107,10 @@ public class CommunityResource {
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
     currentUserId().ifPresent(
         userId -> {
-          if ("lta".equals(activeSubmenu)) {
-            gamificationService.award(userId, GamificationActivity.LTA_VIEW);
-          } else {
-            gamificationService.award(userId, GamificationActivity.COMMUNITY_MAIN_VIEW);
-          }
+          gamificationService.award(userId, GamificationActivity.COMMUNITY_MAIN_VIEW);
           if ("picks".equals(activeSubmenu)) {
             gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
-          } else if ("propose".equals(activeSubmenu) || "moderation".equals(activeSubmenu)) {
+          } else if ("propose".equals(activeSubmenu)) {
             gamificationService.award(userId, GamificationActivity.COMMUNITY_PROPOSE_VIEW);
           }
         });
@@ -143,28 +131,16 @@ public class CommunityResource {
         .data("initialMedia", initialMedia)
         .data("userAuthenticated", authenticated)
         .data("isAdmin", isAdmin)
-        .data("showReputationHub", showReputationHub)
-        .data("showCommunityBoard", showCommunityBoard)
         .data("discordOnlineUsers", discordOnlineUsers)
         .data("userName", currentUserName().orElse(null))
         .data("userInitial", initialFrom(currentUserName().orElse(null)));
-  }
-
-  private boolean isCommunityBoardReplaced(ReputationFeatureFlags.Flags flags, boolean isAdmin) {
-    if (flags == null) {
-      return false;
-    }
-    if (!flags.engineEnabled() || !flags.hubUiEnabled() || !flags.hubPrimaryEnabled()) {
-      return false;
-    }
-    return isAdmin || flags.hubNavPublicEnabled();
   }
 
   private String resolveDefaultSubmenu(String viewParam, String filterParam, String mediaParam) {
     if (hasQueryValue(viewParam) || hasQueryValue(filterParam) || hasQueryValue(mediaParam)) {
       return "picks";
     }
-    return "lta";
+    return "picks";
   }
 
   private boolean hasQueryValue(String value) {

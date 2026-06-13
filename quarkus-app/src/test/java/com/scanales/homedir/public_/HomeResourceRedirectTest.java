@@ -53,4 +53,28 @@ public class HomeResourceRedirectTest {
         .statusCode(200)
         .body(containsString("option value=\"en\" selected"));
   }
+
+  @Test
+  public void reputationHubPathRedirectsToLocalizedPage() {
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/reputation-hub")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/reputation-hub"));
+  }
+
+  @Test
+  public void reputationHubHowPathRedirectsToLocalizedHowPage() {
+    given()
+        .redirects()
+        .follow(false)
+        .when()
+        .get("/reputation-hub/how")
+        .then()
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/reputation-hub/how"));
+  }
 }

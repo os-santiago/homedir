@@ -307,6 +307,18 @@ public class PublicPagesResource {
   }
 
   @GET
+  @Path("/reputation-hub")
+  public Response reputationHub() {
+    return Response.seeOther(URI.create("/comunidad/reputation-hub")).build();
+  }
+
+  @GET
+  @Path("/reputation-hub/how")
+  public Response reputationHubHow() {
+    return Response.seeOther(URI.create("/comunidad/reputation-hub/how")).build();
+  }
+
+  @GET
   @Path("/projects")
   public Response projects() {
     return Response.seeOther(URI.create("/proyectos")).build();

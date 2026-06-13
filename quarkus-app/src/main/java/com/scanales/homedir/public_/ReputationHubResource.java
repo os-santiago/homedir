@@ -62,7 +62,7 @@ public class ReputationHubResource {
         reputationHubService.snapshot(10, currentUserId.orElse(null));
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.hub(hub), localeCookie)
-            .data("activePage", "comunidad")
+            .data("activePage", "reputation-hub")
             .data("mainClass", "community-ultra-lite")
             .data("noLoginModal", true)
             .data("activeCommunitySubmenu", "reputation-hub")
@@ -101,7 +101,7 @@ public class ReputationHubResource {
     boolean showCommunityBoard = !isCommunityBoardReplaced(flags, admin);
     TemplateInstance template =
         TemplateLocaleUtil.apply(Templates.how(), localeCookie)
-            .data("activePage", "comunidad")
+            .data("activePage", "reputation-hub")
             .data("mainClass", "community-ultra-lite")
             .data("noLoginModal", true)
             .data("activeCommunitySubmenu", "reputation-hub")
