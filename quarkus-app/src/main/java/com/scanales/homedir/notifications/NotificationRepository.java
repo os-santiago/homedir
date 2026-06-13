@@ -80,6 +80,7 @@ public class NotificationRepository {
       var type = mapper.getTypeFactory().constructCollectionType(List.class, Notification.class);
       return mapper.readValue(f.toFile(), type);
     } catch (IOException e) {
+      LOG.warnf("Failed to load notifications for user %s: %s", userId, e.getMessage());
       return new ArrayList<>();
     }
   }

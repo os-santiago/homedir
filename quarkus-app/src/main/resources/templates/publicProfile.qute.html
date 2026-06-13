@@ -304,12 +304,6 @@
             </div>
 
             <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
-                <span class="wrapped-stat-label">{i18n:public_profile_cfp_title}</span>
-                <span class="wrapped-stat-value neon">{cfpAcceptedCount}</span>
-                <p class="wrapped-subtext">{i18n:public_profile_cfp_accepted_label}</p>
-            </div>
-
-            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:profile_speaker_title}</span>
                 <span class="wrapped-stat-value neon">
                     {#if speakerActive}{i18n:profile_speaker_status_active}{#else}{i18n:profile_speaker_status_inactive}{/if}
@@ -319,12 +313,43 @@
                 </p>
             </div>
 
+            {#if selectionLocked}
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
+                <span class="wrapped-stat-label">{i18n:public_profile_cfp_title}</span>
+                <span class="wrapped-stat-value neon">—</span>
+                <p class="wrapped-subtext">{i18n:public_profile_selection_locked}</p>
+            </div>
+
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
+                <span class="wrapped-stat-label">{i18n:public_profile_volunteer_title}</span>
+                <span class="wrapped-stat-value neon">—</span>
+                <p class="wrapped-subtext">{i18n:public_profile_selection_locked}</p>
+            </div>
+            {#else}
+            <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
+                <span class="wrapped-stat-label">{i18n:public_profile_cfp_title}</span>
+                <span class="wrapped-stat-value neon">{cfpAcceptedCount}</span>
+                <p class="wrapped-subtext">{i18n:public_profile_cfp_accepted_label}</p>
+            </div>
+
             <div class="wrapped-card{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_volunteer_title}</span>
                 <span class="wrapped-stat-value neon">{volunteerSelectedCount}</span>
                 <p class="wrapped-subtext">{i18n:public_profile_volunteer_selected_label}</p>
             </div>
+            {/if}
 
+            {#if selectionLocked}
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
+                <span class="wrapped-stat-label">{i18n:public_profile_cfp_latest}</span>
+                <p class="wrapped-subtext">{i18n:public_profile_selection_locked}</p>
+            </div>
+
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
+                <span class="wrapped-stat-label">{i18n:public_profile_volunteer_latest}</span>
+                <p class="wrapped-subtext">{i18n:public_profile_selection_locked}</p>
+            </div>
+            {#else}
             <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_cfp_latest}</span>
                 <div class="wrapped-list-container">
@@ -352,6 +377,7 @@
                     {/for}
                 </div>
             </div>
+            {/if}
 
             <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_challenges_title}</span>

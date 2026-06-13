@@ -89,6 +89,8 @@ public class PublicExperienceSmokeTest {
 
   @Test
   void criticalJavascriptAssetsReturnSuccess() {
+    given().when().get("/js/core-bundle.js").then().statusCode(200).body(not(isEmptyOrNullString()));
+    given().when().get("/js/community-bundle.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given().when().get("/js/homedir.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given().when().get("/js/app.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given()
@@ -116,14 +118,13 @@ public class PublicExperienceSmokeTest {
 
   private void assertRuntimeBootstrapGuardrails(String html) {
     int bootstrapIndex = html.indexOf("window.userAuthenticated");
-    int appScriptIndex = html.indexOf("/js/app.js");
+    int bundleScriptIndex = html.indexOf("/js/core-bundle.js");
     assertTrue(bootstrapIndex >= 0, "Missing userAuthenticated bootstrap script");
-    assertTrue(appScriptIndex >= 0, "Missing app.js include");
+    assertTrue(bundleScriptIndex >= 0, "Missing core-bundle.js include");
     assertTrue(
-        bootstrapIndex < appScriptIndex,
-        "userAuthenticated bootstrap must appear before app.js include");
-    assertSingleOccurrence(html, "/js/homedir.js");
-    assertSingleOccurrence(html, "/js/app.js");
+        bootstrapIndex < bundleScriptIndex,
+        "userAuthenticated bootstrap must appear before core-bundle.js include");
+    assertSingleOccurrence(html, "/js/core-bundle.js");
   }
 
   private void assertSingleOccurrence(String content, String needle) {

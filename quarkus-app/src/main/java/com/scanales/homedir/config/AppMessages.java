@@ -327,13 +327,13 @@ public interface AppMessages {
     @Message("Vote picks, propose content, curate signal")
     String profile_activity_examples_curation();
 
-    @Message("Lightning Threads Arena")
+    @Message("Community Picks")
     String profile_activity_category_lta();
 
-    @Message("Post sharp statements, answer threads, and react to signal")
+    @Message("Vote curated picks, answer threads, and react to signal")
     String profile_activity_examples_lta();
 
-    @Message("Engineer · Warrior · Mage")
+    @Message("Curator · Scientist · Analyst")
     String profile_activity_class_lta();
 
     @Message("Community members and profiles")
@@ -1158,6 +1158,63 @@ public interface AppMessages {
 
     @Message("CFP official status notice")
     String events_cfp_live_aria();
+
+    @Message("Open")
+    String events_cfp_live_stage_cfp_badge();
+
+    @Message("Call for Papers is officially open")
+    String events_cfp_live_stage_cfp_title();
+
+    @Message("Submit your proposal and follow moderation updates from this page.")
+    String events_cfp_live_stage_cfp_desc();
+
+    @Message("Evaluation")
+    String events_cfp_live_stage_evaluation_badge();
+
+    @Message("Call for Papers is now under evaluation")
+    String events_cfp_live_stage_evaluation_title();
+
+    @Message("Submissions are closed while the organizing team reviews proposals and prepares the next round of updates.")
+    String events_cfp_live_stage_evaluation_desc();
+
+    @Message("Results")
+    String events_cfp_live_stage_results_badge();
+
+    @Message("The review results are being prepared")
+    String events_cfp_live_stage_results_title();
+
+    @Message("The team is consolidating decisions and will publish results as soon as they are ready.")
+    String events_cfp_live_stage_results_desc();
+
+    @Message("Presentations")
+    String events_cfp_live_stage_presentations_badge();
+
+    @Message("Selected talks are moving into presentation prep")
+    String events_cfp_live_stage_presentations_title();
+
+    @Message("Review the selected talks and stay tuned for final delivery guidance and slide deadlines.")
+    String events_cfp_live_stage_presentations_desc();
+
+    @Message("Event")
+    String events_cfp_live_stage_event_badge();
+
+    @Message("The event is now live")
+    String events_cfp_live_stage_event_title();
+
+    @Message("Follow the event agenda and use the CFP page as a reference point for what was selected.")
+    String events_cfp_live_stage_event_desc();
+
+    @Message("The CFP submission window has ended, so the form is locked.")
+    String events_cfp_form_locked_desc();
+
+    @Message("Looking for sponsorship options?")
+    String events_cfp_sponsors_title();
+
+    @Message("Visit the official sponsorship page for {eventTitle} to review the available opportunities.")
+    String events_cfp_sponsors_desc(String eventTitle);
+
+    @Message("Go to sponsorship page")
+    String events_cfp_sponsors_cta();
 
     @Message("CFP timeline")
     String events_cfp_timeline_title();
@@ -2049,6 +2106,9 @@ public interface AppMessages {
     @Message("Events")
     String nav_events();
 
+    @Message("Reputation Hub")
+    String nav_reputation_hub();
+
     @Message("Project")
     String nav_projects();
 
@@ -2348,6 +2408,9 @@ public interface AppMessages {
 
     @Message("Open Lightning Threads Arena")
     String community_empty_cta_lta();
+
+    @Message("Open Community Picks")
+    String community_empty_cta_picks();
 
     @Message("Propose content")
     String community_empty_cta_propose();
@@ -2970,6 +3033,27 @@ public interface AppMessages {
     @Message("Speaker profile is inactive. Submit a CFP proposal first.")
     String profile_speaker_error_inactive();
 
+    @Message("Profile completeness check")
+    String profile_readiness_title();
+
+    @Message("Selected CFP and volunteer highlights stay hidden until these fields are complete.")
+    String profile_readiness_intro();
+
+    @Message("Missing fields")
+    String profile_readiness_missing_fields();
+
+    @Message("Name")
+    String profile_readiness_field_name();
+
+    @Message("Description / About me")
+    String profile_readiness_field_description();
+
+    @Message("Image")
+    String profile_readiness_field_image();
+
+    @Message("Role or interests")
+    String profile_readiness_field_role();
+
     @Message("Search")
     String search_aria_label();
 
@@ -3041,6 +3125,9 @@ public interface AppMessages {
 
     @Message("Latest accepted proposals")
     String public_profile_cfp_latest();
+
+    @Message("Selected CFP and volunteer highlights are hidden until the profile is complete.")
+    String public_profile_selection_locked();
 
     @Message("No accepted CFP talks published yet.")
     String public_profile_cfp_empty();
@@ -4511,6 +4598,9 @@ public interface AppMessages {
 
     @Message("Next")
     String now_box_status_next();
+
+    @Message("No active events right now.")
+    String now_box_empty();
 
     @Message("HomeDir - OSSantiago Community Platform")
     String layout_default_title();
@@ -6371,5 +6461,36 @@ public interface AppMessages {
 
     @Message("Community and system signals combine to surface useful contributions.")
     String reputation_hub_how_quality_desc();
+
+    // Error pages
+    @Message("Page Not Found")
+    String error_404_title();
+
+    @Message("404 — Page Not Found")
+    String error_404_heading();
+
+    @Message("The page you requested does not exist or has been moved.")
+    String error_404_message();
+
+    @Message("Access Denied")
+    String error_403_title();
+
+    @Message("403 — Access Denied")
+    String error_403_heading();
+
+    @Message("You do not have permission to access this page.")
+    String error_403_message();
+
+    @Message("Server Error")
+    String error_500_title();
+
+    @Message("500 — Internal Server Error")
+    String error_500_heading();
+
+    @Message("Something went wrong. Please try again later.")
+    String error_500_message();
+
+    @Message("Go to Home")
+    String error_go_home();
 
 }

@@ -1,18 +1,20 @@
 {#include layout/main activePage="home" mainClass="homedir-main-home" noLoginModal=true}
 {#title}{i18n:nav_home}{/title}
 {#body}
-<header class="public-header home-priority-shell" aria-label="{i18n:home_priority_aria}">
+<header class="page-header events-page-header home-priority-shell" aria-label="{i18n:home_priority_aria}">
   <section class="home-priority-hero">
     <div class="home-priority-hero-copy">
-      <p class="section-subtitle">{i18n:home_priority_eyebrow}</p>
-      <h1>{i18n:home_priority_title}</h1>
+      <div class="section-header hd-section-heading">
+        <p class="section-subtitle">{i18n:home_priority_eyebrow}</p>
+        <h1>{i18n:home_priority_title}</h1>
+      </div>
       <p>{i18n:home_priority_intro}</p>
       <div class="home-priority-actions">
         <a href="/event/devopsdays-santiago-2026" class="btn-primary">{i18n:home_priority_primary_cta}</a>
         <a href="/comunidad/picks" class="btn-secondary">{i18n:home_priority_secondary_cta}</a>
       </div>
     </div>
-    <aside class="home-priority-spotlight" aria-label="{i18n:home_priority_events_title}">
+    <aside class="section-card home-priority-spotlight" aria-label="{i18n:home_priority_events_title}">
       <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">event</span>
       <p class="section-subtitle">{i18n:home_priority_events_eyebrow}</p>
       <h2>{i18n:home_priority_events_title}</h2>
@@ -25,7 +27,7 @@
   </section>
 </header>
 
-<section class="home-priority-grid" aria-label="{i18n:home_priority_grid_aria}">
+<section class="page-grid home-priority-grid" aria-label="{i18n:home_priority_grid_aria}">
   <article class="section-card home-priority-card home-priority-card-event">
     <div class="home-priority-card-head">
       <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">campaign</span>
@@ -54,7 +56,7 @@
       {#for item in socialHighlights}
       <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="home-priority-news-item">
         <span>{item.source}</span>
-        <strong>{item.title}</strong>
+        <h3>{item.title}</h3>
       </a>
       {/for}
     </div>
@@ -88,7 +90,7 @@
   </article>
 </section>
 
-<section class="home-priority-status" aria-label="{i18n:home_priority_status_aria}">
+<section class="page-grid home-priority-status-grid" aria-label="{i18n:home_priority_status_aria}">
   <a href="/eventos" class="home-priority-status-item">
     <strong>{upcomingCount}</strong>
     <span>{i18n:home_priority_status_events}</span>
@@ -97,7 +99,7 @@
     <strong>{homeTodayFreshPicks}</strong>
     <span>{i18n:home_priority_status_news}</span>
   </a>
-  <a href="/comunidad/reputation-hub" class="home-priority-status-item">
+  <a href="/reputation-hub" class="home-priority-status-item">
     <strong>{homeBoardSummary.homedirUsers}</strong>
     <span>{i18n:home_priority_status_members}</span>
   </a>

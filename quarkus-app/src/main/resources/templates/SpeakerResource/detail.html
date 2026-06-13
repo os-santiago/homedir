@@ -1,11 +1,16 @@
-{#include layout/base}
+{#include layout/main showBreadcrumbs=true showToasts=true ultraLiteMode=true}
 {#title}{#if speaker}{speaker.name}{#else}Orador{/if}{/title}
+{#head}
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="/js/retro-theme.js?v={app:version()}" defer></script>
+{/head}
 {#breadcrumbs}
 {#if speaker}
 <a href="/">Inicio</a><span class="sep">/</span><span>Orador: {speaker.name}</span>
 {/if}
 {/breadcrumbs}
-{#main}
+{#body}
 {#if speaker}
 <style>
   {#if themeEvent}
@@ -106,5 +111,5 @@
 {#else}
 <p>Speaker no encontrado.</p>
 {/if}
-{/main}
+{/body}
 {/include}

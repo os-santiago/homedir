@@ -3,6 +3,8 @@
 {@ boolean noFooter = false}
 {@ boolean noCharacterSheet = false}
 {@ boolean noLoginModal = false}
+{@ boolean showBreadcrumbs = false}
+{@ boolean showToasts = false}
 {@ String activePage = ""}
 {@ String mainClass = ""}
 {@ boolean ultraLiteMode = false}
@@ -64,6 +66,10 @@
     {#include fragments/header /}
     {/if}
 
+    {#if showBreadcrumbs}
+    <nav class="breadcrumbs" aria-label="{i18n:layout_breadcrumbs_aria}">{#insert breadcrumbs}{/}</nav>
+    {/if}
+
     <main id="main-content" class="homedir-main {mainClass}" role="main">
       {#insert body}{/}
     </main>
@@ -78,16 +84,15 @@
   {#if noLoginModal != true}
   {#include fragments/login-modal.html/}
   {/if}
-  <script src="/js/homedir.js?v={app:version()}"></script>
+  {#if showToasts}
+  {#include fragments/toasts.qute.html/}
+  {/if}
   <script>
     window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };
     window.userAuthenticated = window.__EF_AUTH__.isAuth.app.userAuthenticated;
     var userAuthenticated = window.userAuthenticated;
   </script>
-  <script src="/js/app.js?v={app:version()}" defer></script>
-  <script src="/js/notifications-adapter.js?v={app:version()}" defer></script>
-  <script src="/js/notifications.js?v={app:version()}" defer></script>
-  <script src="/js/global-notifications-ws.js?v={app:version()}" defer></script>
+  <script src="/js/core-bundle.js?v={app:version()}" defer></script>
 </body>
 
 </html>
