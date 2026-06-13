@@ -5589,10 +5589,13 @@ footer {
   line-height: 1.35;
 }
 
-.home-priority-news-item strong,
+.home-priority-news-item h3,
 .home-collaboration-item strong {
   min-width: 0;
   line-height: 1.25;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .home-priority-news-item:hover,
@@ -5786,6 +5789,12 @@ footer {
 .homedir-body.ultra-lite-mode .section-card::before,
 .homedir-body.ultra-lite-mode .section-card:hover::before {
   content: none !important;
+}
+
+.now-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #a8c3df;
 }
 
 /* Normalize legacy card/list components to the same lightweight baseline used in Community. */
@@ -6205,4 +6214,14 @@ footer {
     gap: 1rem;
     flex-wrap: wrap;
   }
+}
+
+/* Error pages */
+.hd-error-page {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+.hd-error-page h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
