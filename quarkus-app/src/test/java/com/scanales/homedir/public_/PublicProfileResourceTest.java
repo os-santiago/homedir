@@ -117,7 +117,7 @@ public class PublicProfileResourceTest {
                 "talk",
                 30,
                 "en",
-                "community-delivery",
+                "ai-agents-copilots",
                 List.of("locked"),
                 List.of("https://example.com/locked-cfp")));
     cfpSubmissionService.updateStatus(lockedCreated.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
