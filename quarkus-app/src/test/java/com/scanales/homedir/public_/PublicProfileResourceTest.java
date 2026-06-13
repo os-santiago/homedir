@@ -67,10 +67,75 @@ public class PublicProfileResourceTest {
             "https://discord.com/users/discord-public-1",
             "https://cdn.discordapp.com/avatars/discord-public-1.png",
             Instant.parse("2026-02-10T00:00:00Z")));
+    userProfileService.activateSpeakerProfile("public.user@example.com", "Public User", "public.user@example.com");
+    userProfileService.updateSpeakerProfile(
+        "public.user@example.com",
+        "Community speaker",
+        "I share practical lessons from community delivery and platform work.",
+        "Homedir",
+        "https://homedir.dev",
+        "https://linkedin.com/in/public-user",
+        List.of("community", "delivery"));
     userProfileService.addXp(
         "public.user@example.com", 50, "Community vote", QuestClass.SCIENTIST);
     userProfileService.addXp(
         "public.user@example.com", 20, "Project exploration", QuestClass.ENGINEER);
+
+    userProfileService.linkGithub(
+        "locked.user@example.com",
+        "Locked User",
+        "locked.user@example.com",
+        new UserProfile.GithubAccount(
+            "locked-user",
+            "https://github.com/locked-user",
+            "https://avatars.githubusercontent.com/u/9002",
+            "9002",
+            Instant.parse("2026-02-01T00:00:00Z")));
+    userProfileService.linkDiscord(
+        "locked.user@example.com",
+        "Locked User",
+        "locked.user@example.com",
+        new UserProfile.DiscordAccount(
+            "discord-locked-1",
+            "locked_user#1002",
+            "https://discord.com/users/discord-locked-1",
+            "https://cdn.discordapp.com/avatars/discord-locked-1.png",
+            Instant.parse("2026-02-10T00:00:00Z")));
+    userProfileService.addXp(
+        "locked.user@example.com", 20, "Community vote", QuestClass.ENGINEER);
+
+    CfpSubmission lockedCreated =
+        cfpSubmissionService.create(
+            "locked.user@example.com",
+            "Locked User",
+            new CfpSubmissionService.CreateRequest(
+                CFP_EVENT_ID,
+                "Locked CFP Talk",
+                "Locked CFP summary.",
+                "Locked CFP abstract text.",
+                "beginner",
+                "talk",
+                30,
+                "en",
+                "ai-agents-copilots",
+                List.of("locked"),
+                List.of("https://example.com/locked-cfp")));
+    cfpSubmissionService.updateStatus(lockedCreated.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
+    VolunteerApplication lockedVolunteer =
+        volunteerApplicationService.create(
+        "locked.user@example.com",
+        "Locked User",
+        new VolunteerApplicationService.CreateRequest(
+            VOLUNTEER_EVENT_ID,
+            "I can help with coordination and attendee flow.",
+            "I want to support event operations.",
+            "I can support registration and room setup."));
+    volunteerApplicationService.updateStatus(
+        lockedVolunteer.id(),
+        VolunteerApplicationStatus.SELECTED,
+        "admin",
+        "selected",
+        lockedVolunteer.updatedAt());
 
     userProfileService.upsert("homedir.user@example.com", "Homedir User", "homedir.user@example.com");
     userProfileService.linkDiscord(
@@ -208,6 +273,19 @@ public class PublicProfileResourceTest {
         .then()
         .statusCode(200)
         .body(not(containsString("Reputation snapshot")));
+  }
+
+  @Test
+  void incompleteSelectionHidesPublicCfpAndVolunteerHighlights() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/u/locked-user")
+        .then()
+        .statusCode(200)
+        .body(containsString("Selected CFP and volunteer highlights are hidden until the profile is complete."))
+        .body(not(containsString("Public CFP Talk")))
+        .body(not(containsString("Public Volunteer Event")));
   }
 
   private static String homedirMemberId(String identitySeed) {

@@ -13,6 +13,7 @@ import com.scanales.homedir.model.CommunityMember;
 import com.scanales.homedir.service.CommunityService;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
+import com.scanales.homedir.service.ProfileReadinessService;
 import com.scanales.homedir.service.QuestService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
@@ -93,6 +94,8 @@ public class PublicProfileResource {
     ChallengeService challengeService;
     @Inject
     ReputationProfileSummaryService reputationProfileSummaryService;
+    @Inject
+    ProfileReadinessService profileReadinessService;
 
     @GET
     @Path("/{username}")
@@ -122,6 +125,8 @@ public class PublicProfileResource {
         UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
         UserProfile.SpeakerProfile speakerProfile = profile != null ? profile.getSpeakerProfile() : null;
         boolean speakerActive = speakerProfile != null && speakerProfile.active();
+        ProfileReadinessService.Readiness selectionReadiness =
+            profileReadinessService.evaluate(profile, resolved.displayName(), resolved.avatarUrl());
         List<PublicClassProgress> classProgress = buildClassProgress(profile, questProfile.currentXp);
         DominantClassSummary dominantClassSummary = resolveDominantClassSummary(classProgress);
         QuestClass dominantClass = dominantClassSummary.questClass();
@@ -166,6 +171,8 @@ public class PublicProfileResource {
                 .limit(3)
                 .map(this::toPublicVolunteerItem)
                 .toList();
+        boolean selectionLocked =
+            (cfpAcceptedCount > 0 || volunteerSelectedCount > 0) && !selectionReadiness.ready();
 
         return Response.ok(TemplateLocaleUtil.apply(
             publicProfile
@@ -198,6 +205,8 @@ public class PublicProfileResource {
                 .data("cfpRecentAccepted", cfpRecentAccepted)
                 .data("speakerProfile", speakerProfile)
                 .data("speakerActive", speakerActive)
+                .data("selectionReadiness", selectionReadiness)
+                .data("selectionLocked", selectionLocked)
                 .data("volunteerSelectedCount", volunteerSelectedCount)
                 .data("volunteerRecentSelected", volunteerRecentSelected)
                 .data("completedChallenges", completedChallenges)

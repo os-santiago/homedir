@@ -18,6 +18,7 @@ import com.scanales.homedir.community.CommunityBoardGroup;
 import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
+import com.scanales.homedir.service.ProfileReadinessService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.service.UserScheduleService;
@@ -266,6 +267,8 @@ public class ProfileResource {
   VolunteerEventConfigService volunteerEventConfigService;
   @Inject
   ChallengeService challengeService;
+  @Inject
+  ProfileReadinessService profileReadinessService;
 
   @GET
   @Authenticated
@@ -308,6 +311,12 @@ public class ProfileResource {
     var userProfile = userProfiles.upsert(email, name, email);
     var speakerProfile = userProfile.getSpeakerProfile();
     boolean speakerActive = speakerProfile != null && speakerProfile.active();
+    String avatarUrl = firstNonBlank(
+        picture,
+        userProfile.getGithub() != null ? userProfile.getGithub().avatarUrl() : null,
+        userProfile.getDiscord() != null ? userProfile.getDiscord().avatarUrl() : null);
+    ProfileReadinessService.Readiness selectionReadiness =
+        profileReadinessService.evaluate(userProfile, name, avatarUrl);
     gamificationService.award(email, GamificationActivity.PROFILE_VIEW);
 
     // Fetch Gamification Profile
@@ -362,6 +371,8 @@ public class ProfileResource {
             .map(this::toVolunteerApplicationItem)
             .toList();
     java.util.List<VolunteerEventItem> volunteerOpenEvents = listVolunteerOpenEvents();
+    boolean selectionLocked =
+        (cfpOverview.accepted() > 0 || volunteerOverview.selected() > 0) && !selectionReadiness.ready();
     java.util.List<ChallengeProfileCard> profileChallenges =
         challengeService.listProgressForUser(email).stream()
             .map(card -> toChallengeProfileCard(card, challengeCopy))
@@ -444,6 +455,8 @@ public class ProfileResource {
         .data("speakerActive", speakerActive)
         .data("speakerSaved", speakerSaved)
         .data("speakerError", speakerError)
+        .data("selectionReadiness", selectionReadiness)
+        .data("selectionLocked", selectionLocked)
         .data("volunteerOverview", volunteerOverview)
         .data("volunteerRecentApplications", volunteerRecentApplications)
         .data("volunteerOpenEvents", volunteerOpenEvents)
@@ -706,6 +719,22 @@ public class ProfileResource {
   private boolean acceptsJson(HttpHeaders headers) {
     String accept = headers.getHeaderString(HttpHeaders.ACCEPT);
     return accept != null && accept.toLowerCase().contains(MediaType.APPLICATION_JSON);
+  }
+
+  private static String firstNonBlank(String... values) {
+    if (values == null) {
+      return null;
+    }
+    for (String value : values) {
+      if (value == null) {
+        continue;
+      }
+      String trimmed = value.trim();
+      if (!trimmed.isEmpty()) {
+        return trimmed;
+      }
+    }
+    return null;
   }
 
   private String getClaim(String claimName) {
