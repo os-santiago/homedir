@@ -284,7 +284,7 @@ public class PublicProfileResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Selected CFP and volunteer highlights are hidden until the profile is complete."))
-        .body(not(containsString("Public CFP Talk")))
+        .body(not(containsString("Locked CFP Talk")))
         .body(not(containsString("Public Volunteer Event")));
   }
 
