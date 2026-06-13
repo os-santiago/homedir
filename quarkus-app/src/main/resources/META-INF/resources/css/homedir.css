@@ -5691,6 +5691,19 @@ footer {
   box-shadow: 0 5px 0 rgba(var(--black-rgb), 0.32), inset 0 0 18px rgba(var(--white-rgb), 0.16);
 }
 
+.community-submenu-link-emphasis {
+  border-color: rgba(var(--white-rgb), 0.28);
+  background: linear-gradient(180deg, rgba(var(--black-rgb), 0.7), rgba(var(--black-rgb), 0.45));
+  box-shadow:
+    0 5px 0 rgba(var(--black-rgb), 0.36),
+    inset 0 0 16px rgba(var(--white-rgb), 0.06);
+}
+
+.community-submenu-link-emphasis:hover {
+  border-color: rgba(255, 215, 0, 0.72);
+  background: linear-gradient(180deg, rgba(var(--black-rgb), 0.76), rgba(var(--black-rgb), 0.52));
+}
+
 .community-submenu-link:active {
   transform: translateY(3px);
   box-shadow: 0 2px 0 rgba(var(--black-rgb), 0.32);
