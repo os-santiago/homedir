@@ -1,6 +1,5 @@
 package com.scanales.homedir.notifications;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
@@ -37,18 +36,14 @@ public class NotificationService {
   private final AtomicLong dropped = new AtomicLong();
   private final AtomicLong volatileAccepted = new AtomicLong();
 
-  private MessageDigest digest;
-
-  @PostConstruct
-  void init() {
-    // load existing notifications from disk
-    // Not required in this iteration; repository loads lazily per user
-    try {
-      digest = MessageDigest.getInstance("SHA-256");
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("Missing SHA-256 MessageDigest", e);
-    }
-  }
+  private static final ThreadLocal<MessageDigest> DIGEST =
+      ThreadLocal.withInitial(() -> {
+        try {
+          return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+          throw new IllegalStateException("Missing SHA-256 MessageDigest", e);
+        }
+      });
 
   /** Enqueues a notification, applying dedupe and capacity checks. */
   public NotificationResult enqueue(Notification n) {
@@ -225,7 +220,7 @@ public class NotificationService {
   private String hashUser(String userId) {
     if (userId == null)
       return "";
-    byte[] d = digest.digest((NotificationConfig.userHashSalt + userId).getBytes(StandardCharsets.UTF_8));
+    byte[] d = DIGEST.get().digest((NotificationConfig.userHashSalt + userId).getBytes(StandardCharsets.UTF_8));
     return HexFormat.of().formatHex(d).substring(0, 16);
   }
 }
