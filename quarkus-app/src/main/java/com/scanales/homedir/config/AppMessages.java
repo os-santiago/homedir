@@ -4569,6 +4569,9 @@ public interface AppMessages {
     @Message("Next")
     String now_box_status_next();
 
+    @Message("No active events right now.")
+    String now_box_empty();
+
     @Message("HomeDir - OSSantiago Community Platform")
     String layout_default_title();
 

@@ -32,6 +32,9 @@ class RateLimitingFilterTest {
     setField("communityContentAdaptivePerFingerprintBonus", 2);
     setField("communityContentAdaptiveMaxFingerprints", 10);
     setField("communityContentAdaptiveMaxLimit", 20);
+    setField("trustedProxies", "0.0.0.0");
+    setField("maxCounterEntries", 10000);
+    setField("cleanupTtlMinutes", 5);
   }
 
   @Test
