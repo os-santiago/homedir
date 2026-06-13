@@ -6214,3 +6214,13 @@ footer {
     flex-wrap: wrap;
   }
 }
+
+/* Error pages */
+.hd-error-page {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+.hd-error-page h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}

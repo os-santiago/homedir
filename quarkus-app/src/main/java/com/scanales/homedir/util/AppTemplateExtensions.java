@@ -43,6 +43,12 @@ public class AppTemplateExtensions {
     return gitProperties().getProperty("git.commit.id.abbrev", "dev");
   }
 
+  public static String publicUrl() {
+    return ConfigProvider.getConfig()
+        .getOptionalValue("homedir.public-url", String.class)
+        .orElse("http://localhost:8080");
+  }
+
   public static String defaultOgImage() {
     return ConfigProvider.getConfig()
         .getOptionalValue("homedir.og-image.default-url", String.class)
@@ -66,7 +72,8 @@ public class AppTemplateExtensions {
     }
     String name = AdminUtils.getClaim(identity, "name");
     if (name == null || name.isBlank()) {
-      name = identity.getPrincipal().getName();
+      java.security.Principal principal = identity.getPrincipal();
+      name = principal != null ? principal.getName() : null;
     }
     return name;
   }
