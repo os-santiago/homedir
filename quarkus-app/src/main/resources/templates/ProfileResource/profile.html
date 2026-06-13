@@ -433,6 +433,26 @@
             {/if}
         </section>
 
+        {#if selectionLocked}
+        <div class="hd-alert hd-alert-warning">
+            <strong>{i18n:profile_readiness_title}</strong>
+            <p>{i18n:profile_readiness_intro}</p>
+            <div class="hd-economy-chips">
+                {#for field in selectionReadiness.missingFields}
+                <span class="hd-economy-chip hd-economy-chip-status locked">
+                    {#switch field}
+                    {#case 'name'}{i18n:profile_readiness_field_name}{/case}
+                    {#case 'description'}{i18n:profile_readiness_field_description}{/case}
+                    {#case 'avatar'}{i18n:profile_readiness_field_image}{/case}
+                    {#case 'role_or_interests'}{i18n:profile_readiness_field_role}{/case}
+                    {#else}{field}{/else}
+                    {/switch}
+                </span>
+                {/for}
+            </div>
+        </div>
+        {/if}
+
         <section class="hd-panel centered" id="speaker-panel" data-profile-section="speaker">
             <div class="hd-dashboard-header">
                 <div>

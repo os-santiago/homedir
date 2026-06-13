@@ -3027,6 +3027,27 @@ public interface AppMessages {
     @Message("Speaker profile is inactive. Submit a CFP proposal first.")
     String profile_speaker_error_inactive();
 
+    @Message("Profile completeness check")
+    String profile_readiness_title();
+
+    @Message("Selected CFP and volunteer highlights stay hidden until these fields are complete.")
+    String profile_readiness_intro();
+
+    @Message("Missing fields")
+    String profile_readiness_missing_fields();
+
+    @Message("Name")
+    String profile_readiness_field_name();
+
+    @Message("Description / About me")
+    String profile_readiness_field_description();
+
+    @Message("Image")
+    String profile_readiness_field_image();
+
+    @Message("Role or interests")
+    String profile_readiness_field_role();
+
     @Message("Search")
     String search_aria_label();
 
@@ -3098,6 +3119,9 @@ public interface AppMessages {
 
     @Message("Latest accepted proposals")
     String public_profile_cfp_latest();
+
+    @Message("Selected CFP and volunteer highlights are hidden until the profile is complete.")
+    String public_profile_selection_locked();
 
     @Message("No accepted CFP talks published yet.")
     String public_profile_cfp_empty();

@@ -256,6 +256,20 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void profilePageShowsSelectionReadinessWarningWhenSelectedContentIsIncomplete() {
+    given()
+        .header("Accept", "text/html")
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("Profile completeness check"))
+        .body(containsString("Description / About me"))
+        .body(containsString("Role or interests"));
+  }
+
+  @Test
   public void linkDiscordManualClaimIsRejectedAndRequiresOauth() {
     given()
         .redirects()
