@@ -324,11 +324,17 @@ const TECH_ROLES = [
 
 const STATUS_TYPES = ['online', 'busy', 'away'];
 
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, function(m) {
+    return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
+  });
+}
+
 function generateVillageInhabitants() {
   const inhabitantsLayer = document.getElementById('inhabitantsLayer');
   if (!inhabitantsLayer) return;
 
-  inhabitantsLayer.innerHTML = '';
+  inhabitantsLayer.textContent = '';
 
   const members = allUsers.length > 0 ? allUsers : generateDemoInhabitants();
 
@@ -350,12 +356,12 @@ function generateVillageInhabitants() {
     const status = STATUS_TYPES[Math.floor(Math.random() * STATUS_TYPES.length)];
 
     member.innerHTML = `
-          <div class="member-level">${user.level || 1}</div>
+          <div class="member-level">${esc(user.level || 1)}</div>
           <div class="member-avatar">
             ${avatar}
             <div class="member-status status-${status}"></div>
           </div>
-          <div class="member-badge">${user.display_name || 'Guest'}</div>
+          <div class="member-badge">${esc(user.display_name || 'Guest')}</div>
           <div class="member-role">${role.emoji}</div>
         `;
 
