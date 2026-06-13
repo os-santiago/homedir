@@ -13,24 +13,27 @@ public class CommunityModerationPageTest {
   @Test
   void moderationPageRendersForAnonymous() {
     given()
+        .redirects()
+        .follow(false)
         .header("Accept-Language", "en")
         .when()
         .get("/comunidad/moderation")
         .then()
-        .statusCode(200)
-        .body(containsString("Moderation queue"))
-        .body(containsString("Only admins can moderate proposals."));
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/propose"));
   }
 
   @Test
   @TestSecurity(user = "admin@example.org")
   void moderationQueueVisibleForAdmin() {
     given()
+        .redirects()
+        .follow(false)
         .header("Accept-Language", "en")
         .when()
         .get("/comunidad/moderation")
         .then()
-        .statusCode(200)
-        .body(containsString("Moderation queue"));
+        .statusCode(303)
+        .header("Location", containsString("/comunidad/propose"));
   }
 }

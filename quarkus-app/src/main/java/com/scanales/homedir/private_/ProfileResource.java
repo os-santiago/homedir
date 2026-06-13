@@ -872,7 +872,7 @@ public class ProfileResource {
             i18n.profile_activity_category_lta(),
             i18n.profile_activity_examples_lta(),
             i18n.profile_activity_class_lta(),
-            "/comunidad/lta"),
+            "/comunidad/picks"),
         new ActivityClassMapping(
             i18n.profile_activity_category_members(),
             i18n.profile_activity_examples_members(),
