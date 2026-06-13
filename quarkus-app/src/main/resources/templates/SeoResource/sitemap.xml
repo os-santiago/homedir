@@ -1,0 +1,130 @@
+{@java.lang.String publicUrl = app:publicUrl()}
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>{publicUrl}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/contacto</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/docs</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/beta</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/proyectos</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/eventos</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/events</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad/lta</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad/picks</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad/propose</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad/moderation</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad/board</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad/reputation-hub</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/comunidad/reputation-hub/how</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <url>
+    <loc>{publicUrl}/privacy-policy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="{publicUrl}/politica-de-privacidad" />
+  </url>
+
+  <url>
+    <loc>{publicUrl}/politica-de-privacidad</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="{publicUrl}/privacy-policy" />
+  </url>
+
+  <url>
+    <loc>{publicUrl}/terms-of-service</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="{publicUrl}/condiciones-del-servicio" />
+  </url>
+
+  <url>
+    <loc>{publicUrl}/condiciones-del-servicio</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="{publicUrl}/terms-of-service" />
+  </url>
+
+</urlset>

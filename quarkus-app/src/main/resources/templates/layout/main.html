@@ -3,6 +3,8 @@
 {@ boolean noFooter = false}
 {@ boolean noCharacterSheet = false}
 {@ boolean noLoginModal = false}
+{@ boolean showBreadcrumbs = false}
+{@ boolean showToasts = false}
 {@ String activePage = ""}
 {@ String mainClass = ""}
 {@ boolean ultraLiteMode = false}
@@ -64,6 +66,10 @@
     {#include fragments/header /}
     {/if}
 
+    {#if showBreadcrumbs}
+    <nav class="breadcrumbs" aria-label="{i18n:layout_breadcrumbs_aria}">{#insert breadcrumbs}{/}</nav>
+    {/if}
+
     <main id="main-content" class="homedir-main {mainClass}" role="main">
       {#insert body}{/}
     </main>
@@ -77,6 +83,9 @@
 
   {#if noLoginModal != true}
   {#include fragments/login-modal.html/}
+  {/if}
+  {#if showToasts}
+  {#include fragments/toasts.qute.html/}
   {/if}
   <script>
     window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };
