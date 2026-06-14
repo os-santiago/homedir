@@ -6498,6 +6498,9 @@ public interface AppMessages {
     @Message("Community and system signals combine to surface useful contributions.")
     String reputation_hub_how_quality_desc();
 
+    @Message("Skip to content")
+    String skip_to_content();
+
     // Error pages
     @Message("Page Not Found")
     String error_404_title();
