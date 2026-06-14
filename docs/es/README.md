@@ -26,6 +26,7 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Community Picks Playbook (stub)](community/community-picks-playbook.md)
 - [Gamification Progression (stub)](community/gamification-progression.md)
 - [Economy Module (stub)](community/economy-module.md)
+- [Hoja de ruta de insignias para contribuidores](community/community-contributor-badges-roadmap.md)
 
 ## Eventos
 
