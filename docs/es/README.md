@@ -27,6 +27,7 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Gamification Progression (stub)](community/gamification-progression.md)
 - [Economy Module (stub)](community/economy-module.md)
 - [Hoja de ruta de insignias para contribuidores](community/community-contributor-badges-roadmap.md)
+- [Biblioteca de insignias de HomeDir](community/biblioteca-insignias-homedir.md)
 
 ## Eventos
 

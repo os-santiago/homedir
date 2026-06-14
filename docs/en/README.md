@@ -27,6 +27,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Gamification Progression](community/gamification-progression.md)
 - [Economy Module](community/economy-module.md)
 - [Community Contributor Badges Roadmap](community/community-contributor-badges-roadmap.md)
+- [HomeDir Badge Library](community/homedir-badge-library.md)
 
 ## Events
 
