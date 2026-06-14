@@ -2,13 +2,15 @@ package com.scanales.homedir.community;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,8 +39,9 @@ public class CommunityContentApiResourceTest {
       }
     }
     Files.createDirectories(dir);
+    Instant now = Instant.now();
     Files.writeString(
-        dir.resolve("20260207-java-item-1.yml"),
+        dir.resolve("20260613-java-item-1.yml"),
         """
         id: java-item-1
         title: "Java y Quarkus"
@@ -46,50 +49,51 @@ public class CommunityContentApiResourceTest {
         summary: "Resumen de ejemplo para Quarkus."
         source: "example.org"
         thumbnail_url: "https://cdn.example.org/java-cover.png"
-        created_at: "2026-02-07T10:00:00Z"
+        created_at: "%s"
         media_type: "article_blog"
         tags: ["java","quarkus"]
-        """);
+        """.formatted(iso(now.minus(Duration.ofDays(1)))));
     Files.writeString(
-        dir.resolve("20260206-devops-item-2.yml"),
+        dir.resolve("20260510-devops-item-2.yml"),
         """
         id: devops-item-2
         title: "DevOps baseline"
         url: "https://example.org/devops"
         summary: "Resumen devops."
         source: "example.org"
-        created_at: "2026-02-06T10:00:00Z"
+        created_at: "%s"
         media_type: "podcast"
-        """);
+        """.formatted(iso(now.minus(Duration.ofDays(21)))));
     Files.writeString(
-        dir.resolve("20260205-member-item-3.yml"),
+        dir.resolve("20260509-member-item-3.yml"),
         """
         id: submission-member-item-3
         title: "Aporte de comunidad"
         url: "https://community.example.org/post"
         summary: "Resumen desde miembros."
         source: "Community member"
-        created_at: "2026-02-05T10:00:00Z"
+        created_at: "%s"
         media_type: "video_story"
         tags: ["community"]
-        """);
+        """.formatted(iso(now.minus(Duration.ofDays(30)))));
     contentService.refreshNowForTests();
     featuredSnapshotService.refreshNowForTests();
   }
 
   @Test
-  void listsCuratedContent() {
+  void featuredContentAppearsBeforeTheRestOfTheFeed() {
     given()
         .accept("application/json")
         .when()
-        .get("/api/community/content?view=new&limit=10&offset=0")
+        .get("/api/community/content?limit=10&offset=0")
         .then()
         .statusCode(200)
-        .body("view", equalTo("new"))
+        .body("view", equalTo("featured"))
         .body("filter", equalTo("all"))
         .body("media", equalTo("all"))
-        .body("total", greaterThanOrEqualTo(3))
+        .body("total", equalTo(3))
         .body("items[0].id", equalTo("java-item-1"))
+        .body("items[1].id", equalTo("devops-item-2"))
         .body("items[0].thumbnail_url", equalTo("https://cdn.example.org/java-cover.png"));
   }
 
@@ -98,7 +102,7 @@ public class CommunityContentApiResourceTest {
     given()
         .accept("application/json")
         .when()
-        .get("/api/community/content?view=new&limit=50&offset=0")
+        .get("/api/community/content?limit=50&offset=0")
         .then()
         .statusCode(200)
         .body("limit", equalTo(10));
@@ -187,7 +191,7 @@ public class CommunityContentApiResourceTest {
     given()
         .accept("application/json")
         .when()
-        .get("/api/community/content?view=featured&limit=10&offset=0")
+        .get("/api/community/content?limit=10&offset=0")
         .then()
         .statusCode(200)
         .body("items.find { it.id == 'java-item-1' }.vote_counts.recommended", equalTo(0));
@@ -204,7 +208,7 @@ public class CommunityContentApiResourceTest {
     given()
         .accept("application/json")
         .when()
-        .get("/api/community/content?view=featured&limit=10&offset=0")
+        .get("/api/community/content?limit=10&offset=0")
         .then()
         .statusCode(200)
         .body("items.find { it.id == 'java-item-1' }.vote_counts.recommended", equalTo(1))
@@ -233,9 +237,13 @@ public class CommunityContentApiResourceTest {
     given()
         .accept("application/json")
         .when()
-        .get("/api/community/content?view=featured&limit=10&offset=0")
+        .get("/api/community/content?limit=10&offset=0")
         .then()
         .statusCode(200)
         .body("user_vote_count", equalTo(2));
+  }
+
+  private String iso(Instant instant) {
+    return DateTimeFormatter.ISO_INSTANT.format(instant);
   }
 }

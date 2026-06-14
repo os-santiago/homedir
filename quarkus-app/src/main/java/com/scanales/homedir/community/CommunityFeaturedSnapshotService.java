@@ -107,6 +107,15 @@ public class CommunityFeaturedSnapshotService {
     return new FeaturedPage(page, total);
   }
 
+  public List<FeaturedItem> all(String filter, String mediaFilter) {
+    maybeRefreshAsyncOnDemand();
+    Snapshot current = snapshot.get();
+    String normalizedFilter = normalizeFilter(filter);
+    String normalizedMediaFilter = normalizeMediaFilter(mediaFilter);
+    String snapshotKey = snapshotKey(normalizedFilter, normalizedMediaFilter);
+    return List.copyOf(current.rankedByFilter().getOrDefault(snapshotKey, List.of()));
+  }
+
   public void onVotesUpdated() {
     invalidateResponseCacheAfterVote();
     voteRefreshPending.set(true);

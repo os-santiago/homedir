@@ -24,7 +24,7 @@
   <section class="page-grid">
     {#if activeCommunitySubmenu == 'picks'}
     <div class="section-card events-full-width community-shell-card">
-      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-ultra-lite="true" data-initial-view="{initialView}" data-initial-filter="{initialFilter ?: 'all'}" data-initial-media="{initialMedia ?: 'all'}"
+      <div id="community-content-root" data-authenticated="{isAuthenticated}" data-page-size="10" data-cache-ttl-ms="60000" data-ultra-lite="true" data-initial-filter="{initialFilter ?: 'all'}" data-initial-media="{initialMedia ?: 'all'}"
         data-i18n-empty-filtered="{i18n:community_js_empty_filtered}"
         data-i18n-empty-generic="{i18n:community_js_empty_generic}"
         data-i18n-items-unit="{i18n:community_js_items_unit}"
@@ -117,15 +117,6 @@
 
         <div class="community-controls-panel">
           <div class="community-controls-top">
-            <div class="community-view-row" role="tablist" aria-label="Community view">
-              <button type="button" class="btn-primary community-view-btn community-tab" data-view="featured">
-                {i18n:community_view_featured}
-              </button>
-              <button type="button" class="btn-primary community-view-btn community-tab" data-view="new">
-                {i18n:community_view_new}
-              </button>
-            </div>
-
             <div class="community-filter-row" role="group" aria-label="Community source filter">
               <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="all">
                 {i18n:community_filter_all}
