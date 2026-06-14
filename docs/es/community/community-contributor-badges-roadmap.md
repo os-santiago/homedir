@@ -1,78 +1,96 @@
-# Hoja de ruta de insignias para contribuidores de HomeDir
+# Rutas de contribución para coleccionar badges de GitHub desde HomeDir
 
 Autor: os-santiago
 
-Esta guía resume las insignias que hoy ya puede desbloquear quien contribuye a HomeDir y propone una hoja de ruta para nuevas insignias de contribuidor.
+Esta guía no inventa insignias propias de HomeDir. Mapea tareas reales dentro del repositorio a las superficies reales de GitHub que pueden sumar achievements, badges de perfil y señal pública útil para quien contribuye.
 
-## Insignias disponibles hoy
+## Qué sí cuenta en GitHub
 
-Estas insignias salen del resumen público de reputación y de sus umbrales actuales.
+GitHub reconoce varias señales públicas que sí puedes empujar desde HomeDir:
 
-| Insignia | Qué premia | Umbral actual |
-|---|---|---|
-| Miembro en ascenso | Impulso reciente | `risingDelta >= 8` |
-| Contribuidor constante | Actividad mensual sostenida | `monthlyScore >= 35` |
-| Voz útil | Reconocimiento de pares y señal útil | `recognition >= 20` |
-| Builder reconocido | Huella fuerte de contribución | `contribution >= 25` |
-| Aprendiz activo | Participación y exploración saludables | `participation >= 20` |
-| Soporte de la comunidad | Contribución sólida y equilibrada | `totalScore >= 80` |
+- Pull requests abiertos, revisados y fusionados.
+- Commits conectados a tu cuenta y visibles en una rama correcta.
+- Issues cerrados con trabajo asociado.
+- Respuestas a revisión y resolución de hilos.
+- Trabajo de calidad y seguridad: CodeQL, dependency review y fixes relacionados.
+- Badges de programa en el perfil de GitHub, como Developer Program Member, Pro, Security Bug Bounty Hunter, Campus Expert o Security advisory credit. Esos no dependen de HomeDir, pero conviene conocerlos.
 
-## Cómo desbloquearlas
+GitHub indica que sus achievements aparecen como badges pequeños en el perfil y que el detalle puede cambiar con el tiempo. La documentación oficial vive en [Profile reference](https://docs.github.com/en/account-and-profile/reference/profile-reference).
 
-El modelo público de reputación premia acciones que mejoran la calidad de la señal comunitaria:
+## Rutas de tareas dentro de HomeDir
 
-- Vota en Community Picks con criterio, no por velocidad.
-- Envía propuestas de contenido útiles, concretas y fáciles de revisar.
-- Mantén una cadencia de contribución estable durante semanas, no solo picos aislados.
-- Ayuda a otras personas de una forma que la plataforma pueda reconocer como valiosa.
-- Construye suficiente consistencia para que el sistema distinga participación real de ruido.
+### Ruta 1: issue a PR pequeño
 
-Las señales que más pesan hoy son:
+Objetivo: convertir una issue clara en un PR pequeño, testeado y fusionado.
 
-- votación y curación en comunidad
-- contribuciones aprobadas o destacadas
-- ayuda reconocida por pares
-- participación sostenida en el tiempo
+- Toma una issue existente.
+- Abre una rama dedicada.
+- Cambia una sola cosa útil por PR.
+- Agrega tests para el comportamiento visible.
+- Responde rápido a la review y resuelve los comentarios.
+- Mantén la rama al día con `main` hasta merge.
 
-## Hoja de ruta de insignias para contribuidores
+Qué ayuda a construir:
+- historial público de PRs
+- contribuciones visibles en la cuenta
+- ritmo de entrega consistente
+- posibilidad de ganar badges ligados a actividad de PR y review
 
-La lista siguiente es una propuesta de evolución, no una promesa ya implementada.
+### Ruta 2: revisión de PRs
 
-### Fase 1: hacer legibles las insignias actuales
+Objetivo: convertir la revisión en una práctica regular.
 
-- Mostrar los umbrales actuales directamente en el copy del producto.
-- Explicar qué acciones aportan a cada insignia.
-- Mantener la vista previa del perfil público alineada con las reglas reales de scoring.
+- Revisa PRs pequeños con foco en estabilidad.
+- Da feedback concreto, acotado y accionable.
+- Ayuda a cerrar threads, no solo a comentar.
+- Señala riesgos de regresión, seguridad o accesibilidad.
 
-### Fase 2: agregar insignias por hitos
+Qué ayuda a construir:
+- actividad pública de review
+- reputación técnica visible
+- más superficie para achievements relacionados con revisar y resolver
 
-- Primer voto
-- Primera propuesta aprobada
-- Primera semana de participación consistente
-- Primera contribución destacada
+### Ruta 3: mantenimiento y salud del repo
 
-### Fase 3: agregar insignias por rol
+- Corrige fallos de CodeQL y dependency review.
+- Mejora documentación, copy e i18n cuando rompen o confunden.
+- Reduce deuda técnica visible.
+- Limpia rutas, menús y enlaces rotos.
 
-- Helper
-- Mentor
-- Curador
-- Steward de comunidad
+Qué ayuda a construir:
+- commits consistentes y públicos
+- señales de calidad y seguridad
+- historial estable que GitHub puede reflejar en tu perfil
 
-### Fase 4: agregar insignias estacionales
+### Ruta 4: seguridad y calidad
 
-- Insignias de campaña para lanzamientos, sprints o eventos
-- Insignias con tiempo limitado que roten o expiren
-- Insignias acotadas para momentos puntuales de la comunidad
+- Reproduce el problema antes de tocar código.
+- Corrige la causa raíz y agrega una prueba.
+- Valida la fix con la suite mínima que proteja el cambio.
+- Evita mezclar hardening con refactors grandes.
 
-### Fase 5: agregar visibilidad de progreso
+Qué ayuda a construir:
+- aportes con contexto de seguridad
+- señales de confianza técnica
+- trabajo que puede acercarte a badges de seguridad o de programa, si participas en esos flujos
 
-- Barras de progreso hacia la siguiente insignia
-- Vistas previas de insignias en Community y Reputation Hub
-- Explicaciones que indiquen al contribuidor qué hacer después
+### Ruta 5: visibilidad del perfil GitHub
+
+- Mantén visible tu contribución pública.
+- Publica una bio clara y un README de perfil.
+- Fija repositorios relevantes.
+- Activa la visibilidad de achievements si quieres que se vean.
+
+## Cómo convertir eso en hábito
+
+- Semana 1: 1 issue cerrada, 1 PR pequeño, 1 review útil.
+- Semana 2: 1 mejora de mantenimiento, 1 fix de tests o CI.
+- Semana 3: 1 revisión más profunda o una fix de seguridad.
+- Semana 4: consolidar ritmo, no volumen.
 
 ## Qué mantener estable
 
-- Los nombres deben entenderse sin contexto interno.
-- Los umbrales deben seguir atados a señales reales y medibles.
-- Las insignias nuevas solo deberían llegar si aportan claridad, no ruido.
-- La hoja de ruta debe ser conservadora para que la inflación de badges no diluya la confianza.
+- No inventar badges propios de HomeDir.
+- No prometer nombres de achievements que GitHub puede cambiar.
+- No convertir la guía en gamificación vacía.
+- Priorizar tareas que dejen evidencia real en GitHub y en el repo.

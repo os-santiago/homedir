@@ -1,78 +1,96 @@
-# HomeDir Contributor Badges Roadmap
+# HomeDir contribution routes for collecting GitHub badges
 
 Author: os-santiago
 
-This guide summarizes the badges that HomeDir contributors can already unlock in the public reputation surface and outlines a proposed roadmap for future contributor badges.
+This guide does not invent HomeDir-specific badges. It maps real tasks inside the repository to the real GitHub surfaces that can build achievements, profile badges, and useful public signal for contributors.
 
-## Badges available today
+## What actually counts on GitHub
 
-These badges are derived from the public reputation summary and its current thresholds.
+GitHub recognizes several public signals that you can influence from HomeDir:
 
-| Badge | What it rewards | Current threshold |
-|---|---|---|
-| Rising Member | Fast recent momentum | `risingDelta >= 8` |
-| Consistent Contributor | Sustained monthly activity | `monthlyScore >= 35` |
-| Helpful Voice | Peer recognition and useful signal | `recognition >= 20` |
-| Recognized Builder | Strong contribution footprint | `contribution >= 25` |
-| Active Learner | Healthy participation and exploration | `participation >= 20` |
-| Community Supporter | High all-round contribution | `totalScore >= 80` |
+- Pull requests opened, reviewed, and merged.
+- Commits connected to your account and visible on the right branch.
+- Issues closed with associated work.
+- Review replies and resolved threads.
+- Quality and security work such as CodeQL, dependency review, and related fixes.
+- Profile badges that GitHub awards through programs such as Developer Program Member, Pro, Security Bug Bounty Hunter, Campus Expert, and Security advisory credit. These are not HomeDir-specific, but they are worth knowing about.
 
-## How to unlock them
+GitHub says achievements appear as small profile badges and that the underlying detail can evolve over time. The official reference is [Profile reference](https://docs.github.com/en/account-and-profile/reference/profile-reference).
 
-The public reputation model rewards actions that improve the quality of the community signal:
+## Task routes inside HomeDir
 
-- Vote on Community Picks with care instead of rushing through content.
-- Submit useful content proposals that are relevant, specific, and easy to review.
-- Keep a steady contribution cadence across weeks, not just one-off bursts.
-- Help others in a way that the platform can actually recognize as useful.
-- Build enough consistency over time that the system can distinguish durable participation from noise.
+### Route 1: issue to a small PR
 
-The strongest signals currently come from:
+Goal: turn one clear issue into one small, tested, merged PR.
 
-- community voting and curation
-- approved or highlighted contributions
-- peer help that gets acknowledged
-- consistent participation over time
+- Pick an existing issue.
+- Open a dedicated branch.
+- Change one useful thing per PR.
+- Add tests for the visible behavior.
+- Respond quickly to review and resolve comments.
+- Keep the branch up to date with `main` until merge.
 
-## Contributor badge roadmap
+What this builds:
+- public PR history
+- visible contribution activity
+- steady delivery rhythm
+- a path toward PR/review-related achievements
 
-The list below is a proposal for future evolution, not a shipped commitment.
+### Route 2: review PRs
 
-### Phase 1: make the current badges legible
+Goal: make code review a regular habit.
 
-- Show the current badge thresholds directly in product copy.
-- Explain which actions contribute to each badge.
-- Keep the public profile preview aligned with the actual scoring rules.
+- Review small PRs with stability in mind.
+- Give concrete, bounded, actionable feedback.
+- Help close threads, not just leave comments.
+- Flag regression, security, or accessibility risks.
 
-### Phase 2: add milestone badges
+What this builds:
+- public review activity
+- visible technical trust
+- more surface for achievements tied to reviewing and resolving
 
-- First vote
-- First approved submission
-- First week of consistent participation
-- First highlighted contribution
+### Route 3: maintenance and repo health
 
-### Phase 3: add role badges
+- Fix CodeQL and dependency review findings.
+- Improve docs, copy, and i18n when they break or confuse.
+- Reduce visible technical debt.
+- Clean up routes, menus, and broken links.
 
-- Helper
-- Mentor
-- Curator
-- Community steward
+What this builds:
+- steady public commits
+- quality and security signals
+- a stable history that GitHub can reflect on your profile
 
-### Phase 4: add seasonal badges
+### Route 4: security and quality
 
-- Campaign badges for launches, sprints, or events
-- Time-boxed badges that expire or rotate
-- Limited badges that mark specific community moments
+- Reproduce the problem before changing code.
+- Fix the root cause and add a test.
+- Validate the fix with the smallest test surface that protects it.
+- Avoid mixing hardening with large refactors.
 
-### Phase 5: add progress visibility
+What this builds:
+- security-aware contributions
+- trust-oriented signals
+- work that can move you closer to security or program badges if you participate in those flows
 
-- Progress bars toward the next badge
-- Badge previews in Community and Reputation Hub
-- Explanations that tell contributors what to do next
+### Route 5: GitHub profile visibility
+
+- Keep your public contribution visible.
+- Publish a clear bio and profile README.
+- Pin relevant repositories.
+- Turn on achievement visibility if you want them shown.
+
+## Turning it into a habit
+
+- Week 1: 1 closed issue, 1 small PR, 1 useful review.
+- Week 2: 1 maintenance improvement, 1 test or CI fix.
+- Week 3: 1 deeper review or a security-oriented fix.
+- Week 4: keep the rhythm, not the volume.
 
 ## What to keep stable
 
-- Badge names should stay understandable without insider context.
-- Thresholds should remain tied to real, measurable contribution signals.
-- New badges should ship only when they add clarity, not noise.
-- The roadmap should stay conservative so badge inflation does not dilute trust.
+- Do not invent HomeDir badges.
+- Do not promise achievement names that GitHub may change.
+- Do not turn the guide into empty gamification.
+- Prefer tasks that leave real evidence in GitHub and in the repo.
