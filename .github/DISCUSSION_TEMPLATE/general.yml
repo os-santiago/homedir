@@ -1,0 +1,36 @@
+title: "[HomeDir] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Welcome to HomeDir Discussions
+
+        We use Discussions as a place to connect with the HomeDir community.
+
+        Use this space to:
+        - ask questions about HomeDir
+        - share ideas for the platform, community, events, and reputation
+        - start conversations that do not belong in an issue or pull request
+        - welcome other members and keep the conversation respectful and open-minded
+
+        To get started, introduce yourself below and tell us what you want to discuss with the HomeDir community.
+  - type: textarea
+    id: introduction
+    attributes:
+      label: Introduce yourself
+      description: Tell us who you are and how you use or want to use HomeDir.
+      placeholder: I build, learn, review, and share with the HomeDir community.
+    validations:
+      required: true
+  - type: textarea
+    id: discussion
+    attributes:
+      label: What would you like to discuss?
+      description: Share your question, idea, or community topic for HomeDir.
+      placeholder: I want to discuss...
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep HomeDir collaborative, constructive, and useful for everyone.
