@@ -167,6 +167,9 @@ public class ProfileResource {
       String title,
       String status,
       String updatedAtLabel,
+      String assignedBlock,
+      String assignedScenario,
+      String deliveryStatus,
       String manageUrl) {
   }
 
@@ -955,6 +958,9 @@ public class ProfileResource {
           "",
           CfpSubmissionStatus.PENDING.apiValue(),
           "",
+          "",
+          "",
+          "",
           "/eventos");
     }
     String eventId = submission.eventId() != null ? submission.eventId() : "";
@@ -964,6 +970,7 @@ public class ProfileResource {
     Instant updatedAt = submission.updatedAt() != null ? submission.updatedAt() : submission.createdAt();
     String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
     String status = cfpSubmissionService.visibleStatus(submission).apiValue();
+    String deliveryStatus = cfpSubmissionService.deliveryStatus(submission);
     return new CfpSubmissionItem(
         submission.id(),
         eventId,
@@ -971,6 +978,9 @@ public class ProfileResource {
         submission.title(),
         status,
         updatedAtLabel,
+        submission.assignedBlock(),
+        submission.assignedScenario(),
+        deliveryStatus,
         "/event/" + eventId + "/cfp#my-proposals");
   }
 

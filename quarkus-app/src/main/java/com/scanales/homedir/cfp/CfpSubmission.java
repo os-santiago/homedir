@@ -29,5 +29,7 @@ public record CfpSubmission(
     @JsonProperty("rating_narrative") Integer ratingNarrative,
     @JsonProperty("rating_content_impact") Integer ratingContentImpact,
     List<CfpPanelist> panelists,
+    @JsonProperty("assigned_block") String assignedBlock,
+    @JsonProperty("assigned_scenario") String assignedScenario,
     @JsonProperty("presentation_asset") CfpPresentationAsset presentationAsset) {
 }

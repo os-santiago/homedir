@@ -237,6 +237,15 @@
       panelistsPendingPrefix: "{i18n:events_cfp_panelists_pending_prefix}",
       presentationTitle: "{i18n:events_cfp_presentation_title}",
       presentationCurrent: "{i18n:events_cfp_presentation_current}",
+      deliveryTitle: "{i18n:events_cfp_delivery_title}",
+      deliveryBlock: "{i18n:events_cfp_delivery_block}",
+      deliveryScenario: "{i18n:events_cfp_delivery_scenario}",
+      deliveryProgress: "{i18n:events_cfp_delivery_progress}",
+      deliveryStatusReady: "{i18n:events_cfp_delivery_status_ready}",
+      deliveryStatusScheduled: "{i18n:events_cfp_delivery_status_scheduled}",
+      deliveryStatusUploaded: "{i18n:events_cfp_delivery_status_uploaded}",
+      deliveryStatusPendingAssignment: "{i18n:events_cfp_delivery_status_pending_assignment}",
+      deliveryStatusPending: "{i18n:events_cfp_delivery_status_pending}",
       notAvailable: "{i18n:events_cfp_admin_not_available}",
       sectionMetadata: "{i18n:events_cfp_admin_section_metadata}",
       sectionReview: "{i18n:events_cfp_admin_section_review}"
@@ -502,6 +511,41 @@
             + "</p>"
         : "";
 
+      const deliveryParts = [];
+      if (item.assigned_block) {
+        deliveryParts.push(i18n.deliveryBlock + " " + item.assigned_block);
+      }
+      if (item.assigned_scenario) {
+        deliveryParts.push(i18n.deliveryScenario + " " + item.assigned_scenario);
+      }
+      if (item.delivery_status || Number.isFinite(Number(item.delivery_progress))) {
+        let statusText = item.delivery_status || i18n.deliveryStatusPending;
+        if (statusText === "ready") {
+          statusText = i18n.deliveryStatusReady;
+        } else if (statusText === "scheduled") {
+          statusText = i18n.deliveryStatusScheduled;
+        } else if (statusText === "presentation_uploaded") {
+          statusText = i18n.deliveryStatusUploaded;
+        } else if (statusText === "accepted_pending_assignment") {
+          statusText = i18n.deliveryStatusPendingAssignment;
+        } else if (statusText === "pending") {
+          statusText = i18n.deliveryStatusPending;
+        }
+        const progress = Number.isFinite(Number(item.delivery_progress)) ? Number(item.delivery_progress) : null;
+        deliveryParts.push(
+          i18n.deliveryProgress
+            + ": "
+            + statusText
+            + (progress !== null ? " · " + String(progress) + "%" : ""));
+      }
+      const deliveryHtml = deliveryParts.length
+        ? '<p class="form-hint" style="margin-top: 0.35rem;"><strong>'
+            + escapeHtml(i18n.deliveryTitle)
+            + ':</strong> '
+            + escapeHtml(deliveryParts.join(" · "))
+            + "</p>"
+        : "";
+
       shell.innerHTML =
         '<div class="card cfp-detail-section">'
           + '<div class="cfp-detail-header"><div>'
@@ -525,7 +569,7 @@
           + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.abstractText) + '</h3>'
           + '<p class="cfp-detail-abstract" style="margin-top: 0.65rem;">' + escapeHtml(item.abstract_text || i18n.notAvailable) + '</p></div>'
           + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.links) + '</h3>'
-          + linksHtml + panelistsHtml + pendingHtml + presentationHtml
+          + linksHtml + panelistsHtml + pendingHtml + presentationHtml + deliveryHtml
           + '</div>'
           + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.sectionReview) + '</h3>'
           + '<p class="form-hint" style="margin-top: 0.35rem;">' + escapeHtml(i18n.reviewDesc) + '</p>'

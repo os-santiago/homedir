@@ -1120,6 +1120,33 @@ public interface AppMessages {
     @Message("Presentation size must be between 1 byte and 25 MB.")
     String events_cfp_presentation_error_size();
 
+    @Message("Delivery")
+    String events_cfp_delivery_title();
+
+    @Message("Block")
+    String events_cfp_delivery_block();
+
+    @Message("Scenario")
+    String events_cfp_delivery_scenario();
+
+    @Message("Progress")
+    String events_cfp_delivery_progress();
+
+    @Message("Ready")
+    String events_cfp_delivery_status_ready();
+
+    @Message("Scheduled")
+    String events_cfp_delivery_status_scheduled();
+
+    @Message("Presentation uploaded")
+    String events_cfp_delivery_status_uploaded();
+
+    @Message("Accepted, awaiting assignment")
+    String events_cfp_delivery_status_pending_assignment();
+
+    @Message("Pending")
+    String events_cfp_delivery_status_pending();
+
     @Message("Submitted and waiting for moderator review.")
     String events_cfp_status_desc_pending();
 
