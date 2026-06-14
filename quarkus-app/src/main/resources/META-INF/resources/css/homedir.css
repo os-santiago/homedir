@@ -250,10 +250,10 @@ footer {
 }
 
 .header-brand-logo {
-  padding-top: 5px;
+  padding: 0.2rem;
   width: 100%;
-  height: 190%;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
   display: block;
 }
 
