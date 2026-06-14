@@ -1,6 +1,10 @@
 ## Summary
 Briefly describe the problem and the solution.
 
+## Issue
+- Linked issue: `#`
+- Scope lock: [ ] This PR stays within the linked issue and any new work is split into a new issue and PR.
+
 ## Why
 Rationale behind this change.
 
