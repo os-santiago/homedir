@@ -237,7 +237,7 @@ public class CommunitySubmissionApiResourceTest {
           given()
               .accept("application/json")
               .when()
-              .get("/api/community/content?view=new&limit=30&offset=0")
+              .get("/api/community/content?limit=30&offset=0")
               .then()
               .statusCode(200)
               .extract()

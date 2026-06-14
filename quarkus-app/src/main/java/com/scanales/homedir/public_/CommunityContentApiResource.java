@@ -71,60 +71,62 @@ public class CommunityContentApiResource {
     }
     long userVoteCount = userId == null || userId.isBlank() ? 0L : voteService.countVotesByUser(userId);
     List<ContentItemResponse> items;
-    int total;
-    if ("new".equals(view)) {
-      List<CommunityContentItem> all =
-          applyMediaFilter(applyFilter(contentService.allItems(), filter), mediaFilter);
-      List<CommunityContentItem> ordered = all;
-      total = ordered.size();
-      List<CommunityContentItem> pageItems = paginateItems(ordered, limit, offset);
-      List<String> pageIds = pageItems.stream().map(CommunityContentItem::id).toList();
-      Map<String, CommunityVoteAggregate> pageAggregates = voteService.getAggregates(pageIds, userId);
-      Instant now = Instant.now();
-      items =
-          pageItems.stream()
-              .map(
-                  item -> {
-                    CommunityVoteAggregate aggregate =
-                        pageAggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
-                    double score =
-                        CommunityScoreCalculator.score(aggregate, item.createdAt(), now, decayEnabled);
-                    return toResponse(item, aggregate, score);
-                  })
-              .toList();
-    } else {
-      CommunityFeaturedSnapshotService.FeaturedPage featuredPage =
-          featuredSnapshotService.page(filter.apiValue, mediaFilter, limit, offset);
-      List<CommunityFeaturedSnapshotService.FeaturedItem> page = featuredPage.items();
-      total = featuredPage.total();
-      if (userId == null || userId.isBlank() || page.isEmpty()) {
-        items =
-            page.stream()
-                .map(item -> toResponse(item.item(), item.aggregate(), item.score()))
-                .toList();
-      } else {
-        List<String> pageIds =
-            page.stream().map(item -> item.item().id()).toList();
-        Map<String, CommunityVoteAggregate> userAggregates =
-            voteService.getAggregates(pageIds, userId);
-        items =
-            page.stream()
-                .map(
-                    item -> {
-                      CommunityVoteType myVote =
-                          userAggregates.getOrDefault(item.item().id(), CommunityVoteAggregate.empty()).myVote();
-                      CommunityVoteAggregate base = item.aggregate();
-                      CommunityVoteAggregate aggregate =
-                          new CommunityVoteAggregate(
-                              base.recommended(),
-                              base.mustSee(),
-                              base.notForMe(),
-                              myVote);
-                      return toResponse(item.item(), aggregate, item.score());
-                    })
-                .toList();
+    List<CommunityContentItem> filtered =
+        applyMediaFilter(applyFilter(contentService.allItems(), filter), mediaFilter);
+    List<CommunityFeaturedSnapshotService.FeaturedItem> featuredItems =
+        featuredSnapshotService.all(filter.apiValue, mediaFilter);
+    Map<String, CommunityFeaturedSnapshotService.FeaturedItem> featuredById =
+        featuredItems.stream()
+            .filter(item -> item.item() != null && item.item().id() != null)
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    item -> item.item().id(),
+                    item -> item,
+                    (left, right) -> left,
+                    java.util.LinkedHashMap::new));
+    java.util.Set<String> featuredIds = featuredById.keySet();
+    List<CommunityContentItem> ordered = new java.util.ArrayList<>(filtered.size());
+    ordered.addAll(
+        featuredItems.stream()
+            .map(CommunityFeaturedSnapshotService.FeaturedItem::item)
+            .filter(item -> item != null)
+            .toList());
+    for (CommunityContentItem item : filtered) {
+      if (item == null || item.id() == null || featuredIds.contains(item.id())) {
+        continue;
       }
+      ordered.add(item);
     }
+    int total = ordered.size();
+    List<CommunityContentItem> pageItems = paginateItems(ordered, limit, offset);
+    List<String> pageIds = pageItems.stream().map(CommunityContentItem::id).toList();
+    Map<String, CommunityVoteAggregate> pageAggregates =
+        userId == null || userId.isBlank() ? Map.of() : voteService.getAggregates(pageIds, userId);
+    Instant now = Instant.now();
+    items =
+        pageItems.stream()
+            .map(
+                item -> {
+                  CommunityFeaturedSnapshotService.FeaturedItem featuredItem = featuredById.get(item.id());
+                  if (featuredItem != null) {
+                    CommunityVoteAggregate base = featuredItem.aggregate();
+                    CommunityVoteAggregate userAggregate =
+                        pageAggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
+                    CommunityVoteAggregate aggregate =
+                        new CommunityVoteAggregate(
+                            base.recommended(),
+                            base.mustSee(),
+                            base.notForMe(),
+                            userAggregate.myVote());
+                    return toResponse(item, aggregate, featuredItem.score());
+                  }
+                  CommunityVoteAggregate aggregate =
+                      pageAggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
+                  double score =
+                      CommunityScoreCalculator.score(aggregate, item.createdAt(), now, decayEnabled);
+                  return toResponse(item, aggregate, score);
+                })
+            .toList();
 
     CommunityContentMetrics metrics = contentService.metrics();
     CacheMeta cacheMeta =
@@ -222,7 +224,7 @@ public class CommunityContentApiResource {
     }
     String normalized = raw.trim().toLowerCase(Locale.ROOT);
     if ("new".equals(normalized) || "featured".equals(normalized)) {
-      return normalized;
+      return "featured";
     }
     return "featured";
   }

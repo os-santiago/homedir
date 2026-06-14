@@ -39,7 +39,7 @@ public class CommunityResource {
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance community(
-        boolean isAuthenticated, String initialView, int homedirUsers, int githubUsers, int discordUsers);
+        boolean isAuthenticated, int homedirUsers, int githubUsers, int discordUsers);
   }
 
   @GET
@@ -98,7 +98,6 @@ public class CommunityResource {
       io.vertx.ext.web.RoutingContext context) {
     boolean authenticated = isAuthenticated();
     boolean isAdmin = AdminUtils.isAdmin(identity);
-    String initialView = normalizeView(viewParam);
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
     String activeSubmenu = forcedSubmenu != null && !forcedSubmenu.isBlank()
@@ -116,12 +115,8 @@ public class CommunityResource {
         });
     var summary = boardService.summary();
     int discordOnlineUsers = summary.discordOnlineUsers() != null ? summary.discordOnlineUsers() : 0;
-    TemplateInstance template = Templates.community(
-        authenticated,
-        initialView,
-        summary.homedirUsers(),
-        summary.githubUsers(),
-        summary.discordUsers());
+    TemplateInstance template =
+        Templates.community(authenticated, summary.homedirUsers(), summary.githubUsers(), summary.discordUsers());
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
@@ -174,17 +169,6 @@ public class CommunityResource {
       return normalized;
     }
     return "all";
-  }
-
-  private String normalizeView(String viewParam) {
-    if (viewParam == null || viewParam.isBlank()) {
-      return "featured";
-    }
-    String normalized = viewParam.trim().toLowerCase();
-    if ("featured".equals(normalized) || "new".equals(normalized)) {
-      return normalized;
-    }
-    return "featured";
   }
 
   private Optional<String> currentUserName() {

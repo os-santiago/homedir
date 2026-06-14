@@ -34,6 +34,8 @@ public class PublicExperienceSmokeTest {
     String html = fetchHtmlWithBudget("/comunidad", COMMUNITY_HTML_BUDGET_BYTES);
     assertTrue(html.contains("window.userAuthenticated"));
     assertTrue(html.contains("data-login-return-current=\"true\""));
+    assertFalse(html.contains("data-view=\"featured\""));
+    assertFalse(html.contains("data-view=\"new\""));
     assertFalse(html.contains("canva-theme-v2.css"));
     assertFalse(html.contains("/js/retro-theme.js"));
     assertRuntimeBootstrapGuardrails(html);
