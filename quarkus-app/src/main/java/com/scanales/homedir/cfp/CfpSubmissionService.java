@@ -174,6 +174,8 @@ public class CfpSubmissionService {
               null,
               null,
               List.of(),
+              null,
+              null,
               null);
       submissions.put(submission.id(), submission);
       persistSync();
@@ -528,6 +530,8 @@ public class CfpSubmissionService {
               current.ratingNarrative(),
               current.ratingContentImpact(),
               current.panelists() == null ? List.of() : current.panelists(),
+              current.assignedBlock(),
+              current.assignedScenario(),
               current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
@@ -596,6 +600,8 @@ public class CfpSubmissionService {
               normalizedNarrative,
               normalizedImpact,
               current.panelists() == null ? List.of() : current.panelists(),
+              current.assignedBlock(),
+              current.assignedScenario(),
               current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
@@ -648,6 +654,8 @@ public class CfpSubmissionService {
               current.ratingNarrative(),
               current.ratingContentImpact(),
               normalized,
+              current.assignedBlock(),
+              current.assignedScenario(),
               current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
@@ -719,7 +727,69 @@ public class CfpSubmissionService {
               current.ratingNarrative(),
               current.ratingContentImpact(),
               current.panelists() == null ? List.of() : current.panelists(),
+              current.assignedBlock(),
+              current.assignedScenario(),
               sanitized);
+      submissions.put(updated.id(), updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CfpSubmission updateDeliveryPlan(
+      String eventId,
+      String id,
+      String assignedBlock,
+      String assignedScenario,
+      String actorUserId,
+      Instant expectedUpdatedAt) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      String normalizedEventId = sanitizeId(eventId);
+      if (normalizedEventId == null) {
+        throw new NotFoundException("submission_not_found");
+      }
+      CfpSubmission current = findOrThrow(id);
+      if (!normalizedEventId.equals(current.eventId())) {
+        throw new NotFoundException("submission_not_found");
+      }
+      validateExpectedUpdatedAt(current, expectedUpdatedAt);
+      String normalizedBlock = sanitizeText(assignedBlock, 120);
+      String normalizedScenario = sanitizeText(assignedScenario, 160);
+      if (Objects.equals(normalizedBlock, current.assignedBlock())
+          && Objects.equals(normalizedScenario, current.assignedScenario())) {
+        return current;
+      }
+      Instant now = nextUpdatedAt(current);
+      CfpSubmission updated =
+          new CfpSubmission(
+              current.id(),
+              current.eventId(),
+              current.proposerUserId(),
+              current.proposerName(),
+              current.title(),
+              current.summary(),
+              current.abstractText(),
+              current.level(),
+              current.format(),
+              current.durationMin(),
+              current.language(),
+              current.track(),
+              current.tags(),
+              current.links(),
+              current.status(),
+              current.createdAt(),
+              now,
+              current.moderatedAt(),
+              current.moderatedBy(),
+              current.moderationNote(),
+              current.ratingTechnicalDetail(),
+              current.ratingNarrative(),
+              current.ratingContentImpact(),
+              current.panelists() == null ? List.of() : current.panelists(),
+              normalizedBlock,
+              normalizedScenario,
+              current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -775,6 +845,8 @@ public class CfpSubmissionService {
               current.ratingNarrative(),
               current.ratingContentImpact(),
               refreshed,
+              current.assignedBlock(),
+              current.assignedScenario(),
               current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
@@ -991,6 +1063,46 @@ public class CfpSubmissionService {
 
   public boolean isPresentationUploadAllowed(CfpSubmission submission) {
     return visibleStatus(submission) == CfpSubmissionStatus.ACCEPTED;
+  }
+
+  public String deliveryStatus(CfpSubmission submission) {
+    if (submission == null) {
+      return "unknown";
+    }
+    boolean hasAssignment =
+        (submission.assignedBlock() != null && !submission.assignedBlock().isBlank())
+            || (submission.assignedScenario() != null && !submission.assignedScenario().isBlank());
+    boolean hasPresentation = submission.presentationAsset() != null;
+    if (hasAssignment && hasPresentation) {
+      return "ready";
+    }
+    if (hasAssignment) {
+      return "scheduled";
+    }
+    if (hasPresentation) {
+      return "presentation_uploaded";
+    }
+    if (visibleStatus(submission) == CfpSubmissionStatus.ACCEPTED) {
+      return "accepted_pending_assignment";
+    }
+    return "pending";
+  }
+
+  public int deliveryProgress(CfpSubmission submission) {
+    if (submission == null) {
+      return 0;
+    }
+    boolean hasAssignment =
+        (submission.assignedBlock() != null && !submission.assignedBlock().isBlank())
+            || (submission.assignedScenario() != null && !submission.assignedScenario().isBlank());
+    boolean hasPresentation = submission.presentationAsset() != null;
+    if (hasAssignment && hasPresentation) {
+      return 100;
+    }
+    if (hasAssignment || hasPresentation) {
+      return 50;
+    }
+    return visibleStatus(submission) == CfpSubmissionStatus.ACCEPTED ? 10 : 0;
   }
 
   public List<CfpSubmission> acceptedVisibleSubmissionsForEvent(String eventId) {

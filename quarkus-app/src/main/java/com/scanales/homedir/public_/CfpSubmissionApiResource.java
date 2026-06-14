@@ -739,6 +739,40 @@ public class CfpSubmissionApiResource {
     }
   }
 
+  @PUT
+  @Path("/{id}/delivery")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateDeliveryPlan(
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      UpdateDeliveryPlanRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+    }
+    Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+    if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+    }
+    try {
+      CfpSubmission updated =
+          cfpSubmissionService.updateDeliveryPlan(
+              eventId,
+              id,
+              request != null ? request.assignedBlock() : null,
+              request != null ? request.assignedScenario() : null,
+              currentUserId().orElse(existing.get().proposerUserId()),
+              request != null ? request.expectedUpdatedAt() : null);
+      return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
+    } catch (CfpSubmissionService.ValidationException e) {
+      Response.Status statusCode =
+          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+      return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
+    } catch (CfpSubmissionService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+    }
+  }
+
   @POST
   @Path("/{id}/promote")
   @Authenticated
@@ -860,6 +894,8 @@ public class CfpSubmissionApiResource {
     String resultMessage = cfpSubmissionService.resultMessage(submission);
     Instant resultsPublishedAt = cfpSubmissionService.resultsPublishedAt(submission.eventId());
     boolean resultsPublished = resultsPublishedAt != null;
+    String deliveryStatus = cfpSubmissionService.deliveryStatus(submission);
+    int deliveryProgress = cfpSubmissionService.deliveryProgress(submission);
     return new SubmissionView(
         submission.id(),
         submission.eventId(),
@@ -889,7 +925,11 @@ public class CfpSubmissionApiResource {
         CfpSubmissionService.calculateWeightedScore(submission),
         panelists,
         pendingPanelists,
+        submission.assignedBlock(),
+        submission.assignedScenario(),
         presentationAsset,
+        deliveryStatus,
+        deliveryProgress,
         resultsPublished,
         resultsPublishedAt,
         resultMessage,
@@ -1456,6 +1496,11 @@ public class CfpSubmissionApiResource {
       boolean cleared,
       EventSubmissionConfigView effective) {}
 
+  public record UpdateDeliveryPlanRequest(
+      @JsonProperty("assigned_block") String assignedBlock,
+      @JsonProperty("assigned_scenario") String assignedScenario,
+      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
+
   public record PublishResultsResponse(
       @JsonProperty("event_id") String eventId,
       @JsonProperty("accepted_published") int acceptedPublished,
@@ -1551,7 +1596,11 @@ public class CfpSubmissionApiResource {
       @JsonProperty("rating_weighted") Double ratingWeighted,
       List<PanelistView> panelists,
       @JsonProperty("pending_panelists") int pendingPanelists,
+      @JsonProperty("assigned_block") String assignedBlock,
+      @JsonProperty("assigned_scenario") String assignedScenario,
       @JsonProperty("presentation_asset") PresentationAssetView presentationAsset,
+      @JsonProperty("delivery_status") String deliveryStatus,
+      @JsonProperty("delivery_progress") int deliveryProgress,
       @JsonProperty("results_published") boolean resultsPublished,
       @JsonProperty("results_published_at") Instant resultsPublishedAt,
       @JsonProperty("result_message") String resultMessage,

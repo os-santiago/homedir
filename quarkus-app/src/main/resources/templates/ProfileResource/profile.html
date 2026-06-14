@@ -425,6 +425,24 @@
                             {#else}{item.status}{/else}
                             {/switch}
                         </span>
+                        {#if item.assignedBlock || item.assignedScenario}
+                        <span class="hd-list-meta">
+                            {i18n:events_cfp_delivery_title} ·
+                            {#if item.assignedBlock}{i18n:events_cfp_delivery_block} {item.assignedBlock}{/if}
+                            {#if item.assignedBlock && item.assignedScenario} · {/if}
+                            {#if item.assignedScenario}{i18n:events_cfp_delivery_scenario} {item.assignedScenario}{/if}
+                        </span>
+                        {/if}
+                        <span class="hd-list-meta">
+                            {i18n:events_cfp_delivery_progress}: {#switch item.deliveryStatus}
+                            {#case 'ready'}{i18n:events_cfp_delivery_status_ready}{/case}
+                            {#case 'scheduled'}{i18n:events_cfp_delivery_status_scheduled}{/case}
+                            {#case 'presentation_uploaded'}{i18n:events_cfp_delivery_status_uploaded}{/case}
+                            {#case 'accepted_pending_assignment'}{i18n:events_cfp_delivery_status_pending_assignment}{/case}
+                            {#case 'pending'}{i18n:events_cfp_delivery_status_pending}{/case}
+                            {#else}{item.deliveryStatus}{/else}
+                            {/switch}
+                        </span>
                     </div>
                     <a class="hd-btn hd-btn-secondary" href="{item.manageUrl}">{i18n:profile_cfp_manage}</a>
                 </li>

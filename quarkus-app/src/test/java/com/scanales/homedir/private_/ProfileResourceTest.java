@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.scanales.homedir.challenges.ChallengeService;
+import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.model.Event;
@@ -55,7 +56,8 @@ public class ProfileResourceTest {
     volunteerApplicationService.clearAllForTests();
     eventService.saveEvent(new Event(CFP_EVENT_ID, "Profile CFP Event", "CFP profile integration test"));
     eventService.saveEvent(new Event(VOLUNTEER_EVENT_ID, "Profile Volunteer Event", "Volunteer profile integration test"));
-    cfpSubmissionService.create(
+    CfpSubmission cfpCreated =
+        cfpSubmissionService.create(
         currentUserEmail(),
         "Current User",
         new CfpSubmissionService.CreateRequest(
@@ -70,6 +72,13 @@ public class ProfileResourceTest {
             "ai-agents-copilots",
             List.of("profile"),
             List.of("https://example.com/profile-cfp")));
+    cfpSubmissionService.updateDeliveryPlan(
+        CFP_EVENT_ID,
+        cfpCreated.id(),
+        "Day 1 / Morning",
+        "Main Stage",
+        currentUserEmail(),
+        cfpCreated.updatedAt());
     VolunteerApplication volunteerCreated =
         volunteerApplicationService.create(
             currentUserEmail(),
@@ -415,6 +424,9 @@ public class ProfileResourceTest {
         .statusCode(200)
         .body(containsString("Call for Papers"))
         .body(containsString("Profile CFP Talk"))
+        .body(containsString("Entrega"))
+        .body(containsString("Day 1 / Morning"))
+        .body(containsString("Main Stage"))
         .body(containsString("/event/" + CFP_EVENT_ID + "/cfp#my-proposals"));
   }
 

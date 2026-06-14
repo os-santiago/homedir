@@ -413,6 +413,43 @@ public class CfpSubmissionServiceTest {
   }
 
   @Test
+  void deliveryPlanUpdatesStatusAndProgress() {
+    CfpSubmission submission =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Delivery planning proposal",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of()));
+
+    assertEquals("pending", cfpSubmissionService.deliveryStatus(submission));
+    assertEquals(0, cfpSubmissionService.deliveryProgress(submission));
+
+    CfpSubmission updated =
+        cfpSubmissionService.updateDeliveryPlan(
+            EVENT_ID,
+            submission.id(),
+            "Day 1 / Morning",
+            "Main Stage",
+            "admin@example.org",
+            submission.updatedAt());
+
+    assertEquals("scheduled", cfpSubmissionService.deliveryStatus(updated));
+    assertEquals(50, cfpSubmissionService.deliveryProgress(updated));
+    assertEquals("Day 1 / Morning", updated.assignedBlock());
+    assertEquals("Main Stage", updated.assignedScenario());
+  }
+
+  @Test
   void createAppliesEventSpecificMaxSubmissionsLimit() {
     cfpEventConfigService.upsert(
         EVENT_ID,

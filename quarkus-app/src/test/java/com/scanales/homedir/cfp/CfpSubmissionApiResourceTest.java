@@ -957,6 +957,45 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "admin@example.org")
+  void adminCanAssignDeliveryPlanAndSeeProgress() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Delivery plan api",
+                "Short summary",
+                "Long abstract for delivery planning.",
+                "advanced",
+                "talk",
+                30,
+                "en",
+                "platform-engineering-idp",
+                List.of(),
+                List.of("https://example.org/detail")));
+
+    given()
+        .contentType("application/json")
+        .body(
+            """
+            {
+              "assigned_block":"Day 1 / Morning",
+              "assigned_scenario":"Main Stage"
+            }
+            """)
+        .when()
+        .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/delivery")
+        .then()
+        .statusCode(200)
+        .body("item.assigned_block", equalTo("Day 1 / Morning"))
+        .body("item.assigned_scenario", equalTo("Main Stage"))
+        .body("item.delivery_status", equalTo("scheduled"))
+        .body("item.delivery_progress", equalTo(50));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
   void statusUpdateRejectsStaleVersionConflict() {
     CfpSubmission created =
         cfpSubmissionService.create(
