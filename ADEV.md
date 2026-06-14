@@ -40,13 +40,14 @@ A-Dev is the canonical operating doctrine for model- and agent-assisted software
 27. The shared workspace must remain consistent at relevant checkpoints, including `LATEST.txt`, `HANDOFF.md`, `state.json`, `SESSION-LOG.md`, and `DECISIONS.md` when those assets exist in the repo.
 28. Before requesting approval, merge, or production promotion, complete the quality tasks needed to sustain high PR success: local validation, targeted tests, risk preflight, and updated verification notes.
 29. Every PR should be configured with auto-merge when the repository workflow supports it, unless an explicit documented blocker prevents it.
-30. Every change must finish in a PR at the close of an iteration or objective; do not leave completed work only in a local branch, local handoff, or chat transcript.
-31. Every approved and merged PR to `main` must end with operational cleanup: verify the merge, update handoff if used, and remove no-longer-needed source branches.
-32. Any local branch already merged into `main` must be deleted during cleanup unless it is still attached to an active worktree or another documented hold condition.
-33. PR quality, release gates, and production-promotion validations belong to the SDLC and delivery operation, not to the user-facing product, unless explicitly scoped otherwise.
-34. If there is an active PRD or product roadmap, iterations must prioritize visible end-user value and avoid diverting scope toward internal tooling, release evidence, or operational layers that are outside the agreed product.
-35. Keep canonical public content understandable without requiring private chat context.
-36. The strongest material in this system is disciplined learning under failure, delivery pressure, and verification, not abstract optimism.
+30. Create draft PRs only when scope is still unclear or the change intentionally needs staged review; if the scope comes from a complete issue, open the PR ready for review by default.
+31. Every change must finish in a PR at the close of an iteration or objective; do not leave completed work only in a local branch, local handoff, or chat transcript.
+32. Every approved and merged PR to `main` must end with operational cleanup: verify the merge, update handoff if used, and remove no-longer-needed source branches.
+33. Any local branch already merged into `main` must be deleted during cleanup unless it is still attached to an active worktree or another documented hold condition.
+34. PR quality, release gates, and production-promotion validations belong to the SDLC and delivery operation, not to the user-facing product, unless explicitly scoped otherwise.
+35. If there is an active PRD or product roadmap, iterations must prioritize visible end-user value and avoid diverting scope toward internal tooling, release evidence, or operational layers that are outside the agreed product.
+36. Keep canonical public content understandable without requiring private chat context.
+37. The strongest material in this system is disciplined learning under failure, delivery pressure, and verification, not abstract optimism.
 
 ## Stage Model
 ### Stage 1: Canon
