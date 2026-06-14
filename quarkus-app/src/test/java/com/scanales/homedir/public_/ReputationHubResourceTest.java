@@ -8,17 +8,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.scanales.homedir.TestDataDir;
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.reputation.ReputationEngineService;
+import com.scanales.homedir.service.GithubService;
+import com.scanales.homedir.service.GithubService.GithubCoder;
 import com.scanales.homedir.service.UserProfileService;
 import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(TestDataDir.class)
@@ -37,6 +42,7 @@ class ReputationHubResourceTest {
 
   @Inject UserProfileService userProfileService;
   @Inject ReputationEngineService reputationEngineService;
+  @InjectMock GithubService githubService;
 
   @BeforeEach
   void setUp() {
@@ -82,6 +88,26 @@ class ReputationHubResourceTest {
             "thread-rec-1",
             "validator@example.com",
             "recommended"));
+
+    when(githubService.fetchHomeProjectCoders())
+        .thenReturn(
+            List.of(
+                new GithubCoder(
+                    "hub-user-two",
+                    "https://avatars.githubusercontent.com/u/7002",
+                    "https://github.com/hub-user-two",
+                    9,
+                    4,
+                    3,
+                    16),
+                new GithubCoder(
+                    "hub-user-one",
+                    "https://avatars.githubusercontent.com/u/7001",
+                    "https://github.com/hub-user-one",
+                    5,
+                    1,
+                    1,
+                    7)));
   }
 
   @Test
@@ -102,7 +128,9 @@ class ReputationHubResourceTest {
         .body(containsString("Builders"))
         .body(containsString("Helpers"))
         .body(containsString("Learners"))
+        .body(containsString("Coders"))
         .body(containsString("Speakers"))
+        .body(containsString("Members with the highest combined sum of commits, issues, and pull requests."))
         .body(containsString("Recognized contributions"))
         .body(containsString("How to grow from here"))
         .body(containsString("What to focus on"))
@@ -141,6 +169,7 @@ class ReputationHubResourceTest {
         .body(containsString("Builders"))
         .body(containsString("Helpers"))
         .body(containsString("Learners"))
+        .body(containsString("Coders"))
         .body(containsString("Speakers"))
         .body(containsString("Contribuciones reconocidas"))
         .body(containsString("Cómo crecer desde aquí"))

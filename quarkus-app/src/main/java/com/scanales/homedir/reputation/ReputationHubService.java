@@ -2,6 +2,8 @@ package com.scanales.homedir.reputation;
 
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.service.UserProfileService;
+import com.scanales.homedir.service.GithubService;
+import com.scanales.homedir.service.GithubService.GithubCoder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
@@ -21,6 +23,7 @@ public class ReputationHubService {
 
   @Inject ReputationEngineService reputationEngineService;
   @Inject UserProfileService userProfileService;
+  @Inject GithubService githubService;
 
   public HubSnapshot snapshot(int limit, String viewerUserId) {
     int safeLimit = Math.max(3, Math.min(limit, 25));
@@ -138,6 +141,10 @@ public class ReputationHubService {
             limit));
     addCategoryLeaderboard(
         out,
+        "coders",
+        codersLeaderboard(githubService == null ? List.of() : githubService.fetchHomeProjectCoders(), limit));
+    addCategoryLeaderboard(
+        out,
         "speakers",
         leaderboard(snapshot.aggregatesByUser(), aggregate -> speakerScore(snapshot, aggregate), limit));
     return List.copyOf(out);
@@ -200,6 +207,40 @@ public class ReputationHubService {
               member.avatarUrl(),
               member.profilePath(),
               scoreExtractor.applyAsLong(aggregate)));
+    }
+    return List.copyOf(out);
+  }
+
+  private List<LeaderboardEntry> codersLeaderboard(List<GithubCoder> coders, int limit) {
+    if (coders == null || coders.isEmpty()) {
+      return List.of();
+    }
+    List<GithubCoder> ranked =
+        coders.stream()
+            .filter(Objects::nonNull)
+            .filter(coder -> coder.score() > 0)
+            .sorted(
+                Comparator.comparingInt(GithubCoder::score)
+                    .reversed()
+                    .thenComparing(Comparator.comparingInt(GithubCoder::commits).reversed())
+                    .thenComparing(Comparator.comparingInt(GithubCoder::issues).reversed())
+                    .thenComparing(Comparator.comparingInt(GithubCoder::pullRequests).reversed())
+                    .thenComparing(GithubCoder::login, Comparator.nullsLast(String::compareTo)))
+            .limit(limit)
+            .toList();
+    java.util.ArrayList<LeaderboardEntry> out = new java.util.ArrayList<>(ranked.size());
+    for (int i = 0; i < ranked.size(); i++) {
+      GithubCoder coder = ranked.get(i);
+      MemberProjection member = resolveCoderMember(coder.login());
+      out.add(
+          new LeaderboardEntry(
+              i + 1,
+              coder.login(),
+              member.displayName(),
+              member.handle(),
+              member.avatarUrl(),
+              member.profilePath(),
+              coder.score()));
     }
     return List.copyOf(out);
   }
@@ -277,6 +318,22 @@ public class ReputationHubService {
     } else if (userId.startsWith("hd-")) {
       profilePath = "/u/" + userId;
     }
+    return new MemberProjection(displayName, handle, avatarUrl, profilePath);
+  }
+
+  private MemberProjection resolveCoderMember(String githubLogin) {
+    if (githubLogin == null || githubLogin.isBlank()) {
+      return new MemberProjection("Unknown coder", null, null, null);
+    }
+    UserProfile profile = userProfileService.findByGithubLogin(githubLogin).orElse(null);
+    if (profile == null) {
+      return new MemberProjection(githubLogin, "@" + githubLogin, null, "/u/" + githubLogin);
+    }
+    UserProfile.GithubAccount github = profile.getGithub();
+    String displayName = firstNonBlank(profile.getName(), githubLogin);
+    String handle = githubLogin != null ? "@" + githubLogin : null;
+    String avatarUrl = github != null ? github.avatarUrl() : null;
+    String profilePath = "/u/" + githubLogin;
     return new MemberProjection(displayName, handle, avatarUrl, profilePath);
   }
 

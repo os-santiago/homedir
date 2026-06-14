@@ -6351,6 +6351,12 @@ public interface AppMessages {
     @Message("Members building momentum through exploration, attendance, and consistency.")
     String reputation_hub_category_learners_desc();
 
+    @Message("Coders")
+    String reputation_hub_category_coders_title();
+
+    @Message("Members with the highest combined sum of commits, issues, and pull requests.")
+    String reputation_hub_category_coders_desc();
+
     @Message("Speakers")
     String reputation_hub_category_speakers_title();
 
