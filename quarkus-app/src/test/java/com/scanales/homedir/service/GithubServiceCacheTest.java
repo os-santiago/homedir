@@ -9,7 +9,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.eclipse.microprofile.config.Config;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,29 @@ public class GithubServiceCacheTest {
     assertEquals("alice", contributors.getFirst().login());
   }
 
+  @Test
+  void buildsCodersLeaderboardFromCommitsIssuesAndPullRequests() {
+    StubGithubService service = newService();
+    service.enqueue(
+        List.of(
+            new GithubService.GithubContributor("alice", "https://avatar-a", "https://profile-a", 5),
+            new GithubService.GithubContributor("bob", "https://avatar-b", "https://profile-b", 3)));
+    service.setSearchCount("alice", "issue", 2);
+    service.setSearchCount("alice", "pr", 1);
+    service.setSearchCount("bob", "issue", 10);
+    service.setSearchCount("bob", "pr", 0);
+
+    service.refreshHomeProjectContributorsNowForTests();
+    List<GithubService.GithubCoder> coders = service.fetchHomeProjectCoders();
+
+    assertEquals(1, service.fetchCalls);
+    assertEquals(2, coders.size());
+    assertEquals("bob", coders.getFirst().login());
+    assertEquals(13, coders.getFirst().score());
+    assertEquals("alice", coders.getLast().login());
+    assertEquals(8, coders.getLast().score());
+  }
+
   private StubGithubService newService() {
     StubGithubService service = new StubGithubService();
     service.objectMapper = new ObjectMapper();
@@ -73,6 +98,7 @@ public class GithubServiceCacheTest {
     int fetchCalls = 0;
     String lastOwner = null;
     String lastRepo = null;
+    final Map<String, Integer> searchCounts = new HashMap<>();
 
     @Override
     List<GithubService.GithubContributor> loadContributorsFromGithub(String owner, String repo) {
@@ -85,8 +111,17 @@ public class GithubServiceCacheTest {
       return queuedResponses.removeFirst();
     }
 
+    @Override
+    int countRepoSearchResults(String owner, String repo, String login, String type) {
+      return searchCounts.getOrDefault(login + ":" + type, 0);
+    }
+
     void enqueue(List<GithubService.GithubContributor> contributors) {
       queuedResponses.addLast(contributors);
+    }
+
+    void setSearchCount(String login, String type, int count) {
+      searchCounts.put(login + ":" + type, count);
     }
   }
 }

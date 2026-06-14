@@ -34,6 +34,7 @@ public class GithubService {
   private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(5);
   private static final Duration DEFAULT_CONTRIBUTORS_CACHE_TTL = Duration.ofHours(24);
   private static final int MAX_CONTRIBUTORS = 10;
+  private static final int MAX_CODERS = 10;
 
   @Inject
   ObjectMapper objectMapper;
@@ -62,6 +63,8 @@ public class GithubService {
       .build();
   private final AtomicReference<ContributorsCacheSnapshot> contributorsCache =
       new AtomicReference<>(ContributorsCacheSnapshot.empty());
+  private final AtomicReference<CodersCacheSnapshot> codersCache =
+      new AtomicReference<>(CodersCacheSnapshot.empty());
   private final AtomicBoolean contributorsRefreshInProgress = new AtomicBoolean(false);
   private final ExecutorService contributorsRefreshExecutor =
       Executors.newSingleThreadExecutor(
@@ -92,6 +95,11 @@ public class GithubService {
   public List<GithubContributor> fetchHomeProjectContributors() {
     maybeRefreshContributorsOnDemand();
     return contributorsCache.get().contributors();
+  }
+
+  public List<GithubCoder> fetchHomeProjectCoders() {
+    maybeRefreshContributorsOnDemand();
+    return codersCache.get().coders();
   }
 
   public String exchangeCode(String code) throws IOException, InterruptedException {
@@ -243,9 +251,18 @@ public class GithubService {
     Instant attemptedAt = Instant.now();
 
     if (!loaded.isEmpty()) {
+      List<GithubCoder> coders =
+          loadHomeProjectCodersFromGithub(homeProjectRepoOwner, homeProjectRepoName, loaded);
       contributorsCache.set(
           new ContributorsCacheSnapshot(
               List.copyOf(loaded),
+              attemptedAt,
+              attemptedAt,
+              durationMs,
+              true));
+      codersCache.set(
+          new CodersCacheSnapshot(
+              List.copyOf(coders),
               attemptedAt,
               attemptedAt,
               durationMs,
@@ -266,6 +283,13 @@ public class GithubService {
               attemptedAt,
               durationMs,
               false));
+      codersCache.set(
+          new CodersCacheSnapshot(
+              codersCache.get().coders(),
+              codersCache.get().loadedAt(),
+              attemptedAt,
+              durationMs,
+              false));
       LOG.warnv(
           "GitHub contributors refresh returned empty reason={0}; keeping cached contributors={1}",
           reason,
@@ -280,7 +304,108 @@ public class GithubService {
             attemptedAt,
             durationMs,
             false));
+    codersCache.set(
+        new CodersCacheSnapshot(
+            List.of(),
+            codersCache.get().loadedAt(),
+            attemptedAt,
+            durationMs,
+            false));
     LOG.warnv("GitHub contributors cache is empty after refresh reason={0}", reason);
+  }
+
+  List<GithubCoder> loadHomeProjectCodersFromGithub(
+      String owner, String repo, List<GithubContributor> contributors) {
+    if (owner == null || owner.isBlank() || repo == null || repo.isBlank() || contributors == null) {
+      return List.of();
+    }
+    List<GithubCoder> coders = new ArrayList<>();
+    for (GithubContributor contributor : contributors) {
+      if (contributor == null || contributor.login() == null || contributor.login().isBlank()) {
+        continue;
+      }
+      int issueCount = countRepoSearchResults(owner, repo, contributor.login(), "issue");
+      int pullRequestCount = countRepoSearchResults(owner, repo, contributor.login(), "pr");
+      int commits = Math.max(0, contributor.contributions());
+      int score = commits + issueCount + pullRequestCount;
+      if (score <= 0) {
+        continue;
+      }
+      coders.add(
+          new GithubCoder(
+              contributor.login(),
+              contributor.avatarUrl(),
+              contributor.htmlUrl(),
+              commits,
+              issueCount,
+              pullRequestCount,
+              score));
+    }
+    coders.sort(
+        java.util.Comparator.comparingInt(GithubCoder::score)
+            .reversed()
+            .thenComparing(java.util.Comparator.comparingInt(GithubCoder::commits).reversed())
+            .thenComparing(java.util.Comparator.comparingInt(GithubCoder::issues).reversed())
+            .thenComparing(java.util.Comparator.comparingInt(GithubCoder::pullRequests).reversed())
+            .thenComparing(GithubCoder::login, java.util.Comparator.nullsLast(String::compareTo)));
+    if (coders.size() > MAX_CODERS) {
+      return List.copyOf(coders.subList(0, MAX_CODERS));
+    }
+    return List.copyOf(coders);
+  }
+
+  int countRepoSearchResults(String owner, String repo, String login, String type) {
+    if (owner == null
+        || owner.isBlank()
+        || repo == null
+        || repo.isBlank()
+        || login == null
+        || login.isBlank()
+        || type == null
+        || type.isBlank()) {
+      return 0;
+    }
+    try {
+      String query = "repo:" + owner + "/" + repo + " author:" + login + " is:" + type;
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(
+              URI.create(
+                  "https://api.github.com/search/issues?q="
+                      + url(query)
+                      + "&per_page=1"))
+          .timeout(REQUEST_TIMEOUT)
+          .header("Accept", "application/vnd.github+json")
+          .header("X-GitHub-Api-Version", "2022-11-28")
+          .header("User-Agent", "homedir-service")
+          .build();
+      String githubToken = getGithubApiToken();
+      HttpRequest authorizedRequest =
+          githubToken.isBlank()
+              ? request
+              : HttpRequest.newBuilder(request.uri())
+                  .timeout(REQUEST_TIMEOUT)
+                  .header("Accept", "application/vnd.github+json")
+                  .header("X-GitHub-Api-Version", "2022-11-28")
+                  .header("User-Agent", "homedir-service")
+                  .header("Authorization", "Bearer " + githubToken)
+                  .build();
+      HttpResponse<String> response = httpClient.send(authorizedRequest, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() >= 400) {
+        LOG.warnf(
+            "GitHub search count failed status=%d owner=%s repo=%s login=%s type=%s body=%s",
+            response.statusCode(), owner, repo, login, type, response.body());
+        return 0;
+      }
+      JsonNode json = objectMapper.readTree(response.body());
+      return Math.max(0, json.path("total_count").asInt(0));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      LOG.warnf("GitHub search count interrupted owner=%s repo=%s login=%s type=%s", owner, repo, login, type);
+      return 0;
+    } catch (Exception e) {
+      LOG.warnf(e, "GitHub search count failed owner=%s repo=%s login=%s type=%s", owner, repo, login, type);
+      return 0;
+    }
   }
 
   private Duration effectiveCacheTtl() {
@@ -331,6 +456,16 @@ public class GithubService {
   public record GithubContributor(String login, String avatarUrl, String htmlUrl, int contributions) {
   }
 
+  public record GithubCoder(
+      String login,
+      String avatarUrl,
+      String htmlUrl,
+      int commits,
+      int issues,
+      int pullRequests,
+      int score) {
+  }
+
   private record ContributorsCacheSnapshot(
       List<GithubContributor> contributors,
       Instant loadedAt,
@@ -339,6 +474,17 @@ public class GithubService {
       boolean lastAttemptSucceeded) {
     static ContributorsCacheSnapshot empty() {
       return new ContributorsCacheSnapshot(List.of(), null, null, 0L, false);
+    }
+  }
+
+  private record CodersCacheSnapshot(
+      List<GithubCoder> coders,
+      Instant loadedAt,
+      Instant lastAttemptAt,
+      long lastLoadDurationMs,
+      boolean lastAttemptSucceeded) {
+    static CodersCacheSnapshot empty() {
+      return new CodersCacheSnapshot(List.of(), null, null, 0L, false);
     }
   }
 }
