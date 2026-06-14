@@ -88,7 +88,39 @@ Estas insignias se basan en la sección Coders del Reputation Hub.
 - Evidencia: leaderboard Coders del Reputation Hub.
 - Efecto visible: destaca involucramiento técnico amplio.
 
-### 5. Insignias Speaker
+### 5. Insignias Supporter
+
+Estas insignias premian a quienes apoyan a HomeDir ampliando su visibilidad y siguiéndolo de cerca.
+
+#### Fork Supporter
+
+- Representa: crear un fork de HomeDir para explorar, probar o prototipar en un repo separado.
+- Ruta de desbloqueo: hacer fork del repositorio y usar ese fork para trabajo real o experimentación.
+- Evidencia: relación de fork en GitHub o actividad en el network del fork.
+- Efecto visible: muestra interés práctico y directo en el proyecto.
+
+#### Star Supporter
+
+- Representa: guardar HomeDir con una estrella.
+- Ruta de desbloqueo: marcar el repositorio con star desde GitHub.
+- Evidencia: acción de star sobre el repositorio.
+- Efecto visible: señala apoyo y ayuda a dar visibilidad al repo.
+
+#### Watch Supporter
+
+- Representa: suscribirse a las notificaciones del repositorio.
+- Ruta de desbloqueo: watch del repo para seguir issues, PRs y conversaciones.
+- Evidencia: estado de suscripción/watch del repositorio.
+- Efecto visible: muestra intención de mantenerse al día y participar.
+
+#### Pin Supporter
+
+- Representa: fijar HomeDir o un repositorio relacionado en el perfil de GitHub.
+- Ruta de desbloqueo: pin del repositorio en un perfil público donde el pinning esté permitido.
+- Evidencia: pins públicos del perfil.
+- Efecto visible: integra el proyecto en la identidad pública de la persona.
+
+### 6. Insignias Speaker
 
 Estas insignias premian contribución pública.
 

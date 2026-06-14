@@ -88,7 +88,39 @@ These badges are based on the Coders section in the Reputation Hub.
 - Evidence: Reputation Hub Coders leaderboard.
 - Visible effect: highlights broad technical involvement.
 
-### 5. Speaker badges
+### 5. Supporter badges
+
+These badges reward people who help HomeDir by amplifying the repository and keeping a closer eye on it.
+
+#### Fork Supporter
+
+- Represents: creating a fork of HomeDir to explore, test, or prototype in a separate repository.
+- Unlock route: fork the repository and use that fork for real work or experimentation.
+- Evidence: GitHub fork relationship or fork network activity.
+- Visible effect: shows active hands-on interest in the project.
+
+#### Star Supporter
+
+- Represents: bookmarking HomeDir with a star.
+- Unlock route: star the repository from GitHub.
+- Evidence: repository star action.
+- Visible effect: signals appreciation and helps the repo gain visibility.
+
+#### Watch Supporter
+
+- Represents: subscribing to repository notifications.
+- Unlock route: watch the repository to follow updates on issues, PRs, and other conversations.
+- Evidence: repository watch/subscription state.
+- Visible effect: shows an intent to stay informed and engaged.
+
+#### Pin Supporter
+
+- Represents: pinning HomeDir or a related repository to the GitHub profile.
+- Unlock route: pin the repository on a public profile where pinning is allowed.
+- Evidence: public profile pins.
+- Visible effect: makes the repository part of the contributor's public identity.
+
+### 6. Speaker badges
 
 These badges reward public-facing contribution.
 
