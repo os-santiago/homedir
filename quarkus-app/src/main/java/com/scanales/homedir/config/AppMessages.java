@@ -162,6 +162,9 @@ public interface AppMessages {
     @Message("Buy")
     String economy_btn_buy();
 
+    @Message("Acquired")
+    String economy_btn_acquired();
+
     @Message("Buying...")
     String economy_btn_buying();
 

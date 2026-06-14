@@ -72,6 +72,15 @@ public class EconomyApiResourceTest {
     given()
         .accept("application/json")
         .when()
+        .get("/api/economy/catalog")
+        .then()
+        .statusCode(200)
+        .body("items.find { it.id == 'profile-glow' }.owned_quantity", equalTo(1))
+        .body("items.find { it.id == 'profile-glow' }.remaining_stock", greaterThanOrEqualTo(0));
+
+    given()
+        .accept("application/json")
+        .when()
         .get("/api/economy/wallet")
         .then()
         .statusCode(200)

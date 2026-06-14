@@ -1185,6 +1185,7 @@
 
         const economyText = {
             buy: '{i18n:economy_btn_buy}',
+            acquired: '{i18n:economy_btn_acquired}',
             buying: '{i18n:economy_btn_buying}',
             loading: '{i18n:economy_loading}',
             errorLoading: '{i18n:economy_error_loading}',
@@ -1324,6 +1325,8 @@
             economyState.catalog.forEach((item) => {
                 const unlocked = item.unlocked !== false;
                 const remainingStock = toInt(item.remaining_stock);
+                const ownedQuantity = toInt(item.owned_quantity || item.quantity_owned);
+                const alreadyOwned = ownedQuantity > 0;
                 const tier = item.tier ? String(item.tier).toUpperCase() : '';
                 const currentItemLevel = toInt(item.current_level);
                 const requiredLevel = toInt(item.required_level);
@@ -1357,6 +1360,8 @@
                         chips.appendChild(createChip(lockReasonText(item)));
                     } else if (noStock) {
                         chips.appendChild(createChip(economyText.outOfStock, 'hd-economy-chip-status empty'));
+                    } else if (alreadyOwned) {
+                        chips.appendChild(createChip(economyText.acquired, 'hd-economy-chip-status owned'));
                     } else {
                         chips.appendChild(createChip(economyText.availableNow, 'hd-economy-chip-status'));
                     }
@@ -1372,8 +1377,8 @@
                 const button = document.createElement('button');
                 button.className = 'hd-btn hd-btn-secondary economy-buy-btn';
                 button.dataset.itemId = item.id;
-                button.textContent = economyText.buy;
-                if (cannotAfford || !unlocked || noStock) {
+                button.textContent = alreadyOwned ? economyText.acquired : economyText.buy;
+                if (cannotAfford || !unlocked || noStock || alreadyOwned) {
                     button.disabled = true;
                 }
                 actions.appendChild(button);
@@ -1531,6 +1536,7 @@
             economyStoreList.addEventListener('click', async (event) => {
                 const button = event.target.closest('.economy-buy-btn');
                 if (!button) return;
+                if (button.disabled) return;
                 const itemId = button.dataset.itemId;
                 if (!itemId) return;
                 const originalText = button.textContent;

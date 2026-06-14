@@ -495,6 +495,19 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void economyStoreScriptKnowsAboutOwnedItems() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("acquired: 'Acquired'"))
+        .body(containsString("owned_quantity || item.quantity_owned"))
+        .body(containsString("alreadyOwned ? economyText.acquired : economyText.buy"));
+  }
+
+  @Test
   public void profileHistoryLoadsInBatchesOfTenWithSafeWindowCap() {
     String userId = currentUserEmail();
     for (int i = 1; i <= 130; i++) {

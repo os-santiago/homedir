@@ -32,11 +32,18 @@ public class EconomyServiceTest {
     EconomyService.PurchaseResult purchase = economyService.purchase(userId, "profile-glow");
     EconomyWallet walletAfter = economyService.getWallet(userId);
     List<EconomyInventoryItem> inventory = economyService.listInventory(userId, 20, 0);
+    EconomyService.CatalogOffer profileGlow =
+        economyService.listCatalogForUser(userId).stream()
+            .filter(item -> "profile-glow".equals(item.id()))
+            .findFirst()
+            .orElseThrow();
     EconomyService.TransactionPage page = economyService.listTransactions(userId, 20, 0);
 
     assertEquals("profile-glow", purchase.itemId());
     assertEquals(walletBefore.balanceHcoin() - 120, walletAfter.balanceHcoin());
     assertTrue(inventory.stream().anyMatch(item -> "profile-glow".equals(item.itemId()) && item.quantity() >= 1));
+    assertEquals(1, profileGlow.ownedQuantity());
+    assertTrue(profileGlow.remainingStock() >= 0);
     assertFalse(page.items().isEmpty());
     assertEquals(EconomyTransactionType.PURCHASE, page.items().getFirst().type());
   }
