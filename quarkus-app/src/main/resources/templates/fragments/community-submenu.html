@@ -1,11 +1,17 @@
 {@ String activeCommunitySubmenu = "picks"}
+{@ boolean showCommunityPicks = true}
+{@ boolean showCommunityPropose = true}
 <nav class="community-submenu" aria-label="{i18n:community_submenu_aria_label}">
+  {#if showCommunityPicks}
   <a href="/comunidad/picks" class="btn-primary community-submenu-link {#if activeCommunitySubmenu == 'picks'}community-submenu-link-active{/if}">
     <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">auto_awesome</span>
     <span class="community-submenu-label">{i18n:community_submenu_picks}</span>
   </a>
+  {/if}
+  {#if showCommunityPropose}
   <a href="/comunidad/propose" class="btn-primary community-submenu-link community-submenu-link-emphasis {#if activeCommunitySubmenu == 'propose'}community-submenu-link-active{/if}">
     <span class="material-symbols-outlined community-submenu-icon" aria-hidden="true">edit_note</span>
     <span class="community-submenu-label">{i18n:community_submenu_propose}</span>
   </a>
+  {/if}
 </nav>

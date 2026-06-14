@@ -110,12 +110,12 @@ class ReputationHubResourceTest {
         .body(containsString("How reputation works"))
         .body(containsString("href=\"/comunidad/reputation-hub/how\""))
         .body(containsString("href=\"/reputation-hub\""))
-        .body(containsString("href=\"/comunidad/picks\""))
-        .body(containsString("href=\"/comunidad/propose\""))
         .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("/js/reputation-hub-vitals.js?v="))
         .body(containsString("data-reputation-vitals=\"hub\""))
         .body(not(containsString("/comunidad/lta")))
+        .body(not(containsString("href=\"/comunidad/picks\"")))
+        .body(not(containsString("href=\"/comunidad/propose\"")))
         .body(not(containsString("Community Board now lives in Reputation Hub")))
         .body(containsString("hub-user-one"))
         .body(containsString("hub-user-two"))
@@ -147,8 +147,11 @@ class ReputationHubResourceTest {
         .body(containsString("En qué enfocarte"))
         .body(containsString("Siguiente mejor movimiento"))
         .body(containsString("Cómo funciona la reputación"))
+        .body(containsString("href=\"/reputation-hub\""))
         .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("/js/reputation-hub-vitals.js?v="))
+        .body(not(containsString("href=\"/comunidad/picks\"")))
+        .body(not(containsString("href=\"/comunidad/propose\"")))
         .body(containsString("hub-user-one"))
         .body(containsString("hub-user-two"))
         .body(containsString("Recomendado por la comunidad"));
@@ -172,7 +175,8 @@ class ReputationHubResourceTest {
         .body(containsString("/js/reputation-hub-vitals.js?v="))
         .body(containsString("data-reputation-vitals=\"how\""))
         .body(containsString("href=\"/reputation-hub\""))
-        .body(containsString("href=\"/comunidad/picks\""))
+        .body(not(containsString("href=\"/comunidad/picks\"")))
+        .body(not(containsString("href=\"/comunidad/propose\"")))
         .body(containsString("href=\"/comunidad/reputation-hub\""));
   }
 
@@ -193,8 +197,8 @@ class ReputationHubResourceTest {
         .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("/js/reputation-hub-vitals.js?v="))
         .body(containsString("href=\"/reputation-hub\""))
-        .body(containsString("href=\"/comunidad/picks\""))
-        .body(containsString("href=\"/comunidad/propose\""))
+        .body(not(containsString("href=\"/comunidad/picks\"")))
+        .body(not(containsString("href=\"/comunidad/propose\"")))
         .body(containsString("href=\"/comunidad/reputation-hub\""));
   }
 
