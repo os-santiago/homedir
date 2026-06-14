@@ -741,7 +741,6 @@ public class CfpSubmissionService {
       String id,
       String assignedBlock,
       String assignedScenario,
-      String actorUserId,
       Instant expectedUpdatedAt) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);

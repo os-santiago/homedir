@@ -77,7 +77,6 @@ public class ProfileResourceTest {
         cfpCreated.id(),
         "Day 1 / Morning",
         "Main Stage",
-        currentUserEmail(),
         cfpCreated.updatedAt());
     VolunteerApplication volunteerCreated =
         volunteerApplicationService.create(

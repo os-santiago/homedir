@@ -440,7 +440,6 @@ public class CfpSubmissionServiceTest {
             submission.id(),
             "Day 1 / Morning",
             "Main Stage",
-            "admin@example.org",
             submission.updatedAt());
 
     assertEquals("scheduled", cfpSubmissionService.deliveryStatus(updated));

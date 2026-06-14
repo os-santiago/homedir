@@ -761,7 +761,6 @@ public class CfpSubmissionApiResource {
               id,
               request != null ? request.assignedBlock() : null,
               request != null ? request.assignedScenario() : null,
-              currentUserId().orElse(existing.get().proposerUserId()),
               request != null ? request.expectedUpdatedAt() : null);
       return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
     } catch (CfpSubmissionService.ValidationException e) {
