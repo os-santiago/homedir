@@ -124,9 +124,9 @@ public class ProjectsResource {
     refreshExecutor.shutdownNow();
   }
 
-  @Scheduled(every = "{projects.homedir.refresh-interval:6h}")
+  @Scheduled(every = "{projects.homedir.refresh-interval:24h}")
   void scheduledRefresh() {
-    triggerRefreshAsync(true, "schedule");
+    triggerRefreshAsync(true, "daily");
   }
 
   @GET
@@ -144,6 +144,10 @@ public class ProjectsResource {
     ProjectDashboard dashboard = buildDashboard(snapshot, contributors, messages);
     TemplateInstance template = Templates.proyectos(dashboard);
     return withLayoutData(template, "proyectos", localeCookie);
+  }
+
+  void refreshNowForTests() {
+    refreshNow("test");
   }
 
   private java.util.Optional<String> currentUserId() {
