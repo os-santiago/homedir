@@ -13,3 +13,4 @@
 20260409-the-open-source-ai-engineering-platform-for-agents-llms-and-mode-76bc22047c36.yml
 20260409-trivy-supply-chain-compromise-what-docker-hub-users-should-know-098a486222a0.yml
 20260409-what-s-coming-to-our-github-actions-2026-security-roadmap-869b6a1a1ba2.yml
+20260613-community-contributor-badges-roadmap-3c7e2d6995a1.yml
