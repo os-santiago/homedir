@@ -16,6 +16,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <!--
+          Java 26 source/target is blocked by Quarkus 3.26.4:
+          Quarkus uses ASM ~9.7.x which only supports class version ≤69 (Java 25).
+          Java 26 = class version 70 requires ASM 9.8+, available in Quarkus ≥3.35.x.
+          To upgrade Java: first upgrade Quarkus to ≥3.35.x, then change source/target to 26.
+        -->
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
         <git-commit-id-maven-plugin.version>9.0.1</git-commit-id-maven-plugin.version>
