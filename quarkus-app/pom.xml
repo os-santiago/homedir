@@ -14,8 +14,8 @@
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.5</surefire-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>26</maven.compiler.source>
-        <maven.compiler.target>26</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
         <git-commit-id-maven-plugin.version>9.0.1</git-commit-id-maven-plugin.version>
@@ -193,7 +193,7 @@
                     <fail>true</fail>
                     <rules>
                         <requireJavaVersion>
-                            <version>[26,)</version>
+                            <version>21</version>
                         </requireJavaVersion>
                         <banDuplicatePomDependencyVersions/>
                         <requireUpperBoundDeps/>
