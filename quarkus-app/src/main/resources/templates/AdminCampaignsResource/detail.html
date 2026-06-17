@@ -73,6 +73,7 @@
       <div class="action-group admin-shell-actions">
         {#if detail.draft.workflowStateCode == 'draft'}
           <form action="/private/admin/campaigns/{draftId}/approve" method="post">
+                  {#include fragments/csrf-token.html /}
             <input type="hidden" name="q" value="{filters.query}" />
             <input type="hidden" name="workflow" value="{filters.workflow}" />
             <input type="hidden" name="kind" value="{filters.kind}" />
@@ -83,6 +84,7 @@
         {/if}
         {#if detail.draft.workflowStateCode == 'approved'}
           <form action="/private/admin/campaigns/{draftId}/schedule" method="post">
+                  {#include fragments/csrf-token.html /}
             <input type="hidden" name="q" value="{filters.query}" />
             <input type="hidden" name="workflow" value="{filters.workflow}" />
             <input type="hidden" name="kind" value="{filters.kind}" />
@@ -95,6 +97,7 @@
         {/if}
         {#if detail.draft.workflowStateCode == 'scheduled'}
           <form action="/private/admin/campaigns/{draftId}/unschedule" method="post">
+                  {#include fragments/csrf-token.html /}
             <input type="hidden" name="q" value="{filters.query}" />
             <input type="hidden" name="workflow" value="{filters.workflow}" />
             <input type="hidden" name="kind" value="{filters.kind}" />
@@ -105,6 +108,7 @@
         {/if}
         {#if detail.linkedinHandoff && !detail.linkedinHandoff.completed}
           <form action="/private/admin/campaigns/{draftId}/mark-linkedin" method="post">
+                  {#include fragments/csrf-token.html /}
             <input type="hidden" name="q" value="{filters.query}" />
             <input type="hidden" name="workflow" value="{filters.workflow}" />
             <input type="hidden" name="kind" value="{filters.kind}" />
@@ -114,6 +118,7 @@
           </form>
         {/if}
         <form action="/private/admin/campaigns/{draftId}/reset" method="post">
+                {#include fragments/csrf-token.html /}
           <input type="hidden" name="q" value="{filters.query}" />
           <input type="hidden" name="workflow" value="{filters.workflow}" />
           <input type="hidden" name="kind" value="{filters.kind}" />
@@ -149,6 +154,7 @@
             {#if (detail.draft.workflowStateCode == 'scheduled' || detail.draft.workflowStateCode == 'published') && channel.channelCode != 'linkedin'}
               <div class="action-group admin-shell-actions">
                 <form action="/private/admin/campaigns/{draftId}/retry-channel/{channel.channelCode}" method="post">
+                        {#include fragments/csrf-token.html /}
                   <input type="hidden" name="q" value="{filters.query}" />
                   <input type="hidden" name="workflow" value="{filters.workflow}" />
                   <input type="hidden" name="kind" value="{filters.kind}" />

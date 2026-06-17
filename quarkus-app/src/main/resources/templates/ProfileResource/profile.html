@@ -173,6 +173,7 @@
                     </div>
                 </div>
                 <form action="/private/profile/unlink-discord" method="POST" class="hd-panel-actions">
+                        {#include fragments/csrf-token.html /}
                     <input type="hidden" name="redirect" value="/private/profile">
                     <button type="submit" class="hd-btn hd-btn-secondary">{i18n:btn_unlink_discord}</button>
                 </form>
@@ -504,6 +505,7 @@
             <p class="hd-page-intro">{i18n:profile_speaker_locked_hint}</p>
             {#else}
             <form action="/private/profile/speaker" method="POST" class="hd-panel-actions" style="display: grid; gap: 0.8rem;">
+                    {#include fragments/csrf-token.html /}
                 <input type="hidden" name="redirect" value="/private/profile#speaker-panel">
                 <div class="form-group">
                     <label class="form-label" for="speakerHeadline">{i18n:profile_speaker_headline}</label>
@@ -773,6 +775,7 @@
                 </div>
             </div>
             <form action="/private/profile/update-locale" method="POST" class="profile-settings-form">
+                    {#include fragments/csrf-token.html /}
                 <div class="form-group-margin form-actions-centered">
                     <select name="locale" class="hd-form-input">
                         <option value="es" {#if currentLanguage eq 'es' }selected{/if}>Español</option>

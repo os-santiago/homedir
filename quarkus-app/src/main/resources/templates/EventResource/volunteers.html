@@ -78,7 +78,8 @@
 
     {#if userAuthenticated}
     <div id="volunteerApplyContent" {#if volunteerSelected}hidden{/if}>
-      <form id="volunteerForm">
+      <form id="volunteerForm" method="post">
+              {#include fragments/csrf-token.html /}
         <div class="form-group" style="margin-bottom: 0.75rem;">
           <label class="form-label" for="volunteerAboutMe">{i18n:events_volunteers_form_about_me}</label>
           <textarea id="volunteerAboutMe" name="aboutMe" class="form-textarea" rows="4" maxlength="1500" required></textarea>

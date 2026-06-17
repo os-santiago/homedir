@@ -65,6 +65,7 @@
                             style="font-size: 16px; vertical-align: middle;">open_in_new</span>
                     </a>
                     <form action="/quests/{quest.id}/complete" method="POST" class="quest-action-form">
+                            {#include fragments/csrf-token.html /}
                         <button type="submit" class="hd-btn hd-btn-primary quest-action-submit">
                             {i18n:btn_claim}
                         </button>
@@ -74,6 +75,7 @@
                         {i18n:btn_view_details}
                     </a>
                     <form action="/quests/{quest.id}/start" method="POST" class="quest-action-form">
+                            {#include fragments/csrf-token.html /}
                         <button type="submit" class="hd-btn hd-btn-primary quest-action-submit">
                             {i18n:btn_start}
                         </button>

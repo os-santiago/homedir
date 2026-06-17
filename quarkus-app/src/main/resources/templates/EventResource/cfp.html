@@ -210,7 +210,8 @@
     {#if !cfpTimeline || !cfpTimeline.cfpWindowOpen}
     <p class="cfp-locked-message" role="status">{i18n:events_cfp_form_locked_desc}</p>
     {/if}
-    <form id="cfpForm" data-user-scope="{userName}">
+    <form id="cfpForm" method="post" data-user-scope="{userName}">
+            {#include fragments/csrf-token.html /}
       <fieldset class="cfp-form-fieldset" {#if !cfpTimeline || !cfpTimeline.cfpWindowOpen}disabled aria-disabled="true"{/if}>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
         <div class="form-group" style="grid-column: 1 / -1;">

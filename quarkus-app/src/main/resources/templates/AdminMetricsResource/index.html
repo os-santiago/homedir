@@ -222,6 +222,7 @@
       </div>
       <div class="admin-shell-actions" style="margin-top: 1rem;">
         <form method="post" action="/private/admin/metrics/reset" onsubmit="return confirm('¿Borrar datos?');">
+                {#include fragments/csrf-token.html /}
           <button type="submit" class="btn btn-danger">Reset data</button>
         </form>
         <a href="/private/admin/metrics/data" class="btn btn-secondary">Download data</a>
