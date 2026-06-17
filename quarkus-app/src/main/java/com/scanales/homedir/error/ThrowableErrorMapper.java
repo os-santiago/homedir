@@ -16,10 +16,13 @@ import jakarta.ws.rs.ext.Provider;
 import java.util.List;
 import java.util.Locale;
 import java.util.Locale.LanguageRange;
+import org.jboss.logging.Logger;
 
 @Provider
 @Priority(4990)
 public class ThrowableErrorMapper implements ExceptionMapper<Throwable> {
+
+    private static final Logger LOG = Logger.getLogger(ThrowableErrorMapper.class);
 
     @Inject
     Engine engine;
@@ -29,6 +32,7 @@ public class ThrowableErrorMapper implements ExceptionMapper<Throwable> {
 
     @Override
     public Response toResponse(Throwable t) {
+        LOG.error("Unhandled exception caught", t);
         int statusCode = 500;
         if (t instanceof WebApplicationException wae) {
             statusCode = wae.getResponse().getStatus();
