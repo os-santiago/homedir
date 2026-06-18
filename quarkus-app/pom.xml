@@ -11,11 +11,17 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.26.4</quarkus.platform.version>
-        <compiler-plugin.version>3.14.0</compiler-plugin.version>
-        <surefire-plugin.version>3.5.3</surefire-plugin.version>
+        <compiler-plugin.version>3.15.0</compiler-plugin.version>
+        <surefire-plugin.version>3.5.5</surefire-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <!--
+          Java 26 source/target is blocked by Quarkus 3.26.4:
+          Quarkus uses ASM ~9.7.x which only supports class version ≤69 (Java 25).
+          Java 26 = class version 70 requires ASM 9.8+, available in Quarkus ≥3.35.x.
+          To upgrade Java: first upgrade Quarkus to ≥3.35.x, then change source/target to 26.
+        -->
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
         <git-commit-id-maven-plugin.version>9.0.1</git-commit-id-maven-plugin.version>
@@ -321,7 +327,7 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.13</version>
+                        <version>0.8.15</version>
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>
