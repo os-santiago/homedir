@@ -239,10 +239,14 @@
         throw new Error(`HTTP ${response.status}`);
       }
       const data = await response.json();
-      renderList(Array.isArray(data.items) ? data.items : []);
+      const items = Array.isArray(data.items) ? data.items : [];
+      console.log("[community-submissions] loadMine returned", items.length, "items");
+      renderList(items);
     } catch (error) {
+      console.error("[community-submissions] loadMine failed:", error);
       showFeedback(i18n.errorLoadMine);
-      renderList([]);
+      // Do not render empty list on error - keep the current state visible
+      // to avoid confusing users by showing "no submissions" when it's actually a fetch error
     }
   }
 
