@@ -64,6 +64,7 @@ public class BackupArchiveService {
 
   public int restoreArchive(InputStream zipInput, Path dataDir) throws IOException {
     Files.createDirectories(dataDir);
+    Path root = dataDir.toRealPath();
     int restoredFiles = 0;
     try (ZipInputStream zis = new ZipInputStream(zipInput, StandardCharsets.UTF_8)) {
       ZipEntry entry;
@@ -78,9 +79,10 @@ public class BackupArchiveService {
           continue;
         }
 
-        Path target = safeResolve(dataDir, rawName);
+        Path target = safeResolve(root, rawName);
         if (entry.isDirectory()) {
           Files.createDirectories(target);
+          verifyInsideRoot(target, root);
           zis.closeEntry();
           continue;
         }
@@ -88,8 +90,12 @@ public class BackupArchiveService {
         Path parent = target.getParent();
         if (parent != null) {
           Files.createDirectories(parent);
+          if (Files.exists(parent)) {
+            verifyInsideRoot(parent, root);
+          }
         }
         Files.copy(zis, target, StandardCopyOption.REPLACE_EXISTING);
+        verifyInsideRoot(target, root);
         restoredFiles++;
         zis.closeEntry();
       }
@@ -97,7 +103,7 @@ public class BackupArchiveService {
     return restoredFiles;
   }
 
-  static Path safeResolve(Path dataDir, String entryName) throws IOException {
+  static Path safeResolve(Path root, String entryName) throws IOException {
     String normalized = entryName.replace('\\', '/');
     boolean hadLeadingSlash = normalized.startsWith("/");
     while (normalized.startsWith("/")) {
@@ -115,13 +121,13 @@ public class BackupArchiveService {
     if (normalized.matches("^[A-Za-z]:.*")) {
       throw new IOException("zip_absolute_path_detected");
     }
+    return root.resolve(normalized).normalize();
+  }
 
-    Path target = dataDir.resolve(normalized).normalize();
-    Path root = dataDir.normalize();
-    if (!target.startsWith(root)) {
+  private static void verifyInsideRoot(Path target, Path root) throws IOException {
+    if (!target.toRealPath().startsWith(root)) {
       throw new IOException("zip_outside_data_dir");
     }
-    return target;
   }
 
   private static String toEntryName(Path relativePath) {

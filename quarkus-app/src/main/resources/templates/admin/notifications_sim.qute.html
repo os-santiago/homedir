@@ -18,7 +18,8 @@
 
 <div class="container admin-shell-stack">
   <div class="admin-shell-panel">
-    <form id="simForm" class="form-group" aria-label="Simular notificaciones">
+    <form id="simForm" method="post" class="form-group" aria-label="Simular notificaciones">
+            {#include fragments/csrf-token.html /}
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
         <div class="form-group">

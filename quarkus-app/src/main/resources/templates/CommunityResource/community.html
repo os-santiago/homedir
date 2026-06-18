@@ -237,7 +237,8 @@
       <div id="community-submission-feedback" class="community-feedback hidden" role="alert"></div>
 
       {#if isAuthenticated}
-      <form id="community-submission-form" class="community-submission-form">
+      <form id="community-submission-form" method="post" class="community-submission-form">
+              {#include fragments/csrf-token.html /}
         <label class="community-field">
           <span>{i18n:community_form_title}</span>
           <input type="text" name="title" maxlength="140" required placeholder="{i18n:community_form_title_placeholder}" />

@@ -29,6 +29,14 @@ import org.jboss.logging.Logger;
 public class CommunityVoteService {
   private static final Logger LOG = Logger.getLogger(CommunityVoteService.class);
 
+  static {
+    try {
+      Class.forName("org.h2.Driver");
+    } catch (ClassNotFoundException e) {
+      throw new ExceptionInInitializerError(e);
+    }
+  }
+
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
 
