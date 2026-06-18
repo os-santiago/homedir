@@ -27,6 +27,7 @@
         <h2 class="card-title">Importar eventos</h2>
         <form method="post" action="/private/admin/events/import" enctype="multipart/form-data" class="form-group"
             aria-label="Importar eventos" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                {#include fragments/csrf-token.html /}
             <div style="flex: 1;">
                 <label for="importFile" class="form-label">Importar JSON</label>
                 <input id="importFile" type="file" name="file" accept="application/json" class="form-input">
@@ -73,6 +74,7 @@
                             </a>
                             <form method="post" action="/private/admin/events/{ev.id}/delete"
                                 class="needs-confirm inline-form admin-event-action-form">
+                                    {#include fragments/csrf-token.html /}
                                 <button type="submit" class="btn btn-danger admin-event-action">
                                     <span class="material-symbols-outlined" aria-hidden="true">delete</span>
                                     <span>Eliminar</span>

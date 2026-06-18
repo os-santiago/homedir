@@ -5,28 +5,28 @@ Homedir implementa un sistema de notificaciones en tiempo real para actualizacio
 ## Arquitectura
 
 ### Actualizaciones en Tiempo Real (WebSocket)
-- **Canal**: `/notifications/stream`
-- **Auth**: Basada en Tickets (HMAC SHA-256). Usuario obtiene ticket desde `/notifications/auth`.
+- **Canal**: `/ws/global-notifications`
+- **Auth**: WebSocket abierto para conexiones anónimas. Mensajes se scopean por sesión autenticada del lado del servidor.
 - **Alcance**: Anuncios globales y alertas específicas de usuario.
 
 ### Componentes
 - **Backend**: Endpoint Quarkus WebSocket.
 - **Frontend**: Cliente Vanilla JS (reconect con backoff exponencial).
 - **Seguridad**:
-    - **Firmas HMAC**: Verifican fuente de solicitudes.
+    - **RBAC**: Endpoints de broadcast admin protegidos por `@RolesAllowed("admin")` vía sesión OIDC.
     - **CORS/Origin**: Restringido a dominios de confianza.
     - **Rate Limiting**: Previene inundación.
 
 ## Operaciones (Runbook)
 
 ### Broadcast de Anuncios
-Para enviar mensaje a todos los conectados, usa la API Admin (requiere `ADMIN_API_KEY`).
+Para enviar mensaje a todos los conectados, usa la API Admin (requiere sesión admin OIDC).
 
 ```bash
-curl -X POST https://homedir.opensourcesantiago.io/api/admin/notifications/broadcast \
-  -H "X-API-Key: <SECRET_KEY>" \
+curl -X POST https://homedir.opensourcesantiago.io/admin/api/notifications/broadcast \
   -H "Content-Type: application/json" \
-  -d '{"message": "Mantenimiento en 10 mins", "level": "WARN"}'
+  -H "Cookie: <session_cookie>" \
+  -d '{"title": "Aviso", "message": "Mantenimiento en 10 mins", "level": "WARN"}'
 ```
 
 ### Troubleshooting

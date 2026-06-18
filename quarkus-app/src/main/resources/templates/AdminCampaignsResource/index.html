@@ -33,6 +33,7 @@
       <div class="action-group admin-shell-actions">
         <a href="/private/admin" class="btn btn-secondary">{copy.backToPanel}</a>
         <form action="/private/admin/campaigns/refresh" method="post">
+                {#include fragments/csrf-token.html /}
           <input type="hidden" name="q" value="{filters.query}" />
           <input type="hidden" name="workflow" value="{filters.workflow}" />
           <input type="hidden" name="kind" value="{filters.kind}" />
@@ -350,6 +351,7 @@
                 </div>
                 <div class="action-group admin-shell-actions">
                   <form action="/private/admin/campaigns/{draft.id}/approve" method="post">
+                          {#include fragments/csrf-token.html /}
                     <input type="hidden" name="q" value="{filters.query}" />
                     <input type="hidden" name="workflow" value="{filters.workflow}" />
                     <input type="hidden" name="kind" value="{filters.kind}" />
@@ -472,6 +474,7 @@
                       <span class="admin-observability-badge watch">{copy.rolloutPilotLabel}</span>
                       {#if item.liveArmed}
                         <form action="/private/admin/campaigns/rollout/pilot/disarm" method="post">
+                                {#include fragments/csrf-token.html /}
                           <input type="hidden" name="q" value="{filters.query}" />
                           <input type="hidden" name="workflow" value="{filters.workflow}" />
                           <input type="hidden" name="kind" value="{filters.kind}" />
@@ -481,6 +484,7 @@
                         </form>
                       {#else}
                         <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
+                                {#include fragments/csrf-token.html /}
                           <input type="hidden" name="q" value="{filters.query}" />
                           <input type="hidden" name="workflow" value="{filters.workflow}" />
                           <input type="hidden" name="kind" value="{filters.kind}" />
@@ -491,6 +495,7 @@
                       {/if}
                     {#else}
                       <form action="/private/admin/campaigns/rollout/pilot/{item.channelCode}/select" method="post">
+                              {#include fragments/csrf-token.html /}
                         <input type="hidden" name="q" value="{filters.query}" />
                         <input type="hidden" name="workflow" value="{filters.workflow}" />
                         <input type="hidden" name="kind" value="{filters.kind}" />
@@ -502,6 +507,7 @@
                   {/if}
                 {/for}
                 <form action="/private/admin/campaigns/automation/channel/{status.channelCode}" method="post">
+                        {#include fragments/csrf-token.html /}
                   <input type="hidden" name="q" value="{filters.query}" />
                   <input type="hidden" name="workflow" value="{filters.workflow}" />
                   <input type="hidden" name="kind" value="{filters.kind}" />
@@ -567,6 +573,7 @@
             <strong>{copy.publisherRefreshAutomationLabel}</strong>
             <span>{view.automation.refreshAutomationEnabled}</span>
             <form action="/private/admin/campaigns/automation/refresh" method="post">
+                    {#include fragments/csrf-token.html /}
               <input type="hidden" name="q" value="{filters.query}" />
               <input type="hidden" name="workflow" value="{filters.workflow}" />
               <input type="hidden" name="kind" value="{filters.kind}" />
@@ -585,6 +592,7 @@
             <strong>{copy.publisherPublishAutomationLabel}</strong>
             <span>{view.automation.publishAutomationEnabled}</span>
             <form action="/private/admin/campaigns/automation/publish" method="post">
+                    {#include fragments/csrf-token.html /}
               <input type="hidden" name="q" value="{filters.query}" />
               <input type="hidden" name="workflow" value="{filters.workflow}" />
               <input type="hidden" name="kind" value="{filters.kind}" />
@@ -631,6 +639,7 @@
               </div>
               <div class="action-group admin-shell-actions">
                 <form action="/private/admin/campaigns/rollout/channel/{item.channelCode}/ack" method="post">
+                        {#include fragments/csrf-token.html /}
                   <input type="hidden" name="q" value="{filters.query}" />
                   <input type="hidden" name="workflow" value="{filters.workflow}" />
                   <input type="hidden" name="kind" value="{filters.kind}" />
@@ -647,6 +656,7 @@
                 {#if item.pilotLive}
                   {#if item.liveArmed}
                     <form action="/private/admin/campaigns/rollout/pilot/disarm" method="post">
+                            {#include fragments/csrf-token.html /}
                       <input type="hidden" name="q" value="{filters.query}" />
                       <input type="hidden" name="workflow" value="{filters.workflow}" />
                       <input type="hidden" name="kind" value="{filters.kind}" />
@@ -656,6 +666,7 @@
                     </form>
                   {#else}
                     <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
+                            {#include fragments/csrf-token.html /}
                       <input type="hidden" name="q" value="{filters.query}" />
                       <input type="hidden" name="workflow" value="{filters.workflow}" />
                       <input type="hidden" name="kind" value="{filters.kind}" />
@@ -665,6 +676,7 @@
                     </form>
                   {/if}
                   <form action="/private/admin/campaigns/rollout/pilot/clear" method="post">
+                          {#include fragments/csrf-token.html /}
                     <input type="hidden" name="q" value="{filters.query}" />
                     <input type="hidden" name="workflow" value="{filters.workflow}" />
                     <input type="hidden" name="kind" value="{filters.kind}" />
@@ -674,6 +686,7 @@
                   </form>
                 {#else}
                   <form action="/private/admin/campaigns/rollout/pilot/{item.channelCode}/select" method="post">
+                          {#include fragments/csrf-token.html /}
                     <input type="hidden" name="q" value="{filters.query}" />
                     <input type="hidden" name="workflow" value="{filters.workflow}" />
                     <input type="hidden" name="kind" value="{filters.kind}" />
@@ -721,6 +734,7 @@
           </div>
           <div class="action-group admin-shell-actions">
             <form action="/private/admin/campaigns/publish-now" method="post">
+                    {#include fragments/csrf-token.html /}
               <input type="hidden" name="q" value="{filters.query}" />
               <input type="hidden" name="workflow" value="{filters.workflow}" />
               <input type="hidden" name="kind" value="{filters.kind}" />
@@ -745,6 +759,7 @@
                     <strong><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></strong>
                     <span>{draft.scheduleReadinessLabel} · {draft.recommendedWindowLabel}</span>
                     <form action="/private/admin/campaigns/{draft.id}/schedule" method="post" class="admin-shell-toolbar">
+                            {#include fragments/csrf-token.html /}
                       <input type="hidden" name="q" value="{filters.query}" />
                       <input type="hidden" name="workflow" value="{filters.workflow}" />
                       <input type="hidden" name="kind" value="{filters.kind}" />
@@ -775,6 +790,7 @@
                     <span>{draft.scheduledForLabel}</span>
                     <div class="action-group admin-shell-actions">
                       <form action="/private/admin/campaigns/{draft.id}/unschedule" method="post">
+                              {#include fragments/csrf-token.html /}
                         <input type="hidden" name="q" value="{filters.query}" />
                         <input type="hidden" name="workflow" value="{filters.workflow}" />
                         <input type="hidden" name="kind" value="{filters.kind}" />
@@ -860,6 +876,7 @@
                   </div>
                   {#if !handoff.completed}
                     <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
+                            {#include fragments/csrf-token.html /}
                       <input type="hidden" name="q" value="{filters.query}" />
                       <input type="hidden" name="workflow" value="{filters.workflow}" />
                       <input type="hidden" name="kind" value="{filters.kind}" />
@@ -917,6 +934,7 @@
           <div class="action-group admin-shell-actions">
             {#if view.pilotVerificationSummary.acknowledged}
               <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
+                      {#include fragments/csrf-token.html /}
                 <input type="hidden" name="q" value="{filters.query}" />
                 <input type="hidden" name="workflow" value="{filters.workflow}" />
                 <input type="hidden" name="kind" value="{filters.kind}" />
@@ -927,6 +945,7 @@
               </form>
             {#else if view.pilotVerificationSummary.canAcknowledge}
               <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
+                      {#include fragments/csrf-token.html /}
                 <input type="hidden" name="q" value="{filters.query}" />
                 <input type="hidden" name="workflow" value="{filters.workflow}" />
                 <input type="hidden" name="kind" value="{filters.kind}" />
@@ -955,6 +974,7 @@
           <div class="action-group admin-shell-actions">
             {#if view.pilotDecisionSummary.canDecide}
               <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+                      {#include fragments/csrf-token.html /}
                 <input type="hidden" name="q" value="{filters.query}" />
                 <input type="hidden" name="workflow" value="{filters.workflow}" />
                 <input type="hidden" name="kind" value="{filters.kind}" />
@@ -964,6 +984,7 @@
                 <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionApproveBtn">{copy.pilotDecision.approveActionLabel}</button>
               </form>
               <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+                      {#include fragments/csrf-token.html /}
                 <input type="hidden" name="q" value="{filters.query}" />
                 <input type="hidden" name="workflow" value="{filters.workflow}" />
                 <input type="hidden" name="kind" value="{filters.kind}" />
@@ -975,6 +996,7 @@
             {/if}
             {#if view.pilotDecisionSummary.canClear}
               <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
+                      {#include fragments/csrf-token.html /}
                 <input type="hidden" name="q" value="{filters.query}" />
                 <input type="hidden" name="workflow" value="{filters.workflow}" />
                 <input type="hidden" name="kind" value="{filters.kind}" />

@@ -92,7 +92,17 @@ public class GlobalTemplateExtensions {
         return LaunchMode.current() == LaunchMode.DEVELOPMENT;
     }
 
+    @TemplateGlobal(name = "csrf")
+    public static CsrfPlaceholder csrf() {
+        return CsrfPlaceholder.EMPTY;
+    }
+
     @io.quarkus.runtime.annotations.RegisterForReflection
     public record SystemStatus(boolean degraded, String message) {
+    }
+
+    @io.quarkus.runtime.annotations.RegisterForReflection
+    public record CsrfPlaceholder(String token, String parameterName) {
+        public static final CsrfPlaceholder EMPTY = new CsrfPlaceholder("", "");
     }
 }

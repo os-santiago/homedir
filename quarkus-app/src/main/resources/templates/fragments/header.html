@@ -32,6 +32,7 @@
       class="header-locale-switcher"
       data-locale-switcher-form
       data-authenticated="{#if userSession.loggedIn || userAuthenticated}true{#else}false{/if}">
+            {#include fragments/csrf-token.html /}
       <input type="hidden" name="redirect" value="" data-locale-redirect>
       <span class="material-symbols-outlined header-locale-icon" aria-hidden="true">language</span>
       <label for="headerLocaleSelect" class="sr-only">{i18n:header_language_aria}</label>

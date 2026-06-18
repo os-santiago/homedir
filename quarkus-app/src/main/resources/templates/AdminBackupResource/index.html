@@ -25,6 +25,7 @@
 
     <form method="post" action="/private/admin/backup/upload" enctype="multipart/form-data" class="form-group"
       style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            {#include fragments/csrf-token.html /}
       <div style="flex: 1;">
         <label for="backupFile" class="form-label">Archivo ZIP</label>
         <input id="backupFile" type="file" name="file" accept=".zip" class="form-input">

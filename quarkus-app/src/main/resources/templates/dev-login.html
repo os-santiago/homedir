@@ -32,6 +32,7 @@
             </div>
 
             <form method="POST" action="j_security_check" class="dev-login-form">
+                    {#include fragments/csrf-token.html /}
                 <div class="dev-form-group">
                     <label for="username" class="dev-form-label">Email</label>
                     <input type="text" id="username" name="username" placeholder="admin@example.org"

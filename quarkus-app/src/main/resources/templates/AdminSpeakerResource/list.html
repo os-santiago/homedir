@@ -30,12 +30,14 @@
       </div>
       <div>
         <form method="post" action="/private/admin/speakers/{s.id}/delete" class="needs-confirm inline-form">
+                {#include fragments/csrf-token.html /}
           <button type="submit" class="btn btn-danger">Eliminar</button>
         </form>
       </div>
     </div>
 
     <form method="post" action="/private/admin/speakers">
+            {#include fragments/csrf-token.html /}
       <input type="hidden" name="id" value="{s.id}">
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
@@ -79,6 +81,7 @@
       <div
         style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
         <form method="post" action="/private/admin/speakers/{s.id}/talk">
+                {#include fragments/csrf-token.html /}
           <input type="hidden" name="talkId" value="{t.id}">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <div class="form-group">
@@ -114,6 +117,7 @@
         </form>
         <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete"
           class="needs-confirm form-actions item-header" style="margin-top: 0;">
+                {#include fragments/csrf-token.html /}
           <button type="submit" class="btn btn-danger">Eliminar</button>
         </form>
       </div>
@@ -121,6 +125,7 @@
 
       <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
         <form method="post" action="/private/admin/speakers/{s.id}/talk">
+                {#include fragments/csrf-token.html /}
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <div class="form-group">
               <label class="form-label">Título</label>
@@ -160,6 +165,7 @@
   <div id="new-speaker" class="card">
     <h2 class="card-title">Nuevo orador</h2>
     <form method="post" action="/private/admin/speakers">
+            {#include fragments/csrf-token.html /}
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
         <div class="form-group"><label class="form-label">Nombre</label><input name="name" placeholder="Nombre"

@@ -51,6 +51,7 @@ Nuevo Evento · Homedir
     <h2 class="card-title">Datos del evento</h2>
     <form method="post"
       action="{#if event.id}/private/admin/events/{event.id}/edit{#else}/private/admin/events/new{/if}">
+            {#include fragments/csrf-token.html /}
       {#if event.id}
       <p class="form-hint" style="margin-bottom: 1rem;">ID: {event.id}</p>
       {/if}
@@ -210,6 +211,7 @@ Nuevo Evento · Homedir
     <div
       style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
       <form id="scenario-form-{sc.id}" method="post" action="/private/admin/events/{event.id}/scenario">
+              {#include fragments/csrf-token.html /}
         <input type="hidden" name="scenarioId" value="{sc.id}">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{sc.id}"
@@ -226,6 +228,7 @@ Nuevo Evento · Homedir
         <button type="submit" class="btn btn-secondary" form="scenario-form-{sc.id}">Guardar</button>
         <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete"
           class="needs-confirm inline-form event-edit-delete-form">
+                {#include fragments/csrf-token.html /}
           <button type="submit" class="btn btn-danger">Eliminar</button>
         </form>
       </div>
@@ -233,6 +236,7 @@ Nuevo Evento · Homedir
     {/for}
     <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
       <form method="post" action="/private/admin/events/{event.id}/scenario">
+              {#include fragments/csrf-token.html /}
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">Nombre</label><input name="name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Características</label><input name="features"
@@ -254,6 +258,7 @@ Nuevo Evento · Homedir
     <div
       style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
       <form id="talk-form-{t.id}" method="post" action="/private/admin/events/{event.id}/talk">
+              {#include fragments/csrf-token.html /}
         <input type="hidden" name="talkId" value="{t.id}">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{t.id}" disabled>
@@ -286,6 +291,7 @@ Nuevo Evento · Homedir
         <button type="submit" class="btn btn-secondary" form="talk-form-{t.id}">Guardar</button>
         <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete"
           class="needs-confirm inline-form event-edit-delete-form">
+                {#include fragments/csrf-token.html /}
           <button type="submit" class="btn btn-danger">Eliminar</button>
         </form>
       </div>
@@ -294,6 +300,7 @@ Nuevo Evento · Homedir
     {/for}
     <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
       <form method="post" action="/private/admin/events/{event.id}/talk">
+              {#include fragments/csrf-token.html /}
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
           <div class="form-group">
             <label class="form-label" for="speakerSelect">Seleccione orador</label>
@@ -348,6 +355,7 @@ Nuevo Evento · Homedir
     <div
       style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
       <form id="break-form-{t.id}" method="post" action="/private/admin/events/{event.id}/break">
+              {#include fragments/csrf-token.html /}
         <input type="hidden" name="breakId" value="{t.id}">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">ID</label><input class="form-input" value="{t.id}" disabled>
@@ -380,6 +388,7 @@ Nuevo Evento · Homedir
         <button type="submit" class="btn btn-secondary" form="break-form-{t.id}">Guardar</button>
         <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete"
           class="needs-confirm inline-form event-edit-delete-form">
+                {#include fragments/csrf-token.html /}
           <button type="submit" class="btn btn-danger">Eliminar</button>
         </form>
       </div>
@@ -388,6 +397,7 @@ Nuevo Evento · Homedir
     {/for}
     <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm);">
       <form method="post" action="/private/admin/events/{event.id}/break">
+              {#include fragments/csrf-token.html /}
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
           <div class="form-group"><label class="form-label">Break</label><input name="name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Duración</label><input name="duration" type="number" min="1"

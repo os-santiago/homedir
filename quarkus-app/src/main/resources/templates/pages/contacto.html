@@ -16,7 +16,8 @@
 
 <section class="hd-section hd-section-page-content">
   <div class="hd-page">
-    <form class="hd-form hd-contact-form">
+    <form class="hd-form hd-contact-form" method="post">
+            {#include fragments/csrf-token.html /}
       @-- TODO: conectar este formulario a un mecanismo real (correo / backend) en otra iteración --
       <div class="hd-form-field">
         <label for="name" class="hd-form-label">Nombre</label>

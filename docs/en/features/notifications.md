@@ -5,28 +5,28 @@ Homedir implements a real-time notification system for talk status updates and g
 ## Architecture
 
 ### Real-Time Updates (WebSocket)
-- **Channel**: `/notifications/stream`
-- **Auth**: Ticket-based (HMAC SHA-256). User obtains ticket from `/notifications/auth`.
+- **Channel**: `/ws/global-notifications`
+- **Auth**: WebSocket is open for anonymous connections. Messages are scoped server-side by authenticated session.
 - **Scope**: Global announcements and user-specific alerts.
 
 ### Components
 - **Backend**: Quarkus WebSocket endpoint.
 - **Frontend**: Vanilla JS client (reconnect with exponential backoff).
 - **Security**:
-    - **HMAC Signatures**: Verify source of notification requests.
+    - **RBAC**: Admin broadcast endpoints protected by `@RolesAllowed("admin")` via OIDC session.
     - **CORS/Origin**: Restricted to trusted domains.
     - **Rate Limiting**: Prevent flood.
 
 ## Operations (Runbook)
 
 ### Broadcast Announcement
-To send a message to all connected users, use the Admin API (requires `ADMIN_API_KEY`).
+To send a message to all connected users, use the Admin API (requires admin OIDC session).
 
 ```bash
-curl -X POST https://homedir.opensourcesantiago.io/api/admin/notifications/broadcast \
-  -H "X-API-Key: <SECRET_KEY>" \
+curl -X POST https://homedir.opensourcesantiago.io/admin/api/notifications/broadcast \
   -H "Content-Type: application/json" \
-  -d '{"message": "Maintenance in 10 mins", "level": "WARN"}'
+  -H "Cookie: <session_cookie>" \
+  -d '{"title": "Notice", "message": "Maintenance in 10 mins", "level": "WARN"}'
 ```
 
 ### Troubleshooting

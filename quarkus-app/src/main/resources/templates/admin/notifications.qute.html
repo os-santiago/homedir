@@ -20,7 +20,8 @@
 <div class="container admin-shell-stack">
   <div class="admin-shell-panel">
     <h2 class="card-title">Emitir broadcast</h2>
-    <form id="broadcast" class="form-group" aria-label="Broadcast de notificaciones">
+    <form id="broadcast" method="post" class="form-group" aria-label="Broadcast de notificaciones">
+            {#include fragments/csrf-token.html /}
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
         <div class="form-group">
