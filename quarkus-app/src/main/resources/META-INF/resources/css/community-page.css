@@ -1161,16 +1161,16 @@
     cursor: not-allowed;
   }
 
-  .community-empty.hidden {
-    display: none;
-  }
-
   .community-submissions-card .community-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1.25rem;
     padding: 1rem 0;
+  }
+
+  .community-submissions-card .community-empty.hidden {
+    display: none;
   }
 
   .community-empty-actions {
