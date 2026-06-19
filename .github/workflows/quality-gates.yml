@@ -1,0 +1,199 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SECURITY_GATING: ${{ vars.SECURITY_GATING || 'permissive' }}
+
+jobs:
+  sbom-and-security-scan:
+    name: SBOM & Security Scan
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build application package
+        working-directory: quarkus-app
+        run: |
+          ./mvnw clean package -B \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
+      - name: Build Docker image for scanning
+        working-directory: quarkus-app
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f src/main/docker/Dockerfile.jvm \
+            -t homedir-scan:${IMAGE_TAG} .
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: homedir-scan:${{ github.sha }}
+          artifact-name: sbom-report
+          output-file: sbom.spdx.json
+          format: spdx-json
+
+      - name: Scan for vulnerabilities
+        uses: anchore/scan-action@v6
+        id: scan
+        continue-on-error: ${{ env.SECURITY_GATING == 'permissive' }}
+        with:
+          image: homedir-scan:${{ github.sha }}
+          fail-build: ${{ env.SECURITY_GATING == 'enforcing' }}
+          severity-cutoff: medium
+          output-format: sarif
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+
+      - name: Upload security reports artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports-${{ github.sha }}
+          path: |
+            sbom.spdx.json
+            ${{ steps.scan.outputs.sarif }}
+          retention-days: 30
+
+      - name: Security scan summary
+        if: always()
+        run: |
+          echo "### Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** homedir-scan:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**SBOM Format:** SPDX JSON" >> $GITHUB_STEP_SUMMARY
+          echo "**Security Gating Mode:** ${SECURITY_GATING}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Security reports uploaded to artifacts and GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+
+  dependency-review:
+    name: Dependency Review
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          deny-licenses: GPL-2.0, GPL-3.0
+
+  sast-codeql:
+    name: SAST - CodeQL Analysis
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java-kotlin' ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build for CodeQL analysis
+        working-directory: quarkus-app
+        run: |
+          ./mvnw clean compile -B -DskipTests \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  secret-scanning:
+    name: Secret Scanning
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  quality-gate-summary:
+    name: Quality Gate Summary
+    needs: [sbom-and-security-scan, sast-codeql, secret-scanning]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Quality gate result
+        run: |
+          echo "### Quality Gates Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| SBOM & Vulnerability Scan | ${{ needs.sbom-and-security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST (CodeQL) | ${{ needs.sast-codeql.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Scanning | ${{ needs.secret-scanning.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.sbom-and-security-scan.result }}" = "failure" ] || \
+             [ "${{ needs.sast-codeql.result }}" = "failure" ] || \
+             [ "${{ needs.secret-scanning.result }}" = "failure" ]; then
+            echo "**Result:** FAILED - One or more quality gates did not pass" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "**Result:** PASSED - All quality gates passed" >> $GITHUB_STEP_SUMMARY
+          fi

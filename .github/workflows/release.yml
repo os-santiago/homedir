@@ -111,9 +111,9 @@ jobs:
           git commit -m "chore(release): sync pom revision to ${RELEASE_VERSION} [skip release]"
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Build with Maven
+      - name: Build with Maven (production build)
         working-directory: quarkus-app
-        run: ./mvnw package -B -Drevision=${{ steps.release_meta.outputs.new_version }} -DskipTests
+        run: ./mvnw package -B -Drevision=${{ steps.release_meta.outputs.new_version }}
 
       - name: Resolve registry image names
         id: registry_meta

@@ -155,7 +155,9 @@
       <span class="project-hd-status {f.statusClass}">{f.statusLabel}</span>
     </div>
     <p>{f.description}</p>
-    <a href="{f.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n:project_dashboard_open}</a>
+    <a href="{f.href}" target="_blank" rel="noopener" class="project-hd-link" aria-label="{i18n:project_dashboard_open}">
+      <span class="material-symbols-outlined" style="font-size: 1em;">open_in_new</span>
+    </a>
   </article>
   {/for}
 </section>
@@ -176,7 +178,9 @@
       <li>{bullet}</li>
       {/for}
     </ul>
-    <a href="{capability.href}" target="_blank" rel="noopener" class="project-hd-link">{i18n:project_dashboard_open}</a>
+    <a href="{capability.href}" target="_blank" rel="noopener" class="project-hd-link" aria-label="{i18n:project_dashboard_open}">
+      <span class="material-symbols-outlined" style="font-size: 1em;">open_in_new</span>
+    </a>
   </article>
   {/for}
 </section>
