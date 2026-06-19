@@ -75,17 +75,36 @@ jobs:
           cat RELEASE_NOTES.md >> new_notes.md
           mv new_notes.md RELEASE_NOTES.md
 
-      - name: Commit and Push
+      - name: Create PR for documentation updates
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           git add CHANGELOG.md RELEASE_NOTES.md
-          
+
           # Commit only if changes exist
           if ! git diff --staged --quiet; then
+            BRANCH_NAME="docs/release-${TAG_NAME}-sync"
+            git checkout -b "$BRANCH_NAME"
             git commit -m "docs: release ${TAG_NAME} changelog sync"
-            git push origin main
+            git push origin "$BRANCH_NAME"
+
+            # Create PR
+            gh pr create \
+              --title "docs: sync changelog for ${TAG_NAME}" \
+              --body "Automated documentation update for release ${TAG_NAME}
+
+**Changes:**
+- Updated CHANGELOG.md with ${TAG_NAME} release notes
+- Updated RELEASE_NOTES.md with latest release information
+
+**Source:** Triggered by release publication event
+
+This PR should be merged to complete the release documentation update." \
+              --base main \
+              --head "$BRANCH_NAME"
           else
             echo "No changes to commit."
           fi
