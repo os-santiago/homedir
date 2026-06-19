@@ -2341,6 +2341,12 @@ footer {
   box-shadow: 0 4px 0 rgba(var(--black-rgb), 0.6);
 }
 
+.icon-wrapper .material-symbols-outlined {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .activity-dots {
   display: inline-flex;
   align-items: center;
