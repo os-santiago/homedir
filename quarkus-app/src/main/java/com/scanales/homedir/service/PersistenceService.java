@@ -25,8 +25,10 @@ import com.scanales.homedir.cfp.CfpConfig;
 import com.scanales.homedir.cfp.CfpEventConfig;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.volunteers.VolunteerApplication;
+import com.scanales.homedir.volunteers.VolunteerAvailability;
 import com.scanales.homedir.volunteers.VolunteerEventConfig;
 import com.scanales.homedir.volunteers.VolunteerLoungeMessage;
+import com.scanales.homedir.volunteers.VolunteerShift;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -132,6 +134,8 @@ public class PersistenceService {
   private Path volunteerSubmissionsFile;
   private Path volunteerEventConfigFile;
   private Path volunteerLoungeFile;
+  private Path volunteerShiftsFile;
+  private Path volunteerAvailabilitiesFile;
   private Path eventOperationsStateFile;
   private Path agendaProposalConfigFile;
   private Path cfpBackupsDir;
@@ -162,6 +166,12 @@ public class PersistenceService {
       };
   private static final TypeReference<Map<String, VolunteerLoungeMessage>> VOLUNTEER_LOUNGE_TYPE =
       new TypeReference<Map<String, VolunteerLoungeMessage>>() {
+      };
+  private static final TypeReference<Map<String, VolunteerShift>> VOLUNTEER_SHIFTS_TYPE =
+      new TypeReference<Map<String, VolunteerShift>>() {
+      };
+  private static final TypeReference<Map<String, VolunteerAvailability>> VOLUNTEER_AVAILABILITIES_TYPE =
+      new TypeReference<Map<String, VolunteerAvailability>>() {
       };
   private static final DateTimeFormatter CFP_BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
@@ -235,6 +245,8 @@ public class PersistenceService {
     volunteerSubmissionsFile = dataDir.resolve("volunteer-submissions.json");
     volunteerEventConfigFile = dataDir.resolve("volunteer-event-config.json");
     volunteerLoungeFile = dataDir.resolve("volunteer-lounge.json");
+    volunteerShiftsFile = dataDir.resolve("volunteer-shifts.json");
+    volunteerAvailabilitiesFile = dataDir.resolve("volunteer-availabilities.json");
     eventOperationsStateFile = dataDir.resolve("event-operations-state.json");
     agendaProposalConfigFile = dataDir.resolve("event-agenda-config.json");
     cfpBackupsDir = dataDir.resolve("backups").resolve("cfp");
@@ -838,6 +850,76 @@ public class PersistenceService {
         return -1L;
       }
       return Files.getLastModifiedTime(volunteerLoungeFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Persists volunteer shifts synchronously. */
+  public void saveVolunteerShiftsSync(Map<String, VolunteerShift> shifts) {
+    writeSync(volunteerShiftsFile, shifts == null ? Map.of() : Map.copyOf(shifts));
+  }
+
+  /** Loads volunteer shifts from disk or returns an empty map if none. */
+  public Map<String, VolunteerShift> loadVolunteerShifts() {
+    if (volunteerShiftsFile == null || !Files.exists(volunteerShiftsFile)) {
+      return Map.of();
+    }
+    try {
+      Map<String, VolunteerShift> data =
+          mapper.readValue(volunteerShiftsFile.toFile(), VOLUNTEER_SHIFTS_TYPE);
+      if (data == null || data.isEmpty()) {
+        return Map.of();
+      }
+      return new java.util.LinkedHashMap<>(data);
+    } catch (IOException e) {
+      LOG.errorf(e, "Failed to read %s", logFileLabel(volunteerShiftsFile));
+      return Map.of();
+    }
+  }
+
+  /** Last modified timestamp for volunteer shifts file, or -1 when unavailable. */
+  public long volunteerShiftsLastModifiedMillis() {
+    try {
+      if (volunteerShiftsFile == null || !Files.exists(volunteerShiftsFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(volunteerShiftsFile).toMillis();
+    } catch (IOException e) {
+      return -1L;
+    }
+  }
+
+  /** Persists volunteer availabilities synchronously. */
+  public void saveVolunteerAvailabilitiesSync(Map<String, VolunteerAvailability> availabilities) {
+    writeSync(volunteerAvailabilitiesFile, availabilities == null ? Map.of() : Map.copyOf(availabilities));
+  }
+
+  /** Loads volunteer availabilities from disk or returns an empty map if none. */
+  public Map<String, VolunteerAvailability> loadVolunteerAvailabilities() {
+    if (volunteerAvailabilitiesFile == null || !Files.exists(volunteerAvailabilitiesFile)) {
+      return Map.of();
+    }
+    try {
+      Map<String, VolunteerAvailability> data =
+          mapper.readValue(volunteerAvailabilitiesFile.toFile(), VOLUNTEER_AVAILABILITIES_TYPE);
+      if (data == null || data.isEmpty()) {
+        return Map.of();
+      }
+      return new java.util.LinkedHashMap<>(data);
+    } catch (IOException e) {
+      LOG.errorf(e, "Failed to read %s", logFileLabel(volunteerAvailabilitiesFile));
+      return Map.of();
+    }
+  }
+
+  /** Last modified timestamp for volunteer availabilities file, or -1 when unavailable. */
+  public long volunteerAvailabilitiesLastModifiedMillis() {
+    try {
+      if (volunteerAvailabilitiesFile == null || !Files.exists(volunteerAvailabilitiesFile)) {
+        return -1L;
+      }
+      return Files.getLastModifiedTime(volunteerAvailabilitiesFile).toMillis();
     } catch (IOException e) {
       return -1L;
     }
@@ -2169,6 +2251,12 @@ public class PersistenceService {
     }
     if (file.equals(volunteerLoungeFile)) {
       return "volunteer-lounge.json";
+    }
+    if (file.equals(volunteerShiftsFile)) {
+      return "volunteer-shifts.json";
+    }
+    if (file.equals(volunteerAvailabilitiesFile)) {
+      return "volunteer-availabilities.json";
     }
     if (file.equals(eventOperationsStateFile)) {
       return "event-operations-state.json";
