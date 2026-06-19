@@ -212,8 +212,8 @@
         <div class="main-sections" style="padding: 0; margin-top: 1rem; justify-content: start;">
             {#for s in event.scenarios}
             <article class="section-card" style="min-width: 250px;">
-                <div class="icon-wrapper" style="width: 50px; height: 50px; margin-bottom: 1rem;">
-                    <span class="material-symbols-outlined" style="font-size: 30px;">podium</span>
+                <div class="icon-wrapper" style="width: 50px; height: 50px; margin-bottom: 1rem; display: grid; place-items: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px; line-height: 1;">podium</span>
                 </div>
                 <h3>{s.name}</h3>
                 {#if s.location}<p style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 1rem;">{s.location}</p>{/if}
