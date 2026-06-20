@@ -1,0 +1,120 @@
+name: I18n Validation
+
+on:
+  pull_request:
+    paths:
+      - 'quarkus-app/src/main/resources/i18n*.properties'
+  push:
+    branches:
+      - main
+    paths:
+      - 'quarkus-app/src/main/resources/i18n*.properties'
+
+jobs:
+  validate-i18n:
+    runs-on: ubuntu-latest
+    name: Validate i18n files
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate i18n files
+        run: |
+          python3 << 'PYTHON_SCRIPT'
+          import sys
+          from collections import OrderedDict
+
+          def parse_properties(filename):
+              """Parse properties file and return keys."""
+              keys = set()
+              try:
+                  with open(filename, 'r', encoding='utf-8') as f:
+                      for line in f:
+                          stripped = line.strip()
+                          if stripped and not stripped.startswith('#') and '=' in stripped:
+                              key, _ = stripped.split('=', 1)
+                              keys.add(key.strip())
+              except FileNotFoundError:
+                  print(f"ERROR: Required file {filename} not found")
+                  sys.exit(1)
+              return keys
+
+          # Paths to i18n files
+          I18N_EN = 'quarkus-app/src/main/resources/i18n.properties'
+          I18N_ES = 'quarkus-app/src/main/resources/i18n_es.properties'
+
+          # Parse files
+          print("Validating i18n files...")
+          en_keys = parse_properties(I18N_EN)
+          es_keys = parse_properties(I18N_ES)
+
+          print(f"✓ Found {len(en_keys)} keys in i18n.properties")
+          print(f"✓ Found {len(es_keys)} keys in i18n_es.properties")
+
+          # Validation checks
+          errors = []
+
+          # Check 1: i18n.properties and i18n_es.properties should have matching keys
+          missing_in_es = en_keys - es_keys
+          extra_in_es = es_keys - en_keys
+
+          if missing_in_es:
+              errors.append(f"ERROR: {len(missing_in_es)} keys in i18n.properties are missing from i18n_es.properties:")
+              for key in sorted(list(missing_in_es)[:10]):
+                  errors.append(f"  - {key}")
+              if len(missing_in_es) > 10:
+                  errors.append(f"  ... and {len(missing_in_es) - 10} more")
+
+          if extra_in_es:
+              errors.append(f"WARNING: {len(extra_in_es)} keys in i18n_es.properties are not in i18n.properties:")
+              for key in sorted(list(extra_in_es)[:10]):
+                  errors.append(f"  - {key}")
+              if len(extra_in_es) > 10:
+                  errors.append(f"  ... and {len(extra_in_es) - 10} more")
+
+          # Check 2: Ensure no redundant files exist
+          import os
+          redundant_files = [
+              'quarkus-app/src/main/resources/messages.properties',
+              'quarkus-app/src/main/resources/messages_es.properties',
+              'quarkus-app/src/main/resources/messages/i18n.properties',
+              'quarkus-app/src/main/resources/messages/i18n_es.properties'
+          ]
+
+          for file in redundant_files:
+              if os.path.exists(file):
+                  errors.append(f"ERROR: Redundant i18n file found: {file}")
+                  errors.append(f"  All i18n keys must be in i18n.properties and i18n_es.properties only")
+
+          # Report results
+          if errors:
+              print("\n" + "="*60)
+              print("I18N VALIDATION FAILED")
+              print("="*60)
+              for error in errors:
+                  print(error)
+              print("\nPlease ensure:")
+              print("1. All English keys are in i18n.properties")
+              print("2. All Spanish translations are in i18n_es.properties")
+              print("3. Both files have matching keys (EN count >= ES count)")
+              print("4. No redundant i18n files exist (messages.properties, etc.)")
+              sys.exit(1)
+          else:
+              print("\n" + "="*60)
+              print("✓ I18N VALIDATION PASSED")
+              print("="*60)
+              print(f"✓ All {len(en_keys)} keys are properly synchronized")
+              print(f"✓ No redundant i18n files found")
+              print(f"✓ i18n.properties and i18n_es.properties are in sync")
+
+          PYTHON_SCRIPT
+
+      - name: Validation result
+        if: success()
+        run: echo "✓ I18n validation passed successfully"
