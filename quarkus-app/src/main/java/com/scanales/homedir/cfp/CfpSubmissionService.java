@@ -557,6 +557,18 @@ public class CfpSubmissionService {
       Integer contentImpact,
       String moderator,
       Instant expectedUpdatedAt) {
+    return updateRating(eventId, id, technicalDetail, narrative, contentImpact, moderator, null, expectedUpdatedAt);
+  }
+
+  public CfpSubmission updateRating(
+      String eventId,
+      String id,
+      Integer technicalDetail,
+      Integer narrative,
+      Integer contentImpact,
+      String moderator,
+      String note,
+      Instant expectedUpdatedAt) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -572,6 +584,11 @@ public class CfpSubmissionService {
       int normalizedTechnical = normalizeRating(technicalDetail, "invalid_rating_technical_detail");
       int normalizedNarrative = normalizeRating(narrative, "invalid_rating_narrative");
       int normalizedImpact = normalizeRating(contentImpact, "invalid_rating_content_impact");
+
+      String normalizedNote = sanitizeText(note, 500);
+      if (normalizedNote == null) {
+        normalizedNote = current.moderationNote();
+      }
 
       Instant now = nextUpdatedAt(current);
       CfpSubmission updated =
@@ -595,7 +612,7 @@ public class CfpSubmissionService {
               now,
               current.moderatedAt(),
               sanitizeText(moderator, 200),
-              current.moderationNote(),
+              normalizedNote,
               normalizedTechnical,
               normalizedNarrative,
               normalizedImpact,

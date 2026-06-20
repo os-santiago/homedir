@@ -602,6 +602,7 @@ public class CfpSubmissionApiResource {
               request.narrative(),
               request.contentImpact(),
               currentUserId().orElse("admin"),
+              request.note(),
               request.expectedUpdatedAt());
       cfpInsightsService.recordRatingUpdated(updated);
       return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
@@ -1424,6 +1425,7 @@ public class CfpSubmissionApiResource {
       @JsonProperty("technical_detail") Integer technicalDetail,
       Integer narrative,
       @JsonProperty("content_impact") Integer contentImpact,
+      String note,
       @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record UpdatePanelistsRequest(
