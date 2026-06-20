@@ -379,6 +379,42 @@
             </div>
             {/if}
 
+            {#if participationHistory && participationHistory.size() > 0}
+            <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
+                <span class="wrapped-stat-label">
+                    {#if localeCode == 'es'}Historial de Participación{#else}Participation History{/if}
+                </span>
+                <p class="wrapped-subtext">
+                    {#if localeCode == 'es'}
+                    Participaciones en eventos como speaker o voluntario a lo largo del tiempo
+                    {#else}
+                    Event participation as speaker or volunteer over time
+                    {/if}
+                </p>
+                <div class="wrapped-list-container">
+                    {#for item in participationHistory}
+                    <div class="wrapped-list-item wrapped-list-item-stack">
+                        <div class="wrapped-meta-row">
+                            <span class="wrapped-badge-pill">
+                                {#if item.type == 'CFP'}
+                                    {#if localeCode == 'es'}Speaker{#else}Speaker{/if}
+                                {#else}
+                                    {#if localeCode == 'es'}Voluntario{#else}Volunteer{/if}
+                                {/if}
+                            </span>
+                        </div>
+                        <span class="wrapped-item-title">{item.title}</span>
+                        <a href="{item.eventUrl}" class="wrapped-item-xp">{item.eventTitle}</a>
+                    </div>
+                    {#else}
+                    <p class="wrapped-empty-msg">
+                        {#if localeCode == 'es'}Aún no hay participaciones registradas.{#else}No participation recorded yet.{/if}
+                    </p>
+                    {/for}
+                </div>
+            </div>
+            {/if}
+
             <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">{i18n:public_profile_challenges_title}</span>
                 <div class="wrapped-list-container">

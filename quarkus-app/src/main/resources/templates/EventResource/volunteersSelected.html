@@ -1,0 +1,160 @@
+{#include layout/main activePage="eventos"}
+{@java.lang.Boolean userAuthenticated}
+{@java.lang.String userName}
+{@java.lang.String resolvedLocaleCode}
+{#title}
+{#if event}
+{#if resolvedLocaleCode == 'es'}Voluntarios seleccionados · {event.title}{#else}Selected Volunteers · {event.title}{/if}
+{#else}
+{#if resolvedLocaleCode == 'es'}Evento no encontrado{#else}Event not found{/if}
+{/if}
+{/title}
+{#head}
+{#if event}
+<style>
+  body.homedir-body {
+    --event-theme-primary: {event.resolvedThemePrimaryColor};
+    --event-theme-accent: {event.resolvedThemeAccentColor};
+    --event-theme-surface: {event.resolvedThemeSurfaceColor};
+    --event-theme-text: {event.resolvedThemeTextColor};
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.24)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body::before {
+    display: none !important;
+  }
+
+  .app-container {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+  }
+
+  body.homedir-body .top-nav,
+  body.homedir-body .hd-top-nav {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface) !important;
+    border-bottom-color: var(--event-theme-primary) !important;
+  }
+
+  main#main-content.homedir-main {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), var(--event-theme-surface) !important;
+    color: var(--event-theme-text);
+  }
+
+  .volunteer-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .volunteer-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--event-theme-primary);
+    transform: translateY(-2px);
+  }
+
+  .volunteer-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--event-theme-primary);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .volunteer-info {
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 0.75rem;
+  }
+
+  .volunteers-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .volunteer-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--event-theme-accent);
+    margin-top: 0.5rem;
+  }
+</style>
+{/if}
+{/head}
+
+{#body}
+{#if event}
+<section class="volunteers-selected-page-shell">
+<header class="page-header">
+  <div class="section-header">
+    <p class="section-subtitle">
+      <a href="/event/{event.id}" class="hd-link">← {#if resolvedLocaleCode == 'es'}Volver al evento{#else}Back to event{/if}</a>
+    </p>
+    <p class="section-subtitle">{#if resolvedLocaleCode == 'es'}Voluntarios{#else}Volunteers{/if}</p>
+    <h1 class="public-title">{event.title} · {#if resolvedLocaleCode == 'es'}Voluntarios Seleccionados{#else}Selected Volunteers{/if}</h1>
+    <p class="section-subtitle">
+      {#if resolvedLocaleCode == 'es'}
+      Conoce al equipo de voluntarios seleccionado para {event.title}. Estas personas dedicarán su tiempo y energía para hacer de este evento una experiencia memorable.
+      {#else}
+      Meet the volunteer team selected for {event.title}. These individuals will dedicate their time and energy to make this event a memorable experience.
+      {/if}
+    </p>
+  </div>
+</header>
+
+<div class="volunteers-grid">
+  {#for volunteer in selectedVolunteers}
+  <div class="volunteer-card">
+    <h2 class="volunteer-name">{volunteer.applicantName}</h2>
+    <span class="volunteer-badge">
+      {#if resolvedLocaleCode == 'es'}Voluntario seleccionado{#else}Selected volunteer{/if}
+    </span>
+    {#if volunteer.aboutMe}
+    <div class="volunteer-info">
+      <strong>{#if resolvedLocaleCode == 'es'}Sobre mí:{#else}About me:{/if}</strong>
+      <p style="margin-top: 0.25rem;">{volunteer.aboutMe}</p>
+    </div>
+    {/if}
+  </div>
+  {#else}
+  <div class="empty-state">
+    <p>
+      {#if resolvedLocaleCode == 'es'}
+      Aún no hay voluntarios seleccionados para este evento.
+      {#else}
+      No volunteers have been selected for this event yet.
+      {/if}
+    </p>
+  </div>
+  {/for}
+</div>
+
+</section>
+{#else}
+<section class="section-card">
+  <h1>{#if resolvedLocaleCode == 'es'}Evento no encontrado{#else}Event not found{/if}</h1>
+  <p>
+    {#if resolvedLocaleCode == 'es'}
+    El evento que buscas no existe o no está disponible.
+    {#else}
+    The event you're looking for doesn't exist or is not available.
+    {/if}
+  </p>
+  <p>
+    <a href="/eventos" class="hd-link">
+      {#if resolvedLocaleCode == 'es'}← Ver todos los eventos{#else}← View all events{/if}
+    </a>
+  </p>
+</section>
+{/if}
+{/body}
+{/include}
