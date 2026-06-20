@@ -1,0 +1,101 @@
+{#include layout/main activePage="trending"}
+
+{#title}{i18n:trending_page_title}{/title}
+
+{#head}
+<link rel="stylesheet" href="/css/trending.css?v={app:version()}" />
+{/head}
+
+{#body}
+<section class="hd-section">
+    <div class="hd-page">
+        <div class="hd-card trending-card">
+            <h1 class="hd-page-title">{i18n:trending_heading}</h1>
+
+            <div class="trending-period-selector">
+                <a href="/trending?period=daily&count={count}"
+                   class="hd-btn {#if period == 'daily'}hd-btn-primary{#else}hd-btn-secondary{/if}">
+                    {i18n:trending_period_daily}
+                </a>
+                <a href="/trending?period=weekly&count={count}"
+                   class="hd-btn {#if period == 'weekly'}hd-btn-primary{#else}hd-btn-secondary{/if}">
+                    {i18n:trending_period_weekly}
+                </a>
+                <a href="/trending?period=monthly&count={count}"
+                   class="hd-btn {#if period == 'monthly'}hd-btn-primary{#else}hd-btn-secondary{/if}">
+                    {i18n:trending_period_monthly}
+                </a>
+            </div>
+
+            {#if repos.isEmpty()}
+            <div class="hd-alert hd-alert-info">
+                <p>{i18n:trending_error_loading}</p>
+            </div>
+            {#else}
+            <div class="hd-grid trending-grid">
+                {#for repo in repos}
+                <article class="hd-card trending-repo-card">
+                    <div class="trending-repo-header">
+                        <h3 class="trending-repo-name">
+                            <a href="{repo.url}" target="_blank" rel="noopener noreferrer">
+                                <span class="trending-repo-owner">{repo.owner}</span> / <span class="trending-repo-title">{repo.name}</span>
+                            </a>
+                        </h3>
+                    </div>
+
+                    {#if repo.description}
+                    <p class="trending-repo-description">
+                        {#if repo.descriptionEs && resolvedLocaleCode == 'es'}
+                            {repo.descriptionEs}
+                        {#else}
+                            {repo.description}
+                        {/if}
+                    </p>
+                    {/if}
+
+                    <div class="trending-repo-meta">
+                        {#if repo.language}
+                        <span class="trending-repo-language">
+                            <span class="material-symbols-outlined">code</span>
+                            {repo.language}
+                        </span>
+                        {/if}
+
+                        {#if repo.stars > 0}
+                        <span class="trending-repo-stars">
+                            <span class="material-symbols-outlined">star</span>
+                            {i18n:trending_stars(repo.stars)}
+                        </span>
+                        {/if}
+                    </div>
+
+                    <div class="trending-repo-actions">
+                        <a href="{repo.url}" class="hd-btn hd-btn-sm hd-btn-secondary" target="_blank" rel="noopener noreferrer">
+                            {i18n:trending_visit_repo}
+                        </a>
+                    </div>
+                </article>
+                {/for}
+            </div>
+
+            <div class="trending-count-selector">
+                <span>{i18n:trending_show_more}:</span>
+                <a href="/trending?period={period}&count=3"
+                   class="hd-btn hd-btn-sm {#if count == 3}hd-btn-primary{#else}hd-btn-secondary{/if}">3</a>
+                <a href="/trending?period={period}&count=5"
+                   class="hd-btn hd-btn-sm {#if count == 5}hd-btn-primary{#else}hd-btn-secondary{/if}">5</a>
+                <a href="/trending?period={period}&count=10"
+                   class="hd-btn hd-btn-sm {#if count == 10}hd-btn-primary{#else}hd-btn-secondary{/if}">10</a>
+            </div>
+
+            {#if lastUpdated}
+            <div class="trending-last-updated">
+                <small>{i18n:trending_last_updated(lastUpdated)}</small>
+            </div>
+            {/if}
+            {/if}
+        </div>
+    </div>
+</section>
+{/body}
+{/include}

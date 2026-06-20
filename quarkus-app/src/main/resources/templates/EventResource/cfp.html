@@ -178,6 +178,19 @@
 </section>
 {/if}
 
+<aside class="section-card support-banner" style="grid-column: 1 / -1; border-left: 3px solid var(--event-theme-accent);">
+  <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 0.9rem; align-items: center;">
+    <span class="material-symbols-outlined" style="font-size: 2rem; opacity: 0.85;">support_agent</span>
+    <div>
+      <h3 style="margin: 0; font-size: 1.1rem;">{i18n:support_discord_banner_title}</h3>
+      <p class="section-subtitle" style="margin: 0.25rem 0 0;">{i18n:support_discord_banner_desc}</p>
+    </div>
+    <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener noreferrer" class="btn btn-primary" aria-label="{i18n:support_discord_aria_label}">
+      {i18n:support_discord_banner_cta}
+    </a>
+  </div>
+</aside>
+
 <section class="section-card" style="grid-column: 1 / -1;">
   <h2 style="margin-top: 0;">{i18n:events_cfp_sponsors_title}</h2>
   <p class="section-subtitle">{i18n:events_cfp_sponsors_desc(event.title)}</p>
@@ -692,6 +705,20 @@
     margin: 0.25rem 0 0;
     font-size: 0.9rem;
     opacity: 0.9;
+  }
+
+  .support-banner {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), var(--event-theme-surface);
+  }
+
+  @media (max-width: 768px) {
+    .support-banner > div {
+      grid-template-columns: 1fr !important;
+      text-align: center;
+    }
+    .support-banner .material-symbols-outlined {
+      justify-self: center;
+    }
   }
 </style>
 
