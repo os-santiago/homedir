@@ -44,6 +44,7 @@ public class TrendingResource {
                 .data("proyectos", proyectos)
                 .data("activePage", "trending")
                 .data("period", period)
-                .data("count", count);
+                .data("count", count)
+                .data("countOptions", java.util.List.of(1, 3, 5, 10));
     }
 }

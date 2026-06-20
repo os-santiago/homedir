@@ -4,36 +4,66 @@
 
 {#head}
 <style>
-.trending-period-bar {
+.trending-toolbar {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin: 1rem 0 1.5rem;
   flex-wrap: wrap;
 }
+.trending-period-group {
+  display: inline-flex;
+  border: 1px solid var(--hd-card-border, #30363d);
+  border-radius: 6px;
+  overflow: hidden;
+}
 .trending-period-btn {
   background: var(--hd-card-bg, #161b22);
-  border: 1px solid var(--hd-card-border, #30363d);
-  color: var(--hd-text, #c9d1d9);
-  padding: 0.5rem 1.25rem;
-  border-radius: 6px;
+  border: none;
+  color: var(--hd-muted, #8b949e);
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  font-size: 0.9rem;
   text-decoration: none;
-  transition: border-color 0.2s, background 0.2s;
+  border-right: 1px solid var(--hd-card-border, #30363d);
+  transition: background 0.15s, color 0.15s;
 }
-.trending-period-btn:hover {
-  border-color: var(--hd-accent, #58a6ff);
-}
+.trending-period-btn:last-child { border-right: none; }
+.trending-period-btn:hover { color: var(--hd-text, #c9d1d9); background: var(--hd-card-hover, #1c2129); }
 .trending-period-btn.active {
   background: var(--hd-accent, #1f6feb);
-  border-color: var(--hd-accent, #1f6feb);
   color: #fff;
 }
+.trending-count-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.trending-count-label {
+  color: var(--hd-muted, #8b949e);
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+}
+.trending-count-btn {
+  background: var(--hd-card-bg, #161b22);
+  border: 1px solid var(--hd-card-border, #30363d);
+  border-radius: 4px;
+  color: var(--hd-muted, #8b949e);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  min-width: 2rem;
+  text-align: center;
+}
+.trending-count-btn:hover { border-color: var(--hd-accent, #58a6ff); color: var(--hd-text, #c9d1d9); }
+.trending-count-btn.active { background: var(--hd-accent, #1f6feb); border-color: var(--hd-accent, #1f6feb); color: #fff; }
 .trending-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 1.25rem;
-  margin-top: 1.5rem;
 }
 .trending-card {
   background: var(--hd-card-bg, #161b22);
@@ -42,53 +72,16 @@
   padding: 1.25rem;
   transition: border-color 0.2s;
 }
-.trending-card:hover {
-  border-color: var(--hd-accent, #58a6ff);
-}
-.trending-card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-.trending-card-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-.trending-card-header h3 a {
-  color: var(--hd-accent, #58a6ff);
-  text-decoration: none;
-}
-.trending-card-header h3 a:hover {
-  text-decoration: underline;
-}
-.trending-author {
-  color: var(--hd-muted, #8b949e);
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
-}
-.trending-stars {
-  color: var(--hd-star, #d29922);
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-}
-.trending-desc {
-  color: var(--hd-text, #c9d1d9);
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-.trending-empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--hd-muted, #8b949e);
-}
-.trending-empty .material-symbols-outlined {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 0.75rem;
-}
+.trending-card:hover { border-color: var(--hd-accent, #58a6ff); }
+.trending-card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.trending-card-header h3 { margin: 0; font-size: 1.1rem; }
+.trending-card-header h3 a { color: var(--hd-accent, #58a6ff); text-decoration: none; }
+.trending-card-header h3 a:hover { text-decoration: underline; }
+.trending-author { color: var(--hd-muted, #8b949e); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.trending-stars { color: var(--hd-star, #d29922); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem; }
+.trending-desc { color: var(--hd-text, #c9d1d9); font-size: 0.92rem; line-height: 1.5; }
+.trending-empty { grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--hd-muted, #8b949e); }
+.trending-empty .material-symbols-outlined { font-size: 3rem; display: block; margin-bottom: 0.75rem; }
 </style>
 {/head}
 
@@ -104,21 +97,6 @@
 <section class="page-grid">
   <div class="section-card events-full-width">
 
-    <div class="trending-period-bar">
-      <a href="/trending?period=daily{#if count != 1}&count={count}{/if}"
-         class="trending-period-btn {#if period == 'daily'}active{/if}">
-        {i18n:trending_period_daily}
-      </a>
-      <a href="/trending?period=weekly{#if count != 1}&count={count}{/if}"
-         class="trending-period-btn {#if period == 'weekly'}active{/if}">
-        {i18n:trending_period_weekly}
-      </a>
-      <a href="/trending?period=monthly{#if count != 1}&count={count}{/if}"
-         class="trending-period-btn {#if period == 'monthly'}active{/if}">
-        {i18n:trending_period_monthly}
-      </a>
-    </div>
-
     {#if proyectos.isEmpty()}
       <div class="trending-empty">
         <span class="material-symbols-outlined">cloud_off</span>
@@ -132,27 +110,39 @@
               <span class="material-symbols-outlined" style="color:var(--hd-muted,#8b949e)">code</span>
               <h3><a href="{proyecto.repoUrl}" target="_blank" rel="noopener">{proyecto.nombre}</a></h3>
             </div>
-            <p class="trending-author">
-              {i18n:trending_by_author(proyecto.autor)}
-            </p>
-            <p class="trending-stars">
-              ⭐ {proyecto.stars} {i18n:trending_stars_label}
-            </p>
+            <p class="trending-author">{i18n:trending_by_author(proyecto.autor)}</p>
+            <p class="trending-stars">⭐ {proyecto.stars} {i18n:trending_stars_label}</p>
             <p class="trending-desc">
-              {#if resolvedLocaleCode == 'es'}
-                {proyecto.descripcionEs}
-              {#else}
-                {#if !proyecto.descripcionEn.isEmpty}
-                  {proyecto.descripcionEn}
-                {#else}
-                  {i18n:trending_no_description}
-                {/if}
-              {/if}
+              {#if resolvedLocaleCode == 'es'}{proyecto.descripcionEs}{#else}{proyecto.descripcionEn.or(i18n:trending_no_description)}{/if}
             </p>
           </article>
         {/for}
       </div>
     {/if}
+
+    <div class="trending-toolbar" style="margin-top:1.5rem; justify-content:flex-end;">
+      <div class="trending-count-group">
+        <span class="trending-count-label">{i18n:trending_show_label}</span>
+        {#for opt in countOptions}
+          <a href="/trending?period={period}&count={opt}"
+             class="trending-count-btn {#if count == opt}active{/if}">{opt}</a>
+        {/for}
+      </div>
+      <div class="trending-period-group">
+        <a href="/trending?period=daily&count={count}"
+           class="trending-period-btn {#if period == 'daily'}active{/if}">
+          {i18n:trending_period_daily}
+        </a>
+        <a href="/trending?period=weekly&count={count}"
+           class="trending-period-btn {#if period == 'weekly'}active{/if}">
+          {i18n:trending_period_weekly}
+        </a>
+        <a href="/trending?period=monthly&count={count}"
+           class="trending-period-btn {#if period == 'monthly'}active{/if}">
+          {i18n:trending_period_monthly}
+        </a>
+      </div>
+    </div>
 
   </div>
 </section>
