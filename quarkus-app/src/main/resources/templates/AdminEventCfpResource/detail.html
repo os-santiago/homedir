@@ -174,6 +174,57 @@
     display: block;
     font-weight: 600;
   }
+
+  .cfp-confirmation-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 180ms ease;
+  }
+
+  .cfp-confirmation-dialog.is-visible {
+    opacity: 1;
+  }
+
+  .cfp-confirmation-dialog__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(4px);
+  }
+
+  .cfp-confirmation-dialog__content {
+    position: relative;
+    z-index: 1;
+    background: rgba(20, 24, 34, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    max-width: min(28rem, calc(100vw - 2rem));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .cfp-confirmation-dialog__message {
+    margin: 0 0 1.25rem 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-text, #f5f7ff);
+  }
+
+  .cfp-confirmation-dialog__actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .cfp-confirmation-dialog__cancel,
+  .cfp-confirmation-dialog__confirm {
+    min-width: 6rem;
+  }
 </style>
 
 <script>
@@ -235,6 +286,10 @@
       panelistsLinked: "{i18n:events_cfp_panelists_status_linked}",
       panelistsPending: "{i18n:events_cfp_panelists_status_pending}",
       panelistsPendingPrefix: "{i18n:events_cfp_panelists_pending_prefix}",
+      confirmAcceptMessage: "{i18n:events_cfp_admin_confirm_accept_message}",
+      confirmRejectMessage: "{i18n:events_cfp_admin_confirm_reject_message}",
+      confirmCancel: "{i18n:events_cfp_admin_confirm_cancel}",
+      confirmProceed: "{i18n:events_cfp_admin_confirm_proceed}",
       presentationTitle: "{i18n:events_cfp_presentation_title}",
       presentationCurrent: "{i18n:events_cfp_presentation_current}",
       deliveryTitle: "{i18n:events_cfp_delivery_title}",
@@ -626,35 +681,92 @@
         }
       });
 
+      function showConfirmationDialog(message, onConfirm, onCancel) {
+        const dialog = document.createElement("div");
+        dialog.className = "cfp-confirmation-dialog";
+        dialog.innerHTML =
+          '<div class="cfp-confirmation-dialog__overlay"></div>'
+          + '<div class="cfp-confirmation-dialog__content">'
+          + '<p class="cfp-confirmation-dialog__message">' + escapeHtml(message) + '</p>'
+          + '<div class="cfp-confirmation-dialog__actions">'
+          + '<button type="button" class="btn btn-secondary cfp-confirmation-dialog__cancel">' + escapeHtml(i18n.confirmCancel) + '</button>'
+          + '<button type="button" class="btn btn-primary cfp-confirmation-dialog__confirm">' + escapeHtml(i18n.confirmProceed) + '</button>'
+          + '</div></div>';
+
+        const confirmBtn = dialog.querySelector(".cfp-confirmation-dialog__confirm");
+        const cancelBtn = dialog.querySelector(".cfp-confirmation-dialog__cancel");
+        const overlay = dialog.querySelector(".cfp-confirmation-dialog__overlay");
+
+        function cleanup() {
+          dialog.remove();
+        }
+
+        confirmBtn.addEventListener("click", () => {
+          cleanup();
+          if (onConfirm) onConfirm();
+        });
+
+        cancelBtn.addEventListener("click", () => {
+          cleanup();
+          if (onCancel) onCancel();
+        });
+
+        overlay.addEventListener("click", () => {
+          cleanup();
+          if (onCancel) onCancel();
+        });
+
+        document.body.appendChild(dialog);
+        requestAnimationFrame(() => dialog.classList.add("is-visible"));
+      }
+
       function attachStatusAction(label, targetStatus, className) {
         attachAction(label, className, async (event) => {
           const btn = event.currentTarget;
-          btn.disabled = true;
-          const noteValue = note.value;
-          try {
-            const payload = await updateStatus(targetStatus, noteValue, currentItem.updated_at);
-            if (payload && payload.item) {
-              currentItem = payload.item;
+          const needsConfirmation = targetStatus === "accepted" || targetStatus === "rejected";
+
+          const executeStatusChange = async () => {
+            btn.disabled = true;
+            const noteValue = note.value;
+            try {
+              const payload = await updateStatus(targetStatus, noteValue, currentItem.updated_at);
+              if (payload && payload.item) {
+                currentItem = payload.item;
+              }
+              syncBackToOverviewLink(targetStatus);
+              const successMessage = targetStatus === "under_review"
+                ? i18n.underReviewSaved
+                : targetStatus === "accepted"
+                  ? i18n.acceptSaved
+                  : targetStatus === "rejected"
+                    ? i18n.rejectSaved
+                    : label;
+              showFeedback(successMessage, false, btn);
+              await loadDetail();
+            } catch (error) {
+              const message = mapApiErrorMessage(error.message, i18n.updateStatusError);
+              if (String(error.message || "").trim() === "reject_note_required") {
+                note.focus();
+                note.select?.();
+              }
+              showFeedback(message, true, btn);
+            } finally {
+              btn.disabled = false;
             }
-            syncBackToOverviewLink(targetStatus);
-            const successMessage = targetStatus === "under_review"
-              ? i18n.underReviewSaved
-              : targetStatus === "accepted"
-                ? i18n.acceptSaved
-                : targetStatus === "rejected"
-                  ? i18n.rejectSaved
-                  : label;
-            showFeedback(successMessage, false, btn);
-            await loadDetail();
-          } catch (error) {
-            const message = mapApiErrorMessage(error.message, i18n.updateStatusError);
-            if (String(error.message || "").trim() === "reject_note_required") {
-              note.focus();
-              note.select?.();
-            }
-            showFeedback(message, true, btn);
-          } finally {
-            btn.disabled = false;
+          };
+
+          if (needsConfirmation) {
+            const confirmationMessage = targetStatus === "accepted"
+              ? i18n.confirmAcceptMessage
+              : i18n.confirmRejectMessage;
+
+            showConfirmationDialog(
+              confirmationMessage,
+              executeStatusChange,
+              () => { btn.disabled = false; }
+            );
+          } else {
+            executeStatusChange();
           }
         });
       }

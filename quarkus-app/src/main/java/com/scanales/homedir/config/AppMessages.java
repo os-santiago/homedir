@@ -1660,6 +1660,18 @@ public interface AppMessages {
     @Message("Reject")
     String events_cfp_admin_action_reject();
 
+    @Message("Are you sure you want to accept this submission? The speaker will be notified that their talk was accepted.")
+    String events_cfp_admin_confirm_accept_message();
+
+    @Message("Are you sure you want to reject this submission? The submission will move to the rejected state and the user will be informed.")
+    String events_cfp_admin_confirm_reject_message();
+
+    @Message("Cancel")
+    String events_cfp_admin_confirm_cancel();
+
+    @Message("Proceed")
+    String events_cfp_admin_confirm_proceed();
+
     @Message("Promote to catalog")
     String events_cfp_admin_action_promote();
 
