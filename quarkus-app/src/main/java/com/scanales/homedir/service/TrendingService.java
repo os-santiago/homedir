@@ -1,16 +1,20 @@
 package com.scanales.homedir.service;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jboss.logging.Logger;
@@ -20,6 +24,9 @@ public class TrendingService {
 
     private static final Logger LOG = Logger.getLogger(TrendingService.class);
     private static final String TRENDING_URL = "https://github.com/trending";
+    private static final int CACHE_COUNT = 15;
+    // ponytail: thread-safe cache for each period; page reads from cache
+    private final ConcurrentHashMap<String, List<TrendingProject>> cache = new ConcurrentHashMap<>();
     private static final Map<String, String> TRANSLATIONS = Map.ofEntries(
             Map.entry(" a ", " un "), Map.entry(" an ", " un "), Map.entry(" the ", " el "),
             Map.entry(" for ", " para "), Map.entry(" and ", " y "), Map.entry(" with ", " con "),
@@ -46,11 +53,55 @@ public class TrendingService {
                 .build();
     }
 
-    public List<TrendingProject> fetchTrending(String language, int count, String period) {
-        String url = TRENDING_URL;
-        if (language != null && !language.isBlank()) {
-            url += "/" + language;
+    @PostConstruct
+    void init() {
+        // ponytail: warm cache on startup so page never shows empty unless GitHub is down
+        fetchAndCache("daily");
+        fetchAndCache("weekly");
+        fetchAndCache("monthly");
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?") // midnight every day
+    void refreshDaily() {
+        fetchAndCache("daily");
+    }
+
+    @Scheduled(cron = "0 0 0 ? * MON") // midnight every Monday
+    void refreshWeekly() {
+        fetchAndCache("weekly");
+    }
+
+    @Scheduled(cron = "0 0 0 1 * ?") // midnight 1st of every month
+    void refreshMonthly() {
+        fetchAndCache("monthly");
+    }
+
+    private void fetchAndCache(String period) {
+        LOG.infof("Refreshing trending cache: period=%s", period);
+        List<TrendingProject> projects = doFetch(period, CACHE_COUNT);
+        if (!projects.isEmpty()) {
+            cache.put(period, Collections.unmodifiableList(projects));
+            LOG.infof("Trending cache updated: period=%s count=%d", period, projects.size());
+        } else {
+            LOG.warnf("Trending cache refresh returned empty: period=%s", period);
         }
+    }
+
+    /** Returns cached projects for the given period, up to count. Falls back to live fetch. */
+    public List<TrendingProject> getTrending(String period, int count) {
+        List<TrendingProject> all = cache.get(period);
+        if (all == null || all.isEmpty()) {
+            // ponytail: live fetch on cache miss (first request before schedule fires)
+            return doFetch(period, count);
+        }
+        if (count >= all.size()) {
+            return all;
+        }
+        return all.subList(0, count);
+    }
+
+    private List<TrendingProject> doFetch(String period, int count) {
+        String url = TRENDING_URL;
         if ("weekly".equals(period)) {
             url += "?since=weekly";
         } else if ("monthly".equals(period)) {

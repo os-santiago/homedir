@@ -39,8 +39,7 @@ public class TrendingResource {
             @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
             @Context HttpHeaders headers) {
 
-        List<TrendingService.TrendingProject> proyectos = trendingService.fetchTrending(
-                null, count, period);
+        List<TrendingService.TrendingProject> proyectos = trendingService.getTrending(period, count);
 
         // Compute next count for toggle button
         int nextCount = 1;
