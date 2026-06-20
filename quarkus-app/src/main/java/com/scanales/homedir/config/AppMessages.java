@@ -6553,39 +6553,4 @@ public interface AppMessages {
     @Message("Go to Home")
     String error_go_home();
 
-    // --- Trending page ---
-    @Message("Trending · Homedir")
-    String trending_page_title();
-
-    @Message("Discover")
-    String trending_subtitle();
-
-    @Message("GitHub Trending")
-    String trending_hero_title();
-
-    @Message("Top open source projects trending on GitHub today. Discover what the community is building.")
-    String trending_intro();
-
-    @Message("Today's trending projects")
-    String trending_section_title();
-
-    @Message("{count} projects")
-    String trending_count(int count);
-
-    @Message("Could not fetch trending projects. Check back later.")
-    String trending_empty();
-
-    @Message("stars")
-    String trending_stars_label();
-
-    @Message("by {author}")
-    String trending_by_author(String author);
-
-    @Message("No description available")
-    String trending_no_description();
-
-    // --- Trending navigation ---
-    @Message("Trending")
-    String nav_trending();
-
 }
