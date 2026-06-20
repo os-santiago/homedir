@@ -2,6 +2,7 @@ package com.scanales.homedir.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scanales.homedir.util.SecurityUtils;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -118,13 +119,13 @@ public class GithubService {
         .build();
     HttpResponse<String> tokenResponse = httpClient.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
     if (tokenResponse.statusCode() >= 400) {
-      LOG.warnf("GitHub token exchange failed: %s", tokenResponse.body());
+      LOG.warnf("GitHub token exchange failed: %s", SecurityUtils.redactSensitiveData(tokenResponse.body()));
       throw new IOException("GitHub token exchange failed");
     }
     JsonNode tokenJson = objectMapper.readTree(tokenResponse.body());
     String accessToken = tokenJson.path("access_token").asText();
     if (accessToken == null || accessToken.isBlank()) {
-      LOG.warnf("GitHub token missing access_token field: %s", tokenResponse.body());
+      LOG.warnf("GitHub token missing access_token field: %s", SecurityUtils.redactSensitiveData(tokenResponse.body()));
       throw new IOException("GitHub token missing access_token");
     }
     return accessToken;

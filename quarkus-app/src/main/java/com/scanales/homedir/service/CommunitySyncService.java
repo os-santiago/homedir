@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.scanales.homedir.model.CommunityMember;
+import com.scanales.homedir.util.SecurityUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -181,8 +182,7 @@ public class CommunitySyncService {
       LOG.error("Github token for community sync is missing or empty");
       return Optional.empty();
     }
-    LOG.info("Using GitHub Token: "
-        + (githubToken.length() > 4 ? "..." + githubToken.substring(githubToken.length() - 4) : "INVALID"));
+    LOG.info("Using GitHub Token: " + SecurityUtils.redactTokenPreview(githubToken));
     try {
       MembersPayload payload = loadMembers();
       // ...
