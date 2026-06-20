@@ -5,6 +5,9 @@ import com.scanales.homedir.cfp.CfpFormCatalog;
 import com.scanales.homedir.cfp.CfpConfigService;
 import com.scanales.homedir.cfp.CfpEventConfigService;
 import com.scanales.homedir.cfp.CfpFormOptionsService;
+import com.scanales.homedir.cfp.CfpSubmission;
+import com.scanales.homedir.cfp.CfpSubmissionService;
+import com.scanales.homedir.cfp.CfpSubmissionStatus;
 import com.scanales.homedir.cfp.CfpTimelinePlanner;
 import com.scanales.homedir.cfp.CfpTimelineView;
 import com.scanales.homedir.eventops.EventOperationsService;
@@ -30,6 +33,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -46,10 +50,14 @@ public class EventResource {
         Map<String, Integer> cfpDurationByFormat,
         CfpTimelineView cfpTimeline);
 
+    static native TemplateInstance cfpSpeakers(Event event, List<CfpSubmission> acceptedSubmissions);
+
     static native TemplateInstance volunteers(Event event, boolean volunteerSelected);
 
     static native TemplateInstance volunteersLounge(
         Event event, boolean loungeAccess, boolean eventAdmin, String loungeAccessReason);
+
+    static native TemplateInstance volunteersSelected(Event event, List<VolunteerApplication> selectedVolunteers);
   }
 
   @Inject EventService eventService;
@@ -64,6 +72,7 @@ public class EventResource {
 
   @Inject CfpConfigService cfpConfigService;
   @Inject CfpEventConfigService cfpEventConfigService;
+  @Inject CfpSubmissionService cfpSubmissionService;
   @Inject AgendaProposalConfigService agendaProposalConfigService;
   @Inject GamificationService gamificationService;
   @Inject VolunteerApplicationService volunteerApplicationService;
@@ -140,6 +149,32 @@ public class EventResource {
   }
 
   @GET
+  @Path("{id}/cfp/speakers")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance cfpSpeakers(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/event/cfp/speakers", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, id + ":speakers"));
+    Event event = eventService.getEvent(id);
+    List<CfpSubmission> acceptedSubmissions = List.of();
+    if (event != null && cfpSubmissionService != null) {
+      acceptedSubmissions = cfpSubmissionService.listByEventAll(
+          id,
+          Optional.of(CfpSubmissionStatus.ACCEPTED),
+          CfpSubmissionService.SortOrder.CREATED_DESC);
+    }
+    return withLayoutData(
+        Templates.cfpSpeakers(event, acceptedSubmissions),
+        "eventos",
+        localeCookie,
+        headers);
+  }
+
+  @GET
   @Path("{id}/volunteers")
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
@@ -161,6 +196,34 @@ public class EventResource {
     }
     return withLayoutData(
         Templates.volunteers(event, volunteerSelected),
+        "eventos",
+        localeCookie,
+        headers);
+  }
+
+  @GET
+  @Path("{id}/volunteers/selected")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance volunteersSelected(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/event/volunteers/selected", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id + ":selected"));
+    Event event = eventService.getEvent(id);
+    List<VolunteerApplication> selectedVolunteers = List.of();
+    if (event != null && volunteerApplicationService != null) {
+      selectedVolunteers = volunteerApplicationService.listByEvent(
+          id,
+          Optional.of(VolunteerApplicationStatus.SELECTED),
+          VolunteerApplicationService.SortOrder.CREATED_DESC,
+          Integer.MAX_VALUE,
+          0);
+    }
+    return withLayoutData(
+        Templates.volunteersSelected(event, selectedVolunteers),
         "eventos",
         localeCookie,
         headers);
