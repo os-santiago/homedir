@@ -388,7 +388,8 @@
       reviewerRemoved: "{i18n:events_cfp_admin_reviewers_removed}",
       reviewerError: "{i18n:events_cfp_admin_reviewers_error}",
       reviewerEmailRequired: "{i18n:events_cfp_admin_reviewers_email_required}",
-      reviewerRemove: "{i18n:events_cfp_admin_reviewers_remove}"
+      reviewerRemove: "{i18n:events_cfp_admin_reviewers_remove}",
+      moderationNote: "{i18n:events_cfp_admin_moderation_note}"
     };
     const pageSize = 20;
     let activeStatus = "under_review";
@@ -843,7 +844,7 @@
       if (item.moderation_note) {
         const noteLine = document.createElement("p");
         noteLine.className = "cfp-admin-meta";
-        noteLine.textContent = "Nota: " + item.moderation_note;
+        noteLine.textContent = i18n.moderationNote + ": " + item.moderation_note;
         article.appendChild(noteLine);
       }
 
