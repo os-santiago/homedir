@@ -87,7 +87,7 @@ public class TrendingService {
     refreshAsync(TrendingPeriod.DAILY, "scheduled");
   }
 
-  @Scheduled(cron = "${trending.weekly.cron:0 0 0 * * MON}")
+  @Scheduled(cron = "${trending.weekly.cron:0 0 0 ? * MON}")
   void refreshWeekly() {
     refreshAsync(TrendingPeriod.WEEKLY, "scheduled");
   }
