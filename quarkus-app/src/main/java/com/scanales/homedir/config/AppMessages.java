@@ -6584,6 +6584,15 @@ public interface AppMessages {
     @Message("No description available")
     String trending_no_description();
 
+    @Message("Today")
+    String trending_period_daily();
+
+    @Message("This week")
+    String trending_period_weekly();
+
+    @Message("This month")
+    String trending_period_monthly();
+
     // --- Trending navigation ---
     @Message("Trending")
     String nav_trending();

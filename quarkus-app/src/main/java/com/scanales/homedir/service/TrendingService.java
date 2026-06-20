@@ -69,6 +69,9 @@ public class TrendingService {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             String html = response.body();
+            LOG.infof("Trending HTML fetched: %d bytes, status=%d", html.length(), response.statusCode());
+            String[] blocks = html.split("<article");
+            LOG.infof("Trending article blocks found: %d", blocks.length - 1);
             return parseTrendingHtml(html, count);
         } catch (Exception e) {
             LOG.warnf(e, "Failed to fetch GitHub trending");
@@ -80,21 +83,23 @@ public class TrendingService {
         List<TrendingProject> projects = new ArrayList<>();
         String[] blocks = html.split("<article");
         Pattern slugPattern = Pattern.compile(
-                "<h[23][^>]*>.*?<a[^>]*href=\"/([^\"/]+/[^\"/]+?)\"[^>]*>");
+                "<h[23][^>]*>.*?<a[^>]*href=\"/([^\"/]+/[^\"/]+?)\"[^>]*>", Pattern.DOTALL);
         Pattern descPattern = Pattern.compile(
                 "<p[^>]*class=\"[^\"]*color-fg-muted[^\"]*\"[^>]*>(.*?)</p>",
                 Pattern.DOTALL);
         Pattern starPattern = Pattern.compile(
                 "octicon-star.*?</svg>\\s*([\\d,]+)", Pattern.DOTALL);
 
-        for (int i = 1; i < blocks.length && projects.size() < maxCount; i++) {
+        LOG.infof("Parsing %d article blocks", blocks.length - 1);
+        for (int i = 1; i < blocks.length; i++) {
             String block = blocks[i];
             Matcher slugMatcher = slugPattern.matcher(block);
             if (!slugMatcher.find()) continue;
             String slug = slugMatcher.group(1);
             if (slug.startsWith("login") || slug.startsWith("sponsors")
-                    || slug.startsWith("settings") || slug.startsWith("apps"))
+                    || slug.startsWith("settings") || slug.startsWith("apps")) {
                 continue;
+            }
 
             String[] parts = slug.split("/");
             if (parts.length != 2) continue;
@@ -118,7 +123,28 @@ public class TrendingService {
                     translateDescription(descripcion), stars));
         }
 
+        // Sort by stars descending (parse "1,234" → 1234)
+        projects.sort((a, b) -> {
+            int sa = parseStars(a.stars());
+            int sb = parseStars(b.stars());
+            return Integer.compare(sb, sa); // descending
+        });
+
+        // Limit
+        if (projects.size() > maxCount) {
+            projects = projects.subList(0, maxCount);
+        }
+
         return projects;
+    }
+
+    private int parseStars(String s) {
+        if (s == null || s.equals("?")) return 0;
+        try {
+            return Integer.parseInt(s.replace(",", ""));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private String translateDescription(String desc) {

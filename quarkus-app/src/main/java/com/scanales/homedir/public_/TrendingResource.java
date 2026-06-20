@@ -6,9 +6,11 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -22,9 +24,6 @@ public class TrendingResource {
     @Inject
     TrendingService trendingService;
 
-    // ponytail: 10 trending repos on the page
-    private static final int TRENDING_COUNT = 10;
-
     @CheckedTemplate(basePath = "pages", requireTypeSafeExpressions = false)
     static class Templates {
         public static native TemplateInstance trending();
@@ -33,14 +32,18 @@ public class TrendingResource {
     @GET
     @Path("/trending")
     public TemplateInstance trending(
+            @QueryParam("period") @DefaultValue("daily") String period,
+            @QueryParam("count") @DefaultValue("1") int count,
             @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
             @Context HttpHeaders headers) {
 
         List<TrendingService.TrendingProject> proyectos = trendingService.fetchTrending(
-                null, TRENDING_COUNT, "daily");
+                null, count, period);
 
         return TemplateLocaleUtil.apply(Templates.trending(), localeCookie, headers)
                 .data("proyectos", proyectos)
-                .data("activePage", "trending");
+                .data("activePage", "trending")
+                .data("period", period)
+                .data("count", count);
     }
 }

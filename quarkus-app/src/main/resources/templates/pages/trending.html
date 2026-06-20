@@ -4,6 +4,31 @@
 
 {#head}
 <style>
+.trending-period-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+.trending-period-btn {
+  background: var(--hd-card-bg, #161b22);
+  border: 1px solid var(--hd-card-border, #30363d);
+  color: var(--hd-text, #c9d1d9);
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.trending-period-btn:hover {
+  border-color: var(--hd-accent, #58a6ff);
+}
+.trending-period-btn.active {
+  background: var(--hd-accent, #1f6feb);
+  border-color: var(--hd-accent, #1f6feb);
+  color: #fff;
+}
 .trending-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -64,17 +89,6 @@
   display: block;
   margin-bottom: 0.75rem;
 }
-.trending-header-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.trending-count {
-  color: var(--hd-muted, #8b949e);
-  font-size: 0.9rem;
-}
 </style>
 {/head}
 
@@ -89,9 +103,20 @@
 
 <section class="page-grid">
   <div class="section-card events-full-width">
-    <div class="trending-header-row">
-      <h2>{i18n:trending_section_title}</h2>
-      <span class="trending-count">{i18n:trending_count(proyectos.size())}</span>
+
+    <div class="trending-period-bar">
+      <a href="/trending?period=daily{#if count != 1}&count={count}{/if}"
+         class="trending-period-btn {#if period == 'daily'}active{/if}">
+        {i18n:trending_period_daily}
+      </a>
+      <a href="/trending?period=weekly{#if count != 1}&count={count}{/if}"
+         class="trending-period-btn {#if period == 'weekly'}active{/if}">
+        {i18n:trending_period_weekly}
+      </a>
+      <a href="/trending?period=monthly{#if count != 1}&count={count}{/if}"
+         class="trending-period-btn {#if period == 'monthly'}active{/if}">
+        {i18n:trending_period_monthly}
+      </a>
     </div>
 
     {#if proyectos.isEmpty()}
@@ -117,7 +142,7 @@
               {#if resolvedLocaleCode == 'es'}
                 {proyecto.descripcionEs}
               {#else}
-                {#if proyecto.descripcionEn != ''}
+                {#if !proyecto.descripcionEn.isEmpty}
                   {proyecto.descripcionEn}
                 {#else}
                   {i18n:trending_no_description}
