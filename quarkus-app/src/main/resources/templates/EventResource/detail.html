@@ -169,6 +169,9 @@
                         <a href="/event/{event.id}/volunteers" class="btn login-btn-nav">
                             <span class="material-symbols-outlined">groups</span> {i18n:events_volunteers_open_cta}
                         </a>
+                        <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener noreferrer" class="btn login-btn-nav" aria-label="{i18n:support_discord_aria_label}">
+                            <span class="material-symbols-outlined">support_agent</span> {i18n:support_discord_footer_link}
+                        </a>
                     </div>
                     
                     {#if app:validUrl(event.website) || app:validUrl(event.twitter) || app:validUrl(event.linkedin) || app:validUrl(event.instagram) || app:validEmail(event.contactEmail) || app:validUrl(event.ticketsUrl)}
