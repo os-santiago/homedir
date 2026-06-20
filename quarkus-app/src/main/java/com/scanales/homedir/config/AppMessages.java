@@ -1612,6 +1612,9 @@ public interface AppMessages {
     @Message("Content impact")
     String events_cfp_admin_rating_impact();
 
+    @Message("Moderation note")
+    String events_cfp_admin_moderation_note();
+
     @Message("Moderation note (optional)")
     String events_cfp_admin_note_placeholder();
 

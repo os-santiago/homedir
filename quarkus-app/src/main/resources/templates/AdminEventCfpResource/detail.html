@@ -574,7 +574,7 @@
           + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.sectionReview) + '</h3>'
           + '<p class="form-hint" style="margin-top: 0.35rem;">' + escapeHtml(i18n.reviewDesc) + '</p>'
           + '<div id="cfpReviewGrid" class="cfp-review-grid"></div>'
-          + '<input id="cfpModerationNote" type="text" class="form-input cfp-detail-note" placeholder="' + escapeHtml(i18n.moderationNotePlaceholder) + '" value="' + escapeHtml(item.moderation_note || "") + '">'
+          + '<textarea id="cfpModerationNote" class="form-input cfp-detail-note" rows="2" maxlength="500" placeholder="' + escapeHtml(i18n.moderationNotePlaceholder) + '">' + escapeHtml(item.moderation_note || "") + '</textarea>'
           + '<div class="cfp-detail-actions" id="cfpDetailActions"></div></div>';
 
       const reviewGrid = document.getElementById("cfpReviewGrid");

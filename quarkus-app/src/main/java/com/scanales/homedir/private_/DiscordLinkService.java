@@ -156,8 +156,12 @@ public class DiscordLinkService {
           email,
           new UserProfile.DiscordAccount(
               user.id(), user.handle(), "https://discord.com/users/" + url(user.id()), user.avatarUrl(), Instant.now()));
-      gamificationService.award(userId, GamificationActivity.DISCORD_LINKED);
-      boardService.requestRefresh("discord-oauth-claim");
+      try {
+        gamificationService.award(userId, GamificationActivity.DISCORD_LINKED);
+        boardService.requestRefresh("discord-oauth-claim");
+      } catch (Exception e) {
+        LOG.warnf("Discord post-link operations failed (link already saved): %s", e.getMessage());
+      }
       return redirectWithParams(target, "discordLinked", "1");
     } catch (Exception e) {
       LOG.warnf("Discord OAuth callback failed: %s", e.getMessage());
