@@ -6593,8 +6593,11 @@ public interface AppMessages {
     @Message("This month")
     String trending_period_monthly();
 
-    @Message("Show")
-    String trending_show_label();
+    @Message("Show more")
+    String trending_show_more();
+
+    @Message("Show less")
+    String trending_show_less();
 
     // --- Trending navigation ---
     @Message("Trending")
