@@ -2157,6 +2157,9 @@ public interface AppMessages {
     @Message("Events")
     String nav_events();
 
+    @Message("Trending")
+    String nav_trending();
+
     @Message("Reputation Hub")
     String nav_reputation_hub();
 
@@ -6552,5 +6555,39 @@ public interface AppMessages {
 
     @Message("Go to Home")
     String error_go_home();
+
+    // Trending GitHub repositories
+    @Message("GitHub Trending · Homedir")
+    String trending_page_title();
+
+    @Message("Trending Repositories")
+    String trending_heading();
+
+    @Message("Daily")
+    String trending_period_daily();
+
+    @Message("Weekly")
+    String trending_period_weekly();
+
+    @Message("Monthly")
+    String trending_period_monthly();
+
+    @Message("Show more")
+    String trending_show_more();
+
+    @Message("Show less")
+    String trending_show_less();
+
+    @Message("Last updated {0}")
+    String trending_last_updated(String timestamp);
+
+    @Message("{0} stars")
+    String trending_stars(int count);
+
+    @Message("Unable to load trending repositories")
+    String trending_error_loading();
+
+    @Message("Visit repository")
+    String trending_visit_repo();
 
 }

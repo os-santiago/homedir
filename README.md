@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/3eawzc9ybc)
 
-Homedir is a Quarkus-based community platform for DevRel/Open Source initiatives, combining Community Picks, Events, Projects, CFP workflows, and contributor identity integrations (GitHub/Discord/Google login) in a single product.
+Homedir is a Quarkus-based community platform for DevRel/Open Source initiatives, combining Community Picks, Events, Projects, CFP workflows, GitHub Trending repositories, and contributor identity integrations (GitHub/Discord/Google login) in a single product.
 
 ## Repository Layout
 - `quarkus-app/`: main Quarkus application (backend + templates + static assets).
