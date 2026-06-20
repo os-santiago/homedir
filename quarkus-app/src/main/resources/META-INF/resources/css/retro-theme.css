@@ -659,6 +659,9 @@
 
     .icon-wrapper .material-symbols-outlined {
       font-size: 55px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     @keyframes pulseGlow {
