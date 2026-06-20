@@ -95,7 +95,11 @@
             <p class="trending-author">{i18n:trending_by_author(proyecto.autor)}</p>
             <p class="trending-stars">⭐ {proyecto.stars} {i18n:trending_stars_label}</p>
             <p class="trending-desc">
-              {#if resolvedLocaleCode == 'es'}{proyecto.descripcionEs}{#else}{proyecto.descripcionEn.or(i18n:trending_no_description)}{/if}
+              {#if resolvedLocaleCode == 'es'}
+                {proyecto.descripcionEs.or(i18n:trending_no_description)}
+              {#else}
+                {proyecto.descripcionEn.or(i18n:trending_no_description)}
+              {/if}
             </p>
           </article>
         {/for}

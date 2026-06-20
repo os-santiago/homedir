@@ -149,7 +149,7 @@ public class TrendingService {
 
     private String translateDescription(String desc) {
         if (desc == null || desc.isBlank()) {
-            return "Sin descripción disponible";
+            return ""; // ponytail: template handles empty via i18n:trending_no_description
         }
         String result = desc;
         for (var entry : TRANSLATIONS.entrySet()) {
