@@ -2,10 +2,26 @@
 # deploy_with_limits.sh
 # Calculates 50% of Host RAM and deploys the container with limits.
 
-HOST="root@72.60.141.165"
-KEY="C:\Users\sergi\.ssh\id_ed25519_codex"
-# Note: In a real bash script on Windows we need to be careful with paths.
-# If running fron Git Bash, paths are different. Assuming this runs in a context where ssh works.
+# SECURITY: These values must be externalized to environment variables or GitHub Secrets
+# Required environment variables:
+#   DEPLOY_SSH_HOST - SSH host (e.g., root@72.60.141.165)
+#   DEPLOY_SSH_KEY - Path to SSH private key
+#
+# WARNING: The previous hardcoded SSH key (id_ed25519_codex) has been exposed and must be rotated.
+# Generate a new key and configure it in GitHub Secrets as DEPLOY_SSH_PRIVATE_KEY.
+
+if [ -z "$DEPLOY_SSH_HOST" ]; then
+  echo "ERROR: DEPLOY_SSH_HOST environment variable is not set" >&2
+  exit 1
+fi
+
+if [ -z "$DEPLOY_SSH_KEY" ]; then
+  echo "ERROR: DEPLOY_SSH_KEY environment variable is not set" >&2
+  exit 1
+fi
+
+HOST="$DEPLOY_SSH_HOST"
+KEY="$DEPLOY_SSH_KEY"
 
 echo "--- Detecting Host Resources ---"
 MEM_KB=$(ssh -i "$KEY" -o StrictHostKeyChecking=no $HOST "grep MemTotal /proc/meminfo" | awk '{print $2}')

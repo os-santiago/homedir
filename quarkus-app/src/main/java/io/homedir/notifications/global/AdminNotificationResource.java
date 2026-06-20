@@ -17,6 +17,7 @@ public class AdminNotificationResource {
   private static final int MAX_LIMIT = 200;
 
   @Inject GlobalNotificationService service;
+  @Inject NotificationAudienceResolver audienceResolver;
 
   @POST
   @Path("/broadcast")
@@ -25,6 +26,16 @@ public class AdminNotificationResource {
     if (dto == null || dto.title == null || dto.message == null) {
       return Response.status(Response.Status.BAD_REQUEST).build();
     }
+
+    // Validate audience requirements
+    if (dto.audience != null && !dto.audience.isBlank()) {
+      if (dto.eventId == null || dto.eventId.isBlank()) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(Map.of("error", "eventId required when audience is specified"))
+            .build();
+      }
+    }
+
     dto.id = dto.id != null ? dto.id : UUID.randomUUID().toString();
     if (dto.createdAt == 0) {
       dto.createdAt = System.currentTimeMillis();
@@ -57,5 +68,32 @@ public class AdminNotificationResource {
   public Response delete(@PathParam("id") String id) {
     boolean removed = service.removeById(id);
     return removed ? Response.noContent().build() : Response.status(404).build();
+  }
+
+  @GET
+  @Path("/audience-estimate")
+  @RolesAllowed({"admin", "admin-view"})
+  public Response estimateAudience(
+      @QueryParam("audience") String audience, @QueryParam("eventId") String eventId) {
+    if (audience == null || audience.isBlank()) {
+      return Response.ok(
+              Map.of("global", true, "total", 0, "cfpCount", 0, "cfvCount", 0, "staffCount", 0))
+          .build();
+    }
+    if (eventId == null || eventId.isBlank()) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "eventId required when audience is specified"))
+          .build();
+    }
+    NotificationAudienceResolver.AudienceEstimate estimate =
+        audienceResolver.estimateAudience(audience, eventId);
+    return Response.ok(
+            Map.of(
+                "global", estimate.global(),
+                "total", estimate.total(),
+                "cfpCount", estimate.cfpCount(),
+                "cfvCount", estimate.cfvCount(),
+                "staffCount", estimate.staffCount()))
+        .build();
   }
 }
