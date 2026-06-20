@@ -36,6 +36,13 @@ public class GlobalNotificationsWs {
       JsonObject json = Json.createReader(new StringReader(msg)).readObject();
       if ("hello".equals(json.getString("t", ""))) {
         long cursor = json.getJsonNumber("cursor").longValue();
+
+        // Associate user ID with session if provided
+        String userId = json.getString("userId", null);
+        if (userId != null && !userId.isBlank()) {
+          service.associateUserWithSession(session, userId);
+        }
+
         // ack
         session.getAsyncRemote().sendText("{" + "\"t\":\"hello-ack\"}");
         service.sendBacklog(session, cursor);

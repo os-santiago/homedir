@@ -14,4 +14,5 @@ public class GlobalNotification {
   public String dedupeKey; // hash(type|eventId|timeSlot)
   public Long expiresAt; // optional
   public boolean test; // simulation flag
+  public String audience; // "cfp,cfv,staff" or null for all (requires eventId when set)
 }

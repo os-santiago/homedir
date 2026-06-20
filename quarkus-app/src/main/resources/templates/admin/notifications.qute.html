@@ -49,9 +49,27 @@
         <label for="message" class="form-label">Mensaje</label>
         <textarea id="message" class="form-textarea" name="message" placeholder="Mensaje" required></textarea>
       </div>
+      <div class="form-group">
+        <label class="form-label">Audiencia (deja vacío para enviar a todos)</label>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="audienceCfp" id="audienceCfp" value="cfp">
+            <span>CFP (Speakers)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="audienceCfv" id="audienceCfv" value="cfv">
+            <span>CFV (Voluntarios)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="audienceStaff" id="audienceStaff" value="staff">
+            <span>Staff</span>
+          </label>
+        </div>
+        <div id="audienceEstimate" style="margin-top: 0.5rem; font-size: 0.875rem; color: #666;"></div>
+      </div>
       <div class="form-actions">
-        <button class="btn btn-primary" type="submit">Enviar a todos</button>
-        <span class="form-hint" style="margin-left: 1rem;">Se emite a todos los conectados; persistirá en el backlog
+        <button class="btn btn-primary" type="submit">Enviar</button>
+        <span class="form-hint" style="margin-left: 1rem;">Se emite según la audiencia seleccionada; persistirá en el backlog
           global.</span>
       </div>
     </form>

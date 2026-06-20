@@ -14,16 +14,62 @@
     items.forEach(n=>{
       const row = document.createElement('div');
       row.className = 'card row justify-between items-center';
+      const audienceInfo = n.audience ? ` — Audiencia: ${esc(n.audience)}` : ' — Global';
       row.innerHTML = `
         <div class="grow">
           <div class="font-medium">${esc(n.title)}</div>
           <div class="text-sm text-muted-foreground">${esc(n.message)}</div>
-          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${esc(n.type)}${n.eventId? ' — '+esc(n.eventId):''}</div>
+          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${esc(n.type)}${n.eventId? ' — '+esc(n.eventId):''}${audienceInfo}</div>
         </div>
         <button class="btn-danger" data-id="${esc(n.id)}">Eliminar</button>`;
       listEl.appendChild(row);
     });
   }
+  async function updateAudienceEstimate() {
+    const eventId = document.getElementById('eventId').value;
+    const cfp = document.getElementById('audienceCfp').checked;
+    const cfv = document.getElementById('audienceCfv').checked;
+    const staff = document.getElementById('audienceStaff').checked;
+    const estimateEl = document.getElementById('audienceEstimate');
+
+    if (!cfp && !cfv && !staff) {
+      estimateEl.textContent = 'Envío global a todos los usuarios conectados';
+      return;
+    }
+
+    if (!eventId) {
+      estimateEl.textContent = 'Selecciona un evento para ver la estimación';
+      return;
+    }
+
+    const audience = [
+      cfp ? 'cfp' : null,
+      cfv ? 'cfv' : null,
+      staff ? 'staff' : null
+    ].filter(x => x).join(',');
+
+    try {
+      const res = await fetch(`/admin/api/notifications/audience-estimate?audience=${encodeURIComponent(audience)}&eventId=${encodeURIComponent(eventId)}`, { cache: 'no-store' });
+      if (!res.ok) {
+        estimateEl.textContent = 'Error al estimar audiencia';
+        return;
+      }
+      const data = await res.json();
+      const parts = [];
+      if (cfp && data.cfpCount > 0) parts.push(`${data.cfpCount} speakers`);
+      if (cfv && data.cfvCount > 0) parts.push(`${data.cfvCount} voluntarios`);
+      if (staff && data.staffCount > 0) parts.push(`${data.staffCount} staff`);
+      estimateEl.textContent = `Alcance estimado: ${data.total} usuarios únicos (${parts.join(', ')})`;
+    } catch (e) {
+      estimateEl.textContent = 'Error al estimar audiencia';
+    }
+  }
+
+  document.getElementById('eventId').addEventListener('input', updateAudienceEstimate);
+  document.getElementById('audienceCfp').addEventListener('change', updateAudienceEstimate);
+  document.getElementById('audienceCfv').addEventListener('change', updateAudienceEstimate);
+  document.getElementById('audienceStaff').addEventListener('change', updateAudienceEstimate);
+
   document.getElementById('broadcast').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -31,8 +77,25 @@
     const minutes = parseInt(body.expiresMinutes,10);
     if(!isNaN(minutes)){ body.expiresAt = Date.now()+minutes*60*1000; }
     delete body.expiresMinutes;
+
+    // Build audience string from checkboxes
+    const cfp = document.getElementById('audienceCfp').checked;
+    const cfv = document.getElementById('audienceCfv').checked;
+    const staff = document.getElementById('audienceStaff').checked;
+    if (cfp || cfv || staff) {
+      const audience = [
+        cfp ? 'cfp' : null,
+        cfv ? 'cfv' : null,
+        staff ? 'staff' : null
+      ].filter(x => x).join(',');
+      body.audience = audience;
+    }
+    delete body.audienceCfp;
+    delete body.audienceCfv;
+    delete body.audienceStaff;
+
     const res = await fetch('/admin/api/notifications/broadcast',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if(res.ok){ e.target.reset(); load(); }
+    if(res.ok){ e.target.reset(); updateAudienceEstimate(); load(); }
   });
   listEl.addEventListener('click', async (e)=>{
     const id = e.target?.dataset?.id; if(!id) return;

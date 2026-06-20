@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -22,8 +24,10 @@ public class GlobalNotificationService {
   private final java.util.concurrent.ConcurrentHashMap<String, Long> dedupe =
       new java.util.concurrent.ConcurrentHashMap<>();
   private final Set<Session> sessions = ConcurrentHashMap.newKeySet();
+  private final ConcurrentHashMap<Session, String> sessionUsers = new ConcurrentHashMap<>();
 
   @Inject GlobalNotificationRepository repo;
+  @Inject NotificationAudienceResolver audienceResolver;
 
   public GlobalNotificationService() {}
 
@@ -54,8 +58,24 @@ public class GlobalNotificationService {
 
   public void broadcast(GlobalNotification n) {
     String json = Json.message("notif", n);
+
+    // If no audience specified, broadcast to all
+    if (n.audience == null || n.audience.isBlank()) {
+      for (Session s : sessions) {
+        s.getAsyncRemote().sendText(json);
+      }
+      return;
+    }
+
+    // Resolve target audience
+    Set<String> targetUserIds = audienceResolver.resolveAudience(n.audience, n.eventId);
+
+    // Broadcast only to users in the target audience
     for (Session s : sessions) {
-      s.getAsyncRemote().sendText(json);
+      String userId = sessionUsers.get(s);
+      if (userId != null && targetUserIds.contains(sanitizeUserId(userId))) {
+        s.getAsyncRemote().sendText(json);
+      }
     }
   }
 
@@ -65,6 +85,13 @@ public class GlobalNotificationService {
 
   public void unregister(Session s) {
     sessions.remove(s);
+    sessionUsers.remove(s);
+  }
+
+  public void associateUserWithSession(Session s, String userId) {
+    if (userId != null && !userId.isBlank()) {
+      sessionUsers.put(s, sanitizeUserId(userId));
+    }
   }
 
   public void sendBacklog(Session s, long cursor) {
@@ -108,6 +135,14 @@ public class GlobalNotificationService {
     long window = GlobalNotificationConfig.dedupeWindow.toMillis();
     dedupe.entrySet().removeIf(e -> now - e.getValue() > window);
   }
+
+  private static String sanitizeUserId(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String value = raw.trim().toLowerCase(Locale.ROOT);
+    return value.isBlank() ? null : value;
+  }
 }
 
 /** Simple JSON utility. */
@@ -127,6 +162,7 @@ class Json {
     if (n.dedupeKey != null) b.add("dedupeKey", n.dedupeKey);
     if (n.expiresAt != null) b.add("expiresAt", n.expiresAt);
     if (n.test) b.add("test", true);
+    if (n.audience != null) b.add("audience", n.audience);
     return b.build().toString();
   }
 }
