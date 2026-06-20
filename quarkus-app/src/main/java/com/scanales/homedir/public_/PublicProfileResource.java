@@ -174,7 +174,7 @@ public class PublicProfileResource {
         boolean selectionLocked =
             (cfpAcceptedCount > 0 || volunteerSelectedCount > 0) && !selectionReadiness.ready();
         List<PublicParticipationItem> participationHistory =
-            selectionLocked ? List.of() : buildParticipationHistory(cfpUserIds, 20);
+            buildParticipationHistory(cfpUserIds, 20);
 
         return Response.ok(TemplateLocaleUtil.apply(
             publicProfile
@@ -418,7 +418,7 @@ public class PublicProfileResource {
 
     private ResourceBundle localizedChallengeBundle(String localeCode) {
         Locale bundleLocale = "es".equalsIgnoreCase(localeCode) ? Locale.forLanguageTag("es") : Locale.ROOT;
-        return ResourceBundle.getBundle("messages.app_i18n", bundleLocale);
+        return ResourceBundle.getBundle("i18n", bundleLocale);
     }
 
     private String bundleText(ResourceBundle bundle, String key) {

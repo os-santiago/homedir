@@ -148,7 +148,7 @@ public class GamificationService {
     String normalized = localeCode == null ? "" : localeCode.trim().toLowerCase(Locale.ROOT);
     Locale bundleLocale =
         normalized.startsWith("es") ? Locale.forLanguageTag("es") : Locale.ROOT;
-    return ResourceBundle.getBundle("messages.app_i18n", bundleLocale);
+    return ResourceBundle.getBundle("i18n", bundleLocale);
   }
 
   private static String bundleText(ResourceBundle bundle, String key) {

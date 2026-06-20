@@ -823,7 +823,7 @@ public class AdminCampaignsResource {
 
   private AdminCampaignsCopy localizedCopy(String localeCode) {
     Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
-    ResourceBundle bundle = ResourceBundle.getBundle("messages.app_i18n", locale);
+    ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
     return new AdminCampaignsCopy(
         text(bundle, "campaigns_admin_page_title"),
         text(bundle, "campaigns_admin_subtitle"),
@@ -1146,7 +1146,7 @@ public class AdminCampaignsResource {
   }
 
   private List<AdminFilterOption> workflowOptions(String localeCode) {
-    ResourceBundle bundle = ResourceBundle.getBundle("messages.app_i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
+    ResourceBundle bundle = ResourceBundle.getBundle("i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
     return List.of(
         new AdminFilterOption("draft", text(bundle, "campaigns_workflow_draft")),
         new AdminFilterOption("approved", text(bundle, "campaigns_workflow_approved")),
@@ -1155,7 +1155,7 @@ public class AdminCampaignsResource {
   }
 
   private List<AdminFilterOption> kindOptions(String localeCode) {
-    ResourceBundle bundle = ResourceBundle.getBundle("messages.app_i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
+    ResourceBundle bundle = ResourceBundle.getBundle("i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
     return List.of(
         new AdminFilterOption("product_pulse", text(bundle, "campaigns_kind_product_pulse")),
         new AdminFilterOption("challenge_spotlight", text(bundle, "campaigns_kind_challenge_spotlight")),
@@ -1164,7 +1164,7 @@ public class AdminCampaignsResource {
   }
 
   private List<AdminFilterOption> channelOptions(String localeCode) {
-    ResourceBundle bundle = ResourceBundle.getBundle("messages.app_i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
+    ResourceBundle bundle = ResourceBundle.getBundle("i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
     return List.of(
         new AdminFilterOption("discord", text(bundle, "campaigns_channel_discord")),
         new AdminFilterOption("bluesky", text(bundle, "campaigns_channel_bluesky")),
@@ -1277,7 +1277,7 @@ public class AdminCampaignsResource {
       CampaignService.CampaignPreviewSnapshot view,
       AdminCampaignFilters filters) {
     Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
-    ResourceBundle bundle = ResourceBundle.getBundle("messages.app_i18n", locale);
+    ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
     Set<String> issueDraftIds = new LinkedHashSet<>();
     for (CampaignService.CampaignPublishRecoveryItem item : view.recoveryItems()) {
       issueDraftIds.add(item.draftId());

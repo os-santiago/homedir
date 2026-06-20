@@ -38,7 +38,6 @@ public class AdminEventCfpPageTest {
     eventService.saveEvent(new Event(EVENT_ID, "CFP Admin Event", "desc"));
 
     given()
-        .header("Accept-Language", "en")
         .when()
         .get("/private/admin/events/" + EVENT_ID + "/cfp")
         .then()
@@ -87,7 +86,6 @@ public class AdminEventCfpPageTest {
                 List.of("https://example.org/talk")));
 
     given()
-        .header("Accept-Language", "en")
         .when()
         .get("/private/admin/events/" + EVENT_ID + "/cfp/submissions/" + submission.id())
         .then()
@@ -106,7 +104,7 @@ public class AdminEventCfpPageTest {
   void nonAdminCannotOpenModerationPage() {
     eventService.saveEvent(new Event(EVENT_ID, "CFP Admin Event", "desc"));
 
-    given().header("Accept-Language", "en").when().get("/private/admin/events/" + EVENT_ID + "/cfp").then().statusCode(403);
+    given().when().get("/private/admin/events/" + EVENT_ID + "/cfp").then().statusCode(403);
   }
 
   @Test
@@ -122,7 +120,6 @@ public class AdminEventCfpPageTest {
         true);
 
     given()
-        .header("Accept-Language", "en")
         .when()
         .get("/private/admin/events/" + EVENT_ID + "/cfp")
         .then()
@@ -164,7 +161,6 @@ public class AdminEventCfpPageTest {
                 List.of("https://example.org/talk")));
 
     given()
-        .header("Accept-Language", "en")
         .when()
         .get("/private/admin/events/" + EVENT_ID + "/cfp/submissions/" + submission.id())
         .then()
@@ -177,6 +173,6 @@ public class AdminEventCfpPageTest {
   @Test
   @TestSecurity(user = "admin@example.org")
   void missingEventReturnsNotFound() {
-    given().header("Accept-Language", "en").when().get("/private/admin/events/missing-cfp-event/cfp").then().statusCode(404);
+    given().when().get("/private/admin/events/missing-cfp-event/cfp").then().statusCode(404);
   }
 }
