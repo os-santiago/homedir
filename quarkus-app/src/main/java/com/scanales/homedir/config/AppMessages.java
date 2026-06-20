@@ -6590,4 +6590,25 @@ public interface AppMessages {
     @Message("Visit repository")
     String trending_visit_repo();
 
+    @Message("Support")
+    String footer_support();
+
+    @Message("Get help on our Discord server")
+    String footer_support_aria();
+
+    @Message("Need help?")
+    String support_discord_banner_title();
+
+    @Message("Join our support channel on Discord for help with events, CFP, volunteering, or anything else.")
+    String support_discord_banner_desc();
+
+    @Message("Get support on Discord")
+    String support_discord_banner_cta();
+
+    @Message("Open Discord support channel")
+    String support_discord_aria_label();
+
+    @Message("Discord Support")
+    String support_discord_footer_link();
+
 }
