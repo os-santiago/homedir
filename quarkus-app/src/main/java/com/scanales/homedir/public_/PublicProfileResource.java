@@ -173,6 +173,8 @@ public class PublicProfileResource {
                 .toList();
         boolean selectionLocked =
             (cfpAcceptedCount > 0 || volunteerSelectedCount > 0) && !selectionReadiness.ready();
+        List<PublicParticipationItem> participationHistory =
+            buildParticipationHistory(cfpUserIds, 20);
 
         return Response.ok(TemplateLocaleUtil.apply(
             publicProfile
@@ -209,6 +211,7 @@ public class PublicProfileResource {
                 .data("selectionLocked", selectionLocked)
                 .data("volunteerSelectedCount", volunteerSelectedCount)
                 .data("volunteerRecentSelected", volunteerRecentSelected)
+                .data("participationHistory", participationHistory)
                 .data("completedChallenges", completedChallenges)
                 .data("reputationSummary", reputationSummary)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")
@@ -664,6 +667,71 @@ public class PublicProfileResource {
         return new PublicVolunteerItem(eventTitle, "/event/" + eventId + "/volunteers", eventId);
     }
 
+    private List<PublicParticipationItem> buildParticipationHistory(
+        java.util.Set<String> userIds, int limit) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+        java.util.List<PublicParticipationItem> combined = new java.util.ArrayList<>();
+
+        List<CfpSubmission> cfpAccepted =
+            cfpSubmissionService.listMineAcrossEvents(
+                userIds, CfpSubmissionService.SortOrder.UPDATED_DESC, limit * 2, 0)
+            .stream()
+            .filter(item -> cfpSubmissionService.visibleStatus(item) == CfpSubmissionStatus.ACCEPTED)
+            .toList();
+
+        for (CfpSubmission submission : cfpAccepted) {
+            String eventId = submission.eventId() != null ? submission.eventId() : "";
+            com.scanales.homedir.model.Event event = eventService.getEvent(eventId);
+            String eventTitle =
+                event != null && event.getTitle() != null && !event.getTitle().isBlank()
+                    ? event.getTitle()
+                    : eventId;
+            java.time.Instant participatedAt = submission.moderatedAt() != null
+                ? submission.moderatedAt()
+                : submission.updatedAt();
+            combined.add(new PublicParticipationItem(
+                "CFP",
+                submission.title() != null ? submission.title() : "",
+                eventTitle,
+                "/event/" + eventId + "/cfp/selected",
+                participatedAt));
+        }
+
+        List<VolunteerApplication> volunteersSelected =
+            volunteerApplicationService.listMineAcrossEvents(
+                userIds, VolunteerApplicationService.SortOrder.UPDATED_DESC, limit * 2, 0)
+            .stream()
+            .filter(item -> item.status() == VolunteerApplicationStatus.SELECTED)
+            .toList();
+
+        for (VolunteerApplication application : volunteersSelected) {
+            String eventId = application.eventId() != null ? application.eventId() : "";
+            com.scanales.homedir.model.Event event = eventService.getEvent(eventId);
+            String eventTitle =
+                event != null && event.getTitle() != null && !event.getTitle().isBlank()
+                    ? event.getTitle()
+                    : eventId;
+            java.time.Instant participatedAt = application.moderatedAt() != null
+                ? application.moderatedAt()
+                : application.updatedAt();
+            combined.add(new PublicParticipationItem(
+                "VOLUNTEER",
+                eventTitle,
+                eventTitle,
+                "/event/" + eventId + "/volunteers/selected",
+                participatedAt));
+        }
+
+        return combined.stream()
+            .sorted(java.util.Comparator.comparing(
+                PublicParticipationItem::participatedAt,
+                java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+            .limit(limit)
+            .toList();
+    }
+
     private static void addNormalizedUserId(java.util.Set<String> ids, String raw) {
         if (ids == null || raw == null) {
             return;
@@ -733,6 +801,14 @@ public class PublicProfileResource {
     }
 
     private record PublicVolunteerItem(String eventTitle, String eventUrl, String eventId) {
+    }
+
+    private record PublicParticipationItem(
+        String type,
+        String title,
+        String eventTitle,
+        String eventUrl,
+        java.time.Instant participatedAt) {
     }
 
     private record PublicChallengeCopy(

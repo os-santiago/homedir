@@ -52,6 +52,8 @@ public class EventResource {
 
     static native TemplateInstance cfpSpeakers(Event event, List<CfpSubmission> acceptedSubmissions);
 
+    static native TemplateInstance cfpSelected(Event event, List<CfpSubmission> selectedSubmissions);
+
     static native TemplateInstance volunteers(Event event, boolean volunteerSelected);
 
     static native TemplateInstance volunteersLounge(
@@ -169,6 +171,32 @@ public class EventResource {
     }
     return withLayoutData(
         Templates.cfpSpeakers(event, acceptedSubmissions),
+        "eventos",
+        localeCookie,
+        headers);
+  }
+
+  @GET
+  @Path("{id}/cfp/selected")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance cfpSelected(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/event/cfp/selected", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, id + ":cfp-selected"));
+    Event event = eventService.getEvent(id);
+    List<CfpSubmission> selectedSubmissions = List.of();
+    if (event != null && cfpSubmissionService != null) {
+      selectedSubmissions = cfpSubmissionService.listByEventAll(
+          id,
+          Optional.of(CfpSubmissionStatus.ACCEPTED),
+          CfpSubmissionService.SortOrder.UPDATED_DESC);
+    }
+    return withLayoutData(
+        Templates.cfpSelected(event, selectedSubmissions),
         "eventos",
         localeCookie,
         headers);
