@@ -1168,7 +1168,7 @@ public class ProfileResource {
 
   private ResourceBundle localizedChallengeBundle(String language) {
     Locale bundleLocale = "es".equalsIgnoreCase(language) ? Locale.forLanguageTag("es") : Locale.ROOT;
-    return ResourceBundle.getBundle("i18n", bundleLocale);
+    return ResourceBundle.getBundle("messages.app_i18n", bundleLocale);
   }
 
   private String formatNamed(String pattern, Object... keyValues) {

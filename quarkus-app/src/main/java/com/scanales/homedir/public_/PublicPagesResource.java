@@ -644,7 +644,7 @@ public class PublicPagesResource {
     String normalized = localeCode == null ? "" : localeCode.trim().toLowerCase(Locale.ROOT);
     Locale bundleLocale =
         normalized.startsWith("es") ? Locale.forLanguageTag("es") : Locale.ROOT;
-    return ResourceBundle.getBundle("i18n", bundleLocale);
+    return ResourceBundle.getBundle("messages.app_i18n", bundleLocale);
   }
 
   private String formatNamed(String pattern, Object... keyValues) {

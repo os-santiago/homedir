@@ -29,9 +29,18 @@ public class ProjectsResourceTest {
         .body(
             anyOf(
                 containsString("Homedir feature map"),
-                containsString("Mapa de features de Homedir")))
-        .body(containsString("Gamification: Levels"))
-        .body(containsString("Rewards Catalog Preview"))
+                containsString("Mapa de features de Homedir"),
+                containsString("Mapa de características de Homedir")))
+        .body(
+            anyOf(
+                containsString("Gamification: Levels"),
+                containsString("Gamificación: niveles y clases"),
+                containsString("Gamificación: niveles")))
+        .body(
+            anyOf(
+                containsString("Rewards Catalog Preview"),
+                containsString("Catálogo de recompensas"),
+                containsString("Vista previa del catálogo")))
         .body(containsString("/notifications/center"));
   }
 
@@ -52,7 +61,8 @@ public class ProjectsResourceTest {
         .body(
             anyOf(
                 containsString("Homedir feature map"),
-                containsString("Mapa de features de Homedir")));
+                containsString("Mapa de features de Homedir"),
+                containsString("Mapa de características de Homedir")));
   }
 
   @Test

@@ -1417,7 +1417,7 @@ public class CampaignService {
 
   private ResourceBundle localizedBundle(String localeCode) {
     Locale bundleLocale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
-    return ResourceBundle.getBundle("i18n", bundleLocale);
+    return ResourceBundle.getBundle("messages.app_i18n", bundleLocale);
   }
 
   private static String bundleText(ResourceBundle bundle, String key) {
