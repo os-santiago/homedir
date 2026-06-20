@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import Optional, List
 from github import Github, GithubException
 import asyncio
+import threading
 
 # Configuración desde variables de entorno
 DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
@@ -35,14 +36,16 @@ class IssueMapping:
 
     def __init__(self, filepath: str):
         self.filepath = filepath
+        self._lock = threading.Lock()
         self.data = self._load()
 
     def _load(self) -> dict:
         """Carga el mapeo desde el archivo JSON"""
         try:
-            if os.path.exists(self.filepath):
-                with open(self.filepath, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+            with self._lock:
+                if os.path.exists(self.filepath):
+                    with open(self.filepath, 'r', encoding='utf-8') as f:
+                        return json.load(f)
         except Exception as e:
             print(f"Error cargando mapeo: {e}")
         return {}
@@ -50,8 +53,9 @@ class IssueMapping:
     def _save(self):
         """Guarda el mapeo al archivo JSON"""
         try:
-            with open(self.filepath, 'w', encoding='utf-8') as f:
-                json.dump(self.data, f, indent=2, ensure_ascii=False)
+            with self._lock:
+                with open(self.filepath, 'w', encoding='utf-8') as f:
+                    json.dump(self.data, f, indent=2, ensure_ascii=False)
         except Exception as e:
             print(f"Error guardando mapeo: {e}")
 
@@ -188,14 +192,14 @@ class DiscordGitHubBot(discord.Client):
 bot = DiscordGitHubBot()
 
 
-@bot.tree.command(name="ayuda", description="Crear un nuevo issue en GitHub")
+@bot.tree.command(name="crear-issue", description="Crear un nuevo issue en GitHub")
 @app_commands.describe(
     titulo="Título del issue",
     descripcion="Descripción detallada del problema o solicitud",
     prioridad="Prioridad del issue (P1=Crítica, P2=Alta, P3=Media, P4=Baja, P5=Mínima)",
     etiquetas="Etiquetas separadas por comas (opcional)"
 )
-async def ayuda(
+async def crear_issue(
     interaction: discord.Interaction,
     titulo: str,
     descripcion: str,
@@ -203,6 +207,20 @@ async def ayuda(
     etiquetas: Optional[str] = None
 ):
     """Comando para crear un issue en GitHub"""
+
+    # Validar longitud de título y descripción
+    if len(titulo) > 256:
+        await interaction.response.send_message(
+            "El título es demasiado largo (máximo 256 caracteres).",
+            ephemeral=True
+        )
+        return
+    if len(descripcion) > 4000:
+        await interaction.response.send_message(
+            "La descripción es demasiado larga (máximo 4000 caracteres).",
+            ephemeral=True
+        )
+        return
 
     # Validar prioridad
     prioridades_validas = ['P1', 'P2', 'P3', 'P4', 'P5']
