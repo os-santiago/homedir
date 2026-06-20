@@ -82,17 +82,17 @@ public class TrendingService {
     refreshAllAsync("startup");
   }
 
-  @Scheduled(cron = "${trending.daily.cron:0 0 * * ?}")
+  @Scheduled(cron = "${trending.daily.cron:0 0 0 * * ?}")
   void refreshDaily() {
     refreshAsync(TrendingPeriod.DAILY, "scheduled");
   }
 
-  @Scheduled(cron = "${trending.weekly.cron:0 0 * * MON}")
+  @Scheduled(cron = "${trending.weekly.cron:0 0 0 * * MON}")
   void refreshWeekly() {
     refreshAsync(TrendingPeriod.WEEKLY, "scheduled");
   }
 
-  @Scheduled(cron = "${trending.monthly.cron:0 0 1 * *}")
+  @Scheduled(cron = "${trending.monthly.cron:0 0 0 1 * ?}")
   void refreshMonthly() {
     refreshAsync(TrendingPeriod.MONTHLY, "scheduled");
   }
