@@ -303,9 +303,8 @@ public class ProfileResource {
       sub = email;
     }
 
-    final String finalLang = resolveLanguage(localeCookie, email);
-    AppMessages localizedMessages =
-        MessageBundles.get(AppMessages.class, Localized.Literal.of(finalLang));
+    final String finalLang = resolveLanguage(localeCookie, email, headers);
+    AppMessages localizedMessages = resolveBundle(finalLang);
     ChallengeCopy challengeCopy = challengeCopy(finalLang);
 
     var groups = getEventGroupsForUser(email);
@@ -479,10 +478,9 @@ public class ProfileResource {
     if (name == null || name.isBlank()) {
       name = email;
     }
-    String finalLang = resolveLanguage(localeCookie, email);
+    String finalLang = resolveLanguage(localeCookie, email, null);
     String initial = name.isBlank() ? "U" : name.substring(0, 1).toUpperCase(Locale.ROOT);
-    AppMessages localizedMessages =
-        MessageBundles.get(AppMessages.class, Localized.Literal.of(finalLang));
+    AppMessages localizedMessages = resolveBundle(finalLang);
     return Templates.catalog(name, finalLang, localizedMessages)
         .data("userAuthenticated", true)
         .data("userName", name)
@@ -915,13 +913,33 @@ public class ProfileResource {
     return "hd-" + shortHash(seed, 16);
   }
 
-  private String resolveLanguage(String localeCookie, String userId) {
+  private AppMessages resolveBundle(String lang) {
+    try {
+      return MessageBundles.get(AppMessages.class, Localized.Literal.of(lang));
+    } catch (IllegalStateException e) {
+      return MessageBundles.get(AppMessages.class);
+    }
+  }
+
+  private String resolveLanguage(String localeCookie, String userId, jakarta.ws.rs.core.HttpHeaders headers) {
     String lang = "es";
     java.util.Optional<com.scanales.homedir.model.UserProfile> p = userProfiles.find(userId);
     if (p.isPresent() && p.get().getPreferredLocale() != null) {
       lang = p.get().getPreferredLocale();
     } else if (localeCookie != null && !localeCookie.isBlank()) {
       lang = localeCookie;
+    } else if (headers != null) {
+      for (java.util.Locale locale : headers.getAcceptableLanguages()) {
+        if (locale == null) continue;
+        String normalized = locale.getLanguage();
+        if (normalized != null && !normalized.isBlank()) {
+          normalized = normalized.trim().toLowerCase(java.util.Locale.ROOT);
+          if ("en".equals(normalized) || "es".equals(normalized)) {
+            lang = normalized;
+            break;
+          }
+        }
+      }
     }
     return "en".equalsIgnoreCase(lang) ? "en" : "es";
   }

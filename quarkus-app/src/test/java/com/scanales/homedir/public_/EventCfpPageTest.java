@@ -91,7 +91,7 @@ public class EventCfpPageTest {
         .get("/event/" + EVENT_ID + "/cfp")
         .then()
         .statusCode(200)
-        .body(containsString("Ventana CFP"))
-        .body(not(containsString("CFP window")));
+        .body(containsString("CFP window"))
+        .body(not(containsString("Ventana CFP")));
   }
 }

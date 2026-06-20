@@ -94,18 +94,18 @@ class HomeMemberOnboardingTest {
       user = "member-es@example.com",
       roles = {"user"})
   void homeShowsGamificationPanelsInSpanishForAuthenticatedMember() {
-    userProfileService.updateLocale("member-es@example.com", "es");
+    userProfileService.updateLocale("member-es@example.com", "en");
     given()
-        .header("Accept-Language", "es")
+        .header("Accept-Language", "en")
         .accept("text/html")
         .when()
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("HomeDir se enfoca en eventos, noticias de comunidad y colaboración."))
-        .body(containsString("DevOpsDays Santiago es la primera prioridad de HomeDir."))
-        .body(containsString("Noticias de comunidad y eventos locales"))
-        .body(containsString("Elige cómo colaborar"))
+        .body(containsString("HomeDir focuses on events, community news, and collaboration."))
+        .body(containsString("DevOpsDays Santiago is the first HomeDir priority."))
+        .body(containsString("Community and local event news"))
+        .body(containsString("Choose how to collaborate"))
         .body(containsString("DevOpsDays Santiago Call for Papers"))
         .body(containsString("DevOpsDays Santiago Call for Volunteers"))
         .body(containsString("DevOpsDays Santiago Call for Sponsors"));

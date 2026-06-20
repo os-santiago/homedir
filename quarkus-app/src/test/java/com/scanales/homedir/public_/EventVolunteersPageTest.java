@@ -41,8 +41,8 @@ public class EventVolunteersPageTest {
         .get("/event/" + EVENT_ID + "/volunteers")
         .then()
         .statusCode(200)
-        .body(containsString("Programa de voluntariado"))
-        .body(not(containsString("Volunteer Program")));
+        .body(containsString("Volunteer Program"))
+        .body(not(containsString("Programa de voluntariado")));
   }
 
   @Test

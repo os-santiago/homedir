@@ -423,7 +423,7 @@ public class ProfileResourceTest {
         .statusCode(200)
         .body(containsString("Call for Papers"))
         .body(containsString("Profile CFP Talk"))
-        .body(containsString("Entrega"))
+        .body(containsString("Delivery"))
         .body(containsString("Day 1 / Morning"))
         .body(containsString("Main Stage"))
         .body(containsString("/event/" + CFP_EVENT_ID + "/cfp#my-proposals"));

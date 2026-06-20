@@ -379,7 +379,7 @@
             </div>
             {/if}
 
-            {#if participationHistory && participationHistory.size() > 0}
+            {#if !selectionLocked && participationHistory && participationHistory.size() > 0}
             <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">
                     {#if localeCode == 'es'}Historial de Participación{#else}Participation History{/if}

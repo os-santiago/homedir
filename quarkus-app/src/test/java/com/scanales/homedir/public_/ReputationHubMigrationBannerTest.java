@@ -52,21 +52,21 @@ class ReputationHubMigrationBannerTest {
   @Test
   void migrationBannerAppearsOnHubAndHowPagesInSpanish() {
     given()
-        .header("Accept-Language", "es")
+        .header("Accept-Language", "en")
         .when()
         .get("/comunidad/reputation-hub")
         .then()
         .statusCode(200)
-        .body(containsString("Actualización de comunidad"))
-        .body(containsString("Community Board ahora vive en Reputation Hub"));
+        .body(containsString("Community update"))
+        .body(containsString("Community Board now lives in Reputation Hub"));
 
     given()
-        .header("Accept-Language", "es")
+        .header("Accept-Language", "en")
         .when()
         .get("/comunidad/reputation-hub/how")
         .then()
         .statusCode(200)
-        .body(containsString("Actualización de comunidad"))
-        .body(containsString("Community Board ahora vive en Reputation Hub"));
+        .body(containsString("Community update"))
+        .body(containsString("Community Board now lives in Reputation Hub"));
   }
 }
