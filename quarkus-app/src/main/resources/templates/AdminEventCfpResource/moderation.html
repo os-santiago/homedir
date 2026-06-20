@@ -840,6 +840,13 @@
         article.appendChild(row(i18n.deliveryTitle + ": " + deliveryParts.join(" · ")));
       }
 
+      if (item.moderation_note) {
+        const noteLine = document.createElement("p");
+        noteLine.className = "cfp-admin-meta";
+        noteLine.textContent = "Nota: " + item.moderation_note;
+        article.appendChild(noteLine);
+      }
+
       const actions = document.createElement("div");
       actions.className = "cfp-admin-actions";
 
