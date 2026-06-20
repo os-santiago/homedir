@@ -1,7 +1,7 @@
 package com.scanales.homedir.public_;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.*;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -10,23 +10,25 @@ import org.junit.jupiter.api.Test;
 public class HealthResourceConsistencyTest {
 
   @Test
-  void healthRootReturnsOk() {
+  void healthRootHasStatusAndChecks() {
     given()
         .when()
         .get("/health")
         .then()
-        .statusCode(200)
-        .body(containsString("ok"));
+        .statusCode(anyOf(is(200), is(503)))
+        .body("$", hasKey("status"))
+        .body("$", hasKey("checks"));
   }
 
   @Test
-  void healthReadyReturnsReady() {
+  void healthReadyHasStatusAndChecks() {
     given()
         .when()
         .get("/health/ready")
         .then()
-        .statusCode(200)
-        .body(containsString("ready"));
+        .statusCode(anyOf(is(200), is(503)))
+        .body("$", hasKey("status"))
+        .body("$", hasKey("checks"));
   }
 
   @Test

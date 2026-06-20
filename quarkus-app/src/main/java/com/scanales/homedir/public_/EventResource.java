@@ -50,8 +50,6 @@ public class EventResource {
         Map<String, Integer> cfpDurationByFormat,
         CfpTimelineView cfpTimeline);
 
-    static native TemplateInstance cfpSpeakers(Event event, List<CfpSubmission> acceptedSubmissions);
-
     static native TemplateInstance cfpSelected(Event event, List<CfpSubmission> selectedSubmissions);
 
     static native TemplateInstance volunteers(Event event, boolean volunteerSelected);
@@ -170,7 +168,7 @@ public class EventResource {
           CfpSubmissionService.SortOrder.CREATED_DESC);
     }
     return withLayoutData(
-        Templates.cfpSpeakers(event, acceptedSubmissions),
+        Templates.cfpSelected(event, acceptedSubmissions),
         "eventos",
         localeCookie,
         headers);
