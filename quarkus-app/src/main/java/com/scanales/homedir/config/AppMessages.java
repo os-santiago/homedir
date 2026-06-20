@@ -1720,6 +1720,12 @@ public interface AppMessages {
     @Message("Close")
     String events_cfp_admin_modal_close();
 
+    @Message("Previous")
+    String events_cfp_admin_nav_previous();
+
+    @Message("Next")
+    String events_cfp_admin_nav_next();
+
     @Message("Submission metadata")
     String events_cfp_admin_section_metadata();
 

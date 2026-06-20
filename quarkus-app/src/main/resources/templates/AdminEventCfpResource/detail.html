@@ -12,6 +12,8 @@
         <p class="section-subtitle">{i18n:events_cfp_admin_event_label(event.title)}</p>
       </div>
       <div class="action-group admin-nav-strip">
+        <button id="cfpPrevBtn" type="button" class="btn btn-secondary" disabled>{i18n:events_cfp_admin_nav_previous}</button>
+        <button id="cfpNextBtn" type="button" class="btn btn-secondary" disabled>{i18n:events_cfp_admin_nav_next}</button>
         <a id="cfpBackToOverviewLink" href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_back_overview}</a>
         {#if canManage}
         <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
@@ -238,8 +240,12 @@
     const backToOverviewLink = document.getElementById("cfpBackToOverviewLink");
     const actionModal = document.getElementById("cfpActionModal");
     const actionModalBody = document.getElementById("cfpActionModalBody");
+    const prevBtn = document.getElementById("cfpPrevBtn");
+    const nextBtn = document.getElementById("cfpNextBtn");
     let currentItem = null;
     let actionModalTimer = null;
+    let submissionList = [];
+    let currentSubmissionIndex = -1;
 
     const i18n = {
       loading: "{i18n:events_cfp_admin_detail_loading}",
@@ -303,7 +309,9 @@
       deliveryStatusPending: "{i18n:events_cfp_delivery_status_pending}",
       notAvailable: "{i18n:events_cfp_admin_not_available}",
       sectionMetadata: "{i18n:events_cfp_admin_section_metadata}",
-      sectionReview: "{i18n:events_cfp_admin_section_review}"
+      sectionReview: "{i18n:events_cfp_admin_section_review}",
+      navPrevious: "{i18n:events_cfp_admin_nav_previous}",
+      navNext: "{i18n:events_cfp_admin_nav_next}"
     };
 
     const statusLabel = {
@@ -667,7 +675,8 @@
           const payload = await updateRating({
             technical_detail: Number(technical.select.value),
             narrative: Number(narrative.select.value),
-            content_impact: Number(impact.select.value)
+            content_impact: Number(impact.select.value),
+            note: note.value
           }, currentItem.updated_at);
           if (payload && payload.item) {
             currentItem = payload.item;
@@ -807,8 +816,58 @@
       }
     }
 
+    async function loadSubmissionList() {
+      const params = new URLSearchParams(window.location.search);
+      const currentStatus = params.get("status") || "pending";
+      const currentSort = params.get("sort") || "created";
+      try {
+        const listUrl = baseEndpoint + "?status=" + encodeURIComponent(currentStatus) + "&sort=" + encodeURIComponent(currentSort) + "&limit=999";
+        const response = await fetch(listUrl, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          return;
+        }
+        const payload = await response.json();
+        submissionList = (payload && Array.isArray(payload.items)) ? payload.items : [];
+        currentSubmissionIndex = submissionList.findIndex((item) => item && item.id === submissionId);
+        updateNavigationButtons();
+      } catch (error) {
+        console.error("Could not load submission list:", error);
+      }
+    }
+
+    function updateNavigationButtons() {
+      if (!prevBtn || !nextBtn) {
+        return;
+      }
+      const hasPrev = currentSubmissionIndex > 0;
+      const hasNext = currentSubmissionIndex >= 0 && currentSubmissionIndex < submissionList.length - 1;
+      prevBtn.disabled = !hasPrev;
+      nextBtn.disabled = !hasNext;
+    }
+
+    function navigateTo(direction) {
+      const targetIndex = direction === "prev" ? currentSubmissionIndex - 1 : currentSubmissionIndex + 1;
+      if (targetIndex < 0 || targetIndex >= submissionList.length) {
+        return;
+      }
+      const targetSubmission = submissionList[targetIndex];
+      if (!targetSubmission || !targetSubmission.id) {
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      window.location.href = "/private/admin/events/" + encodeURIComponent(eventId) + "/cfp/submissions/" + encodeURIComponent(targetSubmission.id) + "?" + params.toString();
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => navigateTo("prev"));
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => navigateTo("next"));
+    }
+
     syncBackToOverviewLink(null);
     loadDetail();
+    loadSubmissionList();
   })();
 </script>
 {/body}
