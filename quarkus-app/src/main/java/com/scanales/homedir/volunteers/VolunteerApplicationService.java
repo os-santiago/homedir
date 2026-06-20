@@ -36,6 +36,7 @@ public class VolunteerApplicationService {
   @Inject PersistenceService persistenceService;
   @Inject EventService eventService;
   @Inject VolunteerEventConfigService volunteerEventConfigService;
+  @Inject com.scanales.homedir.service.UserProfileService userProfileService;
 
   private final ConcurrentHashMap<String, VolunteerApplication> applications = new ConcurrentHashMap<>();
   private final Object lock = new Object();
@@ -475,7 +476,28 @@ public class VolunteerApplicationService {
             current.ratingDifferentiator());
     applications.put(updated.id(), updated);
     persistSync();
+
+    if (statusChanged && newStatus == VolunteerApplicationStatus.SELECTED) {
+      recordVolunteerParticipation(updated);
+    }
+
     return updated;
+  }
+
+  private void recordVolunteerParticipation(VolunteerApplication application) {
+    if (application == null || userProfileService == null) {
+      return;
+    }
+    try {
+      String userId = sanitizeUserId(application.applicantUserId());
+      if (userId != null) {
+        com.scanales.homedir.model.Event event = eventService.getEvent(application.eventId());
+        String eventTitle = event != null && event.getTitle() != null ? event.getTitle() : application.eventId();
+        userProfileService.addEventParticipation(userId, application.eventId(), eventTitle, "CFV_VOLUNTEER");
+      }
+    } catch (Exception e) {
+      // Log but don't fail the main operation
+    }
   }
 
   private VolunteerEventConfigService.ResolvedEventConfig resolveEventConfig(String eventId) {

@@ -5,6 +5,7 @@ import com.scanales.homedir.cfp.CfpFormCatalog;
 import com.scanales.homedir.cfp.CfpConfigService;
 import com.scanales.homedir.cfp.CfpEventConfigService;
 import com.scanales.homedir.cfp.CfpFormOptionsService;
+import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpTimelinePlanner;
 import com.scanales.homedir.cfp.CfpTimelineView;
 import com.scanales.homedir.eventops.EventOperationsService;
@@ -46,6 +47,8 @@ public class EventResource {
         Map<String, Integer> cfpDurationByFormat,
         CfpTimelineView cfpTimeline);
 
+    static native TemplateInstance cfpSpeakers(Event event, java.util.List<CfpSpeakerItem> speakers);
+
     static native TemplateInstance volunteers(Event event, boolean volunteerSelected);
 
     static native TemplateInstance volunteersLounge(
@@ -64,6 +67,7 @@ public class EventResource {
 
   @Inject CfpConfigService cfpConfigService;
   @Inject CfpEventConfigService cfpEventConfigService;
+  @Inject CfpSubmissionService cfpSubmissionService;
   @Inject AgendaProposalConfigService agendaProposalConfigService;
   @Inject GamificationService gamificationService;
   @Inject VolunteerApplicationService volunteerApplicationService;
@@ -137,6 +141,32 @@ public class EventResource {
             localeCookie,
             headers)
         .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
+  }
+
+  @GET
+  @Path("{id}/cfp/speakers")
+  @PermitAll
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance cfpSpeakers(
+      @PathParam("id") String id,
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
+      @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
+    metrics.recordPageView("/event/cfp/speakers", headers, context);
+    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, id + ":cfp-speakers"));
+    Event event = eventService.getEvent(id);
+    java.util.List<CfpSpeakerItem> speakers = java.util.List.of();
+    if (event != null && cfpSubmissionService != null) {
+      speakers = cfpSubmissionService.acceptedVisibleSubmissionsForEvent(id).stream()
+          .map(this::toCfpSpeakerItem)
+          .filter(item -> item != null)
+          .toList();
+    }
+    return withLayoutData(
+        Templates.cfpSpeakers(event, speakers),
+        "eventos",
+        localeCookie,
+        headers);
   }
 
   @GET
@@ -260,4 +290,17 @@ public class EventResource {
     }
     return java.util.Optional.empty();
   }
+
+  private CfpSpeakerItem toCfpSpeakerItem(com.scanales.homedir.cfp.CfpSubmission submission) {
+    if (submission == null) {
+      return null;
+    }
+    return new CfpSpeakerItem(
+        submission.proposerName() != null ? submission.proposerName() : submission.proposerUserId(),
+        submission.title(),
+        submission.track(),
+        submission.format());
+  }
+
+  public record CfpSpeakerItem(String speakerName, String talkTitle, String track, String format) {}
 }

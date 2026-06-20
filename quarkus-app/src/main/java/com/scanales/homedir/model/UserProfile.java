@@ -23,6 +23,7 @@ public class UserProfile {
   private java.util.Map<String, String> activityDailyStamps = new java.util.HashMap<>();
   private java.util.List<String> activeQuests = new java.util.ArrayList<>();
   private java.util.List<QuestHistoryItem> history = new java.util.ArrayList<>();
+  private java.util.List<EventParticipationHistoryItem> eventParticipationHistory = new java.util.ArrayList<>();
 
   public UserProfile() {
   }
@@ -42,7 +43,8 @@ public class UserProfile {
       @JsonProperty("lastDailyCheckinDate") String lastDailyCheckinDate,
       @JsonProperty("activityDailyStamps") java.util.Map<String, String> activityDailyStamps,
       @JsonProperty("activeQuests") java.util.List<String> activeQuests,
-      @JsonProperty("history") java.util.List<QuestHistoryItem> history) {
+      @JsonProperty("history") java.util.List<QuestHistoryItem> history,
+      @JsonProperty("eventParticipationHistory") java.util.List<EventParticipationHistoryItem> eventParticipationHistory) {
     this.userId = userId;
     this.name = name;
     this.email = email;
@@ -57,10 +59,11 @@ public class UserProfile {
     this.activityDailyStamps = sanitizeDailyStamps(activityDailyStamps);
     this.activeQuests = activeQuests != null ? activeQuests : new java.util.ArrayList<>();
     this.history = history != null ? history : new java.util.ArrayList<>();
+    this.eventParticipationHistory = eventParticipationHistory != null ? eventParticipationHistory : new java.util.ArrayList<>();
   }
 
   public UserProfile(String userId, String name, String email, GithubAccount github) {
-    this(userId, name, email, null, github, null, null, null, 0, null, null, null, null, null);
+    this(userId, name, email, null, github, null, null, null, 0, null, null, null, null, null, null);
   }
 
   public String getPreferredLocale() {
@@ -231,6 +234,21 @@ public class UserProfile {
     return history.stream().anyMatch(item -> item != null && title.equals(item.title()));
   }
 
+  public java.util.List<EventParticipationHistoryItem> getEventParticipationHistory() {
+    return eventParticipationHistory;
+  }
+
+  public void setEventParticipationHistory(java.util.List<EventParticipationHistoryItem> eventParticipationHistory) {
+    this.eventParticipationHistory = eventParticipationHistory;
+  }
+
+  public void addEventParticipation(EventParticipationHistoryItem item) {
+    if (this.eventParticipationHistory == null) {
+      this.eventParticipationHistory = new java.util.ArrayList<>();
+    }
+    this.eventParticipationHistory.add(item);
+  }
+
   public boolean hasGithub() {
     return github != null && github.login != null && !github.login.isBlank();
   }
@@ -315,6 +333,22 @@ public class UserProfile {
       this.title = title;
       this.xp = xp;
       this.date = date;
+    }
+  }
+
+  public record EventParticipationHistoryItem(String eventId, String eventTitle, String role, String date, Instant participatedAt) {
+    @JsonCreator
+    public EventParticipationHistoryItem(
+        @JsonProperty("eventId") String eventId,
+        @JsonProperty("eventTitle") String eventTitle,
+        @JsonProperty("role") String role,
+        @JsonProperty("date") String date,
+        @JsonProperty("participatedAt") Instant participatedAt) {
+      this.eventId = eventId;
+      this.eventTitle = eventTitle;
+      this.role = role;
+      this.date = date;
+      this.participatedAt = participatedAt;
     }
   }
 

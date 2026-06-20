@@ -231,6 +231,31 @@ public class UserProfileService {
     return profile;
   }
 
+  public UserProfile addEventParticipation(String userId, String eventId, String eventTitle, String role) {
+    if (userId == null || userId.isBlank()) {
+      return null;
+    }
+    UserProfile profile = find(userId).orElseGet(() -> upsert(userId, userId, userId));
+    Instant now = Instant.now();
+    String date = java.time.LocalDate.now().toString();
+
+    UserProfile.EventParticipationHistoryItem item = new UserProfile.EventParticipationHistoryItem(
+        eventId, eventTitle, role, date, now);
+
+    boolean alreadyExists = profile.getEventParticipationHistory() != null &&
+        profile.getEventParticipationHistory().stream()
+            .anyMatch(existing ->
+                existing != null &&
+                eventId.equals(existing.eventId()) &&
+                role.equals(existing.role()));
+
+    if (!alreadyExists) {
+      profile.addEventParticipation(item);
+      persist();
+    }
+    return profile;
+  }
+
   private void persist() {
     try {
       persistence.saveUserProfiles(new HashMap<>(profiles));

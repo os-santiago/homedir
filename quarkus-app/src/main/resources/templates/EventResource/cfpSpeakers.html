@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="{locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selected Speakers · {event.title}</title>
+</head>
+<body>
+    <div class="event-speakers-container">
+        <header class="event-header">
+            <h1>Selected Speakers</h1>
+            {#if event}
+            <h2>{event.title}</h2>
+            <p>Meet the speakers selected through our Call for Papers process.</p>
+            {#else}
+            <p>Event not found.</p>
+            {/if}
+        </header>
+
+        {#if speakers && speakers.size() > 0}
+        <section class="speakers-list">
+            <h3>Accepted Talks ({speakers.size()})</h3>
+            <div class="speakers-grid">
+                {#for speaker in speakers}
+                <div class="speaker-card">
+                    <h4 class="speaker-name">{speaker.speakerName}</h4>
+                    <p class="talk-title">{speaker.talkTitle}</p>
+                    <div class="talk-meta">
+                        <span class="track">{speaker.track}</span>
+                        <span class="format">{speaker.format}</span>
+                    </div>
+                </div>
+                {/for}
+            </div>
+        </section>
+        {#else}
+        <section class="empty-state">
+            <p>No speakers have been selected yet for this event.</p>
+            <p>Check back later as the CFP review process continues.</p>
+        </section>
+        {/if}
+
+        <div class="back-link">
+            <a href="/event/{event.id}">Back to Event</a>
+        </div>
+    </div>
+</body>
+</html>

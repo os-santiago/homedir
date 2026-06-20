@@ -173,6 +173,16 @@ public class PublicProfileResource {
                 .toList();
         boolean selectionLocked =
             (cfpAcceptedCount > 0 || volunteerSelectedCount > 0) && !selectionReadiness.ready();
+        List<PublicEventParticipationItem> eventParticipation =
+            profile != null && profile.getEventParticipationHistory() != null
+                ? profile.getEventParticipationHistory().stream()
+                    .sorted(java.util.Comparator.comparing(
+                        UserProfile.EventParticipationHistoryItem::participatedAt,
+                        java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+                    .limit(10)
+                    .map(this::toPublicEventParticipationItem)
+                    .toList()
+                : List.of();
 
         return Response.ok(TemplateLocaleUtil.apply(
             publicProfile
@@ -209,6 +219,7 @@ public class PublicProfileResource {
                 .data("selectionLocked", selectionLocked)
                 .data("volunteerSelectedCount", volunteerSelectedCount)
                 .data("volunteerRecentSelected", volunteerRecentSelected)
+                .data("eventParticipation", eventParticipation)
                 .data("completedChallenges", completedChallenges)
                 .data("reputationSummary", reputationSummary)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")
@@ -733,6 +744,22 @@ public class PublicProfileResource {
     }
 
     private record PublicVolunteerItem(String eventTitle, String eventUrl, String eventId) {
+    }
+
+    private record PublicEventParticipationItem(String eventId, String eventTitle, String role, String date, String eventUrl) {
+    }
+
+    private PublicEventParticipationItem toPublicEventParticipationItem(UserProfile.EventParticipationHistoryItem item) {
+        if (item == null) {
+            return null;
+        }
+        String eventUrl = "/event/" + (item.eventId() != null ? item.eventId() : "");
+        return new PublicEventParticipationItem(
+            item.eventId(),
+            item.eventTitle(),
+            item.role(),
+            item.date(),
+            eventUrl);
     }
 
     private record PublicChallengeCopy(

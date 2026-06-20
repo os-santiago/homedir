@@ -535,6 +535,11 @@ public class CfpSubmissionService {
               current.presentationAsset());
       submissions.put(updated.id(), updated);
       persistSync();
+
+      if (statusChanged && newStatus == CfpSubmissionStatus.ACCEPTED) {
+        recordCfpParticipation(updated);
+      }
+
       return updated;
     }
   }
@@ -1529,6 +1534,35 @@ public class CfpSubmissionService {
         emptyCounts.put(status, 0);
       }
       return new MineStats(0, Map.copyOf(emptyCounts), 0, null);
+    }
+  }
+
+  private void recordCfpParticipation(CfpSubmission submission) {
+    if (submission == null || userProfileService == null) {
+      return;
+    }
+    try {
+      String userId = sanitizeUserId(submission.proposerUserId());
+      if (userId != null) {
+        com.scanales.homedir.model.Event event = eventService.getEvent(submission.eventId());
+        String eventTitle = event != null && event.getTitle() != null ? event.getTitle() : submission.eventId();
+        userProfileService.addEventParticipation(userId, submission.eventId(), eventTitle, "CFP_SPEAKER");
+      }
+
+      if (submission.panelists() != null && !submission.panelists().isEmpty()) {
+        for (CfpPanelist panelist : submission.panelists()) {
+          if (panelist != null && panelist.userId() != null) {
+            String panelistUserId = sanitizeUserId(panelist.userId());
+            if (panelistUserId != null) {
+              com.scanales.homedir.model.Event event = eventService.getEvent(submission.eventId());
+              String eventTitle = event != null && event.getTitle() != null ? event.getTitle() : submission.eventId();
+              userProfileService.addEventParticipation(panelistUserId, submission.eventId(), eventTitle, "CFP_PANELIST");
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+      // Log but don't fail the main operation
     }
   }
 }

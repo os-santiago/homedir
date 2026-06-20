@@ -6553,4 +6553,44 @@ public interface AppMessages {
     @Message("Go to Home")
     String error_go_home();
 
+    // --- Event Participation History ---
+    @Message("Event Participation")
+    String profile_event_participation_title();
+
+    @Message("Selected Speakers · {eventTitle}")
+    String events_cfp_speakers_page_title(String eventTitle);
+
+    @Message("Selected Speakers")
+    String events_cfp_speakers_heading();
+
+    @Message("Meet the speakers selected through our Call for Papers process.")
+    String events_cfp_speakers_intro();
+
+    @Message("Accepted Talks ({count})")
+    String events_cfp_speakers_count(int count);
+
+    @Message("No speakers have been selected yet for this event.")
+    String events_cfp_speakers_empty();
+
+    @Message("Check back later as the CFP review process continues.")
+    String events_cfp_speakers_empty_desc();
+
+    @Message("CFP Speaker")
+    String profile_participation_role_cfp_speaker();
+
+    @Message("CFP Panelist")
+    String profile_participation_role_cfp_panelist();
+
+    @Message("CFV Volunteer")
+    String profile_participation_role_cfv_volunteer();
+
+    @Message("Participation History")
+    String public_profile_participation_history_title();
+
+    @Message("Track record of participation in community events.")
+    String public_profile_participation_history_intro();
+
+    @Message("No event participation recorded yet.")
+    String public_profile_participation_history_empty();
+
 }

@@ -196,6 +196,22 @@ public class ProfileResource {
   public record VolunteerEventItem(String eventId, String eventTitle, String applyUrl) {
   }
 
+  public record EventParticipationItem(String eventId, String eventTitle, String role, String date, String eventUrl) {
+  }
+
+  private EventParticipationItem toEventParticipationItem(com.scanales.homedir.model.UserProfile.EventParticipationHistoryItem item) {
+    if (item == null) {
+      return null;
+    }
+    String eventUrl = "/event/" + (item.eventId() != null ? item.eventId() : "");
+    return new EventParticipationItem(
+        item.eventId(),
+        item.eventTitle(),
+        item.role(),
+        item.date(),
+        eventUrl);
+  }
+
   public record ChallengeOverview(
       int total, int completed, int inProgress, int ready, int totalRewardHcoin) {
   }
@@ -376,6 +392,16 @@ public class ProfileResource {
     java.util.List<VolunteerEventItem> volunteerOpenEvents = listVolunteerOpenEvents();
     boolean selectionLocked =
         (cfpOverview.accepted() > 0 || volunteerOverview.selected() > 0) && !selectionReadiness.ready();
+    java.util.List<EventParticipationItem> eventParticipation =
+        userProfile != null && userProfile.getEventParticipationHistory() != null
+            ? userProfile.getEventParticipationHistory().stream()
+                .sorted(java.util.Comparator.comparing(
+                    com.scanales.homedir.model.UserProfile.EventParticipationHistoryItem::participatedAt,
+                    java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+                .limit(10)
+                .map(this::toEventParticipationItem)
+                .toList()
+            : java.util.List.of();
     java.util.List<ChallengeProfileCard> profileChallenges =
         challengeService.listProgressForUser(email).stream()
             .map(card -> toChallengeProfileCard(card, challengeCopy))
@@ -463,6 +489,7 @@ public class ProfileResource {
         .data("volunteerOverview", volunteerOverview)
         .data("volunteerRecentApplications", volunteerRecentApplications)
         .data("volunteerOpenEvents", volunteerOpenEvents)
+        .data("eventParticipation", eventParticipation)
         .data("challengeOverview", challengeOverview)
         .data("profileChallenges", profileChallenges)
         .data("challengeCopy", challengeCopy)
