@@ -32,6 +32,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Map;
 import java.util.Optional;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/event")
 public class EventResource {
@@ -69,6 +70,9 @@ public class EventResource {
   @Inject VolunteerApplicationService volunteerApplicationService;
   @Inject EventOperationsService eventOperationsService;
 
+  @ConfigProperty(name = "community.discord.support-channel-url")
+  Optional<String> discordSupportChannelUrl;
+
   @GET
   @Path("{id}")
   @PermitAll
@@ -97,7 +101,8 @@ public class EventResource {
                 && agendaProposalConfigService.isProposalNoticeEnabled()),
         "eventos",
         localeCookie,
-        headers);
+        headers)
+        .data("discordSupportChannelUrl", discordSupportChannelUrl.orElse(null));
   }
 
   @GET
@@ -136,7 +141,8 @@ public class EventResource {
             "eventos",
             localeCookie,
             headers)
-        .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
+        .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled())
+        .data("discordSupportChannelUrl", discordSupportChannelUrl.orElse(null));
   }
 
   @GET
@@ -163,7 +169,8 @@ public class EventResource {
         Templates.volunteers(event, volunteerSelected),
         "eventos",
         localeCookie,
-        headers);
+        headers)
+        .data("discordSupportChannelUrl", discordSupportChannelUrl.orElse(null));
   }
 
   @GET
@@ -217,7 +224,8 @@ public class EventResource {
             headers)
         .data("loungeAccess", loungeAccess)
         .data("eventAdmin", eventAdmin)
-        .data("loungeAccessReason", loungeAccessReason);
+        .data("loungeAccessReason", loungeAccessReason)
+        .data("discordSupportChannelUrl", discordSupportChannelUrl.orElse(null));
   }
 
   private TemplateInstance withLayoutData(

@@ -285,6 +285,15 @@
       </fieldset>
     </form>
     <p id="cfpFeedback" class="form-hint cfp-feedback" role="status" aria-live="polite" hidden></p>
+    {#if discordSupportChannelUrl}
+    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.3); border-radius: 6px;">
+      <p style="margin: 0 0 0.5rem 0; font-weight: 600;"><span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.2rem;">support_agent</span> {i18n:events_support_channel_label}</p>
+      <p style="margin: 0 0 0.75rem 0; font-size: 0.9rem; opacity: 0.9;">{i18n:events_support_channel_desc}</p>
+      <a href="{discordSupportChannelUrl}" target="_blank" rel="noopener" class="btn login-btn-nav" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+        {i18n:events_support_channel_cta}
+      </a>
+    </div>
+    {/if}
     {#else}
     <p class="section-subtitle">{i18n:events_cfp_login_required}</p>
     <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary" data-login-return-current="true">{i18n:events_cfp_login_btn}</a>

@@ -169,6 +169,11 @@
                         <a href="/event/{event.id}/volunteers" class="btn login-btn-nav">
                             <span class="material-symbols-outlined">groups</span> {i18n:events_volunteers_open_cta}
                         </a>
+                        {#if discordSupportChannelUrl}
+                        <a href="{discordSupportChannelUrl}" target="_blank" rel="noopener" class="btn login-btn-nav" title="{i18n:events_support_channel_desc}">
+                            <span class="material-symbols-outlined">support_agent</span> {i18n:events_support_channel_cta}
+                        </a>
+                        {/if}
                     </div>
                     
                     {#if app:validUrl(event.website) || app:validUrl(event.twitter) || app:validUrl(event.linkedin) || app:validUrl(event.instagram) || app:validEmail(event.contactEmail) || app:validUrl(event.ticketsUrl)}
