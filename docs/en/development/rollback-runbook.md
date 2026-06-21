@@ -57,4 +57,3 @@ ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "
 - [ ] Root cause issue created with `wos-review` label
 - [ ] Fix PR opened with explicit prevention note
 
-Modelo: DeepSeek V4 Flash Free
