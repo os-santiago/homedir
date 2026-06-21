@@ -37,4 +37,3 @@
 - All cache properties are grepable via `community.*.cache-ttl`, `projects.*.cache-ttl`, `trending.cache-ttl`, `economy.transactions.cache-max`
 - Each cache key should have a documented staleness tolerance
 
-Modelo: DeepSeek V4 Flash Free
