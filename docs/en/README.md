@@ -43,6 +43,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 - [Formatting (ES canonical, EN stub)](development/formatting.md)
 - [Disaster Recovery Playbook](development/disaster-recovery-playbook.md)
 - [DR Drill Calendar](development/dr-drill-calendar.md)
+- [RPO/RTO Goals](development/rpo-rto-goals.md)
 - [Incident Response First Level](development/incident-response-first-level.md)
 - [Security Hardening Baseline](development/security-hardening-baseline.md)
 - [Production-Safe Delivery Playbook](development/production-safe-delivery-playbook.md)
