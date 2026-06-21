@@ -122,6 +122,7 @@ public class ProfileResourceTest {
             avatar_url: https://cdn.discordapp.com/avatars/claim-002.png
         """);
     boardService.resetDiscordCacheForTests();
+    userProfiles.updateLocale(currentUserEmail(), "en");
   }
 
   @Test
