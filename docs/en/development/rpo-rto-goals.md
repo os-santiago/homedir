@@ -21,5 +21,3 @@
 - RPO=0 domains are rebuildable from source of truth (git, external API) without backup restore.
 - RTO assumes automated deploy pipeline is operational and VPS is healthy.
 - DR drill results should be logged and tracked per domain.
-
-Modelo: DeepSeek V4 Flash Free

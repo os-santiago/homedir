@@ -231,7 +231,6 @@ public class UserScheduleService {
     schedules.clear();
     historical.clear();
     persistence.saveUserSchedules(activeYear, schedules);
-    persistence.flush();
   }
 
   /** Result codes for loading historical data. */
