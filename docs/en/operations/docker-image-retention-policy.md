@@ -23,5 +23,3 @@
 
 - Local Docker build cache on developer machines (developer responsibility)
 - CI runner disk cleanup (handled by GitHub Actions runner ephemeral nature)
-
-Modelo: DeepSeek V4 Flash Free
