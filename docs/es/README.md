@@ -37,6 +37,7 @@ El idioma canonico para mantenimiento es **ingles**.
 
 - [Formatting](development/formatting.md)
 - [Disaster Recovery Playbook](development/disaster-recovery-playbook.md)
+- [DR Drill Calendar (stub)](development/dr-drill-calendar.md)
 - [Incident Response First Level](development/incident-response-first-level.md)
 - [Security Hardening Baseline](development/security-hardening-baseline.md)
 - [Experience SLO (stub)](development/experience-slo.md)
