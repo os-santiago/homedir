@@ -37,10 +37,12 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 
 - [Experience SLO](development/experience-slo.md)
 - [Capacity Assessment 2026-02-17](development/capacity-assessment-2026-02-17.md)
+- [Cache Strategy Audit](development/cache-audit.md)
 - [Codex Optimization Notes](development/codex-optimization-notes.md)
 - [CFP Go-Live Resilience Checklist](development/cfp-go-live-resilience-checklist.md)
 - [Formatting (ES canonical, EN stub)](development/formatting.md)
 - [Disaster Recovery Playbook](development/disaster-recovery-playbook.md)
+- [DR Drill Calendar](development/dr-drill-calendar.md)
 - [RPO/RTO Goals](development/rpo-rto-goals.md)
 - [Incident Response First Level](development/incident-response-first-level.md)
 - [Security Hardening Baseline](development/security-hardening-baseline.md)
