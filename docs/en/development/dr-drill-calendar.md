@@ -22,7 +22,7 @@
 1. Run full encryption-decryption-restore cycle
 2. Verify content integrity of restored community data
 3. Compare key record counts against production
-4. Log results to `docs/en/operations/dr-drill-results/`
+4. Log results to `docs/en/development/dr-drill-results/`
 
 ## Quarterly Drill (manual orchestration, < 2h)
 
@@ -37,5 +37,3 @@
 - **Weekly**: Log output saved to `dr-drill-weekly-YYYY-MM-DD.log`
 - **Monthly**: Check-in comment on tracking issue with file count, record count, RPO met (Y/N)
 - **Quarterly**: Full incident report in issue format with timeline, RTO, RPO, improvements
-
-Modelo: DeepSeek V4 Flash Free
