@@ -30,6 +30,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --data-dir)
+      if [[ $# -lt 2 || -z "${2:-}" ]]; then
+        echo "Missing value for --data-dir"
+        echo "Usage: $0 [--dry-run] [--data-dir <path>]"
+        exit 3
+      fi
       DATA_DIR="$2"
       shift 2
       ;;
@@ -60,11 +65,11 @@ echo "---"
 # File schema definitions embedded in Python for simplicity
 # Dry run mode
 if [[ "$DRY_RUN" == "true" ]]; then
-  python3 << PYEOF
+  python3 - "$DATA_DIR" << 'PYEOF'
 import sys
 from pathlib import Path
 
-data_dir = Path("$DATA_DIR")
+data_dir = Path(sys.argv[1])
 
 schemas = [
     "events.json", "speakers.json", "user-profiles.json", "system-errors.json",
