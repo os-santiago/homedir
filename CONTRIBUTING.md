@@ -1,27 +1,26 @@
-# Release Process
+# Contributing to Homedir
 
-This project uses a **Manual Trigger / Auto-Versioning** release strategy.
-- **Source of Truth**: Git Tags (calculated by the workflow based on Conventional Commits).
-- **Versioning**: CI-Friendly Maven Versioning (`${revision}`).
+## Security: Pre-commit Secret Scanning
 
-## How to Release
-Releases are triggered manually by administrators.
+Before contributing, install the pre-commit secret scanning hook:
 
-1.  Go to the **Actions** tab in GitHub.
-2.  Select the **Production Release** workflow.
-3.  Click **Run workflow**.
-4.  (Optional) Select a release level (Patch, Minor, Major), or leave empty to let the system calculate it based on commit history (feat=minor, fix=patch).
+\`\`\`bash
+# 1. Install gitleaks
+# macOS: brew install gitleaks
+# Windows: scoop install gitleaks
+# Linux: Download from GitHub releases
 
-The workflow will:
-1.  Calculate the next version (e.g., `v3.305.1`).
-2.  Creating and push the Git Tag.
-3.  Build the Maven artifact with version `3.305.1`.
-4.  Build and push the Docker image `ghcr.io/os-santiago/homedir:3.305.1`.
+# 2. Install the hook
+cp hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 
-## Local Development
-The project uses the Maven `${revision}` property. 
-- **Default**: Defined in `pom.xml` properties (e.g., `3.304.1-SNAPSHOT`).
-- **Override**: You can build with a specific version locally:
-    ```bash
-    ./mvnw package -Drevision=1.0.0-custom
-    ```
+# 3. Verify (should block)
+echo "aws_key=AKIAIOSFODNN7EXAMPLE" > test.txt
+git add test.txt && git commit -m "test" || echo "Working!"
+git reset HEAD test.txt && rm test.txt
+\`\`\`
+
+See [docs/guides/pre-commit-secret-scanning.md](docs/guides/pre-commit-secret-scanning.md) for details.
+
+---
+

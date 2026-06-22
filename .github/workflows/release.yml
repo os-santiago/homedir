@@ -21,6 +21,11 @@ on:
         required: false
         default: false
         type: boolean
+      skip_health_gate:
+        description: 'Skip pipeline health gate (emergency override)'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: production-release-main
@@ -49,6 +54,47 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Required for changelog/version calc
+
+      - name: Pipeline Health Gate
+        id: health_gate
+        if: ${{ !inputs.skip_health_gate }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          HEALTH_GATE_PR_THRESHOLD: ${{ vars.HEALTH_GATE_PR_THRESHOLD || '90' }}
+          HEALTH_GATE_RELEASE_THRESHOLD: ${{ vars.HEALTH_GATE_RELEASE_THRESHOLD || '90' }}
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/pipeline_health_report.py \
+            --repo "${GITHUB_REPOSITORY}" \
+            --days 7 \
+            --pr-threshold "${HEALTH_GATE_PR_THRESHOLD}" \
+            --release-threshold "${HEALTH_GATE_RELEASE_THRESHOLD}" \
+            --output-json health-report.json \
+            --output-md health-report.md
+          status="$(jq -r '.status' health-report.json)"
+          pr_rate="$(jq -r '.pr_validation.success_rate' health-report.json)"
+          rel_rate="$(jq -r '.production_release.success_rate' health-report.json)"
+          cat health-report.md >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${status}" = "warn" ]; then
+            echo "::warning::Pipeline health below threshold - PR: ${pr_rate}% (threshold: ${HEALTH_GATE_PR_THRESHOLD}%), Release: ${rel_rate}% (threshold: ${HEALTH_GATE_RELEASE_THRESHOLD}%)"
+            echo "health_warning=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "health_warning=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Health Gate Override Notice
+        if: ${{ inputs.skip_health_gate }}
+        run: |
+          echo "::warning::Pipeline health gate was skipped via manual override (--skip-health-gate=true)"
+          {
+            echo "# Pipeline Health Gate: SKIPPED"
+            echo ""
+            echo "⚠️ **Emergency override active** - health gate was manually bypassed."
+            echo ""
+            echo "This release proceeded without verifying recent pipeline stability."
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -312,7 +358,7 @@ jobs:
           exit 1
 
       - name: Emit insights ingest events (production release)
-        if: ${{ success() }}
+        if: ${{ success() && steps.deploy_config.outputs.enabled == 'true' }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -424,7 +470,12 @@ jobs:
         run: |
           echo "::warning::SSH deploy failed from GitHub Actions. VPS fallback timer should reconcile deployment."
 
+      - name: Deploy skip notice (QA verification mode)
+        if: ${{ steps.deploy_config.outputs.enabled != 'true' && github.event.inputs.skip_deploy == 'true' }}
+        run: |
+          echo "::notice::Deployment skipped intentionally (QA verification mode via skip_deploy)."
+
       - name: Deploy fallback notice (SSH not configured)
-        if: ${{ steps.deploy_config.outputs.enabled != 'true' }}
+        if: ${{ steps.deploy_config.outputs.enabled != 'true' && github.event.inputs.skip_deploy != 'true' }}
         run: |
           echo "SSH deploy is not configured. Deployment will rely on homedir-auto-deploy.timer fallback on the VPS."

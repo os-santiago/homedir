@@ -1,0 +1,36 @@
+# Gitleaks configuration for homedir project
+# Pre-commit secret scanning configuration
+
+[extend]
+# Use default ruleset
+useDefault = true
+
+[allowlist]
+description = "Allowlist for known false positives"
+
+# Test fixtures and example configurations
+paths = [
+  '''src/test/resources/.*''',
+  '''.*\.example$''',
+  '''.*\.sample$''',
+  '''.*test.*fixtures.*'''
+]
+
+# Known safe patterns (e.g., example keys in docs)
+regexes = [
+  '''EXAMPLE_.*''',
+  '''TEST_.*''',
+  '''AKIAIOSFODNN7EXAMPLE''',
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'''
+]
+
+# Ignore specific commits (if needed in future)
+commits = []
+
+# Stopwords to reduce false positives
+stopwords = [
+  "example",
+  "test",
+  "sample",
+  "placeholder"
+]
