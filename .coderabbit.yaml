@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: false
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  auto_title_placeholder: "@coderabbitai"
+  review_status: true
+  commit_status: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  auto_apply_labels: true
+  suggested_reviewers: true
+  auto_assign_reviewers: false
+  poem: false
+  path_filters:
+    - "!quarkus-app/src/main/resources/i18n*.properties"
+    - "!quarkus-app/src/main/resources/messages/**"
+    - "!docs/**"
+    - "!**.md"
+  path_instructions:
+    - path: "**/*.java"
+      instructions: |
+        Este proyecto usa Quarkus con Qute templates. Sigue las convenciones existentes:
+        - Usa inyección de dependencias con `@Inject`
+        - Los mensajes i18n van en `AppMessages.java` con `@Message`
+        - Los templates Qute van en `src/main/resources/templates/`
+        - Sigue el patrón Service + Resource (REST)
+    - path: "**/*.yml"
+      instructions: |
+        Workflows de GitHub Actions. Verificar:
+        - Los triggers (`on:`) son correctos
+        - Las variables usan `vars.*` con fallback `||` cuando aplica
+        - Los secrets usan `secrets.*`
+        - `concurrency` está configurado para evitar ejecuciones duplicadas
+    - path: "**/pom.xml"
+      instructions: |
+        Revisar que las versiones de dependencias estén actualizadas y no haya conflictos.
+        Verificar que `<revision>` esté sincronizado con el tag de release.
+    - path: "**/*.html"
+      instructions: |
+        Templates Qute. Verificar:
+        - Las keys i18n usan `{i18n:key}`
+        - Los condicionales y loops usan sintaxis Qute (`{#if}`, `{#for}`)
+        - Los estilos usan Material Symbols y el design system existente
+    - path: "docs/**"
+      instructions: |
+        Documentación técnica. Verificar:
+        - No incluir marcas de agua de IA (`Modelo: *`)
+        - Seguir `documentation-language-policy.md`
+        - Incluir stub en español cuando aplique
+  abort_on_close: true
+  disable_cache: false
+chat:
+  auto_reply: true
+knowledge_base:
+  learnings:
+    scope: "corp"
+  issues:
+    scope: "corp"
+  pull_requests:
+    scope: "corp"
