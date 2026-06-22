@@ -220,11 +220,10 @@ jobs:
         run: |
           set -euo pipefail
           TITLE="Release ${TAG}"
-          NOTES="Automated production release for ${TAG}."
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --generate-notes
           else
-            gh release create "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" --repo "$REPO" --title "$TITLE" --generate-notes
           fi
 
       - name: Resolve deploy configuration
