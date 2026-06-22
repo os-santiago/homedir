@@ -30,12 +30,12 @@ jobs:
       contents: write
       packages: write
     env:
-      DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST }}
-      DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER }}
-      DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT }}
+      DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST || vars.VPS_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER || vars.VPS_USER }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT || vars.VPS_PORT }}
       DEPLOY_COMMAND: ${{ vars.DEPLOY_SSH_COMMAND }}
       HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
-      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY || secrets.VPS_SSH_KEY }}
       DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
       DEPLOY_SSH_STRICT_HOST_KEY_CHECKING: ${{ vars.DEPLOY_SSH_STRICT_HOST_KEY_CHECKING }}
 
