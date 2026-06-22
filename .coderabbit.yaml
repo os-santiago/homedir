@@ -62,8 +62,8 @@ chat:
   auto_reply: true
 knowledge_base:
   learnings:
-    scope: "corp"
+    scope: "local"
   issues:
-    scope: "corp"
+    scope: "local"
   pull_requests:
-    scope: "corp"
+    scope: "local"
