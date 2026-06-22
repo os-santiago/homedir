@@ -1,14 +1,16 @@
 # Homedir
 > **DevRel, OpenSource, InnerSource Community Platform**
 
-<div align="center">
-
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
 [![PR Validation](https://img.shields.io/github/actions/workflow/status/os-santiago/homedir/pr-check.yml?style=for-the-badge&label=PR%20Validation&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml)
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
-[![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/3eawzc9ybc) [![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/os-santiago/homedir?utm_source=oss&utm_medium=github&utm_campaign=os-santiago%2Fhomedir&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
+[![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/3eawzc9ybc)
 
-</div>
+<p align="center">
+  <a href="https://coderabbit.ai" target="_blank">
+    <img src="https://img.shields.io/coderabbit/prs/github/os-santiago/homedir?utm_source=oss&utm_medium=github&utm_campaign=os-santiago%2Fhomedir&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews&style=for-the-badge" alt="CodeRabbit Pull Request Reviews">
+  </a>
+</p>
 
 Homedir is a Quarkus-based community platform for DevRel/Open Source initiatives, combining Community Picks, Events, Projects, CFP workflows, GitHub Trending repositories, and contributor identity integrations (GitHub/Discord/Google login) in a single product.
 
