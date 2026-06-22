@@ -1,0 +1,43 @@
+#!/bin/sh
+# Pre-commit hook for secret scanning using gitleaks
+# Part of issue #863 - Pre-commit secret scanning for external contributions
+
+# Color codes for output
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# Check if gitleaks is installed
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "${YELLOW}⚠️  Warning: gitleaks not found${NC}"
+    echo "Secret scanning is disabled. Install gitleaks to enable:"
+    echo "  https://github.com/gitleaks/gitleaks#installation"
+    echo ""
+    echo "On macOS:   brew install gitleaks"
+    echo "On Windows: choco install gitleaks"
+    echo "On Linux:   Download from GitHub releases"
+    echo ""
+    exit 0  # Allow commit but warn
+fi
+
+# Run gitleaks on staged changes
+echo "🔍 Scanning staged changes for secrets..."
+if gitleaks protect --staged --config=.gitleaks.toml --verbose 2>&1; then
+    echo "${GREEN}✓ No secrets detected${NC}"
+    exit 0
+else
+    echo ""
+    echo "${RED}❌ Secret(s) detected in staged changes!${NC}"
+    echo ""
+    echo "Please review and remove any secrets before committing."
+    echo ""
+    echo "To bypass this check temporarily (not recommended):"
+    echo "  git commit --no-verify"
+    echo ""
+    echo "After bypass, ensure you:"
+    echo "  1. Rotate the exposed secret immediately"
+    echo "  2. Rewrite git history to remove it: git rebase -i"
+    echo ""
+    exit 1
+fi
