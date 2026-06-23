@@ -16,6 +16,11 @@ on:
           - patch
           - minor
           - major
+      skip_deploy:
+        description: 'Skip deployment (build and verify only, for QA)'
+        required: false
+        default: false
+        type: boolean
       skip_health_gate:
         description: 'Skip pipeline health gate (emergency override)'
         required: false
@@ -275,10 +280,14 @@ jobs:
 
       - name: Resolve deploy configuration
         id: deploy_config
+        env:
+          SKIP_DEPLOY_INPUT: ${{ github.event.inputs.skip_deploy }}
         run: |
           set -euo pipefail
           enabled="false"
-          if [ -n "${DEPLOY_HOST:-}" ] && [ -n "${DEPLOY_USER:-}" ] && [ -n "${DEPLOY_SSH_PRIVATE_KEY:-}" ]; then
+          if [ "${SKIP_DEPLOY_INPUT:-false}" = "true" ]; then
+            echo "::notice::Deployment skipped via skip_deploy input (QA verification mode)."
+          elif [ -n "${DEPLOY_HOST:-}" ] && [ -n "${DEPLOY_USER:-}" ] && [ -n "${DEPLOY_SSH_PRIVATE_KEY:-}" ]; then
             enabled="true"
           fi
           echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
@@ -349,7 +358,7 @@ jobs:
           exit 1
 
       - name: Emit insights ingest events (production release)
-        if: ${{ success() }}
+        if: ${{ success() && steps.deploy_config.outputs.enabled == 'true' }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -461,7 +470,12 @@ jobs:
         run: |
           echo "::warning::SSH deploy failed from GitHub Actions. VPS fallback timer should reconcile deployment."
 
+      - name: Deploy skip notice (QA verification mode)
+        if: ${{ steps.deploy_config.outputs.enabled != 'true' && github.event.inputs.skip_deploy == 'true' }}
+        run: |
+          echo "::notice::Deployment skipped intentionally (QA verification mode via skip_deploy)."
+
       - name: Deploy fallback notice (SSH not configured)
-        if: ${{ steps.deploy_config.outputs.enabled != 'true' }}
+        if: ${{ steps.deploy_config.outputs.enabled != 'true' && github.event.inputs.skip_deploy != 'true' }}
         run: |
           echo "SSH deploy is not configured. Deployment will rely on homedir-auto-deploy.timer fallback on the VPS."
