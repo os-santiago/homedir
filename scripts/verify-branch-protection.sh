@@ -22,7 +22,18 @@ check() {
         echo "✅ PASS: $desc"
     else
         echo "❌ FAIL: $desc (expected $exp, got $act)"
-        ((FAILS++))
+        FAILS=$((FAILS + 1))
+    fi
+}
+
+check_min() {
+    local desc="$1" path="$2" min="$3"
+    act=$(python3 -c "import json,sys; d=json.load(open('$FILE')); print(d$path)" 2>/dev/null || echo "0")
+    if [ "$act" -ge "$min" ] 2>/dev/null; then
+        echo "✅ PASS: $desc"
+    else
+        echo "❌ FAIL: $desc (expected >= $min, got $act)"
+        FAILS=$((FAILS + 1))
     fi
 }
 
@@ -31,6 +42,7 @@ check "allow_force_pushes" "['allow_force_pushes']['enabled']" "False"
 check "allow_deletions" "['allow_deletions']['enabled']" "False"
 check "conversation_resolution" "['required_conversation_resolution']['enabled']" "True"
 check "status_checks_strict" "['required_status_checks']['strict']" "True"
+check_min "required_approving_reviews" "['required_pull_request_reviews']['required_approving_review_count']" 1
 
 echo ""
 if [ $FAILS -eq 0 ]; then
