@@ -263,6 +263,135 @@ jobs:
           echo "new_version=${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
           echo "new_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
 
+      - name: Generate Release Notes
+        id: release_notes
+        env:
+          TAG: ${{ steps.tag_version.outputs.new_tag }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+
+          # Find previous tag
+          prev_tag="$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -v "^${TAG}$" | head -n1 || true)"
+
+          if [ -z "${prev_tag}" ]; then
+            echo "No previous tag found. This is the first release."
+            echo '## First Release' > release_notes.txt
+            echo '' >> release_notes.txt
+            echo 'Initial production release.' >> release_notes.txt
+            cat release_notes.txt
+            exit 0
+          fi
+
+          # Get commits between tags
+          commits="$(git log --oneline --no-merges "${prev_tag}..HEAD" --format='%s|||%an|||%h' || true)"
+
+          if [ -z "${commits}" ]; then
+            echo "## No Changes" > release_notes.txt
+            echo '' >> release_notes.txt
+            echo "Sin cambios nuevos desde ${prev_tag}." >> release_notes.txt
+            cat release_notes.txt
+            exit 0
+          fi
+
+          # Initialize release notes
+          echo "## Changes since ${prev_tag}" > release_notes.txt
+          echo '' >> release_notes.txt
+
+          # Classify commits by conventional commit type
+          echo "${commits}" | grep -E '^feat[:(]' | while IFS='|||' read -r subject author hash; do
+            pr_num="$(echo "${subject}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p')"
+            if [ -n "${pr_num}" ]; then
+              echo "- ${subject} (@${author}) #${pr_num}" >> feat.txt
+            else
+              echo "- ${subject} (@${author})" >> feat.txt
+            fi
+          done || true
+
+          echo "${commits}" | grep -E '^fix[:(]' | while IFS='|||' read -r subject author hash; do
+            pr_num="$(echo "${subject}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p')"
+            if [ -n "${pr_num}" ]; then
+              echo "- ${subject} (@${author}) #${pr_num}" >> fix.txt
+            else
+              echo "- ${subject} (@${author})" >> fix.txt
+            fi
+          done || true
+
+          echo "${commits}" | grep -E '^perf[:(]' | while IFS='|||' read -r subject author hash; do
+            pr_num="$(echo "${subject}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p')"
+            if [ -n "${pr_num}" ]; then
+              echo "- ${subject} (@${author}) #${pr_num}" >> perf.txt
+            else
+              echo "- ${subject} (@${author})" >> perf.txt
+            fi
+          done || true
+
+          echo "${commits}" | grep -E '^refactor[:(]' | while IFS='|||' read -r subject author hash; do
+            pr_num="$(echo "${subject}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p')"
+            if [ -n "${pr_num}" ]; then
+              echo "- ${subject} (@${author}) #${pr_num}" >> refactor.txt
+            else
+              echo "- ${subject} (@${author})" >> refactor.txt
+            fi
+          done || true
+
+          echo "${commits}" | grep -E '^docs[:(]' | while IFS='|||' read -r subject author hash; do
+            pr_num="$(echo "${subject}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p')"
+            if [ -n "${pr_num}" ]; then
+              echo "- ${subject} (@${author}) #${pr_num}" >> docs.txt
+            else
+              echo "- ${subject} (@${author})" >> docs.txt
+            fi
+          done || true
+
+          echo "${commits}" | grep -vE '^(feat|fix|perf|refactor|docs|chore|test|ci|build|style)[:(]' | while IFS='|||' read -r subject author hash; do
+            pr_num="$(echo "${subject}" | sed -nE 's/.*\(#([0-9]+)\).*/\1/p')"
+            if [ -n "${pr_num}" ]; then
+              echo "- ${subject} (@${author}) #${pr_num}" >> other.txt
+            else
+              echo "- ${subject} (@${author})" >> other.txt
+            fi
+          done || true
+
+          # Append sections to release notes
+          if [ -f feat.txt ]; then
+            echo '### ✨ Features' >> release_notes.txt
+            cat feat.txt >> release_notes.txt
+            echo '' >> release_notes.txt
+          fi
+
+          if [ -f fix.txt ]; then
+            echo '### 🐛 Bug Fixes' >> release_notes.txt
+            cat fix.txt >> release_notes.txt
+            echo '' >> release_notes.txt
+          fi
+
+          if [ -f perf.txt ]; then
+            echo '### ⚡ Performance' >> release_notes.txt
+            cat perf.txt >> release_notes.txt
+            echo '' >> release_notes.txt
+          fi
+
+          if [ -f refactor.txt ]; then
+            echo '### ♻️ Refactoring' >> release_notes.txt
+            cat refactor.txt >> release_notes.txt
+            echo '' >> release_notes.txt
+          fi
+
+          if [ -f docs.txt ]; then
+            echo '### 📝 Documentation' >> release_notes.txt
+            cat docs.txt >> release_notes.txt
+            echo '' >> release_notes.txt
+          fi
+
+          if [ -f other.txt ]; then
+            echo '### 🔧 Other Changes' >> release_notes.txt
+            cat other.txt >> release_notes.txt
+            echo '' >> release_notes.txt
+          fi
+
+          cat release_notes.txt
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -271,11 +400,10 @@ jobs:
         run: |
           set -euo pipefail
           TITLE="Release ${TAG}"
-          NOTES="Automated production release for ${TAG}."
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+            gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes-file release_notes.txt
           else
-            gh release create "$TAG" --repo "$REPO" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" --repo "$REPO" --title "$TITLE" --notes-file release_notes.txt
           fi
 
       - name: Resolve deploy configuration
