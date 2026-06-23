@@ -6,6 +6,12 @@
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/3eawzc9ybc)
 
+<p align="center">
+  <a href="https://coderabbit.ai" target="_blank">
+    <img src="https://img.shields.io/coderabbit/prs/github/os-santiago/homedir?utm_source=oss&utm_medium=github&utm_campaign=os-santiago%2Fhomedir&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews&style=for-the-badge" alt="CodeRabbit Pull Request Reviews">
+  </a>
+</p>
+
 Homedir is a Quarkus-based community platform for DevRel/Open Source initiatives, combining Community Picks, Events, Projects, CFP workflows, GitHub Trending repositories, and contributor identity integrations (GitHub/Discord/Google login) in a single product.
 
 ## Repository Layout
