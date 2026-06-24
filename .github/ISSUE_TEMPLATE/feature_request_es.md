@@ -1,13 +1,37 @@
 ---
-name: Solicitud de Funcionalidad
+name: Solicitud de Funcionalidad (Español)
 about: Sugiere una idea para este proyecto
-title: ''
-labels: mejora
+title: 'feat: [Breve descripción]'
+labels: 'type/feature,status/triage'
 assignees: ''
 ---
 
-**Funcionalidad Propuesta**
-Una descripción clara y concisa de la funcionalidad que deseas.
+> **Antes de enviar:** Revisa [DoR para Features](https://github.com/os-santiago/homedir/blob/main/config/docs/governance/DEFINITION_OF_READY_DONE.md#features-typefeature)
 
-**Caso de Uso**
-¿Por qué es útil esta funcionalidad? ¿Qué problema resuelve?
+## Historia de Usuario
+Como [usuario], quiero [objetivo] para que [beneficio].
+
+## Objetivo
+<!-- Propósito de la funcionalidad -->
+
+## Alcance
+**Incluido:** [Qué se incluye]  
+**Excluido:** [Qué no se incluye]
+
+## Métricas de Éxito
+- [Métrica 1]
+
+## Dependencias
+- [Prerequisito]
+
+## Criterios de Aceptación
+- [ ] [Criterio 1]
+
+---
+
+## Definición de Hecho
+- [ ] Link(s) al PR
+- [ ] Demo
+- [ ] Cobertura ≥80%
+- [ ] Documentación
+- [ ] Métricas cumplidas
