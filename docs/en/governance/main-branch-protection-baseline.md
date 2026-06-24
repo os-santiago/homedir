@@ -1,10 +1,10 @@
 # Main Branch Protection Baseline
 
 **Status**: Approved  
-**Version**: 1.0  
-**Last Updated**: 2026-06-22  
+**Version**: 1.1  
+**Last Updated**: 2026-06-23  
 **Owner**: Platform Team  
-**Related Issue**: #847
+**Related Issues**: #847, #850
 
 ## Purpose
 
@@ -48,12 +48,15 @@ This document defines the mandatory baseline configuration for `main` branch pro
 **Current Status**: ✅ Already enabled  
 **Rationale**: No one bypasses protection rules, ensuring consistent quality gates.
 
-### 5. Linear History (Optional but Recommended)
+### 5. Linear History
 
 **Configuration**:
-- Require linear history: **RECOMMENDED** (not strictly enforced)
+- Require linear history: **MANDATORY** (strictly enforced)
 
-**Rationale**: Simplifies debugging and rollbacks. If enabled, only squash or rebase merges are allowed.
+**Current Status**: ⚠️ Requires enablement  
+**Rationale**: Ensures clean audit trail, simplifies incident tracing, and enables reliable rollbacks. When enabled, only squash and rebase merges are allowed (merge commits are prohibited).
+
+**See Also**: [Merge Strategy Policy](./merge-strategy-policy.md) for complete merge strategy documentation and operational guidelines.
 
 ### 6. Pull Request Requirements
 
@@ -74,7 +77,7 @@ Based on API inspection (\`gh api repos/:owner/:repo/branches/main/protection\`)
 | Allow force pushes | ❌ DISABLED | ✅ DISABLED | ✅ None |
 | Allow deletions | ❌ DISABLED | ✅ DISABLED | ✅ None |
 | Required conversation resolution | ✅ ENABLED | ❌ DISABLED | ⚠️ **MUST ENABLE** |
-| Required linear history | 🟡 RECOMMENDED | ❌ DISABLED | 🟡 Optional |
+| Required linear history | ✅ ENABLED | ❌ DISABLED | ⚠️ **MUST ENABLE** |
 | Required status checks | ✅ ENABLED | 🔍 Unknown | 🔍 Needs verification |
 | Required pull request reviews | ✅ ENABLED | 🔍 Unknown | 🔍 Needs verification |
 
@@ -184,6 +187,8 @@ This baseline must be reviewed:
 ## References
 
 - [GitHub Branch Protection Documentation](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches)
+- [Merge Strategy Policy](./merge-strategy-policy.md) - Canonical merge strategy and linear history requirements
+- Issue #850: [Main Governance] Linear history rule and canonical merge strategy
 - Issue #847: [Main Governance] Baseline de proteccion obligatoria para rama main
 - Issue #838: Parent governance audit issue
 
@@ -191,4 +196,5 @@ This baseline must be reviewed:
 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
+| 2026-06-23 | 1.1 | Linear history changed from recommended to mandatory | Platform Team |
 | 2026-06-22 | 1.0 | Initial baseline definition | Platform Team |
