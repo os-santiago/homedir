@@ -1,0 +1,91 @@
+name: Issue Metadata Validation
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to validate (optional, validates all open issues if not provided)'
+        required: false
+        type: number
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  validate-metadata:
+    name: Validate Issue Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install PyGithub pyyaml
+
+      - name: Validate issue metadata
+        id: validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/ci/validate_issue_metadata.py
+
+      - name: Add validation comment
+        if: steps.validate.outputs.validation_status == 'incomplete'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.issue.number || inputs.issue_number }};
+            const validationReport = process.env.VALIDATION_REPORT;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: validationReport
+            });
+        env:
+          VALIDATION_REPORT: ${{ steps.validate.outputs.report }}
+
+      - name: Add needs-metadata label
+        if: steps.validate.outputs.validation_status == 'incomplete'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.issue.number || inputs.issue_number }};
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: ['needs-metadata']
+            });
+
+      - name: Remove needs-metadata label
+        if: steps.validate.outputs.validation_status == 'complete'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.issue.number || inputs.issue_number }};
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                name: 'needs-metadata'
+              });
+            } catch (error) {
+              // Label might not exist, ignore
+              console.log('needs-metadata label not found or already removed');
+            }
