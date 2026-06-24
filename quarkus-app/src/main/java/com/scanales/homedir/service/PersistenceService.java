@@ -342,6 +342,12 @@ public class PersistenceService {
     scheduleWrite(scheduleFile(year), schedules);
   }
 
+  /** Persists user schedules for the given year synchronously. */
+  public void saveUserSchedulesSync(
+      int year, Map<String, Map<String, UserScheduleService.TalkDetails>> schedules) {
+    writeSync(scheduleFile(year), schedules);
+  }
+
   /** Loads events from disk or returns an empty map if none. */
   public Map<String, Event> loadEvents() {
     return read(eventsFile, new TypeReference<Map<String, Event>>() {
