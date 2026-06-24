@@ -5523,6 +5523,14 @@ footer {
   border-left-color: rgba(255, 215, 0, 0.85);
 }
 
+.home-priority-spotlight-head {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .home-priority-spotlight h2,
 .home-priority-card h2 {
   margin: 0;
