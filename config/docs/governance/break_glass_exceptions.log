@@ -1,0 +1,55 @@
+# Break-Glass Exception Log
+
+This file tracks all emergency governance bypass events for audit and compliance.
+
+## Log Format
+
+### Emergency Break-Glass (Type 4 Exceptions)
+```
+---
+Date: [ISO 8601 timestamp]
+Incident: #[incident-number]
+PR: #[pr-number]
+Authorizers: [name1, name2]
+Bypass Type: [merge-without-approval / force-push / ci-skip / etc]
+Duration: [start-timestamp] to [end-timestamp]
+Impact: [brief description]
+Rollback Executed: [yes/no]
+Post-Incident Review: [link or "pending"]
+---
+```
+
+### Standard Review Exceptions (Type 1-3)
+```
+---
+Date: [ISO 8601 timestamp]
+Exception Type: [Type-1 / Type-2 / Type-3]
+PR: #[pr-number]
+Title: [PR title]
+Approver: [Name (Role)]
+Justification: [Brief reason]
+Impact Scope: [Production / Staging / Development]
+Risk Level: [Low / Medium / High]
+Post-Merge Actions: [List of follow-up actions]
+Completed: [yes / no / N/A]
+---
+```
+
+## Exception History
+
+<!-- New exceptions are appended below this line -->
+<!-- Most recent first -->
+
+---
+<!-- Example entry - remove when first real exception is logged
+Date: 2026-06-23T01:23:45Z
+Incident: #1001
+PR: #2001
+Authorizers: Jane Doe (Tech Lead), John Smith (EM)
+Bypass Type: merge-without-approval
+Duration: 2026-06-23T01:23:45Z to 2026-06-23T03:45:12Z
+Impact: Critical authentication service outage affecting 100% of users
+Rollback Executed: no
+Post-Incident Review: docs/incidents/pir-1001.md
+---
+-->
