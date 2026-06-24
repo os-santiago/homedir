@@ -1,0 +1,169 @@
+name: Parent Issue
+description: Feature or improvement with multiple child tasks
+title: "[PARENT] "
+labels: ["type:parent-issue", "type:enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for features or improvements requiring multiple coordinated tasks.
+        See [Parent/Child/Epic Standard](../../config/docs/governance/PARENT_CHILD_EPIC_STANDARD.md) for details.
+
+  - type: input
+    id: parent
+    attributes:
+      label: Parent Issue
+      description: Parent epic or "None (root issue)"
+      placeholder: "#123 or None (root issue)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - Enhancement
+        - Feature
+        - Refactor
+        - Documentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend
+        - Frontend
+        - DevOps
+        - Documentation
+        - Governance
+        - Security
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What problem this solves and why it matters
+      placeholder: Currently we have... This issue addresses...
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: Clear, measurable goal
+      placeholder: Implement/Enable/Improve...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is included and excluded
+      value: |
+        **In scope**
+        -
+
+        **Out of scope**
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: children
+    attributes:
+      label: Child Issues
+      description: Checklist of child tasks (update as children are created)
+      value: |
+        **Overall: 0/0 tasks completed (0%)**
+
+        - [ ] #
+        - [ ] #
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Specific, testable criteria for completion
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Deliverables
+      description: Concrete outputs expected
+      placeholder: |
+        - Deliverable 1
+        - Deliverable 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: approach
+    attributes:
+      label: Technical Approach
+      description: High-level approach or architecture
+      placeholder: We will implement this by...
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Blocking relationships with other issues
+      placeholder: |
+        - Blocks: #
+        - Blocked by: #
+        - Related: #
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing Strategy
+      description: How this will be validated
+      placeholder: |
+        - Unit tests for...
+        - Integration tests for...
+        - Manual verification of...
+
+  - type: textarea
+    id: docs
+    attributes:
+      label: Documentation Requirements
+      description: Documentation that needs to be created or updated
+      placeholder: |
+        - [ ] Doc 1
+        - [ ] Doc 2
+
+  - type: textarea
+    id: rollout
+    attributes:
+      label: Rollout Plan
+      description: How this will be deployed/released
+      placeholder: Deploy to staging, validate, then production...

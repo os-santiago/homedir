@@ -1,0 +1,137 @@
+name: Child Issue
+description: Specific task within a parent issue
+title: ""
+labels: ["type:child-issue", "type:task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for concrete tasks that are part of a larger parent issue.
+        See [Parent/Child/Epic Standard](../../config/docs/governance/PARENT_CHILD_EPIC_STANDARD.md) for details.
+
+  - type: input
+    id: parent
+    attributes:
+      label: Parent Issue
+      description: The parent issue number (REQUIRED)
+      placeholder: "#123"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - Task
+        - Bug
+        - Enhancement
+        - Documentation
+        - Test
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend
+        - Frontend
+        - DevOps
+        - Documentation
+        - Governance
+        - Security
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Brief context specific to this task
+      placeholder: This task is part of... It handles...
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What this specific task accomplishes
+      placeholder: Implement/Add/Fix/Update...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Clear criteria for completion
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Notes
+      description: Technical details, approach, or constraints
+      placeholder: |
+        Implementation should...
+        Consider using...
+        Constraints: ...
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing Requirements
+      description: Testing that must be completed
+      value: |
+        - [ ] Unit tests added
+        - [ ] Integration tests updated
+        - [ ] Manual verification completed
+    validations:
+      required: true
+
+  - type: textarea
+    id: docs
+    attributes:
+      label: Documentation
+      description: Documentation updates needed
+      value: |
+        - [ ] Code comments added
+        - [ ] README updated (if needed)
+        - [ ] Parent issue updated with progress
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Blocking relationships
+      placeholder: |
+        - Blocks: #
+        - Blocked by: #
+        - Related: #
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Estimated Effort
+      options:
+        - Small (hours)
+        - Medium (1-2 days)
+        - Large (3+ days)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: good_first
+    attributes:
+      label: Contributor Friendly
+      options:
+        - label: This is a good first issue for new contributors
