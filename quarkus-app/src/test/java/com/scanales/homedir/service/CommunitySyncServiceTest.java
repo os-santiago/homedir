@@ -28,7 +28,8 @@ public class CommunitySyncServiceTest {
         CommunityData data = new CommunityData(List.of(member));
 
         String yaml = yamlMapper.writeValueAsString(data);
-        System.out.println(yaml);
+        org.junit.jupiter.api.Assertions.assertNotNull(yaml);
+        org.junit.jupiter.api.Assertions.assertTrue(yaml.contains("user1"));
     }
 
     private static class CommunityData {
