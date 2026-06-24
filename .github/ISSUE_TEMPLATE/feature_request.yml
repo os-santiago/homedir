@@ -1,12 +1,16 @@
 name: Feature Request
 description: Suggest a new feature or enhancement
 title: "[Feature] "
-labels: ["enhancement", "triage"]
+labels: ["type:feature", "priority:P2"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for suggesting a feature! Please describe the problem you're trying to solve.
+
+        This template will automatically apply `type:feature` and `priority:P2` labels. Maintainers will adjust priority during triage.
+
+        📚 See [Label Taxonomy](../../config/docs/governance/LABEL_TAXONOMY.md) for label definitions.
 
   - type: dropdown
     id: priority

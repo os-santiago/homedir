@@ -1,0 +1,153 @@
+name: Epic Issue
+description: Strategic initiative with multiple parent/child issues
+title: "[EPIC] "
+labels: ["type:epic", "priority:P1"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for strategic initiatives spanning multiple features or improvements.
+        See [Parent/Child/Epic Standard](../../config/docs/governance/PARENT_CHILD_EPIC_STANDARD.md) for details.
+
+        This template will automatically apply `type:epic` and `priority:P1` labels.
+
+        📚 See [Label Taxonomy](../../config/docs/governance/LABEL_TAXONOMY.md) for label definitions.
+
+  - type: input
+    id: parent
+    attributes:
+      label: Parent Issue
+      description: Parent epic issue number, or "None (root epic)"
+      placeholder: "None (root epic)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend
+        - Frontend
+        - DevOps
+        - Documentation
+        - Governance
+        - Security
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: overview
+    attributes:
+      label: Epic Overview
+      description: Brief strategic context and business value
+      placeholder: This epic aims to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: business_value
+    attributes:
+      label: Business Value
+      description: Why this matters and expected impact
+      placeholder: This will enable/improve...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What this epic includes and excludes
+      value: |
+        **In scope**
+        -
+
+        **Out of scope**
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: progress
+    attributes:
+      label: Progress Tracking
+      description: Checklist of parent and child issues
+      value: |
+        **Overall: 0/0 issues completed (0%)**
+
+        ### Phase 1: [Phase name]
+        - [ ] #
+
+        ### Phase 2: [Phase name]
+        - [ ] #
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: High-level outcomes that define epic completion
+      placeholder: |
+        - [ ] Outcome 1
+        - [ ] Outcome 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline
+      description: Target dates and milestone
+      placeholder: |
+        - Start date: YYYY-MM-DD
+        - Target completion: YYYY-MM-DD
+        - Milestone: Q2 2026
+    validations:
+      required: true
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Success Metrics
+      description: Measurable indicators of success
+      placeholder: |
+        - Metric 1: Target value
+        - Metric 2: Target value
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: External or internal dependencies
+      placeholder: |
+        **External:**
+        -
+
+        **Internal:**
+        -
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: Key risks and mitigation strategies
+      value: |
+        | Risk | Impact | Mitigation |
+        |------|--------|------------|
+        | | High/Medium/Low | |

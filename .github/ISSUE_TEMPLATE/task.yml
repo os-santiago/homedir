@@ -1,12 +1,16 @@
 name: Task
 description: A well-defined unit of work
 title: ""
-labels: []
+labels: ["type:chore", "priority:P2"]
 body:
   - type: markdown
     attributes:
       value: |
         Use this template for well-defined tasks. For bugs, use the Bug Report template.
+
+        This template will automatically apply `type:chore` and `priority:P2` labels (maintainers will adjust based on task type).
+
+        📚 See [Label Taxonomy](../../config/docs/governance/LABEL_TAXONOMY.md) for label definitions.
 
   - type: dropdown
     id: type

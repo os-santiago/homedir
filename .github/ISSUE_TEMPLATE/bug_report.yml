@@ -1,12 +1,16 @@
 name: Bug Report
 description: Report a bug to help us improve
 title: "[Bug] "
-labels: ["bug", "triage"]
+labels: ["type:bug", "priority:P2"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+
+        This template will automatically apply `type:bug` and `priority:P2` labels. Maintainers will adjust priority during triage.
+
+        📚 See [Label Taxonomy](../../config/docs/governance/LABEL_TAXONOMY.md) for label definitions.
 
   - type: dropdown
     id: severity
