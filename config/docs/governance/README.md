@@ -4,6 +4,16 @@ This directory contains governance policies, runbooks, and templates for reposit
 
 ## Core Policies
 
+### [Historical Issue Backfill Plan](./HISTORICAL_BACKFILL_PLAN.md)
+Structured migration plan to transform all open historical issues into the canonical metadata and label schema. Covers label mapping, severity inference heuristics, 4-phase rollout, quality validation thresholds, and rollback plan.
+
+**Key sections:**
+- Label mapping from legacy (`priority:P*`, `bug`, `buen primer issue`) to canonical
+- Severity inference heuristic for unlabeled issues
+- Language deduplication (ES → EN consolidation)
+- Automated Phase 1 script specification
+- Post-migration validation with sampling
+
 ### [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.md)
 Formal severity-priority matrix connecting technical impact with operational urgency. Defines S0–S4 and P0–P4 scales, impact × urgency matrix with tiebreakers, SLA targets, and classification examples.
 
@@ -144,12 +154,14 @@ See [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.m
 
 | Document | Owner | Review Frequency | Next Review |
 |----------|-------|------------------|-------------|
+| Historical Backfill Plan | Engineering Leadership | One-time (2026-Q3) | N/A |
 | Definition of Ready/Done | Product/Engineering | Quarterly | TBD |
 | Break-Glass Runbook | Engineering Leadership | Quarterly | 2026-09-23 |
 | Templates | Engineering Manager | Semi-annually | TBD |
 
 ## Related Documentation
 
+- [Historical Issue Backfill Plan](./HISTORICAL_BACKFILL_PLAN.md)
 - [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.md)
 - [Branch Protection Policy](#) _(link when available)_
 - [Incident Response Policy](#) _(link when available)_
