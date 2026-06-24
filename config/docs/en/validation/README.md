@@ -15,8 +15,8 @@ Validates the end-to-end flow from GitHub webhook events to WOS (Workspace OS) d
 
 **Quick Test:**
 ```bash
-cd config
-bash scripts/test-webhook-integration.sh
+# Run from repository root
+bash config/scripts/test-webhook-integration.sh
 ```
 
 **Current Status:**

@@ -28,7 +28,7 @@ Validate that when a `wos-review` label is added to an issue, the following flow
 ### Step 1: Verify Webhook Configuration
 
 **Action**: Check webhook is properly configured  
-**Command**: `gh api repos/:owner/:repo/hooks/644594980`
+**Command**: `gh api repos/os-santiago/homedir/hooks/644594980`
 
 **Expected Result**:
 - Webhook active: ✓

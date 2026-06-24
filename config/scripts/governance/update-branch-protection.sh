@@ -24,12 +24,18 @@ echo "Documentation: docs/governance/STATUS_CHECK_MATRIX.md"
 echo "Implementation Guide: docs/governance/BRANCH_PROTECTION_IMPLEMENTATION.md"
 echo ""
 
-# Fetch current ruleset
+# Fetch current ruleset for backup
 echo "📥 Fetching current ruleset..."
-CURRENT=$(gh api repos/$REPO/rulesets/$RULESET_ID)
+BACKUP_FILE=$(mktemp /tmp/ruleset-backup-XXXXXX.json)
+gh api "repos/$REPO/rulesets/$RULESET_ID" > "$BACKUP_FILE"
+echo "Backup saved to $BACKUP_FILE"
+
+# Cleanup on exit
+trap 'rm -f "$PAYLOAD_FILE" 2>/dev/null' EXIT
 
 # Create updated ruleset payload with required status checks
-cat > /tmp/ruleset-update.json <<'EOF'
+PAYLOAD_FILE=$(mktemp /tmp/ruleset-update-XXXXXX.json)
+cat > "$PAYLOAD_FILE" <<'EOF'
 {
   "name": "Main Branch Protection",
   "enforcement": "active",
@@ -61,7 +67,7 @@ cat > /tmp/ruleset-update.json <<'EOF'
     {
       "type": "required_status_checks",
       "parameters": {
-        "strict_required_status_checks_policy": false,
+        "strict_required_status_checks_policy": true,
         "required_status_checks": [
           {
             "context": "PR Quality — Suite / style",
@@ -93,7 +99,7 @@ cat > /tmp/ruleset-update.json <<'EOF'
     {
       "type": "commit_message_pattern",
       "parameters": {
-        "operator": "starts_with",
+        "operator": "regex",
         "pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\\([a-z0-9-]+\\))?: .+",
         "name": "Conventional Commits",
         "negate": false
@@ -119,22 +125,35 @@ EOF
 
 echo ""
 echo "📤 Updating ruleset $RULESET_ID..."
-gh api -X PUT repos/$REPO/rulesets/$RULESET_ID \
-  --input /tmp/ruleset-update.json
+gh api -X PUT "repos/$REPO/rulesets/$RULESET_ID" \
+  --input "$PAYLOAD_FILE"
 
 echo ""
 echo "✅ Ruleset updated successfully!"
 echo ""
-echo "Verification steps:"
-echo "1. Visit https://github.com/$REPO/rules/$RULESET_ID"
-echo "2. Confirm 6 required status checks are enforced"
-echo "3. Confirm 'Require conversation resolution before merging' is enabled"
-echo "4. Confirm bypass mode is 'For pull requests only'"
-echo "5. Confirm commit message pattern matches Conventional Commits"
+
+# Automated verification
+VERIFY_SCRIPT="$(dirname "$0")/../verify-branch-protection.sh"
+if [[ -x "$VERIFY_SCRIPT" ]]; then
+  echo "🔍 Running automated verification..."
+  if "$VERIFY_SCRIPT"; then
+    echo "✅ Verification passed!"
+  else
+    echo "❌ Verification failed - check output above"
+    exit 1
+  fi
+else
+  echo "⚠️  Automated verification script not found: $VERIFY_SCRIPT"
+  echo ""
+  echo "Manual verification steps:"
+  echo "1. Visit https://github.com/$REPO/rules/$RULESET_ID"
+  echo "2. Confirm 6 required status checks are enforced"
+  echo "3. Confirm 'Require conversation resolution before merging' is enabled"
+  echo "4. Confirm bypass mode is 'For pull requests only'"
+  echo "5. Confirm commit message pattern matches Conventional Commits"
+fi
+
 echo ""
 echo "📋 Next steps:"
 echo "  - Monitor next PR to verify checks are enforced"
 echo "  - Update docs/governance/BRANCH_PROTECTION_IMPLEMENTATION.md with execution timestamp"
-
-# Cleanup
-rm -f /tmp/ruleset-update.json

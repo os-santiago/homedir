@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-✅ **WEBHOOK INTEGRATION VALIDATED** - GitHub webhook successfully delivers to WOS endpoint with sub-second latency.
+⚠️ **PARTIAL VALIDATION** - GitHub webhook delivery to WOS verified. WOS processing and Discord delivery pending verification.
 
 ## What Was Tested
 
@@ -52,22 +52,26 @@ Triggered webhook by removing and re-adding `wos-review` label on issue #864:
 
 ## Conclusion
 
-**Status**: ✅ **WEBHOOK INTEGRATION VALIDATED**
+**Status**: ⚠️ **PARTIAL VALIDATION**
 
-The GitHub → WOS webhook integration is functioning correctly at the infrastructure level:
+The GitHub → WOS webhook delivery is verified:
 - Webhook fires on expected events ✅
 - Delivers successfully with excellent latency (< 1s) ✅
 - Returns correct status codes ✅
 
-Downstream WOS processing and Discord notification require manual verification.
+**Not yet verified:**
+- WOS processing (no local artifacts)
+- Discord notification delivery
+
+Full end-to-end validation requires verifying WOS processing and Discord delivery.
 
 ## Files Changed
 
-- `tests/test_issue_864_webhook_flow.md` - Detailed test plan
-- `tests/VALIDATION_SUMMARY_864.md` - This validation summary
+- `config/tests/test_issue_864_webhook_flow.md` - Detailed test plan
+- `config/tests/VALIDATION_SUMMARY_864.md` - This validation summary
 
 ---
 
 **Validation completed**: 2026-06-24 16:15 UTC  
 **Validator**: Claude  
-**Result**: ✅ Webhook infrastructure validated
+**Result**: ⚠️ Partial - Infrastructure validated, downstream processing pending

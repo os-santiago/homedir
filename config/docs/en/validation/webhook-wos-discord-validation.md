@@ -2,7 +2,7 @@
 
 **Issue**: #864  
 **Date**: 2026-06-24  
-**Status**: ✅ VALIDATED
+**Status**: ⚠️ PARTIAL (Infrastructure validated, Discord pending)
 
 ## Objective
 
@@ -57,6 +57,6 @@ Discord Notification
 
 ## References
 
-- [Label Taxonomy](../../config/docs/governance/LABEL_TAXONOMY.md)
-- [External Triage Workflow](../../config/docs/governance/EXTERNAL_TRIAGE_WORKFLOW.md)
+- [Label Taxonomy](../governance/LABEL_TAXONOMY.md)
+- [External Triage Workflow](../governance/EXTERNAL_TRIAGE_WORKFLOW.md)
 - [Test Script](../../scripts/test-webhook-integration.sh)
