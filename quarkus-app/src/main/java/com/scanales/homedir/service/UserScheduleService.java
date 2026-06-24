@@ -228,9 +228,13 @@ public class UserScheduleService {
 
   /** Clears all schedules and historical data (testing only). */
   public void reset() {
+    if (refreshTask != null) {
+      refreshTask.cancel(false);
+      refreshTask = null;
+    }
     schedules.clear();
     historical.clear();
-    persistence.saveUserSchedules(activeYear, schedules);
+    persistence.saveUserSchedulesSync(activeYear, schedules);
   }
 
   /** Result codes for loading historical data. */
