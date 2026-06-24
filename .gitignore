@@ -40,6 +40,12 @@ state.json
 SESSION-LOG.md
 DECISIONS.md
 
+# AI agent hidden directories and worktrees
+.claude/
+.cursor/
+.windsurf/
+.aider/
+.continue/
 
 # Common build outputs
 dist/
