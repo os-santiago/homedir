@@ -1,0 +1,860 @@
+# STRIDE Threat Model: Administrative Functions
+# Version: 1.0
+# Last Updated: 2026-06-23
+# Issue Reference: #855
+# Owner: Security Team
+
+metadata:
+  domain: administrative_operations
+  scope: "Administrative dashboards, user management, system configuration, data exports, platform settings, moderation tools, and privileged operations"
+  classification: CRITICAL
+  compliance_frameworks:
+    - OWASP ASVS 4.0
+    - SOC 2 Type II
+    - ISO 27001
+    - PCI DSS 3.2.1
+  dependencies:
+    - endpoint-authorization-matrix.yaml (#854)
+    - auth-threat-model.yaml
+
+domain:
+  name: "Administrative Functions"
+  description: |
+    Administrative functions represent the highest-privilege operations in the system,
+    controlling user accounts, system configuration, data management, and security
+    controls. Compromise of admin functionality leads to total system compromise,
+    data breaches, and complete loss of confidentiality, integrity, and availability.
+    This domain requires the strictest security controls.
+
+  components:
+    - Admin dashboard and analytics
+    - User account management (create, modify, delete, suspend)
+    - Role and permission administration
+    - System configuration and settings
+    - Database administration tools
+    - Data export and backup functions
+    - Audit log viewing and analysis
+    - Content moderation tools
+    - API key and credential management
+    - System maintenance and debugging tools
+
+protected_assets:
+  - asset: "Admin credentials and sessions"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: CRITICAL
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "System configuration and secrets"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Complete user database"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: PII
+
+  - asset: "Data exports and backups"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: MEDIUM
+    data_classification: HIGHLY_CONFIDENTIAL
+
+  - asset: "Audit logs and security events"
+    confidentiality: HIGH
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: INTERNAL
+
+  - asset: "API keys and service credentials"
+    confidentiality: CRITICAL
+    integrity: CRITICAL
+    availability: HIGH
+    data_classification: HIGHLY_CONFIDENTIAL
+
+trust_boundaries:
+  - boundary: "Admins → Admin Dashboard (Read)"
+    crossing_points:
+      - /api/admin/dashboard GET
+      - /api/admin/analytics GET
+      - /api/admin/users GET
+    authentication_required: true
+    authorization_required: true
+    role_required: "admin"
+    mfa_required: RECOMMENDED
+
+  - boundary: "Admins → User Management (Write)"
+    crossing_points:
+      - /api/admin/users/:id PUT
+      - /api/admin/users/:id/suspend POST
+      - /api/admin/users/:id/roles PUT
+    authentication_required: true
+    authorization_required: true
+    role_required: "admin"
+    mfa_required: REQUIRED
+    audit_required: true
+
+  - boundary: "Admins → System Configuration (Write)"
+    crossing_points:
+      - /api/admin/config PUT
+      - /api/admin/settings PUT
+    authentication_required: true
+    authorization_required: true
+    role_required: "super_admin"
+    mfa_required: REQUIRED
+    audit_required: true
+    change_approval_required: RECOMMENDED
+
+  - boundary: "Admins → Data Export (Read Bulk)"
+    crossing_points:
+      - /api/admin/export/users POST
+      - /api/admin/export/audit-logs POST
+    authentication_required: true
+    authorization_required: true
+    role_required: "admin"
+    mfa_required: REQUIRED
+    audit_required: true
+    data_protection_required: CRITICAL
+
+threats:
+  - id: ADMIN-T001
+    stride_category: Spoofing
+    title: "Admin Account Compromise via Targeted Phishing and Social Engineering - CRITICAL"
+    description: |
+      Attackers specifically target admin accounts through sophisticated phishing,
+      social engineering, or malware campaigns. Successful compromise of a single
+      admin account grants complete system access, enabling data theft, backdoor
+      installation, and total platform compromise. Admins are high-value targets.
+    vector: "Spear phishing, credential harvesting, malware, social engineering"
+    attack_scenario: |
+      1. Attacker identifies admin users:
+         - LinkedIn profile shows "Platform Administrator at Company"
+         - Email enumeration: admin@company.com, root@company.com
+      2. Crafts targeted spear phishing email:
+         Subject: "URGENT: Security Alert - Suspicious Activity Detected"
+         From: security-team@company-security.com (fake domain)
+         Body: "We detected unauthorized access to your admin account.
+                Click here to verify: https://company-login.com/verify"
+      3. Fake login page mimics real login (pixel-perfect clone)
+      4. Admin enters credentials on phishing site
+      5. Attacker captures: username, password
+      6. Attacker logs in as admin using stolen credentials
+      7. Full system access granted
+      8. Attacker creates backdoor admin account: "system_svc"
+      9. Exfiltrates user database (all PII)
+      10. Installs persistent backdoor
+      11. Maintains access even after incident discovery
+
+      OR (malware scenario):
+      1. Attacker sends malicious attachment: "Q4_Report.pdf.exe"
+      2. Admin opens attachment, malware installed
+      3. Keylogger captures admin credentials
+      4. Session token theft via browser cookie extraction
+      5. Attacker uses stolen session to access admin panel
+    likelihood: MEDIUM
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 9.6
+    cwe_id: CWE-1390
+    affected_assets:
+      - "Admin credentials and sessions"
+      - "Complete user database"
+      - "System configuration and secrets"
+      - "All platform data and functionality"
+    affected_components:
+      - Admin authentication
+      - Admin session management
+      - All administrative functions
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Enhanced admin account security:
+
+        1. Mandatory multi-factor authentication (MFA):
+           - Hardware tokens required (YubiKey, Titan Security Key)
+           - No SMS-based MFA (vulnerable to SIM swapping)
+           - TOTP backup only (Google Authenticator, Authy)
+           - MFA enforcement: cannot disable for admin accounts
+           - Re-authentication required for sensitive operations
+
+        2. Phishing-resistant authentication:
+           - WebAuthn / FIDO2 (phishing-resistant by design)
+           - Hardware key challenge-response
+           - Domain binding (credentials only work on legitimate domain)
+
+        3. Admin account isolation:
+           - Separate admin accounts from regular user accounts
+           - Naming policy: admin_john (not john@company.com for admin)
+           - No shared admin credentials (unique per admin user)
+           - Privileged Access Workstations (PAWs) for admin tasks
+           - Admin access only from trusted networks/IPs
+
+        4. Security awareness training:
+           - Monthly phishing simulation exercises
+           - Admin-specific security training
+           - Report suspicious emails to security team
+           - Verify urgent requests via separate channel (phone call)
+
+        5. Email security controls:
+           - SPF, DKIM, DMARC enforcement (prevent email spoofing)
+           - External sender warnings: "[EXTERNAL] This email is from outside"
+           - Link protection: URL rewriting and sandboxing
+           - Attachment scanning (antivirus, sandbox analysis)
+
+        6. Endpoint protection for admin users:
+           - Mandatory EDR (Endpoint Detection and Response)
+           - Full disk encryption
+           - Regular vulnerability scanning
+           - Automatic patching for critical vulnerabilities
+           - Application whitelisting (block unauthorized executables)
+
+        7. Session security for admins:
+           - Shorter session timeout: 15 min idle, 2 hours absolute
+           - IP binding: session only valid from login IP
+           - Device fingerprinting
+           - Geographic restrictions (block logins from unexpected countries)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Password manager requirement (prevent credential reuse)
+        - Admin account activity monitoring (UEBA - User Entity Behavior Analytics)
+        - Anomaly detection (login from new device, unusual time, new location)
+        - Admin access logging and SIEM integration
+        - Breakglass accounts (emergency access, highly monitored)
+    additional_controls:
+      - "Just-in-time (JIT) admin access (temporary elevation only when needed)"
+      - "Privileged Access Management (PAM) solution (CyberArk, BeyondTrust)"
+      - "Admin access requires VPN or bastion host"
+
+  - id: ADMIN-T002
+    stride_category: Tampering
+    title: "Unauthorized System Configuration Changes Leading to Security Bypass"
+    description: |
+      Attackers with admin access (compromised or malicious insider) modify system
+      configuration to disable security controls, weaken authentication, create
+      backdoors, or manipulate application behavior. Configuration tampering can
+      bypass all other security controls.
+    vector: "Direct database modification, configuration API abuse, config file tampering"
+    attack_scenario: |
+      1. Attacker compromises admin account (see ADMIN-T001)
+      2. Accesses system configuration: /api/admin/config
+      3. Modifies security settings:
+         - Disable MFA requirement: "mfa_required": false
+         - Weaken password policy: "min_password_length": 4
+         - Disable rate limiting: "rate_limit_enabled": false
+         - Change session timeout: "session_timeout": 999999 (never expires)
+      4. Security controls now disabled
+      5. Creates new admin account with weak password: "admin123"
+      6. Maintains persistent access even if original compromise detected
+
+      OR (logging sabotage):
+      1. Attacker modifies audit logging configuration
+      2. Disables admin action logging: "log_admin_actions": false
+      3. Performs malicious actions (data theft, user deletion)
+      4. No audit trail of malicious activity
+      5. Forensic investigation impossible
+
+      OR (backdoor configuration):
+      1. Attacker adds new OAuth provider configuration
+      2. Points to attacker-controlled OAuth server
+      3. Legitimate users authenticate via malicious OAuth
+      4. Attacker captures credentials and tokens
+    likelihood: LOW
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 8.7
+    cwe_id: CWE-15
+    affected_assets:
+      - "System configuration and secrets"
+      - "All security controls"
+      - "Audit logs and security events"
+    affected_components:
+      - Configuration management
+      - Security settings
+      - Authentication configuration
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Configuration integrity and change management:
+
+        1. Configuration change approval workflow:
+           - Two-admin approval for critical config changes
+           - Security team review for security-sensitive settings
+           - Change request ticketing (Jira, ServiceNow)
+           - Waiting period: 24h before change applies (except emergencies)
+
+        2. Immutable security configurations:
+           - Core security settings cannot be disabled via UI/API
+           - Hardcoded minimums:
+             * mfa_required: true (cannot be set to false)
+             * min_password_length: 12 (cannot be lowered)
+             * audit_logging: true (always enabled)
+           - Require code deployment to change (not runtime configuration)
+
+        3. Configuration versioning and audit trail:
+           - All configuration changes logged:
+             * timestamp, admin_id, setting_name, old_value, new_value, reason
+           - Configuration version history (git-based or database)
+           - Rollback capability to previous configuration
+           - Automated alerts on security-sensitive changes
+
+        4. Separation of duties:
+           - Config viewer role: can read configuration
+           - Config editor role: can modify non-security configuration
+           - Security admin role: can modify security configuration (requires approval)
+           - Database admin: separate from application admin
+
+        5. Configuration validation:
+           - Schema validation on configuration changes
+           - Security policy enforcement:
+             ```java
+             public void updateConfig(setting, value, adminUser) {
+                 if (SECURITY_CRITICAL_SETTINGS.contains(setting)) {
+                     if (!value.meetsSecurityMinimums()) {
+                         throw new SecurityPolicyViolation(
+                             "Cannot weaken security setting: " + setting
+                         );
+                     }
+                     requireTwoAdminApproval(setting, value);
+                     auditLog.critical("Security config changed", adminUser, setting);
+                 }
+                 config.update(setting, value);
+             }
+             ```
+
+        6. Configuration monitoring and alerting:
+           - Real-time alerts on configuration changes
+           - Daily configuration integrity checks
+           - Compare against baseline (detect unauthorized changes)
+           - Automatic rollback on policy violations
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Configuration as code (Infrastructure as Code)
+        - Peer review for configuration changes (pull requests)
+        - Automated configuration testing (ensure security controls work)
+        - Read-only production configuration (changes via deployment only)
+    additional_controls:
+      - "Configuration signing (cryptographic integrity)"
+      - "External configuration backup (separate from primary system)"
+      - "Quarterly configuration security audit"
+
+  - id: ADMIN-T003
+    stride_category: Repudiation
+    title: "Insufficient Admin Audit Logging Enabling Malicious Insider Threats"
+    description: |
+      Missing or incomplete audit logs for admin actions prevent detection of malicious
+      insiders, forensic investigation of security incidents, and compliance reporting.
+      Admins can perform unauthorized or malicious actions without accountability.
+    vector: "Missing audit logs, log tampering, incomplete logging"
+    attack_scenario: |
+      1. Malicious admin or compromised admin account
+      2. Performs unauthorized actions:
+         - Exports complete user database (PII theft)
+         - Deletes competitor accounts
+         - Modifies financial records
+         - Creates backdoor admin accounts
+      3. No audit logging of admin actions
+      4. Actions go undetected for months
+      5. Data breach discovered when victim reports it
+      6. Forensic investigation finds no logs
+      7. Cannot determine:
+         - Who performed malicious actions (which admin)
+         - When actions occurred
+         - What data was accessed or modified
+         - Extent of compromise
+      8. Compliance violation (SOC 2, GDPR require audit trails)
+      9. Legal liability (cannot demonstrate security controls)
+      10. Insider threat remains undetected (could still have access)
+    likelihood: MEDIUM
+    impact: HIGH
+    severity: HIGH
+    cvss_score: 7.4
+    cwe_id: CWE-778
+    affected_assets:
+      - "Audit logs and security events"
+      - "All administrative actions"
+      - "Compliance evidence"
+    affected_components:
+      - Admin audit logging
+      - SIEM integration
+      - Forensic capabilities
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Comprehensive admin audit logging:
+
+        1. Admin actions to log (ALL, no exceptions):
+           - User management:
+             * User creation, modification, deletion
+             * Role/permission changes
+             * Account suspension/activation
+             * Password resets performed by admin
+           - System configuration:
+             * Configuration changes (see ADMIN-T002)
+             * Security setting modifications
+             * Feature flag changes
+           - Data access:
+             * Data exports (who, what, when, how many records)
+             * Database queries (direct DB access)
+             * Bulk data operations
+           - Admin authentication:
+             * Admin login/logout
+             * MFA verification
+             * Privilege escalation events
+           - Content moderation:
+             * Content deletion/hiding
+             * User bans
+             * Report resolutions
+
+        2. Log data to capture:
+           - Who: admin_user_id, admin_username, admin_email
+           - What: action_type, resource_type, resource_id
+           - When: timestamp (UTC, microsecond precision)
+           - Where: IP address, geolocation, User-Agent
+           - How: API endpoint, HTTP method
+           - Why: reason/notes (required for destructive actions)
+           - Before/After: old_value, new_value (for modifications)
+
+        3. Log format and structure:
+           ```json
+           {
+             "timestamp": "2026-06-23T14:32:15.123Z",
+             "admin_user_id": "admin_12345",
+             "admin_username": "admin_john",
+             "action": "USER_ROLE_CHANGE",
+             "resource_type": "user",
+             "resource_id": "user_67890",
+             "details": {
+               "old_roles": ["user"],
+               "new_roles": ["user", "moderator"],
+               "reason": "Promoted to moderator per ticket SEC-123"
+             },
+             "ip": "203.0.113.42",
+             "geolocation": "New York, US",
+             "user_agent": "Mozilla/5.0..."
+           }
+           ```
+
+        4. Immutable audit trail:
+           - Append-only logging (no UPDATE or DELETE allowed)
+           - Write to separate database or logging service
+           - Separate access control (admins cannot modify their own logs)
+           - Tamper-evident logging (cryptographic hashing, blockchain)
+
+        5. Log retention and protection:
+           - Retention: 7 years (compliance requirement)
+           - Encryption at rest (audit logs contain PII)
+           - Backup to separate system (air-gapped or different cloud account)
+           - Access control: security team only (not regular admins)
+
+        6. Real-time monitoring and alerting:
+           - SIEM integration (Splunk, ELK, Datadog)
+           - Alert on high-risk admin actions:
+             * Bulk data export (>1000 records)
+             * Role elevation to admin
+             * Security configuration changes
+             * Multiple user deletions
+             * Database direct access
+           - Automated incident creation for critical alerts
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Admin activity dashboard (real-time visibility)
+        - Anomaly detection (UEBA - unusual admin behavior)
+        - Peer review of admin actions (quarterly audit)
+        - Legal hold capability (preserve logs for litigation)
+    additional_controls:
+      - "Admin action recording (screen recording for critical operations)"
+      - "Separation of admin and audit roles (audit team reviews logs)"
+      - "Blockchain-based audit trail (maximum tamper resistance)"
+
+  - id: ADMIN-T004
+    stride_category: Information Disclosure
+    title: "Mass Data Exfiltration via Admin Export Functions - CRITICAL"
+    description: |
+      Admin data export functions allow bulk extraction of sensitive user data, PII,
+      financial records, or proprietary information. Compromised admin accounts or
+      malicious insiders can exfiltrate entire databases, leading to catastrophic
+      data breaches and compliance violations.
+    vector: "Bulk export APIs, database backups, admin reporting tools"
+    attack_scenario: |
+      1. Attacker compromises admin account (see ADMIN-T001)
+      2. Accesses data export function: /api/admin/export/users
+      3. Requests export of all user data:
+         - Request: {"format": "CSV", "filters": {}}
+      4. No rate limiting or approval required
+      5. System generates CSV with ALL user records:
+         - 500,000 users × (email, name, address, phone, payment info)
+         - File size: 2GB
+      6. Attacker downloads export file
+      7. Exfiltrates complete user database
+      8. Sells data on dark web or uses for identity theft
+      9. GDPR breach notification required (affects all users)
+      10. Regulatory fines (up to 4% of revenue)
+      11. Reputational damage, user exodus
+
+      OR (incremental exfiltration to avoid detection):
+      1. Attacker exports data in small batches (1000 records per day)
+      2. Stays under detection threshold
+      3. Over 6 months, exfiltrates entire database
+      4. No alerts triggered (appears normal admin activity)
+    likelihood: MEDIUM
+    impact: CRITICAL
+    severity: CRITICAL
+    cvss_score: 9.4
+    cwe_id: CWE-359
+    affected_assets:
+      - "Complete user database"
+      - "Data exports and backups"
+      - "All PII and sensitive data"
+    affected_components:
+      - Data export functions
+      - Backup generation
+      - Reporting tools
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Data export protection and monitoring:
+
+        1. Export approval workflow:
+           - Two-admin approval required for exports >1000 records
+           - Security team approval for exports containing PII
+           - Business justification required (ticket reference)
+           - Waiting period: 4 hours before export available (allows review)
+
+        2. Export size and frequency limits:
+           - Max 10,000 records per export
+           - Max 1 export per admin per day
+           - Max 100,000 records per admin per month
+           - Require VP approval for larger exports
+
+        3. Data minimization and filtering:
+           - Export only necessary fields (no passwords, payment data)
+           - Redaction options: email → e***@example.com
+           - Anonymization for analytics exports
+           - Require explicit field selection (no "export all fields")
+
+        4. Export encryption and access control:
+           - Encrypt exports with strong password (AES-256)
+           - Password delivered via separate channel (SMS, secure email)
+           - Exports expire after 24 hours (auto-delete)
+           - Download tracked: who downloaded, when
+
+        5. Export monitoring and alerting:
+           - Real-time alerts on export creation:
+             * Export size > 1000 records
+             * Export contains PII fields
+             * Export by recently-elevated admin
+             * Export outside business hours
+           - Daily export summary to security team
+           - Anomaly detection: unusual export patterns
+
+        6. Watermarking and DLP:
+           - Embed invisible watermark in exports (trace leaks)
+           - Watermark includes: admin_id, timestamp, unique_id
+           - DLP (Data Loss Prevention) on export files
+           - Block upload to personal cloud storage (Dropbox, Google Drive)
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Export audit trail (comprehensive logging, see ADMIN-T003)
+        - Separate export role (not all admins can export data)
+        - VPN requirement for export access
+        - Egress filtering (block large data transfers to external IPs)
+    additional_controls:
+      - "Export rate limiting (bandwidth throttling)"
+      - "Honeypot records (detect unauthorized exports)"
+      - "Export review process (security team samples exports)"
+
+  - id: ADMIN-T005
+    stride_category: Denial of Service
+    title: "Admin Action Abuse Causing Service Disruption or Data Loss"
+    description: |
+      Malicious or compromised admin accounts perform destructive actions at scale,
+      causing service outages, data loss, or operational disruption. Bulk user deletions,
+      configuration corruption, or resource exhaustion attacks can cripple the platform.
+    vector: "Bulk deletion APIs, configuration sabotage, resource exhaustion"
+    attack_scenario: |
+      1. Attacker compromises admin account (see ADMIN-T001)
+      2. Performs destructive actions:
+         SCENARIO A - Mass user deletion:
+         - Script loops through all users: /api/admin/users/:id DELETE
+         - Deletes 100,000 user accounts
+         - Users cannot log in (accounts gone)
+         - Service effectively offline for all users
+         - Data recovery required (restore from backup)
+
+         SCENARIO B - Configuration sabotage:
+         - Modifies database connection string to invalid value
+         - Application cannot connect to database
+         - Complete service outage
+         - Requires manual intervention to fix
+
+         SCENARIO C - Storage exhaustion:
+         - Triggers massive log generation
+         - Fills disk space (100% full)
+         - Application crashes (cannot write logs)
+         - Database crashes (cannot write data)
+
+      3. Service outage duration: hours to days
+      4. SLA violations, customer compensation
+      5. Reputational damage
+    likelihood: LOW
+    impact: HIGH
+    severity: MEDIUM
+    cvss_score: 6.3
+    cwe_id: CWE-400
+    affected_assets:
+      - "Complete user database"
+      - "System configuration and secrets"
+      - "Platform availability"
+    affected_components:
+      - User deletion endpoints
+      - Configuration management
+      - All admin write operations
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        Destructive action protection:
+
+        1. Soft delete (never hard delete):
+           - Mark records as deleted (deleted_at timestamp)
+           - Data remains in database (can be restored)
+           - Automatic purge after 30 days (recovery window)
+           - Hard delete requires super-admin approval
+
+        2. Bulk operation limits:
+           - Max 100 deletions per request
+           - Max 1000 deletions per admin per day
+           - Confirmation required: "Type DELETE to confirm"
+           - Cool-down period: 5 seconds between bulk operations
+
+        3. Approval workflow for destructive actions:
+           - Two-admin approval for bulk operations (>10 records)
+           - Security team notification on large deletions
+           - Waiting period: 1 hour before action executes
+
+        4. Backup and recovery:
+           - Automated hourly backups
+           - Point-in-time recovery capability
+           - Backup retention: 30 days
+           - Offsite backup storage (separate region/cloud)
+           - Tested recovery procedures (monthly drills)
+
+        5. Rate limiting on admin actions:
+           - Max 100 write operations per admin per minute
+           - Progressive delays for rapid operations
+           - Circuit breaker: suspend admin after 1000 operations in 1 hour
+
+        6. Configuration change protection (see ADMIN-T002):
+           - Validation before applying changes
+           - Rollback capability
+           - Change approval workflow
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Admin action monitoring and alerting (see ADMIN-T003)
+        - Automated rollback on anomalous behavior
+        - Read-only mode (disable all write operations during incident)
+        - Incident response playbook for admin abuse
+    additional_controls:
+      - "Chaos engineering (test recovery from admin-caused failures)"
+      - "Database replication (failover capability)"
+      - "Immutable infrastructure (cannot be modified, only replaced)"
+
+  - id: ADMIN-T006
+    stride_category: Elevation of Privilege
+    title: "Lateral Movement from Admin to Super-Admin or Infrastructure Access"
+    description: |
+      Attackers with admin access escalate to super-admin (platform-level administrator)
+      or pivot to infrastructure access (database, servers, cloud console), achieving
+      total control beyond application-level permissions.
+    vector: "Privilege escalation, credential theft, infrastructure access abuse"
+    attack_scenario: |
+      1. Attacker compromises regular admin account
+      2. Admin panel exposes infrastructure credentials:
+         - Database connection string visible in UI (contains password)
+         - API keys for cloud services (AWS, GCP) accessible
+         - SSH keys for production servers
+      3. Attacker extracts infrastructure credentials
+      4. Directly accesses database:
+         - Full read/write access to all tables
+         - Can modify any data (bypass application logic)
+         - Can extract password hashes, decrypt data
+      5. Accesses cloud console:
+         - Modifies infrastructure (creates backdoor VMs)
+         - Accesses backups and logs
+         - Escalates to organization-level admin
+      6. Total infrastructure compromise
+      7. Persistent access even if application admin account revoked
+
+      OR (super-admin escalation):
+      1. Regular admin discovers super-admin endpoint: /api/superadmin/*
+      2. Missing role check (expects only super-admins know URL)
+      3. Regular admin accesses super-admin functions
+      4. Promotes self to super-admin role
+      5. Unrestricted access to all platform functions
+    likelihood: LOW
+    impact: CRITICAL
+    severity: HIGH
+    cvss_score: 8.8
+    cwe_id: CWE-269
+    affected_assets:
+      - "System configuration and secrets"
+      - "API keys and service credentials"
+      - "Complete infrastructure"
+    affected_components:
+      - Credential management
+      - Infrastructure access
+      - Super-admin functions
+    primary_mitigation:
+      status: RECOMMENDED
+      control: |
+        CRITICAL - Infrastructure isolation and credential protection:
+
+        1. Credential isolation:
+           - NEVER expose infrastructure credentials in admin UI
+           - Use secrets management service (HashiCorp Vault, AWS Secrets Manager)
+           - Application accesses secrets via IAM role (not hardcoded credentials)
+           - Database credentials: IAM authentication (no passwords)
+           - Rotate credentials monthly
+
+        2. Separation of duties (admin vs infrastructure):
+           - Admin role: application-level only (user management, content moderation)
+           - Infrastructure role: separate accounts, not accessible from admin panel
+           - Database admin: separate from application admin
+           - Cloud console access: separate authentication (not shared with app)
+
+        3. Super-admin protection:
+           - Strict RBAC: @RolesAllowed("super_admin") on all super-admin endpoints
+           - Super-admin role assignment: requires security team approval
+           - Just-in-time (JIT) super-admin access (temporary, time-limited)
+           - Cannot self-promote to super-admin
+
+        4. Infrastructure access controls:
+           - Database: application uses low-privilege DB user (no CREATE/DROP)
+           - Cloud IAM: least privilege (admin app cannot modify infrastructure)
+           - Network segmentation: admin panel cannot reach production DB directly
+           - Bastion host required for infrastructure access (separate auth)
+
+        5. Secret scanning and protection:
+           - Automated secret scanning (detect exposed credentials)
+           - No secrets in code, config files, or logs
+           - Environment variables or secrets manager only
+           - Alert on secret exposure
+    secondary_mitigation:
+      status: RECOMMENDED
+      control: |
+        - Privileged Access Management (PAM) for infrastructure access
+        - Monitoring for lateral movement (unusual network connections)
+        - Alert on infrastructure credential usage
+        - Regular privilege audit (quarterly review)
+    additional_controls:
+      - "Break-glass procedures (emergency access, highly audited)"
+      - "Zero-trust architecture (verify every access, never trust)"
+      - "Infrastructure access requires VPN + MFA + approval"
+
+prioritization:
+  critical:
+    - ADMIN-T001  # Admin account compromise - highest impact
+    - ADMIN-T002  # Configuration tampering
+    - ADMIN-T004  # Mass data exfiltration
+  high:
+    - ADMIN-T003  # Insufficient audit logging
+    - ADMIN-T006  # Privilege escalation to infrastructure
+  medium:
+    - ADMIN-T005  # Service disruption via admin abuse
+  low: []
+
+compliance_mapping:
+  OWASP_ASVS_4.0:
+    - V1.4: Access Control Design (ADMIN-T006)
+    - V4.1: General Access Control (ADMIN-T006)
+    - V7.1: Log Content Requirements (ADMIN-T003)
+    - V9.2: Server Communications Security (ADMIN-T001)
+    - V10.2: Malicious Code Search (ADMIN-T002)
+
+  SOC_2_Type_II:
+    - CC6.1: Logical Access Controls (ADMIN-T001, ADMIN-T006)
+    - CC6.2: Prior to Issuing Credentials (ADMIN-T001)
+    - CC6.3: Removes Access When Appropriate (ADMIN-T006)
+    - CC7.2: System Monitoring (ADMIN-T003, ADMIN-T004)
+    - CC7.3: Evaluates Security Events (ADMIN-T003)
+
+  ISO_27001:
+    - A.9.2: User Access Management (ADMIN-T006)
+    - A.9.4: System and Application Access Control (ADMIN-T001)
+    - A.12.4: Logging and Monitoring (ADMIN-T003)
+    - A.18.1: Compliance with Legal Requirements (ADMIN-T003)
+
+  PCI_DSS_3.2.1:
+    - 7.1: Limit Access to System Components (ADMIN-T006)
+    - 8.1: Assign Unique ID to Each User (ADMIN-T003)
+    - 10.2: Implement Automated Audit Trails (ADMIN-T003)
+    - 10.3: Record Audit Trail Entries (ADMIN-T003)
+
+metrics:
+  total_threats: 6
+  by_stride:
+    spoofing: 1
+    tampering: 1
+    repudiation: 1
+    information_disclosure: 1
+    denial_of_service: 1
+    elevation_of_privilege: 1
+  by_severity:
+    critical: 3
+    high: 2
+    medium: 1
+    low: 0
+
+  risk_score: 9.6/10
+  remediation_effort: VERY_HIGH
+  estimated_hours: 140
+
+mitigation_summary:
+  existing: 0
+  partial: 0
+  recommended: 18
+  planned: 0
+
+review_schedule:
+  initial_review: 2026-06-23
+  next_review: 2026-07-23
+  review_frequency: MONTHLY
+  review_triggers:
+    - New admin functionality added
+    - Admin account compromise (suspected or confirmed)
+    - Data breach or exfiltration incident
+    - Compliance audit scheduled
+    - Insider threat investigation
+    - Privilege escalation vulnerability discovered
+
+notes: |
+  CRITICAL PRIORITY: Administrative functions are the highest-impact domain. A single
+  compromised admin account can lead to total platform compromise.
+
+  ADMIN-T001 (admin account compromise) is the entry point for most admin-related
+  attacks. Mandatory MFA with hardware tokens is non-negotiable for admin accounts.
+
+  ADMIN-T003 (audit logging) is foundational for security monitoring, incident response,
+  and compliance. All admin actions must be logged comprehensively.
+
+  ADMIN-T004 (data exfiltration) represents the highest data breach risk. Export
+  functions must have strict approval workflows and monitoring.
+
+  Insider threat is a significant concern for this domain. Assume some admins may be
+  malicious or compromised. Defense in depth, separation of duties, and comprehensive
+  logging are essential.
+
+  Consider implementing a Privileged Access Management (PAM) solution for admin access.
+
+  Regular security reviews of admin accounts and permissions (monthly) are required.
+
+  All admin endpoints must be included in penetration testing scope.
+
+  Admin security awareness training should be conducted quarterly at minimum.
