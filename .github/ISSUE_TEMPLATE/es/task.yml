@@ -1,0 +1,77 @@
+name: Tarea
+description: Una unidad de trabajo bien definida
+title: ""
+labels: []
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipo de Tarea
+      options:
+        - Implementacion
+        - Refactorizacion
+        - Documentacion
+        - Investigacion / Analisis
+        - Pruebas
+        - DevOps
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - API / Backend
+        - Frontend / UI
+        - CI / DevOps
+        - Documentacion
+        - Seguridad
+        - Rendimiento
+        - Gobernanza
+        - Otro
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: Que hay que hacer y por que?
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alcance
+      value: |
+        **In scope:**
+        -
+
+        **Out of scope:**
+        -
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de Aceptacion
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencias
+
+  - type: checkboxes
+    id: definition
+    attributes:
+      label: Definition of Ready
+      options:
+        - label: Objetivo claramente definido
+        - label: Criterios de aceptacion definidos y medibles
+        - label: Alcance definido (in/out)
+        - label: No existe issue duplicado
+    validations:
+      required: true

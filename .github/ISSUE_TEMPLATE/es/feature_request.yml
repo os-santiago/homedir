@@ -1,0 +1,70 @@
+name: Solicitud de Funcionalidad
+description: Sugiere una nueva funcionalidad o mejora
+title: "[Feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por sugerir una funcionalidad. Describe el problema que resuelve.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridad
+      options:
+        - Critico (bloquea release)
+        - Alto (brecha importante)
+        - Medio (deseable)
+        - Bajo (consideracion futura)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - API / Backend
+        - Frontend / UI
+        - CI / DevOps
+        - Documentacion
+        - Seguridad
+        - Rendimiento
+        - Otro
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Que problema resuelve esta funcionalidad?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solucion Propuesta
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de Aceptacion
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: definition
+    attributes:
+      label: Definition of Ready
+      options:
+        - label: Problema claramente definido
+        - label: Criterios de aceptacion definidos
+        - label: No existe issue duplicado
+        - label: Area identificada
+    validations:
+      required: true

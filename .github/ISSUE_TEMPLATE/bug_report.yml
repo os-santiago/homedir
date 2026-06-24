@@ -1,0 +1,93 @@
+name: Bug Report
+description: Report a bug to help us improve
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical (system down / data loss)
+        - High (feature broken, no workaround)
+        - Medium (feature broken, workaround exists)
+        - Low (cosmetic / minor issue)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - API / Backend
+        - Frontend / UI
+        - CI / DevOps
+        - Documentation
+        - Security
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Clear and concise description of the bug
+      placeholder: When I try to..., the system returns...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Technical Context
+      description: Environment details (OS, browser, version, logs, screenshots)
+      placeholder: Homedir v3.x, Java 21, Chrome 120, Windows 11
+
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Definition of Ready
+      options:
+        - label: Impact and severity assessed
+        - label: Steps to reproduce are clear
+        - label: No duplicate issue exists
+        - label: Technical context provided
+    validations:
+      required: true
