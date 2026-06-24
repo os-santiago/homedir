@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+# Update GitHub repository ruleset to match documented requirements
+# Issue: #988
+# Documentation: docs/governance/STATUS_CHECK_MATRIX.md
+
+set -euo pipefail
+
+RULESET_ID=9071701
+REPO="os-santiago/homedir"
+
+echo "🔧 Branch Protection Ruleset Update Script"
+echo "Repository: $REPO"
+echo "Ruleset ID: $RULESET_ID"
+echo ""
+echo "This script updates the GitHub repository ruleset to enforce:"
+echo "  ✓ 6 universal required status checks"
+echo "  ✓ Conventional Commits pattern"
+echo "  ✓ Required PR conversation resolution"
+echo "  ✓ Bypass mode: pull_request only"
+echo ""
+echo "⚠️  Run this script only after reviewing BRANCH_PROTECTION_IMPLEMENTATION.md"
+echo ""
+echo "Documentation: docs/governance/STATUS_CHECK_MATRIX.md"
+echo "Implementation Guide: docs/governance/BRANCH_PROTECTION_IMPLEMENTATION.md"
+echo ""
+
+# Fetch current ruleset for backup
+echo "📥 Fetching current ruleset..."
+BACKUP_FILE=$(mktemp /tmp/ruleset-backup-XXXXXX.json)
+gh api "repos/$REPO/rulesets/$RULESET_ID" > "$BACKUP_FILE"
+echo "Backup saved to $BACKUP_FILE"
+
+# Cleanup on exit
+trap 'rm -f "$PAYLOAD_FILE" "$BACKUP_FILE" 2>/dev/null' EXIT
+
+# Create updated ruleset payload with required status checks
+PAYLOAD_FILE=$(mktemp /tmp/ruleset-update-XXXXXX.json)
+cat > "$PAYLOAD_FILE" <<'EOF'
+{
+  "name": "Main Branch Protection",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "exclude": [],
+      "include": ["~DEFAULT_BRANCH"]
+    }
+  },
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true,
+        "allowed_merge_methods": ["merge", "squash", "rebase"]
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          {
+            "context": "PR Quality — Suite / style",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR Quality — Suite / static",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR Quality — Suite / arch",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR Quality — Suite / tests_cov",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR Quality — Suite / deps",
+            "integration_id": 15368
+          },
+          {
+            "context": "PR CI (Build, Native, SBOM/Scan) / sbom",
+            "integration_id": 15368
+          }
+        ]
+      }
+    },
+    {
+      "type": "commit_message_pattern",
+      "parameters": {
+        "operator": "regex",
+        "pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\\([a-z0-9-]+\\))?: .+",
+        "name": "Conventional Commits",
+        "negate": false
+      }
+    },
+    {
+      "type": "copilot_code_review",
+      "parameters": {
+        "review_on_push": false,
+        "review_draft_pull_requests": false
+      }
+    }
+  ],
+  "bypass_actors": [
+    {
+      "actor_id": 5,
+      "actor_type": "RepositoryRole",
+      "bypass_mode": "pull_request"
+    }
+  ]
+}
+EOF
+
+echo ""
+echo "📤 Updating ruleset $RULESET_ID..."
+gh api -X PUT "repos/$REPO/rulesets/$RULESET_ID" \
+  --input "$PAYLOAD_FILE"
+
+echo ""
+echo "✅ Ruleset updated successfully!"
+echo ""
+
+# Automated verification
+VERIFY_SCRIPT="$(dirname "$0")/../verify-branch-protection.sh"
+if [[ -x "$VERIFY_SCRIPT" ]]; then
+  echo "🔍 Running automated verification..."
+  if "$VERIFY_SCRIPT"; then
+    echo "✅ Verification passed!"
+  else
+    echo "❌ Verification failed - check output above"
+    exit 1
+  fi
+else
+  echo "⚠️  Automated verification script not found: $VERIFY_SCRIPT"
+  echo ""
+  echo "Manual verification steps:"
+  echo "1. Visit https://github.com/$REPO/rules/$RULESET_ID"
+  echo "2. Confirm 6 required status checks are enforced"
+  echo "3. Confirm 'Require conversation resolution before merging' is enabled"
+  echo "4. Confirm bypass mode is 'For pull requests only'"
+  echo "5. Confirm commit message pattern matches Conventional Commits"
+fi
+
+echo ""
+echo "📋 Next steps:"
+echo "  - Monitor next PR to verify checks are enforced"
+echo "  - Update docs/governance/BRANCH_PROTECTION_IMPLEMENTATION.md with execution timestamp"
