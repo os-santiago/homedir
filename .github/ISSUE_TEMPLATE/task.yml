@@ -1,0 +1,91 @@
+name: Task
+description: A well-defined unit of work
+title: ""
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for well-defined tasks. For bugs, use the Bug Report template.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Task Type
+      options:
+        - Implementation
+        - Refactoring
+        - Documentation
+        - Research / Analysis
+        - Testing
+        - DevOps
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - API / Backend
+        - Frontend / UI
+        - CI / DevOps
+        - Documentation
+        - Security
+        - Performance
+        - Governance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What needs to be done and why?
+      placeholder: Implement X to enable Y...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is in scope and out of scope?
+      value: |
+        **In scope:**
+        -
+
+        **Out of scope:**
+        -
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Measurable completion criteria
+      placeholder: |
+        - [ ] Feature X implemented
+        - [ ] Tests added
+        - [ ] Documentation updated
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Blocked by or blocking other work
+      placeholder: "Blocked by: #123\nBlocks: #456"
+
+  - type: checkboxes
+    id: definition
+    attributes:
+      label: Definition of Ready
+      options:
+        - label: Objective clearly defined
+        - label: Acceptance criteria defined and measurable
+        - label: Scope defined (in/out)
+        - label: No duplicate issue exists
+    validations:
+      required: true

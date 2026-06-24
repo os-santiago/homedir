@@ -1,0 +1,84 @@
+name: Reporte de Bug
+description: Reporta un error para ayudarnos a mejorar
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar un error. Proporciona la mayor cantidad de detalles posible.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - Critico (sistema caido / perdida de datos)
+        - Alto (funcionalidad rota, sin workaround)
+        - Medio (funcionalidad rota, con workaround)
+        - Bajo (cosmetico / menor)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - API / Backend
+        - Frontend / UI
+        - CI / DevOps
+        - Documentacion
+        - Seguridad
+        - Rendimiento
+        - Otro
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripcion
+      description: Descripcion clara y concisa del error
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para Reproducir
+      description: Pasos para reproducir el comportamiento
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento Esperado
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamiento Actual
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto Tecnico
+      description: Entorno, logs, capturas de pantalla
+
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Definition of Ready
+      options:
+        - label: Impacto y severidad evaluados
+        - label: Pasos para reproducir claros
+        - label: No existe issue duplicado
+        - label: Contexto tecnico proporcionado
+    validations:
+      required: true
