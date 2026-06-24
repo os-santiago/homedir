@@ -31,7 +31,7 @@ gh api "repos/$REPO/rulesets/$RULESET_ID" > "$BACKUP_FILE"
 echo "Backup saved to $BACKUP_FILE"
 
 # Cleanup on exit
-trap 'rm -f "$PAYLOAD_FILE" 2>/dev/null' EXIT
+trap 'rm -f "$PAYLOAD_FILE" "$BACKUP_FILE" 2>/dev/null' EXIT
 
 # Create updated ruleset payload with required status checks
 PAYLOAD_FILE=$(mktemp /tmp/ruleset-update-XXXXXX.json)
