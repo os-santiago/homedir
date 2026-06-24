@@ -4,6 +4,16 @@ This directory contains governance policies, runbooks, and templates for reposit
 
 ## Core Policies
 
+### [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.md)
+Formal severity-priority matrix connecting technical impact with operational urgency. Defines S0–S4 and P0–P4 scales, impact × urgency matrix with tiebreakers, SLA targets, and classification examples.
+
+**Key sections:**
+- Severity scale (S0–S4) with label mappings
+- Priority scale (P0–P4) with SLA targets
+- Impact × urgency decision matrix
+- Tiebreaker rules (customer-first, security-first, blocking-chain)
+- Classification examples for onboarding
+
 ### [Definition of Ready / Definition of Done](./DEFINITION_OF_READY_DONE.md)
 Criteria for issue readiness and completion. Defines what makes an issue ready for work and what constitutes "done."
 
@@ -121,6 +131,8 @@ Post-Incident Review → Preventive Actions
 
 ## Severity Definitions
 
+See [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.md) for the complete S0–S4 / P0–P4 framework.
+
 | Severity | Description | Example | Break-Glass SLA |
 |----------|-------------|---------|-----------------|
 | **P0** | Critical outage or security breach | Complete service down, active exploit | 15 min authorization |
@@ -138,6 +150,7 @@ Post-Incident Review → Preventive Actions
 
 ## Related Documentation
 
+- [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.md)
 - [Branch Protection Policy](#) _(link when available)_
 - [Incident Response Policy](#) _(link when available)_
 - [Change Management Policy](#) _(link when available)_
@@ -152,5 +165,5 @@ Post-Incident Review → Preventive Actions
 
 ---
 
-**Last Updated**: 2026-06-23  
+**Last Updated**: 2026-06-24  
 **Maintained By**: Engineering Leadership
