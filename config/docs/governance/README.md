@@ -4,6 +4,14 @@ This directory contains governance policies, runbooks, and templates for reposit
 
 ## Core Policies
 
+### [Quality Baseline & Remediation Report](./QUALITY_BASELINE_REPORT.md)
+Comprehensive 16-area quality audit summary with initial grades, remediation tracking, and recommended next deep scan. Consolidates improvements across governance, branch protection, and AppSec.
+
+**Key sections:**
+- 16-area audit matrix with grades
+- Remediation details per area with document mappings
+- Recommended next deep scan (Option C: Ciberseguridad)
+
 ### [Historical Issue Backfill Plan](./HISTORICAL_BACKFILL_PLAN.md)
 Structured migration plan to transform all open historical issues into the canonical metadata and label schema. Covers label mapping, severity inference heuristics, 4-phase rollout, quality validation thresholds, and rollback plan.
 
@@ -161,6 +169,7 @@ See [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.m
 
 ## Related Documentation
 
+- [Quality Baseline & Remediation Report](./QUALITY_BASELINE_REPORT.md)
 - [Historical Issue Backfill Plan](./HISTORICAL_BACKFILL_PLAN.md)
 - [Severity & Priority Classification Contract](./SEVERITY_PRIORITY_CONTRACT.md)
 - [Branch Protection Policy](#) _(link when available)_
