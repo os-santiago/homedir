@@ -6,6 +6,7 @@ This directory contains governance policies, standards, and operational procedur
 
 ### Quality & Process
 - **[Definition of Ready/Done](./DEFINITION_OF_READY_DONE.md)** - Issue and PR completion criteria
+- **[Conversation Resolution Policy](./CONVERSATION_RESOLUTION_POLICY.md)** - Required reviews and conversation resolution
 - **[Release Gates](./RELEASE_GATES.md)** - PR → Main → Release quality gate contract
 - **[Status Check Matrix](./STATUS_CHECK_MATRIX.md)** - Required CI/CD checks by change type
 - **[Reviewer Checklist](./REVIEWER_CHECKLIST.md)** - Quick reference for PR reviewers
@@ -21,6 +22,7 @@ This directory contains governance policies, standards, and operational procedur
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
 | [Reviewer Checklist](./REVIEWER_CHECKLIST.md) | PR review steps and decision tree | Before reviewing any PR |
+| [Conversation Resolution Policy](./CONVERSATION_RESOLUTION_POLICY.md) | Review approval and conversation resolution rules | When reviewing PRs or requesting exception approval |
 | [Definition of Ready/Done](./DEFINITION_OF_READY_DONE.md) | Issue and PR acceptance criteria | Before closing an issue or requesting review |
 
 ### For Maintainers
@@ -28,6 +30,7 @@ This directory contains governance policies, standards, and operational procedur
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
 | [Release Gates](./RELEASE_GATES.md) | PR/main/release quality gates | When determining blocking criteria or handling exceptions |
+| [Conversation Resolution Policy](./CONVERSATION_RESOLUTION_POLICY.md) | Review and resolution requirements | When approving exception requests or enforcing review policy |
 | [Status Check Matrix](./STATUS_CHECK_MATRIX.md) | Required checks by change type | When configuring workflows or updating rulesets |
 | [Definition of Ready/Done](./DEFINITION_OF_READY_DONE.md) | DoR/DoD enforcement | When triaging issues or approving exceptions |
 
