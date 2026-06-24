@@ -90,8 +90,12 @@ Use this checklist before merging any pull request to ensure compliance with rev
 If checklist cannot be fully completed:
 
 - [ ] **Exception justified** in PR description
-- [ ] **Technical lead approval** obtained
-- [ ] **Exception logged** in break_glass_exceptions.log
+- [ ] **Required approval** obtained per exception type:
+  - Type 1 (Reduced Review): Code Owner approval
+  - Type 2 (Conversation Bypass): Technical Lead approval
+  - Type 3 (Stale Review): Code Owner approval
+  - Type 4 (Break-Glass): On-Call Technical Lead approval
+- [ ] **Exception logged** in ../break_glass_exceptions.log
 - [ ] **Rollback plan** documented
 - [ ] **Follow-up issue** created for deferred items
 

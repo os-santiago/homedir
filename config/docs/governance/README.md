@@ -9,7 +9,7 @@ Mandatory review requirements, conversation resolution rules, and stale review h
 
 **Key Points**:
 - All conversations must be resolved before merge
-- Minimum 2 approvals for most changes (varies by risk level)
+- Approval requirements vary by risk level (1 for low-risk, 2+ for medium/high, 3 for critical)
 - Stale reviews require re-approval after significant changes
 - Code owner approval required for Medium+ risk changes
 

@@ -160,9 +160,9 @@ Required branch protection settings for `main` and release branches:
 
 ```yaml
 required_pull_request_reviews:
-  required_approving_review_count: 2
+  required_approving_review_count: 1  # Baseline: 1 approval minimum; increase per risk level
   dismiss_stale_reviews: true
-  require_code_owner_reviews: true
+  require_code_owner_reviews: false  # Optional: enable for Medium+ risk repositories
   require_last_push_approval: false
 
 required_conversation_resolution: true
@@ -174,7 +174,7 @@ required_status_checks:
     - ci/lint
     - ci/security-scan
 
-enforce_admins: false  # Allows break-glass exceptions
+enforce_admins: true  # Enforces rules on admins; use break-glass protocol for exceptions
 allow_force_pushes: false
 allow_deletions: false
 ```

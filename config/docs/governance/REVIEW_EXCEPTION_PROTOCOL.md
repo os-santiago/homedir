@@ -74,16 +74,18 @@ Pre-approved exceptions for:
 
 ### Type 3: Stale Review Override
 
-**When**: Changes after approval were minimal and reviewer unavailable
+**When**: Changes after approval were cosmetic/trivial and reviewer unavailable
 
 **Requirements**:
-- Changes <20 lines in reviewed files
+- Changes are purely cosmetic (typos, formatting, comments, log messages)
+- Changes <50 lines in reviewed files (aligns with stale review threshold)
 - No new files added
 - No dependency changes
-- Author certifies changes are cosmetic/addressing minor feedback
+- No logic or behavior changes
+- Author certifies changes address only minor feedback or formatting
 - Document specific changes made
 
-**Example**: Fixing typo in comment after approval
+**Example**: Fixing typo in comment after approval, reformatting code style
 
 ### Type 4: Full Review Bypass (Break-Glass)
 
