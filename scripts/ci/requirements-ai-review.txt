@@ -1,0 +1,4 @@
+# Python dependencies for AI code review
+anthropic>=0.42.0
+requests>=2.31.0
+PyYAML>=6.0.1

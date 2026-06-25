@@ -1,0 +1,173 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'quarkus-app/src/**/*.java'
+      - 'scripts/**/*.sh'
+      - 'scripts/**/*.py'
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review'
+        required: true
+        type: number
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  ai-code-review:
+    name: AI-Powered Code Analysis
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install anthropic requests pyyaml
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref || 'main' }}
+
+      - name: Run AI Code Review
+        id: ai_review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/ci/ai_code_review.py \
+            --pr-number "${PR_NUMBER}" \
+            --base-ref "origin/${BASE_REF}" \
+            --head-ref "${HEAD_REF}" \
+            --repository "${REPOSITORY}"
+
+      - name: Upload review report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-code-review-report-${{ github.event.pull_request.number || inputs.pr_number }}
+          path: ai-review-report.json
+          retention-days: 30
+
+      - name: Add review summary to PR
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'ai-review-report.json';
+
+            if (!fs.existsSync(reportPath)) {
+              console.log('No review report found');
+              return;
+            }
+
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+            let comment = '## 🤖 AI Code Review Report\n\n';
+            comment += `**Analysis Date:** ${new Date().toISOString()}\n`;
+            comment += `**Model:** ${report.model || 'claude-sonnet-4.5'}\n\n`;
+
+            if (report.summary) {
+              comment += `### Summary\n${report.summary}\n\n`;
+            }
+
+            if (report.findings && report.findings.length > 0) {
+              comment += '### Findings\n\n';
+
+              const categories = {
+                'code_smell': '🔍 Code Smells',
+                'complexity': '🧩 Complexity Issues',
+                'naming': '📝 Naming Conventions',
+                'documentation': '📚 Documentation',
+                'performance': '⚡ Performance Anti-patterns',
+                'security': '🔒 Security Concerns',
+                'best_practice': '✨ Best Practices'
+              };
+
+              for (const [key, title] of Object.entries(categories)) {
+                const items = report.findings.filter(f => f.category === key);
+                if (items.length > 0) {
+                  comment += `#### ${title} (${items.length})\n\n`;
+                  items.forEach((finding, idx) => {
+                    const severity = finding.severity || 'info';
+                    const icon = severity === 'high' ? '🔴' : severity === 'medium' ? '🟡' : '🟢';
+                    comment += `${idx + 1}. ${icon} **${finding.title}**\n`;
+                    if (finding.file) {
+                      comment += `   - **File:** \`${finding.file}\``;
+                      if (finding.line) comment += ` (Line ${finding.line})`;
+                      comment += '\n';
+                    }
+                    if (finding.description) {
+                      comment += `   - ${finding.description}\n`;
+                    }
+                    if (finding.suggestion) {
+                      comment += `   - **Suggestion:** ${finding.suggestion}\n`;
+                    }
+                    comment += '\n';
+                  });
+                }
+              }
+            } else {
+              comment += '✅ No significant issues found. Code looks good!\n\n';
+            }
+
+            if (report.metrics) {
+              comment += '### Code Metrics\n\n';
+              comment += '| Metric | Value |\n';
+              comment += '|--------|-------|\n';
+              for (const [key, value] of Object.entries(report.metrics)) {
+                comment += `| ${key} | ${value} |\n`;
+              }
+              comment += '\n';
+            }
+
+            comment += '---\n';
+            comment += '*This review was generated automatically using AI analysis. Please review findings critically.*\n';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Check review outcome
+        if: success()
+        run: |
+          if [ -f ai-review-report.json ]; then
+            high_severity=$(jq '[.findings[]? | select(.severity == "high")] | length' ai-review-report.json)
+            if [ "$high_severity" -gt 0 ]; then
+              echo "::warning::Found $high_severity high-severity issues. Please review the AI code review report."
+            fi
+          fi
