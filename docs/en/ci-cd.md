@@ -1,6 +1,18 @@
 # CI/CD Pipeline
 
-Two GitHub Actions workflows orchestrate the build and deployment pipeline and ensure a single immutable image digest flows from pull request to production.
+GitHub Actions workflows orchestrate the build, quality assurance, and deployment pipeline to ensure code quality and a single immutable image digest flows from pull request to production.
+
+## Quality Assurance
+
+### AI Code Review – `.github/workflows/ai-code-review.yml`
+
+Automated code analysis using Claude AI that checks:
+- Code smells and complexity metrics
+- Naming conventions and documentation
+- Performance anti-patterns and security concerns
+- Best practices and error handling
+
+The workflow posts detailed findings as PR comments with severity levels and actionable suggestions. See [AI Code Review Documentation](../ci/ai-code-review.md) for details.
 
 ## Pull Requests – `.github/workflows/sbom-and-scan.yml`
 

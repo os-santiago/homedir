@@ -10,7 +10,7 @@ import os
 import subprocess
 import sys
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 
 try:
     import anthropic
@@ -36,8 +36,8 @@ class ReviewReport:
     """Complete code review report."""
     model: str
     summary: str
-    findings: List[Dict]
-    metrics: Dict[str, any]
+    findings: List[Dict[str, Any]]
+    metrics: Dict[str, Any]
 
 
 class AICodeReviewer:
@@ -91,7 +91,7 @@ class AICodeReviewer:
             print(f"Error reading {file_path}: {e}", file=sys.stderr)
             return ""
 
-    def calculate_complexity_metrics(self, content: str, file_path: str) -> Dict[str, int]:
+    def calculate_complexity_metrics(self, content: str, file_path: str) -> Dict[str, Any]:
         """Calculate basic complexity metrics for code."""
         metrics = {
             "lines_of_code": len(content.split('\n')),
@@ -121,7 +121,7 @@ class AICodeReviewer:
         metrics["nesting_depth"] = max_depth
         return metrics
 
-    def analyze_code(self, file_path: str, diff: str, content: str) -> Dict:
+    def analyze_code(self, file_path: str, diff: str, content: str) -> Dict[str, Any]:
         """Analyze code using Claude API."""
         # Calculate complexity metrics
         complexity = self.calculate_complexity_metrics(content, file_path)
@@ -181,8 +181,14 @@ If nesting depth > 4 or method count > 20 per file, flag as complexity concern.
                 ]
             )
 
-            # Parse the response
-            content = response.content[0].text
+            # Parse the response - extract text from the first content block
+            response_text = ""
+            for block in response.content:
+                if hasattr(block, 'text'):
+                    response_text = block.text
+                    break
+
+            content = response_text
 
             # Extract JSON from response (handle markdown code blocks)
             if "```json" in content:
@@ -267,7 +273,7 @@ If nesting depth > 4 or method count > 20 per file, flag as complexity concern.
         summary = ". ".join(summary_parts) + "."
 
         # Categorize findings
-        categories = {}
+        categories: Dict[str, int] = {}
         for finding in all_findings:
             cat = finding.get("category", "unknown")
             categories[cat] = categories.get(cat, 0) + 1

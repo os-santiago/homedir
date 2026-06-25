@@ -1,6 +1,18 @@
 # Tubería CI/CD
 
-Dos flujos de trabajo de GitHub Actions orquestan la tubería de compilación e implementación y aseguran un solo flujo de resumen de imágenes inmutables de la solicitud de extracción a la producción.
+Los flujos de trabajo de GitHub Actions orquestan la compilación, aseguramiento de calidad y el pipeline de implementación para garantizar la calidad del código y un único digest de imagen inmutable desde la solicitud de extracción hasta producción.
+
+## Aseguramiento de Calidad
+
+### Revisión de Código con IA – `.github/workflows/ai-code-review.yml`
+
+Análisis automatizado de código usando Claude AI que verifica:
+- Code smells y métricas de complejidad
+- Convenciones de nomenclatura y documentación
+- Anti-patrones de rendimiento y problemas de seguridad
+- Mejores prácticas y manejo de errores
+
+El flujo de trabajo publica hallazgos detallados como comentarios en el PR con niveles de severidad y sugerencias accionables. Ver [Documentación de Revisión de Código con IA](../ci/ai-code-review.md) para más detalles.
 
 ## Solicitudes de extracción-`.Github/Workflows/sbom-and-scan.yml`
 
