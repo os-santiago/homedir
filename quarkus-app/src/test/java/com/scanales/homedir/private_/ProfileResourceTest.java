@@ -471,7 +471,7 @@ public class ProfileResourceTest {
                 "Detailed abstract for rejected CFP test coverage.",
                 "intermediate",
                 "talk",
-                45,
+                30,
                 "en",
                 "developer-experience-innersource",
                 List.of(),
