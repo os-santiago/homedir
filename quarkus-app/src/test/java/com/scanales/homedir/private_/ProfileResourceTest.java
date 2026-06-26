@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.scanales.homedir.challenges.ChallengeService;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
+import com.scanales.homedir.cfp.CfpSubmissionStatus;
 import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.GamificationActivity;
@@ -427,6 +428,34 @@ public class ProfileResourceTest {
         .body(containsString("Day 1 / Morning"))
         .body(containsString("Main Stage"))
         .body(containsString("/event/" + CFP_EVENT_ID + "/cfp#my-proposals"));
+  }
+
+  @Test
+  public void profileShowsAcceptedCfpStateBeforeResultsPublication() {
+    CfpSubmission submission =
+        cfpSubmissionService
+            .listMineAcrossEvents(
+                java.util.Set.of(currentUserEmail()),
+                CfpSubmissionService.SortOrder.UPDATED_DESC,
+                10,
+                0)
+            .stream()
+            .filter(item -> "Profile CFP Talk".equals(item.title()))
+            .findFirst()
+            .orElseThrow();
+    cfpSubmissionService.updateStatus(
+        submission.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "accepted");
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("Profile CFP Event ·"))
+        .body(containsString("Accepted"))
+        .body(containsString("Day 1 / Morning"))
+        .body(containsString("Main Stage"));
   }
 
   @Test

@@ -339,7 +339,7 @@ public class ProfileResource {
     String dominantClassMessage = dominantClassSummary.message();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap(localizedMessages);
     java.util.Set<String> cfpUserIds = currentUserIds(email, sub);
-    CfpSubmissionService.MineStats cfpVisibleMineStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
+    CfpSubmissionService.MineStats cfpVisibleMineStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
     CfpOverview cfpOverview = new CfpOverview(
         cfpVisibleMineStats.total(),
         cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
@@ -987,8 +987,8 @@ public class ProfileResource {
         event != null && event.getTitle() != null && !event.getTitle().isBlank() ? event.getTitle() : eventId;
     Instant updatedAt = submission.updatedAt() != null ? submission.updatedAt() : submission.createdAt();
     String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
-    String status = cfpSubmissionService.visibleStatus(submission).apiValue();
-    String deliveryStatus = cfpSubmissionService.deliveryStatus(submission);
+    String status = privateStatus(submission).apiValue();
+    String deliveryStatus = privateDeliveryStatus(submission);
     return new CfpSubmissionItem(
         submission.id(),
         eventId,
@@ -1000,6 +1000,33 @@ public class ProfileResource {
         submission.assignedScenario(),
         deliveryStatus,
         "/event/" + eventId + "/cfp#my-proposals");
+  }
+
+  private static CfpSubmissionStatus privateStatus(CfpSubmission submission) {
+    if (submission == null || submission.status() == null) {
+      return CfpSubmissionStatus.PENDING;
+    }
+    return submission.status();
+  }
+
+  private static String privateDeliveryStatus(CfpSubmission submission) {
+    if (submission == null) {
+      return "unknown";
+    }
+    boolean hasAssignment =
+        (submission.assignedBlock() != null && !submission.assignedBlock().isBlank())
+            || (submission.assignedScenario() != null && !submission.assignedScenario().isBlank());
+    boolean hasPresentation = submission.presentationAsset() != null;
+    if (hasAssignment && hasPresentation) {
+      return "ready";
+    }
+    if (hasAssignment) {
+      return "scheduled";
+    }
+    if (hasPresentation) {
+      return "presentation_uploaded";
+    }
+    return privateStatus(submission) == CfpSubmissionStatus.ACCEPTED ? "accepted_pending_assignment" : "pending";
   }
 
   private CfpTimelineView resolveProfileCfpTimeline(
