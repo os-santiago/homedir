@@ -61,8 +61,6 @@ jobs:
         uses: anchore/sbom-action@f6c3d0fe42c3cf876e3462574e4c9416b5e0f07a # v0.9.0
         with:
           image: homedir-scan:${{ github.sha }}
-          artifact-name: sbom-report
-          output-file: sbom.spdx.json
           format: spdx-json
 
       - name: Scan for vulnerabilities
@@ -74,22 +72,6 @@ jobs:
           fail-build: ${{ env.SECURITY_GATING == 'enforcing' }}
           severity-cutoff: medium
           output-format: sarif
-
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@8272c299f21ca24af15dfe9ac0971ba969e5e0d5 # v3.36.2
-        if: always()
-        with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
-
-      - name: Upload security reports artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: always()
-        with:
-          name: security-reports-${{ github.sha }}
-          path: |
-            sbom.spdx.json
-            ${{ steps.scan.outputs.sarif }}
-          retention-days: 30
 
       - name: Security scan summary
         if: always()
