@@ -52,7 +52,8 @@ public class UserSessionServiceTest {
     when(principal.getName()).thenReturn("user@example.com");
     when(identity.getPrincipal()).thenReturn(principal);
 
-    UserProfile profile = new UserProfile("user@example.com", "User Name", "user@example.com", null);
+    UserProfile profile =
+        new UserProfile("user@example.com", "User Name", "user@example.com", null);
     UserProfile.GithubAccount gh =
         new UserProfile.GithubAccount("octocat", "url", "avatar", "123", java.time.Instant.now());
     profile.setGithub(gh);
