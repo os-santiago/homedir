@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
+import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
@@ -37,7 +37,8 @@ class BountyHunterServiceTest {
     when(configService.isAdminUser(validatedBy)).thenReturn(true);
     when(repository.findScoreByUserId(userId)).thenReturn(Optional.empty());
 
-    BountyHunterScore result = service.awardIssueCreationPoints(userId, issueNumber, label, validatedBy);
+    BountyHunterScore result =
+        service.awardIssueCreationPoints(userId, issueNumber, label, validatedBy);
 
     assertNotNull(result);
     assertEquals(userId, result.userId());
@@ -54,7 +55,8 @@ class BountyHunterServiceTest {
   @Test
   void awardIssueCreationPoints_invalidLabel_throwsException() {
     when(configService.getPointsForLabel("invalid")).thenReturn(0L);
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.awardIssueCreationPoints("user", "123", "invalid", "admin"));
     verify(repository, never()).saveScore(any());
   }
@@ -63,7 +65,8 @@ class BountyHunterServiceTest {
   void awardIssueCreationPoints_nonAdminValidator_throwsException() {
     when(configService.getPointsForLabel("bug-impact-low")).thenReturn(5L);
     when(configService.isAdminUser("regular")).thenReturn(false);
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.awardIssueCreationPoints("user", "123", "bug-impact-low", "regular"));
   }
 
@@ -74,7 +77,8 @@ class BountyHunterServiceTest {
     when(configService.getPointsForLabel("feature-request")).thenReturn(points);
     when(repository.findScoreByUserId(userId)).thenReturn(Optional.empty());
 
-    BountyHunterScore result = service.awardIssueResolutionPoints(userId, "127", "45", "feature-request");
+    BountyHunterScore result =
+        service.awardIssueResolutionPoints(userId, "127", "45", "feature-request");
 
     assertEquals(points, result.totalPoints());
     assertEquals(points, result.issueResolutionPoints());
@@ -84,7 +88,9 @@ class BountyHunterServiceTest {
 
   @Test
   void getScoreForUser_existingUser_returnsScore() {
-    BountyHunterScore expected = new BountyHunterScore("user", 200L, 100L, 100L, BountyHunterLevel.EXPERIENCED, 3, 2, Instant.now());
+    BountyHunterScore expected =
+        new BountyHunterScore(
+            "user", 200L, 100L, 100L, BountyHunterLevel.EXPERIENCED, 3, 2, Instant.now());
     when(repository.findScoreByUserId("user")).thenReturn(Optional.of(expected));
     Optional<BountyHunterScore> result = service.getScoreForUser("user");
     assertTrue(result.isPresent());
@@ -93,10 +99,12 @@ class BountyHunterServiceTest {
 
   @Test
   void getLeaderboard_returnsTopScores() {
-    List<BountyHunterScore> expected = List.of(
-        new BountyHunterScore("user1", 500L, 300L, 200L, BountyHunterLevel.PROFESSIONAL, 10, 8, Instant.now()),
-        new BountyHunterScore("user2", 200L, 100L, 100L, BountyHunterLevel.EXPERIENCED, 5, 5, Instant.now())
-    );
+    List<BountyHunterScore> expected =
+        List.of(
+            new BountyHunterScore(
+                "user1", 500L, 300L, 200L, BountyHunterLevel.PROFESSIONAL, 10, 8, Instant.now()),
+            new BountyHunterScore(
+                "user2", 200L, 100L, 100L, BountyHunterLevel.EXPERIENCED, 5, 5, Instant.now()));
     when(repository.findTopScores(10)).thenReturn(expected);
     List<BountyHunterScore> result = service.getLeaderboard(10);
     assertEquals(2, result.size());

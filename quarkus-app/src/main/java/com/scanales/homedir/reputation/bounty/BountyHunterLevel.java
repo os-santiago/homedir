@@ -3,8 +3,8 @@ package com.scanales.homedir.reputation.bounty;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Bounty Hunter levels based on accumulated points.
- * Each level unlocks specific rewards (frames, badges, etc.).
+ * Bounty Hunter levels based on accumulated points. Each level unlocks specific rewards (frames,
+ * badges, etc.).
  */
 public enum BountyHunterLevel {
   NONE(0L, "None", null),
@@ -44,8 +44,8 @@ public enum BountyHunterLevel {
   }
 
   /**
-   * Determine the appropriate level for a given point total.
-   * Returns the highest level the user has achieved.
+   * Determine the appropriate level for a given point total. Returns the highest level the user has
+   * achieved.
    */
   public static BountyHunterLevel fromPoints(long points) {
     if (points < NOVICE.minPoints) {

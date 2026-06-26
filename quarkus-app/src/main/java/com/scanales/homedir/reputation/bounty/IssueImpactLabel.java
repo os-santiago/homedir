@@ -2,9 +2,7 @@ package com.scanales.homedir.reputation.bounty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Configuration for eligible issue labels and their point values.
- */
+/** Configuration for eligible issue labels and their point values. */
 public record IssueImpactLabel(
     @JsonProperty("label_name") String labelName,
     @JsonProperty("points") long points,

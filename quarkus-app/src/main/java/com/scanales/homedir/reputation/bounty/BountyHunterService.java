@@ -8,8 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Business logic for the Bounty Hunter program.
- * Handles scoring, level progression, and event tracking.
+ * Business logic for the Bounty Hunter program. Handles scoring, level progression, and event
+ * tracking.
  */
 @ApplicationScoped
 public class BountyHunterService {
@@ -17,9 +17,7 @@ public class BountyHunterService {
   @Inject BountyHunterRepository repository;
   @Inject BountyHunterConfigService configService;
 
-  /**
-   * Award points for issue creation when validated by an administrator.
-   */
+  /** Award points for issue creation when validated by an administrator. */
   public BountyHunterScore awardIssueCreationPoints(
       String userId, String issueNumber, String label, String validatedByUserId) {
     userId = normalizeUserId(userId);
@@ -60,9 +58,7 @@ public class BountyHunterService {
     return updated;
   }
 
-  /**
-   * Award points for issue resolution via approved PR.
-   */
+  /** Award points for issue resolution via approved PR. */
   public BountyHunterScore awardIssueResolutionPoints(
       String userId, String issueNumber, String prNumber, String label) {
     userId = normalizeUserId(userId);

@@ -11,13 +11,13 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,7 +42,9 @@ public class BountyHunterApiResource {
   public Response getProfile(@PathParam("userId") String userId) {
     Optional<BountyHunterScore> score = service.getUserScore(userId);
     if (score.isEmpty()) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "not_found"))
+          .build();
     }
     Map<String, Object> payload = new LinkedHashMap<>();
     BountyHunterScore resolvedScore = score.get();

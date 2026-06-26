@@ -1,8 +1,6 @@
 package com.scanales.homedir.reputation.bounty;
 
-/**
- * Types of Bounty Hunter events that can trigger point awards.
- */
+/** Types of Bounty Hunter events that can trigger point awards. */
 public enum BountyHunterEventType {
   /** Issue created and awaiting validation */
   ISSUE_CREATED,
