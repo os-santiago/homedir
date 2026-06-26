@@ -35,6 +35,14 @@ class BountyHunterScoreTest {
   }
 
   @Test
+  void constructor_recomputesLevelFromTotalPoints() {
+    BountyHunterScore score =
+        new BountyHunterScore(
+            "user", 240L, 240L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now());
+    assertEquals(BountyHunterLevel.EXPERIENCED, score.currentLevel());
+  }
+
+  @Test
   void withAddedIssueCreationPoints_incrementsCorrectly() {
     Instant now = Instant.now();
     BountyHunterScore initial = new BountyHunterScore("user", 50L, 50L, 0L, BountyHunterLevel.NOVICE, 2, 0, now);

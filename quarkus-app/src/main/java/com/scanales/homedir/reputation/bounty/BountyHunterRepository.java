@@ -46,8 +46,12 @@ public class BountyHunterRepository {
         .sorted(
             Comparator.comparing(BountyHunterScore::totalPoints)
                 .reversed()
-                .thenComparing(BountyHunterScore::updatedAt))
+                .thenComparing(BountyHunterScore::updatedAt, Comparator.reverseOrder()))
         .limit(limit)
         .toList();
+  }
+
+  public long countScores() {
+    return scores.size();
   }
 }
