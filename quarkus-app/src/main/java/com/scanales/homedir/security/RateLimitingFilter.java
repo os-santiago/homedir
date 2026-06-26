@@ -38,6 +38,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
   private static final Set<String> AUTH_PATHS = Set.of("/login", "/auth", "/j_security_check");
   private static final Set<String> LOGOUT_PATHS = Set.of("/logout");
+  private static final Set<String> HIGH_TRAFFIC_PUBLIC_API_PATHS =
+      Set.of("/api/content", "/api/trending");
   private static final String COMMUNITY_CONTENT_API_PREFIX = "/api/community/content";
   private static final Set<String> SKIP_PATHS = Set.of("/", "/health", "/metrics");
   private static final Pattern STATIC_PATTERN = Pattern.compile("^/(css|js|images|static|img)/.*");
@@ -228,7 +230,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     if (AUTH_PATHS.contains(path)) {
       return new Bucket("auth", authLimit, windowSeconds);
     }
-    if (path.startsWith(COMMUNITY_CONTENT_API_PREFIX)) {
+    if (path.startsWith(COMMUNITY_CONTENT_API_PREFIX)
+        || HIGH_TRAFFIC_PUBLIC_API_PATHS.contains(path)) {
       int communityLimit =
           "GET".equals(normalizedMethod)
               ? Math.max(communityContentApiLimit, communityContentApiReadLimit)
