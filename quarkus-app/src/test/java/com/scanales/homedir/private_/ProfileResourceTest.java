@@ -486,15 +486,15 @@ public class ProfileResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("Rejected CFP Talk"))  // Verify rejected talk is present
-        .body(containsString("under_review"))
-        .body(not(containsString("rejected")))
+        .body(containsString("Under review"))  // Status text from AppMessages
+        .body(not(containsString("Rejected")))  // Should not show "Rejected" status
         .extract()
         .asString();
 
-    // Additional verification: ensure "Rejected CFP Talk" appears with under_review status
+    // Additional verification: ensure "Rejected CFP Talk" appears with "Under review" status
     assertTrue(
-        response.contains("Rejected CFP Talk") && response.contains("under_review"),
-        "Rejected submission should be visible but masked as under_review");
+        response.contains("Rejected CFP Talk") && response.contains("Under review"),
+        "Rejected submission should be visible but masked as 'Under review'");
   }
 
   @Test
