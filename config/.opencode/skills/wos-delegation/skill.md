@@ -23,10 +23,10 @@ Delegate workspace improvement tasks to appropriate agents (opencode, claude, an
 - User-facing content creation
 
 ### Antigravity Agent
-- High-performance parallel execution
-- Batch processing operations
-- Large-scale data transformations
-- Resource-intensive analysis
+- Architectural work and strategic planning
+- Gap discovery and opportunity identification
+- Leverage analysis and assessment
+- Security audits and compliance reviews
 
 ## Delegation Process
 

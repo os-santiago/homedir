@@ -31,7 +31,7 @@ Delegates workspace improvement tasks to appropriate agents (opencode, claude, a
 **Agent routing:**
 - **opencode**: Code analysis, refactoring, pattern detection
 - **claude**: Documentation, design decisions, reasoning
-- **antigravity**: High-performance parallel execution, batch processing
+- **antigravity**: Architectural work, gap discovery, strategic assessment
 
 See [wos-delegation/skill.md](./skills/wos-delegation/skill.md) for detailed documentation.
 
@@ -51,7 +51,7 @@ These skills are designed to work with the Workspace OS configuration in `.works
 ```
 
 ### Configuration Example
-See `workspace.sources.example.json` in the repository root for a complete workspace configuration example.
+See `config/workspace.sources.example.json` for a complete workspace configuration example.
 
 ## Development
 
