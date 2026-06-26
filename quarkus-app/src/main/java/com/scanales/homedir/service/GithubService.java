@@ -2,7 +2,6 @@ package com.scanales.homedir.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scanales.homedir.util.SecurityUtils;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -101,6 +100,9 @@ public class GithubService {
   }
 
   public String exchangeCode(String code) throws IOException, InterruptedException {
+    if (code == null || code.isBlank()) {
+      throw new IOException("GitHub authorization code missing");
+    }
     HttpRequest tokenRequest =
         HttpRequest.newBuilder()
             .uri(URI.create("https://github.com/login/oauth/access_token"))
@@ -118,17 +120,13 @@ public class GithubService {
     HttpResponse<String> tokenResponse =
         httpClient.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
     if (tokenResponse.statusCode() >= 400) {
-      LOG.warnf(
-          "GitHub token exchange failed: %s",
-          SecurityUtils.redactSensitiveData(tokenResponse.body()));
+      LOG.warnf("GitHub token exchange failed: status=%d", tokenResponse.statusCode());
       throw new IOException("GitHub token exchange failed");
     }
     JsonNode tokenJson = objectMapper.readTree(tokenResponse.body());
     String accessToken = tokenJson.path("access_token").asText();
     if (accessToken == null || accessToken.isBlank()) {
-      LOG.warnf(
-          "GitHub token missing access_token field: %s",
-          SecurityUtils.redactSensitiveData(tokenResponse.body()));
+      LOG.warn("GitHub token missing access_token field");
       throw new IOException("GitHub token missing access_token");
     }
     return accessToken;
@@ -145,8 +143,7 @@ public class GithubService {
     HttpResponse<String> meResponse =
         httpClient.send(meRequest, HttpResponse.BodyHandlers.ofString());
     if (meResponse.statusCode() >= 400) {
-      LOG.warnf(
-          "GitHub user fetch failed: %s", SecurityUtils.redactSensitiveData(meResponse.body()));
+      LOG.warnf("GitHub user fetch failed: status=%d", meResponse.statusCode());
       throw new IOException("GitHub user fetch failed");
     }
     JsonNode userJson = objectMapper.readTree(meResponse.body());
