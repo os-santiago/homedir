@@ -34,10 +34,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b5737a493b0e2f25fbaec9818877353d2e46a0d4 # v6.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.5.1
 
       - name: Set up JDK 21
-        uses: actions/setup-java@7e61d7042eee934e81b2c3ababfe491d46e29a14 # v5.0.1
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -58,7 +58,7 @@ jobs:
             -t homedir-scan:${IMAGE_TAG} .
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@d94f46e13c6c62f59525ac9a1e147a99dc0b9bf5 # v0.17.0
+        uses: anchore/sbom-action@f6c3d0fe42c3cf876e3462574e4c9416b5e0f07a # v0.9.0
         with:
           image: homedir-scan:${{ github.sha }}
           artifact-name: sbom-report
@@ -66,7 +66,7 @@ jobs:
           format: spdx-json
 
       - name: Scan for vulnerabilities
-        uses: anchore/scan-action@64a33b277ea7a1215a3c142735a1091341939ff5 # v6.0.0
+        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
         id: scan
         continue-on-error: ${{ env.SECURITY_GATING == 'permissive' }}
         with:
@@ -76,13 +76,13 @@ jobs:
           output-format: sarif
 
       - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
+        uses: github/codeql-action/upload-sarif@8272c299f21ca24af15dfe9ac0971ba969e5e0d5 # v3.36.2
         if: always()
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
 
       - name: Upload security reports artifact
-        uses: actions/upload-artifact@ea0dfa9edb5b0fd63f38f37e0f8f08c10ef4b8fb # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: security-reports-${{ github.sha }}
@@ -111,10 +111,10 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@b5737a493b0e2f25fbaec9818877353d2e46a0d4 # v6.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.5.1
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@4081bf99e2866ebe428fc0477b69eb4fcda7220e # v4.5.0
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           fail-on-severity: moderate
           deny-licenses: GPL-2.0, GPL-3.0
@@ -137,16 +137,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b5737a493b0e2f25fbaec9818877353d2e46a0d4 # v6.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.5.1
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
+        uses: github/codeql-action/init@8272c299f21ca24af15dfe9ac0971ba969e5e0d5 # v3.36.2
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
       - name: Set up JDK 21
-        uses: actions/setup-java@7e61d7042eee934e81b2c3ababfe491d46e29a14 # v5.0.1
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -159,7 +159,7 @@ jobs:
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
+        uses: github/codeql-action/analyze@8272c299f21ca24af15dfe9ac0971ba969e5e0d5 # v3.36.2
         with:
           category: "/language:${{ matrix.language }}"
 
@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@b5737a493b0e2f25fbaec9818877353d2e46a0d4 # v6.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.5.1
         with:
           fetch-depth: 0
 
