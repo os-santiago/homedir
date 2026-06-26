@@ -479,14 +479,22 @@ public class ProfileResourceTest {
     cfpSubmissionService.updateStatus(
         rejectedSubmission.id(), CfpSubmissionStatus.REJECTED, "admin@example.org", "not a fit");
 
-    given()
+    String response = given()
         .header("Accept-Language", "en")
         .when()
         .get("/private/profile")
         .then()
         .statusCode(200)
+        .body(containsString("Rejected CFP Talk"))  // Verify rejected talk is present
         .body(containsString("under_review"))
-        .body(not(containsString("rejected")));
+        .body(not(containsString("rejected")))
+        .extract()
+        .asString();
+
+    // Additional verification: ensure "Rejected CFP Talk" appears with under_review status
+    assertTrue(
+        response.contains("Rejected CFP Talk") && response.contains("under_review"),
+        "Rejected submission should be visible but masked as under_review");
   }
 
   @Test
