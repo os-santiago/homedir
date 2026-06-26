@@ -80,6 +80,37 @@ public class GithubLinkService {
       Cookie stateCookie,
       Cookie redirectCookie,
       SecurityIdentity identity) {
+    Response validationError = validateCallback(code, state, error, stateCookie, identity);
+    if (validationError != null) {
+      return validationError;
+    }
+
+    return completeCallback(code, identity);
+  }
+
+  private Response redirectWithParams(String target) {
+    return Response.seeOther(URI.create(target))
+        .cookie(
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_state")
+                .value("")
+                .path("/")
+                .maxAge(0)
+                .secure(true)
+                .httpOnly(true)
+                .build())
+        .cookie(
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect")
+                .value("")
+                .path("/")
+                .maxAge(0)
+                .secure(false)
+                .httpOnly(false)
+                .build())
+        .build();
+  }
+
+  private Response validateCallback(
+      String code, String state, String error, Cookie stateCookie, SecurityIdentity identity) {
     if (!githubConfigured()) {
       return redirectWithParams("/private/profile?githubConfig=missing");
     }
@@ -94,14 +125,16 @@ public class GithubLinkService {
       return Response.seeOther(URI.create("/private/profile?error=github_login_unsupported"))
           .build();
     }
-    // codeql[java/user-controlled-bypass]
     if (stateCookie == null || state == null || !state.equals(stateCookie.getValue())) {
       return redirectWithParams("/private/profile?githubError=invalidState");
     }
-    if (!githubConfigured()) {
-      return redirectWithParams("/private/profile?githubConfig=missing");
+    if (code == null || code.isBlank()) {
+      return redirectWithParams("/private/profile?githubError=missingCode");
     }
+    return null;
+  }
 
+  private Response completeCallback(String code, SecurityIdentity identity) {
     try {
       String accessToken = githubService.exchangeCode(code);
       com.scanales.homedir.service.GithubService.GithubProfile profile =
@@ -131,27 +164,6 @@ public class GithubLinkService {
       LOG.error("GitHub OAuth callback failed", e);
       return redirectWithParams("/private/profile?githubError=unexpected");
     }
-  }
-
-  private Response redirectWithParams(String target) {
-    return Response.seeOther(URI.create(target))
-        .cookie(
-            new jakarta.ws.rs.core.NewCookie.Builder("gh_state")
-                .value("")
-                .path("/")
-                .maxAge(0)
-                .secure(true)
-                .httpOnly(true)
-                .build())
-        .cookie(
-            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect")
-                .value("")
-                .path("/")
-                .maxAge(0)
-                .secure(false)
-                .httpOnly(false)
-                .build())
-        .build();
   }
 
   public boolean githubConfigured() {
