@@ -52,7 +52,7 @@ jobs:
 
       - name: Static analysis (compile with lint)
         working-directory: quarkus-app
-        run: ./mvnw compile -B -q -Xlint:all
+        run: ./mvnw compile -B -q -Dmaven.compiler.showWarnings=true '-Dmaven.compiler.compilerArgs=-Xlint:all'
 
   arch:
     name: arch
