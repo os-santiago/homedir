@@ -39,6 +39,10 @@ public enum BountyHunterLevel {
     return rewardFrameId;
   }
 
+  public long getRequiredPoints() {
+    return minPoints;
+  }
+
   /**
    * Determine the appropriate level for a given point total.
    * Returns the highest level the user has achieved.
