@@ -19,5 +19,4 @@ public record VolunteerApplication(
     @JsonProperty("moderation_note") String moderationNote,
     @JsonProperty("rating_profile") Integer ratingProfile,
     @JsonProperty("rating_motivation") Integer ratingMotivation,
-    @JsonProperty("rating_differentiator") Integer ratingDifferentiator) {
-}
+    @JsonProperty("rating_differentiator") Integer ratingDifferentiator) {}

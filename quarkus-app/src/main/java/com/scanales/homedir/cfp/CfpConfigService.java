@@ -55,7 +55,10 @@ public class CfpConfigService {
     synchronized (lock) {
       refreshFromDisk(false);
       int normalized = normalizeMaxSubmissions(requestedLimit);
-      runtime = runtime == null ? CfpConfig.defaults(normalized, configuredTestingModeEnabled) : runtime.withMaxSubmissionsPerUserPerEvent(normalized);
+      runtime =
+          runtime == null
+              ? CfpConfig.defaults(normalized, configuredTestingModeEnabled)
+              : runtime.withMaxSubmissionsPerUserPerEvent(normalized);
       persistenceService.saveCfpConfigSync(runtime);
       lastKnownMtime = persistenceService.cfpConfigLastModifiedMillis();
       return runtime.maxSubmissionsPerUserPerEvent();
@@ -65,7 +68,11 @@ public class CfpConfigService {
   public boolean updateTestingModeEnabled(boolean enabled) {
     synchronized (lock) {
       refreshFromDisk(false);
-      runtime = runtime == null ? CfpConfig.defaults(normalizeMaxSubmissions(configuredMaxSubmissionsPerUserPerEvent), enabled) : runtime.withTestingModeEnabled(enabled);
+      runtime =
+          runtime == null
+              ? CfpConfig.defaults(
+                  normalizeMaxSubmissions(configuredMaxSubmissionsPerUserPerEvent), enabled)
+              : runtime.withTestingModeEnabled(enabled);
       persistenceService.saveCfpConfigSync(runtime);
       lastKnownMtime = persistenceService.cfpConfigLastModifiedMillis();
       return runtime.testingModeEnabled();
@@ -134,4 +141,3 @@ public class CfpConfigService {
     return Math.min(rawValue, CfpSubmissionService.MAX_SUBMISSIONS_PER_USER_PER_EVENT);
   }
 }
-

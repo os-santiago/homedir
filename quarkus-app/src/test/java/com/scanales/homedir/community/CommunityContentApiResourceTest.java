@@ -28,14 +28,16 @@ public class CommunityContentApiResourceTest {
     Path dir = Path.of(System.getProperty("homedir.data.dir"), "community", "content");
     if (Files.exists(dir)) {
       try (var walk = Files.walk(dir)) {
-        walk.sorted(Comparator.reverseOrder()).forEach(path -> {
-          if (!path.equals(dir)) {
-            try {
-              Files.deleteIfExists(path);
-            } catch (Exception ignored) {
-            }
-          }
-        });
+        walk.sorted(Comparator.reverseOrder())
+            .forEach(
+                path -> {
+                  if (!path.equals(dir)) {
+                    try {
+                      Files.deleteIfExists(path);
+                    } catch (Exception ignored) {
+                    }
+                  }
+                });
       }
     }
     Files.createDirectories(dir);
@@ -52,7 +54,8 @@ public class CommunityContentApiResourceTest {
         created_at: "%s"
         media_type: "article_blog"
         tags: ["java","quarkus"]
-        """.formatted(iso(now.minus(Duration.ofDays(1)))));
+        """
+            .formatted(iso(now.minus(Duration.ofDays(1)))));
     Files.writeString(
         dir.resolve("20260510-devops-item-2.yml"),
         """
@@ -63,7 +66,8 @@ public class CommunityContentApiResourceTest {
         source: "example.org"
         created_at: "%s"
         media_type: "podcast"
-        """.formatted(iso(now.minus(Duration.ofDays(21)))));
+        """
+            .formatted(iso(now.minus(Duration.ofDays(21)))));
     Files.writeString(
         dir.resolve("20260509-member-item-3.yml"),
         """
@@ -75,7 +79,8 @@ public class CommunityContentApiResourceTest {
         created_at: "%s"
         media_type: "video_story"
         tags: ["community"]
-        """.formatted(iso(now.minus(Duration.ofDays(30)))));
+        """
+            .formatted(iso(now.minus(Duration.ofDays(30)))));
     contentService.refreshNowForTests();
     featuredSnapshotService.refreshNowForTests();
   }

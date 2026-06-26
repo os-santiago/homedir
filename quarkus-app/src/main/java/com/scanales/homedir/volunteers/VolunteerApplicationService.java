@@ -37,7 +37,8 @@ public class VolunteerApplicationService {
   @Inject EventService eventService;
   @Inject VolunteerEventConfigService volunteerEventConfigService;
 
-  private final ConcurrentHashMap<String, VolunteerApplication> applications = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, VolunteerApplication> applications =
+      new ConcurrentHashMap<>();
   private final Object lock = new Object();
   private volatile long lastKnownMtime = Long.MIN_VALUE;
 
@@ -65,8 +66,7 @@ public class VolunteerApplicationService {
       if (applicantId == null) {
         throw new ValidationException("user_id_required");
       }
-      VolunteerEventConfigService.ResolvedEventConfig eventConfig =
-          resolveEventConfig(eventId);
+      VolunteerEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(eventId);
       if (!eventConfig.currentlyOpen()) {
         throw new ValidationException("submissions_closed");
       }
@@ -107,7 +107,8 @@ public class VolunteerApplicationService {
     }
   }
 
-  public VolunteerApplication updateMine(String id, String eventId, String userId, UpdateRequest request) {
+  public VolunteerApplication updateMine(
+      String id, String eventId, String userId, UpdateRequest request) {
     synchronized (lock) {
       refreshFromDisk(false);
       VolunteerApplication current = findOrThrow(id);
@@ -116,7 +117,8 @@ public class VolunteerApplicationService {
       if (normalizedEventId == null || normalizedUserId == null) {
         throw new ValidationException("owner_required");
       }
-      if (!normalizedEventId.equals(current.eventId()) || !normalizedUserId.equals(current.applicantUserId())) {
+      if (!normalizedEventId.equals(current.eventId())
+          || !normalizedUserId.equals(current.applicantUserId())) {
         throw new ValidationException("owner_required");
       }
       if (request == null) {
@@ -169,7 +171,8 @@ public class VolunteerApplicationService {
       if (normalizedEventId == null || normalizedUserId == null) {
         throw new ValidationException("owner_required");
       }
-      if (!normalizedEventId.equals(current.eventId()) || !normalizedUserId.equals(current.applicantUserId())) {
+      if (!normalizedEventId.equals(current.eventId())
+          || !normalizedUserId.equals(current.applicantUserId())) {
         throw new ValidationException("owner_required");
       }
       if (!isTransitionAllowed(current.status(), VolunteerApplicationStatus.WITHDRAWN)) {
@@ -229,7 +232,8 @@ public class VolunteerApplicationService {
       validateExpectedUpdatedAt(current, expectedUpdatedAt);
       int normalizedProfile = normalizeRating(profile, "invalid_rating_profile");
       int normalizedMotivation = normalizeRating(motivation, "invalid_rating_motivation");
-      int normalizedDifferentiator = normalizeRating(differentiator, "invalid_rating_differentiator");
+      int normalizedDifferentiator =
+          normalizeRating(differentiator, "invalid_rating_differentiator");
       Instant now = nextUpdatedAt(current);
       VolunteerApplication updated =
           new VolunteerApplication(
@@ -427,7 +431,8 @@ public class VolunteerApplicationService {
     if (item == null) {
       return null;
     }
-    return calculateWeightedScore(item.ratingProfile(), item.ratingMotivation(), item.ratingDifferentiator());
+    return calculateWeightedScore(
+        item.ratingProfile(), item.ratingMotivation(), item.ratingDifferentiator());
   }
 
   public static Double calculateWeightedScore(
@@ -483,12 +488,7 @@ public class VolunteerApplicationService {
       return volunteerEventConfigService.resolveForEvent(eventId);
     }
     return new VolunteerEventConfigService.ResolvedEventConfig(
-        eventId,
-        false,
-        true,
-        null,
-        null,
-        true);
+        eventId, false, true, null, null, true);
   }
 
   private static void validateExpectedUpdatedAt(
@@ -675,9 +675,7 @@ public class VolunteerApplicationService {
   }
 
   public record EventStats(
-      int total,
-      Map<VolunteerApplicationStatus, Integer> countsByStatus,
-      Instant latestUpdatedAt) {
+      int total, Map<VolunteerApplicationStatus, Integer> countsByStatus, Instant latestUpdatedAt) {
     public static EventStats empty() {
       EnumMap<VolunteerApplicationStatus, Integer> empty =
           new EnumMap<>(VolunteerApplicationStatus.class);

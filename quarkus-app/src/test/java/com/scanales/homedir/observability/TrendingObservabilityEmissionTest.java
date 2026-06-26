@@ -6,15 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.scanales.homedir.service.UsageMetricsService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.HttpHeaders;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 /**
- * Verifies that trending/popular content views emit expected observability metrics.
- * Tracks user engagement with talk views and event registrations.
+ * Verifies that trending/popular content views emit expected observability metrics. Tracks user
+ * engagement with talk views and event registrations.
  */
 @QuarkusTest
 public class TrendingObservabilityEmissionTest {
@@ -34,7 +32,9 @@ public class TrendingObservabilityEmissionTest {
     Map<String, Long> snapshot = metrics.snapshot();
 
     // Verify talk view metric
-    assertEquals(1L, snapshot.getOrDefault("talk_view:talk123", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("talk_view:talk123", 0L),
         "Talk view should emit metric with talk ID");
   }
 
@@ -48,11 +48,15 @@ public class TrendingObservabilityEmissionTest {
     Map<String, Long> snapshot = metrics.snapshot();
 
     // Should only count once per session
-    assertEquals(1L, snapshot.getOrDefault("talk_view:talk123", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("talk_view:talk123", 0L),
         "Duplicate views from same session should be deduplicated");
 
     Map<String, Long> discards = metrics.getDiscarded();
-    assertEquals(2L, discards.getOrDefault("dedupe", 0L),
+    assertEquals(
+        2L,
+        discards.getOrDefault("dedupe", 0L),
         "Deduplicated views should be tracked as discards");
   }
 
@@ -64,12 +68,10 @@ public class TrendingObservabilityEmissionTest {
     Map<String, Long> snapshot = metrics.snapshot();
 
     // Bot views should not appear in metrics
-    assertTrue(!snapshot.containsKey("talk_view:talk123"),
-        "Bot views should be filtered out");
+    assertTrue(!snapshot.containsKey("talk_view:talk123"), "Bot views should be filtered out");
 
     Map<String, Long> discards = metrics.getDiscarded();
-    assertEquals(1L, discards.getOrDefault("bot", 0L),
-        "Bot views should be tracked as discards");
+    assertEquals(1L, discards.getOrDefault("bot", 0L), "Bot views should be tracked as discards");
   }
 
   @Test
@@ -81,7 +83,9 @@ public class TrendingObservabilityEmissionTest {
     Map<String, Long> snapshot = metrics.snapshot();
 
     // recordEventView uses "event_view:" prefix
-    assertEquals(2L, snapshot.getOrDefault("event_view:devopsdays", 0L),
+    assertEquals(
+        2L,
+        snapshot.getOrDefault("event_view:devopsdays", 0L),
         "Each event view should increment the event_view counter");
   }
 
@@ -89,17 +93,17 @@ public class TrendingObservabilityEmissionTest {
   public void talkRegistrationEmitsMetric() {
     // Simulate talk registration
     metrics.recordTalkRegister(
-        "talk789",
-        java.util.List.of(),
-        "Mozilla/5.0",
-        "John Doe",
-        "john@example.com");
+        "talk789", java.util.List.of(), "Mozilla/5.0", "John Doe", "john@example.com");
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(1L, snapshot.getOrDefault("talk_register:talk789", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("talk_register:talk789", 0L),
         "Talk registration should emit metric");
-    assertEquals(1, metrics.getRegistrants("talk789").size(),
+    assertEquals(
+        1,
+        metrics.getRegistrants("talk789").size(),
         "Registrant should be tracked in registrations map");
   }
 }

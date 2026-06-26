@@ -19,8 +19,7 @@ public class NotificationSocketService {
 
   private static final Logger LOG = Logger.getLogger(NotificationSocketService.class);
 
-  @Inject
-  ObjectMapper mapper;
+  @Inject ObjectMapper mapper;
 
   private final ConcurrentMap<String, Set<Session>> sessions = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, AtomicInteger> connections = new ConcurrentHashMap<>();

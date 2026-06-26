@@ -41,7 +41,9 @@ class ChallengesApiResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "member@example.com", roles = {"user"})
+  @TestSecurity(
+      user = "member@example.com",
+      roles = {"user"})
   void memberCanReadOwnChallengeProgress() {
     gamificationService.award("member@example.com", GamificationActivity.COMMUNITY_VOTE, "pick-1");
 

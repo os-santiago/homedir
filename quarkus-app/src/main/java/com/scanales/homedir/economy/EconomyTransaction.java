@@ -12,5 +12,4 @@ public record EconomyTransaction(
     @JsonProperty("amount_hcoin") long amountHcoin,
     @JsonProperty("balance_after_hcoin") long balanceAfterHcoin,
     @JsonProperty("created_at") Instant createdAt,
-    String reference) {
-}
+    String reference) {}

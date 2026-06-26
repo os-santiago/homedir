@@ -61,7 +61,8 @@ public class CommunitySubmissionService {
 
   private final ObjectMapper yamlMapper =
       new ObjectMapper(new YAMLFactory()).registerModule(new JavaTimeModule());
-  private final ConcurrentHashMap<String, CommunitySubmission> submissions = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, CommunitySubmission> submissions =
+      new ConcurrentHashMap<>();
   private final Object submissionsLock = new Object();
   private volatile long lastKnownSubmissionsMtime = Long.MIN_VALUE;
 
@@ -191,13 +192,16 @@ public class CommunitySubmissionService {
       }
       Instant now = Instant.now();
       Instant effectiveCreatedAt = current.createdAt() != null ? current.createdAt() : now;
-      String contentId = current.contentId() != null ? current.contentId() : "submission-" + current.id();
+      String contentId =
+          current.contentId() != null ? current.contentId() : "submission-" + current.id();
       String contentFile = current.contentFile();
       if (contentFile == null || contentFile.isBlank()) {
-        contentFile = writeApprovedContentFile(current, contentId, effectiveCreatedAt, normalizedUrl);
+        contentFile =
+            writeApprovedContentFile(current, contentId, effectiveCreatedAt, normalizedUrl);
       } else {
         contentFile =
-            ensureApprovedFileExists(current, contentId, contentFile, effectiveCreatedAt, normalizedUrl);
+            ensureApprovedFileExists(
+                current, contentId, contentFile, effectiveCreatedAt, normalizedUrl);
       }
 
       updated =
@@ -297,7 +301,8 @@ public class CommunitySubmissionService {
         submissions.values().stream()
             .filter(item -> userId.equals(item.userId()))
             .filter(item -> item.createdAt() != null)
-            .filter(item -> !item.createdAt().isBefore(startOfDay) && !item.createdAt().isAfter(now))
+            .filter(
+                item -> !item.createdAt().isBefore(startOfDay) && !item.createdAt().isAfter(now))
             .count();
     return count >= dailyLimit;
   }
@@ -381,12 +386,16 @@ public class CommunitySubmissionService {
   }
 
   private String writeApprovedContentFile(
-      CommunitySubmission submission, String contentId, Instant effectiveCreatedAt, String normalizedUrl) {
+      CommunitySubmission submission,
+      String contentId,
+      Instant effectiveCreatedAt,
+      String normalizedUrl) {
     try {
       Path dir = resolveContentDir();
       Files.createDirectories(dir);
       if (!Files.isWritable(dir)) {
-        throw new IllegalStateException("community_content_dir_not_writable:" + dir.toAbsolutePath());
+        throw new IllegalStateException(
+            "community_content_dir_not_writable:" + dir.toAbsolutePath());
       }
       String title = sanitizeText(submission.title(), maxTitleLength);
       if (title == null) {
@@ -434,7 +443,11 @@ public class CommunitySubmissionService {
         path = resolveContentDir().toAbsolutePath().toString();
       } catch (Exception ignored) {
       }
-      LOG.errorf(e, "Failed to write approved community content for submission=%s dir=%s", submission.id(), path);
+      LOG.errorf(
+          e,
+          "Failed to write approved community content for submission=%s dir=%s",
+          submission.id(),
+          path);
       throw new IllegalStateException("failed_to_write_approved_content:" + path, e);
     }
   }
@@ -451,14 +464,14 @@ public class CommunitySubmissionService {
     }
     LOG.warnf(
         "Approved submission file was missing id=%s file=%s; regenerating",
-        submission.id(),
-        existingFileName);
+        submission.id(), existingFileName);
     return writeApprovedContentFile(submission, contentId, effectiveCreatedAt, normalizedUrl);
   }
 
   private static void moveWithFallback(Path source, Path target) throws Exception {
     try {
-      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+      Files.move(
+          source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     } catch (AtomicMoveNotSupportedException e) {
       Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
     }
@@ -493,7 +506,8 @@ public class CommunitySubmissionService {
     return id.length() <= 8 ? id : id.substring(0, 8);
   }
 
-  public record CreateRequest(String title, String url, String summary, String source, List<String> tags) {}
+  public record CreateRequest(
+      String title, String url, String summary, String source, List<String> tags) {}
 
   public static class ValidationException extends RuntimeException {
     public ValidationException(String message) {

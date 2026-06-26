@@ -46,7 +46,9 @@ public class AdminEventOperationsApiResource {
       return unauthorized;
     }
     boolean includeInactiveResolved = includeInactive != null && includeInactive;
-    return Response.ok(new StaffListResponse(eventOperationsService.listStaff(eventId, includeInactiveResolved)))
+    return Response.ok(
+            new StaffListResponse(
+                eventOperationsService.listStaff(eventId, includeInactiveResolved)))
         .build();
   }
 
@@ -61,9 +63,12 @@ public class AdminEventOperationsApiResource {
     if (unauthorized != null) {
       return unauthorized;
     }
-    EventStaffRole role = EventStaffRole.fromApi(request != null ? request.role() : null).orElse(null);
+    EventStaffRole role =
+        EventStaffRole.fromApi(request != null ? request.role() : null).orElse(null);
     if (role == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_role")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_role"))
+          .build();
     }
     boolean active = request == null || request.active() == null || request.active();
     try {
@@ -77,9 +82,13 @@ public class AdminEventOperationsApiResource {
               active);
       return Response.ok(new StaffMutationResponse(updated)).build();
     } catch (EventOperationsService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (EventOperationsService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -93,7 +102,9 @@ public class AdminEventOperationsApiResource {
       return unauthorized;
     }
     boolean includeInactiveResolved = includeInactive != null && includeInactive;
-    return Response.ok(new SpaceListResponse(eventOperationsService.listSpaces(eventId, includeInactiveResolved)))
+    return Response.ok(
+            new SpaceListResponse(
+                eventOperationsService.listSpaces(eventId, includeInactiveResolved)))
         .build();
   }
 
@@ -108,7 +119,8 @@ public class AdminEventOperationsApiResource {
     if (unauthorized != null) {
       return unauthorized;
     }
-    EventSpaceType type = EventSpaceType.fromApi(request != null ? request.type() : null).orElse(null);
+    EventSpaceType type =
+        EventSpaceType.fromApi(request != null ? request.type() : null).orElse(null);
     try {
       EventSpace updated =
           eventOperationsService.upsertSpace(
@@ -120,20 +132,27 @@ public class AdminEventOperationsApiResource {
               request == null || request.active() == null || request.active());
       return Response.ok(new SpaceMutationResponse(updated)).build();
     } catch (EventOperationsService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (EventOperationsService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
   @GET
   @Path("/spaces/{spaceId}/shifts")
-  public Response listSpaceShifts(@PathParam("eventId") String eventId, @PathParam("spaceId") String spaceId) {
+  public Response listSpaceShifts(
+      @PathParam("eventId") String eventId, @PathParam("spaceId") String spaceId) {
     Response unauthorized = enforceView();
     if (unauthorized != null) {
       return unauthorized;
     }
-    return Response.ok(new ShiftListResponse(eventOperationsService.listSpaceShifts(eventId, spaceId))).build();
+    return Response.ok(
+            new ShiftListResponse(eventOperationsService.listSpaceShifts(eventId, spaceId)))
+        .build();
   }
 
   @POST
@@ -155,11 +174,17 @@ public class AdminEventOperationsApiResource {
               request != null ? request.userId() : null,
               request != null ? request.startAt() : null,
               request != null ? request.endAt() : null);
-      return Response.status(Response.Status.CREATED).entity(new ShiftMutationResponse(created)).build();
+      return Response.status(Response.Status.CREATED)
+          .entity(new ShiftMutationResponse(created))
+          .build();
     } catch (EventOperationsService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (EventOperationsService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -177,7 +202,9 @@ public class AdminEventOperationsApiResource {
           .entity(Map.of("error", "invalid_visibility"))
           .build();
     }
-    return Response.ok(new ActivityListResponse(eventOperationsService.listActivities(eventId, visibility))).build();
+    return Response.ok(
+            new ActivityListResponse(eventOperationsService.listActivities(eventId, visibility)))
+        .build();
   }
 
   @PUT
@@ -206,9 +233,13 @@ public class AdminEventOperationsApiResource {
               request != null ? request.endAt() : null);
       return Response.ok(new ActivityMutationResponse(updated)).build();
     } catch (EventOperationsService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (EventOperationsService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -231,28 +262,36 @@ public class AdminEventOperationsApiResource {
     try {
       EventOperationsService.EventRunSheetView runSheet =
           eventOperationsService.buildRunSheet(
-              eventId,
-              visibility,
-              includeInactiveStaff != null && includeInactiveStaff);
-      return Response.ok(new RunSheetResponse(runSheet.staff(), runSheet.spaces(), runSheet.shifts(), runSheet.activities()))
+              eventId, visibility, includeInactiveStaff != null && includeInactiveStaff);
+      return Response.ok(
+              new RunSheetResponse(
+                  runSheet.staff(), runSheet.spaces(), runSheet.shifts(), runSheet.activities()))
           .build();
     } catch (EventOperationsService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (EventOperationsService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
   private Response enforceView() {
     if (!AdminUtils.canViewAdminBackoffice(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_view_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_view_required"))
+          .build();
     }
     return null;
   }
 
   private Response enforceManage() {
     if (!AdminUtils.canManageAdminBackoffice(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     return null;
   }
@@ -266,10 +305,7 @@ public class AdminEventOperationsApiResource {
   }
 
   public record UpsertStaffRequest(
-      @JsonProperty("user_name") String userName,
-      String role,
-      String source,
-      Boolean active) {}
+      @JsonProperty("user_name") String userName, String role, String source, Boolean active) {}
 
   public record UpsertSpaceRequest(String name, String type, Integer capacity, Boolean active) {}
 

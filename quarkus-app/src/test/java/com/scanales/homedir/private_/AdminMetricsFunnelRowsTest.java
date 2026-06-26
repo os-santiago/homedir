@@ -38,7 +38,9 @@ class AdminMetricsFunnelRowsTest {
 
     Map<String, Long> byId =
         AdminMetricsResource.buildFunnelRows(snap).stream()
-            .collect(Collectors.toMap(AdminMetricsResource.FunnelRow::id, AdminMetricsResource.FunnelRow::count));
+            .collect(
+                Collectors.toMap(
+                    AdminMetricsResource.FunnelRow::id, AdminMetricsResource.FunnelRow::count));
 
     assertEquals(11L, byId.get("login_success"));
     assertEquals(7L, byId.get("community_vote"));

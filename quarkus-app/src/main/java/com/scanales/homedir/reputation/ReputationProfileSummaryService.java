@@ -65,7 +65,8 @@ public class ReputationProfileSummaryService {
         .filter(ReputationProfileSummaryService::isRecognitionEvent)
         .sorted(
             Comparator.comparing(
-                    ReputationEventRecord::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                    ReputationEventRecord::createdAt,
+                    Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(
                     Comparator.comparingInt(ReputationEventRecord::weightBase).reversed())
                 .thenComparing(
@@ -226,7 +227,8 @@ public class ReputationProfileSummaryService {
                 Comparator.comparingLong(scoreExtractor)
                     .reversed()
                     .thenComparing(Comparator.comparingLong(tieBreaker).reversed())
-                    .thenComparing(UserReputationAggregate::userId, Comparator.nullsLast(String::compareTo)))
+                    .thenComparing(
+                        UserReputationAggregate::userId, Comparator.nullsLast(String::compareTo)))
             .toList();
     for (int i = 0; i < ordered.size(); i++) {
       UserReputationAggregate row = ordered.get(i);
@@ -353,7 +355,9 @@ public class ReputationProfileSummaryService {
     long volunteerSupport =
         snapshot.eventsById().values().stream()
             .filter(Objects::nonNull)
-            .filter(event -> aggregate.userId() != null && aggregate.userId().equals(event.actorUserId()))
+            .filter(
+                event ->
+                    aggregate.userId() != null && aggregate.userId().equals(event.actorUserId()))
             .filter(event -> "volunteer_engaged".equals(event.eventType()))
             .mapToLong(ReputationEventRecord::weightBase)
             .sum();

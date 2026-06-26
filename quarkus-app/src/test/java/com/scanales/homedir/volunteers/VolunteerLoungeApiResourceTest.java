@@ -82,8 +82,10 @@ class VolunteerLoungeApiResourceTest {
         .body("items[0].message_type", equalTo("post"))
         .body("items[0].body", equalTo("Setup complete for registration desk."));
 
-    assertTrue(usageMetricsService.snapshot().getOrDefault("funnel:volunteer_lounge_post", 0L) >= 1L);
-    assertTrue(usageMetricsService.snapshot().getOrDefault("funnel:volunteer.lounge.post", 0L) >= 1L);
+    assertTrue(
+        usageMetricsService.snapshot().getOrDefault("funnel:volunteer_lounge_post", 0L) >= 1L);
+    assertTrue(
+        usageMetricsService.snapshot().getOrDefault("funnel:volunteer.lounge.post", 0L) >= 1L);
     assertTrue(insightsLedger.status().storedEvents() > insightsEventsBefore);
   }
 

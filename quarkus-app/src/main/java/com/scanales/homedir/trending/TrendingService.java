@@ -38,43 +38,39 @@ public class TrendingService {
   @ConfigProperty(name = "trending.default-count", defaultValue = "10")
   int defaultCount;
 
-  @Inject
-  PersistenceService persistenceService;
+  @Inject PersistenceService persistenceService;
 
-  @Inject
-  ObjectMapper objectMapper;
+  @Inject ObjectMapper objectMapper;
 
-  private final HttpClient httpClient = HttpClient.newBuilder()
-      .connectTimeout(Duration.ofSeconds(15))
-      .build();
+  private final HttpClient httpClient =
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
 
-  private final AtomicReference<TrendingCacheSnapshot> dailyCache = new AtomicReference<>(TrendingCacheSnapshot.empty(TrendingPeriod.DAILY));
-  private final AtomicReference<TrendingCacheSnapshot> weeklyCache = new AtomicReference<>(TrendingCacheSnapshot.empty(TrendingPeriod.WEEKLY));
-  private final AtomicReference<TrendingCacheSnapshot> monthlyCache = new AtomicReference<>(TrendingCacheSnapshot.empty(TrendingPeriod.MONTHLY));
+  private final AtomicReference<TrendingCacheSnapshot> dailyCache =
+      new AtomicReference<>(TrendingCacheSnapshot.empty(TrendingPeriod.DAILY));
+  private final AtomicReference<TrendingCacheSnapshot> weeklyCache =
+      new AtomicReference<>(TrendingCacheSnapshot.empty(TrendingPeriod.WEEKLY));
+  private final AtomicReference<TrendingCacheSnapshot> monthlyCache =
+      new AtomicReference<>(TrendingCacheSnapshot.empty(TrendingPeriod.MONTHLY));
 
   private final AtomicBoolean dailyRefreshInProgress = new AtomicBoolean(false);
   private final AtomicBoolean weeklyRefreshInProgress = new AtomicBoolean(false);
   private final AtomicBoolean monthlyRefreshInProgress = new AtomicBoolean(false);
 
-  private static final Pattern REPO_PATTERN = Pattern.compile(
-      "<h2[^>]*>.*?<a\\s+href=\"/([^/]+)/([^\"]+)\"[^>]*>.*?</a>.*?</h2>",
-      Pattern.DOTALL
-  );
+  private static final Pattern REPO_PATTERN =
+      Pattern.compile(
+          "<h2[^>]*>.*?<a\\s+href=\"/([^/]+)/([^\"]+)\"[^>]*>.*?</a>.*?</h2>", Pattern.DOTALL);
 
-  private static final Pattern DESCRIPTION_PATTERN = Pattern.compile(
-      "<p[^>]*class=\"[^\"]*col-9[^\"]*\"[^>]*>\\s*([^<]+)\\s*</p>",
-      Pattern.DOTALL
-  );
+  private static final Pattern DESCRIPTION_PATTERN =
+      Pattern.compile(
+          "<p[^>]*class=\"[^\"]*col-9[^\"]*\"[^>]*>\\s*([^<]+)\\s*</p>", Pattern.DOTALL);
 
-  private static final Pattern STARS_PATTERN = Pattern.compile(
-      "([\\d,]+)\\s*stars\\s+(?:today|this\\s+week|this\\s+month)",
-      Pattern.CASE_INSENSITIVE
-  );
+  private static final Pattern STARS_PATTERN =
+      Pattern.compile(
+          "([\\d,]+)\\s*stars\\s+(?:today|this\\s+week|this\\s+month)", Pattern.CASE_INSENSITIVE);
 
-  private static final Pattern LANGUAGE_PATTERN = Pattern.compile(
-      "<span[^>]*itemprop=\"programmingLanguage\"[^>]*>\\s*([^<]+)\\s*</span>",
-      Pattern.DOTALL
-  );
+  private static final Pattern LANGUAGE_PATTERN =
+      Pattern.compile(
+          "<span[^>]*itemprop=\"programmingLanguage\"[^>]*>\\s*([^<]+)\\s*</span>", Pattern.DOTALL);
 
   @PostConstruct
   void init() {
@@ -127,13 +123,15 @@ public class TrendingService {
       return;
     }
 
-    Thread.ofVirtual().start(() -> {
-      try {
-        refresh(period, reason);
-      } finally {
-        inProgress.set(false);
-      }
-    });
+    Thread.ofVirtual()
+        .start(
+            () -> {
+              try {
+                refresh(period, reason);
+              } finally {
+                inProgress.set(false);
+              }
+            });
   }
 
   private void refresh(TrendingPeriod period, String reason) {
@@ -143,39 +141,33 @@ public class TrendingService {
       List<TrendingRepo> repos = scrapeGithubTrending(period);
 
       if (!repos.isEmpty()) {
-        TrendingCacheSnapshot snapshot = new TrendingCacheSnapshot(
-            List.copyOf(repos),
-            Instant.now(),
-            Instant.now(),
-            period
-        );
+        TrendingCacheSnapshot snapshot =
+            new TrendingCacheSnapshot(List.copyOf(repos), Instant.now(), Instant.now(), period);
 
         setCache(period, snapshot);
         saveCacheToDisk(period, snapshot);
 
-        LOG.infof("Refreshed trending %s cache: %d repos (reason=%s)", period.toGithubPath(), repos.size(), reason);
+        LOG.infof(
+            "Refreshed trending %s cache: %d repos (reason=%s)",
+            period.toGithubPath(), repos.size(), reason);
       } else {
         TrendingCacheSnapshot current = getCache(period);
-        TrendingCacheSnapshot failed = new TrendingCacheSnapshot(
-            current.repos(),
-            current.lastRefreshTime(),
-            Instant.now(),
-            period
-        );
+        TrendingCacheSnapshot failed =
+            new TrendingCacheSnapshot(
+                current.repos(), current.lastRefreshTime(), Instant.now(), period);
         setCache(period, failed);
 
-        LOG.warnf("Failed to refresh trending %s cache, keeping existing %d repos", period.toGithubPath(), current.repos().size());
+        LOG.warnf(
+            "Failed to refresh trending %s cache, keeping existing %d repos",
+            period.toGithubPath(), current.repos().size());
       }
     } catch (Exception e) {
       LOG.errorf(e, "Error refreshing trending %s cache", period.toGithubPath());
 
       TrendingCacheSnapshot current = getCache(period);
-      TrendingCacheSnapshot failed = new TrendingCacheSnapshot(
-          current.repos(),
-          current.lastRefreshTime(),
-          Instant.now(),
-          period
-      );
+      TrendingCacheSnapshot failed =
+          new TrendingCacheSnapshot(
+              current.repos(), current.lastRefreshTime(), Instant.now(), period);
       setCache(period, failed);
     }
   }
@@ -184,15 +176,17 @@ public class TrendingService {
     try {
       String url = GITHUB_TRENDING_URL + "?since=" + period.toGithubPath();
 
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(URI.create(url))
-          .timeout(requestTimeout)
-          .header("User-Agent", "Mozilla/5.0 (compatible; HomedirBot/1.0)")
-          .header("Accept", "text/html")
-          .GET()
-          .build();
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .timeout(requestTimeout)
+              .header("User-Agent", "Mozilla/5.0 (compatible; HomedirBot/1.0)")
+              .header("Accept", "text/html")
+              .GET()
+              .build();
 
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
       if (response.statusCode() == 429) {
         LOG.warn("GitHub rate limited, waiting before retry");
@@ -300,17 +294,18 @@ public class TrendingService {
         return;
       }
 
-      TrendingCacheSnapshot snapshot = objectMapper.readValue(
-          cacheFile.toFile(),
-          new TypeReference<TrendingCacheSnapshot>() {}
-      );
+      TrendingCacheSnapshot snapshot =
+          objectMapper.readValue(cacheFile.toFile(), new TypeReference<TrendingCacheSnapshot>() {});
 
       if (snapshot != null && snapshot.repos() != null) {
         setCache(period, snapshot);
-        LOG.infof("Loaded trending %s cache from disk: %d repos", period.toGithubPath(), snapshot.repos().size());
+        LOG.infof(
+            "Loaded trending %s cache from disk: %d repos",
+            period.toGithubPath(), snapshot.repos().size());
       }
     } catch (IOException e) {
-      LOG.warnf("Failed to load trending %s cache from disk: %s", period.toGithubPath(), e.getMessage());
+      LOG.warnf(
+          "Failed to load trending %s cache from disk: %s", period.toGithubPath(), e.getMessage());
     }
   }
 
@@ -321,12 +316,14 @@ public class TrendingService {
 
       objectMapper.writerWithDefaultPrettyPrinter().writeValue(cacheFile.toFile(), snapshot);
     } catch (IOException e) {
-      LOG.warnf("Failed to save trending %s cache to disk: %s", period.toGithubPath(), e.getMessage());
+      LOG.warnf(
+          "Failed to save trending %s cache to disk: %s", period.toGithubPath(), e.getMessage());
     }
   }
 
   private java.nio.file.Path getCacheFilePath(TrendingPeriod period) {
     String dataDir = System.getProperty("homedir.data.dir", "data");
-    return java.nio.file.Paths.get(dataDir, "trending", "trending-" + period.toGithubPath() + ".json");
+    return java.nio.file.Paths.get(
+        dataDir, "trending", "trending-" + period.toGithubPath() + ".json");
   }
 }

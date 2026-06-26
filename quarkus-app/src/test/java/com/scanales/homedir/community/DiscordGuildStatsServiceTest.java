@@ -16,14 +16,18 @@ class DiscordGuildStatsServiceTest {
   @Test
   void firstIntReadsNumericFields() throws Exception {
     var node = JSON.readTree("{\"approximate_member_count\":1234,\"presence_count\":77}");
-    assertEquals(1234, DiscordGuildStatsService.firstInt(node, "approximate_member_count", "member_count"));
-    assertEquals(77, DiscordGuildStatsService.firstInt(node, "approximate_presence_count", "presence_count"));
+    assertEquals(
+        1234, DiscordGuildStatsService.firstInt(node, "approximate_member_count", "member_count"));
+    assertEquals(
+        77,
+        DiscordGuildStatsService.firstInt(node, "approximate_presence_count", "presence_count"));
   }
 
   @Test
   void firstIntReadsNumericStringFields() throws Exception {
     var node = JSON.readTree("{\"member_count\":\"42\"}");
-    assertEquals(42, DiscordGuildStatsService.firstInt(node, "approximate_member_count", "member_count"));
+    assertEquals(
+        42, DiscordGuildStatsService.firstInt(node, "approximate_member_count", "member_count"));
   }
 
   @Test

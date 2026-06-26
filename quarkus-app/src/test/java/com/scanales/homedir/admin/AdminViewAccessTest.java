@@ -29,23 +29,11 @@ public class AdminViewAccessTest {
         .statusCode(200)
         .body(containsString("id=\"campaignsProcessNav\""));
 
-    given()
-        .when()
-        .get("/private/admin/events/new")
-        .then()
-        .statusCode(200);
+    given().when().get("/private/admin/events/new").then().statusCode(200);
 
-    given()
-        .when()
-        .get("/private/admin/speakers")
-        .then()
-        .statusCode(200);
+    given().when().get("/private/admin/speakers").then().statusCode(200);
 
-    given()
-        .when()
-        .get("/private/admin/backup")
-        .then()
-        .statusCode(200);
+    given().when().get("/private/admin/backup").then().statusCode(200);
   }
 
   @Test
@@ -65,23 +53,11 @@ public class AdminViewAccessTest {
         .then()
         .statusCode(200);
 
-    given()
-        .when()
-        .get("/private/admin/metrics")
-        .then()
-        .statusCode(200);
+    given().when().get("/private/admin/metrics").then().statusCode(200);
 
-    given()
-        .when()
-        .get("/private/admin/backup/download")
-        .then()
-        .statusCode(403);
+    given().when().get("/private/admin/backup/download").then().statusCode(403);
 
-    given()
-        .when()
-        .get("/private/admin/metrics/data")
-        .then()
-        .statusCode(403);
+    given().when().get("/private/admin/metrics/data").then().statusCode(403);
   }
 
   @Test
@@ -118,27 +94,15 @@ public class AdminViewAccessTest {
         .then()
         .statusCode(403);
 
-    given()
-        .when()
-        .get("/private/admin/errors/resolve/test-error")
-        .then()
-        .statusCode(403);
+    given().when().get("/private/admin/errors/resolve/test-error").then().statusCode(403);
   }
 
   @Test
   @TestSecurity(user = "viewer@example.org", roles = "admin-view")
   public void viewerRoleCanReadNotificationFeedButCannotBroadcast() {
-    given()
-        .when()
-        .get("/admin/notifications")
-        .then()
-        .statusCode(200);
+    given().when().get("/admin/notifications").then().statusCode(200);
 
-    given()
-        .when()
-        .get("/admin/api/notifications/latest?limit=10")
-        .then()
-        .statusCode(200);
+    given().when().get("/admin/api/notifications/latest?limit=10").then().statusCode(200);
 
     given()
         .contentType(MediaType.APPLICATION_JSON)

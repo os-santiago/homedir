@@ -7,18 +7,17 @@ import com.scanales.homedir.util.PaginationGuardrails;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -204,7 +203,12 @@ public class CfpSubmissionService {
       int requestedLimit,
       int requestedOffset) {
     return listByEvent(
-        eventId, statusFilter, ModerationFilter.empty(), sortOrder, requestedLimit, requestedOffset);
+        eventId,
+        statusFilter,
+        ModerationFilter.empty(),
+        sortOrder,
+        requestedLimit,
+        requestedOffset);
   }
 
   public List<CfpSubmission> listByEvent(
@@ -245,7 +249,8 @@ public class CfpSubmissionService {
     }
   }
 
-  public List<CfpSubmission> listMine(String eventId, String userId, int requestedLimit, int requestedOffset) {
+  public List<CfpSubmission> listMine(
+      String eventId, String userId, int requestedLimit, int requestedOffset) {
     if (userId == null) {
       return List.of();
     }
@@ -437,7 +442,8 @@ public class CfpSubmissionService {
           continue;
         }
         total++;
-        CfpSubmissionStatus status = item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
+        CfpSubmissionStatus status =
+            item.status() != null ? item.status() : CfpSubmissionStatus.PENDING;
         counts.merge(status, 1, Integer::sum);
         Instant updated = item.updatedAt();
         if (updated != null && (latestUpdatedAt == null || updated.isAfter(latestUpdatedAt))) {
@@ -462,12 +468,17 @@ public class CfpSubmissionService {
     }
   }
 
-  public CfpSubmission updateStatus(String id, CfpSubmissionStatus newStatus, String moderator, String note) {
+  public CfpSubmission updateStatus(
+      String id, CfpSubmissionStatus newStatus, String moderator, String note) {
     return updateStatus(id, newStatus, moderator, note, null);
   }
 
   public CfpSubmission updateStatus(
-      String id, CfpSubmissionStatus newStatus, String moderator, String note, Instant expectedUpdatedAt) {
+      String id,
+      CfpSubmissionStatus newStatus,
+      String moderator,
+      String note,
+      Instant expectedUpdatedAt) {
     synchronized (submissionsLock) {
       refreshFromDisk(false);
       if (newStatus == null) {
@@ -488,7 +499,8 @@ public class CfpSubmissionService {
       if (normalizedNote == null) {
         normalizedNote = current.moderationNote();
       }
-      if (newStatus == CfpSubmissionStatus.REJECTED && (normalizedNote == null || normalizedNote.isBlank())) {
+      if (newStatus == CfpSubmissionStatus.REJECTED
+          && (normalizedNote == null || normalizedNote.isBlank())) {
         throw new ValidationException("reject_note_required");
       }
 
@@ -557,7 +569,8 @@ public class CfpSubmissionService {
       Integer contentImpact,
       String moderator,
       Instant expectedUpdatedAt) {
-    return updateRating(eventId, id, technicalDetail, narrative, contentImpact, moderator, null, expectedUpdatedAt);
+    return updateRating(
+        eventId, id, technicalDetail, narrative, contentImpact, moderator, null, expectedUpdatedAt);
   }
 
   public CfpSubmission updateRating(
@@ -880,7 +893,8 @@ public class CfpSubmissionService {
     }
   }
 
-  private List<CfpPanelist> normalizePanelists(CfpSubmission current, List<PanelistInput> requested) {
+  private List<CfpPanelist> normalizePanelists(
+      CfpSubmission current, List<PanelistInput> requested) {
     if (requested == null || requested.isEmpty()) {
       return List.of();
     }
@@ -909,7 +923,10 @@ public class CfpSubmissionService {
       String userId = sanitizeUserId(input.userId());
       if (email != null) {
         userId =
-            userProfileService.findByEmail(email).map(profile -> sanitizeUserId(profile.getUserId())).orElse(userId);
+            userProfileService
+                .findByEmail(email)
+                .map(profile -> sanitizeUserId(profile.getUserId()))
+                .orElse(userId);
       }
       if (name == null && userId == null && email == null) {
         continue;
@@ -917,7 +934,9 @@ public class CfpSubmissionService {
       String idToken = panelistToken(name, email, userId);
       CfpPanelist previous = previousById.get(idToken);
       String status =
-          userId != null ? CfpPanelistStatus.LINKED.apiValue() : CfpPanelistStatus.PENDING_LOGIN.apiValue();
+          userId != null
+              ? CfpPanelistStatus.LINKED.apiValue()
+              : CfpPanelistStatus.PENDING_LOGIN.apiValue();
       CfpPanelist normalizedItem =
           new CfpPanelist(
               idToken,
@@ -935,7 +954,8 @@ public class CfpSubmissionService {
     return List.copyOf(normalized.values());
   }
 
-  private CfpPresentationAsset sanitizePresentationAsset(CfpPresentationAsset asset, String actorUserId) {
+  private CfpPresentationAsset sanitizePresentationAsset(
+      CfpPresentationAsset asset, String actorUserId) {
     if (asset == null) {
       throw new ValidationException("presentation_asset_required");
     }
@@ -957,12 +977,7 @@ public class CfpSubmissionService {
       throw new ValidationException("invalid_presentation_size");
     }
     return new CfpPresentationAsset(
-        fileName,
-        "application/pdf",
-        size,
-        storagePath,
-        sanitizeUserId(actorUserId),
-        Instant.now());
+        fileName, "application/pdf", size, storagePath, sanitizeUserId(actorUserId), Instant.now());
   }
 
   private static String sanitizeEmail(String raw) {
@@ -1036,16 +1051,20 @@ public class CfpSubmissionService {
   }
 
   public int currentMaxSubmissionsPerUserPerEvent() {
-    return cfpConfigService != null ? cfpConfigService.currentMaxSubmissionsPerUserPerEvent() : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
+    return cfpConfigService != null
+        ? cfpConfigService.currentMaxSubmissionsPerUserPerEvent()
+        : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
   }
 
   public CfpSubmissionStatus visibleStatus(CfpSubmission submission) {
     if (submission == null) {
       return CfpSubmissionStatus.PENDING;
     }
-    CfpSubmissionStatus internal = submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
+    CfpSubmissionStatus internal =
+        submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
     if (internal == CfpSubmissionStatus.ACCEPTED || internal == CfpSubmissionStatus.REJECTED) {
-      CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(submission.eventId());
+      CfpEventConfigService.ResolvedEventConfig eventConfig =
+          resolveEventConfig(submission.eventId());
       if (!eventConfig.resultsPublished()) {
         return CfpSubmissionStatus.UNDER_REVIEW;
       }
@@ -1058,7 +1077,8 @@ public class CfpSubmissionService {
       return null;
     }
     CfpSubmissionStatus visibleStatus = visibleStatus(submission);
-    CfpEventConfigService.ResolvedEventConfig eventConfig = resolveEventConfig(submission.eventId());
+    CfpEventConfigService.ResolvedEventConfig eventConfig =
+        resolveEventConfig(submission.eventId());
     if (!eventConfig.resultsPublished()) {
       return null;
     }
@@ -1137,7 +1157,9 @@ public class CfpSubmissionService {
   }
 
   public int updateMaxSubmissionsPerUserPerEvent(int requestedLimit) {
-    return cfpConfigService != null ? cfpConfigService.updateMaxSubmissionsPerUserPerEvent(requestedLimit) : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
+    return cfpConfigService != null
+        ? cfpConfigService.updateMaxSubmissionsPerUserPerEvent(requestedLimit)
+        : DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT;
   }
 
   private CfpSubmission findOrThrow(String id) {
@@ -1171,20 +1193,21 @@ public class CfpSubmissionService {
     lastKnownMtime = mtime;
   }
 
-  private static boolean isTransitionAllowed(CfpSubmissionStatus current, CfpSubmissionStatus target) {
+  private static boolean isTransitionAllowed(
+      CfpSubmissionStatus current, CfpSubmissionStatus target) {
     if (current == target) {
       return true;
     }
     return switch (current) {
       case PENDING ->
-        target == CfpSubmissionStatus.UNDER_REVIEW
-            || target == CfpSubmissionStatus.ACCEPTED
-            || target == CfpSubmissionStatus.REJECTED
-            || target == CfpSubmissionStatus.WITHDRAWN;
+          target == CfpSubmissionStatus.UNDER_REVIEW
+              || target == CfpSubmissionStatus.ACCEPTED
+              || target == CfpSubmissionStatus.REJECTED
+              || target == CfpSubmissionStatus.WITHDRAWN;
       case UNDER_REVIEW ->
-        target == CfpSubmissionStatus.ACCEPTED
-            || target == CfpSubmissionStatus.REJECTED
-            || target == CfpSubmissionStatus.WITHDRAWN;
+          target == CfpSubmissionStatus.ACCEPTED
+              || target == CfpSubmissionStatus.REJECTED
+              || target == CfpSubmissionStatus.WITHDRAWN;
       case ACCEPTED -> target == CfpSubmissionStatus.UNDER_REVIEW;
       case REJECTED -> target == CfpSubmissionStatus.UNDER_REVIEW;
       case WITHDRAWN -> target == CfpSubmissionStatus.UNDER_REVIEW;
@@ -1193,11 +1216,15 @@ public class CfpSubmissionService {
 
   private static Comparator<CfpSubmission> sortComparator(SortOrder sortOrder) {
     Comparator<Instant> createdComparator = Comparator.nullsLast(Comparator.reverseOrder());
-    Comparator<CfpSubmission> byCreated = Comparator.comparing(CfpSubmission::createdAt, createdComparator);
+    Comparator<CfpSubmission> byCreated =
+        Comparator.comparing(CfpSubmission::createdAt, createdComparator);
     Comparator<Instant> updatedComparator = Comparator.nullsLast(Comparator.reverseOrder());
-    Comparator<CfpSubmission> byUpdated = Comparator.comparing(CfpSubmission::updatedAt, updatedComparator);
+    Comparator<CfpSubmission> byUpdated =
+        Comparator.comparing(CfpSubmission::updatedAt, updatedComparator);
     if (sortOrder == SortOrder.SCORE_DESC) {
-      return Comparator.comparingDouble(CfpSubmissionService::scoreForOrdering).reversed().thenComparing(byCreated);
+      return Comparator.comparingDouble(CfpSubmissionService::scoreForOrdering)
+          .reversed()
+          .thenComparing(byCreated);
     }
     if (sortOrder == SortOrder.UPDATED_DESC) {
       return byUpdated.thenComparing(byCreated);
@@ -1215,10 +1242,13 @@ public class CfpSubmissionService {
       return null;
     }
     return calculateWeightedScore(
-        submission.ratingTechnicalDetail(), submission.ratingNarrative(), submission.ratingContentImpact());
+        submission.ratingTechnicalDetail(),
+        submission.ratingNarrative(),
+        submission.ratingContentImpact());
   }
 
-  public static Double calculateWeightedScore(Integer technicalDetail, Integer narrative, Integer contentImpact) {
+  public static Double calculateWeightedScore(
+      Integer technicalDetail, Integer narrative, Integer contentImpact) {
     if (technicalDetail == null || narrative == null || contentImpact == null) {
       return null;
     }
@@ -1235,6 +1265,7 @@ public class CfpSubmissionService {
     }
     return value;
   }
+
   private void validateUserProposalConstraints(
       String eventId, String proposerId, String normalizedTitle, int maxPerUserForEvent) {
     int existingCount = 0;
@@ -1266,7 +1297,7 @@ public class CfpSubmissionService {
         cfpConfigService != null
             ? cfpConfigService.current()
             : CfpConfig.defaults(DEFAULT_MAX_SUBMISSIONS_PER_USER_PER_EVENT, true);
-      return new CfpEventConfigService.ResolvedEventConfig(
+    return new CfpEventConfigService.ResolvedEventConfig(
         eventId,
         false,
         true,
@@ -1365,7 +1396,8 @@ public class CfpSubmissionService {
     try {
       URI uri = URI.create(raw.trim()).normalize();
       String scheme = uri.getScheme();
-      if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+      if (scheme == null
+          || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
         return null;
       }
       if (uri.getHost() == null || uri.getHost().isBlank()) {
@@ -1490,8 +1522,7 @@ public class CfpSubmissionService {
       String language,
       String track,
       List<String> tags,
-      List<String> links) {
-  }
+      List<String> links) {}
 
   public static class ValidationException extends RuntimeException {
     public ValidationException(String message) {
@@ -1511,7 +1542,8 @@ public class CfpSubmissionService {
     }
   }
 
-  public record EventStats(int total, Map<CfpSubmissionStatus, Integer> countsByStatus, Instant latestUpdatedAt) {
+  public record EventStats(
+      int total, Map<CfpSubmissionStatus, Integer> countsByStatus, Instant latestUpdatedAt) {
     public static EventStats empty() {
       EnumMap<CfpSubmissionStatus, Integer> emptyCounts = new EnumMap<>(CfpSubmissionStatus.class);
       for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {
@@ -1522,7 +1554,10 @@ public class CfpSubmissionService {
   }
 
   public record MineStats(
-      int total, Map<CfpSubmissionStatus, Integer> countsByStatus, int distinctEvents, Instant latestUpdatedAt) {
+      int total,
+      Map<CfpSubmissionStatus, Integer> countsByStatus,
+      int distinctEvents,
+      Instant latestUpdatedAt) {
     public static MineStats empty() {
       EnumMap<CfpSubmissionStatus, Integer> emptyCounts = new EnumMap<>(CfpSubmissionStatus.class);
       for (CfpSubmissionStatus status : CfpSubmissionStatus.values()) {

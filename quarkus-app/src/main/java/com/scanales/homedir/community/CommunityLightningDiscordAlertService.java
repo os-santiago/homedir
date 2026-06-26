@@ -35,7 +35,8 @@ public class CommunityLightningDiscordAlertService {
             return thread;
           });
 
-  private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+  private final HttpClient httpClient =
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
   public void sendReportAlertAsync(CommunityLightningReport report, String summary) {
     if (!isConfigured()) {
@@ -81,7 +82,8 @@ public class CommunityLightningDiscordAlertService {
               .header("Content-Type", "application/json")
               .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
               .build();
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() < 200 || response.statusCode() >= 300) {
         LOG.warnf("community_lightning_discord_alert_failed status=%d", response.statusCode());
       }
@@ -105,10 +107,6 @@ public class CommunityLightningDiscordAlertService {
   }
 
   private static String escapeJson(String value) {
-    return value
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "");
+    return value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
   }
 }

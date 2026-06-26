@@ -18,16 +18,13 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-/**
- * Repository persisting notifications per user using a single writer thread.
- */
+/** Repository persisting notifications per user using a single writer thread. */
 @ApplicationScoped
 public class NotificationRepository {
 
   private static final Logger LOG = Logger.getLogger(NotificationRepository.class);
 
-  @Inject
-  ObjectMapper mapper;
+  @Inject ObjectMapper mapper;
 
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
@@ -48,17 +45,18 @@ public class NotificationRepository {
     }
     int size = NotificationConfig.maxQueueSize > 0 ? NotificationConfig.maxQueueSize : 10000;
     queue = new ArrayBlockingQueue<>(size);
-    executor = new ThreadPoolExecutor(
-        1,
-        1,
-        0L,
-        TimeUnit.MILLISECONDS,
-        queue,
-        r -> {
-          Thread t = new Thread(r, "notification-writer");
-          t.setDaemon(true);
-          return t;
-        });
+    executor =
+        new ThreadPoolExecutor(
+            1,
+            1,
+            0L,
+            TimeUnit.MILLISECONDS,
+            queue,
+            r -> {
+              Thread t = new Thread(r, "notification-writer");
+              t.setDaemon(true);
+              return t;
+            });
   }
 
   @PreDestroy
@@ -99,13 +97,14 @@ public class NotificationRepository {
       throw new NotificationPersistenceException("Failed to serialize notifications", e);
     }
     Path f = fileForUser(userId);
-    Runnable task = () -> {
-      try {
-        FileIO.atomicWrite(f, data);
-      } catch (IOException e) {
-        LOG.warnf(e, "Failed to persist notifications for user %s", userId);
-      }
-    };
+    Runnable task =
+        () -> {
+          try {
+            FileIO.atomicWrite(f, data);
+          } catch (IOException e) {
+            LOG.warnf(e, "Failed to persist notifications for user %s", userId);
+          }
+        };
     if (!queue.offer(task)) {
       // drop silently; guard will have already checked depth
     } else {

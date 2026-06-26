@@ -303,7 +303,8 @@ public class CommunityFeaturedSnapshotService {
     return ranked;
   }
 
-  private List<CommunityContentItem> featuredCandidates(List<CommunityContentItem> filtered, Instant now) {
+  private List<CommunityContentItem> featuredCandidates(
+      List<CommunityContentItem> filtered, Instant now) {
     Instant cutoff = now.minus(Duration.ofDays(Math.max(1, featuredWindowDays)));
     List<CommunityContentItem> candidates = new ArrayList<>();
     for (CommunityContentItem item : filtered) {
@@ -330,7 +331,9 @@ public class CommunityFeaturedSnapshotService {
   }
 
   private void addSnapshotEntries(
-      Map<String, List<FeaturedItem>> target, String sourceFilter, List<FeaturedItem> sourceRanked) {
+      Map<String, List<FeaturedItem>> target,
+      String sourceFilter,
+      List<FeaturedItem> sourceRanked) {
     List<FeaturedItem> copy = List.copyOf(sourceRanked);
     target.put(snapshotKey(sourceFilter, CommunityContentMedia.ALL), copy);
     target.put(
@@ -369,29 +372,29 @@ public class CommunityFeaturedSnapshotService {
     }
     String id = item.id() == null ? "" : item.id().toLowerCase(Locale.ROOT);
     String source = item.source() == null ? "" : item.source().trim().toLowerCase(Locale.ROOT);
-    if (id.startsWith("submission-") || "community member".equals(source) || "member".equals(source)) {
+    if (id.startsWith("submission-")
+        || "community member".equals(source)
+        || "member".equals(source)) {
       return ContentOrigin.MEMBERS;
     }
     return ContentOrigin.INTERNET;
   }
 
-  public record FeaturedPage(List<FeaturedItem> items, int total) {
-  }
+  public record FeaturedPage(List<FeaturedItem> items, int total) {}
 
-  public record FeaturedItem(CommunityContentItem item, CommunityVoteAggregate aggregate, double score) {
-  }
+  public record FeaturedItem(
+      CommunityContentItem item, CommunityVoteAggregate aggregate, double score) {}
 
-  private record Snapshot(Map<String, List<FeaturedItem>> rankedByFilter, Instant refreshedAt, long durationMs) {
+  private record Snapshot(
+      Map<String, List<FeaturedItem>> rankedByFilter, Instant refreshedAt, long durationMs) {
     static Snapshot empty() {
       return new Snapshot(Map.of(), null, 0L);
     }
   }
 
-  private record ResponseKey(String filter, String mediaFilter, int limit, int offset) {
-  }
+  private record ResponseKey(String filter, String mediaFilter, int limit, int offset) {}
 
-  private record ResponseEntry(List<FeaturedItem> items, int total, Instant cachedAt) {
-  }
+  private record ResponseEntry(List<FeaturedItem> items, int total, Instant cachedAt) {}
 
   private enum ContentOrigin {
     INTERNET,

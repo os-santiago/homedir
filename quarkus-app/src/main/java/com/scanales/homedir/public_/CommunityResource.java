@@ -27,14 +27,10 @@ import org.jboss.logging.Logger;
 public class CommunityResource {
   private static final Logger LOG = Logger.getLogger(CommunityResource.class);
 
-  @Inject
-  SecurityIdentity identity;
-  @Inject
-  CommunityBoardService boardService;
-  @Inject
-  UsageMetricsService metrics;
-  @Inject
-  GamificationService gamificationService;
+  @Inject SecurityIdentity identity;
+  @Inject CommunityBoardService boardService;
+  @Inject UsageMetricsService metrics;
+  @Inject GamificationService gamificationService;
 
   @CheckedTemplate
   static class Templates {
@@ -85,7 +81,8 @@ public class CommunityResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", CommunityContentMedia.ALL, "propose", localeCookie, headers, context);
+    return render(
+        "featured", "all", CommunityContentMedia.ALL, "propose", localeCookie, headers, context);
   }
 
   private TemplateInstance render(
@@ -100,23 +97,27 @@ public class CommunityResource {
     boolean isAdmin = AdminUtils.isAdmin(identity);
     String initialFilter = normalizeFilter(filterParam);
     String initialMedia = CommunityContentMedia.normalizeFilter(mediaParam);
-    String activeSubmenu = forcedSubmenu != null && !forcedSubmenu.isBlank()
-        ? forcedSubmenu
-        : resolveDefaultSubmenu(viewParam, filterParam, mediaParam);
+    String activeSubmenu =
+        forcedSubmenu != null && !forcedSubmenu.isBlank()
+            ? forcedSubmenu
+            : resolveDefaultSubmenu(viewParam, filterParam, mediaParam);
     metrics.recordPageView("/comunidad/" + activeSubmenu, headers, context);
-    currentUserId().ifPresent(
-        userId -> {
-          gamificationService.award(userId, GamificationActivity.COMMUNITY_MAIN_VIEW);
-          if ("picks".equals(activeSubmenu)) {
-            gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
-          } else if ("propose".equals(activeSubmenu)) {
-            gamificationService.award(userId, GamificationActivity.COMMUNITY_PROPOSE_VIEW);
-          }
-        });
+    currentUserId()
+        .ifPresent(
+            userId -> {
+              gamificationService.award(userId, GamificationActivity.COMMUNITY_MAIN_VIEW);
+              if ("picks".equals(activeSubmenu)) {
+                gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
+              } else if ("propose".equals(activeSubmenu)) {
+                gamificationService.award(userId, GamificationActivity.COMMUNITY_PROPOSE_VIEW);
+              }
+            });
     var summary = boardService.summary();
-    int discordOnlineUsers = summary.discordOnlineUsers() != null ? summary.discordOnlineUsers() : 0;
+    int discordOnlineUsers =
+        summary.discordOnlineUsers() != null ? summary.discordOnlineUsers() : 0;
     TemplateInstance template =
-        Templates.community(authenticated, summary.homedirUsers(), summary.githubUsers(), summary.discordUsers());
+        Templates.community(
+            authenticated, summary.homedirUsers(), summary.githubUsers(), summary.discordUsers());
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
         .data("mainClass", "community-ultra-lite")
@@ -157,7 +158,8 @@ public class CommunityResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
-    return render("featured", "all", CommunityContentMedia.ALL, "picks", localeCookie, headers, context);
+    return render(
+        "featured", "all", CommunityContentMedia.ALL, "picks", localeCookie, headers, context);
   }
 
   private String normalizeFilter(String filterParam) {

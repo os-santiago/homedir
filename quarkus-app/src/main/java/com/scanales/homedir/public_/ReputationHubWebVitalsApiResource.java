@@ -29,7 +29,9 @@ public class ReputationHubWebVitalsApiResource {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
     if (request == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_body")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_body"))
+          .build();
     }
 
     String route = normalizeRoute(request.route());

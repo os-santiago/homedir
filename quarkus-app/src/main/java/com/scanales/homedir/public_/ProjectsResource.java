@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.GithubService;
 import com.scanales.homedir.service.GithubService.GithubContributor;
-import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
@@ -56,7 +56,8 @@ public class ProjectsResource {
   private static final Duration DEFAULT_RETRY_INTERVAL = Duration.ofMinutes(15);
   private static final int STATS_RETRY_ATTEMPTS = 3;
   private static final Duration STATS_RETRY_DELAY = Duration.ofSeconds(2);
-  private static final DateTimeFormatter ISO_INSTANT_UTC = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
+  private static final DateTimeFormatter ISO_INSTANT_UTC =
+      DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
   private static final Pattern LAST_PAGE_LINK_PATTERN =
       Pattern.compile("[?&]page=(\\d+)>;\\s*rel=\\\"last\\\"");
 
@@ -112,7 +113,8 @@ public class ProjectsResource {
     try {
       refreshNow("startup");
     } catch (Exception e) {
-      LOG.warn("Homedir project dashboard startup refresh failed; falling back to async refresh", e);
+      LOG.warn(
+          "Homedir project dashboard startup refresh failed; falling back to async refresh", e);
       triggerRefreshAsync(true, "startup-fallback");
     } finally {
       refreshInProgress.set(false);
@@ -137,7 +139,8 @@ public class ProjectsResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/proyectos", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.PROJECT_VIEW));
+    currentUserId()
+        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.PROJECT_VIEW));
 
     ProjectSnapshot snapshot = currentSnapshot();
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
@@ -207,7 +210,8 @@ public class ProjectsResource {
       }
       return now.isAfter(snapshot.lastAttemptAt().plus(effectiveRetryInterval()));
     }
-    if (snapshot.loadedAt() != null && now.isBefore(snapshot.loadedAt().plus(effectiveCacheTtl()))) {
+    if (snapshot.loadedAt() != null
+        && now.isBefore(snapshot.loadedAt().plus(effectiveCacheTtl()))) {
       return false;
     }
     if (snapshot.lastAttemptAt() == null) {
@@ -262,7 +266,8 @@ public class ProjectsResource {
     ProjectRepository resolvedRepository = repository != null ? repository : previous.repository();
     List<ProjectReleaseRaw> resolvedReleases =
         !releases.isEmpty() ? List.copyOf(releases) : previous.releases();
-    ProjectActivity resolvedActivity = activity != null && activity.hasData() ? activity : previous.activity();
+    ProjectActivity resolvedActivity =
+        activity != null && activity.hasData() ? activity : previous.activity();
     boolean coreDataReady = repository != null || !releases.isEmpty();
     boolean activityDataReady = resolvedActivity.hasData();
     boolean success = coreDataReady || activityDataReady;
@@ -282,10 +287,7 @@ public class ProjectsResource {
     if (success) {
       LOG.infov(
           "Homedir project dashboard cache refreshed reason={0} releases={1} activityReady={2} durationMs={3}",
-          reason,
-          resolvedReleases.size(),
-          activityDataReady,
-          durationMs);
+          reason, resolvedReleases.size(), activityDataReady, durationMs);
     } else {
       LOG.warnv(
           "Homedir project dashboard refresh failed reason={0}; keeping previous snapshot", reason);
@@ -295,19 +297,22 @@ public class ProjectsResource {
   private ProjectRepository loadRepository() {
     try {
       HttpRequest request =
-          githubRequestBuilder(URI.create("https://api.github.com/repos/" + repoOwner + "/" + repoName))
+          githubRequestBuilder(
+                  URI.create("https://api.github.com/repos/" + repoOwner + "/" + repoName))
               .GET()
               .build();
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
         LOG.warnf(
-            "Homedir repository fetch failed status=%d body=%s", response.statusCode(), response.body());
+            "Homedir repository fetch failed status=%d body=%s",
+            response.statusCode(), response.body());
         return null;
       }
       JsonNode node = mapper.readTree(response.body());
       return new ProjectRepository(
           node.path("name").asText(repoName),
-          node.path("description").asText("Open source platform for OSS Santiago community operations."),
+          node.path("description")
+              .asText("Open source platform for OSS Santiago community operations."),
           node.path("html_url").asText("https://github.com/" + repoOwner + "/" + repoName),
           node.path("stargazers_count").asInt(0),
           node.path("forks_count").asInt(0),
@@ -335,7 +340,9 @@ public class ProjectsResource {
               .build();
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
-        LOG.warnf("Homedir releases fetch failed status=%d body=%s", response.statusCode(), response.body());
+        LOG.warnf(
+            "Homedir releases fetch failed status=%d body=%s",
+            response.statusCode(), response.body());
         return List.of();
       }
       JsonNode root = mapper.readTree(response.body());
@@ -374,14 +381,20 @@ public class ProjectsResource {
       HttpResponse<String> response =
           sendGithubStatsRequestWithRetry(
               URI.create(
-                  "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/contributors"),
+                  "https://api.github.com/repos/"
+                      + repoOwner
+                      + "/"
+                      + repoName
+                      + "/stats/contributors"),
               "contributors");
       if (response.statusCode() == 202) {
         LOG.infov("Homedir activity stats pending generation in GitHub cache");
         return loadActivityFallbackFromCommitsApi(previousActivity);
       }
       if (response.statusCode() >= 400) {
-        LOG.warnf("Homedir activity fetch failed status=%d body=%s", response.statusCode(), response.body());
+        LOG.warnf(
+            "Homedir activity fetch failed status=%d body=%s",
+            response.statusCode(), response.body());
         return loadActivityFallbackFromCommitsApi(previousActivity);
       }
       JsonNode root = mapper.readTree(response.body());
@@ -412,7 +425,11 @@ public class ProjectsResource {
           totalDeletions += deletions;
           weekly.add(
               new WeeklyActivity(
-                  Instant.ofEpochSecond(epochWeek), commits, additions, deletions, additions + deletions));
+                  Instant.ofEpochSecond(epochWeek),
+                  commits,
+                  additions,
+                  deletions,
+                  additions + deletions));
         }
       }
 
@@ -454,7 +471,9 @@ public class ProjectsResource {
       long commits12 = countCommits(now.minus(365, ChronoUnit.DAYS));
       CodeFrequencySummary codeSummary = loadCodeFrequencySummary(now);
 
-      if (commitsTotal <= 0L && commits12 <= 0L && (codeSummary == null || codeSummary.totalLinesChanged() <= 0L)) {
+      if (commitsTotal <= 0L
+          && commits12 <= 0L
+          && (codeSummary == null || codeSummary.totalLinesChanged() <= 0L)) {
         return null;
       }
 
@@ -469,7 +488,9 @@ public class ProjectsResource {
       long deletions = codeSummary != null ? codeSummary.totalDeletions() : 0L;
       long linesChanged = codeSummary != null ? codeSummary.totalLinesChanged() : 0L;
       long netLines = codeSummary != null ? codeSummary.netLines() : 0L;
-      if (codeSummary == null && previousActivity != null && previousActivity.totalLinesChanged() > 0L) {
+      if (codeSummary == null
+          && previousActivity != null
+          && previousActivity.totalLinesChanged() > 0L) {
         additions = previousActivity.totalAdditions();
         deletions = previousActivity.totalDeletions();
         linesChanged = previousActivity.totalLinesChanged();
@@ -479,9 +500,7 @@ public class ProjectsResource {
 
       LOG.infov(
           "Homedir activity fallback used commitsTotal={0} commits12={1} linesChanged={2}",
-          commitsTotal,
-          commits12,
-          linesChanged);
+          commitsTotal, commits12, linesChanged);
 
       return new ProjectActivity(
           commitsTotal,
@@ -497,7 +516,8 @@ public class ProjectsResource {
     }
   }
 
-  private ProjectActivity preservePreviousLineMetrics(ProjectActivity current, ProjectActivity previous) {
+  private ProjectActivity preservePreviousLineMetrics(
+      ProjectActivity current, ProjectActivity previous) {
     if (current == null || previous == null) {
       return current;
     }
@@ -522,7 +542,10 @@ public class ProjectsResource {
       return current;
     }
     Map<Integer, ProjectWindowActivity> previousByMonths =
-        previous.stream().collect(java.util.stream.Collectors.toMap(ProjectWindowActivity::months, w -> w, (a, b) -> a));
+        previous.stream()
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    ProjectWindowActivity::months, w -> w, (a, b) -> a));
     List<ProjectWindowActivity> merged = new ArrayList<>(current.size());
     for (ProjectWindowActivity window : current) {
       if (window.linesChanged() > 0L) {
@@ -549,7 +572,8 @@ public class ProjectsResource {
     long linesChanged = lines != null ? lines.linesChanged() : 0L;
     long netLines = lines != null ? lines.netLines() : 0L;
     long avgCommitsPerMonth = Math.max(0L, Math.round(commits / (double) months));
-    return new ProjectWindowActivity(months, commits, linesChanged, Math.max(0L, netLines), avgCommitsPerMonth);
+    return new ProjectWindowActivity(
+        months, commits, linesChanged, Math.max(0L, netLines), avgCommitsPerMonth);
   }
 
   private long countCommits(Instant since) {
@@ -562,7 +586,9 @@ public class ProjectsResource {
       HttpRequest request = githubRequestBuilder(URI.create(url.toString())).GET().build();
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
-        LOG.warnf("Homedir commit count fetch failed status=%d body=%s", response.statusCode(), response.body());
+        LOG.warnf(
+            "Homedir commit count fetch failed status=%d body=%s",
+            response.statusCode(), response.body());
         return 0L;
       }
       JsonNode root = mapper.readTree(response.body());
@@ -590,14 +616,19 @@ public class ProjectsResource {
       HttpResponse<String> response =
           sendGithubStatsRequestWithRetry(
               URI.create(
-                  "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/stats/code_frequency"),
+                  "https://api.github.com/repos/"
+                      + repoOwner
+                      + "/"
+                      + repoName
+                      + "/stats/code_frequency"),
               "code_frequency");
       if (response.statusCode() == 202) {
         return null;
       }
       if (response.statusCode() >= 400) {
         LOG.warnf(
-            "Homedir code frequency fetch failed status=%d body=%s", response.statusCode(), response.body());
+            "Homedir code frequency fetch failed status=%d body=%s",
+            response.statusCode(), response.body());
         return null;
       }
       JsonNode root = mapper.readTree(response.body());
@@ -660,7 +691,8 @@ public class ProjectsResource {
     }
   }
 
-  private HttpResponse<String> sendGithubStatsRequestWithRetry(URI uri, String metricName) throws Exception {
+  private HttpResponse<String> sendGithubStatsRequestWithRetry(URI uri, String metricName)
+      throws Exception {
     HttpRequest request = githubRequestBuilder(uri).GET().build();
     HttpResponse<String> response = null;
     for (int attempt = 1; attempt <= STATS_RETRY_ATTEMPTS; attempt++) {
@@ -671,10 +703,7 @@ public class ProjectsResource {
       if (attempt < STATS_RETRY_ATTEMPTS) {
         LOG.infov(
             "GitHub stats pending metric={0} attempt={1}/{2}; retrying in {3}ms",
-            metricName,
-            attempt,
-            STATS_RETRY_ATTEMPTS,
-            STATS_RETRY_DELAY.toMillis());
+            metricName, attempt, STATS_RETRY_ATTEMPTS, STATS_RETRY_DELAY.toMillis());
         try {
           Thread.sleep(STATS_RETRY_DELAY.toMillis());
         } catch (InterruptedException ie) {
@@ -686,7 +715,8 @@ public class ProjectsResource {
     return response;
   }
 
-  private ProjectWindowActivity summarizeWindow(List<WeeklyActivity> weekly, int months, Instant now) {
+  private ProjectWindowActivity summarizeWindow(
+      List<WeeklyActivity> weekly, int months, Instant now) {
     Instant from = now.minus(months * 30L, ChronoUnit.DAYS);
     long commits = 0L;
     long linesChanged = 0L;
@@ -700,7 +730,8 @@ public class ProjectsResource {
       netLines += point.additions() - point.deletions();
     }
     long avgCommitsPerMonth = Math.max(0L, Math.round(commits / (double) months));
-    return new ProjectWindowActivity(months, commits, linesChanged, Math.max(0L, netLines), avgCommitsPerMonth);
+    return new ProjectWindowActivity(
+        months, commits, linesChanged, Math.max(0L, netLines), avgCommitsPerMonth);
   }
 
   private HttpRequest.Builder githubRequestBuilder(URI uri) {
@@ -720,15 +751,19 @@ public class ProjectsResource {
       ProjectSnapshot snapshot, List<GithubContributor> contributors, AppMessages i18n) {
     List<ProjectFeature> features = defaultFeatures(i18n);
     List<ProjectCapability> capabilities = defaultCapabilities(i18n);
-    int liveFeatures = (int) features.stream().filter(feature -> "live".equals(feature.statusClass())).count();
-    int betaFeatures = (int) features.stream().filter(feature -> "beta".equals(feature.statusClass())).count();
-    int nextFeatures = (int) features.stream().filter(feature -> "next".equals(feature.statusClass())).count();
+    int liveFeatures =
+        (int) features.stream().filter(feature -> "live".equals(feature.statusClass())).count();
+    int betaFeatures =
+        (int) features.stream().filter(feature -> "beta".equals(feature.statusClass())).count();
+    int nextFeatures =
+        (int) features.stream().filter(feature -> "next".equals(feature.statusClass())).count();
 
     int weightedProgress = (liveFeatures * 100) + (betaFeatures * 65) + (nextFeatures * 30);
     int maxProgress = Math.max(1, features.size() * 100);
     int progressPercent = Math.min(100, (int) Math.round((weightedProgress * 100d) / maxProgress));
 
-    List<GithubContributor> topContributors = contributors.stream().limit(MAX_TOP_CONTRIBUTORS).toList();
+    List<GithubContributor> topContributors =
+        contributors.stream().limit(MAX_TOP_CONTRIBUTORS).toList();
     int totalContributions = contributors.stream().mapToInt(GithubContributor::contributions).sum();
 
     List<ProjectRelease> releaseCards =
@@ -744,9 +779,13 @@ public class ProjectsResource {
             .toList();
 
     String latestRelease =
-        releaseCards.isEmpty() ? i18n.project_dashboard_latest_release_none() : releaseCards.getFirst().label();
+        releaseCards.isEmpty()
+            ? i18n.project_dashboard_latest_release_none()
+            : releaseCards.getFirst().label();
     String latestReleaseAgo =
-        releaseCards.isEmpty() ? i18n.project_dashboard_relative_na() : releaseCards.getFirst().publishedAgo();
+        releaseCards.isEmpty()
+            ? i18n.project_dashboard_relative_na()
+            : releaseCards.getFirst().publishedAgo();
     Instant latestReleaseAt =
         snapshot.releases().isEmpty() ? null : snapshot.releases().getFirst().publishedAt();
     Instant roadmapSignalAt = latestOf(snapshot.repository().lastPushAt(), latestReleaseAt);
@@ -763,7 +802,8 @@ public class ProjectsResource {
                 i18n.project_dashboard_highlight_release_note(latestReleaseAgo)),
             new ProjectHighlight(
                 i18n.project_dashboard_highlight_backlog_title(),
-                i18n.project_dashboard_highlight_backlog_open_issues(snapshot.repository().openIssues()),
+                i18n.project_dashboard_highlight_backlog_open_issues(
+                    snapshot.repository().openIssues()),
                 i18n.project_dashboard_highlight_backlog_note()),
             new ProjectHighlight(
                 i18n.project_dashboard_highlight_activity_title(),
@@ -983,8 +1023,7 @@ public class ProjectsResource {
       List<ProjectCapability> capabilities,
       List<ProjectWindowActivity> velocityWindows,
       List<GithubContributor> topContributors,
-      List<ProjectHighlight> highlights) {
-  }
+      List<ProjectHighlight> highlights) {}
 
   public record ProjectRepository(
       String name,
@@ -1009,51 +1048,24 @@ public class ProjectsResource {
   }
 
   public record ProjectRelease(
-      String tag,
-      String label,
-      String url,
-      String publishedAgo,
-      boolean prerelease) {
-  }
+      String tag, String label, String url, String publishedAgo, boolean prerelease) {}
 
   public record ProjectReleaseRaw(
-      String tag,
-      String label,
-      String url,
-      Instant publishedAt,
-      boolean prerelease) {
-  }
+      String tag, String label, String url, Instant publishedAt, boolean prerelease) {}
 
   public record ProjectFeature(
-      String title,
-      String description,
-      String statusLabel,
-      String statusClass,
-      String href) {
-  }
+      String title, String description, String statusLabel, String statusClass, String href) {}
 
   public record ProjectCapability(
-      String title,
-      String description,
-      List<String> bullets,
-      String href) {
-  }
+      String title, String description, List<String> bullets, String href) {}
 
   public record ProjectWindowActivity(
-      int months,
-      long commits,
-      long linesChanged,
-      long netLines,
-      long averageCommitsPerMonth) {
-  }
+      int months, long commits, long linesChanged, long netLines, long averageCommitsPerMonth) {}
 
-  private record WindowLines(long linesChanged, long netLines) {
-  }
+  private record WindowLines(long linesChanged, long netLines) {}
 
   private record CodeFrequencySummary(
-      long totalAdditions,
-      long totalDeletions,
-      Map<Integer, WindowLines> byMonths) {
+      long totalAdditions, long totalDeletions, Map<Integer, WindowLines> byMonths) {
     long totalLinesChanged() {
       return totalAdditions + totalDeletions;
     }
@@ -1064,12 +1076,7 @@ public class ProjectsResource {
   }
 
   private record WeeklyActivity(
-      Instant weekStart,
-      long commits,
-      long additions,
-      long deletions,
-      long linesChanged) {
-  }
+      Instant weekStart, long commits, long additions, long deletions, long linesChanged) {}
 
   private record ProjectActivity(
       long totalCommits,
@@ -1097,11 +1104,7 @@ public class ProjectsResource {
     }
   }
 
-  public record ProjectHighlight(
-      String title,
-      String value,
-      String note) {
-  }
+  public record ProjectHighlight(String title, String value, String note) {}
 
   private record ProjectSnapshot(
       ProjectRepository repository,
@@ -1112,7 +1115,8 @@ public class ProjectsResource {
       long loadDurationMs,
       boolean lastAttemptSucceeded) {
     static ProjectSnapshot empty() {
-      return new ProjectSnapshot(ProjectRepository.empty(), List.of(), ProjectActivity.empty(), null, null, 0L, false);
+      return new ProjectSnapshot(
+          ProjectRepository.empty(), List.of(), ProjectActivity.empty(), null, null, 0L, false);
     }
   }
 }

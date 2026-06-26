@@ -153,10 +153,11 @@ public class CommunityContentParser {
       @JsonProperty("published_at") String publishedAt,
       @JsonProperty("created_at") String createdAt,
       @JsonProperty("thumbnail_url")
-      @JsonAlias({"thumbnailUrl", "image_url", "imageUrl", "cover_url", "coverUrl"}) String thumbnailUrl,
+          @JsonAlias({"thumbnailUrl", "image_url", "imageUrl", "cover_url", "coverUrl"})
+          String thumbnailUrl,
       List<String> tags,
       String author,
       @JsonProperty("media_type")
-      @JsonAlias({"mediaType", "media", "type", "content_type", "contentType"}) String mediaType) {
-  }
+          @JsonAlias({"mediaType", "media", "type", "content_type", "contentType"})
+          String mediaType) {}
 }

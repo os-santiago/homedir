@@ -51,5 +51,4 @@ public record DevelopmentInsightsStatus(
     Instant lastEventAt,
     long compactions,
     long loadErrors,
-    long writeErrors) {
-}
+    long writeErrors) {}

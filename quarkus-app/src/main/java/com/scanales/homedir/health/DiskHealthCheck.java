@@ -1,14 +1,13 @@
 package com.scanales.homedir.health;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
-
-import java.nio.file.FileStore;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 @Readiness
 @ApplicationScoped

@@ -46,7 +46,8 @@ public class AdminNotificationResourceTest {
     }
   }
 
-  private JsonObject awaitMessageWithId(WsClient client, String expectedId) throws InterruptedException {
+  private JsonObject awaitMessageWithId(WsClient client, String expectedId)
+      throws InterruptedException {
     long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
     while (System.nanoTime() < deadline) {
       String payload = client.messages.poll(250, TimeUnit.MILLISECONDS);

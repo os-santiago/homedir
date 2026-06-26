@@ -10,8 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Verifies that CFP domain business methods emit expected observability metrics and events.
- * Ensures submission lifecycle events are tracked correctly.
+ * Verifies that CFP domain business methods emit expected observability metrics and events. Ensures
+ * submission lifecycle events are tracked correctly.
  */
 @QuarkusTest
 public class CfpObservabilityEmissionTest {
@@ -32,9 +32,13 @@ public class CfpObservabilityEmissionTest {
     Map<String, Long> snapshot = metrics.snapshot();
 
     // Verify both canonical and legacy metrics emitted
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp.submission.create", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp.submission.create", 0L),
         "cfp.submission.create metric should be emitted");
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp_submit", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp_submit", 0L),
         "cfp_submit legacy metric should be emitted");
   }
 
@@ -46,9 +50,13 @@ public class CfpObservabilityEmissionTest {
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp.submission.status", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp.submission.status", 0L),
         "Generic status change should be tracked");
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp.submission.status.accepted", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp.submission.status.accepted", 0L),
         "Specific status value should be tracked");
   }
 
@@ -59,7 +67,9 @@ public class CfpObservabilityEmissionTest {
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp_approved", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp_approved", 0L),
         "CFP approval should emit funnel metric");
   }
 
@@ -70,7 +80,9 @@ public class CfpObservabilityEmissionTest {
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp.results.publish", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp.results.publish", 0L),
         "CFP results publish should emit metric");
   }
 
@@ -81,7 +93,9 @@ public class CfpObservabilityEmissionTest {
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp.submission.panelists.update", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp.submission.panelists.update", 0L),
         "Panelists update should emit metric");
   }
 
@@ -92,7 +106,9 @@ public class CfpObservabilityEmissionTest {
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(1L, snapshot.getOrDefault("funnel:cfp.submission.presentation.upload", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:cfp.submission.presentation.upload", 0L),
         "Presentation upload should emit metric");
   }
 }

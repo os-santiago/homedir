@@ -21,4 +21,3 @@ public final class CommunityScoreCalculator {
     return base * decay;
   }
 }
-

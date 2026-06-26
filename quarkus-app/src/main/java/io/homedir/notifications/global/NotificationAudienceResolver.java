@@ -55,14 +55,15 @@ public class NotificationAudienceResolver {
     return userIds;
   }
 
-  /**
-   * Get user IDs of all accepted CFP participants (speakers) for an event.
-   */
+  /** Get user IDs of all accepted CFP participants (speakers) for an event. */
   private Set<String> getCfpParticipants(String eventId) {
     Set<String> userIds = new LinkedHashSet<>();
 
     cfpSubmissionService
-        .listByEventAll(eventId, Optional.of(CfpSubmissionStatus.ACCEPTED), CfpSubmissionService.SortOrder.CREATED_DESC)
+        .listByEventAll(
+            eventId,
+            Optional.of(CfpSubmissionStatus.ACCEPTED),
+            CfpSubmissionService.SortOrder.CREATED_DESC)
         .forEach(
             submission -> {
               // Add the proposer
@@ -80,9 +81,7 @@ public class NotificationAudienceResolver {
     return userIds;
   }
 
-  /**
-   * Get user IDs of all selected volunteers for an event.
-   */
+  /** Get user IDs of all selected volunteers for an event. */
   private Set<String> getVolunteers(String eventId) {
     Set<String> userIds = new LinkedHashSet<>();
 
@@ -103,9 +102,7 @@ public class NotificationAudienceResolver {
     return userIds;
   }
 
-  /**
-   * Get user IDs of all active staff for an event.
-   */
+  /** Get user IDs of all active staff for an event. */
   private Set<String> getStaff(String eventId) {
     Set<String> userIds = new LinkedHashSet<>();
 
@@ -121,9 +118,7 @@ public class NotificationAudienceResolver {
     return userIds;
   }
 
-  /**
-   * Get estimated audience size for preview purposes.
-   */
+  /** Get estimated audience size for preview purposes. */
   public AudienceEstimate estimateAudience(String audience, String eventId) {
     if (audience == null || audience.isBlank()) {
       return new AudienceEstimate(true, 0, 0, 0, 0);

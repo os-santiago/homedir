@@ -1,9 +1,9 @@
 package com.scanales.homedir.service;
 
-import com.scanales.homedir.model.GamificationActivity;
-import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.challenges.ChallengeService;
 import com.scanales.homedir.economy.EconomyService;
+import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.notifications.Notification;
 import com.scanales.homedir.notifications.NotificationService;
 import com.scanales.homedir.notifications.NotificationType;
@@ -60,7 +60,8 @@ public class GamificationService {
 
     userProfiles.addXp(profile.getUserId(), activity.xp(), title, activity.questClass());
     try {
-      economyService.rewardFromGamification(profile.getUserId(), activity.key(), activity.xp(), reference);
+      economyService.rewardFromGamification(
+          profile.getUserId(), activity.key(), activity.xp(), reference);
     } catch (EconomyService.CapacityException e) {
       LOG.warnf("gamification_reward_blocked user=%s code=%s", profile.getUserId(), e.getMessage());
     } catch (Exception e) {
@@ -88,13 +89,15 @@ public class GamificationService {
                 });
       }
     } catch (Exception e) {
-      LOG.warnf(e, "challenge_progress_failed user=%s activity=%s", profile.getUserId(), activity.key());
+      LOG.warnf(
+          e, "challenge_progress_failed user=%s activity=%s", profile.getUserId(), activity.key());
     }
     try {
       reputationEngineService.trackGamificationActivity(
           profile.getUserId(), activity, normalizeReputationReference(activity, reference));
     } catch (Exception e) {
-      LOG.warnf(e, "reputation_activity_failed user=%s activity=%s", profile.getUserId(), activity.key());
+      LOG.warnf(
+          e, "reputation_activity_failed user=%s activity=%s", profile.getUserId(), activity.key());
     }
     return true;
   }
@@ -146,8 +149,7 @@ public class GamificationService {
 
   private ResourceBundle localizedBundle(String localeCode) {
     String normalized = localeCode == null ? "" : localeCode.trim().toLowerCase(Locale.ROOT);
-    Locale bundleLocale =
-        normalized.startsWith("es") ? Locale.forLanguageTag("es") : Locale.ROOT;
+    Locale bundleLocale = normalized.startsWith("es") ? Locale.forLanguageTag("es") : Locale.ROOT;
     return ResourceBundle.getBundle("i18n", bundleLocale);
   }
 
@@ -184,7 +186,8 @@ public class GamificationService {
     return challengeId.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]", "-");
   }
 
-  private static String normalizeReputationReference(GamificationActivity activity, String reference) {
+  private static String normalizeReputationReference(
+      GamificationActivity activity, String reference) {
     if (reference != null && !reference.isBlank()) {
       return reference.trim();
     }

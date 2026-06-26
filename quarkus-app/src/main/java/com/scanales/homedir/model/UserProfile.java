@@ -24,8 +24,7 @@ public class UserProfile {
   private java.util.List<String> activeQuests = new java.util.ArrayList<>();
   private java.util.List<QuestHistoryItem> history = new java.util.ArrayList<>();
 
-  public UserProfile() {
-  }
+  public UserProfile() {}
 
   @JsonCreator
   public UserProfile(

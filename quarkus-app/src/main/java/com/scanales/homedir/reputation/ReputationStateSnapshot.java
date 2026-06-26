@@ -24,7 +24,8 @@ public record ReputationStateSnapshot(
     return new ReputationStateSnapshot(SCHEMA_VERSION, Instant.now(), Map.of(), Map.of());
   }
 
-  private static Map<String, ReputationEventRecord> sanitizeEvents(Map<String, ReputationEventRecord> raw) {
+  private static Map<String, ReputationEventRecord> sanitizeEvents(
+      Map<String, ReputationEventRecord> raw) {
     if (raw == null || raw.isEmpty()) {
       return Map.of();
     }

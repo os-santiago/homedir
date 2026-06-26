@@ -114,7 +114,9 @@ public class CfpInsightsService {
         metadata.put("submission_id", safe(submission.id()));
         metadata.put("user_id", safe(submission.proposerUserId()));
         metadata.put("status", safeStatus(submission));
-        metadata.put("created_at", safe(submission.createdAt() != null ? submission.createdAt().toString() : null));
+        metadata.put(
+            "created_at",
+            safe(submission.createdAt() != null ? submission.createdAt().toString() : null));
         appendSafe(initiativeId, "CFP_IMPORTED", metadata);
       }
     }
@@ -140,7 +142,9 @@ public class CfpInsightsService {
   }
 
   private void ensureInitiativeStarted(String initiativeId, String eventId, String eventTitleHint) {
-    if (initiativeId == null || initiativeId.isBlank() || initializedInitiatives.contains(initiativeId)) {
+    if (initiativeId == null
+        || initiativeId.isBlank()
+        || initializedInitiatives.contains(initiativeId)) {
       return;
     }
     synchronized (initLock) {
@@ -240,11 +244,7 @@ public class CfpInsightsService {
     for (int i = 0; i < source.length(); i++) {
       char c = source.charAt(i);
       boolean allowed =
-          (c >= 'a' && c <= 'z')
-              || (c >= '0' && c <= '9')
-              || c == '_'
-              || c == '-'
-              || c == '.';
+          (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.';
       out.append(allowed ? c : '_');
     }
     String key = out.toString();

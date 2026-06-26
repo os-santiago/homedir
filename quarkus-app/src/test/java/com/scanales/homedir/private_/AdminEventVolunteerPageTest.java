@@ -52,6 +52,10 @@ class AdminEventVolunteerPageTest {
   @Test
   @TestSecurity(user = "admin@example.org")
   void missingEventReturnsNotFound() {
-    given().when().get("/private/admin/events/missing-volunteer-event/volunteers").then().statusCode(404);
+    given()
+        .when()
+        .get("/private/admin/events/missing-volunteer-event/volunteers")
+        .then()
+        .statusCode(404);
   }
 }

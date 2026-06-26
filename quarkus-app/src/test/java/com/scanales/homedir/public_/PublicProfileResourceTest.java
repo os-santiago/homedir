@@ -4,15 +4,15 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
-import com.scanales.homedir.challenges.ChallengeService;
-import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpEventConfigService;
+import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
+import com.scanales.homedir.challenges.ChallengeService;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.GamificationActivity;
-import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.model.QuestClass;
+import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.volunteers.VolunteerApplication;
@@ -45,8 +45,11 @@ public class PublicProfileResourceTest {
     cfpSubmissionService.clearAllForTests();
     volunteerApplicationService.clearAllForTests();
     challengeService.resetForTests();
-    eventService.saveEvent(new Event(CFP_EVENT_ID, "Public CFP Event", "Public CFP profile view test"));
-    eventService.saveEvent(new Event(VOLUNTEER_EVENT_ID, "Public Volunteer Event", "Public volunteer profile view test"));
+    eventService.saveEvent(
+        new Event(CFP_EVENT_ID, "Public CFP Event", "Public CFP profile view test"));
+    eventService.saveEvent(
+        new Event(
+            VOLUNTEER_EVENT_ID, "Public Volunteer Event", "Public volunteer profile view test"));
     userProfileService.linkGithub(
         "public.user@example.com",
         "Public User",
@@ -67,7 +70,8 @@ public class PublicProfileResourceTest {
             "https://discord.com/users/discord-public-1",
             "https://cdn.discordapp.com/avatars/discord-public-1.png",
             Instant.parse("2026-02-10T00:00:00Z")));
-    userProfileService.activateSpeakerProfile("public.user@example.com", "Public User", "public.user@example.com");
+    userProfileService.activateSpeakerProfile(
+        "public.user@example.com", "Public User", "public.user@example.com");
     userProfileService.updateSpeakerProfile(
         "public.user@example.com",
         "Community speaker",
@@ -76,8 +80,7 @@ public class PublicProfileResourceTest {
         "https://homedir.dev",
         "https://linkedin.com/in/public-user",
         List.of("community", "delivery"));
-    userProfileService.addXp(
-        "public.user@example.com", 50, "Community vote", QuestClass.SCIENTIST);
+    userProfileService.addXp("public.user@example.com", 50, "Community vote", QuestClass.SCIENTIST);
     userProfileService.addXp(
         "public.user@example.com", 20, "Project exploration", QuestClass.ENGINEER);
 
@@ -101,8 +104,7 @@ public class PublicProfileResourceTest {
             "https://discord.com/users/discord-locked-1",
             "https://cdn.discordapp.com/avatars/discord-locked-1.png",
             Instant.parse("2026-02-10T00:00:00Z")));
-    userProfileService.addXp(
-        "locked.user@example.com", 20, "Community vote", QuestClass.ENGINEER);
+    userProfileService.addXp("locked.user@example.com", 20, "Community vote", QuestClass.ENGINEER);
 
     CfpSubmission lockedCreated =
         cfpSubmissionService.create(
@@ -120,16 +122,17 @@ public class PublicProfileResourceTest {
                 "ai-agents-copilots",
                 List.of("locked"),
                 List.of("https://example.com/locked-cfp")));
-    cfpSubmissionService.updateStatus(lockedCreated.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
+    cfpSubmissionService.updateStatus(
+        lockedCreated.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
     VolunteerApplication lockedVolunteer =
         volunteerApplicationService.create(
-        "locked.user@example.com",
-        "Locked User",
-        new VolunteerApplicationService.CreateRequest(
-            VOLUNTEER_EVENT_ID,
-            "I can help with coordination and attendee flow.",
-            "I want to support event operations.",
-            "I can support registration and room setup."));
+            "locked.user@example.com",
+            "Locked User",
+            new VolunteerApplicationService.CreateRequest(
+                VOLUNTEER_EVENT_ID,
+                "I can help with coordination and attendee flow.",
+                "I want to support event operations.",
+                "I can support registration and room setup."));
     volunteerApplicationService.updateStatus(
         lockedVolunteer.id(),
         VolunteerApplicationStatus.SELECTED,
@@ -137,7 +140,8 @@ public class PublicProfileResourceTest {
         "selected",
         lockedVolunteer.updatedAt());
 
-    userProfileService.upsert("homedir.user@example.com", "Homedir User", "homedir.user@example.com");
+    userProfileService.upsert(
+        "homedir.user@example.com", "Homedir User", "homedir.user@example.com");
     userProfileService.linkDiscord(
         "homedir.user@example.com",
         "Homedir User",
@@ -165,12 +169,10 @@ public class PublicProfileResourceTest {
                 "ai-agents-copilots",
                 List.of("public"),
                 List.of("https://example.com/public-cfp")));
-    cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
+    cfpSubmissionService.updateStatus(
+        created.id(), CfpSubmissionStatus.ACCEPTED, "admin", "approved");
     cfpEventConfigService.publishResults(
-        CFP_EVENT_ID,
-        "admin@example.org",
-        "Welcome to the agenda",
-        "Thank you for submitting.");
+        CFP_EVENT_ID, "admin@example.org", "Welcome to the agenda", "Thank you for submitting.");
     VolunteerApplication volunteerCreated =
         volunteerApplicationService.create(
             "public.user@example.com",
@@ -192,7 +194,8 @@ public class PublicProfileResourceTest {
     challengeService.recordActivity("public.user@example.com", GamificationActivity.COMMUNITY_VOTE);
     challengeService.recordActivity(
         "public.user@example.com", GamificationActivity.COMMUNITY_BOARD_MEMBERS_VIEW);
-    challengeService.recordActivity("public.user@example.com", GamificationActivity.BOARD_PROFILE_OPEN);
+    challengeService.recordActivity(
+        "public.user@example.com", GamificationActivity.BOARD_PROFILE_OPEN);
   }
 
   @Test
@@ -283,7 +286,9 @@ public class PublicProfileResourceTest {
         .get("/u/locked-user")
         .then()
         .statusCode(200)
-        .body(containsString("Selected CFP and volunteer highlights are hidden until the profile is complete."))
+        .body(
+            containsString(
+                "Selected CFP and volunteer highlights are hidden until the profile is complete."))
         .body(not(containsString("Locked CFP Talk")))
         .body(not(containsString("Public Volunteer Event")));
   }

@@ -14,7 +14,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jboss.logging.Logger;
 
-/** Records volunteer lifecycle events in the insights ledger without coupling controllers to internals. */
+/**
+ * Records volunteer lifecycle events in the insights ledger without coupling controllers to
+ * internals.
+ */
 @ApplicationScoped
 public class VolunteerInsightsService {
   private static final Logger LOG = Logger.getLogger(VolunteerInsightsService.class);
@@ -44,25 +47,38 @@ public class VolunteerInsightsService {
     append(
         application,
         "VOLUNTEER_SUBMITTED",
-        Map.of("status", safeStatus(application), "application_id", safe(application != null ? application.id() : null)));
+        Map.of(
+            "status",
+            safeStatus(application),
+            "application_id",
+            safe(application != null ? application.id() : null)));
   }
 
   public void recordApplicationUpdated(VolunteerApplication application) {
     append(
         application,
         "VOLUNTEER_UPDATED",
-        Map.of("status", safeStatus(application), "application_id", safe(application != null ? application.id() : null)));
+        Map.of(
+            "status",
+            safeStatus(application),
+            "application_id",
+            safe(application != null ? application.id() : null)));
   }
 
   public void recordApplicationWithdrawn(VolunteerApplication application) {
     append(
         application,
         "VOLUNTEER_WITHDRAWN",
-        Map.of("status", safeStatus(application), "application_id", safe(application != null ? application.id() : null)));
+        Map.of(
+            "status",
+            safeStatus(application),
+            "application_id",
+            safe(application != null ? application.id() : null)));
   }
 
   public void recordStatusChange(VolunteerApplication before, VolunteerApplication after) {
-    String from = before != null && before.status() != null ? before.status().apiValue() : "unknown";
+    String from =
+        before != null && before.status() != null ? before.status().apiValue() : "unknown";
     String to = after != null && after.status() != null ? after.status().apiValue() : "unknown";
     append(
         after,
@@ -77,7 +93,11 @@ public class VolunteerInsightsService {
     append(
         application,
         "VOLUNTEER_RATING_UPDATED",
-        Map.of("status", safeStatus(application), "application_id", safe(application != null ? application.id() : null)));
+        Map.of(
+            "status",
+            safeStatus(application),
+            "application_id",
+            safe(application != null ? application.id() : null)));
   }
 
   public void recordLoungePost(VolunteerLoungeMessage message) {
@@ -128,7 +148,9 @@ public class VolunteerInsightsService {
   }
 
   private void ensureInitiativeStarted(String initiativeId, String eventId) {
-    if (initiativeId == null || initiativeId.isBlank() || initializedInitiatives.contains(initiativeId)) {
+    if (initiativeId == null
+        || initiativeId.isBlank()
+        || initializedInitiatives.contains(initiativeId)) {
       return;
     }
     synchronized (initLock) {
@@ -227,11 +249,7 @@ public class VolunteerInsightsService {
     for (int i = 0; i < source.length(); i++) {
       char c = source.charAt(i);
       boolean allowed =
-          (c >= 'a' && c <= 'z')
-              || (c >= '0' && c <= '9')
-              || c == '_'
-              || c == '-'
-              || c == '.';
+          (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.';
       out.append(allowed ? c : '_');
     }
     String key = out.toString();

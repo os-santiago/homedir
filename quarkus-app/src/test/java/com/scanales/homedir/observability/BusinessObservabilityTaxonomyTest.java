@@ -26,7 +26,8 @@ class BusinessObservabilityTaxonomyTest {
     assertEquals(
         "community_lightning_post",
         BusinessObservabilityTaxonomy.canonicalAction("community.lightning.thread.create"));
-    assertEquals("cfp_submit", BusinessObservabilityTaxonomy.canonicalAction("cfp.submission.create"));
+    assertEquals(
+        "cfp_submit", BusinessObservabilityTaxonomy.canonicalAction("cfp.submission.create"));
     assertEquals(
         "volunteer_selected",
         BusinessObservabilityTaxonomy.canonicalAction("volunteer.submission.status.accepted"));

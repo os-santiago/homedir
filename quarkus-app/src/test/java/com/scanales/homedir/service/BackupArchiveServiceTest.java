@@ -26,7 +26,10 @@ public class BackupArchiveServiceTest {
     Path dataDir = tempDir.resolve("data");
     Files.createDirectories(dataDir.resolve("nested").resolve("deep"));
     Files.writeString(dataDir.resolve("events.json"), "{}", StandardCharsets.UTF_8);
-    Files.writeString(dataDir.resolve("nested").resolve("deep").resolve("cfp-submissions.json"), "{}", StandardCharsets.UTF_8);
+    Files.writeString(
+        dataDir.resolve("nested").resolve("deep").resolve("cfp-submissions.json"),
+        "{}",
+        StandardCharsets.UTF_8);
 
     byte[] zip = service.createArchive(dataDir, "3.338.0");
     assertTrue(zip.length > 0);
@@ -36,13 +39,16 @@ public class BackupArchiveServiceTest {
 
     assertEquals(2, restored);
     assertTrue(Files.exists(restoreDir.resolve("events.json")));
-    assertTrue(Files.exists(restoreDir.resolve("nested").resolve("deep").resolve("cfp-submissions.json")));
+    assertTrue(
+        Files.exists(restoreDir.resolve("nested").resolve("deep").resolve("cfp-submissions.json")));
   }
 
   @Test
   void safeResolveRejectsPathTraversal() {
-    assertThrows(Exception.class, () -> BackupArchiveService.safeResolve(tempDir, "../secrets.txt"));
-    assertThrows(Exception.class, () -> BackupArchiveService.safeResolve(tempDir, "..\\secrets.txt"));
+    assertThrows(
+        Exception.class, () -> BackupArchiveService.safeResolve(tempDir, "../secrets.txt"));
+    assertThrows(
+        Exception.class, () -> BackupArchiveService.safeResolve(tempDir, "..\\secrets.txt"));
     assertThrows(Exception.class, () -> BackupArchiveService.safeResolve(tempDir, "/etc/passwd"));
   }
 
@@ -66,4 +72,3 @@ public class BackupArchiveServiceTest {
     assertNotNull(error.getMessage());
   }
 }
-

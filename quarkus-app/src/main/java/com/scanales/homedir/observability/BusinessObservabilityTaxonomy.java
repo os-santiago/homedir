@@ -122,11 +122,7 @@ public final class BusinessObservabilityTaxonomy {
     StringBuilder safe = new StringBuilder(normalized.length());
     for (int i = 0; i < normalized.length(); i++) {
       char c = normalized.charAt(i);
-      if ((c >= 'a' && c <= 'z')
-          || (c >= '0' && c <= '9')
-          || c == '.'
-          || c == '-'
-          || c == '_') {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_') {
         safe.append(c);
       }
     }

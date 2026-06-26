@@ -4,12 +4,12 @@ import com.scanales.homedir.service.PersistenceService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -88,50 +88,52 @@ public class ReputationEngineService {
       return false;
     }
     return switch (activity) {
-      case DAILY_CHECKIN -> trackStreakMilestone(userId, defaultReference(reference, "daily-checkin"));
-      case HOME_VIEW ->
-          trackContentExplored(userId, "home", defaultReference(reference, "home"));
+      case DAILY_CHECKIN ->
+          trackStreakMilestone(userId, defaultReference(reference, "daily-checkin"));
+      case HOME_VIEW -> trackContentExplored(userId, "home", defaultReference(reference, "home"));
       case PROFILE_VIEW ->
           trackContentExplored(userId, "profile", defaultReference(reference, "profile"));
       case PUBLIC_PROFILE_VIEW ->
-          trackContentExplored(userId, "public_profile", defaultReference(reference, "public-profile"));
+          trackContentExplored(
+              userId, "public_profile", defaultReference(reference, "public-profile"));
       case COMMUNITY_MAIN_VIEW,
-          COMMUNITY_PICKS_VIEW,
-          COMMUNITY_PROPOSE_VIEW,
-          COMMUNITY_REVIEW,
-          COMMUNITY_BOARD_VIEW,
-          COMMUNITY_BOARD_MEMBERS_VIEW,
-          BOARD_PROFILE_OPEN ->
+              COMMUNITY_PICKS_VIEW,
+              COMMUNITY_PROPOSE_VIEW,
+              COMMUNITY_REVIEW,
+              COMMUNITY_BOARD_VIEW,
+              COMMUNITY_BOARD_MEMBERS_VIEW,
+              BOARD_PROFILE_OPEN ->
           trackContentExplored(userId, "community", defaultReference(reference, activity.key()));
       case LTA_VIEW ->
-          trackContentExplored(userId, "community_lightning", defaultReference(reference, "community-lightning"));
-      case COMMUNITY_VOTE -> trackCommunityVoteCast(userId, defaultReference(reference, "community-vote"));
+          trackContentExplored(
+              userId, "community_lightning", defaultReference(reference, "community-lightning"));
+      case COMMUNITY_VOTE ->
+          trackCommunityVoteCast(userId, defaultReference(reference, "community-vote"));
       case LTA_COMMENT_CREATE ->
-          trackDiscussionParticipated(userId, "community_lightning_comment", defaultReference(reference, "comment"));
+          trackDiscussionParticipated(
+              userId, "community_lightning_comment", defaultReference(reference, "comment"));
       case LTA_REACTION ->
-          trackDiscussionParticipated(userId, "community_lightning_reaction", defaultReference(reference, "reaction"));
+          trackDiscussionParticipated(
+              userId, "community_lightning_reaction", defaultReference(reference, "reaction"));
       case COMMUNITY_SUBMISSION ->
-          trackContentSubmitted(userId, "community_submission", defaultReference(reference, "submission"));
+          trackContentSubmitted(
+              userId, "community_submission", defaultReference(reference, "submission"));
       case COMMUNITY_SUBMISSION_APPROVED ->
-          trackContentPublished(userId, defaultReference(reference, "community-submission-approved"));
-      case WARRIOR_EVENTS_EXPLORATION,
-          EVENT_DIRECTORY_VIEW,
-          EVENT_VIEW,
-          TALK_VIEW,
-          AGENDA_VIEW ->
+          trackContentPublished(
+              userId, defaultReference(reference, "community-submission-approved"));
+      case WARRIOR_EVENTS_EXPLORATION, EVENT_DIRECTORY_VIEW, EVENT_VIEW, TALK_VIEW, AGENDA_VIEW ->
           trackContentExplored(userId, "events", defaultReference(reference, activity.key()));
       case VOLUNTEER_VIEW ->
           trackContentExplored(userId, "volunteer", defaultReference(reference, "volunteer"));
       case PROJECT_VIEW ->
           trackContentExplored(userId, "project", defaultReference(reference, "project"));
       case NOTIFICATIONS_CENTER_VIEW ->
-          trackContentExplored(userId, "notifications", defaultReference(reference, "notifications"));
+          trackContentExplored(
+              userId, "notifications", defaultReference(reference, "notifications"));
       case CFP_SUBMIT ->
-          trackContentSubmitted(userId, "cfp_submission", defaultReference(reference, "cfp-submission"));
-      case VOLUNTEER_APPLY,
-          VOLUNTEER_SELECTED,
-          VOLUNTEER_LOUNGE_POST,
-          VOLUNTEER_WITHDRAW ->
+          trackContentSubmitted(
+              userId, "cfp_submission", defaultReference(reference, "cfp-submission"));
+      case VOLUNTEER_APPLY, VOLUNTEER_SELECTED, VOLUNTEER_LOUNGE_POST, VOLUNTEER_WITHDRAW ->
           trackVolunteerEngaged(userId, "volunteer", defaultReference(reference, activity.key()));
       case SESSION_EVALUATION ->
           trackSessionFeedbackShared(userId, defaultReference(reference, "session-evaluation"));
@@ -167,9 +169,7 @@ public class ReputationEngineService {
     synchronized (stateLock) {
       refreshFromDisk(false);
       return new EngineSnapshot(
-          System.currentTimeMillis(),
-          Map.copyOf(eventsById),
-          Map.copyOf(aggregatesByUser));
+          System.currentTimeMillis(), Map.copyOf(eventsById), Map.copyOf(aggregatesByUser));
     }
   }
 
@@ -192,15 +192,13 @@ public class ReputationEngineService {
       events.sort(
           Comparator.comparing(
                   ExplainabilityEvent::occurredAt, Comparator.nullsLast(Comparator.reverseOrder()))
-              .thenComparing(ExplainabilityEvent::eventId, Comparator.nullsLast(String::compareTo)));
+              .thenComparing(
+                  ExplainabilityEvent::eventId, Comparator.nullsLast(String::compareTo)));
       if (events.size() > safeLimit) {
         events = events.subList(0, safeLimit);
       }
       return new UserExplainability(
-          normalizedUserId,
-          aggregate,
-          List.copyOf(events),
-          eventCountByUser(normalizedUserId));
+          normalizedUserId, aggregate, List.copyOf(events), eventCountByUser(normalizedUserId));
     }
   }
 
@@ -458,7 +456,10 @@ public class ReputationEngineService {
       String reason) {}
 
   public record Diagnostics(
-      long generatedAtMillis, long totalEvents, long totalUsers, List<EventTypeCount> topEventTypes) {}
+      long generatedAtMillis,
+      long totalEvents,
+      long totalUsers,
+      List<EventTypeCount> topEventTypes) {}
 
   public record EventTypeCount(String eventType, long count) {}
 

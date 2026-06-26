@@ -28,4 +28,3 @@ public class CommunityScoreCalculatorTest {
     assertTrue(withDecay < withoutDecay);
   }
 }
-

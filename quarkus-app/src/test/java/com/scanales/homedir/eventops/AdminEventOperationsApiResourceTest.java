@@ -172,7 +172,12 @@ class AdminEventOperationsApiResourceTest {
         EVENT_ID, "member@example.com", "Member", EventStaffRole.VOLUNTEER, "manual", true);
     EventSpace space =
         eventOperationsService.upsertSpace(
-            EVENT_ID, "event-ops-admin-event:space:test", "Ops Desk", EventSpaceType.OTHER, 10, true);
+            EVENT_ID,
+            "event-ops-admin-event:space:test",
+            "Ops Desk",
+            EventSpaceType.OTHER,
+            10,
+            true);
     given()
         .contentType("application/json")
         .body(
@@ -183,7 +188,8 @@ class AdminEventOperationsApiResourceTest {
               "end_at":"%s"
             }
             """
-                .formatted(Instant.parse("2026-09-08T12:00:00Z"), Instant.parse("2026-09-08T11:00:00Z")))
+                .formatted(
+                    Instant.parse("2026-09-08T12:00:00Z"), Instant.parse("2026-09-08T11:00:00Z")))
         .when()
         .post("/api/private/admin/events/" + EVENT_ID + "/ops/spaces/" + space.id() + "/shifts")
         .then()

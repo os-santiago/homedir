@@ -32,9 +32,12 @@ public record CampaignOperationsStateSnapshot(
     updatedBy = updatedBy == null ? "" : updatedBy.trim();
     channelAutomation = channelAutomation == null ? Map.of() : Map.copyOf(channelAutomation);
     channelGoLiveAcknowledgements =
-        channelGoLiveAcknowledgements == null ? Map.of() : Map.copyOf(channelGoLiveAcknowledgements);
+        channelGoLiveAcknowledgements == null
+            ? Map.of()
+            : Map.copyOf(channelGoLiveAcknowledgements);
     pilotLiveChannel = pilotLiveChannel == null ? "" : pilotLiveChannel.trim().toLowerCase();
-    pilotLiveChannelUpdatedBy = pilotLiveChannelUpdatedBy == null ? "" : pilotLiveChannelUpdatedBy.trim();
+    pilotLiveChannelUpdatedBy =
+        pilotLiveChannelUpdatedBy == null ? "" : pilotLiveChannelUpdatedBy.trim();
     pilotLiveArmedBy = pilotLiveArmedBy == null ? "" : pilotLiveArmedBy.trim();
     pilotVerificationAcknowledgedBy =
         pilotVerificationAcknowledgedBy == null ? "" : pilotVerificationAcknowledgedBy.trim();
@@ -76,7 +79,8 @@ public record CampaignOperationsStateSnapshot(
     if (channel == null || channel.isBlank()) {
       return CampaignGoLiveAck.empty();
     }
-    return channelGoLiveAcknowledgements.getOrDefault(channel.trim().toLowerCase(), CampaignGoLiveAck.empty());
+    return channelGoLiveAcknowledgements.getOrDefault(
+        channel.trim().toLowerCase(), CampaignGoLiveAck.empty());
   }
 
   public boolean hasPilotLiveChannel() {
@@ -142,7 +146,8 @@ public record CampaignOperationsStateSnapshot(
 
   public CampaignOperationsStateSnapshot withChannelAutomation(
       String channel, boolean enabled, String actor) {
-    java.util.LinkedHashMap<String, Boolean> next = new java.util.LinkedHashMap<>(channelAutomation);
+    java.util.LinkedHashMap<String, Boolean> next =
+        new java.util.LinkedHashMap<>(channelAutomation);
     if (channel != null && !channel.isBlank()) {
       next.put(channel.trim().toLowerCase(), enabled);
     }
@@ -173,7 +178,9 @@ public record CampaignOperationsStateSnapshot(
     java.util.LinkedHashMap<String, CampaignGoLiveAck> next =
         new java.util.LinkedHashMap<>(channelGoLiveAcknowledgements);
     if (channel != null && !channel.isBlank()) {
-      next.put(channel.trim().toLowerCase(), CampaignGoLiveAck.empty().withAcknowledged(acknowledged, actor));
+      next.put(
+          channel.trim().toLowerCase(),
+          CampaignGoLiveAck.empty().withAcknowledged(acknowledged, actor));
     }
     return new CampaignOperationsStateSnapshot(
         SCHEMA_VERSION,
@@ -262,7 +269,9 @@ public record CampaignOperationsStateSnapshot(
         pilotLiveArmedBy,
         acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed,
         acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed ? Instant.now() : null,
-        acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed ? (actor == null ? "" : actor.trim()) : "",
+        acknowledged && !pilotLiveChannel.isBlank() && pilotLiveArmed
+            ? (actor == null ? "" : actor.trim())
+            : "",
         "",
         null,
         "");
@@ -273,7 +282,8 @@ public record CampaignOperationsStateSnapshot(
     if (!"approved".equals(normalized) && !"hold".equals(normalized)) {
       normalized = "";
     }
-    boolean eligible = !pilotLiveChannel.isBlank() && pilotLiveArmed && pilotVerificationAcknowledged;
+    boolean eligible =
+        !pilotLiveChannel.isBlank() && pilotLiveArmed && pilotVerificationAcknowledged;
     return new CampaignOperationsStateSnapshot(
         SCHEMA_VERSION,
         Instant.now(),

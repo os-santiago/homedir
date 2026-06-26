@@ -19,11 +19,12 @@ public class CommunityMember {
   private String role;
   private String profileUrl;
   private String avatarUrl;
-  @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
+
+  @com.fasterxml.jackson.annotation.JsonFormat(
+      shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING)
   private Instant joinedAt;
 
-  public CommunityMember() {
-  }
+  public CommunityMember() {}
 
   @JsonCreator
   public CommunityMember(
@@ -193,10 +194,8 @@ public class CommunityMember {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
-      return true;
-    if (!(o instanceof CommunityMember that))
-      return false;
+    if (this == o) return true;
+    if (!(o instanceof CommunityMember that)) return false;
     return Objects.equals(github, that.github) || Objects.equals(userId, that.userId);
   }
 

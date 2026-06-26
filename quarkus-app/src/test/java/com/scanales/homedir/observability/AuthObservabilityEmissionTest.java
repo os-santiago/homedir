@@ -10,8 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Verifies that authentication domain business methods emit expected observability metrics.
- * Tracks login success/failure events for security monitoring and user analytics.
+ * Verifies that authentication domain business methods emit expected observability metrics. Tracks
+ * login success/failure events for security monitoring and user analytics.
  */
 @QuarkusTest
 public class AuthObservabilityEmissionTest {
@@ -32,9 +32,13 @@ public class AuthObservabilityEmissionTest {
     Map<String, Long> snapshot = metrics.snapshot();
 
     // Verify both metrics emitted
-    assertEquals(1L, snapshot.getOrDefault("funnel:auth.login.callback", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:auth.login.callback", 0L),
         "auth.login.callback should be tracked");
-    assertEquals(1L, snapshot.getOrDefault("funnel:login_success", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:login_success", 0L),
         "login_success should be tracked for analytics");
   }
 
@@ -46,7 +50,9 @@ public class AuthObservabilityEmissionTest {
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(2L, snapshot.getOrDefault("funnel:login_success", 0L),
+    assertEquals(
+        2L,
+        snapshot.getOrDefault("funnel:login_success", 0L),
         "Multiple successful logins should each increment counter");
   }
 
@@ -57,7 +63,9 @@ public class AuthObservabilityEmissionTest {
 
     Map<String, Long> snapshot = metrics.snapshot();
 
-    assertEquals(1L, snapshot.getOrDefault("funnel:auth.login.callback", 0L),
+    assertEquals(
+        1L,
+        snapshot.getOrDefault("funnel:auth.login.callback", 0L),
         "All auth callbacks should be tracked regardless of outcome");
   }
 }

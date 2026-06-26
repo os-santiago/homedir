@@ -42,7 +42,8 @@ class AdminObservabilityApiResourceTest {
   void dashboardCombinesUsageAndInsightsSignals() {
     usageMetricsService.recordPageView("/comunidad", "session-a", "Mozilla/5.0");
     usageMetricsService.recordPageView("/eventos", "session-b", "Mozilla/5.0");
-    usageMetricsService.recordPageView("/event/devopsdays-santiago-2026", "session-c", "Mozilla/5.0");
+    usageMetricsService.recordPageView(
+        "/event/devopsdays-santiago-2026", "session-c", "Mozilla/5.0");
     usageMetricsService.recordEventView("devopsdays-santiago-2026", "session-c", "Mozilla/5.0");
     usageMetricsService.recordTalkView("dod-2026-day1-welcome", "session-d", "Mozilla/5.0");
     usageMetricsService.recordTalkRegister("dod-2026-day1-welcome", List.of(), "Mozilla/5.0");

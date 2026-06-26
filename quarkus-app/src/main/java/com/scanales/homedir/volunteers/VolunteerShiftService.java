@@ -21,8 +21,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Manages volunteer shifts and availability for multi-day events.
- * Enforces business rules: 2-hour segments, min 2/max 4 segments per day.
+ * Manages volunteer shifts and availability for multi-day events. Enforces business rules: 2-hour
+ * segments, min 2/max 4 segments per day.
  */
 @ApplicationScoped
 public class VolunteerShiftService {
@@ -31,7 +31,8 @@ public class VolunteerShiftService {
   @Inject EventService eventService;
 
   private final ConcurrentHashMap<String, VolunteerShift> shifts = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<String, VolunteerAvailability> availabilities = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, VolunteerAvailability> availabilities =
+      new ConcurrentHashMap<>();
   private final Object lock = new Object();
   private volatile long lastKnownShiftsMtime = Long.MIN_VALUE;
   private volatile long lastKnownAvailabilitiesMtime = Long.MIN_VALUE;
@@ -45,8 +46,8 @@ public class VolunteerShiftService {
   }
 
   /**
-   * Generates default shifts for an event based on its duration and date.
-   * Creates 2-hour segments from 9 AM to 7 PM for each day.
+   * Generates default shifts for an event based on its duration and date. Creates 2-hour segments
+   * from 9 AM to 7 PM for each day.
    */
   public List<VolunteerShift> generateShiftsForEvent(String eventId) {
     synchronized (lock) {
@@ -76,21 +77,23 @@ public class VolunteerShiftService {
           LocalTime endTime = startTime.plusHours(VolunteerShift.SHIFT_DURATION_HOURS);
 
           String shiftId = UUID.randomUUID().toString();
-          String label = String.format(
-              Locale.ROOT,
-              "Day %d - %s to %s",
-              dayIndex + 1,
-              startTime.toString(),
-              endTime.toString());
+          String label =
+              String.format(
+                  Locale.ROOT,
+                  "Day %d - %s to %s",
+                  dayIndex + 1,
+                  startTime.toString(),
+                  endTime.toString());
 
-          VolunteerShift shift = new VolunteerShift(
-              shiftId,
-              eventId,
-              dayIndex,
-              LocalDateTime.of(currentDay, startTime),
-              LocalDateTime.of(currentDay, endTime),
-              10, // default max volunteers per shift
-              label);
+          VolunteerShift shift =
+              new VolunteerShift(
+                  shiftId,
+                  eventId,
+                  dayIndex,
+                  LocalDateTime.of(currentDay, startTime),
+                  LocalDateTime.of(currentDay, endTime),
+                  10, // default max volunteers per shift
+                  label);
 
           generated.add(shift);
           shifts.put(shiftId, shift);
@@ -102,9 +105,7 @@ public class VolunteerShiftService {
     }
   }
 
-  /**
-   * Lists all shifts for a given event.
-   */
+  /** Lists all shifts for a given event. */
   public List<VolunteerShift> listShiftsByEvent(String eventId) {
     synchronized (lock) {
       refreshShiftsFromDisk(false);
@@ -115,23 +116,19 @@ public class VolunteerShiftService {
 
       return shifts.values().stream()
           .filter(shift -> normalized.equals(shift.eventId()))
-          .sorted((a, b) -> {
-            int dayCompare = Integer.compare(a.dayIndex(), b.dayIndex());
-            if (dayCompare != 0) return dayCompare;
-            return a.startTime().compareTo(b.startTime());
-          })
+          .sorted(
+              (a, b) -> {
+                int dayCompare = Integer.compare(a.dayIndex(), b.dayIndex());
+                if (dayCompare != 0) return dayCompare;
+                return a.startTime().compareTo(b.startTime());
+              })
           .toList();
     }
   }
 
-  /**
-   * Sets availability for a volunteer. Validates min/max segments per day.
-   */
+  /** Sets availability for a volunteer. Validates min/max segments per day. */
   public VolunteerAvailability setAvailability(
-      String eventId,
-      String userId,
-      String userName,
-      List<String> shiftIds) {
+      String eventId, String userId, String userName, List<String> shiftIds) {
     synchronized (lock) {
       refreshShiftsFromDisk(false);
       refreshAvailabilitiesFromDisk(false);
@@ -151,9 +148,10 @@ public class VolunteerShiftService {
         throw new ValidationException("event_not_found");
       }
 
-      List<String> normalizedShiftIds = shiftIds != null
-          ? shiftIds.stream().filter(Objects::nonNull).distinct().toList()
-          : List.of();
+      List<String> normalizedShiftIds =
+          shiftIds != null
+              ? shiftIds.stream().filter(Objects::nonNull).distinct().toList()
+              : List.of();
 
       // Validate that all shift IDs exist and belong to this event
       Map<Integer, List<VolunteerShift>> shiftsByDay = new LinkedHashMap<>();
@@ -192,31 +190,33 @@ public class VolunteerShiftService {
       }
 
       // Find or create availability record
-      Optional<VolunteerAvailability> existing = findAvailabilityByEventAndUser(
-          normalizedEventId, normalizedUserId);
+      Optional<VolunteerAvailability> existing =
+          findAvailabilityByEventAndUser(normalizedEventId, normalizedUserId);
 
       Instant now = Instant.now();
       VolunteerAvailability availability;
 
       if (existing.isPresent()) {
         VolunteerAvailability current = existing.get();
-        availability = new VolunteerAvailability(
-            current.id(),
-            normalizedEventId,
-            normalizedUserId,
-            sanitizeText(userName, 120),
-            normalizedShiftIds,
-            current.createdAt(),
-            now);
+        availability =
+            new VolunteerAvailability(
+                current.id(),
+                normalizedEventId,
+                normalizedUserId,
+                sanitizeText(userName, 120),
+                normalizedShiftIds,
+                current.createdAt(),
+                now);
       } else {
-        availability = new VolunteerAvailability(
-            UUID.randomUUID().toString(),
-            normalizedEventId,
-            normalizedUserId,
-            sanitizeText(userName, 120),
-            normalizedShiftIds,
-            now,
-            now);
+        availability =
+            new VolunteerAvailability(
+                UUID.randomUUID().toString(),
+                normalizedEventId,
+                normalizedUserId,
+                sanitizeText(userName, 120),
+                normalizedShiftIds,
+                now,
+                now);
       }
 
       availabilities.put(availability.id(), availability);
@@ -225,9 +225,7 @@ public class VolunteerShiftService {
     }
   }
 
-  /**
-   * Gets availability for a specific volunteer on an event.
-   */
+  /** Gets availability for a specific volunteer on an event. */
   public Optional<VolunteerAvailability> getAvailability(String eventId, String userId) {
     synchronized (lock) {
       refreshAvailabilitiesFromDisk(false);
@@ -235,9 +233,7 @@ public class VolunteerShiftService {
     }
   }
 
-  /**
-   * Lists all availability records for an event.
-   */
+  /** Lists all availability records for an event. */
   public List<VolunteerAvailability> listAvailabilitiesByEvent(String eventId) {
     synchronized (lock) {
       refreshAvailabilitiesFromDisk(false);
@@ -248,18 +244,17 @@ public class VolunteerShiftService {
 
       return availabilities.values().stream()
           .filter(av -> normalized.equals(av.eventId()))
-          .sorted((a, b) -> {
-            Instant aTime = a.createdAt() != null ? a.createdAt() : Instant.MIN;
-            Instant bTime = b.createdAt() != null ? b.createdAt() : Instant.MIN;
-            return bTime.compareTo(aTime);
-          })
+          .sorted(
+              (a, b) -> {
+                Instant aTime = a.createdAt() != null ? a.createdAt() : Instant.MIN;
+                Instant bTime = b.createdAt() != null ? b.createdAt() : Instant.MIN;
+                return bTime.compareTo(aTime);
+              })
           .toList();
     }
   }
 
-  /**
-   * Gets shift coverage statistics for an event.
-   */
+  /** Gets shift coverage statistics for an event. */
   public ShiftCoverageStats getCoverageStats(String eventId) {
     synchronized (lock) {
       refreshShiftsFromDisk(false);
@@ -275,16 +270,16 @@ public class VolunteerShiftService {
 
       Map<String, Integer> coverageByShift = new LinkedHashMap<>();
       for (VolunteerShift shift : eventShifts) {
-        int count = (int) eventAvailabilities.stream()
-            .filter(av -> av.selectedShiftIds().contains(shift.id()))
-            .count();
+        int count =
+            (int)
+                eventAvailabilities.stream()
+                    .filter(av -> av.selectedShiftIds().contains(shift.id()))
+                    .count();
         coverageByShift.put(shift.id(), count);
       }
 
       int totalShifts = eventShifts.size();
-      long uncoveredShifts = coverageByShift.values().stream()
-          .filter(count -> count == 0)
-          .count();
+      long uncoveredShifts = coverageByShift.values().stream().filter(count -> count == 0).count();
 
       return new ShiftCoverageStats(coverageByShift, totalShifts, (int) uncoveredShifts);
     }
@@ -388,7 +383,5 @@ public class VolunteerShiftService {
   }
 
   public record ShiftCoverageStats(
-      Map<String, Integer> coverageByShift,
-      int totalShifts,
-      int uncoveredShifts) {}
+      Map<String, Integer> coverageByShift, int totalShifts, int uncoveredShifts) {}
 }

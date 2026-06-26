@@ -1,8 +1,8 @@
 package com.scanales.homedir.public_;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -80,7 +80,12 @@ public class PublicExperienceSmokeTest {
   @Test
   void criticalCssAssetsReturnSuccess() {
     given().when().get("/css/homedir.css").then().statusCode(200).body(not(isEmptyOrNullString()));
-    given().when().get("/css/retro-theme.css").then().statusCode(200).body(not(isEmptyOrNullString()));
+    given()
+        .when()
+        .get("/css/retro-theme.css")
+        .then()
+        .statusCode(200)
+        .body(not(isEmptyOrNullString()));
     given()
         .when()
         .get("/css/reputation-hub.css")
@@ -91,8 +96,18 @@ public class PublicExperienceSmokeTest {
 
   @Test
   void criticalJavascriptAssetsReturnSuccess() {
-    given().when().get("/js/core-bundle.js").then().statusCode(200).body(not(isEmptyOrNullString()));
-    given().when().get("/js/community-bundle.js").then().statusCode(200).body(not(isEmptyOrNullString()));
+    given()
+        .when()
+        .get("/js/core-bundle.js")
+        .then()
+        .statusCode(200)
+        .body(not(isEmptyOrNullString()));
+    given()
+        .when()
+        .get("/js/community-bundle.js")
+        .then()
+        .statusCode(200)
+        .body(not(isEmptyOrNullString()));
     given().when().get("/js/homedir.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given().when().get("/js/app.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given()

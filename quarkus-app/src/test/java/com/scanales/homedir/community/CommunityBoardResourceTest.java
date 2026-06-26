@@ -40,7 +40,8 @@ public class CommunityBoardResourceTest {
             Instant.parse("2026-02-01T00:00:00Z")));
     userProfileService.upsert("board.local@example.com", "Board Local", "board.local@example.com");
 
-    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Path discordFile =
+        Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.createDirectories(discordFile.getParent());
     Files.writeString(
         discordFile,
@@ -97,7 +98,8 @@ public class CommunityBoardResourceTest {
 
   @Test
   void boardDetailPagePaginatesInBlocksOfTen() throws Exception {
-    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Path discordFile =
+        Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     StringBuilder yaml = new StringBuilder("members:\n");
     for (int i = 1; i <= 12; i++) {
       long id = 111111111111111000L + i;
@@ -122,7 +124,8 @@ public class CommunityBoardResourceTest {
 
   @Test
   void boardDetailIgnoresLargeLimitAndKeepsTenPerPage() throws Exception {
-    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Path discordFile =
+        Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     StringBuilder yaml = new StringBuilder("members:\n");
     for (int i = 1; i <= 12; i++) {
       long id = 111111111111111000L + i;
@@ -216,12 +219,17 @@ public class CommunityBoardResourceTest {
 
   @Test
   void unknownMemberSharePageReturnsNotFound() {
-    englishRequest().when().get("/community/member/github-users/does-not-exist").then().statusCode(404);
+    englishRequest()
+        .when()
+        .get("/community/member/github-users/does-not-exist")
+        .then()
+        .statusCode(404);
   }
 
   @Test
   void unclaimedDiscordMemberRedirectsToBoardHighlight() throws Exception {
-    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Path discordFile =
+        Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.writeString(
         discordFile,
         """
@@ -291,7 +299,8 @@ public class CommunityBoardResourceTest {
 
   @Test
   void discordBoardIncludesLinkedProfilesWhenSourceListIsUnavailable() throws Exception {
-    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Path discordFile =
+        Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.deleteIfExists(discordFile);
     userProfileService.linkDiscord(
         "board.user@example.com",
@@ -316,7 +325,8 @@ public class CommunityBoardResourceTest {
 
   @Test
   void discordBoardSkipsRowsWithoutValidDiscordId() throws Exception {
-    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Path discordFile =
+        Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.writeString(
         discordFile,
         """
@@ -343,7 +353,8 @@ public class CommunityBoardResourceTest {
 
   @Test
   void discordBoardSearchMatchesUsernameFieldWhenHandleIsMissing() throws Exception {
-    Path discordFile = Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
+    Path discordFile =
+        Path.of(System.getProperty("homedir.data.dir"), "community", "board", "discord-users.yml");
     Files.writeString(
         discordFile,
         """

@@ -92,7 +92,8 @@ public final class TemplateLocaleUtil {
       if (userProfiles == null) {
         return null;
       }
-      return userProfiles.find(userId.toLowerCase(Locale.ROOT))
+      return userProfiles
+          .find(userId.toLowerCase(Locale.ROOT))
           .map(com.scanales.homedir.model.UserProfile::getPreferredLocale)
           .orElse(null);
     } catch (Exception ignored) {

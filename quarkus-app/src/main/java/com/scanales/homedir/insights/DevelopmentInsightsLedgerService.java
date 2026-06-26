@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
@@ -97,9 +96,7 @@ public class DevelopmentInsightsLedgerService {
       loadLedger();
       LOG.infov(
           "insights_ledger_ready path={0} events={1} initiatives={2}",
-          ledgerPath.toAbsolutePath(),
-          events.size(),
-          initiatives.size());
+          ledgerPath.toAbsolutePath(), events.size(), initiatives.size());
     } catch (IOException e) {
       LOG.error("insights_ledger_init_error", e);
       loadErrors++;
@@ -299,7 +296,11 @@ public class DevelopmentInsightsLedgerService {
     try {
       return initiatives.values().stream()
           .map(MutableInitiativeSummary::snapshot)
-          .sorted(Comparator.comparing(InitiativeSummary::lastEventAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+          .sorted(
+              Comparator.comparing(
+                      InitiativeSummary::lastEventAt,
+                      Comparator.nullsLast(Comparator.naturalOrder()))
+                  .reversed())
           .skip(safeOffset)
           .limit(safeLimit)
           .toList();
@@ -309,7 +310,10 @@ public class DevelopmentInsightsLedgerService {
   }
 
   public DevelopmentInsightsEvent startInitiative(
-      String initiativeId, String title, String definitionStartedAt, Map<String, String> extraMetadata) {
+      String initiativeId,
+      String title,
+      String definitionStartedAt,
+      Map<String, String> extraMetadata) {
     Map<String, String> metadata = new LinkedHashMap<>(sanitizeMetadata(extraMetadata));
     if (title != null && !title.isBlank()) {
       metadata.put("title", trimValue(title, 240));
@@ -364,7 +368,10 @@ public class DevelopmentInsightsLedgerService {
           }
           try {
             DevelopmentInsightsEvent event = mapper.readValue(raw, DevelopmentInsightsEvent.class);
-            if (event == null || event.initiativeId() == null || event.type() == null || event.at() == null) {
+            if (event == null
+                || event.initiativeId() == null
+                || event.type() == null
+                || event.at() == null) {
               loadErrors++;
               continue;
             }
@@ -456,7 +463,8 @@ public class DevelopmentInsightsLedgerService {
         writer.newLine();
       }
       writer.flush();
-      Files.move(tmp, ledgerPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+      Files.move(
+          tmp, ledgerPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
       compactions++;
     } catch (Exception e) {
       writeErrors++;
@@ -474,8 +482,11 @@ public class DevelopmentInsightsLedgerService {
     Map<String, String> safeMetadata = sanitizeMetadata(event.metadata());
     Instant safeAt = Objects.requireNonNullElse(event.at(), Instant.now());
     String safeEventId =
-        event.eventId() != null && !event.eventId().isBlank() ? event.eventId() : UUID.randomUUID().toString();
-    return new DevelopmentInsightsEvent(safeEventId, safeInitiative, safeType, safeAt, safeMetadata);
+        event.eventId() != null && !event.eventId().isBlank()
+            ? event.eventId()
+            : UUID.randomUUID().toString();
+    return new DevelopmentInsightsEvent(
+        safeEventId, safeInitiative, safeType, safeAt, safeMetadata);
   }
 
   private String sanitizeInitiativeId(String raw) {
@@ -486,11 +497,7 @@ public class DevelopmentInsightsLedgerService {
     StringBuilder safe = new StringBuilder(normalized.length());
     for (int i = 0; i < normalized.length(); i++) {
       char c = normalized.charAt(i);
-      if ((c >= 'a' && c <= 'z')
-          || (c >= '0' && c <= '9')
-          || c == '-'
-          || c == '_'
-          || c == '.') {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.') {
         safe.append(c);
       }
     }
@@ -547,11 +554,7 @@ public class DevelopmentInsightsLedgerService {
     StringBuilder safe = new StringBuilder(normalized.length());
     for (int i = 0; i < normalized.length(); i++) {
       char c = normalized.charAt(i);
-      if ((c >= 'a' && c <= 'z')
-          || (c >= '0' && c <= '9')
-          || c == '-'
-          || c == '_'
-          || c == '.') {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.') {
         safe.append(c);
       }
     }
@@ -623,7 +626,9 @@ public class DevelopmentInsightsLedgerService {
         }
       }
       if ("INITIATIVE_STARTED".equals(event.type())) {
-        Instant definitionStart = parseInstantSafe(metadata != null ? metadata.get("definition_started_at") : null, event.at());
+        Instant definitionStart =
+            parseInstantSafe(
+                metadata != null ? metadata.get("definition_started_at") : null, event.at());
         if (definitionStartedAt == null || definitionStart.isBefore(definitionStartedAt)) {
           definitionStartedAt = definitionStart;
         }
@@ -722,8 +727,6 @@ public class DevelopmentInsightsLedgerService {
                 .thenComparing(Map.Entry::getKey))
         .limit(limit)
         .collect(
-            LinkedHashMap::new,
-            (m, e) -> m.put(e.getKey(), e.getValue()),
-            LinkedHashMap::putAll);
+            LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), LinkedHashMap::putAll);
   }
 }

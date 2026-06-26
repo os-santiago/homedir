@@ -55,7 +55,10 @@ public class CommunityLightningApiResource {
     Map<String, Instant> lastCommentAt = lightningService.lastCommentAtByThread(ids);
     Map<String, Instant> editedAtByThread = lightningService.editedAtByThread(ids);
     List<String> commentIds =
-        commentsByThread.values().stream().flatMap(List::stream).map(CommunityLightningComment::id).toList();
+        commentsByThread.values().stream()
+            .flatMap(List::stream)
+            .map(CommunityLightningComment::id)
+            .toList();
     Map<String, Instant> editedAtByComment = lightningService.editedAtByComment(commentIds);
     String viewerUserId = currentUserId().orElse(null);
     List<ThreadItemResponse> items =
@@ -88,7 +91,9 @@ public class CommunityLightningApiResource {
   public Response createThread(CreateThreadRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       CommunityLightningService.CreateThreadResult result =
@@ -111,7 +116,9 @@ public class CommunityLightningApiResource {
                   item, result.queued(), result.queuePosition(), result.nextPublishAt(), null))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.RateLimitExceededException e) {
       return Response.status(429)
           .entity(Map.of("error", e.getMessage(), "message", e.userMessage()))
@@ -131,19 +138,21 @@ public class CommunityLightningApiResource {
   public Response editThread(@PathParam("id") String threadId, EditThreadRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       String statement = request != null ? request.effectiveStatement() : null;
-      CommunityLightningThread thread = lightningService.editThread(userId.get(), threadId, statement);
+      CommunityLightningThread thread =
+          lightningService.editThread(userId.get(), threadId, statement);
       List<CommunityLightningComment> comments =
           lightningService
               .listCommentsForThreads(List.of(thread.id()), 3)
               .getOrDefault(thread.id(), List.of());
       Instant lastCommentAt =
           lightningService.lastCommentAtByThread(List.of(thread.id())).get(thread.id());
-      Instant editedAt =
-          lightningService.editedAtByThread(List.of(thread.id())).get(thread.id());
+      Instant editedAt = lightningService.editedAtByThread(List.of(thread.id())).get(thread.id());
       List<String> commentIds = comments.stream().map(CommunityLightningComment::id).toList();
       Map<String, Instant> editedAtByComment = lightningService.editedAtByComment(commentIds);
       return Response.ok(
@@ -156,11 +165,17 @@ public class CommunityLightningApiResource {
                   null))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.ForbiddenException e) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (Exception e) {
       LOG.errorf(e, "community_lightning_edit_thread_failed thread=%s", threadId);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
@@ -176,12 +191,17 @@ public class CommunityLightningApiResource {
   public Response addComment(@PathParam("id") String threadId, CommentRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       CommunityLightningService.CommentResult result =
           lightningService.addComment(
-              userId.get(), currentUserName().orElse(userId.get()), threadId, request != null ? request.body() : null);
+              userId.get(),
+              currentUserName().orElse(userId.get()),
+              threadId,
+              request != null ? request.body() : null);
       metrics.recordFunnelStep("community.lightning.comment.create");
       metrics.recordFunnelStep("community_lightning_comment");
       gamificationService.award(userId.get(), GamificationActivity.LTA_COMMENT_CREATE);
@@ -190,7 +210,8 @@ public class CommunityLightningApiResource {
               .listCommentsForThreads(List.of(result.thread().id()), 3)
               .getOrDefault(result.thread().id(), List.of());
       Map<String, Instant> editedAtByComment =
-          lightningService.editedAtByComment(comments.stream().map(CommunityLightningComment::id).toList());
+          lightningService.editedAtByComment(
+              comments.stream().map(CommunityLightningComment::id).toList());
       return Response.ok(
               new CommentMutationResponse(
                   toThreadItem(
@@ -210,13 +231,17 @@ public class CommunityLightningApiResource {
                       editedAtByComment.get(result.comment().id()))))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.RateLimitExceededException e) {
       return Response.status(429)
           .entity(Map.of("error", e.getMessage(), "message", e.userMessage()))
           .build();
     } catch (CommunityLightningService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (Exception e) {
       LOG.errorf(e, "community_lightning_comment_failed thread=%s", threadId);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
@@ -232,19 +257,26 @@ public class CommunityLightningApiResource {
   public Response editComment(@PathParam("id") String commentId, EditCommentRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       CommunityLightningService.CommentResult result =
-          lightningService.editComment(userId.get(), commentId, request != null ? request.body() : null);
+          lightningService.editComment(
+              userId.get(), commentId, request != null ? request.body() : null);
       List<CommunityLightningComment> comments =
           lightningService
               .listCommentsForThreads(List.of(result.thread().id()), 3)
               .getOrDefault(result.thread().id(), List.of());
       Instant lastCommentAt =
-          lightningService.lastCommentAtByThread(List.of(result.thread().id())).get(result.thread().id());
+          lightningService
+              .lastCommentAtByThread(List.of(result.thread().id()))
+              .get(result.thread().id());
       Instant editedAt =
-          lightningService.editedAtByThread(List.of(result.thread().id())).get(result.thread().id());
+          lightningService
+              .editedAtByThread(List.of(result.thread().id()))
+              .get(result.thread().id());
       List<String> commentIds = comments.stream().map(CommunityLightningComment::id).toList();
       Map<String, Instant> editedAtByComment = lightningService.editedAtByComment(commentIds);
       return Response.ok(
@@ -256,14 +288,23 @@ public class CommunityLightningApiResource {
                       lastCommentAt,
                       editedAt,
                       editedAtByComment),
-                  toCommentItem(result.comment(), userId.get(), editedAtByComment.get(result.comment().id()))))
+                  toCommentItem(
+                      result.comment(),
+                      userId.get(),
+                      editedAtByComment.get(result.comment().id()))))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.ForbiddenException e) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (Exception e) {
       LOG.errorf(e, "community_lightning_edit_comment_failed comment=%s", commentId);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
@@ -279,7 +320,9 @@ public class CommunityLightningApiResource {
   public Response likeThread(@PathParam("id") String threadId, LikeRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       boolean liked = request == null || request.liked() == null || request.liked();
@@ -296,9 +339,13 @@ public class CommunityLightningApiResource {
                   liked))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -309,7 +356,9 @@ public class CommunityLightningApiResource {
   public Response likeComment(@PathParam("id") String commentId, LikeRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       boolean liked = request == null || request.liked() == null || request.liked();
@@ -323,7 +372,8 @@ public class CommunityLightningApiResource {
               new LikeMutationResponse(
                   result.thread() == null
                       ? null
-                      : toThreadItem(result.thread(), List.of(), userId.get(), null, null, Map.of()),
+                      : toThreadItem(
+                          result.thread(), List.of(), userId.get(), null, null, Map.of()),
                   result.comment() == null
                       ? null
                       : toCommentItem(
@@ -335,9 +385,13 @@ public class CommunityLightningApiResource {
                   liked))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -348,7 +402,9 @@ public class CommunityLightningApiResource {
   public Response reportThread(@PathParam("id") String threadId, ReportRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       CommunityLightningService.ReportResult report =
@@ -358,12 +414,18 @@ public class CommunityLightningApiResource {
               threadId,
               request != null ? request.reason() : null);
       metrics.recordFunnelStep("community.lightning.report");
-      return Response.ok(new ReportMutationResponse(report.reportId(), report.duplicate(), report.totalReports()))
+      return Response.ok(
+              new ReportMutationResponse(
+                  report.reportId(), report.duplicate(), report.totalReports()))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -374,7 +436,9 @@ public class CommunityLightningApiResource {
   public Response reportComment(@PathParam("id") String commentId, ReportRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       CommunityLightningService.ReportResult report =
@@ -384,12 +448,18 @@ public class CommunityLightningApiResource {
               commentId,
               request != null ? request.reason() : null);
       metrics.recordFunnelStep("community.lightning.report");
-      return Response.ok(new ReportMutationResponse(report.reportId(), report.duplicate(), report.totalReports()))
+      return Response.ok(
+              new ReportMutationResponse(
+                  report.reportId(), report.duplicate(), report.totalReports()))
           .build();
     } catch (CommunityLightningService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunityLightningService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -413,7 +483,9 @@ public class CommunityLightningApiResource {
                 .toList();
     CommentItemResponse best =
         commentItems.stream()
-            .filter(comment -> item.bestCommentId() != null && item.bestCommentId().equals(comment.id()))
+            .filter(
+                comment ->
+                    item.bestCommentId() != null && item.bestCommentId().equals(comment.id()))
             .findFirst()
             .orElse(commentItems.isEmpty() ? null : commentItems.getFirst());
     return new ThreadItemResponse(
@@ -537,7 +609,8 @@ public class CommunityLightningApiResource {
 
   public record CommentMutationResponse(ThreadItemResponse thread, CommentItemResponse comment) {}
 
-  public record LikeMutationResponse(ThreadItemResponse thread, CommentItemResponse comment, boolean liked) {}
+  public record LikeMutationResponse(
+      ThreadItemResponse thread, CommentItemResponse comment, boolean liked) {}
 
   public record ReportMutationResponse(String reportId, boolean duplicate, int reports) {}
 

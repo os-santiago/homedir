@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import com.scanales.homedir.TestDataDir;
 import com.scanales.homedir.model.UserProfile;
@@ -11,8 +12,8 @@ import com.scanales.homedir.reputation.ReputationEngineService;
 import com.scanales.homedir.service.GithubService;
 import com.scanales.homedir.service.GithubService.GithubCoder;
 import com.scanales.homedir.service.UserProfileService;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.InjectMock;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(TestDataDir.class)
@@ -69,7 +69,8 @@ class ReputationHubResourceTest {
             "7002",
             Instant.parse("2026-03-01T00:00:00Z")));
 
-    assertTrue(reputationEngineService.trackContentPublished("hub.user.one@example.com", "thread-a"));
+    assertTrue(
+        reputationEngineService.trackContentPublished("hub.user.one@example.com", "thread-a"));
     assertTrue(
         reputationEngineService.trackEventSpeaker(
             "hub.user.one@example.com", "submission-a", "event-a"));
@@ -130,7 +131,9 @@ class ReputationHubResourceTest {
         .body(containsString("Learners"))
         .body(containsString("Coders"))
         .body(containsString("Speakers"))
-        .body(containsString("Members with the highest combined sum of commits, issues, and pull requests."))
+        .body(
+            containsString(
+                "Members with the highest combined sum of commits, issues, and pull requests."))
         .body(containsString("Recognized contributions"))
         .body(containsString("How to grow from here"))
         .body(containsString("What to focus on"))

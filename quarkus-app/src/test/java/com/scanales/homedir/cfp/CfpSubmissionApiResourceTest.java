@@ -129,7 +129,8 @@ public class CfpSubmissionApiResourceTest {
     String expectedInitiativeId = "event-cfp-cfp-api-event-1";
     boolean exists =
         insightsLedger.listInitiatives(200, 0).stream()
-            .anyMatch(item -> expectedInitiativeId.equals(item.initiativeId()) && item.totalEvents() > 0);
+            .anyMatch(
+                item -> expectedInitiativeId.equals(item.initiativeId()) && item.totalEvents() > 0);
     assertTrue(exists, "automatic CFP insights initiative should exist with recorded events");
   }
 
@@ -185,7 +186,8 @@ public class CfpSubmissionApiResourceTest {
     given()
         .accept("application/json")
         .when()
-        .get("/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=created&limit=2&offset=0")
+        .get(
+            "/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=created&limit=2&offset=0")
         .then()
         .statusCode(200)
         .body("limit", equalTo(2))
@@ -238,7 +240,10 @@ public class CfpSubmissionApiResourceTest {
     given()
         .accept("application/json")
         .when()
-        .get("/api/events/" + EVENT_ID + "/cfp/submissions?status=all&sort=updated&limit=10&offset=0")
+        .get(
+            "/api/events/"
+                + EVENT_ID
+                + "/cfp/submissions?status=all&sort=updated&limit=10&offset=0")
         .then()
         .statusCode(200)
         .body("items", hasSize(2))
@@ -316,7 +321,9 @@ public class CfpSubmissionApiResourceTest {
     cfpSubmissionService.updatePanelists(
         EVENT_ID,
         submission.id(),
-        List.of(new CfpSubmissionService.PanelistInput("Panelist", "panelist@example.com", "panelist@example.com")),
+        List.of(
+            new CfpSubmissionService.PanelistInput(
+                "Panelist", "panelist@example.com", "panelist@example.com")),
         "owner@example.com",
         null);
 
@@ -355,7 +362,9 @@ public class CfpSubmissionApiResourceTest {
     cfpSubmissionService.updatePanelists(
         EVENT_ID,
         submission.id(),
-        List.of(new CfpSubmissionService.PanelistInput("Panelist", "panelist@example.com", "panelist@example.com")),
+        List.of(
+            new CfpSubmissionService.PanelistInput(
+                "Panelist", "panelist@example.com", "panelist@example.com")),
         "owner@example.com",
         null);
     cfpSubmissionService.updateStatus(
@@ -363,7 +372,11 @@ public class CfpSubmissionApiResourceTest {
     cfpEventConfigService.publishResults(EVENT_ID, "admin@example.org", "Accepted", "Rejected");
 
     given()
-        .multiPart("file", "slides.pdf", "%PDF-1.4".getBytes(java.nio.charset.StandardCharsets.UTF_8), "application/pdf")
+        .multiPart(
+            "file",
+            "slides.pdf",
+            "%PDF-1.4".getBytes(java.nio.charset.StandardCharsets.UTF_8),
+            "application/pdf")
         .when()
         .post("/api/events/" + EVENT_ID + "/cfp/submissions/" + submission.id() + "/presentation")
         .then()
@@ -524,6 +537,7 @@ public class CfpSubmissionApiResourceTest {
         .statusCode(400)
         .body("error", equalTo("invalid_duration"));
   }
+
   @Test
   @TestSecurity(user = "member@example.com")
   void createRejectsInvalidControlledValues() {
@@ -647,12 +661,7 @@ public class CfpSubmissionApiResourceTest {
                 List.of("devops"),
                 List.of()));
     eventOperationsService.upsertStaff(
-        EVENT_ID,
-        "reviewer@example.com",
-        "Reviewer",
-        EventStaffRole.CFP_REVIEWER,
-        "manual",
-        true);
+        EVENT_ID, "reviewer@example.com", "Reviewer", EventStaffRole.CFP_REVIEWER, "manual", true);
 
     given()
         .accept("application/json")
@@ -1026,7 +1035,8 @@ public class CfpSubmissionApiResourceTest {
               "note":"approved",
               "expected_updated_at":"%s"
             }
-            """.formatted(staleVersion))
+            """
+                .formatted(staleVersion))
         .when()
         .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/status")
         .then()
@@ -1054,12 +1064,10 @@ public class CfpSubmissionApiResourceTest {
                 List.of("kubernetes"),
                 List.of()));
 
-    cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "ok");
+    cfpSubmissionService.updateStatus(
+        created.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "ok");
     cfpEventConfigService.publishResults(
-        EVENT_ID,
-        "admin@example.org",
-        "Welcome to the agenda",
-        "Thank you for submitting.");
+        EVENT_ID, "admin@example.org", "Welcome to the agenda", "Thank you for submitting.");
 
     String speakerId =
         given()
@@ -1119,7 +1127,8 @@ public class CfpSubmissionApiResourceTest {
               "content_impact":5,
               "expected_updated_at":"%s"
             }
-            """.formatted(staleVersion))
+            """
+                .formatted(staleVersion))
         .when()
         .put("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/rating")
         .then()
@@ -1265,7 +1274,8 @@ public class CfpSubmissionApiResourceTest {
                 "language":"en",
                 "track":"platform-engineering-idp"
               }
-              """.formatted(i))
+              """
+                  .formatted(i))
           .when()
           .post("/api/events/" + EVENT_ID + "/cfp/submissions")
           .then()
@@ -1343,13 +1353,7 @@ public class CfpSubmissionApiResourceTest {
   @TestSecurity(user = "member@example.com")
   void createRejectsWhenEventSubmissionsAreClosed() {
     cfpEventConfigService.upsert(
-        EVENT_ID,
-        new CfpEventConfigService.UpdateRequest(
-            false,
-            null,
-            null,
-            null,
-            null));
+        EVENT_ID, new CfpEventConfigService.UpdateRequest(false, null, null, null, null));
 
     given()
         .contentType("application/json")
@@ -1632,6 +1636,7 @@ public class CfpSubmissionApiResourceTest {
         .body(containsString("approved by jury"))
         .body(containsString("High score submission"));
   }
+
   @Test
   @TestSecurity(user = "member@example.com")
   void configEndpointExposesCurrentLimit() {
@@ -1652,13 +1657,7 @@ public class CfpSubmissionApiResourceTest {
   @TestSecurity(user = "member@example.com")
   void configEndpointReflectsEventSpecificOverride() {
     cfpEventConfigService.upsert(
-        EVENT_ID,
-        new CfpEventConfigService.UpdateRequest(
-            false,
-            null,
-            null,
-            4,
-            false));
+        EVENT_ID, new CfpEventConfigService.UpdateRequest(false, null, null, 4, false));
 
     given()
         .accept("application/json")

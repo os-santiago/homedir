@@ -1,4 +1,3 @@
 package com.scanales.homedir.cfp;
 
-public record CfpFormOption(String value, String label) {
-}
+public record CfpFormOption(String value, String label) {}

@@ -1,9 +1,9 @@
 package com.scanales.homedir.public_;
 
 import com.scanales.homedir.agenda.AgendaProposalConfigService;
-import com.scanales.homedir.cfp.CfpFormCatalog;
 import com.scanales.homedir.cfp.CfpConfigService;
 import com.scanales.homedir.cfp.CfpEventConfigService;
+import com.scanales.homedir.cfp.CfpFormCatalog;
 import com.scanales.homedir.cfp.CfpFormOptionsService;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
@@ -14,15 +14,15 @@ import com.scanales.homedir.eventops.EventOperationsService;
 import com.scanales.homedir.eventops.EventStaffRole;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.GamificationActivity;
-import com.scanales.homedir.volunteers.VolunteerApplication;
-import com.scanales.homedir.volunteers.VolunteerApplicationService;
-import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserSessionService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
+import com.scanales.homedir.volunteers.VolunteerApplication;
+import com.scanales.homedir.volunteers.VolunteerApplicationService;
+import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -50,14 +50,16 @@ public class EventResource {
         Map<String, Integer> cfpDurationByFormat,
         CfpTimelineView cfpTimeline);
 
-    static native TemplateInstance cfpSelected(Event event, List<CfpSubmission> selectedSubmissions);
+    static native TemplateInstance cfpSelected(
+        Event event, List<CfpSubmission> selectedSubmissions);
 
     static native TemplateInstance volunteers(Event event, boolean volunteerSelected);
 
     static native TemplateInstance volunteersLounge(
         Event event, boolean loungeAccess, boolean eventAdmin, String loungeAccessReason);
 
-    static native TemplateInstance volunteersSelected(Event event, List<VolunteerApplication> selectedVolunteers);
+    static native TemplateInstance volunteersSelected(
+        Event event, List<VolunteerApplication> selectedVolunteers);
   }
 
   @Inject EventService eventService;
@@ -119,18 +121,23 @@ public class EventResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/cfp", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id + ":cfp"));
+    currentUserId()
+        .ifPresent(
+            userId ->
+                gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id + ":cfp"));
     Event event = eventService.getEvent(id);
     CfpTimelineView cfpTimeline = null;
     if (event != null) {
       try {
-        CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(id);
+        CfpEventConfigService.ResolvedEventConfig resolved =
+            cfpEventConfigService.resolveForEvent(id);
         cfpTimeline =
             CfpTimelinePlanner.build(
                     event,
                     resolved.opensAt(),
                     resolved.closesAt(),
-                    java.util.Locale.forLanguageTag(TemplateLocaleUtil.resolve(localeCookie, headers)))
+                    java.util.Locale.forLanguageTag(
+                        TemplateLocaleUtil.resolve(localeCookie, headers)))
                 .orElse(null);
       } catch (Exception ignored) {
         cfpTimeline = null;
@@ -145,7 +152,9 @@ public class EventResource {
             "eventos",
             localeCookie,
             headers)
-        .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
+        .data(
+            "cfpTestingModeEnabled",
+            cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
   }
 
   @GET
@@ -158,20 +167,22 @@ public class EventResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/cfp/speakers", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, id + ":speakers"));
+    currentUserId()
+        .ifPresent(
+            userId ->
+                gamificationService.award(
+                    userId, GamificationActivity.EVENT_VIEW, id + ":speakers"));
     Event event = eventService.getEvent(id);
     List<CfpSubmission> acceptedSubmissions = List.of();
     if (event != null && cfpSubmissionService != null) {
-      acceptedSubmissions = cfpSubmissionService.listByEventAll(
-          id,
-          Optional.of(CfpSubmissionStatus.ACCEPTED),
-          CfpSubmissionService.SortOrder.CREATED_DESC);
+      acceptedSubmissions =
+          cfpSubmissionService.listByEventAll(
+              id,
+              Optional.of(CfpSubmissionStatus.ACCEPTED),
+              CfpSubmissionService.SortOrder.CREATED_DESC);
     }
     return withLayoutData(
-        Templates.cfpSelected(event, acceptedSubmissions),
-        "eventos",
-        localeCookie,
-        headers);
+        Templates.cfpSelected(event, acceptedSubmissions), "eventos", localeCookie, headers);
   }
 
   @GET
@@ -184,20 +195,22 @@ public class EventResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/cfp/selected", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_VIEW, id + ":cfp-selected"));
+    currentUserId()
+        .ifPresent(
+            userId ->
+                gamificationService.award(
+                    userId, GamificationActivity.EVENT_VIEW, id + ":cfp-selected"));
     Event event = eventService.getEvent(id);
     List<CfpSubmission> selectedSubmissions = List.of();
     if (event != null && cfpSubmissionService != null) {
-      selectedSubmissions = cfpSubmissionService.listByEventAll(
-          id,
-          Optional.of(CfpSubmissionStatus.ACCEPTED),
-          CfpSubmissionService.SortOrder.UPDATED_DESC);
+      selectedSubmissions =
+          cfpSubmissionService.listByEventAll(
+              id,
+              Optional.of(CfpSubmissionStatus.ACCEPTED),
+              CfpSubmissionService.SortOrder.UPDATED_DESC);
     }
     return withLayoutData(
-        Templates.cfpSelected(event, selectedSubmissions),
-        "eventos",
-        localeCookie,
-        headers);
+        Templates.cfpSelected(event, selectedSubmissions), "eventos", localeCookie, headers);
   }
 
   @GET
@@ -210,7 +223,9 @@ public class EventResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/volunteers", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id));
+    currentUserId()
+        .ifPresent(
+            userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id));
     Event event = eventService.getEvent(id);
     boolean volunteerSelected = false;
     java.util.Optional<String> currentUser = currentUserId();
@@ -221,10 +236,7 @@ public class EventResource {
           app.isPresent() && app.get().status() == VolunteerApplicationStatus.SELECTED;
     }
     return withLayoutData(
-        Templates.volunteers(event, volunteerSelected),
-        "eventos",
-        localeCookie,
-        headers);
+        Templates.volunteers(event, volunteerSelected), "eventos", localeCookie, headers);
   }
 
   @GET
@@ -237,22 +249,24 @@ public class EventResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/volunteers/selected", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id + ":selected"));
+    currentUserId()
+        .ifPresent(
+            userId ->
+                gamificationService.award(
+                    userId, GamificationActivity.VOLUNTEER_VIEW, id + ":selected"));
     Event event = eventService.getEvent(id);
     List<VolunteerApplication> selectedVolunteers = List.of();
     if (event != null && volunteerApplicationService != null) {
-      selectedVolunteers = volunteerApplicationService.listByEvent(
-          id,
-          Optional.of(VolunteerApplicationStatus.SELECTED),
-          VolunteerApplicationService.SortOrder.CREATED_DESC,
-          Integer.MAX_VALUE,
-          0);
+      selectedVolunteers =
+          volunteerApplicationService.listByEvent(
+              id,
+              Optional.of(VolunteerApplicationStatus.SELECTED),
+              VolunteerApplicationService.SortOrder.CREATED_DESC,
+              Integer.MAX_VALUE,
+              0);
     }
     return withLayoutData(
-        Templates.volunteersSelected(event, selectedVolunteers),
-        "eventos",
-        localeCookie,
-        headers);
+        Templates.volunteersSelected(event, selectedVolunteers), "eventos", localeCookie, headers);
   }
 
   @GET
@@ -265,7 +279,9 @@ public class EventResource {
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/volunteers/lounge", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id));
+    currentUserId()
+        .ifPresent(
+            userId -> gamificationService.award(userId, GamificationActivity.VOLUNTEER_VIEW, id));
     Event event = eventService.getEvent(id);
     boolean authenticated = identity != null && !identity.isAnonymous();
     boolean eventAdmin = authenticated && AdminUtils.isAdmin(identity);

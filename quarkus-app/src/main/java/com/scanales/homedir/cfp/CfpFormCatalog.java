@@ -7,5 +7,4 @@ public record CfpFormCatalog(
     List<CfpFormOption> formats,
     List<CfpFormOption> durations,
     List<CfpFormOption> languages,
-    List<CfpFormOption> tracks) {
-}
+    List<CfpFormOption> tracks) {}

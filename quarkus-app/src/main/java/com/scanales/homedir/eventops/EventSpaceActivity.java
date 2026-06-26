@@ -14,4 +14,3 @@ public record EventSpaceActivity(
     @JsonProperty("end_at") Instant endAt,
     @JsonProperty("created_at") Instant createdAt,
     @JsonProperty("updated_at") Instant updatedAt) {}
-

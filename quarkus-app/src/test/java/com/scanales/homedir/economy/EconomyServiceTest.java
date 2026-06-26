@@ -41,7 +41,9 @@ public class EconomyServiceTest {
 
     assertEquals("profile-glow", purchase.itemId());
     assertEquals(walletBefore.balanceHcoin() - 120, walletAfter.balanceHcoin());
-    assertTrue(inventory.stream().anyMatch(item -> "profile-glow".equals(item.itemId()) && item.quantity() >= 1));
+    assertTrue(
+        inventory.stream()
+            .anyMatch(item -> "profile-glow".equals(item.itemId()) && item.quantity() >= 1));
     assertEquals(1, profileGlow.ownedQuantity());
     assertTrue(profileGlow.remainingStock() >= 0);
     assertFalse(page.items().isEmpty());
@@ -95,7 +97,10 @@ public class EconomyServiceTest {
 
     List<EconomyService.CatalogOffer> initial = economyService.listCatalogForUser(userId);
     EconomyService.CatalogOffer architect =
-        initial.stream().filter(item -> "architect-badge".equals(item.id())).findFirst().orElseThrow();
+        initial.stream()
+            .filter(item -> "architect-badge".equals(item.id()))
+            .findFirst()
+            .orElseThrow();
 
     assertFalse(architect.unlocked());
     assertTrue(
@@ -103,6 +108,8 @@ public class EconomyServiceTest {
             || "requires_total_xp".equals(architect.lockReason())
             || "requires_class_xp".equals(architect.lockReason()));
 
-    assertThrows(EconomyService.ValidationException.class, () -> economyService.purchase(userId, "architect-badge"));
+    assertThrows(
+        EconomyService.ValidationException.class,
+        () -> economyService.purchase(userId, "architect-badge"));
   }
 }

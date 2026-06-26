@@ -70,8 +70,7 @@ public class UsageMetricsService {
   private long lastFileSizeBytes;
 
   @RegisterForReflection
-  public record Registrant(String name, String email) {
-  }
+  public record Registrant(String name, String email) {}
 
   @ConfigProperty(name = "metrics.flush-interval", defaultValue = "PT10S")
   Duration flushInterval;
@@ -162,9 +161,10 @@ public class UsageMetricsService {
           Object disc = meta.get("discarded");
           if (disc instanceof Map<?, ?> dm) {
             dm.forEach(
-                (k, v) -> discardedByReason
-                    .computeIfAbsent(String.valueOf(k), r -> new LongAdder())
-                    .add(((Number) v).longValue()));
+                (k, v) ->
+                    discardedByReason
+                        .computeIfAbsent(String.valueOf(k), r -> new LongAdder())
+                        .add(((Number) v).longValue()));
           }
           Object sv = meta.get("schemaVersion");
           if (sv instanceof Number n) {
@@ -219,7 +219,12 @@ public class UsageMetricsService {
   }
 
   public record ObservabilitySeriesSnapshot(
-      String code, List<Long> counts, long total, long previousTotal, Long trendPct, Long lastSeenAt) {}
+      String code,
+      List<Long> counts,
+      long total,
+      long previousTotal,
+      Long trendPct,
+      Long lastSeenAt) {}
 
   public record ObservabilityWindow(
       long generatedAtMillis,
@@ -278,7 +283,8 @@ public class UsageMetricsService {
             firstEpochHour,
             latestEpochHour,
             previousFirstEpochHour);
-    long interactionsLastWindow = modules.stream().mapToLong(ObservabilitySeriesSnapshot::total).sum();
+    long interactionsLastWindow =
+        modules.stream().mapToLong(ObservabilitySeriesSnapshot::total).sum();
     long interactionsPreviousWindow =
         modules.stream().mapToLong(ObservabilitySeriesSnapshot::previousTotal).sum();
     return new ObservabilityWindow(
@@ -292,8 +298,7 @@ public class UsageMetricsService {
   }
 
   private boolean isBot(String ua) {
-    if (ua == null)
-      return false;
+    if (ua == null) return false;
     String u = ua.toLowerCase();
     return u.contains("bot")
         || u.contains("spider")
@@ -643,11 +648,7 @@ public class UsageMetricsService {
     StringBuilder safe = new StringBuilder(normalized.length());
     for (int i = 0; i < normalized.length(); i++) {
       char c = normalized.charAt(i);
-      if ((c >= 'a' && c <= 'z')
-          || (c >= '0' && c <= '9')
-          || c == '.'
-          || c == '-'
-          || c == '_') {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_') {
         safe.append(c);
       }
     }
@@ -665,10 +666,7 @@ public class UsageMetricsService {
     StringBuilder safe = new StringBuilder(normalized.length());
     for (int i = 0; i < normalized.length(); i++) {
       char c = normalized.charAt(i);
-      if ((c >= 'a' && c <= 'z')
-          || (c >= '0' && c <= '9')
-          || c == '-'
-          || c == '_') {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_') {
         safe.append(c);
       }
     }
@@ -810,10 +808,10 @@ public class UsageMetricsService {
 
   private long currentEpochHour(Instant instant) {
     return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
-        .withMinute(0)
-        .withSecond(0)
-        .withNano(0)
-        .toEpochSecond()
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0)
+            .toEpochSecond()
         / 3600L;
   }
 
@@ -836,11 +834,7 @@ public class UsageMetricsService {
     StringBuilder safe = new StringBuilder(normalized.length());
     for (int i = 0; i < normalized.length(); i++) {
       char c = normalized.charAt(i);
-      if ((c >= 'a' && c <= 'z')
-          || (c >= '0' && c <= '9')
-          || c == '.'
-          || c == '-'
-          || c == '_') {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_') {
         safe.append(c);
       }
     }
@@ -851,8 +845,7 @@ public class UsageMetricsService {
   }
 
   private boolean isBurst(String sessionId) {
-    if (sessionId == null)
-      return false;
+    if (sessionId == null) return false;
     long now = System.currentTimeMillis();
     RateLimiter rl = rates.computeIfAbsent(sessionId, k -> new RateLimiter());
     synchronized (rl) {
@@ -872,8 +865,7 @@ public class UsageMetricsService {
   }
 
   private void flushSafe() {
-    if (!dirty.get())
-      return;
+    if (!dirty.get()) return;
     LOG.info("metrics_flush_start");
     Map<String, Long> snapshot = Map.copyOf(counters);
     Map<String, Long> discards = getDiscarded();
@@ -990,10 +982,7 @@ public class UsageMetricsService {
         burstPerMinute);
   }
 
-  /**
-   * Returns the last modification time of the metrics file or {@code 0} if
-   * unavailable.
-   */
+  /** Returns the last modification time of the metrics file or {@code 0} if unavailable. */
   public long getLastUpdatedMillis() {
     try {
       if (Files.exists(metricsPath)) {
@@ -1015,8 +1004,7 @@ public class UsageMetricsService {
       long writesFail,
       String lastError,
       long fileSizeBytes,
-      Map<String, Long> discards) {
-  }
+      Map<String, Long> discards) {}
 
   public enum HealthState {
     OK,
@@ -1079,10 +1067,8 @@ public class UsageMetricsService {
   }
 
   /**
-   * Resets all tracked metrics. Intended for administrative use and tests. Clears
-   * in-memory
-   * counters and removes any persisted metrics files so that a fresh dataset can
-   * be recorded.
+   * Resets all tracked metrics. Intended for administrative use and tests. Clears in-memory
+   * counters and removes any persisted metrics files so that a fresh dataset can be recorded.
    */
   public void reset() {
     counters.clear();

@@ -33,14 +33,16 @@ public class CommunitySubmissionApiResourceTest {
     Path dir = Path.of(System.getProperty("homedir.data.dir"), "community", "content");
     if (Files.exists(dir)) {
       try (var walk = Files.walk(dir)) {
-        walk.sorted(Comparator.reverseOrder()).forEach(path -> {
-          if (!path.equals(dir)) {
-            try {
-              Files.deleteIfExists(path);
-            } catch (Exception ignored) {
-            }
-          }
-        });
+        walk.sorted(Comparator.reverseOrder())
+            .forEach(
+                path -> {
+                  if (!path.equals(dir)) {
+                    try {
+                      Files.deleteIfExists(path);
+                    } catch (Exception ignored) {
+                    }
+                  }
+                });
       }
     }
     Files.createDirectories(dir);
@@ -137,11 +139,7 @@ public class CommunitySubmissionApiResourceTest {
         "member@example.com",
         "Member",
         new CommunitySubmissionService.CreateRequest(
-            "Recurso",
-            "https://example.org/resource",
-            "Resumen",
-            "Example",
-            List.of("dev")));
+            "Recurso", "https://example.org/resource", "Resumen", "Example", List.of("dev")));
 
     given()
         .accept("application/json")

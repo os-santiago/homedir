@@ -124,7 +124,8 @@ public class CfpEventConfigService {
       if (normalizedActor == null) {
         throw new ValidationException("actor_required");
       }
-      CfpEventConfig current = overrides.getOrDefault(normalizedEventId, CfpEventConfig.defaults(normalizedEventId));
+      CfpEventConfig current =
+          overrides.getOrDefault(normalizedEventId, CfpEventConfig.defaults(normalizedEventId));
       CfpEventConfig updated =
           new CfpEventConfig(
               normalizedEventId,
@@ -188,17 +189,17 @@ public class CfpEventConfigService {
           overrides.put(
               normalizedEventId,
               new CfpEventConfig(
-              normalizedEventId,
-              config.acceptingSubmissions(),
-              config.opensAt(),
-              config.closesAt(),
-              normalizedLimit,
-              config.testingModeEnabled(),
-              config.resultsPublishedAt(),
-              config.resultsPublishedBy(),
-              config.acceptedResultsMessage(),
-              config.rejectedResultsMessage(),
-              config.updatedAt() != null ? config.updatedAt() : Instant.now()));
+                  normalizedEventId,
+                  config.acceptingSubmissions(),
+                  config.opensAt(),
+                  config.closesAt(),
+                  normalizedLimit,
+                  config.testingModeEnabled(),
+                  config.resultsPublishedAt(),
+                  config.resultsPublishedBy(),
+                  config.acceptedResultsMessage(),
+                  config.rejectedResultsMessage(),
+                  config.updatedAt() != null ? config.updatedAt() : Instant.now()));
         });
     lastKnownMtime = mtime;
   }

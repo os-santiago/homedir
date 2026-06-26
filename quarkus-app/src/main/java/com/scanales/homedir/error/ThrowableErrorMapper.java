@@ -22,54 +22,62 @@ import org.jboss.logging.Logger;
 @Priority(4990)
 public class ThrowableErrorMapper implements ExceptionMapper<Throwable> {
 
-    private static final Logger LOG = Logger.getLogger(ThrowableErrorMapper.class);
+  private static final Logger LOG = Logger.getLogger(ThrowableErrorMapper.class);
 
-    @Inject
-    Engine engine;
+  @Inject Engine engine;
 
-    @Context
-    HttpHeaders headers;
+  @Context HttpHeaders headers;
 
-    @Override
-    public Response toResponse(Throwable t) {
-        LOG.error("Unhandled exception caught", t);
-        int statusCode = 500;
-        if (t instanceof WebApplicationException wae) {
-            statusCode = wae.getResponse().getStatus();
-        } else if (t instanceof ForbiddenException) {
-            statusCode = 403;
-        }
-        Template template = engine.getTemplate("errors/" + statusCode);
-        if (template == null) {
-            return Response.status(statusCode).entity("Error " + statusCode).type(MediaType.TEXT_PLAIN).build();
-        }
-        Locale locale = resolveLocale();
-        String html;
-        try {
-            TemplateInstance instance = template.instance();
-            if (locale != null) {
-                instance.setAttribute(TemplateInstance.LOCALE, locale);
-            }
-            html = instance.render();
-        } catch (Exception ex) {
-            return Response.status(statusCode).entity("Error " + statusCode).type(MediaType.TEXT_PLAIN).build();
-        }
-        return Response.status(statusCode).entity(html).type(MediaType.TEXT_HTML).build();
+  @Override
+  public Response toResponse(Throwable t) {
+    LOG.error("Unhandled exception caught", t);
+    int statusCode = 500;
+    if (t instanceof WebApplicationException wae) {
+      statusCode = wae.getResponse().getStatus();
+    } else if (t instanceof ForbiddenException) {
+      statusCode = 403;
     }
-
-    private Locale resolveLocale() {
-        if (headers == null || headers.getAcceptableLanguages() == null
-            || headers.getAcceptableLanguages().isEmpty()) {
-            return null;
-        }
-        try {
-            List<LanguageRange> ranges = LanguageRange.parse(
-                headers.getAcceptableLanguages().stream()
-                    .map(Locale::toLanguageTag).reduce((a, b) -> a + "," + b).orElse("en"));
-            Locale best = Locale.lookup(ranges, List.of(Locale.ENGLISH, Locale.of("es")));
-            return best != null ? best : Locale.ENGLISH;
-        } catch (Exception ex) {
-            return null;
-        }
+    Template template = engine.getTemplate("errors/" + statusCode);
+    if (template == null) {
+      return Response.status(statusCode)
+          .entity("Error " + statusCode)
+          .type(MediaType.TEXT_PLAIN)
+          .build();
     }
+    Locale locale = resolveLocale();
+    String html;
+    try {
+      TemplateInstance instance = template.instance();
+      if (locale != null) {
+        instance.setAttribute(TemplateInstance.LOCALE, locale);
+      }
+      html = instance.render();
+    } catch (Exception ex) {
+      return Response.status(statusCode)
+          .entity("Error " + statusCode)
+          .type(MediaType.TEXT_PLAIN)
+          .build();
+    }
+    return Response.status(statusCode).entity(html).type(MediaType.TEXT_HTML).build();
+  }
+
+  private Locale resolveLocale() {
+    if (headers == null
+        || headers.getAcceptableLanguages() == null
+        || headers.getAcceptableLanguages().isEmpty()) {
+      return null;
+    }
+    try {
+      List<LanguageRange> ranges =
+          LanguageRange.parse(
+              headers.getAcceptableLanguages().stream()
+                  .map(Locale::toLanguageTag)
+                  .reduce((a, b) -> a + "," + b)
+                  .orElse("en"));
+      Locale best = Locale.lookup(ranges, List.of(Locale.ENGLISH, Locale.of("es")));
+      return best != null ? best : Locale.ENGLISH;
+    } catch (Exception ex) {
+      return null;
+    }
+  }
 }

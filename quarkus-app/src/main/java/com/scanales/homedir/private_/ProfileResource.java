@@ -1,30 +1,32 @@
 package com.scanales.homedir.private_;
 
-import com.scanales.homedir.challenges.ChallengeService;
+import com.scanales.homedir.cfp.CfpEventConfigService;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
-import com.scanales.homedir.cfp.CfpEventConfigService;
 import com.scanales.homedir.cfp.CfpTimelinePlanner;
 import com.scanales.homedir.cfp.CfpTimelineView;
-import com.scanales.homedir.volunteers.VolunteerApplication;
-import com.scanales.homedir.volunteers.VolunteerApplicationService;
-import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
-import com.scanales.homedir.volunteers.VolunteerEventConfigService;
-import com.scanales.homedir.model.Talk;
-import com.scanales.homedir.model.TalkInfo;
-import com.scanales.homedir.model.GamificationActivity;
-import com.scanales.homedir.community.CommunityBoardGroup;
+import com.scanales.homedir.challenges.ChallengeService;
 import com.scanales.homedir.community.CommunityBoardService;
+import com.scanales.homedir.config.AppMessages;
+import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.model.QuestClass;
+import com.scanales.homedir.model.QuestProfile;
+import com.scanales.homedir.model.Talk;
+import com.scanales.homedir.security.RedirectSanitizer;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.ProfileReadinessService;
+import com.scanales.homedir.service.QuestService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.service.UserScheduleService;
 import com.scanales.homedir.service.UserScheduleService.TalkDetails;
 import com.scanales.homedir.util.PaginationGuardrails;
-import com.scanales.homedir.security.RedirectSanitizer;
+import com.scanales.homedir.volunteers.VolunteerApplication;
+import com.scanales.homedir.volunteers.VolunteerApplicationService;
+import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
+import com.scanales.homedir.volunteers.VolunteerEventConfigService;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -33,10 +35,6 @@ import io.quarkus.qute.i18n.MessageBundles;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import com.scanales.homedir.model.QuestClass;
-import com.scanales.homedir.model.QuestProfile;
-import com.scanales.homedir.service.QuestService;
-import com.scanales.homedir.config.AppMessages;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -114,10 +112,7 @@ public class ProfileResource {
         String ogTitle,
         String ogDescription);
 
-    static native TemplateInstance catalog(
-        String name,
-        String currentLanguage,
-        AppMessages i18n);
+    static native TemplateInstance catalog(String name, String currentLanguage, AppMessages i18n);
   }
 
   /** Display state for per-class progression. */
@@ -129,26 +124,21 @@ public class ProfileResource {
       int xp,
       int level,
       int percentage,
-      boolean dominant) {
-  }
+      boolean dominant) {}
 
   /** Activity category mapped to the class where XP is earned. */
   public record ActivityClassMapping(
-      String category, String examples, String className, String actionPath) {
-  }
+      String category, String examples, String className, String actionPath) {}
 
-  private record DominantClassSummary(QuestClass questClass, String message) {
-  }
+  private record DominantClassSummary(QuestClass questClass, String message) {}
 
   /** Talks grouped by day within an event. */
-  public record DayGroup(int day, java.util.List<Talk> talks) {
-  }
+  public record DayGroup(int day, java.util.List<Talk> talks) {}
 
   public record EventGroup(
       com.scanales.homedir.model.Event event,
       java.util.List<DayGroup> days,
-      java.util.List<com.scanales.homedir.model.Speaker> speakers) {
-  }
+      java.util.List<com.scanales.homedir.model.Speaker> speakers) {}
 
   public record CfpOverview(
       int total,
@@ -157,8 +147,7 @@ public class ProfileResource {
       int pending,
       int rejected,
       int withdrawn,
-      int distinctEvents) {
-  }
+      int distinctEvents) {}
 
   public record CfpSubmissionItem(
       String id,
@@ -170,8 +159,7 @@ public class ProfileResource {
       String assignedBlock,
       String assignedScenario,
       String deliveryStatus,
-      String manageUrl) {
-  }
+      String manageUrl) {}
 
   public record VolunteerOverview(
       int total,
@@ -180,8 +168,7 @@ public class ProfileResource {
       int applied,
       int notSelected,
       int withdrawn,
-      int distinctEvents) {
-  }
+      int distinctEvents) {}
 
   public record VolunteerApplicationItem(
       String id,
@@ -190,15 +177,12 @@ public class ProfileResource {
       String status,
       String updatedAtLabel,
       String manageUrl,
-      String loungeUrl) {
-  }
+      String loungeUrl) {}
 
-  public record VolunteerEventItem(String eventId, String eventTitle, String applyUrl) {
-  }
+  public record VolunteerEventItem(String eventId, String eventTitle, String applyUrl) {}
 
   public record ChallengeOverview(
-      int total, int completed, int inProgress, int ready, int totalRewardHcoin) {
-  }
+      int total, int completed, int inProgress, int ready, int totalRewardHcoin) {}
 
   public record ChallengeProfileCard(
       String id,
@@ -214,8 +198,7 @@ public class ProfileResource {
       String ctaLabel,
       String statusLabel,
       String rewardLabel,
-      String progressLabel) {
-  }
+      String progressLabel) {}
 
   public record ChallengeCopy(
       String eyebrow,
@@ -244,34 +227,20 @@ public class ProfileResource {
       String openSourceIdentityDesc,
       String openSourceIdentityCta) {}
 
-  @Inject
-  EventService eventService;
-  @Inject
-  UserScheduleService userSchedule;
-  @Inject
-  UserProfileService userProfiles;
-  @Inject
-  CommunityBoardService boardService;
-  @Inject
-  UsageMetricsService metrics;
-  @Inject
-  SecurityIdentity identity;
-  @Inject
-  QuestService questService;
-  @Inject
-  GamificationService gamificationService;
-  @Inject
-  CfpSubmissionService cfpSubmissionService;
-  @Inject
-  CfpEventConfigService cfpEventConfigService;
-  @Inject
-  VolunteerApplicationService volunteerApplicationService;
-  @Inject
-  VolunteerEventConfigService volunteerEventConfigService;
-  @Inject
-  ChallengeService challengeService;
-  @Inject
-  ProfileReadinessService profileReadinessService;
+  @Inject EventService eventService;
+  @Inject UserScheduleService userSchedule;
+  @Inject UserProfileService userProfiles;
+  @Inject CommunityBoardService boardService;
+  @Inject UsageMetricsService metrics;
+  @Inject SecurityIdentity identity;
+  @Inject QuestService questService;
+  @Inject GamificationService gamificationService;
+  @Inject CfpSubmissionService cfpSubmissionService;
+  @Inject CfpEventConfigService cfpEventConfigService;
+  @Inject VolunteerApplicationService volunteerApplicationService;
+  @Inject VolunteerEventConfigService volunteerEventConfigService;
+  @Inject ChallengeService challengeService;
+  @Inject ProfileReadinessService profileReadinessService;
 
   @GET
   @Authenticated
@@ -313,10 +282,11 @@ public class ProfileResource {
     var userProfile = userProfiles.upsert(email, name, email);
     var speakerProfile = userProfile.getSpeakerProfile();
     boolean speakerActive = speakerProfile != null && speakerProfile.active();
-    String avatarUrl = firstNonBlank(
-        picture,
-        userProfile.getGithub() != null ? userProfile.getGithub().avatarUrl() : null,
-        userProfile.getDiscord() != null ? userProfile.getDiscord().avatarUrl() : null);
+    String avatarUrl =
+        firstNonBlank(
+            picture,
+            userProfile.getGithub() != null ? userProfile.getGithub().avatarUrl() : null,
+            userProfile.getDiscord() != null ? userProfile.getDiscord().avatarUrl() : null);
     ProfileReadinessService.Readiness selectionReadiness =
         profileReadinessService.evaluate(userProfile, name, avatarUrl);
     gamificationService.award(email, GamificationActivity.PROFILE_VIEW);
@@ -326,30 +296,38 @@ public class ProfileResource {
         PaginationGuardrails.clampWindowStep(
             historyLimitParam, RESUME_HISTORY_STEP, RESUME_HISTORY_STEP, RESUME_HISTORY_MAX_WINDOW);
     QuestProfile questProfile = questService.getProfile(email, resumeHistoryLimit);
-    int totalHistoryEntries = userProfile.getHistory() == null ? 0 : userProfile.getHistory().size();
+    int totalHistoryEntries =
+        userProfile.getHistory() == null ? 0 : userProfile.getHistory().size();
     boolean resumeHistoryHasMore = totalHistoryEntries > questProfile.history.size();
     boolean resumeHistoryAtLimit =
         resumeHistoryHasMore && resumeHistoryLimit >= RESUME_HISTORY_MAX_WINDOW;
     int resumeHistoryNextLimit =
         PaginationGuardrails.nextWindow(
             resumeHistoryLimit, RESUME_HISTORY_STEP, RESUME_HISTORY_MAX_WINDOW);
-    java.util.List<ClassProgress> classProgress = buildClassProgress(userProfile, questProfile.currentXp);
-    DominantClassSummary dominantClassSummary = resolveDominantClassSummary(classProgress, localizedMessages);
+    java.util.List<ClassProgress> classProgress =
+        buildClassProgress(userProfile, questProfile.currentXp);
+    DominantClassSummary dominantClassSummary =
+        resolveDominantClassSummary(classProgress, localizedMessages);
     QuestClass dominantClass = dominantClassSummary.questClass();
     String dominantClassMessage = dominantClassSummary.message();
-    java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap(localizedMessages);
+    java.util.List<ActivityClassMapping> activityClassMap =
+        buildActivityClassMap(localizedMessages);
     java.util.Set<String> cfpUserIds = currentUserIds(email, sub);
-    CfpSubmissionService.MineStats cfpOverviewStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
-    CfpSubmissionService.MineStats cfpInternalStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
-    int internalAccepted = cfpInternalStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
-    CfpOverview cfpOverview = new CfpOverview(
-        cfpOverviewStats.total(),
-        internalAccepted,
-        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
-        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
-        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
-        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
-        cfpOverviewStats.distinctEvents());
+    CfpSubmissionService.MineStats cfpOverviewStats =
+        cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
+    CfpSubmissionService.MineStats cfpInternalStats =
+        cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+    int internalAccepted =
+        cfpInternalStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
+    CfpOverview cfpOverview =
+        new CfpOverview(
+            cfpOverviewStats.total(),
+            internalAccepted,
+            cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
+            cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
+            cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
+            cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
+            cfpOverviewStats.distinctEvents());
     java.util.List<CfpSubmissionItem> cfpRecentSubmissions =
         cfpSubmissionService
             .listMineAcrossEvents(cfpUserIds, CfpSubmissionService.SortOrder.UPDATED_DESC, 10, 0)
@@ -360,28 +338,40 @@ public class ProfileResource {
 
     VolunteerApplicationService.MineStats volunteerMineStats =
         volunteerApplicationService.statsMineAcrossEvents(cfpUserIds);
-    VolunteerOverview volunteerOverview = new VolunteerOverview(
-        volunteerMineStats.total(),
-        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.SELECTED, 0),
-        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.UNDER_REVIEW, 0),
-        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.APPLIED, 0),
-        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.NOT_SELECTED, 0),
-        volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.WITHDRAWN, 0),
-        volunteerMineStats.distinctEvents());
+    VolunteerOverview volunteerOverview =
+        new VolunteerOverview(
+            volunteerMineStats.total(),
+            volunteerMineStats
+                .countsByStatus()
+                .getOrDefault(VolunteerApplicationStatus.SELECTED, 0),
+            volunteerMineStats
+                .countsByStatus()
+                .getOrDefault(VolunteerApplicationStatus.UNDER_REVIEW, 0),
+            volunteerMineStats.countsByStatus().getOrDefault(VolunteerApplicationStatus.APPLIED, 0),
+            volunteerMineStats
+                .countsByStatus()
+                .getOrDefault(VolunteerApplicationStatus.NOT_SELECTED, 0),
+            volunteerMineStats
+                .countsByStatus()
+                .getOrDefault(VolunteerApplicationStatus.WITHDRAWN, 0),
+            volunteerMineStats.distinctEvents());
     java.util.List<VolunteerApplicationItem> volunteerRecentApplications =
         volunteerApplicationService
-            .listMineAcrossEvents(cfpUserIds, VolunteerApplicationService.SortOrder.UPDATED_DESC, 10, 0)
+            .listMineAcrossEvents(
+                cfpUserIds, VolunteerApplicationService.SortOrder.UPDATED_DESC, 10, 0)
             .stream()
             .map(this::toVolunteerApplicationItem)
             .toList();
     java.util.List<VolunteerEventItem> volunteerOpenEvents = listVolunteerOpenEvents();
     boolean selectionLocked =
-        (cfpOverview.accepted() > 0 || volunteerOverview.selected() > 0) && !selectionReadiness.ready();
+        (cfpOverview.accepted() > 0 || volunteerOverview.selected() > 0)
+            && !selectionReadiness.ready();
     java.util.List<ChallengeProfileCard> profileChallenges =
         challengeService.listProgressForUser(email).stream()
             .map(card -> toChallengeProfileCard(card, challengeCopy))
             .toList();
-    int challengeCompleted = (int) profileChallenges.stream().filter(ChallengeProfileCard::completed).count();
+    int challengeCompleted =
+        (int) profileChallenges.stream().filter(ChallengeProfileCard::completed).count();
     int challengeInProgress =
         (int)
             profileChallenges.stream()
@@ -401,58 +391,62 @@ public class ProfileResource {
           (int) Math.round((questProfile.currentXp * 100.0d) / (double) questProfile.nextLevelXp);
     }
     questProgressPercent = Math.max(0, Math.min(100, questProgressPercent));
-    String publicProfileHandle = resolvePublicProfileHandle(
-        email,
-        userProfile.getGithub() != null ? userProfile.getGithub().login() : null);
+    String publicProfileHandle =
+        resolvePublicProfileHandle(
+            email, userProfile.getGithub() != null ? userProfile.getGithub().login() : null);
 
     // Viral Feature: Social Tags
     String ogTitle = (name != null ? name : "Developer") + "'s Homedir";
-    String questClass = (dominantClass != null)
-        ? dominantClass.getDisplayName()
-        : "Novice";
+    String questClass = (dominantClass != null) ? dominantClass.getDisplayName() : "Novice";
     int xp = questProfile.currentXp;
-    String ogDescription = "Level " + (xp / 1000) + " " + questClass + ". Current XP: " + xp
-        + ". Solving real engineering problems.";
+    String ogDescription =
+        "Level "
+            + (xp / 1000)
+            + " "
+            + questClass
+            + ". Current XP: "
+            + xp
+            + ". Solving real engineering problems.";
 
     return Templates.profile(
-        name,
-        givenName,
-        familyName,
-        picture,
-        email,
-        sub,
-        groups,
-        info,
-        summary.total(),
-        summary.attended(),
-        summary.rated(),
-        userProfile.getGithub(),
-        userProfile.getDiscord(),
-        githubLinked,
-        discordLinked,
-        discordUnlinked,
-        githubError,
-        discordError,
-        linkGithub,
-        true,
-        name,
-        name.substring(0, 1).toUpperCase(),
-        classProgress,
-        dominantClass,
-        dominantClassMessage,
-        activityClassMap,
-        questProfile,
-        resumeHistoryLimit,
-        resumeHistoryNextLimit,
-        resumeHistoryHasMore,
-        resumeHistoryAtLimit,
-        questProgressPercent,
-        publicProfileHandle,
-        cfpTimeline,
-        finalLang,
-        localizedMessages,
-        ogTitle,
-        ogDescription)
+            name,
+            givenName,
+            familyName,
+            picture,
+            email,
+            sub,
+            groups,
+            info,
+            summary.total(),
+            summary.attended(),
+            summary.rated(),
+            userProfile.getGithub(),
+            userProfile.getDiscord(),
+            githubLinked,
+            discordLinked,
+            discordUnlinked,
+            githubError,
+            discordError,
+            linkGithub,
+            true,
+            name,
+            name.substring(0, 1).toUpperCase(),
+            classProgress,
+            dominantClass,
+            dominantClassMessage,
+            activityClassMap,
+            questProfile,
+            resumeHistoryLimit,
+            resumeHistoryNextLimit,
+            resumeHistoryHasMore,
+            resumeHistoryAtLimit,
+            questProgressPercent,
+            publicProfileHandle,
+            cfpTimeline,
+            finalLang,
+            localizedMessages,
+            ogTitle,
+            ogDescription)
         .data("cfpOverview", cfpOverview)
         .data("cfpRecentSubmissions", cfpRecentSubmissions)
         .data("speakerProfile", speakerProfile)
@@ -529,7 +523,8 @@ public class ProfileResource {
     String email = getEmail();
     UserScheduleService.TalkDetails previous = userSchedule.getTalkDetailsForUser(email).get(id);
     Integer previousRating = previous != null ? previous.rating : null;
-    boolean ok = userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations, req.comment);
+    boolean ok =
+        userSchedule.updateTalk(email, id, req.attended, req.rating, req.motivations, req.comment);
     if (ok && req.rating != null && previousRating == null) {
       gamificationService.award(email, GamificationActivity.SESSION_EVALUATION, id);
     }
@@ -542,13 +537,12 @@ public class ProfileResource {
       Boolean attended,
       @Min(1) @Max(5) Integer rating,
       java.util.Set<String> motivations,
-      @jakarta.validation.constraints.Size(max = 200) String comment) {
-  }
+      @jakarta.validation.constraints.Size(max = 200) String comment) {}
 
   @POST
   @Path("add/{id}")
   @Authenticated
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.TEXT_HTML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_HTML})
   public Response addTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
     String email = getEmail();
     String name = getClaim("name");
@@ -596,7 +590,7 @@ public class ProfileResource {
   @POST
   @Path("remove/{id}")
   @Authenticated
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.TEXT_HTML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_HTML})
   public Response removeTalk(@PathParam("id") String id, @Context HttpHeaders headers) {
     String email = getEmail();
     boolean removed = userSchedule.removeTalkForUser(email, id);
@@ -638,7 +632,8 @@ public class ProfileResource {
                 .map(String::trim)
                 .filter(item -> !item.isBlank())
                 .toList();
-    userProfiles.updateSpeakerProfile(email, headline, bio, organization, website, linkedin, topicList);
+    userProfiles.updateSpeakerProfile(
+        email, headline, bio, organization, website, linkedin, topicList);
     return redirectWithStatus(target, "speakerSaved", "1");
   }
 
@@ -650,7 +645,8 @@ public class ProfileResource {
       @jakarta.ws.rs.FormParam("questClass") String questClass,
       @jakarta.ws.rs.FormParam("redirect") String redirect) {
     String userId = getEmail();
-    com.scanales.homedir.model.QuestClass qc = com.scanales.homedir.model.QuestClass.fromValue(questClass);
+    com.scanales.homedir.model.QuestClass qc =
+        com.scanales.homedir.model.QuestClass.fromValue(questClass);
     userProfiles.updateQuestClass(userId, qc);
 
     if (redirect != null && !redirect.isBlank()) {
@@ -677,16 +673,15 @@ public class ProfileResource {
     userProfiles.updateLocale(userId, locale);
 
     // 2. Set Cookie
-    jakarta.ws.rs.core.NewCookie localeCookie = new jakarta.ws.rs.core.NewCookie.Builder("QP_LOCALE")
-        .value(locale)
-        .path("/")
-        .maxAge(60 * 60 * 24 * 365) // 1 year
-        .build();
+    jakarta.ws.rs.core.NewCookie localeCookie =
+        new jakarta.ws.rs.core.NewCookie.Builder("QP_LOCALE")
+            .value(locale)
+            .path("/")
+            .maxAge(60 * 60 * 24 * 365) // 1 year
+            .build();
 
     String target = (redirect != null && !redirect.isBlank()) ? redirect : "/private/profile";
-    return Response.seeOther(java.net.URI.create(target))
-        .cookie(localeCookie)
-        .build();
+    return Response.seeOther(java.net.URI.create(target)).cookie(localeCookie).build();
   }
 
   @POST
@@ -761,37 +756,46 @@ public class ProfileResource {
 
   private java.util.List<EventGroup> getEventGroupsForUser(String email) {
     java.util.Set<String> talkIds = userSchedule.getTalksForUser(email);
-    java.util.Map<com.scanales.homedir.model.Event, java.util.List<com.scanales.homedir.model.Talk>> talksByEvent = new java.util.HashMap<>();
+    java.util.Map<com.scanales.homedir.model.Event, java.util.List<com.scanales.homedir.model.Talk>>
+        talksByEvent = new java.util.HashMap<>();
 
     for (String id : talkIds) {
       com.scanales.homedir.model.TalkInfo info = eventService.findTalkInfo(id);
       if (info != null) {
-        talksByEvent.computeIfAbsent(info.event(), k -> new java.util.ArrayList<>()).add(info.talk());
+        talksByEvent
+            .computeIfAbsent(info.event(), k -> new java.util.ArrayList<>())
+            .add(info.talk());
       }
     }
 
     java.util.List<EventGroup> groups = new java.util.ArrayList<>();
-    for (java.util.Map.Entry<com.scanales.homedir.model.Event, java.util.List<com.scanales.homedir.model.Talk>> entry : talksByEvent
-        .entrySet()) {
+    for (java.util.Map.Entry<
+            com.scanales.homedir.model.Event, java.util.List<com.scanales.homedir.model.Talk>>
+        entry : talksByEvent.entrySet()) {
       com.scanales.homedir.model.Event event = entry.getKey();
       java.util.List<com.scanales.homedir.model.Talk> talks = entry.getValue();
 
       // Group by day
-      java.util.Map<Integer, java.util.List<com.scanales.homedir.model.Talk>> talksByDay = talks.stream()
-          .collect(java.util.stream.Collectors.groupingBy(com.scanales.homedir.model.Talk::getDay));
+      java.util.Map<Integer, java.util.List<com.scanales.homedir.model.Talk>> talksByDay =
+          talks.stream()
+              .collect(
+                  java.util.stream.Collectors.groupingBy(com.scanales.homedir.model.Talk::getDay));
 
-      java.util.List<DayGroup> dayGroups = talksByDay.entrySet().stream()
-          .sorted(java.util.Map.Entry.comparingByKey())
-          .map(e -> {
-            e.getValue().sort(java.util.Comparator.comparing(com.scanales.homedir.model.Talk::getStartTime));
-            return new DayGroup(e.getKey(), e.getValue());
-          })
-          .toList();
+      java.util.List<DayGroup> dayGroups =
+          talksByDay.entrySet().stream()
+              .sorted(java.util.Map.Entry.comparingByKey())
+              .map(
+                  e -> {
+                    e.getValue()
+                        .sort(
+                            java.util.Comparator.comparing(
+                                com.scanales.homedir.model.Talk::getStartTime));
+                    return new DayGroup(e.getKey(), e.getValue());
+                  })
+              .toList();
 
-      java.util.List<com.scanales.homedir.model.Speaker> speakers = talks.stream()
-          .flatMap(t -> t.getSpeakers().stream())
-          .distinct()
-          .toList();
+      java.util.List<com.scanales.homedir.model.Speaker> speakers =
+          talks.stream().flatMap(t -> t.getSpeakers().stream()).distinct().toList();
 
       groups.add(new EventGroup(event, dayGroups, speakers));
     }
@@ -836,12 +840,13 @@ public class ProfileResource {
     if (classProgress == null || classProgress.isEmpty()) {
       return new DominantClassSummary(null, null);
     }
-    java.util.List<ClassProgress> sorted = classProgress.stream()
-        .sorted(
-            java.util.Comparator.comparingInt(ClassProgress::xp)
-                .reversed()
-                .thenComparing(ClassProgress::value))
-        .toList();
+    java.util.List<ClassProgress> sorted =
+        classProgress.stream()
+            .sorted(
+                java.util.Comparator.comparingInt(ClassProgress::xp)
+                    .reversed()
+                    .thenComparing(ClassProgress::value))
+            .toList();
     ClassProgress primary = sorted.get(0);
     if (primary.xp() <= 0) {
       return new DominantClassSummary(null, null);
@@ -851,7 +856,8 @@ public class ProfileResource {
       ClassProgress secondary = sorted.get(1);
       if (secondary.xp() > 0) {
         int diffXp = Math.max(0, primary.xp() - secondary.xp());
-        int diffPercent = primary.xp() <= 0 ? 100 : (int) Math.round((diffXp * 100.0d) / primary.xp());
+        int diffPercent =
+            primary.xp() <= 0 ? 100 : (int) Math.round((diffXp * 100.0d) / primary.xp());
         boolean hybrid =
             diffXp <= DOMINANT_HYBRID_MARGIN_XP || diffPercent <= DOMINANT_HYBRID_MARGIN_PERCENT;
         if (hybrid) {
@@ -861,7 +867,8 @@ public class ProfileResource {
         }
       }
     }
-    return new DominantClassSummary(primaryClass, i18n.profile_dominant_class(primary.displayName()));
+    return new DominantClassSummary(
+        primaryClass, i18n.profile_dominant_class(primary.displayName()));
   }
 
   private java.util.List<ActivityClassMapping> buildActivityClassMap(AppMessages i18n) {
@@ -923,7 +930,8 @@ public class ProfileResource {
     }
   }
 
-  private String resolveLanguage(String localeCookie, String userId, jakarta.ws.rs.core.HttpHeaders headers) {
+  private String resolveLanguage(
+      String localeCookie, String userId, jakarta.ws.rs.core.HttpHeaders headers) {
     String lang = "es";
     java.util.Optional<com.scanales.homedir.model.UserProfile> p = userProfiles.find(userId);
     if (p.isPresent() && p.get().getPreferredLocale() != null) {
@@ -972,22 +980,16 @@ public class ProfileResource {
   private CfpSubmissionItem toCfpSubmissionItem(CfpSubmission submission) {
     if (submission == null) {
       return new CfpSubmissionItem(
-          "",
-          "",
-          "",
-          "",
-          CfpSubmissionStatus.PENDING.apiValue(),
-          "",
-          "",
-          "",
-          "",
-          "/eventos");
+          "", "", "", "", CfpSubmissionStatus.PENDING.apiValue(), "", "", "", "", "/eventos");
     }
     String eventId = submission.eventId() != null ? submission.eventId() : "";
     com.scanales.homedir.model.Event event = eventService.getEvent(eventId);
     String eventTitle =
-        event != null && event.getTitle() != null && !event.getTitle().isBlank() ? event.getTitle() : eventId;
-    Instant updatedAt = submission.updatedAt() != null ? submission.updatedAt() : submission.createdAt();
+        event != null && event.getTitle() != null && !event.getTitle().isBlank()
+            ? event.getTitle()
+            : eventId;
+    Instant updatedAt =
+        submission.updatedAt() != null ? submission.updatedAt() : submission.createdAt();
     String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
     String status = privateStatus(submission).apiValue();
     String deliveryStatus = privateDeliveryStatus(submission);
@@ -1043,7 +1045,9 @@ public class ProfileResource {
     if (hasPresentation) {
       return "presentation_uploaded";
     }
-    return privateStatus(submission) == CfpSubmissionStatus.ACCEPTED ? "accepted_pending_assignment" : "pending";
+    return privateStatus(submission) == CfpSubmissionStatus.ACCEPTED
+        ? "accepted_pending_assignment"
+        : "pending";
   }
 
   private CfpTimelineView resolveProfileCfpTimeline(
@@ -1080,9 +1084,12 @@ public class ProfileResource {
       return null;
     }
     try {
-      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(selectedEventId);
+      CfpEventConfigService.ResolvedEventConfig resolved =
+          cfpEventConfigService.resolveForEvent(selectedEventId);
       Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(language) ? "en" : "es");
-      return CfpTimelinePlanner.build(selectedEvent, resolved.opensAt(), resolved.closesAt(), locale).orElse(null);
+      return CfpTimelinePlanner.build(
+              selectedEvent, resolved.opensAt(), resolved.closesAt(), locale)
+          .orElse(null);
     } catch (Exception ignored) {
       return null;
     }
@@ -1090,13 +1097,17 @@ public class ProfileResource {
 
   private VolunteerApplicationItem toVolunteerApplicationItem(VolunteerApplication application) {
     if (application == null) {
-      return new VolunteerApplicationItem("", "", "", VolunteerApplicationStatus.APPLIED.apiValue(), "", "/eventos", null);
+      return new VolunteerApplicationItem(
+          "", "", "", VolunteerApplicationStatus.APPLIED.apiValue(), "", "/eventos", null);
     }
     String eventId = application.eventId() != null ? application.eventId() : "";
     com.scanales.homedir.model.Event event = eventService.getEvent(eventId);
     String eventTitle =
-        event != null && event.getTitle() != null && !event.getTitle().isBlank() ? event.getTitle() : eventId;
-    Instant updatedAt = application.updatedAt() != null ? application.updatedAt() : application.createdAt();
+        event != null && event.getTitle() != null && !event.getTitle().isBlank()
+            ? event.getTitle()
+            : eventId;
+    Instant updatedAt =
+        application.updatedAt() != null ? application.updatedAt() : application.createdAt();
     String updatedAtLabel = updatedAt != null ? updatedAt.toString() : "";
     String status =
         application.status() != null
@@ -1144,10 +1155,7 @@ public class ProfileResource {
     int completedSteps = Math.max(0, Math.min(card.completedSteps(), totalSteps));
     int progressPercent =
         totalSteps <= 0 ? 0 : (int) Math.round((completedSteps * 100.0d) / (double) totalSteps);
-    String state =
-        card.completed()
-            ? "completed"
-            : completedSteps > 0 ? "in_progress" : "ready";
+    String state = card.completed() ? "completed" : completedSteps > 0 ? "in_progress" : "ready";
     String statusLabel =
         switch (state) {
           case "completed" -> copy.statusCompleted();
@@ -1168,12 +1176,7 @@ public class ProfileResource {
         challengeCta(card.id(), copy),
         statusLabel,
         formatNamed(copy.rewardHcoinPattern(), "reward", Math.max(0, card.rewardHcoin())),
-        formatNamed(
-            copy.progressStepsPattern(),
-            "completed",
-            completedSteps,
-            "total",
-            totalSteps));
+        formatNamed(copy.progressStepsPattern(), "completed", completedSteps, "total", totalSteps));
   }
 
   private ChallengeCopy challengeCopy(String language) {
@@ -1211,7 +1214,8 @@ public class ProfileResource {
   }
 
   private ResourceBundle localizedChallengeBundle(String language) {
-    Locale bundleLocale = "es".equalsIgnoreCase(language) ? Locale.forLanguageTag("es") : Locale.ROOT;
+    Locale bundleLocale =
+        "es".equalsIgnoreCase(language) ? Locale.forLanguageTag("es") : Locale.ROOT;
     return ResourceBundle.getBundle("i18n", bundleLocale);
   }
 
@@ -1270,7 +1274,10 @@ public class ProfileResource {
     addNormalizedUserId(ids, getClaim("email"));
     addNormalizedUserId(ids, sub);
     addNormalizedUserId(ids, getClaim("sub"));
-    String principal = identity != null && identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    String principal =
+        identity != null && identity.getPrincipal() != null
+            ? identity.getPrincipal().getName()
+            : null;
     addNormalizedUserId(ids, principal);
     return ids.isEmpty() ? java.util.Set.of() : java.util.Collections.unmodifiableSet(ids);
   }
