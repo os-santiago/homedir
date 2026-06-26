@@ -62,6 +62,7 @@ jobs:
         with:
           image: homedir-scan:${{ github.sha }}
           format: spdx-json
+          upload-artifact: false
 
       - name: Scan for vulnerabilities
         uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
@@ -82,7 +83,7 @@ jobs:
           echo "**SBOM Format:** SPDX JSON" >> $GITHUB_STEP_SUMMARY
           echo "**Security Gating Mode:** ${SECURITY_GATING}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Security reports uploaded to artifacts and GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+          echo "Security reports are published through the scan step and GitHub Security tab." >> $GITHUB_STEP_SUMMARY
 
   dependency-review:
     name: Dependency Review
