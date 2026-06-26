@@ -22,13 +22,14 @@ public class BountyHunterService {
    */
   public BountyHunterScore awardIssueCreationPoints(
       String userId, String issueNumber, String label, String validatedByUserId) {
+    userId = normalizeUserId(userId);
 
     long points = configService.getPointsForLabel(label);
     if (points <= 0) {
       throw new IllegalArgumentException("Label '" + label + "' is not eligible for points");
     }
 
-    if (!configService.isAdminAccount(validatedByUserId)) {
+    if (!configService.isAdminUser(validatedByUserId)) {
       throw new IllegalArgumentException(
           "User '" + validatedByUserId + "' is not authorized to validate issues");
     }
@@ -64,6 +65,7 @@ public class BountyHunterService {
    */
   public BountyHunterScore awardIssueResolutionPoints(
       String userId, String issueNumber, String prNumber, String label) {
+    userId = normalizeUserId(userId);
 
     long points = configService.getPointsForLabel(label);
     if (points <= 0) {
@@ -97,11 +99,51 @@ public class BountyHunterService {
   }
 
   public Optional<BountyHunterScore> getScoreForUser(String userId) {
-    return repository.findScoreByUserId(userId);
+    return repository.findScoreByUserId(normalizeUserId(userId));
+  }
+
+  public Optional<BountyHunterScore> getUserScore(String userId) {
+    return getScoreForUser(userId);
   }
 
   public List<BountyHunterEvent> getEventsForUser(String userId) {
-    return repository.findEventsByUserId(userId);
+    return repository.findEventsByUserId(normalizeUserId(userId));
+  }
+
+  public List<BountyHunterEvent> getUserHistory(String userId) {
+    return getEventsForUser(userId);
+  }
+
+  public Optional<Integer> getUserRank(String userId) {
+    String normalizedUserId = normalizeUserId(userId);
+    if (normalizedUserId == null) {
+      return Optional.empty();
+    }
+    List<BountyHunterScore> leaderboard = repository.findTopScores(Integer.MAX_VALUE);
+    for (int index = 0; index < leaderboard.size(); index++) {
+      if (normalizedUserId.equals(leaderboard.get(index).userId())) {
+        return Optional.of(index + 1);
+      }
+    }
+    return Optional.empty();
+  }
+
+  public long getTotalHuntersCount() {
+    return repository.countScores();
+  }
+
+  public Optional<BountyHunterScore> validateIssue(
+      String userId, String issueNumber, String label, String validatedByUserId) {
+    try {
+      return Optional.of(awardIssueCreationPoints(userId, issueNumber, label, validatedByUserId));
+    } catch (IllegalArgumentException e) {
+      return Optional.empty();
+    }
+  }
+
+  public BountyHunterScore recordIssueResolution(
+      String userId, String issueNumber, String prNumber, String label) {
+    return awardIssueResolutionPoints(userId, issueNumber, prNumber, label);
   }
 
   public List<BountyHunterScore> getLeaderboard(int limit) {
@@ -110,5 +152,12 @@ public class BountyHunterService {
 
   private String generateEventId() {
     return "bh_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+  }
+
+  private static String normalizeUserId(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return null;
+    }
+    return raw.trim().toLowerCase(java.util.Locale.ROOT);
   }
 }

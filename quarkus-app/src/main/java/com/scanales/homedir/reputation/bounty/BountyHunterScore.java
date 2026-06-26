@@ -23,7 +23,7 @@ public record BountyHunterScore(
     totalPoints = Math.max(0L, totalPoints);
     issueCreationPoints = Math.max(0L, issueCreationPoints);
     issueResolutionPoints = Math.max(0L, issueResolutionPoints);
-    currentLevel = currentLevel == null ? BountyHunterLevel.NONE : currentLevel;
+    currentLevel = BountyHunterLevel.fromPoints(totalPoints);
     issuesCreatedCount = Math.max(0, issuesCreatedCount);
     issuesResolvedCount = Math.max(0, issuesResolvedCount);
     updatedAt = updatedAt == null ? Instant.now() : updatedAt;

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Locale;
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
@@ -29,7 +30,7 @@ public class BountyHunterConfigService {
     if (labelName == null || labelName.isBlank()) {
       return Optional.empty();
     }
-    return Optional.ofNullable(DEFAULT_LABELS.get(labelName.trim().toLowerCase()));
+    return Optional.ofNullable(DEFAULT_LABELS.get(labelName.trim().toLowerCase(Locale.ROOT)));
   }
 
   public List<IssueImpactLabel> getAllEligibleLabels() {
@@ -40,7 +41,7 @@ public class BountyHunterConfigService {
     if (githubUsername == null || githubUsername.isBlank()) {
       return false;
     }
-    return DEFAULT_ADMIN_ACCOUNTS.contains(githubUsername.trim().toLowerCase());
+    return DEFAULT_ADMIN_ACCOUNTS.contains(githubUsername.trim().toLowerCase(Locale.ROOT));
   }
 
   public boolean isAdminUser(String githubUsername) {

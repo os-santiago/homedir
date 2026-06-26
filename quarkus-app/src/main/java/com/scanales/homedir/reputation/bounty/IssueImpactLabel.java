@@ -11,6 +11,10 @@ public record IssueImpactLabel(
     @JsonProperty("enabled") boolean enabled,
     @JsonProperty("description") String description) {
 
+  public IssueImpactLabel(String labelName, long points) {
+    this(labelName, points, true, labelName);
+  }
+
   public static IssueImpactLabel bugLow() {
     return new IssueImpactLabel("bug-impact-low", 5L, true, "Low impact bug fix");
   }
