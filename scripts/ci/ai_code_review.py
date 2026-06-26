@@ -52,7 +52,7 @@ class AICodeReviewer:
         """Get list of changed files between base and head."""
         try:
             result = subprocess.run(
-                ["git", "diff", "--name-only", base_ref, head_ref],
+                ["git", "diff", "--name-only", "--", base_ref, head_ref],
                 capture_output=True,
                 text=True,
                 check=True
@@ -115,7 +115,8 @@ class AICodeReviewer:
                 if file_path.endswith('.py'):
                     current_depth = indent // 4
                 else:
-                    current_depth = line.count('{') - line.count('}')
+                    # Maintain cumulative depth for brace-based languages
+                    current_depth += line.count('{') - line.count('}')
                 max_depth = max(max_depth, current_depth)
 
         metrics["nesting_depth"] = max_depth

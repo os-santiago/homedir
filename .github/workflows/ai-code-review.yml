@@ -35,11 +35,26 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Get PR details
+        if: github.event_name == 'workflow_dispatch'
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ inputs.pr_number }}
+            });
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('base_ref', pr.base.ref);
+
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || steps.pr.outputs.head_sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -50,19 +65,21 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install anthropic requests pyyaml
+          pip install -r scripts/ci/requirements-ai-review.txt
 
       - name: Fetch base branch
+        env:
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref || steps.pr.outputs.base_ref || 'main' }}
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref || 'main' }}
+          git fetch origin "${BASE_BRANCH}"
 
       - name: Run AI Code Review
         id: ai_review
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
-          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || steps.pr.outputs.base_ref || 'main' }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref || steps.pr.outputs.head_ref || github.ref_name }}
           REPOSITORY: ${{ github.repository }}
         run: |
           python scripts/ci/ai_code_review.py \
@@ -80,7 +97,7 @@ jobs:
           retention-days: 30
 
       - name: Add review summary to PR
-        if: success() && github.event_name == 'pull_request'
+        if: success() && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.pr_number))
         uses: actions/github-script@v7
         with:
           script: |
@@ -155,10 +172,11 @@ jobs:
             comment += '---\n';
             comment += '*This review was generated automatically using AI analysis. Please review findings critically.*\n';
 
+            const prNumber = context.issue.number || ${{ inputs.pr_number || 0 }};
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              issue_number: prNumber,
               body: comment
             });
 
