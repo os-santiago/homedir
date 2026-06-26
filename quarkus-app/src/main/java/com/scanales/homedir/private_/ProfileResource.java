@@ -339,15 +339,17 @@ public class ProfileResource {
     String dominantClassMessage = dominantClassSummary.message();
     java.util.List<ActivityClassMapping> activityClassMap = buildActivityClassMap(localizedMessages);
     java.util.Set<String> cfpUserIds = currentUserIds(email, sub);
-    CfpSubmissionService.MineStats cfpVisibleMineStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+    CfpSubmissionService.MineStats cfpOverviewStats = cfpSubmissionService.visibleStatsMineAcrossEvents(cfpUserIds);
+    CfpSubmissionService.MineStats cfpInternalStats = cfpSubmissionService.statsMineAcrossEvents(cfpUserIds);
+    int internalAccepted = cfpInternalStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0);
     CfpOverview cfpOverview = new CfpOverview(
-        cfpVisibleMineStats.total(),
-        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.ACCEPTED, 0),
-        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
-        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
-        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
-        cfpVisibleMineStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
-        cfpVisibleMineStats.distinctEvents());
+        cfpOverviewStats.total(),
+        internalAccepted,
+        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.UNDER_REVIEW, 0),
+        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.PENDING, 0),
+        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.REJECTED, 0),
+        cfpOverviewStats.countsByStatus().getOrDefault(CfpSubmissionStatus.WITHDRAWN, 0),
+        cfpOverviewStats.distinctEvents());
     java.util.List<CfpSubmissionItem> cfpRecentSubmissions =
         cfpSubmissionService
             .listMineAcrossEvents(cfpUserIds, CfpSubmissionService.SortOrder.UPDATED_DESC, 10, 0)
@@ -1002,14 +1004,29 @@ public class ProfileResource {
         "/event/" + eventId + "/cfp#my-proposals");
   }
 
-  private static CfpSubmissionStatus privateStatus(CfpSubmission submission) {
+  private CfpSubmissionStatus privateStatus(CfpSubmission submission) {
     if (submission == null || submission.status() == null) {
       return CfpSubmissionStatus.PENDING;
     }
-    return submission.status();
+    CfpSubmissionStatus status = submission.status();
+    if (status == CfpSubmissionStatus.ACCEPTED) {
+      return CfpSubmissionStatus.ACCEPTED;
+    }
+    if (status == CfpSubmissionStatus.REJECTED) {
+      try {
+        CfpEventConfigService.ResolvedEventConfig eventConfig =
+            cfpEventConfigService.resolveForEvent(submission.eventId());
+        if (!eventConfig.resultsPublished()) {
+          return CfpSubmissionStatus.UNDER_REVIEW;
+        }
+      } catch (Exception e) {
+        return CfpSubmissionStatus.UNDER_REVIEW;
+      }
+    }
+    return status;
   }
 
-  private static String privateDeliveryStatus(CfpSubmission submission) {
+  private String privateDeliveryStatus(CfpSubmission submission) {
     if (submission == null) {
       return "unknown";
     }

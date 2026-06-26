@@ -459,6 +459,37 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void profileMasksRejectedCfpStateBeforeResultsPublication() {
+    CfpSubmission rejectedSubmission =
+        cfpSubmissionService.create(
+            currentUserEmail(),
+            "Current User",
+            new CfpSubmissionService.CreateRequest(
+                CFP_EVENT_ID,
+                "Rejected CFP Talk",
+                "CFP summary for rejected test.",
+                "Detailed abstract for rejected CFP test coverage.",
+                "intermediate",
+                "talk",
+                45,
+                "en",
+                "developer-experience-innersource",
+                List.of(),
+                List.of()));
+    cfpSubmissionService.updateStatus(
+        rejectedSubmission.id(), CfpSubmissionStatus.REJECTED, "admin@example.org", "not a fit");
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("under_review"))
+        .body(not(containsString("rejected")));
+  }
+
+  @Test
   public void profileShowsChallengesPanelAndProgress() {
     userProfiles.updateLocale(currentUserEmail(), "en");
     given()
