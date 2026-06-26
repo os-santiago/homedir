@@ -680,7 +680,7 @@ public class ProfileResource {
             .maxAge(60 * 60 * 24 * 365) // 1 year
             .build();
 
-    String target = (redirect != null && !redirect.isBlank()) ? redirect : "/private/profile";
+    String target = RedirectSanitizer.sanitizeInternalRedirect(redirect, "/private/profile");
     return Response.seeOther(java.net.URI.create(target)).cookie(localeCookie).build();
   }
 

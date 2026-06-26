@@ -193,10 +193,7 @@ public class QuestService {
   }
 
   private static double computeCurveA() {
-    int n = TARGET_LEVEL - 1;
-    if (n <= 0) {
-      return 0d;
-    }
+    int n = Math.max(1, TARGET_LEVEL - 1);
     double numerator = TARGET_LEVEL_XP - (BASE_XP_PER_LEVEL * n);
     double denominator = (double) n * n;
     double value = numerator / denominator;

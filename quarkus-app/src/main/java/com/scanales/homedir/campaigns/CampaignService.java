@@ -1832,7 +1832,7 @@ public class CampaignService {
         CampaignPublishMessageSupport.trackedUrl(draft, "linkedin"),
         linkedinHeadline(preview.title(), bundle),
         linkedinMessage(
-            draft, preview, bundle, CampaignPublishMessageSupport.trackedUrl(draft, "linkedin")),
+            preview, bundle, CampaignPublishMessageSupport.trackedUrl(draft, "linkedin")),
         completed
             ? bundleText(bundle, "campaigns_admin_linkedin_done")
             : bundleText(bundle, "campaigns_admin_linkedin_pending"),
@@ -1866,7 +1866,7 @@ public class CampaignService {
           case "discord" -> discordMessage(preview, landingUrl);
           case "bluesky" -> socialMessage(preview, bundle, true, landingUrl);
           case "mastodon" -> socialMessage(preview, bundle, false, landingUrl);
-          case "linkedin" -> linkedinMessage(draft, preview, bundle, landingUrl);
+          case "linkedin" -> linkedinMessage(preview, bundle, landingUrl);
           default -> socialMessage(preview, bundle, false, landingUrl);
         };
     int charCount = message.length();
@@ -1965,7 +1965,7 @@ public class CampaignService {
     }
     rows.sort(
         Comparator.comparingLong(
-                (CampaignAttributionSummary row) -> Long.parseLong(row.totalVisits()))
+                (CampaignAttributionSummary row) -> parseMetricCount(row.totalVisits()))
             .reversed());
     return List.copyOf(rows);
   }
@@ -2597,10 +2597,7 @@ public class CampaignService {
   }
 
   private String linkedinMessage(
-      CampaignDraftState draft,
-      CampaignPreviewCard preview,
-      ResourceBundle bundle,
-      String landingUrl) {
+      CampaignPreviewCard preview, ResourceBundle bundle, String landingUrl) {
     return named(
         bundle,
         "campaigns_admin_linkedin_message",

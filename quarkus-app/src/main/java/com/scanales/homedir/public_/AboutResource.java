@@ -37,7 +37,7 @@ public class AboutResource {
             .orElse("unknown");
 
     Properties gitProps = new Properties();
-    try (InputStream is = getClass().getResourceAsStream("/git.properties")) {
+    try (InputStream is = AboutResource.class.getResourceAsStream("/git.properties")) {
       if (is != null) {
         gitProps.load(is);
       }

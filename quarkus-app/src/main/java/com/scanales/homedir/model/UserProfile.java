@@ -201,7 +201,7 @@ public class UserProfile {
   }
 
   public java.util.List<String> getActiveQuests() {
-    return activeQuests;
+    return activeQuests == null ? java.util.List.of() : java.util.List.copyOf(activeQuests);
   }
 
   public void setActiveQuests(java.util.List<String> activeQuests) {

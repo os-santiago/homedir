@@ -311,8 +311,7 @@ public class AdminCampaignsResource {
                     filters.query(), filters.workflow(), filters.kind(), filters.channel()))
             .orElse(null);
     if (detail == null) {
-      return Response.seeOther(redirectWithErrorUri("not_found", draftId, filters, "content"))
-          .build();
+      return Response.status(Response.Status.NOT_FOUND).build();
     }
     TemplateInstance template =
         Templates.detail(

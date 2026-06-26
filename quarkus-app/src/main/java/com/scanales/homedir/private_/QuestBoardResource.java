@@ -84,7 +84,7 @@ public class QuestBoardResource {
 
     // Get GitHub token if available (from OIDC context)
     String token = null;
-    if (identity.getPrincipal() instanceof io.quarkus.oidc.runtime.OidcJwtCallerPrincipal jwt) {
+    if (identity.getPrincipal() instanceof io.quarkus.oidc.runtime.OidcJwtCallerPrincipal) {
       // Check specific claim or access token
       // Note: For Google auth this won't be a GitHub token.
       // We need to handle this carefully.

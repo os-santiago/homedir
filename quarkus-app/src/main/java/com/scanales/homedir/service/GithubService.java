@@ -145,7 +145,8 @@ public class GithubService {
     HttpResponse<String> meResponse =
         httpClient.send(meRequest, HttpResponse.BodyHandlers.ofString());
     if (meResponse.statusCode() >= 400) {
-      LOG.warnf("GitHub user fetch failed: %s", meResponse.body());
+      LOG.warnf(
+          "GitHub user fetch failed: %s", SecurityUtils.redactSensitiveData(meResponse.body()));
       throw new IOException("GitHub user fetch failed");
     }
     JsonNode userJson = objectMapper.readTree(meResponse.body());
