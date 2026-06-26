@@ -9,13 +9,16 @@ class BountyHunterScoreTest {
 
   @Test
   void constructor_normalizesUserId() {
-    BountyHunterScore score = new BountyHunterScore("  TestUser  ", 100L, 50L, 50L, BountyHunterLevel.NOVICE, 2, 1, Instant.now());
+    BountyHunterScore score =
+        new BountyHunterScore(
+            "  TestUser  ", 100L, 50L, 50L, BountyHunterLevel.NOVICE, 2, 1, Instant.now());
     assertEquals("testuser", score.userId());
   }
 
   @Test
   void constructor_enforcesNonNegativePoints() {
-    BountyHunterScore score = new BountyHunterScore("user", -10L, -5L, -5L, BountyHunterLevel.NONE, 0, 0, Instant.now());
+    BountyHunterScore score =
+        new BountyHunterScore("user", -10L, -5L, -5L, BountyHunterLevel.NONE, 0, 0, Instant.now());
     assertEquals(0L, score.totalPoints());
     assertEquals(0L, score.issueCreationPoints());
     assertEquals(0L, score.issueResolutionPoints());
@@ -23,7 +26,8 @@ class BountyHunterScoreTest {
 
   @Test
   void constructor_enforcesNonNegativeCounts() {
-    BountyHunterScore score = new BountyHunterScore("user", 0L, 0L, 0L, BountyHunterLevel.NONE, -5, -3, Instant.now());
+    BountyHunterScore score =
+        new BountyHunterScore("user", 0L, 0L, 0L, BountyHunterLevel.NONE, -5, -3, Instant.now());
     assertEquals(0, score.issuesCreatedCount());
     assertEquals(0, score.issuesResolvedCount());
   }
@@ -37,15 +41,15 @@ class BountyHunterScoreTest {
   @Test
   void constructor_recomputesLevelFromTotalPoints() {
     BountyHunterScore score =
-        new BountyHunterScore(
-            "user", 240L, 240L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now());
+        new BountyHunterScore("user", 240L, 240L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now());
     assertEquals(BountyHunterLevel.EXPERIENCED, score.currentLevel());
   }
 
   @Test
   void withAddedIssueCreationPoints_incrementsCorrectly() {
     Instant now = Instant.now();
-    BountyHunterScore initial = new BountyHunterScore("user", 50L, 50L, 0L, BountyHunterLevel.NOVICE, 2, 0, now);
+    BountyHunterScore initial =
+        new BountyHunterScore("user", 50L, 50L, 0L, BountyHunterLevel.NOVICE, 2, 0, now);
 
     BountyHunterScore updated = initial.withAddedIssueCreationPoints(30L, "123");
 
@@ -60,7 +64,8 @@ class BountyHunterScoreTest {
   @Test
   void withAddedIssueResolutionPoints_incrementsCorrectly() {
     Instant now = Instant.now();
-    BountyHunterScore initial = new BountyHunterScore("user", 40L, 0L, 40L, BountyHunterLevel.NONE, 0, 2, now);
+    BountyHunterScore initial =
+        new BountyHunterScore("user", 40L, 0L, 40L, BountyHunterLevel.NONE, 0, 2, now);
 
     BountyHunterScore updated = initial.withAddedIssueResolutionPoints(20L, "124");
 
@@ -74,10 +79,11 @@ class BountyHunterScoreTest {
 
   @Test
   void withAddedPoints_updatesLevelBasedOnTotalPoints() {
-    BountyHunterScore initial = new BountyHunterScore("user", 40L, 40L, 0L, BountyHunterLevel.NONE, 1, 0, Instant.now());
-    
+    BountyHunterScore initial =
+        new BountyHunterScore("user", 40L, 40L, 0L, BountyHunterLevel.NONE, 1, 0, Instant.now());
+
     BountyHunterScore updated = initial.withAddedIssueCreationPoints(200L, "125");
-    
+
     assertEquals(240L, updated.totalPoints());
     assertEquals(BountyHunterLevel.EXPERIENCED, updated.currentLevel());
   }

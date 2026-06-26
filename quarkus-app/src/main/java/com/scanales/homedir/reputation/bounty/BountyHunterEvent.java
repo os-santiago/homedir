@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.Locale;
 
 /**
- * Represents a Bounty Hunter scoring event.
- * Tracks when points are awarded for issue creation or resolution.
+ * Represents a Bounty Hunter scoring event. Tracks when points are awarded for issue creation or
+ * resolution.
  */
 public record BountyHunterEvent(
     @JsonProperty("event_id") String eventId,

@@ -8,10 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Repository for Bounty Hunter scores and events.
- * In-memory implementation for initial phase.
- */
+/** Repository for Bounty Hunter scores and events. In-memory implementation for initial phase. */
 @ApplicationScoped
 public class BountyHunterRepository {
 

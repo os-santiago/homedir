@@ -1,15 +1,15 @@
 package com.scanales.homedir.reputation.bounty;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Locale;
-import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Configuration service for the Bounty Hunter program.
- * Manages eligible labels, point weights, admin accounts, and level thresholds.
+ * Configuration service for the Bounty Hunter program. Manages eligible labels, point weights,
+ * admin accounts, and level thresholds.
  */
 @ApplicationScoped
 public class BountyHunterConfigService {

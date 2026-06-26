@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.Locale;
 
 /**
- * Represents the accumulated Bounty Hunter score for a user.
- * Tracks issue creation and resolution reputation points.
+ * Represents the accumulated Bounty Hunter score for a user. Tracks issue creation and resolution
+ * reputation points.
  */
 public record BountyHunterScore(
     @JsonProperty("user_id") String userId,

@@ -113,11 +113,7 @@ class BountyHunterApiResourceTest {
   void getUserProfile_nonExistentUser_returns404() {
     when(service.getUserScore("nonexistent")).thenReturn(Optional.empty());
 
-    given()
-        .when()
-        .get("/api/bounty-hunters/profile/nonexistent")
-        .then()
-        .statusCode(404);
+    given().when().get("/api/bounty-hunters/profile/nonexistent").then().statusCode(404);
   }
 
   @Test
