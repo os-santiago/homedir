@@ -9,30 +9,24 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponse.Status;
 import org.eclipse.microprofile.health.Liveness;
 import org.eclipse.microprofile.health.Readiness;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Path("/health")
 @ApplicationScoped
 public class HealthResource {
 
-  @Inject
-  @Liveness
-  Instance<HealthCheck> livenessChecks;
+  @Inject @Liveness Instance<HealthCheck> livenessChecks;
 
-  @Inject
-  @Readiness
-  Instance<HealthCheck> readinessChecks;
+  @Inject @Readiness Instance<HealthCheck> readinessChecks;
 
   @GET
   @PermitAll
@@ -62,13 +56,16 @@ public class HealthResource {
     Map<String, Object> map = new LinkedHashMap<>();
     map.put("name", check.getName());
     map.put("status", check.getStatus() == Status.UP ? "UP" : "DOWN");
-    check.getData().ifPresent(data -> {
-      Map<String, Object> dataMap = new LinkedHashMap<>();
-      data.forEach((k, v) -> dataMap.put(k, v));
-      if (!dataMap.isEmpty()) {
-        map.put("data", dataMap);
-      }
-    });
+    check
+        .getData()
+        .ifPresent(
+            data -> {
+              Map<String, Object> dataMap = new LinkedHashMap<>();
+              data.forEach((k, v) -> dataMap.put(k, v));
+              if (!dataMap.isEmpty()) {
+                map.put("data", dataMap);
+              }
+            });
     return map;
   }
 
@@ -78,8 +75,11 @@ public class HealthResource {
       try {
         results.add(check.call());
       } catch (Exception e) {
-        results.add(HealthCheckResponse.named(check.getClass().getSimpleName())
-            .down().withData("error", e.getMessage()).build());
+        results.add(
+            HealthCheckResponse.named(check.getClass().getSimpleName())
+                .down()
+                .withData("error", e.getMessage())
+                .build());
       }
     }
     return results;

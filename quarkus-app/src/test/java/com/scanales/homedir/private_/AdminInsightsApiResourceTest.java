@@ -208,7 +208,8 @@ public class AdminInsightsApiResourceTest {
   }
 
   private static void appendEvent(String initiativeId, String type) {
-    Map<String, Object> request = Map.of("initiativeId", initiativeId, "type", type, "metadata", Map.of());
+    Map<String, Object> request =
+        Map.of("initiativeId", initiativeId, "type", type, "metadata", Map.of());
     given()
         .contentType(MediaType.APPLICATION_JSON)
         .body(request)

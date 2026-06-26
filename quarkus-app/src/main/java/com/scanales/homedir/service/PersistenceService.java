@@ -7,23 +7,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.scanales.homedir.model.Event;
-import com.scanales.homedir.model.Speaker;
-import com.scanales.homedir.model.UserProfile;
-import com.scanales.homedir.model.SystemError;
-import com.scanales.homedir.reputation.ReputationStateSnapshot;
-import com.scanales.homedir.reputation.ReputationGaObservationJournalSnapshot;
-import com.scanales.homedir.challenges.ChallengeStateSnapshot;
+import com.scanales.homedir.agenda.AgendaProposalConfig;
 import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignStateSnapshot;
-import com.scanales.homedir.community.CommunitySubmission;
-import com.scanales.homedir.community.CommunityLightningStateSnapshot;
-import com.scanales.homedir.economy.EconomyStateSnapshot;
-import com.scanales.homedir.eventops.EventOperationsStateSnapshot;
-import com.scanales.homedir.agenda.AgendaProposalConfig;
 import com.scanales.homedir.cfp.CfpConfig;
 import com.scanales.homedir.cfp.CfpEventConfig;
 import com.scanales.homedir.cfp.CfpSubmission;
+import com.scanales.homedir.challenges.ChallengeStateSnapshot;
+import com.scanales.homedir.community.CommunityLightningStateSnapshot;
+import com.scanales.homedir.community.CommunitySubmission;
+import com.scanales.homedir.economy.EconomyStateSnapshot;
+import com.scanales.homedir.eventops.EventOperationsStateSnapshot;
+import com.scanales.homedir.model.Event;
+import com.scanales.homedir.model.Speaker;
+import com.scanales.homedir.model.SystemError;
+import com.scanales.homedir.model.UserProfile;
+import com.scanales.homedir.reputation.ReputationGaObservationJournalSnapshot;
+import com.scanales.homedir.reputation.ReputationStateSnapshot;
 import com.scanales.homedir.volunteers.VolunteerApplication;
 import com.scanales.homedir.volunteers.VolunteerAvailability;
 import com.scanales.homedir.volunteers.VolunteerEventConfig;
@@ -63,8 +63,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
- * Persists application data to JSON files using an asynchronous writer. All
- * write operations are
+ * Persists application data to JSON files using an asynchronous writer. All write operations are
  * queued on a single thread to avoid blocking user interactions.
  */
 @ApplicationScoped
@@ -72,8 +71,7 @@ public class PersistenceService {
 
   private static final Logger LOG = Logger.getLogger(PersistenceService.class);
 
-  @Inject
-  ObjectMapper objectMapper;
+  @Inject ObjectMapper objectMapper;
 
   private ObjectMapper mapper;
   private BlockingQueue<Runnable> queue;
@@ -153,27 +151,21 @@ public class PersistenceService {
   private static final String CFP_SCHEMA_FIELD_ALT = "schemaVersion";
   private static final String CFP_CHECKSUM_FIELD = "checksum_sha256";
   private static final TypeReference<Map<String, CfpSubmission>> CFP_SUBMISSIONS_TYPE =
-      new TypeReference<Map<String, CfpSubmission>>() {
-      };
+      new TypeReference<Map<String, CfpSubmission>>() {};
   private static final TypeReference<Map<String, CfpEventConfig>> CFP_EVENT_CONFIG_TYPE =
-      new TypeReference<Map<String, CfpEventConfig>>() {
-      };
+      new TypeReference<Map<String, CfpEventConfig>>() {};
   private static final TypeReference<Map<String, VolunteerApplication>> VOLUNTEER_SUBMISSIONS_TYPE =
-      new TypeReference<Map<String, VolunteerApplication>>() {
-      };
-  private static final TypeReference<Map<String, VolunteerEventConfig>> VOLUNTEER_EVENT_CONFIG_TYPE =
-      new TypeReference<Map<String, VolunteerEventConfig>>() {
-      };
+      new TypeReference<Map<String, VolunteerApplication>>() {};
+  private static final TypeReference<Map<String, VolunteerEventConfig>>
+      VOLUNTEER_EVENT_CONFIG_TYPE = new TypeReference<Map<String, VolunteerEventConfig>>() {};
   private static final TypeReference<Map<String, VolunteerLoungeMessage>> VOLUNTEER_LOUNGE_TYPE =
-      new TypeReference<Map<String, VolunteerLoungeMessage>>() {
-      };
+      new TypeReference<Map<String, VolunteerLoungeMessage>>() {};
   private static final TypeReference<Map<String, VolunteerShift>> VOLUNTEER_SHIFTS_TYPE =
-      new TypeReference<Map<String, VolunteerShift>>() {
-      };
-  private static final TypeReference<Map<String, VolunteerAvailability>> VOLUNTEER_AVAILABILITIES_TYPE =
-      new TypeReference<Map<String, VolunteerAvailability>>() {
-      };
-  private static final DateTimeFormatter CFP_BACKUP_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
+      new TypeReference<Map<String, VolunteerShift>>() {};
+  private static final TypeReference<Map<String, VolunteerAvailability>>
+      VOLUNTEER_AVAILABILITIES_TYPE = new TypeReference<Map<String, VolunteerAvailability>>() {};
+  private static final DateTimeFormatter CFP_BACKUP_TIME =
+      DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
   private volatile boolean lowDiskSpace;
   private static final long MIN_FREE_BYTES = 50L * 1024 * 1024; // 50 MB
@@ -219,12 +211,13 @@ public class PersistenceService {
     if (sysProp != null && !sysProp.isBlank()) {
       dataDirPath = sysProp;
     }
-    mapper = objectMapper
-        .copy()
-        .enable(SerializationFeature.INDENT_OUTPUT)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .registerModule(new JavaTimeModule());
+    mapper =
+        objectMapper
+            .copy()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .registerModule(new JavaTimeModule());
 
     dataDir = Paths.get(dataDirPath);
     eventsFile = dataDir.resolve("events.json");
@@ -237,8 +230,10 @@ public class PersistenceService {
     reputationGaObservationJournalFile = dataDir.resolve("reputation-ga-observation-journal.json");
     campaignStateFile = dataDir.resolve("campaign-state.json");
     campaignOperationsStateFile = dataDir.resolve("campaign-operations-state.json");
-    communitySubmissionsFile = dataDir.resolve("community").resolve("submissions").resolve("pending.json");
-    communityLightningStateFile = dataDir.resolve("community").resolve("lightning").resolve("state.json");
+    communitySubmissionsFile =
+        dataDir.resolve("community").resolve("submissions").resolve("pending.json");
+    communityLightningStateFile =
+        dataDir.resolve("community").resolve("lightning").resolve("state.json");
     cfpSubmissionsFile = dataDir.resolve("cfp-submissions.json");
     cfpConfigFile = dataDir.resolve("cfp-config.json");
     cfpEventConfigFile = dataDir.resolve("cfp-event-config.json");
@@ -270,23 +265,25 @@ public class PersistenceService {
       queueMax = 10000;
     }
     queue = new ArrayBlockingQueue<>(queueMax);
-    executor = new ThreadPoolExecutor(
-        1,
-        1,
-        0L,
-        TimeUnit.MILLISECONDS,
-        queue,
-        r -> {
-          Thread t = new Thread(r, "persistence-writer");
-          t.setDaemon(true);
-          return t;
-        });
-    retryScheduler = Executors.newSingleThreadScheduledExecutor(
-        r -> {
-          Thread t = new Thread(r, "persistence-retry");
-          t.setDaemon(true);
-          return t;
-        });
+    executor =
+        new ThreadPoolExecutor(
+            1,
+            1,
+            0L,
+            TimeUnit.MILLISECONDS,
+            queue,
+            r -> {
+              Thread t = new Thread(r, "persistence-writer");
+              t.setDaemon(true);
+              return t;
+            });
+    retryScheduler =
+        Executors.newSingleThreadScheduledExecutor(
+            r -> {
+              Thread t = new Thread(r, "persistence-retry");
+              t.setDaemon(true);
+              return t;
+            });
   }
 
   @PreDestroy
@@ -350,20 +347,17 @@ public class PersistenceService {
 
   /** Loads events from disk or returns an empty map if none. */
   public Map<String, Event> loadEvents() {
-    return read(eventsFile, new TypeReference<Map<String, Event>>() {
-    });
+    return read(eventsFile, new TypeReference<Map<String, Event>>() {});
   }
 
   /** Loads speakers from disk or returns an empty map if none. */
   public Map<String, Speaker> loadSpeakers() {
-    return read(speakersFile, new TypeReference<Map<String, Speaker>>() {
-    });
+    return read(speakersFile, new TypeReference<Map<String, Speaker>>() {});
   }
 
   /** Loads user profiles from disk or returns an empty map if none. */
   public Map<String, UserProfile> loadUserProfiles() {
-    return read(profilesFile, new TypeReference<Map<String, UserProfile>>() {
-    });
+    return read(profilesFile, new TypeReference<Map<String, UserProfile>>() {});
   }
 
   /** Persists system errors synchronously (or async) */
@@ -373,8 +367,7 @@ public class PersistenceService {
 
   /** Loads system errors */
   public Map<String, SystemError> loadSystemErrors() {
-    return read(systemErrorsFile, new TypeReference<Map<String, SystemError>>() {
-    });
+    return read(systemErrorsFile, new TypeReference<Map<String, SystemError>>() {});
   }
 
   /** Persists economy state asynchronously. */
@@ -393,7 +386,8 @@ public class PersistenceService {
       return java.util.Optional.empty();
     }
     try {
-      return java.util.Optional.ofNullable(mapper.readValue(economyStateFile.toFile(), EconomyStateSnapshot.class));
+      return java.util.Optional.ofNullable(
+          mapper.readValue(economyStateFile.toFile(), EconomyStateSnapshot.class));
     } catch (IOException e) {
       LOG.errorf(e, "Failed to read %s", logFileLabel(economyStateFile));
       return java.util.Optional.empty();
@@ -438,7 +432,8 @@ public class PersistenceService {
       return java.util.Optional.empty();
     }
     try {
-      return java.util.Optional.ofNullable(mapper.readValue(challengeStateFile.toFile(), ChallengeStateSnapshot.class));
+      return java.util.Optional.ofNullable(
+          mapper.readValue(challengeStateFile.toFile(), ChallengeStateSnapshot.class));
     } catch (IOException e) {
       LOG.errorf(e, "Failed to read %s", logFileLabel(challengeStateFile));
       return java.util.Optional.empty();
@@ -508,8 +503,10 @@ public class PersistenceService {
   }
 
   /** Loads reputation GA observation journal from disk if present. */
-  public java.util.Optional<ReputationGaObservationJournalSnapshot> loadReputationGaObservationJournal() {
-    if (reputationGaObservationJournalFile == null || !Files.exists(reputationGaObservationJournalFile)) {
+  public java.util.Optional<ReputationGaObservationJournalSnapshot>
+      loadReputationGaObservationJournal() {
+    if (reputationGaObservationJournalFile == null
+        || !Files.exists(reputationGaObservationJournalFile)) {
       return java.util.Optional.empty();
     }
     try {
@@ -539,7 +536,8 @@ public class PersistenceService {
       return java.util.Optional.empty();
     }
     try {
-      return java.util.Optional.ofNullable(mapper.readValue(campaignStateFile.toFile(), CampaignStateSnapshot.class));
+      return java.util.Optional.ofNullable(
+          mapper.readValue(campaignStateFile.toFile(), CampaignStateSnapshot.class));
     } catch (IOException e) {
       LOG.errorf(e, "Failed to read %s", logFileLabel(campaignStateFile));
       return java.util.Optional.empty();
@@ -579,7 +577,8 @@ public class PersistenceService {
     }
     try {
       return java.util.Optional.ofNullable(
-          mapper.readValue(campaignOperationsStateFile.toFile(), CampaignOperationsStateSnapshot.class));
+          mapper.readValue(
+              campaignOperationsStateFile.toFile(), CampaignOperationsStateSnapshot.class));
     } catch (IOException e) {
       LOG.errorf(e, "Failed to read %s", logFileLabel(campaignOperationsStateFile));
       return java.util.Optional.empty();
@@ -610,8 +609,7 @@ public class PersistenceService {
 
   /** Loads community submissions from disk or returns an empty map if none. */
   public Map<String, CommunitySubmission> loadCommunitySubmissions() {
-    return read(communitySubmissionsFile, new TypeReference<Map<String, CommunitySubmission>>() {
-    });
+    return read(communitySubmissionsFile, new TypeReference<Map<String, CommunitySubmission>>() {});
   }
 
   /** Last modified timestamp for community submissions file, or -1 when unavailable. */
@@ -647,7 +645,8 @@ public class PersistenceService {
     }
     try {
       return java.util.Optional.ofNullable(
-          mapper.readValue(communityLightningStateFile.toFile(), CommunityLightningStateSnapshot.class));
+          mapper.readValue(
+              communityLightningStateFile.toFile(), CommunityLightningStateSnapshot.class));
     } catch (IOException e) {
       LOG.errorf(e, "Failed to read %s", logFileLabel(communityLightningStateFile));
       return java.util.Optional.empty();
@@ -692,7 +691,8 @@ public class PersistenceService {
       return java.util.Optional.empty();
     }
     try {
-      return java.util.Optional.ofNullable(mapper.readValue(cfpConfigFile.toFile(), CfpConfig.class));
+      return java.util.Optional.ofNullable(
+          mapper.readValue(cfpConfigFile.toFile(), CfpConfig.class));
     } catch (IOException e) {
       LOG.errorf(e, "Failed to read %s", logFileLabel(cfpConfigFile));
       return java.util.Optional.empty();
@@ -753,7 +753,8 @@ public class PersistenceService {
 
   /** Persists volunteer applications asynchronously. */
   public void saveVolunteerApplications(Map<String, VolunteerApplication> submissions) {
-    scheduleWrite(volunteerSubmissionsFile, submissions == null ? Map.of() : Map.copyOf(submissions));
+    scheduleWrite(
+        volunteerSubmissionsFile, submissions == null ? Map.of() : Map.copyOf(submissions));
   }
 
   /** Persists volunteer applications synchronously. */
@@ -898,7 +899,9 @@ public class PersistenceService {
 
   /** Persists volunteer availabilities synchronously. */
   public void saveVolunteerAvailabilitiesSync(Map<String, VolunteerAvailability> availabilities) {
-    writeSync(volunteerAvailabilitiesFile, availabilities == null ? Map.of() : Map.copyOf(availabilities));
+    writeSync(
+        volunteerAvailabilitiesFile,
+        availabilities == null ? Map.of() : Map.copyOf(availabilities));
   }
 
   /** Loads volunteer availabilities from disk or returns an empty map if none. */
@@ -1123,7 +1126,8 @@ public class PersistenceService {
           try {
             quarantineCorruptedCfpPrimary();
             primaryQuarantined = true;
-            Map<String, CfpSubmission> recovered = recoverCfpFromWal("manual_repair_primary_invalid");
+            Map<String, CfpSubmission> recovered =
+                recoverCfpFromWal("manual_repair_primary_invalid");
             if (recovered == null) {
               recovered = recoverCfpFromBackups("manual_repair_primary_invalid");
             }
@@ -1198,15 +1202,11 @@ public class PersistenceService {
         errorDetails);
   }
 
-  /**
-   * Loads user schedules for the given year from disk or returns an empty map if
-   * none.
-   */
+  /** Loads user schedules for the given year from disk or returns an empty map if none. */
   public Map<String, Map<String, UserScheduleService.TalkDetails>> loadUserSchedules(int year) {
     return read(
         scheduleFile(year),
-        new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {
-        });
+        new TypeReference<Map<String, Map<String, UserScheduleService.TalkDetails>>>() {});
   }
 
   /** Lists all years that have user schedule files. */
@@ -1217,8 +1217,9 @@ public class PersistenceService {
           .map(Path::toString)
           .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
           .map(
-              n -> n.substring(
-                  SCHEDULE_FILE_PREFIX.length(), n.length() - SCHEDULE_FILE_SUFFIX.length()))
+              n ->
+                  n.substring(
+                      SCHEDULE_FILE_PREFIX.length(), n.length() - SCHEDULE_FILE_SUFFIX.length()))
           .map(
               s -> {
                 try {
@@ -1236,30 +1237,31 @@ public class PersistenceService {
   }
 
   /**
-   * Returns the most recent user schedule year within the last year or the
-   * current year if none.
+   * Returns the most recent user schedule year within the last year or the current year if none.
    */
   public int findLatestUserScheduleYear() {
     int currentYear = java.time.Year.now().getValue();
     try (var stream = Files.list(dataDir)) {
-      var years = stream
-          .map(Path::getFileName)
-          .map(Path::toString)
-          .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
-          .map(
-              n -> n.substring(
-                  SCHEDULE_FILE_PREFIX.length(),
-                  n.length() - SCHEDULE_FILE_SUFFIX.length()))
-          .map(
-              s -> {
-                try {
-                  return Integer.parseInt(s);
-                } catch (NumberFormatException e) {
-                  return -1;
-                }
-              })
-          .filter(y -> y >= currentYear - 1)
-          .collect(Collectors.toList());
+      var years =
+          stream
+              .map(Path::getFileName)
+              .map(Path::toString)
+              .filter(n -> n.startsWith(SCHEDULE_FILE_PREFIX) && n.endsWith(SCHEDULE_FILE_SUFFIX))
+              .map(
+                  n ->
+                      n.substring(
+                          SCHEDULE_FILE_PREFIX.length(),
+                          n.length() - SCHEDULE_FILE_SUFFIX.length()))
+              .map(
+                  s -> {
+                    try {
+                      return Integer.parseInt(s);
+                    } catch (NumberFormatException e) {
+                      return -1;
+                    }
+                  })
+              .filter(y -> y >= currentYear - 1)
+              .collect(Collectors.toList());
       return years.isEmpty()
           ? currentYear
           : years.stream().mapToInt(Integer::intValue).max().orElse(currentYear);
@@ -1307,8 +1309,7 @@ public class PersistenceService {
       boolean checksumEnabled,
       boolean checksumRequired,
       long checksumMismatches,
-      long checksumHydrations) {
-  }
+      long checksumHydrations) {}
 
   public record CfpStorageRepairReport(
       boolean dryRun,
@@ -1336,15 +1337,13 @@ public class PersistenceService {
       @JsonProperty("kind") String kind,
       @JsonProperty("updated_at") String updatedAt,
       @JsonProperty(CFP_CHECKSUM_FIELD) String checksumSha256,
-      @JsonProperty(CFP_SUBMISSIONS_FIELD) Map<String, CfpSubmission> submissions) {
-  }
+      @JsonProperty(CFP_SUBMISSIONS_FIELD) Map<String, CfpSubmission> submissions) {}
 
   private record CfpSnapshotRead(
       Map<String, CfpSubmission> submissions,
       int schemaVersion,
       boolean legacy,
-      boolean missingChecksum) {
-  }
+      boolean missingChecksum) {}
 
   public record QueueStats(
       int depth,
@@ -1360,8 +1359,7 @@ public class PersistenceService {
       String lastWriteFile,
       long lastWriteAtMillis,
       long lastWriteDurationMs,
-      long lastWriteBytes) {
-  }
+      long lastWriteBytes) {}
 
   public QueueStats getQueueStats() {
     long oldest = 0L;
@@ -1389,7 +1387,8 @@ public class PersistenceService {
   // Version tracking for files to prevent stale overwrites and coalesce writes
   private final ConcurrentHashMap<Path, AtomicLong> fileVersions = new ConcurrentHashMap<>();
   private final ConcurrentHashMap<Path, PendingWrite> pendingWrites = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<Path, ScheduledFuture<?>> debounceFutures = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Path, ScheduledFuture<?>> debounceFutures =
+      new ConcurrentHashMap<>();
 
   private void scheduleWrite(Path file, Object data) {
     AtomicLong versionCounter = fileVersions.computeIfAbsent(file, k -> new AtomicLong(0));
@@ -1419,7 +1418,10 @@ public class PersistenceService {
     }
 
     ScheduledFuture<?> future =
-        retryScheduler.schedule(() -> dispatchDebouncedWrite(file, version), writeCoalesceWindowMs, TimeUnit.MILLISECONDS);
+        retryScheduler.schedule(
+            () -> dispatchDebouncedWrite(file, version),
+            writeCoalesceWindowMs,
+            TimeUnit.MILLISECONDS);
     ScheduledFuture<?> previousFuture = debounceFutures.put(file, future);
     if (previousFuture != null && !previousFuture.isDone()) {
       previousFuture.cancel(false);
@@ -1444,7 +1446,9 @@ public class PersistenceService {
     // (preventing stale retries).
     AtomicLong currentCounter = fileVersions.get(file);
     if (currentCounter != null && currentCounter.get() > version) {
-      LOG.debugf("Skipping stale write for %s (v%d < v%d)", logFileLabel(file), version, currentCounter.get());
+      LOG.debugf(
+          "Skipping stale write for %s (v%d < v%d)",
+          logFileLabel(file), version, currentCounter.get());
       return;
     }
 
@@ -1455,18 +1459,13 @@ public class PersistenceService {
         lastError = "low_disk_space";
         LOG.errorf(
             "Low disk space after %d attempts - dropping write for %s (v%d)",
-            attempt,
-            logFileLabel(file),
-            version);
+            attempt, logFileLabel(file), version);
       } else {
         writesRetries.incrementAndGet();
         lastError = "low_disk_space_retry";
         LOG.warnf(
             "Low disk space on attempt %d for %s (v%d), retrying in %dms",
-            attempt,
-            logFileLabel(file),
-            version,
-            backoffMillis);
+            attempt, logFileLabel(file), version, backoffMillis);
         scheduleRetry(file, data, version, attempt + 1, backoffMillis * 2);
       }
       return;
@@ -1489,11 +1488,7 @@ public class PersistenceService {
         recordWriteSuccess(file, bytes, durationMs);
         LOG.infof(
             "Persisted %s at %s (v%d, bytes=%d, durationMs=%d)",
-            logFileLabel(file),
-            java.time.Instant.now(),
-            version,
-            bytes,
-            durationMs);
+            logFileLabel(file), java.time.Instant.now(), version, bytes, durationMs);
         writesOk.incrementAndGet();
         lastError = null;
       } finally {
@@ -1550,10 +1545,7 @@ public class PersistenceService {
         recordWriteSuccess(file, bytes, durationMs);
         LOG.infof(
             "Persisted %s at %s (sync, bytes=%d, durationMs=%d)",
-            logFileLabel(file),
-            java.time.Instant.now(),
-            bytes,
-            durationMs);
+            logFileLabel(file), java.time.Instant.now(), bytes, durationMs);
         writesOk.incrementAndGet();
         lastError = null;
       } finally {
@@ -1634,7 +1626,8 @@ public class PersistenceService {
 
   private static void moveWithFallback(Path source, Path target) throws IOException {
     try {
-      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+      Files.move(
+          source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     } catch (AtomicMoveNotSupportedException e) {
       Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
     }
@@ -1707,7 +1700,8 @@ public class PersistenceService {
     }
     java.util.LinkedHashMap<String, CfpSubmission> normalized = new java.util.LinkedHashMap<>();
     for (Map.Entry<?, ?> entry : raw.entrySet()) {
-      if (!(entry.getKey() instanceof String key) || !(entry.getValue() instanceof CfpSubmission submission)) {
+      if (!(entry.getKey() instanceof String key)
+          || !(entry.getValue() instanceof CfpSubmission submission)) {
         return null;
       }
       normalized.put(key, submission);
@@ -1725,7 +1719,11 @@ public class PersistenceService {
       mapper.readTree(payload);
     }
     try (FileChannel channel =
-        FileChannel.open(cfpWalFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+        FileChannel.open(
+            cfpWalFile,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE,
+            StandardOpenOption.APPEND)) {
       writeFully(channel, intToBytes(payload.length));
       writeFully(channel, ByteBuffer.wrap(payload));
       if (cfpWalFsyncEnabled) {
@@ -1828,7 +1826,8 @@ public class PersistenceService {
       if (recovered != null) {
         return recovered;
       }
-      LOG.infof("No persistence file %s found - starting empty", cfpSubmissionsFile.toAbsolutePath());
+      LOG.infof(
+          "No persistence file %s found - starting empty", cfpSubmissionsFile.toAbsolutePath());
       return new ConcurrentHashMap<>();
     }
     try {
@@ -1861,21 +1860,23 @@ public class PersistenceService {
     return parseCfpSnapshot(path, true);
   }
 
-  private CfpSnapshotRead parseCfpSnapshot(Path path, boolean trackIntegrityCounters) throws IOException {
-    return parseCfpSnapshot(mapper.readTree(path.toFile()), path.toAbsolutePath().toString(), trackIntegrityCounters);
+  private CfpSnapshotRead parseCfpSnapshot(Path path, boolean trackIntegrityCounters)
+      throws IOException {
+    return parseCfpSnapshot(
+        mapper.readTree(path.toFile()), path.toAbsolutePath().toString(), trackIntegrityCounters);
   }
 
   private CfpSnapshotRead parseCfpSnapshot(byte[] payload, String source) throws IOException {
     return parseCfpSnapshot(payload, source, true);
   }
 
-  private CfpSnapshotRead parseCfpSnapshot(byte[] payload, String source, boolean trackIntegrityCounters)
-      throws IOException {
+  private CfpSnapshotRead parseCfpSnapshot(
+      byte[] payload, String source, boolean trackIntegrityCounters) throws IOException {
     return parseCfpSnapshot(mapper.readTree(payload), source, trackIntegrityCounters);
   }
 
-  private CfpSnapshotRead parseCfpSnapshot(JsonNode root, String source, boolean trackIntegrityCounters)
-      throws IOException {
+  private CfpSnapshotRead parseCfpSnapshot(
+      JsonNode root, String source, boolean trackIntegrityCounters) throws IOException {
     if (root == null || root.isNull() || !root.isObject()) {
       throw new IOException("invalid_cfp_snapshot_shape: " + source);
     }
@@ -1919,10 +1920,7 @@ public class PersistenceService {
       throw new IOException("invalid_legacy_cfp_snapshot: " + source, e);
     }
     return new CfpSnapshotRead(
-        legacy == null ? Map.of() : new java.util.LinkedHashMap<>(legacy),
-        0,
-        true,
-        false);
+        legacy == null ? Map.of() : new java.util.LinkedHashMap<>(legacy), 0, true, false);
   }
 
   private int parseSchemaVersion(JsonNode root) {
@@ -1981,9 +1979,7 @@ public class PersistenceService {
           snapshot.missingChecksum() ? ", checksum_hydrated" : "");
     } catch (RuntimeException e) {
       LOG.warnf(
-          e,
-          "Failed to migrate CFP snapshot from %s; continuing with in-memory data",
-          source);
+          e, "Failed to migrate CFP snapshot from %s; continuing with in-memory data", source);
     }
   }
 
@@ -2061,11 +2057,7 @@ public class PersistenceService {
       }
       LOG.warnf(
           "Recovered CFP submissions from WAL %s (%d items, reason=%s, records=%d, valid=%d)",
-          cfpWalFile.toAbsolutePath(),
-          latest.size(),
-          reason,
-          records,
-          valid);
+          cfpWalFile.toAbsolutePath(), latest.size(), reason, records, valid);
       cfpWalRecoveries.incrementAndGet();
       compactCfpWalToSnapshot(latest);
       writeSync(cfpSubmissionsFile, latest);
@@ -2077,7 +2069,9 @@ public class PersistenceService {
   }
 
   private void maybeBackupCfpSubmissions(Path file) {
-    if (!cfpBackupsEnabled || !file.equals(cfpSubmissionsFile) || !Files.exists(cfpSubmissionsFile)) {
+    if (!cfpBackupsEnabled
+        || !file.equals(cfpSubmissionsFile)
+        || !Files.exists(cfpSubmissionsFile)) {
       return;
     }
     long now = System.currentTimeMillis();
@@ -2123,7 +2117,8 @@ public class PersistenceService {
       return;
     }
     String stamp = LocalDateTime.now().format(CFP_BACKUP_TIME);
-    Path quarantined = cfpSubmissionsFile.resolveSibling("cfp-submissions.corrupt-" + stamp + ".json");
+    Path quarantined =
+        cfpSubmissionsFile.resolveSibling("cfp-submissions.corrupt-" + stamp + ".json");
     try {
       Files.move(cfpSubmissionsFile, quarantined, StandardCopyOption.REPLACE_EXISTING);
       LOG.warnf("Moved corrupted CFP submissions file to %s", quarantined.toAbsolutePath());
@@ -2132,7 +2127,8 @@ public class PersistenceService {
     }
   }
 
-  private void rewriteCfpBackupSnapshot(Path backup, Map<String, CfpSubmission> submissions) throws IOException {
+  private void rewriteCfpBackupSnapshot(Path backup, Map<String, CfpSubmission> submissions)
+      throws IOException {
     Path parent = backup.getParent();
     if (parent != null) {
       Files.createDirectories(parent);
@@ -2157,14 +2153,18 @@ public class PersistenceService {
     if (!Files.exists(backup)) {
       return;
     }
-    String name = backup.getFileName() == null ? "cfp-backup.json" : backup.getFileName().toString();
-    String baseName = name.endsWith(CFP_BACKUP_SUFFIX)
-        ? name.substring(0, name.length() - CFP_BACKUP_SUFFIX.length())
-        : name;
+    String name =
+        backup.getFileName() == null ? "cfp-backup.json" : backup.getFileName().toString();
+    String baseName =
+        name.endsWith(CFP_BACKUP_SUFFIX)
+            ? name.substring(0, name.length() - CFP_BACKUP_SUFFIX.length())
+            : name;
     String stamp = LocalDateTime.now().format(CFP_BACKUP_TIME);
     Path quarantined = backup.resolveSibling(baseName + ".corrupt-" + stamp + CFP_BACKUP_SUFFIX);
     moveWithFallback(backup, quarantined);
-    LOG.warnf("Moved corrupted CFP backup snapshot %s to %s", backup.toAbsolutePath(), quarantined.toAbsolutePath());
+    LOG.warnf(
+        "Moved corrupted CFP backup snapshot %s to %s",
+        backup.toAbsolutePath(), quarantined.toAbsolutePath());
   }
 
   private boolean isCfpBackupFile(Path file) {
@@ -2294,8 +2294,7 @@ public class PersistenceService {
         return;
       }
       try {
-        Future<?> f = executor.submit(() -> {
-        });
+        Future<?> f = executor.submit(() -> {});
         f.get(2, TimeUnit.SECONDS);
       } catch (RejectedExecutionException ignored) {
         return;
@@ -2306,7 +2305,10 @@ public class PersistenceService {
         // keep trying until deadline
       }
 
-      if (pendingWrites.isEmpty() && queue.isEmpty() && executor.getActiveCount() == 0 && scheduledRetries.get() == 0) {
+      if (pendingWrites.isEmpty()
+          && queue.isEmpty()
+          && executor.getActiveCount() == 0
+          && scheduledRetries.get() == 0) {
         return;
       }
 
@@ -2319,10 +2321,7 @@ public class PersistenceService {
     }
     LOG.warnf(
         "persistence_flush_timeout pendingWrites=%d depth=%d active=%d pendingRetries=%d",
-        pendingWrites.size(),
-        queue.size(),
-        executor.getActiveCount(),
-        scheduledRetries.get());
+        pendingWrites.size(), queue.size(), executor.getActiveCount(), scheduledRetries.get());
   }
 
   private Path scheduleFile(int year) {

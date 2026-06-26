@@ -1,7 +1,7 @@
 package com.scanales.homedir.public_;
 
-import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
@@ -95,7 +95,8 @@ public class EventTalkResource {
       }
       return Response.ok(
               TemplateLocaleUtil.apply(
-                  TalkResource.Templates.detail(talk, event, occurrences, inSchedule), localeCookie))
+                  TalkResource.Templates.detail(talk, event, occurrences, inSchedule),
+                  localeCookie))
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", talkId);

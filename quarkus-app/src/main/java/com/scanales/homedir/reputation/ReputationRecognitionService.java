@@ -38,7 +38,11 @@ public class ReputationRecognitionService {
     String sourceType = sanitizeToken(sourceObjectType);
     String sourceId = sanitizeValue(sourceObjectId);
     RecognitionType type = RecognitionType.fromApi(recognitionType);
-    if (validator == null || target == null || sourceType == null || sourceId == null || type == null) {
+    if (validator == null
+        || target == null
+        || sourceType == null
+        || sourceId == null
+        || type == null) {
       return RecognitionResult.invalid("recognition_invalid_payload");
     }
     if (validator.equals(target)) {

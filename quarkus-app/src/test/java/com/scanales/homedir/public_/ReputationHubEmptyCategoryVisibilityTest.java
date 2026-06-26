@@ -52,7 +52,8 @@ class ReputationHubEmptyCategoryVisibilityTest {
             "7101",
             Instant.parse("2026-03-01T00:00:00Z")));
 
-    assertTrue(reputationEngineService.trackContentPublished("hub.empty.one@example.com", "thread-a"));
+    assertTrue(
+        reputationEngineService.trackContentPublished("hub.empty.one@example.com", "thread-a"));
     assertTrue(
         reputationEngineService.trackEventSpeaker(
             "hub.empty.one@example.com", "submission-a", "event-a"));

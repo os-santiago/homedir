@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +28,8 @@ public class VolunteerLoungeService {
   @Inject PersistenceService persistenceService;
   @Inject EventService eventService;
 
-  private final ConcurrentHashMap<String, VolunteerLoungeMessage> messages = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, VolunteerLoungeMessage> messages =
+      new ConcurrentHashMap<>();
   private final ConcurrentHashMap<String, Instant> lastPostByUserEvent = new ConcurrentHashMap<>();
   private final Object lock = new Object();
   private volatile long lastKnownMtime = Long.MIN_VALUE;
@@ -41,7 +41,8 @@ public class VolunteerLoungeService {
     }
   }
 
-  public List<VolunteerLoungeMessage> listByEvent(String eventId, int requestedLimit, int requestedOffset) {
+  public List<VolunteerLoungeMessage> listByEvent(
+      String eventId, int requestedLimit, int requestedOffset) {
     synchronized (lock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -53,7 +54,8 @@ public class VolunteerLoungeService {
               .filter(item -> normalizedEventId.equals(item.eventId()))
               .sorted(
                   Comparator.comparing(
-                          VolunteerLoungeMessage::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                          VolunteerLoungeMessage::createdAt,
+                          Comparator.nullsLast(Comparator.reverseOrder()))
                       .thenComparing(VolunteerLoungeMessage::id))
               .toList();
       return paginate(filtered, requestedLimit, requestedOffset);
@@ -72,7 +74,10 @@ public class VolunteerLoungeService {
   }
 
   public List<VolunteerLoungeMessage> listByEventAndType(
-      String eventId, VolunteerLoungeMessageType messageType, int requestedLimit, int requestedOffset) {
+      String eventId,
+      VolunteerLoungeMessageType messageType,
+      int requestedLimit,
+      int requestedOffset) {
     synchronized (lock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeId(eventId);
@@ -86,7 +91,8 @@ public class VolunteerLoungeService {
               .filter(item -> typeFilter.equals(normalizedType(item)))
               .sorted(
                   Comparator.comparing(
-                          VolunteerLoungeMessage::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                          VolunteerLoungeMessage::createdAt,
+                          Comparator.nullsLast(Comparator.reverseOrder()))
                       .thenComparing(VolunteerLoungeMessage::id))
               .toList();
       return paginate(filtered, requestedLimit, requestedOffset);

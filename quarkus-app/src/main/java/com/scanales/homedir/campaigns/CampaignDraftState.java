@@ -80,11 +80,7 @@ public record CampaignDraftState(
   }
 
   public CampaignDraftState withManualChannelPublished(
-      String channel,
-      Instant publishedAt,
-      String outcome,
-      Instant nextUpdatedAt,
-      String actor) {
+      String channel, Instant publishedAt, String outcome, Instant nextUpdatedAt, String actor) {
     Map<String, Instant> nextPublishedChannels = new java.util.LinkedHashMap<>(publishedChannels);
     nextPublishedChannels.put(channel, publishedAt);
     Instant nextApprovedAt = approvedAt == null ? publishedAt : approvedAt;

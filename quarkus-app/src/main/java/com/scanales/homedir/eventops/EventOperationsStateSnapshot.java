@@ -26,4 +26,3 @@ public record EventOperationsStateSnapshot(
         SCHEMA_VERSION, Instant.now(), Map.of(), Map.of(), Map.of(), Map.of());
   }
 }
-

@@ -122,7 +122,8 @@ public class EconomyService {
 
   private final Object stateLock = new Object();
   private final Map<String, EconomyWallet> wallets = new LinkedHashMap<>();
-  private final Map<String, Map<String, EconomyInventoryItem>> inventoryByUser = new LinkedHashMap<>();
+  private final Map<String, Map<String, EconomyInventoryItem>> inventoryByUser =
+      new LinkedHashMap<>();
   private volatile List<EconomyTransaction> recentTransactionCache = List.of();
   private volatile long totalTransactions;
   private volatile long lastKnownStateMtime = Long.MIN_VALUE;
@@ -161,7 +162,12 @@ public class EconomyService {
         int effectiveMax = effectiveMaxPerUser(item, policy, progress);
         AccessDecision access =
             evaluateProgressAccess(
-                policy, progress.level(), progress.totalXp(), currentClassXp, quantityOwned, effectiveMax);
+                policy,
+                progress.level(),
+                progress.totalXp(),
+                currentClassXp,
+                quantityOwned,
+                effectiveMax);
         offers.add(
             new CatalogOffer(
                 item.id(),
@@ -208,7 +214,8 @@ public class EconomyService {
     }
   }
 
-  public List<EconomyInventoryItem> listInventory(String userId, int requestedLimit, int requestedOffset) {
+  public List<EconomyInventoryItem> listInventory(
+      String userId, int requestedLimit, int requestedOffset) {
     String normalizedUserId = normalizeUserId(userId);
     if (normalizedUserId == null) {
       throw new ValidationException("invalid_user_id");
@@ -217,9 +224,12 @@ public class EconomyService {
     int offset = Math.max(0, requestedOffset);
     synchronized (stateLock) {
       refreshFromDisk(false);
-      Map<String, EconomyInventoryItem> items = inventoryByUser.getOrDefault(normalizedUserId, Map.of());
+      Map<String, EconomyInventoryItem> items =
+          inventoryByUser.getOrDefault(normalizedUserId, Map.of());
       List<EconomyInventoryItem> sorted =
-          items.values().stream().sorted((a, b) -> safeLower(a.name()).compareTo(safeLower(b.name()))).toList();
+          items.values().stream()
+              .sorted((a, b) -> safeLower(a.name()).compareTo(safeLower(b.name())))
+              .toList();
       return paginate(sorted, limit, offset);
     }
   }
@@ -233,8 +243,10 @@ public class EconomyService {
     int offset = Math.max(0, requestedOffset);
     synchronized (stateLock) {
       refreshFromDisk(false);
-      List<EconomyTransaction> cached = filterTransactionsByUser(recentTransactionCache, normalizedUserId);
-      if (offset == 0 && (!cached.isEmpty() || totalTransactions <= recentTransactionCache.size())) {
+      List<EconomyTransaction> cached =
+          filterTransactionsByUser(recentTransactionCache, normalizedUserId);
+      if (offset == 0
+          && (!cached.isEmpty() || totalTransactions <= recentTransactionCache.size())) {
         return new TransactionPage(
             paginate(cached, limit, offset),
             limit,
@@ -242,13 +254,9 @@ public class EconomyService {
             cached.size(),
             totalTransactions > recentTransactionCache.size());
       }
-      List<EconomyTransaction> full = filterTransactionsByUser(loadFullTransactions(), normalizedUserId);
-      return new TransactionPage(
-          paginate(full, limit, offset),
-          limit,
-          offset,
-          full.size(),
-          false);
+      List<EconomyTransaction> full =
+          filterTransactionsByUser(loadFullTransactions(), normalizedUserId);
+      return new TransactionPage(paginate(full, limit, offset), limit, offset, full.size(), false);
     }
   }
 
@@ -268,9 +276,11 @@ public class EconomyService {
       enforcePurchaseBurstGuard(normalizedUserId);
       List<EconomyTransaction> history = loadFullTransactions();
       Map<String, EconomyWallet> walletCopy = new LinkedHashMap<>(wallets);
-      Map<String, Map<String, EconomyInventoryItem>> inventoryCopy = deepCopyInventory(inventoryByUser);
+      Map<String, Map<String, EconomyInventoryItem>> inventoryCopy =
+          deepCopyInventory(inventoryByUser);
 
-      EconomyWallet currentWallet = walletCopy.getOrDefault(normalizedUserId, zeroWallet(normalizedUserId));
+      EconomyWallet currentWallet =
+          walletCopy.getOrDefault(normalizedUserId, zeroWallet(normalizedUserId));
       long updatedBalance = currentWallet.balanceHcoin() - Math.max(0, catalogItem.priceHcoin());
       if (updatedBalance < 0) {
         throw new ValidationException("insufficient_balance");
@@ -286,7 +296,12 @@ public class EconomyService {
       int effectiveMax = effectiveMaxPerUser(catalogItem, policy, progress);
       AccessDecision access =
           evaluateProgressAccess(
-              policy, progress.level(), progress.totalXp(), currentClassXp, currentQty, effectiveMax);
+              policy,
+              progress.level(),
+              progress.totalXp(),
+              currentClassXp,
+              currentQty,
+              effectiveMax);
       if (!access.unlocked()) {
         throw new ValidationException(access.reasonCode());
       }
@@ -294,7 +309,10 @@ public class EconomyService {
         throw new ValidationException("item_limit_reached");
       }
       if (existingItem == null && userInventory.size() >= Math.max(1, userMaxInventoryItems)) {
-        guardrail("user_inventory_limit_reached", normalizedUserId, "max distinct items per user reached");
+        guardrail(
+            "user_inventory_limit_reached",
+            normalizedUserId,
+            "max distinct items per user reached");
       }
 
       boolean newUser = !walletCopy.containsKey(normalizedUserId);
@@ -303,10 +321,14 @@ public class EconomyService {
       }
       int inventoryEntries = countInventoryEntries(inventoryCopy);
       if (existingItem == null && inventoryEntries >= Math.max(1, memoryMaxInventoryEntries)) {
-        guardrail("memory_inventory_limit_reached", normalizedUserId, "max inventory entries reached");
+        guardrail(
+            "memory_inventory_limit_reached", normalizedUserId, "max inventory entries reached");
       }
       if (history.size() >= Math.max(1, transactionsPersistedMax)) {
-        guardrail("transaction_history_limit_reached", normalizedUserId, "max persisted transactions reached");
+        guardrail(
+            "transaction_history_limit_reached",
+            normalizedUserId,
+            "max persisted transactions reached");
       }
       if (persistenceService.isLowDiskSpace()) {
         guardrail("low_disk_space", normalizedUserId, "persistent storage low disk space");
@@ -364,15 +386,20 @@ public class EconomyService {
       }
       List<EconomyTransaction> history = loadFullTransactions();
       if (history.size() >= Math.max(1, transactionsPersistedMax)) {
-        guardrail("transaction_history_limit_reached", normalizedUserId, "max persisted transactions reached");
+        guardrail(
+            "transaction_history_limit_reached",
+            normalizedUserId,
+            "max persisted transactions reached");
       }
       Map<String, EconomyWallet> walletCopy = new LinkedHashMap<>(wallets);
-      if (!walletCopy.containsKey(normalizedUserId) && walletCopy.size() >= Math.max(1, memoryMaxUsers)) {
+      if (!walletCopy.containsKey(normalizedUserId)
+          && walletCopy.size() >= Math.max(1, memoryMaxUsers)) {
         guardrail("memory_user_limit_reached", normalizedUserId, "max users in memory reached");
       }
 
       Instant now = Instant.now();
-      EconomyWallet currentWallet = walletCopy.getOrDefault(normalizedUserId, zeroWallet(normalizedUserId));
+      EconomyWallet currentWallet =
+          walletCopy.getOrDefault(normalizedUserId, zeroWallet(normalizedUserId));
       long updatedBalance = currentWallet.balanceHcoin() + rewardAmount;
       walletCopy.put(normalizedUserId, new EconomyWallet(normalizedUserId, updatedBalance, now));
 
@@ -396,11 +423,14 @@ public class EconomyService {
     }
   }
 
-  public RewardResult rewardChallengeCompletion(String userId, String challengeId, int rewardHcoin) {
+  public RewardResult rewardChallengeCompletion(
+      String userId, String challengeId, int rewardHcoin) {
     String normalizedUserId = normalizeUserId(userId);
     String normalizedChallengeId =
         challengeId == null ? null : challengeId.trim().toLowerCase(Locale.ROOT);
-    if (normalizedUserId == null || normalizedChallengeId == null || normalizedChallengeId.isBlank()) {
+    if (normalizedUserId == null
+        || normalizedChallengeId == null
+        || normalizedChallengeId.isBlank()) {
       return RewardResult.notAwarded();
     }
     int rewardAmount = Math.max(0, rewardHcoin);
@@ -425,15 +455,20 @@ public class EconomyService {
         guardrail("low_disk_space", normalizedUserId, "persistent storage low disk space");
       }
       if (history.size() >= Math.max(1, transactionsPersistedMax)) {
-        guardrail("transaction_history_limit_reached", normalizedUserId, "max persisted transactions reached");
+        guardrail(
+            "transaction_history_limit_reached",
+            normalizedUserId,
+            "max persisted transactions reached");
       }
       Map<String, EconomyWallet> walletCopy = new LinkedHashMap<>(wallets);
-      if (!walletCopy.containsKey(normalizedUserId) && walletCopy.size() >= Math.max(1, memoryMaxUsers)) {
+      if (!walletCopy.containsKey(normalizedUserId)
+          && walletCopy.size() >= Math.max(1, memoryMaxUsers)) {
         guardrail("memory_user_limit_reached", normalizedUserId, "max users in memory reached");
       }
 
       Instant now = Instant.now();
-      EconomyWallet currentWallet = walletCopy.getOrDefault(normalizedUserId, zeroWallet(normalizedUserId));
+      EconomyWallet currentWallet =
+          walletCopy.getOrDefault(normalizedUserId, zeroWallet(normalizedUserId));
       long updatedBalance = currentWallet.balanceHcoin() + rewardAmount;
       walletCopy.put(normalizedUserId, new EconomyWallet(normalizedUserId, updatedBalance, now));
 
@@ -496,7 +531,8 @@ public class EconomyService {
       persistenceService.saveEconomyStateSync(snapshot);
       lastKnownStateMtime = persistenceService.economyStateLastModifiedMillis();
     } catch (IllegalStateException e) {
-      guardrail("persistence_error", null, safeText(e.getMessage(), "failed_to_persist_economy_state"));
+      guardrail(
+          "persistence_error", null, safeText(e.getMessage(), "failed_to_persist_economy_state"));
       throw e;
     }
   }
@@ -522,7 +558,8 @@ public class EconomyService {
       return;
     }
     Instant start = Instant.now();
-    EconomyStateSnapshot snapshot = persistenceService.loadEconomyState().orElse(EconomyStateSnapshot.empty());
+    EconomyStateSnapshot snapshot =
+        persistenceService.loadEconomyState().orElse(EconomyStateSnapshot.empty());
     applySnapshot(snapshot);
     lastKnownStateMtime = diskMtime;
     lastLoadTime = Instant.now();
@@ -641,10 +678,14 @@ public class EconomyService {
   private static int effectiveMaxPerUser(
       EconomyCatalogItem item, CatalogPolicy policy, UserProgress progress) {
     int base = Math.max(1, item.maxPerUser());
-    int levelBonus = progressionBonus(progress.level() - policy.minLevel(), policy.levelStep(), policy.stockPerLevelStep());
+    int levelBonus =
+        progressionBonus(
+            progress.level() - policy.minLevel(), policy.levelStep(), policy.stockPerLevelStep());
     int achievementBonus =
-        progressionBonus(progress.achievements(), policy.achievementStep(), policy.stockPerAchievementStep());
-    int bonus = Math.min(Math.max(0, policy.bonusCap()), Math.max(0, levelBonus + achievementBonus));
+        progressionBonus(
+            progress.achievements(), policy.achievementStep(), policy.stockPerAchievementStep());
+    int bonus =
+        Math.min(Math.max(0, policy.bonusCap()), Math.max(0, levelBonus + achievementBonus));
     return base + bonus;
   }
 
@@ -683,7 +724,8 @@ public class EconomyService {
       List<EconomyTransaction> transactionsSnapshot,
       Instant updatedAt) {
     Map<String, List<EconomyInventoryItem>> inventory = new LinkedHashMap<>();
-    for (Map.Entry<String, Map<String, EconomyInventoryItem>> entry : inventorySnapshot.entrySet()) {
+    for (Map.Entry<String, Map<String, EconomyInventoryItem>> entry :
+        inventorySnapshot.entrySet()) {
       inventory.put(entry.getKey(), List.copyOf(entry.getValue().values()));
     }
     return new EconomyStateSnapshot(
@@ -707,12 +749,15 @@ public class EconomyService {
   private void emitGuardrailAlert(String code, String userId, String detail) {
     Instant now = Instant.now();
     Instant previous = alertHistory.get(code);
-    if (previous != null && guardAlertCooldown != null && now.isBefore(previous.plus(guardAlertCooldown))) {
+    if (previous != null
+        && guardAlertCooldown != null
+        && now.isBefore(previous.plus(guardAlertCooldown))) {
       return;
     }
     alertHistory.put(code, now);
     String message = "Economy guardrail triggered: " + safeText(code, "unknown");
-    systemErrorService.logError("WARN", "EconomyService", message + " (" + safeText(detail, "-") + ")", null, userId);
+    systemErrorService.logError(
+        "WARN", "EconomyService", message + " (" + safeText(detail, "-") + ")", null, userId);
     LOG.warnf("economy_guardrail_triggered code=%s", safeLogCode(code));
     if (!globalNotificationService.isResolvable()) {
       return;
@@ -800,11 +845,7 @@ public class EconomyService {
     if (value == null || value.isBlank()) {
       return "unknown";
     }
-    String normalized =
-        value
-            .trim()
-            .toLowerCase(Locale.ROOT)
-            .replaceAll("[^a-z0-9._-]", "_");
+    String normalized = value.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]", "_");
     return normalized.isBlank() ? "unknown" : normalized;
   }
 
@@ -824,12 +865,12 @@ public class EconomyService {
       @com.fasterxml.jackson.annotation.JsonProperty("current_level") int currentLevel,
       @com.fasterxml.jackson.annotation.JsonProperty("current_total_xp") int currentTotalXp,
       @com.fasterxml.jackson.annotation.JsonProperty("current_class_xp") int currentClassXp,
-      @com.fasterxml.jackson.annotation.JsonProperty("effective_max_per_user") int effectiveMaxPerUser,
+      @com.fasterxml.jackson.annotation.JsonProperty("effective_max_per_user")
+          int effectiveMaxPerUser,
       @com.fasterxml.jackson.annotation.JsonProperty("owned_quantity") int ownedQuantity,
       @com.fasterxml.jackson.annotation.JsonProperty("remaining_stock") int remainingStock,
       boolean unlocked,
-      @com.fasterxml.jackson.annotation.JsonProperty("lock_reason") String lockReason) {
-  }
+      @com.fasterxml.jackson.annotation.JsonProperty("lock_reason") String lockReason) {}
 
   public record PurchaseResult(
       String itemId,
@@ -837,26 +878,17 @@ public class EconomyService {
       int priceHcoin,
       long balanceAfterHcoin,
       int quantityOwned,
-      Instant createdAt) {
-  }
+      Instant createdAt) {}
 
   public record RewardResult(
-      boolean awarded,
-      long amountHcoin,
-      long balanceAfterHcoin,
-      Instant createdAt) {
+      boolean awarded, long amountHcoin, long balanceAfterHcoin, Instant createdAt) {
     public static RewardResult notAwarded() {
       return new RewardResult(false, 0L, 0L, Instant.now());
     }
   }
 
   public record TransactionPage(
-      List<EconomyTransaction> items,
-      int limit,
-      int offset,
-      long total,
-      boolean partial) {
-  }
+      List<EconomyTransaction> items, int limit, int offset, long total, boolean partial) {}
 
   public record EconomyMetrics(
       int walletUsers,
@@ -870,8 +902,7 @@ public class EconomyService {
       Instant lastGuardrailAt,
       String statePath,
       long stateSizeBytes,
-      long stateLastModifiedMillis) {
-  }
+      long stateLastModifiedMillis) {}
 
   public static class ValidationException extends RuntimeException {
     public ValidationException(String message) {
@@ -895,12 +926,10 @@ public class EconomyService {
       int stockPerLevelStep,
       int achievementStep,
       int stockPerAchievementStep,
-      int bonusCap) {
-  }
+      int bonusCap) {}
 
-  private record UserProgress(int totalXp, int level, int achievements, Map<QuestClass, Integer> classXp) {
-  }
+  private record UserProgress(
+      int totalXp, int level, int achievements, Map<QuestClass, Integer> classXp) {}
 
-  private record AccessDecision(boolean unlocked, String reasonCode) {
-  }
+  private record AccessDecision(boolean unlocked, String reasonCode) {}
 }

@@ -26,7 +26,8 @@ class ReputationEngineFeatureFlagTest {
 
   @Test
   void doesNotIngestWhenEngineFlagIsDisabled() {
-    assertFalse(reputationEngineService.trackQuestCompleted("alice@example.com", "challenge-disabled"));
+    assertFalse(
+        reputationEngineService.trackQuestCompleted("alice@example.com", "challenge-disabled"));
     assertEquals(0, reputationEngineService.snapshot().eventsById().size());
   }
 }

@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 public class NotificationServiceTest {
 
-  @Inject
-  NotificationService notifications;
+  @Inject NotificationService notifications;
 
   @Test
   public void dedupePreventsDuplicates() {

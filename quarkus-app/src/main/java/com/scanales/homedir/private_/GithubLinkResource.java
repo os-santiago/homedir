@@ -14,11 +14,9 @@ import jakarta.ws.rs.core.Response;
 @Path("/private/github")
 public class GithubLinkResource {
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
-  @Inject
-  GithubLinkService service;
+  @Inject GithubLinkService service;
 
   @GET
   @Path("connect")

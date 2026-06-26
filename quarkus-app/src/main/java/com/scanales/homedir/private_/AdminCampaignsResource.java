@@ -21,15 +21,15 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.ResourceBundle;
-import jakarta.ws.rs.core.UriBuilder;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /** Hidden admin surface for internal marketing campaign drafts. */
@@ -264,7 +264,8 @@ public class AdminCampaignsResource {
                 filters.channel())
             : new CampaignService.CampaignAdminFilters(
                 filters.query(), filters.workflow(), filters.kind(), filters.channel());
-    CampaignService.CampaignPreviewSnapshot view = campaignService.preview(localeCode, previewFilters);
+    CampaignService.CampaignPreviewSnapshot view =
+        campaignService.preview(localeCode, previewFilters);
     TemplateInstance template =
         Templates.index(
             localizedCopy(localeCode),
@@ -310,7 +311,7 @@ public class AdminCampaignsResource {
                     filters.query(), filters.workflow(), filters.kind(), filters.channel()))
             .orElse(null);
     if (detail == null) {
-      return Response.seeOther(redirectWithErrorUri("not_found", draftId, filters, "content")).build();
+      return Response.status(Response.Status.NOT_FOUND).build();
     }
     TemplateInstance template =
         Templates.detail(
@@ -339,16 +340,24 @@ public class AdminCampaignsResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
-    if (draftIds == null || draftIds.stream().map(AdminCampaignsResource::safe).allMatch(String::isBlank)) {
-      return redirectWithError("bulk_no_selection", "", filters, normalizeReturnTo(returnTo, "content"));
+    if (draftIds == null
+        || draftIds.stream().map(AdminCampaignsResource::safe).allMatch(String::isBlank)) {
+      return redirectWithError(
+          "bulk_no_selection", "", filters, normalizeReturnTo(returnTo, "content"));
     }
     String normalizedAction = safe(action);
     if (!Set.of("approve", "reset", "unschedule").contains(normalizedAction)) {
-      return redirectWithError("invalid_bulk_action", "", filters, normalizeReturnTo(returnTo, "content"));
+      return redirectWithError(
+          "invalid_bulk_action", "", filters, normalizeReturnTo(returnTo, "content"));
     }
     int changed = applyBulkAction(normalizedAction, draftIds, identity.getPrincipal().getName());
     return redirectWithUpdate(
-        "bulk", "", filters, "count", String.valueOf(changed), normalizeReturnTo(returnTo, "content"));
+        "bulk",
+        "",
+        filters,
+        "count",
+        String.valueOf(changed),
+        normalizeReturnTo(returnTo, "content"));
   }
 
   @POST
@@ -624,7 +633,8 @@ public class AdminCampaignsResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     boolean nextAcknowledged = "true".equalsIgnoreCase(acknowledged);
-    campaignService.setPilotVerificationAcknowledged(nextAcknowledged, identity.getPrincipal().getName());
+    campaignService.setPilotVerificationAcknowledged(
+        nextAcknowledged, identity.getPrincipal().getName());
     return redirectWithUpdate(
         nextAcknowledged ? "pilotverified" : "pilotverificationcleared",
         "pilot",
@@ -727,15 +737,16 @@ public class AdminCampaignsResource {
     }
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
     if (scheduledFor == null || scheduledFor.isBlank()) {
-      return redirectWithError("invalid_schedule", draftId, filters, normalizeReturnTo(returnTo, "publish"));
+      return redirectWithError(
+          "invalid_schedule", draftId, filters, normalizeReturnTo(returnTo, "publish"));
     }
     try {
-      campaignService.scheduleDraft(draftId, LocalDateTime.parse(scheduledFor), identity.getPrincipal().getName());
+      campaignService.scheduleDraft(
+          draftId, LocalDateTime.parse(scheduledFor), identity.getPrincipal().getName());
       return redirectWithUpdate(
           "scheduled", draftId, filters, null, null, normalizeReturnTo(returnTo, "publish"));
     } catch (Exception e) {
-      String errorCode =
-          e instanceof IllegalStateException ? "not_ready" : "invalid_schedule";
+      String errorCode = e instanceof IllegalStateException ? "not_ready" : "invalid_schedule";
       return redirectWithError(errorCode, draftId, filters, normalizeReturnTo(returnTo, "publish"));
     }
   }
@@ -803,21 +814,19 @@ public class AdminCampaignsResource {
     AdminCampaignFilters filters = AdminCampaignFilters.sanitize(query, workflow, kind, channel);
     String normalizedChannel = normalizeAutomationChannel(channelCode);
     if (normalizedChannel.isBlank() || "linkedin".equals(normalizedChannel)) {
-      return redirectWithError("invalid_channel", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
+      return redirectWithError(
+          "invalid_channel", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
     }
     try {
       campaignService.retryChannel(draftId, normalizedChannel, identity.getPrincipal().getName());
       return redirectWithUpdate(
-          "retried",
-          draftId,
-          filters,
-          null,
-          null,
-          normalizeReturnTo(returnTo, "monitor"));
+          "retried", draftId, filters, null, null, normalizeReturnTo(returnTo, "monitor"));
     } catch (IllegalArgumentException e) {
-      return redirectWithError("invalid_channel", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
+      return redirectWithError(
+          "invalid_channel", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
     } catch (IllegalStateException e) {
-      return redirectWithError("retry_not_ready", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
+      return redirectWithError(
+          "retry_not_ready", draftId, filters, normalizeReturnTo(returnTo, "monitor"));
     }
   }
 
@@ -1118,7 +1127,8 @@ public class AdminCampaignsResource {
       if (draft == null) {
         continue;
       }
-      CampaignWorkflowState workflow = CampaignWorkflowState.valueOf(draft.workflowStateCode().toUpperCase(Locale.ROOT));
+      CampaignWorkflowState workflow =
+          CampaignWorkflowState.valueOf(draft.workflowStateCode().toUpperCase(Locale.ROOT));
       switch (action) {
         case "approve" -> {
           if (workflow == CampaignWorkflowState.DRAFT) {
@@ -1127,7 +1137,8 @@ public class AdminCampaignsResource {
           }
         }
         case "reset" -> {
-          if (workflow == CampaignWorkflowState.APPROVED || workflow == CampaignWorkflowState.SCHEDULED) {
+          if (workflow == CampaignWorkflowState.APPROVED
+              || workflow == CampaignWorkflowState.SCHEDULED) {
             campaignService.resetDraft(draftId);
             changed++;
           }
@@ -1138,15 +1149,16 @@ public class AdminCampaignsResource {
             changed++;
           }
         }
-        default -> {
-        }
+        default -> {}
       }
     }
     return changed;
   }
 
   private List<AdminFilterOption> workflowOptions(String localeCode) {
-    ResourceBundle bundle = ResourceBundle.getBundle("i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
+    ResourceBundle bundle =
+        ResourceBundle.getBundle(
+            "i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
     return List.of(
         new AdminFilterOption("draft", text(bundle, "campaigns_workflow_draft")),
         new AdminFilterOption("approved", text(bundle, "campaigns_workflow_approved")),
@@ -1155,16 +1167,22 @@ public class AdminCampaignsResource {
   }
 
   private List<AdminFilterOption> kindOptions(String localeCode) {
-    ResourceBundle bundle = ResourceBundle.getBundle("i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
+    ResourceBundle bundle =
+        ResourceBundle.getBundle(
+            "i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
     return List.of(
         new AdminFilterOption("product_pulse", text(bundle, "campaigns_kind_product_pulse")),
-        new AdminFilterOption("challenge_spotlight", text(bundle, "campaigns_kind_challenge_spotlight")),
-        new AdminFilterOption("community_spotlight", text(bundle, "campaigns_kind_community_spotlight")),
+        new AdminFilterOption(
+            "challenge_spotlight", text(bundle, "campaigns_kind_challenge_spotlight")),
+        new AdminFilterOption(
+            "community_spotlight", text(bundle, "campaigns_kind_community_spotlight")),
         new AdminFilterOption("event_spotlight", text(bundle, "campaigns_kind_event_spotlight")));
   }
 
   private List<AdminFilterOption> channelOptions(String localeCode) {
-    ResourceBundle bundle = ResourceBundle.getBundle("i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
+    ResourceBundle bundle =
+        ResourceBundle.getBundle(
+            "i18n", Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es"));
     return List.of(
         new AdminFilterOption("discord", text(bundle, "campaigns_channel_discord")),
         new AdminFilterOption("bluesky", text(bundle, "campaigns_channel_bluesky")),
@@ -1287,7 +1305,12 @@ public class AdminCampaignsResource {
             "draft",
             text(bundle, "campaigns_admin_board_column_draft"),
             text(bundle, "campaigns_admin_board_column_draft_hint"),
-            boardDraftCards(view.drafts(), filters, issueDraftIds, draft -> "draft".equals(draft.workflowStateCode()), "watch")),
+            boardDraftCards(
+                view.drafts(),
+                filters,
+                issueDraftIds,
+                draft -> "draft".equals(draft.workflowStateCode()),
+                "watch")),
         new AdminCampaignBoardColumn(
             "approved",
             text(bundle, "campaigns_admin_board_column_approved"),
@@ -1316,7 +1339,9 @@ public class AdminCampaignsResource {
                 view.drafts(),
                 filters,
                 issueDraftIds,
-                draft -> "scheduled".equals(draft.workflowStateCode()) && !issueDraftIds.contains(draft.id()),
+                draft ->
+                    "scheduled".equals(draft.workflowStateCode())
+                        && !issueDraftIds.contains(draft.id()),
                 "watch")),
         new AdminCampaignBoardColumn(
             "issues",
@@ -1327,7 +1352,12 @@ public class AdminCampaignsResource {
             "published",
             text(bundle, "campaigns_admin_board_column_published"),
             text(bundle, "campaigns_admin_board_column_published_hint"),
-            boardDraftCards(view.drafts(), filters, issueDraftIds, draft -> "published".equals(draft.workflowStateCode()), "healthy")));
+            boardDraftCards(
+                view.drafts(),
+                filters,
+                issueDraftIds,
+                draft -> "published".equals(draft.workflowStateCode()),
+                "healthy")));
   }
 
   private List<AdminCampaignBoardCard> boardDraftCards(
@@ -1341,7 +1371,8 @@ public class AdminCampaignsResource {
       if (!matcher.test(draft)) {
         continue;
       }
-      String contextLabel = draft.scheduleReady() ? draft.scheduleReadinessDetailLabel() : draft.scheduledForLabel();
+      String contextLabel =
+          draft.scheduleReady() ? draft.scheduleReadinessDetailLabel() : draft.scheduledForLabel();
       if (contextLabel == null || contextLabel.isBlank() || "—".equals(contextLabel)) {
         contextLabel = draft.publishedChannelsLabel();
       }
@@ -1453,10 +1484,7 @@ public class AdminCampaignsResource {
       if (value == null || value.isBlank()) {
         return;
       }
-      builder.append(builder.isEmpty() ? "?" : "&")
-          .append(key)
-          .append("=")
-          .append(encode(value));
+      builder.append(builder.isEmpty() ? "?" : "&").append(key).append("=").append(encode(value));
     }
 
     private static String encode(String value) {

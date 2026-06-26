@@ -125,16 +125,19 @@ public class CampaignService {
   public CampaignStateSnapshot approveDraft(String draftId, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
-      currentState = mutateDraftState(draftId, source -> {
-        Instant now = Instant.now();
-        return source.withWorkflow(
-            CampaignWorkflowState.APPROVED,
-            now,
-            safe(actor),
-            null,
-            now,
-            source.sourceAvailable());
-      });
+      currentState =
+          mutateDraftState(
+              draftId,
+              source -> {
+                Instant now = Instant.now();
+                return source.withWorkflow(
+                    CampaignWorkflowState.APPROVED,
+                    now,
+                    safe(actor),
+                    null,
+                    now,
+                    source.sourceAvailable());
+              });
       currentState =
           appendActivity(
               currentState,
@@ -148,13 +151,17 @@ public class CampaignService {
   public CampaignStateSnapshot resetDraft(String draftId) {
     synchronized (stateLock) {
       refreshFromDisk(false);
-      currentState = mutateDraftState(draftId, source -> source.withWorkflow(
-          CampaignWorkflowState.DRAFT,
-          null,
-          "",
-          null,
-          Instant.now(),
-          source.sourceAvailable()));
+      currentState =
+          mutateDraftState(
+              draftId,
+              source ->
+                  source.withWorkflow(
+                      CampaignWorkflowState.DRAFT,
+                      null,
+                      "",
+                      null,
+                      Instant.now(),
+                      source.sourceAvailable()));
       currentState =
           appendActivity(
               currentState,
@@ -165,27 +172,35 @@ public class CampaignService {
     }
   }
 
-  public CampaignStateSnapshot scheduleDraft(String draftId, LocalDateTime scheduledLocal, String actor) {
+  public CampaignStateSnapshot scheduleDraft(
+      String draftId, LocalDateTime scheduledLocal, String actor) {
     synchronized (stateLock) {
       refreshFromDisk(false);
       Instant now = Instant.now();
       CampaignDraftState draft =
-          currentState.drafts().stream().filter(item -> item.id().equals(draftId)).findFirst().orElse(null);
+          currentState.drafts().stream()
+              .filter(item -> item.id().equals(draftId))
+              .findFirst()
+              .orElse(null);
       if (draft == null || !scheduleReadiness(draft, now).ready()) {
         throw new IllegalStateException("campaign_not_ready");
       }
       Instant scheduledFor = scheduledLocal.atZone(ZoneId.systemDefault()).toInstant();
-      currentState = mutateDraftState(draftId, source -> {
-        Instant approvedAt = source.approvedAt() != null ? source.approvedAt() : now;
-        String approvedBy = source.approvedBy().isBlank() ? safe(actor) : source.approvedBy();
-        return source.withWorkflow(
-            CampaignWorkflowState.SCHEDULED,
-            approvedAt,
-            approvedBy,
-            scheduledFor,
-            now,
-            source.sourceAvailable());
-      });
+      currentState =
+          mutateDraftState(
+              draftId,
+              source -> {
+                Instant approvedAt = source.approvedAt() != null ? source.approvedAt() : now;
+                String approvedBy =
+                    source.approvedBy().isBlank() ? safe(actor) : source.approvedBy();
+                return source.withWorkflow(
+                    CampaignWorkflowState.SCHEDULED,
+                    approvedAt,
+                    approvedBy,
+                    scheduledFor,
+                    now,
+                    source.sourceAvailable());
+              });
       currentState =
           appendActivity(
               currentState,
@@ -205,13 +220,17 @@ public class CampaignService {
   public CampaignStateSnapshot unscheduleDraft(String draftId) {
     synchronized (stateLock) {
       refreshFromDisk(false);
-      currentState = mutateDraftState(draftId, source -> source.withWorkflow(
-          CampaignWorkflowState.APPROVED,
-          source.approvedAt(),
-          source.approvedBy(),
-          null,
-          Instant.now(),
-          source.sourceAvailable()));
+      currentState =
+          mutateDraftState(
+              draftId,
+              source ->
+                  source.withWorkflow(
+                      CampaignWorkflowState.APPROVED,
+                      source.approvedAt(),
+                      source.approvedBy(),
+                      null,
+                      Instant.now(),
+                      source.sourceAvailable()));
       currentState =
           appendActivity(
               currentState,
@@ -235,7 +254,8 @@ public class CampaignService {
     }
   }
 
-  public CampaignOperationsStateSnapshot setRefreshAutomationEnabled(boolean enabled, String actor) {
+  public CampaignOperationsStateSnapshot setRefreshAutomationEnabled(
+      boolean enabled, String actor) {
     synchronized (stateLock) {
       refreshOperationsFromDisk(false);
       currentOperationsState = currentOperationsState.withRefreshAutomation(enabled, safe(actor));
@@ -257,7 +277,8 @@ public class CampaignService {
     }
   }
 
-  public CampaignOperationsStateSnapshot setPublishAutomationEnabled(boolean enabled, String actor) {
+  public CampaignOperationsStateSnapshot setPublishAutomationEnabled(
+      boolean enabled, String actor) {
     synchronized (stateLock) {
       refreshOperationsFromDisk(false);
       currentOperationsState = currentOperationsState.withPublishAutomation(enabled, safe(actor));
@@ -340,7 +361,8 @@ public class CampaignService {
     synchronized (stateLock) {
       refreshOperationsFromDisk(false);
       String normalizedChannel = safeChannel(channel);
-      currentOperationsState = currentOperationsState.withPilotLiveChannel(normalizedChannel, safe(actor));
+      currentOperationsState =
+          currentOperationsState.withPilotLiveChannel(normalizedChannel, safe(actor));
       saveOperationsState(currentOperationsState);
       currentState =
           appendActivity(
@@ -412,7 +434,8 @@ public class CampaignService {
       if (!"approved".equals(normalizedDecision) && !"hold".equals(normalizedDecision)) {
         normalizedDecision = "";
       }
-      currentOperationsState = currentOperationsState.withPilotDecision(normalizedDecision, safe(actor));
+      currentOperationsState =
+          currentOperationsState.withPilotDecision(normalizedDecision, safe(actor));
       saveOperationsState(currentOperationsState);
       String activityCode =
           switch (normalizedDecision) {
@@ -452,11 +475,7 @@ public class CampaignService {
               draftId,
               source ->
                   source.withManualChannelPublished(
-                      "linkedin",
-                      now,
-                      "published_linkedin_manual",
-                      now,
-                      safe(actor)));
+                      "linkedin", now, "published_linkedin_manual", now, safe(actor)));
       currentState =
           appendActivity(
               currentState,
@@ -545,27 +564,19 @@ public class CampaignService {
       CampaignWorkflowState nextWorkflowState = nextState;
       Map<String, Instant> updatedPublishedChannels = Map.copyOf(nextPublishedChannels);
       String outcome = safe(result.outcome());
-      String eventCode = result.published()
-          ? "publish.channel.retry"
-          : (result.skipped() ? "publish.retry.skipped" : "publish.retry.failed");
+      String eventCode =
+          result.published()
+              ? "publish.channel.retry"
+              : (result.skipped() ? "publish.retry.skipped" : "publish.retry.failed");
       currentState =
           appendActivity(
               mutateDraftState(
                   draftId,
                   source ->
                       source.withPublishStatus(
-                          nextWorkflowState,
-                          updatedPublishedChannels,
-                          now,
-                          outcome,
-                          now)),
+                          nextWorkflowState, updatedPublishedChannels, now, outcome, now)),
               draftActivity(
-                  draftId,
-                  eventCode,
-                  result.channel(),
-                  outcome,
-                  safe(actor),
-                  activityAt));
+                  draftId, eventCode, result.channel(), outcome, safe(actor), activityAt));
       saveState(currentState);
       return currentState;
     }
@@ -585,26 +596,30 @@ public class CampaignService {
     for (CampaignCadenceWindow window : cadenceGuidance.windowsByKind()) {
       cadenceByKind.put(window.label(), window.slotLabel());
     }
-    CampaignAdminFilters normalizedFilters = filters == null ? CampaignAdminFilters.empty() : filters;
+    CampaignAdminFilters normalizedFilters =
+        filters == null ? CampaignAdminFilters.empty() : filters;
     List<CampaignDraftState> visibleDrafts =
         filterDrafts(snapshot.drafts(), normalizedFilters, bundle, locale, cadenceByKind);
     List<CampaignPreviewCard> cards =
-        visibleDrafts.stream()
-            .map(item -> toPreview(item, bundle, locale, cadenceByKind))
-            .toList();
+        visibleDrafts.stream().map(item -> toPreview(item, bundle, locale, cadenceByKind)).toList();
     List<CampaignPreviewPack> previewPacks =
         visibleDrafts.stream()
-            .map(draft -> {
-              CampaignPreviewCard preview =
-                  cards.stream().filter(item -> item.id().equals(draft.id())).findFirst().orElseThrow();
-              return toPreviewPack(draft, preview, bundle);
-            })
+            .map(
+                draft -> {
+                  CampaignPreviewCard preview =
+                      cards.stream()
+                          .filter(item -> item.id().equals(draft.id()))
+                          .findFirst()
+                          .orElseThrow();
+                  return toPreviewPack(draft, preview, bundle);
+                })
             .toList();
     List<CampaignPublisherPreviewStatus> publisherStatuses =
         effectivePublisherStatuses(false).stream()
             .map(status -> toPublisherStatus(status, bundle))
             .toList();
-    boolean globalPublishingEnabled = publisherStatuses.stream().anyMatch(CampaignPublisherPreviewStatus::globalEnabled);
+    boolean globalPublishingEnabled =
+        publisherStatuses.stream().anyMatch(CampaignPublisherPreviewStatus::globalEnabled);
     List<CampaignAttributionSummary> attribution = attributionSummary(visibleDrafts, bundle);
     CampaignRolloutChecklist rolloutChecklist = rolloutChecklist(bundle, locale);
     return new CampaignPreviewSnapshot(
@@ -698,12 +713,14 @@ public class CampaignService {
       lastKnownStateMtime = persistenceService.campaignStateLastModifiedMillis();
       currentOperationsState = CampaignOperationsStateSnapshot.empty();
       persistenceService.saveCampaignOperationsStateSync(currentOperationsState);
-      lastKnownOperationsStateMtime = persistenceService.campaignOperationsStateLastModifiedMillis();
+      lastKnownOperationsStateMtime =
+          persistenceService.campaignOperationsStateLastModifiedMillis();
     }
   }
 
   private CampaignStateSnapshot generateAndPersist(String source) {
-    CampaignStateSnapshot previous = currentState == null ? CampaignStateSnapshot.empty() : currentState;
+    CampaignStateSnapshot previous =
+        currentState == null ? CampaignStateSnapshot.empty() : currentState;
     CampaignStateSnapshot snapshot =
         new CampaignStateSnapshot(
             CampaignStateSnapshot.SCHEMA_VERSION,
@@ -714,14 +731,7 @@ public class CampaignService {
         appendActivity(
             snapshot,
             new CampaignActivityEntry(
-                Instant.now(),
-                "",
-                "",
-                "",
-                "system.refresh",
-                "",
-                safe(source),
-                "system"));
+                Instant.now(), "", "", "", "system.refresh", "", safe(source), "system"));
     saveState(currentState);
     recordInsightRefresh(currentState, source);
     return currentState;
@@ -741,10 +751,12 @@ public class CampaignService {
             Map.of(
                 "version", safe(runtimeVersion),
                 "events24", String.valueOf(Math.max(0, insights.eventsLast24Hours())),
-                "initiatives24", String.valueOf(Math.max(0, insights.activeInitiativesLast24Hours())),
+                "initiatives24",
+                    String.valueOf(Math.max(0, insights.activeInitiativesLast24Hours())),
                 "prSuccess7d", formatPct(insights.prValidationSuccessRatePctLast7Days()),
                 "prodSuccess7d", formatPct(insights.productionSuccessRatePctLast7Days()),
-                "challengeCompleted", String.valueOf(metrics.getOrDefault("funnel:challenge_completed", 0L))),
+                "challengeCompleted",
+                    String.valueOf(metrics.getOrDefault("funnel:challenge_completed", 0L))),
             List.of("discord", "bluesky", "mastodon", "linkedin"),
             true,
             CampaignWorkflowState.DRAFT,
@@ -757,86 +769,101 @@ public class CampaignService {
             null,
             ""));
 
-    challengeService.trendingChallenges(Duration.ofDays(7), 1).stream().findFirst().ifPresent(
-        trend -> {
-          ChallengeDefinition definition = ChallengeCatalog.find(trend.challengeId());
-          drafts.add(
-              new CampaignDraftState(
-                  "challenge-" + safeId(trend.challengeId()),
-                  KIND_CHALLENGE_SPOTLIGHT,
-                  now,
-                  Map.of(
-                      "challengeId", safe(trend.challengeId()),
-                      "challengeTitleKey", challengeTitleKey(trend.challengeId()),
-                      "rewardHcoin", String.valueOf(definition != null ? definition.rewardHcoin() : 0),
-                      "completions", String.valueOf(Math.max(0, trend.completions()))),
-                  List.of("linkedin", "discord", "bluesky"),
-                  true,
-                  CampaignWorkflowState.DRAFT,
-                  null,
-                  "",
-                  null,
-                  now,
-                  true,
-                  Map.of(),
-                  null,
-                  ""));
-        });
+    challengeService.trendingChallenges(Duration.ofDays(7), 1).stream()
+        .findFirst()
+        .ifPresent(
+            trend -> {
+              ChallengeDefinition definition = ChallengeCatalog.find(trend.challengeId());
+              drafts.add(
+                  new CampaignDraftState(
+                      "challenge-" + safeId(trend.challengeId()),
+                      KIND_CHALLENGE_SPOTLIGHT,
+                      now,
+                      Map.of(
+                          "challengeId", safe(trend.challengeId()),
+                          "challengeTitleKey", challengeTitleKey(trend.challengeId()),
+                          "rewardHcoin",
+                              String.valueOf(definition != null ? definition.rewardHcoin() : 0),
+                          "completions", String.valueOf(Math.max(0, trend.completions()))),
+                      List.of("linkedin", "discord", "bluesky"),
+                      true,
+                      CampaignWorkflowState.DRAFT,
+                      null,
+                      "",
+                      null,
+                      now,
+                      true,
+                      Map.of(),
+                      null,
+                      ""));
+            });
 
-    communityContentService.listNew(1, 0).stream().findFirst().ifPresent(
-        item ->
-            drafts.add(
-                new CampaignDraftState(
-                    "community-" + safeId(item.id()),
-                    KIND_COMMUNITY_SPOTLIGHT,
-                    now,
-                    Map.of(
-                        "title", safe(item.title()),
-                        "url", safe(item.url()),
-                        "source", safe(item.source()),
-                        "publishedAt", item.publishedAt() != null ? item.publishedAt().atZone(ZoneOffset.UTC).toLocalDate().toString() : ""),
-                    List.of("discord", "bluesky", "mastodon", "linkedin"),
-                    true,
-                    CampaignWorkflowState.DRAFT,
-                    null,
-                    "",
-                    null,
-                    now,
-                    true,
-                    Map.of(),
-                    null,
-                    "")));
+    communityContentService.listNew(1, 0).stream()
+        .findFirst()
+        .ifPresent(
+            item ->
+                drafts.add(
+                    new CampaignDraftState(
+                        "community-" + safeId(item.id()),
+                        KIND_COMMUNITY_SPOTLIGHT,
+                        now,
+                        Map.of(
+                            "title", safe(item.title()),
+                            "url", safe(item.url()),
+                            "source", safe(item.source()),
+                            "publishedAt",
+                                item.publishedAt() != null
+                                    ? item.publishedAt()
+                                        .atZone(ZoneOffset.UTC)
+                                        .toLocalDate()
+                                        .toString()
+                                    : ""),
+                        List.of("discord", "bluesky", "mastodon", "linkedin"),
+                        true,
+                        CampaignWorkflowState.DRAFT,
+                        null,
+                        "",
+                        null,
+                        now,
+                        true,
+                        Map.of(),
+                        null,
+                        "")));
 
-    nextUpcomingEvent().ifPresent(
-        event ->
-            drafts.add(
-                new CampaignDraftState(
-                    "event-" + safeId(event.getId()),
-                    KIND_EVENT_SPOTLIGHT,
-                    now,
-                    Map.of(
-                        "eventId", safe(event.getId()),
-                        "eventTitle", safe(event.getTitle()),
-                        "eventDate", event.getDate() != null ? event.getDate().toString() : "",
-                        "eventType", safe(event.getType() != null ? event.getType().name() : "OTHER"),
-                        "eventUrl", "/event/" + safe(event.getId())),
-                    List.of("discord", "linkedin", "bluesky", "mastodon"),
-                    true,
-                    CampaignWorkflowState.DRAFT,
-                    null,
-                    "",
-                    null,
-                    now,
-                    true,
-                    Map.of(),
-                    null,
-                    "")));
+    nextUpcomingEvent()
+        .ifPresent(
+            event ->
+                drafts.add(
+                    new CampaignDraftState(
+                        "event-" + safeId(event.getId()),
+                        KIND_EVENT_SPOTLIGHT,
+                        now,
+                        Map.of(
+                            "eventId", safe(event.getId()),
+                            "eventTitle", safe(event.getTitle()),
+                            "eventDate", event.getDate() != null ? event.getDate().toString() : "",
+                            "eventType",
+                                safe(event.getType() != null ? event.getType().name() : "OTHER"),
+                            "eventUrl", "/event/" + safe(event.getId())),
+                        List.of("discord", "linkedin", "bluesky", "mastodon"),
+                        true,
+                        CampaignWorkflowState.DRAFT,
+                        null,
+                        "",
+                        null,
+                        now,
+                        true,
+                        Map.of(),
+                        null,
+                        "")));
 
-    drafts.sort(Comparator.comparing(CampaignDraftState::kind).thenComparing(CampaignDraftState::id));
+    drafts.sort(
+        Comparator.comparing(CampaignDraftState::kind).thenComparing(CampaignDraftState::id));
     return List.copyOf(drafts);
   }
 
-  private List<CampaignDraftState> mergeDrafts(List<CampaignDraftState> previousDrafts, List<CampaignDraftState> freshDrafts) {
+  private List<CampaignDraftState> mergeDrafts(
+      List<CampaignDraftState> previousDrafts, List<CampaignDraftState> freshDrafts) {
     Map<String, CampaignDraftState> previousById = new LinkedHashMap<>();
     for (CampaignDraftState previous : previousDrafts) {
       previousById.put(previous.id(), previous);
@@ -884,7 +911,9 @@ public class CampaignService {
     return eventService.listEvents().stream()
         .filter(event -> event != null && event.getId() != null && !event.getId().isBlank())
         .filter(event -> event.getDate() != null && !event.getDate().isBefore(today))
-        .sorted(Comparator.comparing(Event::getDate).thenComparing(Event::getTitle, String.CASE_INSENSITIVE_ORDER))
+        .sorted(
+            Comparator.comparing(Event::getDate)
+                .thenComparing(Event::getTitle, String.CASE_INSENSITIVE_ORDER))
         .findFirst();
   }
 
@@ -895,10 +924,17 @@ public class CampaignService {
       Map<String, String> cadenceByKind) {
     CampaignSchedulingReadiness readiness = scheduleReadiness(draft, Instant.now());
     String kindLabel = bundleText(bundle, "campaigns_kind_" + draft.kind());
-    String workflowLabel = bundleText(bundle, "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT));
+    String workflowLabel =
+        bundleText(
+            bundle, "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT));
     String sourceStatusLabel =
-        bundleText(bundle, draft.sourceAvailable() ? "campaigns_admin_source_live" : "campaigns_admin_source_stale");
-    String scheduledLabel = draft.scheduledFor() == null ? "—" : localizedDateTime(draft.scheduledFor(), locale);
+        bundleText(
+            bundle,
+            draft.sourceAvailable()
+                ? "campaigns_admin_source_live"
+                : "campaigns_admin_source_stale");
+    String scheduledLabel =
+        draft.scheduledFor() == null ? "—" : localizedDateTime(draft.scheduledFor(), locale);
     String publisherOutcomeLabel =
         draft.lastPublishOutcome().isBlank()
             ? "—"
@@ -938,48 +974,78 @@ public class CampaignService {
                 .reduce((left, right) -> left + " · " + right)
                 .orElse(bundleText(bundle, "campaigns_admin_schedule_blocker_none"));
     return switch (draft.kind()) {
-      case KIND_PRODUCT_PULSE -> new CampaignPreviewCard(
-          draft.id(),
-          kindLabel,
-          named(bundle, "campaigns_product_pulse_title", Map.of("version", value(draft, "version"))),
-          named(
-              bundle,
-              "campaigns_product_pulse_body",
-              Map.of(
-                  "events24", value(draft, "events24"),
-                  "initiatives24", value(draft, "initiatives24"))),
-          bundleText(bundle, "campaigns_product_pulse_cta"),
-          "/about",
-          localizedChannels(bundle, draft.suggestedChannels()),
-          List.of(
-              named(bundle, "campaigns_product_pulse_evidence_1", Map.of("prSuccess7d", value(draft, "prSuccess7d"))),
-              named(bundle, "campaigns_product_pulse_evidence_2", Map.of("prodSuccess7d", value(draft, "prodSuccess7d"))),
-              named(bundle, "campaigns_product_pulse_evidence_3", Map.of("challengeCompleted", value(draft, "challengeCompleted")))),
-          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
-          draft.workflowState().name().toLowerCase(Locale.ROOT),
-          workflowLabel,
-          sourceStatusLabel,
-          scheduledLabel,
-          publishedChannelsLabel,
-          publisherOutcomeLabel,
-          recommendedWindowLabel,
-          readiness.ready(),
-          scheduleReadinessLabel,
-          scheduleReadinessDetailLabel);
+      case KIND_PRODUCT_PULSE ->
+          new CampaignPreviewCard(
+              draft.id(),
+              kindLabel,
+              named(
+                  bundle,
+                  "campaigns_product_pulse_title",
+                  Map.of("version", value(draft, "version"))),
+              named(
+                  bundle,
+                  "campaigns_product_pulse_body",
+                  Map.of(
+                      "events24", value(draft, "events24"),
+                      "initiatives24", value(draft, "initiatives24"))),
+              bundleText(bundle, "campaigns_product_pulse_cta"),
+              "/about",
+              localizedChannels(bundle, draft.suggestedChannels()),
+              List.of(
+                  named(
+                      bundle,
+                      "campaigns_product_pulse_evidence_1",
+                      Map.of("prSuccess7d", value(draft, "prSuccess7d"))),
+                  named(
+                      bundle,
+                      "campaigns_product_pulse_evidence_2",
+                      Map.of("prodSuccess7d", value(draft, "prodSuccess7d"))),
+                  named(
+                      bundle,
+                      "campaigns_product_pulse_evidence_3",
+                      Map.of("challengeCompleted", value(draft, "challengeCompleted")))),
+              bundleText(
+                  bundle,
+                  draft.approvalRequired()
+                      ? "campaigns_admin_requires_approval"
+                      : "campaigns_admin_draft_only"),
+              draft.workflowState().name().toLowerCase(Locale.ROOT),
+              workflowLabel,
+              sourceStatusLabel,
+              scheduledLabel,
+              publishedChannelsLabel,
+              publisherOutcomeLabel,
+              recommendedWindowLabel,
+              readiness.ready(),
+              scheduleReadinessLabel,
+              scheduleReadinessDetailLabel);
       case KIND_CHALLENGE_SPOTLIGHT -> {
         String challengeTitle = bundleText(bundle, value(draft, "challengeTitleKey"));
         yield new CampaignPreviewCard(
             draft.id(),
             kindLabel,
             named(bundle, "campaigns_challenge_title", Map.of("challengeTitle", challengeTitle)),
-            named(bundle, "campaigns_challenge_body", Map.of("completions", value(draft, "completions"))),
+            named(
+                bundle,
+                "campaigns_challenge_body",
+                Map.of("completions", value(draft, "completions"))),
             bundleText(bundle, "campaigns_challenge_cta"),
             "/private/profile#challenges-panel",
             localizedChannels(bundle, draft.suggestedChannels()),
             List.of(
-                named(bundle, "campaigns_challenge_evidence_1", Map.of("completions", value(draft, "completions"))),
-                named(bundle, "campaigns_challenge_evidence_2", Map.of("rewardHcoin", value(draft, "rewardHcoin")))),
-            bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
+                named(
+                    bundle,
+                    "campaigns_challenge_evidence_1",
+                    Map.of("completions", value(draft, "completions"))),
+                named(
+                    bundle,
+                    "campaigns_challenge_evidence_2",
+                    Map.of("rewardHcoin", value(draft, "rewardHcoin")))),
+            bundleText(
+                bundle,
+                draft.approvalRequired()
+                    ? "campaigns_admin_requires_approval"
+                    : "campaigns_admin_draft_only"),
             draft.workflowState().name().toLowerCase(Locale.ROOT),
             workflowLabel,
             sourceStatusLabel,
@@ -991,75 +1057,103 @@ public class CampaignService {
             scheduleReadinessLabel,
             scheduleReadinessDetailLabel);
       }
-      case KIND_COMMUNITY_SPOTLIGHT -> new CampaignPreviewCard(
-          draft.id(),
-          kindLabel,
-          named(bundle, "campaigns_community_title", Map.of("title", value(draft, "title"))),
-          bundleText(bundle, "campaigns_community_body"),
-          bundleText(bundle, "campaigns_community_cta"),
-          "/comunidad",
-          localizedChannels(bundle, draft.suggestedChannels()),
-          List.of(
-              named(bundle, "campaigns_community_evidence_1", Map.of("source", value(draft, "source"))),
-              named(bundle, "campaigns_community_evidence_2", Map.of("publishedAt", localizedDate(value(draft, "publishedAt"), locale)))),
-          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
-          draft.workflowState().name().toLowerCase(Locale.ROOT),
-          workflowLabel,
-          sourceStatusLabel,
-          scheduledLabel,
-          publishedChannelsLabel,
-          publisherOutcomeLabel,
-          recommendedWindowLabel,
-          readiness.ready(),
-          scheduleReadinessLabel,
-          scheduleReadinessDetailLabel);
-      case KIND_EVENT_SPOTLIGHT -> new CampaignPreviewCard(
-          draft.id(),
-          kindLabel,
-          named(bundle, "campaigns_event_title", Map.of("eventTitle", value(draft, "eventTitle"))),
-          bundleText(bundle, "campaigns_event_body"),
-          bundleText(bundle, "campaigns_event_cta"),
-          value(draft, "eventUrl"),
-          localizedChannels(bundle, draft.suggestedChannels()),
-          List.of(
-              named(bundle, "campaigns_event_evidence_1", Map.of("eventDate", localizedDate(value(draft, "eventDate"), locale))),
-              named(bundle, "campaigns_event_evidence_2", Map.of("eventType", humanizeEnum(value(draft, "eventType"))))),
-          bundleText(bundle, draft.approvalRequired() ? "campaigns_admin_requires_approval" : "campaigns_admin_draft_only"),
-          draft.workflowState().name().toLowerCase(Locale.ROOT),
-          workflowLabel,
-          sourceStatusLabel,
-          scheduledLabel,
-          publishedChannelsLabel,
-          publisherOutcomeLabel,
-          recommendedWindowLabel,
-          readiness.ready(),
-          scheduleReadinessLabel,
-          scheduleReadinessDetailLabel);
-      default -> new CampaignPreviewCard(
-          draft.id(),
-          kindLabel,
-          draft.id(),
-          draft.kind(),
-          bundleText(bundle, "campaigns_admin_unknown_cta"),
-          "/private/admin",
-          localizedChannels(bundle, draft.suggestedChannels()),
-          List.of(),
-          bundleText(bundle, "campaigns_admin_draft_only"),
-          draft.workflowState().name().toLowerCase(Locale.ROOT),
-          workflowLabel,
-          sourceStatusLabel,
-          scheduledLabel,
-          publishedChannelsLabel,
-          publisherOutcomeLabel,
-          recommendedWindowLabel,
-          readiness.ready(),
-          scheduleReadinessLabel,
-          scheduleReadinessDetailLabel);
+      case KIND_COMMUNITY_SPOTLIGHT ->
+          new CampaignPreviewCard(
+              draft.id(),
+              kindLabel,
+              named(bundle, "campaigns_community_title", Map.of("title", value(draft, "title"))),
+              bundleText(bundle, "campaigns_community_body"),
+              bundleText(bundle, "campaigns_community_cta"),
+              "/comunidad",
+              localizedChannels(bundle, draft.suggestedChannels()),
+              List.of(
+                  named(
+                      bundle,
+                      "campaigns_community_evidence_1",
+                      Map.of("source", value(draft, "source"))),
+                  named(
+                      bundle,
+                      "campaigns_community_evidence_2",
+                      Map.of("publishedAt", localizedDate(value(draft, "publishedAt"), locale)))),
+              bundleText(
+                  bundle,
+                  draft.approvalRequired()
+                      ? "campaigns_admin_requires_approval"
+                      : "campaigns_admin_draft_only"),
+              draft.workflowState().name().toLowerCase(Locale.ROOT),
+              workflowLabel,
+              sourceStatusLabel,
+              scheduledLabel,
+              publishedChannelsLabel,
+              publisherOutcomeLabel,
+              recommendedWindowLabel,
+              readiness.ready(),
+              scheduleReadinessLabel,
+              scheduleReadinessDetailLabel);
+      case KIND_EVENT_SPOTLIGHT ->
+          new CampaignPreviewCard(
+              draft.id(),
+              kindLabel,
+              named(
+                  bundle,
+                  "campaigns_event_title",
+                  Map.of("eventTitle", value(draft, "eventTitle"))),
+              bundleText(bundle, "campaigns_event_body"),
+              bundleText(bundle, "campaigns_event_cta"),
+              value(draft, "eventUrl"),
+              localizedChannels(bundle, draft.suggestedChannels()),
+              List.of(
+                  named(
+                      bundle,
+                      "campaigns_event_evidence_1",
+                      Map.of("eventDate", localizedDate(value(draft, "eventDate"), locale))),
+                  named(
+                      bundle,
+                      "campaigns_event_evidence_2",
+                      Map.of("eventType", humanizeEnum(value(draft, "eventType"))))),
+              bundleText(
+                  bundle,
+                  draft.approvalRequired()
+                      ? "campaigns_admin_requires_approval"
+                      : "campaigns_admin_draft_only"),
+              draft.workflowState().name().toLowerCase(Locale.ROOT),
+              workflowLabel,
+              sourceStatusLabel,
+              scheduledLabel,
+              publishedChannelsLabel,
+              publisherOutcomeLabel,
+              recommendedWindowLabel,
+              readiness.ready(),
+              scheduleReadinessLabel,
+              scheduleReadinessDetailLabel);
+      default ->
+          new CampaignPreviewCard(
+              draft.id(),
+              kindLabel,
+              draft.id(),
+              draft.kind(),
+              bundleText(bundle, "campaigns_admin_unknown_cta"),
+              "/private/admin",
+              localizedChannels(bundle, draft.suggestedChannels()),
+              List.of(),
+              bundleText(bundle, "campaigns_admin_draft_only"),
+              draft.workflowState().name().toLowerCase(Locale.ROOT),
+              workflowLabel,
+              sourceStatusLabel,
+              scheduledLabel,
+              publishedChannelsLabel,
+              publisherOutcomeLabel,
+              recommendedWindowLabel,
+              readiness.ready(),
+              scheduleReadinessLabel,
+              scheduleReadinessDetailLabel);
     };
   }
 
   private List<String> localizedChannels(ResourceBundle bundle, List<String> channels) {
-    return channels.stream().map(channel -> bundleText(bundle, "campaigns_channel_" + channel)).toList();
+    return channels.stream()
+        .map(channel -> bundleText(bundle, "campaigns_channel_" + channel))
+        .toList();
   }
 
   private void refreshFromDisk(boolean force) {
@@ -1109,9 +1203,7 @@ public class CampaignService {
       insightsLedgerService.append(
           MARKETING_INITIATIVE_ID,
           eventType,
-          Map.of(
-              "module", "campaigns",
-              "draftId", safe(draftId)));
+          Map.of("module", "campaigns", "draftId", safe(draftId)));
     } catch (IllegalStateException e) {
       LOG.debug("campaigns_insights_disabled");
     } catch (Exception e) {
@@ -1119,7 +1211,8 @@ public class CampaignService {
     }
   }
 
-  private CampaignStateSnapshot publishScheduledDrafts(String source, boolean respectPublishAutomation) {
+  private CampaignStateSnapshot publishScheduledDrafts(
+      String source, boolean respectPublishAutomation) {
     refreshFromDisk(false);
     refreshOperationsFromDisk(false);
     Instant now = Instant.now();
@@ -1194,15 +1287,11 @@ public class CampaignService {
       if (guardrailCode != null) {
         lastAttemptAt = now;
         lastOutcome = guardrailCode;
-        recordPublishInsight("CAMPAIGN_PUBLISH_SKIPPED", draft.id(), source, status.channel(), guardrailCode);
+        recordPublishInsight(
+            "CAMPAIGN_PUBLISH_SKIPPED", draft.id(), source, status.channel(), guardrailCode);
         activity.add(
             draftActivity(
-                draft.id(),
-                "publish.skipped",
-                status.channel(),
-                guardrailCode,
-                "system",
-                now));
+                draft.id(), "publish.skipped", status.channel(), guardrailCode, "system", now));
         continue;
       }
       if (lastAttemptAt != null && lastAttemptAt.plus(status.minInterval()).isAfter(now)) {
@@ -1217,7 +1306,12 @@ public class CampaignService {
         channelPublishes.put(result.channel(), publishedAt);
         registerPublishedFingerprint(recentFingerprints, draft, result.channel(), publishedAt);
         nextState = CampaignWorkflowState.PUBLISHED;
-        recordPublishInsight(eventNameForChannel(result.channel(), true), draft.id(), source, result.channel(), result.outcome());
+        recordPublishInsight(
+            eventNameForChannel(result.channel(), true),
+            draft.id(),
+            source,
+            result.channel(),
+            result.outcome());
         activity.add(
             draftActivity(
                 draft.id(),
@@ -1227,7 +1321,8 @@ public class CampaignService {
                 "system",
                 publishedAt));
       } else if (result.skipped()) {
-        recordPublishInsight("CAMPAIGN_PUBLISH_SKIPPED", draft.id(), source, result.channel(), result.outcome());
+        recordPublishInsight(
+            "CAMPAIGN_PUBLISH_SKIPPED", draft.id(), source, result.channel(), result.outcome());
         activity.add(
             draftActivity(
                 draft.id(),
@@ -1237,7 +1332,8 @@ public class CampaignService {
                 "system",
                 now));
       } else {
-        recordPublishInsight("CAMPAIGN_PUBLISH_FAILED", draft.id(), source, result.channel(), result.outcome());
+        recordPublishInsight(
+            "CAMPAIGN_PUBLISH_FAILED", draft.id(), source, result.channel(), result.outcome());
         activity.add(
             draftActivity(
                 draft.id(),
@@ -1250,11 +1346,7 @@ public class CampaignService {
     }
     return new PublishMutation(
         draft.withPublishStatus(
-            nextState,
-            Map.copyOf(nextPublishedChannels),
-            lastAttemptAt,
-            lastOutcome,
-            now),
+            nextState, Map.copyOf(nextPublishedChannels), lastAttemptAt, lastOutcome, now),
         List.copyOf(activity));
   }
 
@@ -1280,7 +1372,8 @@ public class CampaignService {
     };
   }
 
-  private void recordPublishInsight(String eventType, String draftId, String source, String channel, String outcome) {
+  private void recordPublishInsight(
+      String eventType, String draftId, String source, String channel, String outcome) {
     try {
       insightsLedgerService.append(
           MARKETING_INITIATIVE_ID,
@@ -1298,13 +1391,18 @@ public class CampaignService {
     }
   }
 
-  private CampaignStateSnapshot mutateDraftState(String draftId, java.util.function.Function<CampaignDraftState, CampaignDraftState> mutator) {
-    List<CampaignDraftState> drafts = currentState.drafts().stream().map(item -> {
-      if (item.id().equals(draftId)) {
-        return mutator.apply(item);
-      }
-      return item;
-    }).toList();
+  private CampaignStateSnapshot mutateDraftState(
+      String draftId, java.util.function.Function<CampaignDraftState, CampaignDraftState> mutator) {
+    List<CampaignDraftState> drafts =
+        currentState.drafts().stream()
+            .map(
+                item -> {
+                  if (item.id().equals(draftId)) {
+                    return mutator.apply(item);
+                  }
+                  return item;
+                })
+            .toList();
     return new CampaignStateSnapshot(
         CampaignStateSnapshot.SCHEMA_VERSION,
         currentState.generatedAt(),
@@ -1320,7 +1418,8 @@ public class CampaignService {
     List<CampaignActivityEntry> nextActivity = new ArrayList<>(snapshot.activity());
     nextActivity.add(entry);
     if (nextActivity.size() > MAX_ACTIVITY_ENTRIES) {
-      nextActivity = nextActivity.subList(nextActivity.size() - MAX_ACTIVITY_ENTRIES, nextActivity.size());
+      nextActivity =
+          nextActivity.subList(nextActivity.size() - MAX_ACTIVITY_ENTRIES, nextActivity.size());
     }
     return new CampaignStateSnapshot(
         CampaignStateSnapshot.SCHEMA_VERSION,
@@ -1342,7 +1441,10 @@ public class CampaignService {
       String actor,
       Instant timestamp) {
     CampaignDraftState draft =
-        currentState.drafts().stream().filter(item -> item.id().equals(draftId)).findFirst().orElse(null);
+        currentState.drafts().stream()
+            .filter(item -> item.id().equals(draftId))
+            .findFirst()
+            .orElse(null);
     String kind = draft == null ? "" : safe(draft.kind());
     String workflow =
         draft == null || draft.workflowState() == null
@@ -1365,53 +1467,9 @@ public class CampaignService {
     } catch (Exception e) {
       LOG.debug("campaigns_insights_status_unavailable");
       return new DevelopmentInsightsStatus(
-          false,
-          "",
-          0L,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          null,
-          0,
-          null,
-          0,
-          0,
-          null,
-          0,
-          0,
-          null,
-          null,
-          null,
-          0,
-          0,
-          null,
-          0,
-          0,
-          0,
-          null,
-          0,
-          0,
-          0,
-          null,
-          0,
-          Map.of(),
-          null,
-          false,
-          null,
-          0L,
-          0L,
-          0L);
+          false, "", 0L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null, 0, null, 0, 0, null, 0, 0,
+          null, null, null, 0, 0, null, 0, 0, 0, null, 0, 0, 0, null, 0, Map.of(), null, false,
+          null, 0L, 0L, 0L);
     }
   }
 
@@ -1474,7 +1532,9 @@ public class CampaignService {
       return "—";
     }
     try {
-      return DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).format(LocalDate.parse(raw));
+      return DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+          .withLocale(locale)
+          .format(LocalDate.parse(raw));
     } catch (Exception ignored) {
       return raw;
     }
@@ -1552,10 +1612,7 @@ public class CampaignService {
     UsageMetricsService.ObservabilityWindow window = usageMetricsService.observabilityWindow(168);
     List<CampaignCadenceWindow> overall =
         bestWindows(
-            window,
-            List.of("home", "community", "events", "profile", "project"),
-            3,
-            bundle);
+            window, List.of("home", "community", "events", "profile", "project"), 3, bundle);
     List<CampaignCadenceWindow> byKind =
         List.of(
             cadenceWindowForKind(KIND_PRODUCT_PULSE, bundle, window),
@@ -1567,7 +1624,8 @@ public class CampaignService {
 
   private CampaignCadenceWindow cadenceWindowForKind(
       String kind, ResourceBundle bundle, UsageMetricsService.ObservabilityWindow window) {
-    List<CampaignCadenceWindow> best = bestWindows(window, preferredModulesForKind(kind), 1, bundle);
+    List<CampaignCadenceWindow> best =
+        bestWindows(window, preferredModulesForKind(kind), 1, bundle);
     if (!best.isEmpty()) {
       CampaignCadenceWindow top = best.get(0);
       return new CampaignCadenceWindow(
@@ -1604,7 +1662,10 @@ public class CampaignService {
             entry ->
                 new CampaignCadenceWindow(
                     "",
-                    named(bundle, "campaigns_admin_cadence_window_slot", Map.of("slot", entry.getKey())),
+                    named(
+                        bundle,
+                        "campaigns_admin_cadence_window_slot",
+                        Map.of("slot", entry.getKey())),
                     named(
                         bundle,
                         "campaigns_admin_cadence_window_support",
@@ -1646,7 +1707,8 @@ public class CampaignService {
         }
       }
       for (Instant publishedAt : draft.publishedChannels().values()) {
-        if (publishedAt != null && (lastPublishedAt == null || publishedAt.isAfter(lastPublishedAt))) {
+        if (publishedAt != null
+            && (lastPublishedAt == null || publishedAt.isAfter(lastPublishedAt))) {
           lastPublishedAt = publishedAt;
         }
       }
@@ -1725,7 +1787,8 @@ public class CampaignService {
     }
     return drafts.stream()
         .sorted(
-            Comparator.comparing(CampaignDraftState::updatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+            Comparator.comparing(
+                    CampaignDraftState::updatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(CampaignDraftState::generatedAt, Comparator.reverseOrder()))
         .limit(6)
         .map(
@@ -1734,12 +1797,15 @@ public class CampaignService {
                     toPreview(draft, bundle, locale, cadenceByKind).title(),
                     bundleText(
                         bundle,
-                        "campaigns_workflow_" + draft.workflowState().name().toLowerCase(Locale.ROOT)),
+                        "campaigns_workflow_"
+                            + draft.workflowState().name().toLowerCase(Locale.ROOT)),
                     draft.lastPublishOutcome().isBlank()
                         ? bundleText(bundle, "campaigns_admin_recent_activity_updated")
-                        : bundleText(bundle, "campaigns_publish_outcome_" + draft.lastPublishOutcome()),
+                        : bundleText(
+                            bundle, "campaigns_publish_outcome_" + draft.lastPublishOutcome()),
                     localizedDateTime(
-                        draft.updatedAt() != null ? draft.updatedAt() : draft.generatedAt(), locale)))
+                        draft.updatedAt() != null ? draft.updatedAt() : draft.generatedAt(),
+                        locale)))
         .toList();
   }
 
@@ -1765,8 +1831,11 @@ public class CampaignService {
         preview.ctaLabel(),
         CampaignPublishMessageSupport.trackedUrl(draft, "linkedin"),
         linkedinHeadline(preview.title(), bundle),
-        linkedinMessage(draft, preview, bundle, CampaignPublishMessageSupport.trackedUrl(draft, "linkedin")),
-        completed ? bundleText(bundle, "campaigns_admin_linkedin_done") : bundleText(bundle, "campaigns_admin_linkedin_pending"),
+        linkedinMessage(
+            preview, bundle, CampaignPublishMessageSupport.trackedUrl(draft, "linkedin")),
+        completed
+            ? bundleText(bundle, "campaigns_admin_linkedin_done")
+            : bundleText(bundle, "campaigns_admin_linkedin_pending"),
         completed,
         localizedDateTime(draft.publishedChannels().get("linkedin"), locale));
   }
@@ -1797,7 +1866,7 @@ public class CampaignService {
           case "discord" -> discordMessage(preview, landingUrl);
           case "bluesky" -> socialMessage(preview, bundle, true, landingUrl);
           case "mastodon" -> socialMessage(preview, bundle, false, landingUrl);
-          case "linkedin" -> linkedinMessage(draft, preview, bundle, landingUrl);
+          case "linkedin" -> linkedinMessage(preview, bundle, landingUrl);
           default -> socialMessage(preview, bundle, false, landingUrl);
         };
     int charCount = message.length();
@@ -1824,7 +1893,10 @@ public class CampaignService {
         headline,
         message,
         landingUrl,
-        named(bundle, "campaigns_admin_preview_length", Map.of("count", String.valueOf(charCount), "limit", String.valueOf(limit))),
+        named(
+            bundle,
+            "campaigns_admin_preview_length",
+            Map.of("count", String.valueOf(charCount), "limit", String.valueOf(limit))),
         bundleText(bundle, readinessKey),
         published,
         retryReady);
@@ -1856,7 +1928,11 @@ public class CampaignService {
     String evidence =
         preview.evidence().isEmpty()
             ? ""
-            : separator + named(bundle, "campaigns_admin_preview_evidence", Map.of("evidence", String.join(" · ", preview.evidence())));
+            : separator
+                + named(
+                    bundle,
+                    "campaigns_admin_preview_evidence",
+                    Map.of("evidence", String.join(" · ", preview.evidence())));
     return safe(preview.title()) + separator + safe(preview.body()) + evidence + separator + cta;
   }
 
@@ -1868,7 +1944,8 @@ public class CampaignService {
       List<CampaignAttributionChannel> channels = new ArrayList<>();
       long total = 0L;
       for (String channel : List.of("discord", "bluesky", "mastodon", "linkedin")) {
-        long visits = metrics.getOrDefault("funnel:campaign.visit." + channel + "." + draft.id(), 0L);
+        long visits =
+            metrics.getOrDefault("funnel:campaign.visit." + channel + "." + draft.id(), 0L);
         total += visits;
         if (visits > 0L) {
           channels.add(
@@ -1886,7 +1963,10 @@ public class CampaignService {
               String.valueOf(total),
               List.copyOf(channels)));
     }
-    rows.sort(Comparator.comparingLong((CampaignAttributionSummary row) -> Long.parseLong(row.totalVisits())).reversed());
+    rows.sort(
+        Comparator.comparingLong(
+                (CampaignAttributionSummary row) -> parseMetricCount(row.totalVisits()))
+            .reversed());
     return List.copyOf(rows);
   }
 
@@ -1912,7 +1992,8 @@ public class CampaignService {
           topDraft = item;
         }
         for (CampaignAttributionChannel channel : item.channels()) {
-          channelTotals.merge(channel.channelLabel(), parseMetricCount(channel.visitsLabel()), Long::sum);
+          channelTotals.merge(
+              channel.channelLabel(), parseMetricCount(channel.visitsLabel()), Long::sum);
         }
         CampaignPreviewCard card = cardsById.get(item.draftId());
         highlights.add(
@@ -1920,22 +2001,27 @@ public class CampaignService {
                 item.draftId(),
                 item.title(),
                 item.kindLabel(),
-                card == null ? bundleText(bundle, "campaigns_admin_business_none") : safe(card.workflowLabel()),
+                card == null
+                    ? bundleText(bundle, "campaigns_admin_business_none")
+                    : safe(card.workflowLabel()),
                 item.totalVisits(),
                 dominantChannelLabel(item.channels(), bundle)));
       }
     }
     highlights.sort(
-        Comparator.comparingLong((CampaignBusinessHighlight item) -> parseMetricCount(item.totalVisitsLabel()))
+        Comparator.comparingLong(
+                (CampaignBusinessHighlight item) -> parseMetricCount(item.totalVisitsLabel()))
             .reversed());
     String bestChannelLabel =
         channelTotals.entrySet().stream()
             .max(Map.Entry.comparingByValue())
             .map(Map.Entry::getKey)
             .orElse(bundleText(bundle, "campaigns_admin_business_none"));
-    String topDraftTitle = topDraft == null ? bundleText(bundle, "campaigns_admin_business_none") : topDraft.title();
+    String topDraftTitle =
+        topDraft == null ? bundleText(bundle, "campaigns_admin_business_none") : topDraft.title();
     String topDraftId = topDraft == null ? "" : topDraft.draftId();
-    long averageVisits = draftsWithTraffic == 0 ? 0L : Math.round((double) totalVisits / draftsWithTraffic);
+    long averageVisits =
+        draftsWithTraffic == 0 ? 0L : Math.round((double) totalVisits / draftsWithTraffic);
     return new CampaignBusinessDashboard(
         String.valueOf(totalVisits),
         draftsWithTraffic,
@@ -2040,9 +2126,7 @@ public class CampaignService {
         operationsState.pilotLiveArmedAt() == null
             ? "—"
             : localizedDateTime(operationsState.pilotLiveArmedAt(), locale),
-        operationsState.pilotLiveArmedBy().isBlank()
-            ? "—"
-            : operationsState.pilotLiveArmedBy(),
+        operationsState.pilotLiveArmedBy().isBlank() ? "—" : operationsState.pilotLiveArmedBy(),
         pilotDecision.isBlank()
             ? bundleText(bundle, "campaigns_admin_pilot_decision_pending")
             : bundleText(bundle, "campaigns_admin_pilot_decision_" + pilotDecision),
@@ -2058,9 +2142,14 @@ public class CampaignService {
   private CampaignPilotActivationRunbook pilotActivationRunbook(
       CampaignRolloutChecklist checklist, ResourceBundle bundle) {
     CampaignRolloutChannel pilotChannel =
-        checklist.channels().stream().filter(CampaignRolloutChannel::pilotLive).findFirst().orElse(null);
+        checklist.channels().stream()
+            .filter(CampaignRolloutChannel::pilotLive)
+            .findFirst()
+            .orElse(null);
     String targetChannelLabel =
-        pilotChannel == null ? bundleText(bundle, "campaigns_admin_rollout_pilot_none") : pilotChannel.channelLabel();
+        pilotChannel == null
+            ? bundleText(bundle, "campaigns_admin_rollout_pilot_none")
+            : pilotChannel.channelLabel();
     List<CampaignPilotActivationStep> steps = new ArrayList<>();
     steps.add(
         new CampaignPilotActivationStep(
@@ -2198,7 +2287,8 @@ public class CampaignService {
                     ? bundleText(bundle, "campaigns_admin_runbook_step_blocked")
                     : bundleText(bundle, "campaigns_admin_runbook_step_pending"),
             pilotChannel != null && pilotChannel.liveArmed()));
-    int completedCount = (int) steps.stream().filter(CampaignPilotActivationStep::completed).count();
+    int completedCount =
+        (int) steps.stream().filter(CampaignPilotActivationStep::completed).count();
     String statusCode;
     if (completedCount == steps.size()) {
       statusCode = "good";
@@ -2248,20 +2338,26 @@ public class CampaignService {
                 .filter(
                     draft -> {
                       Instant publishedAt = draft.publishedChannels().get(pilotChannel);
-                      return publishedAt != null && (cycleStart == null || !publishedAt.isBefore(cycleStart));
+                      return publishedAt != null
+                          && (cycleStart == null || !publishedAt.isBefore(cycleStart));
                     })
                 .sorted(
                     Comparator.comparing(
-                            (CampaignDraftState draft) -> draft.publishedChannels().get(pilotChannel),
+                            (CampaignDraftState draft) ->
+                                draft.publishedChannels().get(pilotChannel),
                             Comparator.reverseOrder())
                         .thenComparing(CampaignDraftState::id))
                 .toList();
-    CampaignDraftState latestDraft = pilotPublishedDrafts.isEmpty() ? null : pilotPublishedDrafts.getFirst();
+    CampaignDraftState latestDraft =
+        pilotPublishedDrafts.isEmpty() ? null : pilotPublishedDrafts.getFirst();
     Instant latestPublishedAt =
         latestDraft == null ? null : latestDraft.publishedChannels().get(pilotChannel);
     boolean acknowledged = operationsState.pilotVerificationAcknowledged();
     boolean canAcknowledge =
-        !pilotChannel.isBlank() && operationsState.pilotLiveArmed() && latestDraft != null && !acknowledged;
+        !pilotChannel.isBlank()
+            && operationsState.pilotLiveArmed()
+            && latestDraft != null
+            && !acknowledged;
     String statusCode;
     String statusKey;
     String recommendationKey;
@@ -2382,9 +2478,14 @@ public class CampaignService {
       ResourceBundle bundle,
       Locale locale) {
     boolean ready =
-        status.globalEnabled() && status.channelEnabled() && status.configured() && !status.dryRun();
+        status.globalEnabled()
+            && status.channelEnabled()
+            && status.configured()
+            && !status.dryRun();
     CampaignGoLiveAck goLiveAck = operationsState.goLiveAcknowledgement(status.channel());
-    boolean pilotChannel = operationsState.hasPilotLiveChannel() && operationsState.isPilotLiveChannel(status.channel());
+    boolean pilotChannel =
+        operationsState.hasPilotLiveChannel()
+            && operationsState.isPilotLiveChannel(status.channel());
     boolean pilotVerified = pilotChannel && operationsState.pilotVerificationAcknowledged();
     String pilotDecision = pilotChannel ? operationsState.pilotDecision() : "";
     String stateCode;
@@ -2437,7 +2538,9 @@ public class CampaignService {
         goLiveAck.acknowledged()
             ? bundleText(bundle, "campaigns_admin_rollout_ack_acknowledged")
             : bundleText(bundle, "campaigns_admin_rollout_ack_pending"),
-        goLiveAck.acknowledgedAt() == null ? "—" : localizedDateTime(goLiveAck.acknowledgedAt(), locale),
+        goLiveAck.acknowledgedAt() == null
+            ? "—"
+            : localizedDateTime(goLiveAck.acknowledgedAt(), locale),
         goLiveAck.acknowledgedBy().isBlank() ? "—" : goLiveAck.acknowledgedBy(),
         pilotChannel,
         operationsState.isPilotLiveActive(status.channel()),
@@ -2473,14 +2576,18 @@ public class CampaignService {
 
   private String titleForAttribution(CampaignDraftState draft, ResourceBundle bundle) {
     return switch (draft.kind()) {
-      case KIND_PRODUCT_PULSE -> named(bundle, "campaigns_product_pulse_title", Map.of("version", value(draft, "version")));
+      case KIND_PRODUCT_PULSE ->
+          named(
+              bundle, "campaigns_product_pulse_title", Map.of("version", value(draft, "version")));
       case KIND_CHALLENGE_SPOTLIGHT ->
           named(
               bundle,
               "campaigns_challenge_title",
               Map.of("challengeTitle", bundleText(bundle, value(draft, "challengeTitleKey"))));
-      case KIND_COMMUNITY_SPOTLIGHT -> named(bundle, "campaigns_community_title", Map.of("title", value(draft, "title")));
-      case KIND_EVENT_SPOTLIGHT -> named(bundle, "campaigns_event_title", Map.of("eventTitle", value(draft, "eventTitle")));
+      case KIND_COMMUNITY_SPOTLIGHT ->
+          named(bundle, "campaigns_community_title", Map.of("title", value(draft, "title")));
+      case KIND_EVENT_SPOTLIGHT ->
+          named(bundle, "campaigns_event_title", Map.of("eventTitle", value(draft, "eventTitle")));
       default -> draft.id();
     };
   }
@@ -2490,7 +2597,7 @@ public class CampaignService {
   }
 
   private String linkedinMessage(
-      CampaignDraftState draft, CampaignPreviewCard preview, ResourceBundle bundle, String landingUrl) {
+      CampaignPreviewCard preview, ResourceBundle bundle, String landingUrl) {
     return named(
         bundle,
         "campaigns_admin_linkedin_message",
@@ -2580,8 +2687,7 @@ public class CampaignService {
         case "retryable" -> retryableCount++;
         case "blocked" -> blockedCount++;
         case "manual" -> manualCount++;
-        default -> {
-        }
+        default -> {}
       }
     }
     int totalActionable = retryableCount + blockedCount + manualCount;
@@ -2680,7 +2786,9 @@ public class CampaignService {
     }
     Instant referenceAt = publishReferenceAt(draft);
     String channelLabel =
-        channel == null ? bundleText(bundle, "campaigns_admin_filter_all") : bundleText(bundle, "campaigns_channel_" + channel);
+        channel == null
+            ? bundleText(bundle, "campaigns_admin_filter_all")
+            : bundleText(bundle, "campaigns_channel_" + channel);
     return new PublishRecoveryDescriptor(
         normalizedCode,
         stateCode,
@@ -2736,14 +2844,26 @@ public class CampaignService {
   private String recoveryStateCode(String normalizedCode) {
     return switch (normalizedCode) {
       case "publish_failed", "publish_error" -> "retryable";
-      case "global_disabled", "not_configured", "channel_disabled", "publish_paused", "channel_paused", "channel_not_supported", "unsupported", "pilot_locked", "pilot_not_selected", "pilot_gate_closed", "channel_cooldown", "duplicate_recent" ->
+      case "global_disabled",
+              "not_configured",
+              "channel_disabled",
+              "publish_paused",
+              "channel_paused",
+              "channel_not_supported",
+              "unsupported",
+              "pilot_locked",
+              "pilot_not_selected",
+              "pilot_gate_closed",
+              "channel_cooldown",
+              "duplicate_recent" ->
           "blocked";
       case "dry_run" -> "manual";
       default -> "";
     };
   }
 
-  private String recoveryRecommendation(ResourceBundle bundle, String stateCode, String channelLabel) {
+  private String recoveryRecommendation(
+      ResourceBundle bundle, String stateCode, String channelLabel) {
     return named(
         bundle,
         "campaigns_admin_recovery_recommend_" + stateCode,
@@ -2777,9 +2897,7 @@ public class CampaignService {
     long hours = Math.max(0L, age.toHours());
     long minutes = Math.max(0L, age.toMinutes());
     return named(
-        bundle,
-        "campaigns_admin_recovery_age",
-        Map.of("duration", humanDuration(hours, minutes)));
+        bundle, "campaigns_admin_recovery_age", Map.of("duration", humanDuration(hours, minutes)));
   }
 
   private String unresolvedAutomationChannel(CampaignDraftState draft) {
@@ -2914,7 +3032,8 @@ public class CampaignService {
   }
 
   private boolean isOverdue(CampaignDraftState draft, Instant now) {
-    return draft.scheduledFor() != null && draft.scheduledFor().plus(OVERDUE_SCHEDULE_WINDOW).isBefore(now);
+    return draft.scheduledFor() != null
+        && draft.scheduledFor().plus(OVERDUE_SCHEDULE_WINDOW).isBefore(now);
   }
 
   private boolean isPublishBlocked(CampaignDraftState draft) {
@@ -2942,7 +3061,8 @@ public class CampaignService {
         || draft.scheduledFor().isAfter(now)) {
       return false;
     }
-    return draft.suggestedChannels().contains(channel) && !draft.publishedChannels().containsKey(channel);
+    return draft.suggestedChannels().contains(channel)
+        && !draft.publishedChannels().containsKey(channel);
   }
 
   private CampaignSchedulingReadiness scheduleReadiness(CampaignDraftState draft, Instant now) {
@@ -2959,20 +3079,15 @@ public class CampaignService {
         continue;
       }
       String blocker =
-          scheduleBlockerCode(
-              draft,
-              channel,
-              now,
-              true,
-              channelPublishes,
-              recentFingerprints);
+          scheduleBlockerCode(draft, channel, now, true, channelPublishes, recentFingerprints);
       if (blocker == null) {
         readyChannels.add(channel);
       } else {
         blockerCodes.add(blocker);
       }
     }
-    return new CampaignSchedulingReadiness(!readyChannels.isEmpty(), List.copyOf(blockerCodes), List.copyOf(readyChannels));
+    return new CampaignSchedulingReadiness(
+        !readyChannels.isEmpty(), List.copyOf(blockerCodes), List.copyOf(readyChannels));
   }
 
   private String scheduleBlockerCode(
@@ -3011,19 +3126,15 @@ public class CampaignService {
     if (!currentOperationsState.isChannelAutomationEnabled(channel)) {
       return "channel_paused";
     }
-    if (currentOperationsState.hasPilotLiveChannel() && !currentOperationsState.isPilotLiveChannel(channel)) {
+    if (currentOperationsState.hasPilotLiveChannel()
+        && !currentOperationsState.isPilotLiveChannel(channel)) {
       return "pilot_locked";
     }
     if (!currentOperationsState.isPilotLiveActive(channel)) {
       return "pilot_gate_closed";
     }
     return publishGuardrailCode(
-        draft,
-        channel,
-        now,
-        respectPublishAutomation,
-        channelPublishes,
-        recentFingerprints);
+        draft, channel, now, respectPublishAutomation, channelPublishes, recentFingerprints);
   }
 
   private CampaignScheduleReadinessView schedulingReadiness(CampaignPreviewCard draft) {
@@ -3044,7 +3155,8 @@ public class CampaignService {
         mastodonPublisherService.status());
   }
 
-  private List<CampaignPublisherStatus> effectivePublisherStatuses(boolean respectPublishAutomation) {
+  private List<CampaignPublisherStatus> effectivePublisherStatuses(
+      boolean respectPublishAutomation) {
     CampaignOperationsStateSnapshot operationsState = currentOperationsState();
     return publisherStatuses().stream()
         .map(status -> applyOperationsState(status, operationsState, respectPublishAutomation))
@@ -3193,8 +3305,7 @@ public class CampaignService {
         .filter(item -> matchesAuditFilters(item, visibleIds, filters))
         .sorted(
             Comparator.comparing(
-                CampaignActivityEntry::timestamp,
-                Comparator.nullsLast(Comparator.reverseOrder())))
+                CampaignActivityEntry::timestamp, Comparator.nullsLast(Comparator.reverseOrder())))
         .limit(18)
         .map(item -> toAuditTrailEntry(item, bundle, locale))
         .toList();
@@ -3230,9 +3341,7 @@ public class CampaignService {
             ? bundleText(bundle, "campaigns_admin_audit_system")
             : bundleText(bundle, "campaigns_admin_audit_event_" + item.eventCode());
     String channelLabel =
-        item.channel().isBlank()
-            ? "—"
-            : bundleText(bundle, "campaigns_channel_" + item.channel());
+        item.channel().isBlank() ? "—" : bundleText(bundle, "campaigns_channel_" + item.channel());
     String outcomeLabel =
         item.outcome().isBlank()
             ? "—"
@@ -3262,7 +3371,9 @@ public class CampaignService {
   }
 
   private String absoluteUrl(String path) {
-    String baseUrl = CampaignPublishMessageSupport.normalizeBaseUrl(publicBaseUrl, "https://homedir.opensourcesantiago.io");
+    String baseUrl =
+        CampaignPublishMessageSupport.normalizeBaseUrl(
+            publicBaseUrl, "https://homedir.opensourcesantiago.io");
     String normalizedPath = safe(path);
     if (normalizedPath.isBlank()) {
       normalizedPath = "/about";
@@ -3362,8 +3473,7 @@ public class CampaignService {
   private record CampaignSchedulingReadiness(
       boolean ready, List<String> blockerCodes, List<String> readyChannels) {}
 
-  public record CampaignScheduleReadinessView(
-      boolean ready, String label, String detailLabel) {}
+  public record CampaignScheduleReadinessView(boolean ready, String label, String detailLabel) {}
 
   public record CampaignOperationsSummary(
       int draftCount,
@@ -3481,19 +3591,12 @@ public class CampaignService {
       String minIntervalLabel) {}
 
   public record CampaignRecentActivity(
-      String title,
-      String workflowLabel,
-      String activityLabel,
-      String timestampLabel) {}
+      String title, String workflowLabel, String activityLabel, String timestampLabel) {}
 
   public record CampaignCadenceGuidance(
-      List<CampaignCadenceWindow> overallWindows,
-      List<CampaignCadenceWindow> windowsByKind) {}
+      List<CampaignCadenceWindow> overallWindows, List<CampaignCadenceWindow> windowsByKind) {}
 
-  public record CampaignCadenceWindow(
-      String label,
-      String slotLabel,
-      String detailLabel) {}
+  public record CampaignCadenceWindow(String label, String slotLabel, String detailLabel) {}
 
   public record CampaignPreviewPack(
       String draftId,
@@ -3522,9 +3625,7 @@ public class CampaignService {
       List<CampaignAttributionChannel> channels) {}
 
   public record CampaignAttributionChannel(
-      String channelCode,
-      String channelLabel,
-      String visitsLabel) {}
+      String channelCode, String channelLabel, String visitsLabel) {}
 
   public record CampaignPublishRecoverySummary(
       String statusCode,

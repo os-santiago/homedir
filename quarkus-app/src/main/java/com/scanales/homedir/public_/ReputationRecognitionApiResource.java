@@ -47,7 +47,9 @@ public class ReputationRecognitionApiResource {
             request.recognitionType());
 
     if (result.disabled()) {
-      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", result.reason())).build();
+      return Response.status(Response.Status.CONFLICT)
+          .entity(Map.of("error", result.reason()))
+          .build();
     }
     if (result.accepted()) {
       return Response.ok(
@@ -58,7 +60,9 @@ public class ReputationRecognitionApiResource {
     if (result.rateLimited()) {
       return Response.status(429).entity(Map.of("error", result.reason())).build();
     }
-    return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", result.reason())).build();
+    return Response.status(Response.Status.BAD_REQUEST)
+        .entity(Map.of("error", result.reason()))
+        .build();
   }
 
   private Optional<String> currentUserId() {

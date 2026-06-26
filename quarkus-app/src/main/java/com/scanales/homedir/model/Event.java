@@ -10,26 +10,22 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 @RegisterForReflection
 @JsonIgnoreProperties(value = "dayList", allowGetters = true)
 /**
- * Represents an event with its basic information, the scenarios where the
- * activities take place and
+ * Represents an event with its basic information, the scenarios where the activities take place and
  * the agenda of talks.
  */
 public class Event {
 
-  @NotBlank
-  private String id;
-  @NotBlank
-  private String title;
-  @NotBlank
-  private String description;
+  @NotBlank private String id;
+  @NotBlank private String title;
+  @NotBlank private String description;
   private EventType type = EventType.OTHER;
   private List<Scenario> scenarios = new ArrayList<>();
 
@@ -43,8 +39,7 @@ public class Event {
   private String logoUrl;
 
   /** Contact email for the event organizers. */
-  @Email
-  private String contactEmail;
+  @Email private String contactEmail;
 
   /** Official website of the event. */
   private String website;
@@ -63,6 +58,7 @@ public class Event {
 
   /** Event-specific visual palette (optional). */
   private String themePrimaryColor;
+
   private String themeAccentColor;
   private String themeSurfaceColor;
   private String themeTextColor;
@@ -91,13 +87,11 @@ public class Event {
 
   private static final Map<String, ThemePreset> EVENT_THEME_PRESETS =
       Map.of(
-          "devopsdays-santiago-2026",
-          new ThemePreset("#e91c26", "#50bce7", "#082440", "#ffffff"));
+          "devopsdays-santiago-2026", new ThemePreset("#e91c26", "#50bce7", "#082440", "#ffffff"));
 
   private record ThemePreset(String primary, String accent, String surface, String text) {}
 
-  public Event() {
-  }
+  public Event() {}
 
   public Event(String id, String title, String description) {
     this.id = id;
@@ -350,15 +344,14 @@ public class Event {
     return getType().getCssClass();
   }
 
-  /**
-   * Returns the event date formatted for display, e.g. "5 de septiembre de 2025".
-   */
+  /** Returns the event date formatted for display, e.g. "5 de septiembre de 2025". */
   public String getFormattedDate() {
     if (date == null) {
       return "";
     }
-    var formatter = java.time.format.DateTimeFormatter.ofPattern(
-        "d 'de' MMMM 'de' yyyy", java.util.Locale.of("es"));
+    var formatter =
+        java.time.format.DateTimeFormatter.ofPattern(
+            "d 'de' MMMM 'de' yyyy", java.util.Locale.of("es"));
     return date.format(formatter);
   }
 
@@ -438,8 +431,7 @@ public class Event {
   }
 
   /**
-   * Provides a contextual label with the days remaining until the event begins.
-   * Returns "Fecha por
+   * Provides a contextual label with the days remaining until the event begins. Returns "Fecha por
    * confirmar" when the start date is unknown.
    */
   public String getCountdownLabel() {
@@ -460,8 +452,7 @@ public class Event {
   }
 
   /**
-   * Returns the number of days remaining from today until the event date. If the
-   * event date is in
+   * Returns the number of days remaining from today until the event date. If the event date is in
    * the past or not defined, zero is returned.
    */
   public long getDaysUntil() {
@@ -473,21 +464,20 @@ public class Event {
   }
 
   /**
-   * Returns the creation date formatted for display in the UI. If the date is not
-   * available, an
+   * Returns the creation date formatted for display in the UI. If the date is not available, an
    * empty string is returned.
    */
   public String getFormattedCreatedAt() {
     if (createdAt == null) {
       return "";
     }
-    var formatter = java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy", java.util.Locale.of("es"));
+    var formatter =
+        java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy", java.util.Locale.of("es"));
     return createdAt.format(formatter);
   }
 
   /**
-   * Returns a short summary of the description limited to the first paragraph and
-   * a maximum of 150
+   * Returns a short summary of the description limited to the first paragraph and a maximum of 150
    * characters.
    */
   public String getDescriptionSummary() {
@@ -505,17 +495,12 @@ public class Event {
     return summary;
   }
 
-  /**
-   * Returns a list with values from 1 to {@code days} to easily iterate in
-   * templates.
-   */
+  /** Returns a list with values from 1 to {@code days} to easily iterate in templates. */
   public java.util.List<Integer> getDayList() {
     return java.util.stream.IntStream.rangeClosed(1, days).boxed().toList();
   }
 
-  /**
-   * Retrieves the name of a scenario given its id, or {@code null} if not found.
-   */
+  /** Retrieves the name of a scenario given its id, or {@code null} if not found. */
   public String getScenarioName(String scenarioId) {
     return scenarios.stream()
         .filter(s -> s.getId().equals(scenarioId))
@@ -533,10 +518,8 @@ public class Event {
   }
 
   /**
-   * Returns the list of talks for the given {@code day} and {@code scenarioId}
-   * ordered by start
-   * time. An empty list is returned when there are no talks matching the provided
-   * parameters.
+   * Returns the list of talks for the given {@code day} and {@code scenarioId} ordered by start
+   * time. An empty list is returned when there are no talks matching the provided parameters.
    */
   public java.util.List<Talk> getAgendaForDayAndScenario(int day, String scenarioId) {
     return agenda.stream()
@@ -548,9 +531,7 @@ public class Event {
   /**
    * Groups the agenda for the given {@code day} by start time.
    *
-   * <p>
-   * The returned map is ordered by the start time so it can be iterated directly
-   * in the
+   * <p>The returned map is ordered by the start time so it can be iterated directly in the
    * templates to build a time based view.
    */
   public java.util.Map<java.time.LocalTime, java.util.List<Talk>> getAgendaGroupedByStartTime(
@@ -565,11 +546,8 @@ public class Event {
   /**
    * Groups the agenda for the given {@code day} in 30-minute slots.
    *
-   * <p>
-   * Each talk will appear in all the slots it spans so longer talks are visible
-   * across multiple
-   * blocks in the agenda view. The returned map is ordered by the slot start
-   * time.
+   * <p>Each talk will appear in all the slots it spans so longer talks are visible across multiple
+   * blocks in the agenda view. The returned map is ordered by the slot start time.
    */
   public java.util.Map<java.time.LocalTime, java.util.List<Talk>> getAgendaGroupedByTimeSlot(
       int day) {
@@ -577,26 +555,31 @@ public class Event {
     if (dayTalks.isEmpty()) {
       return java.util.Collections.emptyMap();
     }
-    java.time.LocalTime start = dayTalks.stream()
-        .map(Talk::getStartTime)
-        .min(java.time.LocalTime::compareTo)
-        .orElse(java.time.LocalTime.MIN);
-    java.time.LocalTime end = dayTalks.stream()
-        .map(t -> t.getStartTime().plusMinutes(t.getDurationMinutes()))
-        .max(java.time.LocalTime::compareTo)
-        .orElse(start);
+    java.time.LocalTime start =
+        dayTalks.stream()
+            .map(Talk::getStartTime)
+            .min(java.time.LocalTime::compareTo)
+            .orElse(java.time.LocalTime.MIN);
+    java.time.LocalTime end =
+        dayTalks.stream()
+            .map(t -> t.getStartTime().plusMinutes(t.getDurationMinutes()))
+            .max(java.time.LocalTime::compareTo)
+            .orElse(start);
 
-    java.util.Map<java.time.LocalTime, java.util.List<Talk>> result = new java.util.LinkedHashMap<>();
+    java.util.Map<java.time.LocalTime, java.util.List<Talk>> result =
+        new java.util.LinkedHashMap<>();
     for (java.time.LocalTime time = start; time.isBefore(end); time = time.plusMinutes(30)) {
       java.time.LocalTime slotStart = time;
-      java.util.List<Talk> talksAtSlot = dayTalks.stream()
-          .filter(
-              t -> !t.getStartTime().isAfter(slotStart)
-                  && t.getStartTime()
-                      .plusMinutes(t.getDurationMinutes())
-                      .isAfter(slotStart))
-          .sorted(java.util.Comparator.comparing(Talk::getStartTime))
-          .toList();
+      java.util.List<Talk> talksAtSlot =
+          dayTalks.stream()
+              .filter(
+                  t ->
+                      !t.getStartTime().isAfter(slotStart)
+                          && t.getStartTime()
+                              .plusMinutes(t.getDurationMinutes())
+                              .isAfter(slotStart))
+              .sorted(java.util.Comparator.comparing(Talk::getStartTime))
+              .toList();
       result.put(slotStart, talksAtSlot);
     }
     return result;

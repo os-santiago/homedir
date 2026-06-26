@@ -75,7 +75,8 @@ public class BetaResource {
             .toList();
 
     List<Event> upcomingEvents = eventService.listUpcomingEvents();
-    List<WorldEvent> theaterEvents = upcomingEvents.stream().limit(3).map(this::toWorldEvent).toList();
+    List<WorldEvent> theaterEvents =
+        upcomingEvents.stream().limit(3).map(this::toWorldEvent).toList();
 
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     List<WorldContributor> cityhallContributors =
@@ -87,8 +88,7 @@ public class BetaResource {
                         defaultText(contributor.login(), "unknown"),
                         contributor.contributions(),
                         defaultText(
-                            contributor.htmlUrl(),
-                            "https://github.com/os-santiago/homedir"),
+                            contributor.htmlUrl(), "https://github.com/os-santiago/homedir"),
                         contributor.avatarUrl(),
                         initialFrom(contributor.login())))
             .toList();
@@ -164,7 +164,8 @@ public class BetaResource {
     if (event == null) {
       return new WorldEvent("TBD", "TBD", "TBD", "/eventos", null);
     }
-    String date = event.getDateStr() == null || event.getDateStr().isBlank() ? "TBD" : event.getDateStr();
+    String date =
+        event.getDateStr() == null || event.getDateStr().isBlank() ? "TBD" : event.getDateStr();
     String countdown = event.isOngoing() ? "LIVE" : "D-" + event.getDaysUntil();
     return new WorldEvent(
         defaultText(event.getTitle(), "Untitled event"),
@@ -216,25 +217,13 @@ public class BetaResource {
       int trackedContributors) {}
 
   public record WorldPick(
-      String title,
-      String summary,
-      String source,
-      String mediaType,
-      String href) {}
+      String title, String summary, String source, String mediaType, String href) {}
 
   public record WorldEvent(
-      String title,
-      String dateLabel,
-      String countdownLabel,
-      String href,
-      String logoUrl) {}
+      String title, String dateLabel, String countdownLabel, String href, String logoUrl) {}
 
   public record WorldContributor(
-      String login,
-      int contributions,
-      String href,
-      String avatarUrl,
-      String initial) {}
+      String login, int contributions, String href, String avatarUrl, String initial) {}
 
   public record PlayerProfile(
       boolean authenticated,

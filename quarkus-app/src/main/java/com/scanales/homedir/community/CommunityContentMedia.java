@@ -44,4 +44,3 @@ public final class CommunityContentMedia {
     return normalizeItemType(itemType).equals(normalizedFilter);
   }
 }
-

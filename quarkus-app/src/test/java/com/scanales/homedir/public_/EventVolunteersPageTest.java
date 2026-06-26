@@ -70,7 +70,9 @@ public class EventVolunteersPageTest {
         .statusCode(200)
         .body(containsString("id=\"volunteerApplyContent\" hidden"))
         .body(containsString("id=\"volunteerSelectedCta\" class=\"volunteer-status-card\""))
-        .body(not(containsString("id=\"volunteerSelectedCta\" class=\"volunteer-status-card\" hidden")));
+        .body(
+            not(
+                containsString(
+                    "id=\"volunteerSelectedCta\" class=\"volunteer-status-card\" hidden")));
   }
 }
-

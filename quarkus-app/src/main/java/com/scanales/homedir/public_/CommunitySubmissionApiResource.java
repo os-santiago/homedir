@@ -46,7 +46,9 @@ public class CommunitySubmissionApiResource {
   public Response create(CreateSubmissionRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       CommunitySubmission submission =
@@ -62,15 +64,22 @@ public class CommunitySubmissionApiResource {
       metrics.recordFunnelStep("community.submission.create");
       metrics.recordFunnelStep("community_propose_submit");
       gamificationService.award(userId.get(), GamificationActivity.COMMUNITY_SUBMISSION);
-      return Response.status(Response.Status.CREATED).entity(new SubmissionResponse(toView(submission))).build();
+      return Response.status(Response.Status.CREATED)
+          .entity(new SubmissionResponse(toView(submission)))
+          .build();
     } catch (CommunitySubmissionService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunitySubmissionService.DuplicateSubmissionException e) {
-      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.CONFLICT)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunitySubmissionService.RateLimitExceededException e) {
       return Response.status(429).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
-      LOG.errorf(e, "community_submission_create_storage_unavailable user=%s", userId.orElse("unknown"));
+      LOG.errorf(
+          e, "community_submission_create_storage_unavailable user=%s", userId.orElse("unknown"));
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "submission_storage_unavailable", "detail", storageDetail(e)))
           .build();
@@ -81,11 +90,12 @@ public class CommunitySubmissionApiResource {
   @Path("/mine")
   @Authenticated
   public Response mine(
-      @QueryParam("limit") Integer limitParam,
-      @QueryParam("offset") Integer offsetParam) {
+      @QueryParam("limit") Integer limitParam, @QueryParam("offset") Integer offsetParam) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
@@ -98,10 +108,11 @@ public class CommunitySubmissionApiResource {
   @Path("/pending")
   @Authenticated
   public Response pending(
-      @QueryParam("limit") Integer limitParam,
-      @QueryParam("offset") Integer offsetParam) {
+      @QueryParam("limit") Integer limitParam, @QueryParam("offset") Integer offsetParam) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
@@ -116,11 +127,14 @@ public class CommunitySubmissionApiResource {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response approve(@PathParam("id") String id, ModerationRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     try {
       CommunitySubmission submission =
-          submissionService.approve(id, currentUserId().orElse("admin"), request != null ? request.note() : null);
+          submissionService.approve(
+              id, currentUserId().orElse("admin"), request != null ? request.note() : null);
       metrics.recordFunnelStep("community.submission.approve");
       metrics.recordFunnelStep("community_propose_approved");
       if (submission != null && submission.userId() != null && !submission.userId().isBlank()) {
@@ -131,11 +145,17 @@ public class CommunitySubmissionApiResource {
       }
       return Response.ok(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunitySubmissionService.DuplicateSubmissionException e) {
-      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.CONFLICT)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CommunitySubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (IllegalStateException e) {
       LOG.errorf(e, "community_submission_approve_storage_unavailable id=%s", id);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
@@ -150,15 +170,20 @@ public class CommunitySubmissionApiResource {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response reject(@PathParam("id") String id, ModerationRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     try {
       CommunitySubmission submission =
-          submissionService.reject(id, currentUserId().orElse("admin"), request != null ? request.note() : null);
+          submissionService.reject(
+              id, currentUserId().orElse("admin"), request != null ? request.note() : null);
       metrics.recordFunnelStep("community.submission.reject");
       return Response.ok(new SubmissionResponse(toView(submission))).build();
     } catch (CommunitySubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (IllegalStateException e) {
       LOG.errorf(e, "community_submission_reject_storage_unavailable id=%s", id);
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
@@ -225,11 +250,7 @@ public class CommunitySubmissionApiResource {
   }
 
   public record CreateSubmissionRequest(
-      String title,
-      String url,
-      String summary,
-      String source,
-      List<String> tags) {}
+      String title, String url, String summary, String source, List<String> tags) {}
 
   public record ModerationRequest(String note) {}
 

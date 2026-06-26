@@ -23,7 +23,8 @@ public class GithubServiceCacheTest {
   void keepsContributorsInMemoryBetweenRequests() {
     StubGithubService service = newService();
     service.enqueue(
-        List.of(new GithubService.GithubContributor("alice", "https://avatar", "https://profile", 5)));
+        List.of(
+            new GithubService.GithubContributor("alice", "https://avatar", "https://profile", 5)));
 
     service.refreshHomeProjectContributorsNowForTests();
     List<GithubService.GithubContributor> first = service.fetchHomeProjectContributors();
@@ -40,7 +41,8 @@ public class GithubServiceCacheTest {
   void keepsLastSuccessfulSnapshotWhenRefreshReturnsEmpty() {
     StubGithubService service = newService();
     service.enqueue(
-        List.of(new GithubService.GithubContributor("alice", "https://avatar", "https://profile", 5)));
+        List.of(
+            new GithubService.GithubContributor("alice", "https://avatar", "https://profile", 5)));
     service.refreshHomeProjectContributorsNowForTests();
 
     service.enqueue(List.of());
@@ -57,8 +59,10 @@ public class GithubServiceCacheTest {
     StubGithubService service = newService();
     service.enqueue(
         List.of(
-            new GithubService.GithubContributor("alice", "https://avatar-a", "https://profile-a", 5),
-            new GithubService.GithubContributor("bob", "https://avatar-b", "https://profile-b", 3)));
+            new GithubService.GithubContributor(
+                "alice", "https://avatar-a", "https://profile-a", 5),
+            new GithubService.GithubContributor(
+                "bob", "https://avatar-b", "https://profile-b", 3)));
     service.setSearchCount("alice", "issue", 2);
     service.setSearchCount("alice", "pr", 1);
     service.setSearchCount("bob", "issue", 10);
@@ -89,7 +93,8 @@ public class GithubServiceCacheTest {
     Config cfg = Mockito.mock(Config.class);
     when(cfg.getOptionalValue(eq("GH_TOKEN"), eq(String.class))).thenReturn(Optional.empty());
     when(cfg.getOptionalValue(eq("GH_CLIENT_ID"), eq(String.class))).thenReturn(Optional.empty());
-    when(cfg.getOptionalValue(eq("GH_CLIENT_SECRET"), eq(String.class))).thenReturn(Optional.empty());
+    when(cfg.getOptionalValue(eq("GH_CLIENT_SECRET"), eq(String.class)))
+        .thenReturn(Optional.empty());
     return cfg;
   }
 

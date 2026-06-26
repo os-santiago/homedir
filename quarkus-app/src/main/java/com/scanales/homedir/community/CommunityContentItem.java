@@ -14,5 +14,4 @@ public record CommunityContentItem(
     Instant publishedAt,
     List<String> tags,
     String author,
-    String mediaType) {
-}
+    String mediaType) {}

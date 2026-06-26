@@ -26,7 +26,8 @@ class SecurityUtilsTest {
 
   @Test
   void testRedactSensitiveData_IdToken() {
-    String input = "id_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ";
+    String input =
+        "id_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ";
     String result = SecurityUtils.redactSensitiveData(input);
     assertTrue(result.contains("id_token=[REDACTED]"));
     assertFalse(result.contains("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9"));

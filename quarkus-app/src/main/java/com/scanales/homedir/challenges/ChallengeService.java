@@ -68,7 +68,8 @@ public class ChallengeService {
         if (target == null || target <= 0) {
           continue;
         }
-        ChallengeProgress current = userState.getOrDefault(definition.id(), ChallengeProgress.empty(definition.id()));
+        ChallengeProgress current =
+            userState.getOrDefault(definition.id(), ChallengeProgress.empty(definition.id()));
         int existingCount = current.activityCounts().getOrDefault(activityKey, 0);
         int updatedCount = Math.min(target, existingCount + 1);
         boolean progressChanged = updatedCount != existingCount;
@@ -86,7 +87,8 @@ public class ChallengeService {
                   current.completedAt(),
                   current.rewardGrantedAt());
         }
-        ChallengeMutation completion = ensureCompletionAndReward(normalizedUserId, definition, next, now);
+        ChallengeMutation completion =
+            ensureCompletionAndReward(normalizedUserId, definition, next, now);
         next = completion.progress();
         if (progressChanged && current.startedAt() == null && next.startedAt() != null) {
           started.add(definition.id());
@@ -167,7 +169,9 @@ public class ChallengeService {
       Map<String, Instant> latestCompletionByChallenge = new LinkedHashMap<>();
       for (Map<String, ChallengeProgress> userState : progressByUser.values()) {
         for (ChallengeProgress progress : userState.values()) {
-          if (progress == null || progress.challengeId() == null || progress.completedAt() == null) {
+          if (progress == null
+              || progress.challengeId() == null
+              || progress.completedAt() == null) {
             continue;
           }
           if (progress.completedAt().isBefore(cutoff)) {
@@ -175,7 +179,9 @@ public class ChallengeService {
           }
           completionsByChallenge.merge(progress.challengeId(), 1L, Long::sum);
           latestCompletionByChallenge.merge(
-              progress.challengeId(), progress.completedAt(), (left, right) -> left.isAfter(right) ? left : right);
+              progress.challengeId(),
+              progress.completedAt(),
+              (left, right) -> left.isAfter(right) ? left : right);
         }
       }
       return completionsByChallenge.entrySet().stream()
@@ -189,8 +195,11 @@ public class ChallengeService {
                     latestCompletionByChallenge.get(entry.getKey()));
               })
           .sorted(
-              java.util.Comparator.comparingLong(ChallengeTrend::completions).reversed()
-                  .thenComparing(ChallengeTrend::latestCompletedAt, java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
+              java.util.Comparator.comparingLong(ChallengeTrend::completions)
+                  .reversed()
+                  .thenComparing(
+                      ChallengeTrend::latestCompletedAt,
+                      java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
                   .thenComparing(ChallengeTrend::challengeId))
           .limit(cappedLimit)
           .toList();
@@ -204,18 +213,21 @@ public class ChallengeService {
     }
     synchronized (stateLock) {
       refreshFromDisk(false);
-      List<UserChallengeRank> ranking = progressByUser.entrySet().stream()
-          .map(entry -> new UserChallengeRank(entry.getKey(), completedCount(entry.getValue())))
-          .filter(entry -> entry.completedCount() > 0)
-          .sorted(
-              java.util.Comparator.comparingInt(UserChallengeRank::completedCount).reversed()
-                  .thenComparing(UserChallengeRank::userId))
-          .toList();
-      int completed = ranking.stream()
-          .filter(entry -> normalizedUserId.equals(entry.userId()))
-          .mapToInt(UserChallengeRank::completedCount)
-          .findFirst()
-          .orElse(0);
+      List<UserChallengeRank> ranking =
+          progressByUser.entrySet().stream()
+              .map(entry -> new UserChallengeRank(entry.getKey(), completedCount(entry.getValue())))
+              .filter(entry -> entry.completedCount() > 0)
+              .sorted(
+                  java.util.Comparator.comparingInt(UserChallengeRank::completedCount)
+                      .reversed()
+                      .thenComparing(UserChallengeRank::userId))
+              .toList();
+      int completed =
+          ranking.stream()
+              .filter(entry -> normalizedUserId.equals(entry.userId()))
+              .mapToInt(UserChallengeRank::completedCount)
+              .findFirst()
+              .orElse(0);
       int rank = 0;
       for (int i = 0; i < ranking.size(); i++) {
         if (normalizedUserId.equals(ranking.get(i).userId())) {
@@ -244,7 +256,9 @@ public class ChallengeService {
       }
       Map<String, ChallengeProgress> byChallenge = new LinkedHashMap<>();
       for (ChallengeProgress progress : entry.getValue()) {
-        if (progress == null || progress.challengeId() == null || progress.challengeId().isBlank()) {
+        if (progress == null
+            || progress.challengeId() == null
+            || progress.challengeId().isBlank()) {
           continue;
         }
         byChallenge.put(progress.challengeId(), progress);
@@ -263,23 +277,27 @@ public class ChallengeService {
     for (Map.Entry<String, Map<String, ChallengeProgress>> entry : progressByUser.entrySet()) {
       snapshot.put(entry.getKey(), List.copyOf(entry.getValue().values()));
     }
-    return new ChallengeStateSnapshot(ChallengeStateSnapshot.SCHEMA_VERSION, Instant.now(), snapshot);
+    return new ChallengeStateSnapshot(
+        ChallengeStateSnapshot.SCHEMA_VERSION, Instant.now(), snapshot);
   }
 
   private Map<String, ChallengeProgress> userProgress(String userId) {
     return progressByUser.computeIfAbsent(userId, ignored -> new LinkedHashMap<>());
   }
 
-  private ChallengeMutation applyDerivedOpenSourceIdentity(String userId, Map<String, ChallengeProgress> userState) {
+  private ChallengeMutation applyDerivedOpenSourceIdentity(
+      String userId, Map<String, ChallengeProgress> userState) {
     ChallengeDefinition definition = ChallengeCatalog.find(OPEN_SOURCE_IDENTITY_ID);
     if (definition == null) {
       return ChallengeMutation.noChange(null);
     }
     UserProfile profile = userProfileService.find(userId).orElse(null);
     if (profile == null) {
-      return ChallengeMutation.noChange(userState.getOrDefault(definition.id(), ChallengeProgress.empty(definition.id())));
+      return ChallengeMutation.noChange(
+          userState.getOrDefault(definition.id(), ChallengeProgress.empty(definition.id())));
     }
-    ChallengeProgress current = userState.getOrDefault(definition.id(), ChallengeProgress.empty(definition.id()));
+    ChallengeProgress current =
+        userState.getOrDefault(definition.id(), ChallengeProgress.empty(definition.id()));
     Map<String, Integer> counts = new LinkedHashMap<>(current.activityCounts());
     boolean changed = false;
     changed |= applyDerivedCount(counts, "first_login_bonus", 1);
@@ -301,7 +319,8 @@ public class ChallengeService {
               current.completedAt(),
               current.rewardGrantedAt());
     }
-    ChallengeMutation completion = ensureCompletionAndReward(userId, definition, next, Instant.now());
+    ChallengeMutation completion =
+        ensureCompletionAndReward(userId, definition, next, Instant.now());
     next = completion.progress();
     if (changed || completion.changed()) {
       userState.put(definition.id(), next);
@@ -309,7 +328,9 @@ public class ChallengeService {
     return new ChallengeMutation(
         changed || completion.changed(),
         next,
-        changed && current.startedAt() == null && next.startedAt() != null ? List.of(definition.id()) : List.of(),
+        changed && current.startedAt() == null && next.startedAt() != null
+            ? List.of(definition.id())
+            : List.of(),
         completion.completedIds(),
         completion.rewardedIds());
   }
@@ -350,7 +371,8 @@ public class ChallengeService {
     if (completed && next.rewardGrantedAt() == null) {
       try {
         EconomyService.RewardResult reward =
-            economyService.rewardChallengeCompletion(userId, definition.id(), definition.rewardHcoin());
+            economyService.rewardChallengeCompletion(
+                userId, definition.id(), definition.rewardHcoin());
         if (reward.awarded() || reward.amountHcoin() == 0L) {
           next =
               new ChallengeProgress(
@@ -385,7 +407,8 @@ public class ChallengeService {
   private static int completedSteps(ChallengeProgress progress, ChallengeDefinition definition) {
     int completed = 0;
     for (Map.Entry<String, Integer> entry : definition.activityTargets().entrySet()) {
-      completed += Math.min(entry.getValue(), progress.activityCounts().getOrDefault(entry.getKey(), 0));
+      completed +=
+          Math.min(entry.getValue(), progress.activityCounts().getOrDefault(entry.getKey(), 0));
     }
     return completed;
   }
@@ -402,16 +425,14 @@ public class ChallengeService {
     if (value == null || value.isBlank()) {
       return "unknown";
     }
-    String normalized =
-        value
-            .trim()
-            .toLowerCase(Locale.ROOT)
-            .replaceAll("[^a-z0-9._-]", "_");
+    String normalized = value.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]", "_");
     return normalized.isBlank() ? "unknown" : normalized;
   }
 
   public record ChallengeActivityResult(
-      List<String> startedChallengeIds, List<String> completedChallengeIds, List<String> rewardedChallengeIds) {
+      List<String> startedChallengeIds,
+      List<String> completedChallengeIds,
+      List<String> rewardedChallengeIds) {
     static ChallengeActivityResult empty() {
       return new ChallengeActivityResult(List.of(), List.of(), List.of());
     }
@@ -435,8 +456,7 @@ public class ChallengeService {
       Instant startedAt,
       Instant updatedAt,
       Instant completedAt,
-      Instant rewardGrantedAt) {
-  }
+      Instant rewardGrantedAt) {}
 
   private record ChallengeMutation(
       boolean changed,

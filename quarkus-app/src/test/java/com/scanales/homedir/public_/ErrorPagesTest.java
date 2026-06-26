@@ -14,8 +14,7 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 public class ErrorPagesTest {
 
-  @Inject
-  Engine engine;
+  @Inject Engine engine;
 
   @Test
   void unknownRouteRenders404Page() {

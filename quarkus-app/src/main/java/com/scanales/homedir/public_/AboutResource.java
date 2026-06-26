@@ -17,51 +17,53 @@ import org.eclipse.microprofile.config.ConfigProvider;
 @PermitAll
 public class AboutResource {
 
-    @CheckedTemplate
-    static class Templates {
-        static native TemplateInstance about(
-                String version,
-                String commitId,
-                String buildTime,
-                String environment,
-                boolean oidcConfigured,
-                boolean githubConfigured);
+  @CheckedTemplate
+  static class Templates {
+    static native TemplateInstance about(
+        String version,
+        String commitId,
+        String buildTime,
+        String environment,
+        boolean oidcConfigured,
+        boolean githubConfigured);
+  }
+
+  @GET
+  @Produces(MediaType.TEXT_HTML)
+  public TemplateInstance get(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+    String version =
+        ConfigProvider.getConfig()
+            .getOptionalValue("quarkus.application.version", String.class)
+            .orElse("unknown");
+
+    Properties gitProps = new Properties();
+    try (InputStream is = AboutResource.class.getResourceAsStream("/git.properties")) {
+      if (is != null) {
+        gitProps.load(is);
+      }
+    } catch (IOException e) {
+      // Ignore
     }
 
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public TemplateInstance get(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
-        String version = ConfigProvider.getConfig()
-                .getOptionalValue("quarkus.application.version", String.class)
-                .orElse("unknown");
+    String commitId = gitProps.getProperty("git.commit.id.abbrev", "dev");
+    String buildTime = gitProps.getProperty("git.build.time", "now");
+    String environment =
+        ConfigProvider.getConfig().getOptionalValue("quarkus.profile", String.class).orElse("dev");
 
-        Properties gitProps = new Properties();
-        try (InputStream is = getClass().getResourceAsStream("/git.properties")) {
-            if (is != null) {
-                gitProps.load(is);
-            }
-        } catch (IOException e) {
-            // Ignore
-        }
+    String oidcClientId =
+        ConfigProvider.getConfig()
+            .getOptionalValue("quarkus.oidc.client-id", String.class)
+            .orElse("missing");
+    boolean oidcConfigured = !"dev-client".equals(oidcClientId) && !"missing".equals(oidcClientId);
 
-        String commitId = gitProps.getProperty("git.commit.id.abbrev", "dev");
-        String buildTime = gitProps.getProperty("git.build.time", "now");
-        String environment = ConfigProvider.getConfig()
-                .getOptionalValue("quarkus.profile", String.class)
-                .orElse("dev");
+    String ghClientId =
+        ConfigProvider.getConfig().getOptionalValue("GH_CLIENT_ID", String.class).orElse("missing");
+    boolean githubConfigured =
+        ghClientId != null && !ghClientId.isEmpty() && !"missing".equals(ghClientId);
 
-        String oidcClientId = ConfigProvider.getConfig()
-                .getOptionalValue("quarkus.oidc.client-id", String.class)
-                .orElse("missing");
-        boolean oidcConfigured = !"dev-client".equals(oidcClientId) && !"missing".equals(oidcClientId);
-
-        String ghClientId = ConfigProvider.getConfig()
-                .getOptionalValue("GH_CLIENT_ID", String.class)
-                .orElse("missing");
-        boolean githubConfigured = ghClientId != null && !ghClientId.isEmpty() && !"missing".equals(ghClientId);
-
-        return TemplateLocaleUtil.apply(
-                Templates.about(version, commitId, buildTime, environment, oidcConfigured, githubConfigured),
-                localeCookie);
-    }
+    return TemplateLocaleUtil.apply(
+        Templates.about(
+            version, commitId, buildTime, environment, oidcConfigured, githubConfigured),
+        localeCookie);
+  }
 }

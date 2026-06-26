@@ -33,10 +33,6 @@ public class HealthResourceConsistencyTest {
 
   @Test
   void unknownRouteRemainsNotFound() {
-    given()
-        .when()
-        .get("/__route_that_does_not_exist__")
-        .then()
-        .statusCode(404);
+    given().when().get("/__route_that_does_not_exist__").then().statusCode(404);
   }
 }

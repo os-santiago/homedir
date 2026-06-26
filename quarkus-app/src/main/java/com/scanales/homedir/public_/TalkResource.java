@@ -1,7 +1,7 @@
 package com.scanales.homedir.public_;
 
-import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
@@ -87,7 +87,8 @@ public class TalkResource {
       currentUserId()
           .ifPresent(
               userId ->
-                  gamificationService.award(userId, GamificationActivity.TALK_VIEW, resolvedTalkId));
+                  gamificationService.award(
+                      userId, GamificationActivity.TALK_VIEW, resolvedTalkId));
       var event = eventService.findEventByTalk(resolvedTalkId);
       var occurrences = eventService.findTalkOccurrences(resolvedTalkId);
       metrics.recordTalkView(resolvedTalkId, sessionId, ua);

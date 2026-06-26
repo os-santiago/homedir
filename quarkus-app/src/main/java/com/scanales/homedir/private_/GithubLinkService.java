@@ -1,7 +1,7 @@
 package com.scanales.homedir.private_;
 
-import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.util.AdminUtils;
@@ -24,16 +24,12 @@ import org.jboss.logging.Logger;
 public class GithubLinkService {
   private static final Logger LOG = Logger.getLogger(GithubLinkService.class);
 
-  @Inject
-  UserProfileService profiles;
-  @Inject
-  GamificationService gamificationService;
+  @Inject UserProfileService profiles;
+  @Inject GamificationService gamificationService;
 
-  @Inject
-  com.scanales.homedir.service.GithubService githubService;
+  @Inject com.scanales.homedir.service.GithubService githubService;
 
-  @Inject
-  Config config;
+  @Inject Config config;
 
   @ConfigProperty(name = "app.public-url", defaultValue = "http://localhost:8080")
   String publicUrl;
@@ -45,24 +41,35 @@ public class GithubLinkService {
 
     String state = UUID.randomUUID().toString();
     String callback = canonicalCallback();
-    String target = (redirect != null && !redirect.isBlank()) ? redirect : "/private/profile";
+    String target = "/private/profile";
 
-    String authorize = "https://github.com/login/oauth/authorize?client_id="
-        + url(getGithubClientId())
-        + "&redirect_uri="
-        + url(callback)
-        + "&scope="
-        + url("read:user user:email")
-        + "&state="
-        + url(state);
+    String authorize =
+        "https://github.com/login/oauth/authorize?client_id="
+            + url(getGithubClientId())
+            + "&redirect_uri="
+            + url(callback)
+            + "&scope="
+            + url("read:user user:email")
+            + "&state="
+            + url(state);
 
     return Response.seeOther(URI.create(authorize))
         .cookie(
-            new jakarta.ws.rs.core.NewCookie.Builder("gh_state").value(state).path("/").maxAge(300).secure(true)
-                .httpOnly(true).build())
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_state")
+                .value(state)
+                .path("/")
+                .maxAge(300)
+                .secure(true)
+                .httpOnly(true)
+                .build())
         .cookie(
-            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect").value(target).path("/").maxAge(300).secure(false)
-                .httpOnly(false).build())
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect")
+                .value(target)
+                .path("/")
+                .maxAge(300)
+                .secure(false)
+                .httpOnly(false)
+                .build())
         .build();
   }
 
@@ -73,29 +80,65 @@ public class GithubLinkService {
       Cookie stateCookie,
       Cookie redirectCookie,
       SecurityIdentity identity) {
+    Response validationError = validateCallback(code, state, error, stateCookie, identity);
+    if (validationError != null) {
+      return validationError;
+    }
+
+    return completeCallback(code, identity);
+  }
+
+  private Response redirectWithParams(String target) {
+    return Response.seeOther(URI.create(target))
+        .cookie(
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_state")
+                .value("")
+                .path("/")
+                .maxAge(0)
+                .secure(true)
+                .httpOnly(true)
+                .build())
+        .cookie(
+            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect")
+                .value("")
+                .path("/")
+                .maxAge(0)
+                .secure(false)
+                .httpOnly(false)
+                .build())
+        .build();
+  }
+
+  private Response validateCallback(
+      String code, String state, String error, Cookie stateCookie, SecurityIdentity identity) {
+    if (!githubConfigured()) {
+      return redirectWithParams("/private/profile?githubConfig=missing");
+    }
     if (error != null) {
-      LOG.warnf("GitHub OAuth returned error: %s", error);
+      LOG.warn("GitHub OAuth callback reported an error from the provider");
       return redirectWithParams("/private/profile?githubError=denied");
     }
     // Handle anonymous users trying to "Login" instead of "Link"
     if (identity.isAnonymous()) {
       // We currently do not support creating a session via GitHub (only linking).
       // Redirect to login page with explanation.
-      return Response.seeOther(URI.create("/private/profile?error=github_login_unsupported")).build();
-    }
-    if (code == null || code.isBlank()) {
-      return redirectWithParams("/private/profile?githubError=missingCode");
+      return Response.seeOther(URI.create("/private/profile?error=github_login_unsupported"))
+          .build();
     }
     if (stateCookie == null || state == null || !state.equals(stateCookie.getValue())) {
       return redirectWithParams("/private/profile?githubError=invalidState");
     }
-    if (!githubConfigured()) {
-      return redirectWithParams("/private/profile?githubConfig=missing");
+    if (code == null || code.isBlank()) {
+      return redirectWithParams("/private/profile?githubError=missingCode");
     }
+    return null;
+  }
 
+  private Response completeCallback(String code, SecurityIdentity identity) {
     try {
       String accessToken = githubService.exchangeCode(code);
-      com.scanales.homedir.service.GithubService.GithubProfile profile = githubService.fetchUser(accessToken);
+      com.scanales.homedir.service.GithubService.GithubProfile profile =
+          githubService.fetchUser(accessToken);
 
       String login = profile.login();
       String htmlUrl = profile.htmlUrl();
@@ -103,9 +146,10 @@ public class GithubLinkService {
       String ghId = profile.id();
 
       String userId = currentUserId(identity);
-      String name = AdminUtils.getClaim(identity, "name") != null
-          ? AdminUtils.getClaim(identity, "name")
-          : identity.getPrincipal().getName();
+      String name =
+          AdminUtils.getClaim(identity, "name") != null
+              ? AdminUtils.getClaim(identity, "name")
+              : identity.getPrincipal().getName();
       String email = AdminUtils.getClaim(identity, "email");
 
       profiles.linkGithub(
@@ -115,29 +159,11 @@ public class GithubLinkService {
           new UserProfile.GithubAccount(login, htmlUrl, avatarUrl, ghId, Instant.now()));
       gamificationService.award(userId, GamificationActivity.GITHUB_LINKED);
 
-      String target = redirectCookie != null ? redirectCookie.getValue() : "/private/profile";
-      String sep = target.contains("?") ? "&" : "?";
-      return Response.seeOther(URI.create(target + sep + "githubLinked=1"))
-          .cookie(new jakarta.ws.rs.core.NewCookie.Builder("gh_state").value("").path("/").maxAge(0).secure(true)
-              .httpOnly(true).build())
-          .cookie(
-              new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect").value("").path("/").maxAge(0).secure(false)
-                  .httpOnly(false).build())
-          .build();
+      return redirectWithParams("/private/profile?githubLinked=1");
     } catch (Exception e) {
       LOG.error("GitHub OAuth callback failed", e);
       return redirectWithParams("/private/profile?githubError=unexpected");
     }
-  }
-
-  private Response redirectWithParams(String target) {
-    return Response.seeOther(URI.create(target))
-        .cookie(new jakarta.ws.rs.core.NewCookie.Builder("gh_state").value("").path("/").maxAge(0).secure(true)
-            .httpOnly(true).build())
-        .cookie(
-            new jakarta.ws.rs.core.NewCookie.Builder("gh_redirect").value("").path("/").maxAge(0).secure(false)
-                .httpOnly(false).build())
-        .build();
   }
 
   public boolean githubConfigured() {

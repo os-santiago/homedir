@@ -1,5 +1,6 @@
 package com.scanales.homedir.private_;
 
+import com.scanales.homedir.service.SystemErrorService;
 import com.scanales.homedir.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -12,7 +13,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import com.scanales.homedir.service.SystemErrorService;
 
 @Path("/private/admin")
 public class AdminResource {
@@ -23,12 +23,11 @@ public class AdminResource {
 
     static native TemplateInstance guide();
 
-    static native TemplateInstance errors(java.util.List<com.scanales.homedir.model.SystemError> errors);
-
+    static native TemplateInstance errors(
+        java.util.List<com.scanales.homedir.model.SystemError> errors);
   }
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
   @GET
   @Authenticated
@@ -59,11 +58,9 @@ public class AdminResource {
     return Response.ok(Templates.guide()).build();
   }
 
-  @Inject
-  SystemErrorService systemErrorService;
+  @Inject SystemErrorService systemErrorService;
 
-  @Inject
-  com.scanales.homedir.service.CommunitySyncService communitySyncService;
+  @Inject com.scanales.homedir.service.CommunitySyncService communitySyncService;
 
   @GET
   @Path("errors")

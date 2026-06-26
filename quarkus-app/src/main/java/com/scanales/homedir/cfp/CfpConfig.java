@@ -21,4 +21,3 @@ public record CfpConfig(
     return new CfpConfig(maxSubmissionsPerUserPerEvent, enabled, Instant.now());
   }
 }
-

@@ -67,9 +67,11 @@ public class CommunityContentApiResource {
 
     String userId = currentUserId().orElse(null);
     if (userId != null && !userId.isBlank()) {
-      gamificationService.award(userId, GamificationActivity.COMMUNITY_REVIEW, view + ":" + filter.apiValue);
+      gamificationService.award(
+          userId, GamificationActivity.COMMUNITY_REVIEW, view + ":" + filter.apiValue);
     }
-    long userVoteCount = userId == null || userId.isBlank() ? 0L : voteService.countVotesByUser(userId);
+    long userVoteCount =
+        userId == null || userId.isBlank() ? 0L : voteService.countVotesByUser(userId);
     List<ContentItemResponse> items;
     List<CommunityContentItem> filtered =
         applyMediaFilter(applyFilter(contentService.allItems(), filter), mediaFilter);
@@ -107,7 +109,8 @@ public class CommunityContentApiResource {
         pageItems.stream()
             .map(
                 item -> {
-                  CommunityFeaturedSnapshotService.FeaturedItem featuredItem = featuredById.get(item.id());
+                  CommunityFeaturedSnapshotService.FeaturedItem featuredItem =
+                      featuredById.get(item.id());
                   if (featuredItem != null) {
                     CommunityVoteAggregate base = featuredItem.aggregate();
                     CommunityVoteAggregate userAggregate =
@@ -123,7 +126,8 @@ public class CommunityContentApiResource {
                   CommunityVoteAggregate aggregate =
                       pageAggregates.getOrDefault(item.id(), CommunityVoteAggregate.empty());
                   double score =
-                      CommunityScoreCalculator.score(aggregate, item.createdAt(), now, decayEnabled);
+                      CommunityScoreCalculator.score(
+                          aggregate, item.createdAt(), now, decayEnabled);
                   return toResponse(item, aggregate, score);
                 })
             .toList();
@@ -156,13 +160,16 @@ public class CommunityContentApiResource {
   public Response detail(@PathParam("id") String id) {
     Optional<CommunityContentItem> item = contentService.getById(id);
     if (item.isEmpty()) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "content_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "content_not_found"))
+          .build();
     }
     String userId = currentUserId().orElse(null);
     Map<String, CommunityVoteAggregate> aggregates = voteService.getAggregates(List.of(id), userId);
     CommunityVoteAggregate aggregate = aggregates.getOrDefault(id, CommunityVoteAggregate.empty());
     double score =
-        CommunityScoreCalculator.score(aggregate, item.get().createdAt(), Instant.now(), decayEnabled);
+        CommunityScoreCalculator.score(
+            aggregate, item.get().createdAt(), Instant.now(), decayEnabled);
     return Response.ok(new ContentDetailResponse(toResponse(item.get(), aggregate, score))).build();
   }
 
@@ -173,18 +180,26 @@ public class CommunityContentApiResource {
   public Response vote(@PathParam("id") String id, VoteRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     if (request == null || request.vote() == null || request.vote().isBlank()) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "vote_required")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "vote_required"))
+          .build();
     }
     Optional<CommunityVoteType> parsedVote = CommunityVoteType.fromApi(request.vote());
     if (parsedVote.isEmpty()) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_vote")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_vote"))
+          .build();
     }
     Optional<CommunityContentItem> content = contentService.getById(id);
     if (content.isEmpty()) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "content_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "content_not_found"))
+          .build();
     }
     try {
       voteService.upsertVote(userId.get(), id, parsedVote.get());
@@ -214,7 +229,8 @@ public class CommunityContentApiResource {
             .getAggregates(List.of(id), userId.get())
             .getOrDefault(id, CommunityVoteAggregate.empty());
     double score =
-        CommunityScoreCalculator.score(aggregate, content.get().createdAt(), Instant.now(), decayEnabled);
+        CommunityScoreCalculator.score(
+            aggregate, content.get().createdAt(), Instant.now(), decayEnabled);
     return Response.ok(new VoteResponse(toResponse(content.get(), aggregate, score))).build();
   }
 
@@ -244,17 +260,19 @@ public class CommunityContentApiResource {
     };
   }
 
-  private List<CommunityContentItem> applyFilter(List<CommunityContentItem> items, ContentFilter filter) {
+  private List<CommunityContentItem> applyFilter(
+      List<CommunityContentItem> items, ContentFilter filter) {
     if (filter == ContentFilter.ALL) {
       return items;
     }
     return items.stream()
-        .filter(item -> {
-          ContentOrigin origin = detectOrigin(item);
-          return filter == ContentFilter.MEMBERS
-              ? origin == ContentOrigin.MEMBERS
-              : origin == ContentOrigin.INTERNET;
-        })
+        .filter(
+            item -> {
+              ContentOrigin origin = detectOrigin(item);
+              return filter == ContentFilter.MEMBERS
+                  ? origin == ContentOrigin.MEMBERS
+                  : origin == ContentOrigin.INTERNET;
+            })
         .toList();
   }
 
@@ -265,7 +283,8 @@ public class CommunityContentApiResource {
         .toList();
   }
 
-  private List<CommunityContentItem> paginateItems(List<CommunityContentItem> items, int limit, int offset) {
+  private List<CommunityContentItem> paginateItems(
+      List<CommunityContentItem> items, int limit, int offset) {
     if (offset >= items.size()) {
       return List.of();
     }
@@ -275,7 +294,8 @@ public class CommunityContentApiResource {
 
   private ContentItemResponse toResponse(
       CommunityContentItem item, CommunityVoteAggregate aggregate, double score) {
-    VoteCounts counts = new VoteCounts(aggregate.recommended(), aggregate.mustSee(), aggregate.notForMe());
+    VoteCounts counts =
+        new VoteCounts(aggregate.recommended(), aggregate.mustSee(), aggregate.notForMe());
     String myVote = aggregate.myVote() == null ? null : aggregate.myVote().apiValue();
     ContentOrigin origin = detectOrigin(item);
     return new ContentItemResponse(
@@ -302,7 +322,9 @@ public class CommunityContentApiResource {
     }
     String id = item.id() == null ? "" : item.id().toLowerCase(Locale.ROOT);
     String source = item.source() == null ? "" : item.source().trim().toLowerCase(Locale.ROOT);
-    if (id.startsWith("submission-") || "community member".equals(source) || "member".equals(source)) {
+    if (id.startsWith("submission-")
+        || "community member".equals(source)
+        || "member".equals(source)) {
       return ContentOrigin.MEMBERS;
     }
     return ContentOrigin.INTERNET;
@@ -331,14 +353,11 @@ public class CommunityContentApiResource {
     return Optional.empty();
   }
 
-  public record VoteRequest(String vote) {
-  }
+  public record VoteRequest(String vote) {}
 
-  public record VoteResponse(ContentItemResponse item) {
-  }
+  public record VoteResponse(ContentItemResponse item) {}
 
-  public record ContentDetailResponse(ContentItemResponse item) {
-  }
+  public record ContentDetailResponse(ContentItemResponse item) {}
 
   public record ContentListResponse(
       String view,
@@ -349,16 +368,14 @@ public class CommunityContentApiResource {
       int total,
       @JsonProperty("user_vote_count") long userVoteCount,
       List<ContentItemResponse> items,
-      CacheMeta cache) {
-  }
+      CacheMeta cache) {}
 
   public record CacheMeta(
       @JsonProperty("cache_size") int cacheSize,
       @JsonProperty("last_load_time") Instant lastLoadTime,
       @JsonProperty("load_duration_ms") long loadDurationMs,
       @JsonProperty("files_loaded") int filesLoaded,
-      @JsonProperty("files_invalid") int filesInvalid) {
-  }
+      @JsonProperty("files_invalid") int filesInvalid) {}
 
   public record ContentItemResponse(
       String id,
@@ -375,12 +392,12 @@ public class CommunityContentApiResource {
       @JsonProperty("media_type") String mediaType,
       @JsonProperty("vote_counts") VoteCounts voteCounts,
       @JsonProperty("my_vote") String myVote,
-      double score) {
-  }
+      double score) {}
 
   public record VoteCounts(
-      long recommended, @JsonProperty("must_see") long mustSee, @JsonProperty("not_for_me") long notForMe) {
-  }
+      long recommended,
+      @JsonProperty("must_see") long mustSee,
+      @JsonProperty("not_for_me") long notForMe) {}
 
   private enum ContentFilter {
     ALL("all"),

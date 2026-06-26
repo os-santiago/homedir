@@ -1,14 +1,14 @@
 package com.scanales.homedir.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.scanales.homedir.model.GamificationActivity;
-import com.scanales.homedir.model.Event;
 import com.scanales.homedir.eventops.EventOperationsService;
+import com.scanales.homedir.model.Event;
+import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.notifications.Notification;
 import com.scanales.homedir.notifications.NotificationService;
 import com.scanales.homedir.notifications.NotificationType;
-import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.EventService;
+import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.PaginationGuardrails;
@@ -95,7 +95,9 @@ public class VolunteerSubmissionApiResource {
               : Response.Status.BAD_REQUEST;
       return Response.status(status).entity(Map.of("error", e.getMessage())).build();
     } catch (VolunteerApplicationService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -128,9 +130,13 @@ public class VolunteerSubmissionApiResource {
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException
         | VolunteerApplicationService.InvalidTransitionException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (VolunteerApplicationService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -146,7 +152,8 @@ public class VolunteerSubmissionApiResource {
     }
     String primaryUserId = userIds.iterator().next();
     try {
-      VolunteerApplication updated = volunteerApplicationService.withdrawMine(id, eventId, primaryUserId);
+      VolunteerApplication updated =
+          volunteerApplicationService.withdrawMine(id, eventId, primaryUserId);
       metrics.recordFunnelStep("volunteer.submission.withdraw");
       gamificationService.award(primaryUserId, GamificationActivity.VOLUNTEER_WITHDRAW, eventId);
       volunteerInsightsService.recordApplicationWithdrawn(updated);
@@ -154,9 +161,13 @@ public class VolunteerSubmissionApiResource {
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException
         | VolunteerApplicationService.InvalidTransitionException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (VolunteerApplicationService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -175,11 +186,13 @@ public class VolunteerSubmissionApiResource {
     }
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
-    List<VolunteerView> items = findMineForAliases(eventId, userIds).stream().map(this::toView).toList();
+    List<VolunteerView> items =
+        findMineForAliases(eventId, userIds).stream().map(this::toView).toList();
     int total = items.size();
     boolean hasMore = false;
     Integer nextOffset = null;
-    return Response.ok(new VolunteerSubmissionListResponse(limit, offset, total, hasMore, nextOffset, items))
+    return Response.ok(
+            new VolunteerSubmissionListResponse(limit, offset, total, hasMore, nextOffset, items))
         .build();
   }
 
@@ -188,7 +201,8 @@ public class VolunteerSubmissionApiResource {
       return List.of();
     }
     for (String alias : aliases) {
-      Optional<VolunteerApplication> found = volunteerApplicationService.findByEventAndUser(eventId, alias);
+      Optional<VolunteerApplication> found =
+          volunteerApplicationService.findByEventAndUser(eventId, alias);
       if (found.isPresent()) {
         return List.of(found.get());
       }
@@ -204,7 +218,9 @@ public class VolunteerSubmissionApiResource {
           volunteerEventConfigService.resolveForEvent(eventId);
       return Response.ok(toPublicConfigView(resolved)).build();
     } catch (VolunteerEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -213,7 +229,9 @@ public class VolunteerSubmissionApiResource {
   @Authenticated
   public Response eventConfig(@PathParam("eventId") String eventId) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     try {
       VolunteerEventConfigService.ResolvedEventConfig resolved =
@@ -227,7 +245,9 @@ public class VolunteerSubmissionApiResource {
                   toConfigView(resolved)))
           .build();
     } catch (VolunteerEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -238,10 +258,14 @@ public class VolunteerSubmissionApiResource {
   public Response updateEventConfig(
       @PathParam("eventId") String eventId, EventVolunteerConfigUpdateRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     if (request == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_config")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_config"))
+          .build();
     }
     try {
       VolunteerEventConfig override =
@@ -256,7 +280,9 @@ public class VolunteerSubmissionApiResource {
                   resolved.eventId(), true, toConfigView(override), toConfigView(resolved)))
           .build();
     } catch (VolunteerEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -265,7 +291,9 @@ public class VolunteerSubmissionApiResource {
   @Authenticated
   public Response clearEventConfig(@PathParam("eventId") String eventId) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     try {
       boolean cleared = volunteerEventConfigService.clearOverride(eventId);
@@ -276,7 +304,9 @@ public class VolunteerSubmissionApiResource {
                   resolved.eventId(), cleared, toConfigView(resolved)))
           .build();
     } catch (VolunteerEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -289,27 +319,36 @@ public class VolunteerSubmissionApiResource {
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Optional<VolunteerApplicationStatus> statusFilter = parseStatusFilter(status);
     if (statusFilter == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_status"))
+          .build();
     }
     VolunteerApplicationService.SortOrder sortOrder = parseSortOrder(sort);
     if (sortOrder == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_sort")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_sort"))
+          .build();
     }
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
 
     List<VolunteerView> items =
-        volunteerApplicationService.listByEvent(eventId, statusFilter, sortOrder, limit, offset).stream()
+        volunteerApplicationService
+            .listByEvent(eventId, statusFilter, sortOrder, limit, offset)
+            .stream()
             .map(this::toView)
             .toList();
     int total = volunteerApplicationService.countByEvent(eventId, statusFilter);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
-    return Response.ok(new VolunteerSubmissionListResponse(limit, offset, total, hasMore, nextOffset, items))
+    return Response.ok(
+            new VolunteerSubmissionListResponse(limit, offset, total, hasMore, nextOffset, items))
         .build();
   }
 
@@ -318,17 +357,25 @@ public class VolunteerSubmissionApiResource {
   @Authenticated
   @Consumes(MediaType.APPLICATION_JSON)
   public Response updateStatus(
-      @PathParam("eventId") String eventId, @PathParam("id") String id, UpdateStatusRequest request) {
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      UpdateStatusRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     if (request == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_status"))
+          .build();
     }
     VolunteerApplicationStatus newStatus =
         VolunteerApplicationStatus.fromApi(request.status()).orElse(null);
     if (newStatus == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_status"))
+          .build();
     }
     try {
       Optional<VolunteerApplication> beforeUpdate = volunteerApplicationService.findById(id);
@@ -357,9 +404,13 @@ public class VolunteerSubmissionApiResource {
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException
         | VolunteerApplicationService.InvalidTransitionException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (VolunteerApplicationService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -368,12 +419,18 @@ public class VolunteerSubmissionApiResource {
   @Authenticated
   @Consumes(MediaType.APPLICATION_JSON)
   public Response updateRating(
-      @PathParam("eventId") String eventId, @PathParam("id") String id, UpdateRatingRequest request) {
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      UpdateRatingRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     if (request == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_rating")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_rating"))
+          .build();
     }
     try {
       VolunteerApplication updated =
@@ -388,9 +445,13 @@ public class VolunteerSubmissionApiResource {
       volunteerInsightsService.recordRatingUpdated(updated);
       return Response.ok(new VolunteerSubmissionResponse(toView(updated))).build();
     } catch (VolunteerApplicationService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (VolunteerApplicationService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -399,9 +460,12 @@ public class VolunteerSubmissionApiResource {
   @Authenticated
   public Response stats(@PathParam("eventId") String eventId) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
-    VolunteerApplicationService.EventStats stats = volunteerApplicationService.statsByEvent(eventId);
+    VolunteerApplicationService.EventStats stats =
+        volunteerApplicationService.statsByEvent(eventId);
     return Response.ok(
             new VolunteerStatsResponse(
                 stats.total(),
@@ -426,18 +490,13 @@ public class VolunteerSubmissionApiResource {
 
   private EventVolunteerConfigView toConfigView(VolunteerEventConfig config) {
     return new EventVolunteerConfigView(
-        config.acceptingSubmissions(),
-        config.opensAt(),
-        config.closesAt(),
-        null);
+        config.acceptingSubmissions(), config.opensAt(), config.closesAt(), null);
   }
 
-  private EventVolunteerConfigView toConfigView(VolunteerEventConfigService.ResolvedEventConfig config) {
+  private EventVolunteerConfigView toConfigView(
+      VolunteerEventConfigService.ResolvedEventConfig config) {
     return new EventVolunteerConfigView(
-        config.acceptingSubmissions(),
-        config.opensAt(),
-        config.closesAt(),
-        config.currentlyOpen());
+        config.acceptingSubmissions(), config.opensAt(), config.closesAt(), config.currentlyOpen());
   }
 
   private VolunteerView toView(VolunteerApplication item) {
@@ -449,7 +508,9 @@ public class VolunteerSubmissionApiResource {
         item.aboutMe(),
         item.joinReason(),
         item.differentiator(),
-        item.status() != null ? item.status().apiValue() : VolunteerApplicationStatus.APPLIED.apiValue(),
+        item.status() != null
+            ? item.status().apiValue()
+            : VolunteerApplicationStatus.APPLIED.apiValue(),
         item.createdAt(),
         item.updatedAt(),
         item.moderatedAt(),
@@ -519,7 +580,10 @@ public class VolunteerSubmissionApiResource {
   }
 
   private static VolunteerApplicationService.SortOrder parseSortOrder(String sort) {
-    if (sort == null || sort.isBlank() || "created".equalsIgnoreCase(sort) || "recent".equalsIgnoreCase(sort)) {
+    if (sort == null
+        || sort.isBlank()
+        || "created".equalsIgnoreCase(sort)
+        || "recent".equalsIgnoreCase(sort)) {
       return VolunteerApplicationService.SortOrder.CREATED_DESC;
     }
     if ("updated".equalsIgnoreCase(sort) || "latest_update".equalsIgnoreCase(sort)) {
@@ -550,16 +614,14 @@ public class VolunteerSubmissionApiResource {
     }
     try {
       eventOperationsService.upsertVolunteerSelection(
-          after.eventId(),
-          after.applicantUserId(),
-          after.applicantName(),
-          afterSelected);
+          after.eventId(), after.applicantUserId(), after.applicantName(), afterSelected);
     } catch (Exception ignored) {
       // Volunteer flow should remain available even if ops sync fails.
     }
   }
 
-  private void notifyApplicantStatusChange(VolunteerApplication before, VolunteerApplication after) {
+  private void notifyApplicantStatusChange(
+      VolunteerApplication before, VolunteerApplication after) {
     if (after == null || after.status() == null) {
       return;
     }
@@ -584,7 +646,8 @@ public class VolunteerSubmissionApiResource {
             + " is now "
             + humanStatus(nextStatus)
             + ".";
-    long stamp = after.updatedAt() != null ? after.updatedAt().toEpochMilli() : System.currentTimeMillis();
+    long stamp =
+        after.updatedAt() != null ? after.updatedAt().toEpochMilli() : System.currentTimeMillis();
     notification.dedupeKey =
         "volunteer-status:" + after.id() + ":" + nextStatus.apiValue() + ":" + stamp;
     notificationService.enqueue(notification);
@@ -625,9 +688,7 @@ public class VolunteerSubmissionApiResource {
       String differentiator) {}
 
   public record UpdateStatusRequest(
-      String status,
-      String note,
-      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
+      String status, String note, @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record UpdateRatingRequest(
       Integer profile,

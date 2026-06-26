@@ -67,12 +67,17 @@ public class DiscordLinkService {
     String state = UUID.randomUUID().toString();
     String callback = canonicalCallback();
 
-    String authorize = DISCORD_AUTHORIZE_URL
-        + "?client_id=" + url(clientId())
-        + "&response_type=code"
-        + "&redirect_uri=" + url(callback)
-        + "&scope=" + url("identify guilds")
-        + "&state=" + url(state);
+    String authorize =
+        DISCORD_AUTHORIZE_URL
+            + "?client_id="
+            + url(clientId())
+            + "&response_type=code"
+            + "&redirect_uri="
+            + url(callback)
+            + "&scope="
+            + url("identify guilds")
+            + "&state="
+            + url(state);
 
     boolean secure = isHttpsPublicUrl();
     return Response.seeOther(URI.create(authorize))
@@ -102,9 +107,11 @@ public class DiscordLinkService {
       Cookie stateCookie,
       Cookie redirectCookie,
       SecurityIdentity identity) {
-    String target = redirectCookie != null
-        ? RedirectSanitizer.sanitizeInternalRedirect(redirectCookie.getValue(), "/private/profile")
-        : "/private/profile";
+    String target =
+        redirectCookie != null
+            ? RedirectSanitizer.sanitizeInternalRedirect(
+                redirectCookie.getValue(), "/private/profile")
+            : "/private/profile";
 
     if (error != null) {
       LOG.warnf("Discord OAuth returned error: %s", error);
@@ -155,7 +162,11 @@ public class DiscordLinkService {
           name,
           email,
           new UserProfile.DiscordAccount(
-              user.id(), user.handle(), "https://discord.com/users/" + url(user.id()), user.avatarUrl(), Instant.now()));
+              user.id(),
+              user.handle(),
+              "https://discord.com/users/" + url(user.id()),
+              user.avatarUrl(),
+              Instant.now()));
       try {
         gamificationService.award(userId, GamificationActivity.DISCORD_LINKED);
         boardService.requestRefresh("discord-oauth-claim");
@@ -170,22 +181,27 @@ public class DiscordLinkService {
   }
 
   private String exchangeCode(String code) throws Exception {
-    java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
-        .connectTimeout(timeout)
-        .build();
-    String payload = "client_id=" + url(clientId())
-        + "&client_secret=" + url(clientSecret())
-        + "&grant_type=authorization_code"
-        + "&code=" + url(code)
-        + "&redirect_uri=" + url(canonicalCallback());
+    java.net.http.HttpClient httpClient =
+        java.net.http.HttpClient.newBuilder().connectTimeout(timeout).build();
+    String payload =
+        "client_id="
+            + url(clientId())
+            + "&client_secret="
+            + url(clientSecret())
+            + "&grant_type=authorization_code"
+            + "&code="
+            + url(code)
+            + "&redirect_uri="
+            + url(canonicalCallback());
 
-    java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-        .uri(URI.create(DISCORD_TOKEN_URL))
-        .timeout(timeout)
-        .header("Content-Type", "application/x-www-form-urlencoded")
-        .header("Accept", "application/json")
-        .POST(java.net.http.HttpRequest.BodyPublishers.ofString(payload))
-        .build();
+    java.net.http.HttpRequest request =
+        java.net.http.HttpRequest.newBuilder()
+            .uri(URI.create(DISCORD_TOKEN_URL))
+            .timeout(timeout)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header("Accept", "application/json")
+            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(payload))
+            .build();
     java.net.http.HttpResponse<String> response =
         httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() < 200 || response.statusCode() >= 300) {
@@ -200,16 +216,16 @@ public class DiscordLinkService {
   }
 
   private DiscordUser fetchUser(String accessToken) throws Exception {
-    java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
-        .connectTimeout(timeout)
-        .build();
-    java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-        .uri(URI.create(DISCORD_USER_URL))
-        .timeout(timeout)
-        .header("Authorization", "Bearer " + accessToken)
-        .header("Accept", "application/json")
-        .GET()
-        .build();
+    java.net.http.HttpClient httpClient =
+        java.net.http.HttpClient.newBuilder().connectTimeout(timeout).build();
+    java.net.http.HttpRequest request =
+        java.net.http.HttpRequest.newBuilder()
+            .uri(URI.create(DISCORD_USER_URL))
+            .timeout(timeout)
+            .header("Authorization", "Bearer " + accessToken)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
     java.net.http.HttpResponse<String> response =
         httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() < 200 || response.statusCode() >= 300) {
@@ -220,7 +236,10 @@ public class DiscordLinkService {
     String username = text(root, "username");
     String discriminator = text(root, "discriminator");
     String handle = username;
-    if (username != null && discriminator != null && !discriminator.isBlank() && !"0".equals(discriminator)) {
+    if (username != null
+        && discriminator != null
+        && !discriminator.isBlank()
+        && !"0".equals(discriminator)) {
       handle = username + "#" + discriminator;
     }
     if (handle == null || handle.isBlank()) {
@@ -231,16 +250,16 @@ public class DiscordLinkService {
   }
 
   private boolean isMemberOfGuild(String accessToken, String expectedGuildId) throws Exception {
-    java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
-        .connectTimeout(timeout)
-        .build();
-    java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-        .uri(URI.create(DISCORD_USER_GUILDS_URL))
-        .timeout(timeout)
-        .header("Authorization", "Bearer " + accessToken)
-        .header("Accept", "application/json")
-        .GET()
-        .build();
+    java.net.http.HttpClient httpClient =
+        java.net.http.HttpClient.newBuilder().connectTimeout(timeout).build();
+    java.net.http.HttpRequest request =
+        java.net.http.HttpRequest.newBuilder()
+            .uri(URI.create(DISCORD_USER_GUILDS_URL))
+            .timeout(timeout)
+            .header("Authorization", "Bearer " + accessToken)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
     java.net.http.HttpResponse<String> response =
         httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() < 200 || response.statusCode() >= 300) {
@@ -335,7 +354,11 @@ public class DiscordLinkService {
     if (userId == null || userId.isBlank() || avatarHash == null || avatarHash.isBlank()) {
       return null;
     }
-    return "https://cdn.discordapp.com/avatars/" + url(userId) + "/" + url(avatarHash) + ".png?size=128";
+    return "https://cdn.discordapp.com/avatars/"
+        + url(userId)
+        + "/"
+        + url(avatarHash)
+        + ".png?size=128";
   }
 
   private static String url(String value) {

@@ -1,7 +1,7 @@
 package com.scanales.homedir.service;
 
-import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.model.QuestClass;
+import com.scanales.homedir.model.UserProfile;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -21,8 +21,7 @@ public class UserProfileService {
 
   private static final Logger LOG = Logger.getLogger(UserProfileService.class);
 
-  @Inject
-  PersistenceService persistence;
+  @Inject PersistenceService persistence;
 
   private final Map<String, UserProfile> profiles = new ConcurrentHashMap<>();
 
@@ -67,8 +66,7 @@ public class UserProfileService {
   }
 
   public UserProfile updateQuestClass(String userId, QuestClass questClass) {
-    if (userId == null)
-      return null;
+    if (userId == null) return null;
     UserProfile profile = find(userId).orElse(null);
     if (profile != null) {
       profile.setQuestClass(questClass);
@@ -82,8 +80,7 @@ public class UserProfileService {
   }
 
   public UserProfile addXp(String userId, int amount, String reason, QuestClass questClass) {
-    if (userId == null)
-      return null;
+    if (userId == null) return null;
     UserProfile profile = find(userId).orElseGet(() -> upsert(userId, userId, userId));
     if (profile != null && amount != 0) {
       profile.setCurrentXp(Math.max(0, profile.getCurrentXp() + amount));
@@ -101,12 +98,13 @@ public class UserProfileService {
       String userId, String name, String email, UserProfile.GithubAccount githubAccount) {
 
     UserProfile profile = upsert(userId, name, email);
-    UserProfile.GithubAccount updated = new UserProfile.GithubAccount(
-        githubAccount.login(),
-        githubAccount.profileUrl(),
-        githubAccount.avatarUrl(),
-        githubAccount.id(),
-        githubAccount.linkedAt() != null ? githubAccount.linkedAt() : Instant.now());
+    UserProfile.GithubAccount updated =
+        new UserProfile.GithubAccount(
+            githubAccount.login(),
+            githubAccount.profileUrl(),
+            githubAccount.avatarUrl(),
+            githubAccount.id(),
+            githubAccount.linkedAt() != null ? githubAccount.linkedAt() : Instant.now());
     profile.setGithub(updated);
     persist();
     return profile;
@@ -115,12 +113,13 @@ public class UserProfileService {
   public UserProfile linkDiscord(
       String userId, String name, String email, UserProfile.DiscordAccount discordAccount) {
     UserProfile profile = upsert(userId, name, email);
-    UserProfile.DiscordAccount updated = new UserProfile.DiscordAccount(
-        normalizeDiscordId(discordAccount.id()),
-        discordAccount.handle(),
-        discordAccount.profileUrl(),
-        discordAccount.avatarUrl(),
-        discordAccount.linkedAt() != null ? discordAccount.linkedAt() : Instant.now());
+    UserProfile.DiscordAccount updated =
+        new UserProfile.DiscordAccount(
+            normalizeDiscordId(discordAccount.id()),
+            discordAccount.handle(),
+            discordAccount.profileUrl(),
+            discordAccount.avatarUrl(),
+            discordAccount.linkedAt() != null ? discordAccount.linkedAt() : Instant.now());
     profile.setDiscord(updated);
     persist();
     return profile;
@@ -139,8 +138,7 @@ public class UserProfileService {
   }
 
   public UserProfile updateLocale(String userId, String locale) {
-    if (userId == null)
-      return null;
+    if (userId == null) return null;
     UserProfile profile = find(userId).orElse(null);
     if (profile != null) {
       profile.setPreferredLocale(locale);
@@ -184,7 +182,8 @@ public class UserProfileService {
     UserProfile profile = upsert(userId, name, email);
     Instant now = Instant.now();
     UserProfile.SpeakerProfile current = profile.getSpeakerProfile();
-    Instant activatedAt = current != null && current.activatedAt() != null ? current.activatedAt() : now;
+    Instant activatedAt =
+        current != null && current.activatedAt() != null ? current.activatedAt() : now;
     profile.setSpeakerProfile(
         new UserProfile.SpeakerProfile(
             true,

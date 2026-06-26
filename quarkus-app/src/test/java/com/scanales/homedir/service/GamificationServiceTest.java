@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.scanales.homedir.challenges.ChallengeService;
 import com.scanales.homedir.TestDataDir;
+import com.scanales.homedir.challenges.ChallengeService;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.QuestClass;
 import com.scanales.homedir.model.UserProfile;
@@ -146,14 +146,18 @@ public class GamificationServiceTest {
     reputationEngineService.resetForTests();
 
     assertTrue(gamificationService.award(userId, GamificationActivity.COMMUNITY_VOTE, "pick-42"));
-    assertTrue(gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, "devopsdays:cfp"));
+    assertTrue(
+        gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, "devopsdays:cfp"));
     assertTrue(gamificationService.award(userId, GamificationActivity.PROJECT_VIEW, "homedir"));
-    assertTrue(gamificationService.award(userId, GamificationActivity.LTA_COMMENT_CREATE, "thread-1"));
+    assertTrue(
+        gamificationService.award(userId, GamificationActivity.LTA_COMMENT_CREATE, "thread-1"));
 
     ReputationEngineService.EngineSnapshot snapshot = reputationEngineService.snapshot();
     UserProfile profile = userProfileService.find(userId).orElseThrow();
     Set<String> eventTypes =
-        snapshot.eventsById().values().stream().map(event -> event.eventType()).collect(java.util.stream.Collectors.toSet());
+        snapshot.eventsById().values().stream()
+            .map(event -> event.eventType())
+            .collect(java.util.stream.Collectors.toSet());
 
     assertTrue(eventTypes.contains("community_vote_cast"), eventTypes.toString());
     assertTrue(eventTypes.contains("content_explored"), eventTypes.toString());

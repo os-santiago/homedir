@@ -35,7 +35,8 @@ public class CampaignDiscordPublisherService {
   @ConfigProperty(name = "campaigns.publish.discord.min-interval", defaultValue = "PT15M")
   Duration minInterval;
 
-  private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+  private final HttpClient httpClient =
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
   public CampaignPublisherStatus status() {
     return new CampaignPublisherStatus(
@@ -66,7 +67,8 @@ public class CampaignDiscordPublisherService {
     try {
       String payload =
           "{\"content\":\""
-              + CampaignPublishMessageSupport.escapeJson(CampaignPublishMessageSupport.messageFor(draft, CHANNEL))
+              + CampaignPublishMessageSupport.escapeJson(
+                  CampaignPublishMessageSupport.messageFor(draft, CHANNEL))
               + "\"}";
       HttpRequest request =
           HttpRequest.newBuilder()
@@ -75,7 +77,8 @@ public class CampaignDiscordPublisherService {
               .header("Content-Type", "application/json")
               .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
               .build();
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 200 && response.statusCode() < 300) {
         return CampaignPublishResult.published(CHANNEL, Instant.now(), "published");
       }

@@ -111,7 +111,8 @@ public class CommunityBoardResource {
     }
     metrics.recordPageView("/comunidad/board", headers, context);
     currentUserId()
-        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
+        .ifPresent(
+            userId -> gamificationService.award(userId, GamificationActivity.COMMUNITY_BOARD_VIEW));
     var summary = boardService.summary();
     BoardIdentity boardIdentity = resolveBoardIdentity();
     TemplateInstance template =
@@ -151,7 +152,8 @@ public class CommunityBoardResource {
       return redirectToReputationHub();
     }
     CommunityBoardGroup group =
-        CommunityBoardGroup.fromPath(groupPath).orElseThrow(() -> new NotFoundException("group_not_found"));
+        CommunityBoardGroup.fromPath(groupPath)
+            .orElseThrow(() -> new NotFoundException("group_not_found"));
     metrics.recordPageView("/comunidad/board/" + group.path(), headers, context);
     currentUserId()
         .ifPresent(
@@ -171,7 +173,9 @@ public class CommunityBoardResource {
     int nextOffset = slice.offset() + slice.limit();
     var summary = boardService.summary();
     String previousPageUrl =
-        hasPreviousPage ? detailUrl(group.path(), normalizedQuery, slice.limit(), previousOffset) : null;
+        hasPreviousPage
+            ? detailUrl(group.path(), normalizedQuery, slice.limit(), previousOffset)
+            : null;
     String nextPageUrl =
         hasNextPage ? detailUrl(group.path(), normalizedQuery, slice.limit(), nextOffset) : null;
     BoardIdentity boardIdentity = resolveBoardIdentity();
@@ -222,8 +226,7 @@ public class CommunityBoardResource {
     boolean isAdmin = AdminUtils.isAdmin(identity);
     String name = currentUserName().orElse(null);
     ReputationFeatureFlags.Flags flags = reputationFeatureFlags.snapshot();
-    boolean showReputationHub =
-        flags.hubUiEnabled() && (isAdmin || flags.hubNavPublicEnabled());
+    boolean showReputationHub = flags.hubUiEnabled() && (isAdmin || flags.hubNavPublicEnabled());
     boolean showCommunityBoard = !isCommunityBoardReplaced(flags);
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "comunidad")
@@ -300,11 +303,14 @@ public class CommunityBoardResource {
     String discordId = null;
     if (profile != null) {
       githubLogin = normalizeId(profile.getGithub() != null ? profile.getGithub().login() : null);
-      discordId = normalizeDiscordId(profile.getDiscord() != null ? profile.getDiscord().id() : null);
+      discordId =
+          normalizeDiscordId(profile.getDiscord() != null ? profile.getDiscord().id() : null);
     }
     String publicHandle = resolvePublicProfileHandle(email, githubLogin);
     String publicProfilePath =
-        publicHandle == null ? null : "/u/" + URLEncoder.encode(publicHandle, StandardCharsets.UTF_8);
+        publicHandle == null
+            ? null
+            : "/u/" + URLEncoder.encode(publicHandle, StandardCharsets.UTF_8);
     String homedirMemberId = resolveHomedirMemberId(email, githubLogin);
     return new BoardIdentity(
         publicProfilePath,

@@ -185,9 +185,7 @@ public class CommunityContentService {
         SeedSyncResult seedSync = syncBundledSeedContent(dir, bundledSeedClassLoader());
         LOG.infov(
             "Bundled community seed synced total={0} written={1} removed={2}",
-            seedSync.totalFiles(),
-            seedSync.writtenFiles(),
-            seedSync.removedFiles());
+            seedSync.totalFiles(), seedSync.writtenFiles(), seedSync.removedFiles());
       }
       if (!Files.exists(dir)) {
         LOG.warn("Community content directory is not available after seed sync");
@@ -248,11 +246,7 @@ public class CommunityContentService {
     cache.set(snapshot);
     LOG.infov(
         "Community content cache refreshed reason={0} items={1} loaded={2} invalid={3} durationMs={4}",
-        reason,
-        items.size(),
-        filesLoaded,
-        filesInvalid,
-        durationMs);
+        reason, items.size(), filesLoaded, filesInvalid, durationMs);
   }
 
   private boolean isSupportedFile(Path path) {

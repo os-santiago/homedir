@@ -4,43 +4,40 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Security utilities for redacting sensitive data in logs and outputs.
- */
+/** Security utilities for redacting sensitive data in logs and outputs. */
 public final class SecurityUtils {
 
-  private static final Set<String> SENSITIVE_PARAM_NAMES = Set.of(
-      "access_token",
-      "id_token",
-      "refresh_token",
-      "code",
-      "state",
-      "client_secret",
-      "authorization",
-      "password",
-      "secret",
-      "token",
-      "key",
-      "credentials"
-  );
+  private static final Set<String> SENSITIVE_PARAM_NAMES =
+      Set.of(
+          "access_token",
+          "id_token",
+          "refresh_token",
+          "code",
+          "state",
+          "client_secret",
+          "authorization",
+          "password",
+          "secret",
+          "token",
+          "key",
+          "credentials");
 
-  private static final Pattern TOKEN_PATTERN = Pattern.compile(
-      "(?i)(bearer\\s+|token[=:]\\s*)([a-zA-Z0-9_\\-\\.]{20,})",
-      Pattern.CASE_INSENSITIVE
-  );
+  private static final Pattern TOKEN_PATTERN =
+      Pattern.compile(
+          "(?i)(bearer\\s+|token[=:]\\s*)([a-zA-Z0-9_\\-\\.]{20,})", Pattern.CASE_INSENSITIVE);
 
-  private static final Pattern KEY_VALUE_PATTERN = Pattern.compile(
-      "(?i)(access_token|id_token|refresh_token|code|state|client_secret|authorization|password|secret|token|key|credentials)[=:]\\s*([^&\\s,]+)",
-      Pattern.CASE_INSENSITIVE
-  );
+  private static final Pattern KEY_VALUE_PATTERN =
+      Pattern.compile(
+          "(?i)(access_token|id_token|refresh_token|code|state|client_secret|authorization|password|secret|token|key|credentials)[=:]\\s*([^&\\s,]+)",
+          Pattern.CASE_INSENSITIVE);
 
   private SecurityUtils() {
     // Utility class
   }
 
   /**
-   * Redacts sensitive information from a string, replacing tokens and credentials
-   * with a safe placeholder.
+   * Redacts sensitive information from a string, replacing tokens and credentials with a safe
+   * placeholder.
    *
    * @param text the text to redact
    * @return the redacted text
@@ -64,8 +61,8 @@ public final class SecurityUtils {
   }
 
   /**
-   * Redacts the last 4 characters of a token, showing only a preview.
-   * Useful for debugging while maintaining security.
+   * Redacts the last 4 characters of a token, showing only a preview. Useful for debugging while
+   * maintaining security.
    *
    * @param token the token to redact
    * @return the redacted token preview

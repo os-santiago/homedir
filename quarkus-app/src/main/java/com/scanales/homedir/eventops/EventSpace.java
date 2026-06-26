@@ -12,4 +12,3 @@ public record EventSpace(
     boolean active,
     @JsonProperty("created_at") Instant createdAt,
     @JsonProperty("updated_at") Instant updatedAt) {}
-

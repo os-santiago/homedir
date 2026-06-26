@@ -17,8 +17,7 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 public class AdminAccessTest {
 
-  @Inject
-  EventService eventService;
+  @Inject EventService eventService;
 
   @Test
   @TestSecurity(user = "alice")
@@ -77,7 +76,8 @@ public class AdminAccessTest {
   public void adminEventsListUsesNormalizedActionButtons() {
     String eventId = "admin-actions-ui-test";
     eventService.deleteEvent(eventId);
-    eventService.saveEvent(new Event(eventId, "Admin Actions UI Test", "Admin events list UI test"));
+    eventService.saveEvent(
+        new Event(eventId, "Admin Actions UI Test", "Admin events list UI test"));
 
     try {
       given()
@@ -136,5 +136,4 @@ public class AdminAccessTest {
       eventService.deleteEvent(eventId);
     }
   }
-
 }

@@ -1,10 +1,10 @@
 package com.scanales.homedir.private_;
 
+import com.scanales.homedir.economy.EconomyService;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.Scenario;
 import com.scanales.homedir.model.Speaker;
 import com.scanales.homedir.model.Talk;
-import com.scanales.homedir.economy.EconomyService;
 import com.scanales.homedir.security.RateLimitingFilter;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.SpeakerService;
@@ -41,22 +41,17 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class AdminMetricsResource {
 
   public record ConversionRow(
-      String id, String name, long views, long registrations, String conversion) {
-  }
+      String id, String name, long views, long registrations, String conversion) {}
 
   public record CtaDayRow(
-      LocalDate date, long releases, long issues, long kofi, long total, boolean peak) {
-  }
+      LocalDate date, long releases, long issues, long kofi, long total, boolean peak) {}
 
-  public record DataHealth(String state, String css, String tooltip) {
-  }
+  public record DataHealth(String state, String css, String tooltip) {}
 
-  public record FunnelRow(String id, String label, long count, String conversion) {
-  }
+  public record FunnelRow(String id, String label, long count, String conversion) {}
 
   @RegisterForReflection
-  public record StatusPayload(String state, String css, String tooltip, String last, long hash) {
-  }
+  public record StatusPayload(String state, String css, String tooltip, String last, long hash) {}
 
   public record CtaData(
       long releases,
@@ -69,13 +64,11 @@ public class AdminMetricsResource {
       double stdTotal,
       int activeDays,
       List<CtaDayRow> rows,
-      int peakCount) {
-  }
+      int peakCount) {}
 
   /** Summary row for event-level metrics. */
   public record EventSummaryRow(
-      String id, String name, long eventViews, long talkViews, long registrations) {
-  }
+      String id, String name, long eventViews, long talkViews, long registrations) {}
 
   public record MetricsData(
       long eventsViewed,
@@ -117,19 +110,15 @@ public class AdminMetricsResource {
       String speakerId,
       CtaData ctas,
       String ctaQ,
-      List<EventSummaryRow> eventRows) {
-  }
+      List<EventSummaryRow> eventRows) {}
 
   /** Row representing registrations for a talk. */
-  public record TalkRegistrationRow(String id, String name, long registrations) {
-  }
+  public record TalkRegistrationRow(String id, String name, long registrations) {}
 
-  public record EventTalks(Event event, List<TalkRegistrationRow> rows) {
-  }
+  public record EventTalks(Event event, List<TalkRegistrationRow> rows) {}
 
   /** Payload with dependent filter options. */
-  public record FilterData(List<Scenario> stages, List<Speaker> speakers) {
-  }
+  public record FilterData(List<Scenario> stages, List<Speaker> speakers) {}
 
   @CheckedTemplate
   static class Templates {
@@ -156,26 +145,19 @@ public class AdminMetricsResource {
         int next);
   }
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
-  @Inject
-  UsageMetricsService metrics;
+  @Inject UsageMetricsService metrics;
 
-  @Inject
-  EventService eventService;
+  @Inject EventService eventService;
 
-  @Inject
-  SpeakerService speakerService;
+  @Inject SpeakerService speakerService;
 
-  @Inject
-  com.scanales.homedir.service.PersistenceService persistenceService;
+  @Inject com.scanales.homedir.service.PersistenceService persistenceService;
 
-  @Inject
-  EconomyService economyService;
+  @Inject EconomyService economyService;
 
-  @Inject
-  RateLimitingFilter rateLimitingFilter;
+  @Inject RateLimitingFilter rateLimitingFilter;
 
   @GET
   @Authenticated
@@ -200,62 +182,66 @@ public class AdminMetricsResource {
     }
     MetricsData data = buildData(range, eventId, stageId, speakerId);
     List<ConversionRow> talks = filterRows(data.topTalks(), talkQ, talkSort, talkDir);
-    List<ConversionRow> speakers = filterRows(data.topSpeakers(), speakerQ, speakerSort, speakerDir);
-    List<ConversionRow> scenarios = filterRows(data.topScenarios(), scenarioQ, scenarioSort, scenarioDir);
+    List<ConversionRow> speakers =
+        filterRows(data.topSpeakers(), speakerQ, speakerSort, speakerDir);
+    List<ConversionRow> scenarios =
+        filterRows(data.topScenarios(), scenarioQ, scenarioSort, scenarioDir);
     List<CtaDayRow> ctaRows = filterCtaRows(data.ctas().rows(), ctaQ);
-    CtaData ctas = new CtaData(
-        data.ctas().releases(),
-        data.ctas().issues(),
-        data.ctas().kofi(),
-        data.ctas().avgReleases(),
-        data.ctas().avgIssues(),
-        data.ctas().avgKofi(),
-        data.ctas().meanTotal(),
-        data.ctas().stdTotal(),
-        data.ctas().activeDays(),
-        ctaRows,
-        data.ctas().peakCount());
-    data = new MetricsData(
-        data.eventsViewed(),
-        data.talksViewed(),
-        data.talksRegistered(),
-        data.stageVisits(),
-        data.lastUpdate(),
-        data.lastUpdateRel(),
-        data.lastUpdateMillis(),
-        data.discards(),
-        data.funnelRows(),
-        data.config(),
-        talks,
-        speakers,
-        scenarios,
-        data.globalConversion(),
-        data.expectedAttendees(),
-        data.empty(),
-        data.range(),
-        data.eventId(),
-        data.schemaVersion(),
-        data.fileSizeBytes(),
-        data.minViews(),
-        data.health(),
-        data.dataHealth(),
-        talkQ,
-        talkSort,
-        talkDir,
-        speakerQ,
-        speakerSort,
-        speakerDir,
-        scenarioQ,
-        scenarioSort,
-        scenarioDir,
-        data.events(),
-        data.stages(),
-        data.speakers(),
-        data.stageId(),
-        data.speakerId(),
-        ctas,
-        ctaQ,
-        data.eventRows());
+    CtaData ctas =
+        new CtaData(
+            data.ctas().releases(),
+            data.ctas().issues(),
+            data.ctas().kofi(),
+            data.ctas().avgReleases(),
+            data.ctas().avgIssues(),
+            data.ctas().avgKofi(),
+            data.ctas().meanTotal(),
+            data.ctas().stdTotal(),
+            data.ctas().activeDays(),
+            ctaRows,
+            data.ctas().peakCount());
+    data =
+        new MetricsData(
+            data.eventsViewed(),
+            data.talksViewed(),
+            data.talksRegistered(),
+            data.stageVisits(),
+            data.lastUpdate(),
+            data.lastUpdateRel(),
+            data.lastUpdateMillis(),
+            data.discards(),
+            data.funnelRows(),
+            data.config(),
+            talks,
+            speakers,
+            scenarios,
+            data.globalConversion(),
+            data.expectedAttendees(),
+            data.empty(),
+            data.range(),
+            data.eventId(),
+            data.schemaVersion(),
+            data.fileSizeBytes(),
+            data.minViews(),
+            data.health(),
+            data.dataHealth(),
+            talkQ,
+            talkSort,
+            talkDir,
+            speakerQ,
+            speakerSort,
+            speakerDir,
+            scenarioQ,
+            scenarioSort,
+            scenarioDir,
+            data.events(),
+            data.stages(),
+            data.speakers(),
+            data.stageId(),
+            data.speakerId(),
+            ctas,
+            ctaQ,
+            data.eventRows());
     return Response.ok(Templates.index(data)).build();
   }
 
@@ -292,12 +278,13 @@ public class AdminMetricsResource {
     try {
       MetricsData data = buildData(range, eventId, stageId, speakerId);
       metrics.recordRefresh(true, System.currentTimeMillis() - start);
-      StatusPayload payload = new StatusPayload(
-          data.dataHealth().state(),
-          data.dataHealth().css(),
-          data.dataHealth().tooltip(),
-          data.lastUpdateRel(),
-          data.lastUpdateMillis());
+      StatusPayload payload =
+          new StatusPayload(
+              data.dataHealth().state(),
+              data.dataHealth().css(),
+              data.dataHealth().tooltip(),
+              data.lastUpdateRel(),
+              data.lastUpdateMillis());
       return Response.ok(payload).build();
     } catch (Exception e) {
       metrics.recordRefresh(false, System.currentTimeMillis() - start);
@@ -313,33 +300,36 @@ public class AdminMetricsResource {
     if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
-    List<Scenario> stages = eventId != null && !eventId.isBlank()
-        ? Optional.ofNullable(eventService.getEvent(eventId))
-            .map(Event::getScenarios)
-            .orElse(List.of())
-        : List.of();
+    List<Scenario> stages =
+        eventId != null && !eventId.isBlank()
+            ? Optional.ofNullable(eventService.getEvent(eventId))
+                .map(Event::getScenarios)
+                .orElse(List.of())
+            : List.of();
     List<Speaker> speakers;
     if (eventId != null && !eventId.isBlank()) {
       Event ev = eventService.getEvent(eventId);
       if (ev != null) {
-        speakers = ev.getAgenda().stream()
-            .flatMap(t -> t.getSpeakers().stream())
-            .collect(Collectors.toMap(Speaker::getId, Function.identity(), (a, b) -> a))
-            .values()
-            .stream()
-            .sorted(
-                Comparator.comparing(
-                    Speaker::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
-            .toList();
+        speakers =
+            ev.getAgenda().stream()
+                .flatMap(t -> t.getSpeakers().stream())
+                .collect(Collectors.toMap(Speaker::getId, Function.identity(), (a, b) -> a))
+                .values()
+                .stream()
+                .sorted(
+                    Comparator.comparing(
+                        Speaker::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .toList();
       } else {
         speakers = List.of();
       }
     } else {
-      speakers = speakerService.listSpeakers().stream()
-          .sorted(
-              Comparator.comparing(
-                  Speaker::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
-          .toList();
+      speakers =
+          speakerService.listSpeakers().stream()
+              .sorted(
+                  Comparator.comparing(
+                      Speaker::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+              .toList();
     }
     return Response.ok(new FilterData(stages, speakers)).build();
   }
@@ -495,16 +485,17 @@ public class AdminMetricsResource {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
     Map<String, List<UsageMetricsService.Registrant>> regs = metrics.getRegistrations();
-    List<TalkRegistrationRow> rows = event.getAgenda().stream()
-        .map(
-            t -> {
-              String name = t.getName() != null ? t.getName() : t.getId();
-              long count = regs.getOrDefault(t.getId(), List.of()).size();
-              return new TalkRegistrationRow(t.getId(), name, count);
-            })
-        .sorted(
-            java.util.Comparator.comparingLong(TalkRegistrationRow::registrations).reversed())
-        .toList();
+    List<TalkRegistrationRow> rows =
+        event.getAgenda().stream()
+            .map(
+                t -> {
+                  String name = t.getName() != null ? t.getName() : t.getId();
+                  long count = regs.getOrDefault(t.getId(), List.of()).size();
+                  return new TalkRegistrationRow(t.getId(), name, count);
+                })
+            .sorted(
+                java.util.Comparator.comparingLong(TalkRegistrationRow::registrations).reversed())
+            .toList();
     return Response.ok(Templates.talks(event, rows)).build();
   }
 
@@ -518,22 +509,25 @@ public class AdminMetricsResource {
     }
     Map<String, List<UsageMetricsService.Registrant>> regs = metrics.getRegistrations();
     List<Event> events = eventService.listEvents().stream().filter(this::isActive).toList();
-    List<EventTalks> data = events.stream()
-        .map(
-            ev -> {
-              List<TalkRegistrationRow> rows = ev.getAgenda().stream()
-                  .map(
-                      t -> new TalkRegistrationRow(
-                          t.getId(),
-                          t.getName() != null ? t.getName() : t.getId(),
-                          regs.getOrDefault(t.getId(), List.of()).size()))
-                  .sorted(
-                      java.util.Comparator.comparingLong(TalkRegistrationRow::registrations)
-                          .reversed())
-                  .toList();
-              return new EventTalks(ev, rows);
-            })
-        .toList();
+    List<EventTalks> data =
+        events.stream()
+            .map(
+                ev -> {
+                  List<TalkRegistrationRow> rows =
+                      ev.getAgenda().stream()
+                          .map(
+                              t ->
+                                  new TalkRegistrationRow(
+                                      t.getId(),
+                                      t.getName() != null ? t.getName() : t.getId(),
+                                      regs.getOrDefault(t.getId(), List.of()).size()))
+                          .sorted(
+                              java.util.Comparator.comparingLong(TalkRegistrationRow::registrations)
+                                  .reversed())
+                          .toList();
+                  return new EventTalks(ev, rows);
+                })
+            .toList();
     return Response.ok(Templates.registrations(data)).build();
   }
 
@@ -560,15 +554,17 @@ public class AdminMetricsResource {
     List<UsageMetricsService.Registrant> users = metrics.getRegistrants(talkId);
     if (name != null && !name.isBlank()) {
       String q = name.toLowerCase();
-      users = users.stream()
-          .filter(u -> u.name() != null && u.name().toLowerCase().contains(q))
-          .toList();
+      users =
+          users.stream()
+              .filter(u -> u.name() != null && u.name().toLowerCase().contains(q))
+              .toList();
     }
     if (email != null && !email.isBlank()) {
       String q = email.toLowerCase();
-      users = users.stream()
-          .filter(u -> u.email() != null && u.email().toLowerCase().contains(q))
-          .toList();
+      users =
+          users.stream()
+              .filter(u -> u.email() != null && u.email().toLowerCase().contains(q))
+              .toList();
     }
     int pageSize = (size == 20 || size == 50) ? size : 100;
     int total = users.size();
@@ -582,19 +578,19 @@ public class AdminMetricsResource {
     int prev = hasPrev ? current - 1 : current;
     int next = hasNext ? current + 1 : current;
     return Response.ok(
-        Templates.registrants(
-            info.event(),
-            info.talk(),
-            pageUsers,
-            current,
-            pageSize,
-            total,
-            name,
-            email,
-            hasPrev,
-            hasNext,
-            prev,
-            next))
+            Templates.registrants(
+                info.event(),
+                info.talk(),
+                pageUsers,
+                current,
+                pageSize,
+                total,
+                name,
+                email,
+                hasPrev,
+                hasNext,
+                prev,
+                next))
         .build();
   }
 
@@ -674,22 +670,25 @@ public class AdminMetricsResource {
 
     List<ConversionRow> topTalks = topConversionRows(talkStats, 10, this::talkName, threshold);
     Map<String, Stats> speakerStats = aggregateSpeakers(talkStats);
-    List<ConversionRow> topSpeakers = topConversionRows(speakerStats, 10, this::speakerName, threshold);
+    List<ConversionRow> topSpeakers =
+        topConversionRows(speakerStats, 10, this::speakerName, threshold);
     Map<String, Stats> scenarioStats = aggregateScenarios(talkStats);
-    List<ConversionRow> topScenarios = topConversionRows(scenarioStats, 10, this::stageName, threshold);
+    List<ConversionRow> topScenarios =
+        topConversionRows(scenarioStats, 10, this::stageName, threshold);
 
     List<Event> events = eventService.listEvents();
     Map<String, Stats> eventStats = aggregateEvents(talkStats);
     Map<String, Long> eventViewMap = extractMap(snap, "event_view:");
-    List<EventSummaryRow> eventRows = events.stream()
-        .map(
-            ev -> {
-              Stats s = eventStats.getOrDefault(ev.getId(), new Stats());
-              long evViews = eventViewMap.getOrDefault(ev.getId(), 0L);
-              return new EventSummaryRow(ev.getId(), ev.getTitle(), evViews, s.views, s.regs);
-            })
-        .sorted(java.util.Comparator.comparingLong(EventSummaryRow::eventViews).reversed())
-        .toList();
+    List<EventSummaryRow> eventRows =
+        events.stream()
+            .map(
+                ev -> {
+                  Stats s = eventStats.getOrDefault(ev.getId(), new Stats());
+                  long evViews = eventViewMap.getOrDefault(ev.getId(), 0L);
+                  return new EventSummaryRow(ev.getId(), ev.getTitle(), evViews, s.views, s.regs);
+                })
+            .sorted(java.util.Comparator.comparingLong(EventSummaryRow::eventViews).reversed())
+            .toList();
 
     long last = metrics.getLastUpdatedMillis();
     String lastStr = last > 0 ? Instant.ofEpochMilli(last).toString() : "—";
@@ -698,21 +697,23 @@ public class AdminMetricsResource {
     String globalConv = formatConversion(talksViewed, talksRegistered);
     long expectedAttendees = talksRegistered;
 
-    boolean empty = eventsViewed == 0
-        && talksViewed == 0
-        && talksRegistered == 0
-        && stageVisits == 0
-        && topTalks.isEmpty()
-        && topSpeakers.isEmpty()
-        && topScenarios.isEmpty()
-        && ctaData.rows().isEmpty();
+    boolean empty =
+        eventsViewed == 0
+            && talksViewed == 0
+            && talksRegistered == 0
+            && stageVisits == 0
+            && topTalks.isEmpty()
+            && topSpeakers.isEmpty()
+            && topScenarios.isEmpty()
+            && ctaData.rows().isEmpty();
     DataHealth dataHealth = computeDataHealth(empty, System.currentTimeMillis() - last, range);
 
-    List<Scenario> stages = eventId != null
-        ? Optional.ofNullable(eventService.getEvent(eventId))
-            .map(Event::getScenarios)
-            .orElse(List.of())
-        : List.of();
+    List<Scenario> stages =
+        eventId != null
+            ? Optional.ofNullable(eventService.getEvent(eventId))
+                .map(Event::getScenarios)
+                .orElse(List.of())
+            : List.of();
     List<Speaker> speakers = speakerService.listSpeakers();
 
     return new MetricsData(
@@ -782,8 +783,7 @@ public class AdminMetricsResource {
             funnelConversion(communityPropose, loginSuccess)));
 
     long ltaPost =
-        resolveFunnelCount(
-            snap, "community_lightning_post", "community.lightning.thread.create");
+        resolveFunnelCount(snap, "community_lightning_post", "community.lightning.thread.create");
     rows.add(
         new FunnelRow(
             "community_lightning_post",
@@ -802,7 +802,9 @@ public class AdminMetricsResource {
             funnelConversion(ltaComment, loginSuccess)));
 
     long cfpSubmit = resolveFunnelCount(snap, "cfp_submit", "cfp.submission.create");
-    rows.add(new FunnelRow("cfp_submit", "CFP submit", cfpSubmit, funnelConversion(cfpSubmit, loginSuccess)));
+    rows.add(
+        new FunnelRow(
+            "cfp_submit", "CFP submit", cfpSubmit, funnelConversion(cfpSubmit, loginSuccess)));
 
     long cfpApproved = resolveFunnelCount(snap, "cfp_approved", "cfp.submission.status.accepted");
     rows.add(
@@ -812,7 +814,8 @@ public class AdminMetricsResource {
             cfpApproved,
             funnelConversion(cfpApproved, loginSuccess)));
 
-    long volunteerSubmit = resolveFunnelCount(snap, "volunteer_submit", "volunteer.submission.create");
+    long volunteerSubmit =
+        resolveFunnelCount(snap, "volunteer_submit", "volunteer.submission.create");
     rows.add(
         new FunnelRow(
             "volunteer_submit",
@@ -829,7 +832,8 @@ public class AdminMetricsResource {
             volunteerSelected,
             funnelConversion(volunteerSelected, loginSuccess)));
 
-    long volunteerLoungePost = resolveFunnelCount(snap, "volunteer_lounge_post", "volunteer.lounge.post");
+    long volunteerLoungePost =
+        resolveFunnelCount(snap, "volunteer_lounge_post", "volunteer.lounge.post");
     rows.add(
         new FunnelRow(
             "volunteer_lounge_post",
@@ -873,7 +877,8 @@ public class AdminMetricsResource {
     return String.format(Locale.ROOT, "%.1f%%", pct);
   }
 
-  private static long resolveFunnelCount(Map<String, Long> snap, String canonical, String... legacyAliases) {
+  private static long resolveFunnelCount(
+      Map<String, Long> snap, String canonical, String... legacyAliases) {
     long canonicalCount = snap.getOrDefault("funnel:" + canonical, 0L);
     if (canonicalCount > 0 || legacyAliases.length == 0) {
       return canonicalCount;
@@ -899,16 +904,12 @@ public class AdminMetricsResource {
   }
 
   private String formatAge(long lastMillis) {
-    if (lastMillis <= 0)
-      return "—";
+    if (lastMillis <= 0) return "—";
     long secs = (System.currentTimeMillis() - lastMillis) / 1000;
-    if (secs < 1)
-      return "justo ahora";
-    if (secs < 60)
-      return "hace " + secs + " s";
+    if (secs < 1) return "justo ahora";
+    if (secs < 60) return "hace " + secs + " s";
     long mins = secs / 60;
-    if (mins < 60)
-      return "hace " + mins + " min";
+    if (mins < 60) return "hace " + mins + " min";
     long hours = mins / 60;
     return "hace " + hours + " h";
   }
@@ -945,21 +946,17 @@ public class AdminMetricsResource {
     ids.addAll(regs.keySet());
     for (String id : ids) {
       Talk t = eventService.findTalk(id);
-      if (t == null)
-        continue;
+      if (t == null) continue;
       if (eventId != null && !eventId.isBlank()) {
         com.scanales.homedir.model.Event ev = eventService.findEventByTalk(id);
-        if (ev == null || !eventId.equals(ev.getId()))
-          continue;
+        if (ev == null || !eventId.equals(ev.getId())) continue;
       }
       if (stageId != null && !stageId.isBlank()) {
-        if (t.getLocation() == null || !stageId.equals(t.getLocation()))
-          continue;
+        if (t.getLocation() == null || !stageId.equals(t.getLocation())) continue;
       }
       if (speakerId != null && !speakerId.isBlank()) {
         boolean match = t.getSpeakers().stream().anyMatch(s -> speakerId.equals(s.getId()));
-        if (!match)
-          continue;
+        if (!match) continue;
       }
       Stats s = stats.computeIfAbsent(id, k -> new Stats());
       s.views = views.getOrDefault(id, 0L);
@@ -972,8 +969,7 @@ public class AdminMetricsResource {
     Map<String, Stats> map = new HashMap<>();
     for (Map.Entry<String, Stats> e : talkStats.entrySet()) {
       Talk t = eventService.findTalk(e.getKey());
-      if (t == null)
-        continue;
+      if (t == null) continue;
       for (Speaker sp : t.getSpeakers()) {
         if (sp != null && sp.getId() != null) {
           Stats s = map.computeIfAbsent(sp.getId(), k -> new Stats());
@@ -989,8 +985,7 @@ public class AdminMetricsResource {
     Map<String, Stats> map = new HashMap<>();
     for (Map.Entry<String, Stats> e : talkStats.entrySet()) {
       Talk t = eventService.findTalk(e.getKey());
-      if (t == null || t.getLocation() == null)
-        continue;
+      if (t == null || t.getLocation() == null) continue;
       Stats s = map.computeIfAbsent(t.getLocation(), k -> new Stats());
       s.views += e.getValue().views;
       s.regs += e.getValue().regs;
@@ -1002,8 +997,7 @@ public class AdminMetricsResource {
     Map<String, Stats> map = new HashMap<>();
     for (Map.Entry<String, Stats> e : talkStats.entrySet()) {
       com.scanales.homedir.model.Event ev = eventService.findEventByTalk(e.getKey());
-      if (ev == null)
-        continue;
+      if (ev == null) continue;
       Stats s = map.computeIfAbsent(ev.getId(), k -> new Stats());
       s.views += e.getValue().views;
       s.regs += e.getValue().regs;
@@ -1040,18 +1034,20 @@ public class AdminMetricsResource {
       }
     }
     int activeDays = perDay.size();
-    List<CtaDayRow> rows = perDay.entrySet().stream()
-        .map(
-            e -> {
-              long rel = e.getValue()[0];
-              long iss = e.getValue()[1];
-              long kof = e.getValue()[2];
-              long total = rel + iss + kof;
-              return new CtaDayRow(e.getKey(), rel, iss, kof, total, false);
-            })
-        .sorted(Comparator.comparing(CtaDayRow::date).reversed())
-        .collect(Collectors.toList());
-    double meanTotal = activeDays > 0 ? rows.stream().mapToLong(CtaDayRow::total).average().orElse(0) : 0;
+    List<CtaDayRow> rows =
+        perDay.entrySet().stream()
+            .map(
+                e -> {
+                  long rel = e.getValue()[0];
+                  long iss = e.getValue()[1];
+                  long kof = e.getValue()[2];
+                  long total = rel + iss + kof;
+                  return new CtaDayRow(e.getKey(), rel, iss, kof, total, false);
+                })
+            .sorted(Comparator.comparing(CtaDayRow::date).reversed())
+            .collect(Collectors.toList());
+    double meanTotal =
+        activeDays > 0 ? rows.stream().mapToLong(CtaDayRow::total).average().orElse(0) : 0;
     double std = 0;
     if (activeDays > 0) {
       double m = meanTotal;
@@ -1060,22 +1056,25 @@ public class AdminMetricsResource {
     double avgRel = activeDays > 0 ? (double) totalReleases / activeDays : 0;
     double avgIss = activeDays > 0 ? (double) totalIssues / activeDays : 0;
     double avgKof = activeDays > 0 ? (double) totalKofi / activeDays : 0;
-    Set<LocalDate> peaks = rows.stream()
-        .sorted(Comparator.comparingLong(CtaDayRow::total).reversed())
-        .limit(3)
-        .map(CtaDayRow::date)
-        .collect(Collectors.toSet());
+    Set<LocalDate> peaks =
+        rows.stream()
+            .sorted(Comparator.comparingLong(CtaDayRow::total).reversed())
+            .limit(3)
+            .map(CtaDayRow::date)
+            .collect(Collectors.toSet());
     int peakCount = peaks.size();
-    rows = rows.stream()
-        .map(
-            r -> new CtaDayRow(
-                r.date(),
-                r.releases(),
-                r.issues(),
-                r.kofi(),
-                r.total(),
-                peaks.contains(r.date())))
-        .collect(Collectors.toList());
+    rows =
+        rows.stream()
+            .map(
+                r ->
+                    new CtaDayRow(
+                        r.date(),
+                        r.releases(),
+                        r.issues(),
+                        r.kofi(),
+                        r.total(),
+                        peaks.contains(r.date())))
+            .collect(Collectors.toList());
     return new CtaData(
         totalReleases,
         totalIssues,
@@ -1138,10 +1137,11 @@ public class AdminMetricsResource {
     String q = query.toLowerCase();
     return rows.stream()
         .filter(
-            r -> r.date().toString().contains(q)
-                || ("releases".contains(q) && r.releases() > 0)
-                || ("issues".contains(q) && r.issues() > 0)
-                || (("ko-fi".contains(q) || "kofi".contains(q)) && r.kofi() > 0))
+            r ->
+                r.date().toString().contains(q)
+                    || ("releases".contains(q) && r.releases() > 0)
+                    || ("issues".contains(q) && r.issues() > 0)
+                    || (("ko-fi".contains(q) || "kofi".contains(q)) && r.kofi() > 0))
         .collect(Collectors.toList());
   }
 
@@ -1150,8 +1150,7 @@ public class AdminMetricsResource {
   }
 
   private static String formatConversion(long views, long regs) {
-    if (views == 0)
-      return "—";
+    if (views == 0) return "—";
     return String.format(Locale.US, "%.1f%%", regs * 100.0 / views);
   }
 

@@ -3,7 +3,6 @@ package com.scanales.homedir.volunteers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.service.EventService;
@@ -48,7 +47,8 @@ public class VolunteerApplicationServiceTest {
     assertNotNull(created.id());
     assertEquals(VolunteerApplicationStatus.APPLIED, created.status());
 
-    VolunteerApplication persisted = persistenceService.loadVolunteerApplications().get(created.id());
+    VolunteerApplication persisted =
+        persistenceService.loadVolunteerApplications().get(created.id());
     assertNotNull(persisted);
     assertEquals(EVENT_ID, persisted.eventId());
     assertEquals("member@example.com", persisted.applicantUserId());
@@ -60,10 +60,7 @@ public class VolunteerApplicationServiceTest {
         "member@example.com",
         "Member",
         new VolunteerApplicationService.CreateRequest(
-            EVENT_ID,
-            "About me",
-            "Join reason",
-            "Differentiator"));
+            EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     VolunteerApplicationService.ValidationException ex =
         assertThrows(
@@ -73,10 +70,7 @@ public class VolunteerApplicationServiceTest {
                     "member@example.com",
                     "Member",
                     new VolunteerApplicationService.CreateRequest(
-                        EVENT_ID,
-                        "About me",
-                        "Join reason",
-                        "Differentiator")));
+                        EVENT_ID, "About me", "Join reason", "Differentiator")));
 
     assertEquals("already_applied", ex.getMessage());
   }
@@ -84,8 +78,7 @@ public class VolunteerApplicationServiceTest {
   @Test
   void createFailsWhenWindowIsClosed() {
     volunteerEventConfigService.upsert(
-        EVENT_ID,
-        new VolunteerEventConfigService.UpdateRequest(false, null, null));
+        EVENT_ID, new VolunteerEventConfigService.UpdateRequest(false, null, null));
 
     VolunteerApplicationService.ValidationException ex =
         assertThrows(
@@ -95,10 +88,7 @@ public class VolunteerApplicationServiceTest {
                     "member@example.com",
                     "Member",
                     new VolunteerApplicationService.CreateRequest(
-                        EVENT_ID,
-                        "About me",
-                        "Join reason",
-                        "Differentiator")));
+                        EVENT_ID, "About me", "Join reason", "Differentiator")));
 
     assertEquals("submissions_closed", ex.getMessage());
   }
@@ -110,10 +100,7 @@ public class VolunteerApplicationServiceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     VolunteerApplication review =
         volunteerApplicationService.updateStatus(
@@ -154,10 +141,7 @@ public class VolunteerApplicationServiceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     VolunteerApplication updated =
         volunteerApplicationService.updateMine(
@@ -165,9 +149,7 @@ public class VolunteerApplicationServiceTest {
             EVENT_ID,
             "member@example.com",
             new VolunteerApplicationService.UpdateRequest(
-                "Updated about me",
-                "Updated join reason",
-                "Updated differentiator"));
+                "Updated about me", "Updated join reason", "Updated differentiator"));
     assertEquals("Updated about me", updated.aboutMe());
 
     VolunteerApplication withdrawn =
@@ -182,17 +164,10 @@ public class VolunteerApplicationServiceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     volunteerApplicationService.updateStatus(
-        created.id(),
-        VolunteerApplicationStatus.SELECTED,
-        "admin@example.com",
-        "Great fit",
-        null);
+        created.id(), VolunteerApplicationStatus.SELECTED, "admin@example.com", "Great fit", null);
 
     VolunteerApplicationService.InvalidTransitionException ex =
         assertThrows(
@@ -203,9 +178,7 @@ public class VolunteerApplicationServiceTest {
                     EVENT_ID,
                     "member@example.com",
                     new VolunteerApplicationService.UpdateRequest(
-                        "Updated about me",
-                        "Updated join reason",
-                        "Updated differentiator")));
+                        "Updated about me", "Updated join reason", "Updated differentiator")));
     assertEquals("immutable_after_decision", ex.getMessage());
   }
 
@@ -234,11 +207,7 @@ public class VolunteerApplicationServiceTest {
 
     var ordered =
         volunteerApplicationService.listByEvent(
-            EVENT_ID,
-            Optional.empty(),
-            VolunteerApplicationService.SortOrder.SCORE_DESC,
-            20,
-            0);
+            EVENT_ID, Optional.empty(), VolunteerApplicationService.SortOrder.SCORE_DESC, 20, 0);
     assertEquals(2, ordered.size());
     assertEquals(high.id(), ordered.get(0).id());
     assertEquals(low.id(), ordered.get(1).id());
@@ -250,7 +219,8 @@ public class VolunteerApplicationServiceTest {
         volunteerApplicationService.create(
             "member@example.com",
             "Member",
-            new VolunteerApplicationService.CreateRequest(EVENT_ID, "About me", "Join reason", "Diff"));
+            new VolunteerApplicationService.CreateRequest(
+                EVENT_ID, "About me", "Join reason", "Diff"));
     Instant expected = created.updatedAt();
 
     volunteerApplicationService.updateStatus(
@@ -302,7 +272,8 @@ public class VolunteerApplicationServiceTest {
             "selected",
             null);
 
-    VolunteerApplicationService.EventStats stats = volunteerApplicationService.statsByEvent(EVENT_ID);
+    VolunteerApplicationService.EventStats stats =
+        volunteerApplicationService.statsByEvent(EVENT_ID);
     assertEquals(3, stats.total());
     assertEquals(1, stats.countsByStatus().get(VolunteerApplicationStatus.APPLIED));
     assertEquals(1, stats.countsByStatus().get(VolunteerApplicationStatus.UNDER_REVIEW));

@@ -116,7 +116,8 @@ public class CommunityVoteService {
     }
   }
 
-  public Map<String, CommunityVoteAggregate> getAggregates(Collection<String> contentIds, String userId) {
+  public Map<String, CommunityVoteAggregate> getAggregates(
+      Collection<String> contentIds, String userId) {
     Map<String, AggregateBuilder> builders = new HashMap<>();
     for (String id : contentIds) {
       builders.put(id, new AggregateBuilder());
@@ -184,10 +185,7 @@ public class CommunityVoteService {
         out.put(
             id,
             new CommunityVoteAggregate(
-                counts.recommended(),
-                counts.mustSee(),
-                counts.notForMe(),
-                null));
+                counts.recommended(), counts.mustSee(), counts.notForMe(), null));
       }
     }
     return out;
@@ -203,14 +201,16 @@ public class CommunityVoteService {
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
         String contentId = rs.getString("content_id");
-        AggregateBuilder builder = builders.computeIfAbsent(contentId, key -> new AggregateBuilder());
+        AggregateBuilder builder =
+            builders.computeIfAbsent(contentId, key -> new AggregateBuilder());
         builder.addCount(rs.getString("vote"), rs.getLong("total"));
       }
     }
     Map<String, AggregateCounts> counts = new HashMap<>();
     builders.forEach(
         (id, builder) ->
-            counts.put(id, new AggregateCounts(builder.recommended, builder.mustSee, builder.notForMe)));
+            counts.put(
+                id, new AggregateCounts(builder.recommended, builder.mustSee, builder.notForMe)));
     AggregateCacheSnapshot refreshed = new AggregateCacheSnapshot(Map.copyOf(counts), loadedAt);
     aggregateCache.set(refreshed);
     return refreshed;
@@ -233,18 +233,17 @@ public class CommunityVoteService {
         while (rs.next()) {
           String contentId = rs.getString("content_id");
           String rawVote = rs.getString("vote");
-          CommunityVoteType parsed = CommunityVoteType.fromApi(rawVote.toLowerCase(Locale.ROOT)).orElse(null);
+          CommunityVoteType parsed =
+              CommunityVoteType.fromApi(rawVote.toLowerCase(Locale.ROOT)).orElse(null);
           if (parsed == null) {
             continue;
           }
-          CommunityVoteAggregate base = aggregates.getOrDefault(contentId, CommunityVoteAggregate.empty());
+          CommunityVoteAggregate base =
+              aggregates.getOrDefault(contentId, CommunityVoteAggregate.empty());
           aggregates.put(
               contentId,
               new CommunityVoteAggregate(
-                  base.recommended(),
-                  base.mustSee(),
-                  base.notForMe(),
-                  parsed));
+                  base.recommended(), base.mustSee(), base.notForMe(), parsed));
         }
       }
     }
@@ -299,7 +298,8 @@ public class CommunityVoteService {
   private Optional<CommunityVoteType> findVote(Connection conn, String userId, String contentId)
       throws SQLException {
     try (PreparedStatement ps =
-        conn.prepareStatement("SELECT vote FROM content_vote WHERE user_id = ? AND content_id = ?")) {
+        conn.prepareStatement(
+            "SELECT vote FROM content_vote WHERE user_id = ? AND content_id = ?")) {
       ps.setString(1, userId);
       ps.setString(2, contentId);
       try (ResultSet rs = ps.executeQuery()) {
@@ -365,15 +365,12 @@ public class CommunityVoteService {
         case "RECOMMENDED" -> recommended += total;
         case "MUST_SEE" -> mustSee += total;
         case "NOT_FOR_ME" -> notForMe += total;
-        default -> {
-        }
+        default -> {}
       }
     }
-
   }
 
-  private record AggregateCounts(long recommended, long mustSee, long notForMe) {
-  }
+  private record AggregateCounts(long recommended, long mustSee, long notForMe) {}
 
   private record AggregateCacheSnapshot(Map<String, AggregateCounts> countsById, Instant loadedAt) {
     static AggregateCacheSnapshot empty() {

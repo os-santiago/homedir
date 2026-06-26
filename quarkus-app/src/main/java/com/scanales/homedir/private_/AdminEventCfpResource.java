@@ -50,7 +50,8 @@ public class AdminEventCfpResource {
     if (event == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    return Response.ok(Templates.moderation(event, AdminUtils.canManageAdminBackoffice(identity))).build();
+    return Response.ok(Templates.moderation(event, AdminUtils.canManageAdminBackoffice(identity)))
+        .build();
   }
 
   @GET
@@ -67,11 +68,16 @@ public class AdminEventCfpResource {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
     boolean existsForEvent =
-        cfpSubmissionService.findById(submissionId).filter(item -> eventId.equals(item.eventId())).isPresent();
+        cfpSubmissionService
+            .findById(submissionId)
+            .filter(item -> eventId.equals(item.eventId()))
+            .isPresent();
     if (!existsForEvent) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    return Response.ok(Templates.detail(event, submissionId, AdminUtils.canManageAdminBackoffice(identity))).build();
+    return Response.ok(
+            Templates.detail(event, submissionId, AdminUtils.canManageAdminBackoffice(identity)))
+        .build();
   }
 
   private boolean canReviewCfp(String eventId) {
@@ -86,7 +92,8 @@ public class AdminEventCfpResource {
       return Set.of();
     }
     LinkedHashSet<String> ids = new LinkedHashSet<>();
-    addNormalizedUserId(ids, identity.getPrincipal() != null ? identity.getPrincipal().getName() : null);
+    addNormalizedUserId(
+        ids, identity.getPrincipal() != null ? identity.getPrincipal().getName() : null);
     addNormalizedUserId(ids, AdminUtils.getClaim(identity, "email"));
     addNormalizedUserId(ids, AdminUtils.getClaim(identity, "sub"));
     return ids.isEmpty() ? Set.of() : Set.copyOf(ids);

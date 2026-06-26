@@ -11,7 +11,6 @@ import com.scanales.homedir.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -23,26 +22,22 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/eventos")
 public class EventsDirectoryResource {
 
-  @Inject
-  EventService eventService;
+  @Inject EventService eventService;
 
-  @Inject
-  UsageMetricsService metrics;
+  @Inject UsageMetricsService metrics;
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
-  @Inject
-  GamificationService gamificationService;
+  @Inject GamificationService gamificationService;
 
-  @Inject
-  com.scanales.homedir.service.UserSessionService sessionService;
+  @Inject com.scanales.homedir.service.UserSessionService sessionService;
 
   @ConfigProperty(name = "homedir.ui.v2.enabled", defaultValue = "true")
   boolean uiV2Enabled;
@@ -76,9 +71,10 @@ public class EventsDirectoryResource {
     LocalDate today = LocalDate.now();
     List<Event> upcoming = eventService.listUpcomingEvents();
     List<Event> past = eventService.listPastEvents();
-    var stats = Map.of(
-        "upcoming", Integer.toString(upcoming.size()),
-        "past", Integer.toString(past.size()));
+    var stats =
+        Map.of(
+            "upcoming", Integer.toString(upcoming.size()),
+            "past", Integer.toString(past.size()));
     Map<String, List<String>> topTracksByEvent = new LinkedHashMap<>();
     Map<String, List<String>> recommendedSessionsByEvent = new LinkedHashMap<>();
     for (Event event : upcoming) {
@@ -87,7 +83,12 @@ public class EventsDirectoryResource {
     }
     TemplateInstance template =
         Templates.eventos(
-            upcoming, past, today, stats, Map.copyOf(topTracksByEvent), Map.copyOf(recommendedSessionsByEvent));
+            upcoming,
+            past,
+            today,
+            stats,
+            Map.copyOf(topTracksByEvent),
+            Map.copyOf(recommendedSessionsByEvent));
     if (uiV2Enabled) {
       return withLayoutData(template, "eventos", localeCookie);
     }
@@ -185,9 +186,13 @@ public class EventsDirectoryResource {
       return "Delivery";
     }
     String text =
-        ((talk.getName() == null ? "" : talk.getName()) + " " + (talk.getDescription() == null ? "" : talk.getDescription()))
+        ((talk.getName() == null ? "" : talk.getName())
+                + " "
+                + (talk.getDescription() == null ? "" : talk.getDescription()))
             .toLowerCase(Locale.ROOT);
-    if (text.contains("platform") || text.contains("developer platform") || text.contains("devex")) {
+    if (text.contains("platform")
+        || text.contains("developer platform")
+        || text.contains("devex")) {
       return "Platform Engineering";
     }
     if (text.contains("security") || text.contains("devsecops") || text.contains("supply chain")) {

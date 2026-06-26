@@ -145,4 +145,3 @@ public class BackupArchiveService {
     return raw.replace("\\", "\\\\").replace("\"", "\\\"");
   }
 }
-

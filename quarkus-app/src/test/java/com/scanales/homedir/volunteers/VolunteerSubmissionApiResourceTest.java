@@ -4,8 +4,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.eventops.EventOperationsService;
 import com.scanales.homedir.eventops.EventStaffRole;
@@ -98,10 +98,7 @@ class VolunteerSubmissionApiResourceTest {
         "member@example.com",
         "Member",
         new VolunteerApplicationService.CreateRequest(
-            EVENT_ID,
-            "About me",
-            "Join reason",
-            "Differentiator"));
+            EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     given()
         .contentType("application/json")
@@ -127,10 +124,7 @@ class VolunteerSubmissionApiResourceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     given()
         .when()
@@ -148,10 +142,7 @@ class VolunteerSubmissionApiResourceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     given()
         .accept("application/json")
@@ -192,15 +183,15 @@ class VolunteerSubmissionApiResourceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     given()
         .accept("application/json")
         .when()
-        .get("/api/events/" + EVENT_ID + "/volunteers/submissions?status=all&sort=created&limit=10&offset=0")
+        .get(
+            "/api/events/"
+                + EVENT_ID
+                + "/volunteers/submissions?status=all&sort=created&limit=10&offset=0")
         .then()
         .statusCode(200)
         .body("total", equalTo(1))
@@ -215,7 +206,8 @@ class VolunteerSubmissionApiResourceTest {
               "note":"Looks like a good fit.",
               "expected_updated_at":"%s"
             }
-            """.formatted(created.updatedAt().toString()))
+            """
+                .formatted(created.updatedAt().toString()))
         .when()
         .put("/api/events/" + EVENT_ID + "/volunteers/submissions/" + created.id() + "/status")
         .then()
@@ -231,10 +223,7 @@ class VolunteerSubmissionApiResourceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     given()
         .contentType("application/json")
@@ -246,7 +235,8 @@ class VolunteerSubmissionApiResourceTest {
               "differentiator":4,
               "expected_updated_at":"%s"
             }
-            """.formatted(created.updatedAt().toString()))
+            """
+                .formatted(created.updatedAt().toString()))
         .when()
         .put("/api/events/" + EVENT_ID + "/volunteers/submissions/" + created.id() + "/rating")
         .then()
@@ -291,10 +281,7 @@ class VolunteerSubmissionApiResourceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
 
     volunteerApplicationService.updateStatus(
         created.id(),
@@ -319,9 +306,7 @@ class VolunteerSubmissionApiResourceTest {
     volunteerEventConfigService.upsert(
         EVENT_ID,
         new VolunteerEventConfigService.UpdateRequest(
-            false,
-            Instant.now().minusSeconds(3600),
-            Instant.now().plusSeconds(3600)));
+            false, Instant.now().minusSeconds(3600), Instant.now().plusSeconds(3600)));
 
     given()
         .contentType("application/json")
@@ -347,10 +332,7 @@ class VolunteerSubmissionApiResourceTest {
             "member@example.com",
             "Member",
             new VolunteerApplicationService.CreateRequest(
-                EVENT_ID,
-                "About me",
-                "Join reason",
-                "Differentiator"));
+                EVENT_ID, "About me", "Join reason", "Differentiator"));
     long eventsBefore = insightsLedger.status().storedEvents();
 
     given()
@@ -373,7 +355,8 @@ class VolunteerSubmissionApiResourceTest {
     var notifications = notificationService.listForUser("member@example.com", 10, false);
     assertEquals(1, notifications.size());
     assertEquals("Volunteer application update", notifications.get(0).title);
-    assertTrue(notifications.get(0).message != null && notifications.get(0).message.contains("selected"));
+    assertTrue(
+        notifications.get(0).message != null && notifications.get(0).message.contains("selected"));
 
     assertTrue(
         eventOperationsService

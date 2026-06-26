@@ -26,13 +26,14 @@ public class NotificationPageResourceTest {
         .statusCode(200)
         .body(
             anyOf(
-                containsString("Notifications Center"),
-                containsString("Centro de notificaciones")))
+                containsString("Notifications Center"), containsString("Centro de notificaciones")))
         .body(anyOf(containsString("global alerts"), containsString("alertas globales")));
   }
 
   @Test
-  @TestSecurity(user = "user@example.com", roles = {"user"})
+  @TestSecurity(
+      user = "user@example.com",
+      roles = {"user"})
   public void centerAwardsWarriorXpForAuthenticatedUser() {
     given().when().get("/notifications/center").then().statusCode(200);
     given().when().get("/notifications/center").then().statusCode(200);

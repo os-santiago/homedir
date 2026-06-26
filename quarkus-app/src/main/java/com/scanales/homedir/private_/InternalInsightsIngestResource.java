@@ -38,14 +38,12 @@ public class InternalInsightsIngestResource {
       String initiativeId,
       String title,
       String definitionStartedAt,
-      Map<String, String> metadata) {
-  }
+      Map<String, String> metadata) {}
 
-  public record AppendEventRequest(String initiativeId, String type, Map<String, String> metadata) {
-  }
+  public record AppendEventRequest(
+      String initiativeId, String type, Map<String, String> metadata) {}
 
-  public record ErrorPayload(String error, String message) {
-  }
+  public record ErrorPayload(String error, String message) {}
 
   @POST
   @Path("initiatives/start")
@@ -67,7 +65,10 @@ public class InternalInsightsIngestResource {
     try {
       DevelopmentInsightsEvent event =
           insightsLedger.startInitiative(
-              request.initiativeId(), request.title(), request.definitionStartedAt(), request.metadata());
+              request.initiativeId(),
+              request.title(),
+              request.definitionStartedAt(),
+              request.metadata());
       return Response.status(Response.Status.ACCEPTED).entity(event).build();
     } catch (IllegalArgumentException e) {
       return Response.status(Response.Status.BAD_REQUEST)

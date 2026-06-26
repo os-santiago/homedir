@@ -6,11 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.TestDataDir;
 import com.scanales.homedir.campaigns.CampaignService;
-import jakarta.ws.rs.core.MediaType;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -140,14 +140,15 @@ class AdminCampaignsPageTest {
 
     var response =
         given()
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .formParam("action", "approve")
-        .formParam("draftIds", draftIds.toArray())
-        .when()
-        .post("/private/admin/campaigns/bulk-action");
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .formParam("action", "approve")
+            .formParam("draftIds", draftIds.toArray())
+            .when()
+            .post("/private/admin/campaigns/bulk-action");
 
     var assertions =
-        response.then()
+        response
+            .then()
             .statusCode(200)
             .body(containsString("Se aplicó la acción por lote"))
             .body(containsString("<code>" + draftIds.size() + "</code>"));
@@ -262,7 +263,9 @@ class AdminCampaignsPageTest {
         .body(containsString("id=\"campaignsPilotVerificationPanel\""))
         .body(containsString("Discord"))
         .body(containsString("Verificado"))
-        .body(containsString("Espera la primera publicación real en el canal piloto antes de marcar la verificación como completa."));
+        .body(
+            containsString(
+                "Espera la primera publicación real en el canal piloto antes de marcar la verificación como completa."));
   }
 
   @Test
@@ -306,7 +309,9 @@ class AdminCampaignsPageTest {
         .body(containsString("Armado"))
         .body(containsString("Bloqueado"))
         .body(containsString("Discord"))
-        .body(containsString("Habilita publicación global y automatización de publicación antes del rollout."));
+        .body(
+            containsString(
+                "Habilita publicación global y automatización de publicación antes del rollout."));
   }
 
   @Test

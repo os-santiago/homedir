@@ -30,28 +30,35 @@ public class BetaInteractionApiResource {
   @PermitAll
   public Response track(BetaInteractionRequest body) {
     if (body == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"invalid_body\"}").build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity("{\"error\":\"invalid_body\"}")
+          .build();
     }
     String event = normalizeEvent(body.event());
     String zone = normalizeZone(body.zone());
     if (event == null || zone == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"invalid_input\"}").build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity("{\"error\":\"invalid_input\"}")
+          .build();
     }
 
     metrics.recordFunnelStep("beta." + event + "." + zone);
 
     if ("open".equals(event) || "visit".equals(event)) {
-      currentUserId().ifPresent(
-          userId -> {
-            switch (zone) {
-              case "inn" -> gamificationService.award(userId, GamificationActivity.HOME_VIEW);
-              case "guild" -> gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
-              case "theater" -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW);
-              case "cityhall" -> gamificationService.award(userId, GamificationActivity.PROJECT_VIEW);
-              default -> {
-              }
-            }
-          });
+      currentUserId()
+          .ifPresent(
+              userId -> {
+                switch (zone) {
+                  case "inn" -> gamificationService.award(userId, GamificationActivity.HOME_VIEW);
+                  case "guild" ->
+                      gamificationService.award(userId, GamificationActivity.COMMUNITY_PICKS_VIEW);
+                  case "theater" ->
+                      gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW);
+                  case "cityhall" ->
+                      gamificationService.award(userId, GamificationActivity.PROJECT_VIEW);
+                  default -> {}
+                }
+              });
     }
 
     return Response.accepted().entity("{\"ok\":true}").build();

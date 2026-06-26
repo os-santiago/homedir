@@ -14,7 +14,6 @@ import com.scanales.homedir.volunteers.VolunteerApplicationService;
 import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.time.Instant;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +34,11 @@ public class NotificationAudienceResolverTest {
   public void setup() {
     eventService.reset();
     // Create test event
-    Event event = new Event(TEST_EVENT_ID, "Test Event for Segmentation", "Event for testing audience segmentation");
+    Event event =
+        new Event(
+            TEST_EVENT_ID,
+            "Test Event for Segmentation",
+            "Event for testing audience segmentation");
     eventService.saveEvent(event);
   }
 
@@ -100,11 +103,7 @@ public class NotificationAudienceResolverTest {
             TEST_EVENT_ID, "About me", "Join reason", "Differentiator");
     var application = volunteerService.create("volunteer1@test.com", "Volunteer One", req);
     volunteerService.updateStatus(
-        application.id(),
-        VolunteerApplicationStatus.SELECTED,
-        "admin",
-        "Great volunteer",
-        null);
+        application.id(), VolunteerApplicationStatus.SELECTED, "admin", "Great volunteer", null);
 
     Set<String> result = resolver.resolveAudience("cfv", TEST_EVENT_ID);
 
@@ -141,8 +140,7 @@ public class NotificationAudienceResolverTest {
             null,
             null);
     var submission = cfpService.create("speaker@test.com", "Speaker", cfpReq);
-    cfpService.updateStatus(
-        submission.id(), CfpSubmissionStatus.ACCEPTED, "admin", "Good", null);
+    cfpService.updateStatus(submission.id(), CfpSubmissionStatus.ACCEPTED, "admin", "Good", null);
 
     VolunteerApplicationService.CreateRequest volReq =
         new VolunteerApplicationService.CreateRequest(
@@ -207,8 +205,7 @@ public class NotificationAudienceResolverTest {
             null,
             null);
     var submission = cfpService.create("speaker@test.com", "Speaker", cfpReq);
-    cfpService.updateStatus(
-        submission.id(), CfpSubmissionStatus.ACCEPTED, "admin", "Good", null);
+    cfpService.updateStatus(submission.id(), CfpSubmissionStatus.ACCEPTED, "admin", "Good", null);
 
     VolunteerApplicationService.CreateRequest volReq =
         new VolunteerApplicationService.CreateRequest(

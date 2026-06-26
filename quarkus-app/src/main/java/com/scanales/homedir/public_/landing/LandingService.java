@@ -9,7 +9,8 @@ public class LandingService {
 
   @Inject SecurityIdentity identity;
 
-  // TODO: inyectar servicios reales si existen (CommunityService, EventService, ProjectService, etc.)
+  // TODO: inyectar servicios reales si existen (CommunityService, EventService, ProjectService,
+  // etc.)
 
   public LandingViewModel buildViewModel() {
     boolean loggedIn = identity != null && !identity.isAnonymous();

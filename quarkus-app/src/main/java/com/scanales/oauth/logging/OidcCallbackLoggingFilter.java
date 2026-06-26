@@ -19,12 +19,13 @@ public class OidcCallbackLoggingFilter extends AbstractLoggingFilter {
     if (path.startsWith("q/oauth2/callback") || path.startsWith("q/oidc/callback")) {
       String params =
           requestContext.getUriInfo().getQueryParameters().entrySet().stream()
-              .map(e -> {
-                String key = e.getKey();
-                String value = String.join(",", e.getValue());
-                String safeValue = SecurityUtils.redactIfSensitive(key, value);
-                return key + "=" + safeValue;
-              })
+              .map(
+                  e -> {
+                    String key = e.getKey();
+                    String value = String.join(",", e.getValue());
+                    String safeValue = SecurityUtils.redactIfSensitive(key, value);
+                    return key + "=" + safeValue;
+                  })
               .collect(Collectors.joining(", "));
       log.infov("OAuth callback parameters: {0}", params);
     }

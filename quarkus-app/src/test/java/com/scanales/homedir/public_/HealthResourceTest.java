@@ -33,37 +33,21 @@ public class HealthResourceTest {
 
   @Test
   void livenessCheckIncludesOidc() {
-    given()
-        .when()
-        .get("/health")
-        .then()
-        .body("checks.name", hasItem("oidc-provider"));
+    given().when().get("/health").then().body("checks.name", hasItem("oidc-provider"));
   }
 
   @Test
   void readinessCheckIncludesPersistence() {
-    given()
-        .when()
-        .get("/health/ready")
-        .then()
-        .body("checks.name", hasItem("persistence"));
+    given().when().get("/health/ready").then().body("checks.name", hasItem("persistence"));
   }
 
   @Test
   void readinessCheckIncludesDiskSpace() {
-    given()
-        .when()
-        .get("/health/ready")
-        .then()
-        .body("checks.name", hasItem("disk-space"));
+    given().when().get("/health/ready").then().body("checks.name", hasItem("disk-space"));
   }
 
   @Test
   void readinessCheckIncludesExternalApis() {
-    given()
-        .when()
-        .get("/health/ready")
-        .then()
-        .body("checks.name", hasItem("external-apis"));
+    given().when().get("/health/ready").then().body("checks.name", hasItem("external-apis"));
   }
 }

@@ -1,7 +1,7 @@
 package com.scanales.homedir.public_;
 
-import com.scanales.homedir.model.Scenario;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.model.Scenario;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
@@ -48,10 +48,12 @@ public class ScenarioResource {
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/scenario", headers, context);
     currentUserId()
-        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id));
+        .ifPresent(
+            userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id));
     Scenario s = eventService.findScenario(id);
     if (s == null) {
-      return TemplateLocaleUtil.apply(Templates.detail(null, null, java.util.List.of()), localeCookie);
+      return TemplateLocaleUtil.apply(
+          Templates.detail(null, null, java.util.List.of()), localeCookie);
     }
     var event = eventService.findEventByScenario(id);
     var talks = eventService.findTalksForScenario(id);

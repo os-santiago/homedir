@@ -94,8 +94,10 @@ class RateLimitingFilterTest {
     setFieldUnchecked("communityContentAdaptivePerFingerprintBonus", 2);
     setFieldUnchecked("communityContentAdaptiveMaxLimit", 10);
 
-    ContainerRequestContext ctxA = context("api/community/content", "7.7.7.7", "agent-a", "q_session=a1");
-    ContainerRequestContext ctxB = context("api/community/content", "7.7.7.7", "agent-b", "q_session=b2");
+    ContainerRequestContext ctxA =
+        context("api/community/content", "7.7.7.7", "agent-a", "q_session=a1");
+    ContainerRequestContext ctxB =
+        context("api/community/content", "7.7.7.7", "agent-b", "q_session=b2");
 
     filter.filter(ctxA);
     filter.filter(ctxB);

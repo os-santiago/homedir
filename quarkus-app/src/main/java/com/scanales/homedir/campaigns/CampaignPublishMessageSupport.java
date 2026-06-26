@@ -54,11 +54,7 @@ final class CampaignPublishMessageSupport {
   }
 
   static String escapeJson(String value) {
-    return value
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "");
+    return value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
   }
 
   static String truncate(String value, int limit) {
@@ -102,10 +98,7 @@ final class CampaignPublishMessageSupport {
     StringBuilder safe = new StringBuilder(normalized.length());
     for (int i = 0; i < normalized.length(); i++) {
       char c = normalized.charAt(i);
-      if ((c >= 'a' && c <= 'z')
-          || (c >= '0' && c <= '9')
-          || c == '-'
-          || c == '_') {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_') {
         safe.append(c);
       }
     }

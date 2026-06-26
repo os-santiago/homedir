@@ -59,7 +59,8 @@ public class AdminBackupResource {
   String dataDirPath;
 
   private static final Logger LOG = Logger.getLogger(AdminBackupResource.class);
-  private static final Pattern BACKUP_VERSION = Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
+  private static final Pattern BACKUP_VERSION =
+      Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
 
   private boolean canViewAdminBackoffice() {
     return AdminUtils.canViewAdminBackoffice(identity);
@@ -101,7 +102,9 @@ public class AdminBackupResource {
       String ts = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now());
       String filename = String.format("backup_%s_v%s.zip", ts, appVersion);
       LOG.infov("Generated backup {0}", filename);
-      return Response.ok(data).header("Content-Disposition", "attachment; filename=" + filename).build();
+      return Response.ok(data)
+          .header("Content-Disposition", "attachment; filename=" + filename)
+          .build();
     } catch (Exception e) {
       LOG.error("Failed to generate backup", e);
       return Response.serverError()
@@ -122,18 +125,23 @@ public class AdminBackupResource {
     }
     if (file == null || file.size() == 0) {
       LOG.warn("No file uploaded for restore");
-      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo inválido.").build())
+      return Response.seeOther(
+              UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo inválido.").build())
           .build();
     }
     String fileName = file.fileName();
     if (fileName == null || !fileName.endsWith(".zip")) {
       LOG.warnf("Invalid backup type: %s", fileName);
-      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
+      return Response.seeOther(
+              UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
           .build();
     }
     if (!isCompatibleVersion(fileName)) {
       LOG.warnf("Incompatible backup version: %s (app=%s)", fileName, appVersion);
-      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Versión incompatible.").build())
+      return Response.seeOther(
+              UriBuilder.fromPath(redirect)
+                  .queryParam("msg", "\u274c Versión incompatible.")
+                  .build())
           .build();
     }
     java.nio.file.Path dataDir = resolveDataDir();
@@ -143,7 +151,10 @@ public class AdminBackupResource {
       long size = file.size();
       if (free < size) {
         LOG.warn("Not enough disk space for restore");
-        return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Espacio insuficiente.").build())
+        return Response.seeOther(
+                UriBuilder.fromPath(redirect)
+                    .queryParam("msg", "\u274c Espacio insuficiente.")
+                    .build())
             .build();
       }
 
@@ -157,11 +168,13 @@ public class AdminBackupResource {
       speakerService.reload();
       cfpSubmissionService.reloadFromDisk();
       LOG.infof("Backup restored from %s (files=%d)", fileName, restoredFiles);
-      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u2705 Backup restaurado.").build())
+      return Response.seeOther(
+              UriBuilder.fromPath(redirect).queryParam("msg", "\u2705 Backup restaurado.").build())
           .build();
     } catch (Exception e) {
       LOG.error("Failed to restore backup", e);
-      return Response.seeOther(UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Error al restaurar.").build())
+      return Response.seeOther(
+              UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Error al restaurar.").build())
           .build();
     }
   }
@@ -178,7 +191,8 @@ public class AdminBackupResource {
     if (appParts.length < 2 || backupParts.length < 2) {
       return false;
     }
-    boolean sameMajorMinor = appParts[0].equals(backupParts[0]) && appParts[1].equals(backupParts[1]);
+    boolean sameMajorMinor =
+        appParts[0].equals(backupParts[0]) && appParts[1].equals(backupParts[1]);
     if (!sameMajorMinor) {
       return false;
     }

@@ -12,23 +12,24 @@ import jakarta.ws.rs.core.MediaType;
 @PermitAll
 public class SeoResource {
 
-    @CheckedTemplate
-    static class Templates {
-        static native TemplateInstance robots();
-        static native TemplateInstance sitemap();
-    }
+  @CheckedTemplate
+  static class Templates {
+    static native TemplateInstance robots();
 
-    @GET
-    @Path("/robots.txt")
-    @Produces(MediaType.TEXT_PLAIN)
-    public TemplateInstance robots() {
-        return Templates.robots();
-    }
+    static native TemplateInstance sitemap();
+  }
 
-    @GET
-    @Path("/sitemap.xml")
-    @Produces(MediaType.APPLICATION_XML)
-    public TemplateInstance sitemap() {
-        return Templates.sitemap();
-    }
+  @GET
+  @Path("/robots.txt")
+  @Produces(MediaType.TEXT_PLAIN)
+  public TemplateInstance robots() {
+    return Templates.robots();
+  }
+
+  @GET
+  @Path("/sitemap.xml")
+  @Produces(MediaType.APPLICATION_XML)
+  public TemplateInstance sitemap() {
+    return Templates.sitemap();
+  }
 }
