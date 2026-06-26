@@ -73,3 +73,7 @@ coverage.xml
 # Local Quarkus application data
 quarkus-app/data/
 data/
+
+# WOS runtime state and local workspace config
+.workspace-os/
+workspace.sources.json
