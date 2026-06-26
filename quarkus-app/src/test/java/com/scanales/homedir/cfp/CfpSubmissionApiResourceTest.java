@@ -1157,6 +1157,37 @@ public class CfpSubmissionApiResourceTest {
 
   @Test
   @TestSecurity(user = "admin@example.org")
+  void adminCanPromoteAcceptedSubmissionBeforeResultsPublished() {
+    CfpSubmission created =
+        cfpSubmissionService.create(
+            "member@example.com",
+            "Member Name",
+            new CfpSubmissionService.CreateRequest(
+                EVENT_ID,
+                "Accepted but results not published",
+                "Summary",
+                "Abstract",
+                "intermediate",
+                "talk",
+                30,
+                "en",
+                "developer-experience-innersource",
+                List.of(),
+                List.of()));
+
+    cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "approved");
+
+    given()
+        .when()
+        .post("/api/events/" + EVENT_ID + "/cfp/submissions/" + created.id() + "/promote")
+        .then()
+        .statusCode(200)
+        .body("created_speaker", equalTo(true))
+        .body("created_talk", equalTo(true));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.org")
   void invalidStatusReturnsBadRequest() {
     CfpSubmission created =
         cfpSubmissionService.create(

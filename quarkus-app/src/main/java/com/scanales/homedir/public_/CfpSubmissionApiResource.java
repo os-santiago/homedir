@@ -786,7 +786,8 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
     }
     CfpSubmission submission = existing.get();
-    if (cfpSubmissionService.visibleStatus(submission) != CfpSubmissionStatus.ACCEPTED) {
+    CfpSubmissionStatus internalStatus = submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
+    if (internalStatus != CfpSubmissionStatus.ACCEPTED) {
       return Response.status(Response.Status.CONFLICT).entity(Map.of("error", "submission_not_accepted")).build();
     }
 
