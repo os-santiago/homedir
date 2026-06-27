@@ -1,5 +1,8 @@
 {#include layout/main activePage="community"}
 {#title}{pageTitle}{/title}
+{@java.lang.Boolean previewMode}
+{@java.lang.String previewUserId}
+{@java.lang.String resolvedLocaleCode}
 
 {#body}
 <link rel="stylesheet" href="/css/wrapped.css">
@@ -26,6 +29,24 @@
             <p class="wrapped-premium-chip">{i18n:public_profile_reward_glow_active}</p>
             {/if}
         </header>
+
+        {#if previewMode}
+        <div class="wrapped-card wrapped-card-full" style="margin-bottom: 1rem; border: 1px dashed rgba(255, 255, 255, 0.18);">
+            <span class="wrapped-stat-label">{#if resolvedLocaleCode == 'es'}Vista previa de usuario{#else}User preview{/if}</span>
+            <p class="wrapped-subtext" style="margin: 0.4rem 0 0;">
+                {#if resolvedLocaleCode == 'es'}
+                Estás viendo este perfil como si fueras el usuario {previewUserId}.
+                {#else}
+                You are viewing this profile as user {previewUserId}.
+                {/if}
+            </p>
+            <div class="wrapped-meta-row" style="margin-top: 0.75rem;">
+                <a href="/u/preview?preview_user_id={previewUserId}" class="wrapped-btn-secondary" target="_blank" rel="noopener noreferrer">
+                    {#if resolvedLocaleCode == 'es'}Abrir vista previa directa{#else}Open direct preview{/if}
+                </a>
+            </div>
+        </div>
+        {/if}
 
         <!-- Bento Grid -->
         <div class="wrapped-grid">
@@ -94,7 +115,7 @@
                         </span>
                     </div>
                     <div class="wrapped-list-item">
-                        <span class="wrapped-item-title">{#if localeCode == 'es'}Ruta reputacional{#else}Reputation path{/if}</span>
+                        <span class="wrapped-item-title">{#if resolvedLocaleCode == 'es'}Ruta reputacional{#else}Reputation path{/if}</span>
                         <span class="wrapped-item-xp">
                             {#switch reputationSummary.reputationRole}
                             {#case 'builder'}{i18n:public_profile_reputation_role_builder}{/case}
@@ -107,9 +128,9 @@
                         </span>
                     </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
-                        <span class="wrapped-item-title">{#if localeCode == 'es'}Narrativa pública{#else}Public narrative{/if}</span>
+                        <span class="wrapped-item-title">{#if resolvedLocaleCode == 'es'}Narrativa pública{#else}Public narrative{/if}</span>
                         <span class="wrapped-subtext">
-                            {#if localeCode == 'es'}
+                            {#if resolvedLocaleCode == 'es'}
                                 {#switch reputationSummary.reputationRole}
                                 {#case 'builder'}Reconocido por construir y publicar contribuciones útiles dentro de HomeDir.{/case}
                                 {#case 'helper'}Reconocido por ayudar a otras personas y ganarse la confianza de la comunidad.{/case}
@@ -131,9 +152,9 @@
                         </span>
                     </div>
                     <div class="wrapped-list-item">
-                        <span class="wrapped-item-title">{#if localeCode == 'es'}Impacto comunitario{#else}Community impact{/if}</span>
+                        <span class="wrapped-item-title">{#if resolvedLocaleCode == 'es'}Impacto comunitario{#else}Community impact{/if}</span>
                         <span class="wrapped-item-xp">
-                            {#if localeCode == 'es'}
+                            {#if resolvedLocaleCode == 'es'}
                                 {reputationSummary.recognizedSignalsCount} señales reconocidas por la comunidad
                             {#else}
                                 {reputationSummary.recognizedSignalsCount} community-recognized signals
@@ -159,11 +180,11 @@
                         </div>
                     </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
-                        <span class="wrapped-item-title">{#if localeCode == 'es'}Posicionamiento activo{#else}Active placements{/if}</span>
+                        <span class="wrapped-item-title">{#if resolvedLocaleCode == 'es'}Posicionamiento activo{#else}Active placements{/if}</span>
                         <div class="wrapped-meta-row">
                             {#for placement in reputationSummary.activePlacements}
                             <span class="wrapped-badge-pill">
-                                {#if localeCode == 'es'}
+                                {#if resolvedLocaleCode == 'es'}
                                     {#switch placement.type}
                                     {#case 'category'}
                                         {#switch placement.categoryKey}
@@ -196,16 +217,16 @@
                                 {/if}
                             </span>
                             {#else}
-                            <span class="wrapped-empty-msg">{#if localeCode == 'es'}Aún no hay posicionamientos activos.{#else}No active placements yet.{/if}</span>
+                            <span class="wrapped-empty-msg">{#if resolvedLocaleCode == 'es'}Aún no hay posicionamientos activos.{#else}No active placements yet.{/if}</span>
                             {/for}
                         </div>
                     </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
-                        <span class="wrapped-item-title">{#if localeCode == 'es'}Contribuciones reconocidas{#else}Recognized contributions{/if}</span>
+                        <span class="wrapped-item-title">{#if resolvedLocaleCode == 'es'}Contribuciones reconocidas{#else}Recognized contributions{/if}</span>
                         <div class="wrapped-meta-row">
                             {#for signal in reputationSummary.recognizedSignals}
                             <span class="wrapped-badge-pill">
-                                {#if localeCode == 'es'}
+                                {#if resolvedLocaleCode == 'es'}
                                     {#switch signal.recognitionLabel}
                                     {#case 'recommended'}Recomendado{/case}
                                     {#case 'helpful'}Útil{/case}
@@ -234,14 +255,14 @@
                                 {/if}
                             </span>
                             {#else}
-                            <span class="wrapped-empty-msg">{#if localeCode == 'es'}Aún no hay contribuciones reconocidas.{#else}No recognized contributions yet.{/if}</span>
+                            <span class="wrapped-empty-msg">{#if resolvedLocaleCode == 'es'}Aún no hay contribuciones reconocidas.{#else}No recognized contributions yet.{/if}</span>
                             {/for}
                         </div>
                     </div>
                     <div class="wrapped-list-item wrapped-list-item-stack">
-                        <span class="wrapped-item-title">{#if localeCode == 'es'}Cómo crecer desde aquí{#else}How to grow from here{/if}</span>
+                        <span class="wrapped-item-title">{#if resolvedLocaleCode == 'es'}Cómo crecer desde aquí{#else}How to grow from here{/if}</span>
                         <p class="wrapped-subtext">
-                            {#if localeCode == 'es'}
+                            {#if resolvedLocaleCode == 'es'}
                                 {#switch reputationSummary.reputationRole}
                                 {#case 'builder'}Publica una nueva contribución útil y busca reconocimiento de la comunidad para reforzar tu camino builder.{/case}
                                 {#case 'helper'}Reconoce aportes valiosos, responde con contexto útil y mantén señales de confianza cada semana.{/case}
@@ -382,10 +403,10 @@
             {#if !selectionLocked && participationHistory && participationHistory.size() > 0}
             <div class="wrapped-card wrapped-card-full{#if hasProfileGlow} wrapped-card-glow{/if}">
                 <span class="wrapped-stat-label">
-                    {#if localeCode == 'es'}Historial de Participación{#else}Participation History{/if}
+                    {#if resolvedLocaleCode == 'es'}Historial de Participación{#else}Participation History{/if}
                 </span>
                 <p class="wrapped-subtext">
-                    {#if localeCode == 'es'}
+                    {#if resolvedLocaleCode == 'es'}
                     Participaciones en eventos como speaker o voluntario a lo largo del tiempo
                     {#else}
                     Event participation as speaker or volunteer over time
@@ -397,9 +418,9 @@
                         <div class="wrapped-meta-row">
                             <span class="wrapped-badge-pill">
                                 {#if item.type == 'CFP'}
-                                    {#if localeCode == 'es'}Speaker{#else}Speaker{/if}
+                                    {#if resolvedLocaleCode == 'es'}Speaker{#else}Speaker{/if}
                                 {#else}
-                                    {#if localeCode == 'es'}Voluntario{#else}Volunteer{/if}
+                                    {#if resolvedLocaleCode == 'es'}Voluntario{#else}Volunteer{/if}
                                 {/if}
                             </span>
                         </div>
@@ -408,7 +429,7 @@
                     </div>
                     {#else}
                     <p class="wrapped-empty-msg">
-                        {#if localeCode == 'es'}Aún no hay participaciones registradas.{#else}No participation recorded yet.{/if}
+                        {#if resolvedLocaleCode == 'es'}Aún no hay participaciones registradas.{#else}No participation recorded yet.{/if}
                     </p>
                     {/for}
                 </div>

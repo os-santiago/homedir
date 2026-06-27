@@ -4,6 +4,9 @@
 {@com.scanales.homedir.cfp.CfpFormCatalog cfpCatalog}
 {@com.scanales.homedir.cfp.CfpTimelineView cfpTimeline}
 {@java.lang.Boolean cfpTestingModeEnabled}
+{@java.lang.Boolean cfpPreviewMode}
+{@java.lang.String cfpPreviewUserId}
+{@java.lang.String resolvedLocaleCode}
 {#title}
 {#if event}
 {i18n:events_cfp_page_title(event.title)}
@@ -112,6 +115,25 @@
     <p class="section-subtitle">{i18n:events_cfp_heading}</p>
   </div>
   <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
+  {#if cfpPreviewMode}
+  <div class="cfp-preview-banner" role="note">
+    <div>
+      <p class="cfp-preview-title">{#if resolvedLocaleCode == 'es'}Vista previa de usuario{#else}User preview{/if}</p>
+      <p class="cfp-preview-desc">
+        {#if resolvedLocaleCode == 'es'}
+        Estás viendo este CFP como si fueras {cfpPreviewUserId}.
+        {#else}
+        You are viewing this CFP as if you were {cfpPreviewUserId}.
+        {/if}
+      </p>
+    </div>
+    <div class="cfp-preview-actions">
+      <a href="/u/preview?preview_user_id={cfpPreviewUserId}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+        {#if resolvedLocaleCode == 'es'}Abrir perfil del speaker{#else}Open speaker profile{/if}
+      </a>
+    </div>
+  </div>
+  {/if}
   {#if !cfpTestingModeEnabled}
   <div id="cfpLiveBanner" class="cfp-live-banner" role="note" aria-label="{i18n:events_cfp_live_aria}" hidden>
     <span class="cfp-live-badge">{#if cfpTimeline && cfpTimeline.activeStage}
@@ -219,7 +241,16 @@
     </div>
     {/if}
 
-    {#if userAuthenticated}
+    {#if cfpPreviewMode}
+    <p class="cfp-locked-message" role="status">
+      {#if resolvedLocaleCode == 'es'}
+      La vista previa es de solo lectura. Usa el perfil abierto para revisar lo que ve ese usuario.
+      {#else}
+      Preview mode is read-only. Open the speaker profile to inspect what this user sees.
+      {/if}
+    </p>
+    {/if}
+    {#if !cfpPreviewMode && userAuthenticated}
     {#if !cfpTimeline || !cfpTimeline.cfpWindowOpen}
     <p class="cfp-locked-message" role="status">{i18n:events_cfp_form_locked_desc}</p>
     {/if}
@@ -293,12 +324,13 @@
         <button id="cfpSubmitBtn" type="button" class="btn btn-primary">{i18n:events_cfp_form_submit}</button>
         <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_autofill_last}</button>
       </div>
-      <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
-      <p id="cfpAvailabilityHint" class="form-hint cfp-quota-hint"></p>
+    <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
+    <p id="cfpAvailabilityHint" class="form-hint cfp-quota-hint"></p>
       </fieldset>
     </form>
     <p id="cfpFeedback" class="form-hint cfp-feedback" role="status" aria-live="polite" hidden></p>
-    {#else}
+    {/if}
+    {#if !cfpPreviewMode && !userAuthenticated}
     <p class="section-subtitle">{i18n:events_cfp_login_required}</p>
     <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary" data-login-return-current="true">{i18n:events_cfp_login_btn}</a>
     {/if}
@@ -308,11 +340,14 @@
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
       <div>
         <h2 style="margin: 0;">{i18n:events_cfp_my_submissions_title}</h2>
-        {#if userAuthenticated}
+        {#if cfpPreviewMode}
+        <p id="cfpCountLabel" class="form-hint cfp-count-label">{#if resolvedLocaleCode == 'es'}Vista previa{#else}Preview{/if}</p>
+        {/if}
+        {#if !cfpPreviewMode && userAuthenticated}
         <p id="cfpCountLabel" class="form-hint cfp-count-label">0/2 {i18n:events_cfp_proposals_unit}</p>
         {/if}
       </div>
-      {#if userAuthenticated}
+      {#if userAuthenticated || cfpPreviewMode}
       <button id="cfpReloadBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_refresh}</button>
       {/if}
     </div>
@@ -349,9 +384,13 @@
       <p><span class="cfp-status-badge cfp-status-rejected">{i18n:events_cfp_status_rejected}</span> {i18n:events_cfp_status_desc_rejected}</p>
     </div>
     <div id="cfpMineList" class="cfp-submission-list" style="margin-top: 0.9rem;">
-      {#if userAuthenticated}
+      {#if cfpPreviewMode}
+      <p class="form-hint">{#if resolvedLocaleCode == 'es'}Cargando vista previa...{#else}Loading preview...{/if}</p>
+      {/if}
+      {#if !cfpPreviewMode && userAuthenticated}
       <p class="form-hint">{i18n:events_cfp_loading}</p>
-      {#else}
+      {/if}
+      {#if !cfpPreviewMode && !userAuthenticated}
       <p class="form-hint">{i18n:events_cfp_login_to_view}</p>
       {/if}
     </div>
@@ -377,6 +416,35 @@
   .cfp-view-switch {
     display: flex;
     gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .cfp-preview-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin: 0 0 1rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .cfp-preview-title {
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .cfp-preview-desc {
+    margin: 0.35rem 0 0;
+  }
+
+  .cfp-preview-actions {
+    display: flex;
+    gap: 0.5rem;
     flex-wrap: wrap;
   }
 
@@ -725,6 +793,8 @@
 <script>
   (() => {
     const isAuth = {#if userAuthenticated}true{#else}false{/if};
+    const previewMode = {#if cfpPreviewMode}true{#else}false{/if};
+    const previewUserId = "{cfpPreviewUserId}";
     const eventId = "{event.id}";
     const endpoint = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions";
     const configEndpoint = endpoint + "/config";
@@ -771,8 +841,11 @@
     showNewBtn?.addEventListener("click", () => setActiveSection("new"));
     showMineBtn?.addEventListener("click", () => setActiveSection("mine"));
     setActiveSection(window.location.hash === "#my-proposals" ? "mine" : "new");
+    if (previewMode) {
+      setActiveSection("mine");
+    }
 
-    if (!isAuth) {
+    if (!isAuth && !previewMode) {
       return;
     }
 
@@ -1497,6 +1570,9 @@
         limit: String(minePageLimit),
         offset: String(mineOffset)
       });
+      if (previewMode && previewUserId) {
+        params.set("preview_user_id", previewUserId);
+      }
       return endpoint + "/mine?" + params.toString();
     }
 
